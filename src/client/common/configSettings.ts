@@ -35,6 +35,7 @@ export interface ILintingSettings {
     maxNumberOfProblems: number;
     pylintCategorySeverity: IPylintCategorySeverity;
     pylintPath: string;
+    pylintCLIArgs: string;
     pep8Path: string;
     flake8Path: string;
     pydocStylePath: string;
