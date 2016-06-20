@@ -36,6 +36,8 @@ export class PythonDebugger extends DebugSession {
     private debuggerLoaded: Promise<any>;
     private debuggerLoadedPromiseResolve: () => void;
     private debugClient: DebugClient;
+    private configurationDone: Promise<any>;
+    private configurationDonePromiseResolve: () => void;
 
     public constructor(debuggerLinesStartAt1: boolean, isServer: boolean) {
         super(debuggerLinesStartAt1, isServer === true);
@@ -47,6 +49,7 @@ export class PythonDebugger extends DebugSession {
     protected initializeRequest(response: DebugProtocol.InitializeResponse, args: DebugProtocol.InitializeRequestArguments): void {
         response.body.supportsEvaluateForHovers = true;
         response.body.supportsConditionalBreakpoints = true;
+        response.body.supportsConfigurationDoneRequest = true;
         response.body.supportsEvaluateForHovers = false;
         response.body.supportsFunctionBreakpoints = false;
         response.body.exceptionBreakpointFilters = [
@@ -131,8 +134,12 @@ export class PythonDebugger extends DebugSession {
         if (this.launchArgs && this.launchArgs.stopOnEntry === true) {
             this.sendEvent(new StoppedEvent("entry", pyThread.Id));
         }
+        else if (this.launchArgs && this.launchArgs.stopOnEntry === false) {
+            this.configurationDone.then(() => {
+                this.pythonProcess.SendResumeThread(pyThread.Id);
+            });
+        }
         else {
-            // Is this the right place to do this?
             this.pythonProcess.SendResumeThread(pyThread.Id);
         }
     }
@@ -168,6 +175,9 @@ export class PythonDebugger extends DebugSession {
         this.debuggerLoaded = new Promise(resolve => {
             this.debuggerLoadedPromiseResolve = resolve;
         });
+        this.configurationDone = new Promise(resolve => {
+            this.configurationDonePromiseResolve = resolve;
+        });
 
         this.entryResponse = response;
         let that = this;
@@ -199,6 +209,14 @@ export class PythonDebugger extends DebugSession {
             this.sendEvent(new OutputEvent(error + "\n", "stderr"));
             this.sendErrorResponse(that.entryResponse, 2000, error);
         });
+    }
+    protected configurationDoneRequest(response: DebugProtocol.ConfigurationDoneResponse, args: DebugProtocol.ConfigurationDoneArguments): void {
+        // Tell debugger we have loaded the breakpoints
+        if (this.configurationDonePromiseResolve) {
+            this.configurationDonePromiseResolve();
+            this.configurationDonePromiseResolve = null;
+        }
+        this.sendResponse(response);
     }
     private onBreakpointHit(pyThread: IPythonThread, breakpointId: number) {
         // Break only if the breakpoint exists and it is enabled
@@ -294,6 +312,12 @@ export class PythonDebugger extends DebugSession {
                 };
 
                 this.sendResponse(response);
+
+                // Tell debugger we have loaded the breakpoints
+                if (this.configurationDonePromiseResolve) {
+                    this.configurationDonePromiseResolve();
+                    this.configurationDonePromiseResolve = null;
+                }
             });
         });
     }
