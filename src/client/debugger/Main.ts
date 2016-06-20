@@ -45,6 +45,9 @@ export class PythonDebugger extends DebugSession {
         this._pythonStackFrames = new Handles<IPythonStackFrame>();
         this.registeredBreakpoints = new Map<number, IPythonBreakpoint>();
         this.registeredBreakpointsByFileName = new Map<string, IPythonBreakpoint[]>();
+        this.debuggerLoaded = new Promise(resolve => {
+            this.debuggerLoadedPromiseResolve = resolve;
+        });
     }
     protected initializeRequest(response: DebugProtocol.InitializeResponse, args: DebugProtocol.InitializeRequestArguments): void {
         response.body.supportsEvaluateForHovers = true;
@@ -172,9 +175,6 @@ export class PythonDebugger extends DebugSession {
         this.launchArgs = args;
         this.debugClient = CreateLaunchDebugClient(args, this);
 
-        this.debuggerLoaded = new Promise(resolve => {
-            this.debuggerLoadedPromiseResolve = resolve;
-        });
         this.configurationDone = new Promise(resolve => {
             this.configurationDonePromiseResolve = resolve;
         });
@@ -193,11 +193,6 @@ export class PythonDebugger extends DebugSession {
         this.sendEvent(new TelemetryEvent(telemetryContracts.Debugger.Attach));
         this.attachArgs = args;
         this.debugClient = CreateAttachDebugClient(args, this);
-
-        this.debuggerLoaded = new Promise(resolve => {
-            this.debuggerLoadedPromiseResolve = resolve;
-        });
-
         this.entryResponse = response;
         let that = this;
 
