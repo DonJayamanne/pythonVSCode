@@ -56,7 +56,10 @@ suite("Formatting", () => {
                 }
                 assert.equal(textEditor.document.getText(), data, "Formatted text is not the same");
             });
-        }).then(done, done);
+        }).then(done, error => {
+            done();
+            assert.ok(false, error);
+        });
     });
 
     test("Yapf", done => {
@@ -80,10 +83,12 @@ suite("Formatting", () => {
                 if (error) {
                     return assert.fail(error, "", "Failed to read formatted file");
                 }
-                var x = textEditor.document.getText();
                 assert.equal(textEditor.document.getText(), data, "Formatted text is not the same");
             });
-        }).then(done, done);
+        }).then(done, error => {
+            done();
+            assert.ok(false, error);
+        });
     });
 
     test("Yapf autoformat on save", done => {
@@ -115,6 +120,9 @@ suite("Formatting", () => {
             });
         }).then(() => {
             assert.equal(textDocument.getText(), formattedFileContents, "Formatted contents are not the same");
-        }).then(done, done);
+        }).then(done, error => {
+            done();
+            assert.ok(false, error);
+        });
     });
 });
