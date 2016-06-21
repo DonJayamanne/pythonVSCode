@@ -1,10 +1,9 @@
 language: python
-
+sudo: required
 os: 
   - linux
 python:
   - "2.7"
-  - "3.5"
 
 # Perform the manual steps on osx to install python3 and activate venv
 before_install:

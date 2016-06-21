@@ -35,10 +35,6 @@ suite("Linting", () => {
         }, done);
     });
 
-    // beforeEach(() => {
-    //     pythonSettings.linting.enabled = true;
-    //     pythonSettings.linting.pylintEnabled = true;
-    // });
     test("Enable Pylint", () => {
         pythonSettings.linting.pylintEnabled = true;
         let linter = new pyLint.Linter(ch, __dirname);
