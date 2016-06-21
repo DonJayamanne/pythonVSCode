@@ -57,7 +57,6 @@ suite("Linting", () => {
         assert.equal(pythonSettings.linting.pep8Enabled, linter.isEnabled());
     });
     test("PyLint", done => {
-        pythonSettings.pythonPath = "/Library/Frameworks/Python.framework/Versions/3.5/bin/python3";
         let linter = new pyLint.Linter(ch, __dirname);
         linter.runLinter(pyLintFileToLint, pylintFileToLintLines).then(messages => {
             return execPythonFile(pythonSettings.pythonPath, ["--version"], __dirname, false).then(data => {
@@ -101,7 +100,6 @@ suite("Linting", () => {
         }).then(done, done);
     });
     test("PyLint with config in root", done => {
-        pythonSettings.pythonPath = "/Library/Frameworks/Python.framework/Versions/3.5/bin/python3";
         let rootDirContainingConfig = path.join(__dirname, "..", "..", "src", "test", "pythonFiles", "linting", "pylintcfg");
         let linter = new pyLint.Linter(ch, rootDirContainingConfig);
         linter.runLinter(pyLintFileToLint, pylintFileToLintLines).then(messages => {
