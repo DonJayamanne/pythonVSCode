@@ -1,7 +1,7 @@
-//
+
 // Note: This example test is leveraging the Mocha test framework.
 // Please refer to their documentation on https://mochajs.org/ for help.
-//
+
 
 // The module 'assert' provides assertion methods from node
 import * as assert from "assert";
@@ -14,18 +14,15 @@ import {YapfFormatter} from "../client/formatters/yapfFormatter";
 import * as path from "path";
 import * as settings from "../client/common/configSettings";
 import * as fs from "fs-extra";
+import {initialize} from "./initialize";
 
 let pythonSettings = settings.PythonSettings.getInstance();
 let ch = vscode.window.createOutputChannel("Tests");
 let pythoFilesPath = path.join(__dirname, "..", "..", "src", "test", "pythonFiles", "formatting");
 
 suite("Formatting", () => {
-    setup(() => {
-        return new Promise<any>(resolve => {
-            setTimeout(function () {
-                resolve();
-            }, 1000);
-        });
+    setup(done => {
+        initialize().then(() => done(), done);
     });
     teardown(() => {
         if (vscode.window.activeTextEditor) {
@@ -56,10 +53,7 @@ suite("Formatting", () => {
                 }
                 assert.equal(textEditor.document.getText(), data, "Formatted text is not the same");
             });
-        }).then(done, error => {
-            done();
-            assert.ok(false, error);
-        });
+        }).then(done, done);
     });
 
     test("Yapf", done => {
@@ -85,10 +79,7 @@ suite("Formatting", () => {
                 }
                 assert.equal(textEditor.document.getText(), data, "Formatted text is not the same");
             });
-        }).then(done, error => {
-            done();
-            assert.ok(false, error);
-        });
+        }).then(done, done);
     });
 
     test("Yapf autoformat on save", done => {
@@ -120,9 +111,6 @@ suite("Formatting", () => {
             });
         }).then(() => {
             assert.equal(textDocument.getText(), formattedFileContents, "Formatted contents are not the same");
-        }).then(done, error => {
-            done();
-            assert.ok(false, error);
-        });
+        }).then(done, done);
     });
 });
