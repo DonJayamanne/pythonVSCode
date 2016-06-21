@@ -15,12 +15,12 @@ export function activateUnitTestProvider(context: vscode.ExtensionContext, setti
     pythonOutputChannel = outputChannel;
     vscode.commands.registerCommand("python.runtests", () => runUnitTests());
 
-    testProviders.push(new unittest.PythonUnitTest(settings, outputChannel));
-    testProviders.push(new nosetest.NoseTests(settings, outputChannel));
-    testProviders.push(new pytest.PyTestTests(settings, outputChannel));
+    testProviders.push(new unittest.PythonUnitTest(settings, outputChannel, vscode.workspace.rootPath));
+    testProviders.push(new nosetest.NoseTests(settings, outputChannel, vscode.workspace.rootPath));
+    testProviders.push(new pytest.PyTestTests(settings, outputChannel, vscode.workspace.rootPath));
 }
 
-function runUnitTests(filePath: string = "") {
+function runUnitTests() {
     pythonOutputChannel.clear();
 
     let promises = testProviders.map(t => {
@@ -28,7 +28,7 @@ function runUnitTests(filePath: string = "") {
             return Promise.resolve();
         }
         let delays = new telemetryHelper.Delays();
-        t.runTests(filePath).then(() => {
+        t.runTests().then(() => {
             delays.stop();
             telemetryHelper.sendTelemetryEvent(telemetryContracts.Commands.UnitTests, { UnitTest_Provider: t.Id }, delays.toMeasures());
         });

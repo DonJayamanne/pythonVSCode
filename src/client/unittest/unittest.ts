@@ -6,29 +6,21 @@ import * as settings from "./../common/configSettings";
 import {OutputChannel} from "vscode";
 
 export class PythonUnitTest extends baseTestRunner.BaseTestRunner {
-    constructor(pythonSettings: settings.IPythonSettings, outputChannel: OutputChannel) {
-        super("unittest", pythonSettings, outputChannel, true);
+    constructor(pythonSettings: settings.IPythonSettings, outputChannel: OutputChannel, workspaceRoot: string) {
+        super("unittest", pythonSettings, outputChannel, true, workspaceRoot);
     }
 
     public isEnabled(): boolean {
         return this.pythonSettings.unitTest.unittestEnabled;
     }
-    public runTests(filePath: string = ""): Promise<any> {
+    public runTests(): Promise<any> {
         if (!this.pythonSettings.unitTest.unittestEnabled) {
             return Promise.resolve();
         }
 
         let ptyhonPath = this.pythonSettings.pythonPath;
-        let unittestPath = " unittest";
-        let cmdLine = "";
-        if (typeof filePath !== "string" || filePath.length === 0) {
-            cmdLine = `${ptyhonPath} -m unittest discover`;
-        }
-        else {
-            cmdLine = `${ptyhonPath} -m unittest ${filePath}`;
-        }
         return new Promise<any>(resolve => {
-            this.run(cmdLine).then(messages => {
+            this.run(ptyhonPath, ["-m", "unittest", "discover"]).then(messages => {
                 resolve(messages);
             });
         });

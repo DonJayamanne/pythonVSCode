@@ -6,21 +6,20 @@ import * as settings from "./../common/configSettings";
 import {OutputChannel} from "vscode";
 
 export class NoseTests extends baseTestRunner.BaseTestRunner {
-    constructor(pythonSettings: settings.IPythonSettings, outputChannel: OutputChannel) {
-        super("nosetests", pythonSettings, outputChannel, true);
+    constructor(pythonSettings: settings.IPythonSettings, outputChannel: OutputChannel, workspaceRoot: string) {
+        super("nosetests", pythonSettings, outputChannel, true, workspaceRoot);
     }
     public isEnabled(): boolean {
         return this.pythonSettings.unitTest.nosetestsEnabled;
     }
-    public runTests(filePath: string = ""): Promise<any> {
+    public runTests(): Promise<any> {
         if (!this.pythonSettings.unitTest.nosetestsEnabled) {
             return Promise.resolve();
         }
 
         let nosetestsPath = this.pythonSettings.unitTest.nosetestPath;
-        let cmdLine = `${nosetestsPath} ${filePath}`;
         return new Promise<any>(resolve => {
-            this.run(cmdLine).then(messages=> {
+            this.run(nosetestsPath, []).then(messages => {
                 resolve(messages);
             });
         });
