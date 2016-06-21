@@ -97,7 +97,7 @@ suite("Linting", () => {
                     assert.equal(1, similarMessages.length, "Error not found, " + JSON.stringify(msg));
                 });
             });
-        }).then(done, done);
+        }).then(() => done(), done);
     });
     test("PyLint with config in root", done => {
         let rootDirContainingConfig = path.join(__dirname, "..", "..", "src", "test", "pythonFiles", "linting", "pylintcfg");
@@ -126,6 +126,6 @@ suite("Linting", () => {
                     assert.equal(1, similarMessages.length, "Error not found, " + JSON.stringify(msg));
                 });
             });
-        }).then(done, done);
+        }).then(() => done(), done);
     });
 });
