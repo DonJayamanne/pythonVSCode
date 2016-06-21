@@ -35,12 +35,11 @@ export function getPythonInterpreterDirectory(): Promise<string> {
     });
 }
 
-const filesThrowingENOENTErrors: string[] = [];
+const IN_VALID_FILE_PATHS: Map<string, boolean> = new Map<string, boolean>();
 
 export function execPythonFile(file: string, args: string[], cwd: string, includeErrorAsResponse: boolean = false): Promise<string> {
     // Whether to try executing the command without prefixing it with the python path
     let tryUsingCommandArg = false;
-
     let fullyQualifiedFilePromise = getPythonInterpreterDirectory().then(pyPath => {
         let pythonIntepreterPath = pyPath;
         let fullyQualifiedFile = file;
@@ -50,7 +49,7 @@ export function execPythonFile(file: string, args: string[], cwd: string, includ
             fullyQualifiedFile = pythonIntepreterPath + (pythonIntepreterPath.endsWith(path.sep) ? "" : path.sep) + file;
 
             // Check if we know whether this trow ENONE errors
-            if (filesThrowingENOENTErrors.indexOf(fullyQualifiedFile) >= 0) {
+            if (IN_VALID_FILE_PATHS.has(fullyQualifiedFile)) {
                 fullyQualifiedFile = file;
             }
             else {
@@ -63,8 +62,12 @@ export function execPythonFile(file: string, args: string[], cwd: string, includ
 
     if (tryUsingCommandArg) {
         return fullyQualifiedFilePromise.catch(error => {
-            // Re-execute the file, without the python path prefix
-            return execFileInternal(file, args, cwd, includeErrorAsResponse, true);
+            if (error && (<any>error).code === "ENOENT") {
+                // Re-execute the file, without the python path prefix
+                // Only if we know that the previous one failed with ENOENT
+                return execFileInternal(file, args, cwd, includeErrorAsResponse, true);
+            }
+            Promise.reject(error);
         });
     }
     else {
@@ -75,11 +78,16 @@ export function execPythonFile(file: string, args: string[], cwd: string, includ
 function execFileInternal(file: string, args: string[], cwd: string, includeErrorAsResponse: boolean, rejectIfENOENTErrors: boolean = false): Promise<string> {
     return new Promise<string>((resolve, reject) => {
         child_process.execFile(file, args, { cwd: cwd }, (error, stdout, stderr) => {
+            // pylint:
+            //      In the case of pylint we have some messages (such as config file not found and using default etc...) being returned in stderr
+            //      These error messages are useless when using pylint   
             if (includeErrorAsResponse && (stdout.length > 0 || stderr.length > 0)) {
                 return resolve(stdout + "\n" + stderr);
             }
             if (error && (<any>error).code === "ENOENT" && rejectIfENOENTErrors) {
-                filesThrowingENOENTErrors.push(file);
+                if (!IN_VALID_FILE_PATHS.has(file)) {
+                    IN_VALID_FILE_PATHS.set(file, true);
+                }
                 return reject(error);
             }
 

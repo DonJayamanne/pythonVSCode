@@ -19,7 +19,7 @@ export class Linter extends baseLinter.BaseLinter {
 
         var flake8Path = this.pythonSettings.linting.flake8Path;
         return new Promise<baseLinter.ILintMessage[]>((resolve, reject) => {
-            this.run(flake8Path, ["--format='%(row)d,%(col)d,%(code)s,%(code)s:%(text)s'", filePath], filePath, txtDocumentLines, this.workspaceRootPath).then(messages => {
+            this.run(flake8Path, ["--format=%(row)d,%(col)d,%(code)s,%(code)s:%(text)s", filePath], filePath, txtDocumentLines, this.workspaceRootPath).then(messages => {
                 //All messages in pep8 are treated as warnings for now
                 messages.forEach(msg => {
                     msg.severity = baseLinter.LintMessageSeverity.Information;
