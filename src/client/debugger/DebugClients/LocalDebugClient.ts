@@ -107,7 +107,7 @@ export class LocalDebugClient extends DebugClient {
                     shebangLines.push("#");
                 }
             });
-            lr.on("end", function() {
+            lr.on("end", function () {
                 // Ensure we always have two lines, even if no shebangLines
                 // This way if ever we get lines numbers in errors for the python file, we have a consistency
                 while (shebangLines.length < MAX_SHEBANG_LINES) {
@@ -140,7 +140,7 @@ export class LocalDebugClient extends DebugClient {
             if (typeof this.args.pythonPath === "string" && this.args.pythonPath.trim().length > 0) {
                 pythonPath = this.args.pythonPath;
             }
-            let environmentVariables = this.args.env ? this.args.env : null;
+            let environmentVariables = this.args.env ? this.args.env : {};
             if (environmentVariables) {
                 for (let setting in process.env) {
                     if (!environmentVariables[setting]) {
@@ -148,7 +148,9 @@ export class LocalDebugClient extends DebugClient {
                     }
                 }
             }
-
+            if (!environmentVariables.hasOwnProperty("PYTHONIOENCODING")) {
+                environmentVariables["PYTHONIOENCODING"] = "UTF-8";
+            }
             let currentFileName = module.filename;
 
             this.getPTVSToolsFilePath().then((ptVSToolsFilePath) => {
