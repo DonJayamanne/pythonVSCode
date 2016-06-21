@@ -3,7 +3,7 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import * as fs from "fs";
-import {sendCommand} from "./../common/childProc";
+import {execPythonFile} from "./../common/utils";
 import * as settings from "./../common/configSettings";
 import {getTextEditsFromPatch, getTempFileWithDocumentContents} from "./../common/editor";
 
@@ -13,9 +13,7 @@ export abstract class BaseFormatter {
 
     public abstract formatDocument(document: vscode.TextDocument, options: vscode.FormattingOptions, token: vscode.CancellationToken): Thenable<vscode.TextEdit[]>;
 
-    protected provideDocumentFormattingEdits(document: vscode.TextDocument, options: vscode.FormattingOptions, token: vscode.CancellationToken, cmdLine: string): Thenable<vscode.TextEdit[]> {
-        // Todo: Save the contents of the file to a temporary file and format that instead saving the actual file
-        // This could unnecessarily trigger other behaviours
+    protected provideDocumentFormattingEdits(document: vscode.TextDocument, options: vscode.FormattingOptions, token: vscode.CancellationToken, command: string, args: string[]): Thenable<vscode.TextEdit[]> {
         this.outputChannel.clear();
 
         // autopep8 and yapf have the ability to read from the process input stream and return the formatted code out of the output stream
@@ -28,7 +26,7 @@ export abstract class BaseFormatter {
             if (token && token.isCancellationRequested) {
                 return [filePath, ""];
             }
-            return Promise.all<string>([Promise.resolve(filePath), sendCommand(cmdLine + ` "${filePath}"`, vscode.workspace.rootPath)]);
+            return Promise.all<string>([Promise.resolve(filePath), execPythonFile(command, args.concat([filePath]), this.workspaceRootPath)]);
         }).then(data => {
             // Delete the temporary file created
             if (tmpFileCreated) {

@@ -64,7 +64,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.languages.registerDocumentSymbolProvider(PYTHON, new PythonSymbolProvider(context)));
 
     context.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider(PYTHON, new PythonFormattingEditProvider(context, formatOutChannel, pythonSettings, vscode.workspace.rootPath)));
-    context.subscriptions.push(new LintProvider(context, lintingOutChannel));
+    context.subscriptions.push(new LintProvider(context, lintingOutChannel, vscode.workspace.rootPath));
 }
 
 // this method is called when your extension is deactivated
