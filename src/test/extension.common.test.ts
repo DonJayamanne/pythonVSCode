@@ -20,13 +20,13 @@ suite("ChildProc", () => {
     test("Standard Response", done => {
         execPythonFile("python", ["-c", "print(1)"], __dirname, false).then(data => {
             assert.ok(data === "1\n");
-       }).then(done, error => { assert.ok(false, error); done(); });
+       }).then(done, done);
     });
     test("Error Response", done => {
         execPythonFile("python", ["-c", "print(1"], __dirname, false).then(data => {
             assert.ok(false);
         }).catch(() => {
             assert.ok(true);
-       }).then(done, error => { assert.ok(false, error); done(); });
+       }).then(done, done);
     });
 });

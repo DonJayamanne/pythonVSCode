@@ -53,7 +53,7 @@ suite("Formatting", () => {
                 }
                 assert.equal(textEditor.document.getText(), data, "Formatted text is not the same");
             });
-       }).then(done, error => { assert.ok(false, error); done(); });
+       }).then(done, done);
     });
 
     test("Yapf", done => {
@@ -79,7 +79,7 @@ suite("Formatting", () => {
                 }
                 assert.equal(textEditor.document.getText(), data, "Formatted text is not the same");
             });
-       }).then(done, error => { assert.ok(false, error); done(); });
+       }).then(done, done);
     });
 
     test("Yapf autoformat on save", done => {
@@ -111,6 +111,6 @@ suite("Formatting", () => {
             });
         }).then(() => {
             assert.equal(textDocument.getText(), formattedFileContents, "Formatted contents are not the same");
-       }).then(done, error => { assert.ok(false, error); done(); });
+       }).then(done, done);
     });
 });

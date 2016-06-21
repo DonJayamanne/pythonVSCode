@@ -56,7 +56,7 @@ suite("Linting", () => {
         assert.equal(pythonSettings.linting.pep8Enabled, linter.isEnabled());
     });
     test("PyLint", done => {
-        let messagesToBeReturned2: baseLinter.ILintMessage[] = [
+        let messagesToBeReturned: baseLinter.ILintMessage[] = [
             { line: 17, column: 0, severity: baseLinter.LintMessageSeverity.Information, code: "I0011", message: "Locally disabling unused-argument (W0613)", possibleWord: "", provider: "", type: "" },
             { line: 24, column: 0, severity: baseLinter.LintMessageSeverity.Information, code: "I0011", message: "Locally disabling no-member (E1101)", possibleWord: "", provider: "", type: "" },
             { line: 30, column: 0, severity: baseLinter.LintMessageSeverity.Information, code: "I0011", message: "Locally disabling no-member (E1101)", possibleWord: "", provider: "", type: "" },
@@ -80,53 +80,36 @@ suite("Linting", () => {
             { line: 77, column: 14, severity: baseLinter.LintMessageSeverity.Error, code: "E1101", message: "Instance of 'Foo' has no 'blip' member", possibleWord: "", provider: "", type: "" },
             { line: 83, column: 14, severity: baseLinter.LintMessageSeverity.Error, code: "E1101", message: "Instance of 'Foo' has no 'blip' member", possibleWord: "", provider: "", type: "" }
         ];
-        let messagesToBeReturned3: baseLinter.ILintMessage[] = [
-            { line: 13, column: 0, severity: baseLinter.LintMessageSeverity.Error, code: "E0001", message: "Missing parentheses in call to 'print'", possibleWord: "", provider: "", type: "" }
-        ];
         let linter = new pyLint.Linter(ch, __dirname);
-        return execPythonFile(pythonSettings.pythonPath, ["--version"], __dirname, true).then(data => {
-            let majorVersion = data.indexOf("3.5") >= 0 ? 3 : 2;
-            return majorVersion === 2 ? messagesToBeReturned2 : messagesToBeReturned3;
-        }).then(messagesToBeReturned => {
-            return Promise.all<baseLinter.ILintMessage[]>([Promise.resolve(messagesToBeReturned), linter.runLinter(pyLintFileToLint, pylintFileToLintLines)]);
-        }).then(msgs => {
-            let messagesToBeReturned = msgs[0];
-            let messages = msgs[1];
+        return linter.runLinter(pyLintFileToLint, pylintFileToLintLines).then(messages => {
             assert.equal(messagesToBeReturned.length, messages.length, "Incorrect number of errors");
             messagesToBeReturned.forEach(msg => {
                 let similarMessages = messages.filter(m => m.code === msg.code && m.column === msg.column &&
                     m.line === msg.line && m.message === msg.message && m.severity === msg.severity);
                 assert.equal(1, similarMessages.length, "Error not found, " + JSON.stringify(msg));
             });
-        }).then(done, error => { assert.ok(false, error); done(); });
+        }).then(done, done);
     });
     test("PyLint with config in root", done => {
+        let messagesToBeReturned: baseLinter.ILintMessage[] = [
+            { line: 26, column: 14, severity: baseLinter.LintMessageSeverity.Error, code: "E1101", message: "Instance of 'Foo' has no 'blop' member", possibleWord: "", provider: "", type: "" },
+            { line: 36, column: 14, severity: baseLinter.LintMessageSeverity.Error, code: "E1101", message: "Instance of 'Foo' has no 'blip' member", possibleWord: "", provider: "", type: "" },
+            { line: 46, column: 18, severity: baseLinter.LintMessageSeverity.Error, code: "E1101", message: "Instance of 'Foo' has no 'blip' member", possibleWord: "", provider: "", type: "" },
+            { line: 61, column: 18, severity: baseLinter.LintMessageSeverity.Error, code: "E1101", message: "Instance of 'Foo' has no 'blip' member", possibleWord: "", provider: "", type: "" },
+            { line: 72, column: 18, severity: baseLinter.LintMessageSeverity.Error, code: "E1101", message: "Instance of 'Foo' has no 'blip' member", possibleWord: "", provider: "", type: "" },
+            { line: 75, column: 18, severity: baseLinter.LintMessageSeverity.Error, code: "E1101", message: "Instance of 'Foo' has no 'blip' member", possibleWord: "", provider: "", type: "" },
+            { line: 77, column: 14, severity: baseLinter.LintMessageSeverity.Error, code: "E1101", message: "Instance of 'Foo' has no 'blip' member", possibleWord: "", provider: "", type: "" },
+            { line: 83, column: 14, severity: baseLinter.LintMessageSeverity.Error, code: "E1101", message: "Instance of 'Foo' has no 'blip' member", possibleWord: "", provider: "", type: "" }
+        ];
         let rootDirContainingConfig = path.join(__dirname, "..", "..", "src", "test", "pythonFiles", "linting", "pylintcfg");
         let linter = new pyLint.Linter(ch, rootDirContainingConfig);
-        linter.runLinter(pyLintFileToLint, pylintFileToLintLines).then(messages => {
-            return execPythonFile(pythonSettings.pythonPath, ["--version"], __dirname, true).then(data => {
-                return data.indexOf("3.5") >= 0 ? 3 : 2;
-            }).then(majorVersion => {
-                let messagesToBeReturned2: baseLinter.ILintMessage[] = [
-                    { line: 26, column: 14, severity: baseLinter.LintMessageSeverity.Error, code: "E1101", message: "Instance of 'Foo' has no 'blop' member", possibleWord: "", provider: "", type: "" },
-                    { line: 36, column: 14, severity: baseLinter.LintMessageSeverity.Error, code: "E1101", message: "Instance of 'Foo' has no 'blip' member", possibleWord: "", provider: "", type: "" },
-                    { line: 46, column: 18, severity: baseLinter.LintMessageSeverity.Error, code: "E1101", message: "Instance of 'Foo' has no 'blip' member", possibleWord: "", provider: "", type: "" },
-                    { line: 61, column: 18, severity: baseLinter.LintMessageSeverity.Error, code: "E1101", message: "Instance of 'Foo' has no 'blip' member", possibleWord: "", provider: "", type: "" },
-                    { line: 72, column: 18, severity: baseLinter.LintMessageSeverity.Error, code: "E1101", message: "Instance of 'Foo' has no 'blip' member", possibleWord: "", provider: "", type: "" },
-                    { line: 75, column: 18, severity: baseLinter.LintMessageSeverity.Error, code: "E1101", message: "Instance of 'Foo' has no 'blip' member", possibleWord: "", provider: "", type: "" },
-                    { line: 77, column: 14, severity: baseLinter.LintMessageSeverity.Error, code: "E1101", message: "Instance of 'Foo' has no 'blip' member", possibleWord: "", provider: "", type: "" },
-                    { line: 83, column: 14, severity: baseLinter.LintMessageSeverity.Error, code: "E1101", message: "Instance of 'Foo' has no 'blip' member", possibleWord: "", provider: "", type: "" }
-                ];
-                let messagesToBeReturned3: baseLinter.ILintMessage[] = [];
-                let messagesToBeReturned = majorVersion === 2 ? messagesToBeReturned2 : messagesToBeReturned3;
-
-                assert.equal(messagesToBeReturned.length, messages.length, "Incorrect number of errors");
-                messagesToBeReturned.forEach(msg => {
-                    let similarMessages = messages.filter(m => m.code === msg.code && m.column === msg.column &&
-                        m.line === msg.line && m.message === msg.message && m.severity === msg.severity);
-                    assert.equal(1, similarMessages.length, "Error not found, " + JSON.stringify(msg));
-                });
+        return linter.runLinter(pyLintFileToLint, pylintFileToLintLines).then(messages => {
+            assert.equal(messagesToBeReturned.length, messages.length, "Incorrect number of errors");
+            messagesToBeReturned.forEach(msg => {
+                let similarMessages = messages.filter(m => m.code === msg.code && m.column === msg.column &&
+                    m.line === msg.line && m.message === msg.message && m.severity === msg.severity);
+                assert.equal(1, similarMessages.length, "Error not found, " + JSON.stringify(msg));
             });
-        }).then(done, error => { assert.ok(false, error); done(); });
+        }).then(done, done);
     });
 });
