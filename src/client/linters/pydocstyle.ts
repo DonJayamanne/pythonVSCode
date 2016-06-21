@@ -5,11 +5,11 @@ import * as baseLinter from './baseLinter';
 import {ILintMessage} from './baseLinter';
 import {OutputChannel, window} from 'vscode';
 import { exec } from 'child_process';
-import {sendCommand} from './../common/childProc';
+import {execPythonFile} from './../common/utils';
 
 export class Linter extends baseLinter.BaseLinter {
-    constructor(outputChannel: OutputChannel) {
-        super("pydocstyle", outputChannel);
+    constructor(outputChannel: OutputChannel, workspaceRootPath: string) {
+        super("pydocstyle", outputChannel, workspaceRootPath);
     }
 
     public isEnabled(): Boolean {
@@ -21,9 +21,8 @@ export class Linter extends baseLinter.BaseLinter {
         }
 
         var pydocStylePath = this.pythonSettings.linting.pydocStylePath;
-        var cmdLine = `${pydocStylePath} "${filePath}"`;
         return new Promise<baseLinter.ILintMessage[]>(resolve => {
-            this.run(cmdLine, filePath, txtDocumentLines).then(messages => {
+            this.run(pydocStylePath, [filePath], filePath, txtDocumentLines).then(messages => {
                 //All messages in pep8 are treated as warnings for now
                 messages.forEach(msg => {
                     msg.severity = baseLinter.LintMessageSeverity.Information;
@@ -34,13 +33,13 @@ export class Linter extends baseLinter.BaseLinter {
         });
     }
 
-    protected run(commandLine: string, filePath: string, txtDocumentLines: string[]): Promise<ILintMessage[]> {
+    protected run(commandLine: string, args: string[], filePath: string, txtDocumentLines: string[]): Promise<ILintMessage[]> {
         var outputChannel = this.outputChannel;
         var linterId = this.Id;
 
         return new Promise<ILintMessage[]>((resolve, reject) => {
             var fileDir = path.dirname(filePath);
-            sendCommand(commandLine, fileDir, true).then(data => {
+            execPythonFile(commandLine, args, this.workspaceRootPath, true).then(data => {
                 outputChannel.clear();
                 outputChannel.append(data);
                 var outputLines = data.split(/\r?\n/g);

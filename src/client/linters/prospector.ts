@@ -3,9 +3,7 @@
 import * as path from "path";
 import * as baseLinter from "./baseLinter";
 import {OutputChannel, workspace, window} from "vscode";
-import {sendCommand} from "./../common/childProc";
-
-const PROSPECTOR_COMMANDLINE = " --absolute-paths --output-format=json";
+import {execPythonFile} from "./../common/utils";
 
 interface IProspectorResponse {
     messages: IProspectorMessage[];
@@ -25,8 +23,8 @@ interface IProspectorLocation {
 }
 
 export class Linter extends baseLinter.BaseLinter {
-    constructor(outputChannel: OutputChannel) {
-        super("prospector", outputChannel);
+    constructor(outputChannel: OutputChannel, workspaceRootPath: string) {
+        super("prospector", outputChannel, workspaceRootPath);
     }
 
     public isEnabled(): Boolean {
@@ -39,12 +37,11 @@ export class Linter extends baseLinter.BaseLinter {
 
         let prospectorPath = this.pythonSettings.linting.prospectorPath;
         let prospectorExtraCommands = this.pythonSettings.linting.prospectorExtraCommands;
-        let cmdLine = `${prospectorPath} ${PROSPECTOR_COMMANDLINE} ${prospectorExtraCommands} "${filePath}"`;
         let outputChannel = this.outputChannel;
         let linterId = this.Id;
 
         return new Promise<baseLinter.ILintMessage[]>((resolve, reject) => {
-            sendCommand(cmdLine, workspace.rootPath, false).then(data => {
+            execPythonFile(prospectorPath, ["--absolute-paths", "--output-format=json", filePath], this.workspaceRootPath, false).then(data => {
                 outputChannel.clear();
                 let parsedData: IProspectorResponse;
                 try {
@@ -75,14 +72,14 @@ export class Linter extends baseLinter.BaseLinter {
                         line: msg.location.line,
                         possibleWord: possibleWord,
                         type: msg.code,
-                        provider: `${this.Id}-${msg.source}`
+                        provider: `${this.Id} - ${msg.source}`
                     });
                 });
 
                 resolve(diagnostics);
             }).catch(error => {
-                outputChannel.appendLine(`Linting with ${linterId} failed. If not installed please turn if off in settings.\n ${error}`);
-                window.showInformationMessage(`Linting with ${linterId} failed. If not installed please turn if off in settings. View Python output for details.`);
+                outputChannel.appendLine(`Linting with ${linterId} failed.If not installed please turn if off in settings.\n ${error} `);
+                window.showInformationMessage(`Linting with ${linterId} failed.If not installed please turn if off in settings.View Python output for details.`);
             });
         });
     }

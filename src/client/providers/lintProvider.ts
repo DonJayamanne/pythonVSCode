@@ -42,7 +42,7 @@ export class LintProvider extends vscode.Disposable {
     private outputChannel: vscode.OutputChannel;
     private context: vscode.ExtensionContext;
 
-    public constructor(context: vscode.ExtensionContext, outputChannel: vscode.OutputChannel) {
+    public constructor(context: vscode.ExtensionContext, outputChannel: vscode.OutputChannel, private workspaceRootPath: string) {
         super(() => { });
         this.outputChannel = outputChannel;
         this.context = context;
@@ -55,11 +55,11 @@ export class LintProvider extends vscode.Disposable {
         this.diagnosticCollection = vscode.languages.createDiagnosticCollection("python");
         let disposables = [];
 
-        this.linters.push(new prospector.Linter(this.outputChannel));
-        this.linters.push(new pylint.Linter(this.outputChannel));
-        this.linters.push(new pep8.Linter(this.outputChannel));
-        this.linters.push(new flake8.Linter(this.outputChannel));
-        this.linters.push(new pydocstyle.Linter(this.outputChannel));
+        this.linters.push(new prospector.Linter(this.outputChannel, this.workspaceRootPath));
+        this.linters.push(new pylint.Linter(this.outputChannel, this.workspaceRootPath));
+        this.linters.push(new pep8.Linter(this.outputChannel, this.workspaceRootPath));
+        this.linters.push(new flake8.Linter(this.outputChannel, this.workspaceRootPath));
+        this.linters.push(new pydocstyle.Linter(this.outputChannel, this.workspaceRootPath));
 
         let disposable = vscode.workspace.onDidSaveTextDocument((e) => {
             if (e.languageId !== "python" || !this.settings.linting.enabled || !this.settings.linting.lintOnSave) {

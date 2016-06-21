@@ -2,7 +2,7 @@
 import * as child_process from 'child_process';
 import * as path from 'path';
 import { exec } from 'child_process';
-import {sendCommand} from './../common/childProc';
+import {execPythonFile} from './../common/utils';
 import * as settings from './../common/configSettings';
 import {OutputChannel, window} from 'vscode';
 
@@ -51,21 +51,19 @@ export function matchNamedRegEx(data, regex): IRegexGroup {
 export abstract class BaseLinter {
     public Id: string;
     protected pythonSettings: settings.IPythonSettings;
-    protected outputChannel: OutputChannel;
-    constructor(id: string, outputChannel: OutputChannel) {
+    constructor(id: string, protected outputChannel: OutputChannel, protected workspaceRootPath: string) {
         this.Id = id;
         this.pythonSettings = settings.PythonSettings.getInstance();
-        this.outputChannel = outputChannel;
     }
     public abstract isEnabled(): Boolean;
     public abstract runLinter(filePath: string, txtDocumentLines: string[]): Promise<ILintMessage[]>;
 
-    protected run(commandLine: string, filePath: string, txtDocumentLines: string[], cwd: string, regEx: string = REGEX): Promise<ILintMessage[]> {
+    protected run(command: string, args: string[], filePath: string, txtDocumentLines: string[], cwd: string, regEx: string = REGEX): Promise<ILintMessage[]> {
         var outputChannel = this.outputChannel;
         var linterId = this.Id;
 
         return new Promise<ILintMessage[]>((resolve, reject) => {
-            sendCommand(commandLine, cwd, true).then(data => {
+            execPythonFile(command, args, cwd, true).then(data => {
                 outputChannel.clear();
                 outputChannel.append(data);
                 var outputLines = data.split(/\r?\n/g);

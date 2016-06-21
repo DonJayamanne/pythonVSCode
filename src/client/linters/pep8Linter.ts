@@ -4,11 +4,9 @@ import * as path from 'path';
 import * as baseLinter from './baseLinter';
 import {OutputChannel, workspace} from 'vscode';
 
-const PEP_COMMANDLINE = " --format='%(row)d,%(col)d,%(code)s,%(code)s:%(text)s'";
-
 export class Linter extends baseLinter.BaseLinter {
-    constructor(outputChannel:OutputChannel) {
-        super("pep8", outputChannel);
+    constructor(outputChannel: OutputChannel, workspaceRootPath: string) {
+        super("pep8", outputChannel, workspaceRootPath);
     }
 
     public isEnabled(): Boolean {
@@ -20,11 +18,10 @@ export class Linter extends baseLinter.BaseLinter {
         }
 
         var pep8Path = this.pythonSettings.linting.pep8Path;
-        var cmdLine = `${pep8Path} ${PEP_COMMANDLINE} "${filePath}"`;
         return new Promise<baseLinter.ILintMessage[]>(resolve => {
-            this.run(cmdLine, filePath, txtDocumentLines, workspace.rootPath).then(messages=> {
+            this.run(pep8Path, ["--format='%(row)d,%(col)d,%(code)s,%(code)s:%(text)s'", filePath], filePath, txtDocumentLines, this.workspaceRootPath).then(messages => {
                 //All messages in pep8 are treated as warnings for now
-                messages.forEach(msg=> {
+                messages.forEach(msg => {
                     msg.severity = baseLinter.LintMessageSeverity.Information;
                 });
 

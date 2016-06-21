@@ -3,18 +3,29 @@
 import * as path from 'path';
 import * as baseLinter from './baseLinter';
 import {OutputChannel, workspace} from 'vscode';
-const PYLINT_COMMANDLINE = " --msg-template='{line},{column},{category},{msg_id}:{msg}' --reports=n --output-format=text";
 
 export class Linter extends baseLinter.BaseLinter {
-    constructor(outputChannel: OutputChannel) {
-        super("pylint", outputChannel);
+    constructor(outputChannel: OutputChannel, workspaceRootPath: string) {
+        super("pylint", outputChannel, workspaceRootPath);
     }
 
     private parseMessagesSeverity(category: string): baseLinter.LintMessageSeverity {
         if (this.pythonSettings.linting.pylintCategorySeverity[category]) {
-            var severityName = this.pythonSettings.linting.pylintCategorySeverity[category];
-            if (baseLinter.LintMessageSeverity[severityName]) {
-                return <baseLinter.LintMessageSeverity><any>baseLinter.LintMessageSeverity[severityName]
+            let severityName = this.pythonSettings.linting.pylintCategorySeverity[category];
+            switch (severityName) {
+                case "Error":
+                    return baseLinter.LintMessageSeverity.Error;
+                case "Hint":
+                    return baseLinter.LintMessageSeverity.Hint;
+                case "Information":
+                    return baseLinter.LintMessageSeverity.Information;
+                case "Warning":
+                    return baseLinter.LintMessageSeverity.Warning;
+                default: {
+                    if (baseLinter.LintMessageSeverity[severityName]) {
+                        return <baseLinter.LintMessageSeverity><any>baseLinter.LintMessageSeverity[severityName];
+                    }
+                }
             }
         }
 
@@ -30,10 +41,9 @@ export class Linter extends baseLinter.BaseLinter {
         }
 
         var pylintPath = this.pythonSettings.linting.pylintPath;
-        var cmdLine = `${pylintPath} ${PYLINT_COMMANDLINE} "${filePath}"`;
         return new Promise<baseLinter.ILintMessage[]>((resolve, reject) => {
-            this.run(cmdLine, filePath, txtDocumentLines, workspace.rootPath).then(messages=> {
-                messages.forEach(msg=> {
+            this.run(pylintPath, ["--msg-template='{line},{column},{category},{msg_id}:{msg}'", "--reports=n", "--output-format=text", filePath], filePath, txtDocumentLines, this.workspaceRootPath).then(messages => {
+                messages.forEach(msg => {
                     msg.severity = this.parseMessagesSeverity(msg.type);
                 });
 
