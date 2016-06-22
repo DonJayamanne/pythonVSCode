@@ -8,6 +8,7 @@ export interface IPythonSettings {
     linting: ILintingSettings;
     formatting: IFormattingSettings;
     unitTest: IUnitTestSettings;
+    autoComplete: IAutoCompeteSettings;
 }
 export interface IUnitTestSettings {
     nosetestsEnabled: boolean;
@@ -104,6 +105,8 @@ export class PythonSettings implements IPythonSettings {
         else {
             this.unitTest = unitTestSettings;
         }
+
+        replaceTokensInPaths(this);
     }
 
     public pythonPath: string;
@@ -112,4 +115,25 @@ export class PythonSettings implements IPythonSettings {
     public formatting: IFormattingSettings;
     public autoComplete: IAutoCompeteSettings;
     public unitTest: IUnitTestSettings;
+}
+
+function replaceTokensInPaths(settings: IPythonSettings) {
+    if (!vscode.workspace || !vscode.workspace.rootPath) {
+        return;
+    }
+
+    let workspaceRoot = vscode.workspace.rootPath;
+    settings.pythonPath = settings.pythonPath.replace("${workspaceRoot}", workspaceRoot);
+    settings.formatting.autopep8Path = settings.formatting.autopep8Path.replace("${workspaceRoot}", workspaceRoot);
+    settings.formatting.yapfPath = settings.formatting.yapfPath.replace("${workspaceRoot}", workspaceRoot);
+    settings.linting.flake8Path = settings.linting.flake8Path.replace("${workspaceRoot}", workspaceRoot);
+    settings.linting.pep8Path = settings.linting.pep8Path.replace("${workspaceRoot}", workspaceRoot);
+    settings.linting.prospectorPath = settings.linting.prospectorPath.replace("${workspaceRoot}", workspaceRoot);
+    settings.linting.pydocStylePath = settings.linting.pydocStylePath.replace("${workspaceRoot}", workspaceRoot);
+    settings.linting.pylintPath = settings.linting.pylintPath.replace("${workspaceRoot}", workspaceRoot);
+    settings.unitTest.nosetestPath = settings.unitTest.nosetestPath.replace("${workspaceRoot}", workspaceRoot);
+    settings.unitTest.pyTestPath = settings.unitTest.pyTestPath.replace("${workspaceRoot}", workspaceRoot);
+    settings.autoComplete.extraPaths.forEach((value, index) => {
+        settings.autoComplete.extraPaths[index] = settings.autoComplete.extraPaths[index].replace("${workspaceRoot}", workspaceRoot);
+    });
 }
