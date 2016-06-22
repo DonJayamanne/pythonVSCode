@@ -117,7 +117,7 @@ export function execPythonFile(file: string, args: string[], cwd: string, includ
 function execFileInternal(file: string, args: string[], cwd: string, includeErrorAsResponse: boolean): Promise<string> {
     return new Promise<string>((resolve, reject) => {
         child_process.execFile(file, args, { cwd: cwd }, (error, stdout, stderr) => {
-            if (error && ((<any>error).code === "ENOENT") || (<any>error).code === 127) {
+            if (typeof (error) === "object" && error !== null && ((<any>error).code === "ENOENT" || (<any>error).code === 127)) {
                 if (!IN_VALID_FILE_PATHS.has(file)) {
                     IN_VALID_FILE_PATHS.set(file, true);
                 }
