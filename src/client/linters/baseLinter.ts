@@ -110,6 +110,7 @@ export abstract class BaseLinter {
             }).catch(error => {
                 outputChannel.appendLine(`Linting with ${linterId} failed. If not installed please turn if off in settings.\n ${error}`);
                 window.showInformationMessage(`Linting with ${linterId} failed. If not installed please turn if off in settings. View Python output for details.`);
+                return [];
             });
         });
     }

@@ -131,7 +131,6 @@ export class LintProvider extends vscode.Disposable {
 
             this.diagnosticCollection.delete(documentUri);
             this.diagnosticCollection.set(documentUri, messages);
-        }).catch(error => {
         });
     }
 }
