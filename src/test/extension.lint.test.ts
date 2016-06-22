@@ -184,10 +184,23 @@ suite("Linting", () => {
 
     function testLinterMessages(linter: baseLinter.BaseLinter, pythonFile: string, pythonFileLines: string[], messagesToBeReceived: baseLinter.ILintMessage[]): Promise<any> {
         return linter.runLinter(pythonFile, pythonFileLines).then(messages => {
-            assert.equal(messagesToBeReceived.length, messages.length, "Incorrect number of errors");
+            if (messagesToBeReceived.length !== messages.length) {
+                console.log(JSON.stringify(messagesToBeReceived));
+                console.log(JSON.stringify(messages));
+                assert.equal(messagesToBeReceived.length, messages.length, "Incorrect number of errors");
+            }
+            let loggedMessages = false;
             messagesToBeReceived.forEach(msg => {
                 let similarMessages = messages.filter(m => m.code === msg.code && m.column === msg.column &&
                     m.line === msg.line && m.message === msg.message && m.severity === msg.severity);
+                if (similarMessages.length === 0) {
+                    if (!loggedMessages) {
+                        loggedMessages = true;
+                        console.log(JSON.stringify(messagesToBeReceived));
+                        console.log(JSON.stringify(messages));
+                    }
+                    console.log(JSON.stringify(msg));
+                }
                 assert.equal(true, similarMessages.length > 0, "Error not found, " + JSON.stringify(msg));
             });
         });
