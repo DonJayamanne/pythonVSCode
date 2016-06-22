@@ -27,11 +27,13 @@ let pythoFilesPath = path.join(__dirname, "..", "..", "src", "test", "pythonFile
 
 let targetFlake8ConfigFile = path.join(__dirname, ".flake8");
 let targetPep8ConfigFile = path.join(__dirname, ".pep8");
+let targetPydocstyleConfigFile = path.join(__dirname, ".pydocstyle");
 let pylintFileToLintLines: string[] = [];
 let pyLintFileToLint = path.join(pythoFilesPath, "pylintSample.py");
 let targetPythonFileToLint = path.join(__dirname, "pythonFiles", "linting", path.basename(pyLintFileToLint));
 let sourceFlake8ConfigFile = path.join(__dirname, "..", "..", "src", "test", "pythonFiles", "linting", "pylintcfg", ".flake8");
 let sourcePep8ConfigFile = path.join(__dirname, "..", "..", "src", "test", "pythonFiles", "linting", "pylintcfg", ".pep8");
+let sourcePydocstyleConfigFile = path.join(__dirname, "..", "..", "src", "test", "pythonFiles", "linting", "pylintcfg", ".pydocstyle");
 
 function deleteFile(file: string): Promise<any> {
     return new Promise<any>(resolve => {
@@ -48,7 +50,8 @@ suiteSetup(() => {
     pylintFileToLintLines = fs.readFileSync(pyLintFileToLint).toString("utf-8").split(/\r?\n/g);
 });
 suiteTeardown(done => {
-    deleteFile(targetPythonFileToLint).then(done, done);
+    // deleteFile(targetPythonFileToLint).then(done, done);
+    done();
 });
 
 suite("Linting", () => {
@@ -95,6 +98,29 @@ suite("Linting", () => {
         { line: 80, column: 5, severity: baseLinter.LintMessageSeverity.Information, code: "E303", message: "too many blank lines (2)", possibleWord: "", provider: "", type: "" },
         { line: 87, column: 24, severity: baseLinter.LintMessageSeverity.Information, code: "W292", message: "no newline at end of file", possibleWord: "", provider: "", type: "" }
     ];
+    let pydocstyleMessagseToBeReturned: baseLinter.ILintMessage[] = [
+        { "code": "D400", severity: baseLinter.LintMessageSeverity.Information, "message": "First line should end with a period (not 'e')", "column": 0, "line": 1, "type": "", "provider": "pydocstyle" },
+        { "code": "D400", severity: baseLinter.LintMessageSeverity.Information, "message": "First line should end with a period (not 't')", "column": 0, "line": 5, "type": "", "provider": "pydocstyle" },
+        { "code": "D102", severity: baseLinter.LintMessageSeverity.Information, "message": "Missing docstring in public method", "column": 4, "line": 8, "type": "", "provider": "pydocstyle" },
+        { "code": "D401", severity: baseLinter.LintMessageSeverity.Information, "message": "First line should be in imperative mood ('thi', not 'this')", "column": 4, "line": 11, "type": "", "provider": "pydocstyle" },
+        { "code": "D403", severity: baseLinter.LintMessageSeverity.Information, "message": "First word of the first line should be properly capitalized ('This', not 'this')", "column": 4, "line": 11, "type": "", "provider": "pydocstyle" },
+        { "code": "D400", severity: baseLinter.LintMessageSeverity.Information, "message": "First line should end with a period (not 'e')", "column": 4, "line": 11, "type": "", "provider": "pydocstyle" },
+        { "code": "D403", severity: baseLinter.LintMessageSeverity.Information, "message": "First word of the first line should be properly capitalized ('And', not 'and')", "column": 4, "line": 15, "type": "", "provider": "pydocstyle" },
+        { "code": "D400", severity: baseLinter.LintMessageSeverity.Information, "message": "First line should end with a period (not 't')", "column": 4, "line": 15, "type": "", "provider": "pydocstyle" },
+        { "code": "D403", severity: baseLinter.LintMessageSeverity.Information, "message": "First word of the first line should be properly capitalized ('Test', not 'test')", "column": 4, "line": 21, "type": "", "provider": "pydocstyle" },
+        { "code": "D400", severity: baseLinter.LintMessageSeverity.Information, "message": "First line should end with a period (not 'g')", "column": 4, "line": 21, "type": "", "provider": "pydocstyle" },
+        { "code": "D403", severity: baseLinter.LintMessageSeverity.Information, "message": "First word of the first line should be properly capitalized ('Test', not 'test')", "column": 4, "line": 28, "type": "", "provider": "pydocstyle" },
+        { "code": "D400", severity: baseLinter.LintMessageSeverity.Information, "message": "First line should end with a period (not 'g')", "column": 4, "line": 28, "type": "", "provider": "pydocstyle" },
+        { "code": "D403", severity: baseLinter.LintMessageSeverity.Information, "message": "First word of the first line should be properly capitalized ('Test', not 'test')", "column": 4, "line": 38, "type": "", "provider": "pydocstyle" },
+        { "code": "D400", severity: baseLinter.LintMessageSeverity.Information, "message": "First line should end with a period (not 'g')", "column": 4, "line": 38, "type": "", "provider": "pydocstyle" },
+        { "code": "D403", severity: baseLinter.LintMessageSeverity.Information, "message": "First word of the first line should be properly capitalized ('Test', not 'test')", "column": 4, "line": 53, "type": "", "provider": "pydocstyle" },
+        { "code": "D400", severity: baseLinter.LintMessageSeverity.Information, "message": "First line should end with a period (not 'g')", "column": 4, "line": 53, "type": "", "provider": "pydocstyle" },
+        { "code": "D403", severity: baseLinter.LintMessageSeverity.Information, "message": "First word of the first line should be properly capitalized ('Test', not 'test')", "column": 4, "line": 68, "type": "", "provider": "pydocstyle" },
+        { "code": "D400", severity: baseLinter.LintMessageSeverity.Information, "message": "First line should end with a period (not 'g')", "column": 4, "line": 68, "type": "", "provider": "pydocstyle" },
+        { "code": "D403", severity: baseLinter.LintMessageSeverity.Information, "message": "First word of the first line should be properly capitalized ('Test', not 'test')", "column": 4, "line": 80, "type": "", "provider": "pydocstyle" },
+        { "code": "D400", severity: baseLinter.LintMessageSeverity.Information, "message": "First line should end with a period (not 'g')", "column": 4, "line": 80, "type": "", "provider": "pydocstyle" }
+    ];
+
     let filteredPylintMessagesToBeReturned: baseLinter.ILintMessage[] = [
         { line: 26, column: 14, severity: baseLinter.LintMessageSeverity.Error, code: "E1101", message: "Instance of 'Foo' has no 'blop' member", possibleWord: "", provider: "", type: "" },
         { line: 36, column: 14, severity: baseLinter.LintMessageSeverity.Error, code: "E1101", message: "Instance of 'Foo' has no 'blip' member", possibleWord: "", provider: "", type: "" },
@@ -111,6 +137,9 @@ suite("Linting", () => {
     let filteredPep88MessagesToBeReturned: baseLinter.ILintMessage[] = [
         { line: 87, column: 24, severity: baseLinter.LintMessageSeverity.Information, code: "W292", message: "no newline at end of file", possibleWord: "", provider: "", type: "" }
     ];
+    let fiteredPydocstyleMessagseToBeReturned: baseLinter.ILintMessage[] = [
+        { "code": "D102", severity: baseLinter.LintMessageSeverity.Information, "message": "Missing docstring in public method", "column": 4, "line": 8, "type": "", "provider": "pydocstyle" }
+    ];
 
     setup(done => {
         initialize().then(() => {
@@ -124,7 +153,10 @@ suite("Linting", () => {
     });
 
     teardown(done => {
-        Promise.all([deleteFile(targetFlake8ConfigFile), deleteFile(targetPep8ConfigFile)]).then(() => done(), done);
+        Promise.all([deleteFile(targetFlake8ConfigFile),
+            deleteFile(targetPep8ConfigFile),
+            deleteFile(targetPydocstyleConfigFile)
+        ]).then(() => done(), done);
     });
 
     function testEnablingDisablingOfLinter(linter: baseLinter.BaseLinter, propertyName: string) {
@@ -156,7 +188,7 @@ suite("Linting", () => {
             messagesToBeReceived.forEach(msg => {
                 let similarMessages = messages.filter(m => m.code === msg.code && m.column === msg.column &&
                     m.line === msg.line && m.message === msg.message && m.severity === msg.severity);
-                assert.equal(1, similarMessages.length, "Error not found, " + JSON.stringify(msg));
+                assert.equal(true, similarMessages.length > 0, "Error not found, " + JSON.stringify(msg));
             });
         });
     }
@@ -172,6 +204,10 @@ suite("Linting", () => {
         let linter = new pep8.Linter(ch, __dirname);
         return testLinterMessages(linter, pyLintFileToLint, pylintFileToLintLines, pep8MessagesToBeReturned).then(done, done);
     });
+    test("Pydocstyle", done => {
+        let linter = new pydocstyle.Linter(ch, __dirname);
+        return testLinterMessages(linter, pyLintFileToLint, pylintFileToLintLines, pydocstyleMessagseToBeReturned).then(done, done);
+    });
     test("PyLint with config in root", done => {
         let rootDirContainingConfig = path.join(__dirname, "..", "..", "src", "test", "pythonFiles", "linting", "pylintcfg");
         let linter = new pyLint.Linter(ch, rootDirContainingConfig);
@@ -186,5 +222,10 @@ suite("Linting", () => {
         fs.copySync(sourcePep8ConfigFile, targetPep8ConfigFile);
         let linter = new pep8.Linter(ch, __dirname);
         return testLinterMessages(linter, targetPythonFileToLint, pylintFileToLintLines, filteredPep88MessagesToBeReturned).then(done, done);
+    });
+    test("Pydocstyle with config in root", done => {
+        fs.copySync(sourcePydocstyleConfigFile, targetPydocstyleConfigFile);
+        let linter = new pydocstyle.Linter(ch, __dirname);
+        return testLinterMessages(linter, targetPythonFileToLint, pylintFileToLintLines, fiteredPydocstyleMessagseToBeReturned).then(done, done);
     });
 });

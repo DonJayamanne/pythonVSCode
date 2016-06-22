@@ -91,7 +91,7 @@ export function execPythonFile(file: string, args: string[], cwd: string, includ
             if (PathValidity.get(fullyQualifiedFile)) {
                 tryUsingCommandArg = false;
             }
-            return execFileInternal(fullyQualifiedFile, args, cwd, includeErrorAsResponse, tryUsingCommandArg);
+            return execFileInternal(fullyQualifiedFile, args, cwd, includeErrorAsResponse);
         }
 
         return validatePath(fullyQualifiedFile).then(f => {
@@ -99,7 +99,7 @@ export function execPythonFile(file: string, args: string[], cwd: string, includ
             if (f.length > 0) {
                 tryUsingCommandArg = false;
             }
-            return execFileInternal(fullyQualifiedFile, args, cwd, includeErrorAsResponse, true);
+            return execFileInternal(fullyQualifiedFile, args, cwd, includeErrorAsResponse);
         });
     });
 
@@ -114,43 +114,31 @@ export function execPythonFile(file: string, args: string[], cwd: string, includ
     });
 }
 
-function handleResponse(error: Error, stdout: string, stderr: string, file: string, includeErrorAsResponse: boolean, rejectIfENOENTErrors: boolean = false): Promise<string> {
+function execFileInternal(file: string, args: string[], cwd: string, includeErrorAsResponse: boolean): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-        if (error && ((<any>error).code === "ENOENT") || (<any>error).code === 127) {
-            if (!IN_VALID_FILE_PATHS.has(file)) {
-                IN_VALID_FILE_PATHS.set(file, true);
+        child_process.execFile(file, args, { cwd: cwd }, (error, stdout, stderr) => {
+            if (error && ((<any>error).code === "ENOENT") || (<any>error).code === 127) {
+                if (!IN_VALID_FILE_PATHS.has(file)) {
+                    IN_VALID_FILE_PATHS.set(file, true);
+                }
+                return reject(error);
             }
-            return reject(error);
-        }
 
-        // pylint:
-        //      In the case of pylint we have some messages (such as config file not found and using default etc...) being returned in stderr
-        //      These error messages are useless when using pylint   
-        if (includeErrorAsResponse && (stdout.length > 0 || stderr.length > 0)) {
-            return resolve(stdout + "\n" + stderr);
-        }
+            // pylint:
+            //      In the case of pylint we have some messages (such as config file not found and using default etc...) being returned in stderr
+            //      These error messages are useless when using pylint   
+            if (includeErrorAsResponse && (stdout.length > 0 || stderr.length > 0)) {
+                return resolve(stdout + "\n" + stderr);
+            }
 
-        let hasErrors = (error && error.message.length > 0) || (stderr && stderr.length > 0);
-        if (hasErrors && (typeof stdout !== "string" || stdout.length === 0)) {
-            let errorMsg = (error && error.message) ? error.message : (stderr && stderr.length > 0 ? stderr + "" : "");
-            return reject(errorMsg);
-        }
+            let hasErrors = (error && error.message.length > 0) || (stderr && stderr.length > 0);
+            if (hasErrors && (typeof stdout !== "string" || stdout.length === 0)) {
+                let errorMsg = (error && error.message) ? error.message : (stderr && stderr.length > 0 ? stderr + "" : "");
+                return reject(errorMsg);
+            }
 
-        resolve(stdout + "");
-    });
-}
-function execFileInternal(file: string, args: string[], cwd: string, includeErrorAsResponse: boolean, useExectFile: boolean = false): Promise<string> {
-    return new Promise<string>((resolve, reject) => {
-        if (useExectFile) {
-            child_process.execFile(file, args, { cwd: cwd }, (error, stdout, stderr) => {
-                handleResponse(error, stdout, stderr, file, includeErrorAsResponse, useExectFile).then(resolve, reject);
-            });
-        }
-        else {
-            child_process.exec(file + " " + args.join(" "), { cwd: cwd }, (error, stdout, stderr) => {
-                handleResponse(error, stdout, stderr, file, includeErrorAsResponse, useExectFile).then(resolve, reject);
-            });
-        }
+            resolve(stdout + "");
+        });
     });
 }
 

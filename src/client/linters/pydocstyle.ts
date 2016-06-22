@@ -47,32 +47,33 @@ export class Linter extends baseLinter.BaseLinter {
                 var diagnostics: ILintMessage[] = [];
                 var baseFileName = path.basename(filePath);
 
-                //Remember, the first line of the response contains the file name and line number, the next line contains the error message
-                //So we have two lines per message, hence we need to take lines in pairs
+                // Remember, the first line of the response contains the file name and line number, the next line contains the error message
+                // So we have two lines per message, hence we need to take lines in pairs
                 var maxLines = this.pythonSettings.linting.maxNumberOfProblems * 2;
-                //First line is almost always empty
-                while (outputLines.length > 0 && outputLines[0].trim().length === 0) {
-                    outputLines.splice(0, 1);
+                // First line is almost always empty
+                let oldOutputLines = outputLines.filter(line => line.length > 0);
+                outputLines = [];
+                for (let counter = 0; counter < oldOutputLines.length / 2; counter++) {
+                    outputLines.push(oldOutputLines[2 * counter] + oldOutputLines[(2 * counter) + 1]);
                 }
-                outputLines = outputLines.filter((value, index) => index < maxLines);
+                outputLines = outputLines.filter((value, index) => index < maxLines && value.indexOf(":") >= 0).map(line => line.substring(line.indexOf(":") + 1).trim());
 
-                //Iterate through the lines (skipping the messages)
-                //So, just iterate the response in pairs
-                for (var counter = 0; counter < outputLines.length; counter = counter + 2) {
+                // Iterate through the lines (skipping the messages)
+                // So, just iterate the response in pairs
+                outputLines.forEach(line => {
                     try {
-                        var line = outputLines[counter];
                         if (line.trim().length === 0) {
-                            continue;
+                            return;
                         }
-                        var messageLine = outputLines[counter + 1];
-                        var lineNumber = parseInt(line.substring(line.indexOf(baseFileName) + baseFileName.length + 1));
-                        var code = messageLine.substring(0, messageLine.indexOf(":")).trim();
-                        var message = messageLine.substring(messageLine.indexOf(":") + 1).trim();
+                        let lineNumber = parseInt(line.substring(0, line.indexOf(" ")));
+                        let part = line.substring(line.indexOf(":") + 1).trim();
+                        let code = part.substring(0, part.indexOf(":")).trim();
+                        let message = part.substring(part.indexOf(":") + 1).trim();
 
-                        var sourceLine = txtDocumentLines[lineNumber - 1];
-                        var trmmedSourceLine = sourceLine.trim();
-                        var sourceStart = sourceLine.indexOf(trmmedSourceLine);
-                        var endCol = sourceStart + trmmedSourceLine.length;
+                        let sourceLine = txtDocumentLines[lineNumber - 1];
+                        let trmmedSourceLine = sourceLine.trim();
+                        let sourceStart = sourceLine.indexOf(trmmedSourceLine);
+                        let endCol = sourceStart + trmmedSourceLine.length;
 
                         diagnostics.push({
                             code: code,
@@ -87,8 +88,7 @@ export class Linter extends baseLinter.BaseLinter {
                         //Hmm, need to handle this later
                         var y = "";
                     }
-                }
-
+                });
                 resolve(diagnostics);
             }, error => {
                 outputChannel.appendLine(`Linting with ${linterId} failed. If not installed please turn if off in settings.\n ${error}`);

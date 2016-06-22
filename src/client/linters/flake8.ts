@@ -3,7 +3,6 @@
 import * as path from 'path';
 import * as baseLinter from './baseLinter';
 import {OutputChannel, workspace} from 'vscode';
-
 export class Linter extends baseLinter.BaseLinter {
     constructor(outputChannel: OutputChannel, workspaceRootPath: string) {
         super("flake8", outputChannel, workspaceRootPath);
