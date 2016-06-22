@@ -70,7 +70,7 @@ export function execPythonFile(file: string, args: string[], cwd: string, includ
         let pythonIntepreterPath = pyPath;
         let fullyQualifiedFile = file;
         if (pythonIntepreterPath.length === 0 || file.startsWith(pyPath)) {
-            return execFileInternal(fullyQualifiedFile, args, cwd, includeErrorAsResponse, true);
+            return execFileInternal(fullyQualifiedFile, args, cwd, includeErrorAsResponse);
         }
 
         // Qualify the command with the python path
@@ -78,7 +78,7 @@ export function execPythonFile(file: string, args: string[], cwd: string, includ
 
         // Check if we know whether this trow ENONE errors
         if (IN_VALID_FILE_PATHS.has(fullyQualifiedFile)) {
-            return execFileInternal(file, args, cwd, includeErrorAsResponse, true);
+            return execFileInternal(file, args, cwd, includeErrorAsResponse);
         }
 
         // It is possible this file doesn't exist, hence we initialize tryUsingCommandArg = true
@@ -91,7 +91,7 @@ export function execPythonFile(file: string, args: string[], cwd: string, includ
             if (PathValidity.get(fullyQualifiedFile)) {
                 tryUsingCommandArg = false;
             }
-            return execFileInternal(fullyQualifiedFile, args, cwd, includeErrorAsResponse, true);
+            return execFileInternal(fullyQualifiedFile, args, cwd, includeErrorAsResponse, tryUsingCommandArg);
         }
 
         return validatePath(fullyQualifiedFile).then(f => {
@@ -103,47 +103,54 @@ export function execPythonFile(file: string, args: string[], cwd: string, includ
         });
     });
 
-    if (tryUsingCommandArg) {
-        return fullyQualifiedFilePromise.catch(error => {
-            if (error && (<any>error).code === "ENOENT") {
-                // Re-execute the file, without the python path prefix
-                // Only if we know that the previous one failed with ENOENT
-                return execFileInternal(file, args, cwd, includeErrorAsResponse, true);
-            }
-            // return what ever error we got from the previous process
-            Promise.reject(error);
-        });
-    }
-    else {
-        return fullyQualifiedFilePromise;
-    }
+    return fullyQualifiedFilePromise.catch(error => {
+        if (error && (<any>error).code === "ENOENT" && tryUsingCommandArg) {
+            // Re-execute the file, without the python path prefix
+            // Only if we know that the previous one failed with ENOENT
+            return execFileInternal(file, args, cwd, includeErrorAsResponse);
+        }
+        // return what ever error we got from the previous process
+        Promise.reject(error);
+    });
 }
 
-function execFileInternal(file: string, args: string[], cwd: string, includeErrorAsResponse: boolean, rejectIfENOENTErrors: boolean = false): Promise<string> {
+function handleResponse(error: Error, stdout: string, stderr: string, file: string, includeErrorAsResponse: boolean, rejectIfENOENTErrors: boolean = false): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-        child_process.execFile(file, args, { cwd: cwd }, (error, stdout, stderr) => {
-            if (error && (<any>error).code === "ENOENT" && rejectIfENOENTErrors) {
-                if (!IN_VALID_FILE_PATHS.has(file)) {
-                    IN_VALID_FILE_PATHS.set(file, true);
-                }
-                return reject(error);
+        if (error && (<any>error).code === "ENOENT" && rejectIfENOENTErrors) {
+            if (!IN_VALID_FILE_PATHS.has(file)) {
+                IN_VALID_FILE_PATHS.set(file, true);
             }
+            return reject(error);
+        }
 
-            // pylint:
-            //      In the case of pylint we have some messages (such as config file not found and using default etc...) being returned in stderr
-            //      These error messages are useless when using pylint   
-            if (includeErrorAsResponse && (stdout.length > 0 || stderr.length > 0)) {
-                return resolve(stdout + "\n" + stderr);
-            }
+        // pylint:
+        //      In the case of pylint we have some messages (such as config file not found and using default etc...) being returned in stderr
+        //      These error messages are useless when using pylint   
+        if (includeErrorAsResponse && (stdout.length > 0 || stderr.length > 0)) {
+            return resolve(stdout + "\n" + stderr);
+        }
 
-            let hasErrors = (error && error.message.length > 0) || (stderr && stderr.length > 0);
-            if (hasErrors && (typeof stdout !== "string" || stdout.length === 0)) {
-                let errorMsg = (error && error.message) ? error.message : (stderr && stderr.length > 0 ? stderr + "" : "");
-                return reject(errorMsg);
-            }
+        let hasErrors = (error && error.message.length > 0) || (stderr && stderr.length > 0);
+        if (hasErrors && (typeof stdout !== "string" || stdout.length === 0)) {
+            let errorMsg = (error && error.message) ? error.message : (stderr && stderr.length > 0 ? stderr + "" : "");
+            return reject(errorMsg);
+        }
 
-            resolve(stdout + "");
-        });
+        resolve(stdout + "");
+    });
+}
+function execFileInternal(file: string, args: string[], cwd: string, includeErrorAsResponse: boolean, useExectFile: boolean = false): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+        if (useExectFile) {
+            child_process.execFile(file, args, { cwd: cwd }, (error, stdout, stderr) => {
+                handleResponse(error, stdout, stderr, file, includeErrorAsResponse, useExectFile).then(resolve, reject);
+            });
+        }
+        else {
+            child_process.exec(file + " " + args.join(" "), { cwd: cwd }, (error, stdout, stderr) => {
+                handleResponse(error, stdout, stderr, file, includeErrorAsResponse, useExectFile).then(resolve, reject);
+            });
+        }
     });
 }
 
