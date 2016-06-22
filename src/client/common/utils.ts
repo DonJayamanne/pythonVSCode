@@ -49,7 +49,8 @@ export function execPythonFile(file: string, args: string[], cwd: string, includ
         // If we have a fully qualitified path to the python executable directory, then we can use that
         // as the base path for all other executables
         if (pyPath.length > 0) {
-            options.env = mergeEnvVariables({ PATH: pyPath + path.delimiter + process.env.PATH });
+            const EnvVariableName = process.platform === "win32" ? "Path" : "PATH";
+            options.env = mergeEnvVariables({ EnvVariableName: pyPath + path.delimiter + process.env.PATH });
         }
 
         return execFileInternal(file, args, options, includeErrorAsResponse);
