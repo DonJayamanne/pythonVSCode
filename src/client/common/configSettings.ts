@@ -130,6 +130,10 @@ function replaceTokensInPaths(settings: IPythonSettings) {
     if (!vscode.workspace || !vscode.workspace.rootPath) {
         return;
     }
+    // In test environment (travic CI)
+    if (typeof settings.pythonPath !== "string"){
+        return;
+    }
 
     let workspaceRoot = vscode.workspace.rootPath;
     settings.pythonPath = settings.pythonPath.replace("${workspaceRoot}", workspaceRoot);
