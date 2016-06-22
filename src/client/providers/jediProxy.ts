@@ -8,6 +8,7 @@ import * as path from 'path';
 import * as settings from './../common/configSettings';
 import * as logger from './../common/logger';
 import * as telemetryHelper from "../common/telemetry";
+import {execPythonFile, validatePath} from "../common/utils";
 
 var proc: child_process.ChildProcess;
 var pythonSettings = settings.PythonSettings.getInstance();
@@ -371,9 +372,43 @@ function createPayload<T extends ICommandResult>(cmd: IExecutionCommand<T>): any
     return payload;
 }
 
+let lastKnownPythonPath: string = null;
+let additionalAutoCopletePaths: string[] = [];
+function getPathFromPythonCommand(args: string[]): Promise<string> {
+    return execPythonFile(pythonSettings.pythonPath, args, vscode.workspace.rootPath).then(stdout => {
+        if (stdout.length === 0) {
+            return "";
+        }
+        let lines = stdout.split(/\r?\n/g);
+        return validatePath(lines[1]);
+    }).catch(() => {
+        return "";
+    });
+}
+vscode.workspace.onDidChangeConfiguration(onConfigChanged);
+function onConfigChanged() {
+    // We're only interested in changes to the python path
+    if (lastKnownPythonPath === pythonSettings.pythonPath) {
+        return;
+    }
+
+    lastKnownPythonPath = pythonSettings.pythonPath;
+    let filePaths = [
+        // Sysprefix
+        getPathFromPythonCommand(["-c", "import sys;print(sys.prefix)"]),
+        // Python specific site packages
+        getPathFromPythonCommand(["-c", "from distutils.sysconfig import get_python_lib; print(get_python_lib())"]),
+        // Python global site packages
+        getPathFromPythonCommand(["-m", "side", "--user-site"])
+    ];
+    Promise.all<string>(filePaths).then(paths => {
+        // additionalAutoCopletePaths = paths.filter(p => p.length > 0);
+    });
+}
+
 function getConfig() {
-    //Add support for paths relative to workspace
-    var extraPaths = pythonSettings.autoComplete.extraPaths.map(extraPath => {
+    // Add support for paths relative to workspace
+    let extraPaths = pythonSettings.autoComplete.extraPaths.map(extraPath => {
         if (path.isAbsolute(extraPath)) {
             return extraPath;
         }
@@ -381,7 +416,7 @@ function getConfig() {
     });
 
     return {
-        extraPaths: extraPaths,
+        extraPaths: extraPaths.concat(additionalAutoCopletePaths),
         useSnippets: false,
         caseInsensitiveCompletion: true,
         showDescriptions: true,

@@ -40,9 +40,10 @@ export class Linter extends baseLinter.BaseLinter {
             return Promise.resolve([]);
         }
 
-        var pylintPath = this.pythonSettings.linting.pylintPath;
+        let pylintPath = this.pythonSettings.linting.pylintPath;
+        let pylintArgs = Array.isArray(this.pythonSettings.linting.pylintArgs) ? this.pythonSettings.linting.pylintArgs : [];
         return new Promise<baseLinter.ILintMessage[]>((resolve, reject) => {
-            this.run(pylintPath, ["--msg-template='{line},{column},{category},{msg_id}:{msg}'", "--reports=n", "--output-format=text", filePath], filePath, txtDocumentLines, this.workspaceRootPath).then(messages => {
+            this.run(pylintPath, pylintArgs.concat(["--msg-template='{line},{column},{category},{msg_id}:{msg}'", "--reports=n", "--output-format=text", filePath]), filePath, txtDocumentLines, this.workspaceRootPath).then(messages => {
                 messages.forEach(msg => {
                     msg.severity = this.parseMessagesSeverity(msg.type);
                 });

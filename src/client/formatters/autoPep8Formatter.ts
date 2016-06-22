@@ -11,6 +11,7 @@ export class AutoPep8Formatter extends BaseFormatter {
 
     public formatDocument(document: vscode.TextDocument, options: vscode.FormattingOptions, token: vscode.CancellationToken): Thenable<vscode.TextEdit[]> {
         let autopep8Path = this.pythonSettings.formatting.autopep8Path;
-        return super.provideDocumentFormattingEdits(document, options, token, autopep8Path, ["--diff"]);
+        let autoPep8Args = Array.isArray(this.pythonSettings.formatting.autopep8Args) ? this.pythonSettings.formatting.autopep8Args : [];
+        return super.provideDocumentFormattingEdits(document, options, token, autopep8Path, autoPep8Args.concat(["--diff"]));
     }
 }

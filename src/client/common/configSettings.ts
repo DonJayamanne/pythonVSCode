@@ -13,9 +13,12 @@ export interface IPythonSettings {
 export interface IUnitTestSettings {
     nosetestsEnabled: boolean;
     nosetestPath: string;
+    nosetestArgs: string[];
     pyTestEnabled: boolean;
     pyTestPath: string;
+    pyTestArgs: string[];
     unittestEnabled: boolean;
+    unittestArgs: string[];
     outputWindow: string;
 }
 export interface IPylintCategorySeverity {
@@ -28,16 +31,20 @@ export interface IPylintCategorySeverity {
 export interface ILintingSettings {
     enabled: boolean;
     prospectorEnabled: boolean;
+    prospectorArgs: string[];
     pylintEnabled: boolean;
+    pylintArgs: string[];
     pep8Enabled: boolean;
+    pep8Args: string[];
     flake8Enabled: boolean;
+    flake8Args: string[];
     pydocstyleEnabled: boolean;
+    pydocstleArgs: string[];
     lintOnTextChange: boolean;
     lintOnSave: boolean;
     maxNumberOfProblems: number;
     pylintCategorySeverity: IPylintCategorySeverity;
     prospectorPath: string;
-    prospectorExtraCommands: string;
     pylintPath: string;
     pep8Path: string;
     flake8Path: string;
@@ -47,7 +54,9 @@ export interface ILintingSettings {
 export interface IFormattingSettings {
     provider: string;
     autopep8Path: string;
+    autopep8Args: string[];
     yapfPath: string;
+    yapfArgs: string[];
     formatOnSave: boolean;
     outputWindow: string;
 }

@@ -19,8 +19,9 @@ export class PythonUnitTest extends baseTestRunner.BaseTestRunner {
         }
 
         let ptyhonPath = this.pythonSettings.pythonPath;
+        let pythonUnitTestArgs = Array.isArray(this.pythonSettings.unitTest.unittestArgs) ? this.pythonSettings.unitTest.unittestArgs : [];
         return new Promise<any>(resolve => {
-            this.run(ptyhonPath, ["-m", "unittest", "discover"]).then(messages => {
+            this.run(ptyhonPath, ["-m", "unittest"].concat(pythonUnitTestArgs.concat(["discover"]))).then(messages => {
                 resolve(messages);
             });
         });

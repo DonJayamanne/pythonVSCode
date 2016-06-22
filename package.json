@@ -373,11 +373,6 @@
           "default": "prospector",
           "description": "Path to Prospector, you can use a custom version of prospector by modifying this setting to include the full path."
         },
-        "python.linting.prospectorExtraCommands": {
-          "type": "string",
-          "default": "",
-          "description": "Extra command line options to be passed to (ex: path to profile to be used)."
-        },
         "python.linting.pylintPath": {
           "type": "string",
           "default": "pylint",
@@ -397,6 +392,46 @@
           "type": "string",
           "default": "pydocstyle",
           "description": "Path to pydocstyle, you can use a custom version of pydocstyle by modifying this setting to include the full path."
+        },
+        "python.linting.prospectorArgs": {
+          "type": "array",
+          "description": "Arguments passed in. Each argument is a separate item in the array.",
+          "default": [],
+          "items": {
+            "type": "string"
+          }
+        },
+        "python.linting.pylintArgs": {
+          "type": "array",
+          "description": "Arguments passed in. Each argument is a separate item in the array.",
+          "default": [],
+          "items": {
+            "type": "string"
+          }
+        },
+        "python.linting.pep8Args": {
+          "type": "array",
+          "description": "Arguments passed in. Each argument is a separate item in the array.",
+          "default": [],
+          "items": {
+            "type": "string"
+          }
+        },
+        "python.linting.flake8Args": {
+          "type": "array",
+          "description": "Arguments passed in. Each argument is a separate item in the array.",
+          "default": [],
+          "items": {
+            "type": "string"
+          }
+        },
+        "python.linting.pydocStyleArgs": {
+          "type": "array",
+          "description": "Arguments passed in. Each argument is a separate item in the array.",
+          "default": [],
+          "items": {
+            "type": "string"
+          }
         },
         "python.linting.outputWindow": {
           "type": "string",
@@ -421,6 +456,22 @@
           "type": "string",
           "default": "yapf",
           "description": "Path to yapf, you can use a custom version of yapf by modifying this setting to include the full path."
+        },
+        "python.formatting.autopep8Args": {
+          "type": "array",
+          "description": "Arguments passed in. Each argument is a separate item in the array.",
+          "default": [],
+          "items": {
+            "type": "string"
+          }
+        },
+        "python.formatting.yapfArgs": {
+          "type": "array",
+          "description": "Arguments passed in. Each argument is a separate item in the array.",
+          "default": [],
+          "items": {
+            "type": "string"
+          }
         },
         "python.formatting.formatOnSave": {
           "type": "boolean",
@@ -456,6 +507,30 @@
           "type": "string",
           "default": "pytest",
           "description": "Path to pytest, you can use a custom version of pytest by modifying this setting to include the full path."
+        },
+        "python.unitTest.nosetestArgs": {
+          "type": "array",
+          "description": "Arguments passed in. Each argument is a separate item in the array.",
+          "default": [],
+          "items": {
+            "type": "string"
+          }
+        },
+        "python.unitTest.pyTestArgs": {
+          "type": "array",
+          "description": "Arguments passed in. Each argument is a separate item in the array.",
+          "default": [],
+          "items": {
+            "type": "string"
+          }
+        },
+        "python.unitTest.unittestArgs": {
+          "type": "array",
+          "description": "Arguments passed in. Each argument is a separate item in the array.",
+          "default": [],
+          "items": {
+            "type": "string"
+          }
         },
         "python.unitTest.unittestEnabled": {
           "type": "boolean",

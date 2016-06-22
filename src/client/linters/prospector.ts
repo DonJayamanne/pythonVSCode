@@ -36,12 +36,11 @@ export class Linter extends baseLinter.BaseLinter {
         }
 
         let prospectorPath = this.pythonSettings.linting.prospectorPath;
-        let prospectorExtraCommands = this.pythonSettings.linting.prospectorExtraCommands;
         let outputChannel = this.outputChannel;
         let linterId = this.Id;
-
+        let prospectorArgs = Array.isArray(this.pythonSettings.linting.prospectorArgs) ? this.pythonSettings.linting.prospectorArgs : [];
         return new Promise<baseLinter.ILintMessage[]>((resolve, reject) => {
-            execPythonFile(prospectorPath, ["--absolute-paths", "--output-format=json", filePath], this.workspaceRootPath, false).then(data => {
+            execPythonFile(prospectorPath, prospectorArgs.concat(["--absolute-paths", "--output-format=json", filePath]), this.workspaceRootPath, false).then(data => {
                 outputChannel.clear();
                 let parsedData: IProspectorResponse;
                 try {

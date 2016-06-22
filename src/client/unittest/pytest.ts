@@ -19,8 +19,9 @@ export class PyTestTests extends baseTestRunner.BaseTestRunner {
         }
 
         let pyTestPath = this.pythonSettings.unitTest.pyTestPath;
+        let pytestArgs = Array.isArray(this.pythonSettings.unitTest.pyTestArgs) ? this.pythonSettings.unitTest.pyTestArgs : [];
         return new Promise<any>(resolve => {
-            this.run(pyTestPath, []).then(messages => {
+            this.run(pyTestPath, pytestArgs).then(messages => {
                 resolve(messages);
             });
         });

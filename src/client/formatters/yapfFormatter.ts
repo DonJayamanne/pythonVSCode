@@ -11,6 +11,7 @@ export class YapfFormatter extends BaseFormatter {
 
     public formatDocument(document: vscode.TextDocument, options: vscode.FormattingOptions, token: vscode.CancellationToken): Thenable<vscode.TextEdit[]> {
         let yapfPath = this.pythonSettings.formatting.yapfPath;
-        return super.provideDocumentFormattingEdits(document, options, token, yapfPath, ["--diff"]);
+        let yapfArgs = Array.isArray(this.pythonSettings.formatting.yapfArgs) ? this.pythonSettings.formatting.yapfArgs : [];
+        return super.provideDocumentFormattingEdits(document, options, token, yapfPath, yapfArgs.concat(["--diff"]));
     }
 }

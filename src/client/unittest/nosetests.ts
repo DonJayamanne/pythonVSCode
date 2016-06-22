@@ -18,8 +18,9 @@ export class NoseTests extends baseTestRunner.BaseTestRunner {
         }
 
         let nosetestsPath = this.pythonSettings.unitTest.nosetestPath;
+        let nosetestArgs = Array.isArray(this.pythonSettings.unitTest.nosetestArgs) ? this.pythonSettings.unitTest.nosetestArgs : [];
         return new Promise<any>(resolve => {
-            this.run(nosetestsPath, []).then(messages => {
+            this.run(nosetestsPath, nosetestArgs).then(messages => {
                 resolve(messages);
             });
         });
