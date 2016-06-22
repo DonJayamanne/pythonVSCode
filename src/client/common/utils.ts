@@ -5,6 +5,22 @@ import * as fs from "fs";
 import * as child_process from "child_process";
 import * as settings from "./configSettings";
 
+const PathValidity: Map<string, boolean> = new Map<string, boolean>();
+export function validatePath(filePath: string): Promise<string> {
+    if (filePath.length === 0) {
+        return Promise.resolve("");
+    }
+    if (PathValidity.has(filePath)) {
+        return Promise.resolve(PathValidity.get(filePath) ? filePath : "");
+    }
+    return new Promise<string>(resolve => {
+        fs.exists(filePath, exists => {
+            PathValidity.set(filePath, exists);
+            return resolve(exists ? filePath : "");
+        });
+    });
+}
+
 let pythonInterpretterDirectory: string = null;
 let previouslyIdentifiedPythonPath: string = null;
 
@@ -42,24 +58,77 @@ export function getPythonInterpreterDirectory(): Promise<string> {
     });
 }
 
+const IN_VALID_FILE_PATHS: Map<string, boolean> = new Map<string, boolean>();
 export function execPythonFile(file: string, args: string[], cwd: string, includeErrorAsResponse: boolean = false): Promise<string> {
-    return getPythonInterpreterDirectory().then(pyPath => {
-        let options: any = { cwd: cwd };
+    // Whether to try executing the command without prefixing it with the python path
+    let tryUsingCommandArg = false;
+    if (file === settings.PythonSettings.getInstance().pythonPath) {
+        return execFileInternal(file, args, cwd, includeErrorAsResponse);
+    }
 
-        // If we have a fully qualitified path to the python executable directory, then we can use that
-        // as the base path for all other executables
-        if (pyPath.length > 0) {
-            const EnvVariableName = process.platform === "win32" ? "Path" : "PATH";
-            options.env = mergeEnvVariables({ EnvVariableName: pyPath + path.delimiter + process.env.PATH });
+    let fullyQualifiedFilePromise = getPythonInterpreterDirectory().then(pyPath => {
+        let pythonIntepreterPath = pyPath;
+        let fullyQualifiedFile = file;
+        if (pythonIntepreterPath.length === 0 || file.startsWith(pyPath)) {
+            return execFileInternal(fullyQualifiedFile, args, cwd, includeErrorAsResponse, true);
         }
 
-        return execFileInternal(file, args, options, includeErrorAsResponse);
+        // Qualify the command with the python path
+        fullyQualifiedFile = path.join(pythonIntepreterPath, file);
+
+        // Check if we know whether this trow ENONE errors
+        if (IN_VALID_FILE_PATHS.has(fullyQualifiedFile)) {
+            return execFileInternal(file, args, cwd, includeErrorAsResponse, true);
+        }
+
+        // It is possible this file doesn't exist, hence we initialize tryUsingCommandArg = true
+        tryUsingCommandArg = true;
+
+        if (PathValidity.has(fullyQualifiedFile)) {
+            // If the file exists, then don't try again
+            // If PathValidity value = false, that means we don't really know
+            // Cuz we could have some command args suffixed in the file path (hopefully this will be fixed in a later build)
+            if (PathValidity.get(fullyQualifiedFile)) {
+                tryUsingCommandArg = false;
+            }
+            return execFileInternal(fullyQualifiedFile, args, cwd, includeErrorAsResponse, true);
+        }
+
+        return validatePath(fullyQualifiedFile).then(f => {
+            // If the file exists, then don't bother trying again
+            if (f.length > 0) {
+                tryUsingCommandArg = false;
+            }
+            return execFileInternal(fullyQualifiedFile, args, cwd, includeErrorAsResponse, true);
+        });
     });
+
+    if (tryUsingCommandArg) {
+        return fullyQualifiedFilePromise.catch(error => {
+            if (error && (<any>error).code === "ENOENT") {
+                // Re-execute the file, without the python path prefix
+                // Only if we know that the previous one failed with ENOENT
+                return execFileInternal(file, args, cwd, includeErrorAsResponse, true);
+            }
+            // return what ever error we got from the previous process
+            Promise.reject(error);
+        });
+    }
+    else {
+        return fullyQualifiedFilePromise;
+    }
 }
 
-function execFileInternal(file: string, args: string[], options: child_process.ExecFileOptions, includeErrorAsResponse: boolean): Promise<string> {
+function execFileInternal(file: string, args: string[], cwd: string, includeErrorAsResponse: boolean, rejectIfENOENTErrors: boolean = false): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-        child_process.execFile(file, args, options, (error, stdout, stderr) => {
+        child_process.execFile(file, args, { cwd: cwd }, (error, stdout, stderr) => {
+            if (error && (<any>error).code === "ENOENT" && rejectIfENOENTErrors) {
+                if (!IN_VALID_FILE_PATHS.has(file)) {
+                    IN_VALID_FILE_PATHS.set(file, true);
+                }
+                return reject(error);
+            }
+
             // pylint:
             //      In the case of pylint we have some messages (such as config file not found and using default etc...) being returned in stderr
             //      These error messages are useless when using pylint   
