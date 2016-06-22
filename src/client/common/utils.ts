@@ -110,13 +110,13 @@ export function execPythonFile(file: string, args: string[], cwd: string, includ
             return execFileInternal(file, args, cwd, includeErrorAsResponse);
         }
         // return what ever error we got from the previous process
-        Promise.reject(error);
+        return Promise.reject(error);
     });
 }
 
 function handleResponse(error: Error, stdout: string, stderr: string, file: string, includeErrorAsResponse: boolean, rejectIfENOENTErrors: boolean = false): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-        if (error && (<any>error).code === "ENOENT" && rejectIfENOENTErrors) {
+        if (error && ((<any>error).code === "ENOENT") || (<any>error).code === 127) {
             if (!IN_VALID_FILE_PATHS.has(file)) {
                 IN_VALID_FILE_PATHS.set(file, true);
             }
