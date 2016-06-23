@@ -37,8 +37,27 @@ export abstract class BaseFormatter {
             }
             return getTextEditsFromPatch(document.getText(), data[1]);
         }).catch(error => {
-            this.outputChannel.appendLine(error);
-            throw new Error(`There was an error in formatting the document. View the Python output window for details.`);
+            this.handleError(this.Id, command, error);
         });
+    }
+
+    protected handleError(expectedFileName: string, fileName: string, error: Error) {
+        let customError = "Formatting with ${this.Id} failed. Please install the formatter or turn it off.\n";
+
+        if (typeof (error) === "object" && error !== null && ((<any>error).code === "ENOENT" || (<any>error).code === 127)) {
+            // Check if we have some custom arguments such as "pylint --load-plugins pylint_django"
+            // Such settings are no longer supported
+            let stuffAfterFileName = fileName.substring(fileName.toUpperCase().lastIndexOf(expectedFileName) + expectedFileName.length);
+
+            // Ok if we have a space after the file name, this means we have some arguments defined and this isn't supported
+            if (stuffAfterFileName.trim().indexOf(" ")) {
+                customError = `Formatting failed, custom arguments in the 'python.formatting.${this.Id}Path' is not supported.\n` +
+                    `Custom arguments to the formatter can be defined in 'python.formatter.${this.Id}Args' setting of settings.json.\n` +
+                    "For further details, please see https://github.com/DonJayamanne/pythonVSCode/wiki/Troubleshooting-Linting#2-linting-with-xxx-failed-";
+            }
+        }
+
+        this.outputChannel.appendLine(`${customError}\n${error}`);
+        throw new Error(`There was an error in formatting the document. View the Python output window for details.`);
     }
 }

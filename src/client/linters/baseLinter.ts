@@ -64,7 +64,7 @@ export abstract class BaseLinter {
 
         return new Promise<ILintMessage[]>((resolve, reject) => {
             execPythonFile(command, args, cwd, true).then(data => {
-                outputChannel.clear();
+                outputChannel.append("#".repeat(10) + "Linting Output - " + this.Id + "#".repeat(10));
                 outputChannel.append(data);
                 var outputLines = data.split(/\r?\n/g);
                 var diagnostics: ILintMessage[] = [];
@@ -108,10 +108,29 @@ export abstract class BaseLinter {
 
                 resolve(diagnostics);
             }).catch(error => {
-                outputChannel.appendLine(`Linting with ${linterId} failed. If not installed please turn if off in settings.\n ${error}`);
-                window.showInformationMessage(`Linting with ${linterId} failed. If not installed please turn if off in settings. View Python output for details.`);
+                this.handleError(this.Id, command, error);
                 return [];
             });
         });
+    }
+
+    protected handleError(expectedFileName: string, fileName: string, error: Error) {
+        let customError = "Linting with ${this.Id} failed. Please install the linter or turn it off.\n";
+
+        if (typeof (error) === "object" && error !== null && ((<any>error).code === "ENOENT" || (<any>error).code === 127)) {
+            // Check if we have some custom arguments such as "pylint --load-plugins pylint_django"
+            // Such settings are no longer supported
+            let stuffAfterFileName = fileName.substring(fileName.toUpperCase().lastIndexOf(expectedFileName) + expectedFileName.length);
+
+            // Ok if we have a space after the file name, this means we have some arguments defined and this isn't supported
+            if (stuffAfterFileName.trim().indexOf(" ")) {
+                customError = `Linting failed, custom arguments in the 'python.linting.${this.Id}Path' is not supported.\n` +
+                    `Custom arguments to the linters can be defined in 'python.linting.${this.Id}Args' setting of settings.json.\n` +
+                    "For further details, please see https://github.com/DonJayamanne/pythonVSCode/wiki/Troubleshooting-Linting#2-linting-with-xxx-failed-";
+            }
+        }
+
+        this.outputChannel.appendLine(`${customError}\n${error}`);
+        window.showInformationMessage(`${customError}. View Python output for details.`);
     }
 }

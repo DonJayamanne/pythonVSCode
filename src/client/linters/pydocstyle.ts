@@ -41,7 +41,7 @@ export class Linter extends baseLinter.BaseLinter {
         return new Promise<ILintMessage[]>((resolve, reject) => {
             var fileDir = path.dirname(filePath);
             execPythonFile(commandLine, args, this.workspaceRootPath, true).then(data => {
-                outputChannel.clear();
+                outputChannel.append("#".repeat(10) + "Linting Output - " + this.Id + "#".repeat(10));
                 outputChannel.append(data);
                 var outputLines = data.split(/\r?\n/g);
                 var diagnostics: ILintMessage[] = [];
@@ -91,8 +91,8 @@ export class Linter extends baseLinter.BaseLinter {
                 });
                 resolve(diagnostics);
             }, error => {
-                outputChannel.appendLine(`Linting with ${linterId} failed. If not installed please turn if off in settings.\n ${error}`);
-                window.showInformationMessage(`Linting with ${linterId} failed. If not installed please turn if off in settings. View Python output for details.`);
+                this.handleError(this.Id, commandLine, error);
+                return [];
             });
         });
     }

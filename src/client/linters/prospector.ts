@@ -41,12 +41,12 @@ export class Linter extends baseLinter.BaseLinter {
         let prospectorArgs = Array.isArray(this.pythonSettings.linting.prospectorArgs) ? this.pythonSettings.linting.prospectorArgs : [];
         return new Promise<baseLinter.ILintMessage[]>((resolve, reject) => {
             execPythonFile(prospectorPath, prospectorArgs.concat(["--absolute-paths", "--output-format=json", filePath]), this.workspaceRootPath, false).then(data => {
-                outputChannel.clear();
                 let parsedData: IProspectorResponse;
                 try {
                     parsedData = JSON.parse(data);
                 }
                 catch (ex) {
+                    outputChannel.append("#".repeat(10) + "Linting Output - " + this.Id + "#".repeat(10));
                     outputChannel.append(data);
                     return resolve([]);
                 }
@@ -77,8 +77,8 @@ export class Linter extends baseLinter.BaseLinter {
 
                 resolve(diagnostics);
             }).catch(error => {
-                outputChannel.appendLine(`Linting with ${linterId} failed.If not installed please turn if off in settings.\n ${error} `);
-                window.showInformationMessage(`Linting with ${linterId} failed.If not installed please turn if off in settings.View Python output for details.`);
+                this.handleError(this.Id, prospectorPath, error);
+                return [];
             });
         });
     }

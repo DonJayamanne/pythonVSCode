@@ -398,11 +398,11 @@ function onConfigChanged() {
         getPathFromPythonCommand(["-c", "import sys;print(sys.prefix)"]),
         // Python specific site packages
         getPathFromPythonCommand(["-c", "from distutils.sysconfig import get_python_lib; print(get_python_lib())"]),
-        // Python global site packages
+        // Python global site packages, as a fallback in case user hasn't installed them in custom environment
         getPathFromPythonCommand(["-m", "side", "--user-site"])
     ];
     Promise.all<string>(filePaths).then(paths => {
-        // additionalAutoCopletePaths = paths.filter(p => p.length > 0);
+        additionalAutoCopletePaths = paths.filter(p => p.length > 0);
     });
 }
 
@@ -414,9 +414,9 @@ function getConfig() {
         }
         return path.join(vscode.workspace.rootPath, extraPath);
     });
-
+    let distinctExtraPaths = extraPaths.concat(additionalAutoCopletePaths).filter((value, index, self) => self.indexOf(value) === index);
     return {
-        extraPaths: extraPaths.concat(additionalAutoCopletePaths),
+        extraPaths: distinctExtraPaths,
         useSnippets: false,
         caseInsensitiveCompletion: true,
         showDescriptions: true,
