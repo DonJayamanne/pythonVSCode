@@ -1,54 +1,53 @@
-# Python
+# [Python](http://donjayamanne.github.io/pythonVSCode/)
 Linting, Debugging (multi-threaded, web apps, remote), Intellisense, auto-completion, code formatting, snippets, unit testing, and more.
 
-##[Documentation](https://github.com/DonJayamanne/pythonVSCode/wiki)
-###Getting Started
+##Quick Start
 * Install the extension
-* If using a custom Python Version or a Virtual Environment, then configure the path to the python executable in settings.json ([further details here](https://github.com/DonJayamanne/pythonVSCode/wiki/Python-Path-and-Version#python-version-used-for-intellisense-autocomplete-linting-formatting-etc))  
-###[Troubleshooting guide](https://github.com/DonJayamanne/pythonVSCode/wiki/Troubleshooting)
+* If Python is in the current path
+  + You're ready to use it.
+* If using a custom Python Version or a Virtual Environment
+  + Configure the path to the python executable in python.pythonPath of the settings.json file ([further details here](https://github.com/DonJayamanne/pythonVSCode/wiki/Python-Path-and-Version#python-version-used-for-intellisense-autocomplete-linting-formatting-etc)) 
 
-###Feature Requests and contributions
-* Contributions are always welcome. Fork it, make the changes and create a pull request
-* Your feedback will make this a better product, so all feedback is appreciated and welcome.
+For further information and details continue through to the [documenetation](https://github.com/DonJayamanne/pythonVSCode/wiki).
+
+##Feature Requests and contributions
+* Contributions are always welcome. Fork it, modify it and create a pull request.
+* Any and all feedback is appreciated and welcome.
   + Please feel free to [add suggestions here](https://github.com/DonJayamanne/pythonVSCode/issues/183)
 
-###Roadmap
+##Features
+* Linting (Prospector, PyLint, Pep8, Flake8, pydocstyle with config files and plugins)
+* Intellisense (autocompletion)
+* Auto indenting
+* Code formatting (autopep8, yapf, with config files)
+* Renaming, Viewing references, and code navigation
+* View signature and similar by hovering over a function or method
+* Excellent debugging suppot (variables, arguments, expressions, watch window, stack information, break points, remote debugging, mutliple threads)
+* Unit testing (unittests and nosetests, with config files)
+* Sorting imports
+* Snippets
+
+##[Roadmap](https://github.com/DonJayamanne/pythonVSCode/issues/183)
 _Please note, not all of these feature may be developed.   
-Your feedback is crucial in prioritizing the items and in determining whether we focus our attention to some other feature request(s)._    
+Your feedback is crucial in prioritizing the items and in determining whether we shift focus our attention to some other feature request(s)._    
 * Intellisense and Linting
   + Performance improvements
   + Linting as you type
   + Context actions for some linter messages
-* Miscellaneous tools
-  + Code coverage
-  + Profiler
-* Remote Interpretter
-* Integrating IPython
+  + Remote Interpretter
 * Miscellaneous IDE enhancements
   + Code Refactoring 
   + Autogenerate docstring
   + Documentation viewer
   + Improved integration of Unit Tests
+* Integration
+  + Code coverage
+  + Profiler
+  + Integrating IPython
 * Debugging enhancements  
   + Integration with VS Code Terminal window
   + Securely debugging Python applications in the cloud (Azure, AWS or Google Cloud)
   + Remote debugging over SSH
-
-##Features
-* Linting (Prospector, PyLint, Pep8, Flake8, pydocstyle with config files and plugins)
-* Intellisense and autocompletion
-* Auto indenting
-* Code formatting (autopep8, yapf, with config files)
-* Renaming, Viewing references, Going to definitions, Go to Symbols
-* View signature and similar by hovering over a function or method
-* Debugging with support for local variables, arguments, expressions, watch window, stack information, break points
-* Debugging Multiple threads (Web Applications - Flask, etc) and expanding values (on Windows and Mac)
-* Debugging remote processes (attaching to local and remote process)
-* Debugging with support for shebang (windows)
-* Debugging with custom environment variables
-* Unit testing (unittests and nosetests, with config files)
-* Sorting imports
-* Snippets
 
 ##[Issues and Feature Requests](https://github.com/DonJayamanne/pythonVSCode/issues)
 
@@ -111,12 +110,12 @@ Your feedback is crucial in prioritizing the items and in determining whether we
 ## Change Log
 
 ### Version 0.3.12  
-* Changes to how linters and formatters are executed (optimizations and changes to settings to separate out the command line arguments) [#178](https://github.com/DonJayamanne/pythonVSCode/issues/178)[#163](https://github.com/DonJayamanne/pythonVSCode/issues/163)
+* Changes to how linters and formatters are executed (optimizations and changes to settings to separate out the command line arguments) [#178](https://github.com/DonJayamanne/pythonVSCode/issues/178), [#163](https://github.com/DonJayamanne/pythonVSCode/issues/163)
 * Fix to support Unicode characters in debugger [#102](https://github.com/DonJayamanne/pythonVSCode/issues/102)
 * Added support for {workspaceRoot} in Path settings defined in settings.js [#148](https://github.com/DonJayamanne/pythonVSCode/issues/148)
 * Resolving path of linters and formatters based on python path defined in settings.json [#148](https://github.com/DonJayamanne/pythonVSCode/issues/148)
 * Better handling of Paths to python executable and related tools (linters, formatters) in virtual environments [#148](https://github.com/DonJayamanne/pythonVSCode/issues/148)
-* Added support for configurationDone event in debug adapter [#168](https://github.com/DonJayamanne/pythonVSCode/issues/168)[#145](https://github.com/DonJayamanne/pythonVSCode/issues/145)
+* Added support for configurationDone event in debug adapter [#168](https://github.com/DonJayamanne/pythonVSCode/issues/168), [#145](https://github.com/DonJayamanne/pythonVSCode/issues/145)
 
 ### Version 0.3.11  
 * Added support for telemetry [#156](https://github.com/DonJayamanne/pythonVSCode/issues/156)

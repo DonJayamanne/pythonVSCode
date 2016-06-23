@@ -1,11 +1,15 @@
 {
   "name": "python",
   "displayName": "Python",
-  "description": "Linting, Debugging (multi-threaded, remote), Intellisense, auto-completion, code formatting, snippets, and more.",
+  "description": "Linting, Debugging (multi-threaded, remote), Intellisense, code formatting, snippets, and more.",
   "version": "0.3.13",
   "publisher": "donjayamanne",
+  "author": {
+    "name": "Don Jayamanne",
+    "email": "don.jayamanne@yahoo.com"
+  },    
   "license": "MIT",
-  "homepage": "https://github.com/DonJayamanne/pythonVSCode/blob/master/README.md",
+  "homepage": "http://donjayamanne.github.io/pythonVSCode/",
   "repository": {
     "type": "git",
     "url": "https://github.com/DonJayamanne/pythonVSCode"
