@@ -1,5 +1,15 @@
-# [Python](http://donjayamanne.github.io/pythonVSCode/)
-Linting, Debugging (multi-threaded, web apps, remote), Intellisense, auto-completion, code formatting, snippets, unit testing, and more.
+#Python
+An extension with rich support for Python language, with features including the following and more:   
+* Linting (Prospector, PyLint, Pep8, Flake8, pydocstyle with config files and plugins)
+* Intellisense (autocompletion)
+* Auto indenting
+* Code formatting (autopep8, yapf, with config files)
+* Renaming, Viewing references, and code navigation
+* View signature and similar by hovering over a function or method
+* Excellent debugging suppot (variables, arguments, expressions, watch window, stack information, break points, remote debugging, mutliple threads)
+* Unit testing (unittests and nosetests, with config files)
+* Sorting imports
+* Snippets
 
 ##Quick Start
 * Install the extension
@@ -14,18 +24,6 @@ For further information and details continue through to the [documenetation](htt
 * Contributions are always welcome. Fork it, modify it and create a pull request.
 * Any and all feedback is appreciated and welcome.
   + Please feel free to [add suggestions here](https://github.com/DonJayamanne/pythonVSCode/issues/183)
-
-##Features
-* Linting (Prospector, PyLint, Pep8, Flake8, pydocstyle with config files and plugins)
-* Intellisense (autocompletion)
-* Auto indenting
-* Code formatting (autopep8, yapf, with config files)
-* Renaming, Viewing references, and code navigation
-* View signature and similar by hovering over a function or method
-* Excellent debugging suppot (variables, arguments, expressions, watch window, stack information, break points, remote debugging, mutliple threads)
-* Unit testing (unittests and nosetests, with config files)
-* Sorting imports
-* Snippets
 
 ##[Roadmap](https://github.com/DonJayamanne/pythonVSCode/issues/183)
 _Please note, not all of these feature may be developed.   
@@ -97,15 +95,7 @@ Your feedback is crucial in prioritizing the items and in determining whether we
 
 ![Image of Generate Features](https://raw.githubusercontent.com/DonJayamanne/pythonVSCode/master/images/general.gif)
 
-![Image of Go To Definition](https://raw.githubusercontent.com/DonJayamanne/pythonVSCode/master/images/goToDef.gif)
-
-![Image of Renaming and Find all References](https://raw.githubusercontent.com/DonJayamanne/pythonVSCode/master/images/rename.gif)
-
 ![Image of Debugging](https://raw.githubusercontent.com/DonJayamanne/pythonVSCode/master/images/standardDebugging.gif)
-
-![Image of Multi Threaded Debugging](https://raw.githubusercontent.com/DonJayamanne/pythonVSCode/master/images/flaskDebugging.gif)
-
-![Image of Pausing](https://raw.githubusercontent.com/DonJayamanne/pythonVSCode/master/images/break.gif)
 
 ## Change Log
 
