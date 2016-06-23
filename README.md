@@ -4,12 +4,35 @@ Linting, Debugging (multi-threaded, web apps, remote), Intellisense, auto-comple
 ##[Documentation](https://github.com/DonJayamanne/pythonVSCode/wiki)
 ###Getting Started
 * Install the extension
-* If not using [Virtual Environments](https://virtualenv.readthedocs.org/) and the Python executable isn't located in the current path, then [configure the path](https://github.com/DonJayamanne/pythonVSCode/wiki/Python-Path-and-Version) to the python executable.  
-* If using [Virtual Environments](https://virtualenv.readthedocs.org/), you could either:     
-  + Close all instances of VS Code, and activate the virtual environment from within your terminal/command window and then launch VS Code (see [wiki](https://github.com/DonJayamanne/pythonVSCode/wiki/Python-Path-and-Version#virtual-environments)).
-  + Or manually [configure the paths](https://github.com/DonJayamanne/pythonVSCode/wiki/Python-Path-and-Version).  
-
+* If using a custom Python Version or a Virtual Environment, then configure the path to the python executable in settings.json ([further details here](https://github.com/DonJayamanne/pythonVSCode/wiki/Python-Path-and-Version#python-version-used-for-intellisense-autocomplete-linting-formatting-etc))  
 ###[Troubleshooting guide](https://github.com/DonJayamanne/pythonVSCode/wiki/Troubleshooting)
+
+###Feature Requests and contributions
+* Contributions are always welcome. Fork it, make the changes and create a pull request
+* Your feedback will make this a better product, so all feedback is appreciated and welcome.
+  + Please feel free to [add suggestions here](https://github.com/DonJayamanne/pythonVSCode/issues/183)
+
+###Roadmap
+_Please note, not all of these feature may be developed.   
+Your feedback is crucial in prioritizing the items and in determining whether we focus our attention to some other feature request(s)._    
+* Intellisense and Linting
+  + Performance improvements
+  + Linting as you type
+  + Context actions for some linter messages
+* Miscellaneous tools
+  + Code coverage
+  + Profiler
+* Remote Interpretter
+* Integrating IPython
+* Miscellaneous IDE enhancements
+  + Code Refactoring 
+  + Autogenerate docstring
+  + Documentation viewer
+  + Improved integration of Unit Tests
+* Debugging enhancements  
+  + Integration with VS Code Terminal window
+  + Securely debugging Python applications in the cloud (Azure, AWS or Google Cloud)
+  + Remote debugging over SSH
 
 ##Features
 * Linting (Prospector, PyLint, Pep8, Flake8, pydocstyle with config files and plugins)
@@ -29,22 +52,14 @@ Linting, Debugging (multi-threaded, web apps, remote), Intellisense, auto-comple
 
 ##[Issues and Feature Requests](https://github.com/DonJayamanne/pythonVSCode/issues)
 
-## Contributing
-* Clone the repository and open in VS Code.
-* Ensure you have NodeJS installed and all of the dependendant node modules are installed (use 'npm install' command).
-* You can debug the extension by using the 'Launch Extension' debug configuration.
-
-## Feature Details (with configuration)
+## Feature Details
 * IDE Features
  + Auto indenting
- + Rename and navigate to symbols
- + Go to, Peek and hover definition
- + Find all references
- + View Signature
+ + Code navigation (Go to, Find all references)
+ + Code definition (Peek and hover definition, View Signature)
+ + Rename refactoring
  + Sorting Import statements (use "Python: Sort Imports" command)
 * [Intellisense and Autocomplete](https://github.com/DonJayamanne/pythonVSCode/wiki/Autocomplete-Intellisense)
- + Full intellisense
- + Support for docstring
  + Ability to include custom module paths (e.g. include paths for libraries like Google App Engine, etc)
  + Use the setting python.autoComplete.extraPaths = []
  + For instance getting autocomplete/intellisense for Google App Engine, add the following to your settings file:
@@ -56,20 +71,14 @@ Linting, Debugging (multi-threaded, web apps, remote), Intellisense, auto-comple
 * [Code formatting](https://github.com/DonJayamanne/pythonVSCode/wiki/Formatting)
  + Auto formatting of code upon saving changes (default to 'Off')
  + Use either yapf or autopep8 for code formatting (defaults to autopep8)
- + auutopep8 configuration files supported
- + yapf configuration files supported
 * [Linting](https://github.com/DonJayamanne/pythonVSCode/wiki/Linting)
  + It can be turned off (default is turn it on and use pylint)
- + pylint can be turned on/off (default is on), supports standard configuaration files
- + pep8 can be turned on/off (default is off), supports standard configuaration files
- + flake8 can be turned on/off (default is on), supports standard configuaration files
- + pydocstyle can be turned on/off (default is on), supports standard configuaration files
- + prospector can be turned on/off (default is on)
- + Different categories of errors reported by pylint can be configured as warnings, errors, information or hits
- + Path to pylint, pep8 and flake8 and pep8 can be configured
+ + Multiple linters supported (along with support for configuration files for each linter)
+ + Supported linters include pylit, pep8, flake8, pydocstyle, prospector
+ + Paths to each of the linters can be optionally configured
  + Custom plugins such as pylint plugin for Django can be easily used by modifying the settings as follows:
 ```json
-"python.linting.pylintPath": "pylint --load-plugins pylint_django"
+"python.linting.pylintArgs": ["--load-plugins", "pylint_django"]
 ``` 
 * [Debuggging](https://github.com/DonJayamanne/pythonVSCode/wiki/Debugging)
  + Watch window
@@ -82,10 +91,8 @@ Linting, Debugging (multi-threaded, web apps, remote), Intellisense, auto-comple
  + Conditional breakpoints
  + Remote debugging
 * Unit Testing
- + unittests (default is on)
- + nosetests (default is off)
+ + Support for unittests, nosetests and pytest
  + Test resutls are displayed in the "Python" output window
- + Future release will display results in a more structured manner integrated into the IDE
 * Snippets
 
 
@@ -101,28 +108,15 @@ Linting, Debugging (multi-threaded, web apps, remote), Intellisense, auto-comple
 
 ![Image of Pausing](https://raw.githubusercontent.com/DonJayamanne/pythonVSCode/master/images/break.gif)
 
-## Requirements
-* Python is installed on the current system
- + Path to python can be configured
-* Pylint is installed for linting (optional)
- + pip install pylint
-* Pep8 is installed for linting (optional)
- + pip install pep8
-* Flake8 is installed for linting (optional)
- + pip install flake8
-* pydocstyle is installed for linting (optional)
- + pip install pydocstyle
-* prospector is installed for linting (optional)
- + pip install prospector
-* Autopep8 is installed for code formatting (optional) 
- + pip install pep8
- + pip install --upgrade autopep8
-* Yapf is installed for code formatting (optional)
- + pip install yapf
-* nosetests for unit testing  (optional)
- + pip install nose
-
 ## Change Log
+
+### Version 0.3.12  
+* Changes to how linters and formatters are executed (optimizations and changes to settings to separate out the command line arguments) [#178](https://github.com/DonJayamanne/pythonVSCode/issues/178)[#163](https://github.com/DonJayamanne/pythonVSCode/issues/163)
+* Fix to support Unicode characters in debugger [#102](https://github.com/DonJayamanne/pythonVSCode/issues/102)
+* Added support for {workspaceRoot} in Path settings defined in settings.js [#148](https://github.com/DonJayamanne/pythonVSCode/issues/148)
+* Resolving path of linters and formatters based on python path defined in settings.json [#148](https://github.com/DonJayamanne/pythonVSCode/issues/148)
+* Better handling of Paths to python executable and related tools (linters, formatters) in virtual environments [#148](https://github.com/DonJayamanne/pythonVSCode/issues/148)
+* Added support for configurationDone event in debug adapter [#168](https://github.com/DonJayamanne/pythonVSCode/issues/168)[#145](https://github.com/DonJayamanne/pythonVSCode/issues/145)
 
 ### Version 0.3.11  
 * Added support for telemetry [#156](https://github.com/DonJayamanne/pythonVSCode/issues/156)
