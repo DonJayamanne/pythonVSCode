@@ -99,6 +99,9 @@ Your feedback is crucial in prioritizing the items and in determining whether we
 
 ## Change Log
 
+### Version 0.3.14  
+* Modifications to handle errors in linters when the linter isn't installed.  
+
 ### Version 0.3.13  
 * Fixed error message being displayed by linters and formatters  
 

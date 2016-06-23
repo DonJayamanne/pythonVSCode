@@ -123,7 +123,7 @@ export abstract class BaseLinter {
             let stuffAfterFileName = fileName.substring(fileName.toUpperCase().lastIndexOf(expectedFileName) + expectedFileName.length);
 
             // Ok if we have a space after the file name, this means we have some arguments defined and this isn't supported
-            if (stuffAfterFileName.trim().indexOf(" ")) {
+            if (stuffAfterFileName.trim().indexOf(" ") > 0) {
                 customError = `Linting failed, custom arguments in the 'python.linting.${this.Id}Path' is not supported.\n` +
                     `Custom arguments to the linters can be defined in 'python.linting.${this.Id}Args' setting of settings.json.\n` +
                     "For further details, please see https://github.com/DonJayamanne/pythonVSCode/wiki/Troubleshooting-Linting#2-linting-with-xxx-failed-";
