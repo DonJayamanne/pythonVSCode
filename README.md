@@ -99,6 +99,9 @@ Your feedback is crucial in prioritizing the items and in determining whether we
 
 ## Change Log
 
+### Version 0.3.13  
+* Fixed error message being displayed by linters and formatters  
+
 ### Version 0.3.12  
 * Changes to how linters and formatters are executed (optimizations and changes to settings to separate out the command line arguments) [#178](https://github.com/DonJayamanne/pythonVSCode/issues/178), [#163](https://github.com/DonJayamanne/pythonVSCode/issues/163)
 * Fix to support Unicode characters in debugger [#102](https://github.com/DonJayamanne/pythonVSCode/issues/102)
