@@ -42,7 +42,7 @@ export abstract class BaseFormatter {
     }
 
     protected handleError(expectedFileName: string, fileName: string, error: Error) {
-        let customError = "Formatting with ${this.Id} failed. Please install the formatter or turn it off.\n";
+        let customError = `Formatting with ${this.Id} failed. Please install the formatter or turn it off.\n`;
 
         if (typeof (error) === "object" && error !== null && ((<any>error).code === "ENOENT" || (<any>error).code === 127)) {
             // Check if we have some custom arguments such as "pylint --load-plugins pylint_django"
