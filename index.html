@@ -1,60 +1,142 @@
 <!DOCTYPE html>
-<html lang="en-us">
-  <head>
-    <meta charset="UTF-8">
-    <title>Python for Visual Studio Code by DonJayamanne</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
-    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
-  </head>
-  <body>
-    <section class="page-header">
-      <h1 class="project-name">Python for Visual Studio Code</h1>
-      <h2 class="project-tagline">Python extension for Visual Studio Code</h2>
-      <a href="https://github.com/DonJayamanne/pythonVSCode" class="btn">View on GitHub</a>
-      <a href="https://github.com/DonJayamanne/pythonVSCode/zipball/master" class="btn">Download .zip</a>
-      <a href="https://github.com/DonJayamanne/pythonVSCode/tarball/master" class="btn">Download .tar.gz</a>
-    </section>
+<html>
 
-    <section class="main-content">
-      <h3>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="Python for Visual Studio Code : Python extension for Visual Studio Code">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Python for Visual Studio Code</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/DonJayamanne/pythonVSCode">View on GitHub</a>
+
+          <h1 id="project_title">Python for Visual Studio Code</h1>
+          <h2 id="project_tagline">Python extension for Visual Studio Code</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/DonJayamanne/pythonVSCode/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/DonJayamanne/pythonVSCode/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h3>
 <a id="welcome-to-python-for-visual-studio-code" class="anchor" href="#welcome-to-python-for-visual-studio-code" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Welcome to Python for Visual Studio Code</h3>
 
 <p>Python for Visual Studio Code is an extension for Visual Studio which aims at providing you with the best python development environment and experience possible. The extension is built for the Visual Studio Code IDE that is built from the ground up using Open Source technologies such as NodeJs.</p>
+
+<p><img src="https://raw.githubusercontent.com/DonJayamanne/pythonVSCode/master/images/general.gif" alt="Image of Generate Features"></p>
+
+<p><img src="https://raw.githubusercontent.com/DonJayamanne/pythonVSCode/master/images/standardDebugging.gif" alt="Image of Debugging"></p>
+
+<h3>
+<a id="open-source-and-cross-platforma" class="anchor" href="#open-source-and-cross-platforma" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Open Source and Cross Platforma</h3>
+
+<p>The extension along with the IDE is both open source and runs on multiple platforms such as Windows, Mac and Linux.
+Both the <a href="https://github.com/DonJayamanne/pythonVSCode">Python extension</a> and <a href="https://github.com/Microsoft/vscode">Visual Studio Code</a> are built using open source technologies such as NodeJs.</p>
+
+<h2>
+<a id="works-out-of-the-box" class="anchor" href="#works-out-of-the-box" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Works out of the box</h2>
+
+<p>Once installed, the extension works out of the box with absolutely no configuration.
+This is made possible by using the default Python interpreter available in the current PATH variable on the operating system.</p>
+
+<p>If necessary, the python interpreter being used by the extension could be changed to point to a specific version of the interpreter (or one that is in a specific virtual environment). This is made possible by altering the following setting in the <a href="https://code.visualstudio.com/Docs/customization/userandworkspace">User or Workspace settings file</a>:</p>
+
+<div class="highlight highlight-source-json"><pre>“python.pythonPath” : “&lt;fully qualified path to the python interpreter&gt;”</pre></div>
 
 <h2>
 <a id="features" class="anchor" href="#features" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Features</h2>
 
 <h3>
-<a id="designer-templates" class="anchor" href="#designer-templates" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Designer Templates</h3>
+<a id="virtual-environments" class="anchor" href="#virtual-environments" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Virtual Environments</h3>
 
-<p>We’ve crafted some handsome templates for you to use. Go ahead and click 'Continue to layouts' to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved.</p>
+<p>Python virtual environments are completely supported. </p>
+
+<h3>
+<a id="rich-intellisense-code-completion" class="anchor" href="#rich-intellisense-code-completion" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Rich Intellisense (code completion)</h3>
+
+<p>The extension provides a very rich set of intellisense and code completion capabilities. This significantly reduces the development effort by removing the guess work from the equation. Intellisense (code completion) works out of the box with no additional configuration. However, this can be fined tuned if necessary.</p>
+
+<h3>
+<a id="code-navigation-and-the-like" class="anchor" href="#code-navigation-and-the-like" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Code Navigation and the like</h3>
+
+<p>The extension integrates with most if not all of the code navigation capabilities exposed by the Visual Studio Code IDE. What this means to the end user is simple, features such as Go to Definition, Go to Symbol, Find all References, hover over a symbol to view the documentation, etc. are available to the user through the IDE via standard commands and interfaces.<br>
+This alone feature alone saves development time and effort with improved code navigation.</p>
+
+<h3>
+<a id="linting" class="anchor" href="#linting" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Linting</h3>
+
+<p>The extension utilizes some of the best and most popular python linters in order to analyze the source code and provide feedback to the user. Popular linters such as Pylint, Flake8, pydocstyle, and the like are used. As a user you could either use all of them or just one or none. Users have the ability to fine tune each linter placing relevant configuration files in the project directory.</p>
+
+<h3>
+<a id="code-formatting" class="anchor" href="#code-formatting" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Code formatting</h3>
+
+<p>Code formatting ensures your code meets certain standards of coding styles. This capability is provided by using either one of Yapf or AutoPep8 library. Using this feature you can be assured your code meets some of the best known standards in python coding (format) styles.</p>
+
+<h3>
+<a id="debugging" class="anchor" href="#debugging" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Debugging</h3>
+
+<p>The debugging experience provided is unparalleled. You could debug almost any type of application, web and console applications, local and remote applications (yes remote debugging too). The debugger provides a rich set of debugging capabilities such as:</p>
+
+<ul>
+<li>Multi-threaded debugging</li>
+<li>Local variables and arguments </li>
+<li>Watch window and stack trace</li>
+<li>Conditional breakpoints</li>
+<li>Evaluating expressions </li>
+<li>and more</li>
+</ul>
+
+<h3>
+<a id="miscellaneous-features-that-make-this-a-great-python-development-ide" class="anchor" href="#miscellaneous-features-that-make-this-a-great-python-development-ide" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Miscellaneous features that make this a great Python development IDE</h3>
+
+<ul>
+<li>Executing unit tests</li>
+<li>Rename refactor</li>
+<li>Sort imports within a python file</li>
+<li>Auto-indenting as you type</li>
+<li>Total control over the linters and formatters used</li>
+</ul>
 
 <h3>
 <a id="creating-pages-manually" class="anchor" href="#creating-pages-manually" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Creating pages manually</h3>
 
 <p>If you prefer to not use the automatic generator, push a branch named <code>gh-pages</code> to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.</p>
 
-<h3>
-<a id="authors-and-contributors" class="anchor" href="#authors-and-contributors" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Authors and Contributors</h3>
+<h2>
+<a id="contributions-and-suggestions" class="anchor" href="#contributions-and-suggestions" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Contributions and Suggestions</h2>
 
-<p>You can <a href="https://help.github.com/articles/basic-writing-and-formatting-syntax/#mentioning-users-and-teams" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor’s GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
+<p>If you have an idea, we’d love to hear about it, you can add them <a href="https://github.com/DonJayamanne/pythonVSCode/issues/183">here</a>.
+If you think you can build it, then by all means fork the repo, make the changes and create a pull request.</p>
 
-<h3>
-<a id="support-or-contact" class="anchor" href="#support-or-contact" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Support or Contact</h3>
+<h2>
+<a id="license" class="anchor" href="#license" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>License</h2>
 
-<p>Having trouble with Pages? Check out our <a href="https://help.github.com/pages">documentation</a> or <a href="https://github.com/contact">contact support</a> and we’ll help you sort it out.</p>
+<p><a href="https://raw.githubusercontent.com/DonJayamanne/pythonVSCode/master/LICENSE">MIT</a></p>
+      </section>
+    </div>
 
-      <footer class="site-footer">
-        <span class="site-footer-owner"><a href="https://github.com/DonJayamanne/pythonVSCode">Python for Visual Studio Code</a> is maintained by <a href="https://github.com/DonJayamanne">DonJayamanne</a>.</span>
-
-        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Python for Visual Studio Code maintained by <a href="https://github.com/DonJayamanne">DonJayamanne</a></p>
+        <p>Published with <a href="https://pages.github.com">GitHub Pages</a></p>
       </footer>
+    </div>
 
-    </section>
+    
 
-  
   </body>
 </html>
