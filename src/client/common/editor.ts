@@ -1,5 +1,5 @@
 import {TextEdit, Position, Range, TextDocument} from "vscode";
-const dmp:any = require("./diff-match-patch");
+import dmp = require("diff-match-patch");
 import {EOL} from "os";
 import * as fs from "fs";
 import * as path from "path";
@@ -12,7 +12,7 @@ const EDIT_REPLACE = 2;
 const NEW_LINE_LENGTH = EOL.length;
 
 class Patch {
-    diffs: any[];
+    diffs: dmp.Diff[];
     start1: number;
     start2: number;
     length1: number;
@@ -51,9 +51,9 @@ export function getTextEditsFromPatch(before: string, patch: string): TextEdit[]
     if (patch.length === 0) {
         return [];
     }
-var x = EOL;
+
     let d = new dmp.diff_match_patch();
-    let patches = <Patch[]>(<any>d).patch_fromText(patch);
+    let patches = patch_fromText.call(d, patch);
     if (!Array.isArray(patches) || patches.length === 0) {
         throw new Error("Unable to parse Patch string");
     }
@@ -147,4 +147,83 @@ export function getTempFileWithDocumentContents(document: TextDocument): Promise
             });
         });
     });
+}
+
+
+/**
+ * Parse a textual representation of patches and return a list of Patch objects.
+ * @param {string} textline Text representation of patches.
+ * @return {!Array.<!diff_match_patch.patch_obj>} Array of Patch objects.
+ * @throws {!Error} If invalid input.
+ */
+function patch_fromText(textline) {
+  var patches = [];
+  if (!textline) {
+    return patches;
+  }
+  // Start Modification by Don Jayamanne 24/06/2016 Support for CRLF
+  var text = textline.split(/[\r\n]/);
+  // End Modification
+  var textPointer = 0;
+  var patchHeader = /^@@ -(\d+),?(\d*) \+(\d+),?(\d*) @@$/;
+  while (textPointer < text.length) {
+    var m = text[textPointer].match(patchHeader);
+    if (!m) {
+      throw new Error('Invalid patch string: ' + text[textPointer]);
+    }
+    var patch = new dmp.diff_match_patch.patch_obj();
+    patches.push(patch);
+    patch.start1 = parseInt(m[1], 10);
+    if (m[2] === '') {
+      patch.start1--;
+      patch.length1 = 1;
+    } else if (m[2] == '0') {
+      patch.length1 = 0;
+    } else {
+      patch.start1--;
+      patch.length1 = parseInt(m[2], 10);
+    }
+
+    patch.start2 = parseInt(m[3], 10);
+    if (m[4] === '') {
+      patch.start2--;
+      patch.length2 = 1;
+    } else if (m[4] == '0') {
+      patch.length2 = 0;
+    } else {
+      patch.start2--;
+      patch.length2 = parseInt(m[4], 10);
+    }
+    textPointer++;
+
+    while (textPointer < text.length) {
+      var sign = text[textPointer].charAt(0);
+      try {
+        var line = decodeURI(text[textPointer].substring(1));
+      } catch (ex) {
+        // Malformed URI sequence.
+        throw new Error('Illegal escape in patch_fromText: ' + line);
+      }
+      if (sign == '-') {
+        // Deletion.
+        patch.diffs.push([dmp.DIFF_DELETE, line]);
+      } else if (sign == '+') {
+        // Insertion.
+        patch.diffs.push([dmp.DIFF_INSERT, line]);
+      } else if (sign == ' ') {
+        // Minor equality.
+        patch.diffs.push([dmp.DIFF_EQUAL, line]);
+      } else if (sign == '@') {
+        // Start of next patch.
+        break;
+      } else if (sign === '') {
+        // Blank line?  Whatever.
+      } else {
+        // WTF?
+        throw new Error('Invalid patch mode "' + sign + '" in: ' + line);
+      }
+      textPointer++;
+    }
+  }
+  return patches;
 }
