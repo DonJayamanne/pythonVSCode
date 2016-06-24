@@ -13,8 +13,10 @@ export class PythonCompletionItemProvider implements vscode.CompletionItemProvid
     private static parseData(data: proxy.ICompletionResult): vscode.CompletionItem[] {
         if (data && data.items.length > 0) {
             return data.items.map(item => {
-                var completionItem = new vscode.CompletionItem(item.text);
+                let completionItem = new vscode.CompletionItem(item.text);
                 completionItem.documentation = item.description;
+                // ensure the built in memebers are at the bottom
+                completionItem.sortText = (completionItem.label.startsWith("__") ? "z" : (completionItem.label.startsWith("_") ? "y" : "__")) + completionItem.label;
                 return completionItem;
             });
         }
