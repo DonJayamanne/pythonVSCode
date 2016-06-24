@@ -57,7 +57,7 @@ export abstract class BaseFormatter {
             }
         }
 
-        this.outputChannel.appendLine(`${customError}\n${error}`);
+        this.outputChannel.appendLine(`${customError}\n${error + ""}`);
         throw new Error(`There was an error in formatting the document. View the Python output window for details.`);
     }
 }
