@@ -1,5 +1,5 @@
 import {TextEdit, Position, Range, TextDocument} from "vscode";
-import dmp = require("diff-match-patch");
+import * as dmp from "diff-match-patch";
 import {EOL} from "os";
 import * as fs from "fs";
 import * as path from "path";
@@ -171,7 +171,7 @@ function patch_fromText(textline) {
     if (!m) {
       throw new Error('Invalid patch string: ' + text[textPointer]);
     }
-    var patch = new dmp.diff_match_patch.patch_obj();
+    var patch = new (<any>dmp.diff_match_patch).patch_obj();
     patches.push(patch);
     patch.start1 = parseInt(m[1], 10);
     if (m[2] === '') {
