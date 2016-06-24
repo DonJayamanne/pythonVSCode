@@ -130,7 +130,7 @@ export abstract class BaseLinter {
             }
         }
 
-        this.outputChannel.appendLine(`${customError}\n${error}`);
+        this.outputChannel.appendLine(`${customError}\n${error + ""}`);
         window.showInformationMessage(`${customError}. View Python output for details.`);
     }
 }

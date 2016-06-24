@@ -5,7 +5,8 @@
 		"moduleResolution": "node",
 		"outDir": "../../out/client",
 		"noLib": true,
-		"sourceMap": true
+		"sourceMap": true,
+		"allowJs": true
 	},
 	"exclude": [ 
 		"node_modules", 

@@ -1,5 +1,5 @@
 import {TextEdit, Position, Range, TextDocument} from "vscode";
-import dmp = require("diff-match-patch");
+const dmp:any = require("./diff-match-patch");
 import {EOL} from "os";
 import * as fs from "fs";
 import * as path from "path";
@@ -12,7 +12,7 @@ const EDIT_REPLACE = 2;
 const NEW_LINE_LENGTH = EOL.length;
 
 class Patch {
-    diffs: dmp.Diff[];
+    diffs: any[];
     start1: number;
     start2: number;
     length1: number;
@@ -51,7 +51,7 @@ export function getTextEditsFromPatch(before: string, patch: string): TextEdit[]
     if (patch.length === 0) {
         return [];
     }
-
+var x = EOL;
     let d = new dmp.diff_match_patch();
     let patches = <Patch[]>(<any>d).patch_fromText(patch);
     if (!Array.isArray(patches) || patches.length === 0) {
