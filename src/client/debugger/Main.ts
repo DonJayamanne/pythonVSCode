@@ -197,9 +197,9 @@ export class PythonDebugger extends DebugSession {
         let that = this;
 
         this.canStartDebugger().then(() => {
-            return this.startDebugServer().then(dbgServer => {
-                return that.debugClient.LaunchApplicationToDebug(dbgServer);
-            });
+            return this.startDebugServer();
+        }).then(dbgServer => {
+            return that.debugClient.LaunchApplicationToDebug(dbgServer);
         }).catch(error => {
             this.sendEvent(new OutputEvent(error + "\n", "stderr"));
             this.sendErrorResponse(that.entryResponse, 2000, error);
@@ -313,7 +313,7 @@ export class PythonDebugger extends DebugSession {
                     this.configurationDonePromiseResolve();
                     this.configurationDonePromiseResolve = null;
                 }
-            });
+            }).catch(error => this.sendErrorResponse(response, 2000, error));
         });
     }
 
@@ -389,8 +389,9 @@ export class PythonDebugger extends DebugSession {
         this.pythonProcess.SendStepOut(this.pythonProcess.LastExecutedThread.Id);
     }
     protected continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments): void {
-        this.sendResponse(response);
-        this.pythonProcess.SendContinue();
+        this.pythonProcess.SendContinue().then(() => {
+            this.sendResponse(response);
+        }).catch(error => this.sendErrorResponse(response, 2000, error));
     }
     protected nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments): void {
         this.sendResponse(response);
@@ -423,11 +424,7 @@ export class PythonDebugger extends DebugSession {
                     variablesReference: variablesReference
                 };
                 this.sendResponse(response);
-            },
-                error => {
-                    this.sendErrorResponse(response, 2000, error);
-                }
-            );
+            }).catch(error => this.sendErrorResponse(response, 2000, error));
         });
     }
     protected scopesRequest(response: DebugProtocol.ScopesResponse, args: DebugProtocol.ScopesArguments): void {
@@ -504,8 +501,6 @@ export class PythonDebugger extends DebugSession {
                         variablesReference: variablesReference
                     });
                 });
-            }, error => {
-                this.sendErrorResponse(response, 2001, error);
             });
         });
 
@@ -515,7 +510,7 @@ export class PythonDebugger extends DebugSession {
             };
 
             return this.sendResponse(response);
-        });
+        }).catch(error => this.sendErrorResponse(response, 2001, error));
     }
     protected pauseRequest(response: DebugProtocol.PauseResponse): void {
         this.pythonProcess.Break();

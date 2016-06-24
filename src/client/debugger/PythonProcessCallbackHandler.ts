@@ -221,31 +221,29 @@ export class PythonProcessCallbackHandler extends EventEmitter {
         });
     }
     private GetHandledExceptionRanges(fileName: string): Promise<{ startLine: number, endLine: number, expressions: string[] }[]> {
-        return new Promise<{ startLine: number, endLine: number, expressions: string[] }[]>(resolve => {
-            ExtractTryStatements(fileName).then(statements => {
-                let exceptionRanges: { startLine: number, endLine: number, expressions: string[] }[] = [];
-                statements.forEach(statement => {
-                    let expressions = [];
-                    if (statement.Exceptions.length === 0 || statement.Exceptions.indexOf("*") >= 0) {
-                        expressions = ["*"];
-                    }
-                    else {
-                        statement.Exceptions.forEach(ex => {
-                            if (expressions.indexOf(ex) === -1) {
-                                expressions.push(ex);
-                            }
-                        });
-                    }
-
-                    exceptionRanges.push({
-                        endLine: statement.EndLineNumber,
-                        startLine: statement.StartLineNumber,
-                        expressions: expressions
+        return ExtractTryStatements(fileName).then(statements => {
+            let exceptionRanges: { startLine: number, endLine: number, expressions: string[] }[] = [];
+            statements.forEach(statement => {
+                let expressions = [];
+                if (statement.Exceptions.length === 0 || statement.Exceptions.indexOf("*") >= 0) {
+                    expressions = ["*"];
+                }
+                else {
+                    statement.Exceptions.forEach(ex => {
+                        if (expressions.indexOf(ex) === -1) {
+                            expressions.push(ex);
+                        }
                     });
-                });
+                }
 
-                resolve(exceptionRanges);
+                exceptionRanges.push({
+                    endLine: statement.EndLineNumber,
+                    startLine: statement.StartLineNumber,
+                    expressions: expressions
+                });
             });
+
+            return exceptionRanges;
         });
     }
 

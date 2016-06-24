@@ -78,11 +78,11 @@ export class LocalDebugClient extends DebugClient {
             });
         });
     }
-    private displayError(error) {
+    private displayError(error: any, context: string = "") {
         if (!error) { return; }
         let errorMsg = typeof error === "string" ? error : ((error.message && error.message.length > 0) ? error.message : "");
         if (errorMsg.length > 0) {
-            this.debugSession.sendEvent(new OutputEvent(errorMsg + "\n", "stderr"));
+            this.debugSession.sendEvent(new OutputEvent(context + (context.length > 0 ? ": " : "") + errorMsg + "\n", "stderr"));
         }
     }
     private getShebangLines(program: string): Promise<string[]> {
@@ -155,9 +155,6 @@ export class LocalDebugClient extends DebugClient {
 
             this.getPTVSToolsFilePath().then((ptVSToolsFilePath) => {
                 return this.prependShebangToPTVSFile(ptVSToolsFilePath, this.args.program);
-            }, error => {
-                this.displayError(error);
-                reject(error);
             }).then((ptVSToolsFilePath) => {
                 let launcherArgs = this.buildLauncherArguments();
 
@@ -167,10 +164,10 @@ export class LocalDebugClient extends DebugClient {
                         this.pyProc = proc;
                         resolve();
                     }, error => {
+                        // TODO: This condition makes no sense (refactor)
                         if (!this.debugServer && this.debugServer.IsRunning) {
                             return;
                         }
-                        this.displayError(error);
                         reject(error);
                     });
 
@@ -179,21 +176,22 @@ export class LocalDebugClient extends DebugClient {
 
                 this.pyProc = child_process.spawn(pythonPath, args, { cwd: processCwd, env: environmentVariables });
                 this.pyProc.on("error", error => {
+                    // TODO: This condition makes no sense (refactor)
                     if (!this.debugServer && this.debugServer.IsRunning) {
                         return;
                     }
-                    this.displayError(error);
+                    this.displayError(error, "pyProc.error");
                 });
                 this.pyProc.on("stderr", error => {
+                    // TODO: This condition makes no sense (refactor)
                     if (!this.debugServer && this.debugServer.IsRunning) {
                         return;
                     }
-                    this.displayError(error);
+                    this.displayError(error, "pyProc.stderr");
                 });
 
                 resolve();
-            }, error => {
-                this.displayError(error);
+            }).catch(error => {
                 reject(error);
             });
         });

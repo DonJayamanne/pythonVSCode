@@ -74,7 +74,12 @@ export function execPythonFile(file: string, args: string[], cwd: string, includ
         }
 
         // Qualify the command with the python path
-        fullyQualifiedFile = path.join(pythonIntepreterPath, file);
+        if (/^win/.test(process.platform)) {
+            fullyQualifiedFile = path.join(pythonIntepreterPath, "scripts", file);
+        }
+        else {
+            fullyQualifiedFile = path.join(pythonIntepreterPath, file);
+        }
 
         // Check if we know whether this trow ENONE errors
         if (IN_VALID_FILE_PATHS.has(fullyQualifiedFile)) {

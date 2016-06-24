@@ -195,7 +195,7 @@ function spawnProcess(dir: string) {
         var dataStr = previousData = previousData + data + ""
         var responses: any[];
         try {
-            responses = dataStr.split("\n").filter(line => line.length > 0).map(resp => JSON.parse(resp));
+            responses = dataStr.split(/\r?\n/g).filter(line => line.length > 0).map(resp => JSON.parse(resp));
             previousData = "";
         }
         catch (ex) {
