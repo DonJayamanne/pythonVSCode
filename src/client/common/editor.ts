@@ -51,6 +51,9 @@ export function getTextEditsFromPatch(before: string, patch: string): TextEdit[]
     if (patch.length === 0) {
         return [];
     }
+    // Remove the text added by unified_diff
+    // # Work around missing newline (http://bugs.python.org/issue2142).
+    patch = patch.replace(/\\ No newline at end of file[\r\n]/, "");
 
     let d = new dmp.diff_match_patch();
     let patches = patch_fromText.call(d, patch);
