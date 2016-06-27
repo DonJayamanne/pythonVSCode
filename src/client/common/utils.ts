@@ -5,6 +5,9 @@ import * as fs from "fs";
 import * as child_process from "child_process";
 import * as settings from "./configSettings";
 
+const IS_WINDOWS = /^win/.test(process.platform);
+const PATH_VARIABLE_NAME = IS_WINDOWS ? "Path" : "PATH";
+
 const PathValidity: Map<string, boolean> = new Map<string, boolean>();
 export function validatePath(filePath: string): Promise<string> {
     if (filePath.length === 0) {
@@ -23,6 +26,7 @@ export function validatePath(filePath: string): Promise<string> {
 
 let pythonInterpretterDirectory: string = null;
 let previouslyIdentifiedPythonPath: string = null;
+let customEnvVariables: any = null;
 
 export function getPythonInterpreterDirectory(): Promise<string> {
     // If we already have it and the python path hasn't changed, yay
@@ -34,8 +38,8 @@ export function getPythonInterpreterDirectory(): Promise<string> {
         let pythonFileName = settings.PythonSettings.getInstance().pythonPath;
 
         // Check if we have the path
-        let dirName = path.dirname(pythonFileName);
-        if (dirName.length === 0 || dirName === "." || dirName.length === pythonFileName.length) {
+        if (path.basename(pythonFileName) === pythonFileName) {
+            // No path provided
             return resolve("");
         }
 
@@ -58,91 +62,66 @@ export function getPythonInterpreterDirectory(): Promise<string> {
     });
 }
 
-const IN_VALID_FILE_PATHS: Map<string, boolean> = new Map<string, boolean>();
 export function execPythonFile(file: string, args: string[], cwd: string, includeErrorAsResponse: boolean = false): Promise<string> {
-    // Whether to try executing the command without prefixing it with the python path
-    let tryUsingCommandArg = false;
+    // If running the python file, then always revert to execFileInternal
+    // Cuz python interpreter is always a file and we can and will always run it using child_process.execFile()
     if (file === settings.PythonSettings.getInstance().pythonPath) {
-        return execFileInternal(file, args, cwd, includeErrorAsResponse);
+        return execFileInternal(file, args, { cwd: cwd }, includeErrorAsResponse);
     }
 
-    let fullyQualifiedFilePromise = getPythonInterpreterDirectory().then(pyPath => {
-        let pythonIntepreterPath = pyPath;
-        let fullyQualifiedFile = file;
-        if (pythonIntepreterPath.length === 0 || file.startsWith(pyPath)) {
-            return execFileInternal(fullyQualifiedFile, args, cwd, includeErrorAsResponse);
+    getPythonInterpreterDirectory().then(pyPath => {
+        // We don't have a path
+        if (pyPath.length === 0) {
+            return execFileInternal(file, args, { cwd: cwd }, includeErrorAsResponse);
         }
 
-        // Qualify the command with the python path
-        if (/^win/.test(process.platform)) {
-            fullyQualifiedFile = path.join(pythonIntepreterPath, "scripts", file);
-        }
-        else {
-            fullyQualifiedFile = path.join(pythonIntepreterPath, file);
-        }
-
-        // Check if we know whether this trow ENONE errors
-        if (IN_VALID_FILE_PATHS.has(fullyQualifiedFile)) {
-            return execFileInternal(file, args, cwd, includeErrorAsResponse);
-        }
-
-        // It is possible this file doesn't exist, hence we initialize tryUsingCommandArg = true
-        tryUsingCommandArg = true;
-
-        if (PathValidity.has(fullyQualifiedFile)) {
-            // If the file exists, then don't try again
-            // If PathValidity value = false, that means we don't really know
-            // Cuz we could have some command args suffixed in the file path (hopefully this will be fixed in a later build)
-            if (PathValidity.get(fullyQualifiedFile)) {
-                tryUsingCommandArg = false;
+        if (customEnvVariables === null) {
+            let pathValue = <string>process.env[PATH_VARIABLE_NAME];
+            // Ensure to include the path of the current python 
+            let newPath = pyPath + path.delimiter + process.env[PATH_VARIABLE_NAME];
+            if (IS_WINDOWS) {
+                newPath = path.join(pyPath, "Scripts") + path.delimiter + process.env[PATH_VARIABLE_NAME];
             }
-            return execFileInternal(fullyQualifiedFile, args, cwd, includeErrorAsResponse);
+            customEnvVariables = mergeEnvVariables({ PATH_VARIABLE_NAME: newPath });
         }
 
-        return validatePath(fullyQualifiedFile).then(f => {
-            // If the file exists, then don't bother trying again
-            if (f.length > 0) {
-                tryUsingCommandArg = false;
-            }
-            return execFileInternal(fullyQualifiedFile, args, cwd, includeErrorAsResponse);
-        });
-    });
-
-    return fullyQualifiedFilePromise.catch(error => {
-        if (error && (<any>error).code === "ENOENT" && tryUsingCommandArg) {
-            // Re-execute the file, without the python path prefix
-            // Only if we know that the previous one failed with ENOENT
-            return execFileInternal(file, args, cwd, includeErrorAsResponse);
-        }
-        // return what ever error we got from the previous process
-        return Promise.reject(error);
+        return execFileInternal(file, args, { cwd, env: customEnvVariables }, includeErrorAsResponse);
     });
 }
 
-function execFileInternal(file: string, args: string[], cwd: string, includeErrorAsResponse: boolean): Promise<string> {
+function handleResponse(file: string, includeErrorAsResponse: boolean, error: Error, stdout: string, stderr: string): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-        child_process.execFile(file, args, { cwd: cwd }, (error, stdout, stderr) => {
-            if (typeof (error) === "object" && error !== null && ((<any>error).code === "ENOENT" || (<any>error).code === 127)) {
-                if (!IN_VALID_FILE_PATHS.has(file)) {
-                    IN_VALID_FILE_PATHS.set(file, true);
-                }
-                return reject(error);
-            }
+        if (typeof (error) === "object" && error !== null && ((<any>error).code === "ENOENT" || (<any>error).code === 127)) {
+            return reject(error);
+        }
 
-            // pylint:
-            //      In the case of pylint we have some messages (such as config file not found and using default etc...) being returned in stderr
-            //      These error messages are useless when using pylint   
-            if (includeErrorAsResponse && (stdout.length > 0 || stderr.length > 0)) {
-                return resolve(stdout + "\n" + stderr);
-            }
+        // pylint:
+        //      In the case of pylint we have some messages (such as config file not found and using default etc...) being returned in stderr
+        //      These error messages are useless when using pylint   
+        if (includeErrorAsResponse && (stdout.length > 0 || stderr.length > 0)) {
+            return resolve(stdout + "\n" + stderr);
+        }
 
-            let hasErrors = (error && error.message.length > 0) || (stderr && stderr.length > 0);
-            if (hasErrors && (typeof stdout !== "string" || stdout.length === 0)) {
-                let errorMsg = (error && error.message) ? error.message : (stderr && stderr.length > 0 ? stderr + "" : "");
-                return reject(errorMsg);
-            }
+        let hasErrors = (error && error.message.length > 0) || (stderr && stderr.length > 0);
+        if (hasErrors && (typeof stdout !== "string" || stdout.length === 0)) {
+            let errorMsg = (error && error.message) ? error.message : (stderr && stderr.length > 0 ? stderr + "" : "");
+            return reject(errorMsg);
+        }
 
-            resolve(stdout + "");
+        resolve(stdout + "");
+    });
+}
+function execFileInternal(file: string, args: string[], options: child_process.ExecFileOptions, includeErrorAsResponse: boolean): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+        child_process.execFile(file, args, options, (error, stdout, stderr) => {
+            handleResponse(file, includeErrorAsResponse, error, stdout, stderr).then(resolve, reject);
+        });
+    });
+}
+function execInternal(command: string, args: string[], options: child_process.ExecFileOptions, includeErrorAsResponse: boolean): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+        child_process.exec([command].concat(args).join(" "), options, (error, stdout, stderr) => {
+            handleResponse(command, includeErrorAsResponse, error, stdout, stderr).then(resolve, reject);
         });
     });
 }
