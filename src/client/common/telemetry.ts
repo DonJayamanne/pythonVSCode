@@ -52,7 +52,7 @@ export class Delays {
 const extensionId = "donjayamanne.python";
 const extension = extensions.getExtension(extensionId);
 const extensionVersion = extension.packageJSON.version;
-const aiKey = "fce7a3d5-4665-4404-b786-31a6306749a6";
+const aiKey = "AIF-d9b70cd4-b9f9-4d70-929b-a071c400b217";
 let reporter = new TelemetryReporter(extensionId, extensionVersion, aiKey);
 
 /**
