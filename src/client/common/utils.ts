@@ -69,7 +69,7 @@ export function execPythonFile(file: string, args: string[], cwd: string, includ
         return execFileInternal(file, args, { cwd: cwd }, includeErrorAsResponse);
     }
 
-    getPythonInterpreterDirectory().then(pyPath => {
+    return getPythonInterpreterDirectory().then(pyPath => {
         // We don't have a path
         if (pyPath.length === 0) {
             return execFileInternal(file, args, { cwd: cwd }, includeErrorAsResponse);
