@@ -52,31 +52,10 @@ export class LocalDebugClient extends DebugClient {
             this.pyProc = null;
         }
     }
-    private getPTVSToolsFilePath(): Promise<string> {
+    private getPTVSToolsFilePath(): string {
         let currentFileName = module.filename;
-
-        return new Promise<String>((resolve, reject) => {
-            tmp.dir((error, tmpDir) => {
-                if (error) { return reject(error); }
-                let ptVSToolsPath = path.join(path.dirname(currentFileName), "..", "..", "..", "..", "pythonFiles", "PythonTools");
-
-                let promises = PTVS_FILES.map(ptvsFile => {
-                    return new Promise((copyResolve, copyReject) => {
-                        let sourceFile = path.join(ptVSToolsPath, ptvsFile);
-                        let targetFile = path.join(tmpDir, ptvsFile);
-
-                        fsExtra.copy(sourceFile, targetFile, copyError => {
-                            if (copyError) { return copyReject(copyError); }
-                            copyResolve(targetFile);
-                        });
-                    });
-                });
-
-                Promise.all(promises).then(() => {
-                    resolve(path.join(tmpDir, "visualstudio_py_launcher.py"));
-                }, reject);
-            });
-        });
+        let ptVSToolsPath = path.join(path.dirname(currentFileName), "..", "..", "..", "..", "pythonFiles", "PythonTools");
+        return path.join(ptVSToolsPath, "visualstudio_py_launcher.py"));
     }
     private displayError(error: any, context: string = "") {
         if (!error) { return; }
@@ -84,49 +63,6 @@ export class LocalDebugClient extends DebugClient {
         if (errorMsg.length > 0) {
             this.debugSession.sendEvent(new OutputEvent(context + (context.length > 0 ? ": " : "") + errorMsg + "\n", "stderr"));
         }
-    }
-    private getShebangLines(program: string): Promise<string[]> {
-        const MAX_SHEBANG_LINES = 2;
-        return new Promise<string[]>((resolve, reject) => {
-            let lr = new LineByLineReader(program);
-            let shebangLines: string[] = [];
-
-            lr.on("error", err => {
-                reject(err);
-            });
-            lr.on("line", (line: string) => {
-                if (shebangLines.length >= MAX_SHEBANG_LINES) {
-                    lr.close();
-                    return false;
-                }
-                let trimmedLine = line.trim();
-                if (trimmedLine.startsWith("#")) {
-                    shebangLines.push(line);
-                }
-                else {
-                    shebangLines.push("#");
-                }
-            });
-            lr.on("end", function () {
-                // Ensure we always have two lines, even if no shebangLines
-                // This way if ever we get lines numbers in errors for the python file, we have a consistency
-                while (shebangLines.length < MAX_SHEBANG_LINES) {
-                    shebangLines.push("#");
-                }
-                resolve(shebangLines);
-            });
-        });
-    }
-    private prependShebangToPTVSFile(ptVSToolsFilePath: string, program: string): Promise<string> {
-        return new Promise<string>((resolve, reject) => {
-            this.getShebangLines(program).then(lines => {
-                let linesToPrepend = lines.join("\n") + "\n";
-                prependFile(ptVSToolsFilePath, linesToPrepend, error => {
-                    if (error) { reject(error); }
-                    else { resolve(ptVSToolsFilePath); }
-                });
-            }, reject);
-        });
     }
     public LaunchApplicationToDebug(dbgServer: IDebugServer): Promise<any> {
         return new Promise<any>((resolve, reject) => {
@@ -152,48 +88,43 @@ export class LocalDebugClient extends DebugClient {
                 environmentVariables["PYTHONIOENCODING"] = "UTF-8";
             }
             let currentFileName = module.filename;
+            let ptVSToolsFilePath = this.getPTVSToolsFilePath();
+            let launcherArgs = this.buildLauncherArguments();
 
-            this.getPTVSToolsFilePath().then((ptVSToolsFilePath) => {
-                return this.prependShebangToPTVSFile(ptVSToolsFilePath, this.args.program);
-            }).then((ptVSToolsFilePath) => {
-                let launcherArgs = this.buildLauncherArguments();
+            let args = [ptVSToolsFilePath, processCwd, dbgServer.port.toString(), "34806ad9-833a-4524-8cd6-18ca4aa74f14"].concat(launcherArgs);
+            if (this.args.externalConsole === true) {
+                open({ wait: false, app: [pythonPath].concat(args), cwd: processCwd, env: environmentVariables }).then(proc => {
+                    this.pyProc = proc;
+                    resolve();
+                }, error => {
+                    // TODO: This condition makes no sense (refactor)
+                    if (!this.debugServer && this.debugServer.IsRunning) {
+                        return;
+                    }
+                    reject(error);
+                });
 
-                let args = [ptVSToolsFilePath, processCwd, dbgServer.port.toString(), "34806ad9-833a-4524-8cd6-18ca4aa74f14"].concat(launcherArgs);
-                if (this.args.externalConsole === true) {
-                    open({ wait: false, app: [pythonPath].concat(args), cwd: processCwd, env: environmentVariables }).then(proc => {
-                        this.pyProc = proc;
-                        resolve();
-                    }, error => {
-                        // TODO: This condition makes no sense (refactor)
-                        if (!this.debugServer && this.debugServer.IsRunning) {
-                            return;
-                        }
-                        reject(error);
-                    });
+                return;
+            }
 
+            this.pyProc = child_process.spawn(pythonPath, args, { cwd: processCwd, env: environmentVariables });
+            this.pyProc.on("error", error => {
+                // TODO: This condition makes no sense (refactor)
+                if (!this.debugServer && this.debugServer.IsRunning) {
                     return;
                 }
-
-                this.pyProc = child_process.spawn(pythonPath, args, { cwd: processCwd, env: environmentVariables });
-                this.pyProc.on("error", error => {
-                    // TODO: This condition makes no sense (refactor)
-                    if (!this.debugServer && this.debugServer.IsRunning) {
-                        return;
-                    }
-                    this.displayError(error, "pyProc.error");
-                });
-                this.pyProc.on("stderr", error => {
-                    // TODO: This condition makes no sense (refactor)
-                    if (!this.debugServer && this.debugServer.IsRunning) {
-                        return;
-                    }
-                    this.displayError(error, "pyProc.stderr");
-                });
-
-                resolve();
-            }).catch(error => {
-                reject(error);
+                this.displayError(error, "pyProc.error");
             });
+            this.pyProc.stderr.setEncoding("utf8");
+            this.pyProc.stderr.on("data", error => {
+                // TODO: This condition makes no sense (refactor)
+                if (!this.debugServer && this.debugServer.IsRunning) {
+                    return;
+                }
+                this.displayError(error, "pyProc.stderr");
+            });
+
+            resolve();
         });
     }
     protected buildLauncherArguments(): string[] {
