@@ -2,4 +2,3 @@
 out
 node_modules
 *.pyc
-.vscode/settings.json
