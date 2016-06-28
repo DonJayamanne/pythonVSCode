@@ -48,6 +48,7 @@ default = {'force_to_top': [],
            'line_length': 79,
            'wrap_length': 0,
            'sections': DEFAULT_SECTIONS,
+           'no_sections': False,
            'known_future_library': ['__future__'],
            'known_standard_library': ["abc", "anydbm", "argparse", "array", "asynchat", "asyncore", "atexit", "base64",
                                       "BaseHTTPServer", "bisect", "bz2", "calendar", "cgitb", "cmd", "codecs",
@@ -68,7 +69,7 @@ default = {'force_to_top': [],
                                       "timeit", "trace", "traceback", "unittest", "urllib", "urllib2", "urlparse",
                                       "usercustomize", "uuid", "warnings", "weakref", "webbrowser", "whichdb", "xml",
                                       "xmlrpclib", "zipfile", "zipimport", "zlib", 'builtins', '__builtin__', 'thread',
-                                      "binascii", "statistics", "unicodedata", "fcntl"],
+                                      "binascii", "statistics", "unicodedata", "fcntl", 'pathlib'],
            'known_third_party': ['google.appengine.api'],
            'known_first_party': [],
            'multi_line_output': WrapModes.GRID,
@@ -90,6 +91,7 @@ default = {'force_to_top': [],
            'atomic': False,
            'lines_after_imports': -1,
            'lines_between_sections': 1,
+           'lines_between_types': 0,
            'combine_as_imports': False,
            'combine_star': False,
            'include_trailing_comma': False,
@@ -97,10 +99,12 @@ default = {'force_to_top': [],
            'verbose': False,
            'quiet': False,
            'force_adds': False,
+           'force_alphabetical_sort_within_sections': False,
            'force_alphabetical_sort': False,
            'force_grid_wrap': False,
            'force_sort_within_sections': False,
-           'show_diff': False}
+           'show_diff': False,
+           'enforce_white_space': False}
 
 
 @lru_cache()
@@ -171,7 +175,7 @@ def _update_with_config_file(file_path, sections, computed_settings):
 
 
 def _as_list(value):
-    return filter(bool, [item.strip() for item in value.split(",")])
+    return filter(bool, [item.strip() for item in value.replace('\n', ',').split(",")])
 
 
 @lru_cache()
@@ -199,10 +203,10 @@ def _get_config_data(file_path, sections):
     return {}
 
 
-def should_skip(filename, config):
+def should_skip(filename, config, path='/'):
     """Returns True if the file should be skipped based on the passed in settings."""
     for skip_path in config['skip']:
-        if skip_path.endswith(filename):
+        if os.path.join(path, filename).endswith('/' + skip_path.lstrip('/')):
             return True
 
     position = os.path.split(filename)
