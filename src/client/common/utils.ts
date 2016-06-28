@@ -78,9 +78,12 @@ export function execPythonFile(file: string, args: string[], cwd: string, includ
         if (customEnvVariables === null) {
             let pathValue = <string>process.env[PATH_VARIABLE_NAME];
             // Ensure to include the path of the current python 
-            let newPath = pyPath + path.delimiter + process.env[PATH_VARIABLE_NAME];
+            let newPath = "";
             if (IS_WINDOWS) {
-                newPath = path.join(pyPath, "Scripts") + path.delimiter + process.env[PATH_VARIABLE_NAME];
+                newPath = pyPath + "\\" + path.delimiter + path.join(pyPath, "Scripts\\") + path.delimiter + process.env[PATH_VARIABLE_NAME];
+            }
+            else {
+                pyPath + path.delimiter + process.env[PATH_VARIABLE_NAME];
             }
             customEnvVariables = mergeEnvVariables({ PATH_VARIABLE_NAME: newPath });
         }
