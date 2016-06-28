@@ -105,6 +105,8 @@ Your feedback is crucial in prioritizing the items and in determining whether we
 * Modifications to infer paths of packages on windows [#178](https://github.com/DonJayamanne/pythonVSCode/issues/178)
 * Fix for debugger crashes [#45](https://github.com/DonJayamanne/pythonVSCode/issues/45)
 * Changes to App Insights key [#156](https://github.com/DonJayamanne/pythonVSCode/issues/156)
+* Updated Jedi library to latest version [#173](https://github.com/DonJayamanne/pythonVSCode/issues/173)
+* Updated iSort library to latest version [#174](https://github.com/DonJayamanne/pythonVSCode/issues/174)
 
 ## Source
 
