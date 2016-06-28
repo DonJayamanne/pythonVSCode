@@ -61,7 +61,7 @@ export abstract class BaseFormatter {
             }
         }
 
-        this.outputChannel.appendLine(`${customError}\n${error + ""}`);
+        this.outputChannel.appendLine(`\n${customError}\n${error + ""}`);
         this.outputChannel.show();
     }
 }

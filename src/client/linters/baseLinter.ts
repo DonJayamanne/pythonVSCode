@@ -133,7 +133,7 @@ export abstract class BaseLinter {
             }
         }
 
-        this.outputChannel.appendLine(`${customError}\n${error + ""}`);
+        this.outputChannel.appendLine(`\n${customError}\n${error + ""}`);
         this.outputChannel.show();
     }
 }
