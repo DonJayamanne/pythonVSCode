@@ -83,36 +83,47 @@ export class PythonProcess extends EventEmitter implements IPythonProcess {
     private pidRead: boolean;
     private pid: number = 0;
     private isRemoteProcess: Boolean;
-    public Connect(buffer: Buffer, socket: net.Socket, isRemoteProcess: boolean = false) {
+    public Connect(buffer: Buffer, socket: net.Socket, isRemoteProcess: boolean = false): boolean {
         this.isRemoteProcess = isRemoteProcess;
-        this.stream = new SocketStream(socket, buffer);
+        if (this.stream === null) {
+            this.stream = new SocketStream(socket, buffer);
+        }
+        else {
+            this.stream.Append(buffer);
+        }
         if (!isRemoteProcess) {
-            this.stream.BeginTransaction();
-            let guid = this.stream.ReadString();
-            if (this.stream.HasInsufficientDataForReading) {
-                this.stream.RollBackTransaction();
-                return;
+            if (!this.guidRead) {
+                this.stream.BeginTransaction();
+                let guid = this.stream.ReadString();
+                if (this.stream.HasInsufficientDataForReading) {
+                    this.stream.RollBackTransaction();
+                    return false;
+                }
+                this.guidRead = true;
+                this.stream.EndTransaction();
             }
-            this.guidRead = true;
-            this.stream.EndTransaction();
 
-            this.stream.BeginTransaction();
-            let result = this.stream.ReadInt32();
-            if (this.stream.HasInsufficientDataForReading) {
-                this.stream.RollBackTransaction();
-                return;
+            if (!this.statusRead) {
+                this.stream.BeginTransaction();
+                let result = this.stream.ReadInt32();
+                if (this.stream.HasInsufficientDataForReading) {
+                    this.stream.RollBackTransaction();
+                    return false;
+                }
+                this.statusRead = true;
+                this.stream.EndTransaction();
             }
-            this.statusRead = true;
-            this.stream.EndTransaction();
 
-            this.stream.BeginTransaction();
-            this.pid = this.stream.ReadInt32();
-            if (this.stream.HasInsufficientDataForReading) {
-                this.stream.RollBackTransaction();
-                return;
+            if (!this.pidRead) {
+                this.stream.BeginTransaction();
+                this.pid = this.stream.ReadInt32();
+                if (this.stream.HasInsufficientDataForReading) {
+                    this.stream.RollBackTransaction();
+                    return false;
+                }
+                this.pidRead = true;
+                this.stream.EndTransaction();
             }
-            this.pidRead = true;
-            this.stream.EndTransaction();
         }
 
         this.callbackHandler = new PythonProcessCallbackHandler(this, this.stream, this._idDispenser);
@@ -137,6 +148,7 @@ export class PythonProcess extends EventEmitter implements IPythonProcess {
             this.emit("processLoaded", arg);
         });
         this.callbackHandler.HandleIncomingData();
+        return true;
     }
 
     public HandleIncomingData(buffer: Buffer) {

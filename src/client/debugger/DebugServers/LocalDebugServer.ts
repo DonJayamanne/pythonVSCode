@@ -29,8 +29,7 @@ export class LocalDebugServer extends BaseDebugServer {
                 let connected = false;
                 c.on("data", (buffer: Buffer) => {
                     if (!connected) {
-                        connected = true;
-                        that.pythonProcess.Connect(buffer, c, false);
+                        connected = that.pythonProcess.Connect(buffer, c, false);
                     }
                     else {
                         that.pythonProcess.HandleIncomingData(buffer);
