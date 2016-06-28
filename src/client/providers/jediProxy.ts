@@ -10,6 +10,7 @@ import * as logger from './../common/logger';
 import * as telemetryHelper from "../common/telemetry";
 import {execPythonFile, validatePath} from "../common/utils";
 
+const IS_WINDOWS = /^win/.test(process.platform);
 var proc: child_process.ChildProcess;
 var pythonSettings = settings.PythonSettings.getInstance();
 
@@ -379,13 +380,14 @@ function getPathFromPythonCommand(args: string[]): Promise<string> {
         if (stdout.length === 0) {
             return "";
         }
-        let lines = stdout.split(/\r?\n/g);
-        return validatePath(lines[1]);
+        let lines = stdout.split(/\r?\n/g).filter(line => line.length > 0);
+        return validatePath(lines[0]);
     }).catch(() => {
         return "";
     });
 }
 vscode.workspace.onDidChangeConfiguration(onConfigChanged);
+onConfigChanged();
 function onConfigChanged() {
     // We're only interested in changes to the python path
     if (lastKnownPythonPath === pythonSettings.pythonPath) {
@@ -396,12 +398,24 @@ function onConfigChanged() {
     let filePaths = [
         // Sysprefix
         getPathFromPythonCommand(["-c", "import sys;print(sys.prefix)"]),
+        // exeucutable path
+        getPathFromPythonCommand(["-c", "import sys;print(sys.executable)"]),
         // Python specific site packages
         getPathFromPythonCommand(["-c", "from distutils.sysconfig import get_python_lib; print(get_python_lib())"]),
         // Python global site packages, as a fallback in case user hasn't installed them in custom environment
-        getPathFromPythonCommand(["-m", "site", "--user-site"])
+        getPathFromPythonCommand(["-m", "site", "--user-site"]),
     ];
     Promise.all<string>(filePaths).then(paths => {
+        // Last item return a path, we need only the folder
+        if (paths[1].length > 0) {
+            paths[1] = path.dirname(paths[1]);
+        }
+
+        // On windows we also need the libs path (second item will return c:\xxx\lib\site-packages)
+        // This is returned by "from distutils.sysconfig import get_python_lib; print(get_python_lib())"
+        if (IS_WINDOWS && paths[2].length > 0) {
+            paths.splice(3, 0, path.join(paths[2], ".."));
+        }
         additionalAutoCopletePaths = paths.filter(p => p.length > 0);
     });
 }
