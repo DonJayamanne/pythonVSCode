@@ -35,7 +35,7 @@ Your feedback is crucial in prioritizing the items and in determining whether we
   + Remote Interpretter
 * Miscellaneous IDE enhancements
   + Code Refactoring 
-  + Autogenerate docstring
+  + Auto-generate docstring
   + Documentation viewer
   + Improved integration of Unit Tests
 * Integration
@@ -77,7 +77,7 @@ Your feedback is crucial in prioritizing the items and in determining whether we
 ```json
 "python.linting.pylintArgs": ["--load-plugins", "pylint_django"]
 ``` 
-* [Debuggging](https://github.com/DonJayamanne/pythonVSCode/wiki/Debugging)
+* [Debugging](https://github.com/DonJayamanne/pythonVSCode/wiki/Debugging)
  + Watch window
  + Evaluate Expressions
  + Step through code (Step in, Step out, Continue)
@@ -85,11 +85,11 @@ Your feedback is crucial in prioritizing the items and in determining whether we
  + Local variables and arguments
  + Multiple Threads and Web Applications (such as Flask) (Windows and Mac)
  + Expanding values (viewing children, properties, etc) (Windows and Mac)
- + Conditional breakpoints
+ + Conditional break points
  + Remote debugging
 * Unit Testing
  + Support for unittests, nosetests and pytest
- + Test resutls are displayed in the "Python" output window
+ + Test results are displayed in the "Python" output window
 * Snippets
 
 
@@ -99,12 +99,16 @@ Your feedback is crucial in prioritizing the items and in determining whether we
 
 ## [Change Log](https://github.com/DonJayamanne/pythonVSCode/releases)
 
-### Current Version 0.3.14  
-* Modifications to handle errors in linters when the linter isn't installed.  
+### Current Version 0.3.15  
+* Modifications to handle errors in linters [#185](https://github.com/DonJayamanne/pythonVSCode/issues/185)
+* Fixes to formatting and handling of not having empty lines at end of file [#181](https://github.com/DonJayamanne/pythonVSCode/issues/185)
+* Modifications to infer paths of packages on windows [#178](https://github.com/DonJayamanne/pythonVSCode/issues/178)
+* Fix for debugger crashes [#45](https://github.com/DonJayamanne/pythonVSCode/issues/45)
+* Changes to App Insights key [#156](https://github.com/DonJayamanne/pythonVSCode/issues/156)
 
 ## Source
 
-[Github](https://github.com/DonJayamanne/pythonVSCode)
+[GitHub](https://github.com/DonJayamanne/pythonVSCode)
 
                 
 ## License
