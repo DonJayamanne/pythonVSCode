@@ -57,7 +57,7 @@ export abstract class BaseFormatter {
                     "For further details, please see https://github.com/DonJayamanne/pythonVSCode/wiki/Troubleshooting-Linting#2-linting-with-xxx-failed-";
             }
             else {
-                customError += `\nYou could either install the '${this.Id}' formatter, turn it off or use another formatter.\n`;
+                customError += `\nYou could either install the '${this.Id}' formatter, turn it off or use another formatter.`;
             }
         }
 

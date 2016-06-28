@@ -129,7 +129,7 @@ export abstract class BaseLinter {
                     "For further details, please see https://github.com/DonJayamanne/pythonVSCode/wiki/Troubleshooting-Linting#2-linting-with-xxx-failed-";
             }
             else {
-                customError += `\nYou could either install the '${this.Id}' linter or turn it off in setings.json via "python.linting.${this.Id}Enabled = false".\n`;
+                customError += `\nYou could either install the '${this.Id}' linter or turn it off in setings.json via "python.linting.${this.Id}Enabled = false".`;
             }
         }
 
