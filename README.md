@@ -99,7 +99,7 @@ Your feedback is crucial in prioritizing the items and in determining whether we
 
 ## [Change Log](https://github.com/DonJayamanne/pythonVSCode/releases)
 
-### Current Version 0.3.15  
+### Current Version 0.3.16  
 * Modifications to handle errors in linters [#185](https://github.com/DonJayamanne/pythonVSCode/issues/185)
 * Fixes to formatting and handling of not having empty lines at end of file [#181](https://github.com/DonJayamanne/pythonVSCode/issues/185)
 * Modifications to infer paths of packages on windows [#178](https://github.com/DonJayamanne/pythonVSCode/issues/178)
