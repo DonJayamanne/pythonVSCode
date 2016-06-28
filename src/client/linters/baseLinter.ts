@@ -115,7 +115,7 @@ export abstract class BaseLinter {
     }
 
     protected handleError(expectedFileName: string, fileName: string, error: Error) {
-        let customError = `Linting with ${this.Id} failed. Please install the linter or turn it off.`;
+        let customError = `Linting with ${this.Id} failed.`;
 
         if (typeof (error) === "object" && error !== null && ((<any>error).code === "ENOENT" || (<any>error).code === 127)) {
             // Check if we have some custom arguments such as "pylint --load-plugins pylint_django"
@@ -128,9 +128,12 @@ export abstract class BaseLinter {
                     `Custom arguments to the linters can be defined in 'python.linting.${this.Id}Args' setting of settings.json.\n` +
                     "For further details, please see https://github.com/DonJayamanne/pythonVSCode/wiki/Troubleshooting-Linting#2-linting-with-xxx-failed-";
             }
+            else {
+                customError += `\nYou could either install the '${this.Id}' linter or turn it off in setings.json via "python.linting.${this.Id}Enabled = false".\n`;
+            }
         }
 
         this.outputChannel.appendLine(`${customError}\n${error + ""}`);
-        window.showInformationMessage(`${customError}. View Python output for details.`);
+        this.outputChannel.show();
     }
 }
