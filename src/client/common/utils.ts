@@ -87,7 +87,9 @@ export function execPythonFile(file: string, args: string[], cwd: string, includ
             else {
                 newPath = pyPath + path.delimiter + process.env[PATH_VARIABLE_NAME];
             }
-            customEnvVariables = mergeEnvVariables({ PATH_VARIABLE_NAME: newPath });
+            let customSettings = <{ [key: string]: string }>{};
+            customSettings[PATH_VARIABLE_NAME] = newPath;
+            customEnvVariables = mergeEnvVariables(customSettings);
         }
 
         return execFileInternal(file, args, { cwd, env: customEnvVariables }, includeErrorAsResponse);
