@@ -134,6 +134,5 @@ export abstract class BaseLinter {
         }
 
         this.outputChannel.appendLine(`\n${customError}\n${error + ""}`);
-        this.outputChannel.show();
     }
 }
