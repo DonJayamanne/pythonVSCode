@@ -499,6 +499,7 @@ export interface IDefinition {
     lineIndex: number;
 }
 
+let jediProxy_singleton: JediProxy = null;
 
 export class JediProxyHandler<R extends ICommandResult, T> {
     private jediProxy: JediProxy;
@@ -511,7 +512,15 @@ export class JediProxyHandler<R extends ICommandResult, T> {
     private cancellationTokenSource: vscode.CancellationTokenSource;
 
     public constructor(context: vscode.ExtensionContext, defaultCallbackData: T, parseResponse: (data: R) => T) {
-        this.jediProxy = new JediProxy(context);
+        if (pythonSettings.devOptions.indexOf("SINGLE_JEDI") >= 0) {
+            if (jediProxy_singleton === null) {
+                jediProxy_singleton = new JediProxy(context);
+            }
+            this.jediProxy = jediProxy_singleton;
+        }
+        else {
+            this.jediProxy = new JediProxy(context);
+        }
         this.defaultCallbackData = defaultCallbackData;
         this.parseResponse = parseResponse;
     }

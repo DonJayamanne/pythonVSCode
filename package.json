@@ -267,11 +267,6 @@
           "default": "python",
           "description": "Path to Python, you can use a custom version of Python by modifying this setting to include the full path."
         },
-        "python.devOptions": {
-          "type": "array",
-          "default": [],
-          "description": "Advanced options used to enable new features or produce detailed diagnostics to identify extension issues."
-        },
         "python.linting.enabled": {
           "type": "boolean",
           "default": true,
