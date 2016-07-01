@@ -95,6 +95,45 @@ class JediCompletion(object):
                 _signatures.append((signature, name, value))
         return _signatures
 
+    def _get_call_signatures_with_args(self, script):
+        """Extract call signatures from jedi.api.Script object in failsafe way.
+
+        Returns:
+            Array with dictionary
+        """
+        _signatures = []
+        try:
+            call_signatures = script.call_signatures()
+        except KeyError:
+            call_signatures = []
+        for signature in call_signatures:
+            sig = {"name": "", "description": "", "docstring": "", 
+                   "paramindex": 0, "params": [], "bracketstart": []}
+            sig["description"] = signature.description
+            sig["docstring"] = signature.docstring()
+            sig["name"] = signature.name
+            sig["paramindex"] = signature.index
+            sig["bracketstart"].append(signature.index)
+
+            _signatures.append(sig)
+            for pos, param in enumerate(signature.params):
+                if not param.name:
+                    continue
+                if param.name == 'self' and pos == 0:
+                    continue
+                if WORD_RE.match(param.name) is None:
+                    continue
+                try:
+                    name, value = param.description.split('=')
+                except ValueError:
+                    name = param.description
+                    value = None
+                #if name.startswith('*'):
+                #    continue
+                #_signatures.append((signature, name, value))
+                sig["params"].append({"name": name, "value":value, "docstring":param.docstring(), "description":param.description})
+        return _signatures
+
     def _serialize_completions(self, script, identifier=None, prefix=''):
         """Serialize response to be read from VSCode.
 
@@ -164,23 +203,7 @@ class JediCompletion(object):
         Returns:
             Serialized string to send to VSCode.
         """
-        seen = set()
-        arguments = []
-        i = 1
-        for _, name, value in self._get_call_signatures(script):
-            if not value:
-                arg = '${%s:%s}' % (i, name)
-            elif self.use_snippets == 'all':
-                arg = '%s=${%s:%s}' % (name, i, value)
-            else:
-              continue
-            if name not in seen:
-              seen.add(name)
-              arguments.append(arg)
-            i += 1
-        snippet = '%s$0' % ', '.join(arguments)
-        return json.dumps({'id': identifier, 'results': [],
-                           'arguments': snippet})
+        return json.dumps({"id": identifier, "results" : self._get_call_signatures_with_args(script) })
 
     def _serialize_definitions(self, definitions, identifier=None):
         """Serialize response to be read from VSCode.

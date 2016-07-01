@@ -9,7 +9,9 @@ var _newName = "";
 
 export class PythonRenameProvider implements vscode.RenameProvider {
     private jediProxyHandler: proxy.JediProxyHandler<proxy.IReferenceResult, vscode.WorkspaceEdit>;
-
+    public get JediProxy(): proxy.JediProxy {
+        return this.jediProxyHandler.JediProxy;
+    }
     public constructor(context: vscode.ExtensionContext) {
         this.jediProxyHandler = new proxy.JediProxyHandler(context, null, PythonRenameProvider.parseData);
     }

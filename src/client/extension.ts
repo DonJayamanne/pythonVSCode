@@ -10,6 +10,7 @@ import {PythonFormattingEditProvider} from "./providers/formatProvider";
 import * as sortImports from "./sortImports";
 import {LintProvider} from "./providers/lintProvider";
 import {PythonSymbolProvider} from "./providers/symbolProvider";
+import {PythonSignatureProvider} from "./providers/signatureProvider";
 import {activateFormatOnSaveProvider} from "./providers/formatOnSaveProvider";
 import * as path from "path";
 import * as settings from "./common/configSettings";
@@ -56,13 +57,14 @@ export function activate(context: vscode.ExtensionContext) {
         ]
     });
 
-    context.subscriptions.push(vscode.languages.registerRenameProvider(PYTHON, new PythonRenameProvider(context)));
+    let renameProvider = new PythonRenameProvider(context);
+    context.subscriptions.push(vscode.languages.registerRenameProvider(PYTHON, renameProvider));
     context.subscriptions.push(vscode.languages.registerHoverProvider(PYTHON, new PythonHoverProvider(context)));
     context.subscriptions.push(vscode.languages.registerDefinitionProvider(PYTHON, new PythonDefinitionProvider(context)));
     context.subscriptions.push(vscode.languages.registerReferenceProvider(PYTHON, new PythonReferenceProvider(context)));
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider(PYTHON, new PythonCompletionItemProvider(context), "."));
-    context.subscriptions.push(vscode.languages.registerDocumentSymbolProvider(PYTHON, new PythonSymbolProvider(context)));
-
+    context.subscriptions.push(vscode.languages.registerDocumentSymbolProvider(PYTHON, new PythonSymbolProvider(context, renameProvider.JediProxy)));
+    context.subscriptions.push(vscode.languages.registerSignatureHelpProvider(PYTHON, new PythonSignatureProvider(context, renameProvider.JediProxy), "(", ","));
     context.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider(PYTHON, new PythonFormattingEditProvider(context, formatOutChannel, pythonSettings, vscode.workspace.rootPath)));
     context.subscriptions.push(new LintProvider(context, lintingOutChannel, vscode.workspace.rootPath));
 }

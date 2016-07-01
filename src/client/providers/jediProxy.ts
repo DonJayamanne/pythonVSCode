@@ -309,6 +309,16 @@ function spawnProcess(dir: string) {
                         }
                         break;
                     }
+                    case CommandType.Arguments: {
+                        let defs = <any[]>response["results"];
+                        if (defs.length > 0) {
+                            cmd.resolve(<IArgumentsResult>{
+                                requestId: cmd.id,
+                                definitions: defs
+                            });
+                        }
+                        break;
+                    }
                 }
             }
 
@@ -472,7 +482,24 @@ export interface IReferenceResult extends ICommandResult {
     references: IReference[];
 }
 export interface ISymbolResult extends ICommandResult {
-    definitions: IDefinition[]
+    definitions: IDefinition[];
+}
+export interface IArgumentsResult extends ICommandResult {
+    definitions: ISignature[];
+}
+
+export interface ISignature {
+    name: string;
+    docstring: string;
+    description: string;
+    paramindex: number;
+    params: IArgument[];
+}
+export interface IArgument {
+    name: string;
+    value: string;
+    docstring: string;
+    description: string;
 }
 
 export interface IReference {
@@ -511,15 +538,24 @@ export class JediProxyHandler<R extends ICommandResult, T> {
     private parseResponse: (data: R) => T;
     private cancellationTokenSource: vscode.CancellationTokenSource;
 
-    public constructor(context: vscode.ExtensionContext, defaultCallbackData: T, parseResponse: (data: R) => T) {
-        if (pythonSettings.devOptions.indexOf("SINGLE_JEDI") >= 0) {
-            if (jediProxy_singleton === null) {
-                jediProxy_singleton = new JediProxy(context);
-            }
-            this.jediProxy = jediProxy_singleton;
+    public get JediProxy(): JediProxy {
+        return this.jediProxy;
+    }
+
+    public constructor(context: vscode.ExtensionContext, defaultCallbackData: T, parseResponse: (data: R) => T, jediProxy: JediProxy = null) {
+        if (jediProxy) {
+            this.jediProxy = jediProxy;
         }
         else {
-            this.jediProxy = new JediProxy(context);
+            if (pythonSettings.devOptions.indexOf("SINGLE_JEDI") >= 0) {
+                if (jediProxy_singleton === null) {
+                    jediProxy_singleton = new JediProxy(context);
+                }
+                this.jediProxy = jediProxy_singleton;
+            }
+            else {
+                this.jediProxy = new JediProxy(context);
+            }
         }
         this.defaultCallbackData = defaultCallbackData;
         this.parseResponse = parseResponse;

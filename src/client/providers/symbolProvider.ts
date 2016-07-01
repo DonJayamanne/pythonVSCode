@@ -7,8 +7,8 @@ import * as telemetryContracts from "../common/telemetryContracts";
 export class PythonSymbolProvider implements vscode.DocumentSymbolProvider {
     private jediProxyHandler: proxy.JediProxyHandler<proxy.ISymbolResult, vscode.SymbolInformation[]>;
 
-    public constructor(context: vscode.ExtensionContext) {
-        this.jediProxyHandler = new proxy.JediProxyHandler(context, null, PythonSymbolProvider.parseData);
+    public constructor(context: vscode.ExtensionContext, jediProxy: proxy.JediProxy = null) {
+        this.jediProxyHandler = new proxy.JediProxyHandler(context, null, PythonSymbolProvider.parseData, jediProxy);
     }
     private static parseData(data: proxy.ISymbolResult): vscode.SymbolInformation[] {
         if (data) {
