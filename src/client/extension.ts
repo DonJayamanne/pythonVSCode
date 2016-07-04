@@ -64,7 +64,9 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.languages.registerReferenceProvider(PYTHON, new PythonReferenceProvider(context)));
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider(PYTHON, new PythonCompletionItemProvider(context), "."));
     context.subscriptions.push(vscode.languages.registerDocumentSymbolProvider(PYTHON, new PythonSymbolProvider(context, renameProvider.JediProxy)));
-    context.subscriptions.push(vscode.languages.registerSignatureHelpProvider(PYTHON, new PythonSignatureProvider(context, renameProvider.JediProxy), "(", ","));
+    if (pythonSettings.devOptions.indexOf("DISABLE_SIGNATURE") === -1) {
+        context.subscriptions.push(vscode.languages.registerSignatureHelpProvider(PYTHON, new PythonSignatureProvider(context, renameProvider.JediProxy), "(", ","));
+    }
     context.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider(PYTHON, new PythonFormattingEditProvider(context, formatOutChannel, pythonSettings, vscode.workspace.rootPath)));
     context.subscriptions.push(new LintProvider(context, lintingOutChannel, vscode.workspace.rootPath));
 }
