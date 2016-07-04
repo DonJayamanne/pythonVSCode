@@ -311,12 +311,10 @@ function spawnProcess(dir: string) {
                     }
                     case CommandType.Arguments: {
                         let defs = <any[]>response["results"];
-                        if (defs.length > 0) {
-                            cmd.resolve(<IArgumentsResult>{
-                                requestId: cmd.id,
-                                definitions: defs
-                            });
-                        }
+                        cmd.resolve(<IArgumentsResult>{
+                            requestId: cmd.id,
+                            definitions: defs
+                        });
                         break;
                     }
                 }
