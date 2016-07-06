@@ -1,6 +1,7 @@
-"use strict";
+'use strict';
 
-import * as vscode from "vscode";
+import * as vscode from 'vscode';
+import {SystemVariables} from './systemVariables';
 
 export interface IPythonSettings {
     pythonPath: string;
@@ -63,11 +64,12 @@ export interface IFormattingSettings {
 export interface IAutoCompeteSettings {
     extraPaths: string[];
 }
+const systemVariables: SystemVariables = new SystemVariables();
 export class PythonSettings implements IPythonSettings {
     private static pythonSettings: PythonSettings = new PythonSettings();
     constructor() {
         if (PythonSettings.pythonSettings) {
-            throw new Error("Singleton class, Use getInstance method");
+            throw new Error('Singleton class, Use getInstance method');
         }
         vscode.workspace.onDidChangeConfiguration(() => {
             this.initializeSettings();
@@ -79,11 +81,11 @@ export class PythonSettings implements IPythonSettings {
         return PythonSettings.pythonSettings;
     }
     private initializeSettings() {
-        let pythonSettings = vscode.workspace.getConfiguration("python");
-        this.pythonPath = pythonSettings.get<string>("pythonPath");
-        this.devOptions = pythonSettings.get<any[]>("devOptions");
+        let pythonSettings = vscode.workspace.getConfiguration('python');
+        this.pythonPath = systemVariables.resolveAny(pythonSettings.get<string>('pythonPath'));
+        this.devOptions = systemVariables.resolveAny(pythonSettings.get<any[]>('devOptions'));
         this.devOptions = Array.isArray(this.devOptions) ? this.devOptions : [];
-        let lintingSettings = pythonSettings.get<ILintingSettings>("linting");
+        let lintingSettings = systemVariables.resolveAny(pythonSettings.get<ILintingSettings>('linting'));
         if (this.linting) {
             Object.assign<ILintingSettings, ILintingSettings>(this.linting, lintingSettings);
         }
@@ -91,7 +93,7 @@ export class PythonSettings implements IPythonSettings {
             this.linting = lintingSettings;
         }
 
-        let formattingSettings = pythonSettings.get<IFormattingSettings>("formatting");
+        let formattingSettings = systemVariables.resolveAny(pythonSettings.get<IFormattingSettings>('formatting'));
         if (this.formatting) {
             Object.assign<IFormattingSettings, IFormattingSettings>(this.formatting, formattingSettings);
         }
@@ -99,7 +101,7 @@ export class PythonSettings implements IPythonSettings {
             this.formatting = formattingSettings;
         }
 
-        let autoCompleteSettings = pythonSettings.get<IAutoCompeteSettings>("autoComplete");
+        let autoCompleteSettings = systemVariables.resolveAny(pythonSettings.get<IAutoCompeteSettings>('autoComplete'));
         if (this.autoComplete) {
             Object.assign<IAutoCompeteSettings, IAutoCompeteSettings>(this.autoComplete, autoCompleteSettings);
         }
@@ -107,16 +109,14 @@ export class PythonSettings implements IPythonSettings {
             this.autoComplete = autoCompleteSettings;
         }
 
-        let unitTestSettings = pythonSettings.get<IUnitTestSettings>("unitTest");
+        let unitTestSettings = systemVariables.resolveAny(pythonSettings.get<IUnitTestSettings>('unitTest'));
         if (this.unitTest) {
             Object.assign<IUnitTestSettings, IUnitTestSettings>(this.unitTest, unitTestSettings);
         }
         else {
             this.unitTest = unitTestSettings;
         }
-
-        replaceTokensInPaths(this);
-    }
+   }
 
     public pythonPath: string;
     public devOptions: any[];
@@ -124,29 +124,4 @@ export class PythonSettings implements IPythonSettings {
     public formatting: IFormattingSettings;
     public autoComplete: IAutoCompeteSettings;
     public unitTest: IUnitTestSettings;
-}
-
-function replaceTokensInPaths(settings: IPythonSettings) {
-    if (!vscode.workspace || !vscode.workspace.rootPath) {
-        return;
-    }
-    // In test environment (travic CI)
-    if (typeof settings.pythonPath !== "string"){
-        return;
-    }
-
-    let workspaceRoot = vscode.workspace.rootPath;
-    settings.pythonPath = settings.pythonPath.replace("${workspaceRoot}", workspaceRoot);
-    settings.formatting.autopep8Path = settings.formatting.autopep8Path.replace("${workspaceRoot}", workspaceRoot);
-    settings.formatting.yapfPath = settings.formatting.yapfPath.replace("${workspaceRoot}", workspaceRoot);
-    settings.linting.flake8Path = settings.linting.flake8Path.replace("${workspaceRoot}", workspaceRoot);
-    settings.linting.pep8Path = settings.linting.pep8Path.replace("${workspaceRoot}", workspaceRoot);
-    settings.linting.prospectorPath = settings.linting.prospectorPath.replace("${workspaceRoot}", workspaceRoot);
-    settings.linting.pydocStylePath = settings.linting.pydocStylePath.replace("${workspaceRoot}", workspaceRoot);
-    settings.linting.pylintPath = settings.linting.pylintPath.replace("${workspaceRoot}", workspaceRoot);
-    settings.unitTest.nosetestPath = settings.unitTest.nosetestPath.replace("${workspaceRoot}", workspaceRoot);
-    settings.unitTest.pyTestPath = settings.unitTest.pyTestPath.replace("${workspaceRoot}", workspaceRoot);
-    settings.autoComplete.extraPaths.forEach((value, index) => {
-        settings.autoComplete.extraPaths[index] = settings.autoComplete.extraPaths[index].replace("${workspaceRoot}", workspaceRoot);
-    });
 }
