@@ -1,34 +1,34 @@
-"use strict";
+'use strict';
 
-import * as vscode from "vscode";
-import {PythonCompletionItemProvider} from "./providers/completionProvider";
-import {PythonHoverProvider} from "./providers/hoverProvider";
-import {PythonDefinitionProvider} from "./providers/definitionProvider";
-import {PythonReferenceProvider} from "./providers/referenceProvider";
-import {PythonRenameProvider} from "./providers/renameProvider";
-import {PythonFormattingEditProvider} from "./providers/formatProvider";
-import * as sortImports from "./sortImports";
-import {LintProvider} from "./providers/lintProvider";
-import {PythonSymbolProvider} from "./providers/symbolProvider";
-import {PythonSignatureProvider} from "./providers/signatureProvider";
-import {activateFormatOnSaveProvider} from "./providers/formatOnSaveProvider";
-import * as path from "path";
-import * as settings from "./common/configSettings";
-import {activateUnitTestProvider} from "./providers/testProvider";
-import * as telemetryHelper from "./common/telemetry";
-import * as telemetryContracts from "./common/telemetryContracts";
+import * as vscode from 'vscode';
+import {PythonCompletionItemProvider} from './providers/completionProvider';
+import {PythonHoverProvider} from './providers/hoverProvider';
+import {PythonDefinitionProvider} from './providers/definitionProvider';
+import {PythonReferenceProvider} from './providers/referenceProvider';
+import {PythonRenameProvider} from './providers/renameProvider';
+import {PythonFormattingEditProvider} from './providers/formatProvider';
+import * as sortImports from './sortImports';
+import {LintProvider} from './providers/lintProvider';
+import {PythonSymbolProvider} from './providers/symbolProvider';
+import {PythonSignatureProvider} from './providers/signatureProvider';
+import {activateFormatOnSaveProvider} from './providers/formatOnSaveProvider';
+import * as path from 'path';
+import * as settings from './common/configSettings';
+import {activateUnitTestProvider} from './providers/testProvider';
+import * as telemetryHelper from './common/telemetry';
+import * as telemetryContracts from './common/telemetryContracts';
 
-const PYTHON: vscode.DocumentFilter = { language: "python", scheme: "file" };
+const PYTHON: vscode.DocumentFilter = { language: 'python', scheme: 'file' };
 let unitTestOutChannel: vscode.OutputChannel;
 let formatOutChannel: vscode.OutputChannel;
 let lintingOutChannel: vscode.OutputChannel;
 
 export function activate(context: vscode.ExtensionContext) {
-    let rootDir = context.asAbsolutePath(".");
+    let rootDir = context.asAbsolutePath('.');
     let pythonSettings = settings.PythonSettings.getInstance();
     telemetryHelper.sendTelemetryEvent(telemetryContracts.EVENT_LOAD, {
-        CodeComplete_Has_ExtraPaths: pythonSettings.autoComplete.extraPaths.length > 0 ? "true" : "false",
-        Format_Has_Custom_Python_Path: pythonSettings.pythonPath.length !== "python".length ? "true" : "false"
+        CodeComplete_Has_ExtraPaths: pythonSettings.autoComplete.extraPaths.length > 0 ? 'true' : 'false',
+        Format_Has_Custom_Python_Path: pythonSettings.pythonPath.length !== 'python'.length ? 'true' : 'false'
     });
     unitTestOutChannel = vscode.window.createOutputChannel(pythonSettings.unitTest.outputWindow);
     unitTestOutChannel.clear();
@@ -62,12 +62,14 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.languages.registerHoverProvider(PYTHON, new PythonHoverProvider(context)));
     context.subscriptions.push(vscode.languages.registerDefinitionProvider(PYTHON, new PythonDefinitionProvider(context)));
     context.subscriptions.push(vscode.languages.registerReferenceProvider(PYTHON, new PythonReferenceProvider(context)));
-    context.subscriptions.push(vscode.languages.registerCompletionItemProvider(PYTHON, new PythonCompletionItemProvider(context), "."));
+    context.subscriptions.push(vscode.languages.registerCompletionItemProvider(PYTHON, new PythonCompletionItemProvider(context), '.'));
     context.subscriptions.push(vscode.languages.registerDocumentSymbolProvider(PYTHON, new PythonSymbolProvider(context, renameProvider.JediProxy)));
-    if (pythonSettings.devOptions.indexOf("DISABLE_SIGNATURE") === -1) {
-        context.subscriptions.push(vscode.languages.registerSignatureHelpProvider(PYTHON, new PythonSignatureProvider(context, renameProvider.JediProxy), "(", ","));
+    if (pythonSettings.devOptions.indexOf('DISABLE_SIGNATURE') === -1) {
+        context.subscriptions.push(vscode.languages.registerSignatureHelpProvider(PYTHON, new PythonSignatureProvider(context, renameProvider.JediProxy), '(', ','));
     }
-    context.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider(PYTHON, new PythonFormattingEditProvider(context, formatOutChannel, pythonSettings, vscode.workspace.rootPath)));
+    let formatProvider = new PythonFormattingEditProvider(context, formatOutChannel, pythonSettings, vscode.workspace.rootPath);
+    context.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider(PYTHON, formatProvider));
+    context.subscriptions.push(vscode.languages.registerDocumentRangeFormattingEditProvider(PYTHON, formatProvider));
     context.subscriptions.push(new LintProvider(context, lintingOutChannel, vscode.workspace.rootPath));
 }
 
