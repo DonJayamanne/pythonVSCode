@@ -9,7 +9,7 @@ import {execPythonFile} from './../common/utils';
 
 export class Linter extends baseLinter.BaseLinter {
     constructor(outputChannel: OutputChannel, workspaceRootPath: string) {
-        super("pydocstyle", outputChannel, workspaceRootPath);
+        super('pydocstyle', outputChannel, workspaceRootPath);
     }
 
     public isEnabled(): Boolean {
@@ -41,7 +41,7 @@ export class Linter extends baseLinter.BaseLinter {
         return new Promise<ILintMessage[]>((resolve, reject) => {
             var fileDir = path.dirname(filePath);
             execPythonFile(commandLine, args, this.workspaceRootPath, true).then(data => {
-                outputChannel.append("#".repeat(10) + "Linting Output - " + this.Id + "#".repeat(10));
+                outputChannel.append('#'.repeat(10) + 'Linting Output - ' + this.Id + '#'.repeat(10) + '\n');
                 outputChannel.append(data);
                 var outputLines = data.split(/\r?\n/g);
                 var diagnostics: ILintMessage[] = [];
@@ -56,7 +56,7 @@ export class Linter extends baseLinter.BaseLinter {
                 for (let counter = 0; counter < oldOutputLines.length / 2; counter++) {
                     outputLines.push(oldOutputLines[2 * counter] + oldOutputLines[(2 * counter) + 1]);
                 }
-                outputLines = outputLines.filter((value, index) => index < maxLines && value.indexOf(":") >= 0).map(line => line.substring(line.indexOf(":") + 1).trim());
+                outputLines = outputLines.filter((value, index) => index < maxLines && value.indexOf(':') >= 0).map(line => line.substring(line.indexOf(':') + 1).trim());
 
                 // Iterate through the lines (skipping the messages)
                 // So, just iterate the response in pairs
@@ -65,10 +65,10 @@ export class Linter extends baseLinter.BaseLinter {
                         if (line.trim().length === 0) {
                             return;
                         }
-                        let lineNumber = parseInt(line.substring(0, line.indexOf(" ")));
-                        let part = line.substring(line.indexOf(":") + 1).trim();
-                        let code = part.substring(0, part.indexOf(":")).trim();
-                        let message = part.substring(part.indexOf(":") + 1).trim();
+                        let lineNumber = parseInt(line.substring(0, line.indexOf(' ')));
+                        let part = line.substring(line.indexOf(':') + 1).trim();
+                        let code = part.substring(0, part.indexOf(':')).trim();
+                        let message = part.substring(part.indexOf(':') + 1).trim();
 
                         let sourceLine = txtDocumentLines[lineNumber - 1];
                         let trmmedSourceLine = sourceLine.trim();
@@ -80,13 +80,13 @@ export class Linter extends baseLinter.BaseLinter {
                             message: message,
                             column: sourceStart,
                             line: lineNumber,
-                            type: "",
+                            type: '',
                             provider: this.Id
                         });
                     }
                     catch (ex) {
                         //Hmm, need to handle this later
-                        var y = "";
+                        var y = '';
                     }
                 });
                 resolve(diagnostics);

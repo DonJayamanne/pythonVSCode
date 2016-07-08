@@ -39,7 +39,7 @@ export function matchNamedRegEx(data, regex): IRegexGroup {
         NamedRegexp = require('named-js-regexp');
     }
 
-    var compiledRegexp = NamedRegexp(regex, "g");
+    var compiledRegexp = NamedRegexp(regex, 'g');
     var rawMatch = compiledRegexp.exec(data);
     if (rawMatch !== null) {
         return <IRegexGroup>rawMatch.groups()
@@ -64,7 +64,7 @@ export abstract class BaseLinter {
 
         return new Promise<ILintMessage[]>((resolve, reject) => {
             execPythonFile(command, args, cwd, true).then(data => {
-                outputChannel.append("#".repeat(10) + "Linting Output - " + this.Id + "#".repeat(10));
+                outputChannel.append('#'.repeat(10) + 'Linting Output - ' + this.Id + '#'.repeat(10) + '\n');
                 outputChannel.append(data);
                 var outputLines = data.split(/\r?\n/g);
                 var diagnostics: ILintMessage[] = [];
@@ -102,7 +102,7 @@ export abstract class BaseLinter {
                     catch (ex) {
                         //Hmm, need to handle this later
                         //TODO:
-                        var y = "";
+                        var y = '';
                     }
                 });
 
@@ -117,22 +117,22 @@ export abstract class BaseLinter {
     protected handleError(expectedFileName: string, fileName: string, error: Error) {
         let customError = `Linting with ${this.Id} failed.`;
 
-        if (typeof (error) === "object" && error !== null && ((<any>error).code === "ENOENT" || (<any>error).code === 127)) {
+        if (typeof (error) === 'object' && error !== null && ((<any>error).code === 'ENOENT' || (<any>error).code === 127)) {
             // Check if we have some custom arguments such as "pylint --load-plugins pylint_django"
             // Such settings are no longer supported
             let stuffAfterFileName = fileName.substring(fileName.toUpperCase().lastIndexOf(expectedFileName) + expectedFileName.length);
 
             // Ok if we have a space after the file name, this means we have some arguments defined and this isn't supported
-            if (stuffAfterFileName.trim().indexOf(" ") > 0) {
+            if (stuffAfterFileName.trim().indexOf(' ') > 0) {
                 customError = `Linting failed, custom arguments in the 'python.linting.${this.Id}Path' is not supported.\n` +
                     `Custom arguments to the linters can be defined in 'python.linting.${this.Id}Args' setting of settings.json.\n` +
-                    "For further details, please see https://github.com/DonJayamanne/pythonVSCode/wiki/Troubleshooting-Linting#2-linting-with-xxx-failed-";
+                    'For further details, please see https://github.com/DonJayamanne/pythonVSCode/wiki/Troubleshooting-Linting#2-linting-with-xxx-failed-';
             }
             else {
                 customError += `\nYou could either install the '${this.Id}' linter or turn it off in setings.json via "python.linting.${this.Id}Enabled = false".`;
             }
         }
 
-        this.outputChannel.appendLine(`\n${customError}\n${error + ""}`);
+        this.outputChannel.appendLine(`\n${customError}\n${error + ''}`);
     }
 }

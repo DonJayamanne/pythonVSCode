@@ -1,9 +1,9 @@
-"use strict";
+'use strict';
 
-import * as path from "path";
-import * as baseLinter from "./baseLinter";
-import {OutputChannel, workspace, window} from "vscode";
-import {execPythonFile} from "./../common/utils";
+import * as path from 'path';
+import * as baseLinter from './baseLinter';
+import {OutputChannel, workspace, window} from 'vscode';
+import {execPythonFile} from './../common/utils';
 
 interface IProspectorResponse {
     messages: IProspectorMessage[];
@@ -24,7 +24,7 @@ interface IProspectorLocation {
 
 export class Linter extends baseLinter.BaseLinter {
     constructor(outputChannel: OutputChannel, workspaceRootPath: string) {
-        super("prospector", outputChannel, workspaceRootPath);
+        super('prospector', outputChannel, workspaceRootPath);
     }
 
     public isEnabled(): Boolean {
@@ -40,13 +40,13 @@ export class Linter extends baseLinter.BaseLinter {
         let linterId = this.Id;
         let prospectorArgs = Array.isArray(this.pythonSettings.linting.prospectorArgs) ? this.pythonSettings.linting.prospectorArgs : [];
         return new Promise<baseLinter.ILintMessage[]>((resolve, reject) => {
-            execPythonFile(prospectorPath, prospectorArgs.concat(["--absolute-paths", "--output-format=json", filePath]), this.workspaceRootPath, false).then(data => {
+            execPythonFile(prospectorPath, prospectorArgs.concat(['--absolute-paths', '--output-format=json', filePath]), this.workspaceRootPath, false).then(data => {
                 let parsedData: IProspectorResponse;
                 try {
                     parsedData = JSON.parse(data);
                 }
                 catch (ex) {
-                    outputChannel.append("#".repeat(10) + "Linting Output - " + this.Id + "#".repeat(10));
+                    outputChannel.append('#'.repeat(10) + 'Linting Output - ' + this.Id + '#'.repeat(10) + '\n');
                     outputChannel.append(data);
                     return resolve([]);
                 }
