@@ -1,16 +1,16 @@
-"use strict";
+'use strict';
 
-import * as vscode from "vscode";
-import * as path from "path";
-import * as linter from "../linters/baseLinter";
-import * as prospector from "./../linters/prospector";
-import * as pylint from "./../linters/pylint";
-import * as pep8 from "./../linters/pep8Linter";
-import * as flake8 from "./../linters/flake8";
-import * as pydocstyle from "./../linters/pydocstyle";
-import * as settings from "../common/configSettings";
-import * as telemetryHelper from "../common/telemetry";
-import * as telemetryContracts from "../common/telemetryContracts";
+import * as vscode from 'vscode';
+import * as path from 'path';
+import * as linter from '../linters/baseLinter';
+import * as prospector from './../linters/prospector';
+import * as pylint from './../linters/pylint';
+import * as pep8 from './../linters/pep8Linter';
+import * as flake8 from './../linters/flake8';
+import * as pydocstyle from './../linters/pydocstyle';
+import * as settings from '../common/configSettings';
+import * as telemetryHelper from '../common/telemetry';
+import * as telemetryContracts from '../common/telemetryContracts';
 
 const lintSeverityToVSSeverity = new Map<linter.LintMessageSeverity, vscode.DiagnosticSeverity>();
 lintSeverityToVSSeverity.set(linter.LintMessageSeverity.Error, vscode.DiagnosticSeverity.Error)
@@ -24,14 +24,17 @@ function createDiagnostics(message: linter.ILintMessage, txtDocumentLines: strin
     let endCol = txtDocumentLines[message.line - 1].length;
 
     // try to get the first word from the startig position
-    if (message.possibleWord === "string" && message.possibleWord.length > 0) {
+    if (message.possibleWord === 'string' && message.possibleWord.length > 0) {
         endCol = message.column + message.possibleWord.length;
     }
 
     let range = new vscode.Range(new vscode.Position(message.line - 1, message.column), new vscode.Position(message.line - 1, endCol));
 
     let severity = lintSeverityToVSSeverity.get(message.severity);
-    return new vscode.Diagnostic(range, message.code + ":" + message.message, severity);
+    let diagnostic = new vscode.Diagnostic(range, message.code + ':' + message.message, severity);
+    diagnostic.code = message.code;
+    diagnostic.source = message.provider;
+    return diagnostic;
 }
 
 export class LintProvider extends vscode.Disposable {
@@ -52,7 +55,7 @@ export class LintProvider extends vscode.Disposable {
     }
 
     private initialize() {
-        this.diagnosticCollection = vscode.languages.createDiagnosticCollection("python");
+        this.diagnosticCollection = vscode.languages.createDiagnosticCollection('python');
         let disposables = [];
 
         this.linters.push(new prospector.Linter(this.outputChannel, this.workspaceRootPath));
@@ -62,7 +65,7 @@ export class LintProvider extends vscode.Disposable {
         this.linters.push(new pydocstyle.Linter(this.outputChannel, this.workspaceRootPath));
 
         let disposable = vscode.workspace.onDidSaveTextDocument((e) => {
-            if (e.languageId !== "python" || !this.settings.linting.enabled || !this.settings.linting.lintOnSave) {
+            if (e.languageId !== 'python' || !this.settings.linting.enabled || !this.settings.linting.lintOnSave) {
                 return;
             }
             this.lintDocument(e.uri, e.getText().split(/\r?\n/g), 100);
@@ -126,7 +129,7 @@ export class LintProvider extends vscode.Disposable {
             // Build the message and suffix the message with the name of the linter used
             let messages = [];
             consolidatedMessages.forEach(d => {
-                d.message = `${d.message} (${d.provider})`;
+                d.message = `${d.message}`;
                 messages.push(createDiagnostics(d, documentLines));
             });
 
