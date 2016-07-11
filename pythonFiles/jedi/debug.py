@@ -3,15 +3,6 @@ import inspect
 import os
 import time
 
-def _lazy_colorama_init():
-    """lazily init colorama if necessary, not to screw up stdout is debug not enabled.
-
-    This version of the function does nothing.
-    """
-    pass
-
-_inited=False
-
 try:
     if os.name == 'nt':
         # does not work on Windows, as pyreadline and colorama interfere
@@ -20,19 +11,10 @@ try:
         # Use colorama for nicer console output.
         from colorama import Fore, init
         from colorama import initialise
-        def _lazy_colorama_init():
-            """lazily init colorama if necessary, not to screw up stdout is debug not enabled.
-
-            This version of the function does init colorama.
-            """
-            global _inited
-            if not _inited:
-                # pytest resets the stream at the end - causes troubles. Since after
-                # every output the stream is reset automatically we don't need this.
-                initialise.atexit_done = True
-                init()
-            _inited = True
-
+        # pytest resets the stream at the end - causes troubles. Since after
+        # every output the stream is reset automatically we don't need this.
+        initialise.atexit_done = True
+        init()
 except ImportError:
     class Fore(object):
         RED = ''
@@ -81,7 +63,6 @@ def dbg(message, *args):
         mod = inspect.getmodule(frm[0])
         if not (mod.__name__ in ignored_modules):
             i = ' ' * _debug_indent
-            _lazy_colorama_init()
             debug_function(NOTICE, i + 'dbg: ' + message % tuple(u(repr(a)) for a in args))
 
 
@@ -100,7 +81,6 @@ def speed(name):
 
 def print_to_stdout(level, str_out):
     """ The default debug function """
-    _lazy_colorama_init()
     if level == NOTICE:
         col = Fore.GREEN
     elif level == WARNING:
