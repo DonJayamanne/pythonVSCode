@@ -7,7 +7,7 @@ An extension with rich support for Python language, with features including the 
 * Renaming, Viewing references, and code navigation
 * View signature and similar by hovering over a function or method
 * Excellent debugging suppot (variables, arguments, expressions, watch window, stack information, break points, remote debugging, mutliple threads)
-* Unit testing (unittests and nosetests, with config files)
+* Unit testing (unittest, pytest, nosetests, with config files)
 * Sorting imports
 * Snippets
 
