@@ -9,9 +9,9 @@ interface IProspectorResponse {
     messages: IProspectorMessage[];
 }
 interface IProspectorMessage {
-    source: "string";
-    message: "string";
-    code: "string";
+    source: string;
+    message: string;
+    code: string;
     location: IProspectorLocation;
 }
 interface IProspectorLocation {
@@ -78,7 +78,7 @@ export class Linter extends baseLinter.BaseLinter {
                 resolve(diagnostics);
             }).catch(error => {
                 this.handleError(this.Id, prospectorPath, error);
-                return [];
+                resolve([]);
             });
         });
     }

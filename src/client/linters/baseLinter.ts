@@ -6,26 +6,26 @@ import {execPythonFile} from './../common/utils';
 import * as settings from './../common/configSettings';
 import {OutputChannel, window} from 'vscode';
 
-var NamedRegexp = null;
+let NamedRegexp = null;
 const REGEX = '(?<line>\\d+),(?<column>\\d+),(?<type>\\w+),(?<code>\\w\\d+):(?<message>.*)\\r?(\\n|$)';
 
 export interface IRegexGroup {
-    line: number
-    column: number
-    code: string
-    message: string
-    type: string
+    line: number;
+    column: number;
+    code: string;
+    message: string;
+    type: string;
 }
 
 export interface ILintMessage {
-    line: number
-    column: number
-    code: string
-    message: string
-    type: string
-    possibleWord?: string
-    severity?: LintMessageSeverity
-    provider: string
+    line: number;
+    column: number;
+    code: string;
+    message: string;
+    type: string;
+    possibleWord?: string;
+    severity?: LintMessageSeverity;
+    provider: string;
 }
 export enum LintMessageSeverity {
     Hint,
@@ -39,10 +39,10 @@ export function matchNamedRegEx(data, regex): IRegexGroup {
         NamedRegexp = require('named-js-regexp');
     }
 
-    var compiledRegexp = NamedRegexp(regex, 'g');
-    var rawMatch = compiledRegexp.exec(data);
+    let compiledRegexp = NamedRegexp(regex, 'g');
+    let rawMatch = compiledRegexp.exec(data);
     if (rawMatch !== null) {
-        return <IRegexGroup>rawMatch.groups()
+        return <IRegexGroup>rawMatch.groups();
     }
 
     return null;
@@ -59,17 +59,17 @@ export abstract class BaseLinter {
     public abstract runLinter(filePath: string, txtDocumentLines: string[]): Promise<ILintMessage[]>;
 
     protected run(command: string, args: string[], filePath: string, txtDocumentLines: string[], cwd: string, regEx: string = REGEX): Promise<ILintMessage[]> {
-        var outputChannel = this.outputChannel;
-        var linterId = this.Id;
+        let outputChannel = this.outputChannel;
+        let linterId = this.Id;
 
         return new Promise<ILintMessage[]>((resolve, reject) => {
             execPythonFile(command, args, cwd, true).then(data => {
                 outputChannel.append('#'.repeat(10) + 'Linting Output - ' + this.Id + '#'.repeat(10) + '\n');
                 outputChannel.append(data);
-                var outputLines = data.split(/\r?\n/g);
-                var diagnostics: ILintMessage[] = [];
+                let outputLines = data.split(/\r?\n/g);
+                let diagnostics: ILintMessage[] = [];
                 outputLines.filter((value, index) => index <= this.pythonSettings.linting.maxNumberOfProblems).forEach(line => {
-                    var match = matchNamedRegEx(line, regEx);
+                    let match = matchNamedRegEx(line, regEx);
                     if (match == null) {
                         return;
                     }
@@ -78,13 +78,13 @@ export abstract class BaseLinter {
                         match.line = Number(<any>match.line);
                         match.column = Number(<any>match.column);
 
-                        var sourceLine = txtDocumentLines[match.line - 1];
-                        var sourceStart = sourceLine.substring(match.column - 1);
-                        var endCol = txtDocumentLines[match.line - 1].length;
+                        let sourceLine = txtDocumentLines[match.line - 1];
+                        let sourceStart = sourceLine.substring(match.column - 1);
+                        let endCol = txtDocumentLines[match.line - 1].length;
 
-                        //try to get the first word from the startig position
-                        var possibleProblemWords = sourceStart.match(/\w+/g);
-                        var possibleWord: string;
+                        // try to get the first word from the startig position
+                        let possibleProblemWords = sourceStart.match(/\w+/g);
+                        let possibleWord: string;
                         if (possibleProblemWords != null && possibleProblemWords.length > 0 && sourceStart.startsWith(possibleProblemWords[0])) {
                             possibleWord = possibleProblemWords[0];
                         }
@@ -100,16 +100,16 @@ export abstract class BaseLinter {
                         });
                     }
                     catch (ex) {
-                        //Hmm, need to handle this later
-                        //TODO:
-                        var y = '';
+                        // Hmm, need to handle this later
+                        // TODO:
+                        let y = '';
                     }
                 });
 
                 resolve(diagnostics);
             }).catch(error => {
                 this.handleError(this.Id, command, error);
-                return [];
+                resolve([]);
             });
         });
     }

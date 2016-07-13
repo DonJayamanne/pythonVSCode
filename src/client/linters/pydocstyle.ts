@@ -20,11 +20,11 @@ export class Linter extends baseLinter.BaseLinter {
             return Promise.resolve([]);
         }
 
-        var pydocStylePath = this.pythonSettings.linting.pydocStylePath;
+        let pydocStylePath = this.pythonSettings.linting.pydocStylePath;
         let pydocstyleArgs = Array.isArray(this.pythonSettings.linting.pydocstleArgs) ? this.pythonSettings.linting.pydocstleArgs : [];
         return new Promise<baseLinter.ILintMessage[]>(resolve => {
             this.run(pydocStylePath, pydocstyleArgs.concat([filePath]), filePath, txtDocumentLines).then(messages => {
-                //All messages in pep8 are treated as warnings for now
+                // All messages in pep8 are treated as warnings for now
                 messages.forEach(msg => {
                     msg.severity = baseLinter.LintMessageSeverity.Information;
                 });
@@ -35,21 +35,21 @@ export class Linter extends baseLinter.BaseLinter {
     }
 
     protected run(commandLine: string, args: string[], filePath: string, txtDocumentLines: string[]): Promise<ILintMessage[]> {
-        var outputChannel = this.outputChannel;
-        var linterId = this.Id;
+        let outputChannel = this.outputChannel;
+        let linterId = this.Id;
 
         return new Promise<ILintMessage[]>((resolve, reject) => {
-            var fileDir = path.dirname(filePath);
+            let fileDir = path.dirname(filePath);
             execPythonFile(commandLine, args, this.workspaceRootPath, true).then(data => {
                 outputChannel.append('#'.repeat(10) + 'Linting Output - ' + this.Id + '#'.repeat(10) + '\n');
                 outputChannel.append(data);
-                var outputLines = data.split(/\r?\n/g);
-                var diagnostics: ILintMessage[] = [];
-                var baseFileName = path.basename(filePath);
+                let outputLines = data.split(/\r?\n/g);
+                let diagnostics: ILintMessage[] = [];
+                let baseFileName = path.basename(filePath);
 
                 // Remember, the first line of the response contains the file name and line number, the next line contains the error message
                 // So we have two lines per message, hence we need to take lines in pairs
-                var maxLines = this.pythonSettings.linting.maxNumberOfProblems * 2;
+                let maxLines = this.pythonSettings.linting.maxNumberOfProblems * 2;
                 // First line is almost always empty
                 let oldOutputLines = outputLines.filter(line => line.length > 0);
                 outputLines = [];
@@ -85,14 +85,14 @@ export class Linter extends baseLinter.BaseLinter {
                         });
                     }
                     catch (ex) {
-                        //Hmm, need to handle this later
-                        var y = '';
+                        // Hmm, need to handle this later
+                        let y = '';
                     }
                 });
                 resolve(diagnostics);
             }, error => {
                 this.handleError(this.Id, commandLine, error);
-                return [];
+                resolve([]);
             });
         });
     }

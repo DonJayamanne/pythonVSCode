@@ -6,20 +6,20 @@ import {OutputChannel, workspace} from 'vscode';
 
 export class Linter extends baseLinter.BaseLinter {
     constructor(outputChannel: OutputChannel, workspaceRootPath: string) {
-        super("pylint", outputChannel, workspaceRootPath);
+        super('pylint', outputChannel, workspaceRootPath);
     }
 
     private parseMessagesSeverity(category: string): baseLinter.LintMessageSeverity {
         if (this.pythonSettings.linting.pylintCategorySeverity[category]) {
             let severityName = this.pythonSettings.linting.pylintCategorySeverity[category];
             switch (severityName) {
-                case "Error":
+                case 'Error':
                     return baseLinter.LintMessageSeverity.Error;
-                case "Hint":
+                case 'Hint':
                     return baseLinter.LintMessageSeverity.Hint;
-                case "Information":
+                case 'Information':
                     return baseLinter.LintMessageSeverity.Information;
-                case "Warning":
+                case 'Warning':
                     return baseLinter.LintMessageSeverity.Warning;
                 default: {
                     if (baseLinter.LintMessageSeverity[severityName]) {
@@ -43,7 +43,7 @@ export class Linter extends baseLinter.BaseLinter {
         let pylintPath = this.pythonSettings.linting.pylintPath;
         let pylintArgs = Array.isArray(this.pythonSettings.linting.pylintArgs) ? this.pythonSettings.linting.pylintArgs : [];
         return new Promise<baseLinter.ILintMessage[]>((resolve, reject) => {
-            this.run(pylintPath, pylintArgs.concat(["--msg-template='{line},{column},{category},{msg_id}:{msg}'", "--reports=n", "--output-format=text", filePath]), filePath, txtDocumentLines, this.workspaceRootPath).then(messages => {
+            this.run(pylintPath, pylintArgs.concat(['--msg-template=\'{line},{column},{category},{msg_id}:{msg}\'', '--reports=n', '--output-format=text', filePath]), filePath, txtDocumentLines, this.workspaceRootPath).then(messages => {
                 messages.forEach(msg => {
                     msg.severity = this.parseMessagesSeverity(msg.type);
                 });
