@@ -1,9 +1,9 @@
-import {TextEdit, Position, Range, TextDocument} from "vscode";
-import * as dmp from "diff-match-patch";
-import {EOL} from "os";
-import * as fs from "fs";
-import * as path from "path";
-const tmp = require("tmp");
+import {TextEdit, Position, Range, TextDocument} from 'vscode';
+import * as dmp from 'diff-match-patch';
+import {EOL} from 'os';
+import * as fs from 'fs';
+import * as path from 'path';
+const tmp = require('tmp');
 
 // Code borrowed from goFormat.ts (Go Extension for VS Code)
 const EDIT_DELETE = 0;
@@ -28,7 +28,7 @@ class Edit {
     constructor(action: number, start: Position) {
         this.action = action;
         this.start = start;
-        this.text = "";
+        this.text = '';
     }
 
     apply(): TextEdit {
@@ -44,27 +44,35 @@ class Edit {
 }
 
 export function getTextEditsFromPatch(before: string, patch: string): TextEdit[] {
-    if (patch.startsWith("---")) {
+    if (patch.startsWith('---')) {
         // Strip the first two lines
-        patch = patch.substring(patch.indexOf("@@"));
+        patch = patch.substring(patch.indexOf('@@'));
     }
     if (patch.length === 0) {
         return [];
     }
     // Remove the text added by unified_diff
     // # Work around missing newline (http://bugs.python.org/issue2142).
-    patch = patch.replace(/\\ No newline at end of file[\r\n]/, "");
+    patch = patch.replace(/\\ No newline at end of file[\r\n]/, '');
 
     let d = new dmp.diff_match_patch();
-    let patches = patch_fromText.call(d, patch);
+    let patches: any[] = patch_fromText.call(d, patch);
     if (!Array.isArray(patches) || patches.length === 0) {
-        throw new Error("Unable to parse Patch string");
+        throw new Error('Unable to parse Patch string');
     }
+    let textEdits = [];
+
     // Add line feeds
-    patches[0].diffs.forEach(diff => {
-        diff[1] += EOL;
+    // & build the text edits    
+    patches.forEach(patch => {
+        patch.diffs.forEach(diff => {
+            diff[1] += EOL;
+        });
+
+        textEdits = textEdits.concat(getTextEditsInternal(before, patch.diffs, patch.start1));
     });
-    return getTextEditsInternal(before, patches[0].diffs, patches[0].start1);
+
+    return textEdits;
 }
 export function getTextEdits(before: string, after: string): TextEdit[] {
     let d = new dmp.diff_match_patch();
@@ -86,7 +94,7 @@ function getTextEditsInternal(before: string, diffs: [number, string][], startLi
 
         // Compute the line/character after the diff is applied.
         for (let curr = 0; curr < diffs[i][1].length; curr++) {
-            if (diffs[i][1][curr] !== "\n") {
+            if (diffs[i][1][curr] !== '\n') {
                 character++;
             } else {
                 character = 0;
@@ -99,7 +107,7 @@ function getTextEditsInternal(before: string, diffs: [number, string][], startLi
                 if (edit == null) {
                     edit = new Edit(EDIT_DELETE, start);
                 } else if (edit.action !== EDIT_DELETE) {
-                    throw new Error("cannot format due to an internal error.");
+                    throw new Error('cannot format due to an internal error.');
                 }
                 edit.end = new Position(line, character);
                 break;
@@ -137,7 +145,7 @@ function getTextEditsInternal(before: string, diffs: [number, string][], startLi
 export function getTempFileWithDocumentContents(document: TextDocument): Promise<string> {
     return new Promise<string>((resolve, reject) => {
         let ext = path.extname(document.uri.fsPath);
-        let tmp = require("tmp");
+        let tmp = require('tmp');
         tmp.file({ postfix: ext }, function (err, tmpFilePath, fd) {
             if (err) {
                 return reject(err);
@@ -160,78 +168,78 @@ export function getTempFileWithDocumentContents(document: TextDocument): Promise
  * @throws {!Error} If invalid input.
  */
 function patch_fromText(textline) {
-  var patches = [];
-  if (!textline) {
-    return patches;
-  }
-  // Start Modification by Don Jayamanne 24/06/2016 Support for CRLF
-  var text = textline.split(/[\r\n]/);
-  // End Modification
-  var textPointer = 0;
-  var patchHeader = /^@@ -(\d+),?(\d*) \+(\d+),?(\d*) @@$/;
-  while (textPointer < text.length) {
-    var m = text[textPointer].match(patchHeader);
-    if (!m) {
-      throw new Error('Invalid patch string: ' + text[textPointer]);
+    var patches = [];
+    if (!textline) {
+        return patches;
     }
-    var patch = new (<any>dmp.diff_match_patch).patch_obj();
-    patches.push(patch);
-    patch.start1 = parseInt(m[1], 10);
-    if (m[2] === '') {
-      patch.start1--;
-      patch.length1 = 1;
-    } else if (m[2] == '0') {
-      patch.length1 = 0;
-    } else {
-      patch.start1--;
-      patch.length1 = parseInt(m[2], 10);
-    }
-
-    patch.start2 = parseInt(m[3], 10);
-    if (m[4] === '') {
-      patch.start2--;
-      patch.length2 = 1;
-    } else if (m[4] == '0') {
-      patch.length2 = 0;
-    } else {
-      patch.start2--;
-      patch.length2 = parseInt(m[4], 10);
-    }
-    textPointer++;
-
+    // Start Modification by Don Jayamanne 24/06/2016 Support for CRLF
+    var text = textline.split(/[\r\n]/);
+    // End Modification
+    var textPointer = 0;
+    var patchHeader = /^@@ -(\d+),?(\d*) \+(\d+),?(\d*) @@$/;
     while (textPointer < text.length) {
-      var sign = text[textPointer].charAt(0);
-      try {
-        //var line = decodeURI(text[textPointer].substring(1));
-        // For some reason the patch generated by python files don't encode any characters
-        // And this patch module (code from Google) is expecting the text to be encoded!!
-        // Temporary solution, disable decoding
-        // Issue #188
-        var line = text[textPointer].substring(1);
-      } catch (ex) {
-        // Malformed URI sequence.
-        throw new Error('Illegal escape in patch_fromText: ' + line);
-      }
-      if (sign == '-') {
-        // Deletion.
-        patch.diffs.push([dmp.DIFF_DELETE, line]);
-      } else if (sign == '+') {
-        // Insertion.
-        patch.diffs.push([dmp.DIFF_INSERT, line]);
-      } else if (sign == ' ') {
-        // Minor equality.
-        patch.diffs.push([dmp.DIFF_EQUAL, line]);
-      } else if (sign == '@') {
-        // Start of next patch.
-        break;
-      } else if (sign === '') {
-        // Blank line?  Whatever.
-      } else {
-        // WTF?
-        throw new Error('Invalid patch mode "' + sign + '" in: ' + line);
-      }
-      textPointer++;
+        var m = text[textPointer].match(patchHeader);
+        if (!m) {
+            throw new Error('Invalid patch string: ' + text[textPointer]);
+        }
+        var patch = new (<any>dmp.diff_match_patch).patch_obj();
+        patches.push(patch);
+        patch.start1 = parseInt(m[1], 10);
+        if (m[2] === '') {
+            patch.start1--;
+            patch.length1 = 1;
+        } else if (m[2] == '0') {
+            patch.length1 = 0;
+        } else {
+            patch.start1--;
+            patch.length1 = parseInt(m[2], 10);
+        }
+
+        patch.start2 = parseInt(m[3], 10);
+        if (m[4] === '') {
+            patch.start2--;
+            patch.length2 = 1;
+        } else if (m[4] == '0') {
+            patch.length2 = 0;
+        } else {
+            patch.start2--;
+            patch.length2 = parseInt(m[4], 10);
+        }
+        textPointer++;
+
+        while (textPointer < text.length) {
+            var sign = text[textPointer].charAt(0);
+            try {
+                //var line = decodeURI(text[textPointer].substring(1));
+                // For some reason the patch generated by python files don't encode any characters
+                // And this patch module (code from Google) is expecting the text to be encoded!!
+                // Temporary solution, disable decoding
+                // Issue #188
+                var line = text[textPointer].substring(1);
+            } catch (ex) {
+                // Malformed URI sequence.
+                throw new Error('Illegal escape in patch_fromText: ' + line);
+            }
+            if (sign == '-') {
+                // Deletion.
+                patch.diffs.push([dmp.DIFF_DELETE, line]);
+            } else if (sign == '+') {
+                // Insertion.
+                patch.diffs.push([dmp.DIFF_INSERT, line]);
+            } else if (sign == ' ') {
+                // Minor equality.
+                patch.diffs.push([dmp.DIFF_EQUAL, line]);
+            } else if (sign == '@') {
+                // Start of next patch.
+                break;
+            } else if (sign === '') {
+                // Blank line?  Whatever.
+            } else {
+                // WTF?
+                throw new Error('Invalid patch mode "' + sign + '" in: ' + line);
+            }
+            textPointer++;
+        }
     }
-  }
-  return patches;
+    return patches;
 }
