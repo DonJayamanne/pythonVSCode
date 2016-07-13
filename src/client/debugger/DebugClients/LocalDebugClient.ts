@@ -123,7 +123,10 @@ export class LocalDebugClient extends DebugClient {
                 }
                 this.displayError(error, "pyProc.stderr");
             });
-
+            this.pyProc.stdout.on("data", d => {
+                // This is necessary so we read the stdout of the python process
+                // Else it just keep building up (related to issue #203 and #52)
+            })
             resolve();
         });
     }
