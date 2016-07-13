@@ -103,7 +103,7 @@ suite('Formatting', () => {
             return new Promise<any>((resolve, reject) => {
                 setTimeout(() => {
                     resolve();
-                }, 1000);
+                }, 2000);
             });
         }).then(() => {
             assert.equal(textDocument.getText(), formattedContents, 'Formatted contents are not the same');
