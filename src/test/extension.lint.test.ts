@@ -22,32 +22,35 @@ import {initialize} from './initialize';
 import {execPythonFile} from '../client/common/utils';
 
 let pythonSettings = settings.PythonSettings.getInstance();
-let ch = vscode.window.createOutputChannel('Lint');
-let pythoFilesPath = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'linting');
 
-let targetFlake8ConfigFile = path.join(__dirname, '.flake8');
-let targetPep8ConfigFile = path.join(__dirname, '.pep8');
-let targetPydocstyleConfigFile = path.join(__dirname, '.pydocstyle');
+const pythoFilesPath = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'linting');
+const flake8ConfigPath = path.join(pythoFilesPath, 'flake8config');
+const pep8ConfigPath = path.join(pythoFilesPath, 'pep8config');
+const pydocstyleConfigPath = path.join(pythoFilesPath, 'pydocstyleconfig');
+const pylintConfigPath = path.join(pythoFilesPath, 'pylintconfig');
+const fileToLint = path.join(pythoFilesPath, 'file.py');
 let pylintFileToLintLines: string[] = [];
-let pyLintFileToLint = path.join(pythoFilesPath, 'pylintSample.py');
-let targetPythonFileToLint = path.join(__dirname, 'pythonFiles', 'linting', path.basename(pyLintFileToLint));
-let sourceFlake8ConfigFile = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'linting', 'pylintcfg', '.flake8');
-let sourcePep8ConfigFile = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'linting', 'pylintcfg', '.pep8');
-let sourcePydocstyleConfigFile = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'linting', 'pylintcfg', '.pydocstyle');
 
-function deleteFile(file: string): Promise<any> {
-    return new Promise<any>(resolve => {
-        fs.exists(file, yes => {
-            if (yes) {
-                return fs.unlink(file, () => resolve());
-            }
-            resolve();
-        });
-    });
+class MockOutputChannel implements vscode.OutputChannel {
+    constructor(name: string) {
+        this.name = name;
+        this.output = '';
+    }
+    name: string;
+    output: string;
+    append(value: string) {
+        this.output += value;
+    }
+    appendLine(value: string) { this.append(value); this.append('\n'); }
+    clear() { }
+    show(preservceFocus?: boolean): void;
+    show(column?: vscode.ViewColumn, preserveFocus?: boolean): void;
+    show(x?: any, y?: any): void { }
+    hide() { }
+    dispose() { }
 }
 suiteSetup(done => {
-    fs.copySync(pyLintFileToLint, targetPythonFileToLint);
-    pylintFileToLintLines = fs.readFileSync(pyLintFileToLint).toString('utf-8').split(/\r?\n/g);
+    pylintFileToLintLines = fs.readFileSync(fileToLint).toString('utf-8').split(/\r?\n/g);
     done();
 });
 suiteTeardown(done => {
@@ -57,7 +60,6 @@ suiteTeardown(done => {
 
 suite('Linting', () => {
     let pylintMessagesToBeReturned: baseLinter.ILintMessage[] = [
-        { line: 17, column: 0, severity: baseLinter.LintMessageSeverity.Information, code: 'I0011', message: 'Locally disabling unused-argument (W0613)', possibleWord: '', provider: '', type: '' },
         { line: 24, column: 0, severity: baseLinter.LintMessageSeverity.Information, code: 'I0011', message: 'Locally disabling no-member (E1101)', possibleWord: '', provider: '', type: '' },
         { line: 30, column: 0, severity: baseLinter.LintMessageSeverity.Information, code: 'I0011', message: 'Locally disabling no-member (E1101)', possibleWord: '', provider: '', type: '' },
         { line: 34, column: 0, severity: baseLinter.LintMessageSeverity.Information, code: 'I0012', message: 'Locally enabling no-member (E1101)', possibleWord: '', provider: '', type: '' },
@@ -69,7 +71,6 @@ suite('Linting', () => {
         { line: 70, column: 0, severity: baseLinter.LintMessageSeverity.Information, code: 'I0011', message: 'Locally disabling no-member (E1101)', possibleWord: '', provider: '', type: '' },
         { line: 84, column: 0, severity: baseLinter.LintMessageSeverity.Information, code: 'I0011', message: 'Locally disabling no-member (E1101)', possibleWord: '', provider: '', type: '' },
         { line: 87, column: 0, severity: baseLinter.LintMessageSeverity.Hint, code: 'C0304', message: 'Final newline missing', possibleWord: '', provider: '', type: '' },
-        { line: 1, column: 0, severity: baseLinter.LintMessageSeverity.Hint, code: 'C0103', message: 'Invalid module name \"pylintSample\"', possibleWord: '', provider: '', type: '' },
         { line: 11, column: 20, severity: baseLinter.LintMessageSeverity.Warning, code: 'W0613', message: 'Unused argument \'arg\'', possibleWord: '', provider: '', type: '' },
         { line: 26, column: 14, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blop\' member', possibleWord: '', provider: '', type: '' },
         { line: 36, column: 14, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blip\' member', possibleWord: '', provider: '', type: '' },
@@ -82,7 +83,6 @@ suite('Linting', () => {
     ];
     let flake8MessagesToBeReturned: baseLinter.ILintMessage[] = [
         { line: 5, column: 1, severity: baseLinter.LintMessageSeverity.Information, code: 'E302', message: 'expected 2 blank lines, found 1', possibleWord: '', provider: '', type: '' },
-        { line: 13, column: 19, severity: baseLinter.LintMessageSeverity.Information, code: 'E901', message: 'SyntaxError: invalid syntax', possibleWord: '', provider: '', type: '' },
         { line: 19, column: 15, severity: baseLinter.LintMessageSeverity.Information, code: 'E127', message: 'continuation line over-indented for visual indent', possibleWord: '', provider: '', type: '' },
         { line: 24, column: 23, severity: baseLinter.LintMessageSeverity.Information, code: 'E261', message: 'at least two spaces before inline comment', possibleWord: '', provider: '', type: '' },
         { line: 62, column: 30, severity: baseLinter.LintMessageSeverity.Information, code: 'E261', message: 'at least two spaces before inline comment', possibleWord: '', provider: '', type: '' },
@@ -153,13 +153,6 @@ suite('Linting', () => {
         }).then(done, done);
     });
 
-    teardown(done => {
-        Promise.all([deleteFile(targetFlake8ConfigFile),
-            deleteFile(targetPep8ConfigFile),
-            deleteFile(targetPydocstyleConfigFile)
-        ]).then(() => done(), done);
-    });
-
     function testEnablingDisablingOfLinter(linter: baseLinter.BaseLinter, propertyName: string) {
         pythonSettings.linting[propertyName] = true;
         assert.equal(true, linter.isEnabled());
@@ -168,69 +161,78 @@ suite('Linting', () => {
         assert.equal(false, linter.isEnabled());
     }
     test('Enable and Disable Pylint', () => {
-        testEnablingDisablingOfLinter(new pyLint.Linter(ch, __dirname), 'pylintEnabled');
+        let ch = new MockOutputChannel('Lint');
+        testEnablingDisablingOfLinter(new pyLint.Linter(ch, pythoFilesPath), 'pylintEnabled');
     });
     test('Enable and Disable Pep8', () => {
-        testEnablingDisablingOfLinter(new pep8.Linter(ch, __dirname), 'pep8Enabled');
+        let ch = new MockOutputChannel('Lint');
+        testEnablingDisablingOfLinter(new pep8.Linter(ch, pythoFilesPath), 'pep8Enabled');
     });
     test('Enable and Disable Flake8', () => {
-        testEnablingDisablingOfLinter(new flake8.Linter(ch, __dirname), 'flake8Enabled');
+        let ch = new MockOutputChannel('Lint');
+        testEnablingDisablingOfLinter(new flake8.Linter(ch, pythoFilesPath), 'flake8Enabled');
     });
     test('Enable and Disable Prospector', () => {
-        testEnablingDisablingOfLinter(new prospector.Linter(ch, __dirname), 'prospectorEnabled');
+        let ch = new MockOutputChannel('Lint');
+        testEnablingDisablingOfLinter(new prospector.Linter(ch, pythoFilesPath), 'prospectorEnabled');
     });
     test('Enable and Disable Pydocstyle', () => {
-        testEnablingDisablingOfLinter(new pydocstyle.Linter(ch, __dirname), 'pydocstyleEnabled');
+        let ch = new MockOutputChannel('Lint');
+        testEnablingDisablingOfLinter(new pydocstyle.Linter(ch, pythoFilesPath), 'pydocstyleEnabled');
     });
 
-    function testLinterMessages(linter: baseLinter.BaseLinter, pythonFile: string, pythonFileLines: string[], messagesToBeReceived: baseLinter.ILintMessage[]): Promise<any> {
+    function testLinterMessages(linter: baseLinter.BaseLinter, outputChannel: MockOutputChannel, pythonFile: string, pythonFileLines: string[], messagesToBeReceived: baseLinter.ILintMessage[]): Promise<any> {
         return linter.runLinter(pythonFile, pythonFileLines).then(messages => {
             // Different versions of python return different errors, 
             // Here we have errors for version 2.7
-            assert.notEqual(messages.length, 0, 'No errors in linter');
+            assert.notEqual(messages.length, 0, 'No errors in linter, Output - ' + outputChannel.output);
             messagesToBeReceived.forEach(msg => {
                 let similarMessages = messages.filter(m => m.code === msg.code && m.column === msg.column &&
                     m.line === msg.line && m.message === msg.message && m.severity === msg.severity);
-                assert.equal(true, similarMessages.length > 0, 'Error not found, ' + JSON.stringify(msg));
+                assert.equal(true, similarMessages.length > 0, 'Error not found, ' + JSON.stringify(msg) + '\n, Output - ' + outputChannel.output);
             });
         }, error => {
-            assert.fail(error, null, 'Linter error');
+            assert.fail(error, null, 'Linter error, Output - ' + outputChannel.output);
         });
     }
     test('PyLint', done => {
-        let linter = new pyLint.Linter(ch, __dirname);
-        return testLinterMessages(linter, pyLintFileToLint, pylintFileToLintLines, pylintMessagesToBeReturned).then(done, done);
+        let ch = new MockOutputChannel('Lint');
+        let linter = new pyLint.Linter(ch, pythoFilesPath);
+        return testLinterMessages(linter, ch, fileToLint, pylintFileToLintLines, pylintMessagesToBeReturned).then(done, done);
     });
     test('Flake8', done => {
-        let linter = new flake8.Linter(ch, __dirname);
-        return testLinterMessages(linter, pyLintFileToLint, pylintFileToLintLines, flake8MessagesToBeReturned).then(done, done);
+        let ch = new MockOutputChannel('Lint');
+        let linter = new flake8.Linter(ch, pythoFilesPath);
+        return testLinterMessages(linter, ch, fileToLint, pylintFileToLintLines, flake8MessagesToBeReturned).then(done, done);
     });
     test('Pep8', done => {
-        let linter = new pep8.Linter(ch, __dirname);
-        return testLinterMessages(linter, pyLintFileToLint, pylintFileToLintLines, pep8MessagesToBeReturned).then(done, done);
+        let ch = new MockOutputChannel('Lint');
+        let linter = new pep8.Linter(ch, pythoFilesPath);
+        return testLinterMessages(linter, ch, fileToLint, pylintFileToLintLines, pep8MessagesToBeReturned).then(done, done);
     });
     test('Pydocstyle', done => {
-        let linter = new pydocstyle.Linter(ch, __dirname);
-        return testLinterMessages(linter, pyLintFileToLint, pylintFileToLintLines, pydocstyleMessagseToBeReturned).then(done, done);
+        let ch = new MockOutputChannel('Lint');
+        let linter = new pydocstyle.Linter(ch, pythoFilesPath);
+        return testLinterMessages(linter, ch, fileToLint, pylintFileToLintLines, pydocstyleMessagseToBeReturned).then(done, done);
     });
     test('PyLint with config in root', done => {
-        let rootDirContainingConfig = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'linting', 'pylintcfg');
-        let linter = new pyLint.Linter(ch, rootDirContainingConfig);
-        return testLinterMessages(linter, pyLintFileToLint, pylintFileToLintLines, filteredPylintMessagesToBeReturned).then(done, done);
+        let ch = new MockOutputChannel('Lint');
+        let linter = new pyLint.Linter(ch, pylintConfigPath);
+        return testLinterMessages(linter, ch, path.join(pylintConfigPath, 'file.py'), pylintFileToLintLines, filteredPylintMessagesToBeReturned).then(done, done);
     });
     test('Flake8 with config in root', done => {
-        fs.copySync(sourceFlake8ConfigFile, targetFlake8ConfigFile);
-        let linter = new flake8.Linter(ch, __dirname);
-        return testLinterMessages(linter, targetPythonFileToLint, pylintFileToLintLines, filteredFlake8MessagesToBeReturned).then(done, done);
+        let ch = new MockOutputChannel('Lint');
+        let linter = new flake8.Linter(ch, flake8ConfigPath);
+        return testLinterMessages(linter, ch, path.join(flake8ConfigPath, 'file.py'), pylintFileToLintLines, filteredFlake8MessagesToBeReturned).then(done, done);
     });
     test('Pep8 with config in root', done => {
-        fs.copySync(sourcePep8ConfigFile, targetPep8ConfigFile);
-        let linter = new pep8.Linter(ch, __dirname);
-        return testLinterMessages(linter, targetPythonFileToLint, pylintFileToLintLines, filteredPep88MessagesToBeReturned).then(done, done);
+        let ch = new MockOutputChannel('Lint');
+        let linter = new pep8.Linter(ch, pep8ConfigPath);
+        return testLinterMessages(linter, ch, path.join(pep8ConfigPath, 'file.py'), pylintFileToLintLines, filteredPep88MessagesToBeReturned).then(done, done);
     });
     test('Pydocstyle with config in root', done => {
-        fs.copySync(sourcePydocstyleConfigFile, targetPydocstyleConfigFile);
-        let linter = new pydocstyle.Linter(ch, __dirname);
-        return testLinterMessages(linter, targetPythonFileToLint, pylintFileToLintLines, fiteredPydocstyleMessagseToBeReturned).then(done, done);
+        let ch = new MockOutputChannel('Lint');
+        let linter = new pydocstyle.Linter(ch, pydocstyleConfigPath);
+        return testLinterMessages(linter, ch, path.join(pydocstyleConfigPath, 'file.py'), pylintFileToLintLines, fiteredPydocstyleMessagseToBeReturned).then(done, done);
     });
 });
