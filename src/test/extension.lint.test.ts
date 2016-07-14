@@ -30,7 +30,7 @@ const pydocstyleConfigPath = path.join(pythoFilesPath, 'pydocstyleconfig');
 const pylintConfigPath = path.join(pythoFilesPath, 'pylintconfig');
 const fileToLint = path.join(pythoFilesPath, 'file.py');
 let pylintFileToLintLines: string[] = [];
-
+let isPython3 = true;
 class MockOutputChannel implements vscode.OutputChannel {
     constructor(name: string) {
         this.name = name;
@@ -49,9 +49,105 @@ class MockOutputChannel implements vscode.OutputChannel {
     hide() { }
     dispose() { }
 }
+
+let pylintMessagesToBeReturned: baseLinter.ILintMessage[] = [
+    { line: 24, column: 0, severity: baseLinter.LintMessageSeverity.Information, code: 'I0011', message: 'Locally disabling no-member (E1101)', possibleWord: '', provider: '', type: '' },
+    { line: 30, column: 0, severity: baseLinter.LintMessageSeverity.Information, code: 'I0011', message: 'Locally disabling no-member (E1101)', possibleWord: '', provider: '', type: '' },
+    { line: 34, column: 0, severity: baseLinter.LintMessageSeverity.Information, code: 'I0012', message: 'Locally enabling no-member (E1101)', possibleWord: '', provider: '', type: '' },
+    { line: 40, column: 0, severity: baseLinter.LintMessageSeverity.Information, code: 'I0011', message: 'Locally disabling no-member (E1101)', possibleWord: '', provider: '', type: '' },
+    { line: 44, column: 0, severity: baseLinter.LintMessageSeverity.Information, code: 'I0012', message: 'Locally enabling no-member (E1101)', possibleWord: '', provider: '', type: '' },
+    { line: 55, column: 0, severity: baseLinter.LintMessageSeverity.Information, code: 'I0011', message: 'Locally disabling no-member (E1101)', possibleWord: '', provider: '', type: '' },
+    { line: 59, column: 0, severity: baseLinter.LintMessageSeverity.Information, code: 'I0012', message: 'Locally enabling no-member (E1101)', possibleWord: '', provider: '', type: '' },
+    { line: 62, column: 0, severity: baseLinter.LintMessageSeverity.Information, code: 'I0011', message: 'Locally disabling undefined-variable (E0602)', possibleWord: '', provider: '', type: '' },
+    { line: 70, column: 0, severity: baseLinter.LintMessageSeverity.Information, code: 'I0011', message: 'Locally disabling no-member (E1101)', possibleWord: '', provider: '', type: '' },
+    { line: 84, column: 0, severity: baseLinter.LintMessageSeverity.Information, code: 'I0011', message: 'Locally disabling no-member (E1101)', possibleWord: '', provider: '', type: '' },
+    { line: 87, column: 0, severity: baseLinter.LintMessageSeverity.Hint, code: 'C0304', message: 'Final newline missing', possibleWord: '', provider: '', type: '' },
+    { line: 11, column: 20, severity: baseLinter.LintMessageSeverity.Warning, code: 'W0613', message: 'Unused argument \'arg\'', possibleWord: '', provider: '', type: '' },
+    { line: 26, column: 14, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blop\' member', possibleWord: '', provider: '', type: '' },
+    { line: 36, column: 14, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blip\' member', possibleWord: '', provider: '', type: '' },
+    { line: 46, column: 18, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blip\' member', possibleWord: '', provider: '', type: '' },
+    { line: 61, column: 18, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blip\' member', possibleWord: '', provider: '', type: '' },
+    { line: 72, column: 18, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blip\' member', possibleWord: '', provider: '', type: '' },
+    { line: 75, column: 18, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blip\' member', possibleWord: '', provider: '', type: '' },
+    { line: 77, column: 14, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blip\' member', possibleWord: '', provider: '', type: '' },
+    { line: 83, column: 14, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blip\' member', possibleWord: '', provider: '', type: '' }
+];
+let pyLint3MessagesToBeReturned: baseLinter.ILintMessage[] = [
+    { line: 18, column: 0, severity: baseLinter.LintMessageSeverity.Error, code: 'E0001', message: 'Missing parentheses in call to \'print\'', possibleWord: '', provider: '', type: '' }
+];
+let flake8MessagesToBeReturned: baseLinter.ILintMessage[] = [
+    { line: 5, column: 1, severity: baseLinter.LintMessageSeverity.Information, code: 'E302', message: 'expected 2 blank lines, found 1', possibleWord: '', provider: '', type: '' },
+    { line: 19, column: 15, severity: baseLinter.LintMessageSeverity.Information, code: 'E127', message: 'continuation line over-indented for visual indent', possibleWord: '', provider: '', type: '' },
+    { line: 24, column: 23, severity: baseLinter.LintMessageSeverity.Information, code: 'E261', message: 'at least two spaces before inline comment', possibleWord: '', provider: '', type: '' },
+    { line: 62, column: 30, severity: baseLinter.LintMessageSeverity.Information, code: 'E261', message: 'at least two spaces before inline comment', possibleWord: '', provider: '', type: '' },
+    { line: 70, column: 22, severity: baseLinter.LintMessageSeverity.Information, code: 'E261', message: 'at least two spaces before inline comment', possibleWord: '', provider: '', type: '' },
+    { line: 80, column: 5, severity: baseLinter.LintMessageSeverity.Information, code: 'E303', message: 'too many blank lines (2)', possibleWord: '', provider: '', type: '' },
+    { line: 87, column: 24, severity: baseLinter.LintMessageSeverity.Information, code: 'W292', message: 'no newline at end of file', possibleWord: '', provider: '', type: '' }
+];
+let pep8MessagesToBeReturned: baseLinter.ILintMessage[] = [
+    { line: 5, column: 1, severity: baseLinter.LintMessageSeverity.Information, code: 'E302', message: 'expected 2 blank lines, found 1', possibleWord: '', provider: '', type: '' },
+    { line: 19, column: 15, severity: baseLinter.LintMessageSeverity.Information, code: 'E127', message: 'continuation line over-indented for visual indent', possibleWord: '', provider: '', type: '' },
+    { line: 24, column: 23, severity: baseLinter.LintMessageSeverity.Information, code: 'E261', message: 'at least two spaces before inline comment', possibleWord: '', provider: '', type: '' },
+    { line: 62, column: 30, severity: baseLinter.LintMessageSeverity.Information, code: 'E261', message: 'at least two spaces before inline comment', possibleWord: '', provider: '', type: '' },
+    { line: 70, column: 22, severity: baseLinter.LintMessageSeverity.Information, code: 'E261', message: 'at least two spaces before inline comment', possibleWord: '', provider: '', type: '' },
+    { line: 80, column: 5, severity: baseLinter.LintMessageSeverity.Information, code: 'E303', message: 'too many blank lines (2)', possibleWord: '', provider: '', type: '' },
+    { line: 87, column: 24, severity: baseLinter.LintMessageSeverity.Information, code: 'W292', message: 'no newline at end of file', possibleWord: '', provider: '', type: '' }
+];
+let pydocstyleMessagseToBeReturned: baseLinter.ILintMessage[] = [
+    { 'code': 'D400', severity: baseLinter.LintMessageSeverity.Information, 'message': 'First line should end with a period (not \'e\')', 'column': 0, 'line': 1, 'type': '', 'provider': 'pydocstyle' },
+    { 'code': 'D400', severity: baseLinter.LintMessageSeverity.Information, 'message': 'First line should end with a period (not \'t\')', 'column': 0, 'line': 5, 'type': '', 'provider': 'pydocstyle' },
+    { 'code': 'D102', severity: baseLinter.LintMessageSeverity.Information, 'message': 'Missing docstring in public method', 'column': 4, 'line': 8, 'type': '', 'provider': 'pydocstyle' },
+    { 'code': 'D401', severity: baseLinter.LintMessageSeverity.Information, 'message': 'First line should be in imperative mood (\'thi\', not \'this\')', 'column': 4, 'line': 11, 'type': '', 'provider': 'pydocstyle' },
+    { 'code': 'D403', severity: baseLinter.LintMessageSeverity.Information, 'message': 'First word of the first line should be properly capitalized (\'This\', not \'this\')', 'column': 4, 'line': 11, 'type': '', 'provider': 'pydocstyle' },
+    { 'code': 'D400', severity: baseLinter.LintMessageSeverity.Information, 'message': 'First line should end with a period (not \'e\')', 'column': 4, 'line': 11, 'type': '', 'provider': 'pydocstyle' },
+    { 'code': 'D403', severity: baseLinter.LintMessageSeverity.Information, 'message': 'First word of the first line should be properly capitalized (\'And\', not \'and\')', 'column': 4, 'line': 15, 'type': '', 'provider': 'pydocstyle' },
+    { 'code': 'D400', severity: baseLinter.LintMessageSeverity.Information, 'message': 'First line should end with a period (not \'t\')', 'column': 4, 'line': 15, 'type': '', 'provider': 'pydocstyle' },
+    { 'code': 'D403', severity: baseLinter.LintMessageSeverity.Information, 'message': 'First word of the first line should be properly capitalized (\'Test\', not \'test\')', 'column': 4, 'line': 21, 'type': '', 'provider': 'pydocstyle' },
+    { 'code': 'D400', severity: baseLinter.LintMessageSeverity.Information, 'message': 'First line should end with a period (not \'g\')', 'column': 4, 'line': 21, 'type': '', 'provider': 'pydocstyle' },
+    { 'code': 'D403', severity: baseLinter.LintMessageSeverity.Information, 'message': 'First word of the first line should be properly capitalized (\'Test\', not \'test\')', 'column': 4, 'line': 28, 'type': '', 'provider': 'pydocstyle' },
+    { 'code': 'D400', severity: baseLinter.LintMessageSeverity.Information, 'message': 'First line should end with a period (not \'g\')', 'column': 4, 'line': 28, 'type': '', 'provider': 'pydocstyle' },
+    { 'code': 'D403', severity: baseLinter.LintMessageSeverity.Information, 'message': 'First word of the first line should be properly capitalized (\'Test\', not \'test\')', 'column': 4, 'line': 38, 'type': '', 'provider': 'pydocstyle' },
+    { 'code': 'D400', severity: baseLinter.LintMessageSeverity.Information, 'message': 'First line should end with a period (not \'g\')', 'column': 4, 'line': 38, 'type': '', 'provider': 'pydocstyle' },
+    { 'code': 'D403', severity: baseLinter.LintMessageSeverity.Information, 'message': 'First word of the first line should be properly capitalized (\'Test\', not \'test\')', 'column': 4, 'line': 53, 'type': '', 'provider': 'pydocstyle' },
+    { 'code': 'D400', severity: baseLinter.LintMessageSeverity.Information, 'message': 'First line should end with a period (not \'g\')', 'column': 4, 'line': 53, 'type': '', 'provider': 'pydocstyle' },
+    { 'code': 'D403', severity: baseLinter.LintMessageSeverity.Information, 'message': 'First word of the first line should be properly capitalized (\'Test\', not \'test\')', 'column': 4, 'line': 68, 'type': '', 'provider': 'pydocstyle' },
+    { 'code': 'D400', severity: baseLinter.LintMessageSeverity.Information, 'message': 'First line should end with a period (not \'g\')', 'column': 4, 'line': 68, 'type': '', 'provider': 'pydocstyle' },
+    { 'code': 'D403', severity: baseLinter.LintMessageSeverity.Information, 'message': 'First word of the first line should be properly capitalized (\'Test\', not \'test\')', 'column': 4, 'line': 80, 'type': '', 'provider': 'pydocstyle' },
+    { 'code': 'D400', severity: baseLinter.LintMessageSeverity.Information, 'message': 'First line should end with a period (not \'g\')', 'column': 4, 'line': 80, 'type': '', 'provider': 'pydocstyle' }
+];
+
+let filteredPylintMessagesToBeReturned: baseLinter.ILintMessage[] = [
+    { line: 26, column: 14, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blop\' member', possibleWord: '', provider: '', type: '' },
+    { line: 36, column: 14, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blip\' member', possibleWord: '', provider: '', type: '' },
+    { line: 46, column: 18, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blip\' member', possibleWord: '', provider: '', type: '' },
+    { line: 61, column: 18, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blip\' member', possibleWord: '', provider: '', type: '' },
+    { line: 72, column: 18, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blip\' member', possibleWord: '', provider: '', type: '' },
+    { line: 75, column: 18, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blip\' member', possibleWord: '', provider: '', type: '' },
+    { line: 77, column: 14, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blip\' member', possibleWord: '', provider: '', type: '' },
+    { line: 83, column: 14, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blip\' member', possibleWord: '', provider: '', type: '' }
+];
+let filteredPylint3MessagesToBeReturned: baseLinter.ILintMessage[] = [
+];
+let filteredFlake8MessagesToBeReturned: baseLinter.ILintMessage[] = [
+    { line: 87, column: 24, severity: baseLinter.LintMessageSeverity.Information, code: 'W292', message: 'no newline at end of file', possibleWord: '', provider: '', type: '' }
+];
+let filteredPep88MessagesToBeReturned: baseLinter.ILintMessage[] = [
+    { line: 87, column: 24, severity: baseLinter.LintMessageSeverity.Information, code: 'W292', message: 'no newline at end of file', possibleWord: '', provider: '', type: '' }
+];
+let fiteredPydocstyleMessagseToBeReturned: baseLinter.ILintMessage[] = [
+    { 'code': 'D102', severity: baseLinter.LintMessageSeverity.Information, 'message': 'Missing docstring in public method', 'column': 4, 'line': 8, 'type': '', 'provider': 'pydocstyle' }
+];
+
 suiteSetup(done => {
     pylintFileToLintLines = fs.readFileSync(fileToLint).toString('utf-8').split(/\r?\n/g);
-    done();
+    execPythonFile('python', ['--version'], __dirname, true).then(value => {
+        isPython3 = value.indexOf('3.') >= 0;
+        if (isPython3) {
+            pylintMessagesToBeReturned = pyLint3MessagesToBeReturned;
+            filteredPylintMessagesToBeReturned = filteredPylint3MessagesToBeReturned;
+        }
+        done();
+    });
 });
 suiteTeardown(done => {
     // deleteFile(targetPythonFileToLint).then(done, done);
@@ -59,89 +155,6 @@ suiteTeardown(done => {
 });
 
 suite('Linting', () => {
-    let pylintMessagesToBeReturned: baseLinter.ILintMessage[] = [
-        { line: 24, column: 0, severity: baseLinter.LintMessageSeverity.Information, code: 'I0011', message: 'Locally disabling no-member (E1101)', possibleWord: '', provider: '', type: '' },
-        { line: 30, column: 0, severity: baseLinter.LintMessageSeverity.Information, code: 'I0011', message: 'Locally disabling no-member (E1101)', possibleWord: '', provider: '', type: '' },
-        { line: 34, column: 0, severity: baseLinter.LintMessageSeverity.Information, code: 'I0012', message: 'Locally enabling no-member (E1101)', possibleWord: '', provider: '', type: '' },
-        { line: 40, column: 0, severity: baseLinter.LintMessageSeverity.Information, code: 'I0011', message: 'Locally disabling no-member (E1101)', possibleWord: '', provider: '', type: '' },
-        { line: 44, column: 0, severity: baseLinter.LintMessageSeverity.Information, code: 'I0012', message: 'Locally enabling no-member (E1101)', possibleWord: '', provider: '', type: '' },
-        { line: 55, column: 0, severity: baseLinter.LintMessageSeverity.Information, code: 'I0011', message: 'Locally disabling no-member (E1101)', possibleWord: '', provider: '', type: '' },
-        { line: 59, column: 0, severity: baseLinter.LintMessageSeverity.Information, code: 'I0012', message: 'Locally enabling no-member (E1101)', possibleWord: '', provider: '', type: '' },
-        { line: 62, column: 0, severity: baseLinter.LintMessageSeverity.Information, code: 'I0011', message: 'Locally disabling undefined-variable (E0602)', possibleWord: '', provider: '', type: '' },
-        { line: 70, column: 0, severity: baseLinter.LintMessageSeverity.Information, code: 'I0011', message: 'Locally disabling no-member (E1101)', possibleWord: '', provider: '', type: '' },
-        { line: 84, column: 0, severity: baseLinter.LintMessageSeverity.Information, code: 'I0011', message: 'Locally disabling no-member (E1101)', possibleWord: '', provider: '', type: '' },
-        { line: 87, column: 0, severity: baseLinter.LintMessageSeverity.Hint, code: 'C0304', message: 'Final newline missing', possibleWord: '', provider: '', type: '' },
-        { line: 11, column: 20, severity: baseLinter.LintMessageSeverity.Warning, code: 'W0613', message: 'Unused argument \'arg\'', possibleWord: '', provider: '', type: '' },
-        { line: 26, column: 14, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blop\' member', possibleWord: '', provider: '', type: '' },
-        { line: 36, column: 14, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blip\' member', possibleWord: '', provider: '', type: '' },
-        { line: 46, column: 18, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blip\' member', possibleWord: '', provider: '', type: '' },
-        { line: 61, column: 18, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blip\' member', possibleWord: '', provider: '', type: '' },
-        { line: 72, column: 18, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blip\' member', possibleWord: '', provider: '', type: '' },
-        { line: 75, column: 18, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blip\' member', possibleWord: '', provider: '', type: '' },
-        { line: 77, column: 14, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blip\' member', possibleWord: '', provider: '', type: '' },
-        { line: 83, column: 14, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blip\' member', possibleWord: '', provider: '', type: '' }
-    ];
-    let flake8MessagesToBeReturned: baseLinter.ILintMessage[] = [
-        { line: 5, column: 1, severity: baseLinter.LintMessageSeverity.Information, code: 'E302', message: 'expected 2 blank lines, found 1', possibleWord: '', provider: '', type: '' },
-        { line: 19, column: 15, severity: baseLinter.LintMessageSeverity.Information, code: 'E127', message: 'continuation line over-indented for visual indent', possibleWord: '', provider: '', type: '' },
-        { line: 24, column: 23, severity: baseLinter.LintMessageSeverity.Information, code: 'E261', message: 'at least two spaces before inline comment', possibleWord: '', provider: '', type: '' },
-        { line: 62, column: 30, severity: baseLinter.LintMessageSeverity.Information, code: 'E261', message: 'at least two spaces before inline comment', possibleWord: '', provider: '', type: '' },
-        { line: 70, column: 22, severity: baseLinter.LintMessageSeverity.Information, code: 'E261', message: 'at least two spaces before inline comment', possibleWord: '', provider: '', type: '' },
-        { line: 80, column: 5, severity: baseLinter.LintMessageSeverity.Information, code: 'E303', message: 'too many blank lines (2)', possibleWord: '', provider: '', type: '' },
-        { line: 87, column: 24, severity: baseLinter.LintMessageSeverity.Information, code: 'W292', message: 'no newline at end of file', possibleWord: '', provider: '', type: '' }
-    ];
-    let pep8MessagesToBeReturned: baseLinter.ILintMessage[] = [
-        { line: 5, column: 1, severity: baseLinter.LintMessageSeverity.Information, code: 'E302', message: 'expected 2 blank lines, found 1', possibleWord: '', provider: '', type: '' },
-        { line: 19, column: 15, severity: baseLinter.LintMessageSeverity.Information, code: 'E127', message: 'continuation line over-indented for visual indent', possibleWord: '', provider: '', type: '' },
-        { line: 24, column: 23, severity: baseLinter.LintMessageSeverity.Information, code: 'E261', message: 'at least two spaces before inline comment', possibleWord: '', provider: '', type: '' },
-        { line: 62, column: 30, severity: baseLinter.LintMessageSeverity.Information, code: 'E261', message: 'at least two spaces before inline comment', possibleWord: '', provider: '', type: '' },
-        { line: 70, column: 22, severity: baseLinter.LintMessageSeverity.Information, code: 'E261', message: 'at least two spaces before inline comment', possibleWord: '', provider: '', type: '' },
-        { line: 80, column: 5, severity: baseLinter.LintMessageSeverity.Information, code: 'E303', message: 'too many blank lines (2)', possibleWord: '', provider: '', type: '' },
-        { line: 87, column: 24, severity: baseLinter.LintMessageSeverity.Information, code: 'W292', message: 'no newline at end of file', possibleWord: '', provider: '', type: '' }
-    ];
-    let pydocstyleMessagseToBeReturned: baseLinter.ILintMessage[] = [
-        { 'code': 'D400', severity: baseLinter.LintMessageSeverity.Information, 'message': 'First line should end with a period (not \'e\')', 'column': 0, 'line': 1, 'type': '', 'provider': 'pydocstyle' },
-        { 'code': 'D400', severity: baseLinter.LintMessageSeverity.Information, 'message': 'First line should end with a period (not \'t\')', 'column': 0, 'line': 5, 'type': '', 'provider': 'pydocstyle' },
-        { 'code': 'D102', severity: baseLinter.LintMessageSeverity.Information, 'message': 'Missing docstring in public method', 'column': 4, 'line': 8, 'type': '', 'provider': 'pydocstyle' },
-        { 'code': 'D401', severity: baseLinter.LintMessageSeverity.Information, 'message': 'First line should be in imperative mood (\'thi\', not \'this\')', 'column': 4, 'line': 11, 'type': '', 'provider': 'pydocstyle' },
-        { 'code': 'D403', severity: baseLinter.LintMessageSeverity.Information, 'message': 'First word of the first line should be properly capitalized (\'This\', not \'this\')', 'column': 4, 'line': 11, 'type': '', 'provider': 'pydocstyle' },
-        { 'code': 'D400', severity: baseLinter.LintMessageSeverity.Information, 'message': 'First line should end with a period (not \'e\')', 'column': 4, 'line': 11, 'type': '', 'provider': 'pydocstyle' },
-        { 'code': 'D403', severity: baseLinter.LintMessageSeverity.Information, 'message': 'First word of the first line should be properly capitalized (\'And\', not \'and\')', 'column': 4, 'line': 15, 'type': '', 'provider': 'pydocstyle' },
-        { 'code': 'D400', severity: baseLinter.LintMessageSeverity.Information, 'message': 'First line should end with a period (not \'t\')', 'column': 4, 'line': 15, 'type': '', 'provider': 'pydocstyle' },
-        { 'code': 'D403', severity: baseLinter.LintMessageSeverity.Information, 'message': 'First word of the first line should be properly capitalized (\'Test\', not \'test\')', 'column': 4, 'line': 21, 'type': '', 'provider': 'pydocstyle' },
-        { 'code': 'D400', severity: baseLinter.LintMessageSeverity.Information, 'message': 'First line should end with a period (not \'g\')', 'column': 4, 'line': 21, 'type': '', 'provider': 'pydocstyle' },
-        { 'code': 'D403', severity: baseLinter.LintMessageSeverity.Information, 'message': 'First word of the first line should be properly capitalized (\'Test\', not \'test\')', 'column': 4, 'line': 28, 'type': '', 'provider': 'pydocstyle' },
-        { 'code': 'D400', severity: baseLinter.LintMessageSeverity.Information, 'message': 'First line should end with a period (not \'g\')', 'column': 4, 'line': 28, 'type': '', 'provider': 'pydocstyle' },
-        { 'code': 'D403', severity: baseLinter.LintMessageSeverity.Information, 'message': 'First word of the first line should be properly capitalized (\'Test\', not \'test\')', 'column': 4, 'line': 38, 'type': '', 'provider': 'pydocstyle' },
-        { 'code': 'D400', severity: baseLinter.LintMessageSeverity.Information, 'message': 'First line should end with a period (not \'g\')', 'column': 4, 'line': 38, 'type': '', 'provider': 'pydocstyle' },
-        { 'code': 'D403', severity: baseLinter.LintMessageSeverity.Information, 'message': 'First word of the first line should be properly capitalized (\'Test\', not \'test\')', 'column': 4, 'line': 53, 'type': '', 'provider': 'pydocstyle' },
-        { 'code': 'D400', severity: baseLinter.LintMessageSeverity.Information, 'message': 'First line should end with a period (not \'g\')', 'column': 4, 'line': 53, 'type': '', 'provider': 'pydocstyle' },
-        { 'code': 'D403', severity: baseLinter.LintMessageSeverity.Information, 'message': 'First word of the first line should be properly capitalized (\'Test\', not \'test\')', 'column': 4, 'line': 68, 'type': '', 'provider': 'pydocstyle' },
-        { 'code': 'D400', severity: baseLinter.LintMessageSeverity.Information, 'message': 'First line should end with a period (not \'g\')', 'column': 4, 'line': 68, 'type': '', 'provider': 'pydocstyle' },
-        { 'code': 'D403', severity: baseLinter.LintMessageSeverity.Information, 'message': 'First word of the first line should be properly capitalized (\'Test\', not \'test\')', 'column': 4, 'line': 80, 'type': '', 'provider': 'pydocstyle' },
-        { 'code': 'D400', severity: baseLinter.LintMessageSeverity.Information, 'message': 'First line should end with a period (not \'g\')', 'column': 4, 'line': 80, 'type': '', 'provider': 'pydocstyle' }
-    ];
-
-    let filteredPylintMessagesToBeReturned: baseLinter.ILintMessage[] = [
-        { line: 26, column: 14, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blop\' member', possibleWord: '', provider: '', type: '' },
-        { line: 36, column: 14, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blip\' member', possibleWord: '', provider: '', type: '' },
-        { line: 46, column: 18, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blip\' member', possibleWord: '', provider: '', type: '' },
-        { line: 61, column: 18, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blip\' member', possibleWord: '', provider: '', type: '' },
-        { line: 72, column: 18, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blip\' member', possibleWord: '', provider: '', type: '' },
-        { line: 75, column: 18, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blip\' member', possibleWord: '', provider: '', type: '' },
-        { line: 77, column: 14, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blip\' member', possibleWord: '', provider: '', type: '' },
-        { line: 83, column: 14, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blip\' member', possibleWord: '', provider: '', type: '' }
-    ];
-    let filteredFlake8MessagesToBeReturned: baseLinter.ILintMessage[] = [
-        { line: 87, column: 24, severity: baseLinter.LintMessageSeverity.Information, code: 'W292', message: 'no newline at end of file', possibleWord: '', provider: '', type: '' }
-    ];
-    let filteredPep88MessagesToBeReturned: baseLinter.ILintMessage[] = [
-        { line: 87, column: 24, severity: baseLinter.LintMessageSeverity.Information, code: 'W292', message: 'no newline at end of file', possibleWord: '', provider: '', type: '' }
-    ];
-    let fiteredPydocstyleMessagseToBeReturned: baseLinter.ILintMessage[] = [
-        { 'code': 'D102', severity: baseLinter.LintMessageSeverity.Information, 'message': 'Missing docstring in public method', 'column': 4, 'line': 8, 'type': '', 'provider': 'pydocstyle' }
-    ];
-
     setup(done => {
         initialize().then(() => {
             pythonSettings.linting.enabled = true;
