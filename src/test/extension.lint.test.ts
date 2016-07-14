@@ -141,11 +141,16 @@ let fiteredPydocstyleMessagseToBeReturned: baseLinter.ILintMessage[] = [
 suiteSetup(done => {
     pylintFileToLintLines = fs.readFileSync(fileToLint).toString('utf-8').split(/\r?\n/g);
     initialize().then(() => {
-        execPythonFile('python', ['--version'], __dirname, true).then(value => {
-            console.log("Python Version" + value);
-            console.log(process.env['$TRAVIS_PYTHON_VERSION']);
-            console.log(process.env['TRAVIS_PYTHON_VERSION']);
-            isPython3 = value.indexOf('3.') >= 0;
+        new Promise<string>(resolve => {
+            // Support for travis
+            let version = process.env['TRAVIS_PYTHON_VERSION'];
+            if (typeof version === 'string') {
+                return resolve(version);
+            }
+            // Support for local tests
+            execPythonFile('python', ['--version'], __dirname, true).then(resolve);
+        }).then(version => {
+            isPython3 = version.indexOf('3.') >= 0;
             if (isPython3) {
                 pylintMessagesToBeReturned = pyLint3MessagesToBeReturned;
                 filteredPylintMessagesToBeReturned = filteredPylint3MessagesToBeReturned;
