@@ -141,7 +141,6 @@ let fiteredPydocstyleMessagseToBeReturned: baseLinter.ILintMessage[] = [
 suiteSetup(done => {
     pylintFileToLintLines = fs.readFileSync(fileToLint).toString('utf-8').split(/\r?\n/g);
     initialize().then(() => {
-        pythonSettings.pythonPath = '/Users/donjayamanne/Desktop/Development/Python/Temp/MyEnvs/p3/bin/python';
         execPythonFile('python', ['--version'], __dirname, true).then(value => {
             console.log("Python Version" + value);
             console.log(process.env['$TRAVIS_PYTHON_VERSION']);
