@@ -205,8 +205,14 @@ suite('Linting', () => {
     function testLinterMessages(linter: baseLinter.BaseLinter, outputChannel: MockOutputChannel, pythonFile: string, pythonFileLines: string[], messagesToBeReceived: baseLinter.ILintMessage[]): Promise<any> {
         return linter.runLinter(pythonFile, pythonFileLines).then(messages => {
             // Different versions of python return different errors, 
-            // Here we have errors for version 2.7
-            assert.notEqual(messages.length, 0, 'No errors in linter, Output - ' + outputChannel.output);
+            if (messagesToBeReceived.length === 0) {
+                assert.equal(messages.length, 0, 'No errors in linter, Output - ' + outputChannel.output);
+            }
+            else {
+                // Pylint for Python Version 2.7 could return 80 linter messages, where as in 3.5 it might only return 1
+                // Looks like pylint stops linting as soon as it comes across any ERRORS 
+                assert.notEqual(messages.length, 0, 'No errors in linter, Output - ' + outputChannel.output);
+            }
             messagesToBeReceived.forEach(msg => {
                 let similarMessages = messages.filter(m => m.code === msg.code && m.column === msg.column &&
                     m.line === msg.line && m.message === msg.message && m.severity === msg.severity);
