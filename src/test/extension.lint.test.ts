@@ -73,7 +73,7 @@ let pylintMessagesToBeReturned: baseLinter.ILintMessage[] = [
     { line: 83, column: 14, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blip\' member', possibleWord: '', provider: '', type: '' }
 ];
 let pyLint3MessagesToBeReturned: baseLinter.ILintMessage[] = [
-    { line: 18, column: 0, severity: baseLinter.LintMessageSeverity.Error, code: 'E0001', message: 'Missing parentheses in call to \'print\'', possibleWord: '', provider: '', type: '' }
+    { line: 13, column: 0, severity: baseLinter.LintMessageSeverity.Error, code: 'E0001', message: 'Missing parentheses in call to \'print\'', possibleWord: '', provider: '', type: '' }
 ];
 let flake8MessagesToBeReturned: baseLinter.ILintMessage[] = [
     { line: 5, column: 1, severity: baseLinter.LintMessageSeverity.Information, code: 'E302', message: 'expected 2 blank lines, found 1', possibleWord: '', provider: '', type: '' },
@@ -140,13 +140,16 @@ let fiteredPydocstyleMessagseToBeReturned: baseLinter.ILintMessage[] = [
 
 suiteSetup(done => {
     pylintFileToLintLines = fs.readFileSync(fileToLint).toString('utf-8').split(/\r?\n/g);
-    execPythonFile('python', ['--version'], __dirname, true).then(value => {
-        isPython3 = value.indexOf('3.') >= 0;
-        if (isPython3) {
-            pylintMessagesToBeReturned = pyLint3MessagesToBeReturned;
-            filteredPylintMessagesToBeReturned = filteredPylint3MessagesToBeReturned;
-        }
-        done();
+    initialize().then(() => {
+        pythonSettings.pythonPath = '/Users/donjayamanne/Desktop/Development/Python/Temp/MyEnvs/p3/bin/python';
+        execPythonFile('python', ['--version'], __dirname, true).then(value => {
+            isPython3 = value.indexOf('3.') >= 0;
+            if (isPython3) {
+                pylintMessagesToBeReturned = pyLint3MessagesToBeReturned;
+                filteredPylintMessagesToBeReturned = filteredPylint3MessagesToBeReturned;
+            }
+            done();
+        });
     });
 });
 suiteTeardown(done => {
@@ -155,15 +158,13 @@ suiteTeardown(done => {
 });
 
 suite('Linting', () => {
-    setup(done => {
-        initialize().then(() => {
-            pythonSettings.linting.enabled = true;
-            pythonSettings.linting.pylintEnabled = true;
-            pythonSettings.linting.flake8Enabled = true;
-            pythonSettings.linting.pep8Enabled = true;
-            pythonSettings.linting.prospectorEnabled = true;
-            pythonSettings.linting.pydocstyleEnabled = true;
-        }).then(done, done);
+    setup(() => {
+        pythonSettings.linting.enabled = true;
+        pythonSettings.linting.pylintEnabled = true;
+        pythonSettings.linting.flake8Enabled = true;
+        pythonSettings.linting.pep8Enabled = true;
+        pythonSettings.linting.prospectorEnabled = true;
+        pythonSettings.linting.pydocstyleEnabled = true;
     });
 
     function testEnablingDisablingOfLinter(linter: baseLinter.BaseLinter, propertyName: string) {
