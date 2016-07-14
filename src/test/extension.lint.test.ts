@@ -143,8 +143,9 @@ suiteSetup(done => {
     initialize().then(() => {
         pythonSettings.pythonPath = '/Users/donjayamanne/Desktop/Development/Python/Temp/MyEnvs/p3/bin/python';
         execPythonFile('python', ['--version'], __dirname, true).then(value => {
-            console.log(value);
-
+            console.log("Python Version" + value);
+            console.log(process.env['$TRAVIS_PYTHON_VERSION']);
+            console.log(process.env['TRAVIS_PYTHON_VERSION']);
             isPython3 = value.indexOf('3.') >= 0;
             if (isPython3) {
                 pylintMessagesToBeReturned = pyLint3MessagesToBeReturned;
