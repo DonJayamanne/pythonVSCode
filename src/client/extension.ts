@@ -51,7 +51,7 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.languages.setLanguageConfiguration(PYTHON.language, {
         onEnterRules: [
             {
-                beforeText: /^\s*(?:def|class|for|if|elif|else|while|try|with|finally|except).*?:\s*$/,
+                beforeText: /^\s*(?:def|class|for|if|elif|else|while|try|with|finally|except|async).*?:\s*$/,
                 action: { indentAction: vscode.IndentAction.Indent }
             }
         ]
