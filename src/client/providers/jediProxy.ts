@@ -463,6 +463,10 @@ function getConfig() {
         }
         return path.join(vscode.workspace.rootPath, extraPath);
     });
+
+    // Always add workspace path into extra paths
+    extraPaths.unshift(vscode.workspace.rootPath);
+
     let distinctExtraPaths = extraPaths.concat(additionalAutoCopletePaths).filter((value, index, self) => self.indexOf(value) === index);
     return {
         extraPaths: distinctExtraPaths,
