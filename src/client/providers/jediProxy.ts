@@ -149,10 +149,33 @@ export class JediProxy extends vscode.Disposable {
     }
 }
 
+// keep track of the directory so we can re-spawn the process
+let pythonProcessCWD = "";
 function initialize(dir: string) {
+    pythonProcessCWD = dir;
     spawnProcess(path.join(dir, "pythonFiles"));
 }
 
+// Check if settings changes
+let lastKnownPythonInterpreter = pythonSettings.pythonPath;
+pythonSettings.on('change', onPythonSettingsChanged);
+
+function onPythonSettingsChanged() {
+    if (lastKnownPythonInterpreter === pythonSettings.pythonPath) {
+        return;
+    }
+    killProcess();
+    clearPendingRequests();
+    initialize(pythonProcessCWD);
+}
+
+function clearPendingRequests() {
+    commandQueue = [];
+    commands.forEach(item => {
+        item.resolve();
+    });
+    commands.clear();
+}
 var previousData = "";
 var commands = new Map<number, IExecutionCommand<ICommandResult>>();
 var commandQueue: number[] = [];
@@ -164,6 +187,7 @@ function killProcess() {
         }
     }
     catch (ex) { }
+    proc = null;
 }
 
 function handleError(source: string, errorMessage: string) {
@@ -200,8 +224,11 @@ function spawnProcess(dir: string) {
             previousData = "";
         }
         catch (ex) {
-            //Possible we've only received part of the data, hence don't clear previousData
-            handleError("stdout", ex.message);
+            // Possible we've only received part of the data, hence don't clear previousData
+            // Don't log errors when we haven't received the entire response
+            if (ex.message !== 'Unexpected end of input') {
+                handleError("stdout", ex.message);
+            }
             return;
         }
 
@@ -580,7 +607,7 @@ export class JediProxyHandler<R extends ICommandResult, T> {
     }
 
     private onResolved(data: R) {
-        if (this.lastToken.isCancellationRequested || data.requestId !== this.lastCommandId) {
+        if (this.lastToken.isCancellationRequested || !data || data.requestId !== this.lastCommandId) {
             this.promiseResolve(this.defaultCallbackData);
         }
         if (data) {

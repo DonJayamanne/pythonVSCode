@@ -2,6 +2,7 @@
 
 import * as vscode from 'vscode';
 import {SystemVariables} from './systemVariables';
+import {EventEmitter} from 'events';
 
 export interface IPythonSettings {
     pythonPath: string;
@@ -65,9 +66,10 @@ export interface IAutoCompeteSettings {
     extraPaths: string[];
 }
 const systemVariables: SystemVariables = new SystemVariables();
-export class PythonSettings implements IPythonSettings {
+export class PythonSettings extends EventEmitter implements IPythonSettings {
     private static pythonSettings: PythonSettings = new PythonSettings();
     constructor() {
+        super();
         if (PythonSettings.pythonSettings) {
             throw new Error('Singleton class, Use getInstance method');
         }
@@ -79,7 +81,7 @@ export class PythonSettings implements IPythonSettings {
     }
     public static getInstance(): PythonSettings {
         return PythonSettings.pythonSettings;
-    }
+    }    
     private initializeSettings() {
         let pythonSettings = vscode.workspace.getConfiguration('python');
         this.pythonPath = systemVariables.resolveAny(pythonSettings.get<string>('pythonPath'));
@@ -116,7 +118,9 @@ export class PythonSettings implements IPythonSettings {
         else {
             this.unitTest = unitTestSettings;
         }
-   }
+
+        this.emit('change');
+    }
 
     public pythonPath: string;
     public devOptions: any[];

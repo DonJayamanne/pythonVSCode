@@ -9,7 +9,7 @@ export class PythonReferenceProvider implements vscode.ReferenceProvider {
     private jediProxyHandler: proxy.JediProxyHandler<proxy.IReferenceResult, vscode.Location[]>;
 
     public constructor(context: vscode.ExtensionContext) {
-        this.jediProxyHandler = new proxy.JediProxyHandler(context, null, PythonReferenceProvider.parseData);
+        this.jediProxyHandler = new proxy.JediProxyHandler(context, [], PythonReferenceProvider.parseData);
     }
     private static parseData(data: proxy.IReferenceResult): vscode.Location[] {
         if (data && data.references.length > 0) {

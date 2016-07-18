@@ -11,7 +11,7 @@ export class PythonHoverProvider implements vscode.HoverProvider {
     public constructor(context: vscode.ExtensionContext) {
         this.jediProxyHandler = new proxy.JediProxyHandler(context, null, PythonHoverProvider.parseData);
     }
-    private static parseData(data: proxy.ICompletionResult) {
+    private static parseData(data: proxy.ICompletionResult): vscode.Hover {
         if (data && data.items.length > 0) {
             var definition = data.items[0];
 

@@ -1,25 +1,25 @@
-"use strict";
+'use strict';
 
-import * as path from "path";
-import * as fs from "fs";
-import * as child_process from "child_process";
-import * as settings from "./configSettings";
+import * as path from 'path';
+import * as fs from 'fs';
+import * as child_process from 'child_process';
+import * as settings from './configSettings';
 
 const IS_WINDOWS = /^win/.test(process.platform);
-const PATH_VARIABLE_NAME = IS_WINDOWS ? "Path" : "PATH";
+const PATH_VARIABLE_NAME = IS_WINDOWS ? 'Path' : 'PATH';
 
 const PathValidity: Map<string, boolean> = new Map<string, boolean>();
 export function validatePath(filePath: string): Promise<string> {
     if (filePath.length === 0) {
-        return Promise.resolve("");
+        return Promise.resolve('');
     }
     if (PathValidity.has(filePath)) {
-        return Promise.resolve(PathValidity.get(filePath) ? filePath : "");
+        return Promise.resolve(PathValidity.get(filePath) ? filePath : '');
     }
     return new Promise<string>(resolve => {
         fs.exists(filePath, exists => {
             PathValidity.set(filePath, exists);
-            return resolve(exists ? filePath : "");
+            return resolve(exists ? filePath : '');
         });
     });
 }
@@ -27,6 +27,12 @@ export function validatePath(filePath: string): Promise<string> {
 let pythonInterpretterDirectory: string = null;
 let previouslyIdentifiedPythonPath: string = null;
 let customEnvVariables: any = null;
+
+// If config settings change then clear env variables that we have cached
+// Remember, the path to the python interpreter can change, hence we need to re-set the paths
+settings.PythonSettings.getInstance().on('change', function () {
+    customEnvVariables = null;
+});
 
 export function getPythonInterpreterDirectory(): Promise<string> {
     // If we already have it and the python path hasn't changed, yay
@@ -40,17 +46,17 @@ export function getPythonInterpreterDirectory(): Promise<string> {
         // Check if we have the path
         if (path.basename(pythonFileName) === pythonFileName) {
             // No path provided
-            return resolve("");
+            return resolve('');
         }
 
         // If we can execute the python, then get the path from the fullyqualitified name
-        child_process.execFile(pythonFileName, ["-c", "print(1234)"], (error, stdout, stderr) => {
+        child_process.execFile(pythonFileName, ['-c', 'print(1234)'], (error, stdout, stderr) => {
             // Yes this is a valid python path
-            if (stdout.startsWith("1234")) {
+            if (stdout.startsWith('1234')) {
                 return resolve(path.dirname(pythonFileName));
             }
             // No idea, didn't work, hence don't reject, but return empty path
-            resolve("");
+            resolve('');
         });
     }).then(value => {
         // Cache and return
@@ -58,7 +64,7 @@ export function getPythonInterpreterDirectory(): Promise<string> {
         return pythonInterpretterDirectory = value;
     }).catch(() => {
         // Don't care what the error is, all we know is that this doesn't work
-        return pythonInterpretterDirectory = "";
+        return pythonInterpretterDirectory = '';
     });
 }
 
@@ -78,9 +84,9 @@ export function execPythonFile(file: string, args: string[], cwd: string, includ
         if (customEnvVariables === null) {
             let pathValue = <string>process.env[PATH_VARIABLE_NAME];
             // Ensure to include the path of the current python 
-            let newPath = "";
+            let newPath = '';
             if (IS_WINDOWS) {
-                newPath = pyPath + "\\" + path.delimiter + path.join(pyPath, "Scripts\\") + path.delimiter + process.env[PATH_VARIABLE_NAME];
+                newPath = pyPath + '\\' + path.delimiter + path.join(pyPath, 'Scripts\\') + path.delimiter + process.env[PATH_VARIABLE_NAME];
                 // This needs to be done for windows
                 process.env[PATH_VARIABLE_NAME] = newPath;
             }
@@ -98,7 +104,7 @@ export function execPythonFile(file: string, args: string[], cwd: string, includ
 
 function handleResponse(file: string, includeErrorAsResponse: boolean, error: Error, stdout: string, stderr: string): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-        if (typeof (error) === "object" && error !== null && ((<any>error).code === "ENOENT" || (<any>error).code === 127)) {
+        if (typeof (error) === 'object' && error !== null && ((<any>error).code === 'ENOENT' || (<any>error).code === 127)) {
             return reject(error);
         }
 
@@ -106,16 +112,16 @@ function handleResponse(file: string, includeErrorAsResponse: boolean, error: Er
         //      In the case of pylint we have some messages (such as config file not found and using default etc...) being returned in stderr
         //      These error messages are useless when using pylint   
         if (includeErrorAsResponse && (stdout.length > 0 || stderr.length > 0)) {
-            return resolve(stdout + "\n" + stderr);
+            return resolve(stdout + '\n' + stderr);
         }
 
         let hasErrors = (error && error.message.length > 0) || (stderr && stderr.length > 0);
-        if (hasErrors && (typeof stdout !== "string" || stdout.length === 0)) {
-            let errorMsg = (error && error.message) ? error.message : (stderr && stderr.length > 0 ? stderr + "" : "");
+        if (hasErrors && (typeof stdout !== 'string' || stdout.length === 0)) {
+            let errorMsg = (error && error.message) ? error.message : (stderr && stderr.length > 0 ? stderr + '' : '');
             return reject(errorMsg);
         }
 
-        resolve(stdout + "");
+        resolve(stdout + '');
     });
 }
 function execFileInternal(file: string, args: string[], options: child_process.ExecFileOptions, includeErrorAsResponse: boolean): Promise<string> {
@@ -127,7 +133,7 @@ function execFileInternal(file: string, args: string[], options: child_process.E
 }
 function execInternal(command: string, args: string[], options: child_process.ExecFileOptions, includeErrorAsResponse: boolean): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-        child_process.exec([command].concat(args).join(" "), options, (error, stdout, stderr) => {
+        child_process.exec([command].concat(args).join(' '), options, (error, stdout, stderr) => {
             handleResponse(command, includeErrorAsResponse, error, stdout, stderr).then(resolve, reject);
         });
     });
