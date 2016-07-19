@@ -7,7 +7,7 @@
   "author": {
     "name": "Don Jayamanne",
     "email": "don.jayamanne@yahoo.com"
-  },    
+  },
   "license": "MIT",
   "homepage": "http://donjayamanne.github.io/pythonVSCode/",
   "repository": {
@@ -48,11 +48,19 @@
     "commands": [
       {
         "command": "python.sortImports",
-        "title": "Python: Sort Imports"        
+        "title": "Python: Sort Imports"
       },
       {
         "command": "python.runtests",
         "title": "Python: Run Unit Tests"
+      },
+      {
+        "command": "python.refactorExtractVariable",
+        "title": "Python: Extract Variable"
+      },
+      {
+        "command": "python.refactorExtractMethod",
+        "title": "Python: Extract Method"
       }
     ],
     "debuggers": [
@@ -266,6 +274,11 @@
           "type": "string",
           "default": "python",
           "description": "Path to Python, you can use a custom version of Python by modifying this setting to include the full path."
+        },
+        "python.python2Path": {
+          "type": "string",
+          "default": "python",
+          "description": "Path to Python 2.x used for Refactoring. Refactoring only works when using Python 2.x"
         },
         "python.linting.enabled": {
           "type": "boolean",
