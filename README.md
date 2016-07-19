@@ -1,13 +1,13 @@
 #Python
-An extension with rich support for Python language, with features including the following and more:   
-* Linting (Prospector, PyLint, Pep8, Flake8, pydocstyle with config files and plugins)
+An extension with rich support for the [Python language](https://www.python.org/), with features including the following and more:   
+* Linting ([Prospector](https://pypi.io/project/prospector/), [Pylint](https://pypi.io/project/pylint/), [pycodestyle](https://pypi.io/project/pycodestyle/)/Pep8, [Flake8](https://pypi.io/project/flake8/), [pydocstyle](https://pypi.io/project/pydocstyle/) with config files and plugins)
 * Intellisense (autocompletion)
 * Auto indenting
-* Code formatting (autopep8, yapf, with config files)
+* Code formatting ([autopep8](https://pypi.io/project/autopep8/), [yapf](https://pypi.io/project/yapf/), with config files)
 * Renaming, Viewing references, and code navigation
 * View signature and similar by hovering over a function or method
 * Excellent debugging suppot (variables, arguments, expressions, watch window, stack information, break points, remote debugging, mutliple threads)
-* Unit testing (unittest, pytest, nosetests, with config files)
+* Unit testing ([unittest](https://docs.python.org/3/library/unittest.html#module-unittest), [pytest](https://pypi.io/project/pytest/), [nosetests](https://pypi.io/project/nose/), with config files)
 * Sorting imports
 * Snippets
 
@@ -16,9 +16,9 @@ An extension with rich support for Python language, with features including the 
 * If Python is in the current path
   + You're ready to use it.
 * If using a custom Python Version or a Virtual Environment
-  + Configure the path to the python executable in python.pythonPath of the settings.json file ([further details here](https://github.com/DonJayamanne/pythonVSCode/wiki/Python-Path-and-Version#python-version-used-for-intellisense-autocomplete-linting-formatting-etc)) 
+  + Configure the path to the python executable in `python.pythonPath` of the `settings.json` file ([further details here](https://github.com/DonJayamanne/pythonVSCode/wiki/Python-Path-and-Version#python-version-used-for-intellisense-autocomplete-linting-formatting-etc)) 
 
-For further information and details continue through to the [documenetation](https://github.com/DonJayamanne/pythonVSCode/wiki).
+For further information and details continue through to the [documentation](https://github.com/DonJayamanne/pythonVSCode/wiki).
 
 ##Feature Requests and contributions
 * Contributions are always welcome. Fork it, modify it and create a pull request.
@@ -57,8 +57,8 @@ Your feedback is crucial in prioritizing the items and in determining whether we
  + Rename refactoring
  + Sorting Import statements (use "Python: Sort Imports" command)
 * [Intellisense and Autocomplete](https://github.com/DonJayamanne/pythonVSCode/wiki/Autocomplete-Intellisense)
- + Ability to include custom module paths (e.g. include paths for libraries like Google App Engine, etc)
- + Use the setting python.autoComplete.extraPaths = []
+ + Ability to include custom module paths (e.g. include paths for libraries like Google App Engine, etc.)
+ + Use the `setting python.autoComplete.extraPaths = []`
  + For instance getting autocomplete/intellisense for Google App Engine, add the following to your settings file:
 ```json
 "python.autoComplete.extraPaths": [
@@ -69,7 +69,7 @@ Your feedback is crucial in prioritizing the items and in determining whether we
  + Auto formatting of code upon saving changes (default to 'Off')
  + Use either yapf or autopep8 for code formatting (defaults to autopep8)
 * [Linting](https://github.com/DonJayamanne/pythonVSCode/wiki/Linting)
- + It can be turned off (default is turn it on and use pylint)
+ + It can be turned off (default is to be turned on and use pylint)
  + Multiple linters supported (along with support for configuration files for each linter)
  + Supported linters include pylit, pep8, flake8, pydocstyle, prospector
  + Paths to each of the linters can be optionally configured
