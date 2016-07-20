@@ -17,6 +17,8 @@ import * as settings from './common/configSettings';
 import {activateUnitTestProvider} from './providers/testProvider';
 import * as telemetryHelper from './common/telemetry';
 import * as telemetryContracts from './common/telemetryContracts';
+import {PythonCodeActionsProvider} from './providers/codeActionProvider';
+import {activateSimplePythonRefactorProvider} from './providers/simpleRefactorProvider';
 
 const PYTHON: vscode.DocumentFilter = { language: 'python', scheme: 'file' };
 let unitTestOutChannel: vscode.OutputChannel;
@@ -45,6 +47,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     sortImports.activate(context, formatOutChannel);
     activateUnitTestProvider(context, pythonSettings, unitTestOutChannel);
+    activateSimplePythonRefactorProvider(context, formatOutChannel);
     context.subscriptions.push(activateFormatOnSaveProvider(PYTHON, pythonSettings, formatOutChannel, vscode.workspace.rootPath));
 
     // Enable indentAction
@@ -71,6 +74,8 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider(PYTHON, formatProvider));
     context.subscriptions.push(vscode.languages.registerDocumentRangeFormattingEditProvider(PYTHON, formatProvider));
     context.subscriptions.push(new LintProvider(context, lintingOutChannel, vscode.workspace.rootPath));
+
+    context.subscriptions.push(vscode.languages.registerCodeActionsProvider(PYTHON, new PythonCodeActionsProvider(context)));
 }
 
 // this method is called when your extension is deactivated
