@@ -121,10 +121,14 @@ suite('Simple Refactor', () => {
                 assert.equal(textDocument.lineAt(234).text.trim().endsWith('= "STARTED"'), true, 'Started Text Assigned to variable');
                 assert.equal(textDocument.lineAt(235).text.indexOf('(newvariable') >= 0, true, 'New Variable not being used');
             }).catch(error => {
+                console.log('Catch Error:' + error);
+                console.log('Output:' + ch.output);
                 assert.fail(error + '', null, 'Variable extraction failed\n' + ch.output);
             });
         }, error => {
+            console.log('Error:' + error);
+            console.log('Output:' + ch.output);
             assert.fail(error + '', null, 'Variable extraction failed\n' + ch.output);
         });
-    });    
+    });
 });

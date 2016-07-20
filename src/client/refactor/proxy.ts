@@ -126,6 +126,7 @@ export class RefactorProxy extends vscode.Disposable {
                 this._previousStdErrData = '';
                 return;
             }
+            console.log(`Refactor StdErr Out - ${dataStr}`);
             let lengthOfHeader = dataStr.indexOf(':') + 1;
             let lengthOfMessage = parseInt(dataStr.substring(ERROR_PREFIX.length, lengthOfHeader - 1));
             if (dataStr.length === lengthOfMessage + lengthOfHeader) {
@@ -147,18 +148,21 @@ export class RefactorProxy extends vscode.Disposable {
             }
         }
         else {
+            console.log(`Initialize Failed - ${dataStr}`);
             this._initializeReject(`Refactor failed. ${dataStr}`);
         }
     }
     private handleError(error: Error) {
         if (this._startedSuccessfully) {
+            console.log(`handleError after starting - ${error + ''}`);
             return this._commandReject(error);
         }
+        console.log(`handleError before starting - ${error + ''}`);
         this._initializeReject(error);
     }
     private onData(data: string) {
         if (!this._commandResolve) { return; }
-
+        console.log('onData - ' + data);
         // Possible there was an exception in parsing the data returned
         // So append the data then parse it
         let dataStr = this._previousOutData = this._previousOutData + data + '';
