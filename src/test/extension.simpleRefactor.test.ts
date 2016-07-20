@@ -87,16 +87,17 @@ suite('Simple Refactor', () => {
             textEditor = editor;
             return;
         }).then(() => {
+            console.log('Started Variable Extraction');
             return extractVariable(EXTENSION_DIR, textEditor, rangeOfTextToExtract, ch, path.dirname(refactorTargetFile), false).then(() => {
                 assert.equal(textDocument.lineAt(234).text.trim().indexOf('newvariable'), 0, 'New Variable not created');
                 assert.equal(textDocument.lineAt(234).text.trim().endsWith('= "STARTED"'), true, 'Started Text Assigned to variable');
                 assert.equal(textDocument.lineAt(235).text.indexOf('(newvariable') >= 0, true, 'New Variable not being used');
             }).catch(error => {
-                console.log('Error in extraction');
+                console.log('Error in Variable Extraction.1');
                 assert.fail(error + '', null, 'Variable extraction failed\n' + ch.output);
             });
         }, error => {
-            console.log('Error before extraction');
+            console.log('Error in Variable Extraction.2');
             assert.fail(error + '', null, 'Variable extraction failed\n' + ch.output);
         });
     });
