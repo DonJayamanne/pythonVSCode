@@ -22,6 +22,7 @@ For further information and details continue through to the [documentation](http
 
 ##Feature Requests and contributions
 * Contributions are always welcome. Fork it, modify it and create a pull request.
+  + Details on contributing can be found [here](https://github.com/DonJayamanne/pythonVSCode/wiki/Contribution) 
 * Any and all feedback is appreciated and welcome.
   + Please feel free to [add suggestions here](https://github.com/DonJayamanne/pythonVSCode/issues/183)
 
