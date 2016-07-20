@@ -20,9 +20,9 @@ export class RefactorProxy extends vscode.Disposable {
     private _initializeReject: (reason?: any) => void;
     static pythonPath: string;
     private _settings: PythonSettings;
-    constructor(context: vscode.ExtensionContext) {
+    constructor(extensionDir: string, private workspaceRoot: string = vscode.workspace.rootPath) {
         super(() => { });
-        this._extensionDir = context.extensionPath;
+        this._extensionDir = extensionDir;
         this._settings = PythonSettings.getInstance();
         vscode.workspace.onDidChangeConfiguration(() => {
             RefactorProxy.pythonPath = '';
@@ -93,7 +93,7 @@ export class RefactorProxy extends vscode.Disposable {
     private initialize(pythonPath: string): Promise<string> {
         return new Promise<any>((resolve, reject) => {
             this._initializeReject = reject;
-            this._process = child_process.spawn(pythonPath, ['-u', 'refactor.py', vscode.workspace.rootPath, path.join(vscode.workspace.rootPath, '.vscode', 'rope')],
+            this._process = child_process.spawn(pythonPath, ['-u', 'refactor.py', this.workspaceRoot, path.join(this.workspaceRoot, '.vscode', 'rope')],
                 {
                     cwd: path.join(this._extensionDir, 'pythonFiles')
                 });
