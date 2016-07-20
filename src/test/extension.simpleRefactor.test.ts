@@ -88,6 +88,7 @@ suite('Simple Refactor', () => {
             return;
         }).then(() => {
             return extractVariable(EXTENSION_DIR, textEditor, rangeOfTextToExtract, ch, path.dirname(refactorTargetFile), false).then(() => {
+                assert.equal(ch.output.length, 0, 'Output channel is not empty');
                 assert.equal(textDocument.lineAt(234).text.trim().indexOf('newvariable'), 0, 'New Variable not created');
                 assert.equal(textDocument.lineAt(234).text.trim().endsWith('= "STARTED"'), true, 'Started Text Assigned to variable');
                 assert.equal(textDocument.lineAt(235).text.indexOf('(newvariable') >= 0, true, 'New Variable not being used');
@@ -98,4 +99,32 @@ suite('Simple Refactor', () => {
             assert.fail(error + '', null, 'Variable extraction failed\n' + ch.output);
         });
     });
+
+    test('Extract Variable', () => {
+        let ch = new MockOutputChannel('Python');
+        let textDocument: vscode.TextDocument;
+        let textEditor: vscode.TextEditor;
+        let rangeOfTextToExtract = new vscode.Range(new vscode.Position(234, 29), new vscode.Position(234, 38));
+
+        return vscode.workspace.openTextDocument(refactorTargetFile).then(document => {
+            textDocument = document;
+            return vscode.window.showTextDocument(textDocument);
+        }).then(editor => {
+            editor.selections = [new vscode.Selection(rangeOfTextToExtract.start, rangeOfTextToExtract.end)];
+            editor.selection = new vscode.Selection(rangeOfTextToExtract.start, rangeOfTextToExtract.end);
+            textEditor = editor;
+            return;
+        }).then(() => {
+            return extractVariable(EXTENSION_DIR, textEditor, rangeOfTextToExtract, ch, path.dirname(refactorTargetFile), false).then(() => {
+                assert.equal(ch.output.length, 0, 'Output channel is not empty');
+                assert.equal(textDocument.lineAt(234).text.trim().indexOf('newvariable'), 0, 'New Variable not created');
+                assert.equal(textDocument.lineAt(234).text.trim().endsWith('= "STARTED"'), true, 'Started Text Assigned to variable');
+                assert.equal(textDocument.lineAt(235).text.indexOf('(newvariable') >= 0, true, 'New Variable not being used');
+            }).catch(error => {
+                assert.fail(error + '', null, 'Variable extraction failed\n' + ch.output);
+            });
+        }, error => {
+            assert.fail(error + '', null, 'Variable extraction failed\n' + ch.output);
+        });
+    });    
 });

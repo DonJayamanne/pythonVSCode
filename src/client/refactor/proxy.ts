@@ -48,15 +48,13 @@ export class RefactorProxy extends vscode.Disposable {
         return this.sendCommand<T>(command);
     }
     private sendCommand<T>(command: string): Promise<T> {
-        console.log('sendCommand');
         return this.pickValidPythonPath().then(pythonPath => {
-            console.log('Got Path' + pythonPath);
+            console.log(`Resolved path - ${pythonPath}`);
             return this.initialize(pythonPath);
         }).then(() => {
             return new Promise<T>((resolve, reject) => {
                 this._commandResolve = resolve;
                 this._commandReject = reject;
-                console.log('Snd Command' + command);
                 this._process.stdin.write(command + '\n');
             });
         });
@@ -88,6 +86,7 @@ export class RefactorProxy extends vscode.Disposable {
     private checkIfPythonVersionIs3(pythonPath: string): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
             child_process.execFile(pythonPath, ['-c', 'import sys;print(sys.version)'], null, (error, stdout, stderr) => {
+                console.log(`Testing version - ${pythonPath}, ${stdout}, ${stderr}, ${error + ''}`);
                 if (stdout.indexOf('3.') === 0) {
                     reject(new Error(ROPE_PYTHON_VERSION));
                 }
@@ -152,8 +151,6 @@ export class RefactorProxy extends vscode.Disposable {
         }
     }
     private handleError(error: Error) {
-        console.log('handleError');
-        console.log('handleError - ' + error);
         if (this._startedSuccessfully) {
             return this._commandReject(error);
         }
