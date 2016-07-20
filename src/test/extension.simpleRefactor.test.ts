@@ -70,7 +70,7 @@ suite('Simple Refactor', () => {
     });
 
     test('Extract Variable', () => {
-        let ch = new MockOutputChannel('Lint');
+        let ch = new MockOutputChannel('Python');
         let textDocument: vscode.TextDocument;
         let textEditor: vscode.TextEditor;
         let rangeOfTextToExtract = new vscode.Range(new vscode.Position(234, 29), new vscode.Position(234, 38));
@@ -88,8 +88,10 @@ suite('Simple Refactor', () => {
                 assert.equal(textDocument.lineAt(234).text.trim().endsWith('= "STARTED"'), true, 'Started Text Assigned to variable');
                 assert.equal(textDocument.lineAt(235).text.indexOf('(newvariable') >= 0, true, 'New Variable not being used');
             }).catch(error => {
-                assert.fail(error, null, 'Variable extraction failed');
+                assert.fail(error, null, 'Variable extraction failed\n' + ch.output);
             });
+        }, error => {
+            assert.fail(error, null, 'error!?');
         });
     });
 });
