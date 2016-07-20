@@ -9,11 +9,13 @@ import {execPythonFile} from '../common/utils';
 import {PythonSettings} from '../common/configSettings';
 
 const ROPE_PYTHON_VERSION = 'Refactor requires Python 2.x. Set \'python.pythonRopePath\' in Settings.json';
+const ERROR_PREFIX = '$ERROR';
 
 export class RefactorProxy extends vscode.Disposable {
     private _process: child_process.ChildProcess;
     private _extensionDir: string;
     private _previousOutData: string = '';
+    private _previousStdErrData: string = '';
     private _startedSuccessfully: boolean = false;
     private _commandResolve: (value?: any | PromiseLike<any>) => void;
     private _commandReject: (reason?: any) => void;
@@ -117,17 +119,21 @@ export class RefactorProxy extends vscode.Disposable {
         });
     }
     private handleStdError(data: string) {
-        console.log('handleStdError');
-        let dataStr = this._previousOutData = this._previousOutData + data + '';
-        console.log('handleStdError - ' + dataStr);
+        let dataStr = this._previousStdErrData = this._previousStdErrData + data + '';
         if (this._startedSuccessfully) {
+            // The Rope library can send other (warning) messages in the stderr stream
+            // Hence look for the prefix, if we don't have the prefix ignore them
+            if (!dataStr.startsWith(ERROR_PREFIX)) {
+                this._previousStdErrData = '';
+                return;
+            }
             let lengthOfHeader = dataStr.indexOf(':') + 1;
-            let lengthOfMessage = parseInt(dataStr.substring(0, lengthOfHeader - 1));
+            let lengthOfMessage = parseInt(dataStr.substring(ERROR_PREFIX.length, lengthOfHeader - 1));
             if (dataStr.length === lengthOfMessage + lengthOfHeader) {
-                this._previousOutData = '';
+                this._previousStdErrData = '';
                 this.dispose();
 
-                let errorLines = dataStr.substring(lengthOfHeader + 1).split(/\r?\n/g);
+                let errorLines = dataStr.substring(lengthOfHeader).split(/\r?\n/g);
                 let hasErrorMessage = errorLines[0].trim().length > 0;
                 errorLines = errorLines.filter(line => line.length > 0);
                 let errorMessage = errorLines.join('\n');
@@ -155,7 +161,7 @@ export class RefactorProxy extends vscode.Disposable {
     }
     private onData(data: string) {
         if (!this._commandResolve) { return; }
-        console.log('onData - ' + data);
+
         // Possible there was an exception in parsing the data returned
         // So append the data then parse it
         let dataStr = this._previousOutData = this._previousOutData + data + '';
@@ -168,7 +174,6 @@ export class RefactorProxy extends vscode.Disposable {
             // Possible we've only received part of the data, hence don't clear previousData
             return;
         }
-        console.log('onData - ' + response);
         this.dispose();
         this._commandResolve(response[0]);
         this._commandResolve = null;

@@ -121,7 +121,7 @@ class ExtractVariableRefactor(BaseRefactoring):
 
     def __init__(self, project, resource, name="Extract Variable", progressCallback=None, startOffset=None, endOffset=None, newName="new_Name", similar=False, global_=False):
         BaseRefactoring.__init__(self, project, resource,
-                                                      name, progressCallback)
+                                 name, progressCallback)
         self._newName = newName
         self._startOffset = startOffset
         self._endOffset = endOffset
@@ -145,7 +145,8 @@ class ExtractMethodRefactor(ExtractVariableRefactor):
 
     def __init__(self, project, resource, name="Extract Method", progressCallback=None, startOffset=None, endOffset=None, newName="new_Name", similar=False, global_=False):
         ExtractVariableRefactor.__init__(self, project, resource,
-                                                    name, progressCallback, startOffset=startOffset, endOffset=endOffset, newName=newName, similar=similar, global_=global_)
+                                         name, progressCallback, startOffset=startOffset, endOffset=endOffset, newName=newName, similar=similar, global_=global_)
+
     def onRefactor(self):
         renamed = ExtractMethod(
             self.project, self.resource, self._startOffset, self._endOffset)
@@ -169,30 +170,34 @@ class RopeRefactoring(object):
         """
         Extracts a variale
         """
-        project = rope.base.project.Project(WORKSPACE_ROOT, ropefolder=ROPE_PROJECT_FOLDER, save_history=False)
+        project = rope.base.project.Project(
+            WORKSPACE_ROOT, ropefolder=ROPE_PROJECT_FOLDER, save_history=False)
         resourceToRefactor = libutils.path_to_resource(project, filePath)
-        refactor = ExtractVariableRefactor(project, resourceToRefactor, startOffset=start, endOffset=end, newName=newName)
+        refactor = ExtractVariableRefactor(
+            project, resourceToRefactor, startOffset=start, endOffset=end, newName=newName)
         refactor.refactor()
         changes = refactor.changes
         project.close()
         valueToReturn = []
         for change in changes:
-            valueToReturn.append({'diff':change.diff})
+            valueToReturn.append({'diff': change.diff})
         return valueToReturn
 
     def _extractMethod(self, filePath, start, end, newName):
         """
         Extracts a method
         """
-        project = rope.base.project.Project(WORKSPACE_ROOT, ropefolder=ROPE_PROJECT_FOLDER, save_history=False)
+        project = rope.base.project.Project(
+            WORKSPACE_ROOT, ropefolder=ROPE_PROJECT_FOLDER, save_history=False)
         resourceToRefactor = libutils.path_to_resource(project, filePath)
-        refactor = ExtractMethodRefactor(project, resourceToRefactor, startOffset=start, endOffset=end, newName=newName)
+        refactor = ExtractMethodRefactor(
+            project, resourceToRefactor, startOffset=start, endOffset=end, newName=newName)
         refactor.refactor()
         changes = refactor.changes
         project.close()
         valueToReturn = []
         for change in changes:
-            valueToReturn.append({'diff':change.diff})
+            valueToReturn.append({'diff': change.diff})
         return valueToReturn
 
     def _serialize(self, identifier, results):
@@ -221,10 +226,12 @@ class RopeRefactoring(object):
         if lookup == '':
             pass
         elif lookup == 'extract_variable':
-            changes = self._extractVariable(request['file'], int(request['start']), int(request['end']), request['name'])
+            changes = self._extractVariable(request['file'], int(
+                request['start']), int(request['end']), request['name'])
             return self._write_response(self._serialize(request['id'], changes))
         elif lookup == 'extract_method':
-            changes = self._extractMethod(request['file'], int(request['start']), int(request['end']), request['name'])
+            changes = self._extractMethod(request['file'], int(
+                request['start']), int(request['end']), request['name'])
             return self._write_response(self._serialize(request['id'], changes))
 
     def _write_response(self, response):
@@ -238,7 +245,7 @@ class RopeRefactoring(object):
                 self._process_request(self._input.readline())
             except Exception as ex:
                 message = ex.message + '  \n' + traceback.format_exc()
-                sys.stderr.write(str(len(message)) + ':' + message)
+                sys.stderr.write('$ERROR' + str(len(message)) + ':' + message)
                 sys.stderr.flush()
 
 if __name__ == '__main__':
