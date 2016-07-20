@@ -5,6 +5,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import {RefactorProxy} from '../refactor/proxy';
 import {getTextEditsFromPatch} from '../common/editor';
+import {PythonSettings, IPythonSettings} from '../common/configSettings';
 
 interface RenameResponse {
     results: [{ diff: string }];
@@ -30,9 +31,10 @@ export function activateSimplePythonRefactorProvider(context: vscode.ExtensionCo
 
 // Exported for unit testing
 export function extractVariable(extensionDir: string, textEditor: vscode.TextEditor, range: vscode.Range,
-    outputChannel: vscode.OutputChannel, workspaceRoot: string = vscode.workspace.rootPath, renameAfterExtration: boolean = true): Promise<any> {
+    outputChannel: vscode.OutputChannel, workspaceRoot: string = vscode.workspace.rootPath,
+    renameAfterExtration: boolean = true, pythonSettings: IPythonSettings = PythonSettings.getInstance()): Promise<any> {
     let newName = 'newvariable' + new Date().getMilliseconds().toString();
-    let proxy = new RefactorProxy(extensionDir, workspaceRoot);
+    let proxy = new RefactorProxy(extensionDir, pythonSettings, workspaceRoot);
     let rename = proxy.extractVariable<RenameResponse>(textEditor.document, newName, textEditor.document.uri.fsPath, range).then(response => {
         return response.results[0].diff;
     });
@@ -42,9 +44,10 @@ export function extractVariable(extensionDir: string, textEditor: vscode.TextEdi
 
 // Exported for unit testing
 export function extractMethod(extensionDir: string, textEditor: vscode.TextEditor, range: vscode.Range,
-    outputChannel: vscode.OutputChannel, workspaceRoot: string = vscode.workspace.rootPath, renameAfterExtration: boolean = true): Promise<any> {
+    outputChannel: vscode.OutputChannel, workspaceRoot: string = vscode.workspace.rootPath,
+    renameAfterExtration: boolean = true, pythonSettings: IPythonSettings = PythonSettings.getInstance()): Promise<any> {
     let newName = 'newmethod' + new Date().getMilliseconds().toString();
-    let proxy = new RefactorProxy(extensionDir, workspaceRoot);
+    let proxy = new RefactorProxy(extensionDir, pythonSettings, workspaceRoot);
     let rename = proxy.extractMethod<RenameResponse>(textEditor.document, newName, textEditor.document.uri.fsPath, range).then(response => {
         return response.results[0].diff;
     });
@@ -101,5 +104,6 @@ function extractName(extensionDir: string, textEditor: vscode.TextEditor, range:
         outputChannel.appendLine('#'.repeat(10) + 'Refactor Output' + '#'.repeat(10));
         outputChannel.appendLine('Error in refactoring:\n' + errorMessage);
         vscode.window.showErrorMessage(errorMessage);
+        throw errorMessage;
     });
 }

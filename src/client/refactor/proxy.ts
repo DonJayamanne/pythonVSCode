@@ -6,7 +6,7 @@ import * as fs from 'fs';
 import * as child_process from 'child_process';
 import {ExtractResult} from './contracts';
 import {execPythonFile} from '../common/utils';
-import {PythonSettings} from '../common/configSettings';
+import {IPythonSettings} from '../common/configSettings';
 
 const ROPE_PYTHON_VERSION = 'Refactor requires Python 2.x. Set \'python.pythonRopePath\' in Settings.json';
 const ERROR_PREFIX = '$ERROR';
@@ -21,11 +21,9 @@ export class RefactorProxy extends vscode.Disposable {
     private _commandReject: (reason?: any) => void;
     private _initializeReject: (reason?: any) => void;
     static pythonPath: string;
-    private _settings: PythonSettings;
-    constructor(extensionDir: string, private workspaceRoot: string = vscode.workspace.rootPath) {
+    constructor(extensionDir: string, private pythonSettings: IPythonSettings, private workspaceRoot: string = vscode.workspace.rootPath) {
         super(() => { });
         this._extensionDir = extensionDir;
-        this._settings = PythonSettings.getInstance();
         vscode.workspace.onDidChangeConfiguration(() => {
             RefactorProxy.pythonPath = '';
         });
@@ -49,7 +47,6 @@ export class RefactorProxy extends vscode.Disposable {
     }
     private sendCommand<T>(command: string): Promise<T> {
         return this.pickValidPythonPath().then(pythonPath => {
-            console.log(`Resolved path - ${pythonPath}`);
             return this.initialize(pythonPath);
         }).then(() => {
             return new Promise<T>((resolve, reject) => {
@@ -65,20 +62,20 @@ export class RefactorProxy extends vscode.Disposable {
             return Promise.resolve(RefactorProxy.pythonPath);
         }
 
-        if (this._settings.pythonPath === this._settings.python2Path) {
+        if (this.pythonSettings.pythonPath === this.pythonSettings.python2Path) {
             // First try what ever path we have in pythonRopePath
-            return this.checkIfPythonVersionIs3(this._settings.python2Path).then(() => {
-                return this._settings.python2Path;
+            return this.checkIfPythonVersionIs3(this.pythonSettings.python2Path).then(() => {
+                return this.pythonSettings.python2Path;
             });
         }
 
         // First try what ever path we have in pythonRopePath
-        return this.checkIfPythonVersionIs3(this._settings.python2Path).then(() => {
-            return this._settings.python2Path;
+        return this.checkIfPythonVersionIs3(this.pythonSettings.python2Path).then(() => {
+            return this.pythonSettings.python2Path;
         }).catch(() => {
             // Now the path in pythonPath
-            return this.checkIfPythonVersionIs3(this._settings.pythonPath).then(() => {
-                return this._settings.pythonPath;
+            return this.checkIfPythonVersionIs3(this.pythonSettings.pythonPath).then(() => {
+                return this.pythonSettings.pythonPath;
             });
         });
     }
@@ -86,7 +83,6 @@ export class RefactorProxy extends vscode.Disposable {
     private checkIfPythonVersionIs3(pythonPath: string): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
             child_process.execFile(pythonPath, ['-c', 'import sys;print(sys.version)'], null, (error, stdout, stderr) => {
-                console.log(`Testing version - ${pythonPath}, ${stdout}, ${stderr}, ${error + ''}`);
                 if (stdout.indexOf('3.') === 0) {
                     reject(new Error(ROPE_PYTHON_VERSION));
                 }
@@ -126,7 +122,7 @@ export class RefactorProxy extends vscode.Disposable {
                 this._previousStdErrData = '';
                 return;
             }
-            console.log(`Refactor StdErr Out - ${dataStr}`);
+
             let lengthOfHeader = dataStr.indexOf(':') + 1;
             let lengthOfMessage = parseInt(dataStr.substring(ERROR_PREFIX.length, lengthOfHeader - 1));
             if (dataStr.length === lengthOfMessage + lengthOfHeader) {
@@ -148,21 +144,18 @@ export class RefactorProxy extends vscode.Disposable {
             }
         }
         else {
-            console.log(`Initialize Failed - ${dataStr}`);
             this._initializeReject(`Refactor failed. ${dataStr}`);
         }
     }
     private handleError(error: Error) {
         if (this._startedSuccessfully) {
-            console.log(`handleError after starting - ${error + ''}`);
             return this._commandReject(error);
         }
-        console.log(`handleError before starting - ${error + ''}`);
         this._initializeReject(error);
     }
     private onData(data: string) {
         if (!this._commandResolve) { return; }
-        console.log('onData - ' + data);
+
         // Possible there was an exception in parsing the data returned
         // So append the data then parse it
         let dataStr = this._previousOutData = this._previousOutData + data + '';

@@ -15,3 +15,20 @@ let dummyPythonFile = path.join(__dirname, "..", "..", "src", "test", "pythonFil
 export function initialize(): Thenable<any> {
     return vscode.workspace.openTextDocument(dummyPythonFile);
 }
+
+export function closeActiveWindows(counter: number = 0): Thenable<any> {
+    if (counter >= 10 || !vscode.window.activeTextEditor) {
+        return Promise.resolve();
+    }
+    return new Promise<any>(resolve => {
+        setTimeout(function () {
+            if (!vscode.window.activeTextEditor) {
+                return resolve();
+            }
+
+            vscode.commands.executeCommand('workbench.action.closeActiveEditor').then(() => {
+                closeActiveWindows(counter++).then(resolve, resolve);
+            });
+        }, 500);
+    });
+}
