@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as child_process from 'child_process';
-import {ExtractResult, RefactorType} from './contracts';
+import {ExtractResult} from './contracts';
 import {execPythonFile} from '../common/utils';
 import {PythonSettings} from '../common/configSettings';
 
