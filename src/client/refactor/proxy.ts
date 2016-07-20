@@ -46,12 +46,15 @@ export class RefactorProxy extends vscode.Disposable {
         return this.sendCommand<T>(command);
     }
     private sendCommand<T>(command: string): Promise<T> {
+        console.log('sendCommand');
         return this.pickValidPythonPath().then(pythonPath => {
+            console.log('Got Path' + pythonPath);
             return this.initialize(pythonPath);
         }).then(() => {
             return new Promise<T>((resolve, reject) => {
                 this._commandResolve = resolve;
                 this._commandReject = reject;
+                console.log('Snd Command' + command);
                 this._process.stdin.write(command + '\n');
             });
         });
@@ -114,7 +117,9 @@ export class RefactorProxy extends vscode.Disposable {
         });
     }
     private handleStdError(data: string) {
+        console.log('handleStdError');
         let dataStr = this._previousOutData = this._previousOutData + data + '';
+        console.log('handleStdError - ' + dataStr);
         if (this._startedSuccessfully) {
             let lengthOfHeader = dataStr.indexOf(':') + 1;
             let lengthOfMessage = parseInt(dataStr.substring(0, lengthOfHeader - 1));
@@ -141,6 +146,8 @@ export class RefactorProxy extends vscode.Disposable {
         }
     }
     private handleError(error: Error) {
+        console.log('handleError');
+        console.log('handleError - ' + error);
         if (this._startedSuccessfully) {
             return this._commandReject(error);
         }
@@ -148,6 +155,7 @@ export class RefactorProxy extends vscode.Disposable {
     }
     private onData(data: string) {
         if (!this._commandResolve) { return; }
+        console.log('onData - ' + data);
         // Possible there was an exception in parsing the data returned
         // So append the data then parse it
         let dataStr = this._previousOutData = this._previousOutData + data + '';
@@ -160,6 +168,7 @@ export class RefactorProxy extends vscode.Disposable {
             // Possible we've only received part of the data, hence don't clear previousData
             return;
         }
+        console.log('onData - ' + response);
         this.dispose();
         this._commandResolve(response[0]);
         this._commandResolve = null;

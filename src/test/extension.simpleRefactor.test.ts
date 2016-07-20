@@ -88,6 +88,8 @@ suite('Simple Refactor', () => {
             return;
         }).then(() => {
             console.log('Started Variable Extraction');
+            console.log(EXTENSION_DIR);
+            console.log(path.dirname(refactorTargetFile));
             return extractVariable(EXTENSION_DIR, textEditor, rangeOfTextToExtract, ch, path.dirname(refactorTargetFile), false).then(() => {
                 assert.equal(textDocument.lineAt(234).text.trim().indexOf('newvariable'), 0, 'New Variable not created');
                 assert.equal(textDocument.lineAt(234).text.trim().endsWith('= "STARTED"'), true, 'Started Text Assigned to variable');

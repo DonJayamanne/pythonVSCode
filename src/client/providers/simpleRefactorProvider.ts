@@ -32,8 +32,12 @@ export function activateSimplePythonRefactorProvider(context: vscode.ExtensionCo
 export function extractVariable(extensionDir: string, textEditor: vscode.TextEditor, range: vscode.Range,
     outputChannel: vscode.OutputChannel, workspaceRoot: string = vscode.workspace.rootPath, renameAfterExtration: boolean = true): Promise<any> {
     let newName = 'newvariable' + new Date().getMilliseconds().toString();
+    console.log('Before Refactor');
     let proxy = new RefactorProxy(extensionDir, workspaceRoot);
+    console.log('Before extractVariable');
     let rename = proxy.extractVariable<RenameResponse>(textEditor.document, newName, textEditor.document.uri.fsPath, range).then(response => {
+        console.log('Got REsponse from extractVariable');
+        console.log(JSON.stringify(response));
         return response.results[0].diff;
     });
 
@@ -55,13 +59,17 @@ export function extractMethod(extensionDir: string, textEditor: vscode.TextEdito
 function extractName(extensionDir: string, textEditor: vscode.TextEditor, range: vscode.Range, newName: string,
     renameResponse: Promise<string>, outputChannel: vscode.OutputChannel, renameAfterExtration: boolean = true): Promise<any> {
     let changeStartsAtLine = -1;
+    console.log('extractName');
     return renameResponse.then(diff => {
         if (diff.length === 0) {
             return [];
         }
+        console.log('getTextEditsFromPatch');
         let edits = getTextEditsFromPatch(textEditor.document.getText(), diff);
+        console.log('Got getTextEditsFromPatch');
         return edits;
     }).then(edits => {
+        console.log('Build editor');
         return textEditor.edit(editBuilder => {
             edits.forEach(edit => {
                 if (changeStartsAtLine === -1 || changeStartsAtLine > edit.range.start.line) {
@@ -71,6 +79,7 @@ function extractName(extensionDir: string, textEditor: vscode.TextEditor, range:
             });
         });
     }).then(done => {
+        console.log('Built editor');
         if (done && changeStartsAtLine >= 0 && renameAfterExtration) {
             let newWordPosition: vscode.Position;
             for (let lineNumber = changeStartsAtLine; lineNumber < textEditor.document.lineCount; lineNumber++) {
@@ -91,6 +100,7 @@ function extractName(extensionDir: string, textEditor: vscode.TextEditor, range:
             }
         }
     }).catch(error => {
+        console.log('Got errors');
         let errorMessage = error + '';
         if (typeof error === 'string') {
             errorMessage = error;
