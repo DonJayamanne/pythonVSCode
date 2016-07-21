@@ -61,6 +61,10 @@ export class RefactorProxy extends vscode.Disposable {
             timer.stop();
             sendTelemetryEvent(telemetryEvent, null, timer.toMeasures());
             return value;
+        }).catch(reason => {
+            timer.stop();
+            sendTelemetryEvent(telemetryEvent, null, timer.toMeasures());
+            return Promise.reject(reason);
         });
     }
 
