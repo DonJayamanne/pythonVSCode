@@ -275,11 +275,6 @@
           "default": "python",
           "description": "Path to Python, you can use a custom version of Python by modifying this setting to include the full path."
         },
-        "python.python2Path": {
-          "type": "string",
-          "default": "python",
-          "description": "Path to Python 2.x used for Refactoring. Refactoring only works when using Python 2.x"
-        },
         "python.linting.enabled": {
           "type": "boolean",
           "default": true,

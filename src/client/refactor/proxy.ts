@@ -8,7 +8,7 @@ import {ExtractResult} from './contracts';
 import {execPythonFile} from '../common/utils';
 import {IPythonSettings} from '../common/configSettings';
 
-const ROPE_PYTHON_VERSION = 'Refactor requires Python 2.x. Set \'python.pythonRopePath\' in Settings.json';
+const ROPE_PYTHON_VERSION = 'Currently code refactoring is only supported in Python 2.x';
 const ERROR_PREFIX = '$ERROR';
 
 export class RefactorProxy extends vscode.Disposable {
@@ -62,31 +62,35 @@ export class RefactorProxy extends vscode.Disposable {
             return Promise.resolve(RefactorProxy.pythonPath);
         }
 
-        if (this.pythonSettings.pythonPath === this.pythonSettings.python2Path) {
-            // First try what ever path we have in pythonRopePath
-            return this.checkIfPythonVersionIs3(this.pythonSettings.python2Path).then(() => {
-                return this.pythonSettings.python2Path;
+        // First try what ever path we have in pythonRopePath
+        let promiseReult = this.checkIfPythonVersionIs2(this.pythonSettings.pythonPath).then(() => {
+            return this.pythonSettings.pythonPath;
+        });
+
+        if (this.pythonSettings.pythonPath !== 'python') {
+            promiseReult = promiseReult.catch(() => {
+                // Now try to use the default 'python' executable (if any)
+                return this.checkIfPythonVersionIs2('python').then(() => {
+                    return 'python';
+                });
             });
         }
 
-        // First try what ever path we have in pythonRopePath
-        return this.checkIfPythonVersionIs3(this.pythonSettings.python2Path).then(() => {
-            return this.pythonSettings.python2Path;
-        }).catch(() => {
-            // Now the path in pythonPath
-            return this.checkIfPythonVersionIs3(this.pythonSettings.pythonPath).then(() => {
-                return this.pythonSettings.pythonPath;
+        return promiseReult.catch(() => {
+            // Now try to find 'python2.7' (this seems to work on a Mac)
+            return this.checkIfPythonVersionIs2('python2.7').then(() => {
+                return 'python2.7';
             });
         });
     }
 
-    private checkIfPythonVersionIs3(pythonPath: string): Promise<boolean> {
+    private checkIfPythonVersionIs2(pythonPath: string): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
             child_process.execFile(pythonPath, ['-c', 'import sys;print(sys.version)'], null, (error, stdout, stderr) => {
-                if (stdout.indexOf('3.') === 0) {
-                    reject(new Error(ROPE_PYTHON_VERSION));
+                if (stdout.indexOf('2.') === 0) {
+                    return resolve(true);
                 }
-                resolve(true);
+                reject(new Error(ROPE_PYTHON_VERSION));
             });
         });
     }

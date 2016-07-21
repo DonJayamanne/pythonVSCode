@@ -6,7 +6,6 @@ import {EventEmitter} from 'events';
 
 export interface IPythonSettings {
     pythonPath: string;
-    python2Path: string;
     devOptions: any[];
     linting: ILintingSettings;
     formatting: IFormattingSettings;
@@ -82,11 +81,10 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
     }
     public static getInstance(): PythonSettings {
         return PythonSettings.pythonSettings;
-    }    
+    }
     private initializeSettings() {
         let pythonSettings = vscode.workspace.getConfiguration('python');
         this.pythonPath = systemVariables.resolveAny(pythonSettings.get<string>('pythonPath'));
-        this.python2Path = systemVariables.resolveAny(pythonSettings.get<string>('python2Path'));
         this.devOptions = systemVariables.resolveAny(pythonSettings.get<any[]>('devOptions'));
         this.devOptions = Array.isArray(this.devOptions) ? this.devOptions : [];
         let lintingSettings = systemVariables.resolveAny(pythonSettings.get<ILintingSettings>('linting'));
@@ -124,7 +122,6 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
     }
 
     public pythonPath: string;
-    public python2Path: string;
     public devOptions: any[];
     public linting: ILintingSettings;
     public formatting: IFormattingSettings;
