@@ -7,6 +7,8 @@ import * as child_process from 'child_process';
 import {ExtractResult} from './contracts';
 import {execPythonFile} from '../common/utils';
 import {IPythonSettings} from '../common/configSettings';
+import {REFACTOR} from '../common/telemetryContracts';
+import {sendTelemetryEvent, Delays} from '../common/telemetry';
 
 const ROPE_PYTHON_VERSION = 'Currently code refactoring is only supported in Python 2.x';
 const ERROR_PREFIX = '$ERROR';
@@ -39,13 +41,14 @@ export class RefactorProxy extends vscode.Disposable {
     }
     extractVariable<T>(document: vscode.TextDocument, name: string, filePath: string, range: vscode.Range): Promise<T> {
         let command = `{"lookup":"extract_variable", "file":"${filePath}", "start":"${document.offsetAt(range.start)}", "end":"${document.offsetAt(range.end)}", "id":"1", "name":"${name}"}`;
-        return this.sendCommand<T>(command);
+        return this.sendCommand<T>(command, REFACTOR.ExtractVariable);
     }
     extractMethod<T>(document: vscode.TextDocument, name: string, filePath: string, range: vscode.Range): Promise<T> {
         let command = `{"lookup":"extract_method", "file":"${filePath}", "start":"${document.offsetAt(range.start)}", "end":"${document.offsetAt(range.end)}", "id":"1","name":"${name}"}`;
-        return this.sendCommand<T>(command);
+        return this.sendCommand<T>(command, REFACTOR.ExtractVariable);
     }
-    private sendCommand<T>(command: string): Promise<T> {
+    private sendCommand<T>(command: string, telemetryEvent: string): Promise<T> {
+        let timer = new Delays();
         return this.pickValidPythonPath().then(pythonPath => {
             return this.initialize(pythonPath);
         }).then(() => {
@@ -54,6 +57,10 @@ export class RefactorProxy extends vscode.Disposable {
                 this._commandReject = reject;
                 this._process.stdin.write(command + '\n');
             });
+        }).then(value => {
+            timer.stop();
+            sendTelemetryEvent(telemetryEvent, null, timer.toMeasures());
+            return value;
         });
     }
 
