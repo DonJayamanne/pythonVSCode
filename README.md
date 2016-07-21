@@ -1,4 +1,5 @@
-#Python
+#Python   
+[![Build Status](https://travis-ci.org/DonJayamanne/pythonVSCode.svg?branch=master)](https://travis-ci.org/DonJayamanne/pythonVSCode) <img src="https://david-dm.org/donjayamanne/pythonVSCode.svg">   
 An extension with rich support for the [Python language](https://www.python.org/), with features including the following and more:   
 * Linting ([Prospector](https://pypi.io/project/prospector/), [Pylint](https://pypi.io/project/pylint/), [pycodestyle](https://pypi.io/project/pycodestyle/)/Pep8, [Flake8](https://pypi.io/project/flake8/), [pydocstyle](https://pypi.io/project/pydocstyle/) with config files and plugins)
 * Intellisense (autocompletion)
