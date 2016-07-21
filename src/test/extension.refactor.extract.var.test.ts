@@ -11,6 +11,7 @@ import {initialize, closeActiveWindows} from './initialize';
 import {execPythonFile} from '../client/common/utils';
 import {extractVariable, extractMethod} from '../client/providers/simpleRefactorProvider';
 import {RefactorProxy} from '../client/refactor/proxy';
+import {getTextEditsFromPatch} from '../client/common/editor';
 
 let EXTENSION_DIR = path.join(__dirname, '..', '..');
 let pythonSettings = settings.PythonSettings.getInstance();
@@ -119,8 +120,6 @@ suite('Variable Extraction', () => {
 
     function testingVariableExtraction(shouldError: boolean, pythonSettings: settings.IPythonSettings, startPos: Position, endPos: Position) {
         let ch = new MockOutputChannel('Python');
-        let textDocument: vscode.TextDocument;
-        let textEditor: vscode.TextEditor;
         let rangeOfTextToExtract = new vscode.Range(startPos, endPos);
         let proxy = new RefactorProxy(EXTENSION_DIR, pythonSettings, path.dirname(refactorTargetFile));
         let mockTextDoc = new MockTextDocument(refactorTargetFile, [
@@ -129,11 +128,17 @@ suite('Variable Extraction', () => {
         ]);
 
         const DIFF = '--- a/refactor.py\n+++ b/refactor.py\n@@ -232,7 +232,8 @@\n         sys.stdout.flush()\n \n     def watch(self):\n-        self._write_response("STARTED")\n+        myNewVariable = "STARTED"\n+        self._write_response(myNewVariable)\n         while True:\n             try:\n                 self._process_request(self._input.readline())\n';
+        let expectedTextEdits = getTextEditsFromPatch(mockTextDoc.getText(), DIFF);
 
         return proxy.extractVariable<RenameResponse>(mockTextDoc, 'myNewVariable', refactorTargetFile, rangeOfTextToExtract)
             .then(response => {
+                let textEdits = getTextEditsFromPatch(mockTextDoc.getText(), DIFF);
                 assert.equal(response.results.length, 1, 'Invalid number of items in response');
-                assert.equal(response.results[0].diff, DIFF, 'Invalid DIFF');
+                assert.equal(textEdits.length, expectedTextEdits.length, 'Invalid number of Text Edits');
+                textEdits.forEach(edit => {
+                    let foundEdit = expectedTextEdits.filter(item => item.newText === edit.newText && item.range.isEqual(edit.range));
+                    assert.equal(foundEdit.length, 1, 'Edit not found');
+                });
             }).catch(error => {
                 if (shouldError) {
                     // Wait a minute this shouldn't work, what's going on
