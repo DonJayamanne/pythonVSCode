@@ -12,6 +12,7 @@ import {execPythonFile} from '../client/common/utils';
 import {extractVariable, extractMethod} from '../client/providers/simpleRefactorProvider';
 import {RefactorProxy} from '../client/refactor/proxy';
 import {getTextEditsFromPatch} from '../client/common/editor';
+import * as child_process from 'child_process';
 
 let EXTENSION_DIR = path.join(__dirname, '..', '..');
 let pythonSettings = settings.PythonSettings.getInstance();
@@ -98,7 +99,13 @@ suiteSetup(done => {
             execPythonFile('python', ['--version'], __dirname, true).then(resolve);
         }).then(version => {
             isPython3 = version.indexOf('3.') >= 0;
-            done();
+            console.log("PYTHON VERSION = " + version);
+
+            child_process.execFile("python", ["--version"], null, (error, stdout, stderr) => {
+                console.log("PYTHON VERSION stdout " + stdout);
+                console.log("PYTHON VERSION stderr " + stderr);
+                done();
+            });
         });
     });
 });
