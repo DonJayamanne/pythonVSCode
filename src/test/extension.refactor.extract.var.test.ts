@@ -99,13 +99,7 @@ suiteSetup(done => {
             execPythonFile('python', ['--version'], __dirname, true).then(resolve);
         }).then(version => {
             isPython3 = version.indexOf('3.') >= 0;
-            console.log("PYTHON VERSION = " + version);
-
-            child_process.execFile("python", ["--version"], null, (error, stdout, stderr) => {
-                console.log("PYTHON VERSION stdout " + stdout);
-                console.log("PYTHON VERSION stderr " + stderr);
-                done();
-            });
+            done();
         });
     });
 });
