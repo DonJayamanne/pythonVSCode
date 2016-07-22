@@ -50,7 +50,13 @@ class MockTextDocument implements vscode.TextDocument {
     languageId: string;
     version: number;
     isDirty: boolean;
-    constructor(private sourceFile: string, private offsets: [{ position: Position, offset: number }]) {
+    offsets: [{ position: Position, offset: number }];
+    constructor(private sourceFile: string) {
+        this.offsets = [
+            { position: new vscode.Position(239, 30), offset: 8376 },
+            { position: new vscode.Position(239, 0), offset: 8346 },
+            { position: new vscode.Position(241, 35), offset: 8519 }
+        ];
     }
     save(): Thenable<boolean> {
         return Promise.resolve(true);
@@ -122,16 +128,18 @@ suite('Method Extraction', () => {
         let ch = new MockOutputChannel('Python');
         let rangeOfTextToExtract = new vscode.Range(startPos, endPos);
         let proxy = new RefactorProxy(EXTENSION_DIR, pythonSettings, path.dirname(refactorTargetFile));
-        let mockTextDoc = new MockTextDocument(refactorTargetFile, [
-            { position: startPos, offset: 8346 },
-            { position: endPos, offset: 8519 }
-        ]);
+        let mockTextDoc = new MockTextDocument(refactorTargetFile);
+        let ignoreErrorHandling = false;
 
         const DIFF = `--- a/refactor.py\n+++ b/refactor.py\n@@ -237,9 +237,12 @@\n             try:\n                 self._process_request(self._input.readline())\n             except Exception as ex:\n-                message = ex.message + '  \\n' + traceback.format_exc()\n-                sys.stderr.write(str(len(message)) + ':' + message)\n-                sys.stderr.flush()\n+                self.myNewMethod(ex)\n+\n+    def myNewMethod(self, ex):\n+        message = ex.message + '  \\n' + traceback.format_exc()\n+        sys.stderr.write(str(len(message)) + ':' + message)\n+        sys.stderr.flush()\n \n if __name__ == '__main__':\n     RopeRefactoring().watch()\n`;
         let expectedTextEdits = getTextEditsFromPatch(mockTextDoc.getText(), DIFF);
 
         return proxy.extractMethod<RenameResponse>(mockTextDoc, 'myNewMethod', refactorTargetFile, rangeOfTextToExtract)
             .then(response => {
+                if (shouldError) {
+                    ignoreErrorHandling = true;
+                    assert.fail('No error', 'Error', 'Extraction should fail with an error');
+                }
                 let textEdits = getTextEditsFromPatch(mockTextDoc.getText(), DIFF);
                 assert.equal(response.results.length, 1, 'Invalid number of items in response');
                 assert.equal(textEdits.length, expectedTextEdits.length, 'Invalid number of Text Edits');
@@ -140,6 +148,9 @@ suite('Method Extraction', () => {
                     assert.equal(foundEdit.length, 1, 'Edit not found');
                 });
             }).catch(error => {
+                if (ignoreErrorHandling) {
+                    return Promise.reject(error);
+                }
                 if (shouldError) {
                     // Wait a minute this shouldn't work, what's going on
                     assert.equal(true, true, 'Error raised as expected');
@@ -170,14 +181,14 @@ suite('Method Extraction', () => {
         testingMethodExtraction(false, clonedSettings, startPos, endPos).then(() => done(), done);
     });
 
-    test('Extract Method will not work in Python 3.x', done => {
-        let startPos = new vscode.Position(239, 0);
-        let endPos = new vscode.Position(241, 35);
-        let clonedSettings = JSON.parse(JSON.stringify(pythonSettings));
-        clonedSettings.pythonPath = 'python3';
-        clonedSettings.python2Path = 'python3';
-        testingMethodExtraction(true, clonedSettings, startPos, endPos).then(() => done(), done);
-    });
+    // test('Extract Method will not work in Python 3.x', done => {
+    //     let startPos = new vscode.Position(239, 0);
+    //     let endPos = new vscode.Position(241, 35);
+    //     let clonedSettings = JSON.parse(JSON.stringify(pythonSettings));
+    //     clonedSettings.pythonPath = 'python3';
+    //     clonedSettings.python2Path = 'python3';
+    //     testingMethodExtraction(true, clonedSettings, startPos, endPos).then(() => done(), done);
+    // });
 
     if (!isTRAVIS) {
         function testingMethodExtractionEndToEnd(shouldError: boolean, pythonSettings: settings.IPythonSettings, startPos: Position, endPos: Position) {
@@ -185,6 +196,7 @@ suite('Method Extraction', () => {
             let textDocument: vscode.TextDocument;
             let textEditor: vscode.TextEditor;
             let rangeOfTextToExtract = new vscode.Range(startPos, endPos);
+            let ignoreErrorHandling = false;
 
             return vscode.workspace.openTextDocument(refactorTargetFile).then(document => {
                 textDocument = document;
@@ -195,15 +207,18 @@ suite('Method Extraction', () => {
                 textEditor = editor;
                 return;
             }).then(() => {
-                return extractMethod(EXTENSION_DIR, textEditor, rangeOfTextToExtract, ch, path.dirname(refactorTargetFile), false, pythonSettings).then(() => {
+                return extractMethod(EXTENSION_DIR, textEditor, rangeOfTextToExtract, ch, path.dirname(refactorTargetFile), pythonSettings).then(() => {
                     if (shouldError) {
-                        // Wait a minute this shouldn't work, what's going on
-                        throw new Error('This should fail, but seems to have worked');
+                        ignoreErrorHandling = true;
+                        assert.fail('No error', 'Error', 'Extraction should fail with an error');
                     }
                     assert.equal(ch.output.length, 0, 'Output channel is not empty');
                     assert.equal(textDocument.lineAt(241).text.trim().indexOf('def newmethod'), 0, 'New Method not created');
                     assert.equal(textDocument.lineAt(239).text.trim().startsWith('self.newmethod'), true, 'New Method not being used');
                 }).catch(error => {
+                    if (ignoreErrorHandling) {
+                        return Promise.reject(error);
+                    }
                     if (shouldError) {
                         // Wait a minute this shouldn't work, what's going on
                         assert.equal(true, true, 'Error raised as expected');
@@ -213,6 +228,9 @@ suite('Method Extraction', () => {
                     return Promise.reject(error);
                 });
             }, error => {
+                if (ignoreErrorHandling) {
+                    return Promise.reject(error);
+                }
                 if (shouldError) {
                     // Wait a minute this shouldn't work, what's going on
                     assert.equal(true, true, 'Error raised as expected');
@@ -244,13 +262,13 @@ suite('Method Extraction', () => {
             testingMethodExtractionEndToEnd(false, clonedSettings, startPos, endPos).then(() => done(), done);
         });
 
-        test('Extract Method will not work in Python 3.x (end to end)', done => {
-            let startPos = new vscode.Position(239, 0);
-            let endPos = new vscode.Position(241, 35);
-            let clonedSettings = JSON.parse(JSON.stringify(pythonSettings));
-            clonedSettings.pythonPath = 'python3';
-            clonedSettings.python2Path = 'python3';
-            testingMethodExtractionEndToEnd(true, clonedSettings, startPos, endPos).then(() => done(), done);
-        });
+        // test('Extract Method will not work in Python 3.x (end to end)', done => {
+        //     let startPos = new vscode.Position(239, 0);
+        //     let endPos = new vscode.Position(241, 35);
+        //     let clonedSettings = JSON.parse(JSON.stringify(pythonSettings));
+        //     clonedSettings.pythonPath = 'python3';
+        //     clonedSettings.python2Path = 'python3';
+        //     testingMethodExtractionEndToEnd(true, clonedSettings, startPos, endPos).then(() => done(), done);
+        // });
     }
 });

@@ -50,7 +50,13 @@ class MockTextDocument implements vscode.TextDocument {
     languageId: string;
     version: number;
     isDirty: boolean;
-    constructor(private sourceFile: string, private offsets: [{ position: Position, offset: number }]) {
+    offsets: [{ position: Position, offset: number }];
+    constructor(private sourceFile: string) {
+        this.offsets = [
+            { position: new vscode.Position(234, 20), offset: 8191 },
+            { position: new vscode.Position(234, 29), offset: 8200 },
+            { position: new vscode.Position(234, 38), offset: 8209 }
+        ];
     }
     save(): Thenable<boolean> {
         return Promise.resolve(true);
@@ -122,16 +128,18 @@ suite('Variable Extraction', () => {
         let ch = new MockOutputChannel('Python');
         let rangeOfTextToExtract = new vscode.Range(startPos, endPos);
         let proxy = new RefactorProxy(EXTENSION_DIR, pythonSettings, path.dirname(refactorTargetFile));
-        let mockTextDoc = new MockTextDocument(refactorTargetFile, [
-            { position: startPos, offset: 8200 },
-            { position: endPos, offset: 8209 }
-        ]);
+        let mockTextDoc = new MockTextDocument(refactorTargetFile);
+        let ignoreErrorHandling = false;
 
         const DIFF = '--- a/refactor.py\n+++ b/refactor.py\n@@ -232,7 +232,8 @@\n         sys.stdout.flush()\n \n     def watch(self):\n-        self._write_response("STARTED")\n+        myNewVariable = "STARTED"\n+        self._write_response(myNewVariable)\n         while True:\n             try:\n                 self._process_request(self._input.readline())\n';
         let expectedTextEdits = getTextEditsFromPatch(mockTextDoc.getText(), DIFF);
 
         return proxy.extractVariable<RenameResponse>(mockTextDoc, 'myNewVariable', refactorTargetFile, rangeOfTextToExtract)
             .then(response => {
+                if (shouldError) {
+                    ignoreErrorHandling = true;
+                    assert.fail(null, null, 'Extraction should fail with an error');
+                }
                 let textEdits = getTextEditsFromPatch(mockTextDoc.getText(), DIFF);
                 assert.equal(response.results.length, 1, 'Invalid number of items in response');
                 assert.equal(textEdits.length, expectedTextEdits.length, 'Invalid number of Text Edits');
@@ -140,6 +148,9 @@ suite('Variable Extraction', () => {
                     assert.equal(foundEdit.length, 1, 'Edit not found');
                 });
             }).catch(error => {
+                if (ignoreErrorHandling) {
+                    return Promise.reject(error);
+                }
                 if (shouldError) {
                     // Wait a minute this shouldn't work, what's going on
                     assert.equal(true, true, 'Error raised as expected');
@@ -170,14 +181,14 @@ suite('Variable Extraction', () => {
         testingVariableExtraction(false, clonedSettings, startPos, endPos).then(() => done(), done);
     });
 
-    test('Extract Variable will not work in Python 3.x', done => {
-        let startPos = new vscode.Position(234, 29);
-        let endPos = new vscode.Position(234, 38);
-        let clonedSettings = JSON.parse(JSON.stringify(pythonSettings));
-        clonedSettings.pythonPath = 'python3';
-        clonedSettings.python2Path = 'python3';
-        testingVariableExtraction(true, clonedSettings, startPos, endPos).then(() => done(), done);
-    });
+    // test('Extract Variable will not work in Python 3.x', done => {
+    //     let startPos = new vscode.Position(234, 29);
+    //     let endPos = new vscode.Position(234, 38);
+    //     let clonedSettings = JSON.parse(JSON.stringify(pythonSettings));
+    //     clonedSettings.pythonPath = 'python3';
+    //     clonedSettings.python2Path = 'python3';
+    //     testingVariableExtraction(true, clonedSettings, startPos, endPos).then(() => done(), done);
+    // });
 
     if (!isTRAVIS) {
         function testingVariableExtractionEndToEnd(shouldError: boolean, pythonSettings: settings.IPythonSettings, startPos: Position, endPos: Position) {
@@ -185,7 +196,7 @@ suite('Variable Extraction', () => {
             let textDocument: vscode.TextDocument;
             let textEditor: vscode.TextEditor;
             let rangeOfTextToExtract = new vscode.Range(startPos, endPos);
-
+            let ignoreErrorHandling = false;
             return vscode.workspace.openTextDocument(refactorTargetFile).then(document => {
                 textDocument = document;
                 return vscode.window.showTextDocument(textDocument);
@@ -195,16 +206,19 @@ suite('Variable Extraction', () => {
                 textEditor = editor;
                 return;
             }).then(() => {
-                return extractVariable(EXTENSION_DIR, textEditor, rangeOfTextToExtract, ch, path.dirname(refactorTargetFile), false, pythonSettings).then(() => {
+                return extractVariable(EXTENSION_DIR, textEditor, rangeOfTextToExtract, ch, path.dirname(refactorTargetFile), pythonSettings).then(() => {
                     if (shouldError) {
-                        // Wait a minute this shouldn't work, what's going on
-                        throw new Error('This should fail, but seems to have worked');
+                        ignoreErrorHandling = true;
+                        assert.fail('No error', 'Error', 'Extraction should fail with an error');
                     }
                     assert.equal(ch.output.length, 0, 'Output channel is not empty');
                     assert.equal(textDocument.lineAt(234).text.trim().indexOf('newvariable'), 0, 'New Variable not created');
                     assert.equal(textDocument.lineAt(234).text.trim().endsWith('= "STARTED"'), true, 'Started Text Assigned to variable');
                     assert.equal(textDocument.lineAt(235).text.indexOf('(newvariable') >= 0, true, 'New Variable not being used');
                 }).catch(error => {
+                    if (ignoreErrorHandling) {
+                        return Promise.reject(error);
+                    }
                     if (shouldError) {
                         // Wait a minute this shouldn't work, what's going on
                         assert.equal(true, true, 'Error raised as expected');
@@ -214,6 +228,9 @@ suite('Variable Extraction', () => {
                     return Promise.reject(error);
                 });
             }, error => {
+                if (ignoreErrorHandling) {
+                    return Promise.reject(error);
+                }
                 if (shouldError) {
                     // Wait a minute this shouldn't work, what's going on
                     assert.equal(true, true, 'Error raised as expected');
@@ -245,13 +262,13 @@ suite('Variable Extraction', () => {
             testingVariableExtractionEndToEnd(false, clonedSettings, startPos, endPos).then(() => done(), done);
         });
 
-        test('Extract Variable will not work in Python 3.x (end to end)', done => {
-            let startPos = new vscode.Position(234, 29);
-            let endPos = new vscode.Position(234, 38);
-            let clonedSettings = JSON.parse(JSON.stringify(pythonSettings));
-            clonedSettings.pythonPath = 'python3';
-            clonedSettings.python2Path = 'python3';
-            testingVariableExtractionEndToEnd(true, clonedSettings, startPos, endPos).then(() => done(), done);
-        });
+        // test('Extract Variable will not work in Python 3.x (end to end)', done => {
+        //     let startPos = new vscode.Position(234, 29);
+        //     let endPos = new vscode.Position(234, 38);
+        //     let clonedSettings = JSON.parse(JSON.stringify(pythonSettings));
+        //     clonedSettings.pythonPath = 'python3';
+        //     clonedSettings.python2Path = 'python3';
+        //     testingVariableExtractionEndToEnd(true, clonedSettings, startPos, endPos).then(() => done(), done);
+        // });
     }
 });
