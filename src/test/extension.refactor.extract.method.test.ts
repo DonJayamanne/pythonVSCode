@@ -177,7 +177,6 @@ suite('Method Extraction', () => {
         let startPos = new vscode.Position(239, 0);
         let endPos = new vscode.Position(241, 35);
         let clonedSettings = JSON.parse(JSON.stringify(pythonSettings));
-        clonedSettings.python2Path = 'python3';
         testingMethodExtraction(false, clonedSettings, startPos, endPos).then(() => done(), done);
     });
 
@@ -186,7 +185,6 @@ suite('Method Extraction', () => {
     //     let endPos = new vscode.Position(241, 35);
     //     let clonedSettings = JSON.parse(JSON.stringify(pythonSettings));
     //     clonedSettings.pythonPath = 'python3';
-    //     clonedSettings.python2Path = 'python3';
     //     testingMethodExtraction(true, clonedSettings, startPos, endPos).then(() => done(), done);
     // });
 
@@ -258,7 +256,6 @@ suite('Method Extraction', () => {
             let startPos = new vscode.Position(239, 0);
             let endPos = new vscode.Position(241, 35);
             let clonedSettings = JSON.parse(JSON.stringify(pythonSettings));
-            clonedSettings.python2Path = 'python3';
             testingMethodExtractionEndToEnd(false, clonedSettings, startPos, endPos).then(() => done(), done);
         });
 
@@ -267,7 +264,6 @@ suite('Method Extraction', () => {
         //     let endPos = new vscode.Position(241, 35);
         //     let clonedSettings = JSON.parse(JSON.stringify(pythonSettings));
         //     clonedSettings.pythonPath = 'python3';
-        //     clonedSettings.python2Path = 'python3';
         //     testingMethodExtractionEndToEnd(true, clonedSettings, startPos, endPos).then(() => done(), done);
         // });
     }
