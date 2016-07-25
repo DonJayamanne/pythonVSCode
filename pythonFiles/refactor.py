@@ -15,7 +15,7 @@ import rope.base.project
 import rope.base.taskhandle
 
 WORKSPACE_ROOT = sys.argv[1]
-ROPE_PROJECT_FOLDER = sys.argv[2]
+ROPE_PROJECT_FOLDER = '.vscode/.ropeproject'
 
 
 class RefactorProgress():
