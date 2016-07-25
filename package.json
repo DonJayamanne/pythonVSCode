@@ -70,12 +70,14 @@
         {
           "command": "python.refactorExtractVariable",
           "title": "Refactor: Extract Variable",
-          "group": "Refactor"
+          "group": "Refactor",
+          "when": "editorHasSelection"
         },
         {
           "command": "python.refactorExtractMethod",
           "title": "Refactor: Extract Method",
-          "group": "Refactor"
+          "group": "Refactor",
+          "when": "editorHasSelection"
         }
       ]
     },
