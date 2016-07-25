@@ -56,14 +56,6 @@
       },
       {
         "command": "python.refactorExtractVariable",
-        "title": "Python: Extract Variable"
-      },
-      {
-        "command": "python.refactorExtractMethod",
-        "title": "Python: Extract Method"
-      },
-      {
-        "command": "python.refactorExtractVariable",
         "title": "Refactor: Extract Variable",
         "category": "Refactor"
       },
