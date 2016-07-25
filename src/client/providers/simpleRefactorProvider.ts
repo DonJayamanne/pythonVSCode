@@ -107,7 +107,7 @@ function extractName(extensionDir: string, textEditor: vscode.TextEditor, range:
         }
         outputChannel.appendLine('#'.repeat(10) + 'Refactor Output' + '#'.repeat(10));
         outputChannel.appendLine('Error in refactoring:\n' + errorMessage);
-        vscode.window.showErrorMessage(errorMessage);
+        vscode.window.showErrorMessage('Cannot perform refactoring using selected element(s)');
         return Promise.reject(error);
     });
 }

@@ -61,8 +61,32 @@
       {
         "command": "python.refactorExtractMethod",
         "title": "Python: Extract Method"
+      },
+      {
+        "command": "python.refactorExtractVariable",
+        "title": "Refactor: Extract Variable",
+        "category": "Refactor"
+      },
+      {
+        "command": "python.refactorExtractMethod",
+        "title": "Refactor: Extract Method",
+        "category": "Refactor"
       }
     ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "python.refactorExtractVariable",
+          "title": "Refactor: Extract Variable",
+          "group": "Refactor"
+        },
+        {
+          "command": "python.refactorExtractMethod",
+          "title": "Refactor: Extract Method",
+          "group": "Refactor"
+        }
+      ]
+    },
     "debuggers": [
       {
         "type": "python",
