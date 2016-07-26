@@ -48,20 +48,22 @@
     "commands": [
       {
         "command": "python.sortImports",
-        "title": "Python: Sort Imports"
+        "title": "Sort Imports",
+        "category": "Python"
       },
       {
         "command": "python.runtests",
-        "title": "Python: Run Unit Tests"
+        "title": "Run Unit Tests",
+        "category": "Python"
       },
       {
         "command": "python.refactorExtractVariable",
-        "title": "Refactor: Extract Variable",
+        "title": "Extract Variable",
         "category": "Refactor"
       },
       {
         "command": "python.refactorExtractMethod",
-        "title": "Refactor: Extract Method",
+        "title": "Extract Method",
         "category": "Refactor"
       }
     ],
