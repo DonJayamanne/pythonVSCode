@@ -5,9 +5,10 @@ An extension with rich support for the [Python language](https://www.python.org/
 * Intellisense (autocompletion)
 * Auto indenting
 * Code formatting ([autopep8](https://pypi.io/project/autopep8/), [yapf](https://pypi.io/project/yapf/), with config files)
+* Code refactoring ([Rename](https://github.com/DonJayamanne/pythonVSCode/wiki/Refactoring:-Rename), [Extract Variable](https://github.com/DonJayamanne/pythonVSCode/wiki/Refactoring:-Extract-Variable), [Extract Method](https://github.com/DonJayamanne/pythonVSCode/wiki/Refactoring:-Extract-Method), [Sort Imports](https://github.com/DonJayamanne/pythonVSCode/wiki/Refactoring:-Sort-Imports))
 * Renaming, Viewing references, and code navigation
 * View signature and similar by hovering over a function or method
-* Excellent debugging suppot (variables, arguments, expressions, watch window, stack information, break points, remote debugging, mutliple threads)
+* Excellent debugging support (variables, arguments, expressions, watch window, stack information, break points, remote debugging, mutliple threads)
 * Unit testing ([unittest](https://docs.python.org/3/library/unittest.html#module-unittest), [pytest](https://pypi.io/project/pytest/), [nosetests](https://pypi.io/project/nose/), with config files)
 * Sorting imports
 * Snippets
@@ -19,6 +20,7 @@ An extension with rich support for the [Python language](https://www.python.org/
 * If using a custom Python Version or a Virtual Environment
   + Configure the path to the python executable in `python.pythonPath` of the `settings.json` file ([further details here](https://github.com/DonJayamanne/pythonVSCode/wiki/Python-Path-and-Version#python-version-used-for-intellisense-autocomplete-linting-formatting-etc)) 
 
+##[Documentation](https://github.com/DonJayamanne/pythonVSCode/wiki)   
 For further information and details continue through to the [documentation](https://github.com/DonJayamanne/pythonVSCode/wiki).
 
 ##Feature Requests and contributions
@@ -93,7 +95,11 @@ Your feedback is crucial in prioritizing the items and in determining whether we
  + Support for unittests, nosetests and pytest
  + Test results are displayed in the "Python" output window
 * Snippets
-
+* Refactoring
+ + [Rename Refactorings](https://github.com/DonJayamanne/pythonVSCode/wiki/Refactoring:-Rename)
+ + [Extract Variable Refactorings](https://github.com/DonJayamanne/pythonVSCode/wiki/Refactoring:-Extract-Variable)
+ + [Extract Method Refactorings](https://github.com/DonJayamanne/pythonVSCode/wiki/Refactoring:-Extract-Method)
+ + [Sort Imports](https://github.com/DonJayamanne/pythonVSCode/wiki/Refactoring:-Sort-Imports)
 
 ![Image of Generate Features](https://raw.githubusercontent.com/DonJayamanne/pythonVSCode/master/images/general.gif)
 
@@ -102,6 +108,7 @@ Your feedback is crucial in prioritizing the items and in determining whether we
 ## [Change Log](https://github.com/DonJayamanne/pythonVSCode/releases)
 
 ### Current Version 0.3.18  
+* Modifications to support extract variable and method refactoring [#220](https://github.com/DonJayamanne/pythonVSCode/issues/220)
 * Modifications to support environment variables in settings [#148](https://github.com/DonJayamanne/pythonVSCode/issues/148)
 * Modifications to support formatting of selected text [#197](https://github.com/DonJayamanne/pythonVSCode/issues/197) and [#183](https://github.com/DonJayamanne/pythonVSCode/issues/183)
 * Added support to intellisense for parameters [#71](https://github.com/DonJayamanne/pythonVSCode/issues/71)
