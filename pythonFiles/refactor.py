@@ -174,7 +174,7 @@ class RopeRefactoring(object):
             WORKSPACE_ROOT, ropefolder=ROPE_PROJECT_FOLDER, save_history=False)
         resourceToRefactor = libutils.path_to_resource(project, filePath)
         refactor = ExtractVariableRefactor(
-            project, resourceToRefactor, startOffset=start, endOffset=end, newName=newName)
+            project, resourceToRefactor, startOffset=start, endOffset=end, newName=newName, similar=True)
         refactor.refactor()
         changes = refactor.changes
         project.close()
@@ -191,7 +191,7 @@ class RopeRefactoring(object):
             WORKSPACE_ROOT, ropefolder=ROPE_PROJECT_FOLDER, save_history=False)
         resourceToRefactor = libutils.path_to_resource(project, filePath)
         refactor = ExtractMethodRefactor(
-            project, resourceToRefactor, startOffset=start, endOffset=end, newName=newName)
+            project, resourceToRefactor, startOffset=start, endOffset=end, newName=newName, similar=True)
         refactor.refactor()
         changes = refactor.changes
         project.close()
