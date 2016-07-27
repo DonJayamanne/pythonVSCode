@@ -91,6 +91,7 @@ Your feedback is crucial in prioritizing the items and in determining whether we
  + Expanding values (viewing children, properties, etc) (Windows and Mac)
  + Conditional break points
  + Remote debugging
+ + Google App Engine
 * Unit Testing
  + Support for unittests, nosetests and pytest
  + Test results are displayed in the "Python" output window
