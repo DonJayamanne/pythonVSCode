@@ -60,7 +60,7 @@ export class PythonProcess extends EventEmitter implements IPythonProcess {
     }
 
     public Kill() {
-        if (!this.isRemoteProcess && typeof this.pid === "number") {
+        if (!this.isRemoteProcess && this.pid && typeof this.pid === "number") {
             try {
                 let kill = require("tree-kill");
                 kill(this.pid);
@@ -81,7 +81,7 @@ export class PythonProcess extends EventEmitter implements IPythonProcess {
     private guidRead: boolean;
     private statusRead: boolean;
     private pidRead: boolean;
-    private pid: number = 0;
+    private pid: number;
     private isRemoteProcess: Boolean;
     public Connect(buffer: Buffer, socket: net.Socket, isRemoteProcess: boolean = false): boolean {
         this.isRemoteProcess = isRemoteProcess;

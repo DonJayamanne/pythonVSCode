@@ -23,7 +23,7 @@ export abstract class DebugClient {
     public Stop() {
     }
 
-    public LaunchApplicationToDebug(dbgServer: IDebugServer): Promise<any> {
+    public LaunchApplicationToDebug(dbgServer: IDebugServer, processErrored: (error: any) => void): Promise<any> {
         return Promise.resolve();
     }
 }

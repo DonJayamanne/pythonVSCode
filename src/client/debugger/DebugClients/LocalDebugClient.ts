@@ -64,7 +64,7 @@ export class LocalDebugClient extends DebugClient {
             this.debugSession.sendEvent(new OutputEvent(context + (context.length > 0 ? ": " : "") + errorMsg + "\n", "stderr"));
         }
     }
-    public LaunchApplicationToDebug(dbgServer: IDebugServer): Promise<any> {
+    public LaunchApplicationToDebug(dbgServer: IDebugServer, processErrored: (error: any) => void): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             let fileDir = path.dirname(this.args.program);
             let processCwd = fileDir;
@@ -113,6 +113,10 @@ export class LocalDebugClient extends DebugClient {
                 if (!this.debugServer && this.debugServer.IsRunning) {
                     return;
                 }
+                if (!this.debugServer.IsRunning && typeof (error) === 'object' && error !== null) {
+                    //return processErrored(error);
+                    return reject(error);
+                }
                 this.displayError(error, "pyProc.error");
             });
             this.pyProc.stderr.setEncoding("utf8");
@@ -126,8 +130,12 @@ export class LocalDebugClient extends DebugClient {
             this.pyProc.stdout.on("data", d => {
                 // This is necessary so we read the stdout of the python process
                 // Else it just keep building up (related to issue #203 and #52)
+                let x = 0;
             })
-            resolve();
+            // Here we wait for the application to connect to the socket server
+            // Only once connected do we know that the application has successfully launched
+            //resolve();
+            this.debugServer.ClientConnected.then(resolve);
         });
     }
     protected buildLauncherArguments(): string[] {

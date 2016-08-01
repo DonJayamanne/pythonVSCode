@@ -88,6 +88,7 @@ export class PythonDebugger extends DebugSession {
         }
         if (this.pythonProcess) {
             this.pythonProcess.Kill();
+            this.pythonProcess = null;
         }
     }
     private InitializeEventHandlers() {
@@ -183,11 +184,27 @@ export class PythonDebugger extends DebugSession {
         let that = this;
 
         this.startDebugServer().then(dbgServer => {
-            return that.debugClient.LaunchApplicationToDebug(dbgServer);
+            return that.debugClient.LaunchApplicationToDebug(dbgServer, that.unhandledProcessError.bind(that));
         }).catch(error => {
             this.sendEvent(new OutputEvent(error + "\n", "stderr"));
-            this.sendErrorResponse(that.entryResponse, 2000, error);
+            response.success = false;
+            let errorMsg = typeof error === "string" ? error : ((error.message && error.message.length > 0) ? error.message : error + '');
+            if ((<any>error).code === 'ENOENT' || (<any>error).code === 127) {
+                errorMsg = `Failed to launch the Python Process, please validate the path '${this.launchArgs.pythonPath}'`;
+            }
+            this.sendErrorResponse(response, 200, errorMsg);
         });
+    }
+    protected unhandledProcessError(error: any) {
+        if (!error) { return; }
+        let errorMsg = typeof error === "string" ? error : ((error.message && error.message.length > 0) ? error.message : "");
+        if ((<any>error).code === 'ENOENT' || (<any>error).code === 127) {
+            errorMsg = `Failed to launch the Python Process, please validate the path '${this.launchArgs.pythonPath}'`;
+        }
+        if (errorMsg.length > 0) {
+            this.sendEvent(new OutputEvent(errorMsg + "\n", "stderr"));
+        }
+        this.sendEvent(new TerminatedEvent());
     }
     protected attachRequest(response: DebugProtocol.AttachResponse, args: AttachRequestArguments) {
         this.sendEvent(new TelemetryEvent(telemetryContracts.Debugger.Attach));
@@ -199,7 +216,7 @@ export class PythonDebugger extends DebugSession {
         this.canStartDebugger().then(() => {
             return this.startDebugServer();
         }).then(dbgServer => {
-            return that.debugClient.LaunchApplicationToDebug(dbgServer);
+            return that.debugClient.LaunchApplicationToDebug(dbgServer, () => { });
         }).catch(error => {
             this.sendEvent(new OutputEvent(error + "\n", "stderr"));
             this.sendErrorResponse(that.entryResponse, 2000, error);

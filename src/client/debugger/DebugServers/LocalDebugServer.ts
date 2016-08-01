@@ -10,6 +10,14 @@ export class LocalDebugServer extends BaseDebugServer {
 
     constructor(debugSession: DebugSession, pythonProcess: IPythonProcess) {
         super(debugSession, pythonProcess);
+        this.clientConnected = new Promise<Boolean>(resolve => {
+            this.clientConnectedResolve = resolve;
+        });
+    }
+    private clientConnected: Promise<Boolean>;
+    private clientConnectedResolve: (value?: Boolean | PromiseLike<Boolean>) => void;
+    public get ClientConnected(): Promise<boolean> {
+        return this.clientConnected;
     }
 
     public Stop() {
@@ -28,6 +36,11 @@ export class LocalDebugServer extends BaseDebugServer {
                 // "connection" listener
                 let connected = false;
                 c.on("data", (buffer: Buffer) => {
+                    if (that.clientConnectedResolve) {
+                        // The debug client has connected to the debug server
+                        that.clientConnectedResolve(true);
+                        that.clientConnectedResolve = null;
+                    }
                     if (!connected) {
                         connected = that.pythonProcess.Connect(buffer, c, false);
                     }

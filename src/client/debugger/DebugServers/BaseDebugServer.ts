@@ -13,7 +13,9 @@ export abstract class BaseDebugServer extends EventEmitter {
     public get IsRunning(): boolean {
         return this.isRunning;
     }
-
+    public get ClientConnected(): Promise<boolean> {
+        return Promise.resolve(true);
+    }
     constructor(debugSession: DebugSession, pythonProcess: IPythonProcess) {
         super();
         this.debugSession = debugSession;
