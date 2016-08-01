@@ -4,7 +4,7 @@ import {DebugSession, OutputEvent} from "vscode-debugadapter";
 import {IPythonProcess, IDebugServer} from "../Common/Contracts";
 import * as net from "net";
 import {EventEmitter} from "events";
-import {Deferred, createDeferred} from '../../common/utils';
+import {Deferred, createDeferred} from '../../common/helpers';
 
 export abstract class BaseDebugServer extends EventEmitter {
     protected pythonProcess: IPythonProcess;

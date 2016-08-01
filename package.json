@@ -1,7 +1,7 @@
 {
   "name": "python",
   "displayName": "Python",
-  "description": "Linting, Debugging (multi-threaded, remote), Intellisense, code formatting, snippets, and more.",
+  "description": "Linting, Debugging (multi-threaded, remote), Intellisense, code formatting, refactoring, snippets, and more.",
   "version": "0.3.19",
   "publisher": "donjayamanne",
   "author": {
