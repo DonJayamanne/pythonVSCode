@@ -131,11 +131,12 @@ export class LocalDebugClient extends DebugClient {
                 // This is necessary so we read the stdout of the python process
                 // Else it just keep building up (related to issue #203 and #52)
                 let x = 0;
-            })
+            });
+
             // Here we wait for the application to connect to the socket server
             // Only once connected do we know that the application has successfully launched
             //resolve();
-            this.debugServer.ClientConnected.then(resolve);
+            this.debugServer.DebugClientConnected.then(resolve);
         });
     }
     protected buildLauncherArguments(): string[] {

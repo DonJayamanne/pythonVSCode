@@ -72,7 +72,7 @@ class MockTextDocument implements vscode.TextDocument {
         return null;
     }
     getText(range?: Range): string {
-        return fs.readFileSync(this.sourceFile, 'utf-8');
+        return fs.readFileSync(this.sourceFile, 'utf8');
     }
     getWordRangeAtPosition(position: Position): Range {
         return null;
