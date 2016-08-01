@@ -3,7 +3,7 @@
         "prefix": "if",
         "body": [
             "if ${expression}:",
-            "\t${suite}"
+            "\t${pass}"
         ],
         "description": "Code snippet for an if statement"
     },
@@ -11,9 +11,9 @@
         "prefix": "if/else",
         "body": [
             "if ${condition}:",
-            "\t${1:suite}",
+            "\t${1:pass}",
             "else:",
-            "\t${2:suite}"
+            "\t${2:pass}"
         ],
         "description": "Code snippet for an if statement with else"
     },
@@ -21,7 +21,7 @@
         "prefix": "elif",
         "body": [
             "elif ${expression}:",
-            "\t${suite}"
+            "\t${pass}"
         ],
         "description": "Code snippet for an elif"
     },
@@ -29,7 +29,7 @@
         "prefix": "else",
         "body": [
             "else:",
-            "\t${suite}"
+            "\t${pass}"
         ],
         "description": "Code snippet for an else"
     },
@@ -37,7 +37,7 @@
         "prefix": "while",
         "body": [
             "while ${expression}:",
-            "\t${suite}"
+            "\t${pass}"
         ],
         "description": "Code snippet for a while loop"
     },
@@ -45,9 +45,9 @@
         "prefix": "while/else",
         "body": [
             "while ${expression}:",
-            "\t${1:suite}",
+            "\t${1:pass}",
             "else:",
-            "\t${2:suite}"
+            "\t${2:pass}"
         ],
         "description": "Code snippet for a while loop with else"
     },
@@ -55,7 +55,7 @@
         "prefix": "for",
         "body": [
             "for ${target_list} in ${expression_list}:",
-            "\t${suite}"
+            "\t${pass}"
         ],
         "description": "Code snippet for a for loop"
     },
@@ -63,9 +63,9 @@
         "prefix": "for/else",
         "body": [
             "for ${target_list} in ${expression_list}:",
-            "\t${1:suite}",
+            "\t${1:pass}",
             "else:",
-            "\t${2:suite}"
+            "\t${2:pass}"
         ],
         "description": "Code snippet for a for loop with else"
     },
@@ -73,9 +73,9 @@
         "prefix": "try/except",
         "body": [
             "try:",
-            "\t${1:suite}",
+            "\t${1:pass}",
             "except ${expression} as ${identifier}:",
-            "\t${2:suite}"
+            "\t${2:pass}"
         ],
         "description": "Code snippet for a try/except statement"
     },
@@ -83,9 +83,9 @@
         "prefix": "try/finally",
         "body": [
             "try:",
-            "\t${1:suite}",
+            "\t${1:pass}",
             "finally:",
-            "\t${2:suite}"
+            "\t${2:pass}"
         ],
         "description": "Code snippet for a try/finally statement"
     },
@@ -93,11 +93,11 @@
         "prefix": "try/except/else",
         "body": [
             "try:",
-            "\t${1:suite}",
+            "\t${1:pass}",
             "except ${expression} as ${identifier}:",
-            "\t${2:suite}",
+            "\t${2:pass}",
             "else:",
-            "\t${3:suite}"
+            "\t${3:pass}"
         ],
         "description": "Code snippet for a try/except/else statement"
     },
@@ -105,11 +105,11 @@
         "prefix": "try/except/finally",
         "body": [
             "try:",
-            "\t${1:suite}",
+            "\t${1:pass}",
             "except ${expression} as ${identifier}:",
-            "\t${2:suite}",
+            "\t${2:pass}",
             "finally:",
-            "\t${3:suite}"
+            "\t${3:pass}"
         ],
         "description": "Code snippet for a try/except/finally statement"
     },
@@ -117,13 +117,13 @@
         "prefix": "try/except/else/finally",
         "body": [
             "try:",
-            "\t${1:suite}",
+            "\t${1:pass}",
             "except ${expression} as ${identifier}:",
-            "\t${2:suite}",
+            "\t${2:pass}",
             "else:",
-            "\t${3:suite}",
+            "\t${3:pass}",
             "finally:",
-            "\t${4:suite}"
+            "\t${4:pass}"
         ],
         "description": "Code snippet for a try/except/else/finally statement"
     },
@@ -131,7 +131,7 @@
         "prefix": "with",
         "body": [
             "with ${expression} as ${target}:",
-            "\t${suite}"
+            "\t${pass}"
         ],
         "description": "Code snippet for a with statement"
     },
@@ -139,7 +139,7 @@
         "prefix": "def",
         "body": [
             "def ${funcname}(${parameter_list}):",
-            "\t${suite}"
+            "\t${pass}"
         ],
         "description": "Code snippet for a function definition"
     },
@@ -147,7 +147,7 @@
         "prefix": "def(class method)",
         "body": [
             "def ${funcname}(self, ${parameter_list}):",
-            "\t${suite}"
+            "\t${pass}"
         ],
         "description": "Code snippet for a class method"
     },
@@ -156,7 +156,7 @@
         "body": [
             "@staticmethod",
             "def ${funcname}(${parameter_list}):",
-            "\t${suite}"
+            "\t${pass}"
         ],
         "description": "Code snippet for a static class method"
     },
@@ -172,7 +172,7 @@
         "prefix": "class",
         "body": [
             "class ${classname}(${object}):",
-            "\t${suite}"
+            "\t${pass}"
         ],
         "description": "Code snippet for a class definition"
     },
@@ -187,7 +187,7 @@
         "prefix": "if(main)",
         "body": [
             "def main():",
-            "\t${suite}",
+            "\t${pass}",
             "",
             "if __name__ == '__main__':",
             "\tsys.exit(int(main() or 0))"
@@ -198,7 +198,7 @@
         "prefix": "async/def",
         "body": [
             "async def ${funcname}(${parameter_list}):",
-            "\t${suite}"
+            "\t${pass}"
         ],
         "description": "Code snippet for a async statement"
     },
