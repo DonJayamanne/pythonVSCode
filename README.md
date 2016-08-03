@@ -114,6 +114,7 @@ Your feedback is crucial in prioritizing the items and in determining whether we
 * Support environment variables in settings [#148](https://github.com/DonJayamanne/pythonVSCode/issues/148)
 * Support formatting of selected text [#197](https://github.com/DonJayamanne/pythonVSCode/issues/197) and [#183](https://github.com/DonJayamanne/pythonVSCode/issues/183)
 * Support autocompletion of parameters [#71](https://github.com/DonJayamanne/pythonVSCode/issues/71)
+* Support launching terminal (for debugging console apps) on Linux [#152](https://github.com/DonJayamanne/pythonVSCode/issues/152)
 * Display name of linter along with diagnostic messages [#199](https://github.com/DonJayamanne/pythonVSCode/issues/199)
 * Auto indenting of except and async functions [#205](https://github.com/DonJayamanne/pythonVSCode/issues/205) and [#215](https://github.com/DonJayamanne/pythonVSCode/issues/215)
 * Support changes to pythonPath without having to restart VS Code [#216](https://github.com/DonJayamanne/pythonVSCode/issues/216)
