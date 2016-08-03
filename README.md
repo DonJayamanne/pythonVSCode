@@ -1,4 +1,4 @@
-#Python   
+# Python
 
 An extension with rich support for the [Python language](https://www.python.org/), with features including the following and more:   
 * Linting ([Prospector](https://pypi.io/project/prospector/), [Pylint](https://pypi.io/project/pylint/), [pycodestyle](https://pypi.io/project/pycodestyle/)/Pep8, [Flake8](https://pypi.io/project/flake8/), [pydocstyle](https://pypi.io/project/pydocstyle/) with config files and plugins)
@@ -13,23 +13,23 @@ An extension with rich support for the [Python language](https://www.python.org/
 * Sorting imports
 * Snippets
 
-##Quick Start
+## Quick Start
 * Install the extension
 * If Python is in the current path
   + You're ready to use it.
 * If using a custom Python Version or a Virtual Environment
   + Configure the path to the python executable in `python.pythonPath` of the `settings.json` file ([further details here](https://github.com/DonJayamanne/pythonVSCode/wiki/Python-Path-and-Version#python-version-used-for-intellisense-autocomplete-linting-formatting-etc)) 
 
-##[Documentation](https://github.com/DonJayamanne/pythonVSCode/wiki)   
+## [Documentation](https://github.com/DonJayamanne/pythonVSCode/wiki)
 For further information and details continue through to the [documentation](https://github.com/DonJayamanne/pythonVSCode/wiki).
 
-##Feature Requests and contributions
+## Feature Requests and contributions
 * Contributions are always welcome. Fork it, modify it and create a pull request.
   + Details on contributing can be found [here](https://github.com/DonJayamanne/pythonVSCode/wiki/Contribution) 
 * Any and all feedback is appreciated and welcome.
   + Please feel free to [add suggestions here](https://github.com/DonJayamanne/pythonVSCode/issues/183)
 
-##[Roadmap](https://github.com/DonJayamanne/pythonVSCode/issues/183)
+## [Roadmap](https://github.com/DonJayamanne/pythonVSCode/issues/183)
 _Please note, not all of these feature may be developed.   
 Your feedback is crucial in prioritizing the items and in determining whether we shift focus our attention to some other feature request(s)._    
 * Intellisense and Linting
@@ -51,7 +51,7 @@ Your feedback is crucial in prioritizing the items and in determining whether we
   + Securely debugging Python applications in the cloud (Azure, AWS or Google Cloud)
   + Remote debugging over SSH
 
-##[Issues and Feature Requests](https://github.com/DonJayamanne/pythonVSCode/issues)
+## [Issues and Feature Requests](https://github.com/DonJayamanne/pythonVSCode/issues)
 
 ## Feature Details
 * IDE Features
