@@ -50,21 +50,8 @@ export function open(opts: any): Promise<childProcess.ChildProcess> {
             args = args.concat(appArgs);
         }
     } else {
-        if (opts.app) {
-            cmd = opts.app;
-        } else {
-            cmd = path.join(__dirname, 'xdg-open');
-        }
-
-        if (appArgs.length > 0) {
-            args = args.concat(appArgs);
-        }
-
-        if (!opts.wait) {
-            // xdg-open will block the process unless
-            // stdio is ignored even if it's unref'd
-            cpOpts.stdio = 'ignore';
-        }
+        cmd = 'gnome-terminal';
+        args = ['-x', 'sh', '-c', `"${opts.app}" ${appArgs.join(" ")}`]
     }
 
     var cp = childProcess.spawn(cmd, args, cpOpts);
