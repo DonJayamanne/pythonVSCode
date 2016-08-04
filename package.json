@@ -108,8 +108,8 @@
               },
               "pythonPath": {
                 "type": "string",
-                "description": "Path (fully qualified) to python executable.",
-                "default": ""
+                "description": "Path (fully qualified) to python executable. Defaults to the value in settings.json",
+                "default": "${config.python.pythonPath}"
               },
               "args": {
                 "type": "array",
