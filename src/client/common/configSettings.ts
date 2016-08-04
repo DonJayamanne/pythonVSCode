@@ -19,8 +19,6 @@ export interface IUnitTestSettings {
     pyTestEnabled: boolean;
     pyTestPath: string;
     pyTestArgs: string[];
-    unittestEnabled: boolean;
-    unittestArgs: string[];
     outputWindow: string;
 }
 export interface IPylintCategorySeverity {

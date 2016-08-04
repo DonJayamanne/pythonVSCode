@@ -4,6 +4,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as child_process from 'child_process';
 import * as settings from './configSettings';
+import {CancellationToken} from 'vscode';
 
 export const IS_WINDOWS = /^win/.test(process.platform);
 const PATH_VARIABLE_NAME = IS_WINDOWS ? 'Path' : 'PATH';
@@ -68,10 +69,13 @@ export function getPythonInterpreterDirectory(): Promise<string> {
     });
 }
 
-export function execPythonFile(file: string, args: string[], cwd: string, includeErrorAsResponse: boolean = false): Promise<string> {
+export function execPythonFile(file: string, args: string[], cwd: string, includeErrorAsResponse: boolean = false, stdOut: (line: string) => void = null, token?: CancellationToken): Promise<string> {
     // If running the python file, then always revert to execFileInternal
     // Cuz python interpreter is always a file and we can and will always run it using child_process.execFile()
     if (file === settings.PythonSettings.getInstance().pythonPath) {
+        if (stdOut) {
+            return spawnFileInternal(file, args, { cwd }, includeErrorAsResponse, stdOut, token);
+        }
         return execFileInternal(file, args, { cwd: cwd }, includeErrorAsResponse);
     }
 
@@ -98,6 +102,9 @@ export function execPythonFile(file: string, args: string[], cwd: string, includ
             customEnvVariables = mergeEnvVariables(customSettings);
         }
 
+        if (stdOut) {
+            return spawnFileInternal(file, args, { cwd, env: customEnvVariables }, includeErrorAsResponse, stdOut, token);
+        }
         return execFileInternal(file, args, { cwd, env: customEnvVariables }, includeErrorAsResponse);
     });
 }
@@ -129,6 +136,58 @@ function execFileInternal(file: string, args: string[], options: child_process.E
         child_process.execFile(file, args, options, (error, stdout, stderr) => {
             handleResponse(file, includeErrorAsResponse, error, stdout, stderr).then(resolve, reject);
         });
+    });
+}
+function spawnFileInternal(file: string, args: string[], options: child_process.ExecFileOptions, includeErrorAsResponse: boolean, stdOut: (line: string) => void, token?: CancellationToken): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+        let proc = child_process.spawn(file, args, options);
+        let error = '';
+        let exited = false;
+        if (token && token.onCancellationRequested) {
+            token.onCancellationRequested(() => {
+                if (!exited && proc) {
+                    proc.kill();
+                    proc = null;
+                }
+            });
+        }
+        proc.on('error', error => {
+            return reject(error);
+        });
+        proc.stdout.setEncoding('utf8');
+        proc.stderr.setEncoding('utf8');
+        proc.stdout.on('data', function (data) {
+            if (token && token.isCancellationRequested) {
+                return;
+            }
+            stdOut(data);
+        });
+
+        proc.stderr.on('data', function (data) {
+            if (token && token.isCancellationRequested) {
+                return;
+            }
+            if (includeErrorAsResponse) {
+                stdOut(data);
+            }
+            else {
+                error += data;
+            }
+        });
+
+        proc.on('exit', function (code) {
+            exited = true;
+
+            if (token && token.isCancellationRequested) {
+                return reject();
+            }
+            if (error.length > 0) {
+                return reject(error);
+            }
+
+            resolve();
+        });
+
     });
 }
 function execInternal(command: string, args: string[], options: child_process.ExecFileOptions, includeErrorAsResponse: boolean): Promise<string> {

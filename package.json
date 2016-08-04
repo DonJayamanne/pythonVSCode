@@ -36,7 +36,10 @@
     "onLanguage:python",
     "onCommand:python.sortImports",
     "onCommand:python.runtests",
-    "onCommand:python.setInterpreter"
+    "onCommand:python.setInterpreter",
+    "onCommand:python.viewTests",
+    "onCommand:python.discoverTests",
+    "onCommand:python.runFailedTests"
   ],
   "main": "./out/client/extension",
   "contributes": {
@@ -71,6 +74,21 @@
         "command": "python.refactorExtractMethod",
         "title": "Extract Method",
         "category": "Refactor"
+      },
+      {
+        "command": "python.viewTests",
+        "title": "View Test UI",
+        "category": "Python"
+      },
+      {
+        "command": "python.discoverTests",
+        "title": "Discover Unit Tests",
+        "category": "Python"
+      },
+      {
+        "command": "python.runFailedTests",
+        "title": "Run Failed Unit Tests",
+        "category": "Python"
       }
     ],
     "menus": {
@@ -86,6 +104,12 @@
           "title": "Refactor: Extract Method",
           "group": "Refactor",
           "when": "editorHasSelection"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "python.runtests",
+          "group": "Python"
         }
       ]
     },
@@ -612,7 +636,8 @@
     "vscode-debugprotocol": "^1.0.1",
     "vscode-extension-telemetry": "0.0.5",
     "vscode-languageclient": "^1.1.0",
-    "vscode-languageserver": "^1.1.0"
+    "vscode-languageserver": "^1.1.0",
+    "xml2js": "^0.4.17"
   },
   "devDependencies": {
     "retyped-diff-match-patch-tsd-ambient": "^1.0.0-0",
