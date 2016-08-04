@@ -251,6 +251,7 @@ function extractBetweenDelimiters(content: string, startDelimiter: string, endDe
 }
 
 /* Sample output from py.test --collect-only
+<<<<<<< bf3dc849a2fdc0c7e05596ed8509f3708221fcc2
 <Module 'test_another.py'>                                                                                                                          
   <Class 'Test_CheckMyApp'>                                                                                                                         
     <Instance '()'>                                                                                                                                 
@@ -283,4 +284,38 @@ function extractBetweenDelimiters(content: string, startDelimiter: string, endDe
   <Function 'test_parametrized_username[one]'>                                                                                                      
   <Function 'test_parametrized_username[two]'>                                                                                                      
   <Function 'test_parametrized_username[three]'>  
+=======
+<Module 'test_another.py'>
+  <Class 'Test_CheckMyApp'>
+    <Instance '()'>
+      <Function 'test_simple_check'>
+      <Function 'test_complex_check'>
+<Module 'test_one.py'>
+  <UnitTestCase 'Test_test1'>
+    <TestCaseFunction 'test_A'>
+    <TestCaseFunction 'test_B'>
+<Module 'test_two.py'>
+  <UnitTestCase 'Test_test1'>
+    <TestCaseFunction 'test_A2'>
+    <TestCaseFunction 'test_B2'>
+<Module 'testPasswords/test_Pwd.py'>
+  <UnitTestCase 'Test_Pwd'>
+    <TestCaseFunction 'test_APwd'>
+    <TestCaseFunction 'test_BPwd'>
+<Module 'testPasswords/test_multi.py'>
+  <Class 'Test_CheckMyApp'>
+    <Instance '()'>
+      <Function 'test_simple_check'>
+      <Function 'test_complex_check'>
+      <Class 'Test_NestedClassA'>
+        <Instance '()'>
+          <Function 'test_nested_class_methodB'>
+          <Class 'Test_nested_classB_Of_A'>
+            <Instance '()'>
+              <Function 'test_d'>
+  <Function 'test_username'>
+  <Function 'test_parametrized_username[one]'>
+  <Function 'test_parametrized_username[two]'>
+  <Function 'test_parametrized_username[three]'>
+>>>>>>> integrated unit tests #239
 */
