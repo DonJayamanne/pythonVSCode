@@ -1,4 +1,5 @@
 # The default ``config.py``
+# flake8: noqa
 
 
 def set_prefs(prefs):
@@ -78,6 +79,10 @@ def set_prefs(prefs):
     # If `True`, rope ignores unresolvable imports.  Otherwise, they
     # appear in the importing namespace.
     prefs['ignore_bad_imports'] = False
+
+    # If `True`, rope will insert new module imports as
+    # `from <package> import <module>` by default.
+    prefs['prefer_module_from_imports'] = False
 
     # If `True`, rope will transform a comma list of imports into
     # multiple separate import statements when organizing

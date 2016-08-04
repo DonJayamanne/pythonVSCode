@@ -1,8 +1,10 @@
 import re
 
+from rope.base.utils.datastructures import OrderedSet
 from rope.base import ast, codeanalyze
 from rope.base.change import ChangeSet, ChangeContents
 from rope.base.exceptions import RefactoringError
+from rope.base.utils import pycompat
 from rope.refactor import (sourceutils, similarfinder,
                            patchedast, suites, usefunction)
 
@@ -598,12 +600,12 @@ class _FunctionInformationCollector(object):
         self.start = start
         self.end = end
         self.is_global = is_global
-        self.prewritten = set()
-        self.maybe_written = set()
-        self.written = set()
-        self.read = set()
-        self.postread = set()
-        self.postwritten = set()
+        self.prewritten = OrderedSet()
+        self.maybe_written = OrderedSet()
+        self.written = OrderedSet()
+        self.read = OrderedSet()
+        self.postread = OrderedSet()
+        self.postwritten = OrderedSet()
         self.host_function = True
         self.conditional = False
 
@@ -686,12 +688,12 @@ class _FunctionInformationCollector(object):
 
 
 def _get_argnames(arguments):
-    result = [node.id for node in arguments.args
-              if isinstance(node, ast.Name)]
+    result = [pycompat.get_ast_arg_arg(node) for node in arguments.args
+              if isinstance(node, pycompat.ast_arg_type)]
     if arguments.vararg:
-        result.append(arguments.vararg)
+        result.append(pycompat.get_ast_arg_arg(arguments.vararg))
     if arguments.kwarg:
-        result.append(arguments.kwarg)
+        result.append(pycompat.get_ast_arg_arg(arguments.kwarg))
     return result
 
 
@@ -756,7 +758,11 @@ class _UnmatchedBreakOrContinueFinder(object):
             ast.walk(child, self)
         self.loop_count -= 1
         if node.orelse:
-            ast.walk(node.orelse, self)
+            if isinstance(node.orelse,(list,tuple)):
+                for node_ in node.orelse:
+                    ast.walk(node_, self)
+            else:
+                ast.walk(node.orelse, self)
 
     def _Break(self, node):
         self.check_loop()
