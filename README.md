@@ -10,7 +10,6 @@ An extension with rich support for the [Python language](https://www.python.org/
 * View signature and similar by hovering over a function or method
 * Excellent debugging support (variables, arguments, expressions, watch window, stack information, break points, remote debugging, mutliple threads)
 * Unit testing ([unittest](https://docs.python.org/3/library/unittest.html#module-unittest), [pytest](https://pypi.io/project/pytest/), [nosetests](https://pypi.io/project/nose/), with config files)
-* Sorting imports
 * Snippets
 
 ## Quick Start
@@ -23,7 +22,7 @@ An extension with rich support for the [Python language](https://www.python.org/
 ## [Documentation](https://github.com/DonJayamanne/pythonVSCode/wiki)
 For further information and details continue through to the [documentation](https://github.com/DonJayamanne/pythonVSCode/wiki).
 
-## Feature Requests and contributions
+## [Issues, Feature Requests and Contributions](https://github.com/DonJayamanne/pythonVSCode/issues)
 * Contributions are always welcome. Fork it, modify it and create a pull request.
   + Details on contributing can be found [here](https://github.com/DonJayamanne/pythonVSCode/wiki/Contribution) 
 * Any and all feedback is appreciated and welcome.
@@ -51,7 +50,20 @@ Your feedback is crucial in prioritizing the items and in determining whether we
   + Securely debugging Python applications in the cloud (Azure, AWS or Google Cloud)
   + Remote debugging over SSH
 
-## [Issues and Feature Requests](https://github.com/DonJayamanne/pythonVSCode/issues)
+## [Change Log](https://github.com/DonJayamanne/pythonVSCode/releases)
+
+### [Current Version 0.3.19](https://github.com/DonJayamanne/pythonVSCode/releases/tag/0.3.19)
+* Sharing python.pythonPath value with debug configuration [#214](https://github.com/DonJayamanne/pythonVSCode/issues/214) and [#183](https://github.com/DonJayamanne/pythonVSCode/issues/183)
+* Support extract variable and method refactoring [#220](https://github.com/DonJayamanne/pythonVSCode/issues/220)
+* Support environment variables in settings [#148](https://github.com/DonJayamanne/pythonVSCode/issues/148)
+* Support formatting of selected text [#197](https://github.com/DonJayamanne/pythonVSCode/issues/197) and [#183](https://github.com/DonJayamanne/pythonVSCode/issues/183)
+* Support autocompletion of parameters [#71](https://github.com/DonJayamanne/pythonVSCode/issues/71)
+* Support launching terminal (for debugging console apps) on Linux [#152](https://github.com/DonJayamanne/pythonVSCode/issues/152)
+* Display name of linter along with diagnostic messages [#199](https://github.com/DonJayamanne/pythonVSCode/issues/199)
+* Auto indenting of except and async functions [#205](https://github.com/DonJayamanne/pythonVSCode/issues/205) and [#215](https://github.com/DonJayamanne/pythonVSCode/issues/215)
+* Support changes to pythonPath without having to restart VS Code [#216](https://github.com/DonJayamanne/pythonVSCode/issues/216)
+* Resolved issue to support large debug outputs [#52](https://github.com/DonJayamanne/pythonVSCode/issues/52) and  [#52](https://github.com/DonJayamanne/pythonVSCode/issues/203)
+* Handling instances when debugging with invalid paths to the python interpreter [#229](https://github.com/DonJayamanne/pythonVSCode/issues/229)
 
 ## Feature Details
 * IDE Features
@@ -105,21 +117,6 @@ Your feedback is crucial in prioritizing the items and in determining whether we
 ![Image of Generate Features](https://raw.githubusercontent.com/DonJayamanne/pythonVSCode/master/images/general.gif)
 
 ![Image of Debugging](https://raw.githubusercontent.com/DonJayamanne/pythonVSCode/master/images/standardDebugging.gif)
-
-## [Change Log](https://github.com/DonJayamanne/pythonVSCode/releases)
-
-### Current Version 0.3.19
-* Sharing python.pythonPath value with debug configuration [#214](https://github.com/DonJayamanne/pythonVSCode/issues/214) and [#183](https://github.com/DonJayamanne/pythonVSCode/issues/183)
-* Support extract variable and method refactoring [#220](https://github.com/DonJayamanne/pythonVSCode/issues/220)
-* Support environment variables in settings [#148](https://github.com/DonJayamanne/pythonVSCode/issues/148)
-* Support formatting of selected text [#197](https://github.com/DonJayamanne/pythonVSCode/issues/197) and [#183](https://github.com/DonJayamanne/pythonVSCode/issues/183)
-* Support autocompletion of parameters [#71](https://github.com/DonJayamanne/pythonVSCode/issues/71)
-* Support launching terminal (for debugging console apps) on Linux [#152](https://github.com/DonJayamanne/pythonVSCode/issues/152)
-* Display name of linter along with diagnostic messages [#199](https://github.com/DonJayamanne/pythonVSCode/issues/199)
-* Auto indenting of except and async functions [#205](https://github.com/DonJayamanne/pythonVSCode/issues/205) and [#215](https://github.com/DonJayamanne/pythonVSCode/issues/215)
-* Support changes to pythonPath without having to restart VS Code [#216](https://github.com/DonJayamanne/pythonVSCode/issues/216)
-* Resolved issue to support large debug outputs [#52](https://github.com/DonJayamanne/pythonVSCode/issues/52) and  [#52](https://github.com/DonJayamanne/pythonVSCode/issues/203)
-* Handling instances when debugging with invalid paths to the python interpreter [#229](https://github.com/DonJayamanne/pythonVSCode/issues/229)
 
 ## Source
 
