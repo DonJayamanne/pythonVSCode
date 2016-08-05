@@ -1,5 +1,5 @@
 export interface TestFile extends TestResult {
-    path: string;
+    name: string;
     functions: TestFunction[];
     suites: TestSuite[];
     rawName: string;
