@@ -8,7 +8,7 @@ const testSchema = 'python-test-explorer';
 let previewUri = vscode.Uri.parse(testSchema + '://authority/css-preview');
 
 let testManager: TestManager;
-let filesRetreived:boolean;
+let filesRetreived: boolean;
 class TextDocumentContentProvider implements vscode.TextDocumentContentProvider {
     private _onDidChange = new vscode.EventEmitter<vscode.Uri>();
     private tests: TestFile[];
@@ -51,7 +51,7 @@ class TextDocumentContentProvider implements vscode.TextDocumentContentProvider 
     private createTestView(): string {
         if (this.lastError) {
             this.lastError = null;
-            return this.errorMessage("Cannot determine the rule's properties." + this.lastError);
+            return this.errorMessage('Cannot determine the rule\'s properties.' + this.lastError);
         } else {
             return this.generateTestExplorer();
         }
@@ -84,7 +84,7 @@ export function activate(context: vscode.ExtensionContext) {
     let disposable = vscode.commands.registerCommand('python.viewTestExplorer', () => {
         previewUri = vscode.Uri.parse(testSchema + '://authority/css-preview' + new Date().getTime().toString());
         filesRetreived = false;
-        testManager = new TestManager(vscode.workspace.rootPath, "tests");
+        testManager = new TestManager(vscode.workspace.rootPath, 'tests');
         return vscode.commands.executeCommand('vscode.previewHtml', previewUri, vscode.ViewColumn.Two, 'Python Test Explorer').then((success) => {
         }, (reason) => {
             vscode.window.showErrorMessage(reason);
