@@ -1,11 +1,13 @@
-"use strict";
-import * as child_process from "child_process";
-import * as path from "path";
-import { exec } from "child_process";
-import {execPythonFile} from "./../common/utils";
-import {createDeferred} from "./../common/helpers";
-import * as settings from "./../common/configSettings";
-import {OutputChannel, window} from "vscode";
+/// <reference path="../../../typings/globals/xml2js/index.d.ts" />
+
+'use strict';
+import * as child_process from 'child_process';
+import * as path from 'path';
+import { exec } from 'child_process';
+import {execPythonFile} from './../common/utils';
+import {createDeferred} from './../common/helpers';
+import * as settings from './../common/configSettings';
+import {OutputChannel, window} from 'vscode';
 import {TestFile, TestSuite, TestFunction, FlattenedTestFunction, Tests} from './contracts';
 import * as fs from 'fs';
 import * as xml2js from 'xml2js';
@@ -24,7 +26,7 @@ interface TestCaseResult {
     }[];
 }
 export function discoverTests(rootDirectory: string, testDirectory: string): Promise<Tests> {
-    return execPythonFile("py.test", [testDirectory, "--collect-only"], rootDirectory, false)
+    return execPythonFile('py.test', [testDirectory, '--collect-only'], rootDirectory, false)
         .then(output => parsePyTestCollectionResult(output))
         .then(testFiles => {
             let flattendFunctions = flattenTestFilesToTestFunctions(testFiles);
@@ -70,7 +72,7 @@ function flattenTestFilesToTestFunctions(testFiles: TestFile[]): FlattenedTestFu
     let fns: FlattenedTestFunction[] = [];
     testFiles.forEach(testFile => {
         // sample test_three (file name without extension and all / replaced with ., meaning this is the package)
-        const packageName = convertFileToPackage(testFile.path);
+        const packageName = convertFileToPackage(testFile.name);
 
         testFile.functions.forEach(fn => {
             fns.push({ testFunction: fn, xmlClassName: packageName, parentTestFile: testFile });
@@ -88,10 +90,10 @@ function flattenTestSuitesToTestFunctions(list: FlattenedTestFunction[], testFil
         fns.push({ testFunction: fn, xmlClassName: testSuite.xmlName, parentTestFile: testFile, parentTestSuite: testSuite });
     });
 
-    //We may have child classes
+    // We may have child classes
     testSuite.suites.forEach(suite => {
         flattenTestSuitesToTestFunctions(fns, testFile, suite);
-    })
+    });
 }
 
 function updateResultsFromRawLogFile(tests: Tests, outputRawFile: string): Promise<any> {
@@ -106,13 +108,13 @@ function updateResultsFromRawLogFile(tests: Tests, outputRawFile: string): Promi
         let errorLines: string[] = [];
         const lines = data.split(/\r?\n/g);
         lines.forEach(line => {
-            if (line.startsWith(".")) {
+            if (line.startsWith('.')) {
                 if (lastTestFunction && errorLines.length > 0) {
                     lastTestFunction.testFunction.traceback = errorLines.join('\r\n');
                 }
                 return;
             }
-            if (line.startsWith("F")) {
+            if (line.startsWith('F')) {
                 if (lastTestFunction && errorLines.length > 0) {
                     lastTestFunction.testFunction.traceback = errorLines.join('\r\n');
                 }
@@ -149,9 +151,9 @@ function updateResultsFromXmlLogFile(tests: Tests, outputXmlFile: string): Promi
             }
 
             result.testsuite.testcase.foreach((testcase: TestCaseResult) => {
-                let result = tests.testFunctions.find(fn => fn.xmlClassName === testcase.$.classname && fn.testFunction.name === testcase.$.name)
+                let result = tests.testFunctions.find(fn => fn.xmlClassName === testcase.$.classname && fn.testFunction.name === testcase.$.name);
                 if (!result) {
-                    //oops
+                    // oops
                     return;
                 }
 
@@ -175,7 +177,7 @@ function updateResultsFromXmlLogFile(tests: Tests, outputXmlFile: string): Promi
 
 function convertFileToPackage(filePath: string): string {
     let lastIndex = filePath.lastIndexOf('.');
-    return filePath.substring(0, lastIndex).replace(/\//g, ".").replace(/\\/g, ".");
+    return filePath.substring(0, lastIndex).replace(/\//g, '.').replace(/\\/g, '.');
 }
 
 const DELIMITER = '\'';
@@ -189,7 +191,7 @@ function parsePyTestCollectionResult(output: String): TestFile[] {
 
     const testFiles: TestFile[] = [];
     const parentNodes: { indent: number, item: TestFile | TestSuite }[] = [];
-    let currentPackage: string = "";
+    let currentPackage: string = '';
 
     lines.forEach(line => {
         const trimmedLine = line.trim();
@@ -198,7 +200,7 @@ function parsePyTestCollectionResult(output: String): TestFile[] {
 
         if (trimmedLine.startsWith('<Module \'')) {
             currentPackage = convertFileToPackage(name);
-            const testFile = { functions: [], suites: [], path: name, rawName: name, xmlName: currentPackage };
+            const testFile = { functions: [], suites: [], name: name, rawName: name, xmlName: currentPackage };
             testFiles.push(testFile);
             parentNodes.push({ indent: indent, item: testFile });
             return;
