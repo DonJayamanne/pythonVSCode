@@ -119,7 +119,6 @@ suite('Variable Extraction', () => {
     teardown(done => {
         closeActiveWindows().then(() => {
             setTimeout(function () {
-                RefactorProxy.pythonPath = null;
                 done();
             }, 1000);
         });
