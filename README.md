@@ -103,7 +103,7 @@ Your feedback is crucial in prioritizing the items and in determining whether we
 
 ## [Change Log](https://github.com/DonJayamanne/pythonVSCode/releases)
 
-### [Current Version 0.3.19](https://github.com/DonJayamanne/pythonVSCode/releases/tag/0.3.19)
+### Current Version 0.3.20
 * Sharing python.pythonPath value with debug configuration [#214](https://github.com/DonJayamanne/pythonVSCode/issues/214) and [#183](https://github.com/DonJayamanne/pythonVSCode/issues/183)
 * Support extract variable and method refactoring [#220](https://github.com/DonJayamanne/pythonVSCode/issues/220)
 * Support environment variables in settings [#148](https://github.com/DonJayamanne/pythonVSCode/issues/148)
@@ -115,6 +115,7 @@ Your feedback is crucial in prioritizing the items and in determining whether we
 * Support changes to pythonPath without having to restart VS Code [#216](https://github.com/DonJayamanne/pythonVSCode/issues/216)
 * Resolved issue to support large debug outputs [#52](https://github.com/DonJayamanne/pythonVSCode/issues/52) and  [#52](https://github.com/DonJayamanne/pythonVSCode/issues/203)
 * Handling instances when debugging with invalid paths to the python interpreter [#229](https://github.com/DonJayamanne/pythonVSCode/issues/229)
+* Fixed refactoring on Python 3.5 [#244](https://github.com/DonJayamanne/pythonVSCode/issues/244)
 
 ## Source
 
