@@ -22,13 +22,9 @@ export class RefactorProxy extends vscode.Disposable {
     private _commandResolve: (value?: any | PromiseLike<any>) => void;
     private _commandReject: (reason?: any) => void;
     private _initializeReject: (reason?: any) => void;
-    static pythonPath: string;
     constructor(extensionDir: string, private pythonSettings: IPythonSettings, private workspaceRoot: string = vscode.workspace.rootPath) {
         super(() => { });
         this._extensionDir = extensionDir;
-        vscode.workspace.onDidChangeConfiguration(() => {
-            RefactorProxy.pythonPath = '';
-        });
     }
 
     dispose() {
@@ -49,9 +45,7 @@ export class RefactorProxy extends vscode.Disposable {
     }
     private sendCommand<T>(command: string, telemetryEvent: string): Promise<T> {
         let timer = new Delays();
-        return this.pickValidPythonPath().then(pythonPath => {
-            return this.initialize(pythonPath);
-        }).then(() => {
+        return this.initialize(this.pythonSettings.pythonPath).then(() => {
             return new Promise<T>((resolve, reject) => {
                 this._commandResolve = resolve;
                 this._commandReject = reject;
@@ -65,44 +59,6 @@ export class RefactorProxy extends vscode.Disposable {
             timer.stop();
             sendTelemetryEvent(telemetryEvent, null, timer.toMeasures());
             return Promise.reject(reason);
-        });
-    }
-
-    private pickValidPythonPath(): Promise<string> {
-        if (RefactorProxy.pythonPath && RefactorProxy.pythonPath.length > 0) {
-            return Promise.resolve(RefactorProxy.pythonPath);
-        }
-
-        // First try what ever path we have in pythonRopePath
-        let promiseReult = this.checkIfPythonVersionIs2(this.pythonSettings.pythonPath).then(() => {
-            return this.pythonSettings.pythonPath;
-        });
-
-        if (this.pythonSettings.pythonPath !== 'python') {
-            promiseReult = promiseReult.catch(() => {
-                // Now try to use the default 'python' executable (if any)
-                return this.checkIfPythonVersionIs2('python').then(() => {
-                    return 'python';
-                });
-            });
-        }
-
-        return promiseReult.catch(() => {
-            // Now try to find 'python2.7' (this seems to work on a Mac)
-            return this.checkIfPythonVersionIs2('python2.7').then(() => {
-                return 'python2.7';
-            });
-        });
-    }
-
-    private checkIfPythonVersionIs2(pythonPath: string): Promise<boolean> {
-        return new Promise<boolean>((resolve, reject) => {
-            child_process.execFile(pythonPath, ['-c', 'import sys;print(sys.version)'], null, (error, stdout, stderr) => {
-                if (stdout.indexOf('2.') === 0) {
-                    return resolve(true);
-                }
-                reject(new Error(ROPE_PYTHON_VERSION));
-            });
         });
     }
     private initialize(pythonPath: string): Promise<string> {
@@ -120,8 +76,6 @@ export class RefactorProxy extends vscode.Disposable {
                 let dataStr: string = data + '';
                 if (!that._startedSuccessfully && dataStr.startsWith('STARTED')) {
                     that._startedSuccessfully = true;
-                    // We know this works, hence keep tarck of this python path
-                    RefactorProxy.pythonPath = pythonPath;
                     return resolve();
                 }
                 that.onData(data);
