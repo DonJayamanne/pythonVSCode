@@ -78,7 +78,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(vscode.languages.registerCodeActionsProvider(PYTHON, new PythonCodeActionsProvider(context)));
 
-    testExplorer.activate(context);
+    testExplorer.activate(context, unitTestOutChannel);
 }
 
 // this method is called when your extension is deactivated

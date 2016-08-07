@@ -3,7 +3,8 @@ export interface TestFile extends TestResult {
     functions: TestFunction[];
     suites: TestSuite[];
     rawName: string;
-    xmlName:string;
+    xmlName: string;
+    status?: TestStatus;
 }
 export interface TestSuite extends TestResult {
     name: string;
@@ -13,17 +14,22 @@ export interface TestSuite extends TestResult {
     isInstance: Boolean;
     rawName: string;
     xmlName: string;
+    status?: TestStatus;
 }
 export interface TestFunction extends TestResult {
     name: string;
     rawName: string;
+    status?: TestStatus;
 }
-export interface TestResult {
+export interface TestResult extends Node {
     passed?: boolean;
-    time?: number;
+    time: number;
     line?: number;
     message?: string;
     traceback?: string;
+}
+export interface Node {
+    expanded?: Boolean;
 }
 export interface FlattenedTestFunction {
     testFunction: TestFunction;
@@ -34,4 +40,11 @@ export interface FlattenedTestFunction {
 export interface Tests {
     testFiles: TestFile[];
     testFunctions: FlattenedTestFunction[];
+}
+export enum TestStatus {
+    Unknown,
+    Discovering,
+    Idle,
+    Running,
+    Error
 }

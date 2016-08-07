@@ -8,7 +8,7 @@ import {execPythonFile} from './../common/utils';
 import {createDeferred} from './../common/helpers';
 import * as settings from './../common/configSettings';
 import {OutputChannel, window} from 'vscode';
-import {TestFile, TestSuite, TestFunction, FlattenedTestFunction, Tests} from './contracts';
+import {TestFile, TestSuite, TestFunction, FlattenedTestFunction, Tests, TestStatus} from './contracts';
 import * as fs from 'fs';
 import * as xml2js from 'xml2js';
 
@@ -30,7 +30,7 @@ export function discoverTests(rootDirectory: string, testDirectory: string): Pro
         .then(output => parsePyTestCollectionResult(output))
         .then(testFiles => {
             let flattendFunctions = flattenTestFilesToTestFunctions(testFiles);
-            return <Tests>{ testFiles: testFiles, testFunctions: flattendFunctions };
+            return { testFiles: testFiles, testFunctions: flattendFunctions };
         });
 }
 
@@ -49,23 +49,46 @@ function updateResults(tests: Tests) {
 
 function updateResultsUpstream(test: TestSuite | TestFile) {
     let totalTime = 0;
-    let passed = true;
+    let allFunctionsPassed = true;
+    let allFunctionsRan = true;
+
     test.functions.forEach(fn => {
         totalTime += fn.time;
-        if (!fn.passed) {
-            passed = false;
+        if (allFunctionsRan && typeof fn.passed === 'boolean') {
+            if (!fn.passed) {
+                allFunctionsPassed = false;
+            }
         }
-    });
-    test.suites.forEach(suite => {
-        updateResultsUpstream(suite);
-        if (!suite.passed) {
-            passed = false;
+        else {
+            allFunctionsRan = false;
         }
-        totalTime += suite.time;
     });
 
-    test.passed = passed;
+    let allSuitesPassed = true;
+    let allSuitesRan = true;
+
+    test.suites.forEach(suite => {
+        updateResultsUpstream(suite);
+        totalTime += suite.time;
+        if (allSuitesRan && typeof suite.passed === 'boolean') {
+            if (!suite.passed) {
+                allSuitesPassed = false;
+            }
+        }
+        else {
+            allSuitesRan = false;
+        }
+    });
+
     test.time = totalTime;
+    if (allSuitesRan && allFunctionsRan) {
+        test.passed = allFunctionsPassed && allSuitesPassed;
+        test.status = test.passed ? TestStatus.Idle : TestStatus.Error;
+    }
+    else {
+        test.passed = null;
+        test.status = TestStatus.Unknown;
+    }
 }
 
 function flattenTestFilesToTestFunctions(testFiles: TestFile[]): FlattenedTestFunction[] {
@@ -160,8 +183,10 @@ function updateResultsFromXmlLogFile(tests: Tests, outputXmlFile: string): Promi
                 result.testFunction.line = parseInt(testcase.$.line);
                 result.testFunction.time = parseFloat(testcase.$.time);
                 result.testFunction.passed = true;
+                result.testFunction.status = TestStatus.Idle;
 
                 if (testcase.failure) {
+                    result.testFunction.status = TestStatus.Error;
                     result.testFunction.passed = false;
                     result.testFunction.message = testcase.failure[0].$.message;
                     result.testFunction.traceback = testcase.failure[0]._;
@@ -200,7 +225,7 @@ function parsePyTestCollectionResult(output: String): TestFile[] {
 
         if (trimmedLine.startsWith('<Module \'')) {
             currentPackage = convertFileToPackage(name);
-            const testFile = { functions: [], suites: [], name: name, rawName: name, xmlName: currentPackage };
+            const testFile = { functions: [], suites: [], name: name, rawName: name, xmlName: currentPackage, time: 0 };
             testFiles.push(testFile);
             parentNodes.push({ indent: indent, item: testFile });
             return;
@@ -212,7 +237,7 @@ function parsePyTestCollectionResult(output: String): TestFile[] {
             const isUnitTest = trimmedLine.startsWith('<UnitTestCase \'');
             const rawName = parentNode.item.rawName + `::${name}`;
             const xmlName = parentNode.item.xmlName + `.${name}`;
-            const testSuite: TestSuite = { name: name, rawName: rawName, functions: [], suites: [], isUnitTest: isUnitTest, isInstance: false, xmlName: xmlName };
+            const testSuite: TestSuite = { name: name, rawName: rawName, functions: [], suites: [], isUnitTest: isUnitTest, isInstance: false, xmlName: xmlName, time: 0 };
             parentNode.item.suites.push(testSuite);
             parentNodes.push({ indent: indent, item: testSuite });
             return;
@@ -225,7 +250,7 @@ function parsePyTestCollectionResult(output: String): TestFile[] {
         }
         if (trimmedLine.startsWith('<TestCaseFunction \'') || trimmedLine.startsWith('<Function \'')) {
             const rawName = parentNode.item.rawName + '::' + name;
-            const fn: TestFunction = { name: name, rawName: rawName };
+            const fn: TestFunction = { name: name, rawName: rawName, time: 0 };
             parentNode.item.functions.push(fn);
             return;
         }
