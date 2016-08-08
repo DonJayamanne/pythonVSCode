@@ -19,6 +19,7 @@ import {DebugClient, DebugType} from "./DebugClients/DebugClient";
 import {CreateAttachDebugClient, CreateLaunchDebugClient} from "./DebugClients/DebugFactory";
 import {DjangoApp, LaunchRequestArguments, AttachRequestArguments, DebugFlags, DebugOptions, TelemetryEvent} from "./Common/Contracts";
 import * as telemetryContracts from "../common/telemetryContracts";
+import {validatePath} from './Common/Utils';
 
 const CHILD_ENUMEARATION_TIMEOUT = 5000;
 
@@ -380,21 +381,27 @@ export class PythonDebugger extends DebugSession {
             let maxFrames = typeof args.levels === "number" && args.levels > 0 ? args.levels : pyThread.Frames.length - 1;
             maxFrames = maxFrames < pyThread.Frames.length ? maxFrames : pyThread.Frames.length;
 
-            let frames = [];
-            for (let counter = 0; counter < maxFrames; counter++) {
-                let frame = pyThread.Frames[counter];
-                let frameId = this._pythonStackFrames.create(frame);
-                frames.push(new StackFrame(frameId, frame.FunctionName,
-                    new Source(path.basename(frame.FileName), this.convertDebuggerPathToClient(frame.FileName)),
-                    this.convertDebuggerLineToClient(frame.LineNo - 1),
-                    0));
-            }
+            let frames = pyThread.Frames.map(frame => {
+                return validatePath(this.convertDebuggerPathToClient(frame.FileName)).then(fileName => {
+                    let frameId = this._pythonStackFrames.create(frame);
+                    if (fileName.length === 0) {
+                        return new StackFrame(frameId, frame.FunctionName);
+                    }
+                    else {
+                        return new StackFrame(frameId, frame.FunctionName,
+                            new Source(path.basename(frame.FileName), fileName),
+                            this.convertDebuggerLineToClient(frame.LineNo - 1),
+                            0);
+                    }
+                });
+            });
+            Promise.all<StackFrame>(frames).then(resolvedFrames => {
+                response.body = {
+                    stackFrames: resolvedFrames
+                };
 
-            response.body = {
-                stackFrames: frames
-            };
-
-            this.sendResponse(response);
+                this.sendResponse(response);
+            });
         });
     }
     protected stepInRequest(response: DebugProtocol.StepInResponse): void {

@@ -2,6 +2,23 @@
 
 import {IPythonProcess, IPythonThread, IPythonModule, IPythonEvaluationResult} from "./Contracts";
 import * as path from "path";
+import * as fs from 'fs';
+
+const PathValidity: Map<string, boolean> = new Map<string, boolean>();
+export function validatePath(filePath: string): Promise<string> {
+    if (filePath.length === 0) {
+        return Promise.resolve('');
+    }
+    if (PathValidity.has(filePath)) {
+        return Promise.resolve(PathValidity.get(filePath) ? filePath : '');
+    }
+    return new Promise<string>(resolve => {
+        fs.exists(filePath, exists => {
+            PathValidity.set(filePath, exists);
+            return resolve(exists ? filePath : '');
+        });
+    });
+}
 
 export function CreatePythonThread(id: number, isWorker: boolean, process: IPythonProcess, name: string = ""): IPythonThread {
     return {
