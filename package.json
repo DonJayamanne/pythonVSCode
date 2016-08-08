@@ -2,7 +2,7 @@
   "name": "python",
   "displayName": "Python",
   "description": "Linting, Debugging (multi-threaded, remote), Intellisense, code formatting, refactoring, snippets, and more.",
-  "version": "0.3.20",
+  "version": "0.3.21",
   "publisher": "donjayamanne",
   "author": {
     "name": "Don Jayamanne",
