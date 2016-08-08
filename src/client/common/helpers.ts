@@ -1,3 +1,4 @@
+const tmp = require('tmp');
 
 export interface Deferred<T> {
     resolve: (value?: T | PromiseLike<T>) => void;
@@ -17,4 +18,20 @@ export function createDeferred<T>(): Deferred<T> {
     return {
         resolve, reject, promise
     };
+}
+
+export function createTemporaryFile(extension: string, temporaryDirectory?: string): Promise<{ filePath: string, cleanupCallback: Function }> {
+    let options: any = { postfix: extension };
+    if (temporaryDirectory) {
+        options.dir = temporaryDirectory;
+    }
+
+    return new Promise<{ filePath: string, cleanupCallback: Function }>((resolve, reject) => {
+        tmp.file(options, function _tempFileCreated(err, tmpFile, fd, cleanupCallback) {
+            if (err) {
+                return reject(err);
+            }
+            resolve({ filePath: tmpFile, cleanupCallback: cleanupCallback })
+        });
+    });
 }

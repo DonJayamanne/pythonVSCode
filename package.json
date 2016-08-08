@@ -65,6 +65,11 @@
         "command": "python.refactorExtractMethod",
         "title": "Extract Method",
         "category": "Refactor"
+      },
+      {
+        "command": "python.viewTestExplorer",
+        "title": "View Test Explorer",
+        "category": "Tests"
       }
     ],
     "menus": {
@@ -230,7 +235,7 @@
             "type": "python",
             "request": "launch",
             "stopOnEntry": true,
-            "pythonPath" :"${config.python.pythonPath}",
+            "pythonPath": "${config.python.pythonPath}",
             "program": "${file}",
             "debugOptions": [
               "WaitOnAbnormalExit",
@@ -243,7 +248,7 @@
             "type": "python",
             "request": "launch",
             "stopOnEntry": true,
-            "pythonPath" :"${config.python.pythonPath}",
+            "pythonPath": "${config.python.pythonPath}",
             "program": "${file}",
             "externalConsole": true,
             "debugOptions": [
@@ -256,7 +261,7 @@
             "type": "python",
             "request": "launch",
             "stopOnEntry": true,
-            "pythonPath" :"${config.python.pythonPath}",
+            "pythonPath": "${config.python.pythonPath}",
             "program": "${workspaceRoot}/manage.py",
             "args": [
               "runserver",
@@ -274,7 +279,7 @@
             "type": "python",
             "request": "launch",
             "stopOnEntry": true,
-            "pythonPath" :"${config.python.pythonPath}",
+            "pythonPath": "${config.python.pythonPath}",
             "program": "${workspaceRoot}/console.py",
             "args": [
               "dev",
@@ -295,7 +300,7 @@
             "remoteRoot": "${workspaceRoot}",
             "port": 3000,
             "secret": "my_secret",
-            "host":"localhost"
+            "host": "localhost"
           }
         ]
       }
@@ -605,7 +610,8 @@
     "vscode-debugprotocol": "^1.0.1",
     "vscode-extension-telemetry": "0.0.5",
     "vscode-languageclient": "^1.1.0",
-    "vscode-languageserver": "^1.1.0"
+    "vscode-languageserver": "^1.1.0",
+    "xml2js": "^0.4.17"
   },
   "devDependencies": {
     "retyped-diff-match-patch-tsd-ambient": "^1.0.0-0",

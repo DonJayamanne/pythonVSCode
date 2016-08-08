@@ -19,6 +19,7 @@ import * as telemetryHelper from './common/telemetry';
 import * as telemetryContracts from './common/telemetryContracts';
 import {PythonCodeActionsProvider} from './providers/codeActionProvider';
 import {activateSimplePythonRefactorProvider} from './providers/simpleRefactorProvider';
+import * as testExplorer from './unittest/testExplorer';
 
 const PYTHON: vscode.DocumentFilter = { language: 'python', scheme: 'file' };
 let unitTestOutChannel: vscode.OutputChannel;
@@ -76,6 +77,8 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(new LintProvider(context, lintingOutChannel, vscode.workspace.rootPath));
 
     context.subscriptions.push(vscode.languages.registerCodeActionsProvider(PYTHON, new PythonCodeActionsProvider(context)));
+
+    testExplorer.activate(context, unitTestOutChannel);
 }
 
 // this method is called when your extension is deactivated
