@@ -36,13 +36,13 @@ export class RefactorProxy extends vscode.Disposable {
         this._process = null;
     }
     extractVariable<T>(document: vscode.TextDocument, name: string, filePath: string, range: vscode.Range): Promise<T> {
-        let command = `{"lookup":"extract_variable", "file":"${filePath}", "start":"${document.offsetAt(range.start)}", "end":"${document.offsetAt(range.end)}", "id":"1", "name":"${name}"}`;
-        return this.sendCommand<T>(command, REFACTOR.ExtractVariable);
+        let command = {"lookup":"extract_variable", "file":`"${filePath}"`, "start":document.offsetAt(range.start).toString(), "end":document.offsetAt(range.end).toString(), "id":"1", "name":`"${name}"`};
+        return this.sendCommand<T>(JSON.stringify(command), REFACTOR.ExtractVariable);
     }
     extractMethod<T>(document: vscode.TextDocument, name: string, filePath: string, range: vscode.Range): Promise<T> {
-        let command = `{"lookup":"extract_method", "file":"${filePath}", "start":"${document.offsetAt(range.start)}", "end":"${document.offsetAt(range.end)}", "id":"1","name":"${name}"}`;
-        return this.sendCommand<T>(command, REFACTOR.ExtractVariable);
-    }
+        let command = {"lookup":"extract_method", "file":`"${filePath}"`, "start":document.offsetAt(range.start).toString(), "end":document.offsetAt(range.end).toString(), "id":"1","name":`"${name}"`};
+        return this.sendCommand<T>(JSON.stringify(command), REFACTOR.ExtractVariable);
+    } 
     private sendCommand<T>(command: string, telemetryEvent: string): Promise<T> {
         let timer = new Delays();
         return this.initialize(this.pythonSettings.pythonPath).then(() => {

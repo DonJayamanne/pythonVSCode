@@ -244,7 +244,13 @@ class RopeRefactoring(object):
             try:
                 self._process_request(self._input.readline())
             except Exception as ex:
-                message = ex.message + '  \n' + traceback.format_exc()
+                message = ""
+                try:
+                    message = ex.message
+                except:     
+                    pass
+                               
+                message = message + '  \n' + traceback.format_exc()
                 sys.stderr.write('$ERROR' + str(len(message)) + ':' + message)
                 sys.stderr.flush()
 
