@@ -36,13 +36,13 @@ export class RefactorProxy extends vscode.Disposable {
         this._process = null;
     }
     extractVariable<T>(document: vscode.TextDocument, name: string, filePath: string, range: vscode.Range): Promise<T> {
-        let command = {"lookup":"extract_variable", "file":filePath, "start":document.offsetAt(range.start).toString(), "end":document.offsetAt(range.end).toString(), "id":"1", "name":name};
+        let command = { "lookup": "extract_variable", "file": filePath, "start": document.offsetAt(range.start).toString(), "end": document.offsetAt(range.end).toString(), "id": "1", "name": name };
         return this.sendCommand<T>(JSON.stringify(command), REFACTOR.ExtractVariable);
     }
     extractMethod<T>(document: vscode.TextDocument, name: string, filePath: string, range: vscode.Range): Promise<T> {
-        let command = {"lookup":"extract_method", "file":filePath, "start":document.offsetAt(range.start).toString(), "end":document.offsetAt(range.end).toString(), "id":"1","name":name};
+        let command = { "lookup": "extract_method", "file": filePath, "start": document.offsetAt(range.start).toString(), "end": document.offsetAt(range.end).toString(), "id": "1", "name": name };
         return this.sendCommand<T>(JSON.stringify(command), REFACTOR.ExtractVariable);
-    } 
+    }
     private sendCommand<T>(command: string, telemetryEvent: string): Promise<T> {
         let timer = new Delays();
         return this.initialize(this.pythonSettings.pythonPath).then(() => {
@@ -83,37 +83,29 @@ export class RefactorProxy extends vscode.Disposable {
         });
     }
     private handleStdError(data: string) {
+        // Possible there was an exception in parsing the data returned
+        // So append the data then parse it
         let dataStr = this._previousStdErrData = this._previousStdErrData + data + '';
+        let errorResponse: { message: string, traceback: string }[];
+        try {
+            errorResponse = dataStr.split(/\r?\n/g).filter(line => line.length > 0).map(resp => JSON.parse(resp));
+            this._previousStdErrData = '';
+        }
+        catch (ex) {
+            // Possible we've only received part of the data, hence don't clear previousData
+            return;
+        }
+
+        if (typeof errorResponse[0].message !== 'string' || errorResponse[0].message.length === 0) {
+            errorResponse[0].message = errorResponse[0].traceback.split(/\r?\n/g).pop();
+        }
+        let errorMessage = errorResponse[0].message + '\n' + errorResponse[0].traceback;
+
         if (this._startedSuccessfully) {
-            // The Rope library can send other (warning) messages in the stderr stream
-            // Hence look for the prefix, if we don't have the prefix ignore them
-            if (!dataStr.startsWith(ERROR_PREFIX)) {
-                this._previousStdErrData = '';
-                return;
-            }
-
-            let lengthOfHeader = dataStr.indexOf(':') + 1;
-            let lengthOfMessage = parseInt(dataStr.substring(ERROR_PREFIX.length, lengthOfHeader - 1));
-            if (dataStr.length >= lengthOfMessage + lengthOfHeader) {
-                this._previousStdErrData = '';
-                this.dispose();
-
-                let errorLines = dataStr.substring(lengthOfHeader).split(/\r?\n/g);
-                let hasErrorMessage = errorLines[0].trim().length > 0;
-                errorLines = errorLines.filter(line => line.length > 0);
-                let errorMessage = errorLines.join('\n');
-
-                // If there is no error message take the last line from the error (stack)
-                // As this generally contains the actual error
-                if (!hasErrorMessage) {
-                    errorMessage = errorLines[errorLines.length - 1].trim() + '\n' + errorMessage;
-                }
-
-                this._commandReject(`Refactor failed. ${errorMessage}`);
-            }
+            this._commandReject(`Refactor failed. ${errorMessage}`);
         }
         else {
-            this._initializeReject(`Refactor failed. ${dataStr}`);
+            this._initializeReject(`Refactor failed. ${errorMessage}`);
         }
     }
     private handleError(error: Error) {

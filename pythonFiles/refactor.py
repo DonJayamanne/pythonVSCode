@@ -247,11 +247,13 @@ class RopeRefactoring(object):
                 message = ""
                 try:
                     message = ex.message
-                except:     
+                except:
                     pass
-                               
+
                 message = message + '  \n' + traceback.format_exc()
-                sys.stderr.write('$ERROR' + str(len(message)) + ':' + message)
+                jsonMessage = {'error': True, 'message': message,
+                               'traceback': traceback.format_exc()}
+                sys.stderr.write(json.dumps(jsonMessage))
                 sys.stderr.flush()
 
 if __name__ == '__main__':
