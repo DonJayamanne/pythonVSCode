@@ -227,5 +227,10 @@
             "\t${block}"
         ],
         "description": "Code snippet for a async with statement"
+    },
+    "pdb": {
+        "prefix": "pdb",
+        "body": "import pdb; pdb.set_trace()",
+        "description": "Code snippet for pdb debug"
     }
 }
