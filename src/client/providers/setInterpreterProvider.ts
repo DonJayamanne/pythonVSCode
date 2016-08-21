@@ -56,7 +56,7 @@ function suggestionToQuickPickItem(suggestion: PythonPathSuggestion) : vscode.Qu
     return {
         label: suggestion.label,
         description: suggestion.type,
-        detail: suggestion.path
+        detail: utils.IS_WINDOWS ? suggestion.path.replace(/\\/g, "/") : suggestion.path
     }
 }
 
