@@ -14,10 +14,7 @@ interface PythonPathSuggestion {
     type: string   // conda
 }
 
-let currentPythonPath: string 
-
-export function activateSetInterpreterProvider(context: vscode.ExtensionContext, settings: settings.IPythonSettings) {
-    currentPythonPath = settings.pythonPath
+export function activateSetInterpreterProvider() {
     vscode.commands.registerCommand("python.setInterpreter", setInterpreter);
 }
 
@@ -79,7 +76,7 @@ function setPythonPath(path: String) {
 }
 
 function setInterpreter() {
-
+    const currentPythonPath = settings.PythonSettings.getInstance().pythonPath;
     const quickPickOptions: vscode.QuickPickOptions = {
         matchOnDetail: true,
         matchOnDescription: false,
