@@ -35,7 +35,8 @@
   "activationEvents": [
     "onLanguage:python",
     "onCommand:python.sortImports",
-    "onCommand:python.runtests"
+    "onCommand:python.runtests",
+    "onCommand:python.setInterpreter"
   ],
   "main": "./out/client/extension",
   "contributes": {
@@ -54,6 +55,11 @@
       {
         "command": "python.runtests",
         "title": "Run Unit Tests",
+        "category": "Python"
+      },
+      {
+        "command": "python.setInterpreter",
+        "title": "Set Workspace Interpreter",
         "category": "Python"
       },
       {
