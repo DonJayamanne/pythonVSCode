@@ -70,14 +70,21 @@ function suggestPythonPaths(): Promise<vscode.QuickPickItem[]> {
     );
 }
 
-function setPythonPath(path: string) {
+function setPythonPath(pythonPath: string) {
     // Waiting on https://github.com/Microsoft/vscode/issues/1396
     // For now, just let the user copy this to clipboard
     const copy_msg =  "Copy to Clipboard"
-    vscode.window.showInformationMessage(path, copy_msg)
+
+    // If the user already has .vscode/settings.json in the workspace
+    // open it for them
+    const workspaceSettingsPath = path.join(vscode.workspace.rootPath, '.vscode', 'settings.json')
+    vscode.workspace.openTextDocument(workspaceSettingsPath)
+        .then(doc => vscode.window.showTextDocument(doc));
+    
+    vscode.window.showInformationMessage(pythonPath, copy_msg)
         .then(item => {
             if (item === copy_msg) {
-                ncp.copy(path)
+                ncp.copy(pythonPath)
             }
         })
 }
