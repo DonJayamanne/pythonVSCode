@@ -4,6 +4,7 @@ import * as path  from "path";
 import * as vscode from "vscode";
 import * as settings from "./../common/configSettings";
 import * as utils from "./../common/utils";
+let ncp = require("copy-paste");
 
 // where to find the Python binary within a conda env
 const CONDA_RELATIVE_PY_PATH = utils.IS_WINDOWS ? ['python'] : ['bin', 'python'] 
@@ -69,10 +70,16 @@ function suggestPythonPaths(): Promise<vscode.QuickPickItem[]> {
     );
 }
 
-function setPythonPath(path: String) {
+function setPythonPath(path: string) {
     // Waiting on https://github.com/Microsoft/vscode/issues/1396
-    // For now, just a stub.
-    vscode.window.showInformationMessage(`Setting pythonPath: ${path}`);
+    // For now, just let the user copy this to clipboard
+    const copy_msg =  "Copy to Clipboard"
+    vscode.window.showInformationMessage(path, copy_msg)
+        .then(item => {
+            if (item === copy_msg) {
+                ncp.copy(path)
+            }
+        })
 }
 
 function setInterpreter() {
