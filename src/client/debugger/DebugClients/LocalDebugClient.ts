@@ -57,11 +57,10 @@ export class LocalDebugClient extends DebugClient {
         let ptVSToolsPath = path.join(path.dirname(currentFileName), "..", "..", "..", "..", "pythonFiles", "PythonTools");
         return path.join(ptVSToolsPath, "visualstudio_py_launcher.py");
     }
-    private displayError(error: any, context: string = "") {
-        if (!error) { return; }
+    private displayError(error: any) {
         let errorMsg = typeof error === "string" ? error : ((error.message && error.message.length > 0) ? error.message : "");
         if (errorMsg.length > 0) {
-            this.debugSession.sendEvent(new OutputEvent(context + (context.length > 0 ? ": " : "") + errorMsg + "\n", "stderr"));
+            this.debugSession.sendEvent(new OutputEvent(errorMsg, "stderr"));
         }
     }
     public LaunchApplicationToDebug(dbgServer: IDebugServer, processErrored: (error: any) => void): Promise<any> {
@@ -117,7 +116,7 @@ export class LocalDebugClient extends DebugClient {
                     //return processErrored(error);
                     return reject(error);
                 }
-                this.displayError(error, "pyProc.error");
+                this.displayError(error);
             });
             this.pyProc.stderr.setEncoding("utf8");
             this.pyProc.stderr.on("data", error => {
@@ -125,7 +124,7 @@ export class LocalDebugClient extends DebugClient {
                 if (!this.debugServer && this.debugServer.IsRunning) {
                     return;
                 }
-                this.displayError(error, "pyProc.stderr");
+                this.displayError(error);
             });
             this.pyProc.stdout.on("data", d => {
                 // This is necessary so we read the stdout of the python process
