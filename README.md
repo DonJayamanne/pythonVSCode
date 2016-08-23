@@ -28,26 +28,6 @@ For further information and details continue through to the [documentation](http
 * Any and all feedback is appreciated and welcome.
   + Please feel free to [add suggestions here](https://github.com/DonJayamanne/pythonVSCode/issues/183)
 
-## [Roadmap](https://github.com/DonJayamanne/pythonVSCode/issues/183)
-_Please note, not all of these feature may be developed.   
-Your feedback is crucial in prioritizing the items and in determining whether we shift focus our attention to some other feature request(s)._    
-* Intellisense and Linting
-  + Context actions for some linter messages
-  + Remote Interpretter
-* Miscellaneous IDE enhancements
-  + Auto-generate docstring
-  + Documentation viewer
-  + Improved integration of Unit Tests
-  + Complex code refactoring (alogn with UI to preview)
-* Integration
-  + Code coverage
-  + Profiler
-  + Integrating IPython
-* Debugging enhancements  
-  + Integration with VS Code Terminal window
-  + Securely debugging Python applications in the cloud (Azure, AWS or Google Cloud)
-  + Remote debugging over SSH
-
 ## Feature Details
 * IDE Features
  + Auto indenting
@@ -100,6 +80,26 @@ Your feedback is crucial in prioritizing the items and in determining whether we
 ![Image of Generate Features](https://raw.githubusercontent.com/DonJayamanne/pythonVSCode/master/images/general.gif)
 
 ![Image of Debugging](https://raw.githubusercontent.com/DonJayamanne/pythonVSCode/master/images/standardDebugging.gif)
+
+## [Roadmap](https://github.com/DonJayamanne/pythonVSCode/issues/183)
+_Please note, not all of these feature may be developed.   
+Your feedback is crucial in prioritizing the items and in determining whether we shift focus our attention to some other feature request(s)._    
+* Intellisense and Linting
+  + Context actions for some linter messages
+  + Remote Interpretter
+* Miscellaneous IDE enhancements
+  + Auto-generate docstring
+  + Documentation viewer
+  + Improved integration of Unit Tests
+  + Complex code refactoring (alogn with UI to preview)
+* Integration
+  + Code coverage
+  + Profiler
+  + Integrating IPython
+* Debugging enhancements  
+  + Integration with VS Code Terminal window
+  + Securely debugging Python applications in the cloud (Azure, AWS or Google Cloud)
+  + Remote debugging over SSH
 
 ## [Change Log](https://github.com/DonJayamanne/pythonVSCode/releases)
 
