@@ -15,6 +15,10 @@ interface PythonPathSuggestion {
     type: string   // conda
 }
 
+function workspaceSettingsPath() {
+    return path.join(vscode.workspace.rootPath, '.vscode', 'settings.json')
+}
+
 export function activateSetInterpreterProvider() {
     vscode.commands.registerCommand("python.setInterpreter", setInterpreter);
 }
@@ -77,8 +81,7 @@ function setPythonPath(pythonPath: string) {
 
     // If the user already has .vscode/settings.json in the workspace
     // open it for them
-    const workspaceSettingsPath = path.join(vscode.workspace.rootPath, '.vscode', 'settings.json')
-    vscode.workspace.openTextDocument(workspaceSettingsPath)
+    vscode.workspace.openTextDocument(workspaceSettingsPath())
         .then(doc => vscode.window.showTextDocument(doc));
     
     vscode.window.showInformationMessage(pythonPath, copy_msg)
@@ -89,7 +92,7 @@ function setPythonPath(pythonPath: string) {
         })
 }
 
-function setInterpreter() {
+function presentQuickPickOfSuggestedPythonPaths() {
     const currentPythonPath = settings.PythonSettings.getInstance().pythonPath;
     const quickPickOptions: vscode.QuickPickOptions = {
         matchOnDetail: true,
@@ -103,4 +106,29 @@ function setInterpreter() {
                 setPythonPath(value.detail);
             }
         })
+}
+
+function setInterpreter() {
+    // For now the user has to manually edit the workspace settings to change the
+    // pythonPath -> First check they have .vscode/settings.json
+    let settingsPath: string
+    try {
+        settingsPath = workspaceSettingsPath()
+    } catch (e) {
+        // We aren't even in a workspace
+        vscode.window.showInformationMessage("The interpreter can only be set within a workspace (open a folder)")
+        return
+    }
+    vscode.workspace.openTextDocument(settingsPath)
+        .then(doc => {
+                // Great, workspace file exists. Present it for copy/pasting into...
+                vscode.window.showTextDocument(doc);
+                // ...and offer the quick-pick suggestions.
+                presentQuickPickOfSuggestedPythonPaths()
+            }, 
+            () => {
+                // The user doesn't have any workspace settings!
+                // Prompt them to create one first
+                vscode.window.showInformationMessage("No workspace settings file. First, run 'Preferences: Open Workspace Settings' to create one." )
+                })
 }
