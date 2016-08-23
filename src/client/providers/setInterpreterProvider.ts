@@ -116,7 +116,7 @@ function setInterpreter() {
         settingsPath = workspaceSettingsPath()
     } catch (e) {
         // We aren't even in a workspace
-        vscode.window.showInformationMessage("The interpreter can only be set within a workspace (open a folder)")
+        vscode.window.showErrorMessage("The interpreter can only be set within a workspace (open a folder)")
         return
     }
     vscode.workspace.openTextDocument(settingsPath)
@@ -129,6 +129,6 @@ function setInterpreter() {
             () => {
                 // The user doesn't have any workspace settings!
                 // Prompt them to create one first
-                vscode.window.showInformationMessage("No workspace settings file. First, run 'Preferences: Open Workspace Settings' to create one." )
+                vscode.window.showErrorMessage("No workspace settings file. First, run 'Preferences: Open Workspace Settings' to create one." )
                 })
 }
