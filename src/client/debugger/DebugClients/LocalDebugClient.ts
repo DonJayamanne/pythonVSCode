@@ -120,11 +120,8 @@ export class LocalDebugClient extends DebugClient {
             });
             this.pyProc.stderr.setEncoding("utf8");
             this.pyProc.stderr.on("data", error => {
-                // TODO: This condition makes no sense (refactor)
-                if (!this.debugServer && this.debugServer.IsRunning) {
-                    return;
-                }
-                this.displayError(error);
+                // We don't need to display the errors as stderr output is being captured by debugger
+                // and it gets sent out to the debug client
             });
             this.pyProc.stdout.on("data", d => {
                 // This is necessary so we read the stdout of the python process
