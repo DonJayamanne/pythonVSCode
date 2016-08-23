@@ -5,7 +5,7 @@ import * as fs from 'fs';
 import * as child_process from 'child_process';
 import * as settings from './configSettings';
 
-const IS_WINDOWS = /^win/.test(process.platform);
+export const IS_WINDOWS = /^win/.test(process.platform);
 const PATH_VARIABLE_NAME = IS_WINDOWS ? 'Path' : 'PATH';
 
 const PathValidity: Map<string, boolean> = new Map<string, boolean>();
@@ -49,7 +49,7 @@ export function getPythonInterpreterDirectory(): Promise<string> {
             return resolve('');
         }
 
-        // If we can execute the python, then get the path from the fullyqualitified name
+        // If we can execute the python, then get the path from the fully qualified name
         child_process.execFile(pythonFileName, ['-c', 'print(1234)'], (error, stdout, stderr) => {
             // Yes this is a valid python path
             if (stdout.startsWith('1234')) {

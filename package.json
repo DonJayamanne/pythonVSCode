@@ -35,7 +35,8 @@
   "activationEvents": [
     "onLanguage:python",
     "onCommand:python.sortImports",
-    "onCommand:python.runtests"
+    "onCommand:python.runtests",
+    "onCommand:python.setInterpreter"
   ],
   "main": "./out/client/extension",
   "contributes": {
@@ -54,6 +55,11 @@
       {
         "command": "python.runtests",
         "title": "Run Unit Tests",
+        "category": "Python"
+      },
+      {
+        "command": "python.setInterpreter",
+        "title": "Select Workspace Interpreter",
         "category": "Python"
       },
       {
@@ -230,7 +236,7 @@
             "type": "python",
             "request": "launch",
             "stopOnEntry": true,
-            "pythonPath" :"${config.python.pythonPath}",
+            "pythonPath": "${config.python.pythonPath}",
             "program": "${file}",
             "debugOptions": [
               "WaitOnAbnormalExit",
@@ -243,7 +249,7 @@
             "type": "python",
             "request": "launch",
             "stopOnEntry": true,
-            "pythonPath" :"${config.python.pythonPath}",
+            "pythonPath": "${config.python.pythonPath}",
             "program": "${file}",
             "externalConsole": true,
             "debugOptions": [
@@ -256,7 +262,7 @@
             "type": "python",
             "request": "launch",
             "stopOnEntry": true,
-            "pythonPath" :"${config.python.pythonPath}",
+            "pythonPath": "${config.python.pythonPath}",
             "program": "${workspaceRoot}/manage.py",
             "args": [
               "runserver",
@@ -274,7 +280,7 @@
             "type": "python",
             "request": "launch",
             "stopOnEntry": true,
-            "pythonPath" :"${config.python.pythonPath}",
+            "pythonPath": "${config.python.pythonPath}",
             "program": "${workspaceRoot}/console.py",
             "args": [
               "dev",
@@ -295,7 +301,7 @@
             "remoteRoot": "${workspaceRoot}",
             "port": 3000,
             "secret": "my_secret",
-            "host":"localhost"
+            "host": "localhost"
           }
         ]
       }
@@ -593,6 +599,7 @@
     "test": "node ./node_modules/vscode/bin/test"
   },
   "dependencies": {
+    "copy-paste": "^1.3.0",
     "diff-match-patch": "^1.0.0",
     "fs-extra": "^0.30.0",
     "line-by-line": "^0.1.4",
