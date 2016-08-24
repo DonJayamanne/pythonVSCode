@@ -126,7 +126,6 @@ export class LintProvider extends vscode.Disposable {
                 
                 // Build the message and suffix the message with the name of the linter used
                 msgs.forEach(d => {
-                    d.message = `${d.message}`;
                     diagnostics.push(createDiagnostics(d, documentLines));
                 });
 
