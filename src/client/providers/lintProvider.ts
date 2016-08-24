@@ -102,7 +102,7 @@ export class LintProvider extends vscode.Disposable {
 
         this.pendingLintings.set(documentUri.fsPath, cancelToken);
         this.outputChannel.clear();
-        let promises = this.linters.map(linter => {
+        let promises: Promise<linter.ILintMessage[]>[] = this.linters.map(linter => {
             if (!linter.isEnabled()) {
                 return Promise.resolve([]);
             }
@@ -114,27 +114,29 @@ export class LintProvider extends vscode.Disposable {
             });
         });
 
-        Promise.all<linter.ILintMessage[]>(promises).then(msgs => {
-            if (cancelToken.token.isCancellationRequested) {
-                return;
-            }
+        // linters will resolve asynchronously - keep a track of all 
+        // diagnostics reported as them come in
+        let diagnostics: vscode.Diagnostic[] = [];
 
-            // Flatten the array
-            let consolidatedMessages: linter.ILintMessage[] = [];
-            msgs.forEach(lintMessages => consolidatedMessages = consolidatedMessages.concat(lintMessages));
+        promises.forEach(p => {
+            p.then(msgs => {
+                if (cancelToken.token.isCancellationRequested) {
+                    return;
+                }
+                
+                // Build the message and suffix the message with the name of the linter used
+                msgs.forEach(d => {
+                    d.message = `${d.message}`;
+                    diagnostics.push(createDiagnostics(d, documentLines));
+                });
 
-            // Limit the number of messages to the max value
-            consolidatedMessages = consolidatedMessages.filter((value, index) => index <= this.settings.linting.maxNumberOfProblems);
+                // Limit the number of messages to the max value
+                diagnostics = diagnostics.filter((value, index) => index <= this.settings.linting.maxNumberOfProblems);
 
-            // Build the message and suffix the message with the name of the linter used
-            let messages = [];
-            consolidatedMessages.forEach(d => {
-                d.message = `${d.message}`;
-                messages.push(createDiagnostics(d, documentLines));
-            });
+                // set all diagnostics found in this pass, as this method always clears existing diagnostics.
+                this.diagnosticCollection.set(documentUri, diagnostics)
 
-            this.diagnosticCollection.delete(documentUri);
-            this.diagnosticCollection.set(documentUri, messages);
-        });
+            })
+        })
     }
 }
