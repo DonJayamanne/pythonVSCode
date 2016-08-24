@@ -47,6 +47,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     sortImports.activate(context, formatOutChannel);
     activateSetInterpreterProvider();
+    activateExecInTerminalProvider();
     activateSimplePythonRefactorProvider(context, formatOutChannel);
     context.subscriptions.push(activateFormatOnSaveProvider(PYTHON, pythonSettings, formatOutChannel, vscode.workspace.rootPath));
 

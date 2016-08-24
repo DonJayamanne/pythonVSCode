@@ -34,6 +34,7 @@
   ],
   "activationEvents": [
     "onLanguage:python",
+    "onCommand:python.execInTerminal",
     "onCommand:python.sortImports",
     "onCommand:python.runtests",
     "onCommand:python.setInterpreter",
@@ -59,6 +60,11 @@
       {
         "command": "python.runtests",
         "title": "Run All Unit Tests",
+        "category": "Python"
+      },
+      {
+        "command": "python.execInTerminal",
+        "title": "Run Python file in Terminal",
         "category": "Python"
       },
       {
