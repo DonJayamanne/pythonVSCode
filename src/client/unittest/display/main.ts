@@ -30,20 +30,21 @@ export class TestResultDisplay {
         // Treat errors as a special case, as we generally wouldn't have any errors
         const statusText = [];
         const toolTip = [];
+
         if (tests.summary.passed > 0) {
-            statusText.push(`$(check) ${tests.summary.passed}`);
+            statusText.push(`${constants.Octicon_Test_Pass} ${tests.summary.passed}`);
             toolTip.push(`${tests.summary.passed} Passed`);
         }
         if (tests.summary.failures > 0) {
-            statusText.push(`$(alert) ${tests.summary.failures}`);
+            statusText.push(`${constants.Octicon_Test_Fail} ${tests.summary.failures}`);
             toolTip.push(`${tests.summary.failures} Failed`);
         }
         if (tests.summary.errors > 0) {
-            statusText.push(`$(x) ${tests.summary.errors}`);
+            statusText.push(`${constants.Octicon_Test_Error} ${tests.summary.errors}`);
             toolTip.push(`${tests.summary.errors} Error${tests.summary.errors > 1 ? 's' : ''}`);
         }
         if (tests.summary.skipped > 0) {
-            statusText.push(`$(circle-slash) ${tests.summary.skipped}`);
+            statusText.push(`${constants.Octicon_Test_Skip} ${tests.summary.skipped}`);
             toolTip.push(`${tests.summary.skipped} Skipped`);
         }
         this.statusBar.tooltip = toolTip.length === 0 ? 'No Tests Ran' : toolTip.join(', ') + ' (Tests)';

@@ -1,6 +1,6 @@
 import {QuickPickItem, window} from 'vscode';
 import * as vscode from 'vscode';
-import {Tests, TestsToRun, TestFolder, TestFile, TestFunction, TestSuite, FlattenedTestFunction} from '../common/contracts';
+import {Tests, TestsToRun, TestFolder, TestFile, TestFunction, TestSuite, FlattenedTestFunction, TestStatus} from '../common/contracts';
 import {getDiscoveredTests} from '../common/testUtils';
 import * as constants from '../../common/constants';
 
@@ -9,11 +9,8 @@ export class TestDisplay {
     }
     public displayTestUI() {
         const tests = getDiscoveredTests();
-        displayUI(tests);
+        window.showQuickPick(buildItems(tests), { matchOnDescription: true, matchOnDetail: true }).then(onItemSelected);
     }
-}
-function displayUI(tests?: Tests) {
-    window.showQuickPick(buildItems(tests), { matchOnDescription: true, matchOnDetail: true }).then(onItemSelected);
 }
 
 enum Type {
@@ -26,31 +23,57 @@ enum Type {
     RunMethod = 6,
     ViewTestOutput = 7
 }
+const statusIconMapping = new Map<TestStatus, string>();
+statusIconMapping.set(TestStatus.Pass, constants.Octicon_Test_Pass);
+statusIconMapping.set(TestStatus.Fail, constants.Octicon_Test_Fail);
+statusIconMapping.set(TestStatus.Error, constants.Octicon_Test_Error);
+statusIconMapping.set(TestStatus.Skipped, constants.Octicon_Test_Skip);
+
 interface TestItem extends QuickPickItem {
     type: Type;
     fn?: FlattenedTestFunction;
+}
+function getSummary(tests?: Tests) {
+    if (!tests || !tests.summary) {
+        return '';
+    }
+    const statusText = [];
+    if (tests.summary.passed > 0) {
+        statusText.push(`${constants.Octicon_Test_Pass} ${tests.summary.passed}`);
+    }
+    if (tests.summary.failures > 0) {
+        statusText.push(`${constants.Octicon_Test_Fail} ${tests.summary.failures}`);
+    }
+    if (tests.summary.errors > 0) {
+        statusText.push(`${constants.Octicon_Test_Error} ${tests.summary.errors}`);
+    }
+    if (tests.summary.skipped > 0) {
+        statusText.push(`${constants.Octicon_Test_Skip} ${tests.summary.skipped}`);
+    }
+    return statusText.join(', ').trim();
 }
 function buildItems(tests?: Tests): TestItem[] {
     const items: TestItem[] = [];
     items.push({ description: '', label: 'Run All Tests', type: Type.RunAll });
     items.push({ description: '', label: 'Rediscover Tests', type: Type.ReDiscover });
-    items.push({ description: '', label: 'View Test Output', type: Type.ViewTestOutput });
+    items.push({ description: '', label: 'View Test Output', type: Type.ViewTestOutput, detail: getSummary(tests) });
 
     if (!tests) {
         return items;
     }
 
-    if (tests.testFunctions.some(fn => fn.testFunction.passed === false)) {
-        items.push({ description: 'Run failed tests only', label: 'Run Failed Tests', type: Type.RunFailed });
+    if (tests.summary.failures > 0) {
+        items.push({ description: '', label: 'Run Failed Tests', type: Type.RunFailed, detail: `${constants.Octicon_Test_Fail} ${tests.summary.failures} Failed` });
     }
 
     let functionItems: TestItem[] = [];
     tests.testFunctions.forEach(fn => {
         const classPrefix = fn.parentTestSuite ? fn.parentTestSuite.name + '.' : '';
+        const icon = statusIconMapping.has(fn.testFunction.status) ? statusIconMapping.get(fn.testFunction.status) + ' ' : '';
         functionItems.push({
             description: '',
             detail: fn.parentTestFile.name,
-            label: classPrefix + fn.testFunction.name,
+            label: icon + fn.testFunction.name,
             type: Type.RunMethod,
             fn: fn
         });

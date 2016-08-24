@@ -85,7 +85,14 @@ export function updateResultsFromXmlLogFile(tests: Tests, outputXmlFile: string,
                     const xmlClassName = testcase.$.classname.replace(/\(\)/g, '').replace(/\.\./g, '.').replace(/\.\./g, '.').replace(/\.+$/, '');
                     let result = tests.testFunctions.find(fn => fn.xmlClassName === xmlClassName && fn.testFunction.name === testcase.$.name);
                     if (!result) {
-                        // oops
+                        // Possible we're dealing with nosetests, where the file name isn't returned to us
+                        // When dealing with nose tests
+                        // It is possible to have a test file named x in two separate test sub directories and have same functions/classes
+                        // And unforutnately xunit log doesn't ouput the filename
+
+                        // result = tests.testFunctions.find(fn => fn.testFunction.name === testcase.$.name &&
+                        //     fn.parentTestSuite && fn.parentTestSuite.name === testcase.$.classname);
+
                         // Look for failed file test
                         let fileTest = testcase.$.file && tests.testFiles.find(file => file.nameToRun === testcase.$.file);
                         if (fileTest && testcase.error) {
@@ -100,7 +107,7 @@ export function updateResultsFromXmlLogFile(tests: Tests, outputXmlFile: string,
                     result.testFunction.line = getSafeInt(testcase.$.line, null);
                     result.testFunction.time = parseFloat(testcase.$.time);
                     result.testFunction.passed = true;
-                    result.testFunction.status = TestStatus.Idle;
+                    result.testFunction.status = TestStatus.Pass;
 
 
                     if (testcase.failure) {

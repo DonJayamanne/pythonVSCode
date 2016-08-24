@@ -68,7 +68,6 @@ export abstract class BaseTestManager {
 
         if (!ignoreCache && this.tests && this.tests.testFunctions.length > 0) {
             this._status = TestStatus.Idle;
-            this.resetTestResults();
             return Promise.resolve(this.tests);
         }
 
@@ -130,7 +129,9 @@ export abstract class BaseTestManager {
         if (typeof args === 'object' && args !== null) {
             testsToRun = args;
         }
-        this.resetTestResults();
+        if (runFailedTests === false && testsToRun === null) {
+            this.resetTestResults();
+        }
         this._status = TestStatus.Running;
         this.createCancellationToken();
         return this.discoverTests(false, true)

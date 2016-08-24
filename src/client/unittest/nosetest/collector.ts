@@ -147,7 +147,7 @@ function parseNoseTestModuleCollectionResult(rootDirectory: string, lines: strin
             const fnName = path.extname(name).substring(1);
             const clsName = path.basename(name, path.extname(name));
             const fn: TestFunction = {
-                name: fnName, nameToRun: `${fileName}:${clsName}.${name}`,
+                name: fnName, nameToRun: `${fileName}:${clsName}.${fnName}`,
                 time: 0, functionsFailed: 0, functionsPassed: 0
             };
 

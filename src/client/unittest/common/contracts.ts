@@ -77,7 +77,8 @@ export enum TestStatus {
     Running,
     Fail,
     Error,
-    Skipped
+    Skipped,
+    Pass
 }
 export interface TestsToRun {
     testFolder?: TestFolder[];
