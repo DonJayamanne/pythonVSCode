@@ -7,7 +7,7 @@ import * as constants from '../../common/constants';
 let discoveredTests: Tests;
 
 export function displayTestErrorMessage(message: string) {
-    vscode.window.showErrorMessage('There was an error in running the unit tests.', constants.Button_Text_Tests_View_Output).then(action => {
+    vscode.window.showErrorMessage(message, constants.Button_Text_Tests_View_Output).then(action => {
         if (action === constants.Button_Text_Tests_View_Output) {
             vscode.commands.executeCommand(constants.Command_Tests_ViewOutput);
         }
