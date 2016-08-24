@@ -1,9 +1,6 @@
 "use strict";
-import * as child_process from 'child_process';
-import * as path  from "path";
 import * as vscode from "vscode";
 import * as settings from "./../common/configSettings";
-import * as utils from "./../common/utils";
 
 export function activateExecInTerminalProvider() {
     vscode.commands.registerCommand("python.execInTerminal", execInTerminal);
@@ -29,6 +26,8 @@ function execInTerminal(filePath: string) {
     }
 
     const terminal = (<any>vscode.window).createTerminal(`Ext Terminal`);
+    // Temporary workaround until a promise of terminal readiness is available:
+    // https://github.com/Tyriar/vscode-terminal-api-example/issues/2
     setTimeout(() => {
         terminal.sendText(`${currentPythonPath} ${filePath}`);
     }, 1000);
