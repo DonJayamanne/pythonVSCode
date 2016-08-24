@@ -1,10 +1,10 @@
 'use strict';
 import {PythonSettings} from '../../common/configSettings';
-import {TestsToRun, Tests} from '../contracts';
+import {TestsToRun, Tests} from '../common/contracts';
 import {runTest} from './runner';
 import * as vscode from 'vscode';
 import {discoverTests} from './collector';
-import {BaseTestManager} from '../testUtils';
+import {BaseTestManager} from '../common/baseTestManager';
 
 const settings = PythonSettings.getInstance();
 export class TestManager extends BaseTestManager {

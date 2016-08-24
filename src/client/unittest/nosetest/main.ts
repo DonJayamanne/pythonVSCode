@@ -1,10 +1,10 @@
 'use strict';
 import {PythonSettings} from '../../common/configSettings';
 import {OutputChannel, window} from 'vscode';
-import {TestsToRun, Tests} from '../contracts';
+import {TestsToRun, Tests} from '../common/contracts';
 import * as vscode from 'vscode';
 import {discoverTests} from './collector';
-import {BaseTestManager} from '../testUtils';
+import {BaseTestManager} from '../common/baseTestManager';
 import {runTest} from './runner';
 
 const settings = PythonSettings.getInstance();

@@ -3,10 +3,11 @@
 'use strict';
 import {execPythonFile} from './../../common/utils';
 import {createDeferred, createTemporaryFile} from '../../common/helpers';
-import {TestFile, TestsToRun, TestSuite, TestFunction, FlattenedTestFunction, Tests, TestStatus, FlattenedTestSuite} from '../contracts';
-import {BaseTestManager, extractBetweenDelimiters, flattenTestFiles, updateResults, convertFileToPackage} from '../testUtils';
+import {TestFile, TestsToRun, TestSuite, TestFunction, FlattenedTestFunction, Tests, TestStatus, FlattenedTestSuite} from '../common/contracts';
+import {extractBetweenDelimiters, flattenTestFiles, updateResults, convertFileToPackage} from '../common/testUtils';
+import {BaseTestManager} from '../common/baseTestManager';
 import {CancellationToken} from 'vscode';
-import {updateResultsFromXmlLogFile, PassCalculationFormulae} from '../xUnitParser';
+import {updateResultsFromXmlLogFile, PassCalculationFormulae} from '../common/xUnitParser';
 
 export function runTest(rootDirectory: string, tests: Tests, args: string[], testsToRun?: TestsToRun, stdOut?: (output: string) => void, token?: CancellationToken): Promise<Tests> {
     let testPaths = [];

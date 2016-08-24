@@ -1,9 +1,10 @@
 'use strict';
 import * as vscode from 'vscode';
-import {Tests, TestsToRun, TestFolder, TestFile, TestStatus, TestSuite, TestFunction, FlattenedTestFunction, CANCELLATION_REASON} from './contracts';
+import {Tests, TestsToRun, TestFolder, TestFile, TestStatus, TestSuite, TestFunction, FlattenedTestFunction, CANCELLATION_REASON} from './common/contracts';
 import * as nosetests from './nosetest/main';
 import * as pytest from './pytest/main';
-import {BaseTestManager, resolveValueAsTestToRun} from './testUtils';
+import {resolveValueAsTestToRun} from './common/testUtils';
+import {BaseTestManager} from './common/baseTestManager';
 import {PythonSettings} from '../common/configSettings';
 import {TestResultDisplay} from './display/main';
 import {TestFileCodeLensProvider} from './testFileCodeLensProvider';
@@ -86,12 +87,12 @@ function stopTests() {
         testManager.stop();
     }
 }
-function discoverTests(ignoreCache?: boolean, quiteMode: Boolean = false) {
+function discoverTests(ignoreCache?: boolean, quietMode: boolean = false) {
     let testManager = getTestRunner();
 
     if (testManager && (testManager.status !== TestStatus.Discovering && testManager.status !== TestStatus.Running)) {
-        if (quiteMode === true) {
-            return testManager.discoverTests(ignoreCache);
+        if (quietMode === true) {
+            return testManager.discoverTests(ignoreCache, quietMode);
         }
         else {
             testResultDisplay = testResultDisplay ? testResultDisplay : new TestResultDisplay(outChannel);

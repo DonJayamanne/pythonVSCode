@@ -1,9 +1,9 @@
 'use strict';
 import * as vscode from 'vscode';
-import {Tests, TestsToRun, TestFolder, TestFile, TestStatus, TestSuite, TestFunction, CANCELLATION_REASON} from '../contracts';
+import {Tests, TestsToRun, TestFolder, TestFile, TestStatus, TestSuite, TestFunction, CANCELLATION_REASON} from '../common/contracts';
 import {PythonSettings} from '../../common/configSettings';
 import * as constants from '../../common/constants';
-import {displayTestErrorMessage} from '../testUtils';
+import {displayTestErrorMessage} from '../common/testUtils';
 
 const settings = PythonSettings.getInstance();
 

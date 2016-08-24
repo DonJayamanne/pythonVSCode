@@ -3,11 +3,12 @@ import * as path from 'path';
 import {execPythonFile} from './../../common/utils';
 import {createDeferred, createTemporaryFile} from '../../common/helpers';
 import {OutputChannel, window} from 'vscode';
-import {TestFile, TestsToRun, TestSuite, TestFunction, FlattenedTestFunction, Tests, TestStatus, FlattenedTestSuite} from '../contracts';
+import {TestFile, TestsToRun, TestSuite, TestFunction, FlattenedTestFunction, Tests, TestStatus, FlattenedTestSuite} from '../common/contracts';
 import * as vscode from 'vscode';
-import {extractBetweenDelimiters, convertFileToPackage, flattenTestFiles, updateResults, BaseTestManager} from '../testUtils';
+import {extractBetweenDelimiters, convertFileToPackage, flattenTestFiles, updateResults} from '../common/testUtils';
+import {BaseTestManager} from '../common/baseTestManager';
 import {CancellationToken} from 'vscode';
-import {updateResultsFromXmlLogFile, PassCalculationFormulae} from '../xUnitParser';
+import {updateResultsFromXmlLogFile, PassCalculationFormulae} from '../common/xUnitParser';
 
 export function runTest(rootDirectory: string, tests: Tests, args: string[], testsToRun?: TestsToRun, stdOut?: (output: string) => void, token?: CancellationToken): Promise<any> {
     let testPaths = [];

@@ -1,8 +1,8 @@
 'use strict';
 import {execPythonFile} from './../../common/utils';
-import {TestFile, TestsToRun, TestSuite, TestFunction, FlattenedTestFunction, Tests, TestStatus, FlattenedTestSuite} from '../contracts';
+import {TestFile, TestsToRun, TestSuite, TestFunction, FlattenedTestFunction, Tests, TestStatus, FlattenedTestSuite} from '../common/contracts';
 import * as os from 'os';
-import {BaseTestManager, extractBetweenDelimiters, flattenTestFiles, updateResults, convertFileToPackage} from '../testUtils';
+import {extractBetweenDelimiters, flattenTestFiles, updateResults, convertFileToPackage} from '../common/testUtils';
 import * as vscode from 'vscode';
 
 const argsToExcludeForDiscovery = ['--lf', '--last-failed', '--markers', '-x',

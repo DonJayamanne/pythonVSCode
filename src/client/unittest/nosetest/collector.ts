@@ -1,9 +1,9 @@
 'use strict';
 import * as path from 'path';
 import {execPythonFile} from './../../common/utils';
-import {TestFile, TestsToRun, TestSuite, TestFunction, FlattenedTestFunction, Tests, TestStatus, FlattenedTestSuite} from '../contracts';
+import {TestFile, TestsToRun, TestSuite, TestFunction, FlattenedTestFunction, Tests, TestStatus, FlattenedTestSuite} from '../common/contracts';
 import * as os from 'os';
-import {extractBetweenDelimiters, convertFileToPackage, flattenTestFiles} from '../testUtils';
+import {extractBetweenDelimiters, convertFileToPackage, flattenTestFiles} from '../common/testUtils';
 import {CancellationToken} from 'vscode';
 
 const argsToExcludeForDiscovery = ['-v', '--verbose', 'l DEBUG', '--debug=DEBUG', '-x',

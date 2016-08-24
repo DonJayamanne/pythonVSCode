@@ -1,7 +1,7 @@
 import {QuickPickItem, window} from 'vscode';
 import * as vscode from 'vscode';
-import {Tests, TestsToRun, TestFolder, TestFile, TestFunction, TestSuite, FlattenedTestFunction} from '../contracts';
-import {getDiscoveredTests} from '../testUtils';
+import {Tests, TestsToRun, TestFolder, TestFile, TestFunction, TestSuite, FlattenedTestFunction} from '../common/contracts';
+import {getDiscoveredTests} from '../common/testUtils';
 import * as constants from '../../common/constants';
 
 export class TestDisplay {

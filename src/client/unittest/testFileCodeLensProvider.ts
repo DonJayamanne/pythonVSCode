@@ -3,8 +3,8 @@
 import * as vscode from 'vscode';
 import {CodeLensProvider, TextDocument, CancellationToken, CodeLens, SymbolInformation} from 'vscode';
 import * as telemetryContracts from '../common/telemetryContracts';
-import {Tests} from './contracts';
-import {getDiscoveredTests} from './testUtils';
+import {Tests} from './common/contracts';
+import {getDiscoveredTests} from './common/testUtils';
 
 export class TestFileCodeLensProvider implements CodeLensProvider {
     constructor(private context: vscode.ExtensionContext) {

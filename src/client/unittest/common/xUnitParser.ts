@@ -73,7 +73,7 @@ export function updateResultsFromXmlLogFile(tests: Tests, outputXmlFile: string,
                         break;
                     }
                     default: {
-                        throw new Error("Unknown UnitTest Pass Calculation");
+                        throw new Error("Unknown Test Pass Calculation");
                     }
                 }
 
