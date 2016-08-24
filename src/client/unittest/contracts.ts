@@ -3,7 +3,7 @@ export const CANCELLATION_REASON = 'cancelled_user_request';
 export interface TestFolder extends TestResult {
     name: string;
     testFiles: TestFile[];
-    rawName: string;
+    nameToRun: string;
     status?: TestStatus;
     folders: TestFolder[];
 }
@@ -11,7 +11,7 @@ export interface TestFile extends TestResult {
     name: string;
     functions: TestFunction[];
     suites: TestSuite[];
-    rawName: string;
+    nameToRun: string;
     xmlName: string;
     status?: TestStatus;
     errorsWhenDiscovering?: string;
@@ -22,13 +22,13 @@ export interface TestSuite extends TestResult {
     suites: TestSuite[];
     isUnitTest: Boolean;
     isInstance: Boolean;
-    rawName: string;
+    nameToRun: string;
     xmlName: string;
     status?: TestStatus;
 }
 export interface TestFunction extends TestResult {
     name: string;
-    rawName: string;
+    nameToRun: string;
     status?: TestStatus;
 }
 export interface TestResult extends Node {

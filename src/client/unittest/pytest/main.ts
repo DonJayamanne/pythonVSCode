@@ -15,11 +15,11 @@ export class TestManager extends BaseTestManager {
         let args = settings.unitTest.pyTestArgs.splice(0);
         return discoverTests(this.rootDirectory, args, this.cancellationToken);
     }
-    runTestImpl(testsToRun?: TestsToRun, runFailedTests?: boolean): Promise<any> {
+    runTestImpl(tests: Tests, testsToRun?: TestsToRun, runFailedTests?: boolean): Promise<any> {
         let args = settings.unitTest.pyTestArgs.splice(0);
         if (runFailedTests === true && args.indexOf('--lf') === -1 && args.indexOf('--last-failed') === -1) {
             args.push('--last-failed');
         }
-        return runTest(this.rootDirectory, this.tests, args, testsToRun, this.stdOut.bind(this), this.cancellationToken);
+        return runTest(this.rootDirectory, tests, args, testsToRun, this.stdOut.bind(this), this.cancellationToken);
     }
 }

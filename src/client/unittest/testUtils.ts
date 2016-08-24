@@ -2,9 +2,18 @@ import {TestFolder, TestsToRun, Tests, TestFile, TestSuite, TestFunction, TestSt
 import * as vscode from 'vscode';
 import * as os from 'os';
 import * as path from 'path';
+import * as constants from '../common/constants';
 
 let discoveredTests: Tests;
 
+export function displayTestErrorMessage(message: string) {
+    vscode.window.showErrorMessage('There was an error in running the unit tests.', constants.Button_Text_Tests_View_Output).then(action => {
+        if (action === constants.Button_Text_Tests_View_Output) {
+            vscode.commands.executeCommand(constants.Command_Tests_ViewOutput);
+        }
+    });
+
+}
 export function getDiscoveredTests(): Tests {
     return discoveredTests;
 }
@@ -13,7 +22,7 @@ function storeDiscoveredTests(tests: Tests) {
 }
 
 export abstract class BaseTestManager {
-    protected tests: Tests;
+    private tests: Tests;
     private _status: TestStatus = TestStatus.Unknown;
     private cancellationTokenSource: vscode.CancellationTokenSource;
     protected get cancellationToken(): vscode.CancellationToken {
@@ -108,14 +117,13 @@ export abstract class BaseTestManager {
                         haveErrorsInDiscovering = true;
                         this.outputChannel.appendLine('');
                         this.outputChannel.append('#'.repeat(10));
-                        this.outputChannel.append(`There was an error in identifying Unit Tests in ${file.rawName}`);
+                        this.outputChannel.append(`There was an error in identifying Unit Tests in ${file.nameToRun}`);
                         this.outputChannel.appendLine('#'.repeat(10));
                         this.outputChannel.appendLine(file.errorsWhenDiscovering);
                     }
                 });
                 if (haveErrorsInDiscovering) {
-                    vscode.window.showInformationMessage('There were some errors in disovering unit tests');
-                    this.outputChannel.show();
+                    displayTestErrorMessage('There were some errors in disovering unit tests');
                 }
                 storeDiscoveredTests(tests);
                 this.disposeCancellationToken();
@@ -153,8 +161,15 @@ export abstract class BaseTestManager {
         this._status = TestStatus.Running;
         this.createCancellationToken();
         return this.discoverTests()
-            .then(() => {
-                return this.runTestImpl(testsToRun, runFailedTests);
+            .catch(reason => {
+                displayTestErrorMessage('Errors in discovering Unit Tests, continuing with tests');
+                return <Tests>{
+                    rootTestFolders: [], testFiles: [], testFolders: [], testFunctions: [], testSuits: [],
+                    summary: { errors: 0, failures: 0, passed: 0, skipped: 0 }
+                };
+            })
+            .then(tests => {
+                return this.runTestImpl(tests, testsToRun, runFailedTests);
             }).then(() => {
                 this._status = TestStatus.Idle;
                 this.disposeCancellationToken();
@@ -171,7 +186,7 @@ export abstract class BaseTestManager {
                 return Promise.reject(reason);
             });
     }
-    abstract runTestImpl(testsToRun?: TestsToRun, runFailedTests?: boolean): Promise<any>;
+    abstract runTestImpl(tests: Tests, testsToRun?: TestsToRun, runFailedTests?: boolean): Promise<any>;
     // abstract stopImpl(): Promise<any>;
 }
 export function resolveValueAsTestToRun(name: string): TestsToRun {
@@ -181,17 +196,17 @@ export function resolveValueAsTestToRun(name: string): TestsToRun {
     let tests = getDiscoveredTests();
     if (!tests) { return null; }
 
-    let testFolders = tests.testFolders.filter(folder => folder.rawName === name || folder.name === name);
+    let testFolders = tests.testFolders.filter(folder => folder.nameToRun === name || folder.name === name);
     if (testFolders.length > 0) { return { testFolder: testFolders }; };
 
-    let testFiles = tests.testFiles.filter(file => file.rawName === name || file.name === name);
+    let testFiles = tests.testFiles.filter(file => file.nameToRun === name || file.name === name);
     if (testFiles.length > 0) { return { testFile: testFiles }; };
 
-    let testFns = tests.testFunctions.filter(fn => fn.testFunction.rawName === name).map(fn => fn.testFunction);
+    let testFns = tests.testFunctions.filter(fn => fn.testFunction.nameToRun === name || fn.testFunction.name === name).map(fn => fn.testFunction);
     if (testFns.length > 0) { return { testFunction: testFns }; };
 
     // Just return this as a test file
-    return <TestsToRun>{ testFile: [{ name: name, rawName: name, functions: [], suites: [], xmlName: name, time: 0 }] };
+    return <TestsToRun>{ testFile: [{ name: name, nameToRun: name, functions: [], suites: [], xmlName: name, time: 0 }] };
 }
 export function extractBetweenDelimiters(content: string, startDelimiter: string, endDelimiter: string): string {
     content = content.substring(content.indexOf(startDelimiter) + startDelimiter.length);
@@ -329,7 +344,7 @@ export function placeTestFilesInFolders(tests: Tests) {
                 newPath = path.join(parentPath, currentName);
             }
             if (!folderMap.has(newPath)) {
-                const testFolder: TestFolder = { name: newPath, testFiles: [], folders: [], rawName: newPath, time: 0 };
+                const testFolder: TestFolder = { name: newPath, testFiles: [], folders: [], nameToRun: newPath, time: 0 };
                 folderMap.set(newPath, testFolder);
                 if (parentFolder) {
                     parentFolder.folders.push(testFolder);

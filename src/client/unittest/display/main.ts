@@ -2,6 +2,8 @@
 import * as vscode from 'vscode';
 import {Tests, TestsToRun, TestFolder, TestFile, TestStatus, TestSuite, TestFunction, CANCELLATION_REASON} from '../contracts';
 import {PythonSettings} from '../../common/configSettings';
+import * as constants from '../../common/constants';
+import {displayTestErrorMessage} from '../testUtils';
 
 const settings = PythonSettings.getInstance();
 
@@ -14,7 +16,7 @@ export class TestResultDisplay {
         this.statusBar.dispose();
     }
     public DisplayProgressStatus(tests: Promise<Tests>) {
-        this.displayProgress('Running Tests', 'Running Python Unit Tests (Click to Stop)', 'python.stopUnitTests');
+        this.displayProgress('Running Tests', `Running Tests (Click to Stop)`, constants.Command_Tests_Stop);
         tests
             .then(this.updateTestRunWithSuccess.bind(this))
             .catch(this.updateTestRunWithFailure.bind(this))
@@ -44,26 +46,24 @@ export class TestResultDisplay {
             statusText.push(`$(circle-slash) ${tests.summary.skipped}`);
             toolTip.push(`${tests.summary.skipped} Skipped`);
         }
-        this.statusBar.tooltip = toolTip.length === 0 ? 'No Python Unit Tests Ran' : toolTip.join(', ') + ' (Python Unit Tests)';
+        this.statusBar.tooltip = toolTip.length === 0 ? 'No Tests Ran' : toolTip.join(', ') + ' (Tests)';
         this.statusBar.text = statusText.length === 0 ? 'No Tests Ran' : statusText.join(' ');
-        this.statusBar.command = 'python.viewTests';
-        this.statusBar.show();
+        this.statusBar.command = constants.Command_Tests_View_UI;
         return tests;
     }
 
     private updateTestRunWithFailure(reason: any): Promise<any> {
         this.clearProgressTicker();
-        this.statusBar.command = 'python.viewTests';
+        this.statusBar.command = constants.Command_Tests_View_UI;
         if (reason === CANCELLATION_REASON) {
             this.statusBar.text = '$(triangle-right) Run Tests';
-            this.statusBar.tooltip = 'Run Python Unit Tests';
+            this.statusBar.tooltip = 'Run Tests';
         }
         else {
             this.statusBar.text = `$(octicon-alert) Tests Failed`;
-            this.statusBar.tooltip = 'Running Python Unit Tests Failed';
-            vscode.window.showErrorMessage('There was an error in running the unit tests.');
+            this.statusBar.tooltip = 'Running Tests Failed';
+            displayTestErrorMessage('There was an error in running the tests.');
         }
-        this.statusBar.show();
         return Promise.reject(reason);
     }
 
@@ -93,7 +93,7 @@ export class TestResultDisplay {
     }
 
     public DisplayDiscoverStatus(tests: Promise<Tests>) {
-        this.displayProgress('Discovering Tests', 'Discovering Python Unit Tests (Click to Stop)', 'python.stopUnitTests');
+        this.displayProgress('Discovering Tests', 'Discovering Tests (Click to Stop)', constants.Command_Tests_Stop);
         return tests.then(tests => {
             this.updateWithDiscoverSuccess(tests);
             return tests;
@@ -106,20 +106,20 @@ export class TestResultDisplay {
     private updateWithDiscoverSuccess(tests: Tests) {
         this.clearProgressTicker();
         const haveTests = tests && (tests.testFunctions.length > 0);
-        this.statusBar.text = haveTests ? '$(triangle-right) Run Tests' : 'No Unit Tests';
-        this.statusBar.tooltip = haveTests ? 'Run Python Unit Tests' : 'No Python Unit Tests discovered';
-        this.statusBar.command = haveTests ? 'python.viewTests' : 'python.discoverTests';
+        this.statusBar.text = haveTests ? '$(triangle-right) Run Tests' : 'No Tests';
+        this.statusBar.tooltip = haveTests ? 'Run Tests' : 'No Tests discovered';
+        this.statusBar.command = haveTests ? 'python.viewTests' : constants.Command_Tests_Discover;
         this.statusBar.show();
     }
 
     private updateWithDiscoverFailure(reason: any) {
         this.clearProgressTicker();
         this.statusBar.text = `$(triangle-right) Discover Tests`;
-        this.statusBar.tooltip = 'Discover Python Unit Tests';
-        this.statusBar.command = 'python.discoverTests';
+        this.statusBar.tooltip = 'Discover Tests';
+        this.statusBar.command = constants.Command_Tests_Discover;
         this.statusBar.show();
         if (reason !== CANCELLATION_REASON) {
-            vscode.window.showErrorMessage('There was an error in discovering unit tests');
+            vscode.window.showErrorMessage('There was an error in discovering tests');
         }
     }
 }

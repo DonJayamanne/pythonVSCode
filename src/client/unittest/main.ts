@@ -10,6 +10,7 @@ import {TestFileCodeLensProvider} from './testFileCodeLensProvider';
 import {TestDisplay} from './display/picker';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as constants from '../common/constants';
 
 const settings = PythonSettings.getInstance();
 let testManager: BaseTestManager;
@@ -40,15 +41,17 @@ function dispose() {
 }
 function registerCommands(): vscode.Disposable[] {
     const disposables = [];
-    disposables.push(vscode.commands.registerCommand('python.discoverTests', (quiteMode: boolean) => {
+    disposables.push(vscode.commands.registerCommand(constants.Command_Tests_Discover, (quiteMode: boolean) => {
         // Ignore the exceptions returned
         // This command will be invoked else where in the extension
         discoverTests(true, quiteMode).catch(() => { return null; });
     }));
-    disposables.push(vscode.commands.registerCommand('python.runFailedTests', () => runTestsImpl(true)));
-    disposables.push(vscode.commands.registerCommand('python.runtests', (testId) => runTestsImpl(testId)));
-    disposables.push(vscode.commands.registerCommand('python.viewTests', () => displayUI()));
-    disposables.push(vscode.commands.registerCommand('python.stopUnitTests', () => stopTests()));
+    disposables.push(vscode.commands.registerCommand(constants.Command_Tests_Run_Failed, () => runTestsImpl(true)));
+    disposables.push(vscode.commands.registerCommand(constants.Command_Tests_Run, (testId) => runTestsImpl(testId)));
+    disposables.push(vscode.commands.registerCommand(constants.Command_Tests_View_UI, () => displayUI()));
+    disposables.push(vscode.commands.registerCommand(constants.Command_Tests_Stop, () => stopTests()));
+    disposables.push(vscode.commands.registerCommand(constants.Command_Tests_ViewOutput, () => outChannel.show()));
+
     return disposables;
 }
 
@@ -107,7 +110,7 @@ function isUri(arg: any): arg is vscode.Uri {
 }
 function isFlattenedTestFunction(arg: any): arg is FlattenedTestFunction {
     return arg && arg.testFunction && arg.xmlClassName && arg.parentTestFile &&
-        arg.parentTestSuite && typeof arg.testFunction.name === 'boolean';
+        typeof arg.testFunction.name === 'string';
 }
 function identifyTestType(arg?: vscode.Uri | TestsToRun | boolean | FlattenedTestFunction): TestsToRun | Boolean {
     if (typeof arg === 'boolean') {
@@ -137,17 +140,10 @@ function runTestsImpl(arg?: vscode.Uri | TestsToRun | boolean | FlattenedTestFun
     testResultDisplay = testResultDisplay ? testResultDisplay : new TestResultDisplay(outChannel);
     outChannel.appendLine('\n');
 
-    let runPromise = testManager.runTest(runInfo).then(tests => {
-        if (tests.testFunctions.some(current => current.testFunction.passed === false)) {
-            // Redisplay this if it was hidden, as we have errors
-            outChannel.show();
-        }
-        return tests;
-    }).catch(reason => {
+    let runPromise = testManager.runTest(runInfo).catch(reason => {
         if (reason !== CANCELLATION_REASON) {
             outChannel.appendLine('Error: ' + reason);
         }
-        outChannel.show();
         return Promise.reject(reason);
     });
 

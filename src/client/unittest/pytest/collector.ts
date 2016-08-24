@@ -109,7 +109,7 @@ function parsePyTestModuleCollectionError(lines: string[], testFiles: TestFile[]
     fileName = fileName.substr(0, fileName.lastIndexOf(' '));
 
     const currentPackage = convertFileToPackage(fileName);
-    const testFile = { functions: [], suites: [], name: fileName, rawName: fileName, xmlName: currentPackage, time: 0, errorsWhenDiscovering: lines.join('\n') };
+    const testFile = { functions: [], suites: [], name: fileName, nameToRun: fileName, xmlName: currentPackage, time: 0, errorsWhenDiscovering: lines.join('\n') };
     testFiles.push(testFile);
     parentNodes.push({ indent: 0, item: testFile });
 
@@ -126,7 +126,7 @@ function parsePyTestModuleCollectionResult(lines: string[], testFiles: TestFile[
 
         if (trimmedLine.startsWith('<Module \'')) {
             currentPackage = convertFileToPackage(name);
-            const testFile = { functions: [], suites: [], name: name, rawName: name, xmlName: currentPackage, time: 0 };
+            const testFile = { functions: [], suites: [], name: name, nameToRun: name, xmlName: currentPackage, time: 0 };
             testFiles.push(testFile);
             parentNodes.push({ indent: indent, item: testFile });
             return;
@@ -136,9 +136,9 @@ function parsePyTestModuleCollectionResult(lines: string[], testFiles: TestFile[
 
         if (trimmedLine.startsWith('<Class \'') || trimmedLine.startsWith('<UnitTestCase \'')) {
             const isUnitTest = trimmedLine.startsWith('<UnitTestCase \'');
-            const rawName = parentNode.item.rawName + `::${name}`;
+            const rawName = parentNode.item.nameToRun + `::${name}`;
             const xmlName = parentNode.item.xmlName + `.${name}`;
-            const testSuite: TestSuite = { name: name, rawName: rawName, functions: [], suites: [], isUnitTest: isUnitTest, isInstance: false, xmlName: xmlName, time: 0 };
+            const testSuite: TestSuite = { name: name, nameToRun: rawName, functions: [], suites: [], isUnitTest: isUnitTest, isInstance: false, xmlName: xmlName, time: 0 };
             parentNode.item.suites.push(testSuite);
             parentNodes.push({ indent: indent, item: testSuite });
             return;
@@ -151,64 +151,12 @@ function parsePyTestModuleCollectionResult(lines: string[], testFiles: TestFile[
             return;
         }
         if (trimmedLine.startsWith('<TestCaseFunction \'') || trimmedLine.startsWith('<Function \'')) {
-            const rawName = parentNode.item.rawName + '::' + name;
-            const fn: TestFunction = { name: name, rawName: rawName, time: 0 };
+            const rawName = parentNode.item.nameToRun + '::' + name;
+            const fn: TestFunction = { name: name, nameToRun: rawName, time: 0 };
             parentNode.item.functions.push(fn);
             return;
         }
     });
-}
-
-function parsePyTestCollectionResult(output: String) {
-    let lines = output.split(/\r?\n/g);
-    const startIndex = lines.findIndex(value => value.trim().startsWith('<Module \''));
-    if (startIndex === -1) return [];
-    lines = lines.slice(startIndex);
-
-    const testFiles: TestFile[] = [];
-    const parentNodes: { indent: number, item: TestFile | TestSuite }[] = [];
-    let currentPackage: string = '';
-
-    lines.forEach(line => {
-        const trimmedLine = line.trim();
-        const name = extractBetweenDelimiters(trimmedLine, DELIMITER, DELIMITER);
-        const indent = line.indexOf('<');
-
-        if (trimmedLine.startsWith('<Module \'')) {
-            currentPackage = convertFileToPackage(name);
-            const testFile = { functions: [], suites: [], name: name, rawName: name, xmlName: currentPackage, time: 0 };
-            testFiles.push(testFile);
-            parentNodes.push({ indent: indent, item: testFile });
-            return;
-        }
-
-        const parentNode = findParentOfCurrentItem(indent, parentNodes);
-
-        if (trimmedLine.startsWith('<Class \'') || trimmedLine.startsWith('<UnitTestCase \'')) {
-            const isUnitTest = trimmedLine.startsWith('<UnitTestCase \'');
-            const rawName = parentNode.item.rawName + `::${name}`;
-            const xmlName = parentNode.item.xmlName + `.${name}`;
-            const testSuite: TestSuite = { name: name, rawName: rawName, functions: [], suites: [], isUnitTest: isUnitTest, isInstance: false, xmlName: xmlName, time: 0 };
-            parentNode.item.suites.push(testSuite);
-            parentNodes.push({ indent: indent, item: testSuite });
-            return;
-        }
-        if (trimmedLine.startsWith('<Instance \'')) {
-            let suite = (parentNode.item as TestSuite);
-            // suite.rawName = suite.rawName + '::()';
-            // suite.xmlName = suite.xmlName + '.()';
-            suite.isInstance = true;
-            return;
-        }
-        if (trimmedLine.startsWith('<TestCaseFunction \'') || trimmedLine.startsWith('<Function \'')) {
-            const rawName = parentNode.item.rawName + '::' + name;
-            const fn: TestFunction = { name: name, rawName: rawName, time: 0 };
-            parentNode.item.functions.push(fn);
-            return;
-        }
-    });
-
-    return testFiles;
 }
 
 function findParentOfCurrentItem(indentOfCurrentItem: number, parentNodes: { indent: number, item: TestFile | TestSuite }[]): { indent: number, item: TestFile | TestSuite } {

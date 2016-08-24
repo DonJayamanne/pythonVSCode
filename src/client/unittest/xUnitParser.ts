@@ -87,7 +87,7 @@ export function updateResultsFromXmlLogFile(tests: Tests, outputXmlFile: string,
                     if (!result) {
                         // oops
                         // Look for failed file test
-                        let fileTest = testcase.$.file && tests.testFiles.find(file => file.rawName === testcase.$.file);
+                        let fileTest = testcase.$.file && tests.testFiles.find(file => file.nameToRun === testcase.$.file);
                         if (fileTest && testcase.error) {
                             fileTest.status = TestStatus.Error;
                             fileTest.passed = false;

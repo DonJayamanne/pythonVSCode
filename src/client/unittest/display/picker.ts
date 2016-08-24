@@ -2,6 +2,7 @@ import {QuickPickItem, window} from 'vscode';
 import * as vscode from 'vscode';
 import {Tests, TestsToRun, TestFolder, TestFile, TestFunction, TestSuite, FlattenedTestFunction} from '../contracts';
 import {getDiscoveredTests} from '../testUtils';
+import * as constants from '../../common/constants';
 
 export class TestDisplay {
     constructor() {
@@ -22,7 +23,8 @@ enum Type {
     RunFolder = 3,
     RunFile = 4,
     RunClass = 5,
-    RunMethod = 6
+    RunMethod = 6,
+    ViewTestOutput = 7
 }
 interface TestItem extends QuickPickItem {
     type: Type;
@@ -30,8 +32,9 @@ interface TestItem extends QuickPickItem {
 }
 function buildItems(tests?: Tests): TestItem[] {
     const items: TestItem[] = [];
-    items.push({ description: 'Run All Tests', label: 'Run All Tests', type: Type.RunAll });
-    items.push({ description: 'Rediscover unit tests', label: 'Rediscover Tests', type: Type.ReDiscover });
+    items.push({ description: '', label: 'Run All Tests', type: Type.RunAll });
+    items.push({ description: '', label: 'Rediscover Tests', type: Type.ReDiscover });
+    items.push({ description: '', label: 'View Test Output', type: Type.ViewTestOutput });
 
     if (!tests) {
         return items;
@@ -74,19 +77,23 @@ function onItemSelected(selection: TestItem) {
     let args = [];
     switch (selection.type) {
         case Type.RunAll: {
-            cmd = 'python.runtests';
+            cmd = constants.Command_Tests_Run;
             break;
         }
         case Type.ReDiscover: {
-            cmd = 'python.discoverTests';
+            cmd = constants.Command_Tests_Discover;
+            break;
+        }
+        case Type.ViewTestOutput: {
+            cmd = constants.Command_Tests_ViewOutput;
             break;
         }
         case Type.RunFailed: {
-            cmd = 'python.runFailedTests';
+            cmd = constants.Command_Tests_Run_Failed;
             break;
         }
         case Type.RunMethod: {
-            cmd = 'python.runtests';
+            cmd = constants.Command_Tests_Run;
             args.push(selection.fn);
             break;
         }

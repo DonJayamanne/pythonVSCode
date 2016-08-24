@@ -79,7 +79,9 @@ export function discoverTests(rootDirectory: string, args: string[], token: Canc
             // process the last entry
             parseNoseTestModuleCollectionResult(rootDirectory, logOutputLines, testFiles);
             // Exclude tests that don't have any functions or test suites
-            let indices = testFiles.filter(testFile => testFile.suites.length === 0 && testFile.functions.length === 0).map((testFile, index) => index);
+            let indices = testFiles.filter(testFile => {
+                return testFile.suites.length === 0 && testFile.functions.length === 0;
+            }).map((testFile, index) => index);
             indices.sort();
 
             indices.forEach((indexToRemove, index) => {
@@ -107,23 +109,36 @@ function parseNoseTestModuleCollectionResult(rootDirectory: string, lines: strin
 
             // We need to display the path relative to the current directory
             fileName = fileName.substring(rootDirectory.length + 1);
+            // we don't care about the compiled file
+            if (path.extname(fileName) === '.pyc') {
+                fileName = fileName.substring(0, fileName.length - 1);
+            }
             currentPackage = convertFileToPackage(fileName);
-            testFile = { functions: [], suites: [], name: fileName, rawName: fileName, xmlName: currentPackage, time: 0, functionsFailed: 0, functionsPassed: 0 };
+            testFile = {
+                functions: [], suites: [], name: fileName, nameToRun: fileName,
+                xmlName: currentPackage, time: 0, functionsFailed: 0, functionsPassed: 0
+            };
             testFiles.push(testFile);
             return;
         }
 
         if (line.startsWith('nose.selector: DEBUG: wantClass <class \'')) {
             let name = extractBetweenDelimiters(line, 'nose.selector: DEBUG: wantClass <class \'', '\'>? True');
-            const rawName = fileName + `:${name}`;
-            const testSuite: TestSuite = { name: path.extname(name).substring(1), rawName: rawName, functions: [], suites: [], xmlName: name, time: 0, isUnitTest: false, isInstance: false, functionsFailed: 0, functionsPassed: 0 };
+            const testSuite: TestSuite = {
+                name: path.extname(name).substring(1), nameToRun: fileName + `:${name}`,
+                functions: [], suites: [], xmlName: name, time: 0, isUnitTest: false,
+                isInstance: false, functionsFailed: 0, functionsPassed: 0
+            };
             testFile.suites.push(testSuite);
             return;
         }
         if (line.startsWith('nose.selector: DEBUG: wantClass ')) {
             let name = extractBetweenDelimiters(line, 'nose.selector: DEBUG: wantClass ', '? True');
-            const rawName = fileName + `:${name}`;
-            const testSuite: TestSuite = { name: path.extname(name).substring(1), rawName: rawName, functions: [], suites: [], xmlName: name, time: 0, isUnitTest: false, isInstance: false, functionsFailed: 0, functionsPassed: 0 };
+            const testSuite: TestSuite = {
+                name: path.extname(name).substring(1), nameToRun: `${fileName}:.${name}`,
+                functions: [], suites: [], xmlName: name, time: 0, isUnitTest: false,
+                isInstance: false, functionsFailed: 0, functionsPassed: 0
+            };
             testFile.suites.push(testSuite);
             return;
         }
@@ -131,7 +146,10 @@ function parseNoseTestModuleCollectionResult(rootDirectory: string, lines: strin
             const name = extractBetweenDelimiters(line, 'nose.selector: DEBUG: wantMethod <unbound method ', '>? True');
             const fnName = path.extname(name).substring(1);
             const clsName = path.basename(name, path.extname(name));
-            const fn: TestFunction = { name: fnName, rawName: fnName, time: 0, functionsFailed: 0, functionsPassed: 0 };
+            const fn: TestFunction = {
+                name: fnName, nameToRun: `${fileName}:${clsName}.${name}`,
+                time: 0, functionsFailed: 0, functionsPassed: 0
+            };
 
             let cls = testFile.suites.find(suite => suite.name === clsName);
             if (!cls) {
@@ -142,7 +160,10 @@ function parseNoseTestModuleCollectionResult(rootDirectory: string, lines: strin
         }
         if (line.startsWith('nose.selector: DEBUG: wantFunction <function ')) {
             const name = extractBetweenDelimiters(line, 'nose.selector: DEBUG: wantFunction <function ', ' at ');
-            const fn: TestFunction = { name: name, rawName: name, time: 0, functionsFailed: 0, functionsPassed: 0 };
+            const fn: TestFunction = {
+                name: name, nameToRun: `${fileName}:${name}`,
+                time: 0, functionsFailed: 0, functionsPassed: 0
+            };
             if (!testFile) {
                 debugger;
             }

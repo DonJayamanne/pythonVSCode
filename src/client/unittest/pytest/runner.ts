@@ -11,16 +11,16 @@ import {updateResultsFromXmlLogFile, PassCalculationFormulae} from '../xUnitPars
 export function runTest(rootDirectory: string, tests: Tests, args: string[], testsToRun?: TestsToRun, stdOut?: (output: string) => void, token?: CancellationToken): Promise<Tests> {
     let testPaths = [];
     if (testsToRun && testsToRun.testFolder) {
-        testPaths = testPaths.concat(testsToRun.testFolder.map(f => f.rawName));
+        testPaths = testPaths.concat(testsToRun.testFolder.map(f => f.nameToRun));
     }
     if (testsToRun && testsToRun.testFile) {
-        testPaths = testPaths.concat(testsToRun.testFile.map(f => f.rawName));
+        testPaths = testPaths.concat(testsToRun.testFile.map(f => f.nameToRun));
     }
     if (testsToRun && testsToRun.testSuite) {
-        testPaths = testPaths.concat(testsToRun.testSuite.map(f => f.rawName));
+        testPaths = testPaths.concat(testsToRun.testSuite.map(f => f.nameToRun));
     }
     if (testsToRun && testsToRun.testFunction) {
-        testPaths = testPaths.concat(testsToRun.testFunction.map(f => f.rawName));
+        testPaths = testPaths.concat(testsToRun.testFunction.map(f => f.nameToRun));
     }
 
     let xmlLogFile = '';
