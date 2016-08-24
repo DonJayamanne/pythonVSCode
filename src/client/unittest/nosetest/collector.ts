@@ -4,11 +4,35 @@ import {execPythonFile} from './../../common/utils';
 import {TestFile, TestsToRun, TestSuite, TestFunction, FlattenedTestFunction, Tests, TestStatus, FlattenedTestSuite} from '../contracts';
 import * as os from 'os';
 import {extractBetweenDelimiters, convertFileToPackage, flattenTestFiles} from '../testUtils';
+import {CancellationToken} from 'vscode';
 
-export function discoverTests(rootDirectory: string, args: string[]): Promise<Tests> {
+const argsToExcludeForDiscovery = ['-v', '--verbose', 'l DEBUG', '--debug=DEBUG', '-x',
+    '--stop', '--cover-erase', '--cover-tests', '--cover-inclusive', '--cover-html',
+    '--cover-branches', '--cover-xml', '--pdb', '--pdb-failures', '--pdb-errors',
+    '--no-deprecated', '-d', '--detailed-errors', ' --failure-detail', '--process-restartworker',
+    '--with-xunit'];
+const settingsInArgsToExcludeForDiscovery = ['--verbosity', '--debug', '--debug-log',
+    '--logging-format', '--logging-datefmt', '--logging-filter', '--logging-level',
+    '--cover-package', '--cover-min-percentage', '--cover-html-dir', '--cover-xml-file',
+    '--profile-sort', '--profile-stats-file', '--profile-restrict', '--id-file',
+    '--failed', '--processes', '--process-timeout', '--xunit-file', '--xunit-testsuite-name'];
+
+export function discoverTests(rootDirectory: string, args: string[], token: CancellationToken): Promise<Tests> {
     let logOutputLines: string[] = [''];
     let testFiles: TestFile[] = [];
     let collectionCountReported = false;
+
+    // Remove unwanted arguments
+    args = args.filter(arg => {
+        if (argsToExcludeForDiscovery.indexOf(arg.trim()) !== -1) {
+            return false;
+        }
+        if (settingsInArgsToExcludeForDiscovery.some(setting => setting.indexOf(arg.trim()) === 0)) {
+            return false;
+        }
+        return true;
+    });
+
     function appendLine(line: string) {
         const lastLineIndex = logOutputLines.length - 1;
         logOutputLines[lastLineIndex] += line;

@@ -5,7 +5,17 @@ import * as os from 'os';
 import {BaseTestManager, extractBetweenDelimiters, flattenTestFiles, updateResults, convertFileToPackage} from '../testUtils';
 import * as vscode from 'vscode';
 
-export function discoverTests(rootDirectory: string, token: vscode.CancellationToken): Promise<Tests> {
+const argsToExcludeForDiscovery = ['--lf', '--last-failed', '--markers', '-x',
+    '--exitfirst', '--maxfail', '--fixtures', '--funcargs', '-pdb', '--capture',
+    '-s', ' --runxfail', ' --ff', '--failed-first', '--cache-show', '--cache-clear',
+    '-v', '--verbose', '-q', '-quiet', '-r ', '--report', '--tb', '--color',
+    '--durations', '--pastebin', '--junit-xml=path', '--junit-prefix',
+    '--result-log', '--version', '-h', '--help', '--debug'];
+const settingsInArgsToExcludeForDiscovery = ['--maxfail', '--capture',
+    '-r ', '--report', '--tb', '--color', '--durations', '--pastebin',
+    '--junit-xml=path', '--junit-prefix', '--result-log'];
+
+export function discoverTests(rootDirectory: string, args: string[], token: vscode.CancellationToken): Promise<Tests> {
     let logOutputLines: string[] = [''];
     let testFiles: TestFile[] = [];
     let parentNodes: { indent: number, item: TestFile | TestSuite }[] = [];
@@ -14,6 +24,18 @@ export function discoverTests(rootDirectory: string, token: vscode.CancellationT
     const errorFileLine = /__*( *)ERROR collecting (.*)/;
     const lastLineWithErrors = /==*.*/;
     let haveErrors = false;
+
+    // Remove unwanted arguments
+    args = args.filter(arg => {
+        if (argsToExcludeForDiscovery.indexOf(arg.trim()) !== -1) {
+            return false;
+        }
+        if (settingsInArgsToExcludeForDiscovery.some(setting => setting.indexOf(arg.trim()) === 0)) {
+            return false;
+        }
+        return true;
+    });
+
     function processOutput(output: string) {
         output.split(/\r?\n/g).forEach((line, index, lines) => {
             if (token.isCancellationRequested) {
@@ -59,7 +81,6 @@ export function discoverTests(rootDirectory: string, token: vscode.CancellationT
         });
     }
 
-    let args = [];
     return execPythonFile('py.test', args.concat(['--collect-only']), rootDirectory, false, processOutput, token)
         .then(() => {
             if (token.isCancellationRequested) {

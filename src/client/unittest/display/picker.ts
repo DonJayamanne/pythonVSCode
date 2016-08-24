@@ -41,26 +41,28 @@ function buildItems(tests?: Tests): TestItem[] {
         items.push({ description: 'Run failed tests only', label: 'Run Failed Tests', type: Type.RunFailed });
     }
 
-    const testFunctions = tests.testFunctions.slice(0).sort((a, b) => {
-        if (a.testFunction.rawName < b.testFunction.rawName) {
+    let functionItems: TestItem[] = [];
+    tests.testFunctions.forEach(fn => {
+        const classPrefix = fn.parentTestSuite ? fn.parentTestSuite.name + '.' : '';
+        functionItems.push({
+            description: '',
+            detail: fn.parentTestFile.name,
+            label: classPrefix + fn.testFunction.name,
+            type: Type.RunMethod,
+            fn: fn
+        });
+    });
+    functionItems.sort((a, b) => {
+        if (a.detail + a.label < b.detail + b.label) {
             return -1;
         }
-        if (a.testFunction.rawName > b.testFunction.rawName) {
+        if (a.detail + a.label > b.detail + b.label) {
             return 1;
         }
         return 0;
     });
 
-    testFunctions.forEach(fn => {
-        items.push({
-            description: fn.parentTestFile.name,
-            detail: fn.testFunction.rawName,
-            label: fn.testFunction.name,
-            type: Type.RunMethod,
-            fn: fn
-        });
-    });
-
+    items.push(...functionItems);
     return items;
 }
 
