@@ -88,9 +88,9 @@ export abstract class BaseTestManager {
                     if (file.errorsWhenDiscovering && file.errorsWhenDiscovering.length > 0) {
                         haveErrorsInDiscovering = true;
                         this.outputChannel.appendLine('');
-                        this.outputChannel.append('#'.repeat(10));
-                        this.outputChannel.append(`There was an error in identifying Unit Tests in ${file.nameToRun}`);
-                        this.outputChannel.appendLine('#'.repeat(10));
+                        this.outputChannel.append('_'.repeat(10));
+                        this.outputChannel.append(`There was an error in identifying unit tests in ${file.nameToRun}`);
+                        this.outputChannel.appendLine('_'.repeat(10));
                         this.outputChannel.appendLine(file.errorsWhenDiscovering);
                     }
                 });
@@ -139,7 +139,7 @@ export abstract class BaseTestManager {
                 if (this.cancellationToken.isCancellationRequested) {
                     return Promise.reject(reason);
                 }
-                displayTestErrorMessage('Errors in discovering Tests, continuing with tests');
+                displayTestErrorMessage('Errors in discovering tests, continuing with tests');
                 return <Tests>{
                     rootTestFolders: [], testFiles: [], testFolders: [], testFunctions: [], testSuits: [],
                     summary: { errors: 0, failures: 0, passed: 0, skipped: 0 }

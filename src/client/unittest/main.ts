@@ -5,7 +5,7 @@ import * as nosetests from './nosetest/main';
 import * as pytest from './pytest/main';
 import {resolveValueAsTestToRun} from './common/testUtils';
 import {BaseTestManager} from './common/baseTestManager';
-import {PythonSettings} from '../common/configSettings';
+import {PythonSettings, IUnitTestSettings} from '../common/configSettings';
 import {TestResultDisplay} from './display/main';
 import {TestFileCodeLensProvider} from './testFileCodeLensProvider';
 import {TestDisplay} from './display/picker';
@@ -29,7 +29,10 @@ export function activate(context: vscode.ExtensionContext, outputChannel: vscode
     context.subscriptions.push(...disposables);
     // Ignore the exceptions returned
     // This function is invoked via a command which will be invoked else where in the extension
-    discoverTests().catch(() => { });
+    discoverTests(true, true).catch(() => {
+        // Ignore the errors
+        let x = '';
+    });
     settings.addListener('change', onConfigChanged);
 }
 function dispose() {
@@ -57,22 +60,69 @@ function registerCommands(): vscode.Disposable[] {
 }
 
 function displayUI() {
+    let testManager = getTestRunner();
+    if (!testManager) {
+        return displayTestFrameworkError();
+    }
+
     testDisplay = testDisplay ? testDisplay : new TestDisplay();
     testDisplay.displayTestUI();
 }
 
-let uniTestSettings = JSON.stringify(settings.unitTest);
+let uniTestSettingsString = JSON.stringify(settings.unitTest);
 
 function onConfigChanged() {
     // Possible that a test framework has been enabled or some settings have changed
     // Meaning we need to re-load the discovered tests (as something could have changed)
     const newSettings = JSON.stringify(settings.unitTest);
-    if (uniTestSettings !== newSettings) {
-        uniTestSettings = newSettings;
-        discoverTests();
+    if (uniTestSettingsString === newSettings) {
+        return;
     }
+
+    uniTestSettingsString = newSettings;
+    if (!settings.unitTest.nosetestsEnabled && !settings.unitTest.pyTestEnabled) {
+        if (testResultDisplay) {
+            testResultDisplay.enabled = false;
+        }
+
+        if (testManager) {
+            testManager.stop();
+            testManager = null;
+        }
+        if (pyTestManager) {
+            pyTestManager.dispose();
+            pyTestManager = null;
+        }
+        if (nosetestManager) {
+            nosetestManager.dispose();
+            nosetestManager = null;
+        }
+        return;
+    }
+
+    if (testResultDisplay) {
+        testResultDisplay.enabled = true;
+    }
+
+    // No need to display errors
+    discoverTests(true, true);
+}
+function displayTestFrameworkError() {
+    if (settings.unitTest.pyTestEnabled && settings.unitTest.nosetestsEnabled) {
+        vscode.window.showErrorMessage("Enable only one of the test frameworks (nosetest or pytest), not both.")
+    }
+    else {
+        vscode.window.showInformationMessage('Please enable one of the test frameworks (pytest or nosetest)');
+    }
+    return null;
 }
 function getTestRunner() {
+    if (settings.unitTest.pyTestEnabled && settings.unitTest.nosetestsEnabled) {
+        return null;
+    }
+    else if (settings.unitTest.nosetestsEnabled) {
+        return nosetestManager = nosetestManager ? nosetestManager : new nosetests.TestManager(vscode.workspace.rootPath, outChannel);
+    }
     if (settings.unitTest.pyTestEnabled) {
         return pyTestManager = pyTestManager ? pyTestManager : new pytest.TestManager(vscode.workspace.rootPath, outChannel);
     }
@@ -89,15 +139,16 @@ function stopTests() {
 }
 function discoverTests(ignoreCache?: boolean, quietMode: boolean = false) {
     let testManager = getTestRunner();
+    if (!testManager) {
+        if (!quietMode) {
+            displayTestFrameworkError();
+        }
+        return Promise.resolve(null);
+    }
 
     if (testManager && (testManager.status !== TestStatus.Discovering && testManager.status !== TestStatus.Running)) {
-        if (quietMode === true) {
-            return testManager.discoverTests(ignoreCache, quietMode);
-        }
-        else {
-            testResultDisplay = testResultDisplay ? testResultDisplay : new TestResultDisplay(outChannel);
-            return testResultDisplay.DisplayDiscoverStatus(testManager.discoverTests(ignoreCache));
-        }
+        testResultDisplay = testResultDisplay ? testResultDisplay : new TestResultDisplay(outChannel);
+        return testResultDisplay.DisplayDiscoverStatus(testManager.discoverTests(ignoreCache, quietMode), quietMode);
     }
     else {
         return Promise.resolve(null);
@@ -131,8 +182,7 @@ function identifyTestType(arg?: vscode.Uri | TestsToRun | boolean | FlattenedTes
 function runTestsImpl(arg?: vscode.Uri | TestsToRun | boolean | FlattenedTestFunction) {
     let testManager = getTestRunner();
     if (!testManager) {
-        vscode.window.showInformationMessage('Please enable one of the test frameworks (pytest or nosetest)');
-        return;
+        return displayTestFrameworkError();
     }
 
     // lastRanTests = testsToRun;

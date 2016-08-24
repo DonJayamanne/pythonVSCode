@@ -15,6 +15,14 @@ export class TestResultDisplay {
     public dispose() {
         this.statusBar.dispose();
     }
+    public set enabled(enable: boolean) {
+        if (enable) {
+            this.statusBar.show();
+        }
+        else {
+            this.statusBar.hide();
+        }
+    }
     public DisplayProgressStatus(tests: Promise<Tests>) {
         this.displayProgress('Running Tests', `Running Tests (Click to Stop)`, constants.Command_Tests_Stop);
         tests
@@ -93,13 +101,13 @@ export class TestResultDisplay {
         this.discoverCounter = 0;
     }
 
-    public DisplayDiscoverStatus(tests: Promise<Tests>) {
+    public DisplayDiscoverStatus(tests: Promise<Tests>, quietMode: boolean = false) {
         this.displayProgress('Discovering Tests', 'Discovering Tests (Click to Stop)', constants.Command_Tests_Stop);
         return tests.then(tests => {
             this.updateWithDiscoverSuccess(tests);
             return tests;
         }).catch(reason => {
-            this.updateWithDiscoverFailure(reason);
+            this.updateWithDiscoverFailure(reason, quietMode);
             return Promise.reject(reason);
         });
     }
@@ -113,13 +121,13 @@ export class TestResultDisplay {
         this.statusBar.show();
     }
 
-    private updateWithDiscoverFailure(reason: any) {
+    private updateWithDiscoverFailure(reason: any, quietMode: boolean = false) {
         this.clearProgressTicker();
         this.statusBar.text = `$(triangle-right) Discover Tests`;
         this.statusBar.tooltip = 'Discover Tests';
         this.statusBar.command = constants.Command_Tests_Discover;
         this.statusBar.show();
-        if (reason !== CANCELLATION_REASON) {
+        if (reason !== CANCELLATION_REASON && !quietMode) {
             vscode.window.showErrorMessage('There was an error in discovering tests');
         }
     }

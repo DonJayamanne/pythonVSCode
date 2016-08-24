@@ -39,16 +39,17 @@ function getSummary(tests?: Tests) {
     }
     const statusText = [];
     if (tests.summary.passed > 0) {
-        statusText.push(`${constants.Octicon_Test_Pass} ${tests.summary.passed}`);
+        statusText.push(`${constants.Octicon_Test_Pass} ${tests.summary.passed} Passed`);
     }
     if (tests.summary.failures > 0) {
-        statusText.push(`${constants.Octicon_Test_Fail} ${tests.summary.failures}`);
+        statusText.push(`${constants.Octicon_Test_Fail} ${tests.summary.failures} Failed`);
     }
     if (tests.summary.errors > 0) {
-        statusText.push(`${constants.Octicon_Test_Error} ${tests.summary.errors}`);
+        const plural = tests.summary.errors === 1 ? '' : 's';
+        statusText.push(`${constants.Octicon_Test_Error} ${tests.summary.errors} Error` + plural);
     }
     if (tests.summary.skipped > 0) {
-        statusText.push(`${constants.Octicon_Test_Skip} ${tests.summary.skipped}`);
+        statusText.push(`${constants.Octicon_Test_Skip} ${tests.summary.skipped} Skipped`);
     }
     return statusText.join(', ').trim();
 }
@@ -69,11 +70,10 @@ function buildItems(tests?: Tests): TestItem[] {
     let functionItems: TestItem[] = [];
     tests.testFunctions.forEach(fn => {
         const classPrefix = fn.parentTestSuite ? fn.parentTestSuite.name + '.' : '';
-        const icon = statusIconMapping.has(fn.testFunction.status) ? statusIconMapping.get(fn.testFunction.status) + ' ' : '';
         functionItems.push({
             description: '',
             detail: fn.parentTestFile.name,
-            label: icon + fn.testFunction.name,
+            label: fn.testFunction.name,
             type: Type.RunMethod,
             fn: fn
         });
