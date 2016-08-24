@@ -1,4 +1,5 @@
 export var Command_Set_Interpreter = 'python.setInterpreter';
+export var Command_Exec_In_Terminal = 'python.execInTerminal';
 export var Command_Tests_View_UI = 'python.viewTests';
 export var Command_Tests_Discover = 'python.discoverTests';
 export var Command_Tests_Run_Failed = 'python.runFailedTests';
