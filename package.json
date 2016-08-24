@@ -594,6 +594,11 @@
           "items": {
             "type": "string"
           }
+        },
+        "python.unitTest.outputWindow": {
+          "type": "string",
+          "default": "Python",
+          "description": "The output window name for the unit test messages, defaults to Python output window."
         }
       }
     }
