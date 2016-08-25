@@ -9,7 +9,7 @@ let discoveredTests: Tests;
 export function displayTestErrorMessage(message: string) {
     vscode.window.showErrorMessage(message, constants.Button_Text_Tests_View_Output).then(action => {
         if (action === constants.Button_Text_Tests_View_Output) {
-            vscode.commands.executeCommand(constants.Command_Tests_ViewOutput);
+            vscode.commands.executeCommand(constants.Commands.Tests_ViewOutput);
         }
     });
 

@@ -24,10 +24,10 @@ enum Type {
     ViewTestOutput = 7
 }
 const statusIconMapping = new Map<TestStatus, string>();
-statusIconMapping.set(TestStatus.Pass, constants.Octicon_Test_Pass);
-statusIconMapping.set(TestStatus.Fail, constants.Octicon_Test_Fail);
-statusIconMapping.set(TestStatus.Error, constants.Octicon_Test_Error);
-statusIconMapping.set(TestStatus.Skipped, constants.Octicon_Test_Skip);
+statusIconMapping.set(TestStatus.Pass, constants.Octicons.Test_Pass);
+statusIconMapping.set(TestStatus.Fail, constants.Octicons.Test_Fail);
+statusIconMapping.set(TestStatus.Error, constants.Octicons.Test_Error);
+statusIconMapping.set(TestStatus.Skipped, constants.Octicons.Test_Skip);
 
 interface TestItem extends QuickPickItem {
     type: Type;
@@ -39,17 +39,17 @@ function getSummary(tests?: Tests) {
     }
     const statusText = [];
     if (tests.summary.passed > 0) {
-        statusText.push(`${constants.Octicon_Test_Pass} ${tests.summary.passed} Passed`);
+        statusText.push(`${constants.Octicons.Test_Pass} ${tests.summary.passed} Passed`);
     }
     if (tests.summary.failures > 0) {
-        statusText.push(`${constants.Octicon_Test_Fail} ${tests.summary.failures} Failed`);
+        statusText.push(`${constants.Octicons.Test_Fail} ${tests.summary.failures} Failed`);
     }
     if (tests.summary.errors > 0) {
         const plural = tests.summary.errors === 1 ? '' : 's';
-        statusText.push(`${constants.Octicon_Test_Error} ${tests.summary.errors} Error` + plural);
+        statusText.push(`${constants.Octicons.Test_Error} ${tests.summary.errors} Error` + plural);
     }
     if (tests.summary.skipped > 0) {
-        statusText.push(`${constants.Octicon_Test_Skip} ${tests.summary.skipped} Skipped`);
+        statusText.push(`${constants.Octicons.Test_Skip} ${tests.summary.skipped} Skipped`);
     }
     return statusText.join(', ').trim();
 }
@@ -64,7 +64,7 @@ function buildItems(tests?: Tests): TestItem[] {
     }
 
     if (tests.summary.failures > 0) {
-        items.push({ description: '', label: 'Run Failed Tests', type: Type.RunFailed, detail: `${constants.Octicon_Test_Fail} ${tests.summary.failures} Failed` });
+        items.push({ description: '', label: 'Run Failed Tests', type: Type.RunFailed, detail: `${constants.Octicons.Test_Fail} ${tests.summary.failures} Failed` });
     }
 
     let functionItems: TestItem[] = [];
@@ -100,23 +100,23 @@ function onItemSelected(selection: TestItem) {
     let args = [];
     switch (selection.type) {
         case Type.RunAll: {
-            cmd = constants.Command_Tests_Run;
+            cmd = constants.Commands.Tests_Run;
             break;
         }
         case Type.ReDiscover: {
-            cmd = constants.Command_Tests_Discover;
+            cmd = constants.Commands.Tests_Discover;
             break;
         }
         case Type.ViewTestOutput: {
-            cmd = constants.Command_Tests_ViewOutput;
+            cmd = constants.Commands.Tests_ViewOutput;
             break;
         }
         case Type.RunFailed: {
-            cmd = constants.Command_Tests_Run_Failed;
+            cmd = constants.Commands.Tests_Run_Failed;
             break;
         }
         case Type.RunMethod: {
-            cmd = constants.Command_Tests_Run;
+            cmd = constants.Commands.Tests_Run;
             args.push(selection.fn);
             break;
         }

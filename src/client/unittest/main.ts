@@ -45,16 +45,16 @@ function dispose() {
 }
 function registerCommands(): vscode.Disposable[] {
     const disposables = [];
-    disposables.push(vscode.commands.registerCommand(constants.Command_Tests_Discover, (quiteMode: boolean) => {
+    disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Discover, (quiteMode: boolean) => {
         // Ignore the exceptions returned
         // This command will be invoked else where in the extension
         discoverTests(true, quiteMode).catch(() => { return null; });
     }));
-    disposables.push(vscode.commands.registerCommand(constants.Command_Tests_Run_Failed, () => runTestsImpl(true)));
-    disposables.push(vscode.commands.registerCommand(constants.Command_Tests_Run, (testId) => runTestsImpl(testId)));
-    disposables.push(vscode.commands.registerCommand(constants.Command_Tests_View_UI, () => displayUI()));
-    disposables.push(vscode.commands.registerCommand(constants.Command_Tests_Stop, () => stopTests()));
-    disposables.push(vscode.commands.registerCommand(constants.Command_Tests_ViewOutput, () => outChannel.show()));
+    disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Run_Failed, () => runTestsImpl(true)));
+    disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Run, (testId) => runTestsImpl(testId)));
+    disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_View_UI, () => displayUI()));
+    disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Stop, () => stopTests()));
+    disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_ViewOutput, () => outChannel.show()));
 
     return disposables;
 }
