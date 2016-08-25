@@ -9,7 +9,7 @@ import {BaseTestManager} from '../common/baseTestManager';
 const settings = PythonSettings.getInstance();
 export class TestManager extends BaseTestManager {
     constructor(rootDirectory: string, outputChannel: vscode.OutputChannel) {
-        super(rootDirectory, outputChannel);
+        super('pytest', rootDirectory, outputChannel);
     }
     discoverTestsImpl(): Promise<Tests> {
         let args = settings.unitTest.pyTestArgs.splice(0);

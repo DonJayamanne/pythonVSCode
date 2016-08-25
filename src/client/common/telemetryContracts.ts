@@ -20,4 +20,8 @@ export namespace REFACTOR {
     export const ExtractVariable = 'REFACTOR_EXTRACT_VAR';
     export const ExtractMethod = 'REFACTOR_EXTRACT_METHOD';
 }
+export namespace UnitTests {
+    export const Run = 'UNITTEST_RUN';
+    export const Discover = 'UNITTEST_DISCOVER';
+}
 export const EVENT_LOAD = 'IDE_LOAD';

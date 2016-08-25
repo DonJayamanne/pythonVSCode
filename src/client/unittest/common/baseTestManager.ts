@@ -3,6 +3,8 @@ import {Tests, TestStatus, TestsToRun, CANCELLATION_REASON} from './contracts';
 import * as vscode from 'vscode';
 import * as os from 'os';
 import {resetTestResults, displayTestErrorMessage, storeDiscoveredTests} from './testUtils';
+import * as telemetryHelper from '../../common/telemetry';
+import * as telemetryContracts from '../../common/telemetryContracts';
 
 export abstract class BaseTestManager {
     private tests: Tests;
@@ -21,7 +23,7 @@ export abstract class BaseTestManager {
             this.cancellationTokenSource.cancel();
         }
     }
-    constructor(protected rootDirectory: string, protected outputChannel: vscode.OutputChannel) {
+    constructor(private testProvider: string, protected rootDirectory: string, protected outputChannel: vscode.OutputChannel) {
         this._status = TestStatus.Unknown;
     }
     protected stdOut(output: string) {
@@ -70,7 +72,7 @@ export abstract class BaseTestManager {
             this._status = TestStatus.Idle;
             return Promise.resolve(this.tests);
         }
-
+        let delays = new telemetryHelper.Delays();
         this._status = TestStatus.Discovering;
 
         this.cancellationTokenSource = new vscode.CancellationTokenSource();
@@ -99,6 +101,12 @@ export abstract class BaseTestManager {
                 }
                 storeDiscoveredTests(tests);
                 this.disposeCancellationToken();
+
+                delays.stop();
+                telemetryHelper.sendTelemetryEvent(telemetryContracts.UnitTests.Discover, {
+                    Test_Provider: this.testProvider
+                }, delays.toMeasures());
+
                 return tests;
             }).catch(reason => {
                 this.tests = null;
@@ -114,6 +122,12 @@ export abstract class BaseTestManager {
                 }
                 storeDiscoveredTests(null);
                 this.disposeCancellationToken();
+
+                delays.stop();
+                telemetryHelper.sendTelemetryEvent(telemetryContracts.UnitTests.Discover, {
+                    Test_Provider: this.testProvider
+                }, delays.toMeasures());
+
                 return Promise.reject(reason);
             });
     }
@@ -123,15 +137,36 @@ export abstract class BaseTestManager {
     public runTest(args: any): Promise<Tests> {
         let runFailedTests = false;
         let testsToRun: TestsToRun = null;
+        let moreInfo = {
+            Test_Provider: this.testProvider,
+            Run_Failed_Tests: 'false',
+            Run_Specific_File: 'false',
+            Run_Specific_Class: 'false',
+            Run_Specific_Function: 'false'
+        };
+
         if (typeof args === 'boolean') {
             runFailedTests = args === true;
+            moreInfo.Run_Failed_Tests = runFailedTests + '';
         }
         if (typeof args === 'object' && args !== null) {
             testsToRun = args;
+            if (Array.isArray(testsToRun.testFile) && testsToRun.testFile.length > 0) {
+                moreInfo.Run_Specific_File = 'true';
+            }
+            if (Array.isArray(testsToRun.testSuite) && testsToRun.testSuite.length > 0) {
+                moreInfo.Run_Specific_Class = 'true';
+            }
+            if (Array.isArray(testsToRun.testFunction) && testsToRun.testFunction.length > 0) {
+                moreInfo.Run_Specific_Function = 'true';
+            }
         }
         if (runFailedTests === false && testsToRun === null) {
             this.resetTestResults();
         }
+
+        let delays = new telemetryHelper.Delays();
+
         this._status = TestStatus.Running;
         this.createCancellationToken();
         return this.discoverTests(false, true)
@@ -150,6 +185,8 @@ export abstract class BaseTestManager {
             }).then(() => {
                 this._status = TestStatus.Idle;
                 this.disposeCancellationToken();
+                delays.stop();
+                telemetryHelper.sendTelemetryEvent(telemetryContracts.UnitTests.Run, moreInfo as any, delays.toMeasures());
                 return this.tests;
             }).catch(reason => {
                 if (this.cancellationToken && this.cancellationToken.isCancellationRequested) {
@@ -160,6 +197,8 @@ export abstract class BaseTestManager {
                     this._status = TestStatus.Error;
                 }
                 this.disposeCancellationToken();
+                delays.stop();
+                telemetryHelper.sendTelemetryEvent(telemetryContracts.UnitTests.Run, moreInfo as any, delays.toMeasures());
                 return Promise.reject(reason);
             });
     }
