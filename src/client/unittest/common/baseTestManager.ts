@@ -103,7 +103,7 @@ export abstract class BaseTestManager {
             }).catch(reason => {
                 this.tests = null;
                 this.discoverTestsPromise = null;
-                if (this.cancellationToken.isCancellationRequested) {
+                if (this.cancellationToken && this.cancellationToken.isCancellationRequested) {
                     reason = CANCELLATION_REASON;
                     this._status = TestStatus.Idle;
                 }
@@ -136,7 +136,7 @@ export abstract class BaseTestManager {
         this.createCancellationToken();
         return this.discoverTests(false, true)
             .catch(reason => {
-                if (this.cancellationToken.isCancellationRequested) {
+                if (this.cancellationToken && this.cancellationToken.isCancellationRequested) {
                     return Promise.reject(reason);
                 }
                 displayTestErrorMessage('Errors in discovering tests, continuing with tests');
@@ -152,7 +152,7 @@ export abstract class BaseTestManager {
                 this.disposeCancellationToken();
                 return this.tests;
             }).catch(reason => {
-                if (this.cancellationToken.isCancellationRequested) {
+                if (this.cancellationToken && this.cancellationToken.isCancellationRequested) {
                     reason = CANCELLATION_REASON;
                     this._status = TestStatus.Idle;
                 }

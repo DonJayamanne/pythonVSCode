@@ -38,7 +38,7 @@ export function discoverTests(rootDirectory: string, args: string[], token: vsco
 
     function processOutput(output: string) {
         output.split(/\r?\n/g).forEach((line, index, lines) => {
-            if (token.isCancellationRequested) {
+            if (token && token.isCancellationRequested) {
                 return;
             }
             if (line.trim().startsWith('<Module \'')) {
@@ -83,7 +83,7 @@ export function discoverTests(rootDirectory: string, args: string[], token: vsco
 
     return execPythonFile('py.test', args.concat(['--collect-only']), rootDirectory, false, processOutput, token)
         .then(() => {
-            if (token.isCancellationRequested) {
+            if (token && token.isCancellationRequested) {
                 return Promise.reject<Tests>('cancelled');
             }
 
