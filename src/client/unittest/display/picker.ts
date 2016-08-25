@@ -11,6 +11,22 @@ export class TestDisplay {
         const tests = getDiscoveredTests();
         window.showQuickPick(buildItems(tests), { matchOnDescription: true, matchOnDetail: true }).then(onItemSelected);
     }
+    public displayFunctionTestPickerUI(fileName: string, testFunctions: TestFunction[]) {
+        const tests = getDiscoveredTests();
+        if (!tests) {
+            return;
+        }
+        const testFile = tests.testFiles.find(file => file.name === fileName || file.fullPath === fileName);
+        if (!testFile) {
+            return;
+        }
+        const flattenedFunctions = tests.testFunctions.filter(fn => {
+            return fn.parentTestFile.name === testFile.name &&
+                testFunctions.some(testFunc => testFunc.nameToRun === fn.testFunction.nameToRun);
+        });
+        
+        window.showQuickPick(buildItemsForFunctions(flattenedFunctions), { matchOnDescription: true, matchOnDetail: true }).then(onItemSelected);
+    }
 }
 
 enum Type {
@@ -67,8 +83,14 @@ function buildItems(tests?: Tests): TestItem[] {
         items.push({ description: '', label: 'Run Failed Tests', type: Type.RunFailed, detail: `${constants.Octicons.Test_Fail} ${tests.summary.failures} Failed` });
     }
 
+    let functionItems = buildItemsForFunctions(tests.testFunctions);
+    items.push(...functionItems);
+    return items;
+}
+
+function buildItemsForFunctions(tests: FlattenedTestFunction[]): TestItem[] {
     let functionItems: TestItem[] = [];
-    tests.testFunctions.forEach(fn => {
+    tests.forEach(fn => {
         const classPrefix = fn.parentTestSuite ? fn.parentTestSuite.name + '.' : '';
         functionItems.push({
             description: '',
@@ -87,11 +109,8 @@ function buildItems(tests?: Tests): TestItem[] {
         }
         return 0;
     });
-
-    items.push(...functionItems);
-    return items;
+    return functionItems;
 }
-
 function onItemSelected(selection: TestItem) {
     if (!selection || typeof selection.type !== 'number') {
         return;

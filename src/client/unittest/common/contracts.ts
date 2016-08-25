@@ -9,6 +9,7 @@ export interface TestFolder extends TestResult {
 }
 export interface TestFile extends TestResult {
     name: string;
+    fullPath: string;
     functions: TestFunction[];
     suites: TestSuite[];
     nameToRun: string;
