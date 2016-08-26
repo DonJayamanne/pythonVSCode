@@ -37,6 +37,11 @@ export class TestFileCodeLensProvider implements CodeLensProvider {
 
         return getCodeLenses(document.uri, token);
     }
+
+    resolveCodeLens(codeLens: CodeLens, token: CancellationToken): CodeLens | Thenable<CodeLens> {
+        codeLens.command = { command: 'python.runtests', title: 'Test' };
+        return Promise.resolve(codeLens);
+    }
 }
 
 function getCodeLenses(documentUri: vscode.Uri, token: vscode.CancellationToken): Thenable<CodeLens[]> {
@@ -57,8 +62,14 @@ function getCodeLenses(documentUri: vscode.Uri, token: vscode.CancellationToken)
                     symbol.kind === vscode.SymbolKind.Method ||
                     symbol.kind === vscode.SymbolKind.Class;
             }).map(symbol => {
+                // This is bloody crucial, if the start and end columns are the same
+                // then vscode goes bonkers when ever you edit a line (start scrolling magically)
+                const range = new vscode.Range(symbol.location.range.start,
+                    new vscode.Position(symbol.location.range.end.line,
+                        symbol.location.range.end.character + 1));
+
                 return getCodeLens(documentUri.fsPath, allFuncsAndSuites,
-                    symbol.location.range, symbol.name, symbol.kind);
+                    range, symbol.name, symbol.kind);
             }).filter(codeLens => codeLens !== null);
         }, reason => {
             if (token.isCancellationRequested) {
@@ -84,15 +95,11 @@ function getCodeLens(fileName: string, allFuncsAndSuites: FunctionsAndSuites,
             if (!cls) {
                 return null;
             }
-            return {
-                range: range,
-                isResolved: true,
-                command: {
-                    title: constants.Text.CodeLensUnitTest,
-                    command: constants.Commands.Tests_Run,
-                    arguments: [{ testSuite: [cls] }]
-                }
-            };
+            return new CodeLens(range, {
+                title: constants.Text.CodeLensUnitTest,
+                command: constants.Commands.Tests_Run,
+                arguments: [{ testSuite: [cls] }]
+            });
         }
     }
 
@@ -104,15 +111,11 @@ function getFunctionCodeLens(filePath: string, functionsAndSuites: FunctionsAndS
 
     const fn = functionsAndSuites.functions.find(fn => fn.name === symbolName);
     if (fn) {
-        return {
-            range: range,
-            isResolved: true,
-            command: {
-                title: constants.Text.CodeLensUnitTest,
-                command: constants.Commands.Tests_Run,
-                arguments: [{ testFunction: [fn] }]
-            }
-        };
+        return new CodeLens(range, {
+            title: constants.Text.CodeLensUnitTest,
+            command: constants.Commands.Tests_Run,
+            arguments: [{ testFunction: [fn] }]
+        });
     }
 
     // Ok, possible we're dealing with parameterized unit tests
@@ -122,27 +125,19 @@ function getFunctionCodeLens(filePath: string, functionsAndSuites: FunctionsAndS
         return null;
     }
     if (functions.length == 0) {
-        return {
-            range: range,
-            isResolved: true,
-            command: {
-                title: constants.Text.CodeLensUnitTest,
-                command: constants.Commands.Tests_Run,
-                arguments: [{ testFunction: functions }]
-            }
-        };
+        return new CodeLens(range, {
+            title: constants.Text.CodeLensUnitTest,
+            command: constants.Commands.Tests_Run,
+            arguments: [{ testFunction: functions }]
+        });
     }
 
     // Find all flattened functions
-    return {
-        range: range,
-        isResolved: true,
-        command: {
-            title: constants.Text.CodeLensUnitTest + ' (Multiple)',
-            command: constants.Commands.Tests_Picker_UI,
-            arguments: [filePath, functions]
-        }
-    };
+    return new CodeLens(range, {
+        title: constants.Text.CodeLensUnitTest + ' (Multiple)',
+        command: constants.Commands.Tests_Picker_UI,
+        arguments: [filePath, functions]
+    });
 }
 
 function getAllTestSuitesAndFunctionsPerFile(testFile: TestFile): FunctionsAndSuites {
