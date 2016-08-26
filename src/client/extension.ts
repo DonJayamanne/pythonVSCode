@@ -80,6 +80,16 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.languages.registerCodeActionsProvider(PYTHON, new PythonCodeActionsProvider(context)));
 
     tests.activate(context, unitTestOutChannel);
+
+    // Possible this extension loads before the others, so lets wait for 5 seconds
+    setTimeout(disableOtherDocumentSymbolsProvider, 5000);
+}
+
+function disableOtherDocumentSymbolsProvider() {
+    const symbolsExt = vscode.extensions.getExtension('donjayamanne.language-symbols');
+    if (symbolsExt && symbolsExt.isActive) {
+        symbolsExt.exports.disableDocumentSymbolProvider(PYTHON);
+    }
 }
 
 // this method is called when your extension is deactivated
