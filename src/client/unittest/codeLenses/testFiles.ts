@@ -88,7 +88,7 @@ function getCodeLens(fileName: string, allFuncsAndSuites: FunctionsAndSuites,
     switch (symbolKind) {
         case vscode.SymbolKind.Function:
         case vscode.SymbolKind.Method: {
-            return getFunctionCodeLens(fileName, allFuncsAndSuites, symbolName, range)
+            return getFunctionCodeLens(fileName, allFuncsAndSuites, symbolName, range);
         }
         case vscode.SymbolKind.Class: {
             const cls = allFuncsAndSuites.suites.find(cls => cls.name === symbolName);
@@ -121,10 +121,10 @@ function getFunctionCodeLens(filePath: string, functionsAndSuites: FunctionsAndS
     // Ok, possible we're dealing with parameterized unit tests
     // If we have [ in the name, then this is a parameterized function
     let functions = functionsAndSuites.functions.filter(fn => fn.name.startsWith(symbolName + '[') && fn.name.endsWith(']'));
-    if (functions.length == 0) {
+    if (functions.length === 0) {
         return null;
     }
-    if (functions.length == 0) {
+    if (functions.length === 0) {
         return new CodeLens(range, {
             title: constants.Text.CodeLensUnitTest,
             command: constants.Commands.Tests_Run,
