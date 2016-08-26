@@ -48,6 +48,7 @@ function getCodeLenses(documentUri: vscode.Uri, token: vscode.CancellationToken)
     if (!file) {
         return Promise.resolve([]);
     }
+    const allFuncsAndSuites = getAllTestSuitesAndFunctionsPerFile(file);
 
     return vscode.commands.executeCommand('vscode.executeDocumentSymbolProvider', documentUri, token)
         .then((symbols: vscode.SymbolInformation[]) => {
@@ -56,7 +57,8 @@ function getCodeLenses(documentUri: vscode.Uri, token: vscode.CancellationToken)
                     symbol.kind === vscode.SymbolKind.Method ||
                     symbol.kind === vscode.SymbolKind.Class;
             }).map(symbol => {
-                return getCodeLens(documentUri.fsPath, symbol.location.range, symbol.name, symbol.kind);
+                return getCodeLens(documentUri.fsPath, allFuncsAndSuites,
+                    symbol.location.range, symbol.name, symbol.kind);
             }).filter(codeLens => codeLens !== null);
         }, reason => {
             if (token.isCancellationRequested) {
@@ -69,22 +71,13 @@ function getCodeLenses(documentUri: vscode.Uri, token: vscode.CancellationToken)
 // Move all of this rubbis into a separate file // too long
 const testParametirizedFunction = /.*\[.*\]/g;
 
-function getCodeLens(fileName: string, range: vscode.Range, symbolName: string, symbolKind: vscode.SymbolKind): vscode.CodeLens {
-    const tests = getDiscoveredTests();
-    if (!tests) {
-        return null;
-    }
-
-    const file = tests.testFiles.find(file => file.fullPath === fileName);
-    if (!file) {
-        return null;
-    }
-    const allFuncsAndSuites = getAllTestSuitesAndFunctionsPerFile(file);
+function getCodeLens(fileName: string, allFuncsAndSuites: FunctionsAndSuites,
+    range: vscode.Range, symbolName: string, symbolKind: vscode.SymbolKind): vscode.CodeLens {
 
     switch (symbolKind) {
         case vscode.SymbolKind.Function:
         case vscode.SymbolKind.Method: {
-            return getFunctionCodeLens(file.fullPath, allFuncsAndSuites, symbolName, range)
+            return getFunctionCodeLens(fileName, allFuncsAndSuites, symbolName, range)
         }
         case vscode.SymbolKind.Class: {
             const cls = allFuncsAndSuites.suites.find(cls => cls.name === symbolName);
@@ -153,8 +146,10 @@ function getFunctionCodeLens(filePath: string, functionsAndSuites: FunctionsAndS
 }
 
 function getAllTestSuitesAndFunctionsPerFile(testFile: TestFile): FunctionsAndSuites {
-    const all = { functions: testFile.functions, suites: testFile.suites };
+    const all = { functions: testFile.functions, suites: [] };
     testFile.suites.forEach(suite => {
+        all.suites.push(suite);
+
         const allChildItems = getAllTestSuitesAndFunctions(suite);
         all.functions.push(...allChildItems.functions);
         all.suites.push(...allChildItems.suites);
@@ -167,6 +162,8 @@ function getAllTestSuitesAndFunctions(testSuite: TestSuite): FunctionsAndSuites 
         all.functions.push(fn);
     });
     testSuite.suites.forEach(suite => {
+        all.suites.push(suite);
+
         const allChildItems = getAllTestSuitesAndFunctions(suite);
         all.functions.push(...allChildItems.functions);
         all.suites.push(...allChildItems.suites);
