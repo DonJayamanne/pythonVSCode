@@ -22,6 +22,7 @@ import {activateSetInterpreterProvider} from './providers/setInterpreterProvider
 import * as tests from './unittest/main';
 
 const PYTHON: vscode.DocumentFilter = { language: 'python', scheme: 'file' };
+let pythonOutputChannel: vscode.OutputChannel;
 let unitTestOutChannel: vscode.OutputChannel;
 let formatOutChannel: vscode.OutputChannel;
 let lintingOutChannel: vscode.OutputChannel;
@@ -33,17 +34,15 @@ export function activate(context: vscode.ExtensionContext) {
         CodeComplete_Has_ExtraPaths: pythonSettings.autoComplete.extraPaths.length > 0 ? 'true' : 'false',
         Format_Has_Custom_Python_Path: pythonSettings.pythonPath.length !== 'python'.length ? 'true' : 'false'
     });
-    unitTestOutChannel = vscode.window.createOutputChannel(pythonSettings.unitTest.outputWindow);
-    unitTestOutChannel.clear();
-    formatOutChannel = unitTestOutChannel;
-    lintingOutChannel = unitTestOutChannel;
+    lintingOutChannel = vscode.window.createOutputChannel(pythonSettings.linting.outputWindow);
+    formatOutChannel = lintingOutChannel;
     if (pythonSettings.unitTest.outputWindow !== pythonSettings.formatting.outputWindow) {
         formatOutChannel = vscode.window.createOutputChannel(pythonSettings.formatting.outputWindow);
         formatOutChannel.clear();
     }
-    if (pythonSettings.unitTest.outputWindow !== pythonSettings.linting.outputWindow) {
-        lintingOutChannel = vscode.window.createOutputChannel(pythonSettings.linting.outputWindow);
-        lintingOutChannel.clear();
+    if (pythonSettings.linting.outputWindow !== pythonSettings.unitTest.outputWindow) {
+        unitTestOutChannel = vscode.window.createOutputChannel(pythonSettings.unitTest.outputWindow);
+        unitTestOutChannel.clear();
     }
 
     sortImports.activate(context, formatOutChannel);
