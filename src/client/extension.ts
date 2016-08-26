@@ -36,7 +36,7 @@ export function activate(context: vscode.ExtensionContext) {
     });
     lintingOutChannel = vscode.window.createOutputChannel(pythonSettings.linting.outputWindow);
     formatOutChannel = lintingOutChannel;
-    if (pythonSettings.unitTest.outputWindow !== pythonSettings.formatting.outputWindow) {
+    if (pythonSettings.linting.outputWindow !== pythonSettings.formatting.outputWindow) {
         formatOutChannel = vscode.window.createOutputChannel(pythonSettings.formatting.outputWindow);
         formatOutChannel.clear();
     }
