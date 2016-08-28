@@ -20,6 +20,6 @@ export class TestManager extends BaseTestManager {
         if (runFailedTests === true && args.indexOf('--lf') === -1 && args.indexOf('--last-failed') === -1) {
             args.push('--last-failed');
         }
-        return runTest(this.rootDirectory, tests, args, testsToRun, this.stdOut.bind(this), this.cancellationToken);
+        return runTest(this.rootDirectory, tests, args, testsToRun, this.cancellationToken, this.outputChannel);
     }
 }

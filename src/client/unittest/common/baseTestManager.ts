@@ -26,21 +26,6 @@ export abstract class BaseTestManager {
     constructor(private testProvider: string, protected rootDirectory: string, protected outputChannel: vscode.OutputChannel) {
         this._status = TestStatus.Unknown;
     }
-    protected stdOut(output: string) {
-        this.outputChannel.append(output);
-        // output.split(/\r?\n/g).forEach((line, index, lines) => {
-        //     if (index === 0) {
-        //         if (output.startsWith(os.EOL) || lines.length > 1) {
-        //             return this.outputChannel.appendLine(line);
-        //         }
-        //         return this.outputChannel.append(line);
-        //     }
-        //     if (index === lines.length - 1) {
-        //         return this.outputChannel.append(line);
-        //     }
-        //     this.outputChannel.appendLine(line);
-        // });
-    }
     public reset() {
         this._status = TestStatus.Unknown;
         this.tests = null;
