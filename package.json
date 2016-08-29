@@ -103,13 +103,18 @@
           "command": "python.refactorExtractVariable",
           "title": "Refactor: Extract Variable",
           "group": "Refactor",
-          "when": "editorHasSelection"
+          "when": "editorHasSelection && resourceLangId == python"
         },
         {
           "command": "python.refactorExtractMethod",
           "title": "Refactor: Extract Method",
           "group": "Refactor",
-          "when": "editorHasSelection"
+          "when": "editorHasSelection && resourceLangId == python"
+        },
+        {
+          "when": "resourceLangId == python",
+          "command": "python.execInTerminal",
+          "group": "Python"
         }
       ],
       "explorer/context": [
@@ -117,7 +122,7 @@
           "command": "python.runtests",
           "group": "Python"
         },
-          {
+        {
           "when": "resourceLangId == python",
           "command": "python.execInTerminal",
           "group": "Python"
