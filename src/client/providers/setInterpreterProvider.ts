@@ -78,11 +78,6 @@ function setPythonPath(pythonPath: string) {
     // Waiting on https://github.com/Microsoft/vscode/issues/1396
     // For now, just let the user copy this to clipboard
     const copy_msg =  "Copy to Clipboard"
-
-    // If the user already has .vscode/settings.json in the workspace
-    // open it for them
-    vscode.workspace.openTextDocument(workspaceSettingsPath())
-        .then(doc => vscode.window.showTextDocument(doc));
     
     vscode.window.showInformationMessage(pythonPath, copy_msg)
         .then(item => {
@@ -119,16 +114,5 @@ function setInterpreter() {
         vscode.window.showErrorMessage("The interpreter can only be set within a workspace (open a folder)")
         return
     }
-    vscode.workspace.openTextDocument(settingsPath)
-        .then(doc => {
-                // Great, workspace file exists. Present it for copy/pasting into...
-                vscode.window.showTextDocument(doc);
-                // ...and offer the quick-pick suggestions.
-                presentQuickPickOfSuggestedPythonPaths()
-            }, 
-            () => {
-                // The user doesn't have any workspace settings!
-                // Prompt them to create one first
-                vscode.window.showErrorMessage("No workspace settings file. First, run 'Preferences: Open Workspace Settings' to create one." )
-                })
+    vscode.commands.executeCommand('workbench.action.openWorkspaceSettings').then(presentQuickPickOfSuggestedPythonPaths)
 }
