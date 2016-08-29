@@ -116,6 +116,11 @@
         {
           "command": "python.runtests",
           "group": "Python"
+        },
+          {
+          "when": "resourceLangId == python",
+          "command": "python.execInTerminal",
+          "group": "Python"
         }
       ]
     },
