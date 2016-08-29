@@ -3,9 +3,8 @@ import * as child_process from 'child_process';
 import * as path  from "path";
 import * as fs  from "fs";
 import * as vscode from "vscode";
-import * as settings from "../common/configSettings";
-import { Commands } from '../common/constants';
-import * as utils from "../common/utils";
+import * as settings from "./../common/configSettings";
+import * as utils from "./../common/utils";
 let ncp = require("copy-paste");
 
 // where to find the Python binary within a conda env
@@ -73,7 +72,7 @@ function replaceContentsOfFile(doc: vscode.TextDocument, newContent: string) {
 }
 
 export function activateSetInterpreterProvider() {
-    vscode.commands.registerCommand(Commands.Set_Interpreter, setInterpreter);
+    vscode.commands.registerCommand("python.setInterpreter", setInterpreter);
 }
 
 function lookForInterpretersInPath(pathToCheck: string): Promise<string[]> {
