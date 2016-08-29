@@ -10,7 +10,6 @@ function execInTerminal(fileUri?: vscode.Uri) {
     const currentPythonPath = settings.PythonSettings.getInstance().pythonPath;
     let filePath: string;
 
-    console.log(fileUri);
     if (fileUri === undefined) {
         const activeEditor = vscode.window.activeTextEditor;
         if (activeEditor !== undefined) {

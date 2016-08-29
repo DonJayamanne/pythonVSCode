@@ -111,6 +111,11 @@
           "title": "Refactor: Extract Method",
           "group": "Refactor",
           "when": "editorHasSelection && editorLangId == python"
+        },
+        {
+          "when": "resourceLangId == python",
+          "command": "python.execInTerminal",
+          "group": "Python"
         }
       ],
       "explorer/context": [
@@ -118,7 +123,7 @@
           "command": "python.runtests",
           "group": "Python"
         },
-          {
+        {
           "when": "resourceLangId == python",
           "command": "python.execInTerminal",
           "group": "Python"
