@@ -14,7 +14,12 @@ function execInTerminal(fileUri?: vscode.Uri) {
         const activeEditor = vscode.window.activeTextEditor;
         if (activeEditor !== undefined) {
             if (!activeEditor.document.isUntitled) {
-                filePath = activeEditor.document.fileName;
+                if (activeEditor.document.languageId == "python") {
+                    filePath = activeEditor.document.fileName;
+                } else {
+                    vscode.window.showErrorMessage('The active file is not a Python source file');
+                    return;
+                }
             } else {
                 vscode.window.showErrorMessage('The active file needs to be saved before it can be run');
                 return;
