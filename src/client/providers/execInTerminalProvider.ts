@@ -1,9 +1,10 @@
 "use strict";
 import * as vscode from "vscode";
-import * as settings from "./../common/configSettings";
+import * as settings from "../common/configSettings";
+import { Commands } from '../common/constants';
 
 export function activateExecInTerminalProvider() {
-    vscode.commands.registerCommand("python.execInTerminal", execInTerminal);
+    vscode.commands.registerCommand(Commands.Exec_In_Terminal, execInTerminal);
 }
 
 function execInTerminal(fileUri?: vscode.Uri) {

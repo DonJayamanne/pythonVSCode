@@ -1,5 +1,4 @@
 
-
 export const PythonLanguage = { language: 'python', scheme: 'file' };
 
 export namespace Commands {
