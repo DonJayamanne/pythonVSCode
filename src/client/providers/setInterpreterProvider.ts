@@ -8,6 +8,7 @@ let ncp = require("copy-paste");
 
 // where to find the Python binary within a conda env
 const CONDA_RELATIVE_PY_PATH = utils.IS_WINDOWS ? ['python'] : ['bin', 'python'] 
+const REPLACE_PYTHONPATH_REGEXP = /("python\.pythonPath"\s*:\s*)"(.*)"/;
 
 interface PythonPathSuggestion {
     label: string, // myenvname
@@ -74,17 +75,50 @@ function suggestPythonPaths(): Promise<vscode.QuickPickItem[]> {
     );
 }
 
+function replaceContentsOfFile(doc: vscode.TextDocument, newContent: string) {
+
+    const lastLine = doc.lineAt(doc.lineCount - 2);
+    const start = new vscode.Position(0, 0);
+    const end = new vscode.Position(doc.lineCount - 1, lastLine.text.length);
+
+    const textEdit = vscode.TextEdit.replace(new vscode.Range(start, end), newContent);
+    const workspaceEdit = new vscode.WorkspaceEdit()
+    workspaceEdit.set(doc.uri, [textEdit]);
+    return vscode.workspace.applyEdit(workspaceEdit).then(() => doc.save())
+}
+
 function setPythonPath(pythonPath: string) {
-    // Waiting on https://github.com/Microsoft/vscode/issues/1396
-    // For now, just let the user copy this to clipboard
-    const copy_msg =  "Copy to Clipboard"
-    
-    vscode.window.showInformationMessage(pythonPath, copy_msg)
-        .then(item => {
-            if (item === copy_msg) {
-                ncp.copy(pythonPath)
+    vscode.workspace.openTextDocument(workspaceSettingsPath())
+        .then(doc => {
+            const settingsText = doc.getText();
+            if (settingsText.search(REPLACE_PYTHONPATH_REGEXP) === -1) {
+                console.log("Can't find setting to replace.");
+                // Can't find the setting to replace - will just have to offer a Copy to Clipboard button and instruct them to edit themselves.
+                const copy_msg =  "Copy to Clipboard"
+                vscode.commands.executeCommand('workbench.action.openWorkspaceSettings');
+                vscode.window.showInformationMessage(pythonPath, copy_msg)
+                    .then(item => {
+                        if (item === copy_msg) {
+                            ncp.copy(pythonPath)
+                        }
+                    })
+            } else {
+                // Great, the user already has a setting stated that we can relibly replace!
+                const newSettingsText = settingsText.replace(REPLACE_PYTHONPATH_REGEXP, `$1"${pythonPath}"`);
+                replaceContentsOfFile(doc, newSettingsText).then(
+                    () => {
+                        vscode.window.setStatusBarMessage(`Project Interpreter set to ${pythonPath}`);
+                        // const currentPythonPath = settings.PythonSettings.getInstance().pythonPath;
+                        // console.log(currentPythonPath);
+                        // console.log(pythonPath);
+                        // if (currentPythonPath === pythonPath) {
+                        // } else {
+                        //     vscode.window.showErrorMessage(`Error in setting interpreter`);
+                        // }
+                    }
+                )
             }
-        })
+        });
 }
 
 function presentQuickPickOfSuggestedPythonPaths() {
@@ -114,5 +148,12 @@ function setInterpreter() {
         vscode.window.showErrorMessage("The interpreter can only be set within a workspace (open a folder)")
         return
     }
-    vscode.commands.executeCommand('workbench.action.openWorkspaceSettings').then(presentQuickPickOfSuggestedPythonPaths)
+    vscode.workspace.openTextDocument(workspaceSettingsPath()).then(
+        presentQuickPickOfSuggestedPythonPaths,
+        () => {
+            // No settings present yet! Trigger the opening of the workspace settings for the first time
+            // then present the picker.
+            vscode.commands.executeCommand('workbench.action.openWorkspaceSettings').then(presentQuickPickOfSuggestedPythonPaths)
+        }
+    )
 }
