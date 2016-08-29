@@ -11,7 +11,7 @@ const settings = PythonSettings.getInstance();
 
 export class TestManager extends BaseTestManager {
     constructor(rootDirectory: string, outputChannel: vscode.OutputChannel) {
-        super(rootDirectory, outputChannel);
+        super('nosetest', rootDirectory, outputChannel);
     }
     discoverTestsImpl(): Promise<Tests> {
         let args = settings.unitTest.pyTestArgs.splice(0);
@@ -22,6 +22,6 @@ export class TestManager extends BaseTestManager {
         if (runFailedTests === true && args.indexOf('--failed') === -1) {
             args.push('--failed');
         }
-        return runTest(this.rootDirectory, tests, args, testsToRun, this.stdOut.bind(this), this.cancellationToken);
+        return runTest(this.rootDirectory, tests, args, testsToRun, this.cancellationToken, this.outputChannel);
     }
 }

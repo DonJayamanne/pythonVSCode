@@ -114,9 +114,11 @@ function parseNoseTestModuleCollectionResult(rootDirectory: string, lines: strin
                 fileName = fileName.substring(0, fileName.length - 1);
             }
             currentPackage = convertFileToPackage(fileName);
+            const fullyQualifiedName = path.isAbsolute(fileName) ? fileName : path.resolve(rootDirectory, fileName)
             testFile = {
                 functions: [], suites: [], name: fileName, nameToRun: fileName,
-                xmlName: currentPackage, time: 0, functionsFailed: 0, functionsPassed: 0
+                xmlName: currentPackage, time: 0, functionsFailed: 0, functionsPassed: 0,
+                fullPath: fullyQualifiedName
             };
             testFiles.push(testFile);
             return;

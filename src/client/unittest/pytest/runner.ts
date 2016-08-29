@@ -6,10 +6,11 @@ import {createDeferred, createTemporaryFile} from '../../common/helpers';
 import {TestFile, TestsToRun, TestSuite, TestFunction, FlattenedTestFunction, Tests, TestStatus, FlattenedTestSuite} from '../common/contracts';
 import {extractBetweenDelimiters, flattenTestFiles, updateResults, convertFileToPackage} from '../common/testUtils';
 import {BaseTestManager} from '../common/baseTestManager';
-import {CancellationToken} from 'vscode';
+import {CancellationToken, OutputChannel} from 'vscode';
 import {updateResultsFromXmlLogFile, PassCalculationFormulae} from '../common/xUnitParser';
+import {run} from '../common/runner';
 
-export function runTest(rootDirectory: string, tests: Tests, args: string[], testsToRun?: TestsToRun, stdOut?: (output: string) => void, token?: CancellationToken): Promise<Tests> {
+export function runTest(rootDirectory: string, tests: Tests, args: string[], testsToRun?: TestsToRun, token?: CancellationToken, outChannel?: OutputChannel): Promise<Tests> {
     let testPaths = [];
     if (testsToRun && testsToRun.testFolder) {
         testPaths = testPaths.concat(testsToRun.testFolder.map(f => f.nameToRun));
@@ -31,7 +32,7 @@ export function runTest(rootDirectory: string, tests: Tests, args: string[], tes
         xmlLogFile = xmlLogResult.filePath;
         xmlLogFileCleanup = xmlLogResult.cleanupCallback;
         const testArgs = args.concat([`--junitxml=${xmlLogFile}`]).concat(testPaths);
-        return execPythonFile('py.test', testArgs, rootDirectory, true, stdOut, token);
+        return run('py.test', testArgs, rootDirectory, token, outChannel);
     }).then(() => {
         return updateResultsFromLogFiles(tests, xmlLogFile);
     }).then(result => {

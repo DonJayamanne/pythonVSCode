@@ -103,16 +103,16 @@
           "command": "python.refactorExtractVariable",
           "title": "Refactor: Extract Variable",
           "group": "Refactor",
-          "when": "editorHasSelection && resourceLangId == python"
+          "when": "editorHasSelection && editorLangId == python"
         },
         {
           "command": "python.refactorExtractMethod",
           "title": "Refactor: Extract Method",
           "group": "Refactor",
-          "when": "editorHasSelection && resourceLangId == python"
+          "when": "editorHasSelection && editorLangId == python"
         },
         {
-          "when": "resourceLangId == python",
+          "when": "editorLangId == python",
           "command": "python.execInTerminal",
           "group": "Python"
         }
@@ -613,7 +613,7 @@
         },
         "python.unitTest.outputWindow": {
           "type": "string",
-          "default": "Python",
+          "default": "Python Test Log",
           "description": "The output window name for the unit test messages, defaults to Python output window."
         }
       }

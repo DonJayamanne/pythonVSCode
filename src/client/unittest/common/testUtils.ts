@@ -9,7 +9,7 @@ let discoveredTests: Tests;
 export function displayTestErrorMessage(message: string) {
     vscode.window.showErrorMessage(message, constants.Button_Text_Tests_View_Output).then(action => {
         if (action === constants.Button_Text_Tests_View_Output) {
-            vscode.commands.executeCommand(constants.Command_Tests_ViewOutput);
+            vscode.commands.executeCommand(constants.Commands.Tests_ViewOutput);
         }
     });
 
@@ -31,14 +31,14 @@ export function resolveValueAsTestToRun(name: string): TestsToRun {
     let testFolders = tests.testFolders.filter(folder => folder.nameToRun === name || folder.name === name);
     if (testFolders.length > 0) { return { testFolder: testFolders }; };
 
-    let testFiles = tests.testFiles.filter(file => file.nameToRun === name || file.name === name);
+    let testFiles = tests.testFiles.filter(file => file.nameToRun === name || file.name === name || file.fullPath === name);
     if (testFiles.length > 0) { return { testFile: testFiles }; };
 
     let testFns = tests.testFunctions.filter(fn => fn.testFunction.nameToRun === name || fn.testFunction.name === name).map(fn => fn.testFunction);
     if (testFns.length > 0) { return { testFunction: testFns }; };
 
     // Just return this as a test file
-    return <TestsToRun>{ testFile: [{ name: name, nameToRun: name, functions: [], suites: [], xmlName: name, time: 0 }] };
+    return <TestsToRun>{ testFile: [{ name: name, nameToRun: name, functions: [], suites: [], xmlName: name, fullPath: '', time: 0 }] };
 }
 export function extractBetweenDelimiters(content: string, startDelimiter: string, endDelimiter: string): string {
     content = content.substring(content.indexOf(startDelimiter) + startDelimiter.length);

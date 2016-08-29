@@ -9,7 +9,7 @@ import {BaseTestManager} from '../common/baseTestManager';
 const settings = PythonSettings.getInstance();
 export class TestManager extends BaseTestManager {
     constructor(rootDirectory: string, outputChannel: vscode.OutputChannel) {
-        super(rootDirectory, outputChannel);
+        super('pytest', rootDirectory, outputChannel);
     }
     discoverTestsImpl(): Promise<Tests> {
         let args = settings.unitTest.pyTestArgs.splice(0);
@@ -20,6 +20,6 @@ export class TestManager extends BaseTestManager {
         if (runFailedTests === true && args.indexOf('--lf') === -1 && args.indexOf('--last-failed') === -1) {
             args.push('--last-failed');
         }
-        return runTest(this.rootDirectory, tests, args, testsToRun, this.stdOut.bind(this), this.cancellationToken);
+        return runTest(this.rootDirectory, tests, args, testsToRun, this.cancellationToken, this.outputChannel);
     }
 }

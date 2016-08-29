@@ -12,6 +12,7 @@ import {TestDisplay} from './display/picker';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as constants from '../common/constants';
+import {activateCodeLenses} from './codeLenses/main';
 
 const settings = PythonSettings.getInstance();
 let testManager: BaseTestManager;
@@ -34,6 +35,7 @@ export function activate(context: vscode.ExtensionContext, outputChannel: vscode
         let x = '';
     });
     settings.addListener('change', onConfigChanged);
+    context.subscriptions.push(activateCodeLenses());
 }
 function dispose() {
     if (pyTestManager) {
@@ -45,16 +47,17 @@ function dispose() {
 }
 function registerCommands(): vscode.Disposable[] {
     const disposables = [];
-    disposables.push(vscode.commands.registerCommand(constants.Command_Tests_Discover, (quiteMode: boolean) => {
+    disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Discover, (quiteMode: boolean) => {
         // Ignore the exceptions returned
         // This command will be invoked else where in the extension
         discoverTests(true, quiteMode).catch(() => { return null; });
     }));
-    disposables.push(vscode.commands.registerCommand(constants.Command_Tests_Run_Failed, () => runTestsImpl(true)));
-    disposables.push(vscode.commands.registerCommand(constants.Command_Tests_Run, (testId) => runTestsImpl(testId)));
-    disposables.push(vscode.commands.registerCommand(constants.Command_Tests_View_UI, () => displayUI()));
-    disposables.push(vscode.commands.registerCommand(constants.Command_Tests_Stop, () => stopTests()));
-    disposables.push(vscode.commands.registerCommand(constants.Command_Tests_ViewOutput, () => outChannel.show()));
+    disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Run_Failed, () => runTestsImpl(true)));
+    disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Run, (testId) => runTestsImpl(testId)));
+    disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_View_UI, () => displayUI()));
+    disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Picker_UI, (file, testFunctions) => displayPickerUI(file, testFunctions)));
+    disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Stop, () => stopTests()));
+    disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_ViewOutput, () => outChannel.show()));
 
     return disposables;
 }
@@ -68,7 +71,15 @@ function displayUI() {
     testDisplay = testDisplay ? testDisplay : new TestDisplay();
     testDisplay.displayTestUI();
 }
+function displayPickerUI(file: string, testFunctions: TestFunction[]) {
+    let testManager = getTestRunner();
+    if (!testManager) {
+        return displayTestFrameworkError();
+    }
 
+    testDisplay = testDisplay ? testDisplay : new TestDisplay();
+    testDisplay.displayFunctionTestPickerUI(file, testFunctions);
+}
 let uniTestSettingsString = JSON.stringify(settings.unitTest);
 
 function onConfigChanged() {

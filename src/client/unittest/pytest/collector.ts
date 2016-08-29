@@ -4,6 +4,7 @@ import {TestFile, TestsToRun, TestSuite, TestFunction, FlattenedTestFunction, Te
 import * as os from 'os';
 import {extractBetweenDelimiters, flattenTestFiles, updateResults, convertFileToPackage} from '../common/testUtils';
 import * as vscode from 'vscode';
+import * as path from 'path';
 
 const argsToExcludeForDiscovery = ['--lf', '--last-failed', '--markers', '-x',
     '--exitfirst', '--maxfail', '--fixtures', '--funcargs', '-pdb', '--capture',
@@ -38,12 +39,12 @@ export function discoverTests(rootDirectory: string, args: string[], token: vsco
 
     function processOutput(output: string) {
         output.split(/\r?\n/g).forEach((line, index, lines) => {
-            if (token.isCancellationRequested) {
+            if (token && token.isCancellationRequested) {
                 return;
             }
             if (line.trim().startsWith('<Module \'')) {
                 // process the previous lines
-                parsePyTestModuleCollectionResult(logOutputLines, testFiles, parentNodes);
+                parsePyTestModuleCollectionResult(rootDirectory, logOutputLines, testFiles, parentNodes);
                 logOutputLines = [''];
             }
             if (errorLine.test(line)) {
@@ -54,12 +55,12 @@ export function discoverTests(rootDirectory: string, args: string[], token: vsco
             if (errorFileLine.test(line)) {
                 haveErrors = true;
                 if (logOutputLines.length !== 1 && logOutputLines[0].length !== 0) {
-                    parsePyTestModuleCollectionError(logOutputLines, testFiles, parentNodes);
+                    parsePyTestModuleCollectionError(rootDirectory, logOutputLines, testFiles, parentNodes);
                     logOutputLines = [''];
                 }
             }
             if (lastLineWithErrors.test(line) && haveErrors) {
-                parsePyTestModuleCollectionError(logOutputLines, testFiles, parentNodes);
+                parsePyTestModuleCollectionError(rootDirectory, logOutputLines, testFiles, parentNodes);
                 logOutputLines = [''];
             }
             if (index === 0) {
@@ -83,12 +84,12 @@ export function discoverTests(rootDirectory: string, args: string[], token: vsco
 
     return execPythonFile('py.test', args.concat(['--collect-only']), rootDirectory, false, processOutput, token)
         .then(() => {
-            if (token.isCancellationRequested) {
+            if (token && token.isCancellationRequested) {
                 return Promise.reject<Tests>('cancelled');
             }
 
             // process the last entry
-            parsePyTestModuleCollectionResult(logOutputLines, testFiles, parentNodes);
+            parsePyTestModuleCollectionResult(rootDirectory, logOutputLines, testFiles, parentNodes);
             return flattenTestFiles(testFiles);
         });
 }
@@ -96,7 +97,7 @@ export function discoverTests(rootDirectory: string, args: string[], token: vsco
 const DELIMITER = '\'';
 const DEFAULT_CLASS_INDENT = 2;
 
-function parsePyTestModuleCollectionError(lines: string[], testFiles: TestFile[],
+function parsePyTestModuleCollectionError(rootDirectory: string, lines: string[], testFiles: TestFile[],
     parentNodes: { indent: number, item: TestFile | TestSuite }[]) {
 
     lines = lines.filter(line => line.trim().length > 0);
@@ -109,14 +110,18 @@ function parsePyTestModuleCollectionError(lines: string[], testFiles: TestFile[]
     fileName = fileName.substr(0, fileName.lastIndexOf(' '));
 
     const currentPackage = convertFileToPackage(fileName);
-    const testFile = { functions: [], suites: [], name: fileName, nameToRun: fileName, xmlName: currentPackage, time: 0, errorsWhenDiscovering: lines.join('\n') };
+    const fullyQualifiedName = path.isAbsolute(fileName) ? fileName : path.resolve(rootDirectory, fileName)
+    const testFile = {
+        functions: [], suites: [], name: fileName, fullPath: fullyQualifiedName,
+        nameToRun: fileName, xmlName: currentPackage, time: 0, errorsWhenDiscovering: lines.join('\n')
+    };
     testFiles.push(testFile);
     parentNodes.push({ indent: 0, item: testFile });
 
     return;
 
 }
-function parsePyTestModuleCollectionResult(lines: string[], testFiles: TestFile[], parentNodes: { indent: number, item: TestFile | TestSuite }[]) {
+function parsePyTestModuleCollectionResult(rootDirectory: string, lines: string[], testFiles: TestFile[], parentNodes: { indent: number, item: TestFile | TestSuite }[]) {
     let currentPackage: string = '';
 
     lines.forEach(line => {
@@ -126,7 +131,11 @@ function parsePyTestModuleCollectionResult(lines: string[], testFiles: TestFile[
 
         if (trimmedLine.startsWith('<Module \'')) {
             currentPackage = convertFileToPackage(name);
-            const testFile = { functions: [], suites: [], name: name, nameToRun: name, xmlName: currentPackage, time: 0 };
+            const fullyQualifiedName = path.isAbsolute(name) ? name : path.resolve(rootDirectory, name);
+            const testFile = {
+                functions: [], suites: [], name: name, fullPath: fullyQualifiedName,
+                nameToRun: name, xmlName: currentPackage, time: 0
+            };
             testFiles.push(testFile);
             parentNodes.push({ indent: indent, item: testFile });
             return;
