@@ -34,10 +34,6 @@ function execInTerminal(fileUri?: vscode.Uri) {
     }
 
     const terminal = (<any>vscode.window).createTerminal(`Python`);
-    // Temporary workaround until a promise of terminal readiness is available:
-    // https://github.com/Tyriar/vscode-terminal-api-example/issues/2
-    setTimeout(() => {
-        terminal.sendText(`${currentPythonPath} ${filePath}`);
-    }, 1000);
+    terminal.sendText(`${currentPythonPath} ${filePath}`);
 
 }
