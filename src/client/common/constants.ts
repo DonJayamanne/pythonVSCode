@@ -3,6 +3,7 @@ export const PythonLanguage = { language: 'python', scheme: 'file' };
 
 export namespace Commands {
     export const Set_Interpreter = 'python.setInterpreter';
+    export const Exec_In_Terminal = 'python.execInTerminal';
     export const Tests_View_UI = 'python.viewTests';
     export const Tests_Picker_UI = 'python.selectTestToRun';
     export const Tests_Discover = 'python.discoverTests';

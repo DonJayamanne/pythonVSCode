@@ -34,6 +34,7 @@
   ],
   "activationEvents": [
     "onLanguage:python",
+    "onCommand:python.execInTerminal",
     "onCommand:python.sortImports",
     "onCommand:python.runtests",
     "onCommand:python.setInterpreter",
@@ -58,6 +59,11 @@
       {
         "command": "python.runtests",
         "title": "Run Unit Tests",
+        "category": "Python"
+      },
+      {
+        "command": "python.execInTerminal",
+        "title": "Run Python file in Terminal",
         "category": "Python"
       },
       {
@@ -104,11 +110,21 @@
           "title": "Refactor: Extract Method",
           "group": "Refactor",
           "when": "editorHasSelection && editorLangId == python"
+        },
+        {
+          "when": "editorLangId == python",
+          "command": "python.execInTerminal",
+          "group": "Python"
         }
       ],
       "explorer/context": [
         {
           "command": "python.runtests",
+          "group": "Python"
+        },
+        {
+          "when": "resourceLangId == python",
+          "command": "python.execInTerminal",
           "group": "Python"
         }
       ]
