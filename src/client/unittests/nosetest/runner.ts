@@ -49,4 +49,3 @@ export function updateResultsFromLogFiles(tests: Tests, outputXmlFile: string): 
         return tests;
     });
 }
-

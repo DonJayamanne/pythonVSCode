@@ -27,7 +27,7 @@ export class TestFileCodeLensProvider implements CodeLensProvider {
         let cancelTokenSrc = new vscode.CancellationTokenSource();
         token.onCancellationRequested(() => { cancelTokenSrc.cancel(); });
 
-        // Strop trying to build the code lenses if unable to get a list of 
+        // Strop trying to build the code lenses if unable to get a list of
         // symbols in this file afrer x time
         setTimeout(() => {
             if (!cancelTokenSrc.token.isCancellationRequested) {

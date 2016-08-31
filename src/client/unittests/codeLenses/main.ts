@@ -12,4 +12,4 @@ export function activateCodeLenses(): vscode.Disposable {
             disposables.forEach(d => d.dispose());
         }
     }
-} 
+}

@@ -21,9 +21,18 @@ Do we use the vscode.executeCodeLensProvider? (complex commands)
 
 **Status Bar**
 - Add command for satusbar:
+<<<<<<< b0927e0baf2e1c2fd0cc96b48ae637343410c4b2:src/client/unittests/todo.md
     + In the pick list of functions, if a function is selected:
         + View test result for selected function
         + Debug function
         + Run test function
         + Navigate to that test function
 
+=======
+    + Run all tests
+    + Run failed tests
+    + Run previous tests
+    + Run specific test
+        + This displays a picklist of tests (user can filter and select)
+        (again low priority)
+>>>>>>> support python unittest framework #239:src/client/unittests/todo.md
