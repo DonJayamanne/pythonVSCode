@@ -147,5 +147,8 @@ export class LocalDebugClient extends DebugClient {
 
         let programArgs = Array.isArray(this.args.args) && this.args.args.length > 0 ? this.args.args : [];
         return [vsDebugOptions, this.args.program].concat(programArgs);
+        // Use this ability to debug unit tests or modules
+        // Adding breakpoints programatically to the first executable line of the test program
+        // return [vsDebugOptions, '-c', "import pytest;pytest.main(['/Users/donjayamanne/Desktop/Development/Python/Temp/MyEnvs/tests/test_another.py::Test_CheckMyApp::test_complex_check'])"].concat(programArgs);
     }
 }
