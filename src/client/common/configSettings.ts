@@ -3,6 +3,7 @@
 import * as vscode from 'vscode';
 import {SystemVariables} from './systemVariables';
 import {EventEmitter} from 'events';
+import * as path from 'path';
 
 export interface IPythonSettings {
     pythonPath: string;
@@ -83,6 +84,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
     private initializeSettings() {
         let pythonSettings = vscode.workspace.getConfiguration('python');
         this.pythonPath = systemVariables.resolveAny(pythonSettings.get<string>('pythonPath'));
+        this.pythonPath = getAbsolutePath(this.pythonPath, vscode.workspace.rootPath);
         this.devOptions = systemVariables.resolveAny(pythonSettings.get<any[]>('devOptions'));
         this.devOptions = Array.isArray(this.devOptions) ? this.devOptions : [];
         let lintingSettings = systemVariables.resolveAny(pythonSettings.get<ILintingSettings>('linting'));
@@ -92,6 +94,11 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         else {
             this.linting = lintingSettings;
         }
+        this.linting.pylintPath = getAbsolutePath(this.linting.pylintPath, vscode.workspace.rootPath);
+        this.linting.flake8Path = getAbsolutePath(this.linting.flake8Path, vscode.workspace.rootPath);
+        this.linting.pep8Path = getAbsolutePath(this.linting.pep8Path, vscode.workspace.rootPath);
+        this.linting.prospectorPath = getAbsolutePath(this.linting.prospectorPath, vscode.workspace.rootPath);
+        this.linting.pydocStylePath = getAbsolutePath(this.linting.pydocStylePath, vscode.workspace.rootPath);
 
         let formattingSettings = systemVariables.resolveAny(pythonSettings.get<IFormattingSettings>('formatting'));
         if (this.formatting) {
@@ -100,6 +107,8 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         else {
             this.formatting = formattingSettings;
         }
+        this.formatting.autopep8Path = getAbsolutePath(this.formatting.autopep8Path, vscode.workspace.rootPath);
+        this.formatting.yapfPath = getAbsolutePath(this.formatting.yapfPath, vscode.workspace.rootPath);
 
         let autoCompleteSettings = systemVariables.resolveAny(pythonSettings.get<IAutoCompeteSettings>('autoComplete'));
         if (this.autoComplete) {
@@ -117,6 +126,8 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
             this.unitTest = unitTestSettings;
         }
         this.emit('change');
+        this.unitTest.pyTestPath = getAbsolutePath(this.unitTest.pyTestPath, vscode.workspace.rootPath);        
+        this.unitTest.nosetestPath = getAbsolutePath(this.unitTest.nosetestPath, vscode.workspace.rootPath);        
     }
 
     public pythonPath: string;
@@ -125,4 +136,11 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
     public formatting: IFormattingSettings;
     public autoComplete: IAutoCompeteSettings;
     public unitTest: IUnitTestSettings;
+}
+
+function getAbsolutePath(pathToCheck: string, rootDir: String): string {
+    if (pathToCheck.indexOf(path.sep) === -1){
+        return pathToCheck;
+    }
+    return path.isAbsolute(pathToCheck) ? pathToCheck : path.resolve(rootDir, pathToCheck);
 }
