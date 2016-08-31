@@ -19,7 +19,7 @@ import * as telemetryContracts from './common/telemetryContracts';
 import {PythonCodeActionsProvider} from './providers/codeActionProvider';
 import {activateSimplePythonRefactorProvider} from './providers/simpleRefactorProvider';
 import {activateSetInterpreterProvider} from './providers/setInterpreterProvider';
-import * as tests from './unittest/main';
+import * as tests from './unittests/main';
 
 const PYTHON: vscode.DocumentFilter = { language: 'python', scheme: 'file' };
 let pythonOutputChannel: vscode.OutputChannel;
