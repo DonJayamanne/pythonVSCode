@@ -24,7 +24,7 @@ export class TestDisplay {
             return fn.parentTestFile.name === testFile.name &&
                 testFunctions.some(testFunc => testFunc.nameToRun === fn.testFunction.nameToRun);
         });
-        
+
         window.showQuickPick(buildItemsForFunctions(flattenedFunctions), { matchOnDescription: true, matchOnDetail: true }).then(onItemSelected);
     }
 }
@@ -73,7 +73,8 @@ function buildItems(tests?: Tests): TestItem[] {
     const items: TestItem[] = [];
     items.push({ description: '', label: 'Run All Tests', type: Type.RunAll });
     items.push({ description: '', label: 'Rediscover Tests', type: Type.ReDiscover });
-    items.push({ description: '', label: 'View Test Output', type: Type.ViewTestOutput, detail: getSummary(tests) });
+    const summary = getSummary(tests);
+    items.push({ description: '', label: 'View Test Output', type: Type.ViewTestOutput, detail: summary.length ? summary : '  ' });
 
     if (!tests) {
         return items;
