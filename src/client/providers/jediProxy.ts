@@ -196,9 +196,17 @@ function handleError(source: string, errorMessage: string) {
 
 function spawnProcess(dir: string) {
     try {
+        let environmentVariables = { 'PYTHONUNBUFFERED': '1' };
+        for (let setting in process.env) {
+            if (!environmentVariables[setting]) {
+                environmentVariables[setting] = process.env[setting];
+            }
+        }
+
         logger.log('child_process.spawn in jediProxy', 'Value of pythonSettings.pythonPath is :' + pythonSettings.pythonPath);
-        proc = child_process.spawn(pythonSettings.pythonPath, ["-u", "completion.py"], {
-            cwd: dir
+        proc = child_process.spawn(pythonSettings.pythonPath, ["completion.py"], {
+            cwd: dir,
+            env: environmentVariables
         });
     }
     catch (ex) {
