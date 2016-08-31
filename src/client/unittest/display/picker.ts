@@ -74,7 +74,9 @@ function buildItems(tests?: Tests): TestItem[] {
     items.push({ description: '', label: 'Run All Tests', type: Type.RunAll });
     items.push({ description: '', label: 'Rediscover Tests', type: Type.ReDiscover });
     const summary = getSummary(tests);
-    items.push({ description: '', label: 'View Test Output', type: Type.ViewTestOutput, detail: summary.length ? summary : '  ' });
+
+    // Add an empty space because we'd like a separtor between actions and tests
+    items.push({ description: '', label: 'View Test Output', type: Type.ViewTestOutput, detail: summary.length === 0 && tests ? '  ' : summary });
 
     if (!tests) {
         return items;
