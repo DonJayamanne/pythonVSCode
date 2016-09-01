@@ -1,16 +1,28 @@
 # Python Tools for Visual Studio
 # Copyright(c) Microsoft Corporation
 # All rights reserved.
+<<<<<<< a3034a0dafa547afd949f2b0dcbdcba6accb5764
 # 
 # Licensed under the Apache License, Version 2.0 (the License); you may not use
 # this file except in compliance with the License. You may obtain a copy of the
 # License at http://www.apache.org/licenses/LICENSE-2.0
 # 
+=======
+#
+# Licensed under the Apache License, Version 2.0 (the License); you may not use
+# this file except in compliance with the License. You may obtain a copy of the
+# License at http://www.apache.org/licenses/LICENSE-2.0
+#
+>>>>>>> unitests using python unittest framework #239
 # THIS CODE IS PROVIDED ON AN  *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS
 # OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY
 # IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
 # MERCHANTABLITY OR NON-INFRINGEMENT.
+<<<<<<< a3034a0dafa547afd949f2b0dcbdcba6accb5764
 # 
+=======
+#
+>>>>>>> unitests using python unittest framework #239
 # See the Apache Version 2.0 License for specific language governing
 # permissions and limitations under the License.
 
@@ -43,11 +55,19 @@ class _TestOutput(object):
     def flush(self):
         if self.old_out:
             self.old_out.flush()
+<<<<<<< a3034a0dafa547afd949f2b0dcbdcba6accb5764
     
     def writelines(self, lines):
         for line in lines:
             self.write(line)
     
+=======
+
+    def writelines(self, lines):
+        for line in lines:
+            self.write(line)
+
+>>>>>>> unitests using python unittest framework #239
     @property
     def encoding(self):
         return 'utf8'
@@ -56,15 +76,23 @@ class _TestOutput(object):
         _channel.send_event('stdout' if self.is_stdout else 'stderr', content=value)
         if self.old_out:
             self.old_out.write(value)
+<<<<<<< a3034a0dafa547afd949f2b0dcbdcba6accb5764
             # flush immediately, else things go wonky and out of order
             self.flush()
     
+=======
+
+>>>>>>> unitests using python unittest framework #239
     def isatty(self):
         return True
 
     def next(self):
         pass
+<<<<<<< a3034a0dafa547afd949f2b0dcbdcba6accb5764
     
+=======
+
+>>>>>>> unitests using python unittest framework #239
     @property
     def name(self):
         if self.is_stdout:
@@ -84,7 +112,11 @@ class _TestOutputBuffer(object):
         _channel.send_event('stdout' if self.is_stdout else 'stderr', content=data)
         self.buffer.write(data)
 
+<<<<<<< a3034a0dafa547afd949f2b0dcbdcba6accb5764
     def flush(self): 
+=======
+    def flush(self):
+>>>>>>> unitests using python unittest framework #239
         self.buffer.flush()
 
     def truncate(self, pos = None):
@@ -129,13 +161,21 @@ class VsTestResult(unittest.TextTestResult):
         super(VsTestResult, self).startTest(test)
         if _channel is not None:
             _channel.send_event(
+<<<<<<< a3034a0dafa547afd949f2b0dcbdcba6accb5764
                 name='start', 
+=======
+                name='start',
+>>>>>>> unitests using python unittest framework #239
                 test = test.id()
             )
 
     def addError(self, test, err):
         super(VsTestResult, self).addError(test, err)
+<<<<<<< a3034a0dafa547afd949f2b0dcbdcba6accb5764
         self.sendResult(test, 'error', err)
+=======
+        self.sendResult(test, 'failed', err)
+>>>>>>> unitests using python unittest framework #239
 
     def addFailure(self, test, err):
         super(VsTestResult, self).addFailure(test, err)
@@ -169,7 +209,11 @@ class VsTestResult(unittest.TextTestResult):
                 tb = ''.join(formatted)
                 message = str(trace[1])
             _channel.send_event(
+<<<<<<< a3034a0dafa547afd949f2b0dcbdcba6accb5764
                 name='result', 
+=======
+                name='result',
+>>>>>>> unitests using python unittest framework #239
                 outcome=outcome,
                 traceback = tb,
                 message = message,
@@ -182,7 +226,11 @@ def stopTests():
 class ExitCommand(Exception):
     pass
 
+<<<<<<< a3034a0dafa547afd949f2b0dcbdcba6accb5764
 def signal_handler(signal, frame):    
+=======
+def signal_handler(signal, frame):
+>>>>>>> unitests using python unittest framework #239
     raise ExitCommand()
 
 def main():
@@ -202,11 +250,19 @@ def main():
     parser.add_option('--us', type='str', help='Directory to start discovery')
     parser.add_option('--up', type='str', help='Pattern to match test files (''test*.py'' default)')
     parser.add_option('--ut', type='str', help='Top level directory of project (default to start directory)')
+<<<<<<< a3034a0dafa547afd949f2b0dcbdcba6accb5764
     parser.add_option('--uvInt', '--verboseInt', type='int', help='Verbose output (0 none, 1 (no -v) simple, 2 (-v) full)')
     parser.add_option('--uf', '--failfast', type='str', help='Stop on first failure')
     parser.add_option('--uc', '--catch', type='str', help='Catch control-C and display results')
     (opts, _) = parser.parse_args()
     
+=======
+    parser.add_option('--uvInt', '--verboseInt', type='int', help='Verbose output')
+    parser.add_option('--uf', '--failfast', type='str', help='Stop on first failure')
+    parser.add_option('--uc', '--catch', type='str', help='Catch control-C and display results')
+    (opts, _) = parser.parse_args()
+
+>>>>>>> unitests using python unittest framework #239
     sys.path[0] = os.getcwd()
     if opts.result_port:
         signal.signal(signal.SIGUSR1, signal_handler)
@@ -224,7 +280,11 @@ def main():
         enable_attach(opts.secret, ('127.0.0.1', getattr(opts, 'port', DEFAULT_PORT)), redirect_output = True)
         wait_for_attach()
     elif opts.mixed_mode:
+<<<<<<< a3034a0dafa547afd949f2b0dcbdcba6accb5764
         # For mixed-mode attach, there's no ptvsd and hence no wait_for_attach(), 
+=======
+        # For mixed-mode attach, there's no ptvsd and hence no wait_for_attach(),
+>>>>>>> unitests using python unittest framework #239
         # so we have to use Win32 API in a loop to do the same thing.
         from time import sleep
         from ctypes import windll, c_char
@@ -265,8 +325,14 @@ def main():
         runner = unittest.TextTestRunner(verbosity=opts.uvInt, resultclass=VsTestResult)
         if opts.uf is not None:
             runner.failfast = 1
+<<<<<<< a3034a0dafa547afd949f2b0dcbdcba6accb5764
           
         result = runner.run(tests)
+=======
+
+        result = runner.run(tests)
+
+>>>>>>> unitests using python unittest framework #239
         sys.exit(not result.wasSuccessful())
     finally:
         if cov is not None:
@@ -278,6 +344,7 @@ def main():
                 name='done'
             )
             _channel.socket.close()
+<<<<<<< a3034a0dafa547afd949f2b0dcbdcba6accb5764
         # prevent generation of the error 'Error in sys.exitfunc:'
         try:
             sys.stdout.close()
@@ -287,6 +354,8 @@ def main():
             sys.stderr.close()
         except:
             pass
+=======
+>>>>>>> unitests using python unittest framework #239
 
 if __name__ == '__main__':
     main()
