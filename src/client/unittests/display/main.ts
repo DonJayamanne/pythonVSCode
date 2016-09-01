@@ -65,7 +65,7 @@ export class TestResultDisplay {
         this.clearProgressTicker();
         this.statusBar.command = constants.Commands.Tests_View_UI;
         if (reason === CANCELLATION_REASON) {
-            this.statusBar.text = '$(triangle-right) Run Tests';
+            this.statusBar.text = '$(zap) Run Tests';
             this.statusBar.tooltip = 'Run Tests';
         }
         else {
@@ -115,7 +115,7 @@ export class TestResultDisplay {
     private updateWithDiscoverSuccess(tests: Tests) {
         this.clearProgressTicker();
         const haveTests = tests && (tests.testFunctions.length > 0);
-        this.statusBar.text = haveTests ? '$(triangle-right) Run Tests' : 'No Tests';
+        this.statusBar.text = haveTests ? '$(zap) Run Tests' : 'No Tests';
         this.statusBar.tooltip = haveTests ? 'Run Tests' : 'No Tests discovered';
         this.statusBar.command = haveTests ? 'python.viewTests' : constants.Commands.Tests_Discover;
         this.statusBar.show();
@@ -123,7 +123,7 @@ export class TestResultDisplay {
 
     private updateWithDiscoverFailure(reason: any, quietMode: boolean = false) {
         this.clearProgressTicker();
-        this.statusBar.text = `$(triangle-right) Discover Tests`;
+        this.statusBar.text = `$(zap) Discover Tests`;
         this.statusBar.tooltip = 'Discover Tests';
         this.statusBar.command = constants.Commands.Tests_Discover;
         this.statusBar.show();

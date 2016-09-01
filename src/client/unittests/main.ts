@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import {Tests, TestsToRun, TestFolder, TestFile, TestStatus, TestSuite, TestFunction, FlattenedTestFunction, CANCELLATION_REASON} from './common/contracts';
 import * as nosetests from './nosetest/main';
 import * as pytest from './pytest/main';
+import * as unittest from './unittest/main';
 import {resolveValueAsTestToRun} from './common/testUtils';
 import {BaseTestManager} from './common/baseTestManager';
 import {PythonSettings, IUnitTestSettings} from '../common/configSettings';
@@ -17,6 +18,7 @@ import {activateCodeLenses} from './codeLenses/main';
 const settings = PythonSettings.getInstance();
 let testManager: BaseTestManager;
 let pyTestManager: pytest.TestManager;
+let unittestManager: unittest.TestManager;
 let nosetestManager: nosetests.TestManager;
 let testResultDisplay: TestResultDisplay;
 let testDisplay: TestDisplay;
@@ -43,6 +45,9 @@ function dispose() {
     }
     if (nosetestManager) {
         nosetestManager.dispose();
+    }
+    if (unittestManager) {
+        unittestManager.dispose();
     }
 }
 function registerCommands(): vscode.Disposable[] {
@@ -108,6 +113,10 @@ function onConfigChanged() {
             nosetestManager.dispose();
             nosetestManager = null;
         }
+        if (unittestManager) {
+            unittestManager.dispose();
+            unittestManager = null;
+        }
         return;
     }
 
@@ -128,18 +137,16 @@ function displayTestFrameworkError() {
     return null;
 }
 function getTestRunner() {
-    if (settings.unitTest.pyTestEnabled && settings.unitTest.nosetestsEnabled) {
-        return null;
-    }
-    else if (settings.unitTest.nosetestsEnabled) {
+    if (settings.unitTest.nosetestsEnabled) {
         return nosetestManager = nosetestManager ? nosetestManager : new nosetests.TestManager(vscode.workspace.rootPath, outChannel);
     }
-    if (settings.unitTest.pyTestEnabled) {
+    else if (settings.unitTest.pyTestEnabled) {
         return pyTestManager = pyTestManager ? pyTestManager : new pytest.TestManager(vscode.workspace.rootPath, outChannel);
     }
-    else if (settings.unitTest.nosetestsEnabled) {
-        return nosetestManager = nosetestManager ? nosetestManager : new nosetests.TestManager(vscode.workspace.rootPath, outChannel);
+    else if (settings.unitTest.unittestEnabled) {
+        return unittestManager = unittestManager ? unittestManager : new unittest.TestManager(vscode.workspace.rootPath, outChannel);
     }
+    return null;
 }
 
 function stopTests() {

@@ -595,6 +595,19 @@
             "type": "string"
           }
         },
+        "python.unitTest.unittestEnabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to enable or disable unit testing using unittest."
+        },
+        "python.unitTest.unittestArgs": {
+          "type": "array",
+          "description": "Arguments passed in. Each argument is a separate item in the array.",
+          "default": ["-v"],
+          "items": {
+            "type": "string"
+          }
+        },
         "python.unitTest.outputWindow": {
           "type": "string",
           "default": "Python Test Log",

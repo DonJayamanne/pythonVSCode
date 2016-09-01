@@ -14,11 +14,11 @@ export class TestManager extends BaseTestManager {
         super('nosetest', rootDirectory, outputChannel);
     }
     discoverTestsImpl(): Promise<Tests> {
-        let args = settings.unitTest.pyTestArgs.splice(0);
+        let args = settings.unitTest.pyTestArgs.slice(0);
         return discoverTests(this.rootDirectory, args, this.cancellationToken);
     }
     runTestImpl(tests: Tests, testsToRun?: TestsToRun, runFailedTests?: boolean): Promise<any> {
-        let args = settings.unitTest.pyTestArgs.splice(0);
+        let args = settings.unitTest.pyTestArgs.slice(0);
         if (runFailedTests === true && args.indexOf('--failed') === -1) {
             args.push('--failed');
         }

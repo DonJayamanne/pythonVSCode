@@ -20,6 +20,8 @@ export interface IUnitTestSettings {
     pyTestEnabled: boolean;
     pyTestPath: string;
     pyTestArgs: string[];
+    unittestEnabled: boolean;
+    unittestArgs: string[];
     outputWindow: string;
 }
 export interface IPylintCategorySeverity {
@@ -126,8 +128,8 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
             this.unitTest = unitTestSettings;
         }
         this.emit('change');
-        this.unitTest.pyTestPath = getAbsolutePath(this.unitTest.pyTestPath, vscode.workspace.rootPath);        
-        this.unitTest.nosetestPath = getAbsolutePath(this.unitTest.nosetestPath, vscode.workspace.rootPath);        
+        this.unitTest.pyTestPath = getAbsolutePath(this.unitTest.pyTestPath, vscode.workspace.rootPath);
+        this.unitTest.nosetestPath = getAbsolutePath(this.unitTest.nosetestPath, vscode.workspace.rootPath);
     }
 
     public pythonPath: string;
