@@ -24,7 +24,7 @@ export class TestResultDisplay {
         }
     }
     public DisplayProgressStatus(tests: Promise<Tests>) {
-        this.displayProgress('Running Tests', `Running Tests (Click to Stop)`, constants.Commands.Tests_Stop);
+        this.displayProgress('Running Tests', `Running Tests (Click to Stop)`, constants.Commands.Tests_Ask_To_Stop_Test);
         tests
             .then(this.updateTestRunWithSuccess.bind(this))
             .catch(this.updateTestRunWithFailure.bind(this))
@@ -102,7 +102,7 @@ export class TestResultDisplay {
     }
 
     public DisplayDiscoverStatus(tests: Promise<Tests>, quietMode: boolean = false) {
-        this.displayProgress('Discovering Tests', 'Discovering Tests (Click to Stop)', constants.Commands.Tests_Stop);
+        this.displayProgress('Discovering Tests', 'Discovering Tests (Click to Stop)', constants.Commands.Tests_Ask_To_Stop_Discovery);
         return tests.then(tests => {
             this.updateWithDiscoverSuccess(tests);
             return tests;

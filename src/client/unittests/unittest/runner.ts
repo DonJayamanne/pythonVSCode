@@ -13,11 +13,15 @@ import {Server} from './socketServer';
 import {PythonSettings} from '../../common/configSettings';
 
 const settings = PythonSettings.getInstance();
-const outcomeMapping = new Map<string, TestStatus>();
-outcomeMapping.set('passed', TestStatus.Pass);
-outcomeMapping.set('failed', TestStatus.Fail);
-outcomeMapping.set('skipped', TestStatus.Skipped);
-outcomeMapping.set('error', TestStatus.Error);
+interface TestStatusMap {
+    status: TestStatus;
+    summaryProperty: string;
+}
+const outcomeMapping = new Map<string, TestStatusMap>();
+outcomeMapping.set('passed', { status: TestStatus.Pass, summaryProperty: 'passed' });
+outcomeMapping.set('failed', { status: TestStatus.Fail, summaryProperty: 'failed' });
+outcomeMapping.set('error', { status: TestStatus.Error, summaryProperty: 'error' });
+outcomeMapping.set('skipped', { status: TestStatus.Skipped, summaryProperty: 'skipped' });
 
 interface ITestData {
     test: string;
@@ -63,7 +67,8 @@ export function runTest(rootDirectory: string, tests: Tests, args: string[], tes
             }
         }
     }
-    args = [`--us=${startDirectory}`, `--up=${pattern}`];
+    const verbosity = args.some(arg => arg.trim().indexOf('-v') === 0) ? 2 : 1;
+    args = [`--us=${startDirectory}`, `--up=${pattern}`, `--uvInt=${verbosity}`];
 
     summary.error = 0;
     summary.failed = 0;
@@ -90,7 +95,7 @@ export function runTest(rootDirectory: string, tests: Tests, args: string[], tes
         testPaths = testPaths.concat(testsToRun.testFunction.map(f => f.nameToRun));
     }
     for (let counter = 0; counter < testPaths.length; counter++) {
-        testPaths[counter] = '-t ' + testPaths[counter].trim();
+        testPaths[counter] = '-t' + testPaths[counter].trim();
     }
     const testLauncherFile = path.join(__dirname, '..', '..', '..', '..', 'pythonFiles', 'PythonTools', 'visualstudio_py_testlauncher.py');
     const server = new Server();
@@ -101,33 +106,22 @@ export function runTest(rootDirectory: string, tests: Tests, args: string[], tes
     });
     server.on('connect', (data) => {
     });
-    server.on('start', (data) => {
+    server.on('start', (data: { test: string }) => {
+        if (!data || typeof data.test !== 'string' || data.test.length === 0) {
+            return;
+        }
+        const testFn = data.test.substring(data.test.lastIndexOf('.') + 1);
+        const testClass = data.test.substring(0, data.test.lastIndexOf('.'));
     });
     server.on('result', (data: ITestData) => {
         const test = tests.testFunctions.find(t => t.testFunction.nameToRun === data.test);
+        const statusDetails = outcomeMapping.get(data.outcome);
         if (test) {
-            test.testFunction.status = outcomeMapping.get(data.outcome);
+            let statusToLog = '';
+            test.testFunction.status = statusDetails.status;
             test.testFunction.message = data.message;
             test.testFunction.traceback = data.traceback;
-
-            switch (test.testFunction.status) {
-                case TestStatus.Pass: {
-                    summary.passed += 1;
-                    break;
-                }
-                case TestStatus.Fail: {
-                    summary.failed += 1;
-                    break;
-                }
-                case TestStatus.Error: {
-                    summary.error += 1;
-                    break;
-                }
-                case TestStatus.Skipped: {
-                    summary.skipped += 1;
-                    break;
-                }
-            }
+            summary[statusDetails.summaryProperty] += 1;
         }
     });
     server.on('socket.disconnected', (data) => {

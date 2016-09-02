@@ -98,7 +98,7 @@ function getCodeLens(fileName: string, allFuncsAndSuites: FunctionsAndSuites,
             return new CodeLens(range, {
                 title: constants.Text.CodeLensUnitTest,
                 command: constants.Commands.Tests_Run,
-                arguments: [{ testSuite: [cls] }]
+                arguments: [<TestsToRun>{ testSuite: [cls] }]
             });
         }
     }
@@ -114,7 +114,7 @@ function getFunctionCodeLens(filePath: string, functionsAndSuites: FunctionsAndS
         return new CodeLens(range, {
             title: constants.Text.CodeLensUnitTest,
             command: constants.Commands.Tests_Run,
-            arguments: [{ testFunction: [fn] }]
+            arguments: [<TestsToRun>{ testFunction: [fn] }]
         });
     }
 
@@ -128,7 +128,7 @@ function getFunctionCodeLens(filePath: string, functionsAndSuites: FunctionsAndS
         return new CodeLens(range, {
             title: constants.Text.CodeLensUnitTest,
             command: constants.Commands.Tests_Run,
-            arguments: [{ testFunction: functions }]
+            arguments: [<TestsToRun>{ testFunction: functions }]
         });
     }
 

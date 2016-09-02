@@ -9,6 +9,8 @@ export namespace Commands {
     export const Tests_Run_Failed = 'python.runFailedTests';
     export const Sort_Imports = 'python.sortImports';
     export const Tests_Run = 'python.runtests';
+    export const Tests_Ask_To_Stop_Test = 'python.askToStopUnitTests';
+    export const Tests_Ask_To_Stop_Discovery = 'python.askToStopUnitTestDiscovery';
     export const Tests_Stop = 'python.stopUnitTests';
     export const Tests_ViewOutput = 'python.viewTestOutput';
     export const Refactor_Extract_Variable = 'python.refactorExtractVariable';

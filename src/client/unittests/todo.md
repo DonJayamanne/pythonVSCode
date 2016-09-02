@@ -1,12 +1,3 @@
-
-**Collect and store**
-- Collect list of unit tests and store in workspace state
-- Collect test results and store in workspace state
-
-[ ] Todo: Store the tests and the results in workspace store
-[ ] Todo: Provide api to store this (simple class with shared methods/props? yuck)
-[ ] Todo: Provide api to access this
-
 **Code Lens for unit tests**
 - When a file is opened, check if it is a unit test file
 - If it is a unittest file, then display codelens for each unit test classes and methods
@@ -19,7 +10,6 @@ Do we use the vscode.executeCodeLensProvider? (complex commands)
         + First (programatically) add breakpoint to the first line of code in this method
         + Next launch the debugger using the debugger api
 
-[ ] Todo: Api to determine if a file is a UnitTest file
 [ ] Todo: **How to refresh the codelens (text) use vscode.executeCodeLensProvider?**
 
 **Code Lens for standard files**
@@ -30,12 +20,10 @@ Do we use the vscode.executeCodeLensProvider? (complex commands)
     **or do we, this depends on what information we can extract form the traceback.**
 
 **Status Bar**
-- Display test results (pass and fail count)
 - Add command for satusbar:
-    + Run all tests
-    + Run failed tests
-    + Run previous tests
-    + Run specific test
-        + This displays a picklist of tests (user can filter and select)
-        (again low priority)
+    + In the pick list of functions, if a function is selected:
+        + View test result for selected function
+        + Debug function
+        + Run test function
+        + Navigate to that test function
 

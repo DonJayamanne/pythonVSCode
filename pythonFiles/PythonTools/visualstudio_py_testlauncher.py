@@ -56,6 +56,8 @@ class _TestOutput(object):
         _channel.send_event('stdout' if self.is_stdout else 'stderr', content=value)
         if self.old_out:
             self.old_out.write(value)
+            # flush immediately, else things go wonky and out of order
+            self.flush()
     
     def isatty(self):
         return True
@@ -133,7 +135,7 @@ class VsTestResult(unittest.TextTestResult):
 
     def addError(self, test, err):
         super(VsTestResult, self).addError(test, err)
-        self.sendResult(test, 'failed', err)
+        self.sendResult(test, 'error', err)
 
     def addFailure(self, test, err):
         super(VsTestResult, self).addFailure(test, err)
@@ -200,7 +202,7 @@ def main():
     parser.add_option('--us', type='str', help='Directory to start discovery')
     parser.add_option('--up', type='str', help='Pattern to match test files (''test*.py'' default)')
     parser.add_option('--ut', type='str', help='Top level directory of project (default to start directory)')
-    parser.add_option('--uvInt', '--verboseInt', type='int', help='Verbose output')
+    parser.add_option('--uvInt', '--verboseInt', type='int', help='Verbose output (0 none, 1 (no -v) simple, 2 (-v) full)')
     parser.add_option('--uf', '--failfast', type='str', help='Stop on first failure')
     parser.add_option('--uc', '--catch', type='str', help='Catch control-C and display results')
     (opts, _) = parser.parse_args()
@@ -265,7 +267,6 @@ def main():
             runner.failfast = 1
           
         result = runner.run(tests)
-
         sys.exit(not result.wasSuccessful())
     finally:
         if cov is not None:
@@ -277,6 +278,15 @@ def main():
                 name='done'
             )
             _channel.socket.close()
+        # prevent generation of the error 'Error in sys.exitfunc:'
+        try:
+            sys.stdout.close()
+        except:
+            pass
+        try:
+            sys.stderr.close()
+        except:
+            pass
 
 if __name__ == '__main__':
     main()

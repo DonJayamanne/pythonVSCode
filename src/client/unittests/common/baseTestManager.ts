@@ -74,7 +74,6 @@ export abstract class BaseTestManager {
                 tests.testFiles.forEach(file => {
                     if (file.errorsWhenDiscovering && file.errorsWhenDiscovering.length > 0) {
                         haveErrorsInDiscovering = true;
-                        this.outputChannel.appendLine('');
                         this.outputChannel.append('_'.repeat(10));
                         this.outputChannel.append(`There was an error in identifying unit tests in ${file.nameToRun}`);
                         this.outputChannel.appendLine('_'.repeat(10));

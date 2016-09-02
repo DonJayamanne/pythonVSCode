@@ -21,17 +21,17 @@ export function storeDiscoveredTests(tests: Tests) {
     discoveredTests = tests;
 }
 
-export function resolveValueAsTestToRun(name: string): TestsToRun {
+export function resolveValueAsTestToRun(name: string, rootDirectory: string): TestsToRun {
     // TODO: We need a better way to match (currently we have raw name, name, xmlname, etc = which one do we
     // use to identify a file given the full file name, similary for a folder and function
     // Perhaps something like a parser or methods like TestFunction.fromString()... something)
     let tests = getDiscoveredTests();
     if (!tests) { return null; }
-
-    let testFolders = tests.testFolders.filter(folder => folder.nameToRun === name || folder.name === name);
+    const absolutePath = path.isAbsolute(name) ? name : path.resolve(rootDirectory, name);
+    let testFolders = tests.testFolders.filter(folder => folder.nameToRun === name || folder.name === name || folder.name === absolutePath);
     if (testFolders.length > 0) { return { testFolder: testFolders }; };
 
-    let testFiles = tests.testFiles.filter(file => file.nameToRun === name || file.name === name || file.fullPath === name);
+    let testFiles = tests.testFiles.filter(file => file.nameToRun === name || file.name === name || file.fullPath === absolutePath);
     if (testFiles.length > 0) { return { testFile: testFiles }; };
 
     let testFns = tests.testFunctions.filter(fn => fn.testFunction.nameToRun === name || fn.testFunction.name === name).map(fn => fn.testFunction);

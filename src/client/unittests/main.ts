@@ -8,7 +8,6 @@ import {resolveValueAsTestToRun} from './common/testUtils';
 import {BaseTestManager} from './common/baseTestManager';
 import {PythonSettings, IUnitTestSettings} from '../common/configSettings';
 import {TestResultDisplay} from './display/main';
-import {TestFileCodeLensProvider} from './testFileCodeLensProvider';
 import {TestDisplay} from './display/picker';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -63,6 +62,8 @@ function registerCommands(): vscode.Disposable[] {
     disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Picker_UI, (file, testFunctions) => displayPickerUI(file, testFunctions)));
     disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Stop, () => stopTests()));
     disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_ViewOutput, () => outChannel.show()));
+    disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Ask_To_Stop_Discovery, () => displayStopUI('Stop discovering tests')));
+    disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Ask_To_Stop_Test, () => displayStopUI('Stop running tests')));
 
     return disposables;
 }
@@ -74,7 +75,7 @@ function displayUI() {
     }
 
     testDisplay = testDisplay ? testDisplay : new TestDisplay();
-    testDisplay.displayTestUI();
+    testDisplay.displayTestUI(vscode.workspace.rootPath);
 }
 function displayPickerUI(file: string, testFunctions: TestFunction[]) {
     let testManager = getTestRunner();
@@ -83,7 +84,16 @@ function displayPickerUI(file: string, testFunctions: TestFunction[]) {
     }
 
     testDisplay = testDisplay ? testDisplay : new TestDisplay();
-    testDisplay.displayFunctionTestPickerUI(file, testFunctions);
+    testDisplay.displayFunctionTestPickerUI(vscode.workspace.rootPath, file, testFunctions);
+}
+function displayStopUI(message: string) {
+    let testManager = getTestRunner();
+    if (!testManager) {
+        return displayTestFrameworkError();
+    }
+
+    testDisplay = testDisplay ? testDisplay : new TestDisplay();
+    testDisplay.displayStopTestUI(message);
 }
 let uniTestSettingsString = JSON.stringify(settings.unitTest);
 
@@ -96,7 +106,7 @@ function onConfigChanged() {
     }
 
     uniTestSettingsString = newSettings;
-    if (!settings.unitTest.nosetestsEnabled && !settings.unitTest.pyTestEnabled) {
+    if (!settings.unitTest.nosetestsEnabled && !settings.unitTest.pyTestEnabled && !settings.unitTest.unittestEnabled) {
         if (testResultDisplay) {
             testResultDisplay.enabled = false;
         }
@@ -128,7 +138,7 @@ function onConfigChanged() {
     discoverTests(true, true);
 }
 function displayTestFrameworkError() {
-    if (settings.unitTest.pyTestEnabled && settings.unitTest.nosetestsEnabled) {
+    if (settings.unitTest.pyTestEnabled && settings.unitTest.nosetestsEnabled && settings.unitTest.unittestEnabled) {
         vscode.window.showErrorMessage("Enable only one of the test frameworks (nosetest or pytest), not both.")
     }
     else {
@@ -137,14 +147,15 @@ function displayTestFrameworkError() {
     return null;
 }
 function getTestRunner() {
+    const rootDirectory = vscode.workspace.rootPath;
     if (settings.unitTest.nosetestsEnabled) {
-        return nosetestManager = nosetestManager ? nosetestManager : new nosetests.TestManager(vscode.workspace.rootPath, outChannel);
+        return nosetestManager = nosetestManager ? nosetestManager : new nosetests.TestManager(rootDirectory, outChannel);
     }
     else if (settings.unitTest.pyTestEnabled) {
-        return pyTestManager = pyTestManager ? pyTestManager : new pytest.TestManager(vscode.workspace.rootPath, outChannel);
+        return pyTestManager = pyTestManager ? pyTestManager : new pytest.TestManager(rootDirectory, outChannel);
     }
     else if (settings.unitTest.unittestEnabled) {
-        return unittestManager = unittestManager ? unittestManager : new unittest.TestManager(vscode.workspace.rootPath, outChannel);
+        return unittestManager = unittestManager ? unittestManager : new unittest.TestManager(rootDirectory, outChannel);
     }
     return null;
 }
@@ -173,16 +184,25 @@ function discoverTests(ignoreCache?: boolean, quietMode: boolean = false) {
     }
 }
 function isTestsToRun(arg: any): arg is TestsToRun {
-    return arg && arg.testFunction && Array.isArray(arg.testFunction);
+    if (arg && arg.testFunction && Array.isArray(arg.testFunction)){
+        return true;
+    }
+    if (arg && arg.testSuite && Array.isArray(arg.testSuite)){
+        return true;
+    }
+    if (arg && arg.testFile && Array.isArray(arg.testFile)){
+        return true;
+    }
+    return false;
 }
 function isUri(arg: any): arg is vscode.Uri {
     return arg && arg.fsPath && typeof arg.fsPath === 'string';
 }
 function isFlattenedTestFunction(arg: any): arg is FlattenedTestFunction {
-    return arg && arg.testFunction && arg.xmlClassName && arg.parentTestFile &&
-        typeof arg.testFunction.name === 'string';
+    return arg && arg.testFunction && typeof arg.xmlClassName === 'string' &&
+        arg.parentTestFile && typeof arg.testFunction.name === 'string';
 }
-function identifyTestType(arg?: vscode.Uri | TestsToRun | boolean | FlattenedTestFunction): TestsToRun | Boolean {
+function identifyTestType(rootDirectory: string, arg?: vscode.Uri | TestsToRun | boolean | FlattenedTestFunction): TestsToRun | Boolean {
     if (typeof arg === 'boolean') {
         return arg === true;
     }
@@ -193,7 +213,7 @@ function identifyTestType(arg?: vscode.Uri | TestsToRun | boolean | FlattenedTes
         return <TestsToRun>{ testFunction: [arg.testFunction] };
     }
     if (isUri(arg)) {
-        return resolveValueAsTestToRun(path.relative(vscode.workspace.rootPath, arg.fsPath));
+        return resolveValueAsTestToRun(arg.fsPath, rootDirectory);
     }
     return null;
 }
@@ -204,10 +224,9 @@ function runTestsImpl(arg?: vscode.Uri | TestsToRun | boolean | FlattenedTestFun
     }
 
     // lastRanTests = testsToRun;
-    let runInfo = identifyTestType(arg);
+    let runInfo = identifyTestType(vscode.workspace.rootPath, arg);
 
     testResultDisplay = testResultDisplay ? testResultDisplay : new TestResultDisplay(outChannel);
-    outChannel.appendLine('\n');
 
     let runPromise = testManager.runTest(runInfo).catch(reason => {
         if (reason !== CANCELLATION_REASON) {

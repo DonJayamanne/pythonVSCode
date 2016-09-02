@@ -3,15 +3,23 @@ import * as vscode from 'vscode';
 import {Tests, TestsToRun, TestFolder, TestFile, TestFunction, TestSuite, FlattenedTestFunction, TestStatus} from '../common/contracts';
 import {getDiscoveredTests} from '../common/testUtils';
 import * as constants from '../../common/constants';
+import * as path from 'path';
 
 export class TestDisplay {
     constructor() {
     }
-    public displayTestUI() {
-        const tests = getDiscoveredTests();
-        window.showQuickPick(buildItems(tests), { matchOnDescription: true, matchOnDetail: true }).then(onItemSelected);
+    public displayStopTestUI(message: string) {
+        window.showQuickPick([message]).then(item => {
+            if (item === message) {
+                vscode.commands.executeCommand(constants.Commands.Tests_Stop);
+            }
+        })
     }
-    public displayFunctionTestPickerUI(fileName: string, testFunctions: TestFunction[]) {
+    public displayTestUI(rootDirectory: string) {
+        const tests = getDiscoveredTests();
+        window.showQuickPick(buildItems(rootDirectory, tests), { matchOnDescription: true, matchOnDetail: true }).then(onItemSelected);
+    }
+    public displayFunctionTestPickerUI(rootDirectory: string, fileName: string, testFunctions: TestFunction[]) {
         const tests = getDiscoveredTests();
         if (!tests) {
             return;
@@ -25,7 +33,7 @@ export class TestDisplay {
                 testFunctions.some(testFunc => testFunc.nameToRun === fn.testFunction.nameToRun);
         });
 
-        window.showQuickPick(buildItemsForFunctions(flattenedFunctions), { matchOnDescription: true, matchOnDetail: true }).then(onItemSelected);
+        window.showQuickPick(buildItemsForFunctions(rootDirectory, flattenedFunctions), { matchOnDescription: true, matchOnDetail: true }).then(onItemSelected);
     }
 }
 
@@ -37,7 +45,8 @@ enum Type {
     RunFile = 4,
     RunClass = 5,
     RunMethod = 6,
-    ViewTestOutput = 7
+    ViewTestOutput = 7,
+    Null = 8
 }
 const statusIconMapping = new Map<TestStatus, string>();
 statusIconMapping.set(TestStatus.Pass, constants.Octicons.Test_Pass);
@@ -69,14 +78,20 @@ function getSummary(tests?: Tests) {
     }
     return statusText.join(', ').trim();
 }
-function buildItems(tests?: Tests): TestItem[] {
+function buildItems(rootDirectory: string, tests?: Tests): TestItem[] {
     const items: TestItem[] = [];
     items.push({ description: '', label: 'Run All Tests', type: Type.RunAll });
     items.push({ description: '', label: 'Rediscover Tests', type: Type.ReDiscover });
-    const summary = getSummary(tests);
+
+    let summary = getSummary(tests);
+    let separatorAdded = false;;
 
     // Add an empty space because we'd like a separtor between actions and tests
-    items.push({ description: '', label: 'View Test Output', type: Type.ViewTestOutput, detail: summary.length === 0 && tests ? '  ' : summary });
+    if (summary.length === 0 && tests && tests.summary.failures === 0) {
+        separatorAdded = true;
+        summary = ' ';
+    }
+    items.push({ description: '', label: 'View Test Output', type: Type.ViewTestOutput, detail: summary });
 
     if (!tests) {
         return items;
@@ -86,28 +101,49 @@ function buildItems(tests?: Tests): TestItem[] {
         items.push({ description: '', label: 'Run Failed Tests', type: Type.RunFailed, detail: `${constants.Octicons.Test_Fail} ${tests.summary.failures} Failed` });
     }
 
-    let functionItems = buildItemsForFunctions(tests.testFunctions);
+    if (tests.testFunctions.length > 0 && !separatorAdded) {
+        items.push({ description: '', label: '', type: Type.Null, detail: `` });
+    }
+
+    let functionItems = buildItemsForFunctions(rootDirectory, tests.testFunctions, true, true);
     items.push(...functionItems);
     return items;
 }
 
-function buildItemsForFunctions(tests: FlattenedTestFunction[]): TestItem[] {
+const statusSortPrefix = {};
+statusSortPrefix[TestStatus.Error] = '1';
+statusSortPrefix[TestStatus.Fail] = '2';
+statusSortPrefix[TestStatus.Skipped] = '3';
+statusSortPrefix[TestStatus.Pass] = '4';
+
+function buildItemsForFunctions(rootDirectory: string, tests: FlattenedTestFunction[], sortBasedOnResults: boolean = false, displayStatusIcons: boolean = false): TestItem[] {
     let functionItems: TestItem[] = [];
     tests.forEach(fn => {
         const classPrefix = fn.parentTestSuite ? fn.parentTestSuite.name + '.' : '';
+        let icon = '';
+        if (displayStatusIcons && statusIconMapping.has(fn.testFunction.status)) {
+            icon = `${statusIconMapping.get(fn.testFunction.status)} `;
+        }
+
         functionItems.push({
             description: '',
-            detail: fn.parentTestFile.name,
-            label: fn.testFunction.name,
+            detail: path.relative(rootDirectory, fn.parentTestFile.fullPath),
+            label: icon + fn.testFunction.name,
             type: Type.RunMethod,
             fn: fn
         });
     });
     functionItems.sort((a, b) => {
-        if (a.detail + a.label < b.detail + b.label) {
+        let sortAPrefix = '5-';
+        let sortBPrefix = '5-';
+        if (sortBasedOnResults) {
+            sortAPrefix = statusSortPrefix[a.fn.testFunction.status] ? statusSortPrefix[a.fn.testFunction.status] : sortAPrefix;
+            sortBPrefix = statusSortPrefix[b.fn.testFunction.status] ? statusSortPrefix[b.fn.testFunction.status] : sortBPrefix;
+        }
+        if (sortAPrefix + a.detail + a.label < sortBPrefix + b.detail + b.label) {
             return -1;
         }
-        if (a.detail + a.label > b.detail + b.label) {
+        if (sortAPrefix + a.detail + a.label > sortBPrefix + b.detail + b.label) {
             return 1;
         }
         return 0;
@@ -121,6 +157,9 @@ function onItemSelected(selection: TestItem) {
     let cmd = '';
     let args = [];
     switch (selection.type) {
+        case Type.Null: {
+            return;
+        }
         case Type.RunAll: {
             cmd = constants.Commands.Tests_Run;
             break;
