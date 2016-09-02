@@ -17,7 +17,7 @@ import {IPythonBreakpoint, PythonBreakpointConditionKind, PythonBreakpointPassCo
 import {BaseDebugServer} from "./DebugServers/BaseDebugServer";
 import {DebugClient, DebugType} from "./DebugClients/DebugClient";
 import {CreateAttachDebugClient, CreateLaunchDebugClient} from "./DebugClients/DebugFactory";
-import {DjangoApp, LaunchRequestArguments, AttachRequestArguments, DebugFlags, DebugOptions, TelemetryEvent} from "./Common/Contracts";
+import {DjangoApp, LaunchRequestArguments, AttachRequestArguments, DebugFlags, DebugOptions, TelemetryEvent, PythonEvaluationResultFlags} from "./Common/Contracts";
 import * as telemetryContracts from "../common/telemetryContracts";
 import {validatePath} from './Common/Utils';
 
@@ -39,7 +39,7 @@ export class PythonDebugger extends DebugSession {
     private debugClient: DebugClient;
     private configurationDone: Promise<any>;
     private configurationDonePromiseResolve: () => void;
-
+    private lastException: IPythonException;
     public constructor(debuggerLinesStartAt1: boolean, isServer: boolean) {
         super(debuggerLinesStartAt1, isServer === true);
         this._variableHandles = new Handles<IDebugVariable>();
@@ -120,6 +120,7 @@ export class PythonDebugger extends DebugSession {
         this.sendEvent(new StoppedEvent("step", pyThread.Id));
     }
     private onPythonException(pyThread: IPythonThread, ex: IPythonException) {
+        this.lastException = ex;
         this.sendEvent(new StoppedEvent("exception", pyThread.Id, `${ex.TypeName}, ${ex.Description}`));
         this.sendEvent(new OutputEvent(`${ex.TypeName}, ${ex.Description}\n`, "stderr"));
     }
@@ -462,6 +463,27 @@ export class PythonDebugger extends DebugSession {
             }
 
             let scopes = [];
+            if (typeof this.lastException === 'object' && this.lastException !== null && this.lastException.Description.length > 0) {
+                let values: IDebugVariable = {
+                    variables: [{
+                        Frame: frame, Expression: 'Type',
+                        Flags: PythonEvaluationResultFlags.Raw,
+                        StringRepr: this.lastException.TypeName,
+                        TypeName: 'string', IsExpandable: false, HexRepr: '',
+                        ChildName: '', ExceptionText: '', Length: 0, Process: null
+                    },
+                        {
+                            Frame: frame, Expression: 'Description',
+                            Flags: PythonEvaluationResultFlags.Raw,
+                            StringRepr: this.lastException.Description,
+                            TypeName: 'string', IsExpandable: false, HexRepr: '',
+                            ChildName: '', ExceptionText: '', Length: 0, Process: null
+                        }],
+                    evaluateChildren: false
+                };
+                scopes.push(new Scope("Exception", this._variableHandles.create(values), false));
+                this.lastException = null;
+            }
             if (Array.isArray(frame.Locals) && frame.Locals.length > 0) {
                 let values: IDebugVariable = { variables: frame.Locals };
                 scopes.push(new Scope("Local", this._variableHandles.create(values), false));
