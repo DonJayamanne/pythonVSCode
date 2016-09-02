@@ -20,6 +20,7 @@ import {CreateAttachDebugClient, CreateLaunchDebugClient} from "./DebugClients/D
 import {DjangoApp, LaunchRequestArguments, AttachRequestArguments, DebugFlags, DebugOptions, TelemetryEvent, PythonEvaluationResultFlags} from "./Common/Contracts";
 import * as telemetryContracts from "../common/telemetryContracts";
 import {validatePath} from './Common/Utils';
+import {isNotInstalledError} from '../common/helpers';
 
 const CHILD_ENUMEARATION_TIMEOUT = 5000;
 
@@ -191,7 +192,7 @@ export class PythonDebugger extends DebugSession {
             this.sendEvent(new OutputEvent(error + "\n", "stderr"));
             response.success = false;
             let errorMsg = typeof error === "string" ? error : ((error.message && error.message.length > 0) ? error.message : error + '');
-            if ((<any>error).code === 'ENOENT' || (<any>error).code === 127) {
+            if (isNotInstalledError(error)) {
                 errorMsg = `Failed to launch the Python Process, please validate the path '${this.launchArgs.pythonPath}'`;
             }
             this.sendErrorResponse(response, 200, errorMsg);
@@ -200,7 +201,7 @@ export class PythonDebugger extends DebugSession {
     protected unhandledProcessError(error: any) {
         if (!error) { return; }
         let errorMsg = typeof error === "string" ? error : ((error.message && error.message.length > 0) ? error.message : "");
-        if ((<any>error).code === 'ENOENT' || (<any>error).code === 127) {
+        if (isNotInstalledError(error)) {
             errorMsg = `Failed to launch the Python Process, please validate the path '${this.launchArgs.pythonPath}'`;
         }
         if (errorMsg.length > 0) {

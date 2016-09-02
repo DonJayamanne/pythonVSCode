@@ -1,5 +1,9 @@
 const tmp = require('tmp');
 
+export function isNotInstalledError(error: Error): boolean {
+    return typeof (error) === 'object' && error !== null && ((<any>error).code === 'ENOENT' || (<any>error).code === 127);
+}
+
 export interface Deferred<T> {
     resolve: (value?: T | PromiseLike<T>) => void;
     reject: (reason?: any) => void;

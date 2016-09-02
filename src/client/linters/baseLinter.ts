@@ -5,6 +5,7 @@ import { exec } from 'child_process';
 import {execPythonFile} from './../common/utils';
 import * as settings from './../common/configSettings';
 import {OutputChannel, window} from 'vscode';
+import {isNotInstalledError} from '../common/helpers';
 
 let NamedRegexp = null;
 const REGEX = '(?<line>\\d+),(?<column>\\d+),(?<type>\\w+),(?<code>\\w\\d+):(?<message>.*)\\r?(\\n|$)';
@@ -117,7 +118,7 @@ export abstract class BaseLinter {
     protected handleError(expectedFileName: string, fileName: string, error: Error) {
         let customError = `Linting with ${this.Id} failed.`;
 
-        if (typeof (error) === 'object' && error !== null && ((<any>error).code === 'ENOENT' || (<any>error).code === 127)) {
+        if (isNotInstalledError(error)) {
             // Check if we have some custom arguments such as "pylint --load-plugins pylint_django"
             // Such settings are no longer supported
             let stuffAfterFileName = fileName.substring(fileName.toUpperCase().lastIndexOf(expectedFileName) + expectedFileName.length);

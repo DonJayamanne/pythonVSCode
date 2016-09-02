@@ -6,6 +6,7 @@ import * as fs from 'fs';
 import {execPythonFile} from './../common/utils';
 import * as settings from './../common/configSettings';
 import {getTextEditsFromPatch, getTempFileWithDocumentContents} from './../common/editor';
+import {isNotInstalledError} from '../common/helpers';
 
 export abstract class BaseFormatter {
     constructor(public Id: string, protected outputChannel: vscode.OutputChannel, protected pythonSettings: settings.IPythonSettings, protected workspaceRootPath: string) {
@@ -45,7 +46,7 @@ export abstract class BaseFormatter {
     protected handleError(expectedFileName: string, fileName: string, error: Error) {
         let customError = `Formatting with ${this.Id} failed.`;
 
-        if (typeof (error) === 'object' && error !== null && ((<any>error).code === 'ENOENT' || (<any>error).code === 127)) {
+        if (isNotInstalledError(error)) {
             // Check if we have some custom arguments such as "pylint --load-plugins pylint_django"
             // Such settings are no longer supported
             let stuffAfterFileName = fileName.substring(fileName.toUpperCase().lastIndexOf(expectedFileName) + expectedFileName.length);

@@ -5,6 +5,7 @@ import * as fs from 'fs';
 import * as child_process from 'child_process';
 import * as settings from './configSettings';
 import {CancellationToken} from 'vscode';
+import {isNotInstalledError} from './helpers';
 
 export const IS_WINDOWS = /^win/.test(process.platform);
 const PATH_VARIABLE_NAME = IS_WINDOWS ? 'Path' : 'PATH';
@@ -111,7 +112,7 @@ export function execPythonFile(file: string, args: string[], cwd: string, includ
 
 function handleResponse(file: string, includeErrorAsResponse: boolean, error: Error, stdout: string, stderr: string): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-        if (typeof (error) === 'object' && error !== null && ((<any>error).code === 'ENOENT' || (<any>error).code === 127)) {
+        if (isNotInstalledError(error)) {
             return reject(error);
         }
 
