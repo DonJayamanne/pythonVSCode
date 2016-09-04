@@ -178,7 +178,7 @@ export class PythonDebugger extends DebugSession {
 
         this.launchArgs = args;
         this.debugClient = CreateLaunchDebugClient(args, this);
-
+        this.debugClient.on('exit', () => this.sendEvent(new TerminatedEvent()));
         this.configurationDone = new Promise(resolve => {
             this.configurationDonePromiseResolve = resolve;
         });

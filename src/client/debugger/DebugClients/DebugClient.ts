@@ -5,14 +5,17 @@ import {DebugSession, OutputEvent} from "vscode-debugadapter";
 import * as path from "path";
 import * as child_process from "child_process";
 import {DjangoApp, LaunchRequestArguments, AttachRequestArguments} from "../Common/Contracts";
+import {EventEmitter} from 'events';
 
 export enum DebugType {
     Local,
-    Remote
+    Remote,
+    RunLocal
 }
-export abstract class DebugClient {
+export abstract class DebugClient extends EventEmitter {
     protected debugSession: DebugSession;
     constructor(args: any, debugSession: DebugSession) {
+        super();
         this.debugSession = debugSession;
     }
     public abstract CreateDebugServer(pythonProcess: IPythonProcess): BaseDebugServer;
