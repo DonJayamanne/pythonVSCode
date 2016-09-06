@@ -2,6 +2,7 @@ import {BaseDebugServer} from "../DebugServers/BaseDebugServer";
 import {LocalDebugServer} from "../DebugServers/LocalDebugServer";
 import {IPythonProcess, IPythonThread, IDebugServer} from "../Common/Contracts";
 import {DebugSession, OutputEvent} from "vscode-debugadapter";
+import {DebugProtocol} from "vscode-debugprotocol";
 import * as path from "path";
 import * as child_process from "child_process";
 import {LaunchRequestArguments} from "../Common/Contracts";
@@ -82,7 +83,13 @@ export class LocalDebugClient extends DebugClient {
                 pythonPath = this.args.pythonPath;
             }
             let environmentVariables = this.args.env ? this.args.env : {};
+            let newEnvVars = {};            
             if (environmentVariables) {
+                for (let setting in environmentVariables) {
+                    if (!newEnvVars[setting]) {
+                        newEnvVars[setting] = environmentVariables[setting];
+                    }
+                }
                 for (let setting in process.env) {
                     if (!environmentVariables[setting]) {
                         environmentVariables[setting] = process.env[setting];
@@ -91,6 +98,7 @@ export class LocalDebugClient extends DebugClient {
             }
             if (!environmentVariables.hasOwnProperty("PYTHONIOENCODING")) {
                 environmentVariables["PYTHONIOENCODING"] = "UTF-8";
+                newEnvVars["PYTHONIOENCODING"] = "UTF-8";
             }
             let currentFileName = module.filename;
             let ptVSToolsFilePath = this.getPTVSToolsFilePath();
@@ -109,7 +117,28 @@ export class LocalDebugClient extends DebugClient {
                     }
                     reject(error);
                 });
+                return;
+            }
 
+            if (this.args.console === 'integratedTerminal') {
+                const isSudo = Array.isArray(this.args.debugOptions) && this.args.debugOptions.some(opt => opt === 'Sudo');
+                const command = isSudo ? 'sudo' : pythonPath;
+                const commandArgs = isSudo ? [pythonPath].concat(args) : args;
+                const options = { cwd: processCwd, env: environmentVariables };
+                const termArgs: DebugProtocol.RunInTerminalRequestArguments  = {
+					kind: 'integrated',
+					title: "Python Debug Console",
+					cwd: processCwd,
+					args: [command].concat(commandArgs),
+                    env: newEnvVars as { [key: string]: string }
+				};
+                this.debugSession.runInTerminalRequest(termArgs, 5000, (response)=>{
+                    if (response.success){
+                        resolve()
+                    } else {
+                        reject(response);
+                    }
+                });
                 return;
             }
 
@@ -152,6 +181,10 @@ export class LocalDebugClient extends DebugClient {
         let vsDebugOptions = "WaitOnAbnormalExit,WaitOnNormalExit,RedirectOutput";
         if (Array.isArray(this.args.debugOptions)) {
             vsDebugOptions = this.args.debugOptions.filter(opt => VALID_DEBUG_OPTIONS.indexOf(opt) >= 0).join(",");
+        }
+        // If internal or external console, then don't re-direct the output
+        if (this.args.externalConsole === true || this.args.console === 'integratedTerminal' || this.args.console === 'externalTermainal'){
+            vsDebugOptions = vsDebugOptions.split(',').filter(opt => opt !== 'RedirectOutput').join(',');
         }
 
         let programArgs = Array.isArray(this.args.args) && this.args.args.length > 0 ? this.args.args : [];

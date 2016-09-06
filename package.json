@@ -156,9 +156,14 @@
               },
               "externalConsole": {
                 "type": "boolean",
-                "description": "Launch debug target in external console window.",
+                "description": "Deprecated: use 'console' attribute instead.",
                 "default": false
               },
+              "console": {
+								"enum": [ "internalConsole", "integratedTerminal", "externalTerminal" ],
+								"description": "Where to launch the debug target: internal console, integrated terminal, or external terminal.",
+								"default": "internalConsole"
+							},
               "cwd": {
                 "type": "string",
                 "description": "Absolute path to the working directory of the program being debugged. Default is the root directory of the file (leave null).",
