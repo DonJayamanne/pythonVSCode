@@ -301,6 +301,22 @@
             ]
           },
           {
+            "name": "Pyramid",
+            "type": "python",
+            "request": "launch",
+            "stopOnEntry": true,
+            "pythonPath": "${config.python.pythonPath}",
+            "program": "${config.python.pyramid.pserve}",
+            "args": [
+              "${workspaceRoot}/development.ini"
+            ],
+            "debugOptions": [
+              "WaitOnAbnormalExit",
+              "WaitOnNormalExit",
+              "RedirectOutput"
+            ]
+          },
+          {
             "name": "Watson",
             "type": "python",
             "request": "launch",
@@ -613,6 +629,11 @@
           "type": "string",
           "default": "Python Test Log",
           "description": "The output window name for the unit test messages, defaults to Python output window."
+        },
+        "python.pyramid.pserve": {
+          "type": "string",
+          "default": "pserve",
+          "description": "Path to pserve command, you can use a custom version of pserve by modifying this setting to include the full path."
         }
       }
     }
