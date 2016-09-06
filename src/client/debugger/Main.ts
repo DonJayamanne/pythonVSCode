@@ -57,6 +57,7 @@ export class PythonDebugger extends DebugSession {
         response.body.supportsConfigurationDoneRequest = true;
         response.body.supportsEvaluateForHovers = false;
         response.body.supportsFunctionBreakpoints = false;
+        response.body.supportsSetVariable = true;
         response.body.exceptionBreakpointFilters = [
             {
                 label: "All Exceptions",
@@ -611,6 +612,31 @@ export class PythonDebugger extends DebugSession {
         this.stopDebugServer();
         this.sendResponse(response);
     }
+    protected setVariableRequest(response: DebugProtocol.SetVariableResponse, args: DebugProtocol.SetVariableArguments) {
+        let variable = this._variableHandles.get(args.variablesReference).variables.find(v => v.ChildName === args.name);
+        if (!variable) {
+            return this.sendErrorResponse(response, 2000, 'Variable reference not found');
+        }
+        this.pythonProcess.ExecuteText(`${args.name} = ${args.value}`, PythonEvaluationResultReprKind.Normal, variable.Frame).then(result => {
+            return this.pythonProcess.ExecuteText(args.name, PythonEvaluationResultReprKind.Normal, variable.Frame).then(result => {
+                let variablesReference = 0;
+                // If this value can be expanded, then create a vars ref for user to expand it
+                if (result.IsExpandable) {
+                    const parentVariable: IDebugVariable = {
+                        variables: [result],
+                        evaluateChildren: true
+                    };
+                    variablesReference = this._variableHandles.create(parentVariable);
+                }
+                response.body = {
+                    value: result.StringRepr
+                };
+                this.sendResponse(response);
+            });
+        }).catch(error => this.sendErrorResponse(response, 2000, error));
+    }
+    // protected stepInTargetsRequest(response: DebugProtocol.StepInTargetsResponse, args: DebugProtocol.StepInTargetsArguments): void;
+    // protected gotoTargetsRequest(response: DebugProtocol.GotoTargetsResponse, args: DebugProtocol.GotoTargetsArguments): void;
 }
 
 DebugSession.run(PythonDebugger);
