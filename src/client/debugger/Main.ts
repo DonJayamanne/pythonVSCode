@@ -146,6 +146,9 @@ export class PythonDebugger extends DebugSession {
                 this.pythonProcess.SendResumeThread(pyThread.Id);
             });
         }
+        else if (this.attachArgs) {
+            this.sendEvent(new StoppedEvent("entry", pyThread.Id));
+        }
         else {
             this.pythonProcess.SendResumeThread(pyThread.Id);
         }
@@ -351,8 +354,15 @@ export class PythonDebugger extends DebugSession {
     /** converts the remote path to local path */
     protected convertDebuggerPathToClient(remotePath: string): string {
         if (this.attachArgs && this.attachArgs.localRoot && this.attachArgs.remoteRoot) {
-            // get the part of the path that is relative to the source root
-            const pathRelativeToSourceRoot = path.relative(this.attachArgs.remoteRoot, remotePath);
+            let pathRelativeToSourceRoot = '';
+            // It is possible we're dealing with cross platform debugging
+            // If so, then path.relative won't work :(
+            if (remotePath.toUpperCase().startsWith(this.attachArgs.remoteRoot.toUpperCase())){
+                pathRelativeToSourceRoot = remotePath.substring(this.attachArgs.remoteRoot.length);
+            } else {
+                // get the part of the path that is relative to the source root
+                pathRelativeToSourceRoot = path.relative(this.attachArgs.remoteRoot, remotePath);
+            }
             // resolve from the local source root
             return path.resolve(this.attachArgs.localRoot, pathRelativeToSourceRoot);
         } else {
@@ -366,6 +376,7 @@ export class PythonDebugger extends DebugSession {
             const pathRelativeToClientRoot = path.relative(this.attachArgs.localRoot, clientPath);
             // resolve from the remote source root
             return path.resolve(this.attachArgs.remoteRoot, pathRelativeToClientRoot);
+            // return pathRelativeToClientRoot;
         } else {
             return clientPath;
         }
