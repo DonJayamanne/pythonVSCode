@@ -15,6 +15,12 @@ let LineByLineReader = require("line-by-line");
 
 const PTVS_FILES = ["visualstudio_ipython_repl.py", "visualstudio_py_debugger.py",
     "visualstudio_py_launcher.py", "visualstudio_py_repl.py", "visualstudio_py_util.py"];
+const VALID_DEBUG_OPTIONS = ["WaitOnAbnormalExit",
+                    "WaitOnNormalExit",
+                    "RedirectOutput",
+                    "DebugStdLib",
+                    "BreakOnSystemExitZero",
+                    "DjangoDebugging"];
 
 export class LocalDebugClient extends DebugClient {
     protected args: LaunchRequestArguments;
@@ -92,7 +98,8 @@ export class LocalDebugClient extends DebugClient {
 
             let args = [ptVSToolsFilePath, processCwd, dbgServer.port.toString(), "34806ad9-833a-4524-8cd6-18ca4aa74f14"].concat(launcherArgs);
             if (this.args.externalConsole === true) {
-                open({ wait: false, app: [pythonPath].concat(args), cwd: processCwd, env: environmentVariables }).then(proc => {
+                const isSudo = Array.isArray(this.args.debugOptions) && this.args.debugOptions.some(opt => opt === 'Sudo');
+                open({ wait: false, app: [pythonPath].concat(args), cwd: processCwd, env: environmentVariables, sudo: isSudo }).then(proc => {
                     this.pyProc = proc;
                     resolve();
                 }, error => {
@@ -144,7 +151,7 @@ export class LocalDebugClient extends DebugClient {
     protected buildLauncherArguments(): string[] {
         let vsDebugOptions = "WaitOnAbnormalExit,WaitOnNormalExit,RedirectOutput";
         if (Array.isArray(this.args.debugOptions)) {
-            vsDebugOptions = this.args.debugOptions.join(",");
+            vsDebugOptions = this.args.debugOptions.filter(opt => VALID_DEBUG_OPTIONS.indexOf(opt) >= 0).join(",");
         }
 
         let programArgs = Array.isArray(this.args.args) && this.args.args.length > 0 ? this.args.args : [];

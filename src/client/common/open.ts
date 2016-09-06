@@ -29,12 +29,12 @@ export function open(opts: any): Promise<childProcess.ChildProcess> {
     }
 
     if (process.platform === 'darwin') {
-        cmd = 'osascript';
+        const sudoPrefix = opts.sudo === true ? 'sudo ' : '';
+        cmd = 'osascript';        
         args = [ '-e', 'tell application "terminal"',
                 '-e', 'activate',
-                '-e', 'do script "' + [opts.app].concat(appArgs).join(" ") + '"',
+                '-e', 'do script "' + sudoPrefix + [opts.app].concat(appArgs).join(" ") + '"',
                 '-e', 'end tell' ];
-        
     } else if (process.platform === 'win32') {
         cmd = 'cmd';
         args.push('/c', 'start');
@@ -52,7 +52,8 @@ export function open(opts: any): Promise<childProcess.ChildProcess> {
         }
     } else {
         cmd = 'gnome-terminal';
-        args = ['-x', 'sh', '-c', `"${opts.app}" ${appArgs.join(" ")}`]
+        const sudoPrefix = opts.sudo === true ? 'sudo ' : '';
+        args = ['-x', 'sh', '-c', `"${sudoPrefix}${opts.app}" ${appArgs.join(" ")}`]
     }
 
     var cp = childProcess.spawn(cmd, args, cpOpts);

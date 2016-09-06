@@ -175,7 +175,8 @@
                     "RedirectOutput",
                     "DebugStdLib",
                     "BreakOnSystemExitZero",
-                    "DjangoDebugging"
+                    "DjangoDebugging",
+                    "Sudo"
                   ]
                 },
                 "default": [
