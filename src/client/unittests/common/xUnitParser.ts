@@ -65,7 +65,7 @@ export function updateResultsFromXmlLogFile(tests: Tests, outputXmlFile: string,
 
                 switch (passCalculationFormulae) {
                     case PassCalculationFormulae.pytest: {
-                        tests.summary.passed = testCount - tests.summary.failures - tests.summary.skipped;
+                        tests.summary.passed = testCount - tests.summary.failures - tests.summary.skipped - tests.summary.errors;
                         break;
                     }
                     case PassCalculationFormulae.nosetests: {
