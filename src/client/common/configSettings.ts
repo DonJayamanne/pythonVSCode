@@ -130,6 +130,11 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         this.emit('change');
         this.unitTest.pyTestPath = getAbsolutePath(this.unitTest.pyTestPath, vscode.workspace.rootPath);
         this.unitTest.nosetestPath = getAbsolutePath(this.unitTest.nosetestPath, vscode.workspace.rootPath);
+
+        // Resolve any variables found in the test arguments
+        this.unitTest.nosetestArgs = this.unitTest.nosetestArgs.map(arg => systemVariables.resolveAny(arg));
+        this.unitTest.pyTestArgs = this.unitTest.pyTestArgs.map(arg => systemVariables.resolveAny(arg));
+        this.unitTest.unittestArgs = this.unitTest.unittestArgs.map(arg => systemVariables.resolveAny(arg));
     }
 
     public pythonPath: string;

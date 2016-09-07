@@ -78,29 +78,31 @@ export function runTest(rootDirectory: string, tests: Tests, args: string[], tes
 function buildTestArgs(args: string[]): string[] {
     let startDirectory = '.';
     let pattern = 'test*.py';
-    const indexOfStartDir = args.findIndex(arg => arg.indexOf('-s') === 0);
-    if (indexOfStartDir > 0) {
+    const indexOfStartDir = args.findIndex(arg => arg.indexOf('-s') === 0 || arg.indexOf('--start-directory') === 0);
+    if (indexOfStartDir >= 0) {
         const startDir = args[indexOfStartDir].trim();
-        if (startDir.trim() === '-s' && args.length >= indexOfStartDir) {
+        if ((startDir.trim() === '-s' || startDir.trim() === '--start-directory') && args.length >= indexOfStartDir) {
             // Assume the next items is the directory
             startDirectory = args[indexOfStartDir + 1];
         }
         else {
-            startDirectory = startDir.substring(2).trim();
+            const lenToStartFrom = startDir.startsWith('-s') ? '-s'.length : '--start-directory'.length;
+            startDirectory = startDir.substring(lenToStartFrom).trim();
             if (startDirectory.startsWith('=')) {
                 startDirectory = startDirectory.substring(1);
             }
         }
     }
-    const indexOfPattern = args.findIndex(arg => arg.indexOf('-p') === 0);
-    if (indexOfPattern > 0) {
+    const indexOfPattern = args.findIndex(arg => arg.indexOf('-p') === 0 || arg.indexOf('--pattern') === 0);
+    if (indexOfPattern >= 0) {
         const patternValue = args[indexOfPattern].trim();
-        if (patternValue.trim() === '-s' && args.length >= indexOfPattern) {
+        if ((patternValue.trim() === '-p' || patternValue.trim() === '--pattern') && args.length >= indexOfPattern) {
             // Assume the next items is the directory
             pattern = args[indexOfPattern + 1];
         }
         else {
-            pattern = patternValue.substring(2).trim();
+            const lenToStartFrom = patternValue.startsWith('-p') ? '-p'.length : '--pattern'.length;
+            pattern = patternValue.substring(lenToStartFrom).trim();
             if (pattern.startsWith('=')) {
                 pattern = pattern.substring(1);
             }
