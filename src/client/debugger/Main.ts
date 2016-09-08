@@ -1,6 +1,7 @@
 "use strict";
 
 import {Variable, DebugSession, InitializedEvent, TerminatedEvent, StoppedEvent, OutputEvent, Thread, StackFrame, Scope, Source, Handles} from "vscode-debugadapter";
+import {Module, ModuleEvent} from "vscode-debugadapter";
 import {ThreadEvent} from "vscode-debugadapter";
 import {DebugProtocol} from "vscode-debugprotocol";
 import {readFileSync} from "fs";
@@ -132,13 +133,17 @@ export class PythonDebugger extends DebugSession {
     private onPythonProcessPaused(pyThread: IPythonThread) {
         this.sendEvent(new StoppedEvent("user request", pyThread.Id));
     }
-    private onPythonModuleLoaded(module: IPythonModule) {
+    private onPythonModuleLoaded(pyModule: IPythonModule) {
+        // this.sendEvent(new ModuleEvent('new', new Module(pyModule.ModuleId, pyModule.Name)));
     }
     private debuggerHasLoaded: boolean;
     private onPythonProcessLoaded(pyThread: IPythonThread) {
         this.debuggerHasLoaded = true;
         this.sendResponse(this.entryResponse);
         this.debuggerLoadedPromiseResolve();
+        if (!this.launchArgs.console) {
+            this.launchArgs.console = this.launchArgs.externalConsole === true ? 'externalTerminal' : 'internalConsole';
+        }
         if (this.launchArgs && this.launchArgs.stopOnEntry === true) {
             this.sendEvent(new StoppedEvent("entry", pyThread.Id));
         }
