@@ -253,6 +253,12 @@ export class PythonDebugger extends DebugSession {
             this.launchArgs.debugOptions.indexOf(DebugOptions.DjangoDebugging) >= 0) {
             isDjangoFile = filePath.toUpperCase().endsWith(".HTML");
         }
+        // Todo: Remote DJango debugging
+        // if (this.attachArgs != null &&
+        //     Array.isArray(this.attachArgs.debugOptions) &&
+        //     this.attachArgs.debugOptions.indexOf(DebugOptions.DjangoDebugging) >= 0) {
+        //     isDjangoFile = filePath.toUpperCase().endsWith(".HTML");
+        // }
 
         condition = typeof condition === "string" ? condition : "";
 
@@ -358,11 +364,14 @@ export class PythonDebugger extends DebugSession {
             let pathRelativeToSourceRoot = '';
             // It is possible we're dealing with cross platform debugging
             // If so, then path.relative won't work :(
-            if (remotePath.toUpperCase().startsWith(this.attachArgs.remoteRoot.toUpperCase())){
-                pathRelativeToSourceRoot = remotePath.substring(this.attachArgs.remoteRoot.length);
+            if (remotePath.toUpperCase().startsWith(this.attachArgs.remoteRoot.toUpperCase())) {
+                pathRelativeToSourceRoot = remotePath.substring(this.attachArgs.remoteRoot.length).trim();
             } else {
                 // get the part of the path that is relative to the source root
-                pathRelativeToSourceRoot = path.relative(this.attachArgs.remoteRoot, remotePath);
+                pathRelativeToSourceRoot = path.relative(this.attachArgs.remoteRoot, remotePath).trim();
+            }
+            if (pathRelativeToSourceRoot.startsWith(path.sep)){
+                pathRelativeToSourceRoot = pathRelativeToSourceRoot.substring(1);
             }
             // resolve from the local source root
             return path.resolve(this.attachArgs.localRoot, pathRelativeToSourceRoot);
@@ -584,7 +593,9 @@ export class PythonDebugger extends DebugSession {
                 mode = enum_EXCEPTION_STATE.BREAK_MODE_ALWAYS;
             }
             let exToIgnore = null;
-            let exceptionHandling = this.launchArgs.exceptionHandling;
+            let exceptionHandling = this.launchArgs ? this.launchArgs.exceptionHandling : null;
+            // Todo: exception handling for remote debugging
+            // let exceptionHandling = this.launchArgs ? this.launchArgs.exceptionHandling : this.attachArgs.exceptionHandling;
             if (exceptionHandling) {
                 exToIgnore = new Map<string, enum_EXCEPTION_STATE>();
                 if (Array.isArray(exceptionHandling.ignore)) {
