@@ -8,6 +8,7 @@ let ncp = require("copy-paste");
 
 // where to find the Python binary within a conda env
 const CONDA_RELATIVE_PY_PATH = utils.IS_WINDOWS ? ['python'] : ['bin', 'python'] 
+const REPLACE_PYTHONPATH_REGEXP = /("python\.pythonPath"\s*:\s*)"(.*)"/;
 
 interface PythonPathSuggestion {
     label: string, // myenvname
@@ -17,6 +18,22 @@ interface PythonPathSuggestion {
 
 function workspaceSettingsPath() {
     return path.join(vscode.workspace.rootPath, '.vscode', 'settings.json')
+}
+
+function openWorkspaceSettings() {
+    return vscode.commands.executeCommand('workbench.action.openWorkspaceSettings');
+}
+
+function replaceContentsOfFile(doc: vscode.TextDocument, newContent: string) {
+
+    const lastLine = doc.lineAt(doc.lineCount - 2);
+    const start = new vscode.Position(0, 0);
+    const end = new vscode.Position(doc.lineCount - 1, lastLine.text.length);
+
+    const textEdit = vscode.TextEdit.replace(new vscode.Range(start, end), newContent);
+    const workspaceEdit = new vscode.WorkspaceEdit()
+    workspaceEdit.set(doc.uri, [textEdit]);
+    return vscode.workspace.applyEdit(workspaceEdit).then(() => doc.save())
 }
 
 export function activateSetInterpreterProvider() {
@@ -75,21 +92,36 @@ function suggestPythonPaths(): Promise<vscode.QuickPickItem[]> {
 }
 
 function setPythonPath(pythonPath: string) {
-    // Waiting on https://github.com/Microsoft/vscode/issues/1396
-    // For now, just let the user copy this to clipboard
-    const copy_msg =  "Copy to Clipboard"
-
-    // If the user already has .vscode/settings.json in the workspace
-    // open it for them
     vscode.workspace.openTextDocument(workspaceSettingsPath())
-        .then(doc => vscode.window.showTextDocument(doc));
-    
-    vscode.window.showInformationMessage(pythonPath, copy_msg)
-        .then(item => {
-            if (item === copy_msg) {
-                ncp.copy(pythonPath)
+        .then(doc => {
+            const settingsText = doc.getText();
+            if (settingsText.search(REPLACE_PYTHONPATH_REGEXP) === -1) {
+                // Can't find the setting to replace - will just have to offer a copy button and instruct them to edit themselves.
+                openWorkspaceSettings().then(() => {
+                    const copyMsg =  "Copy to Clipboard"
+                    const newEntry = `"python.pythonPath": "${pythonPath}"`;
+                    vscode.window.showInformationMessage(`Please add an entry: ${newEntry}`, copyMsg)
+                        .then(item => {
+                            if (item === copyMsg) {
+                                ncp.copy(newEntry)
+                            }
+                        })
+                })
+            } else {
+                // Great, the user already has a setting stated that we can relibly replace!
+                const newSettingsText = settingsText.replace(REPLACE_PYTHONPATH_REGEXP, `$1"${pythonPath}"`);
+                replaceContentsOfFile(doc, newSettingsText).then(
+                    () => {
+                        vscode.window.setStatusBarMessage(`Workspace Interpreter set to ${pythonPath}`);
+                        // As the file is saved the following should be the same as each other but they
+                        // aren't - some form of race condition?
+                        // const currentPythonPath = settings.PythonSettings.getInstance().pythonPath;
+                        // console.log(currentPythonPath);
+                        // console.log(pythonPath);
+                    }
+                )
             }
-        })
+        });
 }
 
 function presentQuickPickOfSuggestedPythonPaths() {
@@ -119,16 +151,12 @@ function setInterpreter() {
         vscode.window.showErrorMessage("The interpreter can only be set within a workspace (open a folder)")
         return
     }
-    vscode.workspace.openTextDocument(settingsPath)
-        .then(doc => {
-                // Great, workspace file exists. Present it for copy/pasting into...
-                vscode.window.showTextDocument(doc);
-                // ...and offer the quick-pick suggestions.
-                presentQuickPickOfSuggestedPythonPaths()
-            }, 
-            () => {
-                // The user doesn't have any workspace settings!
-                // Prompt them to create one first
-                vscode.window.showErrorMessage("No workspace settings file. First, run 'Preferences: Open Workspace Settings' to create one." )
-                })
+    vscode.workspace.openTextDocument(settingsPath).then(
+        presentQuickPickOfSuggestedPythonPaths,
+        () => {
+            // No settings present yet! Trigger the opening of the workspace settings for the first time
+            // then present the picker.
+            openWorkspaceSettings().then(presentQuickPickOfSuggestedPythonPaths)
+        }
+    )
 }
