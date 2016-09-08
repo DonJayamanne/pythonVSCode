@@ -38,25 +38,31 @@ export class TestResultDisplay {
         // Treat errors as a special case, as we generally wouldn't have any errors
         const statusText = [];
         const toolTip = [];
+        let foreColor = '';
 
         if (tests.summary.passed > 0) {
             statusText.push(`${constants.Octicons.Test_Pass} ${tests.summary.passed}`);
             toolTip.push(`${tests.summary.passed} Passed`);
-        }
-        if (tests.summary.failures > 0) {
-            statusText.push(`${constants.Octicons.Test_Fail} ${tests.summary.failures}`);
-            toolTip.push(`${tests.summary.failures} Failed`);
-        }
-        if (tests.summary.errors > 0) {
-            statusText.push(`${constants.Octicons.Test_Error} ${tests.summary.errors}`);
-            toolTip.push(`${tests.summary.errors} Error${tests.summary.errors > 1 ? 's' : ''}`);
+            foreColor = '#66ff66';
         }
         if (tests.summary.skipped > 0) {
             statusText.push(`${constants.Octicons.Test_Skip} ${tests.summary.skipped}`);
             toolTip.push(`${tests.summary.skipped} Skipped`);
+            foreColor = '#66ff66';
+        }
+        if (tests.summary.failures > 0) {
+            statusText.push(`${constants.Octicons.Test_Fail} ${tests.summary.failures}`);
+            toolTip.push(`${tests.summary.failures} Failed`);
+            foreColor = 'yellow';
+        }
+        if (tests.summary.errors > 0) {
+            statusText.push(`${constants.Octicons.Test_Error} ${tests.summary.errors}`);
+            toolTip.push(`${tests.summary.errors} Error${tests.summary.errors > 1 ? 's' : ''}`);
+            foreColor = 'yellow';
         }
         this.statusBar.tooltip = toolTip.length === 0 ? 'No Tests Ran' : toolTip.join(', ') + ' (Tests)';
         this.statusBar.text = statusText.length === 0 ? 'No Tests Ran' : statusText.join(' ');
+        this.statusBar.color = foreColor;
         this.statusBar.command = constants.Commands.Tests_View_UI;
         return tests;
     }
@@ -117,7 +123,7 @@ export class TestResultDisplay {
         const haveTests = tests && (tests.testFunctions.length > 0);
         this.statusBar.text = haveTests ? '$(zap) Run Tests' : 'No Tests';
         this.statusBar.tooltip = haveTests ? 'Run Tests' : 'No Tests discovered';
-        this.statusBar.command = haveTests ? 'python.viewTests' : constants.Commands.Tests_Discover;
+        this.statusBar.command = haveTests ? constants.Commands.Tests_View_UI : constants.Commands.Tests_Discover;
         this.statusBar.show();
     }
 
