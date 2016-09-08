@@ -41,7 +41,8 @@
     "onCommand:python.viewTestUI",
     "onCommand:python.viewTestOutput",
     "onCommand:python.selectAndRunTestMethod",
-    "onCommand:python.runFailedTests"
+    "onCommand:python.runFailedTests",
+    "onCommand:python.execSelectionInTerminal"
   ],
   "main": "./out/client/extension",
   "contributes": {
@@ -96,6 +97,11 @@
         "command": "python.runFailedTests",
         "title": "Run Failed Unit Tests",
         "category": "Python"
+      },
+      {
+        "command": "python.execSelectionInTerminal",
+        "title": "Run Selection in Python Terminal",
+        "category": "Python"
       }
     ],
     "menus": {
@@ -113,6 +119,11 @@
           "when": "editorHasSelection && editorLangId == python"
         },
         {
+          "command": "python.execSelectionInTerminal",
+          "group": "Python",
+          "when": "editorHasSelection && editorLangId == python"
+        },
+        {
           "when": "resourceLangId == python",
           "command": "python.execInTerminal",
           "group": "Python"
@@ -120,6 +131,7 @@
       ],
       "explorer/context": [
         {
+          "when": "resourceLangId == python",
           "command": "python.runtests",
           "group": "Python"
         },
