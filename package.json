@@ -37,8 +37,9 @@
     "onCommand:python.sortImports",
     "onCommand:python.runtests",
     "onCommand:python.setInterpreter",
-    "onCommand:python.viewTests",
-    "onCommand:python.discoverTests",
+    "onCommand:python.viewTestUI",
+    "onCommand:python.viewTestOutput",
+    "onCommand:python.selectAndRunTestMethod",
     "onCommand:python.runFailedTests"
   ],
   "main": "./out/client/extension",
@@ -57,7 +58,7 @@
       },
       {
         "command": "python.runtests",
-        "title": "Run Unit Tests",
+        "title": "Run All Unit Tests",
         "category": "Python"
       },
       {
@@ -76,13 +77,13 @@
         "category": "Refactor"
       },
       {
-        "command": "python.viewTests",
-        "title": "View Test UI",
+        "command": "python.viewTestOutput",
+        "title": "Show Unit Test Output",
         "category": "Python"
       },
       {
-        "command": "python.discoverTests",
-        "title": "Discover Unit Tests",
+        "command": "python.selectAndRunTestMethod",
+        "title": "Run Unit Test Method ...",
         "category": "Python"
       },
       {

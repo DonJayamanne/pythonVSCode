@@ -153,7 +153,10 @@ export abstract class BaseTestManager {
 
         this._status = TestStatus.Running;
         this.createCancellationToken();
-        return this.discoverTests(false, true)
+        // If running failed tests, then don't clear the previously build UnitTests
+        // If we do so, then we end up re-discovering the unit tests and clearing previously cached list of failed tests
+        const clearDiscoveredTestCache = runFailedTests === true ? false : true;
+        return this.discoverTests(clearDiscoveredTestCache, true)
             .catch(reason => {
                 if (this.cancellationToken && this.cancellationToken.isCancellationRequested) {
                     return Promise.reject(reason);

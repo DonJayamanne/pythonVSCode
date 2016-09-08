@@ -19,6 +19,17 @@ export class TestDisplay {
         const tests = getDiscoveredTests();
         window.showQuickPick(buildItems(rootDirectory, tests), { matchOnDescription: true, matchOnDetail: true }).then(onItemSelected);
     }
+    public selectTestFunction(rootDirectory: string, tests: Tests): Promise<FlattenedTestFunction> {
+        return new Promise<FlattenedTestFunction>((resolve, reject) => {
+            window.showQuickPick(buildItemsForFunctions(rootDirectory, tests.testFunctions), { matchOnDescription: true, matchOnDetail: true })
+                .then(item => {
+                    if (item && item.fn) {
+                        return resolve(item.fn);
+                    }
+                    return reject();
+                }, reject);
+        });
+    }
     public displayFunctionTestPickerUI(rootDirectory: string, fileName: string, testFunctions: TestFunction[]) {
         const tests = getDiscoveredTests();
         if (!tests) {
@@ -46,7 +57,8 @@ enum Type {
     RunClass = 5,
     RunMethod = 6,
     ViewTestOutput = 7,
-    Null = 8
+    Null = 8,
+    SelectAndRunMethod = 9
 }
 const statusIconMapping = new Map<TestStatus, string>();
 statusIconMapping.set(TestStatus.Pass, constants.Octicons.Test_Pass);
@@ -80,33 +92,16 @@ function getSummary(tests?: Tests) {
 }
 function buildItems(rootDirectory: string, tests?: Tests): TestItem[] {
     const items: TestItem[] = [];
-    items.push({ description: '', label: 'Run All Tests', type: Type.RunAll });
-    items.push({ description: '', label: 'Rediscover Tests', type: Type.ReDiscover });
+    items.push({ description: '', label: 'Run All Unit Tests', type: Type.RunAll });
+    items.push({ description: '', label: 'Run Unit Test Method ...', type: Type.SelectAndRunMethod });
 
     let summary = getSummary(tests);
-    let separatorAdded = false;;
+    items.push({ description: '', label: 'View Unit Test Output', type: Type.ViewTestOutput, detail: summary });
 
-    // Add an empty space because we'd like a separtor between actions and tests
-    if (summary.length === 0 && tests && tests.summary.failures === 0) {
-        separatorAdded = true;
-        summary = ' ';
-    }
-    items.push({ description: '', label: 'View Test Output', type: Type.ViewTestOutput, detail: summary });
-
-    if (!tests) {
-        return items;
-    }
-
-    if (tests.summary.failures > 0) {
+    if (tests && tests.summary.failures > 0) {
         items.push({ description: '', label: 'Run Failed Tests', type: Type.RunFailed, detail: `${constants.Octicons.Test_Fail} ${tests.summary.failures} Failed` });
     }
 
-    if (tests.testFunctions.length > 0 && !separatorAdded) {
-        items.push({ description: '', label: '', type: Type.Null, detail: `` });
-    }
-
-    let functionItems = buildItemsForFunctions(rootDirectory, tests.testFunctions, true, true);
-    items.push(...functionItems);
     return items;
 }
 
@@ -174,6 +169,10 @@ function onItemSelected(selection: TestItem) {
         }
         case Type.RunFailed: {
             cmd = constants.Commands.Tests_Run_Failed;
+            break;
+        }
+        case Type.SelectAndRunMethod: {
+            cmd = constants.Commands.Tests_Select_And_Run_Method;
             break;
         }
         case Type.RunMethod: {

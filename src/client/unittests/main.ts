@@ -4,7 +4,7 @@ import {Tests, TestsToRun, TestFolder, TestFile, TestStatus, TestSuite, TestFunc
 import * as nosetests from './nosetest/main';
 import * as pytest from './pytest/main';
 import * as unittest from './unittest/main';
-import {resolveValueAsTestToRun} from './common/testUtils';
+import {resolveValueAsTestToRun, getDiscoveredTests} from './common/testUtils';
 import {BaseTestManager} from './common/baseTestManager';
 import {PythonSettings, IUnitTestSettings} from '../common/configSettings';
 import {TestResultDisplay} from './display/main';
@@ -64,6 +64,7 @@ function registerCommands(): vscode.Disposable[] {
     disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_ViewOutput, () => outChannel.show()));
     disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Ask_To_Stop_Discovery, () => displayStopUI('Stop discovering tests')));
     disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Ask_To_Stop_Test, () => displayStopUI('Stop running tests')));
+    disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Select_And_Run_Method, () => selectAndRunTestMethod()));
 
     return disposables;
 }
@@ -85,6 +86,19 @@ function displayPickerUI(file: string, testFunctions: TestFunction[]) {
 
     testDisplay = testDisplay ? testDisplay : new TestDisplay();
     testDisplay.displayFunctionTestPickerUI(vscode.workspace.rootPath, file, testFunctions);
+}
+function selectAndRunTestMethod() {
+    let testManager = getTestRunner();
+    if (!testManager) {
+        return displayTestFrameworkError();
+    }
+    testManager.discoverTests(true, true).then(() => {
+        const tests = getDiscoveredTests();
+        testDisplay = testDisplay ? testDisplay : new TestDisplay();
+        testDisplay.selectTestFunction(vscode.workspace.rootPath, tests).then(testFn => {
+            runTestsImpl(testFn);
+        }).catch(() => { });
+    });
 }
 function displayStopUI(message: string) {
     let testManager = getTestRunner();
@@ -142,7 +156,7 @@ function displayTestFrameworkError() {
         vscode.window.showErrorMessage("Enable only one of the test frameworks (nosetest or pytest), not both.")
     }
     else {
-        vscode.window.showInformationMessage('Please enable one of the test frameworks (pytest or nosetest)');
+        vscode.window.showInformationMessage('Please enable one of the test frameworks (unittest, pytest or nosetest)');
     }
     return null;
 }
@@ -184,13 +198,13 @@ function discoverTests(ignoreCache?: boolean, quietMode: boolean = false) {
     }
 }
 function isTestsToRun(arg: any): arg is TestsToRun {
-    if (arg && arg.testFunction && Array.isArray(arg.testFunction)){
+    if (arg && arg.testFunction && Array.isArray(arg.testFunction)) {
         return true;
     }
-    if (arg && arg.testSuite && Array.isArray(arg.testSuite)){
+    if (arg && arg.testSuite && Array.isArray(arg.testSuite)) {
         return true;
     }
-    if (arg && arg.testFile && Array.isArray(arg.testFile)){
+    if (arg && arg.testFile && Array.isArray(arg.testFile)) {
         return true;
     }
     return false;
