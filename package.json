@@ -161,9 +161,9 @@
                 "default": false
               },
               "console": {
-								"enum": [ "internalConsole", "integratedTerminal", "externalTerminal" ],
+								"enum": [ "none", "integratedTerminal", "externalTerminal" ],
 								"description": "Where to launch the debug target: internal console, integrated terminal, or external terminal.",
-								"default": "internalConsole"
+								"default": "none"
 							},
               "cwd": {
                 "type": "string",
@@ -276,13 +276,26 @@
             ]
           },
           {
-            "name": "Python Console App",
+            "name": "Python Integrated Console App",
             "type": "python",
             "request": "launch",
             "stopOnEntry": true,
             "pythonPath": "${config.python.pythonPath}",
             "program": "${file}",
-            "externalConsole": true,
+            "console": "integratedTerminal", 
+            "debugOptions": [
+              "WaitOnAbnormalExit",
+              "WaitOnNormalExit"
+            ]
+          },
+          {
+            "name": "Python External Console App",
+            "type": "python",
+            "request": "launch",
+            "stopOnEntry": true,
+            "pythonPath": "${config.python.pythonPath}",
+            "program": "${file}",
+            "console": "externalTerminal", 
             "debugOptions": [
               "WaitOnAbnormalExit",
               "WaitOnNormalExit"
@@ -307,6 +320,21 @@
             ]
           },
           {
+            "name": "Flask",
+            "type": "python",
+            "request": "launch",
+            "stopOnEntry": true,
+            "pythonPath": "${config.python.pythonPath}",
+            "program": "${workspaceRoot}/run.py",
+            "args": [
+            ],
+            "debugOptions": [
+              "WaitOnAbnormalExit",
+              "WaitOnNormalExit",
+              "RedirectOutput"
+            ]
+          },
+          {
             "name": "Watson",
             "type": "python",
             "request": "launch",
@@ -325,7 +353,7 @@
             ]
           },
           {
-            "name": "Attach",
+            "name": "Attach (Remote Debug)",
             "type": "python",
             "request": "attach",
             "localRoot": "${workspaceRoot}",

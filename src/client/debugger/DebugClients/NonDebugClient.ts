@@ -77,7 +77,7 @@ export class NonDebugClient extends DebugClient {
             let launcherArgs = this.buildLauncherArguments();
 
             let args = launcherArgs;
-            if (this.args.externalConsole === true) {
+            if (this.args.console === 'externalTerminal') {
                 open({ wait: false, app: [pythonPath].concat(args), cwd: processCwd, env: environmentVariables }).then(proc => {
                     this.pyProc = proc;
                     this.pyProc.on('exit', () => {

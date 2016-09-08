@@ -105,7 +105,7 @@ export class LocalDebugClient extends DebugClient {
             let launcherArgs = this.buildLauncherArguments();
 
             let args = [ptVSToolsFilePath, processCwd, dbgServer.port.toString(), "34806ad9-833a-4524-8cd6-18ca4aa74f14"].concat(launcherArgs);
-            if (this.args.externalConsole === true) {
+            if (this.args.console === 'externalTerminal') {
                 const isSudo = Array.isArray(this.args.debugOptions) && this.args.debugOptions.some(opt => opt === 'Sudo');
                 open({ wait: false, app: [pythonPath].concat(args), cwd: processCwd, env: environmentVariables, sudo: isSudo }).then(proc => {
                     this.pyProc = proc;

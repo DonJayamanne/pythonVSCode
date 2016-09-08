@@ -142,7 +142,7 @@ export class PythonDebugger extends DebugSession {
         this.sendResponse(this.entryResponse);
         this.debuggerLoadedPromiseResolve();
         if (!this.launchArgs.console) {
-            this.launchArgs.console = this.launchArgs.externalConsole === true ? 'externalTerminal' : 'internalConsole';
+            this.launchArgs.console = this.launchArgs.externalConsole === true ? 'externalTerminal' : 'none';
         }
         if (this.launchArgs && this.launchArgs.stopOnEntry === true) {
             this.sendEvent(new StoppedEvent("entry", pyThread.Id));
@@ -179,7 +179,7 @@ export class PythonDebugger extends DebugSession {
             return this.sendErrorResponse(response, 2001, `File does not exist. "${args.program}"`);
         }
         this.sendEvent(new TelemetryEvent(telemetryContracts.Debugger.Load, {
-            Debug_ExternalConsole: args.externalConsole === true ? "true" : "false",
+            Debug_Console: args.console,
             Debug_DebugOptions: args.debugOptions.join(","),
             Debug_DJango: args.debugOptions.indexOf("DjangoDebugging") >= 0 ? "true" : "false",
             Debug_HasEnvVaraibles: args.env && typeof args.env === "object" ? "true" : "false"
