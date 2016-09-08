@@ -1,7 +1,6 @@
 "use strict";
 
 import {Variable, DebugSession, InitializedEvent, TerminatedEvent, StoppedEvent, OutputEvent, Thread, StackFrame, Scope, Source, Handles} from "vscode-debugadapter";
-import {Module, ModuleEvent} from "vscode-debugadapter";
 import {ThreadEvent} from "vscode-debugadapter";
 import {DebugProtocol} from "vscode-debugprotocol";
 import {readFileSync} from "fs";
@@ -133,15 +132,14 @@ export class PythonDebugger extends DebugSession {
     private onPythonProcessPaused(pyThread: IPythonThread) {
         this.sendEvent(new StoppedEvent("user request", pyThread.Id));
     }
-    private onPythonModuleLoaded(pyModule: IPythonModule) {
-        // this.sendEvent(new ModuleEvent('new', new Module(pyModule.ModuleId, pyModule.Name)));
+    private onPythonModuleLoaded(module: IPythonModule) {
     }
     private debuggerHasLoaded: boolean;
     private onPythonProcessLoaded(pyThread: IPythonThread) {
         this.debuggerHasLoaded = true;
         this.sendResponse(this.entryResponse);
         this.debuggerLoadedPromiseResolve();
-        if (!this.launchArgs.console) {
+        if (this.launchArgs && !this.launchArgs.console) {
             this.launchArgs.console = this.launchArgs.externalConsole === true ? 'externalTerminal' : 'none';
         }
         if (this.launchArgs && this.launchArgs.stopOnEntry === true) {
@@ -151,9 +149,6 @@ export class PythonDebugger extends DebugSession {
             this.configurationDone.then(() => {
                 this.pythonProcess.SendResumeThread(pyThread.Id);
             });
-        }
-        else if (this.attachArgs) {
-            this.sendEvent(new StoppedEvent("entry", pyThread.Id));
         }
         else {
             this.pythonProcess.SendResumeThread(pyThread.Id);
@@ -187,7 +182,7 @@ export class PythonDebugger extends DebugSession {
 
         this.launchArgs = args;
         this.debugClient = CreateLaunchDebugClient(args, this);
-        this.debugClient.on('exit', () => this.sendEvent(new TerminatedEvent()));
+        //this.debugClient.on('exit', () => this.sendEvent(new TerminatedEvent()));
         this.configurationDone = new Promise(resolve => {
             this.configurationDonePromiseResolve = resolve;
         });
@@ -382,7 +377,6 @@ export class PythonDebugger extends DebugSession {
             const pathRelativeToClientRoot = path.relative(this.attachArgs.localRoot, clientPath);
             // resolve from the remote source root
             return path.resolve(this.attachArgs.remoteRoot, pathRelativeToClientRoot);
-            // return pathRelativeToClientRoot;
         } else {
             return clientPath;
         }
@@ -640,8 +634,6 @@ export class PythonDebugger extends DebugSession {
             });
         }).catch(error => this.sendErrorResponse(response, 2000, error));
     }
-    // protected stepInTargetsRequest(response: DebugProtocol.StepInTargetsResponse, args: DebugProtocol.StepInTargetsArguments): void;
-    // protected gotoTargetsRequest(response: DebugProtocol.GotoTargetsResponse, args: DebugProtocol.GotoTargetsArguments): void;
 }
 
 DebugSession.run(PythonDebugger);

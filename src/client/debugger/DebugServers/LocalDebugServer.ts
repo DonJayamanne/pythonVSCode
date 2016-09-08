@@ -25,9 +25,9 @@ export class LocalDebugServer extends BaseDebugServer {
         return new Promise<IDebugServer>((resolve, reject) => {
             let that = this;
             let connectedResolve = this.debugClientConnected.resolve;
+            let connected = false;
             this.debugSocketServer = net.createServer(c => {
                 // "connection" listener
-                let connected = false;
                 c.on("data", (buffer: Buffer) => {
                     if (connectedResolve) {
                         // The debug client has connected to the debug server
@@ -57,6 +57,9 @@ export class LocalDebugServer extends BaseDebugServer {
                     msg = `The port used for debugging is in use, please try again or try restarting Visual Studio Code, Error = ${exMessage}`;
                 }
                 else {
+                    if (connected){
+                        return;
+                    }
                     msg = `There was an error in starting the debug server. Error = ${exMessage}`;
                 }
                 that.debugSession.sendEvent(new OutputEvent(msg + "\n", "stderr"));
