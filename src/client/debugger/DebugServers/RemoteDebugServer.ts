@@ -190,6 +190,9 @@ export class RemoteDebugServer extends BaseDebugServer {
                 that.debugSession.sendEvent(new OutputEvent(msg + "\n", "stderr"));
             });
             this.socket.on("error", ex => {
+                if (connected){
+                    return;
+                }
                 let exMessage = JSON.stringify(ex);
                 let msg = `There was an error in starting the debug server. Error = ${exMessage}`;
                 that.debugSession.sendEvent(new OutputEvent(msg + "\n", "stderr"));
