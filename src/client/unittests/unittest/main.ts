@@ -23,11 +23,6 @@ export class TestManager extends BaseTestManager {
                 return fn.testFunction.status === TestStatus.Error || fn.testFunction.status === TestStatus.Fail;
             }).map(fn=>fn.testFunction);
         }
-<<<<<<< a3034a0dafa547afd949f2b0dcbdcba6accb5764
-        
-=======
-
->>>>>>> unitests using python unittest framework #239
         return runTest(this.rootDirectory, tests, args, testsToRun, this.cancellationToken, this.outputChannel);
     }
 }
