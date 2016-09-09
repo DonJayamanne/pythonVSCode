@@ -16,7 +16,7 @@
             "preLaunchTask": "npm"
         },
         {
-            "name": "Attach",
+            "name": "Launch Extension as debugServer", // https://code.visualstudio.com/docs/extensions/example-debuggers
             "type": "node",
             "request": "launch",
             "runtimeArgs": [
