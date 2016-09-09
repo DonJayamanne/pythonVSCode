@@ -118,6 +118,7 @@ export interface IPythonProcess extends NodeJS.EventEmitter {
     ProgramDirectory: string;
     PendingChildEnumCommands: Map<number, IChildEnumCommand>;
     PendingExecuteCommands: Map<number, IExecutionCommand>;
+    ProcessPendingExecuteCommands();
 }
 
 export interface IPythonEvaluationResult {
@@ -190,6 +191,7 @@ export interface IExecutionCommand {
     Frame: IPythonStackFrame;
     PromiseResolve: (value: IPythonEvaluationResult) => void;
     PromiseReject: (error: string) => void;
+    ReprKind: PythonEvaluationResultReprKind;
 }
 // Must be in sync with BREAKPOINT_CONDITION_* constants in visualstudio_py_debugger.py.
 export enum PythonBreakpointConditionKind {

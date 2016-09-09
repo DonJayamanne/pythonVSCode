@@ -284,6 +284,7 @@ export class PythonProcessCallbackHandler extends EventEmitter {
             }
             cmd.PromiseReject(exceptionText);
         }
+        this.process.ProcessPendingExecuteCommands();
         this.idDispenser.Free(execId);
     }
     private HandleExecutionResult() {
@@ -319,6 +320,7 @@ export class PythonProcessCallbackHandler extends EventEmitter {
                 this.process.PendingExecuteCommands.delete(execId);
             }
         }
+        this.process.ProcessPendingExecuteCommands();
         this.idDispenser.Free(execId);
     }
 

@@ -42,6 +42,7 @@ export class PythonProcess extends EventEmitter implements IPythonProcess {
 
     public PendingChildEnumCommands: Map<number, IChildEnumCommand>;
     public PendingExecuteCommands: Map<number, IExecutionCommand>;
+    private executeCommandsQueue: IExecutionCommand[];
     private callbackHandler: PythonProcessCallbackHandler;
     private stream: SocketStream = null;
     private programDirectory: string;
@@ -57,6 +58,7 @@ export class PythonProcess extends EventEmitter implements IPythonProcess {
         this.PendingChildEnumCommands = new Map<number, IChildEnumCommand>();
         this.PendingExecuteCommands = new Map<number, IExecutionCommand>();
         this.programDirectory = programDirectory;
+        this.executeCommandsQueue = [];
     }
 
     public Kill() {
@@ -322,17 +324,28 @@ export class PythonProcess extends EventEmitter implements IPythonProcess {
                 Text: text,
                 Frame: stackFrame,
                 PromiseResolve: resolve,
-                PromiseReject: reject
+                PromiseReject: reject,
+                ReprKind: reprKind
             };
-            this.PendingExecuteCommands.set(executeId, cmd);
-            this.stream.Write(Commands.ExecuteTextCommandBytes);
-            this.stream.WriteString(text);
-            this.stream.WriteInt64(stackFrame.Thread.Id);
-            this.stream.WriteInt32(stackFrame.FrameId);
-            this.stream.WriteInt32(executeId);
-            this.stream.WriteInt32(<number>stackFrame.Kind);
-            this.stream.WriteInt32(<number>reprKind);
+            this.executeCommandsQueue.push(cmd);
+            this.ProcessPendingExecuteCommands();
         });
+    }
+
+    public ProcessPendingExecuteCommands() {
+        if (this.executeCommandsQueue.length === 0 || this.PendingExecuteCommands.size > 0) {
+            return;
+        }
+
+        const cmd = this.executeCommandsQueue.shift();
+        this.PendingExecuteCommands.set(cmd.Id, cmd);
+        this.stream.Write(Commands.ExecuteTextCommandBytes);
+        this.stream.WriteString(cmd.Text);
+        this.stream.WriteInt64(cmd.Frame.Thread.Id);
+        this.stream.WriteInt32(cmd.Frame.FrameId);
+        this.stream.WriteInt32(cmd.Id);
+        this.stream.WriteInt32(<number>cmd.Frame.Kind);
+        this.stream.WriteInt32(<number>cmd.ReprKind);
     }
 
     public EnumChildren(text: string, stackFrame: IPythonStackFrame, timeout: number): Promise<IPythonEvaluationResult[]> {
