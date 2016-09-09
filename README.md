@@ -10,14 +10,14 @@ An extension with rich support for the [Python language](https://www.python.org/
 * View signature and similar by hovering over a function or method
 * Excellent debugging support (variables, arguments, expressions, watch window, stack information, break points, remote debugging, mutliple threads)
 * Unit testing ([unittest](https://docs.python.org/3/library/unittest.html#module-unittest), [pytest](https://pypi.io/project/pytest/), [nosetests](https://pypi.io/project/nose/), with config files)
+* Execute file or selected code in python terminal
 * Snippets
 
 ## Quick Start
 * Install the extension
 * If Python is in the current path
   + You're ready to use it.
-* If using a custom Python Version or a Virtual Environment
-  + Configure the path to the python executable in `python.pythonPath` of the `settings.json` file ([further details here](https://github.com/DonJayamanne/pythonVSCode/wiki/Python-Path-and-Version#python-version-used-for-intellisense-autocomplete-linting-formatting-etc)) 
+* If using a custom Python Version or a Virtual Environment, use the command [```Select Workspace Interpreter```](https://github.com/DonJayamanne/pythonVSCode/wiki/Miscellaneous#select-an-interpreter)) 
 
 ## [Documentation](https://github.com/DonJayamanne/pythonVSCode/wiki)
 For further information and details continue through to the [documentation](https://github.com/DonJayamanne/pythonVSCode/wiki).
@@ -62,15 +62,20 @@ For further information and details continue through to the [documentation](http
  + Step through code (Step in, Step out, Continue)
  + Add/remove break points
  + Local variables and arguments
- + Multiple Threads and Web Applications (such as Flask) (Windows and Mac)
- + Expanding values (viewing children, properties, etc) (Windows and Mac)
+ + Multiple Threads and Web Applications (such as Flask, Django)
+ + Expanding values (viewing children, properties, etc)
  + Conditional break points
  + Remote debugging
  + Google App Engine
-* Unit Testing
+ + Debugging in the integrated or external terminal window
+ * Debugging as sudo
+* [Unit Testing](https://github.com/DonJayamanne/pythonVSCode/wiki/UnitTests)
  + Support for unittests, nosetests and pytest
  + Test results are displayed in the "Python" output window
+ + Run failed tests, individual tests
 * Snippets
+* Miscellaneous
+ + Running a file or selected text in python terminal
 * Refactoring
  + [Rename Refactorings](https://github.com/DonJayamanne/pythonVSCode/wiki/Refactoring:-Rename)
  + [Extract Variable Refactorings](https://github.com/DonJayamanne/pythonVSCode/wiki/Refactoring:-Extract-Variable)
@@ -85,39 +90,44 @@ For further information and details continue through to the [documentation](http
 _Please note, not all of these feature may be developed.   
 Your feedback is crucial in prioritizing the items and in determining whether we shift focus our attention to some other feature request(s)._    
 * Intellisense and Linting
-  + Context actions for some linter messages
   + Remote Interpretter
 * Miscellaneous IDE enhancements
   + Auto-generate docstring
   + Documentation viewer
-  + Improved integration of Unit Tests
   + Complex code refactoring (alogn with UI to preview)
+  + Debugging unit tests
+  + Intelliense (completions) within debugger
 * Integration
   + Code coverage
   + Profiler
   + Integrating IPython
 * Debugging enhancements  
-  + Integration with VS Code Terminal window
   + Securely debugging Python applications in the cloud (Azure, AWS or Google Cloud)
   + Remote debugging over SSH
 
 ## [Change Log](https://github.com/DonJayamanne/pythonVSCode/releases)
 
-### Current Version 0.3.21
-* Sharing python.pythonPath value with debug configuration [#214](https://github.com/DonJayamanne/pythonVSCode/issues/214) and [#183](https://github.com/DonJayamanne/pythonVSCode/issues/183)
-* Support extract variable and method refactoring [#220](https://github.com/DonJayamanne/pythonVSCode/issues/220)
-* Support environment variables in settings [#148](https://github.com/DonJayamanne/pythonVSCode/issues/148)
-* Support formatting of selected text [#197](https://github.com/DonJayamanne/pythonVSCode/issues/197) and [#183](https://github.com/DonJayamanne/pythonVSCode/issues/183)
-* Support autocompletion of parameters [#71](https://github.com/DonJayamanne/pythonVSCode/issues/71)
-* Support launching terminal (for debugging console apps) on Linux [#152](https://github.com/DonJayamanne/pythonVSCode/issues/152)
-* Display name of linter along with diagnostic messages [#199](https://github.com/DonJayamanne/pythonVSCode/issues/199)
-* Auto indenting of except and async functions [#205](https://github.com/DonJayamanne/pythonVSCode/issues/205) and [#215](https://github.com/DonJayamanne/pythonVSCode/issues/215)
-* Support changes to pythonPath without having to restart VS Code [#216](https://github.com/DonJayamanne/pythonVSCode/issues/216)
-* Resolved issue to support large debug outputs [#52](https://github.com/DonJayamanne/pythonVSCode/issues/52) and  [#52](https://github.com/DonJayamanne/pythonVSCode/issues/203)
-* Handling instances when debugging with invalid paths to the python interpreter [#229](https://github.com/DonJayamanne/pythonVSCode/issues/229)
-* Fixed refactoring on Python 3.5 [#244](https://github.com/DonJayamanne/pythonVSCode/issues/244)
-* Fixed parsing errors when refactoring [#244](https://github.com/DonJayamanne/pythonVSCode/issues/244)
+### Current Version 0.3.22
+* Added few new snippets
+* Integrated [Unit Tests](https://github.com/DonJayamanne/pythonVSCode/wiki/UnitTests)
+* Selecting interpreter and updating ```settings.json```[Documentation]](https://github.com/DonJayamanne/pythonVSCode/wiki/Miscellaneous#select-an-interpreter), [#257](https://github.com/DonJayamanne/pythonVSCode/issues/257)
+* Running a file or selection in terminal [Documentation](https://github.com/DonJayamanne/pythonVSCode/wiki/Miscellaneous#execute-in-python-terminal), [#261](https://github.com/DonJayamanne/pythonVSCode/wiki/Miscellaneous#execute-in-python-terminal) (new to [Visual Studio Code 1.5](https://code.visualstudio.com/Updates#_extension-authoring))
+* Debugging an application using the integrated terminal window (new to [Visual Studio Code 1.5](https://code.visualstudio.com/Updates#_node-debugging))
+* Running a python script without debugging [#118](https://github.com/DonJayamanne/pythonVSCode/issues/118)
+* Displaying errors in variable explorer when debugging [#271](https://github.com/DonJayamanne/pythonVSCode/issues/271)
+* Ability to debug applications as sudo [#224](https://github.com/DonJayamanne/pythonVSCode/issues/224)
+* Fixed debugger crashes [#263](https://github.com/DonJayamanne/pythonVSCode/issues/263)
+* Asynchronour display of unit tests [#190](https://github.com/DonJayamanne/pythonVSCode/issues/190)
+* Fixed issues when using relative paths in ```settings.json``` [#276](https://github.com/DonJayamanne/pythonVSCode/issues/276)
+* Fixes issue of hardcoding interpreter command arguments [#256](https://github.com/DonJayamanne/pythonVSCode/issues/256)
+* Fixes resolving of remote paths when debugging remote applications [#252](https://github.com/DonJayamanne/pythonVSCode/issues/252)
 
+## Thank you
+- [James Booth](https://github.com/jabooth)
+  + Selecting interpreter and updating ```settings.json``` [#257](https://github.com/DonJayamanne/pythonVSCode/issues/257)
+  + Running a file or selection in terminal [#261](https://github.com/DonJayamanne/pythonVSCode/wiki/Miscellaneous#execute-in-python-terminal)
+  + Asynchronour display of unit tests [#190](https://github.com/DonJayamanne/pythonVSCode/issues/190)
+    
 ## Source
 
 [GitHub](https://github.com/DonJayamanne/pythonVSCode)

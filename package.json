@@ -1,8 +1,8 @@
 {
   "name": "python",
   "displayName": "Python",
-  "description": "Linting, Debugging (multi-threaded, remote), Intellisense, code formatting, refactoring, snippets, and more.",
-  "version": "0.3.21",
+  "description": "Linting, Debugging (multi-threaded, remote), Intellisense, code formatting, refactoring, unit tests, snippets, and more.",
+  "version": "0.3.22",
   "publisher": "donjayamanne",
   "author": {
     "name": "Don Jayamanne",
@@ -304,7 +304,7 @@
             ]
           },
           {
-            "name": "Python Integrated Console App",
+            "name": "Integrated Terminal/Console",
             "type": "python",
             "request": "launch",
             "stopOnEntry": true,
@@ -317,7 +317,7 @@
             ]
           },
           {
-            "name": "Python External Console App",
+            "name": "External Terminal/Console",
             "type": "python",
             "request": "launch",
             "stopOnEntry": true,
