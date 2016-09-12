@@ -370,7 +370,7 @@ export class PythonDebugger extends DebugSession {
     protected convertDebuggerPathToClient(remotePath: string): string {
         if (this.attachArgs && this.attachArgs.localRoot && this.attachArgs.remoteRoot) {
             let path2 = path.win32;
-            if (this.attachArgs.remoteRoot.indexOf('/') != -1) {
+            if (this.attachArgs.remoteRoot.indexOf('/') !== -1) {
                 path2 = path.posix;
             }
             let pathRelativeToSourceRoot = path2.relative(this.attachArgs.remoteRoot, remotePath);
@@ -388,7 +388,7 @@ export class PythonDebugger extends DebugSession {
             const pathRelativeToClientRoot = path.relative(this.attachArgs.localRoot, clientPath);
             // resolve from the remote source root
             let path2 = path.win32;
-            if (this.attachArgs.remoteRoot.indexOf('/') != -1) {
+            if (this.attachArgs.remoteRoot.indexOf('/') !== -1) {
                 path2 = path.posix;
             }
             return path2.resolve(this.attachArgs.remoteRoot, pathRelativeToClientRoot);
