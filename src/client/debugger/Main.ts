@@ -41,6 +41,7 @@ export class PythonDebugger extends DebugSession {
     private configurationDone: Promise<any>;
     private configurationDonePromiseResolve: () => void;
     private lastException: IPythonException;
+    private _supportsRunInTerminalRequest:boolean;
     public constructor(debuggerLinesStartAt1: boolean, isServer: boolean) {
         super(debuggerLinesStartAt1, isServer === true);
         this._variableHandles = new Handles<IDebugVariable>();
@@ -68,7 +69,9 @@ export class PythonDebugger extends DebugSession {
                 filter: "uncaught"
             }
         ];
-
+        if (typeof args.supportsRunInTerminalRequest === 'boolean') {
+			this._supportsRunInTerminalRequest = args.supportsRunInTerminalRequest;
+		}        
         this.sendResponse(response);
         // now we are ready to accept breakpoints -> fire the initialized event to give UI a chance to set breakpoints
         this.sendEvent(new InitializedEvent());
@@ -141,6 +144,11 @@ export class PythonDebugger extends DebugSession {
         this.debuggerLoadedPromiseResolve();
         if (this.launchArgs && !this.launchArgs.console) {
             this.launchArgs.console = this.launchArgs.externalConsole === true ? 'externalTerminal' : 'none';
+        }
+        // If launching the integrated terminal is not supported, then defer to external terminal 
+        // that will be displayed by our own code
+        if (!this._supportsRunInTerminalRequest && this.launchArgs && this.launchArgs.console === 'integratedTerminal'){
+            this.launchArgs.console = 'externalTerminal';
         }
         if (this.launchArgs && this.launchArgs.stopOnEntry === true) {
             this.sendEvent(new StoppedEvent("entry", pyThread.Id));
