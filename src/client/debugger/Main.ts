@@ -369,26 +369,14 @@ export class PythonDebugger extends DebugSession {
     /** converts the remote path to local path */
     protected convertDebuggerPathToClient(remotePath: string): string {
         if (this.attachArgs && this.attachArgs.localRoot && this.attachArgs.remoteRoot) {
-            let pathRelativeToSourceRoot = path.relative(this.attachArgs.remoteRoot, remotePath);
+            let path2 = path.win32;
+            if (this.attachArgs.remoteRoot.indexOf('/') != -1) {
+                path2 = path.posix;
+            }
+            let pathRelativeToSourceRoot = path2.relative(this.attachArgs.remoteRoot, remotePath);
+            // resolve from the local source root
             let clientPath = path.resolve(this.attachArgs.localRoot, pathRelativeToSourceRoot);
-            if (validatePathSync(clientPath)){
-                return clientPath;
-            }
-            else {
-                // It is possible we're dealing with cross platform debugging
-                // If so, then path.relative won't work :(
-                if (remotePath.toUpperCase().startsWith(this.attachArgs.remoteRoot.toUpperCase())) {
-                    pathRelativeToSourceRoot = remotePath.substring(this.attachArgs.remoteRoot.length).trim();
-                } else {
-                    // get the part of the path that is relative to the source root
-                    pathRelativeToSourceRoot = path.relative(this.attachArgs.remoteRoot, remotePath).trim();
-                }
-                if (pathRelativeToSourceRoot.startsWith(path.sep)){
-                    pathRelativeToSourceRoot = pathRelativeToSourceRoot.substring(1);
-                }
-                // resolve from the local source root
-                return path.resolve(this.attachArgs.localRoot, pathRelativeToSourceRoot);
-            }
+            return clientPath;
         } else {
             return remotePath;
         }
@@ -399,7 +387,11 @@ export class PythonDebugger extends DebugSession {
             // get the part of the path that is relative to the client root
             const pathRelativeToClientRoot = path.relative(this.attachArgs.localRoot, clientPath);
             // resolve from the remote source root
-            return path.resolve(this.attachArgs.remoteRoot, pathRelativeToClientRoot);
+            let path2 = path.win32;
+            if (this.attachArgs.remoteRoot.indexOf('/') != -1) {
+                path2 = path.posix;
+            }
+            return path2.resolve(this.attachArgs.remoteRoot, pathRelativeToClientRoot);
         } else {
             return clientPath;
         }
