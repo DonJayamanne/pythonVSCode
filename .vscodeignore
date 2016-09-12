@@ -5,9 +5,10 @@ test/**
 src/**
 **/*.map
 .gitignore
-images/*.gif
+images/**/*.gif
+images/**/*.png
 tsconfig.json
-*.pyc
+pythonFiles/**/*.pyc
 vsc-extension-quickstart.md
 .travis.yml
 requirements.txt
