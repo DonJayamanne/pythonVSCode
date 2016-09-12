@@ -125,7 +125,7 @@ Your feedback is crucial in prioritizing the items and in determining whether we
 * Displaying errors in variable explorer when debugging [#271](https://github.com/DonJayamanne/pythonVSCode/issues/271)
 * Ability to debug applications as sudo [#224](https://github.com/DonJayamanne/pythonVSCode/issues/224)
 * Fixed debugger crashes [#263](https://github.com/DonJayamanne/pythonVSCode/issues/263)
-* Asynchronour display of unit tests [#190](https://github.com/DonJayamanne/pythonVSCode/issues/190)
+* Asynchronous display of unit tests [#190](https://github.com/DonJayamanne/pythonVSCode/issues/190)
 * Fixed issues when using relative paths in ```settings.json``` [#276](https://github.com/DonJayamanne/pythonVSCode/issues/276)
 * Fixes issue of hardcoding interpreter command arguments [#256](https://github.com/DonJayamanne/pythonVSCode/issues/256)
 * Fixes resolving of remote paths when debugging remote applications [#252](https://github.com/DonJayamanne/pythonVSCode/issues/252)
@@ -134,7 +134,9 @@ Your feedback is crucial in prioritizing the items and in determining whether we
 - [James Booth](https://github.com/jabooth)
   + Selecting interpreter and updating ```settings.json``` [#257](https://github.com/DonJayamanne/pythonVSCode/issues/257)
   + Running a file or selection in terminal [#261](https://github.com/DonJayamanne/pythonVSCode/wiki/Miscellaneous#execute-in-python-terminal)
-  + Asynchronour display of unit tests [#190](https://github.com/DonJayamanne/pythonVSCode/issues/190)
+  + Asynchronous display of unit tests [#190](https://github.com/DonJayamanne/pythonVSCode/issues/190)
+- [QIU Quan](https://github.com/jackqq)
+  + Changes to ensure remote debugging resolves remote paths correctly [#302](https://github.com/DonJayamanne/pythonVSCode/issues/302)
     
 ## Source
 
