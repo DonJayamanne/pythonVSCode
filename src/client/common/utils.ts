@@ -83,6 +83,9 @@ export function execPythonFile(file: string, args: string[], cwd: string, includ
     return getPythonInterpreterDirectory().then(pyPath => {
         // We don't have a path
         if (pyPath.length === 0) {
+            if (stdOut) {
+                return spawnFileInternal(file, args, { cwd }, includeErrorAsResponse, stdOut, token);
+            }
             return execFileInternal(file, args, { cwd: cwd }, includeErrorAsResponse);
         }
 

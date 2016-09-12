@@ -5,6 +5,9 @@ import * as os from 'os';
 import {extractBetweenDelimiters, flattenTestFiles, updateResults, convertFileToPackage} from '../common/testUtils';
 import * as vscode from 'vscode';
 import * as path from 'path';
+import {PythonSettings} from '../../common/configSettings';
+
+const pythonSettings = PythonSettings.getInstance();
 
 const argsToExcludeForDiscovery = ['--lf', '--last-failed', '--markers', '-x',
     '--exitfirst', '--maxfail', '--fixtures', '--funcargs', '-pdb', '--capture',
@@ -82,7 +85,7 @@ export function discoverTests(rootDirectory: string, args: string[], token: vsco
         });
     }
 
-    return execPythonFile('py.test', args.concat(['--collect-only']), rootDirectory, false, processOutput, token)
+    return execPythonFile(pythonSettings.unitTest.pyTestPath, args.concat(['--collect-only']), rootDirectory, false, processOutput, token)
         .then(() => {
             if (token && token.isCancellationRequested) {
                 return Promise.reject<Tests>('cancelled');

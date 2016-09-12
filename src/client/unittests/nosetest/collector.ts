@@ -5,6 +5,9 @@ import {TestFile, TestsToRun, TestSuite, TestFunction, FlattenedTestFunction, Te
 import * as os from 'os';
 import {extractBetweenDelimiters, convertFileToPackage, flattenTestFiles} from '../common/testUtils';
 import {CancellationToken} from 'vscode';
+import {PythonSettings} from '../../common/configSettings';
+
+const pythonSettings = PythonSettings.getInstance();
 
 const argsToExcludeForDiscovery = ['-v', '--verbose', 'l DEBUG', '--debug=DEBUG', '-x',
     '--stop', '--cover-erase', '--cover-tests', '--cover-inclusive', '--cover-html',
@@ -74,7 +77,7 @@ export function discoverTests(rootDirectory: string, args: string[], token: Canc
         });
     }
 
-    return execPythonFile('nosetests', args.concat(['--collect-only', '-vvv']), rootDirectory, true, processOutput)
+    return execPythonFile(pythonSettings.unitTest.nosetestPath, args.concat(['--collect-only', '-vvv']), rootDirectory, true, processOutput)
         .then(() => {
             // process the last entry
             parseNoseTestModuleCollectionResult(rootDirectory, logOutputLines, testFiles);

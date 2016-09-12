@@ -9,6 +9,9 @@ import {BaseTestManager} from '../common/baseTestManager';
 import {CancellationToken, OutputChannel} from 'vscode';
 import {updateResultsFromXmlLogFile, PassCalculationFormulae} from '../common/xUnitParser';
 import {run} from '../common/runner';
+import {PythonSettings} from '../../common/configSettings';
+
+const pythonSettings = PythonSettings.getInstance();
 
 export function runTest(rootDirectory: string, tests: Tests, args: string[], testsToRun?: TestsToRun, token?: CancellationToken, outChannel?: OutputChannel): Promise<Tests> {
     let testPaths = [];
@@ -32,7 +35,7 @@ export function runTest(rootDirectory: string, tests: Tests, args: string[], tes
         xmlLogFile = xmlLogResult.filePath;
         xmlLogFileCleanup = xmlLogResult.cleanupCallback;
         const testArgs = args.concat([`--junitxml=${xmlLogFile}`]).concat(testPaths);
-        return run('py.test', testArgs, rootDirectory, token, outChannel);
+        return run(pythonSettings.unitTest.pyTestPath, testArgs, rootDirectory, token, outChannel);
     }).then(() => {
         return updateResultsFromLogFiles(tests, xmlLogFile);
     }).then(result => {
