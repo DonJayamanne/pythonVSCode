@@ -20,6 +20,18 @@ export function validatePath(filePath: string): Promise<string> {
     });
 }
 
+export function validatePathSync(filePath: string): boolean {
+    if (filePath.length === 0) {
+        return false;
+    }
+    if (PathValidity.has(filePath)) {
+        return PathValidity.get(filePath);
+    }
+    const exists = fs.existsSync(filePath);
+    PathValidity.set(filePath, exists);
+    return exists;
+}
+
 export function CreatePythonThread(id: number, isWorker: boolean, process: IPythonProcess, name: string = ""): IPythonThread {
     return {
         IsWorkerThread: isWorker,

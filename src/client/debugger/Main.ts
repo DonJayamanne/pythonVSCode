@@ -19,7 +19,7 @@ import {DebugClient, DebugType} from "./DebugClients/DebugClient";
 import {CreateAttachDebugClient, CreateLaunchDebugClient} from "./DebugClients/DebugFactory";
 import {DjangoApp, LaunchRequestArguments, AttachRequestArguments, DebugFlags, DebugOptions, TelemetryEvent, PythonEvaluationResultFlags} from "./Common/Contracts";
 import * as telemetryContracts from "../common/telemetryContracts";
-import {validatePath} from './Common/Utils';
+import {validatePath, validatePathSync} from './Common/Utils';
 import {isNotInstalledError} from '../common/helpers';
 
 const CHILD_ENUMEARATION_TIMEOUT = 5000;
@@ -361,20 +361,26 @@ export class PythonDebugger extends DebugSession {
     /** converts the remote path to local path */
     protected convertDebuggerPathToClient(remotePath: string): string {
         if (this.attachArgs && this.attachArgs.localRoot && this.attachArgs.remoteRoot) {
-            let pathRelativeToSourceRoot = '';
-            // It is possible we're dealing with cross platform debugging
-            // If so, then path.relative won't work :(
-            if (remotePath.toUpperCase().startsWith(this.attachArgs.remoteRoot.toUpperCase())) {
-                pathRelativeToSourceRoot = remotePath.substring(this.attachArgs.remoteRoot.length).trim();
-            } else {
-                // get the part of the path that is relative to the source root
-                pathRelativeToSourceRoot = path.relative(this.attachArgs.remoteRoot, remotePath).trim();
+            let pathRelativeToSourceRoot = path.relative(this.attachArgs.remoteRoot, remotePath);
+            let clientPath = path.resolve(this.attachArgs.localRoot, pathRelativeToSourceRoot);
+            if (validatePathSync(clientPath)){
+                return clientPath;
             }
-            if (pathRelativeToSourceRoot.startsWith(path.sep)){
-                pathRelativeToSourceRoot = pathRelativeToSourceRoot.substring(1);
+            else {
+                // It is possible we're dealing with cross platform debugging
+                // If so, then path.relative won't work :(
+                if (remotePath.toUpperCase().startsWith(this.attachArgs.remoteRoot.toUpperCase())) {
+                    pathRelativeToSourceRoot = remotePath.substring(this.attachArgs.remoteRoot.length).trim();
+                } else {
+                    // get the part of the path that is relative to the source root
+                    pathRelativeToSourceRoot = path.relative(this.attachArgs.remoteRoot, remotePath).trim();
+                }
+                if (pathRelativeToSourceRoot.startsWith(path.sep)){
+                    pathRelativeToSourceRoot = pathRelativeToSourceRoot.substring(1);
+                }
+                // resolve from the local source root
+                return path.resolve(this.attachArgs.localRoot, pathRelativeToSourceRoot);
             }
-            // resolve from the local source root
-            return path.resolve(this.attachArgs.localRoot, pathRelativeToSourceRoot);
         } else {
             return remotePath;
         }
