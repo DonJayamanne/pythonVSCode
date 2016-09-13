@@ -21,12 +21,14 @@ import {activateSimplePythonRefactorProvider} from './providers/simpleRefactorPr
 import {activateSetInterpreterProvider} from './providers/setInterpreterProvider';
 import {activateExecInTerminalProvider} from './providers/execInTerminalProvider'
 import * as tests from './unittests/main';
+import * as jup from './jupyter/main';
 
 const PYTHON: vscode.DocumentFilter = { language: 'python', scheme: 'file' };
 let pythonOutputChannel: vscode.OutputChannel;
 let unitTestOutChannel: vscode.OutputChannel;
 let formatOutChannel: vscode.OutputChannel;
 let lintingOutChannel: vscode.OutputChannel;
+let jupMain: jup.Hydrogen;
 
 export function activate(context: vscode.ExtensionContext) {
     let rootDir = context.asAbsolutePath('.');
@@ -82,6 +84,12 @@ export function activate(context: vscode.ExtensionContext) {
 
     tests.activate(context, unitTestOutChannel);
 
+    jupMain = new jup.Hydrogen();
+    jupMain.activate(null);
+
+    vscode.commands.registerCommand('python.jupyter', () => {
+        jupMain.run(null);
+    });
     // Possible this extension loads before the others, so lets wait for 5 seconds
     setTimeout(disableOtherDocumentSymbolsProvider, 5000);
 }
