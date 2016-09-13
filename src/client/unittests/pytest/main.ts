@@ -11,9 +11,9 @@ export class TestManager extends BaseTestManager {
     constructor(rootDirectory: string, outputChannel: vscode.OutputChannel) {
         super('pytest', rootDirectory, outputChannel);
     }
-    discoverTestsImpl(): Promise<Tests> {
+    discoverTestsImpl(ignoreCache: boolean): Promise<Tests> {
         let args = settings.unitTest.pyTestArgs.slice(0);
-        return discoverTests(this.rootDirectory, args, this.cancellationToken);
+        return discoverTests(this.rootDirectory, args, this.cancellationToken, ignoreCache);
     }
     runTestImpl(tests: Tests, testsToRun?: TestsToRun, runFailedTests?: boolean): Promise<any> {
         let args = settings.unitTest.pyTestArgs.slice(0);

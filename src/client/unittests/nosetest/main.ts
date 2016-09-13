@@ -13,7 +13,7 @@ export class TestManager extends BaseTestManager {
     constructor(rootDirectory: string, outputChannel: vscode.OutputChannel) {
         super('nosetest', rootDirectory, outputChannel);
     }
-    discoverTestsImpl(): Promise<Tests> {
+    discoverTestsImpl(ignoreCache: boolean): Promise<Tests> {
         let args = settings.unitTest.pyTestArgs.slice(0);
         return discoverTests(this.rootDirectory, args, this.cancellationToken);
     }

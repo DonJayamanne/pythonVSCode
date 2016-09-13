@@ -11,7 +11,7 @@ export class TestManager extends BaseTestManager {
     constructor(rootDirectory: string, outputChannel: vscode.OutputChannel) {
         super('pytest', rootDirectory, outputChannel);
     }
-    discoverTestsImpl(): Promise<Tests> {
+    discoverTestsImpl(ignoreCache: boolean): Promise<Tests> {
         let args = settings.unitTest.unittestArgs.slice(0);
         return discoverTests(this.rootDirectory, args, this.cancellationToken);
     }
@@ -19,9 +19,9 @@ export class TestManager extends BaseTestManager {
         let args = settings.unitTest.unittestArgs.slice(0);
         if (runFailedTests === true) {
             testsToRun = { testFile: [], testFolder: [], testSuite: [], testFunction: [] };
-            testsToRun.testFunction = tests.testFunctions.filter(fn=>{
+            testsToRun.testFunction = tests.testFunctions.filter(fn => {
                 return fn.testFunction.status === TestStatus.Error || fn.testFunction.status === TestStatus.Fail;
-            }).map(fn=>fn.testFunction);
+            }).map(fn => fn.testFunction);
         }
         return runTest(this.rootDirectory, tests, args, testsToRun, this.cancellationToken, this.outputChannel);
     }

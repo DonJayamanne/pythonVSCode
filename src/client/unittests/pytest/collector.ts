@@ -19,7 +19,7 @@ const settingsInArgsToExcludeForDiscovery = ['--maxfail', '--capture',
     '-r ', '--report', '--tb', '--color', '--durations', '--pastebin',
     '--junit-xml=path', '--junit-prefix', '--result-log'];
 
-export function discoverTests(rootDirectory: string, args: string[], token: vscode.CancellationToken): Promise<Tests> {
+export function discoverTests(rootDirectory: string, args: string[], token: vscode.CancellationToken, ignoreCache: boolean): Promise<Tests> {
     let logOutputLines: string[] = [''];
     let testFiles: TestFile[] = [];
     let parentNodes: { indent: number, item: TestFile | TestSuite }[] = [];
@@ -39,7 +39,9 @@ export function discoverTests(rootDirectory: string, args: string[], token: vsco
         }
         return true;
     });
-
+    if (ignoreCache && args.indexOf('--cache-clear') === -1) {
+        args.push('--cache-clear');
+    }
     function processOutput(output: string) {
         output.split(/\r?\n/g).forEach((line, index, lines) => {
             if (token && token.isCancellationRequested) {
@@ -113,7 +115,7 @@ function parsePyTestModuleCollectionError(rootDirectory: string, lines: string[]
     fileName = fileName.substr(0, fileName.lastIndexOf(' '));
 
     const currentPackage = convertFileToPackage(fileName);
-    const fullyQualifiedName = path.isAbsolute(fileName) ? fileName : path.resolve(rootDirectory, fileName)
+    const fullyQualifiedName = path.isAbsolute(fileName) ? fileName : path.resolve(rootDirectory, fileName);
     const testFile = {
         functions: [], suites: [], name: fileName, fullPath: fullyQualifiedName,
         nameToRun: fileName, xmlName: currentPackage, time: 0, errorsWhenDiscovering: lines.join('\n')

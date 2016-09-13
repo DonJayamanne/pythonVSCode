@@ -62,7 +62,7 @@ export abstract class BaseTestManager {
 
         this.cancellationTokenSource = new vscode.CancellationTokenSource();
         this.createCancellationToken();
-        return this.discoverTestsPromise = this.discoverTestsImpl()
+        return this.discoverTestsPromise = this.discoverTestsImpl(ignoreCache)
             .then(tests => {
                 this.tests = tests;
                 this._status = TestStatus.Idle;
@@ -115,7 +115,7 @@ export abstract class BaseTestManager {
                 return Promise.reject(reason);
             });
     }
-    abstract discoverTestsImpl(): Promise<Tests>;
+    abstract discoverTestsImpl(ignoreCache: boolean): Promise<Tests>;
     public runTest(testsToRun?: TestsToRun): Promise<Tests>;
     public runTest(runFailedTests?: boolean): Promise<Tests>;
     public runTest(args: any): Promise<Tests> {
@@ -155,7 +155,8 @@ export abstract class BaseTestManager {
         this.createCancellationToken();
         // If running failed tests, then don't clear the previously build UnitTests
         // If we do so, then we end up re-discovering the unit tests and clearing previously cached list of failed tests
-        const clearDiscoveredTestCache = runFailedTests === true ? false : true;
+        // Similarly, if running a specific test or test file, don't clear the cache (possible tests have some state information retained)
+        const clearDiscoveredTestCache = runFailedTests || moreInfo.Run_Specific_File || moreInfo.Run_Specific_Class || moreInfo.Run_Specific_Function ? false : true;
         return this.discoverTests(clearDiscoveredTestCache, true)
             .catch(reason => {
                 if (this.cancellationToken && this.cancellationToken.isCancellationRequested) {
