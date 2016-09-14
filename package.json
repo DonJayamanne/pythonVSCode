@@ -23,7 +23,7 @@
     "theme": "dark"
   },
   "engines": {
-    "vscode": "^0.10.8"
+    "vscode": "^1.4.0"
   },
   "categories": [
     "Languages",
