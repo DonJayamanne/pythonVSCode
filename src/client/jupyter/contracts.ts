@@ -13,11 +13,14 @@ export interface KernelspecMetadata {
    * The kernelspec metadata.
    */
 export interface Kernelspec {
-    spec: KernelspecMetadata
+    spec: KernelspecMetadata;
     resource_dir: string;
 }
 
 export interface JupyterMessage extends Object {
+    parent_header: any;
+    content: any;
+    header: any;
 }
 
 // http://jupyter-client.readthedocs.io/en/latest/messaging.html#general-message-format
@@ -26,7 +29,7 @@ export interface JupyterMessagex {
     // http://jupyter-client.readthedocs.io/en/latest/messaging.html#python-api
     // The msg's unique identifier and type are always stored in the header,
     // but the Python implementation copies them to the top level.
-    msg_id: string,
+    msg_id: string;
     msg_type: 'execute_request' | 'execute_reply';
     parent_header: {
         msg_id: string
@@ -40,7 +43,7 @@ export interface JupyterMessagex {
         // ********************************************************
         // RESPONSE for status = 'error'
         // ********************************************************
-        ename: string;// Exception name, as a string
+        ename: string; // Exception name, as a string
         evalue: string; // Exception value, as a string
         traceback: string[]; // traceback frames as strings
 
@@ -105,7 +108,7 @@ export interface JupyterMessagex {
         // This is used for introspection (analysis, autocomplete, etc)
         // The code context in which introspection is requested
         // this may be up to an entire multiline cell.
-        //code: string;
+        // code: string;
         // The cursor position within 'code' (in unicode characters) where inspection is requested
         cursor_pos: number;
         // The level of detail desired.  In IPython, the default (0) is equivalent to typing
@@ -123,7 +126,7 @@ export interface JupyterMessagex {
         // RESPONSE for msg_type = 'inspect_request' and status = 'ok'
         // ********************************************************
         // 'ok' if the request succeeded or 'error', with error information as in all other replies.
-        //status: 'ok';
+        // status: 'ok';
         // found should be true if an object was found, false otherwise
         found: boolean;
         // data can be empty if nothing is found
@@ -134,9 +137,9 @@ export interface JupyterMessagex {
         // ********************************************************
         // REQUEST for msg_type = 'complete_request'
         // ********************************************************
-        //code: string;
+        // code: string;
         // The cursor position within 'code' (in unicode characters) where inspection is requested
-        //cursor_pos: number;
+        // cursor_pos: number;
 
         // ********************************************************
         // RESPONSE for msg_type = 'complete_reply'
@@ -153,7 +156,7 @@ export interface JupyterMessagex {
         cursor_start: number
         cursor_end: number
         // Information that frontend plugins might use for extra display information about completions.
-        //metadata: any
+        // metadata: any
 
         // ********************************************************
         // RESPONSE for msg_type = 'stream'

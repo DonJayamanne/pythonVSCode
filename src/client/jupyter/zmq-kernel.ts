@@ -45,7 +45,7 @@ export class ZMQKernel extends Kernel {
         } else {
             console.log('ZMQKernel: connectionFile:', this.connectionFile);
             // atom.notifications.addInfo('Using an existing kernel connection');
-            vscode.window.showInformationMessage('Using an existing kernel connection')
+            vscode.window.showInformationMessage('Using an existing kernel connection');
         }
     }
 
@@ -66,7 +66,7 @@ export class ZMQKernel extends Kernel {
         this.controlSocket.identity = 'control' + id;
         this.stdinSocket.identity = 'dealer' + id;
         this.ioSocket.identity = 'sub' + id;
-        const address = this.connection.transport + "://" + this.connection.ip + ":";
+        const address = this.connection.transport + '://' + this.connection.ip + ':';
         this.shellSocket.connect(address + this.connection.shell_port);
         this.controlSocket.connect(address + this.connection.control_port);
         this.ioSocket.connect(address + this.connection.iopub_port);
@@ -250,7 +250,7 @@ export class ZMQKernel extends Kernel {
         }
     };
 
-    private onIOMessage(message:JupyterMessage) {
+    private onIOMessage(message: JupyterMessage) {
         let callback: Function;
         let msg_id;
         console.log('IO message:', message);
