@@ -1,6 +1,9 @@
+// http://jupyter-client.readthedocs.io/en/latest/messaging.html#to-do
+
 import * as vscode from 'vscode';
 import * as child_process from 'child_process';
 import * as path from 'path';
+import {KernelspecMetadata} from './contracts';
 const _ = require('lodash');
 const jmp = require('jmp');
 const uuid = require('uuid');
@@ -9,7 +12,7 @@ const zmq = jmp.zmq;
 export abstract class Kernel {
     protected statusBar: vscode.StatusBarItem;
     private watchCallbacks: any[];
-    constructor(public kernelSpec: any, private language: string) {
+    constructor(public kernelSpec: KernelspecMetadata, private language: string) {
         this.watchCallbacks = [];
         this.statusBar = vscode.window.createStatusBarItem();
     }
@@ -19,8 +22,8 @@ export abstract class Kernel {
     };
 
     public _callWatchCallbacks() {
-        return this.watchCallbacks.forEach(function (watchCallback) {
-            return watchCallback();
+        return this.watchCallbacks.forEach(watchCallback => {
+            watchCallback();
         });
     };
 
@@ -94,7 +97,7 @@ export abstract class Kernel {
 
     public _getMimeType(data) {
         var imageMimes, mime;
-        imageMimes = Object.getOwnPropertyNames(data).filter(function (mime) {
+        imageMimes = Object.getOwnPropertyNames(data).filter(mime => {
             return mime.startsWith('image/');
         });
         if (data.hasOwnProperty('text/html')) {

@@ -17,8 +17,10 @@ export class TextDocumentContentProvider implements vscode.TextDocumentContentPr
         return this._onDidChange.event;
     }
 
-    public update(result: string) {
+    public setText(result: string) {
         this.htmlResponse = result;
+    }
+    public update() {
         this._onDidChange.fire(this.lastUri);
     }
 
@@ -65,6 +67,13 @@ export class TextDocumentContentProvider implements vscode.TextDocumentContentPr
                 <body id= "myBody" onload="var script = document.createElement('script');script.setAttribute('src', '${this.getScriptFilePath('proxy.js')}');script.setAttribute('type', 'text/javascript');document.getElementById('myBody').appendChild(script);">
                     ${innerHtml}
                 <div style="display:none">
+                    <script type="text/javascript">
+                    function testClick(){
+                        document.getElementById('xx').innerHTML = 'one';
+                    }
+                    </script>
+                    <button onclick="testClick(); return false;">Test</button>
+                    <div id="xx">wow</div>
                     <div class="script">${this.getNodeModulesPath(path.join('jquery', 'dist', 'jquery.min.js'))}</div>
                     ${customScripts}
                 </div>

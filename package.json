@@ -708,6 +708,7 @@
   },
   "dependencies": {
     "@types/jquery": "^1.10.31",
+    "@types/lodash": "^4.14.34",
     "copy-paste": "^1.3.0",
     "diff-match-patch": "^1.0.0",
     "fs-extra": "^0.30.0",

@@ -3,9 +3,10 @@ import * as child_process from 'child_process';
 import * as path from 'path';
 import * as services from './jupyter-js-services-shim';
 import {Kernel} from './kernel';
+import {KernelspecMetadata} from './contracts';
 
 export class WSKernel extends Kernel {
-    constructor(kernelSpec, language: string, private session: any) {
+    constructor(kernelSpec: KernelspecMetadata, language: string, private session: any) {
         super(kernelSpec, language);
 
         this.session.statusChanged.connect((function (_this) {
