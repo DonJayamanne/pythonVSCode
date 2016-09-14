@@ -6,19 +6,12 @@ const jmp = require('jmp');
 const uuid = require('uuid');
 const zmq = jmp.zmq;
 
-// let StatusView, WatchSidebar;
-// StatusView = require('./status-view');
-
-// WatchSidebar = require('./watch-sidebar');
-
-export class Kernel {
+export abstract class Kernel {
     protected statusBar: vscode.StatusBarItem;
     private watchCallbacks: any[];
-    constructor(public kernelSpec: any, private grammar: any) {
+    constructor(public kernelSpec: any, private language: string) {
         this.watchCallbacks = [];
         this.statusBar = vscode.window.createStatusBarItem();
-        // this.watchSidebar = new WatchSidebar(this);
-        // this.statusView = new StatusView(this.kernelSpec.display_name);
     }
 
     public addWatchCallback(watchCallback) {
@@ -31,29 +24,12 @@ export class Kernel {
         });
     };
 
-    public interrupt() {
-        throw new Error('Kernel: interrupt method not implemented');
-    };
-
-    public shutdown() {
-        throw new Error('Kernel: shutdown method not implemented');
-    };
-
-    public execute(code, onResults) {
-        throw new Error('Kernel: execute method not implemented');
-    };
-
-    public executeWatch(code, onResults) {
-        throw new Error('Kernel: executeWatch method not implemented');
-    };
-
-    public complete(code, onResults) {
-        throw new Error('Kernel: complete method not implemented');
-    };
-
-    public inspect(code, cursor_pos, onResults) {
-        throw new Error('Kernel: inspect method not implemented');
-    };
+    public abstract interrupt();
+    public abstract shutdown();
+    public abstract execute(code, onResults);
+    public abstract executeWatch(code, onResults);
+    public abstract complete(code, onResults);
+    public abstract inspect(code, cursor_pos, onResults);
 
     public _parseIOMessage(message) {
         var result;
@@ -135,6 +111,8 @@ export class Kernel {
             mime = 'text/latex';
         } else if (data.hasOwnProperty('application/javascript')) {
             mime = 'application/javascript';
+        } else if (data.hasOwnProperty('application/json')) {
+            mime = 'application/json';
         } else if (data.hasOwnProperty('text/plain')) {
             mime = 'text/plain';
         }

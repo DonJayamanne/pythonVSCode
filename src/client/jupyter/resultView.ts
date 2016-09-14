@@ -7,10 +7,9 @@ import * as path from 'path';
 export class TextDocumentContentProvider implements vscode.TextDocumentContentProvider {
     private _onDidChange = new vscode.EventEmitter<vscode.Uri>();
     private lastUri: vscode.Uri;
-    public static htmlResponse: string = '';
-    public static scripts: string[] = [];
-    public static images: string[] = [];
+    private htmlResponse: string = '';
     public provideTextDocumentContent(uri: vscode.Uri, token: vscode.CancellationToken): Thenable<string> {
+        this.lastUri = uri;
         return Promise.resolve(this.generateResultsView());
     }
 
@@ -18,8 +17,9 @@ export class TextDocumentContentProvider implements vscode.TextDocumentContentPr
         return this._onDidChange.event;
     }
 
-    public update(uri: vscode.Uri) {
-        this._onDidChange.fire(uri);
+    public update(result: string) {
+        this.htmlResponse = result;
+        this._onDidChange.fire(this.lastUri);
     }
 
     private getStyleSheetPath(resourceName: string): string {
@@ -54,20 +54,16 @@ export class TextDocumentContentProvider implements vscode.TextDocumentContentPr
     }
 
     private generateResultsView(): string {
-        const innerHtml = TextDocumentContentProvider.htmlResponse;
-        // return `<head></head><body>${TextDocumentContentProvider.htmlResponse}</body>`;
-        const customScripts = TextDocumentContentProvider.scripts.reduce((previousValue, currentValue) => {
-            return previousValue + `<div class="evalScript">${currentValue}</div>`;
-        }, '');
-        const images = TextDocumentContentProvider.images.reduce((previousValue, currentValue) => {
-            return previousValue + `<img src="data:image/png;base64,${currentValue}" />`;
-        }, '');
+        const innerHtml = this.htmlResponse;
+        const customScripts = '';
+        // const customScripts = TextDocumentContentProvider.scripts.reduce((previousValue, currentValue) => {
+        //     return previousValue + `<div class="evalScript">${currentValue}</div>`;
+        // }, '');
         const html = `
                 <head>
                 </head>
                 <body id= "myBody" onload="var script = document.createElement('script');script.setAttribute('src', '${this.getScriptFilePath('proxy.js')}');script.setAttribute('type', 'text/javascript');document.getElementById('myBody').appendChild(script);">
                     ${innerHtml}
-                    ${images}
                 <div style="display:none">
                     <div class="script">${this.getNodeModulesPath(path.join('jquery', 'dist', 'jquery.min.js'))}</div>
                     ${customScripts}

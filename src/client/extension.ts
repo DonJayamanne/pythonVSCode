@@ -28,7 +28,7 @@ let pythonOutputChannel: vscode.OutputChannel;
 let unitTestOutChannel: vscode.OutputChannel;
 let formatOutChannel: vscode.OutputChannel;
 let lintingOutChannel: vscode.OutputChannel;
-let jupMain: jup.Hydrogen;
+let jupMain: jup.Jupyter;
 
 export function activate(context: vscode.ExtensionContext) {
     let rootDir = context.asAbsolutePath('.');
@@ -84,11 +84,11 @@ export function activate(context: vscode.ExtensionContext) {
 
     tests.activate(context, unitTestOutChannel);
 
-    jupMain = new jup.Hydrogen();
+    jupMain = new jup.Jupyter();
     jupMain.activate(null);
 
     vscode.commands.registerCommand('python.jupyter', () => {
-        jupMain.run(null);
+        jupMain.executeSelection();
     });
     // Possible this extension loads before the others, so lets wait for 5 seconds
     setTimeout(disableOtherDocumentSymbolsProvider, 5000);

@@ -1,57 +1,52 @@
-var _, launchSpec;
-// let bind = function (fn, me) { return function () { return fn.apply(me, arguments); }; };
-// let KernelPicker,
-_ = require('lodash');
 import * as child_process from 'child_process';
-launchSpec = require('spawnteract').launchSpec;
 import * as fs from 'fs';
 import * as path from 'path';
-// const Config = require('./config');
 import * as vscode from 'vscode';
 import {Kernel} from './kernel';
 import {WSKernel} from './ws-kernel';
 import {ZMQKernel} from './zmq-kernel';
+const _ = require('lodash');
+const launchSpec = require('spawnteract').launchSpec;
 
-// KernelPicker = require('./kernel-picker');
-
-export class KernelManager {
-    private _runningKernels: any;
+export class KernelManager extends vscode.Disposable {
+    private _runningKernels: Map<string, Kernel>;
     private _kernelSpecs: any;
     constructor() {
-        // this.getKernelSpecsFromJupyter = bind(this.getKernelSpecsFromJupyter, this);
+        super(() => { })
         this.getKernelSpecsFromJupyter = this.getKernelSpecsFromJupyter.bind(this);
-        // this.getAllKernelSpecs = bind(this.getAllKernelSpecs, this);
         this.getAllKernelSpecs = this.getAllKernelSpecs.bind(this);
-        this._runningKernels = {};
+        this._runningKernels = new Map<string, Kernel>();
         this._kernelSpecs = this.getKernelSpecsFromSettings();
     }
-
+    public dispose() {
+        this.destroy();
+    }
     public destroy() {
-        _.forEach(this._runningKernels, function (kernel) {
-            return kernel.destroy();
+        this._runningKernels.forEach(kernel => {
+            kernel.destroy();
         });
-        return this._runningKernels = {};
+        this._runningKernels.clear();
     }
 
-    public setRunningKernelFor(grammar, kernel:Kernel) {
-        var language;
-        language = this.getLanguageFor(grammar);
+    public setRunningKernelFor(language: string, kernel: Kernel) {
         kernel.kernelSpec.language = language;
-        return this._runningKernels[language] = kernel;
+        this._runningKernels.set(language, kernel);
+        return kernel;
     }
 
-    public destroyRunningKernelFor(grammar) {
-        var kernel, language;
-        language = this.getLanguageFor(grammar);
-        kernel = this._runningKernels[language];
-        delete this._runningKernels[language];
-        return kernel != null ? kernel.destroy() : void 0;
+    public destroyRunningKernelFor(language: string) {
+        if (!this._runningKernels.has(language)) {
+            return;
+        }
+        const kernel = this._runningKernels.get(language);
+        this._runningKernels.delete(language);
+        if (kernel != null) {
+            kernel.destroy();
+        }
     }
 
-    public restartRunningKernelFor(grammar, onRestarted) {
-        var kernel, kernelSpec, language;
-        language = this.getLanguageFor(grammar);
-        kernel = this._runningKernels[language];
+    public restartRunningKernelFor(language: string, onRestarted) {
+        const kernel = this._runningKernels.get(language);
         if (kernel instanceof WSKernel) {
             kernel.restart().then(function () {
                 return typeof onRestarted === "function" ? onRestarted(kernel) : void 0;
@@ -59,99 +54,83 @@ export class KernelManager {
             return;
         }
         if (kernel instanceof ZMQKernel && kernel.kernelProcess) {
-            kernelSpec = kernel.kernelSpec;
-            this.destroyRunningKernelFor(grammar);
-            this.startKernel(kernelSpec, grammar, function (kernel) {
+            const kernelSpec = kernel.kernelSpec;
+            this.destroyRunningKernelFor(language);
+            this.startKernel(kernelSpec, language, function (kernel) {
                 return typeof onRestarted === "function" ? onRestarted(kernel) : void 0;
             });
             return;
         }
         console.log('KernelManager: restartRunningKernelFor: ignored', kernel);
-        // atom.notifications.addWarning('Cannot restart this kernel');
         vscode.window.showWarningMessage('Cannot restart this kernel');
         return typeof onRestarted === "function" ? onRestarted(kernel) : void 0;
     }
 
-    public startKernelFor(grammar, onStarted) {
-        var connection, connectionFile, connectionString, e, language, rootDirectory;
+    public startKernelFor(language: string, onStarted) {
         try {
-            // rootDirectory = atom.project.rootDirectories[0].path || path.dirname(atom.workspace.getActiveTextEditor().getPath());
-            rootDirectory = path.dirname(vscode.window.activeTextEditor.document.fileName);
-            connectionFile = path.join(rootDirectory, 'hydrogen', 'connection.json');
-            connectionString = fs.readFileSync(connectionFile, 'utf8');
-            connection = JSON.parse(connectionString);
-            this.startExistingKernel(grammar, connection, connectionFile, onStarted);
+            const rootDirectory = path.dirname(vscode.window.activeTextEditor.document.fileName);
+            const connectionFile = path.join(rootDirectory, 'hydrogen', 'connection.json');
+            const connectionString = fs.readFileSync(connectionFile, 'utf8');
+            const connection = JSON.parse(connectionString);
+            this.startExistingKernel(language, connection, connectionFile, onStarted);
             return;
         } catch (_error) {
-            e = _error;
+            const e = _error;
             if (e.code !== 'ENOENT') {
                 console.log('KernelManager: Cannot start existing kernel:\n', e);
             }
         }
-        language = this.getLanguageFor(grammar);
         return this.getKernelSpecFor(language, (function (_this) {
             return function (kernelSpec) {
-                var description, message;
                 if (kernelSpec == null) {
-                    message = "No kernel for language `" + language + "` found";
-                    description = 'Check that the language for this file is set in Atom and that you have a Jupyter kernel installed for it.';
-                    // atom.notifications.addError(message, {
-                    //     description: description
-                    // });
+                    const message = "No kernel for language `" + language + "` found";
+                    const description = 'Check that the language for this file is set in Atom and that you have a Jupyter kernel installed for it.';
                     vscode.window.showErrorMessage(description);
                     return;
                 }
-                return _this.startKernel(kernelSpec, grammar, onStarted);
+                return _this.startKernel(kernelSpec, language, onStarted);
             };
         })(this));
     }
 
-    public startExistingKernel(grammar, connection, connectionFile, onStarted) {
-        var kernel, kernelSpec, language;
-        language = this.getLanguageFor(grammar);
+    public startExistingKernel(language: string, connection, connectionFile, onStarted) {
         console.log('KernelManager: startExistingKernel: Assuming', language);
-        kernelSpec = {
+        const kernelSpec = {
             display_name: 'Existing Kernel',
             language: language,
             argv: [],
             env: {}
         };
-        kernel = new ZMQKernel(kernelSpec, grammar, connection, connectionFile);
-        this.setRunningKernelFor(grammar, kernel);
+        const kernel = new ZMQKernel(kernelSpec, language, connection, connectionFile);
+        this.setRunningKernelFor(language, kernel);
         this._executeStartupCode(kernel);
         return typeof onStarted === "function" ? onStarted(kernel) : void 0;
     }
 
-    public startKernel(kernelSpec, grammar, onStarted) {
-        var language, projectPath, spawnOptions;
-        language = this.getLanguageFor(grammar);
+    public startKernel(kernelSpec, language: string, onStarted) {
         console.log('KernelManager: startKernelFor:', language);
-        // projectPath = path.dirname(atom.workspace.getActiveTextEditor().getPath());
-        projectPath = path.dirname(vscode.window.activeTextEditor.document.fileName);
-        spawnOptions = {
+        const projectPath = path.dirname(vscode.window.activeTextEditor.document.fileName);
+        const spawnOptions = {
             cwd: projectPath
         };
         const that = this;
         return launchSpec(kernelSpec, spawnOptions).then((function (_this) {
             return function (arg) {
-                var config, connectionFile, kernel, spawn;
-                config = arg.config, connectionFile = arg.connectionFile, spawn = arg.spawn;
-                kernel = new ZMQKernel(kernelSpec, grammar, config, connectionFile, spawn);
-                (that.setRunningKernelFor as Function).call(that, grammar, kernel);
+                const config = arg.config, connectionFile = arg.connectionFile, spawn = arg.spawn;
+                const kernel = new ZMQKernel(kernelSpec, language, config, connectionFile, spawn);
+                (that.setRunningKernelFor as Function).call(that, language, kernel);
                 (that._executeStartupCode as Function).call(that, kernel);
                 return typeof onStarted === "function" ? onStarted(kernel) : void 0;
             };
-        })(this), error=>{
-            const x = error;
+        })(this), error => {
             return Promise.reject(error);
         });
     }
 
     public _executeStartupCode(kernel) {
-        var displayName, startupCode;
-        displayName = kernel.kernelSpec.display_name;
+        const displayName = kernel.kernelSpec.display_name;
         // startupCode = Config.getJson('startupCode')[displayName];
-        startupCode = {}[displayName];
+        let startupCode = {}[displayName];
         if (startupCode != null) {
             console.log('KernelManager: Executing startup code:', startupCode);
             startupCode = startupCode + ' \n';
@@ -167,10 +146,6 @@ export class KernelManager {
         return this._runningKernels[language];
     }
 
-    public getLanguageFor(grammar) {
-        //return grammar != null ? grammar.name.toLowerCase() : void 0;
-        return 'python';
-    }
 
     public getAllKernelSpecs(callback) {
         if (_.isEmpty(this._kernelSpecs)) {
@@ -188,8 +163,7 @@ export class KernelManager {
         if (language != null) {
             return this.getAllKernelSpecs((function (_this) {
                 return function (kernelSpecs) {
-                    var specs;
-                    specs = kernelSpecs.filter(function (spec) {
+                    const specs = kernelSpecs.filter(function (spec) {
                         return _this.kernelSpecProvidesLanguage(spec, language);
                     });
                     return callback(specs);
@@ -229,7 +203,6 @@ export class KernelManager {
     public kernelSpecProvidesLanguage(kernelSpec, language) {
         var kernelLanguage, mappedLanguage;
         kernelLanguage = kernelSpec.language;
-        // mappedLanguage = Config.getJson('languageMappings')[kernelLanguage];
         mappedLanguage = {}[kernelLanguage];
         if (mappedLanguage) {
             return mappedLanguage === language;
@@ -239,7 +212,6 @@ export class KernelManager {
 
     public getKernelSpecsFromSettings() {
         var settings;
-        // settings = Config.getJson('kernelspec');
         settings = {};
         if (!settings.kernelspecs) {
             return {};
@@ -259,25 +231,22 @@ export class KernelManager {
         this._kernelSpecs = this.getKernelSpecsFromSettings;
         return this.getKernelSpecsFromJupyter((function (_this) {
             return function (err, kernelSpecsFromJupyter) {
-                var message, options;
                 if (!err) {
                     _this.mergeKernelSpecs(kernelSpecsFromJupyter);
                 }
                 if (_.isEmpty(_this._kernelSpecs)) {
-                    message = 'No kernel specs found';
-                    options = {
+                    const message = 'No kernel specs found';
+                    const options = {
                         description: 'Use kernelSpec option in Hydrogen or update IPython/Jupyter to a version that supports: `jupyter kernelspec list --json` or `ipython kernelspec list --json`',
                         dismissable: true
                     };
-                    // atom.notifications.addError(message, options);
                     vscode.window.showErrorMessage(message + ', ' + options.description);
                 } else {
                     err = null;
-                    message = 'Hydrogen Kernels updated:';
-                    options = {
+                    const message = 'Hydrogen Kernels updated:';
+                    const options = {
                         detail: (_.map(_this._kernelSpecs, 'spec.display_name')).join('\n')
                     };
-                    // atom.notifications.addInfo(message, options);
                     // vscode.window.showErrorMessage(message + ', ' + options.detail);
                 }
                 return typeof callback === "function" ? callback(err, _this._kernelSpecs) : void 0;
@@ -286,9 +255,8 @@ export class KernelManager {
     }
 
     public getKernelSpecsFromJupyter(callback) {
-        var ipython, jupyter;
-        jupyter = 'jupyter kernelspec list --json --log-level=CRITICAL';
-        ipython = 'ipython kernelspec list --json --log-level=CRITICAL';
+        const jupyter = 'jupyter kernelspec list --json --log-level=CRITICAL';
+        const ipython = 'ipython kernelspec list --json --log-level=CRITICAL';
         return this.getKernelSpecsFrom(jupyter, (function (_this) {
             return function (jupyterError, kernelSpecs) {
                 if (!jupyterError) {
@@ -328,6 +296,3 @@ export class KernelManager {
         });
     }
 }
-
-// ---
-// generated by coffee-script 1.9.2

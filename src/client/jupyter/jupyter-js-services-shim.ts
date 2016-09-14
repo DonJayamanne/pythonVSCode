@@ -14,6 +14,4 @@ const requirejs = require('requirejs');
 (global as any).XMLHttpRequest = xhr.XMLHttpRequest;
 (global as any).WebSocket = ws;
 
-// module.exports = require('jupyter-js-services');
 export var services = require('jupyter-js-services');
-// export var services;

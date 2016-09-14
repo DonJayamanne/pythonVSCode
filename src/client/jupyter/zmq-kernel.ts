@@ -1,46 +1,37 @@
-// var _, child_process, fs, jmp, path, uuid, zmq,
-//     hasProp = {}.hasOwnProperty;
-// let InputView;
 import * as child_process from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
 import {Kernel} from './kernel';
 import * as vscode from 'vscode';
-const _ = require('lodash');
 const jmp = require('jmp');
 const uuid = require('uuid');
 const zmq = jmp.zmq;
 
-// InputView = require('./input-view');
-
 export class ZMQKernel extends Kernel {
     private executionCallbacks: any;
-    constructor(kernelSpec, grammar, private connection, private connectionFile, private kernelProcess?) {
-        super(kernelSpec, grammar);
-        var getKernelNotificationsRegExp;
+    constructor(kernelSpec, language: string, private connection, private connectionFile, public kernelProcess?) {
+        super(kernelSpec, language);
+        let getKernelNotificationsRegExp: Function;
         this.executionCallbacks = {};
         this._connect();
         if (this.kernelProcess != null) {
             console.log('ZMQKernel: @kernelProcess:', this.kernelProcess);
             getKernelNotificationsRegExp = function () {
-                var err, flags, pattern;
                 try {
                     // pattern = atom.config.get('Hydrogen.kernelNotifications');
-                    pattern = '(?!)';
-                    flags = 'im';
+                    const pattern = '(?!)';
+                    const flags = 'im';
                     return new RegExp(pattern, flags);
                 } catch (_error) {
-                    err = _error;
                     return null;
                 }
             };
             this.kernelProcess.stdout.on('data', (function (_this) {
                 return function (data) {
-                    var regexp;
                     data = data.toString();
                     console.log('ZMQKernel: stdout:', data);
-                    regexp = getKernelNotificationsRegExp();
-                    if (regexp != null ? regexp.test(data) : void 0) {
+                    const regexp = getKernelNotificationsRegExp();
+                    if (regexp != null ? regexp.test(data) : null) {
                         return vscode.window.showInformationMessage(data);
                         // return atom.notifications.addInfo(_this.kernelSpec.display_name, {
                         //     description: data,
@@ -51,11 +42,10 @@ export class ZMQKernel extends Kernel {
             })(this));
             this.kernelProcess.stderr.on('data', (function (_this) {
                 return function (data) {
-                    var regexp;
                     data = data.toString();
                     console.log('ZMQKernel: stderr:', data);
-                    regexp = getKernelNotificationsRegExp();
-                    if (regexp != null ? regexp.test(data) : void 0) {
+                    const regexp = getKernelNotificationsRegExp();
+                    if (regexp !== null ? regexp.test(data) : null) {
                         return vscode.window.showErrorMessage(data);
                         // return atom.notifications.addError(_this.kernelSpec.display_name, {
                         //     description: data,
@@ -77,19 +67,18 @@ export class ZMQKernel extends Kernel {
     private stdinSocket: any;
     private ioSocket: any;
     public _connect() {
-        var address, err, id, key, scheme;
-        scheme = this.connection.signature_scheme.slice('hmac-'.length);
-        key = this.connection.key;
+        const scheme = this.connection.signature_scheme.slice('hmac-'.length);
+        const key = this.connection.key;
         this.shellSocket = new jmp.Socket('dealer', scheme, key);
         this.controlSocket = new jmp.Socket('dealer', scheme, key);
         this.stdinSocket = new jmp.Socket('dealer', scheme, key);
         this.ioSocket = new jmp.Socket('sub', scheme, key);
-        id = uuid.v4();
+        const id = uuid.v4();
         this.shellSocket.identity = 'dealer' + id;
         this.controlSocket.identity = 'control' + id;
         this.stdinSocket.identity = 'dealer' + id;
         this.ioSocket.identity = 'sub' + id;
-        address = this.connection.transport + "://" + this.connection.ip + ":";
+        const address = this.connection.transport + "://" + this.connection.ip + ":";
         this.shellSocket.connect(address + this.connection.shell_port);
         this.controlSocket.connect(address + this.connection.control_port);
         this.ioSocket.connect(address + this.connection.iopub_port);
@@ -116,8 +105,7 @@ export class ZMQKernel extends Kernel {
             this.ioSocket.monitor();
             return this.stdinSocket.monitor();
         } catch (_error) {
-            err = _error;
-            return console.error('Kernel:', err);
+            return console.error('Kernel:', _error);
         }
     };
 
@@ -144,12 +132,11 @@ export class ZMQKernel extends Kernel {
     };
 
     public shutdown(restart?: boolean) {
-        var message, requestId;
         if (restart == null) {
             restart = false;
         }
-        requestId = 'shutdown_' + uuid.v4();
-        message = this._createMessage('shutdown_request', requestId);
+        const requestId = 'shutdown_' + uuid.v4();
+        const message = this._createMessage('shutdown_request', requestId);
         message.content = {
             restart: restart
         };
@@ -157,8 +144,7 @@ export class ZMQKernel extends Kernel {
     };
 
     public _execute(code, requestId, onResults) {
-        var message;
-        message = this._createMessage('execute_request', requestId);
+        const message = this._createMessage('execute_request', requestId);
         message.content = {
             code: code,
             silent: false,
@@ -171,24 +157,21 @@ export class ZMQKernel extends Kernel {
     };
 
     public execute(code, onResults) {
-        var requestId;
         console.log('Kernel.execute:', code);
-        requestId = 'execute_' + uuid.v4();
+        const requestId = 'execute_' + uuid.v4();
         return this._execute(code, requestId, onResults);
     };
 
     public executeWatch(code, onResults) {
-        var requestId;
         console.log('Kernel.executeWatch:', code);
-        requestId = 'watch_' + uuid.v4();
+        const requestId = 'watch_' + uuid.v4();
         return this._execute(code, requestId, onResults);
     };
 
     public complete(code, onResults) {
-        var message, requestId;
         console.log('Kernel.complete:', code);
-        requestId = 'complete_' + uuid.v4();
-        message = this._createMessage('complete_request', requestId);
+        const requestId = 'complete_' + uuid.v4();
+        const message = this._createMessage('complete_request', requestId);
         message.content = {
             code: code,
             text: code,
@@ -200,10 +183,9 @@ export class ZMQKernel extends Kernel {
     };
 
     public inspect(code, cursor_pos, onResults) {
-        var message, requestId;
         console.log('Kernel.inspect:', code, cursor_pos);
-        requestId = 'inspect_' + uuid.v4();
-        message = this._createMessage('inspect_request', requestId);
+        const requestId = 'inspect_' + uuid.v4();
+        const message = this._createMessage('inspect_request', requestId);
         message.content = {
             code: code,
             cursor_pos: cursor_pos,
@@ -214,9 +196,8 @@ export class ZMQKernel extends Kernel {
     };
 
     public inputReply(input) {
-        var message, requestId;
-        requestId = 'input_reply_' + uuid.v4();
-        message = this._createMessage('input_reply', requestId);
+        const requestId = 'input_reply_' + uuid.v4();
+        const message = this._createMessage('input_reply', requestId);
         message.content = {
             value: input
         };
@@ -224,24 +205,24 @@ export class ZMQKernel extends Kernel {
     };
 
     public onShellMessage(message) {
-        var callback, msg_id, msg_type, status;
+        let callback: Function;
         console.log('shell message:', message);
         if (!this._isValidMessage(message)) {
             return;
         }
-        msg_id = message.parent_header.msg_id;
+        const msg_id = message.parent_header.msg_id;
         if (msg_id != null) {
             callback = this.executionCallbacks[msg_id];
         }
         if (callback == null) {
             return;
         }
-        status = message.content.status;
+        const status = message.content.status;
         if (status === 'error') {
             return;
         }
         if (status === 'ok') {
-            msg_type = message.header.msg_type;
+            const msg_type = message.header.msg_type;
             if (msg_type === 'execution_reply') {
                 return callback({
                     data: 'ok',
@@ -266,12 +247,11 @@ export class ZMQKernel extends Kernel {
     };
 
     public onStdinMessage(message) {
-        var inputView, msg_type, prompt;
         console.log('stdin message:', message);
         if (!this._isValidMessage(message)) {
             return;
         }
-        msg_type = message.header.msg_type;
+        const msg_type = message.header.msg_type;
         if (msg_type === 'input_request') {
             throw new Error('Oops');
             // prompt = message.content.prompt;
@@ -285,18 +265,19 @@ export class ZMQKernel extends Kernel {
     };
 
     public onIOMessage(message) {
-        var callback, msg_id, msg_type, ref, result, status;
+        let callback: Function;
+        let msg_id;
         console.log('IO message:', message);
         if (!this._isValidMessage(message)) {
             return;
         }
-        msg_type = message.header.msg_type;
+        const msg_type = message.header.msg_type;
         if (msg_type === 'status') {
-            status = message.content.execution_state;
+            const status = message.content.execution_state;
             // this.statusView.setStatus(status);
             this.statusBar.text = status;
-            msg_id = (ref = message.parent_header) != null ? ref.msg_id : void 0;
-            if (status === 'idle' && (msg_id != null ? msg_id.startsWith('execute') : void 0)) {
+            msg_id = message.parent_header !== null ? message.parent_header.msg_id : null;
+            if (status === 'idle' && (msg_id !== null ? msg_id.startsWith('execute') : null)) {
                 this._callWatchCallbacks();
             }
         }
@@ -307,7 +288,7 @@ export class ZMQKernel extends Kernel {
         if (callback == null) {
             return;
         }
-        result = this._parseIOMessage(message);
+        const result = this._parseIOMessage(message);
         if (result != null) {
             return callback(result);
         }
@@ -372,11 +353,10 @@ export class ZMQKernel extends Kernel {
     };
 
     public _createMessage(msg_type, msg_id) {
-        var message;
         if (msg_id == null) {
             msg_id = uuid.v4();
         }
-        message = {
+        const message = {
             header: {
                 username: this._getUsername(),
                 session: '00000000-0000-0000-0000-000000000000',
