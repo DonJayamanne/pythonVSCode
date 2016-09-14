@@ -8,23 +8,49 @@ const _ = require('lodash');
 // CodeManager = require('./code-manager');
 // Config = require('./config');
 import {KernelManager} from './kernel-manager';
+import {Kernel} from './kernel';
 // Inspector = require('./inspector');
 // AutocompleteProvider = require('./autocomplete-provider');
 import * as vscode from 'vscode';
+import {TextDocumentContentProvider} from './resultView';
 
+const jupyterSchema = 'jupyter-result-viewer';
+let previewUri = vscode.Uri.parse(jupyterSchema + '://authority/jupyter');
+
+let previewWindow: TextDocumentContentProvider;
+export function activate(): vscode.Disposable {
+    previewWindow = new TextDocumentContentProvider();
+    let registration = vscode.workspace.registerTextDocumentContentProvider(jupyterSchema, previewWindow);
+    return registration;
+}
+
+let displayed = false;
+function showResults() {
+    // previewUri = vscode.Uri.parse(jupyterSchema + '://authority/jupyter?x=' + new Date().getTime().toString());
+    if (displayed) {
+        previewWindow.update(previewUri);
+        return;
+    }
+    displayed = true;
+    return vscode.commands.executeCommand('vscode.previewHtml', previewUri, vscode.ViewColumn.Three, 'Results').then((success) => {
+    }, (reason) => {
+        vscode.window.showErrorMessage(reason);
+    });
+}
 export class Hydrogen {
     // config: Config.schema;
     public subscriptions = null;
-    public kernelManager:KernelManager;
+    public kernelManager: KernelManager;
     // public inspector = null;
     public editor: vscode.TextEditor;
-    public kernel = null;
+    public kernel: Kernel = null;
     public markerBubbleMap = null;
     public statusBarElement = null;
     public statusBarTile = null;
     public watchSidebar = null;
     public watchSidebarIsVisible = false;
     activate(state) {
+        activate();
         this.kernelManager = new KernelManager();
         // this.inspector = new Inspector(this.kernelManager);
         // this.codeManager = new CodeManager();
@@ -194,7 +220,8 @@ export class Hydrogen {
         }
         this.clearStatusBar();
         if (this.kernel != null) {
-            return this.statusBarElement.appendChild(this.kernel.statusView.element);
+            throw new Error('Oops');
+            //return this.statusBarElement.appendChild(this.kernel.statusView.element);
         }
     }
     clearStatusBar() {
@@ -311,7 +338,7 @@ export class Hydrogen {
             };
         })(this));
     }
-    _createResultBubble(kernel, code, row) {
+    _createResultBubble(kernel: Kernel, code, row) {
         // var view;
         // if (this.watchSidebar.element.contains(document.activeElement)) {
         //     this.watchSidebar.run();
@@ -319,12 +346,36 @@ export class Hydrogen {
         // }
         // this.clearBubblesOnRow(row);
         // view = this.insertResultBubble(row);
+        // result.data === 'ok' && result.stream === 'status' && result.type === 'text'
+        let htmlResponse = '';
+        let scripts = [];
+        let images = [];
         return kernel.execute(code, function (result) {
-            vscode.window.showInformationMessage('yay' + result)
-            vscode.window.showInformationMessage('yay' + result)
-            vscode.window.showInformationMessage('yay' + result)
-            // view.spin(false);
-            // return view.addResult(result);
+            // vscode.window.showInformationMessage('yay' + result)
+            // vscode.window.showInformationMessage('yay' + result)
+            // vscode.window.showInformationMessage('yay' + result)
+
+            if (result.type === 'text' && result.stream === 'stdout' && typeof result.data['text/plain'] === 'string') {
+                htmlResponse = htmlResponse + `<p><pre>${result.data['text/plain']}</pre></p>`;
+            }
+            if (result.type === 'text' && result.stream === 'pyout' && typeof result.data['text/plain'] === 'string') {
+                htmlResponse = htmlResponse + `<p><pre>${result.data['text/plain']}</pre></p>`;
+            }
+            if (result.type === 'text/html' && result.stream === 'pyout' && typeof result.data['text/html'] === 'string') {
+                htmlResponse = htmlResponse + result.data['text/html'];
+            }
+            if (result.type === 'application/javascript' && result.stream === 'pyout' && typeof result.data['application/javascript'] === 'string') {
+                // scripts.push(result.data['application/javascript']);
+            }
+            if (result.type === 'image/png' && result.stream === 'pyout' && typeof result.data['image/png'] === 'string') {
+                htmlResponse = htmlResponse + `<img src="data:image/png;base64,${result.data['image/png']}" />`
+            }
+            if (result.data === 'ok' && result.stream === 'status' && result.type === 'text') {
+                TextDocumentContentProvider.htmlResponse = htmlResponse;
+                TextDocumentContentProvider.scripts = scripts;
+                TextDocumentContentProvider.images = images;
+                showResults();
+            }
         });
     }
     insertResultBubble(row) {

@@ -14,7 +14,7 @@ const zmq = jmp.zmq;
 export class Kernel {
     protected statusBar: vscode.StatusBarItem;
     private watchCallbacks: any[];
-    constructor(private kernelSpec: any, private grammar: any) {
+    constructor(public kernelSpec: any, private grammar: any) {
         this.watchCallbacks = [];
         this.statusBar = vscode.window.createStatusBarItem();
         // this.watchSidebar = new WatchSidebar(this);
@@ -133,6 +133,8 @@ export class Kernel {
             mime = 'application/pdf';
         } else if (data.hasOwnProperty('text/latex')) {
             mime = 'text/latex';
+        } else if (data.hasOwnProperty('application/javascript')) {
+            mime = 'application/javascript';
         } else if (data.hasOwnProperty('text/plain')) {
             mime = 'text/plain';
         }

@@ -8,6 +8,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 // const Config = require('./config');
 import * as vscode from 'vscode';
+import {Kernel} from './kernel';
 import {WSKernel} from './ws-kernel';
 import {ZMQKernel} from './zmq-kernel';
 
@@ -32,7 +33,7 @@ export class KernelManager {
         return this._runningKernels = {};
     }
 
-    public setRunningKernelFor(grammar, kernel) {
+    public setRunningKernelFor(grammar, kernel:Kernel) {
         var language;
         language = this.getLanguageFor(grammar);
         kernel.kernelSpec.language = language;
@@ -277,7 +278,7 @@ export class KernelManager {
                         detail: (_.map(_this._kernelSpecs, 'spec.display_name')).join('\n')
                     };
                     // atom.notifications.addInfo(message, options);
-                    vscode.window.showErrorMessage(message + ', ' + options.detail);
+                    // vscode.window.showErrorMessage(message + ', ' + options.detail);
                 }
                 return typeof callback === "function" ? callback(err, _this._kernelSpecs) : void 0;
             };
