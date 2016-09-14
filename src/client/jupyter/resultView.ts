@@ -61,10 +61,11 @@ export class TextDocumentContentProvider implements vscode.TextDocumentContentPr
         // const customScripts = TextDocumentContentProvider.scripts.reduce((previousValue, currentValue) => {
         //     return previousValue + `<div class="evalScript">${currentValue}</div>`;
         // }, '');
+                // <body id= "myBody" onload="var script = document.createElement('script');script.setAttribute('src', '${this.getScriptFilePath('proxy.js')}');script.setAttribute('type', 'text/javascript');document.getElementById('myBody').appendChild(script);">
         const html = `
                 <head>
                 </head>
-                <body id= "myBody" onload="var script = document.createElement('script');script.setAttribute('src', '${this.getScriptFilePath('proxy.js')}');script.setAttribute('type', 'text/javascript');document.getElementById('myBody').appendChild(script);">
+                <body>
                     ${innerHtml}
                 <div style="display:none">
                     <script type="text/javascript">
