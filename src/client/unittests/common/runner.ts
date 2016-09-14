@@ -27,7 +27,7 @@ function runTestInTerminal(file: string, args: string[], cwd: string): Promise<a
             commands.push(`cd ${cwd}`);
         }
         commands.push(`${file} ${args.join(' ')}`);
-        terminal = (<any>window).createTerminal(`Python Test Log`);
+        terminal = window.createTerminal(`Python Test Log`);
 
         return new Promise<any>((resolve) => {
             setTimeout(function () {
