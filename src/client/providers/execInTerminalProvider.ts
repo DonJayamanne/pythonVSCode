@@ -1,6 +1,6 @@
-"use strict";
-import * as vscode from "vscode";
-import * as settings from "../common/configSettings";
+'use strict';
+import * as vscode from 'vscode';
+import * as settings from '../common/configSettings';
 import { Commands } from '../common/constants';
 
 export function activateExecInTerminalProvider() {
@@ -16,7 +16,7 @@ function execInTerminal(fileUri?: vscode.Uri) {
         const activeEditor = vscode.window.activeTextEditor;
         if (activeEditor !== undefined) {
             if (!activeEditor.document.isUntitled) {
-                if (activeEditor.document.languageId == "python") {
+                if (activeEditor.document.languageId === 'python') {
                     filePath = activeEditor.document.fileName;
                 } else {
                     vscode.window.showErrorMessage('The active file is not a Python source file');
@@ -34,6 +34,9 @@ function execInTerminal(fileUri?: vscode.Uri) {
         filePath = fileUri.fsPath;
     }
 
+    if (filePath.indexOf(' ') > 0) {
+        filePath = `"${filePath}"`;
+    }
     const terminal = (<any>vscode.window).createTerminal(`Python`);
     terminal.sendText(`${currentPythonPath} ${filePath}`);
 
@@ -47,7 +50,7 @@ function execSelectionInTerminal() {
     }
 
     const selection = vscode.window.activeTextEditor.selection;
-    if (selection.isEmpty){
+    if (selection.isEmpty) {
         return;
     }
     const code = vscode.window.activeTextEditor.document.getText(new vscode.Range(selection.start, selection.end));
