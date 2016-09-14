@@ -177,7 +177,13 @@ class VsTestResult(unittest.TextTestResult):
             )
 
 def stopTests():
-    os.kill(os.getpid(), signal.SIGUSR1)
+    try:
+        os.kill(os.getpid(), signal.SIGUSR1)
+    except:
+        try:
+            os.kill(os.getpid(), signal.SIGTERM)
+        except:
+            pass
 
 class ExitCommand(Exception):
     pass
@@ -209,7 +215,13 @@ def main():
     
     sys.path[0] = os.getcwd()
     if opts.result_port:
-        signal.signal(signal.SIGUSR1, signal_handler)
+        try:
+            signal.signal(signal.SIGUSR1, signal_handler)
+        except:
+            try:
+                signal.signal(signal.SIGTERM, signal_handler)
+            except:
+                pass
         _channel = _IpcChannel(socket.create_connection(('127.0.0.1', opts.result_port)), stopTests)
         sys.stdout = _TestOutput(sys.stdout, is_stdout = True)
         sys.stderr = _TestOutput(sys.stderr, is_stdout = False)
