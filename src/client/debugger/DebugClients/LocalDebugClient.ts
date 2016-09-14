@@ -88,6 +88,7 @@ export class LocalDebugClient extends DebugClient {
                 for (let setting in environmentVariables) {
                     if (!newEnvVars[setting]) {
                         newEnvVars[setting] = environmentVariables[setting];
+                        process.env[setting] = environmentVariables[setting];
                     }
                 }
                 for (let setting in process.env) {
@@ -99,6 +100,7 @@ export class LocalDebugClient extends DebugClient {
             if (!environmentVariables.hasOwnProperty('PYTHONIOENCODING')) {
                 environmentVariables['PYTHONIOENCODING'] = 'UTF-8';
                 newEnvVars['PYTHONIOENCODING'] = 'UTF-8';
+                process.env['PYTHONIOENCODING'] = 'UTF-8';
             }
             let currentFileName = module.filename;
             let ptVSToolsFilePath = this.getPTVSToolsFilePath();
