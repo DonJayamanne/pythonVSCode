@@ -79,7 +79,7 @@ export class TextDocumentContentProvider implements vscode.TextDocumentContentPr
                 </div>
                 </body>
             `;
-        fs.writeFileSync('/Users/donjayamanne/.vscode-insiders/extensions/pythonVSCode/results.html', html);
+        // fs.writeFileSync('/Users/donjayamanne/.vscode-insiders/extensions/pythonVSCode/results.html', html);
         return html;
     }
 }
