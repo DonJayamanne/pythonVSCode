@@ -76,10 +76,13 @@ export class Jupyter {
     }
     private executeAndDisplay(kernel: Kernel, code: string) {
         return this.executeCodeInKernel(kernel, code).then(result => {
-            showResults(result);
+            if (result.length === 0) {
+                return;
+            }
+            return showResults(result);
         });
     }
-    private executeCodeInKernel(kernel: Kernel, code: string): Promise<any> {
+    private executeCodeInKernel(kernel: Kernel, code: string): Promise<string> {
         return new Promise<any>((resolve, reject) => {
             let htmlResponse = '';
             return kernel.execute(code, (result: { type: string, stream: string, data: { [key: string]: string } | string }) => {
