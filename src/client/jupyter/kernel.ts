@@ -1,5 +1,4 @@
 // http://jupyter-client.readthedocs.io/en/latest/messaging.html#to-do
-/// <reference path="../../../node_modules/@types/lodash/index.d.ts" />
 
 import * as vscode from 'vscode';
 import * as child_process from 'child_process';

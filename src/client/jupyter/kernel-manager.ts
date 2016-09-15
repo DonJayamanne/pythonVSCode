@@ -6,7 +6,6 @@ import * as vscode from 'vscode';
 import {Kernel} from './kernel';
 import {WSKernel} from './ws-kernel';
 import {ZMQKernel} from './zmq-kernel';
-import * as _ from 'lodash';
 import {launchSpec} from 'spawnteract';
 import {KernelspecMetadata, Kernelspec} from './contracts';
 
@@ -151,7 +150,7 @@ export class KernelManager extends vscode.Disposable {
     }
 
     public getAllRunningKernels() {
-        return _.clone(this._runningKernels);
+        return this._runningKernels;
     }
 
     public getRunningKernelFor(language) {
@@ -220,14 +219,17 @@ export class KernelManager extends vscode.Disposable {
     }
 
     public mergeKernelSpecs(kernelSpecs) {
-        return _.assign(this._kernelSpecs, kernelSpecs);
+        for (const key in kernelSpecs) {
+            this._kernelSpecs[key] = kernelSpecs[key];
+        }
+        // return _.assign(this._kernelSpecs, kernelSpecs);
     }
 
     public updateKernelSpecs(): Promise<any> {
         this._kernelSpecs = this.getKernelSpecsFromSettings();
         return this.getKernelSpecsFromJupyter().then(kernelSpecsFromJupyter => {
             this.mergeKernelSpecs(kernelSpecsFromJupyter);
-            if (_.isEmpty(this._kernelSpecs)) {
+            if (Object.keys(this._kernelSpecs).length === 0) {
                 const message = 'No kernel specs found';
                 const options = {
                     description: 'Use kernelSpec option in VS Code or update IPython/Jupyter to a version that supports: `jupyter kernelspec list --json` or `ipython kernelspec list --json`',
@@ -236,14 +238,12 @@ export class KernelManager extends vscode.Disposable {
                 vscode.window.showErrorMessage(message + ', ' + options.description);
             } else {
                 const message = 'VS Code Kernels updated:';
-                const options = {
-                    detail: (_.map(this._kernelSpecs, 'spec.display_name')).join('\n')
-                };
+                const details = Object.keys(this._kernelSpecs).map(key => this._kernelSpecs[key].spec.display_name).join('\n');
                 // vscode.window.showErrorMessage(message + ', ' + options.detail);
             }
             return this._kernelSpecs;
         }).catch(() => {
-            if (_.isEmpty(this._kernelSpecs)) {
+            if (Object.keys(this._kernelSpecs).length === 0) {
                 const message = 'No kernel specs found';
                 const options = {
                     description: 'Use kernelSpec option in VS Code or update IPython/Jupyter to a version that supports: `jupyter kernelspec list --json` or `ipython kernelspec list --json`',
@@ -252,9 +252,7 @@ export class KernelManager extends vscode.Disposable {
                 vscode.window.showErrorMessage(message + ', ' + options.description);
             } else {
                 const message = 'VS Code Kernels updated:';
-                const options = {
-                    detail: (_.map(this._kernelSpecs, 'spec.display_name')).join('\n')
-                };
+                const details = Object.keys(this._kernelSpecs).map(key => this._kernelSpecs[key].spec.display_name).join('\n');
                 // vscode.window.showErrorMessage(message + ', ' + options.detail);
             }
             return this._kernelSpecs;
