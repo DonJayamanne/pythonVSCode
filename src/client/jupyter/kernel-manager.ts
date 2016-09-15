@@ -153,8 +153,8 @@ export class KernelManager extends vscode.Disposable {
         return this._runningKernels;
     }
 
-    public getRunningKernelFor(language) {
-        return this._runningKernels[language];
+    public getRunningKernelFor(language: string) {
+        return this._runningKernels.has(language) ? this._runningKernels.get(language) : null;
     }
 
 

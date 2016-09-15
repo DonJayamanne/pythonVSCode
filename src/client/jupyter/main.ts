@@ -48,6 +48,10 @@ export class Jupyter {
         return this.statusBarTile.destroy();
     }
     onEditorChanged(editor) {
+        // Opening display (results) documents causes event to fire
+        if (!editor) {
+            return;
+        }
         let kernel;
         this.editor = editor;
         if (this.editor) {
@@ -57,8 +61,8 @@ export class Jupyter {
             return this.onKernelChanged(kernel);
         }
     }
-    onKernelChanged(kernel1?) {
-        this.kernel = kernel1;
+    onKernelChanged(kernel: Kernel) {
+        this.kernel = kernel;
     }
     createResultBubble(code): Promise<any> {
         if (this.kernel) {
