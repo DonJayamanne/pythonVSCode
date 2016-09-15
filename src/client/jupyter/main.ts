@@ -2,6 +2,7 @@ import {KernelManager} from './kernel-manager';
 import {Kernel} from './kernel';
 import * as vscode from 'vscode';
 import {TextDocumentContentProvider} from './resultView';
+const anser = require('anser');
 
 const jupyterSchema = 'jupyter-result-viewer';
 let previewUri = vscode.Uri.parse(jupyterSchema + '://authority/jupyter');
@@ -87,14 +88,18 @@ export class Jupyter {
             let htmlResponse = '';
             return kernel.execute(code, (result: { type: string, stream: string, data: { [key: string]: string } | string }) => {
                 if (result.type === 'text' && result.stream === 'stdout' && typeof result.data['text/plain'] === 'string') {
-                    htmlResponse = htmlResponse + `<p><pre>${result.data['text/plain']}</pre></p>`;
+                    const htmlText = anser.ansiToHtml(anser.escapeForHtml(result.data['text/plain']));
+                    htmlResponse = htmlResponse + `<p><pre>${htmlText}</pre></p>`;
                 }
                 if (result.type === 'text' && result.stream === 'pyout' && typeof result.data['text/plain'] === 'string') {
-                    htmlResponse = htmlResponse + `<p><pre>${result.data['text/plain']}</pre></p>`;
+                    const htmlText = anser.ansiToHtml(anser.escapeForHtml(result.data['text/plain']));
+                    htmlResponse = htmlResponse + `<p><pre>${htmlText}</pre></p>`;
                 }
                 if (result.type === 'text' && result.stream === 'error' && typeof result.data['text/plain'] === 'string') {
-                    let rawError = (result.data['text/plain'] as string).replace('\n', '<br/>');
-                    htmlResponse = htmlResponse + `<p style="color:red;">${rawError}</p>`;
+                    const htmlText = anser.ansiToHtml(anser.escapeForHtml(result.data['text/plain']));
+                    let rawError = htmlText.replace('\n', '<br/>');
+                    // htmlResponse = htmlResponse + `<p style="color:black;background-color:white">${rawError}</p>`;
+                    htmlResponse = htmlResponse + `<p><pre>${rawError}</pre></p>`;
                     return resolve(htmlResponse);
                 }
                 if (result.type === 'text/html' && result.stream === 'pyout' && typeof result.data['text/html'] === 'string') {

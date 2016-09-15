@@ -1,4 +1,4 @@
-declare module "spawnteract" {
+declare module 'spawnteract' {
     import * as child_process from 'child_process';
     interface LaunchSpecSpawnResult {
         spawn: child_process.ChildProcess;

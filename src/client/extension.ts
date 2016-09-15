@@ -19,7 +19,7 @@ import * as telemetryContracts from './common/telemetryContracts';
 import {PythonCodeActionsProvider} from './providers/codeActionProvider';
 import {activateSimplePythonRefactorProvider} from './providers/simpleRefactorProvider';
 import {activateSetInterpreterProvider} from './providers/setInterpreterProvider';
-import {activateExecInTerminalProvider} from './providers/execInTerminalProvider'
+import {activateExecInTerminalProvider} from './providers/execInTerminalProvider';
 import * as tests from './unittests/main';
 import * as jup from './jupyter/main';
 
