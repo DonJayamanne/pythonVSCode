@@ -9,8 +9,8 @@ export class WSKernel extends Kernel {
     constructor(kernelSpec: KernelspecMetadata, language: string, private session: any) {
         super(kernelSpec, language);
 
-        this.session.statusChanged.connect(this._onStatusChange.bind(this));
-        this._onStatusChange();
+        this.session.statusChanged.connect(this.statusChangeHandler.bind(this));
+        this.statusChangeHandler();
     }
 
     public interrupt() {
@@ -25,9 +25,8 @@ export class WSKernel extends Kernel {
         return this.session.kernel.restart();
     };
 
-    public _onStatusChange() {
-        // return this.statusView.setStatus(this.session.status);
-        this.statusBar.text = `Sesion Status = ${this.session.status}`;
+    public statusChangeHandler() {
+        this.raiseOnStatusChange(this.session.status);
     };
 
     public _execute(code, onResults, callWatches) {
@@ -104,9 +103,9 @@ export class WSKernel extends Kernel {
         });
     };
 
-    public destroy() {
+    public dispose() {
         console.log('WSKernel: destroying jupyter-js-services Session');
         this.session.dispose();
-        return super.destroy();
+        super.dispose();
     };
 }

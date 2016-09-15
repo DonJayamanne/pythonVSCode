@@ -3,19 +3,28 @@
 import * as vscode from 'vscode';
 import * as child_process from 'child_process';
 import * as path from 'path';
-import {KernelspecMetadata} from './contracts';
+import {KernelspecMetadata, KernelEvents} from './contracts';
 const jmp = require('jmp');
 const uuid = require('uuid');
 const zmq = jmp.zmq;
 
-export abstract class Kernel {
-    protected statusBar: vscode.StatusBarItem;
+export abstract class Kernel extends vscode.Disposable implements KernelEvents {
     private watchCallbacks: any[];
     constructor(public kernelSpec: KernelspecMetadata, private language: string) {
+        super(() => { });
         this.watchCallbacks = [];
-        this.statusBar = vscode.window.createStatusBarItem();
+    }
+    public dispose() {
+
     }
 
+    private _onStatusChange = new vscode.EventEmitter<[KernelspecMetadata, string]>();
+    get onStatusChange(): vscode.Event<[KernelspecMetadata, string]> {
+        return this._onStatusChange.event;
+    }
+    protected raiseOnStatusChange(status: string) {
+        this._onStatusChange.fire([this.kernelSpec, status]);
+    }
     public addWatchCallback(watchCallback) {
         return this.watchCallbacks.push(watchCallback);
     };
@@ -175,9 +184,5 @@ export abstract class Kernel {
             result.data['text/plain'] = result.data['text/plain'].trim();
         }
         return result;
-    };
-
-    public destroy() {
-        return console.log('Kernel: Destroying base kernel');
     };
 }

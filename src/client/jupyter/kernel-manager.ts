@@ -8,23 +8,27 @@ import {WSKernel} from './ws-kernel';
 import {ZMQKernel} from './zmq-kernel';
 import {launchSpec} from 'spawnteract';
 import {KernelspecMetadata, Kernelspec} from './contracts';
+import {Commands} from '../common/constants';
 
-export class KernelManager extends vscode.Disposable {
+export class KernelManagerImpl extends vscode.Disposable {
     private _runningKernels: Map<string, Kernel>;
     private _kernelSpecs: { [key: string]: Kernelspec };
+    private disposables: vscode.Disposable[];
     constructor() {
         super(() => { });
-        // this.getKernelSpecsFromJupyter = this.getKernelSpecsFromJupyter.bind(this);
-        // this.getAllKernelSpecs = this.getAllKernelSpecs.bind(this);
+        this.disposables = [];
         this._runningKernels = new Map<string, Kernel>();
         this._kernelSpecs = this.getKernelSpecsFromSettings();
     }
-    public dispose() {
-        this.destroy();
+
+    private registerCommands() {
+        this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.Get_All_KernelSpecs, () => {
+            return this.getAllKernelSpecs();
+        }));
     }
-    public destroy() {
+    public dispose() {
         this._runningKernels.forEach(kernel => {
-            kernel.destroy();
+            kernel.dispose();
         });
         this._runningKernels.clear();
     }
@@ -42,7 +46,7 @@ export class KernelManager extends vscode.Disposable {
         const kernel = this._runningKernels.get(language);
         this._runningKernels.delete(language);
         if (kernel != null) {
-            kernel.destroy();
+            kernel.dispose();
         }
     }
 
@@ -116,18 +120,6 @@ export class KernelManager extends vscode.Disposable {
         const spawnOptions = {
             cwd: projectPath
         };
-        // const that = this;
-        // return launchSpec(kernelSpec, spawnOptions).then((function (_this) {
-        //     return function (arg) {
-        //         const config = arg.config, connectionFile = arg.connectionFile, spawn = arg.spawn;
-        //         const kernel = new ZMQKernel(kernelSpec, language, config, connectionFile, spawn);
-        //         (that.setRunningKernelFor as Function).call(that, language, kernel);
-        //         (that._executeStartupCode as Function).call(that, kernel);
-        //         return typeof onStarted === "function" ? onStarted(kernel) : void 0;
-        //     };
-        // })(this), error => {
-        //     return Promise.reject(error);
-        // });
         return launchSpec(kernelSpec, spawnOptions).then(result => {
             const kernel = new ZMQKernel(kernelSpec, language, result.config, result.connectionFile, result.spawn);
             this.setRunningKernelFor(language, kernel);
@@ -156,7 +148,6 @@ export class KernelManager extends vscode.Disposable {
     public getRunningKernelFor(language: string) {
         return this._runningKernels.has(language) ? this._runningKernels.get(language) : null;
     }
-
 
     public getAllKernelSpecs(): Promise<KernelspecMetadata[]> {
         if (Object.keys(this._kernelSpecs).length === 0) {

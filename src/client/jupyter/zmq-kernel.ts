@@ -257,8 +257,7 @@ export class ZMQKernel extends Kernel {
         const msg_type = message.header.msg_type;
         if (msg_type === 'status') {
             const status = message.content.execution_state;
-            // this.statusView.setStatus(status);
-            this.statusBar.text = status;
+            this.raiseOnStatusChange(status);
             msg_id = message.parent_header !== null ? message.parent_header.msg_id : null;
             if (status === 'idle' && (msg_id !== null ? msg_id.startsWith('execute') : null)) {
                 this._callWatchCallbacks();
@@ -317,7 +316,7 @@ export class ZMQKernel extends Kernel {
         return true;
     };
 
-    public destroy() {
+    public dispose() {
         console.log('ZMQKernel: destroy:', this);
         this.shutdown();
         if (this.kernelProcess != null) {
@@ -328,7 +327,7 @@ export class ZMQKernel extends Kernel {
         this.controlSocket.close();
         this.ioSocket.close();
         this.stdinSocket.close();
-        return super.destroy.apply(this, arguments);
+        super.dispose();
     };
 
     public _getUsername() {

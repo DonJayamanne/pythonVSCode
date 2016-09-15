@@ -1,17 +1,24 @@
-import {KernelManager} from './kernel-manager';
+import {KernelManagerImpl} from './kernel-manager';
 import {Kernel} from './kernel';
 import * as vscode from 'vscode';
 import {TextDocumentContentProvider} from './resultView';
+import {JupyterDisplay} from './display/main';
+import {KernelStatus} from './display/kernelStatus';
+
 const anser = require('anser');
 
 const jupyterSchema = 'jupyter-result-viewer';
 let previewUri = vscode.Uri.parse(jupyterSchema + '://authority/jupyter');
 
 let previewWindow: TextDocumentContentProvider;
-export function activate(): vscode.Disposable {
+let display: JupyterDisplay;
+export function activate(): vscode.Disposable[] {
     previewWindow = new TextDocumentContentProvider();
-    let registration = vscode.workspace.registerTextDocumentContentProvider(jupyterSchema, previewWindow);
-    return registration;
+    let disposables: vscode.Disposable[] = [];
+    disposables.push(vscode.workspace.registerTextDocumentContentProvider(jupyterSchema, previewWindow));
+    display = new JupyterDisplay();
+    disposables.push(display);
+    return disposables;
 }
 
 let displayed = false;
@@ -26,29 +33,33 @@ function showResults(result: any): any {
             vscode.window.showErrorMessage(reason);
         });
 }
-export class Jupyter {
-    public subscriptions = null;
-    public kernelManager: KernelManager;
+export class Jupyter extends vscode.Disposable {
+    public kernelManager: KernelManagerImpl;
     public editor: vscode.TextEditor;
     public kernel: Kernel = null;
     public markerBubbleMap = null;
-    public statusBarElement = null;
-    public statusBarTile = null;
     public watchSidebar = null;
     public watchSidebarIsVisible = false;
+    private status: KernelStatus;
+    private disposables: vscode.Disposable[];
 
+    constructor() {
+        super(() => { });
+        this.disposables = [];
+    }
     activate(state) {
-        activate();
-        this.kernelManager = new KernelManager();
+        this.disposables.push(...activate());
+        this.kernelManager = new KernelManagerImpl();
+        this.disposables.push(this.kernelManager);
         this.markerBubbleMap = {};
-        vscode.window.onDidChangeActiveTextEditor(this.onEditorChanged.bind(this));
+        this.disposables.push(vscode.window.onDidChangeActiveTextEditor(this.onEditorChanged.bind(this)));
+        this.status = new KernelStatus();
+        this.disposables.push(this.status);
     }
-    deactivate() {
-        this.subscriptions.dispose();
-        this.kernelManager.destroy();
-        return this.statusBarTile.destroy();
+    public dispose() {
+        this.disposables.forEach(d => d.dispose());
     }
-    onEditorChanged(editor) {
+    private onEditorChanged(editor) {
         // Opening display (results) documents causes event to fire
         if (!editor) {
             return;
@@ -62,8 +73,20 @@ export class Jupyter {
             return this.onKernelChanged(kernel);
         }
     }
+    private onKernalStatusChangeHandler: vscode.Disposable;
     onKernelChanged(kernel: Kernel) {
+        // Unbind any previous handlers
+        if (this.onKernalStatusChangeHandler) {
+            this.onKernalStatusChangeHandler.dispose();
+            this.onKernalStatusChangeHandler = null;
+        }
+        if (kernel) {
+            this.onKernalStatusChangeHandler = kernel.onStatusChange(statusInfo => {
+                this.status.setKernelStatus(statusInfo[1]);
+            });
+        }
         this.kernel = kernel;
+        this.status.setActiveKernel(this.kernel ? this.kernel.kernelSpec : null);
     }
     createResultBubble(code): Promise<any> {
         if (this.kernel) {
@@ -87,20 +110,16 @@ export class Jupyter {
         return new Promise<any>((resolve, reject) => {
             let htmlResponse = '';
             return kernel.execute(code, (result: { type: string, stream: string, data: { [key: string]: string } | string }) => {
-                if (result.type === 'text' && result.stream === 'stdout' && typeof result.data['text/plain'] === 'string') {
+                if ((result.type === 'text' && result.stream === 'stdout' && typeof result.data['text/plain'] === 'string') ||
+                    (result.type === 'text' && result.stream === 'pyout' && typeof result.data['text/plain'] === 'string') ||
+                    (result.type === 'text' && result.stream === 'error' && typeof result.data['text/plain'] === 'string')) {
                     const htmlText = anser.ansiToHtml(anser.escapeForHtml(result.data['text/plain']));
+                    // let rawError = htmlText.replace('\n', '<br/>');
                     htmlResponse = htmlResponse + `<p><pre>${htmlText}</pre></p>`;
-                }
-                if (result.type === 'text' && result.stream === 'pyout' && typeof result.data['text/plain'] === 'string') {
-                    const htmlText = anser.ansiToHtml(anser.escapeForHtml(result.data['text/plain']));
-                    htmlResponse = htmlResponse + `<p><pre>${htmlText}</pre></p>`;
-                }
-                if (result.type === 'text' && result.stream === 'error' && typeof result.data['text/plain'] === 'string') {
-                    const htmlText = anser.ansiToHtml(anser.escapeForHtml(result.data['text/plain']));
-                    let rawError = htmlText.replace('\n', '<br/>');
-                    // htmlResponse = htmlResponse + `<p style="color:black;background-color:white">${rawError}</p>`;
-                    htmlResponse = htmlResponse + `<p><pre>${rawError}</pre></p>`;
-                    return resolve(htmlResponse);
+
+                    if (result.stream === 'error') {
+                        return resolve(htmlResponse);
+                    }
                 }
                 if (result.type === 'text/html' && result.stream === 'pyout' && typeof result.data['text/html'] === 'string') {
                     htmlResponse = htmlResponse + result.data['text/html'];

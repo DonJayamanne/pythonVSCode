@@ -18,6 +18,11 @@ export namespace Commands {
     export const Tests_Select_And_Run_Method = 'python.selectAndRunTestMethod';
     export const Refactor_Extract_Variable = 'python.refactorExtractVariable';
     export const Refaactor_Extract_Method = 'python.refactorExtractMethod';
+
+    export namespace Jupyter {
+        export const Get_All_KernelSpecs = 'jupyter:getAllKernelSpecs';
+        export const Select_Kernel = 'jupyter:selectKernel';
+    }
 }
 export namespace Octicons {
     export const Test_Pass = '$(check)';

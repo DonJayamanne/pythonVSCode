@@ -1,3 +1,4 @@
+import * as vscode from 'vscode';
 // http://jupyter-client.readthedocs.io/en/latest/messaging.html#to-do
 
 /**
@@ -15,6 +16,10 @@ export interface KernelspecMetadata {
 export interface Kernelspec {
     spec: KernelspecMetadata;
     resource_dir: string;
+}
+
+export interface KernelEvents {
+    onStatusChange: vscode.Event<[KernelspecMetadata, string]>;
 }
 
 export interface JupyterMessage extends Object {
