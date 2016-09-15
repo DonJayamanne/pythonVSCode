@@ -1,3 +1,4 @@
+/// <reference path="../../../typings/spawnteract.d.ts" />
 import * as child_process from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -13,9 +14,9 @@ export class KernelManager extends vscode.Disposable {
     private _runningKernels: Map<string, Kernel>;
     private _kernelSpecs: { [key: string]: Kernelspec };
     constructor() {
-        super(() => { })
-        //this.getKernelSpecsFromJupyter = this.getKernelSpecsFromJupyter.bind(this);
-        //this.getAllKernelSpecs = this.getAllKernelSpecs.bind(this);
+        super(() => { });
+        // this.getKernelSpecsFromJupyter = this.getKernelSpecsFromJupyter.bind(this);
+        // this.getAllKernelSpecs = this.getAllKernelSpecs.bind(this);
         this._runningKernels = new Map<string, Kernel>();
         this._kernelSpecs = this.getKernelSpecsFromSettings();
     }
@@ -58,10 +59,7 @@ export class KernelManager extends vscode.Disposable {
         if (kernel instanceof ZMQKernel && kernel.kernelProcess) {
             const kernelSpec = kernel.kernelSpec;
             this.destroyRunningKernelFor(language);
-            return this.startKernel(kernelSpec, language).then(k => {
-                let x = "";
-                return k;
-            });
+            return this.startKernel(kernelSpec, language);
         }
         console.log('KernelManager: restartRunningKernelFor: ignored', kernel);
         vscode.window.showWarningMessage('Cannot restart this kernel');
@@ -83,15 +81,15 @@ export class KernelManager extends vscode.Disposable {
         }
         return this.getKernelSpecFor(language).then(kernelSpec => {
             if (kernelSpec == null) {
-                const message = "No kernel for language `" + language + "` found";
-                const description = 'Check that the language for this file is set in Atom and that you have a Jupyter kernel installed for it.';
+                const message = `No kernel for language '${language}' found`;
+                const description = 'Check that the language for this file is set in VS Code and that you have a Jupyter kernel installed for it.';
                 vscode.window.showErrorMessage(description);
                 return;
             }
             return this.startKernel(kernelSpec, language);
         }).catch(() => {
-            const message = "No kernel for language `" + language + "` found";
-            const description = 'Check that the language for this file is set in Atom and that you have a Jupyter kernel installed for it.';
+            const message = `No kernel for language '${language}' found`;
+            const description = 'Check that the language for this file is set in VS Code and that you have a Jupyter kernel installed for it.';
             vscode.window.showErrorMessage(description);
             return null;
         });
@@ -217,8 +215,7 @@ export class KernelManager extends vscode.Disposable {
     }
 
     public getKernelSpecsFromSettings(): { [key: string]: Kernelspec } {
-        var settings;
-        settings = {};
+        const settings: any = {};
         return settings;
     }
 
@@ -273,8 +270,7 @@ export class KernelManager extends vscode.Disposable {
     }
 
     public getKernelSpecsFrom(command: string): Promise<any> {
-        var options;
-        options = {
+        const options = {
             killSignal: 'SIGINT'
         };
         return new Promise<any>((resolve, reject) => {

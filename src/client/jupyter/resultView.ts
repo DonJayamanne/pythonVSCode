@@ -36,32 +36,11 @@ export class TextDocumentContentProvider implements vscode.TextDocumentContentPr
 
     private generateErrorView(error: string): string {
         return `<head></head><body>${error}</body>`;
-        // const resourcesPath = path.join(__dirname, '..', '..', '..', 'resources');
-        // return `
-        //     <head>
-        //         <link rel="stylesheet" href="${this.getStyleSheetPath('reset.css')}" >
-        //         <link rel="stylesheet" href="${this.getStyleSheetPath(path.join('octicons', 'font', 'octicons.css'))}" >
-        //         <link rel="stylesheet" href="${this.getStyleSheetPath(path.join('font-awesome-4.6.3', 'css', 'font-awesome.min.css'))}" >
-        //         <link rel="stylesheet" href="${this.getStyleSheetPath('main.css')}" >
-        //     </head>
-        //     <body>
-        //         <style>
-        //         </style>
-        //         <div class="errorContents">
-        //             <div><i class="fa fa-exclamation-triangle" aria-hidden="true"></i>Error</div>
-        //             <div>${error}</div>
-        //         </div>
-        //     </body>
-        //     `;
     }
 
     private generateResultsView(): string {
         const innerHtml = this.htmlResponse;
         const customScripts = '';
-        // const customScripts = TextDocumentContentProvider.scripts.reduce((previousValue, currentValue) => {
-        //     return previousValue + `<div class="evalScript">${currentValue}</div>`;
-        // }, '');
-                // <body id= "myBody" onload="var script = document.createElement('script');script.setAttribute('src', '${this.getScriptFilePath('proxy.js')}');script.setAttribute('type', 'text/javascript');document.getElementById('myBody').appendChild(script);">
         const html = `
                 <head>
                 </head>

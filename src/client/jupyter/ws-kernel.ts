@@ -9,11 +9,7 @@ export class WSKernel extends Kernel {
     constructor(kernelSpec: KernelspecMetadata, language: string, private session: any) {
         super(kernelSpec, language);
 
-        this.session.statusChanged.connect((function (_this) {
-            return function () {
-                return _this._onStatusChange();
-            };
-        })(this));
+        this.session.statusChanged.connect(this._onStatusChange.bind(this));
         this._onStatusChange();
     }
 
@@ -35,53 +31,41 @@ export class WSKernel extends Kernel {
     };
 
     public _execute(code, onResults, callWatches) {
-        var future;
-        future = this.session.kernel.execute({
+        const future = this.session.kernel.execute({
             code: code
         });
-        future.onIOPub = (function (_this) {
-            return function (message) {
-                var result;
-                if (callWatches && message.header.msg_type === 'status' && message.content.execution_state === 'idle') {
-                    _this._callWatchCallbacks();
+        future.onIOPub = (message) => {
+            if (callWatches && message.header.msg_type === 'status' && message.content.execution_state === 'idle') {
+                this._callWatchCallbacks();
+            }
+            if (onResults != null) {
+                console.log('WSKernel: _execute:', message);
+                const result = this._parseIOMessage(message);
+                if (result != null) {
+                    return onResults(result);
                 }
-                if (onResults != null) {
-                    console.log('WSKernel: _execute:', message);
-                    result = _this._parseIOMessage(message);
-                    if (result != null) {
-                        return onResults(result);
-                    }
-                }
-            };
-        })(this);
-        future.onReply = function (message) {
-            var result;
+            }
+        };
+        future.onReply = (message) => {
             if (message.content.status === 'error') {
                 return;
             }
-            result = {
+            const result = {
                 data: 'ok',
                 type: 'text',
                 stream: 'status'
             };
-            return typeof onResults === "function" ? onResults(result) : void 0;
+            return typeof onResults === 'function' ? onResults(result) : void 0;
         };
-        return future.onStdin = (function (_this) {
-            return function (message) {
-                var inputView, prompt;
-                if (message.header.msg_type !== 'input_request') {
-                    return;
-                }
-                prompt = message.content.prompt;
-                throw new Error('Oops');
-                // inputView = new InputView(prompt, function (input) {
-                //     return _this.session.kernel.sendInputReply({
-                //         value: input
-                //     });
-                // });
-                // return inputView.attach();
-            };
-        })(this);
+        return future.onStdin = (message) => {
+            if (message.header.msg_type !== 'input_request') {
+                return;
+            }
+            const prompt = message.content.prompt;
+            vscode.window.showInputBox({ prompt: prompt }).then(reply => {
+                this.session.kernel.sendInputReply({ value: reply });
+            });
+        };
     };
 
     public execute(code, onResults) {
@@ -97,7 +81,7 @@ export class WSKernel extends Kernel {
             code: code,
             cursor_pos: code.length
         }).then(function (message) {
-            return typeof onResults === "function" ? onResults(message.content) : void 0;
+            return typeof onResults === 'function' ? onResults(message.content) : void 0;
         });
     };
 
@@ -107,7 +91,7 @@ export class WSKernel extends Kernel {
             cursor_pos: cursor_pos,
             detail_level: 0
         }).then(function (message) {
-            return typeof onResults === "function" ? onResults({
+            return typeof onResults === 'function' ? onResults({
                 data: message.content.data,
                 found: message.content.found
             }) : void 0;
@@ -115,14 +99,9 @@ export class WSKernel extends Kernel {
     };
 
     public promptRename() {
-        throw new Error('promptRename');
-        // var view;
-        // view = new RenameView('Name your current session', this.session.path, (function (_this) {
-        //     return function (input) {
-        //         return _this.session.rename(input);
-        //     };
-        // })(this));
-        // return view.attach();
+        vscode.window.showInputBox({ prompt: 'Name your current session', value: this.session.path }).then(reply => {
+            this.session.rename(reply);
+        });
     };
 
     public destroy() {

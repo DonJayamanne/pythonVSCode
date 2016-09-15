@@ -1,10 +1,10 @@
 // http://jupyter-client.readthedocs.io/en/latest/messaging.html#to-do
+/// <reference path="../../../node_modules/@types/lodash/index.d.ts" />
 
 import * as vscode from 'vscode';
 import * as child_process from 'child_process';
 import * as path from 'path';
 import {KernelspecMetadata} from './contracts';
-const _ = require('lodash');
 const jmp = require('jmp');
 const uuid = require('uuid');
 const zmq = jmp.zmq;
@@ -35,8 +35,7 @@ export abstract class Kernel {
     public abstract inspect(code, cursor_pos, onResults);
 
     public _parseIOMessage(message) {
-        var result;
-        result = this._parseDisplayIOMessage(message);
+        let result = this._parseDisplayIOMessage(message);
         if (result == null) {
             result = this._parseResultIOMessage(message);
         }
@@ -50,31 +49,29 @@ export abstract class Kernel {
     };
 
     public _parseDisplayIOMessage(message) {
-        var result;
         if (message.header.msg_type === 'display_data') {
-            result = this._parseDataMime(message.content.data);
+            return this._parseDataMime(message.content.data);
         }
-        return result;
+        return null;
     };
 
     public _parseResultIOMessage(message) {
-        var msg_type, result;
-        msg_type = message.header.msg_type;
+        const msg_type = message.header.msg_type;
         if (msg_type === 'execute_result' || msg_type === 'pyout') {
-            result = this._parseDataMime(message.content.data);
+            return this._parseDataMime(message.content.data);
         }
-        return result;
+        return null;
     };
 
     public _parseDataMime(data) {
-        var mime, result;
         if (data == null) {
             return null;
         }
-        mime = this._getMimeType(data);
+        const mime = this._getMimeType(data);
         if (mime == null) {
             return null;
         }
+        let result;
         if (mime === 'text/plain') {
             result = {
                 data: {
@@ -96,10 +93,10 @@ export abstract class Kernel {
     };
 
     public _getMimeType(data) {
-        var imageMimes, mime;
-        imageMimes = Object.getOwnPropertyNames(data).filter(mime => {
+        const imageMimes = Object.getOwnPropertyNames(data).filter(mime => {
             return mime.startsWith('image/');
         });
+        let mime;
         if (data.hasOwnProperty('text/html')) {
             mime = 'text/html';
         } else if (data.hasOwnProperty('image/svg+xml')) {
@@ -123,40 +120,37 @@ export abstract class Kernel {
     };
 
     public _parseErrorIOMessage(message) {
-        var msg_type, result;
-        msg_type = message.header.msg_type;
+        const msg_type = message.header.msg_type;
         if (msg_type === 'error' || msg_type === 'pyerr') {
-            result = this._parseErrorMessage(message);
+            return this._parseErrorMessage(message);
         }
-        return result;
+        return null;
     };
 
     public _parseErrorMessage(message) {
-        var ename, err, errorString, evalue, ref, ref1, result;
+        let errorString: string;
         try {
             errorString = message.content.traceback.join('\n');
-        } catch (_error) {
-            err = _error;
-            ename = (ref = message.content.ename) != null ? ref : '';
-            evalue = (ref1 = message.content.evalue) != null ? ref1 : '';
+        } catch (err) {
+            const ename = message.content.ename != null ? message.content.ename : '';
+            const evalue = message.content.evalue != null ? message.content.evalue : '';
             errorString = ename + ': ' + evalue;
         }
-        result = {
+        return {
             data: {
                 'text/plain': errorString
             },
             type: 'text',
             stream: 'error'
         };
-        return result;
     };
 
     public _parseStreamIOMessage(message) {
-        var ref, ref1, ref2, result;
+        let result;
         if (message.header.msg_type === 'stream') {
             result = {
                 data: {
-                    'text/plain': (ref = message.content.text) != null ? ref : message.content.data
+                    'text/plain': message.content.text != null ? message.content.text : message.content.data
                 },
                 type: 'text',
                 stream: message.content.name
@@ -164,7 +158,7 @@ export abstract class Kernel {
         } else if (message.idents === 'stdout' || message.idents === 'stream.stdout' || message.content.name === 'stdout') {
             result = {
                 data: {
-                    'text/plain': (ref1 = message.content.text) != null ? ref1 : message.content.data
+                    'text/plain': message.content.text != null ? message.content.text : message.content.data
                 },
                 type: 'text',
                 stream: 'stdout'
@@ -172,7 +166,7 @@ export abstract class Kernel {
         } else if (message.idents === 'stderr' || message.idents === 'stream.stderr' || message.content.name === 'stderr') {
             result = {
                 data: {
-                    'text/plain': (ref2 = message.content.text) != null ? ref2 : message.content.data
+                    'text/plain': message.content.text != null ? message.content.text : message.content.data
                 },
                 type: 'text',
                 stream: 'stderr'

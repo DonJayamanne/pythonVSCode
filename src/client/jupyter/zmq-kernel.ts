@@ -44,7 +44,6 @@ export class ZMQKernel extends Kernel {
             });
         } else {
             console.log('ZMQKernel: connectionFile:', this.connectionFile);
-            // atom.notifications.addInfo('Using an existing kernel connection');
             vscode.window.showInformationMessage('Using an existing kernel connection');
         }
     }
@@ -106,7 +105,6 @@ export class ZMQKernel extends Kernel {
             return this.kernelProcess.kill('SIGINT');
         } else {
             console.log('ZMQKernel: cannot interrupt an existing kernel');
-            // return atom.notifications.addWarning('Cannot interrupt this kernel');
             return vscode.window.showWarningMessage('Cannot interrupt this kernel');
         }
     };
@@ -117,7 +115,6 @@ export class ZMQKernel extends Kernel {
             return this.kernelProcess.kill('SIGKILL');
         } else {
             console.log('ZMQKernel: cannot kill an existing kernel');
-            // return atom.notifications.addWarning('Cannot kill this kernel');
             return vscode.window.showWarningMessage('Cannot kill this kernel');
         }
     };

@@ -107,10 +107,18 @@ export class Jupyter {
         });
     }
     executeSelection() {
-        const code = vscode.window.activeTextEditor.document.getText(vscode.window.activeTextEditor.selection);
+        const activeEditor = vscode.window.activeTextEditor;
+        if (!activeEditor || !activeEditor.document) {
+            return;
+        }
 
+        const code = activeEditor.document.getText(vscode.window.activeTextEditor.selection);
         this.createResultBubble(code);
-        console.log('decorator sample is activated');
+
+        // const decType = vscode.window.createTextEditorDecorationType({
+
+        // });
+        // activeEditor.setDecorations(decType, [activeEditor.selection]);
 
         // // create a decorator type that we use to decorate small numbers
         // let smallNumberDecorationType = vscode.window.createTextEditorDecorationType({
@@ -148,8 +156,6 @@ export class Jupyter {
         //     cursor: 'crosshair',
         //     backgroundColor: 'rgba(255,0,0,0.3)'
         // });
-
-        // const activeEditor = vscode.window.activeTextEditor;
 
         // let regEx = /\d+/g;
         // let text = activeEditor.document.getText();
