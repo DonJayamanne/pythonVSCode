@@ -37,7 +37,7 @@ function execInTerminal(fileUri?: vscode.Uri) {
     if (filePath.indexOf(' ') > 0) {
         filePath = `"${filePath}"`;
     }
-    const terminal = (<any>vscode.window).createTerminal(`Python`);
+    const terminal = vscode.window.createTerminal(`Python`);
     terminal.sendText(`${currentPythonPath} ${filePath}`);
 
 }
@@ -54,6 +54,6 @@ function execSelectionInTerminal() {
         return;
     }
     const code = vscode.window.activeTextEditor.document.getText(new vscode.Range(selection.start, selection.end));
-    const terminal = (<any>vscode.window).createTerminal(`Python`);
+    const terminal = vscode.window.createTerminal(`Python`);
     terminal.sendText(`${currentPythonPath} -c "${code}"`);
 }
