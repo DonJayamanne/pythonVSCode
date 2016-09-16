@@ -14,6 +14,7 @@ export abstract class Kernel extends vscode.Disposable implements KernelEvents {
         super(() => { });
         this.watchCallbacks = [];
     }
+
     public dispose() {
 
     }
@@ -25,6 +26,7 @@ export abstract class Kernel extends vscode.Disposable implements KernelEvents {
     protected raiseOnStatusChange(status: string) {
         this._onStatusChange.fire([this.kernelSpec, status]);
     }
+
     public addWatchCallback(watchCallback) {
         return this.watchCallbacks.push(watchCallback);
     };
@@ -37,10 +39,10 @@ export abstract class Kernel extends vscode.Disposable implements KernelEvents {
 
     public abstract interrupt();
     public abstract shutdown();
-    public abstract execute(code, onResults);
-    public abstract executeWatch(code, onResults);
-    public abstract complete(code, onResults);
-    public abstract inspect(code, cursor_pos, onResults);
+    public abstract execute(code: string, onResults);
+    public abstract executeWatch(code: string, onResults);
+    public abstract complete(code: string, onResults);
+    public abstract inspect(code: string, cursor_pos, onResults);
 
     public _parseIOMessage(message) {
         let result = this._parseDisplayIOMessage(message);

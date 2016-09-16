@@ -20,8 +20,16 @@ export namespace Commands {
     export const Refaactor_Extract_Method = 'python.refactorExtractMethod';
 
     export namespace Jupyter {
+        export const Get_All_KernelSpecs_For_Language = 'jupyter:getAllKernelSpecsForLanguage';
         export const Get_All_KernelSpecs = 'jupyter:getAllKernelSpecs';
         export const Select_Kernel = 'jupyter:selectKernel';
+        export const Kernel_Options = 'jupyter:kernelOptions';
+        export namespace Kernel {
+            export const Kernel_Interrupt = 'jupyter:kernelInterrupt';
+            export const Kernel_Restart = 'jupyter:kernelRestart';
+            export const Kernel_Shut_Down = 'jupyter:kernelShutDown';
+            export const Kernel_Details = 'jupyter:kernelDetails';
+        }
     }
 }
 export namespace Octicons {

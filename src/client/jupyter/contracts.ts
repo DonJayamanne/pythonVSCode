@@ -22,15 +22,15 @@ export interface KernelEvents {
     onStatusChange: vscode.Event<[KernelspecMetadata, string]>;
 }
 
-export interface JupyterMessage extends Object {
-    parent_header: any;
-    content: any;
-    header: any;
-}
+// export interface JupyterMessage extends Object {
+//     parent_header: any;
+//     content: any;
+//     header: any;
+// }
 
 // http://jupyter-client.readthedocs.io/en/latest/messaging.html#general-message-format
 // http://jupyter-client.readthedocs.io/en/latest/messaging.html#python-api
-export interface JupyterMessagex {
+export interface JupyterMessage {
     // http://jupyter-client.readthedocs.io/en/latest/messaging.html#python-api
     // The msg's unique identifier and type are always stored in the header,
     // but the Python implementation copies them to the top level.
@@ -185,6 +185,11 @@ export interface JupyterMessagex {
         // REQUEST for msg_type = 'input_reply'
         // ********************************************************
         value: string;
+
+        // ********************************************************
+        // RESPONSE for msg_type = 'status'
+        // ********************************************************
+        execution_state: string;
     };
     header: {
         msg_id: string, // typically UUID, must be unique per message

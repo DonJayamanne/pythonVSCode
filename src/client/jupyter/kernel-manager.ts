@@ -19,12 +19,11 @@ export class KernelManagerImpl extends vscode.Disposable {
         this.disposables = [];
         this._runningKernels = new Map<string, Kernel>();
         this._kernelSpecs = this.getKernelSpecsFromSettings();
+        this.registerCommands();
     }
 
     private registerCommands() {
-        this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.Get_All_KernelSpecs, () => {
-            return this.getAllKernelSpecs();
-        }));
+        this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.Get_All_KernelSpecs_For_Language, this.getAllKernelSpecsFor.bind(this)));
     }
     public dispose() {
         this._runningKernels.forEach(kernel => {
@@ -130,14 +129,14 @@ export class KernelManagerImpl extends vscode.Disposable {
         });
     }
 
-    public _executeStartupCode(kernel) {
+    public _executeStartupCode(kernel: Kernel) {
         const displayName = kernel.kernelSpec.display_name;
         // startupCode = Config.getJson('startupCode')[displayName];
         let startupCode = {}[displayName];
         if (startupCode != null) {
             console.log('KernelManager: Executing startup code:', startupCode);
             startupCode = startupCode + ' \n';
-            return kernel.execute(startupCode);
+            return kernel.execute(startupCode, () => { });
         }
     }
 
