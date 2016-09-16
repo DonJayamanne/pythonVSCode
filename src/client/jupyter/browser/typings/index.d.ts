@@ -1,0 +1,1 @@
+/// <reference path="lib.dom.d.ts" />

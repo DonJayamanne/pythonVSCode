@@ -8,7 +8,6 @@ export class TextDocumentContentProvider implements vscode.TextDocumentContentPr
     private _onDidChange = new vscode.EventEmitter<vscode.Uri>();
     private lastUri: vscode.Uri;
     private htmlResponse: string = '';
-    private jsonData: any;
     public provideTextDocumentContent(uri: vscode.Uri, token: vscode.CancellationToken): Thenable<string> {
         this.lastUri = uri;
         return Promise.resolve(this.generateResultsView());
@@ -18,22 +17,21 @@ export class TextDocumentContentProvider implements vscode.TextDocumentContentPr
         return this._onDidChange.event;
     }
 
-    public setText(result: string, data: any) {
+    public setText(result: string) {
         this.htmlResponse = result;
-        this.jsonData = data;
     }
     public update() {
         this._onDidChange.fire(this.lastUri);
     }
 
     private getStyleSheetPath(resourceName: string): string {
-        return vscode.Uri.file(path.join(__dirname, '..', '..', '..', 'resources', resourceName)).toString();
+        return vscode.Uri.file(path.join(__dirname, '..', '..', '..', '..', 'resources', resourceName)).toString();
     }
     private getScriptFilePath(resourceName: string): string {
-        return vscode.Uri.file(path.join(__dirname, '..', '..', '..', 'out', 'client', 'jupyter', 'browser', resourceName)).toString();
+        return vscode.Uri.file(path.join(__dirname, '..', '..', '..', '..', 'out', 'client', 'jupyter', resourceName)).toString();
     }
     private getNodeModulesPath(resourceName: string): string {
-        return vscode.Uri.file(path.join(__dirname, '..', '..', '..', 'node_modules', resourceName)).toString();
+        return vscode.Uri.file(path.join(__dirname, '..', '..', '..', '..', 'node_modules', resourceName)).toString();
     }
 
     private generateErrorView(error: string): string {
@@ -41,17 +39,15 @@ export class TextDocumentContentProvider implements vscode.TextDocumentContentPr
     }
 
     private generateResultsView(): string {
-        const innerHtml = ''; // this.htmlResponse;
+        const innerHtml = this.htmlResponse;
         const customScripts = '';
         const html = `
                 <head>
-                    <script src="${this.getScriptFilePath('bundle.js')}"></script>
                 </head>
-                <body onload="initializeResults()">
+                <body>
                     ${innerHtml}
                 <div style="display:none">
                     <script type="text/javascript">
-                    window.JUPYTER_DATA = ${JSON.stringify(this.jsonData)};
                     function testClick(){
                         document.getElementById('xx').innerHTML = 'one';
                     }
@@ -63,7 +59,7 @@ export class TextDocumentContentProvider implements vscode.TextDocumentContentPr
                 </div>
                 </body>
             `;
-        fs.writeFileSync('/Users/donjayamanne/.vscode/extensions/pythonVSCode/results.html', html);
+        // fs.writeFileSync('/Users/donjayamanne/.vscode-insiders/extensions/pythonVSCode/results.html', html);
         return html;
     }
 }

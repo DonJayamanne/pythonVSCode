@@ -14,14 +14,13 @@ export class KernelPicker extends vscode.Disposable {
     }
 
     private registerCommands() {
-        this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.Select_Kernel, () => {
-            return this.selectkernel();
-        }));
+        this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.Select_Kernel, this.selectkernel.bind(this)));
     }
 
-    private selectkernel(): Promise<KernelspecMetadata> {
+    private selectkernel(language?: string): Promise<KernelspecMetadata> {
         return new Promise<KernelspecMetadata>(resolve => {
-            vscode.commands.executeCommand(Commands.Jupyter.Get_All_KernelSpecs).then((kernelSpecs: KernelspecMetadata[]) => {
+            const command = language ? Commands.Jupyter.Get_All_KernelSpecs_For_Language : Commands.Jupyter.Get_All_KernelSpecs;
+            vscode.commands.executeCommand(command, language).then((kernelSpecs: KernelspecMetadata[]) => {
                 if (kernelSpecs.length === 0) {
                     return resolve();
                 }
@@ -30,9 +29,15 @@ export class KernelPicker extends vscode.Disposable {
         });
     }
     private displayKernelPicker(kernelspecs: KernelspecMetadata[]): Promise<KernelspecMetadata> {
-        const items = kernelspecs.map(spec => { return { label: spec.display_name, description: spec.language, kernelspec: spec }; });
+        const items = kernelspecs.map(spec => {
+            return {
+                label: spec.display_name,
+                description: spec.language,
+                kernelspec: spec
+            };
+        });
         return new Promise<KernelspecMetadata>(resolve => {
-            vscode.window.showQuickPick(items, { placeHolder: 'Select a kernel' }).then(item => {
+            vscode.window.showQuickPick(items, { placeHolder: 'Select a Kernel' }).then(item => {
                 if (item) {
                     resolve(item.kernelspec);
                 }
