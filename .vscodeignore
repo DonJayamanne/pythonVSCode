@@ -12,3 +12,4 @@ pythonFiles/**/*.pyc
 vsc-extension-quickstart.md
 .travis.yml
 requirements.txt
+webpack.config.js
