@@ -2,6 +2,7 @@
 import * as vscode from 'vscode';
 import * as settings from '../common/configSettings';
 import { Commands } from '../common/constants';
+let path = require('path');
 
 export function activateExecInTerminalProvider() {
     vscode.commands.registerCommand(Commands.Exec_In_Terminal, execInTerminal);
@@ -9,7 +10,8 @@ export function activateExecInTerminalProvider() {
 }
 
 function execInTerminal(fileUri?: vscode.Uri) {
-    const currentPythonPath = settings.PythonSettings.getInstance().pythonPath;
+    let pythonSettings = settings.PythonSettings.getInstance()
+    const currentPythonPath = pythonSettings.pythonPath;
     let filePath: string;
 
     if (fileUri === undefined) {
@@ -38,8 +40,13 @@ function execInTerminal(fileUri?: vscode.Uri) {
         filePath = `"${filePath}"`;
     }
     const terminal = vscode.window.createTerminal(`Python`);
+    if (pythonSettings.terminal.executeInFileDir) {
+        let fileDirPath = path.dirname(filePath).substring(1);
+        if (fileDirPath != vscode.workspace.rootPath) {
+            terminal.sendText(`cd "${fileDirPath}"`);
+        }
+    }
     terminal.sendText(`${currentPythonPath} ${filePath}`);
-
 }
 
 function execSelectionInTerminal() {

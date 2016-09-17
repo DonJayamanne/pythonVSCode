@@ -12,6 +12,7 @@ export interface IPythonSettings {
     formatting: IFormattingSettings;
     unitTest: IUnitTestSettings;
     autoComplete: IAutoCompeteSettings;
+    terminal: ITerminalSettings;
 }
 export interface IUnitTestSettings {
     nosetestsEnabled: boolean;
@@ -66,6 +67,10 @@ export interface IFormattingSettings {
 export interface IAutoCompeteSettings {
     extraPaths: string[];
 }
+export interface ITerminalSettings {
+    executeInFileDir: boolean;
+}
+
 const systemVariables: SystemVariables = new SystemVariables();
 export class PythonSettings extends EventEmitter implements IPythonSettings {
     private static pythonSettings: PythonSettings = new PythonSettings();
@@ -135,6 +140,14 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         this.unitTest.nosetestArgs = this.unitTest.nosetestArgs.map(arg => systemVariables.resolveAny(arg));
         this.unitTest.pyTestArgs = this.unitTest.pyTestArgs.map(arg => systemVariables.resolveAny(arg));
         this.unitTest.unittestArgs = this.unitTest.unittestArgs.map(arg => systemVariables.resolveAny(arg));
+
+        let terminalSettings = systemVariables.resolveAny(pythonSettings.get<ITerminalSettings>('terminal'));
+        if (this.terminal) {
+            Object.assign<ITerminalSettings, ITerminalSettings>(this.terminal, terminalSettings);
+        }
+        else {
+            this.terminal = terminalSettings;
+        }
     }
 
     public pythonPath: string;
@@ -143,6 +156,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
     public formatting: IFormattingSettings;
     public autoComplete: IAutoCompeteSettings;
     public unitTest: IUnitTestSettings;
+    public terminal: ITerminalSettings;
 }
 
 function getAbsolutePath(pathToCheck: string, rootDir: String): string {
