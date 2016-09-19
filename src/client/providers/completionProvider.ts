@@ -2,7 +2,7 @@
 
 import * as vscode from 'vscode';
 import * as proxy from './jediProxy';
-import * as telemetryContracts from "../common/telemetryContracts";
+import * as telemetryContracts from '../common/telemetryContracts';
 
 export class PythonCompletionItemProvider implements vscode.CompletionItemProvider {
     private jediProxyHandler: proxy.JediProxyHandler<proxy.ICompletionResult, vscode.CompletionItem[]>;
@@ -14,9 +14,10 @@ export class PythonCompletionItemProvider implements vscode.CompletionItemProvid
         if (data && data.items.length > 0) {
             return data.items.map(item => {
                 let completionItem = new vscode.CompletionItem(item.text);
+                completionItem.kind = item.type;
                 completionItem.documentation = item.description;
                 // ensure the built in memebers are at the bottom
-                completionItem.sortText = (completionItem.label.startsWith("__") ? "z" : (completionItem.label.startsWith("_") ? "y" : "__")) + completionItem.label;
+                completionItem.sortText = (completionItem.label.startsWith('__') ? 'z' : (completionItem.label.startsWith('_') ? 'y' : '__')) + completionItem.label;
                 return completionItem;
             });
         }
@@ -24,7 +25,7 @@ export class PythonCompletionItemProvider implements vscode.CompletionItemProvid
     }
     public provideCompletionItems(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): Thenable<vscode.CompletionItem[]> {
         return new Promise<vscode.CompletionItem[]>((resolve, reject) => {
-            var filename = document.fileName;
+            const filename = document.fileName;
             if (document.lineAt(position.line).text.match(/^\s*\/\//)) {
                 return resolve([]);
             }
@@ -32,12 +33,12 @@ export class PythonCompletionItemProvider implements vscode.CompletionItemProvid
                 return resolve([]);
             }
 
-            var txt = document.getText(new vscode.Range(new vscode.Position(position.line, position.character - 1), position));
-            var type = proxy.CommandType.Completions;
-            var columnIndex = position.character;
+            const txt = document.getText(new vscode.Range(new vscode.Position(position.line, position.character - 1), position));
+            const type = proxy.CommandType.Completions;
+            const columnIndex = position.character;
 
-            var source = document.getText();
-            var cmd: proxy.ICommand<proxy.ICommandResult> = {
+            const source = document.getText();
+            const cmd: proxy.ICommand<proxy.ICommandResult> = {
                 telemetryEvent: telemetryContracts.IDE.Completion,
                 command: type,
                 fileName: filename,
