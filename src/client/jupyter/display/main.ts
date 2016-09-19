@@ -2,14 +2,40 @@ import * as vscode from 'vscode';
 import {KernelPicker} from './kernelPicker';
 import {Commands} from '../../common/constants';
 import {KernelspecMetadata} from '../contracts';
+import {TextDocumentContentProvider} from './resultView';
+
+const jupyterSchema = 'jupyter-result-viewer';
+const previewUri = vscode.Uri.parse(jupyterSchema + '://authority/jupyter');
 
 export class JupyterDisplay extends vscode.Disposable {
     private disposables: vscode.Disposable[];
+    private previewWindow: TextDocumentContentProvider;
     constructor() {
         super(() => { });
         this.disposables = [];
         this.disposables.push(new KernelPicker());
         this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.Kernel_Options, this.showKernelOptions.bind(this)));
+        this.previewWindow = new TextDocumentContentProvider();
+        this.disposables.push(vscode.workspace.registerTextDocumentContentProvider(jupyterSchema, this.previewWindow));
+    }
+
+
+    private displayed = false;
+    public showResults(result: string, data: any): any {
+        this.previewWindow.setText(result, data);
+        // Dirty hack to support instances when document has been closed
+        if (this.displayed) {
+            this.previewWindow.update();
+        }
+        this.displayed = true;
+        return vscode.commands.executeCommand('vscode.previewHtml', previewUri, vscode.ViewColumn.Two, 'Results')
+            .then(() => {
+                if (this.displayed) {
+                    this.previewWindow.update();
+                }
+            }, reason => {
+                vscode.window.showErrorMessage(reason);
+            });
     }
 
     public dispose() {
