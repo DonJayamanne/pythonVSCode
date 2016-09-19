@@ -5,8 +5,6 @@ import {JupyterDisplay} from './display/main';
 import {KernelStatus} from './display/kernelStatus';
 import {Commands} from '../common/constants';
 
-// const anser = require('anser');
-
 export class Jupyter extends vscode.Disposable {
     public kernelManager: KernelManagerImpl;
     public kernel: Kernel = null;
@@ -14,12 +12,12 @@ export class Jupyter extends vscode.Disposable {
     private disposables: vscode.Disposable[];
     private display: JupyterDisplay;
 
-    constructor() {
+    constructor(private outputChannel: vscode.OutputChannel) {
         super(() => { });
         this.disposables = [];
     }
     activate(state) {
-        this.kernelManager = new KernelManagerImpl();
+        this.kernelManager = new KernelManagerImpl(this.outputChannel);
         this.disposables.push(this.kernelManager);
         this.disposables.push(vscode.window.onDidChangeActiveTextEditor(this.onEditorChanged.bind(this)));
         this.status = new KernelStatus();
@@ -79,25 +77,20 @@ export class Jupyter extends vscode.Disposable {
                 if ((result.type === 'text' && result.stream === 'stdout' && typeof result.data['text/plain'] === 'string') ||
                     (result.type === 'text' && result.stream === 'pyout' && typeof result.data['text/plain'] === 'string') ||
                     (result.type === 'text' && result.stream === 'error' && typeof result.data['text/plain'] === 'string')) {
-                    // const htmlText = anser.ansiToHtml(anser.escapeForHtml(result.data['text/plain']));
-                    // htmlResponse = htmlResponse + `<p><pre>${htmlText}</pre></p>`;
                     responses.push(result.data);
                     if (result.stream === 'error') {
                         return resolve([htmlResponse, responses]);
                     }
                 }
                 if (result.type === 'text/html' && result.stream === 'pyout' && typeof result.data['text/html'] === 'string') {
-                    // htmlResponse = htmlResponse + result.data['text/html'];
                     result.data['text/html'] = result.data['text/html'].replace(/<\/script>/g, '</scripts>');
                     responses.push(result.data);
                 }
                 if (result.type === 'application/javascript' && result.stream === 'pyout' && typeof result.data['application/javascript'] === 'string') {
                     responses.push(result.data);
-                    // htmlResponse = htmlResponse + `<script type="text/javascript">${result.data['application/javascript']}</script>`;
                 }
                 if (result.type.startsWith('image/') && result.stream === 'pyout' && typeof result.data[result.type] === 'string') {
                     responses.push(result.data);
-                    // htmlResponse = htmlResponse + `<div style="background-color:white;display:inline-block;"><img src="data:${result.type};base64,${result.data[result.type]}" /></div><div></div>`;
                 }
                 if (result.data === 'ok' && result.stream === 'status' && result.type === 'text') {
                     resolve([htmlResponse, responses]);

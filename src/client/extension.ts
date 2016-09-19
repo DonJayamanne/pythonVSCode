@@ -24,7 +24,6 @@ import * as tests from './unittests/main';
 import * as jup from './jupyter/main';
 
 const PYTHON: vscode.DocumentFilter = { language: 'python', scheme: 'file' };
-let pythonOutputChannel: vscode.OutputChannel;
 let unitTestOutChannel: vscode.OutputChannel;
 let formatOutChannel: vscode.OutputChannel;
 let lintingOutChannel: vscode.OutputChannel;
@@ -84,7 +83,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     tests.activate(context, unitTestOutChannel);
 
-    jupMain = new jup.Jupyter();
+    jupMain = new jup.Jupyter(lintingOutChannel);
     jupMain.activate(null);
 
     vscode.commands.registerCommand('python.jupyter', () => {

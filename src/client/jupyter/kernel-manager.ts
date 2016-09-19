@@ -14,7 +14,7 @@ export class KernelManagerImpl extends vscode.Disposable {
     private _runningKernels: Map<string, Kernel>;
     private _kernelSpecs: { [key: string]: Kernelspec };
     private disposables: vscode.Disposable[];
-    constructor() {
+    constructor(private outputChannel: vscode.OutputChannel) {
         super(() => { });
         this.disposables = [];
         this._runningKernels = new Map<string, Kernel>();
@@ -229,7 +229,7 @@ export class KernelManagerImpl extends vscode.Disposable {
             } else {
                 const message = 'VS Code Kernels updated:';
                 const details = Object.keys(this._kernelSpecs).map(key => this._kernelSpecs[key].spec.display_name).join('\n');
-                // vscode.window.showErrorMessage(message + ', ' + options.detail);
+                this.outputChannel.appendLine(message + ', ' + details);
             }
             return this._kernelSpecs;
         }).catch(() => {
@@ -243,7 +243,7 @@ export class KernelManagerImpl extends vscode.Disposable {
             } else {
                 const message = 'VS Code Kernels updated:';
                 const details = Object.keys(this._kernelSpecs).map(key => this._kernelSpecs[key].spec.display_name).join('\n');
-                // vscode.window.showErrorMessage(message + ', ' + options.detail);
+                this.outputChannel.appendLine(message + ', ' + details);
             }
             return this._kernelSpecs;
         });
