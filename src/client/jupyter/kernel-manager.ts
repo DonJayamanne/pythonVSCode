@@ -63,7 +63,7 @@ export class KernelManagerImpl extends vscode.Disposable {
             this.destroyRunningKernelFor(language);
             return this.startKernel(kernelSpec, language);
         }
-        console.log('KernelManager: restartRunningKernelFor: ignored', kernel);
+        // this.outputChannel.appendLine('KernelManager: restartRunningKernelFor: ignored for ' + kernel.kernelSpec.display_name);
         vscode.window.showWarningMessage('Cannot restart this kernel');
         return Promise.resolve(kernel);
     }
@@ -78,7 +78,7 @@ export class KernelManagerImpl extends vscode.Disposable {
         } catch (_error) {
             const e = _error;
             if (e.code !== 'ENOENT') {
-                console.log('KernelManager: Cannot start existing kernel:\n', e);
+                this.outputChannel.appendLine('KernelManager: Cannot start existing kernel:\n' + e);
             }
         }
         return this.getKernelSpecFor(language).then(kernelSpec => {
@@ -99,7 +99,7 @@ export class KernelManagerImpl extends vscode.Disposable {
 
     public startExistingKernel(language: string, connection, connectionFile): Promise<Kernel> {
         return new Promise<Kernel>((resolve, reject) => {
-            console.log('KernelManager: startExistingKernel: Assuming', language);
+            // console.log('KernelManager: startExistingKernel: Assuming', language);
             const kernelSpec = {
                 display_name: 'Existing Kernel',
                 language: language,
@@ -114,7 +114,7 @@ export class KernelManagerImpl extends vscode.Disposable {
     }
 
     public startKernel(kernelSpec: KernelspecMetadata, language: string): Promise<Kernel> {
-        console.log('KernelManager: startKernelFor:', language);
+        // console.log('KernelManager: startKernelFor:', language);
         const projectPath = path.dirname(vscode.window.activeTextEditor.document.fileName);
         const spawnOptions = {
             cwd: projectPath
@@ -134,7 +134,7 @@ export class KernelManagerImpl extends vscode.Disposable {
         // startupCode = Config.getJson('startupCode')[displayName];
         let startupCode = {}[displayName];
         if (startupCode != null) {
-            console.log('KernelManager: Executing startup code:', startupCode);
+            // console.log('KernelManager: Executing startup code:', startupCode);
             startupCode = startupCode + ' \n';
             return kernel.execute(startupCode, () => { });
         }
@@ -270,7 +270,6 @@ export class KernelManagerImpl extends vscode.Disposable {
                     const kernelSpecs = JSON.parse(stdout).kernelspecs;
                     resolve(kernelSpecs);
                 } catch (err) {
-                    console.log('Could not parse kernelspecs:', err);
                     return reject(err);
                 }
             });
