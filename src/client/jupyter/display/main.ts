@@ -30,9 +30,7 @@ export class JupyterDisplay extends vscode.Disposable {
         this.displayed = true;
         return vscode.commands.executeCommand('vscode.previewHtml', previewUri, vscode.ViewColumn.Two, 'Results')
             .then(() => {
-                if (this.displayed) {
-                    this.previewWindow.update();
-                }
+                // Do nothing
             }, reason => {
                 vscode.window.showErrorMessage(reason);
             });

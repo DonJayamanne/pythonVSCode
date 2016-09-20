@@ -4,8 +4,9 @@ const transformime = require('transformime');
 const MarkdownTransform = require('transformime-marked');
 const transform = transformime.createTransform([MarkdownTransform]) as Function;
 
-(window as any).initializeResults = () => {
+(window as any).initializeResults = (rootDirName) => {
     const data = (window as any).JUPYTER_DATA as any[];
+    const __dirname = rootDirName;
     data.forEach(data => {
         if (typeof data['text/html'] === 'string') {
             data['text/html'] = data['text/html'].replace(/<\/scripts>/g, '</script>');

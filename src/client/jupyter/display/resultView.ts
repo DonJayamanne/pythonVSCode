@@ -51,56 +51,63 @@ export class TextDocumentContentProvider implements vscode.TextDocumentContentPr
                     width:100%;
                 }
                 </style>`;
+        // Don't put this, stuffs up SVG hrefs
+        // <basex href="${path.join(__dirname, '..', '..', '..', '..')}" target="_blank">
+        const dirNameForScripts = path.join(__dirname, '..', '..', '..', 'out');
         const html = `
+                <!DOCTYPE html>
+                <html>
                 <head>
                 </head>
-                <body onload="initializeResults()">
+                <body onload="initializeResults('')">
                     <script type="text/javascript">
                         window.JUPYTER_DATA = ${JSON.stringify(this.results)};
                     </script>
                     <script src="${this.getScriptFilePath('bundle.js')}?x=${new Date().getMilliseconds()}"></script>
                 </body>
+                </html>
             `;
         // fs.writeFileSync('/Users/donjayamanne/.vscode/extensions/pythonVSCode/results.html', html);
-        return Promise.resolve(html);
+        // return Promise.resolve(html);
 
-        // let htmlFile: helpers.Deferred<string> = helpers.createDeferred<string>();
-        // if (this.tmpHtmlFile) {
-        //     fs.exists(this.tmpHtmlFile, exists => {
-        //         if (exists) {
-        //             return htmlFile.resolve(this.tmpHtmlFile);
-        //         }
-        //         helpers.createTemporaryFile('.html').then(tmpFile => {
-        //             htmlFile.resolve(tmpFile.filePath);
-        //         });
-        //     });
-        // }
-        // else {
-        //     helpers.createTemporaryFile('.html').then(tmpFile => {
-        //         htmlFile.resolve(tmpFile.filePath);
-        //     });
-        // }
+        let htmlFile: helpers.Deferred<string> = helpers.createDeferred<string>();
+        if (this.tmpHtmlFile) {
+            fs.exists(this.tmpHtmlFile, exists => {
+                if (exists) {
+                    return htmlFile.resolve(this.tmpHtmlFile);
+                }
+                helpers.createTemporaryFile('.html').then(tmpFile => {
+                    htmlFile.resolve(tmpFile.filePath);
+                });
+            });
+        }
+        else {
+            helpers.createTemporaryFile('.html').then(tmpFile => {
+                htmlFile.resolve(tmpFile.filePath);
+            });
+        }
 
-        // return htmlFile.promise.then(htmlFileName => {
-        //     const htmlContent = `
-        //     <head>
-        //         <style type="text/css">
-        //         html, body{
-        //             height:100%;
-        //             width:100%;
-        //         }
-        //         </style>
-        //     </head>
-        //     <body><iframe frameborder="0" style="border: 0px solid white;height:100%;width:100%;" src="${htmlFileName}" seamless></iframe></body>`;
-        //     return new Promise<string>((resolve, reject) => {
-        //         fs.writeFile(htmlFileName, html, err => {
-        //             if (err) {
-        //                 return reject(err);
-        //             }
-        //             fs.writeFileSync('/Users/donjayamanne/.vscode/extensions/pythonVSCode/results.html', htmlContent);
-        //             resolve(htmlContent);
-        //         });
-        //     });
-        // });
+        return htmlFile.promise.then(htmlFileName => {
+            const htmlContent = `
+            <!DOCTYPE html>
+            <head>
+                <style type="text/css">
+                html, body{
+                    height:100%;
+                    width:100%;
+                }
+                </style>
+            </head>
+            <body><iframe frameborder="0" style="border: 0px solid white;height:100%;width:100%;" src="${vscode.Uri.file(htmlFileName).toString()}" seamless></iframe></body></html>`;
+            return new Promise<string>((resolve, reject) => {
+                fs.writeFile(htmlFileName, html, err => {
+                    if (err) {
+                        return reject(err);
+                    }
+                    // fs.writeFileSync('/Users/donjayamanne/.vscode/extensions/pythonVSCode/results.html', htmlContent);
+                    resolve(htmlContent);
+                });
+            });
+        });
     }
 }
