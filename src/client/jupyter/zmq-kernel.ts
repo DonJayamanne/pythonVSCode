@@ -16,7 +16,6 @@ export class ZMQKernel extends Kernel {
         this.executionCallbacks = new Map<string, Function>();
         this._connect();
         if (this.kernelProcess != null) {
-            console.log('ZMQKernel: @kernelProcess:', this.kernelProcess);
             getKernelNotificationsRegExp = () => {
                 try {
                     const pattern = '(?!)';
@@ -28,7 +27,6 @@ export class ZMQKernel extends Kernel {
             };
             this.kernelProcess.stdout.on('data', data => {
                 data = data.toString();
-                console.log('ZMQKernel: stdout:', data);
                 const regexp = getKernelNotificationsRegExp();
                 if (regexp != null ? regexp.test(data) : null) {
                     return vscode.window.showInformationMessage(data);
@@ -36,14 +34,12 @@ export class ZMQKernel extends Kernel {
             });
             this.kernelProcess.stderr.on('data', data => {
                 data = data.toString();
-                console.log('ZMQKernel: stderr:', data);
                 const regexp = getKernelNotificationsRegExp();
                 if (regexp !== null ? regexp.test(data) : null) {
                     return vscode.window.showErrorMessage(data);
                 }
             });
         } else {
-            console.log('ZMQKernel: connectionFile:', this.connectionFile);
             vscode.window.showInformationMessage('Using an existing kernel connection');
         }
     }
@@ -78,16 +74,16 @@ export class ZMQKernel extends Kernel {
         this.ioSocket.on('message', this.onIOMessage.bind(this));
         this.stdinSocket.on('message', this.onStdinMessage.bind(this));
         this.shellSocket.on('connect', () => {
-            return console.log('shellSocket connected');
+            return;
         });
         this.controlSocket.on('connect', () => {
-            return console.log('controlSocket connected');
+            return;
         });
         this.ioSocket.on('connect', () => {
-            return console.log('ioSocket connected');
+            return;
         });
         this.stdinSocket.on('connect', () => {
-            return console.log('stdinSocket connected');
+            return;
         });
         try {
             this.shellSocket.monitor();
@@ -101,20 +97,16 @@ export class ZMQKernel extends Kernel {
 
     public interrupt(): any {
         if (this.kernelProcess != null) {
-            console.log('ZMQKernel: sending SIGINT');
             return this.kernelProcess.kill('SIGINT');
         } else {
-            console.log('ZMQKernel: cannot interrupt an existing kernel');
             return vscode.window.showWarningMessage('Cannot interrupt this kernel');
         }
     };
 
     public _kill(): any {
         if (this.kernelProcess != null) {
-            console.log('ZMQKernel: sending SIGKILL');
             return this.kernelProcess.kill('SIGKILL');
         } else {
-            console.log('ZMQKernel: cannot kill an existing kernel');
             return vscode.window.showWarningMessage('Cannot kill this kernel');
         }
     };
@@ -145,19 +137,16 @@ export class ZMQKernel extends Kernel {
     };
 
     public execute(code: string, onResults: Function) {
-        console.log('Kernel.execute:', code);
         const requestId = 'execute_' + uuid.v4();
         return this._execute(code, requestId, onResults);
     };
 
     public executeWatch(code: string, onResults: Function) {
-        console.log('Kernel.executeWatch:', code);
         const requestId = 'watch_' + uuid.v4();
         return this._execute(code, requestId, onResults);
     };
 
     public complete(code: string, onResults: Function) {
-        console.log('Kernel.complete:', code);
         const requestId = 'complete_' + uuid.v4();
         const message = this._createMessage('complete_request', requestId);
         message.content = {
@@ -171,7 +160,6 @@ export class ZMQKernel extends Kernel {
     };
 
     public inspect(code: string, cursor_pos, onResults: Function) {
-        console.log('Kernel.inspect:', code, cursor_pos);
         const requestId = 'inspect_' + uuid.v4();
         const message = this._createMessage('inspect_request', requestId);
         message.content = {
@@ -194,7 +182,6 @@ export class ZMQKernel extends Kernel {
 
     private onShellMessage(message: JupyterMessage) {
         let callback: Function;
-        console.log('shell message:', message);
         if (!this._isValidMessage(message)) {
             return;
         }
@@ -235,7 +222,6 @@ export class ZMQKernel extends Kernel {
     };
 
     private onStdinMessage(message: JupyterMessage) {
-        console.log('stdin message:', message);
         if (!this._isValidMessage(message)) {
             return;
         }
@@ -250,7 +236,6 @@ export class ZMQKernel extends Kernel {
     private onIOMessage(message: JupyterMessage) {
         let callback: Function;
         let msg_id;
-        console.log('IO message:', message);
         if (!this._isValidMessage(message)) {
             return;
         }
@@ -278,46 +263,36 @@ export class ZMQKernel extends Kernel {
 
     public _isValidMessage(message) {
         if (message == null) {
-            console.log('Invalid message: null');
             return false;
         }
         if (message.content == null) {
-            console.log('Invalid message: Missing content');
             return false;
         }
         if (message.content.execution_state === 'starting') {
-            console.log('Dropped starting status IO message');
             return false;
         }
         if (message.parent_header == null) {
-            console.log('Invalid message: Missing parent_header');
             return false;
         }
         if (message.parent_header.msg_id == null) {
-            console.log('Invalid message: Missing parent_header.msg_id');
             return false;
         }
         if (message.parent_header.msg_type == null) {
-            console.log('Invalid message: Missing parent_header.msg_type');
             return false;
         }
         if (message.header == null) {
-            console.log('Invalid message: Missing header');
             return false;
         }
         if (message.header.msg_id == null) {
-            console.log('Invalid message: Missing header.msg_id');
             return false;
         }
         if (message.header.msg_type == null) {
-            console.log('Invalid message: Missing header.msg_type');
             return false;
         }
         return true;
     };
 
     public dispose() {
-        console.log('ZMQKernel: destroy:', this);
         this.shutdown();
         if (this.kernelProcess != null) {
             this._kill();

@@ -38,7 +38,6 @@ export class WSKernel extends Kernel {
                 this._callWatchCallbacks();
             }
             if (onResults != null) {
-                console.log('WSKernel: _execute:', message);
                 const result = this._parseIOMessage(message);
                 if (result != null) {
                     return onResults(result);
@@ -104,7 +103,6 @@ export class WSKernel extends Kernel {
     };
 
     public dispose() {
-        console.log('WSKernel: destroying jupyter-js-services Session');
         this.session.dispose();
         super.dispose();
     };
