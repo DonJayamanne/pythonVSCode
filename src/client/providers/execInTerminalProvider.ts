@@ -48,7 +48,7 @@ function execInTerminal(fileUri?: vscode.Uri) {
     }
     const launchArgs = settings.PythonSettings.getInstance().terminal.launchArgs;
     const launchArgsString = launchArgs.length > 0 ? " ".concat(launchArgs.join(" ")) : "";
-    terminal.sendText(`${currentPythonPath} ${filePath}${launchArgsString}`);
+    terminal.sendText(`${currentPythonPath}${launchArgsString} ${filePath}`);
     terminal.show();
 }
 
@@ -67,6 +67,6 @@ function execSelectionInTerminal() {
     const terminal = vscode.window.createTerminal(`Python`);
     const launchArgs = settings.PythonSettings.getInstance().terminal.launchArgs;
     const launchArgsString = launchArgs.length > 0 ? " ".concat(launchArgs.join(" ")) : "";
-    terminal.sendText(`${currentPythonPath} -c "${code}"${launchArgsString}`);
+    terminal.sendText(`${currentPythonPath}${launchArgsString} -c "${code}"`);
     terminal.show();
 }
