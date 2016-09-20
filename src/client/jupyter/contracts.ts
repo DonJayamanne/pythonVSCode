@@ -203,3 +203,8 @@ export interface JupyterMessage {
         version: '5.0'
     };
 }
+
+export interface Cell {
+    range: vscode.Range;
+    title: string;
+}

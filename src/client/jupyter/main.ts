@@ -4,6 +4,8 @@ import * as vscode from 'vscode';
 import {JupyterDisplay} from './display/main';
 import {KernelStatus} from './display/kernelStatus';
 import {Commands} from '../common/constants';
+import {JupyterCodeLensProvider} from './editorIntegration/codeLensProvider';
+import {JupyterSymbolProvider} from './editorIntegration/symbolProvider';
 
 export class Jupyter extends vscode.Disposable {
     public kernelManager: KernelManagerImpl;
@@ -15,11 +17,15 @@ export class Jupyter extends vscode.Disposable {
     constructor(private outputChannel: vscode.OutputChannel) {
         super(() => { });
         this.disposables = [];
+        this.registerCommands();
+        this.registerKernelCommands();
     }
     activate(state) {
         this.kernelManager = new KernelManagerImpl(this.outputChannel);
         this.disposables.push(this.kernelManager);
         this.disposables.push(vscode.window.onDidChangeActiveTextEditor(this.onEditorChanged.bind(this)));
+        this.disposables.push(vscode.languages.registerCodeLensProvider('python', new JupyterCodeLensProvider()));
+        this.disposables.push(vscode.languages.registerDocumentSymbolProvider('python', new JupyterSymbolProvider()));
         this.status = new KernelStatus();
         this.disposables.push(this.status);
         this.display = new JupyterDisplay();
@@ -74,27 +80,17 @@ export class Jupyter extends vscode.Disposable {
             let htmlResponse = '';
             let responses = [];
             return kernel.execute(code, (result: { type: string, stream: string, data: { [key: string]: string } | string }) => {
-                if ((result.type === 'text' && result.stream === 'stdout' && typeof result.data['text/plain'] === 'string') ||
-                    (result.type === 'text' && result.stream === 'pyout' && typeof result.data['text/plain'] === 'string') ||
-                    (result.type === 'text' && result.stream === 'error' && typeof result.data['text/plain'] === 'string')) {
-                    responses.push(result.data);
-                    if (result.stream === 'error') {
-                        return resolve([htmlResponse, responses]);
-                    }
-                }
-                if (result.type === 'text/html' && result.stream === 'pyout' && typeof result.data['text/html'] === 'string') {
-                    result.data['text/html'] = result.data['text/html'].replace(/<\/script>/g, '</scripts>');
-                    responses.push(result.data);
-                }
-                if (result.type === 'application/javascript' && result.stream === 'pyout' && typeof result.data['application/javascript'] === 'string') {
-                    responses.push(result.data);
-                }
-                if (result.type.startsWith('image/') && result.stream === 'pyout' && typeof result.data[result.type] === 'string') {
-                    responses.push(result.data);
-                }
                 if (result.data === 'ok' && result.stream === 'status' && result.type === 'text') {
-                    resolve([htmlResponse, responses]);
+                    return resolve([htmlResponse, responses]);
                 }
+                if (result.stream === 'error' && result.type === 'text') {
+                    responses.push(result.data);
+                    return resolve([htmlResponse, responses]);
+                }
+                if (typeof result.data['text/html'] === 'string') {
+                    result.data['text/html'] = result.data['text/html'].replace(/<\/script>/g, '</scripts>');
+                }
+                responses.push(result.data);
             });
         });
     }
@@ -106,6 +102,16 @@ export class Jupyter extends vscode.Disposable {
         const code = activeEditor.document.getText(vscode.window.activeTextEditor.selection);
         this.executeCode(code, activeEditor.document.languageId);
     }
+    private registerCommands() {
+        this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.ExecuteRangeInKernel, (range: vscode.Range) => {
+            const activeEditor = vscode.window.activeTextEditor;
+            if (!activeEditor || !activeEditor.document || !range || range.isEmpty) {
+                return;
+            }
+            const code = activeEditor.document.getText(range);
+            this.executeCode(code, activeEditor.document.languageId);
+        }));
+    }
     private registerKernelCommands() {
         this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.Kernel.Kernel_Interrupt, () => {
             this.kernel.interrupt();
@@ -115,7 +121,7 @@ export class Jupyter extends vscode.Disposable {
                 this.onKernelChanged(kernel);
             });
         }));
-        this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.Kernel.Kernel_Interrupt, () => {
+        this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.Kernel.Kernel_Shut_Down, () => {
             this.kernel.shutdown();
             this.onKernelChanged();
         }));

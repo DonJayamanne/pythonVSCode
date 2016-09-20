@@ -24,6 +24,7 @@ export namespace Commands {
         export const Get_All_KernelSpecs = 'jupyter:getAllKernelSpecs';
         export const Select_Kernel = 'jupyter:selectKernel';
         export const Kernel_Options = 'jupyter:kernelOptions';
+        export const ExecuteRangeInKernel = 'jupyter:execRangeInKernel';
         export namespace Kernel {
             export const Kernel_Interrupt = 'jupyter:kernelInterrupt';
             export const Kernel_Restart = 'jupyter:kernelRestart';
