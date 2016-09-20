@@ -69,6 +69,7 @@ export interface IAutoCompeteSettings {
 }
 export interface ITerminalSettings {
     executeInFileDir: boolean;
+    launchArgs: string[];
 }
 
 const systemVariables: SystemVariables = new SystemVariables();

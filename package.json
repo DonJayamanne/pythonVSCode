@@ -681,6 +681,11 @@
           "type": "boolean",
           "default": false,
           "description": "When executing a file in the terminal, whether to use execute in the file's directory, instead of the current open folder."
+        },
+        "python.terminal.launchArgs": {
+          "type": "array",
+          "default": [],
+          "description": "Python launch arguments to use when executing a file in the terminal."
         }
       }
     }
