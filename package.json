@@ -65,7 +65,7 @@
       },
       {
         "command": "python.execInTerminal",
-        "title": "Run Python file in Terminal",
+        "title": "Run Python File in Terminal",
         "category": "Python"
       },
       {
