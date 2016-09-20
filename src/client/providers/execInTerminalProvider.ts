@@ -10,7 +10,7 @@ export function activateExecInTerminalProvider() {
 }
 
 function execInTerminal(fileUri?: vscode.Uri) {
-    let pythonSettings = settings.PythonSettings.getInstance()
+    let pythonSettings = settings.PythonSettings.getInstance();
     const currentPythonPath = pythonSettings.pythonPath;
     let filePath: string;
 
@@ -42,7 +42,7 @@ function execInTerminal(fileUri?: vscode.Uri) {
     const terminal = vscode.window.createTerminal(`Python`);
     if (pythonSettings.terminal && pythonSettings.terminal.executeInFileDir) {
         const fileDirPath = path.dirname(filePath).substring(1);
-        if (fileDirPath != vscode.workspace.rootPath) {
+        if (fileDirPath !== vscode.workspace.rootPath) {
             terminal.sendText(`cd "${fileDirPath}"`);
         }
     }
