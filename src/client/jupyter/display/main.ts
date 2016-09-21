@@ -4,6 +4,9 @@ import {Commands} from '../../common/constants';
 import {KernelspecMetadata} from '../contracts';
 import {TextDocumentContentProvider} from './resultView';
 import {Server} from '../server/main';
+import {CellOptions} from './cellOptions';
+import {JupyterCodeLensProvider} from '../editorIntegration/codeLensProvider';
+import {JupyterCellHighlightProvider} from '../editorIntegration/cellHighlightProvider';
 
 const jupyterSchema = 'jupyter-result-viewer';
 const previewUri = vscode.Uri.parse(jupyterSchema + '://authority/jupyter');
@@ -12,7 +15,8 @@ export class JupyterDisplay extends vscode.Disposable {
     private disposables: vscode.Disposable[];
     private previewWindow: TextDocumentContentProvider;
     private server: Server;
-    constructor() {
+    private cellOptions: CellOptions;
+    constructor(cellCodeLenses: JupyterCodeLensProvider, cellHighlightProvider: JupyterCellHighlightProvider) {
         super(() => { });
         this.disposables = [];
         this.disposables.push(new KernelPicker());
@@ -21,11 +25,13 @@ export class JupyterDisplay extends vscode.Disposable {
         this.disposables.push(this.server);
         this.previewWindow = new TextDocumentContentProvider();
         this.disposables.push(vscode.workspace.registerTextDocumentContentProvider(jupyterSchema, this.previewWindow));
+        this.cellOptions = new CellOptions(cellCodeLenses, cellHighlightProvider);
+        this.disposables.push(this.cellOptions);
     }
 
     private displayed = false;
-    public showResults(result: string, data: any): any {
-        this.server.start().then(port => {
+    public showResults(result: string, data: any): Promise<any> {
+        return this.server.start().then(port => {
             this.previewWindow.ServerPort = port;
             this.previewWindow.setText(result, data);
             // Dirty hack to support instances when document has been closed

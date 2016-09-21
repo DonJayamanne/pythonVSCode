@@ -25,6 +25,13 @@ export namespace Commands {
         export const Select_Kernel = 'jupyter:selectKernel';
         export const Kernel_Options = 'jupyter:kernelOptions';
         export const ExecuteRangeInKernel = 'jupyter:execRangeInKernel';
+        export const ExecuteSelectionOrLineInKernel = 'jupyter.runSelectionLine';
+        export namespace Cell {
+            export const ExecuteCurrentCell = 'jupyter:execCurrentCell';
+            export const ExecuteCurrentCellAndAdvance = 'jupyter:execCurrentCellAndAdvance';
+            export const AdcanceToCell = 'jupyter:advanceToNextCell';
+            export const DisplayCellMenu = 'jupyter:displayCellMenu';
+        }
         export namespace Kernel {
             export const Kernel_Interrupt = 'jupyter:kernelInterrupt';
             export const Kernel_Restart = 'jupyter:kernelRestart';

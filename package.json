@@ -42,7 +42,10 @@
     "onCommand:python.viewTestOutput",
     "onCommand:python.selectAndRunTestMethod",
     "onCommand:python.runFailedTests",
-    "onCommand:python.execSelectionInTerminal"
+    "onCommand:python.execSelectionInTerminal",
+    "onCommand:jupyter.runSelectionLine",
+    "onCommand:jupyter.execCurrentCell",
+    "onCommand:jupyter.execCurrentCellAndAdvance"
   ],
   "main": "./out/client/extension",
   "contributes": {
@@ -104,8 +107,18 @@
         "category": "Python"
       },
       {
-        "command": "python.jupyter",
-        "title": "Run in Jupyter Kernel",
+        "command": "jupyter.runSelectionLine",
+        "title": "Run selection/line in Jupyter Kernel",
+        "category": "Jupyter"
+      },
+      {
+        "command": "jupyter:execCurrentCell",
+        "title": "Run cell",
+        "category": "Jupyter"
+      },
+      {
+        "command": "jupyter:execCurrentCellAndAdvance",
+        "title": "Run cell and advance",
         "category": "Jupyter"
       }
     ],

@@ -5,7 +5,9 @@ import {JupyterDisplay} from './display/main';
 import {KernelStatus} from './display/kernelStatus';
 import {Commands} from '../common/constants';
 import {JupyterCodeLensProvider} from './editorIntegration/codeLensProvider';
+import {JupyterCellBorderProvider} from './editorIntegration/cellBorderProvider';
 import {JupyterSymbolProvider} from './editorIntegration/symbolProvider';
+import {JupyterCellHighlightProvider} from './editorIntegration/cellHighlightProvider';
 
 export class Jupyter extends vscode.Disposable {
     public kernelManager: KernelManagerImpl;
@@ -13,7 +15,6 @@ export class Jupyter extends vscode.Disposable {
     private status: KernelStatus;
     private disposables: vscode.Disposable[];
     private display: JupyterDisplay;
-
     constructor(private outputChannel: vscode.OutputChannel) {
         super(() => { });
         this.disposables = [];
@@ -24,11 +25,15 @@ export class Jupyter extends vscode.Disposable {
         this.kernelManager = new KernelManagerImpl(this.outputChannel);
         this.disposables.push(this.kernelManager);
         this.disposables.push(vscode.window.onDidChangeActiveTextEditor(this.onEditorChanged.bind(this)));
-        this.disposables.push(vscode.languages.registerCodeLensProvider('python', new JupyterCodeLensProvider()));
+        const codeLensProvider = new JupyterCodeLensProvider();
+        this.disposables.push(vscode.languages.registerCodeLensProvider('python', codeLensProvider));
         this.disposables.push(vscode.languages.registerDocumentSymbolProvider('python', new JupyterSymbolProvider()));
+        let highlightProvider = new JupyterCellHighlightProvider(codeLensProvider);
+        this.disposables.push(vscode.languages.registerDocumentHighlightProvider('python', highlightProvider));
+        this.disposables.push(new JupyterCellBorderProvider(codeLensProvider, highlightProvider));
         this.status = new KernelStatus();
         this.disposables.push(this.status);
-        this.display = new JupyterDisplay();
+        this.display = new JupyterDisplay(codeLensProvider, highlightProvider);
         this.disposables.push(this.display);
     }
     public dispose() {
@@ -99,18 +104,25 @@ export class Jupyter extends vscode.Disposable {
         if (!activeEditor || !activeEditor.document) {
             return;
         }
-        const code = activeEditor.document.getText(vscode.window.activeTextEditor.selection);
+        let code = '';
+        if (activeEditor.selection.isEmpty) {
+            code = activeEditor.document.lineAt(activeEditor.selection.start.line).text;
+        }
+        else {
+            code = activeEditor.document.getText(activeEditor.selection);
+        }
         this.executeCode(code, activeEditor.document.languageId);
     }
     private registerCommands() {
-        this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.ExecuteRangeInKernel, (range: vscode.Range) => {
-            const activeEditor = vscode.window.activeTextEditor;
-            if (!activeEditor || !activeEditor.document || !range || range.isEmpty) {
-                return;
+        this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.ExecuteRangeInKernel, (document: vscode.TextDocument, range: vscode.Range) => {
+            if (!document || !range || range.isEmpty) {
+                return Promise.resolve();
             }
-            const code = activeEditor.document.getText(range);
-            this.executeCode(code, activeEditor.document.languageId);
+            const code = document.getText(range);
+            return this.executeCode(code, document.languageId);
         }));
+        this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.ExecuteSelectionOrLineInKernel,
+            this.executeSelection.bind(this)));
     }
     private registerKernelCommands() {
         this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.Kernel.Kernel_Interrupt, () => {
