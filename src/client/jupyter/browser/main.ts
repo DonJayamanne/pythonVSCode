@@ -29,6 +29,20 @@ function displayData(data: any, whiteBg: boolean): Promise<HTMLElement> {
     const results = (window as any).JUPYTER_DATA as any[];
     (window as any).__dirname = rootDirName;
     try {
+        const color = decodeURIComponent(window.location.search.substring(window.location.search.indexOf('?color=') + 7, window.location.search.indexOf('&fontFamily=')));
+        if (color.length > 0){
+            window.document.body.style.color = color;
+        }
+        const fontFamily = decodeURIComponent(window.location.search.substring(window.location.search.indexOf('&fontFamily=') + 12));
+        if (fontFamily.length > 0){
+            window.document.body.style.fontFamily = fontFamily;
+        }
+    }
+    catch (ex){
+    }
+
+    debugger;
+    try {
         if (typeof port === 'number' && port > 0) {
             var socket = (window as any).io.connect('http://localhost:' + port);
             socket.on('results', function (results: any[]) {

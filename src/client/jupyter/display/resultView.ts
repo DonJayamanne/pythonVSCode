@@ -70,11 +70,7 @@ export class TextDocumentContentProvider extends Disposable implements vscode.Te
                         <option value="append">Append</option>
                         <option value="clear">Clear Previous Results</option>
                     </select>
-                    <label for"bg">Background </label>
-                    <select id="bg">
-                        <option value="append">White</option>
-                        <option value="clear">Themed</option>
-                    </select>
+                    <span id='clearResults' class="octicon octicon-circle-slash" tooltip='Clear Results'></span>
                     <br>
                     -->
                     <script type="text/javascript">
@@ -117,49 +113,22 @@ export class TextDocumentContentProvider extends Disposable implements vscode.Te
                     <head><style type="text/css"> html, body{ height:100%; width:100%; } </style>
                     <script type="text/javascript">
                         function start(){
-                            console.log('starting');
-                            var ele = document.getElementById('x');
+                            var color = '';
+                            var fontFamily = '';
                             try {
-                                ele.innerHTML = 'Color is ' + ele.style.color
+                                computedStyle = window.getComputedStyle(document.body);
+                                color = computedStyle.color + '';
+                                fontFamily = computedStyle.fontFamily;
                             }
                             catch(ex){
-                                console.log(ex.message);
                             }
-                            try {
-                                console.log(ele.style.color);
-                            }
-                            catch(ex){
-                                console.log(ex.message);
-                            }
-                            try {
-                                console.log(window.getComputedStyle(ele));
-                            }
-                            catch(ex){
-                                console.log(ex.message);
-                            }
-                            try {
-                                console.log(window.getComputedStyle(ele).color);
-                            }
-                            catch(ex){
-                                console.log(ex.message);
-                            }
-                            try {
-                                console.log(JSON.stringify(window.getComputedStyle(ele)));
-                            }
-                            catch(ex){
-                                console.log(ex.message);
-                            }
-
+                            document.getElementById('myframe').src = '${vscode.Uri.file(htmlFileName).toString()}?color=' + encodeURIComponent(color) + "&fontFamily=" + encodeURIComponent(fontFamily);
                         }
-                        setTimeout(function() {
-                            start();
-                        }, 5000);
                     </script>
                     </head>
                     <body onload="start()">
-                    <label id="x">Test</label>
-                    <iframe frameborder="0" style="border: 0px solid white;height:100%;width:100%;"
-                    src="${vscode.Uri.file(htmlFileName).toString()}" seamless></iframe></body></html>`;
+                    <iframe id="myframe" frameborder="0" style="border: 0px solid white;height:100%;width:100%;"
+                    src="" seamless></iframe></body></html>`;
 
                 let def = helpers.createDeferred<string>();
                 fs.writeFile(htmlFileName, html, err => {
