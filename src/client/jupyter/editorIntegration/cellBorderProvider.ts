@@ -5,6 +5,15 @@ import {Disposable} from 'vscode';
 import * as telemetryContracts from '../../common/telemetryContracts';
 import {JupyterCodeLensProvider} from './codeLensProvider';
 import {JupyterCellHighlightProvider} from './cellHighlightProvider';
+const decoration = vscode.window.createTextEditorDecorationType({
+    dark: {
+        border: '0.1em solid white'
+    },
+    light: {
+        border: '0.1em solid black'
+    },
+    isWholeLine: true
+});
 
 export class JupyterCellBorderProvider extends Disposable {
     private disposables: Disposable[] = [];
@@ -45,15 +54,6 @@ export class JupyterCellBorderProvider extends Disposable {
     }
     private drawDecorations(editor: vscode.TextEditor) {
         this.cellHighlightProvider.highlightCurrentCell(editor.document);
-        const decoration = vscode.window.createTextEditorDecorationType({
-            dark: {
-                border: '0.1em solid white'
-            },
-            light: {
-                border: '0.1em solid black'
-            },
-            isWholeLine: true
-        });
         this.codeLensProvider.provideCodeLenses(editor.document, null).then(lenses => {
             const options = [];
             lenses.forEach(lens => {

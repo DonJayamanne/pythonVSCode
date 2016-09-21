@@ -72,7 +72,7 @@ export class CellOptions extends vscode.Disposable {
         }
         textEditor.selections = [];
         textEditor.selection = new vscode.Selection(firstLineOfCellRange.start, firstLineOfCellRange.start);
-        textEditor.revealRange(firstLineOfCellRange);
+        textEditor.revealRange(range);
         vscode.window.showTextDocument(textEditor.document);
         this.cellHighlightProvider.highlightCurrentCell(textEditor.document, firstLineOfCellRange.start);
     }
