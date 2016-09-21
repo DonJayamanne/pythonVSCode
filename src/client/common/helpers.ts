@@ -35,7 +35,7 @@ export function createTemporaryFile(extension: string, temporaryDirectory?: stri
             if (err) {
                 return reject(err);
             }
-            resolve({ filePath: tmpFile, cleanupCallback: cleanupCallback })
+            resolve({ filePath: tmpFile, cleanupCallback: cleanupCallback });
         });
     });
 }
