@@ -5,7 +5,7 @@ import * as baseLinter from './baseLinter';
 import {ILintMessage} from './baseLinter';
 import {OutputChannel, window} from 'vscode';
 import { exec } from 'child_process';
-import {execPythonFile} from './../common/utils';
+import {execPythonFile, IS_WINDOWS} from './../common/utils';
 
 export class Linter extends baseLinter.BaseLinter {
     constructor(outputChannel: OutputChannel, workspaceRootPath: string) {
@@ -56,8 +56,16 @@ export class Linter extends baseLinter.BaseLinter {
                 for (let counter = 0; counter < oldOutputLines.length / 2; counter++) {
                     outputLines.push(oldOutputLines[2 * counter] + oldOutputLines[(2 * counter) + 1]);
                 }
-                outputLines = outputLines.filter((value, index) => index < maxLines && value.indexOf(':') >= 0).map(line => line.substring(line.indexOf(':') + 1).trim());
 
+                outputLines = outputLines.filter((value, index) => {
+                    return index < maxLines && value.indexOf(':') >= 0;
+                }).map(line => {
+                    // Windows will have a : after the drive letter (e.g. c:\)
+                    if (IS_WINDOWS) {
+                        return line.substring(line.indexOf(baseFileName + ':') + baseFileName.length + 1).trim();
+                    }
+                    return line.substring(line.indexOf(':') + 1).trim();
+                });
                 // Iterate through the lines (skipping the messages)
                 // So, just iterate the response in pairs
                 outputLines.forEach(line => {
