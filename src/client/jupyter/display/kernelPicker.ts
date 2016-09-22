@@ -37,6 +37,7 @@ export class KernelPicker extends vscode.Disposable {
             return {
                 label: spec.display_name,
                 description: spec.language,
+                detail: spec.argv.join(' '),
                 kernelspec: spec
             };
         });
