@@ -3,8 +3,10 @@
 const transformime = require('transformime');
 const MarkdownTransform = require('transformime-marked');
 const transform = transformime.createTransform([MarkdownTransform]) as Function;
+const ResultsContainerId = 'resultsContainer';
 
 function displayData(data: any, whiteBg: boolean): Promise<HTMLElement> {
+    const container = document.getElementById(ResultsContainerId);
     if (typeof data['text/html'] === 'string') {
         data['text/html'] = data['text/html'].replace(/<\/scripts>/g, '</script>');
     }
@@ -15,12 +17,10 @@ function displayData(data: any, whiteBg: boolean): Promise<HTMLElement> {
             div.style.backgroundColor = 'white';
             div.style.display = 'inline-block';
             div.appendChild(result.el);
-            document.body.appendChild(div);
-            return div;
+            return container.appendChild(div);
         }
         else {
-            document.body.appendChild(result.el);
-            return result.el;
+            return container.appendChild(result.el);
         }
     });
 }
@@ -30,33 +30,49 @@ function displayData(data: any, whiteBg: boolean): Promise<HTMLElement> {
     (window as any).__dirname = rootDirName;
     try {
         const color = decodeURIComponent(window.location.search.substring(window.location.search.indexOf('?color=') + 7, window.location.search.indexOf('&fontFamily=')));
-        if (color.length > 0){
+        if (color.length > 0) {
             window.document.body.style.color = color;
         }
         const fontFamily = decodeURIComponent(window.location.search.substring(window.location.search.indexOf('&fontFamily=') + 12));
-        if (fontFamily.length > 0){
+        if (fontFamily.length > 0) {
             window.document.body.style.fontFamily = fontFamily;
         }
     }
-    catch (ex){
+    catch (ex) {
     }
 
-    debugger;
+    document.getElementById('clearResults').addEventListener('click', () => {
+        document.getElementById(ResultsContainerId).innerHTML = '';
+    });
+
     try {
         if (typeof port === 'number' && port > 0) {
             var socket = (window as any).io.connect('http://localhost:' + port);
-            socket.on('results', function (results: any[]) {
+            socket.on('results', (results: any[]) => {
                 const promises = results.map(data => displayData(data, whiteBg));
                 Promise.all<HTMLElement>(promises).then(elements => {
                     // Bring the first item into view
                     if (elements.length > 0) {
-                        elements[0].scrollIntoView(true);
+                        try {
+                            elements[0].scrollIntoView(true);
+                        }
+                        catch (ex) {
+                        }
                     }
                 });
+            });
+            socket.on('clientExists', (data: any) => {
+                socket.emit('clientExists', { id: data.id });
+            });
+            const displayStyleEle = document.getElementById('displayStyle') as HTMLSelectElement;
+            displayStyleEle.addEventListener('change', () => {
+                socket.emit('appendResults', { append: displayStyleEle.value });
             });
         }
     }
     catch (ex) {
+        document.getElementById('displayStyle').style.display = 'none';
+
         const errorDiv = document.createElement('div');
         errorDiv.innerHTML = 'Initializing live updates for results failed with the following error:\n' + ex.message;
         errorDiv.style.color = 'red';
@@ -67,7 +83,10 @@ function displayData(data: any, whiteBg: boolean): Promise<HTMLElement> {
     Promise.all<HTMLElement>(promises).then(elements => {
         // Bring the first item into view
         if (elements.length > 0) {
-            elements[0].scrollIntoView(true);
+            try {
+                elements[0].scrollIntoView(true);
+            }
+            catch (ex) { }
         }
     });
 };

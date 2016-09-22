@@ -13,6 +13,7 @@ export class TextDocumentContentProvider extends Disposable implements vscode.Te
     private results: any[];
     private serverPort: number;
     private tmpFileCleanup: Function[] = [];
+    private appendResults: boolean;
     constructor() {
         super(() => { });
     }
@@ -26,6 +27,9 @@ export class TextDocumentContentProvider extends Disposable implements vscode.Te
     }
     public set ServerPort(value: number) {
         this.serverPort = value;
+    }
+    public set AppendResults(value: boolean) {
+        this.appendResults = value;
     }
     public provideTextDocumentContent(uri: vscode.Uri, token: vscode.CancellationToken): Thenable<string> {
         this.lastUri = uri;
@@ -48,10 +52,6 @@ export class TextDocumentContentProvider extends Disposable implements vscode.Te
         return vscode.Uri.file(path.join(__dirname, '..', '..', '..', '..', 'out', 'client', 'jupyter', 'browser', resourceName)).toString();
     }
 
-    private generateErrorView(error: string): string {
-        return `<head></head><body>${error}</body>`;
-    }
-
     private tmpHtmlFile: string;
     private buildHtmlContent(): Promise<string> {
         // Don't put this, stuffs up SVG hrefs
@@ -62,19 +62,23 @@ export class TextDocumentContentProvider extends Disposable implements vscode.Te
                 <html>
                 <head>
                     <script src="http://localhost:${this.serverPort}/socket.io/socket.io.js"></script>
-                </head>
-                <body onload="initializeResults('${dirNameForScripts}', ${this.serverPort})">
-                    <select id="displayStyle">
-                        <option value="append">Append results</option>
-                        <option value="clear">Clear previous results</option>
-                    </select>
-                    &nbsp;
-                    <button id="clearResults">Clear Results</button>
-                    <br>
                     <script type="text/javascript">
                         window.JUPYTER_DATA = ${JSON.stringify(this.results)};
                     </script>
                     <script src="${this.getScriptFilePath('bundle.js')}?x=${new Date().getMilliseconds()}"></script>
+                </head>
+                <body onload="initializeResults('${dirNameForScripts}', ${this.serverPort})">
+                    <div id="resultMenu">
+                        <select id="displayStyle">
+                            <option value="append" ${this.appendResults ? 'selected' : ''}>Append results</option>
+                            <option value="clear" ${this.appendResults ? '' : 'selected'}>Clear previous results</option>
+                        </select>
+                        &nbsp;
+                        <button id="clearResults">Clear Results</button>
+                        <br>
+                    </div>
+                    <div id="resultsContainer">
+                    </div>
                 </body>
                 </html>
             `;
@@ -133,7 +137,7 @@ export class TextDocumentContentProvider extends Disposable implements vscode.Te
                     if (err) {
                         return def.reject(err);
                     }
-                    // fs.writeFileSync('/Users/donjayamanne/.vscode/extensions/pythonVSCode/results.html', htmlContent);
+                    fs.writeFileSync('/Users/donjayamanne/.vscode/extensions/pythonVSCode/results.html', htmlContent);
                     def.resolve(htmlContent);
                 });
 

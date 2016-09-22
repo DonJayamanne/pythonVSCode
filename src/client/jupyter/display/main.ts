@@ -3,10 +3,10 @@ import {KernelPicker} from './kernelPicker';
 import {Commands} from '../../common/constants';
 import {KernelspecMetadata} from '../contracts';
 import {TextDocumentContentProvider} from './resultView';
-import {Server} from '../server/main';
 import {CellOptions} from './cellOptions';
 import {JupyterCodeLensProvider} from '../editorIntegration/codeLensProvider';
 import {JupyterCellHighlightProvider} from '../editorIntegration/cellHighlightProvider';
+import {Server} from './server';
 
 const jupyterSchema = 'jupyter-result-viewer';
 const previewUri = vscode.Uri.parse(jupyterSchema + '://authority/jupyter');
@@ -14,37 +14,52 @@ const previewUri = vscode.Uri.parse(jupyterSchema + '://authority/jupyter');
 export class JupyterDisplay extends vscode.Disposable {
     private disposables: vscode.Disposable[];
     private previewWindow: TextDocumentContentProvider;
-    private server: Server;
     private cellOptions: CellOptions;
+    private server: Server;
     constructor(cellCodeLenses: JupyterCodeLensProvider, cellHighlightProvider: JupyterCellHighlightProvider) {
         super(() => { });
         this.disposables = [];
-        this.disposables.push(new KernelPicker());
-        this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.Kernel_Options, this.showKernelOptions.bind(this)));
         this.server = new Server();
         this.disposables.push(this.server);
+        this.disposables.push(new KernelPicker());
+        this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.Kernel_Options, this.showKernelOptions.bind(this)));
         this.previewWindow = new TextDocumentContentProvider();
         this.disposables.push(vscode.workspace.registerTextDocumentContentProvider(jupyterSchema, this.previewWindow));
         this.cellOptions = new CellOptions(cellCodeLenses, cellHighlightProvider);
         this.disposables.push(this.cellOptions);
+        this.server.on('appendResults', appendType => {
+            this.appendResults = appendType === 'append';
+        });
     }
 
     private displayed = false;
-    public showResults(result: string, data: any): Promise<any> {
+    private appendResults = false;
+    public showResults(result: string, data: any): Thenable<any> {
         return this.server.start().then(port => {
             this.previewWindow.ServerPort = port;
-            this.previewWindow.setText(result, data);
-            // Dirty hack to support instances when document has been closed
-            if (this.displayed) {
-                this.previewWindow.update();
+            // If we need to append the results, then do so if we have any result windows open
+            let sendDataToResultView = Promise.resolve(false);
+            if (this.appendResults) {
+                sendDataToResultView = this.server.clientsConnected(2000);
             }
-            this.displayed = true;
-            return vscode.commands.executeCommand('vscode.previewHtml', previewUri, vscode.ViewColumn.Two, 'Results')
-                .then(() => {
-                    // Do nothing
-                }, reason => {
-                    vscode.window.showErrorMessage(reason);
-                });
+            return sendDataToResultView.then(clientConnected => {
+                if (clientConnected) {
+                    return this.server.sendResults(data);
+                }
+                this.previewWindow.setText(result, data);
+                this.previewWindow.AppendResults = this.appendResults;
+                // Dirty hack to support instances when document has been closed
+                if (this.displayed) {
+                    this.previewWindow.update();
+                }
+                this.displayed = true;
+                return vscode.commands.executeCommand('vscode.previewHtml', previewUri, vscode.ViewColumn.Two, 'Results')
+                    .then(() => {
+                        // Do nothing
+                    }, reason => {
+                        vscode.window.showErrorMessage(reason);
+                    });
+            });
         });
     }
 
