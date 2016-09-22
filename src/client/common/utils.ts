@@ -1,5 +1,6 @@
 'use strict';
-
+// TODO: Cleanup this place
+// Add options for execPythonFile
 import * as path from 'path';
 import * as fs from 'fs';
 import * as child_process from 'child_process';
@@ -90,7 +91,6 @@ export function execPythonFile(file: string, args: string[], cwd: string, includ
         }
 
         if (customEnvVariables === null) {
-            let pathValue = <string>process.env[PATH_VARIABLE_NAME];
             // Ensure to include the path of the current python 
             let newPath = '';
             if (IS_WINDOWS) {
