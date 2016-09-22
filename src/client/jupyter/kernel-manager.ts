@@ -176,7 +176,7 @@ export class KernelManagerImpl extends vscode.Disposable {
             return Promise.resolve(null);
         }
         return this.getAllKernelSpecsFor(language).then(kernelSpecs => {
-            if (kernelSpecs.length <= 1) {
+            if (kernelSpecs.length >= 1) {
                 return kernelSpecs[0];
             } else {
                 // if (this.kernelPicker == null) {
