@@ -709,7 +709,6 @@
           "default": "Python Test Log",
           "description": "The output window name for the unit test messages, defaults to Python output window."
         },
-
         "python.terminal.executeInFileDir": {
           "type": "boolean",
           "default": false,

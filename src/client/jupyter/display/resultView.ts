@@ -64,15 +64,13 @@ export class TextDocumentContentProvider extends Disposable implements vscode.Te
                     <script src="http://localhost:${this.serverPort}/socket.io/socket.io.js"></script>
                 </head>
                 <body onload="initializeResults('${dirNameForScripts}', ${this.serverPort})">
-                    <!--
-                    <label for"displayStyle">Result display style </label>
                     <select id="displayStyle">
-                        <option value="append">Append</option>
-                        <option value="clear">Clear Previous Results</option>
+                        <option value="append">Append results</option>
+                        <option value="clear">Clear previous results</option>
                     </select>
-                    <span id='clearResults' class="octicon octicon-circle-slash" tooltip='Clear Results'></span>
+                    &nbsp;
+                    <button id="clearResults">Clear Results</button>
                     <br>
-                    -->
                     <script type="text/javascript">
                         window.JUPYTER_DATA = ${JSON.stringify(this.results)};
                     </script>
