@@ -31,6 +31,8 @@ export namespace Commands {
             export const ExecuteCurrentCellAndAdvance = 'jupyter:execCurrentCellAndAdvance';
             export const AdcanceToCell = 'jupyter:advanceToNextCell';
             export const DisplayCellMenu = 'jupyter:displayCellMenu';
+            export const GoToPreviousCell = 'jupyter:gotToPreviousCell';
+            export const GoToNextCell = 'jupyter:gotToNextCell';
         }
         export namespace Kernel {
             export const Kernel_Interrupt = 'jupyter:kernelInterrupt';

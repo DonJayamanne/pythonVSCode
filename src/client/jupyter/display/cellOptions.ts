@@ -19,33 +19,75 @@ export class CellOptions extends vscode.Disposable {
         this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.Cell.AdcanceToCell, this.advanceToCell.bind(this)));
         this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.Cell.ExecuteCurrentCell, this.executeCell.bind(this, false)));
         this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.Cell.ExecuteCurrentCellAndAdvance, this.executeCell.bind(this, true)));
+        this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.Cell.GoToNextCell, this.goToNextCell.bind(this)));
+        this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.Cell.GoToPreviousCell, this.goToPreviousCell.bind(this)));
     }
-
-    private executeCell(advanceToNext: boolean): Thenable<any> {
+    private getActiveCell(): Thenable<{ cell: vscode.Range, nextCell?: vscode.Range, previousCell?: vscode.Range }> {
         const activeEditor = vscode.window.activeTextEditor;
         if (!activeEditor || !activeEditor.document) {
-            return Promise.resolve();
+            return Promise.resolve(null);
         }
 
         return this.cellCodeLenses.provideCodeLenses(activeEditor.document, null).then(lenses => {
             let currentCellRange: vscode.Range;
             let nextCellRange: vscode.Range;
+            let previousCellRange: vscode.Range;
             lenses.forEach((lens, index) => {
                 if (lens.range.contains(activeEditor.selection.start)) {
                     currentCellRange = lens.range;
                     if (index < (lenses.length - 1)) {
                         nextCellRange = lenses[index + 1].range;
                     }
+                    if (index > 0) {
+                        previousCellRange = lenses[index - 1].range;
+                    }
                 }
             });
             if (!currentCellRange) {
+                return null;
+            }
+            return { cell: currentCellRange, nextCell: nextCellRange, previousCell: previousCellRange };
+        });
+    }
+    private goToPreviousCell(): Thenable<any> {
+        const activeEditor = vscode.window.activeTextEditor;
+        if (!activeEditor || !activeEditor.document) {
+            return Promise.resolve();
+        }
+        return this.getActiveCell().then(cellInfo => {
+            if (!cellInfo || !cellInfo.previousCell) {
                 return;
             }
-            return vscode.commands.executeCommand(Commands.Jupyter.ExecuteRangeInKernel, activeEditor.document, currentCellRange).then(() => {
+            return this.advanceToCell(activeEditor.document, cellInfo.previousCell);
+        });
+    }
+    private goToNextCell(): Thenable<any> {
+        const activeEditor = vscode.window.activeTextEditor;
+        if (!activeEditor || !activeEditor.document) {
+            return Promise.resolve();
+        }
+        return this.getActiveCell().then(cellInfo => {
+            if (!cellInfo || !cellInfo.nextCell) {
+                return;
+            }
+            return this.advanceToCell(activeEditor.document, cellInfo.nextCell);
+        });
+    }
+    private executeCell(advanceToNext: boolean): Thenable<any> {
+        const activeEditor = vscode.window.activeTextEditor;
+        if (!activeEditor || !activeEditor.document) {
+            return Promise.resolve();
+        }
+
+        return this.getActiveCell().then(cellInfo => {
+            if (!cellInfo || !cellInfo.cell) {
+                return;
+            }
+            return vscode.commands.executeCommand(Commands.Jupyter.ExecuteRangeInKernel, activeEditor.document, cellInfo.cell).then(() => {
                 if (!advanceToNext) {
                     return;
                 }
-                return this.advanceToCell(activeEditor.document, nextCellRange);
+                return this.advanceToCell(activeEditor.document, cellInfo.nextCell);
             });
         });
     }
@@ -125,17 +167,13 @@ export class CellOptions extends vscode.Disposable {
             if (trimmedLine.startsWith('#')) {
                 continue;
             }
-            // if (trimmedLine.startsWith('%%') && trimmedLine.length > 2) {
-            //     return new vscode.Position(lineNumber, lineText.indexOf(trimmedLine) + 2);
-            // }
-            // if (trimmedLine.startsWith('%') && trimmedLine.length > 1) {
-            //     return new vscode.Position(lineNumber, lineText.indexOf(trimmedLine) + 1);
-            // }
             // Yay we have a line
+            // Remember, we need to set the cursor to a character other than white space
+            // Highlighting doesn't kick in for comments or white space
             return new vscode.Position(lineNumber, lineText.indexOf(trimmedLine));
         }
 
-        // We give up
+        // give up
         return new vscode.Position(startLine, 0);
     }
 }

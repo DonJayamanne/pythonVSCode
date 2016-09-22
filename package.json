@@ -120,6 +120,16 @@
         "command": "jupyter:execCurrentCellAndAdvance",
         "title": "Run cell and advance",
         "category": "Jupyter"
+      },
+      {
+        "command": "jupyter:gotToPreviousCell",
+        "title": "Go to previous cell",
+        "category": "Jupyter"
+      },
+      {
+        "command": "jupyter:gotToNextCell",
+        "title": "Go to next cell",
+        "category": "Jupyter"
       }
     ],
     "menus": {

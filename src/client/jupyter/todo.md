@@ -15,7 +15,6 @@
     Use existing code that will use the path of the interpretter when looking for executables
     Similar to what we do today in utils.execPythonFile
 
-- code lens (run should just run)
 - cell line height
 - navigate to cells (code navigation)
 - shortcuts
