@@ -9,13 +9,14 @@ import {ZMQKernel} from './zmq-kernel';
 import {launchSpec} from 'spawnteract';
 import {KernelspecMetadata, Kernelspec} from './contracts';
 import {Commands} from '../common/constants';
+import {EventEmitter} from 'events';
 
-export class KernelManagerImpl extends vscode.Disposable {
+export class KernelManagerImpl extends EventEmitter {
     private _runningKernels: Map<string, Kernel>;
     private _kernelSpecs: { [key: string]: Kernelspec };
     private disposables: vscode.Disposable[];
     constructor(private outputChannel: vscode.OutputChannel) {
-        super(() => { });
+        super();
         this.disposables = [];
         this._runningKernels = new Map<string, Kernel>();
         this._kernelSpecs = this.getKernelSpecsFromSettings();
@@ -24,6 +25,7 @@ export class KernelManagerImpl extends vscode.Disposable {
 
     private registerCommands() {
         this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.Get_All_KernelSpecs_For_Language, this.getAllKernelSpecsFor.bind(this)));
+        this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.StartKernelForKernelSpeck, this.startKernel.bind(this)));
     }
     public dispose() {
         this._runningKernels.forEach(kernel => {
@@ -35,6 +37,7 @@ export class KernelManagerImpl extends vscode.Disposable {
     public setRunningKernelFor(language: string, kernel: Kernel) {
         kernel.kernelSpec.language = language;
         this._runningKernels.set(language, kernel);
+        this.emit('kernelChanged', kernel, language);
         return kernel;
     }
 
@@ -114,10 +117,11 @@ export class KernelManagerImpl extends vscode.Disposable {
     }
 
     public startKernel(kernelSpec: KernelspecMetadata, language: string): Promise<Kernel> {
-        // console.log('KernelManager: startKernelFor:', language);
-        const projectPath = path.dirname(vscode.window.activeTextEditor.document.fileName);
+        this.destroyRunningKernelFor(language);
+        // This doesn't always work
+        // const projectPath = path.dirname(vscode.window.activeTextEditor.document.fileName);
         const spawnOptions = {
-            cwd: projectPath
+            cwd: vscode.workspace.rootPath
         };
         return launchSpec(kernelSpec, spawnOptions).then(result => {
             const kernel = new ZMQKernel(kernelSpec, language, result.config, result.connectionFile, result.spawn);

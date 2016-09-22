@@ -35,6 +35,13 @@ export class Jupyter extends vscode.Disposable {
         this.disposables.push(this.status);
         this.display = new JupyterDisplay(codeLensProvider, highlightProvider);
         this.disposables.push(this.display);
+
+        // This happend when user changes it from status bar
+        this.kernelManager.on('kernelChanged', (kernel: Kernel, language: string) => {
+            if (this.kernel !== kernel && (this.kernel && this.kernel.kernelSpec.language === kernel.kernelSpec.language)) {
+                this.onKernelChanged(kernel);
+            }
+        });
     }
     public dispose() {
         this.disposables.forEach(d => d.dispose());

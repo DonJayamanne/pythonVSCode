@@ -24,7 +24,11 @@ export class KernelPicker extends vscode.Disposable {
                 if (kernelSpecs.length === 0) {
                     return resolve();
                 }
-                this.displayKernelPicker(kernelSpecs).then(resolve);
+                this.displayKernelPicker(kernelSpecs).then((kernelSpec: KernelspecMetadata) => {
+                    if (kernelSpec) {
+                        vscode.commands.executeCommand(Commands.Jupyter.StartKernelForKernelSpeck, kernelSpec, kernelSpec.language);
+                    }
+                });
             });
         });
     }
