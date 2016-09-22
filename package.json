@@ -108,7 +108,7 @@
       },
       {
         "command": "jupyter.runSelectionLine",
-        "title": "Run selection/line in Jupyter Kernel",
+        "title": "Run selection/line",
         "category": "Jupyter"
       },
       {
