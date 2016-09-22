@@ -29,11 +29,8 @@ export class JupyterCodeLensProvider implements CodeLensProvider {
             const cmd: Command = {
                 arguments: [document, cell.range],
                 title: 'Run cell',
-                command: Commands.Jupyter.Cell.DisplayCellMenu
+                command: Commands.Jupyter.ExecuteRangeInKernel
             };
-            if (lenses.length > 0) {
-                lenses[lenses.length - 1].command.arguments.push(cell.range);
-            }
             lenses.push(new CodeLens(cell.range, cmd));
         });
 
