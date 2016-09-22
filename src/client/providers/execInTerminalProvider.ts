@@ -2,6 +2,7 @@
 import * as vscode from 'vscode';
 import * as settings from '../common/configSettings';
 import { Commands } from '../common/constants';
+let path = require('path');
 
 export function activateExecInTerminalProvider() {
     vscode.commands.registerCommand(Commands.Exec_In_Terminal, execInTerminal);
@@ -9,7 +10,8 @@ export function activateExecInTerminalProvider() {
 }
 
 function execInTerminal(fileUri?: vscode.Uri) {
-    const currentPythonPath = settings.PythonSettings.getInstance().pythonPath;
+    let pythonSettings = settings.PythonSettings.getInstance();
+    const currentPythonPath = pythonSettings.pythonPath;
     let filePath: string;
 
     if (fileUri === undefined) {
@@ -38,8 +40,16 @@ function execInTerminal(fileUri?: vscode.Uri) {
         filePath = `"${filePath}"`;
     }
     const terminal = vscode.window.createTerminal(`Python`);
-    terminal.sendText(`${currentPythonPath} ${filePath}`);
-
+    if (pythonSettings.terminal && pythonSettings.terminal.executeInFileDir) {
+        const fileDirPath = path.dirname(filePath).substring(1);
+        if (fileDirPath !== vscode.workspace.rootPath) {
+            terminal.sendText(`cd "${fileDirPath}"`);
+        }
+    }
+    const launchArgs = settings.PythonSettings.getInstance().terminal.launchArgs;
+    const launchArgsString = launchArgs.length > 0 ? " ".concat(launchArgs.join(" ")) : "";
+    terminal.sendText(`${currentPythonPath}${launchArgsString} ${filePath}`);
+    terminal.show();
 }
 
 function execSelectionInTerminal() {
@@ -55,5 +65,8 @@ function execSelectionInTerminal() {
     }
     const code = vscode.window.activeTextEditor.document.getText(new vscode.Range(selection.start, selection.end));
     const terminal = vscode.window.createTerminal(`Python`);
-    terminal.sendText(`${currentPythonPath} -c "${code}"`);
+    const launchArgs = settings.PythonSettings.getInstance().terminal.launchArgs;
+    const launchArgsString = launchArgs.length > 0 ? " ".concat(launchArgs.join(" ")) : "";
+    terminal.sendText(`${currentPythonPath}${launchArgsString} -c "${code}"`);
+    terminal.show();
 }

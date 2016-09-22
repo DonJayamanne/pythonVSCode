@@ -675,6 +675,17 @@
           "type": "string",
           "default": "Python Test Log",
           "description": "The output window name for the unit test messages, defaults to Python output window."
+        },
+
+        "python.terminal.executeInFileDir": {
+          "type": "boolean",
+          "default": false,
+          "description": "When executing a file in the terminal, whether to use execute in the file's directory, instead of the current open folder."
+        },
+        "python.terminal.launchArgs": {
+          "type": "array",
+          "default": [],
+          "description": "Python launch arguments to use when executing a file in the terminal."
         }
       }
     }
