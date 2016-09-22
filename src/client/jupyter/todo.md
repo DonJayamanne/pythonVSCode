@@ -16,6 +16,3 @@
     Similar to what we do today in utils.execPythonFile
 
 - cell line height
-- navigate to cells (code navigation)
-- shortcuts
-    go to next/preview cell
