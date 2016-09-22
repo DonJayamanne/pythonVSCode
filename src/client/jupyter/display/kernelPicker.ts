@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import {KernelspecMetadata} from '../contracts';
-import {Commands} from '../../common/constants';
+import {Commands, PythonLanguage} from '../../common/constants';
 
 export class KernelPicker extends vscode.Disposable {
     private disposables: vscode.Disposable[];
@@ -14,7 +14,7 @@ export class KernelPicker extends vscode.Disposable {
     }
 
     private registerCommands() {
-        this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.Select_Kernel, this.selectkernel.bind(this)));
+        this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.Select_Kernel, this.selectkernel.bind(this, PythonLanguage.language)));
     }
 
     private selectkernel(language?: string): Promise<KernelspecMetadata> {
