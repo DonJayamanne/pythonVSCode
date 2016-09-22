@@ -439,6 +439,11 @@ function onConfigChanged() {
         // Python global site packages, as a fallback in case user hasn't installed them in custom environment
         getPathFromPythonCommand(["-m", "site", "--user-site"]),
     ];
+
+    const pythonPath: string = process.env['PYTHONPATH'];
+    if (typeof pythonPath === 'string' && pythonPath.length > 0) {
+        filePaths.push(Promise.resolve(pythonPath.trim()));
+    }
     Promise.all<string>(filePaths).then(paths => {
         // Last item return a path, we need only the folder
         if (paths[1].length > 0) {
