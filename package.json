@@ -718,6 +718,24 @@
           "type": "array",
           "default": [],
           "description": "Python launch arguments to use when executing a file in the terminal."
+        },
+        "python.jupyter.appendResults": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to appen the results to results window, else clear and display."
+        },
+        "python.jupyter.defaultKernel": {
+          "type": "string",
+          "default": "",
+          "description": "Default kernel to be used. By default the first available kernel is used."
+        },
+        "python.jupyter.startupCode": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": ["%matplotlib inline"],
+          "description": "Code executed when the kernel starts. Such as the default of '%matplotlib inline'. Individual lines can be placed in separate items of the array."
         }
       }
     }

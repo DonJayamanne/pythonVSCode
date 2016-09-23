@@ -1,7 +1,6 @@
 /// <reference path="../../../typings/spawnteract.d.ts" />
 import * as child_process from 'child_process';
-import * as fs from 'fs';
-import * as path from 'path';
+import * as os from 'os';
 import * as vscode from 'vscode';
 import {Kernel} from './kernel';
 import {WSKernel} from './ws-kernel';
@@ -10,6 +9,8 @@ import {launchSpec} from 'spawnteract';
 import {KernelspecMetadata, Kernelspec} from './contracts';
 import {Commands} from '../common/constants';
 import {EventEmitter} from 'events';
+import {PythonSettings} from '../common/configSettings';
+const pythonSettings = PythonSettings.getInstance();
 
 export class KernelManagerImpl extends EventEmitter {
     private _runningKernels: Map<string, Kernel>;
@@ -19,7 +20,7 @@ export class KernelManagerImpl extends EventEmitter {
         super();
         this.disposables = [];
         this._runningKernels = new Map<string, Kernel>();
-        this._kernelSpecs = this.getKernelSpecsFromSettings();
+        this._kernelSpecs = {};
         this.registerCommands();
     }
 
@@ -72,37 +73,25 @@ export class KernelManagerImpl extends EventEmitter {
     }
 
     public startKernelFor(language: string): Promise<Kernel> {
-        try {
-            const rootDirectory = path.dirname(vscode.window.activeTextEditor.document.fileName);
-            const connectionFile = path.join(rootDirectory, 'jupyter', 'connection.json');
-            const connectionString = fs.readFileSync(connectionFile, 'utf8');
-            const connection = JSON.parse(connectionString);
-            return this.startExistingKernel(language, connection, connectionFile);
-        } catch (_error) {
-            const e = _error;
-            if (e.code !== 'ENOENT') {
-                this.outputChannel.appendLine('KernelManager: Cannot start existing kernel:\n' + e);
-            }
-        }
         return this.getKernelSpecFor(language).then(kernelSpec => {
-            if (kernelSpec == null) {
-                const message = `No kernel for language '${language}' found`;
-                const description = 'Check that the language for this file is set in VS Code and that you have a Jupyter kernel installed for it.';
-                vscode.window.showErrorMessage(description);
+            if (!kernelSpec) {
+                const message = `No kernel for language '${language}' found. Ensure you have a Jupyter or IPython kernel installed for it.`;
+                vscode.window.showErrorMessage(message);
+                this.outputChannel.appendLine(message);
                 return;
             }
             return this.startKernel(kernelSpec, language);
-        }).catch(() => {
-            const message = `No kernel for language '${language}' found`;
-            const description = 'Check that the language for this file is set in VS Code and that you have a Jupyter kernel installed for it.';
-            vscode.window.showErrorMessage(description);
+        }).catch(reason => {
+            const message = `No kernel for language '${language}' found. Ensure you have a Jupyter or IPython kernel installed for it.`;
+            vscode.window.showErrorMessage(message);
+            this.outputChannel.appendLine(message);
+            this.outputChannel.appendLine('Error in finding the kernel: ' + reason);
             return null;
         });
     }
 
     public startExistingKernel(language: string, connection, connectionFile): Promise<Kernel> {
         return new Promise<Kernel>((resolve, reject) => {
-            // console.log('KernelManager: startExistingKernel: Assuming', language);
             const kernelSpec = {
                 display_name: 'Existing Kernel',
                 language: language,
@@ -111,8 +100,9 @@ export class KernelManagerImpl extends EventEmitter {
             };
             const kernel = new ZMQKernel(kernelSpec, language, connection, connectionFile);
             this.setRunningKernelFor(language, kernel);
-            this._executeStartupCode(kernel);
-            resolve(kernel);
+            return this._executeStartupCode(kernel).then(() => {
+                return kernel;
+            });
         });
     }
 
@@ -126,22 +116,21 @@ export class KernelManagerImpl extends EventEmitter {
         return launchSpec(kernelSpec, spawnOptions).then(result => {
             const kernel = new ZMQKernel(kernelSpec, language, result.config, result.connectionFile, result.spawn);
             this.setRunningKernelFor(language, kernel);
-            this._executeStartupCode(kernel);
-            return Promise.resolve(kernel);
+            return this._executeStartupCode(kernel).then(() => kernel);
         }, error => {
             return Promise.reject(error);
         });
     }
 
-    public _executeStartupCode(kernel: Kernel) {
-        const displayName = kernel.kernelSpec.display_name;
-        // startupCode = Config.getJson('startupCode')[displayName];
-        let startupCode = {}[displayName];
-        if (startupCode != null) {
-            // console.log('KernelManager: Executing startup code:', startupCode);
-            startupCode = startupCode + ' \n';
-            return kernel.execute(startupCode, () => { });
+    public _executeStartupCode(kernel: Kernel): Promise<any> {
+        if (pythonSettings.jupyter.startupCode.length === 0) {
+            return Promise.resolve();
         }
+        const suffix = ' ' + os.EOL;
+        let startupCode = pythonSettings.jupyter.startupCode.join(suffix) + suffix;
+        return new Promise<any>(resolve => {
+            kernel.execute(startupCode, () => resolve());
+        });
     }
 
     public getAllRunningKernels() {
@@ -164,91 +153,47 @@ export class KernelManagerImpl extends EventEmitter {
     }
 
     public getAllKernelSpecsFor(language: string): Promise<KernelspecMetadata[]> {
-        if (language != null) {
-            return this.getAllKernelSpecs().then(kernelSpecs => {
-                return kernelSpecs.filter(spec => {
-                    return this.kernelSpecProvidesLanguage(spec, language);
-                });
-            });
-        } else {
-            return Promise.resolve([]);
-        }
-    }
-
-    public getKernelSpecFor(language: string): Promise<KernelspecMetadata> {
-        if (language == null) {
-            return Promise.resolve(null);
-        }
-        return this.getAllKernelSpecsFor(language).then(kernelSpecs => {
-            if (kernelSpecs.length >= 1) {
-                return kernelSpecs[0];
-            } else {
-                // if (this.kernelPicker == null) {
-                throw new Error('Oops');
-                // _this.kernelPicker = new KernelPicker(function (onUpdated) {
-                //     return onUpdated(kernelSpecs);
-                // });
-                // _this.kernelPicker.onConfirmed = function (arg) {
-                //     var kernelSpec;
-                //     kernelSpec = arg.kernelSpec;
-                //     return callback(kernelSpec);
-                // };
-            }
-            // return this.kernelPicker.toggle();
+        return this.getAllKernelSpecs().then(kernelSpecs => {
+            const lowerLang = language.toLowerCase();
+            return kernelSpecs.filter(spec => spec.language.toLowerCase() === lowerLang);
         });
     }
 
-    public kernelSpecProvidesLanguage(kernelSpec, language: string) {
-        const kernelLanguage = kernelSpec.language;
-        const mappedLanguage = {}[kernelLanguage];
-        if (mappedLanguage) {
-            return mappedLanguage === language;
-        }
-        return kernelLanguage.toLowerCase() === language;
+    public getKernelSpecFor(language: string): Promise<KernelspecMetadata> {
+        return this.getAllKernelSpecsFor(language).then(kernelSpecs => {
+            if (kernelSpecs.length > 0) {
+                if (pythonSettings.jupyter.defaultKernel.length > 0) {
+                    const defaultKernel = kernelSpecs.find(spec => spec.display_name === pythonSettings.jupyter.defaultKernel);
+                    if (defaultKernel) {
+                        return defaultKernel;
+                    }
+                }
+                return kernelSpecs[0];
+            } else {
+                throw new Error('Unable to find a kernel for ' + language);
+            }
+        });
     }
 
-    public getKernelSpecsFromSettings(): { [key: string]: Kernelspec } {
-        const settings: any = {};
-        return settings;
-    }
-
-    public mergeKernelSpecs(kernelSpecs) {
-        for (const key in kernelSpecs) {
-            this._kernelSpecs[key] = kernelSpecs[key];
-        }
-        // return _.assign(this._kernelSpecs, kernelSpecs);
-    }
-
-    public updateKernelSpecs(): Promise<any> {
-        this._kernelSpecs = this.getKernelSpecsFromSettings();
+    public updateKernelSpecs(): Promise<{ [key: string]: Kernelspec }> {
+        this._kernelSpecs = {};
         return this.getKernelSpecsFromJupyter().then(kernelSpecsFromJupyter => {
-            this.mergeKernelSpecs(kernelSpecsFromJupyter);
+            this._kernelSpecs = kernelSpecsFromJupyter;
             if (Object.keys(this._kernelSpecs).length === 0) {
-                const message = 'No kernel specs found';
-                const options = {
-                    description: 'Use kernelSpec option in VS Code or update IPython/Jupyter to a version that supports: `jupyter kernelspec list --json` or `ipython kernelspec list --json`',
-                    dismissable: true
-                };
-                vscode.window.showErrorMessage(message + ', ' + options.description);
+                const message = 'No kernel specs found, Update IPython/Jupyter to a version that supports: `jupyter kernelspec list --json` or `ipython kernelspec list --json`';
+                this.outputChannel.appendLine(message);
+                vscode.window.showErrorMessage(message);
             } else {
                 const message = 'VS Code Kernels updated:';
-                const details = Object.keys(this._kernelSpecs).map(key => this._kernelSpecs[key].spec.display_name).join('\n');
+                const details = Object.keys(this._kernelSpecs).map(key => this._kernelSpecs[key].spec.display_name).join(', ');
                 this.outputChannel.appendLine(message + ', ' + details);
             }
             return this._kernelSpecs;
-        }).catch(() => {
-            if (Object.keys(this._kernelSpecs).length === 0) {
-                const message = 'No kernel specs found';
-                const options = {
-                    description: 'Use kernelSpec option in VS Code or update IPython/Jupyter to a version that supports: `jupyter kernelspec list --json` or `ipython kernelspec list --json`',
-                    dismissable: true
-                };
-                vscode.window.showErrorMessage(message + ', ' + options.description);
-            } else {
-                const message = 'VS Code Kernels updated:';
-                const details = Object.keys(this._kernelSpecs).map(key => this._kernelSpecs[key].spec.display_name).join('\n');
-                this.outputChannel.appendLine(message + ', ' + details);
-            }
+        }).catch(reason => {
+            const message = 'No kernel specs found, Update IPython/Jupyter to a version that supports: `jupyter kernelspec list --json` or `ipython kernelspec list --json`';
+            this.outputChannel.appendLine(message);
+            this.outputChannel.appendLine('Error in finding kernels: ' + reason);
+            vscode.window.showErrorMessage(message);
             return this._kernelSpecs;
         });
     }

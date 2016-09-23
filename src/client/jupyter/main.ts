@@ -75,8 +75,10 @@ export class Jupyter extends vscode.Disposable {
         }
         return this.kernelManager.startKernelFor(language)
             .then(kernel => {
-                this.onKernelChanged(kernel);
-                return this.executeAndDisplay(kernel, code);
+                if (kernel) {
+                    this.onKernelChanged(kernel);
+                    return this.executeAndDisplay(kernel, code);
+                }
             });
     }
     private executeAndDisplay(kernel: Kernel, code: string) {

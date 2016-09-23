@@ -13,6 +13,7 @@ export interface IPythonSettings {
     unitTest: IUnitTestSettings;
     autoComplete: IAutoCompeteSettings;
     terminal: ITerminalSettings;
+    jupyter: JupyterSettings;
 }
 export interface IUnitTestSettings {
     nosetestsEnabled: boolean;
@@ -71,19 +72,11 @@ export interface ITerminalSettings {
     executeInFileDir: boolean;
     launchArgs: string[];
 }
-// export interface IJupyterSettings {
-//     pythonPath: string;
-//     devOptions: any[];
-//     linting: ILintingSettings;
-//     formatting: IFormattingSettings;
-//     unitTest: IUnitTestSettings;
-//     autoComplete: IAutoCompeteSettings;
-// }
-// export interface IJupyterKernelSettings {
-//     kernelName?: string;
-//     languageId?: string;
-//     startupCode: string;
-// }
+export interface JupyterSettings {
+    appendResults: boolean;
+    defaultKernel: string;
+    startupCode: string[];
+}
 
 const systemVariables: SystemVariables = new SystemVariables();
 export class PythonSettings extends EventEmitter implements IPythonSettings {
@@ -162,6 +155,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         else {
             this.terminal = terminalSettings;
         }
+        this.jupyter = pythonSettings.get<JupyterSettings>('jupyter');
     }
 
     public pythonPath: string;
@@ -171,6 +165,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
     public autoComplete: IAutoCompeteSettings;
     public unitTest: IUnitTestSettings;
     public terminal: ITerminalSettings;
+    public jupyter: JupyterSettings;
 }
 
 function getAbsolutePath(pathToCheck: string, rootDir: String): string {
