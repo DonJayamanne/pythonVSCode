@@ -2,6 +2,7 @@
 // TODO: Cleanup this place
 // Add options for execPythonFile
 import * as path from 'path';
+import * as os from 'os';
 import * as fs from 'fs';
 import * as child_process from 'child_process';
 import * as settings from './configSettings';
@@ -210,4 +211,23 @@ export function mergeEnvVariables(newVariables: { [key: string]: string }): any 
     }
 
     return newVariables;
+}
+
+export function formatErrorForLogging(error: Error | string): string {
+    let message: string = '';
+    if (typeof error === 'string') {
+        message = error;
+    }
+    else {
+        if (error.message) {
+            message = `Error Message: ${error.message}`;
+        }
+        if (error.name) {
+            message += `, (${error.message})`;
+        }
+        if (error.stack) {
+            message += os.EOL + error.stack;
+        }
+    }
+    return message;
 }
