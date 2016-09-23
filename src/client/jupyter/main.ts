@@ -94,11 +94,8 @@ export class Jupyter extends vscode.Disposable {
             let htmlResponse = '';
             let responses = [];
             return kernel.execute(code, (result: { type: string, stream: string, data: { [key: string]: string } | string }) => {
-                if (result.data === 'ok' && result.stream === 'status' && result.type === 'text') {
-                    return resolve([htmlResponse, responses]);
-                }
-                if (result.stream === 'error' && result.type === 'text') {
-                    responses.push(result.data);
+                if (result.stream === 'status' && result.type === 'text' &&
+                    (result.data === 'ok' || result.data === 'error')) {
                     return resolve([htmlResponse, responses]);
                 }
                 if (typeof result.data['text/html'] === 'string') {

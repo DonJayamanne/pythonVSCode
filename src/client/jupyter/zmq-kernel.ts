@@ -194,11 +194,23 @@ export class ZMQKernel extends Kernel {
         }
         const status = message.content.status;
         if (status === 'error') {
+            const msg_type = message.header.msg_type;
+            // http://jupyter-client.readthedocs.io/en/latest/messaging.html#request-reply
+            if (msg_type === 'execution_reply' || msg_type === 'execute_reply') {
+                this.executionCallbacks.delete(msg_id);
+                return callback({
+                    data: 'error',
+                    type: 'text',
+                    stream: 'status'
+                });
+            }
             return;
         }
         if (status === 'ok') {
             const msg_type = message.header.msg_type;
-            if (msg_type === 'execution_reply') {
+            // http://jupyter-client.readthedocs.io/en/latest/messaging.html#request-reply
+            if (msg_type === 'execution_reply' || msg_type === 'execute_reply') {
+                this.executionCallbacks.delete(msg_id);
                 return callback({
                     data: 'ok',
                     type: 'text',
@@ -212,6 +224,7 @@ export class ZMQKernel extends Kernel {
                     found: message.content.found
                 });
             } else {
+                this.executionCallbacks.delete(msg_id);
                 return callback({
                     data: 'ok',
                     type: 'text',
