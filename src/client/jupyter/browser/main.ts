@@ -29,13 +29,19 @@ function displayData(data: any, whiteBg: boolean): Promise<HTMLElement> {
     const results = (window as any).JUPYTER_DATA as any[];
     (window as any).__dirname = rootDirName;
     try {
-        const color = decodeURIComponent(window.location.search.substring(window.location.search.indexOf('?color=') + 7, window.location.search.indexOf('&fontFamily=')));
+        let color = decodeURIComponent(window.location.search.substring(window.location.search.indexOf('?color=') + 7));
+        color = color.substring(0, color.indexOf('&fontFamily='));
         if (color.length > 0) {
             window.document.body.style.color = color;
         }
-        const fontFamily = decodeURIComponent(window.location.search.substring(window.location.search.indexOf('&fontFamily=') + 12));
+        let fontFamily = decodeURIComponent(window.location.search.substring(window.location.search.indexOf('&fontFamily=') + 12));
+        fontFamily = fontFamily.substring(0, fontFamily.indexOf('&fontSize='));
         if (fontFamily.length > 0) {
             window.document.body.style.fontFamily = fontFamily;
+        }
+        const fontSize = decodeURIComponent(window.location.search.substring(window.location.search.indexOf('&fontSize=') + 10));
+        if (fontSize.length > 0) {
+            window.document.body.style.fontSize = fontSize;
         }
     }
     catch (ex) {
