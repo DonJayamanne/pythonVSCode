@@ -157,9 +157,6 @@ function parseNoseTestModuleCollectionResult(rootDirectory: string, lines: strin
             };
 
             let cls = testFile.suites.find(suite => suite.name === clsName);
-            if (!cls) {
-                debugger;
-            }
             cls.functions.push(fn);
             return;
         }
@@ -169,9 +166,6 @@ function parseNoseTestModuleCollectionResult(rootDirectory: string, lines: strin
                 name: name, nameToRun: `${fileName}:${name}`,
                 time: 0, functionsFailed: 0, functionsPassed: 0
             };
-            if (!testFile) {
-                debugger;
-            }
             testFile.functions.push(fn);
             return;
         }
