@@ -82,7 +82,7 @@ function displayData(data: any, whiteBg: boolean): Promise<HTMLElement> {
     const promises = results.map(data => displayData(data, whiteBg));
     Promise.all<HTMLElement>(promises).then(elements => {
         // Bring the first item into view
-        if (elements.length > 0) {
+        if (elements.length > 1) {
             try {
                 elements[0].scrollIntoView(true);
             }
