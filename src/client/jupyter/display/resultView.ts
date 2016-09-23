@@ -137,7 +137,6 @@ export class TextDocumentContentProvider extends Disposable implements vscode.Te
                     if (err) {
                         return def.reject(err);
                     }
-                    fs.writeFileSync('/Users/donjayamanne/.vscode/extensions/pythonVSCode/results.html', htmlContent);
                     def.resolve(htmlContent);
                 });
 
