@@ -222,11 +222,8 @@ export function formatErrorForLogging(error: Error | string): string {
         if (error.message) {
             message = `Error Message: ${error.message}`;
         }
-        if (error.name) {
+        if (error.name && error.message.indexOf(error.name) === -1) {
             message += `, (${error.message})`;
-        }
-        if (error.stack) {
-            message += os.EOL + error.stack;
         }
     }
     return message;

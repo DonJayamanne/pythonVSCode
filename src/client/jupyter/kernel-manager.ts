@@ -98,12 +98,6 @@ export class KernelManagerImpl extends EventEmitter {
             return this.startKernel(kernelSpec, language);
         }).catch(reason => {
             let message = `No kernel for language '${language}' found. Ensure you have a Jupyter or IPython kernel installed for it.`;
-            if (hasKernelSpec) {
-                message = 'Failed to start the kernel.';
-            }
-            if (typeof reason === 'object' && reason.message) {
-                message = reason.message;
-            }
             vscode.window.showErrorMessage(message);
             this.outputChannel.appendLine(formatErrorForLogging(reason));
             return;
@@ -146,13 +140,11 @@ export class KernelManagerImpl extends EventEmitter {
             let errorMessage = 'Failed to execute kernel startup code. ';
             kernel.execute(startupCode, (result: { type: string, stream: string, message?: string, data: { [key: string]: string } | string }) => {
                 if (result.stream === 'status' && result.type === 'text') {
-                    if (result.data === 'ok') {
-                        return resolve();
-                    }
                     if (result.data === 'error') {
                         this.outputChannel.appendLine(errorMessage);
-                        return reject(new Error(errorMessage));
+                        vscode.window.showWarningMessage(errorMessage);
                     }
+                    return resolve();
                 }
                 if (result.stream === 'error' && result.type === 'text' && typeof result.message === 'string') {
                     errorMessage += 'Details: ' + result.message;
