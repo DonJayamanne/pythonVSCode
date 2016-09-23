@@ -59,13 +59,37 @@ export class TextDocumentContentProvider extends Disposable implements vscode.Te
         const dirNameForScripts = path.join(__dirname, '..', '..', '..');
         const html = `
                 <!DOCTYPE html>
-                <html>
+                <html> 
                 <head>
                     <script src="http://localhost:${this.serverPort}/socket.io/socket.io.js"></script>
                     <script type="text/javascript">
                         window.JUPYTER_DATA = ${JSON.stringify(this.results)};
                     </script>
                     <script src="${this.getScriptFilePath('bundle.js')}?x=${new Date().getMilliseconds()}"></script>
+                    <style type="text/css">
+                        /*Enable for sticky header (though scrollbars are white :()*/
+                        /*
+                        html, body {
+                            margin:0;
+                            height:100vh;
+                            min-height:100vh;
+                        }
+                        body {
+                            margin:0;
+                            display: flex;
+                            flex-direction: column;
+                            overflow-y:hidden;
+                        }
+                        #displayStyle {
+                            flex: 1 0;   
+                            margin-bottom:0.25em;                         
+                        }
+                        #resultsContainer {
+                            flex: auto;
+                            overflow-y: auto;
+                        }    
+                        /*                    
+                    </style>
                 </head>
                 <body onload="initializeResults('${dirNameForScripts}', ${this.serverPort})">
                     <div id="resultMenu">
@@ -99,6 +123,7 @@ export class TextDocumentContentProvider extends Disposable implements vscode.Te
         }
         else {
             helpers.createTemporaryFile('.html').then(tmpFile => {
+                this.tmpHtmlFile = tmpFile.filePath;
                 this.tmpFileCleanup.push(tmpFile.cleanupCallback);
                 htmlFile.resolve(tmpFile.filePath);
             });
@@ -129,7 +154,7 @@ export class TextDocumentContentProvider extends Disposable implements vscode.Te
                     </script>
                     </head>
                     <body onload="start()">
-                    <iframe id="myframe" frameborder="0" style="border: 0px solid white;height:100%;width:100%;"
+                    <iframe id="myframe" frameborder="0" style="border: 0px solid transparent;height:100%;width:100%;"
                     src="" seamless></iframe></body></html>`;
 
                 let def = helpers.createDeferred<string>();
