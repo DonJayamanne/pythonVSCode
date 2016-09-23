@@ -8,6 +8,9 @@ import {JupyterCodeLensProvider} from './editorIntegration/codeLensProvider';
 import {JupyterCellBorderProvider} from './editorIntegration/cellBorderProvider';
 import {JupyterSymbolProvider} from './editorIntegration/symbolProvider';
 import {JupyterCellHighlightProvider} from './editorIntegration/cellHighlightProvider';
+import {formatErrorForLogging} from '../common/utils';
+
+// Todo: Refactor the error handling and displaying of messages
 
 export class Jupyter extends vscode.Disposable {
     public kernelManager: KernelManagerImpl;
@@ -79,6 +82,10 @@ export class Jupyter extends vscode.Disposable {
                     this.onKernelChanged(kernel);
                     return this.executeAndDisplay(kernel, code);
                 }
+            }).catch(reason => {
+                const message = typeof reason === 'string' ? reason : reason.message;
+                vscode.window.showErrorMessage(message);
+                this.outputChannel.appendLine(formatErrorForLogging(reason));
             });
     }
     private executeAndDisplay(kernel: Kernel, code: string) {

@@ -10,6 +10,10 @@ import {KernelspecMetadata, Kernelspec} from './contracts';
 import {Commands} from '../common/constants';
 import {EventEmitter} from 'events';
 import {PythonSettings} from '../common/configSettings';
+import {formatErrorForLogging} from '../common/utils';
+
+// Todo: Refactor the error handling and displaying of messages
+
 const pythonSettings = PythonSettings.getInstance();
 
 export class KernelManagerImpl extends EventEmitter {
@@ -48,50 +52,66 @@ export class KernelManagerImpl extends EventEmitter {
         }
         const kernel = this._runningKernels.get(language);
         this._runningKernels.delete(language);
-        if (kernel != null) {
+        if (kernel) {
             kernel.dispose();
         }
     }
 
     public restartRunningKernelFor(language: string): Promise<Kernel> {
         const kernel = this._runningKernels.get(language);
+        let startupPromise: Promise<Kernel>;
         if (kernel instanceof WSKernel) {
-            return new Promise<Kernel>((resolve, reject) => {
+            startupPromise = new Promise<Kernel>((resolve, reject) => {
                 kernel.restart().then(() => {
                     resolve(kernel);
-                }, reject);
+                }, reject.bind(this));
             });
         }
         if (kernel instanceof ZMQKernel && kernel.kernelProcess) {
             const kernelSpec = kernel.kernelSpec;
             this.destroyRunningKernelFor(language);
-            return this.startKernel(kernelSpec, language);
+            startupPromise = this.startKernel(kernelSpec, language);
         }
-        // this.outputChannel.appendLine('KernelManager: restartRunningKernelFor: ignored for ' + kernel.kernelSpec.display_name);
-        vscode.window.showWarningMessage('Cannot restart this kernel');
-        return Promise.resolve(kernel);
+        if (!startupPromise) {
+            vscode.window.showWarningMessage('Cannot restart this kernel');
+            startupPromise = Promise.resolve(kernel);
+        }
+
+        return startupPromise.catch(reason => {
+            let message = 'Failed to start the kernel.';
+            if (typeof reason === 'object' && reason.message) {
+                message = reason.message;
+            }
+            vscode.window.showErrorMessage(message);
+            this.outputChannel.appendLine(formatErrorForLogging(reason));
+            return Promise.reject(reason);
+        });
     }
 
     public startKernelFor(language: string): Promise<Kernel> {
+        // We'll display the custom message here
+        // Todo: Yes we could create custom error classes, possibly later
+        // Then the main class can handle individual errors and display specific messages
+        let hasKernelSpec = false;
         return this.getKernelSpecFor(language).then(kernelSpec => {
-            if (!kernelSpec) {
-                const message = `No kernel for language '${language}' found. Ensure you have a Jupyter or IPython kernel installed for it.`;
-                vscode.window.showErrorMessage(message);
-                this.outputChannel.appendLine(message);
-                return;
-            }
+            hasKernelSpec = true;
             return this.startKernel(kernelSpec, language);
         }).catch(reason => {
-            const message = `No kernel for language '${language}' found. Ensure you have a Jupyter or IPython kernel installed for it.`;
+            let message = `No kernel for language '${language}' found. Ensure you have a Jupyter or IPython kernel installed for it.`;
+            if (hasKernelSpec) {
+                message = 'Failed to start the kernel.';
+            }
+            if (typeof reason === 'object' && reason.message) {
+                message = reason.message;
+            }
             vscode.window.showErrorMessage(message);
-            this.outputChannel.appendLine(message);
-            this.outputChannel.appendLine('Error in finding the kernel: ' + reason);
-            return null;
+            this.outputChannel.appendLine(formatErrorForLogging(reason));
+            return;
         });
     }
 
     public startExistingKernel(language: string, connection, connectionFile): Promise<Kernel> {
-        return new Promise<Kernel>((resolve, reject) => {
+        return new Promise<Kernel>(resolve => {
             const kernelSpec = {
                 display_name: 'Existing Kernel',
                 language: language,
@@ -100,36 +120,44 @@ export class KernelManagerImpl extends EventEmitter {
             };
             const kernel = new ZMQKernel(kernelSpec, language, connection, connectionFile);
             this.setRunningKernelFor(language, kernel);
-            return this._executeStartupCode(kernel).then(() => {
-                return kernel;
-            });
+            return this.executeStartupCode(kernel).then(() => kernel);
         });
     }
 
     public startKernel(kernelSpec: KernelspecMetadata, language: string): Promise<Kernel> {
         this.destroyRunningKernelFor(language);
-        // This doesn't always work
-        // const projectPath = path.dirname(vscode.window.activeTextEditor.document.fileName);
         const spawnOptions = {
             cwd: vscode.workspace.rootPath
         };
         return launchSpec(kernelSpec, spawnOptions).then(result => {
             const kernel = new ZMQKernel(kernelSpec, language, result.config, result.connectionFile, result.spawn);
             this.setRunningKernelFor(language, kernel);
-            return this._executeStartupCode(kernel).then(() => kernel);
-        }, error => {
-            return Promise.reject(error);
+            return this.executeStartupCode(kernel).then(() => kernel);
         });
     }
 
-    public _executeStartupCode(kernel: Kernel): Promise<any> {
+    private executeStartupCode(kernel: Kernel): Promise<any> {
         if (pythonSettings.jupyter.startupCode.length === 0) {
             return Promise.resolve();
         }
         const suffix = ' ' + os.EOL;
         let startupCode = pythonSettings.jupyter.startupCode.join(suffix) + suffix;
-        return new Promise<any>(resolve => {
-            kernel.execute(startupCode, () => resolve());
+        return new Promise<any>((resolve, reject) => {
+            let errorMessage = 'Failed to execute kernel startup code. ';
+            kernel.execute(startupCode, (result: { type: string, stream: string, message?: string, data: { [key: string]: string } | string }) => {
+                if (result.stream === 'status' && result.type === 'text') {
+                    if (result.data === 'ok') {
+                        return resolve();
+                    }
+                    if (result.data === 'error') {
+                        this.outputChannel.appendLine(errorMessage);
+                        return reject(new Error(errorMessage));
+                    }
+                }
+                if (result.stream === 'error' && result.type === 'text' && typeof result.message === 'string') {
+                    errorMessage += 'Details: ' + result.message;
+                }
+            });
         });
     }
 
@@ -161,17 +189,16 @@ export class KernelManagerImpl extends EventEmitter {
 
     public getKernelSpecFor(language: string): Promise<KernelspecMetadata> {
         return this.getAllKernelSpecsFor(language).then(kernelSpecs => {
-            if (kernelSpecs.length > 0) {
-                if (pythonSettings.jupyter.defaultKernel.length > 0) {
-                    const defaultKernel = kernelSpecs.find(spec => spec.display_name === pythonSettings.jupyter.defaultKernel);
-                    if (defaultKernel) {
-                        return defaultKernel;
-                    }
-                }
-                return kernelSpecs[0];
-            } else {
+            if (kernelSpecs.length === 0) {
                 throw new Error('Unable to find a kernel for ' + language);
             }
+            if (pythonSettings.jupyter.defaultKernel.length > 0) {
+                const defaultKernel = kernelSpecs.find(spec => spec.display_name === pythonSettings.jupyter.defaultKernel);
+                if (defaultKernel) {
+                    return defaultKernel;
+                }
+            }
+            return kernelSpecs[0];
         });
     }
 
@@ -180,20 +207,12 @@ export class KernelManagerImpl extends EventEmitter {
         return this.getKernelSpecsFromJupyter().then(kernelSpecsFromJupyter => {
             this._kernelSpecs = kernelSpecsFromJupyter;
             if (Object.keys(this._kernelSpecs).length === 0) {
-                const message = 'No kernel specs found, Update IPython/Jupyter to a version that supports: `jupyter kernelspec list --json` or `ipython kernelspec list --json`';
-                this.outputChannel.appendLine(message);
-                vscode.window.showErrorMessage(message);
+                throw new Error('No kernel specs found, Update IPython/Jupyter to a version that supports: `jupyter kernelspec list --json` or `ipython kernelspec list --json`');
             } else {
                 const message = 'VS Code Kernels updated:';
                 const details = Object.keys(this._kernelSpecs).map(key => this._kernelSpecs[key].spec.display_name).join(', ');
                 this.outputChannel.appendLine(message + ', ' + details);
             }
-            return this._kernelSpecs;
-        }).catch(reason => {
-            const message = 'No kernel specs found, Update IPython/Jupyter to a version that supports: `jupyter kernelspec list --json` or `ipython kernelspec list --json`';
-            this.outputChannel.appendLine(message);
-            this.outputChannel.appendLine('Error in finding kernels: ' + reason);
-            vscode.window.showErrorMessage(message);
             return this._kernelSpecs;
         });
     }

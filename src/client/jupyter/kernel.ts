@@ -139,17 +139,19 @@ export abstract class Kernel extends vscode.Disposable implements KernelEvents {
 
     public _parseErrorMessage(message) {
         let errorString: string;
+        const ename = message.content.ename != null ? message.content.ename : '';
+        const evalue = message.content.evalue != null ? message.content.evalue : '';
+        const errorMessage = ename + ': ' + evalue;
+        errorString = errorMessage;
         try {
             errorString = message.content.traceback.join('\n');
         } catch (err) {
-            const ename = message.content.ename != null ? message.content.ename : '';
-            const evalue = message.content.evalue != null ? message.content.evalue : '';
-            errorString = ename + ': ' + evalue;
         }
         return {
             data: {
-                'text/plain': errorString
+                'text/plain': errorString,
             },
+            message: errorMessage,
             type: 'text',
             stream: 'error'
         };
