@@ -43,6 +43,7 @@ export class JupyterDisplay extends vscode.Disposable {
                 sendDataToResultView = this.server.clientsConnected(2000);
             }
             return sendDataToResultView.then(clientConnected => {
+                // vscode.commands.executeCommand('_webview.openDevTools');
                 if (clientConnected) {
                     return this.server.sendResults(data);
                 }
