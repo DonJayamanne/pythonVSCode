@@ -24,7 +24,7 @@ export class CellHelper {
                 });
             }
 
-            if (index > 0 && index === document.lineCount - 1) {
+            if (cells.length > 1 && index === document.lineCount - 1) {
                 const previousCell = cells[cells.length - 1];
                 previousCell.range = new Range(previousCell.range.start, line.range.end);
             }
