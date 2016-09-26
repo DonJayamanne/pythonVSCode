@@ -299,6 +299,8 @@ class Parser(object):
                             self._used_names[c.value].remove(c)
                         except ValueError:
                             pass  # This may happen with CompFor.
+                        except KeyError:
+                            pass  # this seems to happen for large files
 
         for dfa, state, node in stack[start_index:]:
             clear_names(children=node[1])
