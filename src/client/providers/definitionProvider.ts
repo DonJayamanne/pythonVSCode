@@ -30,7 +30,6 @@ export class PythonDefinitionProvider implements vscode.DefinitionProvider {
                 return resolve();
             }
 
-            var source = document.getText();
             var range = document.getWordRangeAtPosition(position);
             var columnIndex = range.isEmpty ? position.character : range.end.character;
             var cmd: proxy.ICommand<proxy.IDefinitionResult> = {
@@ -38,10 +37,11 @@ export class PythonDefinitionProvider implements vscode.DefinitionProvider {
                 command: proxy.CommandType.Definitions,
                 fileName: filename,
                 columnIndex: columnIndex,
-                lineIndex: position.line,
-                source: source
+                lineIndex: position.line
             };
-
+            if (document.isDirty){
+                cmd.source = document.getText();
+            }
             this.jediProxyHandler.sendCommand(cmd, resolve, token);
         });
     }

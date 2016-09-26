@@ -30,7 +30,6 @@ export class PythonHoverProvider implements vscode.HoverProvider {
                 return resolve();
             }
 
-            var source = document.getText();
             var range = document.getWordRangeAtPosition(position);
             if (range == undefined || range.isEmpty) {
                 return resolve();
@@ -41,10 +40,11 @@ export class PythonHoverProvider implements vscode.HoverProvider {
                 command: proxy.CommandType.Completions,
                 fileName: filename,
                 columnIndex: columnIndex,
-                lineIndex: position.line,
-                source: source
+                lineIndex: position.line
             };
-
+            if (document.isDirty){
+                cmd.source = document.getText();
+            }
             this.jediProxyHandler.sendCommand(cmd, resolve, token);
         });
     }

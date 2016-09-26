@@ -303,12 +303,12 @@ class JediCompletion(object):
         if lookup == 'names':
             return self._write_response(self._serialize_definitions(
                 jedi.api.names(
-                    source=request['source'], 
+                    source=request.get('source', None), 
                     path=request.get('path', '')),
                 request['id']))
                 
         script = jedi.api.Script(
-            source=request['source'], line=request['line'] + 1,
+            source=request.get('source', None), line=request['line'] + 1,
             column=request['column'], path=request.get('path', ''))
 
         if lookup == 'definitions':

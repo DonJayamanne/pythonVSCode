@@ -35,7 +35,6 @@ export class PythonReferenceProvider implements vscode.ReferenceProvider {
                 return resolve();
             }
 
-            var source = document.getText();
             var range = document.getWordRangeAtPosition(position);
             var columnIndex = range.isEmpty ? position.character : range.end.character;
             var cmd: proxy.ICommand<proxy.IReferenceResult> = {
@@ -43,10 +42,12 @@ export class PythonReferenceProvider implements vscode.ReferenceProvider {
                 command: proxy.CommandType.Usages,
                 fileName: filename,
                 columnIndex: columnIndex,
-                lineIndex: position.line,
-                source: source
+                lineIndex: position.line
             };
 
+            if (document.isDirty){
+                cmd.source = document.getText();
+            }
             var definition: proxy.IAutoCompleteItem = null;
 
             this.jediProxyHandler.sendCommand(cmd, resolve, token);

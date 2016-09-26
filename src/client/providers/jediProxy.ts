@@ -484,7 +484,7 @@ function getConfig() {
 export interface ICommand<T extends ICommandResult> {
     telemetryEvent: string;
     command: CommandType;
-    source: string;
+    source?: string;
     fileName: string;
     lineIndex: number;
     columnIndex: number;

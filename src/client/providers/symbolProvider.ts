@@ -26,15 +26,18 @@ export class PythonSymbolProvider implements vscode.DocumentSymbolProvider {
         return new Promise<vscode.SymbolInformation[]>((resolve, reject) => {
             var filename = document.fileName;
 
-            var source = document.getText();
             var cmd: proxy.ICommand<proxy.ISymbolResult> = {
                 telemetryEvent: telemetryContracts.IDE.Symbol,
                 command: proxy.CommandType.Symbols,
                 fileName: filename,
                 columnIndex: 0,
-                lineIndex: 0,
-                source: source
+                lineIndex: 0
             };
+
+            if (document.isDirty){
+                cmd.source = document.getText();
+            }
+
             this.jediProxyHandler.sendCommand(cmd, resolve, token);
         });
     }
