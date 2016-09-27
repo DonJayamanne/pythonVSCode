@@ -11,7 +11,7 @@ import * as pydocstyle from './../linters/pydocstyle';
 import * as settings from '../common/configSettings';
 import * as telemetryHelper from '../common/telemetry';
 import * as telemetryContracts from '../common/telemetryContracts';
-
+import {LinterErrors} from '../common/constants'
 const lintSeverityToVSSeverity = new Map<linter.LintMessageSeverity, vscode.DiagnosticSeverity>();
 lintSeverityToVSSeverity.set(linter.LintMessageSeverity.Error, vscode.DiagnosticSeverity.Error)
 lintSeverityToVSSeverity.set(linter.LintMessageSeverity.Hint, vscode.DiagnosticSeverity.Hint)
@@ -37,6 +37,9 @@ function createDiagnostics(message: linter.ILintMessage, txtDocumentLines: strin
     return diagnostic;
 }
 
+interface DocumentHasJupyterCodeCells {
+    (doc: vscode.TextDocument, token: vscode.CancellationToken): Promise<Boolean>;
+}
 export class LintProvider extends vscode.Disposable {
     private settings: settings.IPythonSettings;
     private diagnosticCollection: vscode.DiagnosticCollection;
@@ -45,7 +48,8 @@ export class LintProvider extends vscode.Disposable {
     private outputChannel: vscode.OutputChannel;
     private context: vscode.ExtensionContext;
 
-    public constructor(context: vscode.ExtensionContext, outputChannel: vscode.OutputChannel, private workspaceRootPath: string) {
+    public constructor(context: vscode.ExtensionContext, outputChannel: vscode.OutputChannel,
+        private workspaceRootPath: string, private documentHasJupyterCodeCells: DocumentHasJupyterCodeCells) {
         super(() => { });
         this.outputChannel = outputChannel;
         this.context = context;
@@ -68,13 +72,13 @@ export class LintProvider extends vscode.Disposable {
             if (e.languageId !== 'python' || !this.settings.linting.enabled || !this.settings.linting.lintOnSave) {
                 return;
             }
-            this.lintDocument(e.uri, e.getText().split(/\r?\n/g), 100);
+            this.lintDocument(e, e.uri, e.getText().split(/\r?\n/g), 100);
         });
         this.context.subscriptions.push(disposable);
     }
 
     private lastTimeout: number;
-    private lintDocument(documentUri: vscode.Uri, documentLines: string[], delay: number): void {
+    private lintDocument(document: vscode.TextDocument, documentUri: vscode.Uri, documentLines: string[], delay: number): void {
         // Since this is a hack, lets wait for 2 seconds before linting
         // Give user to continue typing before we waste CPU time
         if (this.lastTimeout) {
@@ -83,11 +87,11 @@ export class LintProvider extends vscode.Disposable {
         }
 
         this.lastTimeout = setTimeout(() => {
-            this.onLintDocument(documentUri, documentLines);
+            this.onLintDocument(document, documentUri, documentLines);
         }, delay);
     }
 
-    private onLintDocument(documentUri: vscode.Uri, documentLines: string[]): void {
+    private onLintDocument(document: vscode.TextDocument, documentUri: vscode.Uri, documentLines: string[]): void {
         if (this.pendingLintings.has(documentUri.fsPath)) {
             this.pendingLintings.get(documentUri.fsPath).cancel();
             this.pendingLintings.delete(documentUri.fsPath);
@@ -113,29 +117,37 @@ export class LintProvider extends vscode.Disposable {
                 return results;
             });
         });
+        this.documentHasJupyterCodeCells(document, cancelToken.token).then(hasJupyterCodeCells => {
+            // linters will resolve asynchronously - keep a track of all 
+            // diagnostics reported as them come in
+            let diagnostics: vscode.Diagnostic[] = [];
 
-        // linters will resolve asynchronously - keep a track of all 
-        // diagnostics reported as them come in
-        let diagnostics: vscode.Diagnostic[] = [];
+            promises.forEach(p => {
+                p.then(msgs => {
+                    if (cancelToken.token.isCancellationRequested) {
+                        return;
+                    }
 
-        promises.forEach(p => {
-            p.then(msgs => {
-                if (cancelToken.token.isCancellationRequested) {
-                    return;
-                }
-                
-                // Build the message and suffix the message with the name of the linter used
-                msgs.forEach(d => {
-                    diagnostics.push(createDiagnostics(d, documentLines));
+                    // Build the message and suffix the message with the name of the linter used
+                    msgs.forEach(d => {
+                        // ignore magic commands from jupyter
+                        if (hasJupyterCodeCells && documentLines[d.line - 1].trim().startsWith('%') &&
+                            (d.code === LinterErrors.pylint.InvalidSyntax ||
+                                d.code === LinterErrors.prospector.InvalidSyntax ||
+                                d.code === LinterErrors.flake8.InvalidSyntax)) {
+                            return;
+                        }
+                        diagnostics.push(createDiagnostics(d, documentLines));
+                    });
+
+                    // Limit the number of messages to the max value
+                    diagnostics = diagnostics.filter((value, index) => index <= this.settings.linting.maxNumberOfProblems);
+
+                    // set all diagnostics found in this pass, as this method always clears existing diagnostics.
+                    this.diagnosticCollection.set(documentUri, diagnostics)
+
                 });
-
-                // Limit the number of messages to the max value
-                diagnostics = diagnostics.filter((value, index) => index <= this.settings.linting.maxNumberOfProblems);
-
-                // set all diagnostics found in this pass, as this method always clears existing diagnostics.
-                this.diagnosticCollection.set(documentUri, diagnostics)
-
-            })
-        })
+            });
+        });
     }
 }

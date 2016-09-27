@@ -59,3 +59,15 @@ export namespace Delays {
     // Max time to wait before aborting the generation of code lenses for unit tests
     export const MaxUnitTestCodeLensDelay = 5000;
 }
+
+export namespace LinterErrors {
+    export namespace pylint {
+        export const InvalidSyntax = 'E0001';
+    }
+    export namespace prospector {
+        export const InvalidSyntax = 'F999';
+    }
+    export namespace flake8 {
+        export const InvalidSyntax = 'E999';
+    }
+}
