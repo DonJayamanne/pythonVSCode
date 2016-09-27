@@ -76,15 +76,16 @@ export function activate(context: vscode.ExtensionContext) {
     const formatProvider = new PythonFormattingEditProvider(context, formatOutChannel, pythonSettings, vscode.workspace.rootPath);
     context.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider(PYTHON, formatProvider));
     context.subscriptions.push(vscode.languages.registerDocumentRangeFormattingEditProvider(PYTHON, formatProvider));
-    context.subscriptions.push(new LintProvider(context, lintingOutChannel, vscode.workspace.rootPath));
 
-    context.subscriptions.push(vscode.languages.registerCodeActionsProvider(PYTHON, new PythonCodeActionsProvider(context)));
-
-    tests.activate(context, unitTestOutChannel);
 
     jupMain = new jup.Jupyter(lintingOutChannel);
+    const documentHasJupyterCodeCells = jupMain.hasCodeCells.bind(jupMain);
     jupMain.activate(null);
     context.subscriptions.push(jupMain);
+
+    context.subscriptions.push(new LintProvider(context, lintingOutChannel, vscode.workspace.rootPath, documentHasJupyterCodeCells));
+    context.subscriptions.push(vscode.languages.registerCodeActionsProvider(PYTHON, new PythonCodeActionsProvider(context)));
+    tests.activate(context, unitTestOutChannel);
 
     // Possible this extension loads before the others, so lets wait for 5 seconds
     setTimeout(disableOtherDocumentSymbolsProvider, 5000);
