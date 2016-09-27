@@ -1,4 +1,5 @@
-import {TextEdit, Position, Range, TextDocument} from 'vscode';
+import {TextEdit, Position, Range, TextDocument, WorkspaceEdit} from 'vscode';
+import * as vscode from 'vscode';
 import * as dmp from 'diff-match-patch';
 import {EOL} from 'os';
 import * as fs from 'fs';
@@ -60,7 +61,7 @@ export function getTextEditsFromPatch(before: string, patch: string): TextEdit[]
     if (!Array.isArray(patches) || patches.length === 0) {
         throw new Error('Unable to parse Patch string');
     }
-    let textEdits = [];
+    let textEdits: TextEdit[] = [];
 
     // Add line feeds
     // & build the text edits    
@@ -69,24 +70,95 @@ export function getTextEditsFromPatch(before: string, patch: string): TextEdit[]
             diff[1] += EOL;
         });
 
-        textEdits = textEdits.concat(getTextEditsInternal(before, patch.diffs, patch.start1));
+        getTextEditsInternal(before, patch.diffs, patch.start1).forEach(edit => textEdits.push(edit.apply()));
     });
 
     return textEdits;
 }
+export function getWorkspaceEditsFromPatch(filePatches: string[]): WorkspaceEdit {
+    const workspaceEdit = new WorkspaceEdit();
+    filePatches.forEach(patch => {
+        const indexOfAtAt = patch.indexOf('@@');
+        if (indexOfAtAt === -1) {
+            return;
+        }
+        const fileNameLines = patch.substring(0, indexOfAtAt).split(/\r?\n/g)
+            .map(line => line.trim())
+            .filter(line => line.length > 0 &&
+                line.toLowerCase().endsWith('.py') &&
+                line.indexOf(' a') > 0);
+
+        if (patch.startsWith('---')) {
+            // Strip the first two lines
+            patch = patch.substring(indexOfAtAt);
+        }
+        if (patch.length === 0) {
+            return;
+        }
+        // We can't find the find name
+        if (fileNameLines.length === 0) {
+            return;
+        }
+
+        let fileName = fileNameLines[0].substring(fileNameLines[0].indexOf(' a') + 3).trim();
+        fileName = path.isAbsolute(fileName) ? fileName : path.resolve(vscode.workspace.rootPath, fileName);
+        if (!fs.existsSync(fileName)) {
+            return;
+        }
+
+        // Remove the text added by unified_diff
+        // # Work around missing newline (http://bugs.python.org/issue2142).
+        patch = patch.replace(/\\ No newline at end of file[\r\n]/, '');
+
+        let d = new dmp.diff_match_patch();
+        let patches: any[] = patch_fromText.call(d, patch);
+        if (!Array.isArray(patches) || patches.length === 0) {
+            throw new Error('Unable to parse Patch string');
+        }
+
+        const fileSource = fs.readFileSync(fileName).toString('utf8');
+        const fileUri = vscode.Uri.file(fileName);
+
+        // Add line feeds
+        // & build the text edits    
+        patches.forEach(patch => {
+            patch.diffs.forEach(diff => {
+                diff[1] += EOL;
+            });
+
+            getTextEditsInternal(fileSource, patch.diffs, patch.start1).forEach(edit => {
+                switch (edit.action) {
+                    case EDIT_DELETE: {
+                        workspaceEdit.delete(fileUri, new Range(edit.start, edit.end));
+                    }
+                    case EDIT_INSERT: {
+                        workspaceEdit.insert(fileUri, edit.start, edit.text);
+                    }
+                    case EDIT_REPLACE: {
+                        workspaceEdit.replace(fileUri, new Range(edit.start, edit.end), edit.text);
+                    }
+                }
+            });
+        });
+
+
+    });
+
+    return workspaceEdit;
+}
 export function getTextEdits(before: string, after: string): TextEdit[] {
     let d = new dmp.diff_match_patch();
     let diffs = d.diff_main(before, after);
-    return getTextEditsInternal(before, diffs);
+    return getTextEditsInternal(before, diffs).map(edit => edit.apply());
 }
-function getTextEditsInternal(before: string, diffs: [number, string][], startLine: number = 0): TextEdit[] {
+function getTextEditsInternal(before: string, diffs: [number, string][], startLine: number = 0): Edit[] {
     let line = startLine;
     let character = 0;
     if (line > 0) {
         let beforeLines = <string[]>before.split(/\r?\n/g);
         beforeLines.filter((l, i) => i < line).forEach(l => character += l.length + NEW_LINE_LENGTH);
     }
-    let edits: TextEdit[] = [];
+    const edits: Edit[] = [];
     let edit: Edit = null;
 
     for (let i = 0; i < diffs.length; i++) {
@@ -128,7 +200,7 @@ function getTextEditsInternal(before: string, diffs: [number, string][], startLi
 
             case dmp.DIFF_EQUAL:
                 if (edit != null) {
-                    edits.push(edit.apply());
+                    edits.push(edit);
                     edit = null;
                 }
                 break;
@@ -136,7 +208,7 @@ function getTextEditsInternal(before: string, diffs: [number, string][], startLi
     }
 
     if (edit != null) {
-        edits.push(edit.apply());
+        edits.push(edit);
     }
 
     return edits;

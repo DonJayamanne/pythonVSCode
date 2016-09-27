@@ -166,6 +166,23 @@ class RopeRefactoring(object):
         self.default_sys_path = sys.path
         self._input = io.open(sys.stdin.fileno(), encoding='utf-8')
 
+    def _rename(self, filePath, start, newName):
+        """
+        Extracts a variale
+        """
+        project = rope.base.project.Project(
+            WORKSPACE_ROOT, ropefolder=ROPE_PROJECT_FOLDER, save_history=False)
+        resourceToRefactor = libutils.path_to_resource(project, filePath)
+        refactor = RenameRefactor(
+            project, resourceToRefactor, startOffset=start, newName=newName)
+        refactor.refactor()
+        changes = refactor.changes
+        project.close()
+        valueToReturn = []
+        for change in changes:
+            valueToReturn.append({'diff': change.diff})
+        return valueToReturn
+
     def _extractVariable(self, filePath, start, end, newName):
         """
         Extracts a variale
@@ -225,6 +242,10 @@ class RopeRefactoring(object):
 
         if lookup == '':
             pass
+        elif lookup == 'rename':
+            changes = self._rename(request['file'], int(
+                request['start']), request['name'])
+            return self._write_response(self._serialize(request['id'], changes))
         elif lookup == 'extract_variable':
             changes = self._extractVariable(request['file'], int(
                 request['start']), int(request['end']), request['name'])

@@ -35,6 +35,10 @@ export class RefactorProxy extends vscode.Disposable {
         }
         this._process = null;
     }
+    rename<T>(document: vscode.TextDocument, name: string, filePath: string, range: vscode.Range): Promise<T> {
+        let command = { "lookup": "rename", "file": filePath, "start": document.offsetAt(range.start).toString(), "id": "1", "name": name };
+        return this.sendCommand<T>(JSON.stringify(command), REFACTOR.Rename);
+    }
     extractVariable<T>(document: vscode.TextDocument, name: string, filePath: string, range: vscode.Range): Promise<T> {
         let command = { "lookup": "extract_variable", "file": filePath, "start": document.offsetAt(range.start).toString(), "end": document.offsetAt(range.end).toString(), "id": "1", "name": name };
         return this.sendCommand<T>(JSON.stringify(command), REFACTOR.ExtractVariable);

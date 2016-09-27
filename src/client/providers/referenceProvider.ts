@@ -8,8 +8,8 @@ import * as telemetryContracts from "../common/telemetryContracts";
 export class PythonReferenceProvider implements vscode.ReferenceProvider {
     private jediProxyHandler: proxy.JediProxyHandler<proxy.IReferenceResult, vscode.Location[]>;
 
-    public constructor(context: vscode.ExtensionContext) {
-        this.jediProxyHandler = new proxy.JediProxyHandler(context, [], PythonReferenceProvider.parseData);
+    public constructor(context: vscode.ExtensionContext, jediProxy: proxy.JediProxy = null) {
+        this.jediProxyHandler = new proxy.JediProxyHandler(context, [], PythonReferenceProvider.parseData, jediProxy);
     }
     private static parseData(data: proxy.IReferenceResult): vscode.Location[] {
         if (data && data.references.length > 0) {

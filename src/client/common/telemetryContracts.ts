@@ -17,6 +17,7 @@ export namespace IDE {
     export const Lint = 'LINTING';
 }
 export namespace REFACTOR {
+    export const Rename = 'REFACTOR_RENAME';
     export const ExtractVariable = 'REFACTOR_EXTRACT_VAR';
     export const ExtractMethod = 'REFACTOR_EXTRACT_METHOD';
 }

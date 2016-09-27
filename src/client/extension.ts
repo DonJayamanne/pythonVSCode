@@ -61,16 +61,17 @@ export function activate(context: vscode.ExtensionContext) {
         ]
     });
 
-    let renameProvider = new PythonRenameProvider(context);
-    context.subscriptions.push(vscode.languages.registerRenameProvider(PYTHON, renameProvider));
+    context.subscriptions.push(vscode.languages.registerRenameProvider(PYTHON, new PythonRenameProvider()));
     context.subscriptions.push(vscode.languages.registerHoverProvider(PYTHON, new PythonHoverProvider(context)));
-    context.subscriptions.push(vscode.languages.registerDefinitionProvider(PYTHON, new PythonDefinitionProvider(context)));
-    context.subscriptions.push(vscode.languages.registerReferenceProvider(PYTHON, new PythonReferenceProvider(context)));
+    const definitionProvider = new PythonDefinitionProvider(context);
+    const jediProx = definitionProvider.JediProxy;
+    context.subscriptions.push(vscode.languages.registerDefinitionProvider(PYTHON, definitionProvider));
+    context.subscriptions.push(vscode.languages.registerReferenceProvider(PYTHON, new PythonReferenceProvider(context, jediProx)));
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider(PYTHON, new PythonCompletionItemProvider(context), '.'));
 
-    context.subscriptions.push(vscode.languages.registerDocumentSymbolProvider(PYTHON, new PythonSymbolProvider(context, renameProvider.JediProxy)));
+    context.subscriptions.push(vscode.languages.registerDocumentSymbolProvider(PYTHON, new PythonSymbolProvider(context, jediProx)));
     if (pythonSettings.devOptions.indexOf('DISABLE_SIGNATURE') === -1) {
-        context.subscriptions.push(vscode.languages.registerSignatureHelpProvider(PYTHON, new PythonSignatureProvider(context, renameProvider.JediProxy), '(', ','));
+        context.subscriptions.push(vscode.languages.registerSignatureHelpProvider(PYTHON, new PythonSignatureProvider(context, jediProx), '(', ','));
     }
     const formatProvider = new PythonFormattingEditProvider(context, formatOutChannel, pythonSettings, vscode.workspace.rootPath);
     context.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider(PYTHON, formatProvider));
