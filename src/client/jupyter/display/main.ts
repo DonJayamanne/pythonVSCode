@@ -27,8 +27,8 @@ export class JupyterDisplay extends vscode.Disposable {
         this.disposables.push(vscode.workspace.registerTextDocumentContentProvider(jupyterSchema, this.previewWindow));
         this.cellOptions = new CellOptions(cellCodeLenses, cellHighlightProvider);
         this.disposables.push(this.cellOptions);
-        this.server.on('appendResults', appendType => {
-            this.appendResults = appendType === 'append';
+        this.server.on('appendResults', appendResults => {
+            this.appendResults = appendResults === true;
         });
     }
 
@@ -38,10 +38,7 @@ export class JupyterDisplay extends vscode.Disposable {
         return this.server.start().then(port => {
             this.previewWindow.ServerPort = port;
             // If we need to append the results, then do so if we have any result windows open
-            let sendDataToResultView = Promise.resolve(false);
-            if (this.appendResults) {
-                sendDataToResultView = this.server.clientsConnected(2000);
-            }
+            let sendDataToResultView = this.server.clientsConnected(2000);
             return sendDataToResultView.then(clientConnected => {
                 // vscode.commands.executeCommand('_webview.openDevTools');
                 if (clientConnected) {

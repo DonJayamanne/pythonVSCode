@@ -93,10 +93,7 @@ export class TextDocumentContentProvider extends Disposable implements vscode.Te
                 </head>
                 <body onload="initializeResults('${dirNameForScripts}', ${this.serverPort})">
                     <div id="resultMenu">
-                        <select id="displayStyle">
-                            <option value="clear" ${this.appendResults ? '' : 'selected'}>Clear previous results</option>
-                            <option value="append" ${this.appendResults ? 'selected' : ''}>Append results</option>
-                        </select>
+                        <label><input id="displayStyle" type="checkbox" ${this.appendResults ? 'checked' : ''}>Append Results</label>
                         &nbsp;
                         <button id="clearResults">Clear Results</button>
                         <br>

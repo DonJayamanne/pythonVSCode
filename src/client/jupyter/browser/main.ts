@@ -11,17 +11,15 @@ function displayData(data: any, whiteBg: boolean): Promise<HTMLElement> {
         data['text/html'] = data['text/html'].replace(/<\/scripts>/g, '</script>');
     }
     return transform(data).then(result => {
+        const div = document.createElement('div');
+        div.style.display = 'block';
+        div.appendChild(result.el);
+
         // If dealing with images add them inside a div with white background
         if (whiteBg === true || Object.keys(data).some(key => key.startsWith('image/'))) {
-            const div = document.createElement('div');
             div.style.backgroundColor = 'white';
-            div.style.display = 'inline-block';
-            div.appendChild(result.el);
-            return container.appendChild(div);
         }
-        else {
-            return container.appendChild(result.el);
-        }
+        return container.appendChild(div);
     });
 }
 
@@ -50,11 +48,19 @@ function displayData(data: any, whiteBg: boolean): Promise<HTMLElement> {
     document.getElementById('clearResults').addEventListener('click', () => {
         document.getElementById(ResultsContainerId).innerHTML = '';
     });
-
+    
     try {
         if (typeof port === 'number' && port > 0) {
             var socket = (window as any).io.connect('http://localhost:' + port);
+            const displayStyleEle = document.getElementById('displayStyle') as HTMLInputElement;
+            displayStyleEle.addEventListener('click', () => {
+                socket.emit('appendResults', { append: displayStyleEle.checked });
+            });
+
             socket.on('results', (results: any[]) => {
+                if (displayStyleEle.checked !== true){
+                    document.getElementById(ResultsContainerId).innerHTML = '';
+                }
                 const promises = results.map(data => displayData(data, whiteBg));
                 Promise.all<HTMLElement>(promises).then(elements => {
                     // Bring the first item into view
@@ -69,10 +75,6 @@ function displayData(data: any, whiteBg: boolean): Promise<HTMLElement> {
             });
             socket.on('clientExists', (data: any) => {
                 socket.emit('clientExists', { id: data.id });
-            });
-            const displayStyleEle = document.getElementById('displayStyle') as HTMLSelectElement;
-            displayStyleEle.addEventListener('change', () => {
-                socket.emit('appendResults', { append: displayStyleEle.value });
             });
         }
     }
