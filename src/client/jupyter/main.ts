@@ -18,6 +18,7 @@ export class Jupyter extends vscode.Disposable {
     private status: KernelStatus;
     private disposables: vscode.Disposable[];
     private display: JupyterDisplay;
+    private codeLensProvider: JupyterCodeLensProvider;
     constructor(private outputChannel: vscode.OutputChannel) {
         super(() => { });
         this.disposables = [];
@@ -28,15 +29,16 @@ export class Jupyter extends vscode.Disposable {
         this.kernelManager = new KernelManagerImpl(this.outputChannel);
         this.disposables.push(this.kernelManager);
         this.disposables.push(vscode.window.onDidChangeActiveTextEditor(this.onEditorChanged.bind(this)));
-        const codeLensProvider = new JupyterCodeLensProvider();
-        this.disposables.push(vscode.languages.registerCodeLensProvider(PythonLanguage, codeLensProvider));
+        this.codeLensProvider = new JupyterCodeLensProvider();
+        this.disposables.push(vscode.languages.registerCodeLensProvider(PythonLanguage, this.codeLensProvider));
         this.disposables.push(vscode.languages.registerDocumentSymbolProvider(PythonLanguage, new JupyterSymbolProvider()));
-        let highlightProvider = new JupyterCellHighlightProvider(codeLensProvider);
-        this.disposables.push(vscode.languages.registerDocumentHighlightProvider(PythonLanguage, highlightProvider));
-        this.disposables.push(new JupyterCellBorderProvider(codeLensProvider, highlightProvider));
+        let highlightProvider: JupyterCellHighlightProvider;
+        // highlightProvider = new JupyterCellHighlightProvider(codeLensProvider);
+        // this.disposables.push(vscode.languages.registerDocumentHighlightProvider(PythonLanguage, highlightProvider));
+        this.disposables.push(new JupyterCellBorderProvider(this.codeLensProvider, highlightProvider));
         this.status = new KernelStatus();
         this.disposables.push(this.status);
-        this.display = new JupyterDisplay(codeLensProvider, highlightProvider);
+        this.display = new JupyterDisplay(this.codeLensProvider, highlightProvider);
         this.disposables.push(this.display);
 
         // This happend when user changes it from status bar
@@ -44,6 +46,13 @@ export class Jupyter extends vscode.Disposable {
             if (this.kernel !== kernel && (this.kernel && this.kernel.kernelSpec.language === kernel.kernelSpec.language)) {
                 this.onKernelChanged(kernel);
             }
+        });
+    }
+    public hasCodeCells(document: vscode.TextDocument, token: vscode.CancellationToken): Promise<boolean> {
+        return new Promise<boolean>(resolve => {
+            this.codeLensProvider.provideCodeLenses(document, token).then(codeLenses => {
+                resolve(Array.isArray(codeLenses) && codeLenses.length > 0);
+            }, () => { resolve(false); });
         });
     }
     public dispose() {
