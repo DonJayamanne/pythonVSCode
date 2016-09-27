@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import {KernelspecMetadata} from '../contracts';
-import {Commands} from '../../common/constants';
+import {Commands, PythonLanguage} from '../../common/constants';
 
 export class KernelStatus extends vscode.Disposable {
     private disposables: vscode.Disposable[];
@@ -15,10 +15,25 @@ export class KernelStatus extends vscode.Disposable {
         this.disposables.push(vscode.commands.registerCommand('jupyter:proxyKernelOptionsCmd', () => {
             vscode.commands.executeCommand(Commands.Jupyter.Kernel_Options, this.activeKernalDetails);
         }));
+
+        this.disposables.push(vscode.window.onDidChangeActiveTextEditor(this.onDidChangeActiveTextEditor.bind(this)));
+    }
+
+    private onDidChangeActiveTextEditor(editor: vscode.TextEditor) {
+        const editorsOpened = vscode.workspace.textDocuments.length > 0;
+        if ((!editor && editorsOpened) || (editor && editor.document.languageId === PythonLanguage.language)) {
+            if (this.activeKernalDetails) {
+                this.statusBar.show();
+            }
+        }
+        else {
+            this.statusBar.hide();
+        }
     }
     private activeKernalDetails: KernelspecMetadata;
     public setActiveKernel(kernelspec: KernelspecMetadata) {
         if (!kernelspec) {
+            this.activeKernalDetails = null;
             return this.statusBar.hide();
         }
         this.activeKernalDetails = kernelspec;
