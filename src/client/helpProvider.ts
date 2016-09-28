@@ -2,9 +2,7 @@
 
 import * as vscode from 'vscode';
 import {Disposable} from 'vscode';
-import * as fs from 'fs';
 import * as path from 'path';
-import * as constants from './common/constants';
 import * as http from 'http';
 import {createDeferred} from './common/helpers';
 const nodeStatic = require('node-static');
@@ -55,7 +53,7 @@ export class HelpProvider {
         this.disposables.push(vscode.commands.registerCommand('python.displayHelp', (page: string) => {
             this.startServer().then(port => {
                 helpPageToDisplay = page;
-                vscode.commands.executeCommand('vscode.previewHtml', previewUri, vscode.ViewColumn.One, 'Help');
+                vscode.commands.executeCommand('vscode.previewHtml', previewUri, vscode.ViewColumn.Two, 'Help');
             });
         }));
     }
@@ -71,7 +69,7 @@ export class HelpProvider {
         }
 
         let def = createDeferred<number>();
-        var file = new nodeStatic.Server(path.join(__dirname, '..', '..', 'docs', 'public'));
+        var file = new nodeStatic.Server(path.join(__dirname, '..', '..', 'docs'));
         this.httpServer = http.createServer((request, response) => {
             request.addListener('end', function () {
                 // 
