@@ -1,0 +1,9 @@
+siteTitle="Python in Visual Studio Code"
+baseColor = "#884499"
+linkPrefix = "/gatsby-starter-documentation"
+docPages = [
+  "/docs/jupyter/",
+  "/docs/jupyter_getting-started/",
+  "/docs/jupyter_prerequisites/",
+  "/docs/jupyter_examples/"
+]
