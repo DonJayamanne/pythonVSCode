@@ -214,8 +214,8 @@ export class KernelManagerImpl extends EventEmitter {
     }
 
     public getKernelSpecsFromJupyter(): Promise<any> {
-        const jupyter = 'jupyterx kernelspec list --json --log-level=CRITICAL';
-        const ipython = 'ipythonx kernelspec list --json --log-level=CRITICAL';
+        const jupyter = 'jupyter kernelspec list --json --log-level=CRITICAL';
+        const ipython = 'ipython kernelspec list --json --log-level=CRITICAL';
         return this.getKernelSpecsFrom(jupyter).catch(jupyterError => {
             return this.getKernelSpecsFrom(ipython);
         });
