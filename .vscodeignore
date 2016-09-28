@@ -13,17 +13,3 @@ vsc-extension-quickstart.md
 .travis.yml
 requirements.txt
 webpack.config.js
-docs/components
-docs/css
-docs/node_modules
-docs/pages
-docs/utils
-docs/wrappers
-docs/.gitignore
-docs/.gatsby-context.js
-docs/.travis.yml
-docs/config.toml
-docs/html.js
-docs/package.json
-docs/readme.md
-docs/package.json
