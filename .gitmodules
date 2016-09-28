@@ -1,3 +1,4 @@
 [submodule "docs"]
 	path = docs
 	url = https://github.com/DonJayamanne/pythonVSCodeDocs.git
+	branch = help
