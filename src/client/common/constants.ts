@@ -71,3 +71,11 @@ export namespace LinterErrors {
         export const InvalidSyntax = 'E999';
     }
 }
+
+export namespace Documentation {
+    export namespace Jupyter {
+        export const GettingStarted = "/docs/jupyter_getting-started/";
+        export const Examples = "/docs/jupyter_examples/";
+        export const Setup = "/docs/jupyter_prerequisites/";
+    }
+}

@@ -7,7 +7,7 @@ import {WSKernel} from './ws-kernel';
 import {ZMQKernel} from './zmq-kernel';
 import {launchSpec} from 'spawnteract';
 import {KernelspecMetadata, Kernelspec} from './contracts';
-import {Commands} from '../common/constants';
+import {Commands, Documentation} from '../common/constants';
 import {EventEmitter} from 'events';
 import {PythonSettings} from '../common/configSettings';
 import {formatErrorForLogging} from '../common/utils';
@@ -98,7 +98,11 @@ export class KernelManagerImpl extends EventEmitter {
             return this.startKernel(kernelSpec, language);
         }).catch(reason => {
             let message = `No kernel for language '${language}' found. Ensure you have a Jupyter or IPython kernel installed for it.`;
-            vscode.window.showErrorMessage(message);
+            vscode.window.showErrorMessage(message, 'Help').then(item => {
+                if (item === 'Help') {
+                    vscode.commands.executeCommand('python.displayHelp', Documentation.Jupyter.Setup);
+                }
+            });
             this.outputChannel.appendLine(formatErrorForLogging(reason));
             return;
         });
@@ -210,8 +214,8 @@ export class KernelManagerImpl extends EventEmitter {
     }
 
     public getKernelSpecsFromJupyter(): Promise<any> {
-        const jupyter = 'jupyter kernelspec list --json --log-level=CRITICAL';
-        const ipython = 'ipython kernelspec list --json --log-level=CRITICAL';
+        const jupyter = 'jupyterx kernelspec list --json --log-level=CRITICAL';
+        const ipython = 'ipythonx kernelspec list --json --log-level=CRITICAL';
         return this.getKernelSpecsFrom(jupyter).catch(jupyterError => {
             return this.getKernelSpecsFrom(ipython);
         });

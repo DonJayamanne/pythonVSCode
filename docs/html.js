@@ -4,7 +4,6 @@ import DocumentTitle from 'react-document-title'
 import { prefixLink } from 'gatsby-helpers'
 import { TypographyStyle, GoogleFont } from 'react-typography'
 import typography from './utils/typography'
-import { colors } from 'utils/colors'
 
 const BUILD_TIME = new Date().getTime()
 
@@ -38,27 +37,6 @@ module.exports = React.createClass({
             dangerouslySetInnerHTML={{
               __html:
                 `
-                  a {
-                    color: ${colors.bg};
-                  }
-                  .ball-0 {
-                    background-image: url(${prefixLink('/docs/some-react-code/0.jpg')});
-                  }
-                  .ball-1 {
-                    background-image: url(${prefixLink('/docs/some-react-code/1.jpg')});
-                  }
-                  .ball-2 {
-                    background-image: url(${prefixLink('/docs/some-react-code/2.jpg')});
-                  }
-                  .ball-3 {
-                    background-image: url(${prefixLink('/docs/some-react-code/3.jpg')});
-                  }
-                  .ball-4 {
-                    background-image: url(${prefixLink('/docs/some-react-code/4.jpg')});
-                  }
-                  .ball-5 {
-                    background-image: url(${prefixLink('/docs/some-react-code/5.jpg')});
-                  }
                 `,
             }}
           />

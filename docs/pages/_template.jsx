@@ -3,14 +3,12 @@ import { Link } from 'react-router'
 import { Container, Grid, Span } from 'react-responsive-grid'
 import { prefixLink } from 'gatsby-helpers'
 import includes from 'underscore.string/include'
-//import { colors, activeColors } from 'utils/colors'
 
 import typography from 'utils/typography'
 import { config } from 'config'
 
 // Import styles.
 import 'css/main.css'
-import 'css/github.css'
 
 const { rhythm, adjustFontSizeTo } = typography
 

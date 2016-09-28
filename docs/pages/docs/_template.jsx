@@ -24,7 +24,6 @@ module.exports = React.createClass({
   render() {
     const childPages = config.docPages.map((p) => {
       const page = find(this.props.route.pages, (_p) => _p.path === p)
-      console.log(page);
       return {
         title: page.data.title,
         path: page.path,
@@ -114,8 +113,8 @@ module.exports = React.createClass({
             }}
             >
             {isActive ? <strong>{child.title}</strong> : child.title}
-            {childPagesForThis}
           </Link>
+            {childPagesForThis}
         </li>
       )
     }).filter(item => item !== null);

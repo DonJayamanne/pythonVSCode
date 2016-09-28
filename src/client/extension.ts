@@ -21,6 +21,7 @@ import {activateSetInterpreterProvider} from './providers/setInterpreterProvider
 import {activateExecInTerminalProvider} from './providers/execInTerminalProvider';
 import * as tests from './unittests/main';
 import * as jup from './jupyter/main';
+import {HelpProvider} from './HelpProvider';
 
 const PYTHON: vscode.DocumentFilter = { language: 'python', scheme: 'file' };
 let unitTestOutChannel: vscode.OutputChannel;
@@ -89,6 +90,9 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Possible this extension loads before the others, so lets wait for 5 seconds
     setTimeout(disableOtherDocumentSymbolsProvider, 5000);
+
+    const hepProvider = new HelpProvider();
+    context.subscriptions.push(hepProvider);
 }
 
 function disableOtherDocumentSymbolsProvider() {
