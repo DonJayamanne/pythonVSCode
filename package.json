@@ -743,7 +743,7 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "node ./node_modules/vscode/bin/compile && webpack",
+    "vscode:prepublish": "git submodule update --remote && node ./node_modules/vscode/bin/compile && webpack",
     "compile": "webpack && node ./node_modules/vscode/bin/compile  -watch -p ./ && installServerIntoExtension ./out ./src/server/package.json ./src/server/tsconfig.json",
     "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "node ./node_modules/vscode/bin/test"
