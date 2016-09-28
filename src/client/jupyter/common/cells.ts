@@ -24,10 +24,12 @@ export class CellHelper {
                 });
             }
 
-            if (cells.length > 1 && index === document.lineCount - 1) {
-                const previousCell = cells[cells.length - 1];
-                previousCell.range = new Range(previousCell.range.start, line.range.end);
-            }
+        }
+
+        if (cells.length >= 1) {
+            const line = document.lineAt(document.lineCount - 1);
+            const previousCell = cells[cells.length - 1];
+            previousCell.range = new Range(previousCell.range.start, line.range.end);
         }
         return cells;
     }
