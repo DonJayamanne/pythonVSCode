@@ -1,7 +1,7 @@
 'use strict';
 import * as vscode from 'vscode';
 import * as settings from '../common/configSettings';
-import { Commands } from '../common/constants';
+import { Commands, PythonLanguage } from '../common/constants';
 let path = require('path');
 
 export function activateExecInTerminalProvider() {
@@ -18,7 +18,7 @@ function execInTerminal(fileUri?: vscode.Uri) {
         const activeEditor = vscode.window.activeTextEditor;
         if (activeEditor !== undefined) {
             if (!activeEditor.document.isUntitled) {
-                if (activeEditor.document.languageId === 'python') {
+                if (activeEditor.document.languageId === PythonLanguage.language) {
                     filePath = activeEditor.document.fileName;
                 } else {
                     vscode.window.showErrorMessage('The active file is not a Python source file');
