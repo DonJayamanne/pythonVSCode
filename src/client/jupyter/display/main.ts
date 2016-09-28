@@ -6,6 +6,7 @@ import {TextDocumentContentProvider} from './resultView';
 import {CellOptions} from './cellOptions';
 import {JupyterCodeLensProvider} from '../editorIntegration/codeLensProvider';
 import {Server} from './server';
+import {PythonSettings} from '../../common/configSettings';
 
 const jupyterSchema = 'jupyter-result-viewer';
 const previewUri = vscode.Uri.parse(jupyterSchema + '://authority/jupyter');
@@ -32,7 +33,7 @@ export class JupyterDisplay extends vscode.Disposable {
     }
 
     private displayed = false;
-    private appendResults = false;
+    private appendResults = PythonSettings.getInstance().jupyter.appendResults;
     public showResults(result: string, data: any): Thenable<any> {
         return this.server.start().then(port => {
             this.previewWindow.ServerPort = port;
