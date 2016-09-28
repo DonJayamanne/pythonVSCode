@@ -5,9 +5,7 @@ import {JupyterDisplay} from './display/main';
 import {KernelStatus} from './display/kernelStatus';
 import {Commands, PythonLanguage} from '../common/constants';
 import {JupyterCodeLensProvider} from './editorIntegration/codeLensProvider';
-import {JupyterCellBorderProvider} from './editorIntegration/cellBorderProvider';
 import {JupyterSymbolProvider} from './editorIntegration/symbolProvider';
-import {JupyterCellHighlightProvider} from './editorIntegration/cellHighlightProvider';
 import {formatErrorForLogging} from '../common/utils';
 
 // Todo: Refactor the error handling and displaying of messages
@@ -32,13 +30,9 @@ export class Jupyter extends vscode.Disposable {
         this.codeLensProvider = new JupyterCodeLensProvider();
         this.disposables.push(vscode.languages.registerCodeLensProvider(PythonLanguage, this.codeLensProvider));
         this.disposables.push(vscode.languages.registerDocumentSymbolProvider(PythonLanguage, new JupyterSymbolProvider()));
-        let highlightProvider: JupyterCellHighlightProvider;
-        // highlightProvider = new JupyterCellHighlightProvider(codeLensProvider);
-        // this.disposables.push(vscode.languages.registerDocumentHighlightProvider(PythonLanguage, highlightProvider));
-        this.disposables.push(new JupyterCellBorderProvider(this.codeLensProvider, highlightProvider));
         this.status = new KernelStatus();
         this.disposables.push(this.status);
-        this.display = new JupyterDisplay(this.codeLensProvider, highlightProvider);
+        this.display = new JupyterDisplay(this.codeLensProvider);
         this.disposables.push(this.display);
 
         // This happend when user changes it from status bar

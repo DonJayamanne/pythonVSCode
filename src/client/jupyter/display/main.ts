@@ -5,7 +5,6 @@ import {KernelspecMetadata} from '../contracts';
 import {TextDocumentContentProvider} from './resultView';
 import {CellOptions} from './cellOptions';
 import {JupyterCodeLensProvider} from '../editorIntegration/codeLensProvider';
-import {JupyterCellHighlightProvider} from '../editorIntegration/cellHighlightProvider';
 import {Server} from './server';
 
 const jupyterSchema = 'jupyter-result-viewer';
@@ -16,7 +15,7 @@ export class JupyterDisplay extends vscode.Disposable {
     private previewWindow: TextDocumentContentProvider;
     private cellOptions: CellOptions;
     private server: Server;
-    constructor(cellCodeLenses: JupyterCodeLensProvider, cellHighlightProvider: JupyterCellHighlightProvider) {
+    constructor(cellCodeLenses: JupyterCodeLensProvider) {
         super(() => { });
         this.disposables = [];
         this.server = new Server();
@@ -25,7 +24,7 @@ export class JupyterDisplay extends vscode.Disposable {
         this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.Kernel_Options, this.showKernelOptions.bind(this)));
         this.previewWindow = new TextDocumentContentProvider();
         this.disposables.push(vscode.workspace.registerTextDocumentContentProvider(jupyterSchema, this.previewWindow));
-        this.cellOptions = new CellOptions(cellCodeLenses, cellHighlightProvider);
+        this.cellOptions = new CellOptions(cellCodeLenses);
         this.disposables.push(this.cellOptions);
         this.server.on('appendResults', appendResults => {
             this.appendResults = appendResults === true;

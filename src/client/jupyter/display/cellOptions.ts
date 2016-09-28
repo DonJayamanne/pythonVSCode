@@ -1,11 +1,10 @@
 import * as vscode from 'vscode';
 import {Commands} from '../../common/constants';
 import {JupyterCodeLensProvider} from '../editorIntegration/codeLensProvider';
-import {JupyterCellHighlightProvider} from '../editorIntegration/cellHighlightProvider';
 
 export class CellOptions extends vscode.Disposable {
     private disposables: vscode.Disposable[];
-    constructor(private cellCodeLenses: JupyterCodeLensProvider, private cellHighlightProvider: JupyterCellHighlightProvider) {
+    constructor(private cellCodeLenses: JupyterCodeLensProvider) {
         super(() => { });
         this.disposables = [];
         this.registerCommands();
@@ -116,7 +115,6 @@ export class CellOptions extends vscode.Disposable {
         textEditor.selection = new vscode.Selection(firstLineOfCellRange.start, firstLineOfCellRange.start);
         textEditor.revealRange(range);
         vscode.window.showTextDocument(textEditor.document);
-        this.cellHighlightProvider.highlightCurrentCell(textEditor.document, firstLineOfCellRange.start);
     }
     private displayCellOptions(document: vscode.TextDocument, range: vscode.Range, nextCellRange?: vscode.Range) {
         interface Option extends vscode.QuickPickItem {
