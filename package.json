@@ -45,7 +45,8 @@
     "onCommand:python.execSelectionInTerminal",
     "onCommand:jupyter.runSelectionLine",
     "onCommand:jupyter.execCurrentCell",
-    "onCommand:jupyter.execCurrentCellAndAdvance"
+    "onCommand:jupyter.execCurrentCellAndAdvance",
+    "onCommand:python.displayHelp"
   ],
   "main": "./out/client/extension",
   "contributes": {
@@ -130,6 +131,11 @@
         "command": "jupyter:gotToNextCell",
         "title": "Go to next cell",
         "category": "Jupyter"
+      },
+      {
+        "command": "python.displayHelp",
+        "title": "Help",
+        "category": "Python"
       }
     ],
     "menus": {

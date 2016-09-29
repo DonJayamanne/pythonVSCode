@@ -5,10 +5,11 @@ import {Disposable} from 'vscode';
 import * as path from 'path';
 import * as http from 'http';
 import {createDeferred} from './common/helpers';
+import {Documentation} from './common/constants';
 const nodeStatic = require('node-static');
 
 let serverAddress = "http://localhost:8080";
-let helpPageToDisplay = "/docs/jupyter/";
+let helpPageToDisplay = Documentation.Home;
 export class TextDocumentContentProvider extends Disposable implements vscode.TextDocumentContentProvider {
     private _onDidChange = new vscode.EventEmitter<vscode.Uri>();
     private lastUri: vscode.Uri;
@@ -49,11 +50,18 @@ export class HelpProvider {
     private disposables: Disposable[] = [];
     constructor() {
         const textProvider = new TextDocumentContentProvider();
-        this.disposables.push(vscode.workspace.registerTextDocumentContentProvider(helpSchema, textProvider));
+        this.disposables.push(vscode.workspace.registerTextDocumentContentProvider(helpSchema, textProvider));        
         this.disposables.push(vscode.commands.registerCommand('python.displayHelp', (page: string) => {
             this.startServer().then(port => {
-                helpPageToDisplay = page;
-                vscode.commands.executeCommand('vscode.previewHtml', previewUri, vscode.ViewColumn.Two, 'Help');
+                let viewColumn = vscode.ViewColumn.Two;
+                if (!page || typeof page !== 'string' || page.length === 0) {
+                    helpPageToDisplay = Documentation.Home;
+                    viewColumn = vscode.ViewColumn.One;
+                }
+                else {
+                    helpPageToDisplay = page;
+                }
+                vscode.commands.executeCommand('vscode.previewHtml', previewUri, viewColumn, 'Help');
             });
         }));
     }

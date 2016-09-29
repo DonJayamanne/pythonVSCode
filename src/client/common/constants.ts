@@ -73,9 +73,10 @@ export namespace LinterErrors {
 }
 
 export namespace Documentation {
+    export const Home = '/docs/python-path/';
     export namespace Jupyter {
-        export const GettingStarted = "/docs/jupyter_getting-started/";
-        export const Examples = "/docs/jupyter_examples/";
-        export const Setup = "/docs/jupyter_prerequisites/";
+        export const GettingStarted = '/docs/jupyter_getting-started/';
+        export const Examples = '/docs/jupyter_examples/';
+        export const Setup = '/docs/jupyter_prerequisites/';
     }
 }
