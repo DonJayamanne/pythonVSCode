@@ -1,8 +1,8 @@
 {
   "name": "python",
   "displayName": "Python",
-  "description": "Linting, Debugging (multi-threaded, remote), Intellisense, code formatting, refactoring, unit tests, snippets, and more.",
-  "version": "0.3.24",
+  "description": "Linting, Debugging (multi-threaded, remote), Intellisense, code formatting, refactoring, unit tests, snippets, Data Science (with Jupyter) and more.",
+  "version": "0.4.0",
   "publisher": "donjayamanne",
   "author": {
     "name": "Don Jayamanne",
