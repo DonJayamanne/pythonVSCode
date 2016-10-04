@@ -3,15 +3,15 @@
 An extension with rich support for the [Python language](https://www.python.org/), with features including the following and more:   
 * Linting ([Prospector](https://pypi.io/project/prospector/), [Pylint](https://pypi.io/project/pylint/), [pycodestyle](https://pypi.io/project/pycodestyle/)/Pep8, [Flake8](https://pypi.io/project/flake8/), [pydocstyle](https://pypi.io/project/pydocstyle/) with config files and plugins)
 * Intellisense (autocompletion)
-* Executing code in a Jupyter kernel
+* Scientific tools (Jupyter/IPython)
 * Auto indenting
 * Code formatting ([autopep8](https://pypi.io/project/autopep8/), [yapf](https://pypi.io/project/yapf/), with config files)
 * Code refactoring ([Rename](https://github.com/DonJayamanne/pythonVSCode/wiki/Refactoring:-Rename), [Extract Variable](https://github.com/DonJayamanne/pythonVSCode/wiki/Refactoring:-Extract-Variable), [Extract Method](https://github.com/DonJayamanne/pythonVSCode/wiki/Refactoring:-Extract-Method), [Sort Imports](https://github.com/DonJayamanne/pythonVSCode/wiki/Refactoring:-Sort-Imports))
-* Renaming, Viewing references, and code navigation
-* View signature and similar by hovering over a function or method
-* Excellent debugging support (variables, arguments, expressions, watch window, stack information, break points, remote debugging, mutliple threads)
-* Unit testing ([unittest](https://docs.python.org/3/library/unittest.html#module-unittest), [pytest](https://pypi.io/project/pytest/), [nosetests](https://pypi.io/project/nose/), with config files)
-* Execute file or selected code in python terminal
+* Viewing references, code navigation, view signature
+* Excellent debugging support (remote debugging, mutliple threads, django, flask)
+* Unit testing, including debuggin ([unittest](https://docs.python.org/3/library/unittest.html#module-unittest), [pytest](https://pypi.io/project/pytest/), [nosetests](https://pypi.io/project/nose/), with config files)
+* Execute file or code in a python terminal
+* Local help file (offline documentation)
 * Snippets
 
 ## Quick Start
@@ -45,7 +45,7 @@ For further information and details continue through to the [documentation](http
     "C:/Program Files (x86)/Google/google_appengine",
     "C:/Program Files (x86)/Google/google_appengine/lib" ]
 ```
-* [Data Science (Jupyter)](https://github.com/DonJayamanne/pythonVSCode/wiki/Jupyter-(IPython))
+* [Scientific tools (Jupyter/IPython)](https://github.com/DonJayamanne/pythonVSCode/wiki/Jupyter-(IPython))
  + Executing blocks of code (cells) in a Jupyter Kernel
  + Managing kernels (restarting, stopping, interrupting and selecting different kernels)
  + Viewing interactive graphs, HTML, SVG, laText output from Jupyter from within Visual Studio Code 
@@ -91,30 +91,15 @@ For further information and details continue through to the [documentation](http
 
 ![Image of Debugging](https://raw.githubusercontent.com/DonJayamanne/pythonVSCode/master/images/standardDebugging.gif)
 
-## [Roadmap](https://github.com/DonJayamanne/pythonVSCode/issues/183)
-_Please note, not all of these feature may be developed.   
-Your feedback is crucial in prioritizing the items and in determining whether we shift focus our attention to some other feature request(s)._    
-* Intellisense and Linting
-  + Remote Interpretter
-* Miscellaneous IDE enhancements
-  + Auto-generate docstring
-  + Documentation viewer
-  + Complex code refactoring (alogn with UI to preview)
-  + Debugging unit tests
-  + Intelliense (completions) within debugger
-* Integration
-  + Code coverage
-  + Profiler
-  + Integrating IPython
-* Debugging enhancements  
-  + Securely debugging Python applications in the cloud (Azure, AWS or Google Cloud)
-  + Remote debugging over SSH
+![Image of Scientific Tools](https://raw.githubusercontent.com/DonJayamanne/pythonVSCodeDocs/master/images/jupyter/examples.gif)
+
+## [Roadmap](https://github.com/DonJayamanne/pythonVSCodeDocs/master/docs/roadmap/)
 
 ## [Change Log](https://github.com/DonJayamanne/pythonVSCode/releases)
 
 ### Current Version 0.4.0
-* Added support for [Jupyter](https://github.com/DonJayamanne/pythonVSCode/wiki/Jupyter-(IPython))
-* Added local help
+* Added support for [Jupyter/IPython](https://github.com/DonJayamanne/pythonVSCode/wiki/Jupyter-(IPython))
+* Added local help (offline documentation)
 * Added ability to pass in extra arguments to interpreter when executing scripts ([#316](https://github.com/DonJayamanne/pythonVSCode/issues/316))
 * Added ability set current working directory as the script file directory, when to executing a Python script
 * Rendering intellisense icons correctly ([#322](https://github.com/DonJayamanne/pythonVSCode/issues/322))
