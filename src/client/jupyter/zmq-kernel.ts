@@ -4,9 +4,8 @@ import * as fs from 'fs';
 import {Kernel} from './kernel';
 import * as vscode from 'vscode';
 import {KernelspecMetadata, JupyterMessage} from './contracts';
-const jmp = require('jmp');
+import {JmpModuleLoadError} from '../common/errors';
 const uuid = require('uuid');
-const zmq = jmp.zmq;
 
 export class ZMQKernel extends Kernel {
     private executionCallbacks: Map<string, Function>;
@@ -49,7 +48,16 @@ export class ZMQKernel extends Kernel {
     private shellSocstdinSocketket: any;
     private stdinSocket: any;
     private ioSocket: any;
+    private jmp: any;
     public _connect() {
+        try {
+            this.jmp = require('jmp');
+        }
+        catch (ex) {
+            console.log(ex);
+            throw new JmpModuleLoadError();
+        }
+        const jmp = this.jmp;
         const scheme = this.connection.signature_scheme.slice('hmac-'.length);
         const key = this.connection.key;
         this.shellSocket = new jmp.Socket('dealer', scheme, key);
@@ -112,6 +120,9 @@ export class ZMQKernel extends Kernel {
     };
 
     public shutdown(restart?: boolean) {
+        if (!this.jmp) {
+            return;
+        }
         if (restart == null) {
             restart = false;
         }
@@ -120,7 +131,7 @@ export class ZMQKernel extends Kernel {
         message.content = {
             restart: restart
         };
-        return this.shellSocket.send(new jmp.Message(message));
+        return this.shellSocket.send(new this.jmp.Message(message));
     };
 
     public _execute(code: string, requestId: string, onResults: Function) {
@@ -133,7 +144,7 @@ export class ZMQKernel extends Kernel {
             allow_stdin: true
         };
         this.executionCallbacks.set(requestId, onResults);
-        return this.shellSocket.send(new jmp.Message(message));
+        return this.shellSocket.send(new this.jmp.Message(message));
     };
 
     public execute(code: string, onResults: Function) {
@@ -156,7 +167,7 @@ export class ZMQKernel extends Kernel {
             cursor_pos: code.length
         };
         this.executionCallbacks.set(requestId, onResults);
-        return this.shellSocket.send(new jmp.Message(message));
+        return this.shellSocket.send(new this.jmp.Message(message));
     };
 
     public inspect(code: string, cursor_pos, onResults: Function) {
@@ -168,7 +179,7 @@ export class ZMQKernel extends Kernel {
             detail_level: 0
         };
         this.executionCallbacks.set(requestId, onResults);
-        return this.shellSocket.send(new jmp.Message(message));
+        return this.shellSocket.send(new this.jmp.Message(message));
     };
 
     public inputReply(input: string) {
@@ -177,7 +188,7 @@ export class ZMQKernel extends Kernel {
         message.content = {
             value: input
         };
-        return this.stdinSocket.send(new jmp.Message(message));
+        return this.stdinSocket.send(new this.jmp.Message(message));
     };
 
     private onShellMessage(message: JupyterMessage) {

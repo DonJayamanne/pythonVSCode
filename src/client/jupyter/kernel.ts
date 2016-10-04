@@ -4,9 +4,6 @@ import * as vscode from 'vscode';
 import * as child_process from 'child_process';
 import * as path from 'path';
 import {KernelspecMetadata, KernelEvents} from './contracts';
-const jmp = require('jmp');
-const uuid = require('uuid');
-const zmq = jmp.zmq;
 
 export abstract class Kernel extends vscode.Disposable implements KernelEvents {
     private watchCallbacks: any[];

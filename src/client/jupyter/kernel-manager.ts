@@ -11,6 +11,7 @@ import {Commands, Documentation} from '../common/constants';
 import {EventEmitter} from 'events';
 import {PythonSettings} from '../common/configSettings';
 import {formatErrorForLogging} from '../common/utils';
+import {JmpModuleLoadError} from '../common/errors';
 
 // Todo: Refactor the error handling and displaying of messages
 
@@ -98,9 +99,15 @@ export class KernelManagerImpl extends EventEmitter {
             return this.startKernel(kernelSpec, language);
         }).catch(reason => {
             let message = `No kernel for language '${language}' found. Ensure you have a Jupyter or IPython kernel installed for it.`;
+            let isCompatibilityIssue = false;
+            if (typeof reason === 'object' && reason instanceof JmpModuleLoadError) {
+                message = reason.message;
+                isCompatibilityIssue = true;
+            }
             vscode.window.showErrorMessage(message, 'Help').then(item => {
                 if (item === 'Help') {
-                    vscode.commands.executeCommand('python.displayHelp', Documentation.Jupyter.Setup);
+                    const helpPage = isCompatibilityIssue ? Documentation.Jupyter.VersionIncompatiblity : Documentation.Jupyter.Setup;
+                    vscode.commands.executeCommand('python.displayHelp', helpPage);
                 }
             });
             this.outputChannel.appendLine(formatErrorForLogging(reason));
