@@ -486,7 +486,7 @@
         },
         "python.linting.pylintCategorySeverity.convention": {
           "type": "string",
-          "default": "Hint",
+          "default": "Information",
           "description": "Severity of Pylint message type 'Convention/C'.",
           "enum": [
             "Hint",
