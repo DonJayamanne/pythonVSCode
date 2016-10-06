@@ -15,7 +15,7 @@ export class PythonDefinitionProvider implements vscode.DefinitionProvider {
         this.jediProxyHandler = new proxy.JediProxyHandler(context, null, PythonDefinitionProvider.parseData);
     }
     private static parseData(data: proxy.IDefinitionResult): vscode.Definition {
-        if (data) {
+        if (data && data.definition) {
             var definitionResource = vscode.Uri.file(data.definition.fileName);
             var range = new vscode.Range(data.definition.lineIndex, data.definition.columnIndex, data.definition.lineIndex, data.definition.columnIndex);
 

@@ -230,6 +230,12 @@ function spawnProcess(dir: string) {
         }
 
         responses.forEach((response) => {
+            // What's this, can't remember,
+            // Great example of poorly written code (this whole file is a mess)
+            // I think this needs to be removed, because this is misspelt, it is argments, 'U' is missing
+            // And that case is handled further down
+            // case CommandType.Arguments: {
+            // Rewrite this mess to use stratergy..
             if (response["argments"]) {
                 var index = commandQueue.indexOf(cmd.id);
                 commandQueue.splice(index, 1);
@@ -256,84 +262,82 @@ function spawnProcess(dir: string) {
                 switch (cmd.command) {
                     case CommandType.Completions: {
                         let results = <IAutoCompleteItem[]>response['results'];
-                        if (results.length > 0) {
-                            results.forEach(item => {
-                                const originalType = <string><any>item.type;
-                                item.type = getMappedVSCodeType(originalType);
-                                item.kind = getMappedVSCodeSymbol(originalType);
-                            });
+                        results = Array.isArray(results) ? results : [];
+                        results.forEach(item => {
+                            const originalType = <string><any>item.type;
+                            item.type = getMappedVSCodeType(originalType);
+                            item.kind = getMappedVSCodeSymbol(originalType);
+                        });
 
-                            let completionResult: ICompletionResult = {
-                                items: results,
-                                requestId: cmd.id
-                            }
-                            cmd.resolve(completionResult);
+                        let completionResult: ICompletionResult = {
+                            items: results,
+                            requestId: cmd.id
                         }
+                        cmd.resolve(completionResult);
                         break;
                     }
                     case CommandType.Definitions: {
                         let defs = <any[]>response['results'];
+                        let defResult: IDefinitionResult = {
+                            requestId: cmd.id,
+                            definition: null
+                        };
                         if (defs.length > 0) {
                             let def = defs[0];
                             const originalType = def.type as string;
-                            let defResult: IDefinitionResult = {
-                                requestId: cmd.id,
-                                definition: {
-                                    columnIndex: Number(def.column),
-                                    fileName: def.fileName,
-                                    lineIndex: Number(def.line),
-                                    text: def.text,
-                                    type: getMappedVSCodeType(originalType),
-                                    kind: getMappedVSCodeSymbol(originalType)
-                                }
+                            defResult.definition = {
+                                columnIndex: Number(def.column),
+                                fileName: def.fileName,
+                                lineIndex: Number(def.line),
+                                text: def.text,
+                                type: getMappedVSCodeType(originalType),
+                                kind: getMappedVSCodeSymbol(originalType)
                             };
-
-                            cmd.resolve(defResult);
                         }
+
+                        cmd.resolve(defResult);
                         break;
                     }
                     case CommandType.Symbols: {
                         var defs = <any[]>response['results'];
-                        if (defs.length > 0) {
-                            var defResults: ISymbolResult = {
-                                requestId: cmd.id,
-                                definitions: []
-                            }
-                            defResults.definitions = defs.map(def => {
-                                const originalType = def.type as string;
-                                return <IDefinition>{
-                                    columnIndex: <number>def.column,
-                                    fileName: <string>def.fileName,
-                                    lineIndex: <number>def.line,
-                                    text: <string>def.text,
-                                    type: getMappedVSCodeType(originalType),
-                                    kind: getMappedVSCodeSymbol(originalType)
-                                };
-                            });
-
-                            cmd.resolve(defResults);
+                        defs = Array.isArray(defs) ? defs : [];
+                        var defResults: ISymbolResult = {
+                            requestId: cmd.id,
+                            definitions: []
                         }
+                        defResults.definitions = defs.map(def => {
+                            const originalType = def.type as string;
+                            return <IDefinition>{
+                                columnIndex: <number>def.column,
+                                fileName: <string>def.fileName,
+                                lineIndex: <number>def.line,
+                                text: <string>def.text,
+                                type: getMappedVSCodeType(originalType),
+                                kind: getMappedVSCodeSymbol(originalType)
+                            };
+                        });
+
+                        cmd.resolve(defResults);
                         break;
                     }
                     case CommandType.Usages: {
                         var defs = <any[]>response['results'];
-                        if (defs.length > 0) {
-                            var refResult: IReferenceResult = {
-                                requestId: cmd.id,
-                                references: defs.map(item => {
-                                    return {
-                                        columnIndex: item.column,
-                                        fileName: item.fileName,
-                                        lineIndex: item.line - 1,
-                                        moduleName: item.moduleName,
-                                        name: item.name
-                                    };
-                                }
-                                )
-                            };
+                        defs = Array.isArray(defs) ? defs : [];
+                        var refResult: IReferenceResult = {
+                            requestId: cmd.id,
+                            references: defs.map(item => {
+                                return {
+                                    columnIndex: item.column,
+                                    fileName: item.fileName,
+                                    lineIndex: item.line - 1,
+                                    moduleName: item.moduleName,
+                                    name: item.name
+                                };
+                            }
+                            )
+                        };
 
-                            cmd.resolve(refResult);
-                        }
+                        cmd.resolve(refResult);
                         break;
                     }
                     case CommandType.Arguments: {
