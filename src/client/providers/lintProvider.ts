@@ -8,6 +8,7 @@ import * as pylint from './../linters/pylint';
 import * as pep8 from './../linters/pep8Linter';
 import * as flake8 from './../linters/flake8';
 import * as pydocstyle from './../linters/pydocstyle';
+import * as mypy from './../linters/mypy';
 import * as settings from '../common/configSettings';
 import * as telemetryHelper from '../common/telemetry';
 import * as telemetryContracts from '../common/telemetryContracts';
@@ -67,6 +68,7 @@ export class LintProvider extends vscode.Disposable {
         this.linters.push(new pep8.Linter(this.outputChannel, this.workspaceRootPath));
         this.linters.push(new flake8.Linter(this.outputChannel, this.workspaceRootPath));
         this.linters.push(new pydocstyle.Linter(this.outputChannel, this.workspaceRootPath));
+        this.linters.push(new mypy.Linter(this.outputChannel, this.workspaceRootPath));
 
         let disposable = vscode.workspace.onDidSaveTextDocument((e) => {
             if (e.languageId !== 'python' || !this.settings.linting.enabled || !this.settings.linting.lintOnSave) {

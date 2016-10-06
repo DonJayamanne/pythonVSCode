@@ -79,21 +79,23 @@ export abstract class BaseLinter {
                         match.line = Number(<any>match.line);
                         match.column = Number(<any>match.column);
 
-                        let sourceLine = txtDocumentLines[match.line - 1];
-                        let sourceStart = sourceLine.substring(match.column - 1);
-                        let endCol = txtDocumentLines[match.line - 1].length;
-
-                        // try to get the first word from the startig position
-                        let possibleProblemWords = sourceStart.match(/\w+/g);
                         let possibleWord: string;
-                        if (possibleProblemWords != null && possibleProblemWords.length > 0 && sourceStart.startsWith(possibleProblemWords[0])) {
-                            possibleWord = possibleProblemWords[0];
+                        if (!isNaN(match.column)) {
+                            let sourceLine = txtDocumentLines[match.line - 1];
+                            let sourceStart = sourceLine.substring(match.column - 1);
+                            let endCol = txtDocumentLines[match.line - 1].length;
+
+                            // try to get the first word from the startig position
+                            let possibleProblemWords = sourceStart.match(/\w+/g);
+                            if (possibleProblemWords != null && possibleProblemWords.length > 0 && sourceStart.startsWith(possibleProblemWords[0])) {
+                                possibleWord = possibleProblemWords[0];
+                            }
                         }
 
                         diagnostics.push({
                             code: match.code,
                             message: match.message,
-                            column: match.column,
+                            column: isNaN(match.column) ? 0 : match.column,
                             line: match.line,
                             possibleWord: possibleWord,
                             type: match.type,

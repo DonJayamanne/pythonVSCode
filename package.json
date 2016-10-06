@@ -469,6 +469,11 @@
           "default": false,
           "description": "Whether to lint Python files using pydocstyle"
         },
+        "python.linting.mypyEnabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to lint Python files using mypy."
+        },
         "python.linting.lintOnTextChange": {
           "type": "boolean",
           "default": true,
@@ -564,6 +569,11 @@
           "default": "pydocstyle",
           "description": "Path to pydocstyle, you can use a custom version of pydocstyle by modifying this setting to include the full path."
         },
+        "python.linting.mypyPath": {
+          "type": "string",
+          "default": "mypy",
+          "description": "Path to mypy, you can use a custom version of pylint by modifying this setting to include the full path."
+        },
         "python.linting.prospectorArgs": {
           "type": "array",
           "description": "Arguments passed in. Each argument is a separate item in the array.",
@@ -597,6 +607,14 @@
           }
         },
         "python.linting.pydocStyleArgs": {
+          "type": "array",
+          "description": "Arguments passed in. Each argument is a separate item in the array.",
+          "default": [],
+          "items": {
+            "type": "string"
+          }
+        },
+        "python.linting.mypyArgs": {
           "type": "array",
           "description": "Arguments passed in. Each argument is a separate item in the array.",
           "default": [],

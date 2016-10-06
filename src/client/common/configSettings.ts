@@ -55,6 +55,9 @@ export interface ILintingSettings {
     flake8Path: string;
     pydocStylePath: string;
     outputWindow: string;
+    mypyEnabled: boolean;
+    mypyArgs: string[];
+    mypyPath: string;
 }
 export interface IFormattingSettings {
     provider: string;
