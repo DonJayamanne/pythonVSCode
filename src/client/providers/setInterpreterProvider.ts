@@ -36,6 +36,8 @@ function getSearchPaths(): string[] {
             'C:\\Python3.5',
             'C:\\Python35',
             'C:\\Python35-32',
+            'C:\\Anaconda',
+            'C:\\Anaconda3',
             'C:\\Program Files (x86)\\Python 2.7',
             'C:\\Program Files (x86)\\Python 3.4',
             'C:\\Program Files (x86)\\Python 3.5',
@@ -44,7 +46,9 @@ function getSearchPaths(): string[] {
             'C:\\Program Files (x64)\\Python 3.5',
             'C:\\Program Files\\Python 2.7',
             'C:\\Program Files\\Python 3.4',
-            'C:\\Program Files\\Python 3.5'
+            'C:\\Program Files\\Python 3.5',
+            'C:\\Program Files\\Anaconda',
+            'C:\\Program Files\\Anaconda3'
         ];
     } else {
         return ['/usr/local/bin', '/usr/bin', '/bin', '/usr/sbin', '/sbin'];
@@ -205,6 +209,9 @@ function suggestPythonPaths(): Promise<PythonPathQuickPickItem[]> {
 }
 
 function setPythonPath(pythonPath: string, created: boolean = false) {
+    if (pythonPath.startsWith(vscode.workspace.rootPath)){
+        pythonPath = path.join('${workspaceRoot}', path.relative(vscode.workspace.rootPath, pythonPath));
+    }
     const settingsFile = workspaceSettingsPath();
     utils.validatePath(settingsFile)
         .then(validatedPath => {
