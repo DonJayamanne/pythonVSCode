@@ -1,7 +1,6 @@
 /// <reference path="../../../../typings/globals/xml2js/index.d.ts" />
 
 'use strict';
-import {execPythonFile} from './../../common/utils';
 import {createDeferred, createTemporaryFile} from '../../common/helpers';
 import {TestFile, TestsToRun, TestSuite, TestFunction, FlattenedTestFunction, Tests, TestStatus, FlattenedTestSuite} from '../common/contracts';
 import {extractBetweenDelimiters, flattenTestFiles, updateResults, convertFileToPackage} from '../common/testUtils';

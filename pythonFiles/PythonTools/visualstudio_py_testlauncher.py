@@ -203,6 +203,7 @@ def main():
     parser.add_option('-p', '--port', type='int', metavar='<port>', help='listen for debugger connections on <port>')
     parser.add_option('-x', '--mixed-mode', action='store_true', help='wait for mixed-mode debugger to attach')
     parser.add_option('-t', '--test', type='str', dest='tests', action='append', help='specifies a test to run')
+    parser.add_option('--testFile', type='str', help='Fully qualitified path to file name')
     parser.add_option('-c', '--coverage', type='str', help='enable code coverage and specify filename')
     parser.add_option('-r', '--result-port', type='int', help='connect to port on localhost and send test results')
     parser.add_option('--us', type='str', help='Directory to start discovery')
@@ -264,14 +265,48 @@ def main():
                 cov.start()
             except:
                 pass
-        if opts.tests is None:
+        if opts.tests is None and opts.testFile is None:
             if opts.us is None:
                 opts.us = '.'
             if opts.up is None:
                 opts.up = 'test*.py'
             tests = unittest.defaultTestLoader.discover(opts.us, opts.up)
         else:
-            tests = unittest.defaultTestLoader.loadTestsFromNames(opts.tests)
+            # loadTestsFromNames doesn't work well (with duplicate file names or class names) 
+            # Easier approach is find the test suite and use that for running
+            loader = unittest.TestLoader()
+            # opts.us will be passed in
+            suites = loader.discover(opts.us, pattern=os.path.basename(opts.testFile))
+            suite = None
+            tests = None            
+            if opts.tests is None:
+                # Run everything in the test file
+                tests = suites
+            else:
+                # Run a specific test class or test method
+                for suite in suites._tests:
+                    for cls in suite._tests:                        
+                        try:
+                            for m in cls._tests:
+                                testId = m.id()
+                                if testId.startswith(opts.tests[0]):
+                                    suite = cls
+                                if testId == opts.tests[0]:
+                                    tests = m
+                                    break
+                        except Exception as err:
+                            errorMessage = traceback.format_exception()                            
+                            pass
+                if tests is None:
+                    tests = suite
+            if tests is None and suite is None:
+                _channel.send_event(
+                    name='error', 
+                    outcome='',
+                    traceback = '',
+                    message = 'Failed to identify the test',
+                    test = ''
+                )
         if opts.uvInt is None:
             opts.uvInt = 0
         runner = unittest.TextTestRunner(verbosity=opts.uvInt, resultclass=VsTestResult)
