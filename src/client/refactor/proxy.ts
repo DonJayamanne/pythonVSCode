@@ -44,6 +44,10 @@ export class RefactorProxy extends vscode.Disposable {
         return this.sendCommand<T>(JSON.stringify(command), REFACTOR.ExtractVariable);
     }
     extractMethod<T>(document: vscode.TextDocument, name: string, filePath: string, range: vscode.Range): Promise<T> {
+        // Ensure last line is an empty line
+        if (!document.lineAt(document.lineCount - 1).isEmptyOrWhitespace && range.start.line === document.lineCount - 1) {
+            return Promise.reject<T>('Missing blank line at the end of document (PEP8).')
+        }
         let command = { "lookup": "extract_method", "file": filePath, "start": document.offsetAt(range.start).toString(), "end": document.offsetAt(range.end).toString(), "id": "1", "name": name };
         return this.sendCommand<T>(JSON.stringify(command), REFACTOR.ExtractVariable);
     }
@@ -76,7 +80,7 @@ export class RefactorProxy extends vscode.Disposable {
             }
             this._process = child_process.spawn(pythonPath, ['refactor.py', this.workspaceRoot],
                 {
-                    cwd: path.join(this._extensionDir, 'pythonFiles'), 
+                    cwd: path.join(this._extensionDir, 'pythonFiles'),
                     env: environmentVariables
                 });
             this._process.stderr.on('data', this.handleStdError.bind(this));
