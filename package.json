@@ -749,9 +749,9 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "git submodule update --init && git submodule update --recursive --remote && node ./node_modules/vscode/bin/compile && webpack",
-    "compile": "git submodule update --init && git submodule update --recursive --remote && webpack && node ./node_modules/vscode/bin/compile  -watch -p ./ && installServerIntoExtension ./out ./src/server/package.json ./src/server/tsconfig.json",
-    "postinstall": "node ./node_modules/vscode/bin/install && git submodule update --init && git submodule update --recursive --remote",
+    "vscode:prepublish": "node ./node_modules/vscode/bin/compile && webpack",
+    "compile": "webpack && node ./node_modules/vscode/bin/compile  -watch -p ./ && installServerIntoExtension ./out ./src/server/package.json ./src/server/tsconfig.json",
+    "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "node ./node_modules/vscode/bin/test"
   },
   "dependencies": {
