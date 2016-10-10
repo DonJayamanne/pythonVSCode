@@ -185,7 +185,7 @@ export class LocalDebugClient extends DebugClient {
             vsDebugOptions = this.args.debugOptions.filter(opt => VALID_DEBUG_OPTIONS.indexOf(opt) >= 0).join(',');
         }
         // If internal or external console, then don't re-direct the output
-        if (this.args.externalConsole === true || this.args.console === 'integratedTerminal' || this.args.console === 'externalTermainal') {
+        if (this.args.externalConsole === true || this.args.console === 'integratedTerminal' || this.args.console === 'externalTerminal') {
             vsDebugOptions = vsDebugOptions.split(',').filter(opt => opt !== 'RedirectOutput').join(',');
         }
 
