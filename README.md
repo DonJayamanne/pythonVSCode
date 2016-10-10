@@ -93,6 +93,8 @@ For further information and details continue through to the [documentation](http
 
 ![Image of Scientific Tools](https://raw.githubusercontent.com/DonJayamanne/pythonVSCodeDocs/master/images/jupyter/examples.gif)
 
+![Image of Local Help](https://raw.githubusercontent.com/DonJayamanne/pythonVSCodeDocs/master/images/help.gif)
+
 ## [Roadmap](https://github.com/DonJayamanne/pythonVSCodeDocs/master/docs/roadmap/)
 
 ## [Change Log](https://github.com/DonJayamanne/pythonVSCode/releases)
