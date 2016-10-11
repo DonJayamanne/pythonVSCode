@@ -25,4 +25,7 @@ export namespace UnitTests {
     export const Run = 'UNITTEST_RUN';
     export const Discover = 'UNITTEST_DISCOVER';
 }
+export namespace Jupyter {
+    export const Usage = 'JUPYTER';
+}
 export const EVENT_LOAD = 'IDE_LOAD';
