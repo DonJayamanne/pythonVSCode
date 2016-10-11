@@ -281,7 +281,12 @@ export class PythonProcess extends EventEmitter implements IPythonProcess {
             this.stream.WriteInt32(brkpoint.LineNo);
             this.stream.WriteString(brkpoint.Filename);
 
-            if (!brkpoint.IsDjangoBreakpoint) {
+            if (brkpoint.IsDjangoBreakpoint) {
+                // Bining django breakpoints don't return any responses
+                // Assume it worked
+                resolve();
+            }
+            else {
                 this.SendCondition(brkpoint);
                 this.SendPassCount(brkpoint);
             }

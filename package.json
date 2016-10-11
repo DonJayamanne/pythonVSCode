@@ -182,7 +182,7 @@
         "label": "Python",
         "enableBreakpointsFor": {
           "languageIds": [
-            "python"
+            "python", "html"
           ]
         },
         "aiKey": "AIF-d9b70cd4-b9f9-4d70-929b-a071c400b217",
