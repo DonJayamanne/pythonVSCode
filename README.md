@@ -99,9 +99,18 @@ For further information and details continue through to the [documentation](http
 
 ## [Change Log](https://github.com/DonJayamanne/pythonVSCode/releases)
 
-### Current Version 0.5.0
-* Added support for debugging Django tmeplates (html files)
-* Miscellaneous updates (using Node.js 6.5, TypeScript 2.0)
+### Current Version 0.4.0
+* Added support for [Jupyter/IPython](https://github.com/DonJayamanne/pythonVSCode/wiki/Jupyter-(IPython))
+* Added local help (offline documentation)
+* Added ability to pass in extra arguments to interpreter when executing scripts ([#316](https://github.com/DonJayamanne/pythonVSCode/issues/316))
+* Added ability set current working directory as the script file directory, when to executing a Python script
+* Rendering intellisense icons correctly ([#322](https://github.com/DonJayamanne/pythonVSCode/issues/322))
+* Changes to capitalization of context menu text ([#320](https://github.com/DonJayamanne/pythonVSCode/issues/320))
+* Bug fix to running pydocstyle linter on windows ([#317](https://github.com/DonJayamanne/pythonVSCode/issues/317))
+* Fixed performance issues with regards to code navigation, displaying code Symbols and the like ([#324](https://github.com/DonJayamanne/pythonVSCode/issues/324))
+* Fixed code renaming issue when renaming imports ([#325](https://github.com/DonJayamanne/pythonVSCode/issues/325))
+* Fixed issue with the execution of the command ```python.execInTerminal``` via a shortcut ([#340](https://github.com/DonJayamanne/pythonVSCode/issues/340))
+* Fixed issue with code refactoring ([#363](https://github.com/DonJayamanne/pythonVSCode/issues/363))
 
 ## Source
 
