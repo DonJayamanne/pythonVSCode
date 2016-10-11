@@ -226,7 +226,16 @@ export function formatErrorForLogging(error: Error | string): string {
             message = `Error Message: ${error.message}`;
         }
         if (error.name && error.message.indexOf(error.name) === -1) {
-            message += `, (${error.message})`;
+            message += `, (${error.name})`;
+        }
+        const innerException = (error as any).innerException;
+        if (innerException && (innerException.message || innerException.name)) {
+            if (innerException.message) {
+                message += `, Inner Error Message: ${innerException.message}`;
+            }
+            if (innerException.name && innerException.message.indexOf(innerException.name) === -1) {
+                message += `, (${innerException.name})`;
+            }
         }
     }
     return message;

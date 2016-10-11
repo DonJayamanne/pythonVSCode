@@ -56,7 +56,7 @@ export class ZMQKernel extends Kernel {
         catch (ex) {
             console.log(ex);
             if (typeof ex.message === 'string' && (ex.message as string).indexOf('Module version mismatch') > 0) {
-                throw new JmpModuleLoadError();
+                throw new JmpModuleLoadError(ex);
             }
             else {
                 throw ex;
