@@ -2,7 +2,6 @@
 
 'use strict';
 import * as path from 'path';
-import {execPythonFile} from './../../common/utils';
 import {createDeferred, createTemporaryFile} from '../../common/helpers';
 import {TestFile, TestsToRun, TestSuite, TestFunction, FlattenedTestFunction, Tests, TestStatus, FlattenedTestSuite} from '../common/contracts';
 import {extractBetweenDelimiters, flattenTestFiles, updateResults, convertFileToPackage} from '../common/testUtils';
@@ -66,18 +65,54 @@ export function runTest(rootDirectory: string, tests: Tests, args: string[], tes
         for (let counter = 0; counter < testPaths.length; counter++) {
             testPaths[counter] = '-t' + testPaths[counter].trim();
         }
-        let testArgs = buildTestArgs(args);
-        testArgs = [testLauncherFile].concat(testArgs).concat(`--result-port=${port}`).concat(testPaths);
-        return run(settings.pythonPath, testArgs, rootDirectory, token, outChannel);
+        const startTestDiscoveryDirectory = getStartDirectory(args);
+
+        function runTest(testFile: string = '', testId: string = '') {
+            let testArgs = buildTestArgs(args);
+            testArgs.push(`--result-port=${port}`);
+            testArgs.push(`--us=${startTestDiscoveryDirectory}`);
+            if (testId.length > 0) {
+                testArgs.push(`-t${testId}`);
+            }
+            if (testFile.length > 0) {
+                testArgs.push(`--testFile=${testFile}`);
+            }
+            return run(settings.pythonPath, [testLauncherFile].concat(testArgs), rootDirectory, token, outChannel);
+        }
+
+        // Test everything
+        if (testPaths.length === 0) {
+            return runTest();
+        }
+
+        // Ok, the ptvs test runner can only work with one test at a time
+        let promise = Promise.resolve<string>('');
+        if (Array.isArray(testsToRun.testFile)) {
+            testsToRun.testFile.forEach(testFile => {
+                promise = promise.then(() => runTest(testFile.fullPath, testFile.nameToRun));
+            });
+        }
+        if (Array.isArray(testsToRun.testSuite)) {
+            testsToRun.testSuite.forEach(testSuite => {
+                const testFileName = tests.testSuits.find(t => t.testSuite === testSuite).parentTestFile.fullPath;
+                promise = promise.then(() => runTest(testFileName, testSuite.nameToRun));
+            });
+        }
+        if (Array.isArray(testsToRun.testFunction)) {
+            testsToRun.testFunction.forEach(testFn => {
+                const testFileName = tests.testFunctions.find(t => t.testFunction === testFn).parentTestFile.fullPath;
+                promise = promise.then(() => runTest(testFileName, testFn.nameToRun));
+            });
+        }
+        return promise;
     }).then(() => {
         updateResults(tests);
         return tests;
     });
 }
 
-function buildTestArgs(args: string[]): string[] {
+function getStartDirectory(args: string[]): string {
     let startDirectory = '.';
-    let pattern = 'test*.py';
     const indexOfStartDir = args.findIndex(arg => arg.indexOf('-s') === 0 || arg.indexOf('--start-directory') === 0);
     if (indexOfStartDir >= 0) {
         const startDir = args[indexOfStartDir].trim();
@@ -93,6 +128,11 @@ function buildTestArgs(args: string[]): string[] {
             }
         }
     }
+    return startDirectory;
+}
+function buildTestArgs(args: string[]): string[] {
+    const startTestDiscoveryDirectory = getStartDirectory(args);
+    let pattern = 'test*.py';
     const indexOfPattern = args.findIndex(arg => arg.indexOf('-p') === 0 || arg.indexOf('--pattern') === 0);
     if (indexOfPattern >= 0) {
         const patternValue = args[indexOfPattern].trim();
@@ -110,7 +150,7 @@ function buildTestArgs(args: string[]): string[] {
     }
     const failFast = args.some(arg => arg.trim() === '-f' || arg.trim() === '--failfast');
     const verbosity = args.some(arg => arg.trim().indexOf('-v') === 0) ? 2 : 1;
-    const testArgs = [`--us=${startDirectory}`, `--up=${pattern}`, `--uvInt=${verbosity}`];
+    const testArgs = [`--us=${startTestDiscoveryDirectory}`, `--up=${pattern}`, `--uvInt=${verbosity}`];
     if (failFast) {
         testArgs.push('--uf');
     }

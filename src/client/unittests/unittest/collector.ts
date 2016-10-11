@@ -43,11 +43,14 @@ export function discoverTests(rootDirectory: string, args: string[], token: vsco
     const pythonScript = `import unittest
 loader = unittest.TestLoader()
 suites = loader.discover("${startDirectory}", pattern="${pattern}")
-print("start")
+print("start") #Don't remove this line
 for suite in suites._tests:
     for cls in suite._tests:
-        for m in cls._tests:
-            print(m.id())`;
+        try:
+            for m in cls._tests:
+                print(m.id())
+        except:
+            pass`;
 
     let startedCollecting = false;
     let testItems: string[] = [];
@@ -63,20 +66,25 @@ for suite in suites._tests:
                 return;
             }
             line = line.trim();
-            if (line.length === 0){
+            if (line.length === 0) {
                 return;
             }
             testItems.push(line);
         });
     }
     args = [];
-    return execPythonFile(pythonSettings.pythonPath, args.concat(['-c', pythonScript]), rootDirectory, true, processOutput, token)
-        .then(() => {
+    return execPythonFile(pythonSettings.pythonPath, args.concat(['-c', pythonScript]), rootDirectory, true, null, token)
+        .then(data => {
+            processOutput(data);
             if (token && token.isCancellationRequested) {
                 return Promise.reject<Tests>('cancelled');
             }
 
-            return parseTestIds(rootDirectory, testItems);
+            let testsDirectory = rootDirectory;
+            if (startDirectory.length > 1) {
+                testsDirectory = path.isAbsolute(startDirectory) ? startDirectory : path.resolve(rootDirectory, startDirectory);
+            }
+            return parseTestIds(testsDirectory, testItems);
         });
 }
 
@@ -109,7 +117,7 @@ function addTestId(rootDirectory: string, testId: string, testFiles: TestFile[])
             fullPath: filePath,
             functions: [],
             suites: [],
-            nameToRun: paths.join('.'),
+            nameToRun: `${className}.${functionName}`,
             xmlName: '',
             status: TestStatus.Idle,
             time: 0
@@ -118,7 +126,7 @@ function addTestId(rootDirectory: string, testId: string, testFiles: TestFile[])
     }
 
     // Check if we already have this test file
-    const classNameToRun = testIdParts.slice(0, testIdParts.length - 1).join('.');
+    const classNameToRun = className;
     let testSuite = testFile.suites.find(cls => cls.nameToRun === classNameToRun);
     if (!testSuite) {
         testSuite = {

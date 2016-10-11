@@ -77,10 +77,9 @@ export function discoverTests(rootDirectory: string, args: string[], token: Canc
         });
     }
 
-    return execPythonFile(pythonSettings.unitTest.nosetestPath, args.concat(['--collect-only', '-vvv']), rootDirectory, true, processOutput)
-        .then(() => {
-            // process the last entry
-            parseNoseTestModuleCollectionResult(rootDirectory, logOutputLines, testFiles);
+    return execPythonFile(pythonSettings.unitTest.nosetestPath, args.concat(['--collect-only', '-vvv']), rootDirectory, true)
+        .then(data => {
+            processOutput(data);
             // Exclude tests that don't have any functions or test suites
             let indices = testFiles.filter(testFile => {
                 return testFile.suites.length === 0 && testFile.functions.length === 0;

@@ -1,6 +1,5 @@
 'use strict';
 import * as path from 'path';
-import {execPythonFile} from './../../common/utils';
 import {createDeferred, createTemporaryFile} from '../../common/helpers';
 import {OutputChannel, window, CancellationToken} from 'vscode';
 import {TestFile, TestsToRun, TestSuite, TestFunction, FlattenedTestFunction, Tests, TestStatus, FlattenedTestSuite} from '../common/contracts';

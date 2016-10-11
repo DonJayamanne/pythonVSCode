@@ -87,14 +87,12 @@ export function discoverTests(rootDirectory: string, args: string[], token: vsco
         });
     }
 
-    return execPythonFile(pythonSettings.unitTest.pyTestPath, args.concat(['--collect-only']), rootDirectory, false, processOutput, token)
-        .then(() => {
+    return execPythonFile(pythonSettings.unitTest.pyTestPath, args.concat(['--collect-only']), rootDirectory, false, null, token)
+        .then(data => {
+            processOutput(data);
             if (token && token.isCancellationRequested) {
                 return Promise.reject<Tests>('cancelled');
             }
-
-            // process the last entry
-            parsePyTestModuleCollectionResult(rootDirectory, logOutputLines, testFiles, parentNodes);
             return flattenTestFiles(testFiles);
         });
 }
