@@ -99,6 +99,12 @@ For further information and details continue through to the [documentation](http
 
 ## [Change Log](https://github.com/DonJayamanne/pythonVSCode/releases)
 
+### Current Version 0.4.1
+* Debugging of [Django templates](https://github.com/DonJayamanne/pythonVSCode/wiki/Debugging-Django#templates)
+* Linting with [mypy](https://github.com/DonJayamanne/pythonVSCode/wiki/Linting#mypy)
+* Improved error handling when loading [Jupyter/IPython](https://github.com/DonJayamanne/pythonVSCode/wiki/Jupyter-(IPython))
+* Fixes to unittests
+
 ### Current Version 0.4.0
 * Added support for [Jupyter/IPython](https://github.com/DonJayamanne/pythonVSCode/wiki/Jupyter-(IPython))
 * Added local help (offline documentation)
