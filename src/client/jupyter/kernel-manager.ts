@@ -98,7 +98,7 @@ export class KernelManagerImpl extends EventEmitter {
             hasKernelSpec = true;
             return this.startKernel(kernelSpec, language);
         }).catch(reason => {
-            let message = `No kernel for language '${language}' found. Ensure you have a Jupyter or IPython kernel installed for it.`;
+            let message = `Ensure you have a Jupyter/IPython and the prerequisites installed.`;
             let isCompatibilityIssue = false;
             if (typeof reason === 'object' && reason instanceof JmpModuleLoadError) {
                 message = reason.message;

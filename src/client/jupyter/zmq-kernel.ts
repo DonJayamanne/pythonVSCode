@@ -1,10 +1,10 @@
 import * as child_process from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
-import {Kernel} from './kernel';
+import { Kernel } from './kernel';
 import * as vscode from 'vscode';
-import {KernelspecMetadata, JupyterMessage} from './contracts';
-import {JmpModuleLoadError} from '../common/errors';
+import { KernelspecMetadata, JupyterMessage } from './contracts';
+import { JmpModuleLoadError } from '../common/errors';
 const uuid = require('uuid');
 
 export class ZMQKernel extends Kernel {
@@ -55,7 +55,12 @@ export class ZMQKernel extends Kernel {
         }
         catch (ex) {
             console.log(ex);
-            throw new JmpModuleLoadError();
+            if (typeof ex.message === 'string' && (ex.message as string).indexOf('Module version mismatch') > 0) {
+                throw new JmpModuleLoadError();
+            }
+            else {
+                throw ex;
+            }
         }
         const jmp = this.jmp;
         const scheme = this.connection.signature_scheme.slice('hmac-'.length);
