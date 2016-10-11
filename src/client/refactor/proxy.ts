@@ -4,11 +4,11 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as child_process from 'child_process';
-import {ExtractResult} from './contracts';
-import {execPythonFile} from '../common/utils';
-import {IPythonSettings} from '../common/configSettings';
-import {REFACTOR} from '../common/telemetryContracts';
-import {sendTelemetryEvent, Delays} from '../common/telemetry';
+import { ExtractResult } from './contracts';
+import { execPythonFile } from '../common/utils';
+import { IPythonSettings } from '../common/configSettings';
+import { REFACTOR } from '../common/telemetryContracts';
+import { sendTelemetryEvent, Delays } from '../common/telemetry';
 
 const ROPE_PYTHON_VERSION = 'Currently code refactoring is only supported in Python 2.x';
 const ERROR_PREFIX = '$ERROR';
@@ -83,11 +83,13 @@ export class RefactorProxy extends vscode.Disposable {
                     cwd: path.join(this._extensionDir, 'pythonFiles'),
                     env: environmentVariables
                 });
+            this._process.stderr.setEncoding('utf8');
             this._process.stderr.on('data', this.handleStdError.bind(this));
             this._process.on('error', this.handleError.bind(this));
 
             let that = this;
-            this._process.stdout.on('data', data => {
+            this._process.stdout.setEncoding('utf8');
+            this._process.stdout.on('data', (data: string) => {
                 let dataStr: string = data + '';
                 if (!that._startedSuccessfully && dataStr.startsWith('STARTED')) {
                     that._startedSuccessfully = true;

@@ -53,7 +53,7 @@ export class LocalDebugServer extends BaseDebugServer {
             this.debugSocketServer.on("error", ex => {
                 let exMessage = JSON.stringify(ex);
                 let msg = "";
-                if (ex.code === "EADDRINUSE") {
+                if ((ex as any).code === "EADDRINUSE") {
                     msg = `The port used for debugging is in use, please try again or try restarting Visual Studio Code, Error = ${exMessage}`;
                 }
                 else {

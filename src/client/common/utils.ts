@@ -1,3 +1,6 @@
+/// <reference path="../../../node_modules/@types/node/index.d.ts" />
+/// <reference path="../../../node_modules/vscode/vscode.d.ts" />
+
 'use strict';
 // TODO: Cleanup this place
 // Add options for execPythonFile
@@ -6,8 +9,8 @@ import * as os from 'os';
 import * as fs from 'fs';
 import * as child_process from 'child_process';
 import * as settings from './configSettings';
-import {CancellationToken} from 'vscode';
-import {isNotInstalledError} from './helpers';
+import { CancellationToken } from 'vscode';
+import { isNotInstalledError } from './helpers';
 
 export const IS_WINDOWS = /^win/.test(process.platform);
 const PATH_VARIABLE_NAME = IS_WINDOWS ? 'Path' : 'PATH';
@@ -161,14 +164,14 @@ function spawnFileInternal(file: string, args: string[], options: child_process.
         });
         proc.stdout.setEncoding('utf8');
         proc.stderr.setEncoding('utf8');
-        proc.stdout.on('data', function (data) {
+        proc.stdout.on('data', function (data: string) {
             if (token && token.isCancellationRequested) {
                 return;
             }
             stdOut(data);
         });
 
-        proc.stderr.on('data', function (data) {
+        proc.stderr.on('data', function (data: string) {
             if (token && token.isCancellationRequested) {
                 return;
             }

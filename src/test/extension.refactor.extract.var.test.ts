@@ -1,3 +1,4 @@
+/// <reference path="../../node_modules/@types/mocha/index.d.ts" />
 import * as assert from 'assert';
 
 // You can import and use all API from the \'vscode\' module
@@ -138,7 +139,7 @@ suite('Variable Extraction', () => {
             .then(response => {
                 if (shouldError) {
                     ignoreErrorHandling = true;
-                    assert.fail(null, null, 'Extraction should fail with an error');
+                    assert.fail(null, null, 'Extraction should fail with an error', '');
                 }
                 let textEdits = getTextEditsFromPatch(mockTextDoc.getText(), DIFF);
                 assert.equal(response.results.length, 1, 'Invalid number of items in response');
@@ -207,7 +208,7 @@ suite('Variable Extraction', () => {
                 return extractVariable(EXTENSION_DIR, textEditor, rangeOfTextToExtract, ch, path.dirname(refactorTargetFile), pythonSettings).then(() => {
                     if (shouldError) {
                         ignoreErrorHandling = true;
-                        assert.fail('No error', 'Error', 'Extraction should fail with an error');
+                        assert.fail('No error', 'Error', 'Extraction should fail with an error', '');
                     }
                     assert.equal(ch.output.length, 0, 'Output channel is not empty');
                     assert.equal(textDocument.lineAt(234).text.trim().indexOf('newvariable'), 0, 'New Variable not created');
@@ -234,7 +235,7 @@ suite('Variable Extraction', () => {
                     assert.equal(true, true, 'Error raised as expected');
                 }
                 else {
-                    assert.fail(error + '', null, 'Variable extraction failed\n' + ch.output);
+                    assert.fail(error + '', null, 'Variable extraction failed\n' + ch.output, '');
                     return Promise.reject(error);
                 }
             });

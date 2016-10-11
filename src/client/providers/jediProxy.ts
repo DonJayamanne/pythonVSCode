@@ -8,7 +8,7 @@ import * as path from 'path';
 import * as settings from './../common/configSettings';
 import * as logger from './../common/logger';
 import * as telemetryHelper from "../common/telemetry";
-import {execPythonFile, validatePath} from "../common/utils";
+import { execPythonFile, validatePath } from "../common/utils";
 
 const IS_WINDOWS = /^win/.test(process.platform);
 var proc: child_process.ChildProcess;
@@ -200,7 +200,8 @@ function spawnProcess(dir: string) {
     catch (ex) {
         return handleError("spawnProcess", ex.message);
     }
-    proc.stderr.on("data", (data) => {
+    proc.stderr.setEncoding('utf8');
+    proc.stderr.on("data", (data: string) => {
         handleError("stderr", data);
     });
     proc.on("end", (end) => {
@@ -209,8 +210,8 @@ function spawnProcess(dir: string) {
     proc.on("error", error => {
         handleError("error", error);
     });
-
-    proc.stdout.on("data", (data) => {
+    proc.stdout.setEncoding('utf8');
+    proc.stdout.on("data", (data: string) => {
         //Possible there was an exception in parsing the data returned
         //So append the data then parse it
         var dataStr = previousData = previousData + data + ""

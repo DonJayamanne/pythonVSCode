@@ -3,13 +3,16 @@ typings/**
 out/test/**
 test/**
 src/**
+scripts/**
 **/*.map
 .gitignore
+.gitmodules
 images/**/*.gif
 images/**/*.png
 tsconfig.json
+typings.json
 pythonFiles/**/*.pyc
+requirements.txt
 vsc-extension-quickstart.md
 .travis.yml
-requirements.txt
 webpack.config.js

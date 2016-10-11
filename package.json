@@ -23,7 +23,7 @@
     "theme": "dark"
   },
   "engines": {
-    "vscode": "^1.5.0"
+    "vscode": "^1.6.0"
   },
   "categories": [
     "Languages",
@@ -749,16 +749,12 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "node ./node_modules/vscode/bin/compile && webpack",
-    "compile": "webpack && node ./node_modules/vscode/bin/compile  -watch -p ./ && installServerIntoExtension ./out ./src/server/package.json ./src/server/tsconfig.json",
+    "vscode:prepublish": "tsc -p ./ && webpack",
+    "compile": "webpack && tsc -watch -p ./",
     "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "node ./node_modules/vscode/bin/test"
   },
   "dependencies": {
-    "@types/jquery": "^1.10.31",
-    "@types/socket.io": "^1.4.27",
-    "@types/socket.io-client": "^1.4.27",
-    "@types/uuid": "^3.3.27",
     "anser": "^1.1.0",
     "copy-paste": "^1.3.0",
     "diff-match-patch": "^1.0.0",
@@ -785,14 +781,21 @@
     "xml2js": "^0.4.17"
   },
   "devDependencies": {
+    "@types/node": "^6.0.40",
+    "@types/mocha": "^2.2.32",
+    "@types/jquery": "^1.10.31",
+    "@types/socket.io": "^1.4.27",
+    "@types/socket.io-client": "^1.4.27",
+    "@types/uuid": "^3.3.27",
     "babel-core": "^6.14.0",
     "babel-loader": "^6.2.5",
     "babel-preset-es2015": "^6.14.0",
     "ignore-loader": "^0.1.1",
     "retyped-diff-match-patch-tsd-ambient": "^1.0.0-0",
     "ts-loader": "^0.8.2",
-    "typescript": "^1.8.5",
-    "vscode": "^0.11.0",
-    "webpack": "^1.13.2"
+    "webpack": "^1.13.2",
+    "typescript": "^2.0.3",
+    "vscode": "^1.0.0",
+    "mocha": "^2.3.3"
   }
 }

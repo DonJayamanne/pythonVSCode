@@ -1,14 +1,14 @@
-import {BaseDebugServer} from "../DebugServers/BaseDebugServer";
-import {NonDebugServer} from "../DebugServers/NonDebugServer";
-import {IPythonProcess, IPythonThread, IDebugServer} from "../Common/Contracts";
-import {DebugSession, OutputEvent} from "vscode-debugadapter";
-import {DebugProtocol} from "vscode-debugprotocol";
+import { BaseDebugServer } from "../DebugServers/BaseDebugServer";
+import { NonDebugServer } from "../DebugServers/NonDebugServer";
+import { IPythonProcess, IPythonThread, IDebugServer } from "../Common/Contracts";
+import { DebugSession, OutputEvent } from "vscode-debugadapter";
+import { DebugProtocol } from "vscode-debugprotocol";
 import * as path from "path";
 import * as child_process from "child_process";
-import {LaunchRequestArguments} from "../Common/Contracts";
-import {DebugClient, DebugType} from "./DebugClient";
+import { LaunchRequestArguments } from "../Common/Contracts";
+import { DebugClient, DebugType } from "./DebugClient";
 import * as fs from "fs";
-import {open} from "../../common/open";
+import { open } from "../../common/open";
 let fsExtra = require("fs-extra");
 let tmp = require("tmp");
 let prependFile = require("prepend-file");
@@ -122,10 +122,10 @@ export class NonDebugClient extends DebugClient {
             });
             this.pyProc.stderr.setEncoding("utf8");
             this.pyProc.stdout.setEncoding("utf8");
-            this.pyProc.stderr.on("data", error => {
+            this.pyProc.stderr.on("data", (error: string) => {
                 this.debugSession.sendEvent(new OutputEvent(error, "stderr"));
             });
-            this.pyProc.stdout.on("data", d => {
+            this.pyProc.stdout.on("data", (d: string) => {
                 this.debugSession.sendEvent(new OutputEvent(d, "stdout"));
             });
             this.pyProc.on('exit', () => {

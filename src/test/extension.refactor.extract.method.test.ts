@@ -3,15 +3,15 @@ import * as assert from 'assert';
 // You can import and use all API from the \'vscode\' module
 // as well as import your extension to test it
 import * as vscode from 'vscode';
-import {TextDocument, TextLine, Position, Range} from 'vscode';
+import { TextDocument, TextLine, Position, Range } from 'vscode';
 import * as path from 'path';
 import * as settings from '../client/common/configSettings';
 import * as fs from 'fs-extra';
-import {initialize, closeActiveWindows} from './initialize';
-import {execPythonFile} from '../client/common/utils';
-import {extractVariable, extractMethod} from '../client/providers/simpleRefactorProvider';
-import {RefactorProxy} from '../client/refactor/proxy';
-import {getTextEditsFromPatch} from '../client/common/editor';
+import { initialize, closeActiveWindows } from './initialize';
+import { execPythonFile } from '../client/common/utils';
+import { extractVariable, extractMethod } from '../client/providers/simpleRefactorProvider';
+import { RefactorProxy } from '../client/refactor/proxy';
+import { getTextEditsFromPatch } from '../client/common/editor';
 
 let EXTENSION_DIR = path.join(__dirname, '..', '..');
 let pythonSettings = settings.PythonSettings.getInstance();
@@ -137,7 +137,7 @@ suite('Method Extraction', () => {
             .then(response => {
                 if (shouldError) {
                     ignoreErrorHandling = true;
-                    assert.fail('No error', 'Error', 'Extraction should fail with an error');
+                    assert.fail('No error', 'Error', 'Extraction should fail with an error', '');
                 }
                 let textEdits = getTextEditsFromPatch(mockTextDoc.getText(), DIFF);
                 assert.equal(response.results.length, 1, 'Invalid number of items in response');
@@ -207,7 +207,7 @@ suite('Method Extraction', () => {
                 return extractMethod(EXTENSION_DIR, textEditor, rangeOfTextToExtract, ch, path.dirname(refactorTargetFile), pythonSettings).then(() => {
                     if (shouldError) {
                         ignoreErrorHandling = true;
-                        assert.fail('No error', 'Error', 'Extraction should fail with an error');
+                        assert.fail('No error', 'Error', 'Extraction should fail with an error', '');
                     }
                     assert.equal(ch.output.length, 0, 'Output channel is not empty');
                     assert.equal(textDocument.lineAt(241).text.trim().indexOf('def newmethod'), 0, 'New Method not created');
@@ -233,7 +233,7 @@ suite('Method Extraction', () => {
                     assert.equal(true, true, 'Error raised as expected');
                 }
                 else {
-                    assert.fail(error + '', null, 'Method extraction failed\n' + ch.output);
+                    assert.fail(error + '', null, 'Method extraction failed\n' + ch.output, '');
                     return Promise.reject(error);
                 }
             });

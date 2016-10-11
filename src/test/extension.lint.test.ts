@@ -219,7 +219,7 @@ suite('Linting', () => {
                 assert.equal(true, similarMessages.length > 0, 'Error not found, ' + JSON.stringify(msg) + '\n, Output - ' + outputChannel.output);
             });
         }, error => {
-            assert.fail(error, null, 'Linter error, Output - ' + outputChannel.output);
+            assert.fail(error, null, 'Linter error, Output - ' + outputChannel.output, '');
         });
     }
     test('PyLint', done => {
