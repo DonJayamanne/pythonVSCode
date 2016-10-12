@@ -40,6 +40,22 @@
             "sourceMaps": true,
             "outDir": "${workspaceRoot}/out/test",
             "preLaunchTask": "npm"
+        },
+        {
+            "name": "Python",
+            "type": "python",
+            "request": "launch",
+            "stopOnEntry": true,
+            "pythonPath": "python",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+            ],
+            "debugOptions": [
+                "WaitOnAbnormalExit",
+                "WaitOnNormalExit",
+                "RedirectOutput"
+            ]
         }
     ]
 }

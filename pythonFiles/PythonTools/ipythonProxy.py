@@ -1,431 +1,330 @@
-# visualstudio_ipython_repl.IPythonBackend
-# Python Tools for Visual Studio
-# Copyright(c) Microsoft Corporation
-# All rights reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the License); you may not use
-# this file except in compliance with the License. You may obtain a copy of the
-# License at http://www.apache.org/licenses/LICENSE-2.0
-#
-# THIS CODE IS PROVIDED ON AN  *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS
-# OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY
-# IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
-# MERCHANTABLITY OR NON-INFRINGEMENT.
-#
-# See the Apache Version 2.0 License for specific language governing
-# permissions and limitations under the License.
 
-"""Implements REPL support over IPython/ZMQ for VisualStudio"""
-
-__author__ = "Microsoft Corporation <ptvshelp@microsoft.com>"
-__version__ = "3.0.0.0"
-
-import re
 import sys
-from visualstudio_py_repl import BasicReplBackend, ReplBackend, UnsupportedReplException, _command_line_to_args_list
-from visualstudio_py_util import to_bytes
+import socket
+import select
+import time
+import re
+import json
+import struct
+import imp
+import traceback
+import random
+import os
+import io
+import inspect
+import types
+from collections import deque
+
 try:
     import thread
-except:
-    import _thread as thread    # Renamed as Py3k
+except ImportError:
+    # Renamed in Python3k
+    import _thread as thread
 
-from base64 import decodestring
+import visualstudio_py_util as _vspu
+
+to_bytes = _vspu.to_bytes
+read_bytes = _vspu.read_bytes
+read_int = _vspu.read_int
+read_string = _vspu.read_string
+write_bytes = _vspu.write_bytes
+write_int = _vspu.write_int
+write_string = _vspu.write_string
 
 try:
-    import IPython
-except ImportError:
-    exc_value = sys.exc_info()[1]
-    raise UnsupportedReplException('IPython mode requires IPython 0.11 or later: ' + str(exc_value))
-
-def is_ipython_versionorgreater(major, minor):
-    """checks if we are at least a specific IPython version"""
-    match = re.match('(\d+).(\d+)', IPython.__version__)
-    if match:
-        groups = match.groups()
-        if int(groups[0]) > major:
-            return True
-        elif int(groups[0]) == major:
-            return int(groups[1]) >= minor
-
-    return False
-
-remove_escapes = re.compile(r'\x1b[^m]*m')
+    unicode
+except NameError:
+    unicode = str
 
 try:
-    if is_ipython_versionorgreater(3, 0):
-        from IPython.kernel import KernelManager
-        from IPython.kernel.channels import HBChannel
-        from IPython.kernel.threaded import (ThreadedZMQSocketChannel, ThreadedKernelClient as KernelClient)
-        ShellChannel = StdInChannel = IOPubChannel = ThreadedZMQSocketChannel
-    elif is_ipython_versionorgreater(1, 0):
-        from IPython.kernel import KernelManager, KernelClient
-        from IPython.kernel.channels import ShellChannel, HBChannel, StdInChannel, IOPubChannel
-    else:
-        import IPython.zmq
-        KernelClient = object # was split out from KernelManager in 1.0
-        from IPython.zmq.kernelmanager import (KernelManager,
-                                               ShellSocketChannel as ShellChannel,
-                                               SubSocketChannel as IOPubChannel,
-                                               StdInSocketChannel as StdInChannel,
-                                               HBSocketChannel as HBChannel)
+    BaseException
+except NameError:
+    # BaseException not defined until Python 2.5
+    BaseException = Exception
 
-    from IPython.utils.traitlets import Type
-except ImportError:
-    exc_value = sys.exc_info()[1]
-    raise UnsupportedReplException(str(exc_value))
+DEBUG = os.environ.get('DEBUG_DJAYAMANNE_IPYTHON') is not None
 
+def _debug_write(out):
+    if DEBUG:
+        sys.__stdout__.write(out)
+        sys.__stdout__.flush()
 
-# TODO: SystemExit exceptions come back to us as strings, can we automatically exit when ones raised somehow?
+class IPythonExitException(Exception): pass
 
-#####
-# Channels which forward events
+class SafeSendLock(object):
+    """a lock which ensures we're released if we take a KeyboardInterrupt exception acquiring it"""
+    def __init__(self):
+        self.lock = thread.allocate_lock()
 
-# Description of the messaging protocol
-# http://ipython.scipy.org/doc/manual/html/development/messaging.html
+    def __enter__(self):
+        self.acquire()
 
+    def __exit__(self, exc_type, exc_value, tb):
+        self.release()
 
-class DefaultHandler(object):
-    def unknown_command(self, content):
-        import pprint
-        print('unknown command ' + str(type(self)))
-        pprint.pprint(content)
-
-    def call_handlers(self, msg):
-        # msg_type:
-        #   execute_reply
-        msg_type = 'handle_' + msg['msg_type']
-
-        getattr(self, msg_type, self.unknown_command)(msg['content'])
-
-class VsShellChannel(DefaultHandler, ShellChannel):
-
-    def handle_execute_reply(self, content):
-        # we could have a payload here...
-        payload = content['payload']
-
-        for item in payload:
-            data = item.get('data')
-            if data is not None:
-                try:
-                    # Could be named km.sub_channel for very old IPython, but
-                    # those versions should not put 'data' in this payload
-                    write_data = self._vs_backend.km.iopub_channel.write_data
-                except AttributeError:
-                    pass
-                else:
-                    write_data(data)
-                    continue
-
-            output = item.get('text', None)
-            if output is not None:
-                self._vs_backend.write_stdout(output)
-        self._vs_backend.send_command_executed()
-
-    def handle_inspect_reply(self, content):
-        self.handle_object_info_reply(content)
-
-    def handle_object_info_reply(self, content):
-        self._vs_backend.object_info_reply = content
-        self._vs_backend.members_lock.release()
-
-    def handle_complete_reply(self, content):
-        self._vs_backend.complete_reply = content
-        self._vs_backend.members_lock.release()
-
-    def handle_kernel_info_reply(self, content):
-        self._vs_backend.write_stdout(content['banner'])
-
-
-class VsIOPubChannel(DefaultHandler, IOPubChannel):
-    def call_handlers(self, msg):
-        # only output events from our session or no sessions
-        # https://pytools.codeplex.com/workitem/1622
-        parent = msg.get('parent_header')
-        if not parent or parent.get('session') == self.session.session:
-            msg_type = 'handle_' + msg['msg_type']
-            getattr(self, msg_type, self.unknown_command)(msg['content'])
-
-    def handle_display_data(self, content):
-        # called when user calls display()
-        data = content.get('data', None)
-
-        if data is not None:
-            self.write_data(data)
-
-    def handle_stream(self, content):
-        stream_name = content['name']
-        if is_ipython_versionorgreater(3, 0):
-            output = content['text']
-        else:
-            output = content['data']
-        if stream_name == 'stdout':
-            self._vs_backend.write_stdout(output)
-        elif stream_name == 'stderr':
-            self._vs_backend.write_stderr(output)
-        # TODO: stdin can show up here, do we echo that?
-
-    def handle_execute_result(self, content):
-        self.handle_execute_output(content)
-
-    def handle_execute_output(self, content):
-        # called when an expression statement is printed, we treat
-        # identical to stream output but it always goes to stdout
-        output = content['data']
-        execution_count = content['execution_count']
-        self._vs_backend.execution_count = execution_count + 1
-        self._vs_backend.send_prompt(
-            '\r\nIn [%d]: ' % (execution_count + 1),
-            '   ' + ('.' * (len(str(execution_count + 1)) + 2)) + ': ',
-            allow_multiple_statements=True
-        )
-        self.write_data(output, execution_count)
-
-    def write_data(self, data, execution_count = None):
-        output_xaml = data.get('application/xaml+xml', None)
-        if output_xaml is not None:
-            try:
-                if isinstance(output_xaml, str) and sys.version_info[0] >= 3:
-                    output_xaml = output_xaml.encode('ascii')
-                self._vs_backend.write_xaml(decodestring(output_xaml))
-                self._vs_backend.write_stdout('\n')
-                return
-            except:
-                pass
-
-        output_png = data.get('image/png', None)
-        if output_png is not None:
-            try:
-                if isinstance(output_png, str) and sys.version_info[0] >= 3:
-                    output_png = output_png.encode('ascii')
-                self._vs_backend.write_png(decodestring(output_png))
-                self._vs_backend.write_stdout('\n')
-                return
-            except:
-                pass
-
-        output_str = data.get('text/plain', None)
-        if output_str is not None:
-            if execution_count is not None:
-                if '\n' in output_str:
-                    output_str = '\n' + output_str
-                output_str = 'Out[' + str(execution_count) + ']: ' + output_str
-
-            self._vs_backend.write_stdout(output_str)
-            self._vs_backend.write_stdout('\n')
-            return
-
-    def handle_error(self, content):
-        # TODO: this includes escape sequences w/ color, we need to unescape that
-        ename = content['ename']
-        evalue = content['evalue']
-        tb = content['traceback']
-        self._vs_backend.write_stderr('\n'.join(tb))
-        self._vs_backend.write_stdout('\n')
-
-    def handle_execute_input(self, content):
-        # just a rebroadcast of the command to be executed, can be ignored
-        self._vs_backend.execution_count += 1
-        self._vs_backend.send_prompt(
-            '\r\nIn [%d]: ' % (self._vs_backend.execution_count),
-            '   ' + ('.' * (len(str(self._vs_backend.execution_count)) + 2)) + ': ',
-            allow_multiple_statements=True
-        )
-        pass
-
-    def handle_status(self, content):
-        pass
-
-    # Backwards compat w/ 0.13
-    handle_pyin = handle_execute_input
-    handle_pyout = handle_execute_output
-    handle_pyerr = handle_error
-
-
-class VsStdInChannel(DefaultHandler, StdInChannel):
-    def handle_input_request(self, content):
-        # queue this to another thread so we don't block the channel
-        def read_and_respond():
-            value = self._vs_backend.read_line()
-
-            self.input(value)
-
-        thread.start_new_thread(read_and_respond, ())
-
-
-class VsHBChannel(DefaultHandler, HBChannel):
-    pass
-
-
-class VsKernelManager(KernelManager, KernelClient):
-    shell_channel_class = Type(VsShellChannel)
-    if is_ipython_versionorgreater(1, 0):
-        iopub_channel_class = Type(VsIOPubChannel)
-    else:
-        sub_channel_class = Type(VsIOPubChannel)
-    stdin_channel_class = Type(VsStdInChannel)
-    hb_channel_class = Type(VsHBChannel)
-
-
-class IPythonBackend(ReplBackend):
-    def __init__(self, mod_name = '__main__', launch_file = None):
-        ReplBackend.a__init__(self)
-        self.launch_file = launch_file
-        self.mod_name = mod_name
-        self.km = VsKernelManager()
-
-        if is_ipython_versionorgreater(0, 13):
-            # http://pytools.codeplex.com/workitem/759
-            # IPython stopped accepting the ipython flag and switched to launcher, the new
-            # default is what we want though.
-            self.km.start_kernel(**{'extra_arguments': self.get_extra_arguments()})
-        else:
-            self.km.start_kernel(**{'ipython': True, 'extra_arguments': self.get_extra_arguments()})
-        self.km.start_channels()
-        self.exit_lock = thread.allocate_lock()
-        self.exit_lock.acquire()     # used as an event
-        self.members_lock = thread.allocate_lock()
-        self.members_lock.acquire()
-
-        self.km.shell_channel._vs_backend = self
-        self.km.stdin_channel._vs_backend = self
-        if is_ipython_versionorgreater(1, 0):
-            self.km.iopub_channel._vs_backend = self
-        else:
-            self.km.sub_channel._vs_backend = self
-        self.km.hb_channel._vs_backend = self
-        self.execution_count = 1
-
-    def get_extra_arguments(self):
-        if sys.version <= '2.':
-            return [unicode('--pylab=inline')]
-        return ['--pylab=inline']
-
-    def execute_file_as_main(self, filename, arg_string):
-        f = open(filename, 'rb')
+    def acquire(self):
         try:
-            contents = f.read().replace(to_bytes("\r\n"), to_bytes("\n"))
-        finally:
-            f.close()
-        args = [filename] + _command_line_to_args_list(arg_string)
-        code = '''
-import sys
-sys.argv = %(args)r
-__file__ = %(filename)r
-del sys
-exec(compile(%(contents)r, %(filename)r, 'exec'))
-''' % {'filename' : filename, 'contents':contents, 'args': args}
+            self.lock.acquire()
+        except KeyboardInterrupt:
+            try:
+                self.lock.release()
+            except:
+                pass
+            raise
 
-        self.run_command(code, True)
+    def release(self):
+        self.lock.release()
+
+class iPythonSocketServer(object):
+    """back end for executing REPL code.  This base class handles all of the
+communication with the remote process while derived classes implement the
+actual inspection and introspection."""
+    _MRES = to_bytes('MRES')
+    _SRES = to_bytes('SRES')
+    _MODS = to_bytes('MODS')
+    _IMGD = to_bytes('IMGD')
+    _PRPC = to_bytes('PRPC')
+    _RDLN = to_bytes('RDLN')
+    _STDO = to_bytes('STDO')
+    _STDE = to_bytes('STDE')
+    _DBGA = to_bytes('DBGA')
+    _DETC = to_bytes('DETC')
+    _DPNG = to_bytes('DPNG')
+    _DXAM = to_bytes('DXAM')
+
+    _MERR = to_bytes('MERR')
+    _SERR = to_bytes('SERR')
+    _ERRE = to_bytes('ERRE')
+    _EXIT = to_bytes('EXIT')
+    _DONE = to_bytes('DONE')
+    _MODC = to_bytes('MODC')
+
+    """Messages sent back as responses"""
+    _PONG = to_bytes('PONG')
+
+    def __init__(self):
+        import threading
+        self.conn = None
+        self.send_lock = SafeSendLock()
+        self.input_event = threading.Lock()
+        self.input_event.acquire()  # lock starts acquired (we use it like a manual reset event)
+        self.input_string = None
+        self.exit_requested = False
+        self.execute_item = None
+        self.execute_item_lock = threading.Lock()
+        self.execute_item_lock.acquire()    # lock starts acquired (we use it like manual reset event)
+        self.exit_socket_loop = False
+
+    def connect(self, port):
+        self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.conn.connect(('127.0.0.1', port))
+
+        # perform the handshake
+        with self.send_lock:
+            write_string(self.conn, "Some Guid")
+            write_int(self.conn, os.getpid())
+
+        # start a new thread for communicating w/ the remote process
+        thread.start_new_thread(self.start_processing, ())
+
+    def start_processing(self):
+        """loop on created thread which processes communicates with the REPL window"""
+        print('start processing')
+        try:
+            while True:
+                print('one')
+                if self.check_for_exit_socket_loop():
+                    break
+
+                # we receive a series of 4 byte commands.  Each command then
+                # has it's own format which we must parse before continuing to
+                # the next command.
+                self.flush()
+                self.conn.settimeout(10)
+                print('check bytes')
+                inp = read_bytes(self.conn, 4)
+                self.conn.settimeout(None)
+                if inp == '':
+                    print ('unknown command', inp)
+                    break
+
+                self.flush()
+                cmd = iPythonSocketServer._COMMANDS.get(inp)
+                if cmd is not None:
+                    cmd(self)
+        except IPythonExitException:
+            pass
+        except socket.error:
+            pass
+        except:
+            print('crap')
+            _debug_write('error in repl loop')
+            _debug_write(traceback.format_exc())
+
+            time.sleep(2) # try and exit gracefully, then interrupt main if necessary
+            traceback.print_exc()
+            self.exit_process()
+
+    def check_for_exit_socket_loop(self):
+        return self.exit_socket_loop
+
+    def _cmd_run(self):
+        """runs the received snippet of code"""
+        # self.run_command(read_string(self.conn))
+        pass
+
+    def _cmd_abrt(self):
+        """aborts the current running command"""
+        # abort command, interrupts execution of the main thread.
+        pass
+
+    def _cmd_exit(self):
+        """exits the interactive process"""
+        self.exit_requested = True
+        self.exit_process()
+
+    def _cmd_ping(self):
+        """ping"""
+        message = read_string(self.conn)
+        with self.send_lock:
+            write_bytes(self.conn, iPythonSocketServer._PONG)
+            write_string(self.conn, "pong received with message" + message)
+
+    def _cmd_inpl(self):
+        """handles the input command which returns a string of input"""
+        self.input_string = read_string(self.conn)
+        self.input_event.release()
+
+    def send_prompt(self, ps1, ps2, update_all = True):
+        """sends the current prompt to the interactive window"""
+        # with self.send_lock:
+        #     write_bytes(self.conn, iPythonSocketServer._PRPC)
+        #     write_string(self.conn, ps1)
+        #     write_string(self.conn, ps2)
+        #     write_int(self.conn, update_all)
+        pass
+
+    def send_error(self):
+        """reports that an error occured to the interactive window"""
+        with self.send_lock:
+            write_bytes(self.conn, iPythonSocketServer._ERRE)
+
+    def send_exit(self):
+        """reports the that the REPL process has exited to the interactive window"""
+        with self.send_lock:
+            write_bytes(self.conn, iPythonSocketServer._EXIT)
+
+    def send_command_executed(self):
+        with self.send_lock:
+            write_bytes(self.conn, iPythonSocketServer._DONE)
+
+    def read_line(self):
+        """reads a line of input from standard input"""
+        with self.send_lock:
+            write_bytes(self.conn, iPythonSocketServer._RDLN)
+        self.input_event.acquire()
+        return self.input_string
+
+    def write_stdout(self, value):
+        """writes a string to standard output in the remote console"""
+        with self.send_lock:
+            write_bytes(self.conn, iPythonSocketServer._STDO)
+            write_string(self.conn, value)
+
+    def write_stderr(self, value):
+        """writes a string to standard input in the remote console"""
+        with self.send_lock:
+            write_bytes(self.conn, iPythonSocketServer._STDE)
+            write_string(self.conn, value)
+
+    ################################################################
+    # Implementation of execution, etc...
 
     def execution_loop(self):
-        # we've got a bunch of threads setup for communication, we just block
-        # here until we're requested to exit.
-        self.send_prompt('\r\nIn [1]: ', '   ...: ', allow_multiple_statements=True)
-        self.exit_lock.acquire()
+        """loop on the main thread which is responsible for executing code"""
+        while True:
+            exit = self.run_one_command(cur_modules, cur_ps1, cur_ps2)
+            if exit:
+                return
 
-    def run_command(self, command, silent = False):
-        if is_ipython_versionorgreater(3, 0):
-            self.km.execute(command, silent)
-        else:
-            self.km.shell_channel.execute(command, silent)
-
-    def execute_file_ex(self, filetype, filename, args):
-        if filetype == 'script':
-            self.execute_file_as_main(filename, args)
-        else:
-            raise NotImplementedError("Cannot execute %s file" % filetype)
-
-    def exit_process(self):
-        self.exit_lock.release()
-
-    def get_members(self, expression):
-        """returns a tuple of the type name, instance members, and type members"""
-        text = expression + '.'
-        if is_ipython_versionorgreater(3, 0):
-            self.km.complete(text)
-        else:
-            self.km.shell_channel.complete(text, text, 1)
-
-        self.members_lock.acquire()
-
-        reply = self.complete_reply
-
-        res = {}
-        text_len = len(text)
-        for member in reply['matches']:
-            res[member[text_len:]] = 'object'
-
-        return ('unknown', res, {})
-
-    def get_signatures(self, expression):
-        """returns doc, args, vargs, varkw, defaults."""
-
-        if is_ipython_versionorgreater(3, 0):
-            self.km.inspect(expression, None, 2)
-        else:
-            self.km.shell_channel.object_info(expression)
-
-        self.members_lock.acquire()
-
-        reply = self.object_info_reply
-        if is_ipython_versionorgreater(3, 0):
-            data = reply['data']
-            text = data['text/plain']
-            text = remove_escapes.sub('', text)
-            return [(text, (), None, None, [])]
-        else:
-            argspec = reply['argspec']
-            defaults = argspec['defaults']
-            if defaults is not None:
-                defaults = [repr(default) for default in defaults]
-            else:
-                defaults = []
-            return [(reply['docstring'], argspec['args'], argspec['varargs'], argspec['varkw'], defaults)]
+    def run_command(self, command):
+        """runs the specified command which is a string containing code"""
+        pass
 
     def interrupt_main(self):
         """aborts the current running command"""
-        self.km.interrupt_kernel()
-
-    def set_current_module(self, module):
         pass
 
-    def get_module_names(self):
-        """returns a list of module names"""
-        return []
+    def exit_process(self):
+        """exits the REPL process"""
+        pass
 
     def flush(self):
+        """flushes the stdout/stderr buffers"""
         pass
 
-    def init_debugger(self):
-        from os import path
-        self.run_command('''
-def __visualstudio_debugger_init():
-    import sys
-    sys.path.append(''' + repr(path.dirname(__file__)) + ''')
-    import visualstudio_py_debugger
-    new_thread = visualstudio_py_debugger.new_thread()
-    sys.settrace(new_thread.trace_func)
-    visualstudio_py_debugger.intercept_threads(True)
+    _COMMANDS = {
+        to_bytes('run '): _cmd_run,
+        to_bytes('abrt'): _cmd_abrt,
+        to_bytes('exit'): _cmd_exit,
+        to_bytes('ping'): _cmd_ping,
+        to_bytes('inpl'): _cmd_inpl,
+    }
 
-__visualstudio_debugger_init()
-del __visualstudio_debugger_init
-''', True)
+def exit_work_item():
+    sys.exit(0)
 
-    def attach_process(self, port, debugger_id):
-        self.run_command('''
-def __visualstudio_debugger_attach():
-    import visualstudio_py_debugger
+class iPythonReadLine(object):
+    def __init__(self):
+        self._input = io.open(sys.stdin.fileno(), encoding='utf-8')
 
-    def do_detach():
-        visualstudio_py_debugger.DETACH_CALLBACKS.remove(do_detach)
+    def _deserialize(self, request):
+        """Deserialize request from VSCode.
 
-    visualstudio_py_debugger.DETACH_CALLBACKS.append(do_detach)
-    visualstudio_py_debugger.attach_process(''' + str(port) + ''', ''' + repr(debugger_id) + ''', report = True, block = True)
+        Args:
+            request: String with raw request from VSCode.
 
-__visualstudio_debugger_attach()
-del __visualstudio_debugger_attach
-''', True)
+        Returns:
+            Python dictionary with request data.
+        """
+        return json.loads(request)
 
-class IPythonBackendWithoutPyLab(IPythonBackend):
-    def get_extra_arguments(self):
-        return []
+    def _set_request_config(self, config):
+        self.use_snippets = config.get('useSnippets')
+        self.show_doc_strings = config.get('showDescriptions', True)
+        self.fuzzy_matcher = config.get('fuzzyMatcher', False)
+
+    def _process_request(self, request):
+        """Accept serialized request from VSCode and write response.
+        """
+        request = self._deserialize(request)
+
+        self._set_request_config(request.get('config', {}))
+
+        lookup = request.get('lookup', 'completions')
+
+        if lookup == 'definitions':
+            return self._write_response('defs')
+        elif lookup == 'arguments':
+            return self._write_response('arguments')
+        elif lookup == 'usages':
+            return self._write_response('usages')
+        else:
+            return self._write_response('Dont Know')
+
+    def _write_response(self, response):
+        sys.stdout.write(response + '\n')
+        sys.stdout.flush()
+
+    def watch(self):
+        server = iPythonSocketServer()
+        server.connect(3000)
+        while True:
+            try:
+                self._process_request(self._input.readline())
+            except Exception:
+                sys.stderr.write(traceback.format_exc() + '\n')
+                sys.stderr.flush()
+
+if __name__ == '__main__':
+    iPythonReadLine().watch()
