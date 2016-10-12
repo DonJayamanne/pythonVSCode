@@ -99,6 +99,9 @@ For further information and details continue through to the [documentation](http
 
 ## [Change Log](https://github.com/DonJayamanne/pythonVSCode/releases)
 
+### Current Version 0.4.2
+* Fix for autocompletion and code navigation with unicode characters [#372](https://github.com/DonJayamanne/pythonVSCode/issues/372), [#364](https://github.com/DonJayamanne/pythonVSCode/issues/364)
+
 ### Current Version 0.4.1
 * Debugging of [Django templates](https://github.com/DonJayamanne/pythonVSCode/wiki/Debugging-Django#templates)
 * Linting with [mypy](https://github.com/DonJayamanne/pythonVSCode/wiki/Linting#mypy)
