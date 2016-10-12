@@ -90,7 +90,7 @@ class Script(object):
             try:
                 with open(path) as f:
                     source = f.read()
-            except:
+            except UnicodeDecodeError:
                 with open(path, encoding=encoding) as f:
                     source = f.read()
 
