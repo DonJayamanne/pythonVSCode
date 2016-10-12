@@ -121,6 +121,10 @@ For further information and details continue through to the [documentation](http
 * Fixed issue with the execution of the command ```python.execInTerminal``` via a shortcut ([#340](https://github.com/DonJayamanne/pythonVSCode/issues/340))
 * Fixed issue with code refactoring ([#363](https://github.com/DonJayamanne/pythonVSCode/issues/363))
 
+### Thanks
+* [Igor Novozhilov](https://github.com/IgorNovozhilov)
+    + Fix for autocompletion and code navigation with unicode characters [#372](https://github.com/DonJayamanne/pythonVSCode/issues/372), [#364](https://github.com/DonJayamanne/pythonVSCode/issues/364)
+    
 ## Source
 
 [GitHub](https://github.com/DonJayamanne/pythonVSCode)
