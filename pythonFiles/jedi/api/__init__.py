@@ -87,8 +87,12 @@ class Script(object):
         self.path = None if path is None else os.path.abspath(path)
 
         if source is None:
-            with open(path) as f:
-                source = f.read()
+            try:
+                with open(path) as f:
+                    source = f.read()
+            except:
+                with open(path, encoding=encoding) as f:
+                    source = f.read()
 
         self.source = common.source_to_unicode(source, encoding)
         lines = common.splitlines(self.source)
