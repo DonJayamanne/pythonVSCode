@@ -49,29 +49,29 @@ try:
 except ImportError:
     from queue import Empty  # Python 3
 
+DEBUG = os.environ.get('DEBUG_DJAYAMANNE_IPYTHON') is not None
+TEST = os.environ.get('TEST_DJAYAMANNE_IPYTHON') is not None
+TEST = True
 # The great "support IPython 2, 3, 4" strat begins
-try:
-    import jupyter
-except ImportError:
-    jupyter_era = False
-else:
-    jupyter_era = True
+if not TEST:
+    try:
+        import jupyter
+    except ImportError:
+        jupyter_era = False
+    else:
+        jupyter_era = True
 
-if jupyter_era:
-    # Jupyter / IPython 4.x
-    from jupyter_client import KernelManager
-    from jupyter_client.kernelspec import KernelSpecManager
-    kernelSpecManager = KernelSpecManager()
-else:
-    from IPython.kernel import KernelManager
-    from IPython.kernel.kernelspec import KernelSpecManager
-    kernelSpecManager = KernelSpecManager()
+    if jupyter_era:
+        # Jupyter / IPython 4.x
+        from jupyter_client import KernelManager
+        from jupyter_client.kernelspec import KernelSpecManager
+        kernelSpecManager = KernelSpecManager()
+    else:
+        from IPython.kernel import KernelManager
+        from IPython.kernel.kernelspec import KernelSpecManager
+        kernelSpecManager = KernelSpecManager()
 
 # End of the great "support IPython 2, 3, 4" strat
-
-
-DEBUG = os.environ.get('DEBUG_DJAYAMANNE_IPYTHON') is not None
-
 
 def _debug_write(out):
     if DEBUG:
@@ -114,6 +114,7 @@ class SafeSendLock(object):
     def release(self):
         self.lock.release()
 
+
 class iPythonSocketServer(object):
     """back end for executing REPL code.  This base class handles all of the
 communication with the remote process while derived classes implement the
@@ -124,6 +125,7 @@ actual inspection and introspection."""
     _EXIT = to_bytes('EXIT')
     _LSTK = to_bytes('LSTK')
     _EROR = to_bytes('EROR')
+    _TEST = to_bytes('TEST')
 
     def __init__(self):
         import threading
@@ -183,9 +185,15 @@ actual inspection and introspection."""
                         try:
                             if iPythonSocketServer._COMMANDS_WITH_IDS.get(inp) == True:
                                 id = read_string(self.conn)
-                                cmd(self, id)
+                                if TEST:
+                                    self.replyWithError(inp, id)
+                                else:
+                                    cmd(self, id)
                             else:
-                                cmd(self)
+                                if TEST:
+                                    self.replyWithError(inp, id)
+                                else:
+                                    cmd(self)
                         except:
                             self.replyWithError(inp, id)
                     else:
@@ -216,13 +224,21 @@ actual inspection and introspection."""
     def check_for_exit_socket_loop(self):
         return self.exit_requested
 
-    def replyWithError(self, cmd, id):
+    def replyForTest(self, commandName, id):
+        message = read_string(self.conn)
+        with self.send_lock:
+            _debug_write('Test response for Command: ' + commandName)
+            write_bytes(self.conn, iPythonSocketServer._TEST)
+            write_string(self.conn, commandName)
+            write_string(self.conn, "" if id is None else id)
+            write_string(self.conn, message)
+
+    def replyWithError(self, commandName, id):
         with self.send_lock:
             _debug_write('Replying with error')
             write_bytes(self.conn, iPythonSocketServer._EROR)
-            write_string(self.conn, cmd)
+            write_string(self.conn, commandName)
             write_string(self.conn, "" if id is None else id)
-            write_string(self.conn, str(traceback.format_exc()))
 
     def _cmd_exit(self):
         """exits the interactive process"""
