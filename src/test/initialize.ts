@@ -3,6 +3,9 @@
 // Please refer to their documentation on https://mochajs.org/ for help.
 //
 
+//First thing to be executed
+process.env['PYTHON_DONJAYAMANNE_TEST'] = "1";
+
 // The module 'assert' provides assertion methods from node
 import * as assert from "assert";
 

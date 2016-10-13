@@ -1,8 +1,8 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import {SystemVariables} from './systemVariables';
-import {EventEmitter} from 'events';
+import { SystemVariables } from './systemVariables';
+import { EventEmitter } from 'events';
 import * as path from 'path';
 
 export interface IPythonSettings {
@@ -80,6 +80,8 @@ export interface JupyterSettings {
     startupCode: string[];
 }
 
+const IS_TEST_EXECUTION = process.env['PYTHON_DONJAYAMANNE_TEST'] === '1';
+
 const systemVariables: SystemVariables = new SystemVariables();
 export class PythonSettings extends EventEmitter implements IPythonSettings {
     private static pythonSettings: PythonSettings = new PythonSettings();
@@ -98,9 +100,10 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         return PythonSettings.pythonSettings;
     }
     private initializeSettings() {
+        const workspaceRoot = IS_TEST_EXECUTION ? __dirname : vscode.workspace.rootPath;
         let pythonSettings = vscode.workspace.getConfiguration('python');
         this.pythonPath = systemVariables.resolveAny(pythonSettings.get<string>('pythonPath'));
-        this.pythonPath = getAbsolutePath(this.pythonPath, vscode.workspace.rootPath);
+        this.pythonPath = getAbsolutePath(this.pythonPath, IS_TEST_EXECUTION ? __dirname : workspaceRoot);
         this.devOptions = systemVariables.resolveAny(pythonSettings.get<any[]>('devOptions'));
         this.devOptions = Array.isArray(this.devOptions) ? this.devOptions : [];
         let lintingSettings = systemVariables.resolveAny(pythonSettings.get<ILintingSettings>('linting'));
@@ -109,12 +112,15 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         }
         else {
             this.linting = lintingSettings;
+            if (IS_TEST_EXECUTION && !this.linting) {
+                this.linting = {} as ILintingSettings;
+            }
         }
-        this.linting.pylintPath = getAbsolutePath(this.linting.pylintPath, vscode.workspace.rootPath);
-        this.linting.flake8Path = getAbsolutePath(this.linting.flake8Path, vscode.workspace.rootPath);
-        this.linting.pep8Path = getAbsolutePath(this.linting.pep8Path, vscode.workspace.rootPath);
-        this.linting.prospectorPath = getAbsolutePath(this.linting.prospectorPath, vscode.workspace.rootPath);
-        this.linting.pydocStylePath = getAbsolutePath(this.linting.pydocStylePath, vscode.workspace.rootPath);
+        this.linting.pylintPath = getAbsolutePath(this.linting.pylintPath, workspaceRoot);
+        this.linting.flake8Path = getAbsolutePath(this.linting.flake8Path, workspaceRoot);
+        this.linting.pep8Path = getAbsolutePath(this.linting.pep8Path, workspaceRoot);
+        this.linting.prospectorPath = getAbsolutePath(this.linting.prospectorPath, workspaceRoot);
+        this.linting.pydocStylePath = getAbsolutePath(this.linting.pydocStylePath, workspaceRoot);
 
         let formattingSettings = systemVariables.resolveAny(pythonSettings.get<IFormattingSettings>('formatting'));
         if (this.formatting) {
@@ -123,8 +129,8 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         else {
             this.formatting = formattingSettings;
         }
-        this.formatting.autopep8Path = getAbsolutePath(this.formatting.autopep8Path, vscode.workspace.rootPath);
-        this.formatting.yapfPath = getAbsolutePath(this.formatting.yapfPath, vscode.workspace.rootPath);
+        this.formatting.autopep8Path = getAbsolutePath(this.formatting.autopep8Path, workspaceRoot);
+        this.formatting.yapfPath = getAbsolutePath(this.formatting.yapfPath, workspaceRoot);
 
         let autoCompleteSettings = systemVariables.resolveAny(pythonSettings.get<IAutoCompeteSettings>('autoComplete'));
         if (this.autoComplete) {
@@ -140,10 +146,13 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         }
         else {
             this.unitTest = unitTestSettings;
+            if (IS_TEST_EXECUTION && !this.unitTest) {
+                this.unitTest = { nosetestArgs: [], pyTestArgs: [], unittestArgs: [] } as IUnitTestSettings;
+            }
         }
         this.emit('change');
-        this.unitTest.pyTestPath = getAbsolutePath(this.unitTest.pyTestPath, vscode.workspace.rootPath);
-        this.unitTest.nosetestPath = getAbsolutePath(this.unitTest.nosetestPath, vscode.workspace.rootPath);
+        this.unitTest.pyTestPath = getAbsolutePath(this.unitTest.pyTestPath, workspaceRoot);
+        this.unitTest.nosetestPath = getAbsolutePath(this.unitTest.nosetestPath, workspaceRoot);
 
         // Resolve any variables found in the test arguments
         this.unitTest.nosetestArgs = this.unitTest.nosetestArgs.map(arg => systemVariables.resolveAny(arg));
@@ -156,6 +165,9 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         }
         else {
             this.terminal = terminalSettings;
+            if (IS_TEST_EXECUTION && !this.terminal) {
+                this.terminal = {} as ITerminalSettings;
+            }
         }
         this.jupyter = pythonSettings.get<JupyterSettings>('jupyter');
     }
@@ -170,7 +182,8 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
     public jupyter: JupyterSettings;
 }
 
-function getAbsolutePath(pathToCheck: string, rootDir: String): string {
+function getAbsolutePath(pathToCheck: string, rootDir: string): string {
+    if (IS_TEST_EXECUTION && !pathToCheck) { return rootDir; }
     if (pathToCheck.indexOf(path.sep) === -1) {
         return pathToCheck;
     }
