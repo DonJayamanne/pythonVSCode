@@ -14,7 +14,6 @@ export class iPythonAdapter extends SocketCallbackHandler {
         super(socketServer);
         this.registerCommandHandler(ResponseCommands.Pong, this.onPong.bind(this));
         this.registerCommandHandler(ResponseCommands.ListKernels, this.onKernelsListed.bind(this));
-        this.registerCommandHandler(ResponseCommands.ListKernels, this.onKernelsListed.bind(this));
         this.registerCommandHandler(ResponseCommands.Error, this.onError.bind(this));
         this.idDispenser = new IdDispenser();
     }
