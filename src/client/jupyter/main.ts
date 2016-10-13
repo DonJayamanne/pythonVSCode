@@ -9,6 +9,7 @@ import { JupyterSymbolProvider } from './editorIntegration/symbolProvider';
 import { formatErrorForLogging } from '../common/utils';
 import * as telemetryHelper from '../common/telemetry';
 import * as telemetryContracts from '../common/telemetryContracts';
+import * as main from './comms/main';
 
 // Todo: Refactor the error handling and displaying of messages
 
@@ -78,22 +79,25 @@ export class Jupyter extends vscode.Disposable {
         this.status.setActiveKernel(this.kernel ? this.kernel.kernelSpec : null);
     }
     executeCode(code: string, language: string): Promise<any> {
-        telemetryHelper.sendTelemetryEvent(telemetryContracts.Jupyter.Usage);
+        const m = new main.Main(this.outputChannel);
+        m.start();
+        return Promise.resolve();
+        // telemetryHelper.sendTelemetryEvent(telemetryContracts.Jupyter.Usage);
 
-        if (this.kernel && this.kernel.kernelSpec.language === language) {
-            return this.executeAndDisplay(this.kernel, code);
-        }
-        return this.kernelManager.startKernelFor(language)
-            .then(kernel => {
-                if (kernel) {
-                    this.onKernelChanged(kernel);
-                    return this.executeAndDisplay(kernel, code);
-                }
-            }).catch(reason => {
-                const message = typeof reason === 'string' ? reason : reason.message;
-                vscode.window.showErrorMessage(message);
-                this.outputChannel.appendLine(formatErrorForLogging(reason));
-            });
+        // if (this.kernel && this.kernel.kernelSpec.language === language) {
+        //     return this.executeAndDisplay(this.kernel, code);
+        // }
+        // return this.kernelManager.startKernelFor(language)
+        //     .then(kernel => {
+        //         if (kernel) {
+        //             this.onKernelChanged(kernel);
+        //             return this.executeAndDisplay(kernel, code);
+        //         }
+        //     }).catch(reason => {
+        //         const message = typeof reason === 'string' ? reason : reason.message;
+        //         vscode.window.showErrorMessage(message);
+        //         this.outputChannel.appendLine(formatErrorForLogging(reason));
+        //     });
     }
     private executeAndDisplay(kernel: Kernel, code: string) {
         return this.executeCodeInKernel(kernel, code).then(result => {

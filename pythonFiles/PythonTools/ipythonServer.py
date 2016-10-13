@@ -60,8 +60,12 @@ else:
 if jupyter_era:
     # Jupyter / IPython 4.x
     from jupyter_client import KernelManager
+    from jupyter_client.kernelspec import KernelSpecManager
+    kernelSpecManager = KernelSpecManager()
 else:
     from IPython.kernel import KernelManager
+    from IPython.kernel.kernelspec import KernelSpecManager
+    kernelSpecManager = KernelSpecManager()
 
 # End of the great "support IPython 2, 3, 4" strat
 
@@ -74,6 +78,11 @@ def _debug_write(out):
         sys.__stdout__.write(out)
         sys.__stdout__.write("\n")
         sys.__stdout__.flush()
+
+
+def listKernelNames():
+    """Returns a dict mapping kernel names to resource directories."""
+    return list(kernelSpecManager.find_kernel_specs().keys())
 
 
 class IPythonExitException(Exception):
@@ -105,7 +114,6 @@ class SafeSendLock(object):
     def release(self):
         self.lock.release()
 
-
 class iPythonSocketServer(object):
     """back end for executing REPL code.  This base class handles all of the
 communication with the remote process while derived classes implement the
@@ -114,6 +122,8 @@ actual inspection and introspection."""
     """Messages sent back as responses"""
     _PONG = to_bytes('PONG')
     _EXIT = to_bytes('EXIT')
+    _LSTK = to_bytes('LSTK')
+    _EROR = to_bytes('EROR')
 
     def __init__(self):
         import threading
@@ -164,18 +174,24 @@ actual inspection and introspection."""
                 try:
                     inp = read_bytes(self.conn, 4)
 
-                    #self.conn.settimeout(None)
+                    # self.conn.settimeout(None)
                     _debug_write('Command bytes received: ')
-                    _debug_write('Command bytes received: ' + str(inp))
 
                     cmd = iPythonSocketServer._COMMANDS.get(inp)
-                    if inp:
-                        if cmd is not None:
-                            cmd(self)
-                        else:
-                            if inp:
-                                print ('unknown command', inp)
-                            break
+                    if inp and cmd is not None:
+                        id = ""
+                        try:
+                            if iPythonSocketServer._COMMANDS_WITH_IDS.get(inp) == True:
+                                id = read_string(self.conn)
+                                cmd(self, id)
+                            else:
+                                cmd(self)
+                        except:
+                            self.replyWithError(inp, id)
+                    else:
+                        if inp:
+                            print ('unknown command', inp)
+                        break
                 except socket.timeout:
                     pass
 
@@ -200,15 +216,13 @@ actual inspection and introspection."""
     def check_for_exit_socket_loop(self):
         return self.exit_requested
 
-    def _cmd_run(self):
-        """runs the received snippet of code"""
-        # self.run_command(read_string(self.conn))
-        pass
-
-    def _cmd_abrt(self):
-        """aborts the current running command"""
-        # abort command, interrupts execution of the main thread.
-        pass
+    def replyWithError(self, cmd, id):
+        with self.send_lock:
+            _debug_write('Replying with error')
+            write_bytes(self.conn, iPythonSocketServer._EROR)
+            write_string(self.conn, cmd)
+            write_string(self.conn, "" if id is None else id)
+            write_string(self.conn, str(traceback.format_exc()))
 
     def _cmd_exit(self):
         """exits the interactive process"""
@@ -223,6 +237,26 @@ actual inspection and introspection."""
             _debug_write('Pong response being sent out')
             write_bytes(self.conn, iPythonSocketServer._PONG)
             write_string(self.conn, "pong received with message" + message)
+
+    def _cmd_lstk(self, id):
+        """List kernel specs"""
+        _debug_write('Listing kernel specs')
+        kernelspecs = json.dumps(listKernelNames())
+        with self.send_lock:
+            _debug_write('Replying with kernels = ' + kernelspecs)
+            write_bytes(self.conn, iPythonSocketServer._LSTK)
+            write_string(self.conn, id)
+            write_string(self.conn, kernelspecs)
+
+    def _cmd_run(self):
+        """runs the received snippet of code"""
+        # self.run_command(read_string(self.conn))
+        pass
+
+    def _cmd_abrt(self):
+        """aborts the current running command"""
+        # abort command, interrupts execution of the main thread.
+        pass
 
     def _cmd_inpl(self):
         """handles the input command which returns a string of input"""
@@ -304,6 +338,11 @@ actual inspection and introspection."""
         to_bytes('exit'): _cmd_exit,
         to_bytes('ping'): _cmd_ping,
         to_bytes('inpl'): _cmd_inpl,
+        to_bytes('lstk'): _cmd_lstk,
+    }
+
+    _COMMANDS_WITH_IDS = {
+        to_bytes('lstk'): True,
     }
 
 

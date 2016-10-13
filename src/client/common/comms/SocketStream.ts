@@ -43,7 +43,7 @@ export class SocketStream {
         this.ClearErrors();
     }
     public EndTransaction() {
-        this.isInTransaction = true;
+        this.isInTransaction = false;
         this.buffer = this.buffer.slice(this.bytesRead);
         this.bytesRead = 0;
         this.ClearErrors();
@@ -212,12 +212,12 @@ export class SocketStream {
             }
         }
         if (this.HasInsufficientDataForReading) {
-            if (!startedTransaction) {
+            if (startedTransaction) {
                 this.RollBackTransaction();
             }
             return undefined;
         }
-        if (!startedTransaction) {
+        if (startedTransaction) {
             this.EndTransaction();
         }
         return data;

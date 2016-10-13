@@ -3,6 +3,7 @@ import { SocketServer } from '../../common/comms/socketServer';
 import * as child_process from 'child_process';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import {createDeferred} from '../../common/helpers';
 
 export class Main {
     constructor(private outputChannel: vscode.OutputChannel) {
@@ -15,11 +16,13 @@ export class Main {
     public start() {
         const pyFile = path.join(__dirname, '..', '..', '..', '..', 'pythonFiles', 'PythonTools', 'ipythonServer.py');
         this.startSocketServer().then(port => {
+            const def = createDeferred<any>();
             const newEnv = { "DEBUG_DJAYAMANNE_IPYTHON": "1" };
             Object.assign(newEnv, process.env);
-            this.process = child_process.spawn('python3', [pyFile, port.toString()], { env: newEnv });
+            this.process = child_process.spawn('python', [pyFile, port.toString()], { env: newEnv });
             this.process.stdout.setEncoding('utf8');
             this.process.stderr.setEncoding('utf8');
+
             this.process.stdout.on('data', (data: string) => {
                 this.outputChannel.append(data);
             });
@@ -30,7 +33,12 @@ export class Main {
             setTimeout(() => {
                 //this.socketServer.
                 this.ipythonAdapter.ping();
-            }, 10000);
+                this.ipythonAdapter.listKernels().then(x => {
+                    const y = x;
+                }, reason => {
+                    const y = reason;
+                })
+            }, 1000);
         });
     }
     private startSocketServer(): Promise<number> {
