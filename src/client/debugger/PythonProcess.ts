@@ -6,7 +6,7 @@ import {FrameKind, IPythonProcess, IPythonThread, IPythonModule, IPythonEvaluati
 import {IPythonBreakpoint, PythonBreakpointConditionKind, PythonBreakpointPassCountKind, IBreakpointCommand, IChildEnumCommand} from "./Common/Contracts";
 import {PythonEvaluationResultReprKind, IExecutionCommand, enum_EXCEPTION_STATE} from "./Common/Contracts";
 import {Commands} from "./ProxyCommands";
-import * as utils from "./Common/Utils";
+import {IdDispenser} from "../common/idDispenser";
 import {PythonProcessCallbackHandler} from "./PythonProcessCallbackHandler";
 import {SocketStream} from "../common/comms/SocketStream";
 
@@ -34,7 +34,7 @@ export class PythonProcess extends EventEmitter implements IPythonProcess {
     public get LastExecutedThread(): IPythonThread {
         return this._lastExecutedThread;
     }
-    private _idDispenser: utils.IdDispenser;
+    private _idDispenser: IdDispenser;
     private _threads: Map<number, IPythonThread>;
     public get Threads(): Map<number, IPythonThread> {
         return this._threads;
@@ -54,7 +54,7 @@ export class PythonProcess extends EventEmitter implements IPythonProcess {
         this.id = id;
         this.guid = guid;
         this._threads = new Map<number, IPythonThread>();
-        this._idDispenser = new utils.IdDispenser();
+        this._idDispenser = new IdDispenser();
         this.PendingChildEnumCommands = new Map<number, IChildEnumCommand>();
         this.PendingExecuteCommands = new Map<number, IExecutionCommand>();
         this.programDirectory = programDirectory;

@@ -1,20 +1,21 @@
 "use strict";
 
-import {FrameKind, IPythonProcess, IPythonThread, IPythonModule, IPythonEvaluationResult, IPythonStackFrame} from "./Common/Contracts";
-import {IDjangoStackFrame, PythonEvaluationResultFlags, PythonLanguageVersion, IChildEnumCommand, IPythonException, IExecutionCommand} from "./Common/Contracts";
+import { FrameKind, IPythonProcess, IPythonThread, IPythonModule, IPythonEvaluationResult, IPythonStackFrame } from "./Common/Contracts";
+import { IDjangoStackFrame, PythonEvaluationResultFlags, PythonLanguageVersion, IChildEnumCommand, IPythonException, IExecutionCommand } from "./Common/Contracts";
 import * as utils from "./Common/Utils";
-import {EventEmitter} from "events";
-import {Commands} from "./ProxyCommands";
-import {SocketStream} from "../common/comms/SocketStream";
-import {ExtractTryStatements} from "./Common/TryParser";
+import { EventEmitter } from "events";
+import { Commands } from "./ProxyCommands";
+import { SocketStream } from "../common/comms/SocketStream";
+import { ExtractTryStatements } from "./Common/TryParser";
 import * as path from "path";
+import {IdDispenser} from '../common/idDispenser';
 
 export class PythonProcessCallbackHandler extends EventEmitter {
     private process: IPythonProcess;
-    private idDispenser: utils.IdDispenser;
+    private idDispenser: IdDispenser;
     private stream: SocketStream;
     private _stoppedForException: boolean;
-    constructor(process: IPythonProcess, stream: SocketStream, idDispenser: utils.IdDispenser) {
+    constructor(process: IPythonProcess, stream: SocketStream, idDispenser: IdDispenser) {
         super();
         this.process = process;
         this.stream = stream;

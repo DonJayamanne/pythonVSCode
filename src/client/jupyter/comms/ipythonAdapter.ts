@@ -5,7 +5,7 @@ import { SocketCallbackHandler } from "../../common/comms/socketCallbackHandler"
 import { Commands, ResponseCommands } from "./commands";
 import { SocketStream } from "../../Common/comms/SocketStream";
 import { SocketServer } from '../../common/comms/socketServer';
-import { IdDispenser } from '../../debugger/Common/Utils';
+import { IdDispenser } from '../../common/idDispenser';
 import { createDeferred, Deferred } from '../../common/helpers';
 
 export class iPythonAdapter extends SocketCallbackHandler {
