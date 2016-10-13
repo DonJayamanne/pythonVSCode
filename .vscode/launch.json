@@ -21,21 +21,25 @@
             "request": "launch",
             "runtimeArgs": [
                 "--harmony"
-            ],            
+            ],
             "program": "${workspaceRoot}/out/client/debugger/Main.js",
             "stopOnEntry": false,
             "args": [
                 "--server=4711"
             ],
             "sourceMaps": true,
-            "outDir": "${workspaceRoot}/out/client"
+            "outDir": "${workspaceRoot}/out/client",
+            "cwd": "${workspaceRoot}"
         },
         {
             "name": "Launch Tests",
             "type": "extensionHost",
             "request": "launch",
             "runtimeExecutable": "${execPath}",
-            "args": ["--extensionDevelopmentPath=${workspaceRoot}", "--extensionTestsPath=${workspaceRoot}/out/test" ],
+            "args": [
+                "--extensionDevelopmentPath=${workspaceRoot}",
+                "--extensionTestsPath=${workspaceRoot}/out/test"
+            ],
             "stopOnEntry": false,
             "sourceMaps": true,
             "outDir": "${workspaceRoot}/out/test",
@@ -49,13 +53,13 @@
             "pythonPath": "python",
             "program": "${file}",
             "console": "integratedTerminal",
-            "args": [
-            ],
+            "args": [],
             "debugOptions": [
                 "WaitOnAbnormalExit",
                 "WaitOnNormalExit",
                 "RedirectOutput"
-            ]
+            ],
+            "cwd": "${workspaceRoot}"
         }
     ]
 }
