@@ -189,5 +189,54 @@ export class SocketStream {
         }
         return stringBuffer.toString("ascii");
     }
+
+    private readValueInTransaction<T>(dataType: DataType): T {
+        let startedTransaction = false;
+        if (!this.isInTransaction) {
+            this.BeginTransaction();
+            startedTransaction = true;
+        }
+        let data: any;
+        switch (dataType) {
+            case DataType.string: {
+                data = this.ReadString();
+                break;
+            }
+            case DataType.int32: {
+                data = this.ReadInt32();
+                break;
+            }
+            case DataType.int64: {
+                data = this.ReadInt64();
+                break;
+            }
+        }
+        if (this.HasInsufficientDataForReading) {
+            if (!startedTransaction) {
+                this.RollBackTransaction();
+            }
+            return undefined;
+        }
+        if (!startedTransaction) {
+            this.EndTransaction();
+        }
+        return data;
+    }
+    public readStringInTransaction(): string {
+        return this.readValueInTransaction<string>(DataType.string);
+    }
+
+    public readInt32InTransaction(): number {
+        return this.readValueInTransaction<number>(DataType.int32);
+    }
+
+    public readInt64InTransaction(): number {
+        return this.readValueInTransaction<number>(DataType.int64);
+    }
 }
 
+enum DataType {
+    string,
+    int32,
+    int64
+}

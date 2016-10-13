@@ -58,6 +58,8 @@ export class LocalDebugServer extends BaseDebugServer {
                 }
                 else {
                     if (connected){
+                        // Under what circumstance does this happen?
+                        // Needs to be documented
                         return;
                     }
                     msg = `There was an error in starting the debug server. Error = ${exMessage}`;

@@ -14,6 +14,8 @@ import io
 import inspect
 import types
 from collections import deque
+import os
+import warnings
 
 try:
     import thread
@@ -42,17 +44,45 @@ except NameError:
     # BaseException not defined until Python 2.5
     BaseException = Exception
 
+try:
+    from Queue import Empty  # Python 2
+except ImportError:
+    from queue import Empty  # Python 3
+
+# The great "support IPython 2, 3, 4" strat begins
+try:
+    import jupyter
+except ImportError:
+    jupyter_era = False
+else:
+    jupyter_era = True
+
+if jupyter_era:
+    # Jupyter / IPython 4.x
+    from jupyter_client import KernelManager
+else:
+    from IPython.kernel import KernelManager
+
+# End of the great "support IPython 2, 3, 4" strat
+
+
 DEBUG = os.environ.get('DEBUG_DJAYAMANNE_IPYTHON') is not None
+
 
 def _debug_write(out):
     if DEBUG:
         sys.__stdout__.write(out)
+        sys.__stdout__.write("\n")
         sys.__stdout__.flush()
 
-class IPythonExitException(Exception): pass
+
+class IPythonExitException(Exception):
+    pass
+
 
 class SafeSendLock(object):
     """a lock which ensures we're released if we take a KeyboardInterrupt exception acquiring it"""
+
     def __init__(self):
         self.lock = thread.allocate_lock()
 
@@ -75,64 +105,52 @@ class SafeSendLock(object):
     def release(self):
         self.lock.release()
 
+
 class iPythonSocketServer(object):
     """back end for executing REPL code.  This base class handles all of the
 communication with the remote process while derived classes implement the
 actual inspection and introspection."""
-    _MRES = to_bytes('MRES')
-    _SRES = to_bytes('SRES')
-    _MODS = to_bytes('MODS')
-    _IMGD = to_bytes('IMGD')
-    _PRPC = to_bytes('PRPC')
-    _RDLN = to_bytes('RDLN')
-    _STDO = to_bytes('STDO')
-    _STDE = to_bytes('STDE')
-    _DBGA = to_bytes('DBGA')
-    _DETC = to_bytes('DETC')
-    _DPNG = to_bytes('DPNG')
-    _DXAM = to_bytes('DXAM')
-
-    _MERR = to_bytes('MERR')
-    _SERR = to_bytes('SERR')
-    _ERRE = to_bytes('ERRE')
-    _EXIT = to_bytes('EXIT')
-    _DONE = to_bytes('DONE')
-    _MODC = to_bytes('MODC')
 
     """Messages sent back as responses"""
     _PONG = to_bytes('PONG')
+    _EXIT = to_bytes('EXIT')
 
     def __init__(self):
         import threading
         self.conn = None
         self.send_lock = SafeSendLock()
         self.input_event = threading.Lock()
-        self.input_event.acquire()  # lock starts acquired (we use it like a manual reset event)
+        # lock starts acquired (we use it like a manual reset event)
+        self.input_event.acquire()
         self.input_string = None
         self.exit_requested = False
         self.execute_item = None
         self.execute_item_lock = threading.Lock()
-        self.execute_item_lock.acquire()    # lock starts acquired (we use it like manual reset event)
-        self.exit_socket_loop = False
+        # lock starts acquired (we use it like manual reset event)
+        self.execute_item_lock.acquire()
 
     def connect(self, port):
+        # start a new thread for communicating w/ the remote process
+        _debug_write('Connecting to socket port: ' + str(port))
         self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.conn.connect(('127.0.0.1', port))
+        _debug_write('Connected to socket port: ' + str(port))
 
         # perform the handshake
         with self.send_lock:
             write_string(self.conn, "Some Guid")
             write_int(self.conn, os.getpid())
 
-        # start a new thread for communicating w/ the remote process
+        _debug_write('Handshake information sent')
+
         thread.start_new_thread(self.start_processing, ())
 
     def start_processing(self):
         """loop on created thread which processes communicates with the REPL window"""
-        print('start processing')
+
+        _debug_write('Started processing thread')
         try:
             while True:
-                print('one')
                 if self.check_for_exit_socket_loop():
                     break
 
@@ -142,31 +160,45 @@ actual inspection and introspection."""
                 self.flush()
                 self.conn.settimeout(10)
                 print('check bytes')
-                inp = read_bytes(self.conn, 4)
-                self.conn.settimeout(None)
-                if inp == '':
-                    print ('unknown command', inp)
-                    break
+                _debug_write('Read command bytes')
+                try:
+                    inp = read_bytes(self.conn, 4)
 
-                self.flush()
-                cmd = iPythonSocketServer._COMMANDS.get(inp)
-                if cmd is not None:
-                    cmd(self)
+                    #self.conn.settimeout(None)
+                    _debug_write('Command bytes received: ')
+                    _debug_write('Command bytes received: ' + str(inp))
+
+                    cmd = iPythonSocketServer._COMMANDS.get(inp)
+                    if inp:
+                        if cmd is not None:
+                            cmd(self)
+                        else:
+                            if inp:
+                                print ('unknown command', inp)
+                            break
+                except socket.timeout:
+                    pass
+
         except IPythonExitException:
+            _debug_write('IPythonExitException')
+            _debug_write(traceback.format_exc())
             pass
         except socket.error:
+            _debug_write('socket error')
+            _debug_write(traceback.format_exc())
             pass
         except:
             print('crap')
             _debug_write('error in repl loop')
             _debug_write(traceback.format_exc())
 
-            time.sleep(2) # try and exit gracefully, then interrupt main if necessary
+            # try and exit gracefully, then interrupt main if necessary
+            time.sleep(2)
             traceback.print_exc()
             self.exit_process()
 
     def check_for_exit_socket_loop(self):
-        return self.exit_socket_loop
+        return self.exit_requested
 
     def _cmd_run(self):
         """runs the received snippet of code"""
@@ -185,8 +217,10 @@ actual inspection and introspection."""
 
     def _cmd_ping(self):
         """ping"""
+        _debug_write('Ping received')
         message = read_string(self.conn)
         with self.send_lock:
+            _debug_write('Pong response being sent out')
             write_bytes(self.conn, iPythonSocketServer._PONG)
             write_string(self.conn, "pong received with message" + message)
 
@@ -195,7 +229,7 @@ actual inspection and introspection."""
         self.input_string = read_string(self.conn)
         self.input_event.release()
 
-    def send_prompt(self, ps1, ps2, update_all = True):
+    def send_prompt(self, ps1, ps2, update_all=True):
         """sends the current prompt to the interactive window"""
         # with self.send_lock:
         #     write_bytes(self.conn, iPythonSocketServer._PRPC)
@@ -257,7 +291,8 @@ actual inspection and introspection."""
 
     def exit_process(self):
         """exits the REPL process"""
-        pass
+        # TODO: Probably should cleanly shutdown the kernels
+        sys.exit(0)
 
     def flush(self):
         """flushes the stdout/stderr buffers"""
@@ -271,10 +306,13 @@ actual inspection and introspection."""
         to_bytes('inpl'): _cmd_inpl,
     }
 
+
 def exit_work_item():
     sys.exit(0)
 
+
 class iPythonReadLine(object):
+
     def __init__(self):
         self._input = io.open(sys.stdin.fileno(), encoding='utf-8')
 
@@ -317,8 +355,10 @@ class iPythonReadLine(object):
         sys.stdout.flush()
 
     def watch(self):
+        port = int(sys.argv[1])
+        _debug_write('Socket port received: ' + str(port))
         server = iPythonSocketServer()
-        server.connect(3000)
+        server.connect(port)
         while True:
             try:
                 self._process_request(self._input.readline())

@@ -3,11 +3,9 @@
 import * as net from "net";
 import { EventEmitter } from "events";
 import { Commands } from "./commands";
-import { CallbackHandler } from "./callbackHandler";
-import { SocketStream } from "../../debugger/Common/SocketStream";
+import { SocketStream } from "../../common/comms/SocketStream";
 
 export class PythonProcess extends EventEmitter {
-    private callbackHandler: CallbackHandler;
     private stream: SocketStream = null;
     constructor() {
         super();
@@ -93,7 +91,7 @@ export class PythonProcess extends EventEmitter {
             this.stream.EndTransaction();
         }
 
-        this.callbackHandler.HandleIncomingData();
+        this.HandleIncomingDataFromStream();
     }
 
     public Break() {
@@ -128,7 +126,7 @@ export class PythonProcess extends EventEmitter {
 
         this.stream.EndTransaction();
         if (this.stream.Length > 0) {
-            this.HandleIncomingData();
+            this.HandleIncomingDataFromStream();
         }
     }
 

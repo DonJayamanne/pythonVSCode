@@ -4,7 +4,7 @@ import {DebugSession, OutputEvent} from "vscode-debugadapter";
 import {IPythonProcess, IDebugServer, AttachRequestArguments} from "../Common/Contracts";
 import * as net from "net";
 import {BaseDebugServer} from "./BaseDebugServer";
-import {SocketStream} from "../Common/SocketStream";
+import {SocketStream} from "../../common/comms/SocketStream";
 
 const DebuggerProtocolVersion = 6; // must be kept in sync with PTVSDBG_VER in attach_server.py
 const DebuggerSignature = "PTVSDBG";
