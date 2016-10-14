@@ -12,7 +12,7 @@ import * as mypy from './../linters/mypy';
 import * as settings from '../common/configSettings';
 import * as telemetryHelper from '../common/telemetry';
 import * as telemetryContracts from '../common/telemetryContracts';
-import {LinterErrors} from '../common/constants'
+import { LinterErrors } from '../common/constants'
 const lintSeverityToVSSeverity = new Map<linter.LintMessageSeverity, vscode.DiagnosticSeverity>();
 lintSeverityToVSSeverity.set(linter.LintMessageSeverity.Error, vscode.DiagnosticSeverity.Error)
 lintSeverityToVSSeverity.set(linter.LintMessageSeverity.Hint, vscode.DiagnosticSeverity.Hint)
@@ -59,9 +59,12 @@ export class LintProvider extends vscode.Disposable {
         this.initialize();
     }
 
+    private isDocumentOpen(uri: vscode.Uri): boolean {
+        return vscode.window.visibleTextEditors.some(editor => editor.document && editor.document.uri.fsPath === uri.fsPath);
+    }
+
     private initialize() {
         this.diagnosticCollection = vscode.languages.createDiagnosticCollection('python');
-        let disposables = [];
 
         this.linters.push(new prospector.Linter(this.outputChannel, this.workspaceRootPath));
         this.linters.push(new pylint.Linter(this.outputChannel, this.workspaceRootPath));
@@ -75,6 +78,18 @@ export class LintProvider extends vscode.Disposable {
                 return;
             }
             this.lintDocument(e, e.uri, e.getText().split(/\r?\n/g), 100);
+        });
+        this.context.subscriptions.push(disposable);
+
+        disposable = vscode.workspace.onDidCloseTextDocument(textDocument => {
+            if (!textDocument || !textDocument.fileName || !textDocument.uri) {
+                return;
+            }
+
+            // Check if this document is still open as a duplicate editor
+            if (this.isDocumentOpen(textDocument.uri) && this.diagnosticCollection.has(textDocument.uri)) {
+                this.diagnosticCollection.set(textDocument.uri, []);
+            }
         });
         this.context.subscriptions.push(disposable);
     }
@@ -145,9 +160,11 @@ export class LintProvider extends vscode.Disposable {
                     // Limit the number of messages to the max value
                     diagnostics = diagnostics.filter((value, index) => index <= this.settings.linting.maxNumberOfProblems);
 
+                    if (!this.isDocumentOpen(documentUri)) {
+                        diagnostics = [];
+                    }
                     // set all diagnostics found in this pass, as this method always clears existing diagnostics.
-                    this.diagnosticCollection.set(documentUri, diagnostics)
-
+                    this.diagnosticCollection.set(documentUri, diagnostics);
                 });
             });
         });
