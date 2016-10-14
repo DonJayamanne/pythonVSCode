@@ -119,6 +119,59 @@ class SafeSendLock(object):
         self.lock.release()
 
 
+"""
+- Add a list with the command ids
+- Create a common lock object to be shared between iPythonKernelResponseMonitor and iPythonSocketServer
+- iPythonSocketServer will grab a lock and insert an item into the command ids and then send the code for execution
+- iPythonKernelResponseMonitor will keep going in a nutsy loop and when it gets a message for execution it will take the oldest item from the loop (pop)
+-       and send a socket message providing the information (this way we can tie the code to be executed with the message ids)
+- Not the best, but that's how it will have to be done
+- http://www.xavierdupre.fr/app/pyquickhelper/helpsphinx/_modules/pyquickhelper/ipythonhelper/notebook_runner.html
+"""
+class iPythonKernelResponseMonitor(object):
+    def __init__(self, kernelUUID, socketConnection):
+        import threading
+        self.kernel = multiKernelManager.get_kernel(kernelUUID)
+        self.conn = socketConnection
+        self.is_stop_requested = False
+        thread.start_new_thread(self.start_processing, ())
+
+    def stop(self):
+        self.is_stop_requested = True
+
+    def check_for_exit_socket_loop(self):
+        return self.is_stop_requested
+
+    def start_processing(self):
+        """loop to read the io ports/messages"""
+
+        _debug_write('Started processing thread')
+        try:
+            while True:
+                if self.check_for_exit_socket_loop():
+                    break
+                except socket.timeout:
+                    pass
+
+        except IPythonExitException:
+            _debug_write('IPythonExitException')
+            _debug_write(traceback.format_exc())
+            pass
+        except socket.error:
+            _debug_write('socket error')
+            _debug_write(traceback.format_exc())
+            pass
+        except:
+            print('crap')
+            _debug_write('error in repl loop')
+            _debug_write(traceback.format_exc())
+
+            # try and exit gracefully, then interrupt main if necessary
+            time.sleep(2)
+            traceback.print_exc()
+            self.exit_process()
+
+
 class iPythonSocketServer(object):
     """back end for executing REPL code.  This base class handles all of the
 communication with the remote process while derived classes implement the

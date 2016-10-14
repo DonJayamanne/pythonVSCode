@@ -115,30 +115,7 @@ def _check_ipynb():
     errors = 0
 
     report = ''
-    try:
-        test_results = _execute_cell("print('Hello World')", shell, iopub)
-    except RuntimeError as e:
-        report += ('{!s} in cell number: {}'
-                    .format(e, 'cell.prompt_number'))
-        errors += 1
-        print('crap execute')
-
-    try:
-        str_test_results = [
-            '(for out {})\n'.format(k) + '\n'.join(
-                [' : '.join([str(key), str(val)])
-                    for key, val in t.items()
-                    if key not in ('metadata', 'png')]
-            ) for k, t in enumerate(test_results)]
-    except:
-        print('crap')
-    else:
-        report += '\n' * 2 + '~' * 40
-        report += (
-            '\nFailure in {}:{}\nGot: {}'
-        ).format('notebook.metadata.name',
-                    'cell.prompt_number',
-                    '\n'.join(str_test_results))
+    _execute_cell("print('Hello World')", shell, iopub, timeout=1)
 
     kernel_client.stop_channels()
     kernel_manager.shutdown_kernel()
@@ -171,19 +148,28 @@ def _execute_cell(code, shell, iopub, timeout=300):
     """
 
     # Execute input
-    shell.execute(code)
-    exe_result = shell.get_shell_msg(timeout=timeout)
-    print('exe_result')
-    print(exe_result)
-    print('')
-    if exe_result['content']['status'] == 'error':
-        raise RuntimeError('Failed to execute cell due to error: {!r}'.format(
-            str(exe_result['content']['evalue'])))
+    #shell.execute("10+20")
+    shell.execute("import time\ntime.sleep(10)\nprint(112341234)")
+    shell.execute("1+2")
 
     cell_outputs = list()
 
     # Poll for iopub messages until no more messages are available
     while True:
+        try:
+            exe_result = shell.get_shell_msg(timeout=timeout)
+            print('exe_result')
+            print(exe_result)
+            print('')
+            if exe_result['content']['status'] == 'error':
+                print('-----------------------crap---------------------')
+                raise RuntimeError('Failed to execute cell due to error: {!r}'.format(
+                    str(exe_result['content']['evalue'])))
+        except Empty:
+            print('quue empty, try again')
+            pass
+
+        print('\n\n-------------------------------------------------\ntrying\n----------------------------------\n')
         try:
             msg = iopub.get_iopub_msg(timeout=0.5)
             print('get_iopub_msg')
@@ -191,10 +177,8 @@ def _execute_cell(code, shell, iopub, timeout=300):
             print(msg)
             print('')
         except Empty:
-            print('get_iopub_msg')
-            print('done')
-            print('')
-            break
+            print('get_iopub_msg is empty--------------------------------------')
+            pass
 
         msg_type = msg['msg_type']
         if msg_type in ('status', 'pyin', 'execute_input', 'execute_result'):
