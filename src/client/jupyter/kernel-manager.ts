@@ -1,11 +1,9 @@
-/// <reference path="../../../typings/spawnteract.d.ts" />
 import * as child_process from 'child_process';
 import * as os from 'os';
 import * as vscode from 'vscode';
 import { Kernel } from './kernel';
 import { WSKernel } from './ws-kernel';
 import { ZMQKernel } from './zmq-kernel';
-import { launchSpec } from 'spawnteract';
 import { KernelspecMetadata, Kernelspec } from './contracts';
 import { Commands, Documentation } from '../common/constants';
 import { EventEmitter } from 'events';
@@ -13,6 +11,7 @@ import { PythonSettings } from '../common/configSettings';
 import { formatErrorForLogging } from '../common/utils';
 import { JmpModuleLoadError } from '../common/errors';
 import { JupyterClient } from './jupyter_client/main';
+import { JupyterClientKernel } from './jupyter_client-Kernel';
 // Todo: Refactor the error handling and displaying of messages
 
 const pythonSettings = PythonSettings.getInstance();
@@ -73,6 +72,9 @@ export class KernelManagerImpl extends EventEmitter {
             this.destroyRunningKernelFor(language);
             startupPromise = this.startKernel(kernelSpec, language);
         }
+        if (kernel instanceof JupyterClientKernel) {
+            startupPromise = kernel.shutdown(true).then(()=>kernel);
+        }
         if (!startupPromise) {
             vscode.window.showWarningMessage('Cannot restart this kernel');
             startupPromise = Promise.resolve(kernel);
@@ -104,10 +106,13 @@ export class KernelManagerImpl extends EventEmitter {
                 message = reason.message;
                 isCompatibilityIssue = true;
             }
-            vscode.window.showErrorMessage(message, 'Help').then(item => {
+            vscode.window.showErrorMessage(message, 'Help', 'View Errors').then(item => {
                 if (item === 'Help') {
                     const helpPage = isCompatibilityIssue ? Documentation.Jupyter.VersionIncompatiblity : Documentation.Jupyter.Setup;
                     vscode.commands.executeCommand('python.displayHelp', helpPage);
+                }
+                if (item === 'View Errors') {
+                    this.outputChannel.show();
                 }
             });
             this.outputChannel.appendLine(formatErrorForLogging(reason));
@@ -134,10 +139,15 @@ export class KernelManagerImpl extends EventEmitter {
         const spawnOptions = {
             cwd: vscode.workspace.rootPath
         };
-        return launchSpec(kernelSpec, spawnOptions).then(result => {
-            const kernel = new ZMQKernel(kernelSpec, language, result.config, result.connectionFile, result.spawn);
+        return this.jupyterClient.startKernel(kernelSpec).then((kernelInfo: [string, any, string]) => {
+            const kernelUUID = kernelInfo[0];
+            const config = kernelInfo[1];
+            const connectionFile = kernelInfo[2];
+            const kernel = new JupyterClientKernel(kernelSpec, language, config, connectionFile, kernelUUID, this.jupyterClient);
             this.setRunningKernelFor(language, kernel);
-            return this.executeStartupCode(kernel).then(() => kernel);
+            // TODO:
+            //return this.executeStartupCode(kernel).then(() => kernel);
+            return kernel;
         });
     }
 
