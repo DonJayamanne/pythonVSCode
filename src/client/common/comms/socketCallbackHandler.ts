@@ -24,7 +24,7 @@ export abstract class SocketCallbackHandler extends EventEmitter {
         return this._stream;
     }
 
-    public SendRawCommand(commandId: Buffer) {
+    protected SendRawCommand(commandId: Buffer) {
         this.stream.Write(commandId);
     }
 
