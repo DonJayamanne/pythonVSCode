@@ -1,11 +1,10 @@
 'use strict';
-import {execPythonFile} from './../../common/utils';
-import {TestFile, TestsToRun, TestSuite, TestFunction, FlattenedTestFunction, Tests, TestStatus, FlattenedTestSuite} from '../common/contracts';
-import * as os from 'os';
-import {flattenTestFiles, updateResults} from '../common/testUtils';
+import { execPythonFile } from './../../common/utils';
+import { TestFile, Tests, TestStatus } from '../common/contracts';
+import { flattenTestFiles } from '../common/testUtils';
 import * as vscode from 'vscode';
 import * as path from 'path';
-import {PythonSettings} from '../../common/configSettings';
+import { PythonSettings } from '../../common/configSettings';
 
 const pythonSettings = PythonSettings.getInstance();
 
@@ -13,7 +12,7 @@ export function discoverTests(rootDirectory: string, args: string[], token: vsco
     let startDirectory = '.';
     let pattern = 'test*.py';
     const indexOfStartDir = args.findIndex(arg => arg.indexOf('-s') === 0);
-    if (indexOfStartDir > 0) {
+    if (indexOfStartDir >= 0) {
         const startDir = args[indexOfStartDir].trim();
         if (startDir.trim() === '-s' && args.length >= indexOfStartDir) {
             // Assume the next items is the directory
@@ -21,15 +20,15 @@ export function discoverTests(rootDirectory: string, args: string[], token: vsco
         }
         else {
             startDirectory = startDir.substring(2).trim();
-            if (startDirectory.startsWith('=')) {
+            if (startDirectory.startsWith('=') || startDirectory.startsWith(' ')) {
                 startDirectory = startDirectory.substring(1);
             }
         }
     }
     const indexOfPattern = args.findIndex(arg => arg.indexOf('-p') === 0);
-    if (indexOfPattern > 0) {
+    if (indexOfPattern >= 0) {
         const patternValue = args[indexOfPattern].trim();
-        if (patternValue.trim() === '-s' && args.length >= indexOfPattern) {
+        if (patternValue.trim() === '-p' && args.length >= indexOfPattern) {
             // Assume the next items is the directory
             pattern = args[indexOfPattern + 1];
         }
@@ -91,7 +90,7 @@ for suite in suites._tests:
 function parseTestIds(rootDirectory: string, testIds: string[]): Tests {
     const testFiles: TestFile[] = [];
     testIds.forEach(testId => {
-        addTestId(rootDirectory, testId, testFiles)
+        addTestId(rootDirectory, testId, testFiles);
     });
 
     return flattenTestFiles(testFiles);
