@@ -65,11 +65,15 @@ if not TEST:
         # Jupyter / IPython 4.x
         from jupyter_client import KernelManager
         from jupyter_client.kernelspec import KernelSpecManager
+        from jupyter_client import MultiKernelManager
         kernelSpecManager = KernelSpecManager()
+        multiKernelManager = MultiKernelManager()
     else:
         from IPython.kernel import KernelManager
         from IPython.kernel.kernelspec import KernelSpecManager
+        from IPython.kernel.multikernelmanager import MultiKernelManager
         kernelSpecManager = KernelSpecManager()
+        multiKernelManager = MultiKernelManager()
 
 # End of the great "support IPython 2, 3, 4" strat
 
@@ -126,6 +130,10 @@ actual inspection and introspection."""
     _LSKS = to_bytes('LSKS')
     _EROR = to_bytes('EROR')
     _TEST = to_bytes('TEST')
+    _STRK = to_bytes('STRK')
+    _STPK = to_bytes('STPK')
+    _RSTK = to_bytes('RSTK')
+    _ITPK = to_bytes('ITPK')
 
     def __init__(self):
         import threading
@@ -189,7 +197,12 @@ actual inspection and introspection."""
                             else:
                                 cmd(self)
                         except:
-                            self.replyWithError(cmd, id)
+                            commandName = utf_8.decode(inp)[0]
+                            try:
+                                commandName = ascii.Codec.encode(commandName)[0]
+                            except UnicodeEncodeError:
+                                pass
+                            self.replyWithError(commandName, id)
                     else:
                         if inp:
                             print ('unknown command', inp)
@@ -257,6 +270,81 @@ actual inspection and introspection."""
             write_bytes(self.conn, iPythonSocketServer._LSKS)
             write_string(self.conn, id)
             write_string(self.conn, kernelspecs)
+
+    def _cmd_strk(self, id):
+        """Start a kernel by name"""
+        _debug_write('Listing kernel specs')
+        while True:
+            try:
+                kernelName = read_string(self.conn)
+                break
+            except socket.timeout:
+                pass
+        kernelUUID = multiKernelManager.start_kernel(kernel_name=kernelName)
+        # get the config and the connection FileExistsError
+        kernel = multiKernelManager.get_kernel(kernelUUID)
+        try:
+            config = kernel.config
+        except:
+            config = {}
+        try:
+            connection_file = kernel.connection_file
+        except:
+            connection_file = ""
+
+        with self.send_lock:
+            _debug_write('Replying with kernel Specs= ' + str(kernelUUID))
+            write_bytes(self.conn, iPythonSocketServer._STRK)
+            write_string(self.conn, id)
+            write_string(self.conn, str(kernelUUID))
+            write_string(self.conn, json.dumps(config))
+            write_string(self.conn, connection_file)
+
+    def _cmd_stpk(self, id):
+        """Shutdown a kernel by UUID"""
+        while True:
+            try:
+                kernelUUID = read_string(self.conn)
+                break
+            except socket.timeout:
+                pass
+        try:
+            kernel = multiKernelManager.get_kernel(kernelUUID)
+            kernel.shutdown_kernel()
+        except:
+            pass
+        finally:
+            with self.send_lock:
+                write_bytes(self.conn, iPythonSocketServer._STPK)
+                write_string(self.conn, id)
+
+    def _cmd_rstk(self, id):
+        """Restart a kernel by UUID"""
+        while True:
+            try:
+                kernelUUID = read_string(self.conn)
+                break
+            except socket.timeout:
+                pass
+        kernel = multiKernelManager.get_kernel(kernelUUID)
+        kernel.restart_kernel(now=True)
+        with self.send_lock:
+            write_bytes(self.conn, iPythonSocketServer._RSTK)
+            write_string(self.conn, id)
+
+    def _cmd_itpk(self, id):
+        """Interrupt a kernel by UUID"""
+        while True:
+            try:
+                kernelUUID = read_string(self.conn)
+                break
+            except socket.timeout:
+                pass
+        kernel = multiKernelManager.get_kernel(kernelUUID)
+        kernel.interrupt_kernel()
+        with self.send_lock:
+            write_bytes(self.conn, iPythonSocketServer._ITPK)
+            write_string(self.conn, id)
 
     def _cmd_run(self):
         """runs the received snippet of code"""
@@ -349,11 +437,19 @@ actual inspection and introspection."""
         to_bytes('ping'): _cmd_ping,
         to_bytes('inpl'): _cmd_inpl,
         to_bytes('lsks'): _cmd_lstk,
+        to_bytes('strk'): _cmd_strk,
+        to_bytes('stpk'): _cmd_stpk,
+        to_bytes('rstk'): _cmd_rstk,
+        to_bytes('itpk'): _cmd_itpk,
     }
 
     _COMMANDS_WITH_IDS = {
         to_bytes('lsks'): True,
         to_bytes('ping'): True,
+        to_bytes('strk'): True,
+        to_bytes('stpk'): True,
+        to_bytes('rstk'): True,
+        to_bytes('itpk'): True,
     }
 
 
