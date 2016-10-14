@@ -5,9 +5,11 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { createDeferred, Deferred } from '../../common/helpers';
 import { KernelspecMetadata, Kernelspec } from '../contracts';
+import { IJupyterClient } from './contracts';
+import {KernelCommand} from './contracts';
 
-export class JupyterClient {
-    constructor(private outputChannel: vscode.OutputChannel) {
+export class JupyterClient implements IJupyterClient {
+    constructor(private outputChannel: vscode.OutputChannel, private rootDir: string) {
     }
 
     private process: child_process.ChildProcess;
@@ -28,7 +30,7 @@ export class JupyterClient {
             const newEnv = { "DEBUG_DJAYAMANNE_IPYTHON": "1" };
             Object.assign(newEnv, process.env);
 
-            this.process = child_process.spawn('python', [pyFile, port.toString()], { env: newEnv });
+            this.process = child_process.spawn('python', [pyFile, port.toString()], { env: newEnv, cwd: this.rootDir });
             this.process.stdout.setEncoding('utf8');
             this.process.stderr.setEncoding('utf8');
 
@@ -93,6 +95,25 @@ export class JupyterClient {
 
     public getAllKernelSpecs(): Promise<{ [key: string]: Kernelspec }> {
         return this.start().then(() => this.ipythonAdapter.listKernelSpecs());
+    }
+    public startKernel(kernelSpec: KernelspecMetadata): Promise<[string, any, string]> {
+        return this.start().then(() => this.getAllKernelSpecs()).then(specks => {
+            // ok given the specks, find the name of the kernelspec
+            const kernelSpecName = Object.keys(specks).find(kernelSpecName => {
+                const spec = specks[kernelSpecName];
+                return spec.spec.display_name === kernelSpec.display_name;
+            });
+            return this.ipythonAdapter.startKernel(kernelSpecName);
+        });
+    }
+    public shutdownkernel(kernelUUID: string): Promise<any> {
+        return this.start().then(() => this.ipythonAdapter.sendKernelCommand(kernelUUID, KernelCommand.shutdown));
+    }
+    public interruptKernel(kernelUUID: string): Promise<any> {
+        return this.start().then(() => this.ipythonAdapter.sendKernelCommand(kernelUUID, KernelCommand.interrupt));
+    }
+    public restartKernel(kernelUUID: string): Promise<any> {
+        return this.start().then(() => this.ipythonAdapter.sendKernelCommand(kernelUUID, KernelCommand.restart));
     }
 }
 

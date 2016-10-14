@@ -27,7 +27,7 @@ export class Jupyter extends vscode.Disposable {
         this.registerKernelCommands();
     }
     activate(state) {
-        const m = new main.JupyterClient(this.outputChannel);
+        const m = new main.JupyterClient(this.outputChannel, vscode.workspace.rootPath);
         m.start();
         this.kernelManager = new KernelManagerImpl(this.outputChannel, m);
         this.disposables.push(this.kernelManager);
