@@ -16,7 +16,7 @@ import { JupyterClient } from '../client/jupyter/jupyter_client/main';
 // Defines a Mocha test suite to group tests of similar kind together
 suite('JupyterClient', () => {
     test('Ping (Process and Socket)', done => {
-        const jupyter = new JupyterClient(vscode.window.createOutputChannel('Python'));
+        const jupyter = new JupyterClient(vscode.window.createOutputChannel('Python'), __dirname);
         jupyter.start().then(() => {
             done();
         }).catch(reason => {
