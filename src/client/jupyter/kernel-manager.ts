@@ -12,7 +12,7 @@ import { EventEmitter } from 'events';
 import { PythonSettings } from '../common/configSettings';
 import { formatErrorForLogging } from '../common/utils';
 import { JmpModuleLoadError } from '../common/errors';
-import { JupyterClient } from './jupyter_client/jupyterClient';
+import { JupyterClient } from './jupyter_client/main';
 // Todo: Refactor the error handling and displaying of messages
 
 const pythonSettings = PythonSettings.getInstance();
