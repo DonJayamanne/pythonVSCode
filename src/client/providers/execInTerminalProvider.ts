@@ -3,10 +3,18 @@ import * as vscode from 'vscode';
 import * as settings from '../common/configSettings';
 import { Commands, PythonLanguage } from '../common/constants';
 let path = require('path');
+let terminal: vscode.Terminal;
 
-export function activateExecInTerminalProvider() {
-    vscode.commands.registerCommand(Commands.Exec_In_Terminal, execInTerminal);
-    vscode.commands.registerCommand(Commands.Exec_Selection_In_Terminal, execSelectionInTerminal);
+export function activateExecInTerminalProvider(): vscode.Disposable[] {
+    const disposables: vscode.Disposable[] = [];
+    disposables.push(vscode.commands.registerCommand(Commands.Exec_In_Terminal, execInTerminal));
+    disposables.push(vscode.commands.registerCommand(Commands.Exec_Selection_In_Terminal, execSelectionInTerminal));
+    disposables.push(vscode.window.onDidCloseTerminal((closedTermina: vscode.Terminal) => {
+        if (terminal === closedTermina) {
+            terminal = null;
+        }
+    }))
+    return disposables;
 }
 
 function execInTerminal(fileUri?: vscode.Uri) {
@@ -39,7 +47,7 @@ function execInTerminal(fileUri?: vscode.Uri) {
     if (filePath.indexOf(' ') > 0) {
         filePath = `"${filePath}"`;
     }
-    const terminal = vscode.window.createTerminal(`Python`);
+    terminal = terminal ? terminal : vscode.window.createTerminal(`Python`);
     if (pythonSettings.terminal && pythonSettings.terminal.executeInFileDir) {
         const fileDirPath = path.dirname(filePath).substring(1);
         if (fileDirPath !== vscode.workspace.rootPath) {
@@ -64,7 +72,7 @@ function execSelectionInTerminal() {
         return;
     }
     const code = vscode.window.activeTextEditor.document.getText(new vscode.Range(selection.start, selection.end));
-    const terminal = vscode.window.createTerminal(`Python`);
+    terminal = terminal ? terminal : vscode.window.createTerminal(`Python`);
     const launchArgs = settings.PythonSettings.getInstance().terminal.launchArgs;
     const launchArgsString = launchArgs.length > 0 ? " ".concat(launchArgs.join(" ")) : "";
     terminal.sendText(`${currentPythonPath}${launchArgsString} -c "${code}"`);
