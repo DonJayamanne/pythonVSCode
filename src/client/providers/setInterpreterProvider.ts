@@ -1,7 +1,7 @@
 "use strict";
 import * as child_process from 'child_process';
-import * as path  from "path";
-import * as fs  from "fs";
+import * as path from "path";
+import * as fs from "fs";
 import * as vscode from "vscode";
 import * as settings from "./../common/configSettings";
 import * as utils from "./../common/utils";
@@ -53,26 +53,6 @@ function getSearchPaths(): string[] {
     } else {
         return ['/usr/local/bin', '/usr/bin', '/bin', '/usr/sbin', '/sbin'];
     }
-}
-
-function workspaceSettingsPath() {
-    return path.join(vscode.workspace.rootPath, '.vscode', 'settings.json')
-}
-
-function openWorkspaceSettings() {
-    return vscode.commands.executeCommand('workbench.action.openWorkspaceSettings');
-}
-
-function replaceContentsOfFile(doc: vscode.TextDocument, newContent: string) {
-
-    const lastLine = doc.lineAt(doc.lineCount - 2);
-    const start = new vscode.Position(0, 0);
-    const end = new vscode.Position(doc.lineCount - 1, lastLine.text.length);
-
-    const textEdit = vscode.TextEdit.replace(new vscode.Range(start, end), newContent);
-    const workspaceEdit = new vscode.WorkspaceEdit()
-    workspaceEdit.set(doc.uri, [textEdit]);
-    return vscode.workspace.applyEdit(workspaceEdit).then(() => doc.save())
 }
 
 export function activateSetInterpreterProvider() {
@@ -175,7 +155,6 @@ function suggestionsFromConda(): Promise<PythonPathSuggestion[]> {
     });
 }
 
-
 function suggestionToQuickPickItem(suggestion: PythonPathSuggestion): PythonPathQuickPickItem {
     let detail = suggestion.path;
     if (suggestion.path.startsWith(vscode.workspace.rootPath)) {
@@ -209,54 +188,16 @@ function suggestPythonPaths(): Promise<PythonPathQuickPickItem[]> {
 }
 
 function setPythonPath(pythonPath: string, created: boolean = false) {
-    if (pythonPath.startsWith(vscode.workspace.rootPath)){
+    if (pythonPath.startsWith(vscode.workspace.rootPath)) {
         pythonPath = path.join('${workspaceRoot}', path.relative(vscode.workspace.rootPath, pythonPath));
     }
-    const settingsFile = workspaceSettingsPath();
-    utils.validatePath(settingsFile)
-        .then(validatedPath => {
-            if (validatedPath.length === 0 && created === true) {
-                // Something went wrong
-                return Promise.reject<any>('Unable to create/open the Workspace Settings file');
-            }
-            if (validatedPath.length === 0 && !created) {
-                return new Promise<any>((resolve, reject) => {
-                    vscode.commands.executeCommand('workbench.action.openWorkspaceSettings').then(() => resolve(null), reject);
-                });
-            }
-            return vscode.workspace.openTextDocument(settingsFile)
-        })
-        .then(doc => {
-            const settingsText = doc ? doc.getText() : '';
-            if (settingsText.search(REPLACE_PYTHONPATH_REGEXP) === -1) {
-                // Can't find the setting to replace - will just have to offer a copy button and instruct them to edit themselves.
-                openWorkspaceSettings().then(() => {
-                    const copyMsg = "Copy to Clipboard"
-                    const newEntry = `"python.pythonPath": "${pythonPath}"`;
-                    vscode.window.showInformationMessage(`Please add an entry: ${newEntry}`, copyMsg)
-                        .then(item => {
-                            if (item === copyMsg) {
-                                ncp.copy(newEntry)
-                            }
-                        })
-                })
-            } else {
-                // Great, the user already has a setting stated that we can relibly replace!
-                const newSettingsText = settingsText.replace(REPLACE_PYTHONPATH_REGEXP, `$1"${pythonPath}"`);
-                replaceContentsOfFile(doc, newSettingsText).then(
-                    () => {
-                        vscode.window.setStatusBarMessage(`Workspace Interpreter set to ${pythonPath}`, 1000);
-                        // As the file is saved the following should be the same as each other but they
-                        // aren't - some form of race condition?
-                        // const currentPythonPath = settings.PythonSettings.getInstance().pythonPath;
-                        // console.log(currentPythonPath);
-                        // console.log(pythonPath);
-                    }
-                )
-            }
-        }).catch(reason => {
-            vscode.window.showErrorMessage('Failed to set the interpreter. ' + reason);
-        });
+    const pythonConfig = vscode.workspace.getConfiguration('python');
+    pythonConfig.update('pythonPath', pythonPath).then(() => {
+        //Done
+    }, reason => {
+        vscode.window.showErrorMessage(`Failed to set 'pythonPath'. Error: ${reason.message}`);
+        console.error(reason);
+    })
 }
 
 function presentQuickPickOfSuggestedPythonPaths() {
@@ -278,15 +219,5 @@ function presentQuickPickOfSuggestedPythonPaths() {
 }
 
 function setInterpreter() {
-    // For now the user has to manually edit the workspace settings to change the
-    // pythonPath -> First check they have .vscode/settings.json
-    let settingsPath: string
-    try {
-        settingsPath = workspaceSettingsPath()
-    } catch (e) {
-        // We aren't even in a workspace
-        vscode.window.showErrorMessage("The interpreter can only be set within a workspace (open a folder)")
-        return
-    }
     presentQuickPickOfSuggestedPythonPaths();
 }
