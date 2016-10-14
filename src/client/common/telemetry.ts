@@ -1,4 +1,4 @@
-import {extensions} from "vscode";
+import { extensions } from "vscode";
 import TelemetryReporter from "vscode-extension-telemetry";
 
 // Borrowed from omnisharpServer.ts (omnisharp-vscode)
@@ -53,7 +53,7 @@ const extensionId = "donjayamanne.python";
 const extension = extensions.getExtension(extensionId);
 const extensionVersion = extension.packageJSON.version;
 const aiKey = "AIF-d9b70cd4-b9f9-4d70-929b-a071c400b217";
-let reporter = new TelemetryReporter(extensionId, extensionVersion, aiKey);
+let reporter: TelemetryReporter;
 
 /**
  * Sends a telemetry event
@@ -66,6 +66,7 @@ export function sendTelemetryEvent(eventName: string, properties?: {
 }, measures?: {
     [key: string]: number;
 }) {
+    reporter = reporter ? reporter : new TelemetryReporter(extensionId, extensionVersion, aiKey);
     reporter.sendTelemetryEvent.apply(reporter, arguments);
 }
 
