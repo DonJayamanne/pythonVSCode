@@ -150,8 +150,6 @@ class iPythonKernelResponseMonitor(object):
             while True:
                 if self.check_for_exit_socket_loop():
                     break
-                except socket.timeout:
-                    pass
 
         except IPythonExitException:
             _debug_write('IPythonExitException')
