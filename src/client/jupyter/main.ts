@@ -9,7 +9,7 @@ import { JupyterSymbolProvider } from './editorIntegration/symbolProvider';
 import { formatErrorForLogging } from '../common/utils';
 import * as telemetryHelper from '../common/telemetry';
 import * as telemetryContracts from '../common/telemetryContracts';
-import * as main from './comms/main';
+import * as main from './comms/jupyterClient';
 
 // Todo: Refactor the error handling and displaying of messages
 
@@ -79,7 +79,7 @@ export class Jupyter extends vscode.Disposable {
         this.status.setActiveKernel(this.kernel ? this.kernel.kernelSpec : null);
     }
     executeCode(code: string, language: string): Promise<any> {
-        const m = new main.Main(this.outputChannel);
+        const m = new main.JupyterClient(this.outputChannel);
         m.start();
         return Promise.resolve();
         // telemetryHelper.sendTelemetryEvent(telemetryContracts.Jupyter.Usage);

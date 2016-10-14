@@ -16,7 +16,7 @@ import types
 from collections import deque
 import os
 import warnings
-
+from encodings import utf_8, ascii
 try:
     import thread
 except ImportError:
@@ -50,8 +50,8 @@ except ImportError:
     from queue import Empty  # Python 3
 
 DEBUG = os.environ.get('DEBUG_DJAYAMANNE_IPYTHON') is not None
-TEST = os.environ.get('TEST_DJAYAMANNE_IPYTHON') is not None
-TEST = True
+TEST = os.environ.get('PYTHON_DONJAYAMANNE_TEST') is not None
+
 # The great "support IPython 2, 3, 4" strat begins
 if not TEST:
     try:
@@ -146,7 +146,7 @@ actual inspection and introspection."""
         _debug_write('Connecting to socket port: ' + str(port))
         self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.conn.connect(('127.0.0.1', port))
-        _debug_write('Connected to socket port: ' + str(port))
+        _debug_write('Connected to socket')
 
         # perform the handshake
         with self.send_lock:
@@ -171,31 +171,25 @@ actual inspection and introspection."""
                 # the next command.
                 self.flush()
                 self.conn.settimeout(10)
-                print('check bytes')
-                _debug_write('Read command bytes')
                 try:
                     inp = read_bytes(self.conn, 4)
-
-                    # self.conn.settimeout(None)
-                    _debug_write('Command bytes received: ')
-
+                    self.conn.settimeout(None)
                     cmd = iPythonSocketServer._COMMANDS.get(inp)
                     if inp and cmd is not None:
                         id = ""
                         try:
                             if iPythonSocketServer._COMMANDS_WITH_IDS.get(inp) == True:
-                                id = read_string(self.conn)
-                                if TEST:
-                                    self.replyWithError(inp, id)
-                                else:
-                                    cmd(self, id)
+                                while True:
+                                    try:
+                                        id = read_string(self.conn)
+                                        break
+                                    except socket.timeout:
+                                        pass
+                                cmd(self, id)
                             else:
-                                if TEST:
-                                    self.replyWithError(inp, id)
-                                else:
-                                    cmd(self)
+                                cmd(self)
                         except:
-                            self.replyWithError(inp, id)
+                            self.replyWithError(cmd, id)
                     else:
                         if inp:
                             print ('unknown command', inp)
@@ -224,35 +218,35 @@ actual inspection and introspection."""
     def check_for_exit_socket_loop(self):
         return self.exit_requested
 
-    def replyForTest(self, commandName, id):
-        message = read_string(self.conn)
-        with self.send_lock:
-            _debug_write('Test response for Command: ' + commandName)
-            write_bytes(self.conn, iPythonSocketServer._TEST)
-            write_string(self.conn, commandName)
-            write_string(self.conn, "" if id is None else id)
-            write_string(self.conn, message)
-
     def replyWithError(self, commandName, id):
         with self.send_lock:
-            _debug_write('Replying with error')
+            traceMessage = traceback.format_exc()
+            _debug_write('Replying with error:' + traceMessage)
+
             write_bytes(self.conn, iPythonSocketServer._EROR)
             write_string(self.conn, commandName)
             write_string(self.conn, "" if id is None else id)
+            write_string(self.conn, traceMessage)
 
     def _cmd_exit(self):
         """exits the interactive process"""
         self.exit_requested = True
         self.exit_process()
 
-    def _cmd_ping(self):
+    def _cmd_ping(self, id):
         """ping"""
         _debug_write('Ping received')
-        message = read_string(self.conn)
+        while True:
+            try:
+                message = read_string(self.conn)
+                break
+            except socket.timeout:
+                pass
         with self.send_lock:
             _debug_write('Pong response being sent out')
             write_bytes(self.conn, iPythonSocketServer._PONG)
-            write_string(self.conn, "pong received with message" + message)
+            write_string(self.conn, id)
+            write_string(self.conn, message)
 
     def _cmd_lstk(self, id):
         """List kernel specs"""
@@ -359,6 +353,7 @@ actual inspection and introspection."""
 
     _COMMANDS_WITH_IDS = {
         to_bytes('lstk'): True,
+        to_bytes('ping'): True,
     }
 
 
@@ -414,6 +409,9 @@ class iPythonReadLine(object):
         _debug_write('Socket port received: ' + str(port))
         server = iPythonSocketServer()
         server.connect(port)
+        sys.__stdout__.write('Started')
+        sys.__stdout__.write("\n")
+        sys.__stdout__.flush()
         while True:
             try:
                 self._process_request(self._input.readline())

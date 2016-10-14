@@ -36,18 +36,27 @@ export class iPythonAdapter extends SocketCallbackHandler {
             }
         }
 
+        this.emit('handshake');
         return true;
     }
 
     private pendingCommands = new Map<string, Deferred<any>>();
 
-    public listKernels(): Promise<string[]> {
-        const def = createDeferred<string[]>()
+    private createId<T>(): [Deferred<T>, string] {
+        const def = createDeferred<T>()
         const id = this.idDispenser.Allocate().toString();
         this.pendingCommands.set(id, def);
+        return [def, id];
+    }
+    private releaseId(id: string) {
+        this.pendingCommands.delete(id);
+        this.idDispenser.Free(parseInt(id));
+    }
+
+    public listKernels(): Promise<string[]> {
+        const [def, id] = this.createId<string[]>();
         this.SendRawCommand(Commands.ListKernelsBytes);
         this.stream.WriteString(id);
-
         return def.promise;
     }
 
@@ -59,7 +68,7 @@ export class iPythonAdapter extends SocketCallbackHandler {
         }
 
         const def = this.pendingCommands.get(id);
-        this.pendingCommands.delete(id);
+        this.releaseId(id);
 
         let kernelList: string[];
         try {
@@ -73,17 +82,23 @@ export class iPythonAdapter extends SocketCallbackHandler {
         def.resolve(kernelList);
     }
 
-    public ping() {
+    public ping(message: string) {
+        const [def, id] = this.createId<string[]>();
         this.SendRawCommand(Commands.PingBytes);
-        this.stream.WriteString('Hello world from Type Script - Функция проверки ИНН и КПП - 长城!')
+        this.stream.WriteString(id);
+        this.stream.WriteString(message)
+        return def.promise;
     }
 
     private onPong() {
+        const id = this.stream.readStringInTransaction();
         const message = this.stream.readStringInTransaction();
         if (message == undefined) {
             return;
         }
-        this.emit("pong", message);
+        const def = this.pendingCommands.get(id);
+        this.releaseId(id);
+        def.resolve(message);
     }
 
     private onError() {
