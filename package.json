@@ -23,7 +23,7 @@
     "theme": "dark"
   },
   "engines": {
-    "vscode": "^1.5.0"
+    "vscode": "^1.6.0"
   },
   "categories": [
     "Languages",
@@ -182,7 +182,8 @@
         "label": "Python",
         "enableBreakpointsFor": {
           "languageIds": [
-            "python", "html"
+            "python",
+            "html"
           ]
         },
         "aiKey": "AIF-d9b70cd4-b9f9-4d70-929b-a071c400b217",
@@ -389,7 +390,28 @@
             "name": "Flask",
             "type": "python",
             "request": "launch",
-            "stopOnEntry": true,
+            "stopOnEntry": false,
+            "pythonPath": "${config.python.pythonPath}",
+            "program": "fully qualified path fo 'flask' executable. Generally located along with python interpreter",
+            "env": {
+              "FLASK_APP": "${workspaceRoot}/quickstart/app.py"
+            },
+            "args": [
+              "run",
+              "--no-debugger",
+              "--no-reload"
+            ],
+            "debugOptions": [
+              "WaitOnAbnormalExit",
+              "WaitOnNormalExit",
+              "RedirectOutput"
+            ]
+          },
+          {
+            "name": "Flask (old)",
+            "type": "python",
+            "request": "launch",
+            "stopOnEntry": false,
             "pythonPath": "${config.python.pythonPath}",
             "program": "${workspaceRoot}/run.py",
             "args": [],
