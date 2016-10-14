@@ -7,6 +7,7 @@ import { SocketStream } from "../../Common/comms/SocketStream";
 import { SocketServer } from '../../common/comms/socketServer';
 import { IdDispenser } from '../../common/idDispenser';
 import { createDeferred, Deferred } from '../../common/helpers';
+import {KernelCommand} from './contracts';
 
 export class iPythonAdapter extends SocketCallbackHandler {
     private idDispenser: IdDispenser;
@@ -15,6 +16,10 @@ export class iPythonAdapter extends SocketCallbackHandler {
         this.registerCommandHandler(ResponseCommands.Pong, this.onPong.bind(this));
         this.registerCommandHandler(ResponseCommands.ListKernelsSpecs, this.onKernelsListed.bind(this));
         this.registerCommandHandler(ResponseCommands.Error, this.onError.bind(this));
+        this.registerCommandHandler(ResponseCommands.KernelStarted, this.onKernelStarted.bind(this));
+        this.registerCommandHandler(ResponseCommands.KernelInterrupted, this.onKernelCommandComplete.bind(this));
+        this.registerCommandHandler(ResponseCommands.KernelRestarted, this.onKernelCommandComplete.bind(this));
+        this.registerCommandHandler(ResponseCommands.KernelShutdown, this.onKernelCommandComplete.bind(this));
         this.idDispenser = new IdDispenser();
     }
 
@@ -82,6 +87,67 @@ export class iPythonAdapter extends SocketCallbackHandler {
         def.resolve(kernelList);
     }
 
+    public startKernel(kernelName: string): Promise<[string, any, string]> {
+        const [def, id] = this.createId<any>();
+        this.SendRawCommand(Commands.StartKernelBytes);
+        this.stream.WriteString(id);
+        this.stream.WriteString(kernelName);
+        return def.promise;
+    }
+    public onKernelStarted() {
+        const id = this.stream.readStringInTransaction();
+        const kernelUUID = this.stream.readStringInTransaction();
+        const configStr = this.stream.readStringInTransaction();
+        const connectionFile = this.stream.readStringInTransaction();
+        if (connectionFile == undefined) {
+            return;
+        }
+        const def = this.pendingCommands.get(id);
+        let config = {};
+        try {
+            config = JSON.parse(configStr)
+        }
+        catch (ex) {
+            def.reject(ex);
+            return;
+        }
+        this.releaseId(id);
+        def.resolve([kernelUUID, config, connectionFile]);
+    }
+    public sendKernelCommand(kernelUUID: string, command:KernelCommand): Promise<any> {
+        const [def, id] = this.createId<any>();
+        let commandBytes:Buffer;
+        switch(command){
+            case KernelCommand.interrupt:{
+                commandBytes = Commands.InterruptKernelBytes;
+                break;
+            }
+            case KernelCommand.restart:{
+                commandBytes = Commands.RestartKernelBytes;
+                break;
+            }
+            case KernelCommand.shutdown:{
+                commandBytes = Commands.ShutdownKernelBytes;
+                break;
+            }
+            default:{
+                throw new Error('Unrecognized Kernel Command');
+            }
+        }
+        this.SendRawCommand(commandBytes);
+        this.stream.WriteString(id);
+        this.stream.WriteString(kernelUUID);
+        return def.promise;
+    }
+    public onKernelCommandComplete() {
+        const id = this.stream.readStringInTransaction();
+        if (id == undefined) {
+            return;
+        }
+        const def = this.pendingCommands.get(id);
+        this.releaseId(id);
+        def.resolve();
+    }
     public ping(message: string) {
         const [def, id] = this.createId<string[]>();
         this.SendRawCommand(Commands.PingBytes);
@@ -111,8 +177,9 @@ export class iPythonAdapter extends SocketCallbackHandler {
         if (id.length > 0 && this.pendingCommands.has(id)) {
             const def = this.pendingCommands.get(id);
             this.pendingCommands.delete(id);
-            def.reject(trace);
+            def.reject(new Error(`Command: ${cmd}, Id: ${id}, Python Trace: ${trace}`));
+            return;
         }
-        this.emit("onerror", { command: cmd, id: id, trace: trace });
+        this.emit("error", { command: cmd, id: id, trace: trace });
     }
 }
