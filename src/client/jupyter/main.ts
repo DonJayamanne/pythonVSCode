@@ -27,7 +27,9 @@ export class Jupyter extends vscode.Disposable {
         this.registerKernelCommands();
     }
     activate(state) {
-        this.kernelManager = new KernelManagerImpl(this.outputChannel);
+        const m = new main.JupyterClient(this.outputChannel);
+        m.start();
+        this.kernelManager = new KernelManagerImpl(this.outputChannel, m);
         this.disposables.push(this.kernelManager);
         this.disposables.push(vscode.window.onDidChangeActiveTextEditor(this.onEditorChanged.bind(this)));
         this.codeLensProvider = new JupyterCodeLensProvider();
@@ -79,25 +81,25 @@ export class Jupyter extends vscode.Disposable {
         this.status.setActiveKernel(this.kernel ? this.kernel.kernelSpec : null);
     }
     executeCode(code: string, language: string): Promise<any> {
-        const m = new main.JupyterClient(this.outputChannel);
-        m.start();
-        return Promise.resolve();
-        // telemetryHelper.sendTelemetryEvent(telemetryContracts.Jupyter.Usage);
+        // const m = new main.JupyterClient(this.outputChannel);
+        // m.start();
+        // return Promise.resolve();
+        telemetryHelper.sendTelemetryEvent(telemetryContracts.Jupyter.Usage);
 
-        // if (this.kernel && this.kernel.kernelSpec.language === language) {
-        //     return this.executeAndDisplay(this.kernel, code);
-        // }
-        // return this.kernelManager.startKernelFor(language)
-        //     .then(kernel => {
-        //         if (kernel) {
-        //             this.onKernelChanged(kernel);
-        //             return this.executeAndDisplay(kernel, code);
-        //         }
-        //     }).catch(reason => {
-        //         const message = typeof reason === 'string' ? reason : reason.message;
-        //         vscode.window.showErrorMessage(message);
-        //         this.outputChannel.appendLine(formatErrorForLogging(reason));
-        //     });
+        if (this.kernel && this.kernel.kernelSpec.language === language) {
+            return this.executeAndDisplay(this.kernel, code);
+        }
+        return this.kernelManager.startKernelFor(language)
+            .then(kernel => {
+                if (kernel) {
+                    this.onKernelChanged(kernel);
+                    return this.executeAndDisplay(kernel, code);
+                }
+            }).catch(reason => {
+                const message = typeof reason === 'string' ? reason : reason.message;
+                vscode.window.showErrorMessage(message);
+                this.outputChannel.appendLine(formatErrorForLogging(reason));
+            });
     }
     private executeAndDisplay(kernel: Kernel, code: string) {
         return this.executeCodeInKernel(kernel, code).then(result => {

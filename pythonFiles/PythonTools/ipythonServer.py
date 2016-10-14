@@ -80,9 +80,9 @@ def _debug_write(out):
         sys.__stdout__.flush()
 
 
-def listKernelNames():
+def listKernelSpecs():
     """Returns a dict mapping kernel names to resource directories."""
-    return list(kernelSpecManager.find_kernel_specs().keys())
+    return kernelSpecManager.get_all_specs()
 
 
 class IPythonExitException(Exception):
@@ -123,7 +123,7 @@ actual inspection and introspection."""
     """Messages sent back as responses"""
     _PONG = to_bytes('PONG')
     _EXIT = to_bytes('EXIT')
-    _LSTK = to_bytes('LSTK')
+    _LSKS = to_bytes('LSKS')
     _EROR = to_bytes('EROR')
     _TEST = to_bytes('TEST')
 
@@ -251,10 +251,10 @@ actual inspection and introspection."""
     def _cmd_lstk(self, id):
         """List kernel specs"""
         _debug_write('Listing kernel specs')
-        kernelspecs = json.dumps(listKernelNames())
+        kernelspecs = json.dumps(listKernelSpecs())
         with self.send_lock:
-            _debug_write('Replying with kernels = ' + kernelspecs)
-            write_bytes(self.conn, iPythonSocketServer._LSTK)
+            _debug_write('Replying with kernel Specs= ' + kernelspecs)
+            write_bytes(self.conn, iPythonSocketServer._LSKS)
             write_string(self.conn, id)
             write_string(self.conn, kernelspecs)
 
@@ -348,11 +348,11 @@ actual inspection and introspection."""
         to_bytes('exit'): _cmd_exit,
         to_bytes('ping'): _cmd_ping,
         to_bytes('inpl'): _cmd_inpl,
-        to_bytes('lstk'): _cmd_lstk,
+        to_bytes('lsks'): _cmd_lstk,
     }
 
     _COMMANDS_WITH_IDS = {
-        to_bytes('lstk'): True,
+        to_bytes('lsks'): True,
         to_bytes('ping'): True,
     }
 

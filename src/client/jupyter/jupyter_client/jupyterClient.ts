@@ -4,6 +4,7 @@ import * as child_process from 'child_process';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { createDeferred, Deferred } from '../../common/helpers';
+import { KernelspecMetadata, Kernelspec } from '../contracts';
 
 export class JupyterClient {
     constructor(private outputChannel: vscode.OutputChannel) {
@@ -12,9 +13,17 @@ export class JupyterClient {
     private process: child_process.ChildProcess;
     private socketServer: SocketServer;
     private ipythonAdapter: iPythonAdapter;
+
+    private startDef: Deferred<any>;
     public start(): Promise<any> {
+        if (this.startDef) {
+            return this.startDef.promise;
+        }
+
+        this.startDef = createDeferred<any>();
         const pyFile = path.join(__dirname, '..', '..', '..', '..', 'pythonFiles', 'PythonTools', 'ipythonServer.py');
-        return this.startSocketServer().then(port => {
+
+        this.startSocketServer().then(port => {
             const def = createDeferred<any>();
             const newEnv = { "DEBUG_DJAYAMANNE_IPYTHON": "1" };
             Object.assign(newEnv, process.env);
@@ -68,12 +77,22 @@ export class JupyterClient {
             }
 
             return def.promise;
+        }).then(() => {
+            this.startDef.resolve();
+        }).catch(reason => {
+            this.startDef.reject(reason);
         });
+
+        return this.startDef.promise;
     }
     private startSocketServer(): Promise<number> {
         this.socketServer = new SocketServer();
         this.ipythonAdapter = new iPythonAdapter(this.socketServer);
         return this.socketServer.Start();
+    }
+
+    public getAllKernelSpecs(): Promise<{ [key: string]: Kernelspec }> {
+        return this.start().then(() => this.ipythonAdapter.listKernelSpecs());
     }
 }
 

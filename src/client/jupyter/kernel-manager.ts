@@ -2,17 +2,17 @@
 import * as child_process from 'child_process';
 import * as os from 'os';
 import * as vscode from 'vscode';
-import {Kernel} from './kernel';
-import {WSKernel} from './ws-kernel';
-import {ZMQKernel} from './zmq-kernel';
-import {launchSpec} from 'spawnteract';
-import {KernelspecMetadata, Kernelspec} from './contracts';
-import {Commands, Documentation} from '../common/constants';
-import {EventEmitter} from 'events';
-import {PythonSettings} from '../common/configSettings';
-import {formatErrorForLogging} from '../common/utils';
-import {JmpModuleLoadError} from '../common/errors';
-
+import { Kernel } from './kernel';
+import { WSKernel } from './ws-kernel';
+import { ZMQKernel } from './zmq-kernel';
+import { launchSpec } from 'spawnteract';
+import { KernelspecMetadata, Kernelspec } from './contracts';
+import { Commands, Documentation } from '../common/constants';
+import { EventEmitter } from 'events';
+import { PythonSettings } from '../common/configSettings';
+import { formatErrorForLogging } from '../common/utils';
+import { JmpModuleLoadError } from '../common/errors';
+import { JupyterClient } from './jupyter_client/jupyterClient';
 // Todo: Refactor the error handling and displaying of messages
 
 const pythonSettings = PythonSettings.getInstance();
@@ -21,7 +21,7 @@ export class KernelManagerImpl extends EventEmitter {
     private _runningKernels: Map<string, Kernel>;
     private _kernelSpecs: { [key: string]: Kernelspec };
     private disposables: vscode.Disposable[];
-    constructor(private outputChannel: vscode.OutputChannel) {
+    constructor(private outputChannel: vscode.OutputChannel, private jupyterClient: JupyterClient) {
         super();
         this.disposables = [];
         this._runningKernels = new Map<string, Kernel>();
@@ -221,29 +221,6 @@ export class KernelManagerImpl extends EventEmitter {
     }
 
     public getKernelSpecsFromJupyter(): Promise<any> {
-        const jupyter = 'jupyter kernelspec list --json --log-level=CRITICAL';
-        const ipython = 'ipython kernelspec list --json --log-level=CRITICAL';
-        return this.getKernelSpecsFrom(jupyter).catch(jupyterError => {
-            return this.getKernelSpecsFrom(ipython);
-        });
-    }
-
-    public getKernelSpecsFrom(command: string): Promise<any> {
-        const options = {
-            killSignal: 'SIGINT'
-        };
-        return new Promise<any>((resolve, reject) => {
-            return child_process.exec(command, options, (err, stdout, stderr) => {
-                if (err) {
-                    return reject(err);
-                }
-                try {
-                    const kernelSpecs = JSON.parse(stdout).kernelspecs;
-                    resolve(kernelSpecs);
-                } catch (err) {
-                    return reject(err);
-                }
-            });
-        });
+        return this.jupyterClient.getAllKernelSpecs();
     }
 }

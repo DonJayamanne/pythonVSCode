@@ -3,11 +3,11 @@
 export class Commands {
     public static ExitCommandBytes: Buffer = new Buffer("exit");
     public static PingBytes: Buffer = new Buffer("ping");
-    public static ListKernelsBytes: Buffer = new Buffer("lstk");
+    public static ListKernelSpecsBytes: Buffer = new Buffer("lsks");
 }
 
 export namespace ResponseCommands {
     export const Pong = 'PONG';
-    export const ListKernels = 'LSTK';
+    export const ListKernelsSpecs = 'LSKS';
     export const Error = 'EROR';
 }

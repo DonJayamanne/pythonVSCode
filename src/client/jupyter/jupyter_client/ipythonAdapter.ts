@@ -13,7 +13,7 @@ export class iPythonAdapter extends SocketCallbackHandler {
     constructor(socketServer: SocketServer) {
         super(socketServer);
         this.registerCommandHandler(ResponseCommands.Pong, this.onPong.bind(this));
-        this.registerCommandHandler(ResponseCommands.ListKernels, this.onKernelsListed.bind(this));
+        this.registerCommandHandler(ResponseCommands.ListKernelsSpecs, this.onKernelsListed.bind(this));
         this.registerCommandHandler(ResponseCommands.Error, this.onError.bind(this));
         this.idDispenser = new IdDispenser();
     }
@@ -53,9 +53,9 @@ export class iPythonAdapter extends SocketCallbackHandler {
         this.idDispenser.Free(parseInt(id));
     }
 
-    public listKernels(): Promise<string[]> {
-        const [def, id] = this.createId<string[]>();
-        this.SendRawCommand(Commands.ListKernelsBytes);
+    public listKernelSpecs(): Promise<any> {
+        const [def, id] = this.createId<any>();
+        this.SendRawCommand(Commands.ListKernelSpecsBytes);
         this.stream.WriteString(id);
         return def.promise;
     }
@@ -70,7 +70,7 @@ export class iPythonAdapter extends SocketCallbackHandler {
         const def = this.pendingCommands.get(id);
         this.releaseId(id);
 
-        let kernelList: string[];
+        let kernelList: any;
         try {
             kernelList = JSON.parse(kernels)
         }
