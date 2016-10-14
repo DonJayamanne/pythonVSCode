@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import { Kernel } from './kernel';
 import * as vscode from 'vscode';
 import { KernelspecMetadata, JupyterMessage } from './contracts';
-import { iPythonAdapter } from './comms/ipythonAdapter';
+import { iPythonAdapter } from './jupyter_client/ipythonAdapter';
 import { SocketServer } from '../common/comms/socketServer';
 import { createDeferred } from '../common/helpers';
 import * as settings from '../common/configSettings';
