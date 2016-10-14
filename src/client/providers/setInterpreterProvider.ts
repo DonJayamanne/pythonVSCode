@@ -55,8 +55,8 @@ function getSearchPaths(): string[] {
     }
 }
 
-export function activateSetInterpreterProvider() {
-    vscode.commands.registerCommand("python.setInterpreter", setInterpreter);
+export function activateSetInterpreterProvider():vscode.Disposable {
+    return vscode.commands.registerCommand("python.setInterpreter", setInterpreter);
 }
 
 function lookForInterpretersInPath(pathToCheck: string): Promise<string[]> {
