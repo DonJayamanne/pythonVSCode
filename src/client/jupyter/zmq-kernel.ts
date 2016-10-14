@@ -50,62 +50,7 @@ export class ZMQKernel extends Kernel {
     private ioSocket: any;
     private jmp: any;
     public _connect() {
-        try {
-            this.jmp = require('jmp');
-        }
-        catch (ex) {
-            console.log(ex);
-            if (typeof ex.message === 'string' && (ex.message as string).indexOf('Module version mismatch') > 0) {
-                throw new JmpModuleLoadError(ex);
-            }
-            else {
-                throw ex;
-            }
-        }
-        const jmp = this.jmp;
-        const scheme = this.connection.signature_scheme.slice('hmac-'.length);
-        const key = this.connection.key;
-        this.shellSocket = new jmp.Socket('dealer', scheme, key);
-        this.controlSocket = new jmp.Socket('dealer', scheme, key);
-        this.stdinSocket = new jmp.Socket('dealer', scheme, key);
-        this.ioSocket = new jmp.Socket('sub', scheme, key);
-        const id = uuid.v4();
-        this.shellSocket.identity = 'dealer' + id;
-        this.controlSocket.identity = 'control' + id;
-        this.stdinSocket.identity = 'dealer' + id;
-        this.ioSocket.identity = 'sub' + id;
-        const address = this.connection.transport + '://' + this.connection.ip + ':';
-        this.shellSocket.connect(address + this.connection.shell_port);
-        this.controlSocket.connect(address + this.connection.control_port);
-        this.ioSocket.connect(address + this.connection.iopub_port);
-        this.ioSocket.subscribe('');
-        this.stdinSocket.connect(address + this.connection.stdin_port);
-
-        // Details of shell, iopub, stdin can be found here (read and understand before messaing around)
-        // http://jupyter-client.readthedocs.io/en/latest/messaging.html#introduction
-        this.shellSocket.on('message', this.onShellMessage.bind(this));
-        this.ioSocket.on('message', this.onIOMessage.bind(this));
-        this.stdinSocket.on('message', this.onStdinMessage.bind(this));
-        this.shellSocket.on('connect', () => {
-            return;
-        });
-        this.controlSocket.on('connect', () => {
-            return;
-        });
-        this.ioSocket.on('connect', () => {
-            return;
-        });
-        this.stdinSocket.on('connect', () => {
-            return;
-        });
-        try {
-            this.shellSocket.monitor();
-            this.controlSocket.monitor();
-            this.ioSocket.monitor();
-            return this.stdinSocket.monitor();
-        } catch (_error) {
-            return console.error('Kernel:', _error);
-        }
+        throw new Error('Support for zmq kernel has been deprecated');
     };
 
     public interrupt(): any {
