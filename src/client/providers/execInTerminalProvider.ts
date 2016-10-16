@@ -4,6 +4,7 @@ import * as settings from '../common/configSettings';
 import { Commands, PythonLanguage } from '../common/constants';
 let path = require('path');
 let terminal: vscode.Terminal;
+import {IS_WINDOWS} from '../common/utils';
 
 export function activateExecInTerminalProvider(): vscode.Disposable[] {
     const disposables: vscode.Disposable[] = [];
@@ -75,6 +76,14 @@ function execSelectionInTerminal() {
     terminal = terminal ? terminal : vscode.window.createTerminal(`Python`);
     const launchArgs = settings.PythonSettings.getInstance().terminal.launchArgs;
     const launchArgsString = launchArgs.length > 0 ? " ".concat(launchArgs.join(" ")) : "";
-    terminal.sendText(`${currentPythonPath}${launchArgsString} -c "${code}"`);
+    if (IS_WINDOWS) {
+        // Multi line commands don't work the same way on windows terminals as it does on other OS
+        // So just start the Python REPL, then send the commands
+        terminal.sendText(`${currentPythonPath}${launchArgsString}`);
+        terminal.sendText(code);
+    }
+    else {
+        terminal.sendText(`${currentPythonPath}${launchArgsString} -c "${code}"`);        
+    }
     terminal.show();
 }
