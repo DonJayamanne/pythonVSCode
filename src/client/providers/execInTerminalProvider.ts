@@ -57,7 +57,13 @@ function execInTerminal(fileUri?: vscode.Uri) {
     }
     const launchArgs = settings.PythonSettings.getInstance().terminal.launchArgs;
     const launchArgsString = launchArgs.length > 0 ? " ".concat(launchArgs.join(" ")) : "";
-    terminal.sendText(`${currentPythonPath}${launchArgsString} ${filePath}`);
+    if (IS_WINDOWS) {
+        const cmd = `${currentPythonPath}${launchArgsString} ${filePath}`;
+        terminal.sendText(cmd.replace(/\\/g,"/"));
+    }
+    else {
+        terminal.sendText(`${currentPythonPath}${launchArgsString} ${filePath}`);
+    }
     terminal.show();
 }
 
