@@ -13,7 +13,7 @@ export function activateExecInTerminalProvider(): vscode.Disposable[] {
         if (terminal === closedTermina) {
             terminal = null;
         }
-    }))
+    }));
     return disposables;
 }
 
