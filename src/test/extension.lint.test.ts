@@ -3,6 +3,9 @@
 // Please refer to their documentation on https://mochajs.org/ for help.
 //
 
+// Place this right on top
+import { initialize } from './initialize';
+
 // The module \'assert\' provides assertion methods from node
 import * as assert from 'assert';
 
@@ -18,7 +21,6 @@ import * as pydocstyle from '../client/linters/pydocstyle';
 import * as path from 'path';
 import * as settings from '../client/common/configSettings';
 import * as fs from 'fs-extra';
-import { initialize } from './initialize';
 import { execPythonFile } from '../client/common/utils';
 
 let pythonSettings = settings.PythonSettings.getInstance();
