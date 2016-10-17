@@ -7,6 +7,7 @@ import { createDeferred, Deferred } from '../../common/helpers';
 import { KernelspecMetadata, Kernelspec } from '../contracts';
 import { IJupyterClient } from './contracts';
 import {KernelCommand} from './contracts';
+import {PythonSettings} from '../../common/configSettings';
 
 export class JupyterClient implements IJupyterClient {
     constructor(private outputChannel: vscode.OutputChannel, private rootDir: string) {
@@ -30,7 +31,7 @@ export class JupyterClient implements IJupyterClient {
             const newEnv = { "DEBUG_DJAYAMANNE_IPYTHON": "1" };
             Object.assign(newEnv, process.env);
 
-            this.process = child_process.spawn('python', [pyFile, port.toString()], { env: newEnv, cwd: this.rootDir });
+            this.process = child_process.spawn(PythonSettings.getInstance().pythonPath, [pyFile, port.toString()], { env: newEnv, cwd: this.rootDir });
             this.process.stdout.setEncoding('utf8');
             this.process.stderr.setEncoding('utf8');
 
@@ -57,7 +58,7 @@ export class JupyterClient implements IJupyterClient {
             this.ipythonAdapter.on('handshake', () => {
                 handshakeDone = true;
                 if (processStarted && handshakeDone) {
-                    promiseToResolve()
+                    promiseToResolve();
                 }
             });
 
@@ -114,6 +115,9 @@ export class JupyterClient implements IJupyterClient {
     }
     public restartKernel(kernelUUID: string): Promise<any> {
         return this.start().then(() => this.ipythonAdapter.sendKernelCommand(kernelUUID, KernelCommand.restart));
+    }
+    public runCode(code: string): Promise<any>{
+        return this.start().then(() => this.ipythonAdapter.runCode(code))
     }
 }
 
