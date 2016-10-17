@@ -1,13 +1,11 @@
 "use strict";
 
-import * as net from "net";
 import { SocketCallbackHandler } from "../../common/comms/socketCallbackHandler";
 import { Commands, ResponseCommands } from "./commands";
-import { SocketStream } from "../../Common/comms/SocketStream";
 import { SocketServer } from '../../common/comms/socketServer';
 import { IdDispenser } from '../../common/idDispenser';
 import { createDeferred, Deferred } from '../../common/helpers';
-import {KernelCommand} from './contracts';
+import { KernelCommand } from './contracts';
 
 export class iPythonAdapter extends SocketCallbackHandler {
     private idDispenser: IdDispenser;
@@ -20,6 +18,9 @@ export class iPythonAdapter extends SocketCallbackHandler {
         this.registerCommandHandler(ResponseCommands.KernelInterrupted, this.onKernelCommandComplete.bind(this));
         this.registerCommandHandler(ResponseCommands.KernelRestarted, this.onKernelCommandComplete.bind(this));
         this.registerCommandHandler(ResponseCommands.KernelShutdown, this.onKernelCommandComplete.bind(this));
+        this.registerCommandHandler(ResponseCommands.RunCode, this.onCodeSentForExecution.bind(this));
+        this.registerCommandHandler(ResponseCommands.ShellResult, this.onShellResult.bind(this));
+        this.registerCommandHandler(ResponseCommands.IOPUBMessage, this.onIOPUBMessage.bind(this));
         this.idDispenser = new IdDispenser();
     }
 
@@ -114,23 +115,23 @@ export class iPythonAdapter extends SocketCallbackHandler {
         this.releaseId(id);
         def.resolve([kernelUUID, config, connectionFile]);
     }
-    public sendKernelCommand(kernelUUID: string, command:KernelCommand): Promise<any> {
+    public sendKernelCommand(kernelUUID: string, command: KernelCommand): Promise<any> {
         const [def, id] = this.createId<any>();
-        let commandBytes:Buffer;
-        switch(command){
-            case KernelCommand.interrupt:{
+        let commandBytes: Buffer;
+        switch (command) {
+            case KernelCommand.interrupt: {
                 commandBytes = Commands.InterruptKernelBytes;
                 break;
             }
-            case KernelCommand.restart:{
+            case KernelCommand.restart: {
                 commandBytes = Commands.RestartKernelBytes;
                 break;
             }
-            case KernelCommand.shutdown:{
+            case KernelCommand.shutdown: {
                 commandBytes = Commands.ShutdownKernelBytes;
                 break;
             }
-            default:{
+            default: {
                 throw new Error('Unrecognized Kernel Command');
             }
         }
@@ -165,6 +166,50 @@ export class iPythonAdapter extends SocketCallbackHandler {
         const def = this.pendingCommands.get(id);
         this.releaseId(id);
         def.resolve(message);
+    }
+
+    runCode(code): Promise<any> {
+        const [def, id] = this.createId<string[]>();
+        this.SendRawCommand(Commands.RunCodeBytes);
+        this.stream.WriteString(id);
+        this.stream.WriteString(code)
+        return def.promise;
+    }
+    private onCodeSentForExecution() {
+        const id = this.stream.readStringInTransaction();
+        const msg_id = this.stream.readStringInTransaction();
+        if (msg_id == undefined) {
+            return;
+        }
+        const def = this.pendingCommands.get(id);
+        this.releaseId(id);
+        def.resolve(msg_id);
+    }
+
+    private onShellResult() {
+        const jsonResult = this.stream.readStringInTransaction();
+        if (jsonResult == undefined) {
+            return;
+        }
+        try {
+            const y = JSON.parse(jsonResult);
+        }
+        catch (ex) {
+            const x = '';
+        }
+    }
+
+    private onIOPUBMessage() {
+        const jsonResult = this.stream.readStringInTransaction();
+        if (jsonResult == undefined) {
+            return;
+        }
+        try {
+            const y = JSON.parse(jsonResult);
+        }
+        catch (ex) {
+            const x = '';
+        }
     }
 
     private onError() {

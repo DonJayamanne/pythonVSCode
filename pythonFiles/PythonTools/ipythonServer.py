@@ -45,9 +45,9 @@ except NameError:
     BaseException = Exception
 
 try:
-    from Queue import Empty  # Python 2
+    from Queue import Empty, Queue  # Python 2
 except ImportError:
-    from queue import Empty  # Python 3
+    from queue import Empty, Queue  # Python 3
 
 DEBUG = os.environ.get('DEBUG_DJAYAMANNE_IPYTHON') is not None
 TEST = os.environ.get('PYTHON_DONJAYAMANNE_TEST') is not None
@@ -128,12 +128,18 @@ class SafeSendLock(object):
 - Not the best, but that's how it will have to be done
 - http://www.xavierdupre.fr/app/pyquickhelper/helpsphinx/_modules/pyquickhelper/ipythonhelper/notebook_runner.html
 """
+
+
 class iPythonKernelResponseMonitor(object):
-    def __init__(self, kernelUUID, socketConnection):
+
+    def __init__(self, kernelUUID, socketConnection, send_lock, shell_channel, iopub_channel):
         import threading
         self.kernel = multiKernelManager.get_kernel(kernelUUID)
         self.conn = socketConnection
         self.is_stop_requested = False
+        self.shell_channel = shell_channel
+        self.iopub_channel = iopub_channel
+        self.send_lock = send_lock
         thread.start_new_thread(self.start_processing, ())
 
     def stop(self):
@@ -141,6 +147,14 @@ class iPythonKernelResponseMonitor(object):
 
     def check_for_exit_socket_loop(self):
         return self.is_stop_requested
+
+    def _populateErrorContents(self, sourceContents, targetContents):
+        try:
+            targetContents.ename = sourceContents.ename
+            targetContents.evalue = sourceContents.evalue
+            targetContents.traceback = sourceContents.traceback
+        except AttributeError:
+            pass
 
     def start_processing(self):
         """loop to read the io ports/messages"""
@@ -150,6 +164,31 @@ class iPythonKernelResponseMonitor(object):
             while True:
                 if self.check_for_exit_socket_loop():
                     break
+
+                try:
+                    # We can ignore msgtype=execute_request
+
+                    exe_result = self.shell_channel.get_shell_msg(timeout=1)
+                    # message can be JSON, but not always
+                    # (http://jupyter-client.readthedocs.io/en/latest/messaging.html)
+                    # assume for now that dates are the only crappy (non JSONable stuff sent)
+                    json_to_send = json.dumps(exe_result, default=str)
+                    with self.send_lock:
+                        _debug_write('shell_result')
+                        write_bytes(self.conn, iPythonSocketServer._SHEL)
+                        write_string(self.conn, json_to_send)
+                except Empty:
+                    pass
+
+                try:
+                    msg = self.iopub_channel.get_iopub_msg(timeout=10)
+                    json_to_send = json.dumps(msg, default=str)
+                    with self.send_lock:
+                        _debug_write('iopub_msg')
+                        write_bytes(self.conn, iPythonSocketServer._IOPB)
+                        write_string(self.conn, json_to_send)
+                except Empty:
+                    pass
 
         except IPythonExitException:
             _debug_write('IPythonExitException')
@@ -185,6 +224,9 @@ actual inspection and introspection."""
     _STPK = to_bytes('STPK')
     _RSTK = to_bytes('RSTK')
     _ITPK = to_bytes('ITPK')
+    _RUN = to_bytes('RUN ')
+    _SHEL = to_bytes('SHEL')
+    _IOPB = to_bytes('IOPB')
 
     def __init__(self):
         import threading
@@ -199,6 +241,8 @@ actual inspection and introspection."""
         self.execute_item_lock = threading.Lock()
         # lock starts acquired (we use it like manual reset event)
         self.execute_item_lock.acquire()
+        self.kernelMonitor = None
+        self.shell_channel = None
 
     def connect(self, port):
         # start a new thread for communicating w/ the remote process
@@ -332,14 +376,15 @@ actual inspection and introspection."""
             except socket.timeout:
                 pass
         kernelUUID = multiKernelManager.start_kernel(kernel_name=kernelName)
+        self._postStartKernel(kernelUUID)
+
         # get the config and the connection FileExistsError
-        kernel = multiKernelManager.get_kernel(kernelUUID)
         try:
-            config = kernel.config
+            config = kernel_manager.config
         except:
             config = {}
         try:
-            connection_file = kernel.connection_file
+            connection_file = kernel_manager.connection_file
         except:
             connection_file = ""
 
@@ -351,6 +396,28 @@ actual inspection and introspection."""
             write_string(self.conn, json.dumps(config))
             write_string(self.conn, connection_file)
 
+    def _postStartKernel(self, kernelUUID):
+        kernel_manager = multiKernelManager.get_kernel(kernelUUID)
+        kernel_client = kernel_manager.client()
+        kernel_client.start_channels()
+
+        try:
+            # IPython 3.x
+            kernel_client.wait_for_ready()
+            iopub = kernel_client
+            shell = kernel_client
+        except AttributeError:
+            # Ipython 2.x
+            # Based on https://github.com/paulgb/runipy/pull/49/files
+            iopub = kernel_client.iopub_channel
+            shell = kernel_client.shell_channel
+            shell.get_shell_msg = shell.get_msg
+            iopub.get_iopub_msg = iopub.get_msg
+
+        self.shell_channel = shell
+        self.kernelMonitor = iPythonKernelResponseMonitor(
+            kernelUUID, self.conn, self.send_lock, shell, iopub)
+
     def _cmd_stpk(self, id):
         """Shutdown a kernel by UUID"""
         while True:
@@ -359,12 +426,28 @@ actual inspection and introspection."""
                 break
             except socket.timeout:
                 pass
+
         try:
-            kernel = multiKernelManager.get_kernel(kernelUUID)
-            kernel.shutdown_kernel()
+            if self.kernelMonitor is not None:
+                self.kernelMonitor.stop()
+        finally:
+            pass
+
+        try:
+            kernel_manager = multiKernelManager.get_kernel(kernelUUID)
+            kernel_client = kernel_manager.client()
+            kernel_client.stop_channels()
+        finally:
+            pass
+
+        try:
+            kernel_manager = multiKernelManager.get_kernel(kernelUUID)
+            kernel_manager.shutdown_kernel()
         except:
             pass
         finally:
+            self.shell_channel = None
+            self.kernelMonitor = None
             with self.send_lock:
                 write_bytes(self.conn, iPythonSocketServer._STPK)
                 write_string(self.conn, id)
@@ -377,8 +460,18 @@ actual inspection and introspection."""
                 break
             except socket.timeout:
                 pass
-        kernel = multiKernelManager.get_kernel(kernelUUID)
-        kernel.restart_kernel(now=True)
+
+        try:
+            if self.kernelMonitor is not None:
+                self.kernelMonitor.stop()
+        finally:
+            self.kernelMonitor = None
+
+        kernel_manager = multiKernelManager.get_kernel(kernelUUID)
+        kernel_manager.restart_kernel(now=True)
+
+        self._postStartKernel(kernelUUID)
+
         with self.send_lock:
             write_bytes(self.conn, iPythonSocketServer._RSTK)
             write_string(self.conn, id)
@@ -391,16 +484,25 @@ actual inspection and introspection."""
                 break
             except socket.timeout:
                 pass
-        kernel = multiKernelManager.get_kernel(kernelUUID)
-        kernel.interrupt_kernel()
+        kernel_manager = multiKernelManager.get_kernel(kernelUUID)
+        kernel_manager.interrupt_kernel()
         with self.send_lock:
             write_bytes(self.conn, iPythonSocketServer._ITPK)
             write_string(self.conn, id)
 
-    def _cmd_run(self):
-        """runs the received snippet of code"""
-        # self.run_command(read_string(self.conn))
-        pass
+    def _cmd_run(self, id):
+        """runs the received snippet of code (kernel is expected to have been started)"""
+        while True:
+            try:
+                code = read_string(self.conn)
+                break
+            except socket.timeout:
+                pass
+        msg_id = self.shell_channel.execute(code)
+        with self.send_lock:
+            write_bytes(self.conn, iPythonSocketServer._RUN)
+            write_string(self.conn, id)
+            write_string(self.conn, msg_id)
 
     def _cmd_abrt(self):
         """aborts the current running command"""
@@ -501,6 +603,7 @@ actual inspection and introspection."""
         to_bytes('stpk'): True,
         to_bytes('rstk'): True,
         to_bytes('itpk'): True,
+        to_bytes('run '): True,
     }
 
 

@@ -40,6 +40,11 @@ export class JupyterClientKernel extends Kernel {
     };
 
     public execute(code: string, onResults: Function) {
+        this.jupyterClient.runCode(code).then(() => {
+            const y = '';
+        }).catch(reason => {
+            const x = '';
+        })
     };
 
     public executeWatch(code: string, onResults: Function) {
