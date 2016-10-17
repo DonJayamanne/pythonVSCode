@@ -7,7 +7,7 @@ import * as path from 'path';
 
 export interface IPythonSettings {
     pythonPath: string;
-    devOptions: any[];
+    devOptions: string[];
     linting: ILintingSettings;
     formatting: IFormattingSettings;
     unitTest: IUnitTestSettings;
@@ -116,6 +116,24 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
                 this.linting = {} as ILintingSettings;
             }
         }
+        // Support for travis
+        this.linting = this.linting ? this.linting : {
+            enabled: false,
+            flake8Args: [], flake8Enabled: false, flake8Path: 'flake',
+            lintOnSave: false, lintOnTextChange: false, maxNumberOfProblems: 100,
+            mypyArgs: [], mypyEnabled: false, mypyPath: 'mypy',
+            outputWindow: 'python', pep8Args: [], pep8Enabled: false, pep8Path: 'pep8',
+            prospectorArgs: [], prospectorEnabled: false, prospectorPath: 'prospector',
+            pydocstleArgs: [], pydocstyleEnabled: false, pydocStylePath: 'pydocstyle',
+            pylintArgs: [], pylintEnabled: false, pylintPath: 'pylint',
+            pylintCategorySeverity: {
+                convention: vscode.DiagnosticSeverity.Hint,
+                error: vscode.DiagnosticSeverity.Error,
+                fatal: vscode.DiagnosticSeverity.Error,
+                refactor: vscode.DiagnosticSeverity.Hint,
+                warning: vscode.DiagnosticSeverity.Warning
+            }
+        };
         this.linting.pylintPath = getAbsolutePath(this.linting.pylintPath, workspaceRoot);
         this.linting.flake8Path = getAbsolutePath(this.linting.flake8Path, workspaceRoot);
         this.linting.pep8Path = getAbsolutePath(this.linting.pep8Path, workspaceRoot);
@@ -129,6 +147,13 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         else {
             this.formatting = formattingSettings;
         }
+        // Support for travis
+        this.formatting = this.formatting ? this.formatting : {
+            autopep8Args: [], autopep8Path: 'autopep8',
+            formatOnSave: false, outputWindow: 'python',
+            provider: 'autopep8',
+            yapfArgs: [], yapfPath: 'yapf'
+        };
         this.formatting.autopep8Path = getAbsolutePath(this.formatting.autopep8Path, workspaceRoot);
         this.formatting.yapfPath = getAbsolutePath(this.formatting.yapfPath, workspaceRoot);
 
@@ -139,6 +164,10 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         else {
             this.autoComplete = autoCompleteSettings;
         }
+        // Support for travis
+        this.autoComplete = this.autoComplete ? this.autoComplete : {
+            extraPaths: []
+        };
 
         let unitTestSettings = systemVariables.resolveAny(pythonSettings.get<IUnitTestSettings>('unitTest'));
         if (this.unitTest) {
@@ -151,6 +180,13 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
             }
         }
         this.emit('change');
+        // Support for travis
+        this.unitTest = this.unitTest ? this.unitTest : {
+            nosetestArgs: [], nosetestPath: 'nosetest', nosetestsEnabled: false,
+            outputWindow: 'python',
+            pyTestArgs: [], pyTestEnabled: false, pyTestPath: 'pytest',
+            unittestArgs: [], unittestEnabled: false
+        };
         this.unitTest.pyTestPath = getAbsolutePath(this.unitTest.pyTestPath, workspaceRoot);
         this.unitTest.nosetestPath = getAbsolutePath(this.unitTest.nosetestPath, workspaceRoot);
 
@@ -169,7 +205,17 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
                 this.terminal = {} as ITerminalSettings;
             }
         }
+        // Support for travis
+        this.terminal = this.terminal ? this.terminal : {
+            executeInFileDir: true,
+            launchArgs: []
+        };
+
         this.jupyter = pythonSettings.get<JupyterSettings>('jupyter');
+        // Support for travis
+        this.jupyter = this.jupyter ? this.jupyter : {
+            appendResults: true, defaultKernel: '', startupCode: []
+        };
     }
 
     public pythonPath: string;
