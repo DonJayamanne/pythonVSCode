@@ -21,7 +21,7 @@ import {activateSetInterpreterProvider} from './providers/setInterpreterProvider
 import {activateExecInTerminalProvider} from './providers/execInTerminalProvider';
 import * as tests from './unittests/main';
 import * as jup from './jupyter/main';
-import {HelpProvider} from './HelpProvider';
+import {HelpProvider} from './helpProvider';
 
 const PYTHON: vscode.DocumentFilter = { language: 'python', scheme: 'file' };
 let unitTestOutChannel: vscode.OutputChannel;
