@@ -10,8 +10,7 @@ import * as assert from 'assert';
 
 // You can import and use all API from the 'vscode' module
 // as well as import your extension to test it
-import * as vscode from 'vscode';
-import { createDeferred, Deferred, isNotInstalledError } from '../client/common/helpers';
+import { createDeferred, isNotInstalledError } from '../client/common/helpers';
 
 // Defines a Mocha test suite to group tests of similar kind together
 suite('Deferred', () => {

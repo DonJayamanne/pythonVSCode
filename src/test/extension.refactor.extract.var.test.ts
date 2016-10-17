@@ -133,7 +133,6 @@ suite('Variable Extraction', () => {
     });
 
     function testingVariableExtraction(shouldError: boolean, pythonSettings: settings.IPythonSettings, startPos: Position, endPos: Position) {
-        let ch = new MockOutputChannel('Python');
         let rangeOfTextToExtract = new vscode.Range(startPos, endPos);
         let proxy = new RefactorProxy(EXTENSION_DIR, pythonSettings, path.dirname(refactorTargetFile));
         let mockTextDoc = new MockTextDocument(refactorTargetFile);

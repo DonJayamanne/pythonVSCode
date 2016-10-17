@@ -10,7 +10,6 @@ import * as assert from 'assert';
 
 // You can import and use all API from the 'vscode' module
 // as well as import your extension to test it
-import * as vscode from 'vscode';
 import { SocketStream } from '../client/common/comms/SocketStream';
 import { SocketServer } from '../client/common/comms/socketServer';
 import { SocketCallbackHandler } from '../client/common/comms/socketCallbackHandler';
@@ -212,7 +211,7 @@ suite('SocketCallbackHandler', () => {
         }).catch(reason => {
             assert.fail(reason, undefined, 'Failed to start socket server', 'Start');
             done();
-        })
+        });
     });
     test('Unsuccesful Handshake', done => {
         const socketServer = new SocketServer();
@@ -256,7 +255,7 @@ suite('SocketCallbackHandler', () => {
         }).catch(reason => {
             assert.fail(reason, undefined, 'Failed to start socket server', 'Start');
             done();
-        })
+        });
     });
     test('Ping with message', done => {
         const socketServer = new SocketServer();
@@ -304,6 +303,6 @@ suite('SocketCallbackHandler', () => {
         }).catch(reason => {
             assert.fail(reason, undefined, 'Failed to start socket server', 'Start');
             done();
-        })
+        });
     });
 });
