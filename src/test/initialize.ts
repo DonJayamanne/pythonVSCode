@@ -35,3 +35,5 @@ export function closeActiveWindows(counter: number = 0): Thenable<any> {
         }, 500);
     });
 }
+
+export const IS_TRAVIS = (process.env['TRAVIS'] + '') === 'true';

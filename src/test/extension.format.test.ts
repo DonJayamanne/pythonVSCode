@@ -124,6 +124,7 @@ suite('Formatting', () => {
             return new Promise<any>((resolve, reject) => {
                 setTimeout(() => {
                     resolve();
+<<<<<<< 5259be808cd9e53d21b0c75c03e4f0fc07aadd16
 <<<<<<< f9b7d2d35922e55963278a9de0cd2f0f02d1e7ac
 <<<<<<< ef3136a0e5a3831092a37477366f922f1aa4c93c
                 }, 4000);
@@ -133,6 +134,9 @@ suite('Formatting', () => {
 =======
                 }, 2000);
 >>>>>>> re-enabled tests
+=======
+                }, 5000);
+>>>>>>> increase timeout
             });
         }).then(() => {
             assert.equal(textDocument.getText(), formattedContents, 'Formatted contents are not the same');
