@@ -1,3 +1,5 @@
+// Place this right on top
+import { initialize } from './initialize';
 import * as assert from 'assert';
 
 // You can import and use all API from the \'vscode\' module
@@ -7,7 +9,6 @@ import { TextDocument, TextLine, Position, Range } from 'vscode';
 import * as path from 'path';
 import * as settings from '../client/common/configSettings';
 import * as fs from 'fs-extra';
-import { initialize, closeActiveWindows } from './initialize';
 import { execPythonFile } from '../client/common/utils';
 import { extractVariable, extractMethod } from '../client/providers/simpleRefactorProvider';
 import { RefactorProxy } from '../client/refactor/proxy';
