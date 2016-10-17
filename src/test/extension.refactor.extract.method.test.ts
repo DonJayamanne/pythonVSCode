@@ -10,7 +10,7 @@ import * as path from 'path';
 import * as settings from '../client/common/configSettings';
 import * as fs from 'fs-extra';
 import { execPythonFile } from '../client/common/utils';
-import { extractVariable, extractMethod } from '../client/providers/simpleRefactorProvider';
+import { extractMethod } from '../client/providers/simpleRefactorProvider';
 import { RefactorProxy } from '../client/refactor/proxy';
 import { getTextEditsFromPatch } from '../client/common/editor';
 
@@ -132,7 +132,6 @@ suite('Method Extraction', () => {
     });
 
     function testingMethodExtraction(shouldError: boolean, pythonSettings: settings.IPythonSettings, startPos: Position, endPos: Position) {
-        let ch = new MockOutputChannel('Python');
         let rangeOfTextToExtract = new vscode.Range(startPos, endPos);
         let proxy = new RefactorProxy(EXTENSION_DIR, pythonSettings, path.dirname(refactorTargetFile));
         let mockTextDoc = new MockTextDocument(refactorTargetFile);

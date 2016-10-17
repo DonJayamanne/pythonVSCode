@@ -11,10 +11,9 @@ import * as path from 'path';
 import * as settings from '../client/common/configSettings';
 import * as fs from 'fs-extra';
 import { execPythonFile } from '../client/common/utils';
-import { extractVariable, extractMethod } from '../client/providers/simpleRefactorProvider';
+import { extractVariable } from '../client/providers/simpleRefactorProvider';
 import { RefactorProxy } from '../client/refactor/proxy';
 import { getTextEditsFromPatch } from '../client/common/editor';
-import * as child_process from 'child_process';
 
 let EXTENSION_DIR = path.join(__dirname, '..', '..');
 let pythonSettings = settings.PythonSettings.getInstance();

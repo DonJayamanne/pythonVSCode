@@ -11,34 +11,18 @@ import * as assert from 'assert';
 // You can import and use all API from the \'vscode\' module
 // as well as import your extension to test it
 import * as vscode from 'vscode';
-import { Tests, TestsToRun, TestFolder, TestFile, TestStatus, TestSuite, TestFunction, FlattenedTestFunction, CANCELLATION_REASON } from '../client/unittests/common/contracts';
-import * as nosetests from '../client/unittests/nosetest/main';
-import * as pytest from '../client/unittests/pytest/main';
+import { TestStatus} from '../client/unittests/common/contracts';
 import * as unittest from '../client/unittests/unittest/main';
-import { resolveValueAsTestToRun, getDiscoveredTests } from '../client/unittests/common/testUtils';
-import { BaseTestManager } from '../client/unittests/common/baseTestManager';
-import { PythonSettings, IUnitTestSettings } from '../client/common/configSettings';
 import { TestResultDisplay } from '../client/unittests/display/main';
-import { TestDisplay } from '../client/unittests/display/picker';
-import * as constants from '../client/common/constants';
-import { activateCodeLenses } from '../client/unittests/codeLenses/main';
 
-let testManager: BaseTestManager;
-let pyTestManager: pytest.TestManager;
 let unittestManager: unittest.TestManager;
-let nosetestManager: nosetests.TestManager;
 let testResultDisplay: TestResultDisplay;
-let testDisplay: TestDisplay;
 let outChannel: vscode.OutputChannel;
-let lastRanTests: TestsToRun = null;
 
 import * as path from 'path';
 import * as configSettings from '../client/common/configSettings';
-import * as fs from 'fs-extra';
-import { execPythonFile } from '../client/common/utils';
 
 let pythonSettings = configSettings.PythonSettings.getInstance();
-const settings = PythonSettings.getInstance();
 
 const UNITTEST_TEST_FILES_PATH = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'unitests');
 class MockOutputChannel implements vscode.OutputChannel {

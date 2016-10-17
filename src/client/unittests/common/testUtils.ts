@@ -1,6 +1,5 @@
-import {TestFolder, TestsToRun, Tests, TestFile, TestSuite, TestFunction, TestStatus, FlattenedTestFunction, FlattenedTestSuite, CANCELLATION_REASON} from './contracts';
+import {TestFolder, TestsToRun, Tests, TestFile, TestSuite, TestStatus, FlattenedTestFunction, FlattenedTestSuite} from './contracts';
 import * as vscode from 'vscode';
-import * as os from 'os';
 import * as path from 'path';
 import * as constants from '../../common/constants';
 
@@ -56,7 +55,6 @@ export function updateResults(tests: Tests) {
 }
 
 export function updateFolderResultsUpstream(testFolder: TestFolder) {
-    let totalTime = 0;
     let allFilesPassed = true;
     let allFilesRan = true;
 
