@@ -10,7 +10,6 @@ import { createDeferred } from '../common/helpers';
 import * as settings from '../common/configSettings';
 import { IJupyterClient } from './jupyter_client/contracts';
 
-const uuid = require('uuid');
 const pythonSettings = settings.PythonSettings.getInstance();
 
 export class JupyterClientKernel extends Kernel {

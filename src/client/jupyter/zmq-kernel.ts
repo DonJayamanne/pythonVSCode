@@ -5,7 +5,6 @@ import { Kernel } from './kernel';
 import * as vscode from 'vscode';
 import { KernelspecMetadata, JupyterMessage } from './contracts';
 import { JmpModuleLoadError } from '../common/errors';
-const uuid = require('uuid');
 
 export class ZMQKernel extends Kernel {
     private executionCallbacks: Map<string, Function>;
@@ -76,7 +75,7 @@ export class ZMQKernel extends Kernel {
         if (restart == null) {
             restart = false;
         }
-        const requestId = 'shutdown_' + uuid.v4();
+        const requestId = 'shutdown_' + 'uuid.v4()';
         const message = this._createMessage('shutdown_request', requestId);
         message.content = {
             restart: restart
@@ -98,17 +97,17 @@ export class ZMQKernel extends Kernel {
     };
 
     public execute(code: string, onResults: Function) {
-        const requestId = 'execute_' + uuid.v4();
+        const requestId = 'execute_' + 'uuid.v4()';
         return this._execute(code, requestId, onResults);
     };
 
     public executeWatch(code: string, onResults: Function) {
-        const requestId = 'watch_' + uuid.v4();
+        const requestId = 'watch_' + 'uuid.v4()';
         return this._execute(code, requestId, onResults);
     };
 
     public complete(code: string, onResults: Function) {
-        const requestId = 'complete_' + uuid.v4();
+        const requestId = 'complete_' + 'uuid.v4()';
         const message = this._createMessage('complete_request', requestId);
         message.content = {
             code: code,
@@ -121,7 +120,7 @@ export class ZMQKernel extends Kernel {
     };
 
     public inspect(code: string, cursor_pos, onResults: Function) {
-        const requestId = 'inspect_' + uuid.v4();
+        const requestId = 'inspect_' + 'uuid.v4()';
         const message = this._createMessage('inspect_request', requestId);
         message.content = {
             code: code,
@@ -133,7 +132,7 @@ export class ZMQKernel extends Kernel {
     };
 
     public inputReply(input: string) {
-        const requestId = 'input_reply_' + uuid.v4();
+        const requestId = 'input_reply_' + 'uuid.v4()';
         const message = this._createMessage('input_reply', requestId);
         message.content = {
             value: input
@@ -285,7 +284,7 @@ export class ZMQKernel extends Kernel {
 
     public _createMessage(msg_type, msg_id) {
         if (msg_id == null) {
-            msg_id = uuid.v4();
+            msg_id = 'uuid.v4()';
         }
         const message = {
             header: {
