@@ -16,7 +16,7 @@ import { IdDispenser } from '../client/common/idDispenser';
 // Defines a Mocha test suite to group tests of similar kind together
 suite('IdDispenser', () => {
     test('Sequential generation', done => {
-        const idDispeanser = new IdDispenser();
+        const idDispenser = new IdDispenser();
         Array.from(new Array(50).keys()).forEach(i => {
             let id = idDispenser.Allocate();
             assert.equal(i, id, `Allocated Id is not ${id}`);
