@@ -2,10 +2,10 @@
 // Note: This example test is leveraging the Mocha test framework.
 // Please refer to their documentation on https://mochajs.org/ for help.
 //
-
+console.log('Hello1');
 // Place this right on top
 import { initialize } from './initialize';
-
+console.log('Hello2');
 // The module \'assert\' provides assertion methods from node
 import * as assert from 'assert';
 
@@ -22,7 +22,7 @@ import * as path from 'path';
 import * as settings from '../client/common/configSettings';
 import * as fs from 'fs-extra';
 import { execPythonFile } from '../client/common/utils';
-
+console.log('Hello3');
 let pythonSettings = settings.PythonSettings.getInstance();
 
 const pythoFilesPath = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'linting');
@@ -141,8 +141,11 @@ let fiteredPydocstyleMessagseToBeReturned: baseLinter.ILintMessage[] = [
 ];
 
 suiteSetup(done => {
+    console.log('Hello4');
     pylintFileToLintLines = fs.readFileSync(fileToLint).toString('utf-8').split(/\r?\n/g);
+    console.log('Hello5');
     initialize().then(() => {
+        console.log('Hello6');
         new Promise<string>(resolve => {
             // Support for travis
             let version = process.env['TRAVIS_PYTHON_VERSION'];
@@ -167,13 +170,16 @@ suiteTeardown(done => {
 });
 
 suite('Linting', () => {
+    console.log('Hello7');
     setup(() => {
+        console.log('Hello8');
         pythonSettings.linting.enabled = true;
         pythonSettings.linting.pylintEnabled = true;
         pythonSettings.linting.flake8Enabled = true;
         pythonSettings.linting.pep8Enabled = true;
         pythonSettings.linting.prospectorEnabled = true;
         pythonSettings.linting.pydocstyleEnabled = true;
+        console.log('Hello9');
     });
 
     function testEnablingDisablingOfLinter(linter: baseLinter.BaseLinter, propertyName: string) {
