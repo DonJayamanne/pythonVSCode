@@ -20,6 +20,12 @@ matrix:
           env: PYTHON=3.5.1
 # Perform the manual steps on osx to install python3 and activate venv
 before_install: |
+  - git submodule update --init --recursive
+  - git clone https://github.com/creationix/nvm.git ./.nvm
+  - source ./.nvm/nvm.sh
+  - nvm install 6.6.0
+  - nvm use 6.6.0
+  - npm config set python `which python`
   if [ "$TRAVIS_OS_NAME" == "osx" ]; then
     brew update; 
     brew install openssl readline 
