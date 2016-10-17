@@ -46,6 +46,8 @@ suiteSetup(done => {
             formattedAutoPep8 = formattedResults[1];
         }).then(() => {
             done();
+        }, reason=>{
+            assert.fail(reason, undefined, 'Failed to Initialize Formatting', '');
         });
     }, done);
 });
@@ -77,6 +79,8 @@ suite('Formatting', () => {
             });
         }).then(edited => {
             assert.equal(textEditor.document.getText(), formattedContents, 'Formatted text is not the same');
+        }, reason=>{
+            assert.fail(reason, undefined, 'Formatting failed', '');
         });
     }
     test('AutoPep8', done => {
@@ -130,6 +134,8 @@ suite('Formatting', () => {
             });
         }).then(() => {
             assert.equal(textDocument.getText(), formattedContents, 'Formatted contents are not the same');
+        }, reason=>{
+            assert.fail(reason, undefined, 'Auto formatting failed', '');
         });
     }
     test('AutoPep8 autoformat on save', done => {
