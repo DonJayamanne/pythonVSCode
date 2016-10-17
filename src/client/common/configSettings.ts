@@ -65,7 +65,6 @@ export interface IFormattingSettings {
     autopep8Args: string[];
     yapfPath: string;
     yapfArgs: string[];
-    formatOnSave: boolean;
     outputWindow: string;
 }
 export interface IAutoCompeteSettings {

@@ -78,6 +78,9 @@ export namespace Documentation {
         export const GettingStarted = '/docs/jupyter_getting-started/';
         export const Examples = '/docs/jupyter_examples/';
         export const Setup = '/docs/jupyter_prerequisites/';
-        export const VersionIncompatiblity = '/docs/troubleshooting_jupyter/#Incompatible-dependencies'
+        export const VersionIncompatiblity = '/docs/troubleshooting_jupyter/#Incompatible-dependencies';
+    }
+    export namespace Formatting {
+        export const FormatOnSave = '/docs/formatting/';
     }
 }

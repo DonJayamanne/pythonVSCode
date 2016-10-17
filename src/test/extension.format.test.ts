@@ -88,7 +88,7 @@ suite('Formatting', () => {
 
     function testAutoFormatting(formatter: string, formattedContents: string, fileToFormat: string): PromiseLike<void> {
         let textDocument: vscode.TextDocument;
-        pythonSettings.formatting.formatOnSave = true;
+        vscode.workspace.getConfiguration('editor').update('formatOnSave', true);
         pythonSettings.formatting.provider = formatter;
         return vscode.workspace.openTextDocument(fileToFormat).then(document => {
             textDocument = document;
@@ -103,7 +103,7 @@ suite('Formatting', () => {
             return new Promise<any>((resolve, reject) => {
                 setTimeout(() => {
                     resolve();
-                }, 2000);
+                }, 4000);
             });
         }).then(() => {
             assert.equal(textDocument.getText(), formattedContents, 'Formatted contents are not the same');

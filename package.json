@@ -684,11 +684,6 @@
             "type": "string"
           }
         },
-        "python.formatting.formatOnSave": {
-          "type": "boolean",
-          "default": false,
-          "description": "Format the document upon saving."
-        },
         "python.formatting.outputWindow": {
           "type": "string",
           "default": "Python",
