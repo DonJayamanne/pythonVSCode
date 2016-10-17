@@ -1,19 +1,19 @@
 // Place this right on top
-import { initialize } from './initialize';
+import { initialize, closeActiveWindows } from './initialize';
 /// <reference path="../../node_modules/@types/mocha/index.d.ts" />
 import * as assert from 'assert';
 
 // You can import and use all API from the \'vscode\' module
 // as well as import your extension to test it
 import * as vscode from 'vscode';
-import {TextDocument, TextLine, Position, Range} from 'vscode';
+import { TextDocument, TextLine, Position, Range } from 'vscode';
 import * as path from 'path';
 import * as settings from '../client/common/configSettings';
 import * as fs from 'fs-extra';
-import {execPythonFile} from '../client/common/utils';
-import {extractVariable, extractMethod} from '../client/providers/simpleRefactorProvider';
-import {RefactorProxy} from '../client/refactor/proxy';
-import {getTextEditsFromPatch} from '../client/common/editor';
+import { execPythonFile } from '../client/common/utils';
+import { extractVariable, extractMethod } from '../client/providers/simpleRefactorProvider';
+import { RefactorProxy } from '../client/refactor/proxy';
+import { getTextEditsFromPatch } from '../client/common/editor';
 import * as child_process from 'child_process';
 
 let EXTENSION_DIR = path.join(__dirname, '..', '..');

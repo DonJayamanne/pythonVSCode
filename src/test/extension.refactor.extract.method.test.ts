@@ -1,5 +1,5 @@
 // Place this right on top
-import { initialize } from './initialize';
+import { initialize, closeActiveWindows } from './initialize';
 import * as assert from 'assert';
 
 // You can import and use all API from the \'vscode\' module
