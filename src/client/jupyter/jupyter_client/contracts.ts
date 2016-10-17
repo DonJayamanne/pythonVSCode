@@ -6,8 +6,9 @@ export interface IJupyterClient {
     shutdownkernel(kernelUUID: string): Promise<any>;
     interruptKernel(kernelUUID: string): Promise<any>;
     restartKernel(kernelUUID: string): Promise<any>;
+    runCode(code: string): Promise<any>;
 }
 
 export enum KernelCommand {
-    shutdown,restart,interrupt
+    shutdown, restart, interrupt
 }
