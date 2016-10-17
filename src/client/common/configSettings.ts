@@ -150,7 +150,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         // Support for travis
         this.formatting = this.formatting ? this.formatting : {
             autopep8Args: [], autopep8Path: 'autopep8',
-            formatOnSave: false, outputWindow: 'python',
+            outputWindow: 'python',
             provider: 'autopep8',
             yapfArgs: [], yapfPath: 'yapf'
         };
