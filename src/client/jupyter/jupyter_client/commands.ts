@@ -8,6 +8,7 @@ export class Commands {
     public static ShutdownKernelBytes: Buffer = new Buffer("stpk");
     public static RestartKernelBytes: Buffer = new Buffer("rstk");
     public static InterruptKernelBytes: Buffer = new Buffer("itpk");
+    public static RunCodeBytes: Buffer = new Buffer("run ");
 }
 
 export namespace ResponseCommands {
@@ -18,4 +19,7 @@ export namespace ResponseCommands {
     export const KernelShutdown = 'STPK';
     export const KernelRestarted = 'RSTK';
     export const KernelInterrupted = 'ITPK';
+    export const RunCode = 'RUN ';
+    export const ShellResult = 'SHEL';
+    export const IOPUBMessage = 'IOPB';
 }
