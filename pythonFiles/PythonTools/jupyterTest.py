@@ -1,19 +1,4 @@
 #http://ipython.org/ipython-doc/3/development/messaging.html
-#http://pydoc.net/Python/magni/1.4.0/magni.tests.ipynb_examples/
-
-"""..
-    Copyright (c) 2014-2016, Magni developers.
-    All rights reserved.
-    See LICENSE.rst for further information.
-
-Module for wrapping the Magni IPython Notebook examples.
-
-**This module is based on the "ipnbdoctest.py" script by Benjamin
-Ragan-Kelley (MinRK)**, source: https://gist.github.com/minrk/2620735.
-
-This assumes comparison of IPython Notebooks in nbformat.v3
-
-"""
 
 from __future__ import division, print_function
 import base64
@@ -35,11 +20,6 @@ try:
 except ImportError:
     from io import BytesIO  # Python 3
 
-#import numpy as np
-#import scipy.misc
-
-#import magni
-
 # The great "support IPython 2, 3, 4" strat begins
 try:
     import jupyter
@@ -51,45 +31,11 @@ else:
 if jupyter_era:
     # Jupyter / IPython 4.x
     from jupyter_client import KernelManager
-    from nbformat import reads, NotebookNode
-
-    def mod_reads(file_):
-        return reads(file_, 3)  # Read notebooks as v3
 
 else:
     from IPython.kernel import KernelManager
-    with warnings.catch_warnings():
-        warnings.simplefilter('error')
-        try:
-            # IPython 2.x
-            from IPython.nbformat.current import reads, NotebookNode
-
-            def mod_reads(file_):
-                return reads(file_, 'json')
-
-        except UserWarning:
-            # IPython 3.x
-            from IPython.nbformat import reads, NotebookNode
-
-            def mod_reads(file_):
-                return reads(file_, 3)  # Read notebooks as v3
 
 # End of the great "support IPython 2, 3, 4" strat
-
-# Test for freetype library version
-try:
-    if StrictVersion(
-            subprocess.check_output(
-                ['freetype-config', '--ftversion']).decode().strip()
-            ) <= StrictVersion('2.5.2'):
-        _skip_display_data_tests = False
-    else:
-        _skip_display_data_tests = True
-except OSError:
-    _skip_display_data_tests = True
-
-if _skip_display_data_tests:
-    warnings.warn('Skipping display data ipynb tests.', RuntimeWarning)
 
 def _check_ipynb():
     kernel_manager = KernelManager()
@@ -115,7 +61,7 @@ def _check_ipynb():
     errors = 0
 
     report = ''
-    _execute_cell("print('Hello World')", shell, iopub, timeout=1)
+    _execute_code("print('Hello World')", shell, iopub, timeout=1)
 
     kernel_client.stop_channels()
     kernel_manager.shutdown_kernel()
@@ -124,9 +70,9 @@ def _check_ipynb():
 
     print(report)
 
-def _execute_cell(code, shell, iopub, timeout=300):
+def _execute_code(code, shell, iopub, timeout=300):
     """
-    Execute an IPython Notebook Cell and return the cell output.
+    Execute a block of python code in a kernel
 
     Parameters
     ----------
@@ -139,11 +85,6 @@ def _execute_cell(code, shell, iopub, timeout=300):
     timeout : int
         The number of seconds to wait for the execution to finish before giving
         up.
-
-    Returns
-    -------
-    cell_outputs : list
-        The list of NotebookNodes holding the result of the execution.
 
     """
 
@@ -159,8 +100,6 @@ def _execute_cell(code, shell, iopub, timeout=300):
     msg_id = shell.execute("print(2)\nimport time\ntime.sleep(10)\nprint(x)")
     print(msg_id)
 
-    cell_outputs = list()
-
     # Poll for iopub messages until no more messages are available
     while True:
         try:
@@ -168,10 +107,6 @@ def _execute_cell(code, shell, iopub, timeout=300):
             print('exe_result')
             print(exe_result)
             print('')
-            # if exe_result['content']['status'] == 'error':
-            #     print('-----------------------crap---------------------')
-            #     raise RuntimeError('Failed to execute cell due to error: {!r}'.format(
-            #         str(exe_result['content']['evalue'])))
         except Empty:
             pass
 
@@ -183,40 +118,5 @@ def _execute_cell(code, shell, iopub, timeout=300):
             print('')
         except Empty:
             pass
-
-        # msg_type = msg['msg_type']
-        # if msg_type in ('status', 'pyin', 'execute_input', 'execute_result'):
-        #     continue
-
-        # content = msg['content']
-        # node = NotebookNode(output_type=msg_type)
-
-        # if msg_type == 'stream':
-        #     node.stream = content['name']
-        #     if 'text' in content:
-        #         # v4 notebook format
-        #         node.text = content['text']
-        #     else:
-        #         # v3 notebook format
-        #         node.text = content['data']
-        # elif msg_type in ('display_data', 'pyout'):
-        #     node['metadata'] = content['metadata']
-        #     for mime, data in content['data'].items():
-        #         attr = mime.split('/')[-1].lower()
-        #         attr = attr.replace('+xml', '').replace('plain', 'text')
-        #         setattr(node, attr, data)
-        #     if msg_type == 'pyout':
-        #         node.prompt_number = content['execution_count']
-        # elif msg_type == 'pyerr':
-        #     node.ename = content['ename']
-        #     node.evalue = content['evalue']
-        #     node.traceback = content['traceback']
-        # else:
-        #     raise RuntimeError('Unhandled iopub message of type: {}'.format(
-        #         msg_type))
-
-        # cell_outputs.append(node)
-
-    return cell_outputs
 
 _check_ipynb()

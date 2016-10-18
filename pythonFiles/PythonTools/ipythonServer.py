@@ -23,6 +23,11 @@ except ImportError:
     # Renamed in Python3k
     import _thread as thread
 
+# Reference material
+# http://jupyter-client.readthedocs.io/en/latest/messaging.html
+# http://pydoc.net/Python/magni/1.4.0/magni.tests.ipynb_examples/
+# http://www.xavierdupre.fr/app/pyquickhelper/helpsphinx/_modules/pyquickhelper/ipythonhelper/notebook_runner.html
+
 import visualstudio_py_util as _vspu
 
 to_bytes = _vspu.to_bytes
@@ -119,18 +124,6 @@ class SafeSendLock(object):
     def release(self):
         self.lock.release()
 
-
-"""
-- Add a list with the command ids
-- Create a common lock object to be shared between iPythonKernelResponseMonitor and iPythonSocketServer
-- iPythonSocketServer will grab a lock and insert an item into the command ids and then send the code for execution
-- iPythonKernelResponseMonitor will keep going in a nutsy loop and when it gets a message for execution it will take the oldest item from the loop (pop)
--       and send a socket message providing the information (this way we can tie the code to be executed with the message ids)
-- Not the best, but that's how it will have to be done
-- http://www.xavierdupre.fr/app/pyquickhelper/helpsphinx/_modules/pyquickhelper/ipythonhelper/notebook_runner.html
-"""
-
-
 class iPythonKernelResponseMonitor(object):
 
     def __init__(self, kernelUUID, socketConnection, send_lock, shell_channel, iopub_channel):
@@ -214,9 +207,7 @@ class iPythonKernelResponseMonitor(object):
 
 
 class iPythonSocketServer(object):
-    """back end for executing REPL code.  This base class handles all of the
-communication with the remote process while derived classes implement the
-actual inspection and introspection."""
+    """back end for executing code in kernel.  Handles all of the communication with the remote process."""
 
     """Messages sent back as responses"""
     _PONG = to_bytes('PONG')
@@ -241,10 +232,6 @@ actual inspection and introspection."""
         self.input_event.acquire()
         self.input_string = None
         self.exit_requested = False
-        self.execute_item = None
-        self.execute_item_lock = threading.Lock()
-        # lock starts acquired (we use it like manual reset event)
-        self.execute_item_lock.acquire()
         self.kernelMonitor = None
         self.shell_channel = None
 
