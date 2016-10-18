@@ -594,7 +594,7 @@
         "python.linting.mypyPath": {
           "type": "string",
           "default": "mypy",
-          "description": "Path to mypy, you can use a custom version of pylint by modifying this setting to include the full path."
+          "description": "Path to mypy, you can use a custom version of mypy by modifying this setting to include the full path."
         },
         "python.linting.prospectorArgs": {
           "type": "array",
