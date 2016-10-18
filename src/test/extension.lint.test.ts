@@ -149,10 +149,6 @@ suiteSetup(done => {
             execPythonFile('python', ['--version'], __dirname, true).then(resolve);
         }).then(version => {
             isPython3 = version.indexOf('3.') >= 0;
-            if (isPython3) {
-                pylintMessagesToBeReturned = pyLint3MessagesToBeReturned;
-                filteredPylintMessagesToBeReturned = filteredPylint3MessagesToBeReturned;
-            }
             done();
         });
     });
@@ -164,6 +160,7 @@ suiteTeardown(done => {
 
 suite('Linting', () => {
     setup(() => {
+        pythonSettings.pythonPath = 'python2.7';
         pythonSettings.linting.enabled = true;
         pythonSettings.linting.pylintEnabled = true;
         pythonSettings.linting.flake8Enabled = true;
@@ -225,11 +222,11 @@ suite('Linting', () => {
             assert.fail(error, null, 'Linter error, Output - ' + outputChannel.output, '');
         });
     }
-    // test('PyLint', done => {
-    //     let ch = new MockOutputChannel('Lint');
-    //     let linter = new pyLint.Linter(ch, pythoFilesPath);
-    //     return testLinterMessages(linter, ch, fileToLint, pylintFileToLintLines, pylintMessagesToBeReturned).then(done, done);
-    // });
+    test('PyLint', done => {
+        let ch = new MockOutputChannel('Lint');
+        let linter = new pyLint.Linter(ch, pythoFilesPath);
+        return testLinterMessages(linter, ch, fileToLint, pylintFileToLintLines, pylintMessagesToBeReturned).then(done, done);
+    });
     test('Flake8', done => {
         let ch = new MockOutputChannel('Lint');
         let linter = new flake8.Linter(ch, pythoFilesPath);
