@@ -3,7 +3,6 @@ import * as os from 'os';
 import * as vscode from 'vscode';
 import { Kernel } from './kernel';
 import { WSKernel } from './ws-kernel';
-import { ZMQKernel } from './zmq-kernel';
 import { KernelspecMetadata, Kernelspec } from './contracts';
 import { Commands, Documentation } from '../common/constants';
 import { EventEmitter } from 'events';
@@ -67,13 +66,8 @@ export class KernelManagerImpl extends EventEmitter {
                 }, reject.bind(this));
             });
         }
-        if (kernel instanceof ZMQKernel && kernel.kernelProcess) {
-            const kernelSpec = kernel.kernelSpec;
-            this.destroyRunningKernelFor(language);
-            startupPromise = this.startKernel(kernelSpec, language);
-        }
         if (kernel instanceof JupyterClientKernel) {
-            startupPromise = kernel.shutdown(true).then(()=>kernel);
+            startupPromise = kernel.shutdown(true).then(() => kernel);
         }
         if (!startupPromise) {
             vscode.window.showWarningMessage('Cannot restart this kernel');
@@ -121,17 +115,7 @@ export class KernelManagerImpl extends EventEmitter {
     }
 
     public startExistingKernel(language: string, connection, connectionFile): Promise<Kernel> {
-        return new Promise<Kernel>(resolve => {
-            const kernelSpec = {
-                display_name: 'Existing Kernel',
-                language: language,
-                argv: [],
-                env: {}
-            };
-            const kernel = new ZMQKernel(kernelSpec, language, connection, connectionFile);
-            this.setRunningKernelFor(language, kernel);
-            return this.executeStartupCode(kernel).then(() => kernel);
-        });
+        throw new Error('Start Existing Kernel not implemented');
     }
 
     public startKernel(kernelSpec: KernelspecMetadata, language: string): Promise<Kernel> {
@@ -145,9 +129,7 @@ export class KernelManagerImpl extends EventEmitter {
             const connectionFile = kernelInfo[2];
             const kernel = new JupyterClientKernel(kernelSpec, language, config, connectionFile, kernelUUID, this.jupyterClient);
             this.setRunningKernelFor(language, kernel);
-            // TODO:
-            //return this.executeStartupCode(kernel).then(() => kernel);
-            return kernel;
+            return this.executeStartupCode(kernel).then(() => kernel);
         });
     }
 
