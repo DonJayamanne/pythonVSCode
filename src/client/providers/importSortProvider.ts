@@ -4,6 +4,7 @@ import * as vscode from "vscode";
 import * as path from "path";
 import * as fs from "fs";
 import * as child_process from "child_process";
+import * as settings from '../common/configSettings';
 import {getTextEditsFromPatch, getTempFileWithDocumentContents} from "../common/editor";
 
 export class PythonImportSortProvider {
@@ -20,7 +21,8 @@ export class PythonImportSortProvider {
             let tmpFileCreated = document.isDirty;
             let filePromise = tmpFileCreated ? getTempFileWithDocumentContents(document) : Promise.resolve(document.fileName);
             filePromise.then(filePath => {
-                child_process.exec(`python "${importScript}" "${filePath}" --diff`, (error, stdout, stderr) => {
+                const pythonPath = settings.PythonSettings.getInstance().pythonPath;
+                child_process.exec(`${pythonPath} "${importScript}" "${filePath}" --diff`, (error, stdout, stderr) => {
                     if (tmpFileCreated) {
                         fs.unlink(filePath);
                     }
