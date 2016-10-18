@@ -7,14 +7,14 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { createDeferred, Deferred } from '../../common/helpers';
 import { KernelspecMetadata, Kernelspec, ParsedIOMessage } from '../contracts';
-import { IJupyterClient } from './contracts';
+import { IJupyterClientAdapter } from './contracts';
 import { KernelCommand } from './contracts';
 import { PythonSettings } from '../../common/configSettings';
 import * as Rx from 'rx';
 import { EventEmitter } from 'events';
 import { formatErrorForLogging } from '../../common/utils';
 
-export class JupyterClient extends EventEmitter implements IJupyterClient {
+export class JupyterClientAdapter extends EventEmitter implements IJupyterClientAdapter {
     constructor(private outputChannel: vscode.OutputChannel, private rootDir: string) {
         super();
     }
@@ -24,27 +24,28 @@ export class JupyterClient extends EventEmitter implements IJupyterClient {
     private ipythonAdapter: JupyterSocketClient;
 
     private startDef: Deferred<any>;
-    public start(): Promise<any> {
+    public start(envVariables?: { [key: string]: string }): Promise<any> {
         if (this.startDef) {
             return this.startDef.promise;
         }
 
         this.startDef = createDeferred<any>();
         const pyFile = path.join(__dirname, '..', '..', '..', '..', 'pythonFiles', 'PythonTools', 'ipythonServer.py');
+        const newEnv = {};
+        Object.assign(newEnv, envVariables);
+        Object.assign(newEnv, process.env);
 
         this.startSocketServer().then(port => {
             const def = createDeferred<any>();
-            // const newEnv = { "DEBUG_DJAYAMANNE_IPYTHON": "1" };
-            // Object.assign(newEnv, process.env);
-            //const options = { env: newEnv, cwd: this.rootDir }
-            const options = { cwd: this.rootDir };
+            //const newEnv = { "DEBUG_DJAYAMANNE_IPYTHON": "1" };
+            const options = { env: newEnv, cwd: this.rootDir };
             this.process = child_process.spawn(PythonSettings.getInstance().pythonPath, [pyFile, port.toString()], options);
             this.process.stdout.setEncoding('utf8');
             this.process.stderr.setEncoding('utf8');
 
             let processStarted = false;
             let handshakeDone = false;
-            let isInTestRun = process.env['PYTHON_DONJAYAMANNE_TEST'] === "1";
+            let isInTestRun = newEnv['PYTHON_DONJAYAMANNE_TEST'] === "1";
             const testDef = createDeferred<any>();
             const promiseToResolve = isInTestRun ? testDef.resolve.bind(testDef) : def.resolve.bind(def);
 

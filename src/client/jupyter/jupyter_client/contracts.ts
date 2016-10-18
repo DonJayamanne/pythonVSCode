@@ -3,7 +3,7 @@
 import { KernelspecMetadata, Kernelspec, ParsedIOMessage } from '../contracts';
 import * as Rx from 'rx';
 
-export interface IJupyterClient {
+export interface IJupyterClientAdapter {
     getAllKernelSpecs(): Promise<{ [key: string]: Kernelspec }>;
     startKernel(kernelSpec: KernelspecMetadata): Promise<[string, any, string]>;
     shutdownkernel(kernelUUID: string): Promise<any>;

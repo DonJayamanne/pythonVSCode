@@ -6,7 +6,7 @@ import { Commands } from '../common/constants';
 import { EventEmitter } from 'events';
 import { PythonSettings } from '../common/configSettings';
 import { formatErrorForLogging } from '../common/utils';
-import { JupyterClient } from './jupyter_client/main';
+import { JupyterClientAdapter } from './jupyter_client/main';
 import { JupyterClientKernel } from './jupyter_client-Kernel';
 
 const pythonSettings = PythonSettings.getInstance();
@@ -15,7 +15,7 @@ export class KernelManagerImpl extends EventEmitter {
     private _runningKernels: Map<string, Kernel>;
     private _kernelSpecs: { [key: string]: Kernelspec };
     private disposables: vscode.Disposable[];
-    constructor(private outputChannel: vscode.OutputChannel, private jupyterClient: JupyterClient) {
+    constructor(private outputChannel: vscode.OutputChannel, private jupyterClient: JupyterClientAdapter) {
         super();
         this.disposables = [];
         this._runningKernels = new Map<string, Kernel>();

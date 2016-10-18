@@ -1,10 +1,10 @@
 import { Kernel } from './kernel';
 import { KernelspecMetadata, ParsedIOMessage } from './contracts';
-import { IJupyterClient } from './jupyter_client/contracts';
+import { IJupyterClientAdapter } from './jupyter_client/contracts';
 import * as Rx from 'rx';
 
 export class JupyterClientKernel extends Kernel {
-    constructor(kernelSpec: KernelspecMetadata, language: string, private connection: any, private connectionFile: string, private kernelUUID: string, private jupyterClient: IJupyterClient) {
+    constructor(kernelSpec: KernelspecMetadata, language: string, private connection: any, private connectionFile: string, private kernelUUID: string, private jupyterClient: IJupyterClientAdapter) {
         super(kernelSpec, language);
         this.jupyterClient.on('status', status => {
             this.raiseOnStatusChange(status);
