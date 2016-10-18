@@ -54,8 +54,8 @@ try:
 except ImportError:
     from queue import Empty, Queue  # Python 3
 
-DEBUG = os.environ.get('DEBUG_DJAYAMANNE_IPYTHON') is not None
-TEST = os.environ.get('PYTHON_DONJAYAMANNE_TEST') is not None
+DEBUG = os.environ.get('DEBUG_DJAYAMANNE_IPYTHON', '0') == '1'
+TEST = os.environ.get('PYTHON_DONJAYAMANNE_TEST', '0') == '1'
 
 # The great "support IPython 2, 3, 4" strat begins
 if not TEST:
