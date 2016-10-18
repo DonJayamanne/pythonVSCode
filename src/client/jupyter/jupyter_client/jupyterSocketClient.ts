@@ -190,7 +190,10 @@ export class JupyterSocketClient extends SocketCallbackHandler {
                 const messages = this.unhandledMessages.get(msg_id);
                 messages.forEach(msg => observable.onNext(msg));
             }
+        }).catch(reason => {
+            observable.onError(reason);
         });
+
         return observable;
     }
     private onCodeSentForExecution() {
