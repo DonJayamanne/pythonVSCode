@@ -1,4 +1,4 @@
-import { iPythonAdapter } from './ipythonAdapter';
+import { JupyterSocketClient } from './jupyterSocketClient';
 import { SocketServer } from '../../common/comms/socketServer';
 import * as child_process from 'child_process';
 import * as path from 'path';
@@ -10,6 +10,7 @@ import { KernelCommand } from './contracts';
 import { PythonSettings } from '../../common/configSettings';
 import * as Rx from 'rx';
 import { EventEmitter } from 'events';
+import { formatErrorForLogging } from '../../common/utils';
 
 export class JupyterClient extends EventEmitter implements IJupyterClient {
     constructor(private outputChannel: vscode.OutputChannel, private rootDir: string) {
@@ -18,7 +19,7 @@ export class JupyterClient extends EventEmitter implements IJupyterClient {
 
     private process: child_process.ChildProcess;
     private socketServer: SocketServer;
-    private ipythonAdapter: iPythonAdapter;
+    private ipythonAdapter: JupyterSocketClient;
 
     private startDef: Deferred<any>;
     public start(): Promise<any> {
@@ -69,8 +70,8 @@ export class JupyterClient extends EventEmitter implements IJupyterClient {
             if (isInTestRun) {
                 testDef.promise.then(() => {
                     // Ok everything has started, now test ping
-                    const msg1 = 'Hello world from Type Script - Функция проверки ИНН и КПП - 长城!1'
-                    const msg2 = 'Hello world from Type Script - Функция проверки ИНН и КПП - 长城!2'
+                    const msg1 = 'Hello world from Type Script - Функция проверки ИНН и КПП - 长城!1';
+                    const msg2 = 'Hello world from Type Script - Функция проверки ИНН и КПП - 长城!2';
                     Promise.all<string>([this.ipythonAdapter.ping(msg1), this.ipythonAdapter.ping(msg2)]).then(msgs => {
                         if (msgs.indexOf(msg1) === -1 || msgs.indexOf(msg2) === -1) {
                             def.reject('msg1 or msg2 not returned');
@@ -93,10 +94,21 @@ export class JupyterClient extends EventEmitter implements IJupyterClient {
     }
     private startSocketServer(): Promise<number> {
         this.socketServer = new SocketServer();
-        this.ipythonAdapter = new iPythonAdapter(this.socketServer);
-        this.ipythonAdapter.on('status', status=>{
+        this.ipythonAdapter = new JupyterSocketClient(this.socketServer);
+        this.ipythonAdapter.on('status', status => {
             this.emit('status', status);
-        })
+        });
+        this.ipythonAdapter.on('commanderror', (commandError: { command: string, id: string, trace: string }) => {
+            this.outputChannel.appendLine(`Unhandled command Error from Jupyter. '${JSON.stringify(commandError)}'`);
+        });
+        this.ipythonAdapter.on('iopubmessagepareerror', (error, jsonResult) => {
+            const errorToLog = formatErrorForLogging(error);
+            this.outputChannel.appendLine(`Error in handling IO message. ${errorToLog}, JSON Message = ${jsonResult}`);
+        });
+        this.ipythonAdapter.on('shellmessagepareerror', (error, jsonResult) => {
+            const errorToLog = formatErrorForLogging(error);
+            this.outputChannel.appendLine(`Error in handling Shell message. ${errorToLog}, JSON Message = ${jsonResult}`);
+        });
         return this.socketServer.Start();
     }
 
@@ -122,26 +134,21 @@ export class JupyterClient extends EventEmitter implements IJupyterClient {
     public restartKernel(kernelUUID: string): Promise<any> {
         return this.start().then(() => this.ipythonAdapter.sendKernelCommand(kernelUUID, KernelCommand.restart));
     }
-    public runCode(code: string): Promise<any> {
-        return this.start().then(() => this.ipythonAdapter.runCode(code))
-    }
-    public runCodeEx(code: string, onResults: Function): Promise<any> {
-        return this.start().then(() => {
-            return this.ipythonAdapter.runCodeEx(code).subscribe(data => {
-                onResults(data);
+    public runCode(code: string): Rx.IObservable<ParsedIOMessage> {
+        const subject = new Rx.Subject<ParsedIOMessage>();
+        this.start().then(() => {
+            const runnerObservable = this.ipythonAdapter.runCode(code);
+            runnerObservable.subscribe(data => {
+                subject.onNext(data);
+            }, reason => {
+                subject.onError(reason);
+            }, () => {
+                subject.onCompleted();
             });
+        }).catch(reason => {
+            subject.onError(reason);
         });
+
+        return subject;
     }
 }
-
-
-// ipythonKernel -> ipython Socket handler -> socket server -> [ python readline process + python socket server ]
-//                                                |                                             |
-//                                                |                                             |
-//                                                |                                             +-> python (threaded) code for jupyter
-//                                                |                                             |
-//                                                |                                             |
-//                                                ^                                             +-> threaded loop check responses
-//                                                |                                                             |
-//                                                |                                                             |
-//                                                +-------------------------------------------------------------+

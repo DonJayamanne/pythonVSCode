@@ -1,12 +1,12 @@
 import { Kernel } from './kernel';
-import { KernelspecMetadata, JupyterMessage } from './contracts';
+import { KernelspecMetadata, ParsedIOMessage } from './contracts';
 import { IJupyterClient } from './jupyter_client/contracts';
-import { EventEmitter } from 'events';
+import * as Rx from 'rx';
 
 export class JupyterClientKernel extends Kernel {
     constructor(kernelSpec: KernelspecMetadata, language: string, private connection: any, private connectionFile: string, private kernelUUID: string, private jupyterClient: IJupyterClient) {
         super(kernelSpec, language);
-        ((this.jupyterClient as any) as EventEmitter).on('status', status => {
+        this.jupyterClient.on('status', status => {
             this.raiseOnStatusChange(status);
         });
     }
@@ -27,18 +27,7 @@ export class JupyterClientKernel extends Kernel {
         return this.jupyterClient.shutdownkernel(this.kernelUUID);
     };
 
-    public execute(code: string, onResults: Function) {
-        this.jupyterClient.runCodeEx(code, (data) => {
-            onResults(data);
-        });
-    };
-
-    public executeWatch(code: string, onResults: Function) {
-    };
-
-    public complete(code: string, onResults: Function) {
-    };
-
-    public inspect(code: string, cursor_pos, onResults: Function) {
+    public execute(code: string):Rx.IObservable<ParsedIOMessage> {
+        return this.jupyterClient.runCode(code);
     };
 }

@@ -6,18 +6,13 @@ import { SocketServer } from '../../common/comms/socketServer';
 import { IdDispenser } from '../../common/idDispenser';
 import { createDeferred, Deferred } from '../../common/helpers';
 import { KernelCommand } from './contracts';
-import { KernelspecMetadata, JupyterMessage, ParsedIOMessage } from '../contracts';
-import { Helpers } from './helpers';
+import { JupyterMessage, ParsedIOMessage } from '../contracts';
+import { Helpers } from '../common/helpers';
 import * as Rx from 'rx';
-export class iPythonAdapter extends SocketCallbackHandler {
+export class JupyterSocketClient extends SocketCallbackHandler {
     private idDispenser: IdDispenser;
-    private helpers: Helpers;
     constructor(socketServer: SocketServer) {
         super(socketServer);
-        this.helpers = new Helpers();
-        this.helpers.on('status', status => {
-            this.emit('status', status);
-        });
         this.registerCommandHandler(ResponseCommands.Pong, this.onPong.bind(this));
         this.registerCommandHandler(ResponseCommands.ListKernelsSpecs, this.onKernelsListed.bind(this));
         this.registerCommandHandler(ResponseCommands.Error, this.onError.bind(this));
@@ -37,14 +32,14 @@ export class iPythonAdapter extends SocketCallbackHandler {
     protected handleHandshake(): boolean {
         if (!this.guid) {
             this.guid = this.stream.readStringInTransaction();
-            if (this.guid == undefined) {
+            if (typeof this.guid !== 'string') {
                 return false;
             }
         }
 
         if (!this.pid) {
             this.pid = this.stream.readInt32InTransaction();
-            if (this.pid == undefined) {
+            if (typeof this.pid !== 'number') {
                 return false;
             }
         }
@@ -76,7 +71,7 @@ export class iPythonAdapter extends SocketCallbackHandler {
     private onKernelsListed() {
         const id = this.stream.readStringInTransaction();
         const kernels = this.stream.readStringInTransaction();
-        if (kernels == undefined) {
+        if (typeof kernels !== 'string') {
             return;
         }
 
@@ -107,7 +102,7 @@ export class iPythonAdapter extends SocketCallbackHandler {
         const kernelUUID = this.stream.readStringInTransaction();
         const configStr = this.stream.readStringInTransaction();
         const connectionFile = this.stream.readStringInTransaction();
-        if (connectionFile == undefined) {
+        if (typeof connectionFile !== 'string') {
             return;
         }
         const def = this.pendingCommands.get(id);
@@ -149,7 +144,7 @@ export class iPythonAdapter extends SocketCallbackHandler {
     }
     public onKernelCommandComplete() {
         const id = this.stream.readStringInTransaction();
-        if (id == undefined) {
+        if (typeof id !== 'string') {
             return;
         }
         const def = this.pendingCommands.get(id);
@@ -167,7 +162,7 @@ export class iPythonAdapter extends SocketCallbackHandler {
     private onPong() {
         const id = this.stream.readStringInTransaction();
         const message = this.stream.readStringInTransaction();
-        if (message == undefined) {
+        if (typeof message !== 'string') {
             return;
         }
         const def = this.pendingCommands.get(id);
@@ -178,7 +173,7 @@ export class iPythonAdapter extends SocketCallbackHandler {
     private msgSubject = new Map<string, Rx.Subject<ParsedIOMessage>>();
     private unhandledMessages = new Map<string, ParsedIOMessage[]>();
     private finalMessage = new Map<string, { shellMessage?: ParsedIOMessage, ioStatusSent: boolean }>();
-    runCodeEx(code: string): Rx.IObservable<ParsedIOMessage> {
+    runCode(code: string): Rx.IObservable<ParsedIOMessage> {
         const [def, id] = this.createId<string>();
         this.SendRawCommand(Commands.RunCodeBytes);
         this.stream.WriteString(id);
@@ -197,17 +192,10 @@ export class iPythonAdapter extends SocketCallbackHandler {
         });
         return observable;
     }
-    runCode(code): Promise<string> {
-        const [def, id] = this.createId<string>();
-        this.SendRawCommand(Commands.RunCodeBytes);
-        this.stream.WriteString(id);
-        this.stream.WriteString(code);
-        return def.promise;
-    }
     private onCodeSentForExecution() {
         const id = this.stream.readStringInTransaction();
         const msg_id = this.stream.readStringInTransaction();
-        if (msg_id == undefined) {
+        if (typeof msg_id !== 'string') {
             return;
         }
         const def = this.pendingCommands.get(id);
@@ -217,13 +205,17 @@ export class iPythonAdapter extends SocketCallbackHandler {
 
     private onShellResult() {
         const jsonResult = this.stream.readStringInTransaction();
-        if (jsonResult == undefined) {
+        if (typeof jsonResult !== 'string') {
             return;
         }
         try {
             const message = JSON.parse(jsonResult) as JupyterMessage;
-            if (!this.helpers.isValidMessag(message)) {
+            if (!Helpers.isValidMessag(message)) {
                 return;
+            }
+            const msg_type = message.header.msg_type;
+            if (msg_type === 'status') {
+                this.emit('status', message.content.execution_state);
             }
             const msg_id = message.parent_header.msg_id;
             if (!msg_id) {
@@ -237,7 +229,6 @@ export class iPythonAdapter extends SocketCallbackHandler {
             let parsedMesage: ParsedIOMessage;
             switch (status) {
                 case 'error': {
-                    const msg_type = message.header.msg_type;
                     // http://jupyter-client.readthedocs.io/en/latest/messaging.html#request-reply
                     if (msg_type !== 'complete_reply' && msg_type !== 'inspect_reply') {
                         parsedMesage = {
@@ -249,7 +240,6 @@ export class iPythonAdapter extends SocketCallbackHandler {
                     break;
                 }
                 case 'ok': {
-                    const msg_type = message.header.msg_type;
                     // http://jupyter-client.readthedocs.io/en/latest/messaging.html#request-reply
                     if (msg_type !== 'complete_reply' && msg_type !== 'inspect_reply') {
                         parsedMesage = {
@@ -276,20 +266,18 @@ export class iPythonAdapter extends SocketCallbackHandler {
             }
         }
         catch (ex) {
-            const x = '';
-            // emit error with jsonResult for logging
-            // remember not to emit event 'error', emit event 'shellmessageparseerror'
+            this.emit('shellmessagepareerror', ex, jsonResult);
         }
     }
 
     private onIOPUBMessage() {
         const jsonResult = this.stream.readStringInTransaction();
-        if (!jsonResult) {
+        if (typeof jsonResult !== 'string') {
             return;
         }
         try {
             const message = JSON.parse(jsonResult) as JupyterMessage;
-            if (!this.helpers.isValidMessag(message)) {
+            if (!Helpers.isValidMessag(message)) {
                 return;
             }
             const msg_type = message.header.msg_type;
@@ -322,7 +310,7 @@ export class iPythonAdapter extends SocketCallbackHandler {
                 }, 10);
             }
 
-            const parsedMesage = this.helpers.parseIOMessage(message);
+            const parsedMesage = Helpers.parseIOMessage(message);
             if (!parsedMesage) {
                 return;
             }
@@ -340,9 +328,7 @@ export class iPythonAdapter extends SocketCallbackHandler {
             }
         }
         catch (ex) {
-            const x = '';
-            // emit error with jsonResult for logging
-            // remember not to emit event 'error', emit event 'shellmessageparseerror'
+            this.emit('iopubmessagepareerror', ex, jsonResult);
         }
     }
 
@@ -350,7 +336,7 @@ export class iPythonAdapter extends SocketCallbackHandler {
         const cmd = this.stream.readStringInTransaction();
         const id = this.stream.readStringInTransaction();
         const trace = this.stream.readStringInTransaction();
-        if (trace == undefined) {
+        if (typeof trace !== 'string') {
             return;
         }
         if (id.length > 0 && this.pendingCommands.has(id)) {
@@ -359,6 +345,6 @@ export class iPythonAdapter extends SocketCallbackHandler {
             def.reject(new Error(`Command: ${cmd}, Id: ${id}, Python Trace: ${trace}`));
             return;
         }
-        this.emit("error", { command: cmd, id: id, trace: trace });
+        this.emit("commanderror", { command: cmd, id: id, trace: trace });
     }
 }

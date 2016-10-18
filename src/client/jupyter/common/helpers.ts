@@ -1,82 +1,31 @@
-import { EventEmitter } from 'events';
 import { JupyterMessage, ParsedIOMessage } from '../contracts';
 
-export class Helpers extends EventEmitter {
-    constructor() {
-        super();
+export class Helpers {
+    private constructor(){
     }
 
-    private onShellMessage(message: JupyterMessage) {
-        // let callback: Function;
-        // if (!this.isValidMessag(message)) {
-        //     return;
-        // }
-        // const msg_id = message.parent_header.msg_id;
-        // if (msg_id != null && this.executionCallbacks.has(msg_id)) {
-        //     callback = this.executionCallbacks.get(msg_id);
-        // }
-        // if (!callback) {
-        //     return;
-        // }
-        // const status = message.content.status;
-        // if (status === 'error') {
-        //     const msg_type = message.header.msg_type;
-        //     // http://jupyter-client.readthedocs.io/en/latest/messaging.html#request-reply
-        //     if (msg_type === 'execution_reply' || msg_type === 'execute_reply') {
-        //         this.executionCallbacks.delete(msg_id);
-        //         return callback({
-        //             data: 'error',
-        //             type: 'text',
-        //             stream: 'status'
-        //         });
-        //     }
-        //     return;
-        // }
-        // if (status === 'ok') {
-        //     const msg_type = message.header.msg_type;
-        //     // http://jupyter-client.readthedocs.io/en/latest/messaging.html#request-reply
-        //     if (msg_type === 'execution_reply' || msg_type === 'execute_reply') {
-        //         this.executionCallbacks.delete(msg_id);
-        //         return callback({
-        //             data: 'ok',
-        //             type: 'text',
-        //             stream: 'status'
-        //         });
-        //     } else if (msg_type === 'complete_reply') {
-        //         return callback(message.content);
-        //     } else if (msg_type === 'inspect_reply') {
-        //         return callback({
-        //             data: message.content.data,
-        //             found: message.content.found
-        //         });
-        //     } else {
-        //         this.executionCallbacks.delete(msg_id);
-        //         return callback({
-        //             data: 'ok',
-        //             type: 'text',
-        //             stream: 'status'
-        //         });
-        //     }
-        // }
-    };
-
-
-    public parseIOMessage(message: JupyterMessage): ParsedIOMessage {
-        if (!this.isValidMessag(message)) {
+    public static parseIOMessage(message: JupyterMessage): ParsedIOMessage {
+        if (!Helpers.isValidMessag(message)) {
             return;
-        }
-        const msg_type = message.header.msg_type;
-        if (msg_type === 'status') {
-            this.emit('status', message.content.execution_state);
         }
         const msg_id = message.parent_header.msg_id;
         if (!msg_id) {
             return;
         }
-        return this._parseIOMessage(message);
+        let result = Helpers.parseDisplayIOMessage(message);
+        if (!result) {
+            result = Helpers.parseResultIOMessage(message);
+        }
+        if (!result) {
+            result = Helpers.parseErrorIOMessage(message);
+        }
+        if (!result) {
+            result = Helpers.parseStreamIOMessage(message);
+        }
+        return result;
     };
 
-    public isValidMessag(message: JupyterMessage) {
+    public static isValidMessag(message: JupyterMessage) {
         if (!message) {
             return false;
         }
@@ -107,40 +56,26 @@ export class Helpers extends EventEmitter {
         return true;
     };
 
-    private _parseIOMessage(message: JupyterMessage): ParsedIOMessage {
-        let result = this._parseDisplayIOMessage(message);
-        if (!result) {
-            result = this._parseResultIOMessage(message);
-        }
-        if (!result) {
-            result = this._parseErrorIOMessage(message);
-        }
-        if (!result) {
-            result = this._parseStreamIOMessage(message);
-        }
-        return result;
-    }
-
-    private _parseDisplayIOMessage(message): ParsedIOMessage {
+    private static parseDisplayIOMessage(message): ParsedIOMessage {
         if (message.header.msg_type === 'display_data') {
-            return this._parseDataMime(message.content.data);
+            return Helpers.parseDataMime(message.content.data);
         }
         return;
     }
 
-    private _parseResultIOMessage(message): ParsedIOMessage {
+    private static parseResultIOMessage(message): ParsedIOMessage {
         const msg_type = message.header.msg_type;
         if (msg_type === 'execute_result' || msg_type === 'pyout') {
-            return this._parseDataMime(message.content.data);
+            return Helpers.parseDataMime(message.content.data);
         }
         return null;
     }
 
-    private _parseDataMime(data): ParsedIOMessage {
+    private static parseDataMime(data): ParsedIOMessage {
         if (data == null) {
             return null;
         }
-        const mime = this._getMimeType(data);
+        const mime = Helpers.getMimeType(data);
         if (mime == null) {
             return null;
         }
@@ -165,7 +100,7 @@ export class Helpers extends EventEmitter {
         return result;
     }
 
-    private _getMimeType(data): string {
+    private static getMimeType(data): string {
         const imageMimes = Object.getOwnPropertyNames(data).filter(mime => {
             return mime.startsWith('image/');
         });
@@ -192,15 +127,15 @@ export class Helpers extends EventEmitter {
         return mime;
     }
 
-    private _parseErrorIOMessage(message): ParsedIOMessage {
+    private static parseErrorIOMessage(message): ParsedIOMessage {
         const msg_type = message.header.msg_type;
         if (msg_type === 'error' || msg_type === 'pyerr') {
-            return this._parseErrorMessage(message);
+            return Helpers.parseErrorMessage(message);
         }
         return null;
     }
 
-    private _parseErrorMessage(message): ParsedIOMessage {
+    private static parseErrorMessage(message): ParsedIOMessage {
         let errorString: string;
         const ename = message.content.ename != null ? message.content.ename : '';
         const evalue = message.content.evalue != null ? message.content.evalue : '';
@@ -220,7 +155,7 @@ export class Helpers extends EventEmitter {
         };
     }
 
-    private _parseStreamIOMessage(message): ParsedIOMessage {
+    private static parseStreamIOMessage(message): ParsedIOMessage {
         let result;
         if (message.header.msg_type === 'stream') {
             result = {

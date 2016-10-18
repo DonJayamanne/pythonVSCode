@@ -1,8 +1,6 @@
-import * as child_process from 'child_process';
 import * as os from 'os';
 import * as vscode from 'vscode';
 import { Kernel } from './kernel';
-import { WSKernel } from './ws-kernel';
 import { KernelspecMetadata, Kernelspec } from './contracts';
 import { Commands, Documentation } from '../common/constants';
 import { EventEmitter } from 'events';
@@ -59,13 +57,13 @@ export class KernelManagerImpl extends EventEmitter {
     public restartRunningKernelFor(language: string): Promise<Kernel> {
         const kernel = this._runningKernels.get(language);
         let startupPromise: Promise<Kernel>;
-        if (kernel instanceof WSKernel) {
-            startupPromise = new Promise<Kernel>((resolve, reject) => {
-                kernel.restart().then(() => {
-                    resolve(kernel);
-                }, reject.bind(this));
-            });
-        }
+        // if (kernel instanceof WSKernel) {
+        //     startupPromise = new Promise<Kernel>((resolve, reject) => {
+        //         kernel.restart().then(() => {
+        //             resolve(kernel);
+        //         }, reject.bind(this));
+        //     });
+        // }
         if (kernel instanceof JupyterClientKernel) {
             startupPromise = kernel.shutdown(true).then(() => kernel);
         }
@@ -141,17 +139,18 @@ export class KernelManagerImpl extends EventEmitter {
         let startupCode = pythonSettings.jupyter.startupCode.join(suffix) + suffix;
         return new Promise<any>((resolve, reject) => {
             let errorMessage = 'Failed to execute kernel startup code. ';
-            kernel.execute(startupCode, (result: { type: string, stream: string, message?: string, data: { [key: string]: string } | string }) => {
-                if (result.stream === 'status' && result.type === 'text') {
-                    if (result.data === 'error') {
-                        this.outputChannel.appendLine(errorMessage);
-                        vscode.window.showWarningMessage(errorMessage);
-                    }
-                    return resolve();
+            kernel.execute(startupCode).subscribe(result => {
+                if (result.stream === 'status' && result.type === 'text' && result.data === 'error') {
+                    this.outputChannel.appendLine(errorMessage);
+                    vscode.window.showWarningMessage(errorMessage);
                 }
                 if (result.stream === 'error' && result.type === 'text' && typeof result.message === 'string') {
                     errorMessage += 'Details: ' + result.message;
                 }
+            }, reason => {
+                reject(reason);
+            }, () => {
+                resolve();
             });
         });
     }

@@ -5,7 +5,6 @@
 // TODO: Cleanup this place
 // Add options for execPythonFile
 import * as path from 'path';
-import * as os from 'os';
 import * as fs from 'fs';
 import * as child_process from 'child_process';
 import * as settings from './configSettings';

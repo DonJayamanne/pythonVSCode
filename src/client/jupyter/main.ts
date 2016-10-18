@@ -28,7 +28,7 @@ export class Jupyter extends vscode.Disposable {
     }
     activate(state) {
         const m = new main.JupyterClient(this.outputChannel, vscode.workspace.rootPath);
-        m.start();
+        // m.start();
         this.kernelManager = new KernelManagerImpl(this.outputChannel, m);
         this.disposables.push(this.kernelManager);
         this.disposables.push(vscode.window.onDidChangeActiveTextEditor(this.onEditorChanged.bind(this)));
@@ -113,15 +113,20 @@ export class Jupyter extends vscode.Disposable {
         return new Promise<[string, any[]]>((resolve, reject) => {
             let htmlResponse = '';
             let responses = [];
-            return kernel.execute(code, (result: { type: string, stream: string, data: { [key: string]: string } | string }) => {
+            return kernel.execute(code).subscribe(result => {
                 if (result.stream === 'status' && result.type === 'text' &&
                     (result.data === 'ok' || result.data === 'error')) {
-                    return resolve([htmlResponse, responses]);
+                    //return resolve([htmlResponse, responses]);
+                    const x = '';
                 }
                 if (typeof result.data['text/html'] === 'string') {
                     result.data['text/html'] = result.data['text/html'].replace(/<\/script>/g, '</scripts>');
                 }
                 responses.push(result.data);
+            }, reason => {
+                reject(reason);
+            }, () => {
+                resolve([htmlResponse, responses]);
             });
         });
     }
