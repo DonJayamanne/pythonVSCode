@@ -1,3 +1,5 @@
+"use strict";
+
 import { JupyterSocketClient } from './jupyterSocketClient';
 import { SocketServer } from '../../common/comms/socketServer';
 import * as child_process from 'child_process';
@@ -32,10 +34,11 @@ export class JupyterClient extends EventEmitter implements IJupyterClient {
 
         this.startSocketServer().then(port => {
             const def = createDeferred<any>();
-            const newEnv = { "DEBUG_DJAYAMANNE_IPYTHON": "1" };
-            Object.assign(newEnv, process.env);
-
-            this.process = child_process.spawn(PythonSettings.getInstance().pythonPath, [pyFile, port.toString()], { env: newEnv, cwd: this.rootDir });
+            // const newEnv = { "DEBUG_DJAYAMANNE_IPYTHON": "1" };
+            // Object.assign(newEnv, process.env);
+            //const options = { env: newEnv, cwd: this.rootDir }
+            const options = { cwd: this.rootDir };
+            this.process = child_process.spawn(PythonSettings.getInstance().pythonPath, [pyFile, port.toString()], options);
             this.process.stdout.setEncoding('utf8');
             this.process.stderr.setEncoding('utf8');
 

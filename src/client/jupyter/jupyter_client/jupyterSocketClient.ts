@@ -9,8 +9,8 @@ import { KernelCommand } from './contracts';
 import { JupyterMessage, ParsedIOMessage } from '../contracts';
 import { Helpers } from '../common/helpers';
 import * as Rx from 'rx';
+
 export class JupyterSocketClient extends SocketCallbackHandler {
-    private idDispenser: IdDispenser;
     constructor(socketServer: SocketServer) {
         super(socketServer);
         this.registerCommandHandler(ResponseCommands.Pong, this.onPong.bind(this));
@@ -26,18 +26,19 @@ export class JupyterSocketClient extends SocketCallbackHandler {
         this.idDispenser = new IdDispenser();
     }
 
+    private idDispenser: IdDispenser;
     private pid: number;
     private guid: string;
 
     protected handleHandshake(): boolean {
-        if (!this.guid) {
+        if (typeof this.guid !== 'string') {
             this.guid = this.stream.readStringInTransaction();
             if (typeof this.guid !== 'string') {
                 return false;
             }
         }
 
-        if (!this.pid) {
+        if (typeof this.pid !== 'number') {
             this.pid = this.stream.readInt32InTransaction();
             if (typeof this.pid !== 'number') {
                 return false;
@@ -255,6 +256,7 @@ export class JupyterSocketClient extends SocketCallbackHandler {
             }
             if (this.finalMessage.has(msg_id)) {
                 const info = this.finalMessage.get(msg_id);
+                // If th io message with status='idle' has been received, that means message execution is deemed complete
                 if (info.ioStatusSent) {
                     this.finalMessage.delete(msg_id);
                     subject.onNext(parsedMesage);
@@ -262,6 +264,7 @@ export class JupyterSocketClient extends SocketCallbackHandler {
                 }
             }
             else {
+                // Wait for the io message with status='idle' to arrive
                 this.finalMessage.set(msg_id, { shellMessage: parsedMesage, ioStatusSent: false });
             }
         }
@@ -291,11 +294,12 @@ export class JupyterSocketClient extends SocketCallbackHandler {
 
             // Ok, if we have received a status of 'idle' this means the execution has completed
             if (msg_type === 'status' && message.content.execution_state === 'idle' && this.msgSubject.has(msg_id)) {
-                // Just in case we have more messages coming through
+                // Wait for the shell message to come through
                 setTimeout(() => {
                     const subject = this.msgSubject.get(msg_id);
                     this.msgSubject.delete(msg_id);
                     // Last message sent on shell channel (status='ok' or status='error')
+                    // and now we have a status message, this means the exection is deemed complete
                     if (this.finalMessage.has(msg_id)) {
                         const info = this.finalMessage.get(msg_id);
                         this.finalMessage.delete(msg_id);

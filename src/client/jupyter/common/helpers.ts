@@ -1,9 +1,6 @@
 import { JupyterMessage, ParsedIOMessage } from '../contracts';
 
 export class Helpers {
-    private constructor(){
-    }
-
     public static parseIOMessage(message: JupyterMessage): ParsedIOMessage {
         if (!Helpers.isValidMessag(message)) {
             return;
@@ -65,7 +62,7 @@ export class Helpers {
 
     private static parseResultIOMessage(message): ParsedIOMessage {
         const msg_type = message.header.msg_type;
-        if (msg_type === 'execute_result' || msg_type === 'pyout') {
+        if (msg_type === 'execute_result' || msg_type === 'pyout' || msg_type === 'execution_result') {
             return Helpers.parseDataMime(message.content.data);
         }
         return null;
@@ -76,7 +73,7 @@ export class Helpers {
             return null;
         }
         const mime = Helpers.getMimeType(data);
-        if (mime == null) {
+        if (typeof mime !== 'string') {
             return null;
         }
         let result;
@@ -137,8 +134,8 @@ export class Helpers {
 
     private static parseErrorMessage(message): ParsedIOMessage {
         let errorString: string;
-        const ename = message.content.ename != null ? message.content.ename : '';
-        const evalue = message.content.evalue != null ? message.content.evalue : '';
+        const ename = typeof message.content.ename === 'string' ? message.content.ename : '';
+        const evalue = typeof message.content.evalue === 'string' ? message.content.evalue : '';
         const errorMessage = ename + ': ' + evalue;
         errorString = errorMessage;
         try {
@@ -160,7 +157,7 @@ export class Helpers {
         if (message.header.msg_type === 'stream') {
             result = {
                 data: {
-                    'text/plain': message.content.text != null ? message.content.text : message.content.data
+                    'text/plain': typeof message.content.text === 'string' ? message.content.text : message.content.data
                 },
                 type: 'text',
                 stream: message.content.name
@@ -168,7 +165,7 @@ export class Helpers {
         } else if (message.idents === 'stdout' || message.idents === 'stream.stdout' || message.content.name === 'stdout') {
             result = {
                 data: {
-                    'text/plain': message.content.text != null ? message.content.text : message.content.data
+                    'text/plain': typeof message.content.text === 'string' ? message.content.text : message.content.data
                 },
                 type: 'text',
                 stream: 'stdout'
@@ -176,13 +173,13 @@ export class Helpers {
         } else if (message.idents === 'stderr' || message.idents === 'stream.stderr' || message.content.name === 'stderr') {
             result = {
                 data: {
-                    'text/plain': message.content.text != null ? message.content.text : message.content.data
+                    'text/plain': typeof message.content.text === 'string' ? message.content.text : message.content.data
                 },
                 type: 'text',
                 stream: 'stderr'
             };
         }
-        if ((result != null ? result.data['text/plain'] : void 0) != null) {
+        if (result) {
             result.data['text/plain'] = result.data['text/plain'].trim();
         }
         return result;

@@ -118,9 +118,6 @@ export class KernelManagerImpl extends EventEmitter {
 
     public startKernel(kernelSpec: KernelspecMetadata, language: string): Promise<Kernel> {
         this.destroyRunningKernelFor(language);
-        const spawnOptions = {
-            cwd: vscode.workspace.rootPath
-        };
         return this.jupyterClient.startKernel(kernelSpec).then((kernelInfo: [string, any, string]) => {
             const kernelUUID = kernelInfo[0];
             const config = kernelInfo[1];

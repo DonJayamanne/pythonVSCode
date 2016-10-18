@@ -1,3 +1,5 @@
+"use strict";
+
 import { KernelspecMetadata, Kernelspec, ParsedIOMessage } from '../contracts';
 import * as Rx from 'rx';
 

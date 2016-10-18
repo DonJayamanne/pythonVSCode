@@ -9,7 +9,6 @@ import * as helpers from '../../common/helpers';
 export class TextDocumentContentProvider extends Disposable implements vscode.TextDocumentContentProvider {
     private _onDidChange = new vscode.EventEmitter<vscode.Uri>();
     private lastUri: vscode.Uri;
-    private htmlResponse: string = '';
     private results: any[];
     private serverPort: number;
     private tmpFileCleanup: Function[] = [];
@@ -40,8 +39,7 @@ export class TextDocumentContentProvider extends Disposable implements vscode.Te
         return this._onDidChange.event;
     }
 
-    public setText(result: string, results: any[]) {
-        this.htmlResponse = result;
+    public setResult(results: any[]) {
         this.results = results;
     }
     public update() {

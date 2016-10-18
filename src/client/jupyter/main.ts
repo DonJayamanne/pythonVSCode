@@ -27,9 +27,8 @@ export class Jupyter extends vscode.Disposable {
         this.registerKernelCommands();
     }
     activate(state) {
-        const m = new main.JupyterClient(this.outputChannel, vscode.workspace.rootPath);
-        // m.start();
-        this.kernelManager = new KernelManagerImpl(this.outputChannel, m);
+        const jupyterClient = new main.JupyterClient(this.outputChannel, vscode.workspace.rootPath);
+        this.kernelManager = new KernelManagerImpl(this.outputChannel, jupyterClient);
         this.disposables.push(this.kernelManager);
         this.disposables.push(vscode.window.onDidChangeActiveTextEditor(this.onEditorChanged.bind(this)));
         this.codeLensProvider = new JupyterCodeLensProvider();
@@ -51,7 +50,11 @@ export class Jupyter extends vscode.Disposable {
         return new Promise<boolean>(resolve => {
             this.codeLensProvider.provideCodeLenses(document, token).then(codeLenses => {
                 resolve(Array.isArray(codeLenses) && codeLenses.length > 0);
-            }, () => { resolve(false); });
+            }, reason => {
+                console.error('Failed to detect code cells in document');
+                console.error(reason);
+                resolve(false);
+            });
         });
     }
     public dispose() {
@@ -87,7 +90,11 @@ export class Jupyter extends vscode.Disposable {
         telemetryHelper.sendTelemetryEvent(telemetryContracts.Jupyter.Usage);
 
         if (this.kernel && this.kernel.kernelSpec.language === language) {
-            return this.executeAndDisplay(this.kernel, code);
+            return this.executeAndDisplay(this.kernel, code).catch(reason => {
+                const message = typeof reason === 'string' ? reason : reason.message;
+                vscode.window.showErrorMessage(message);
+                this.outputChannel.appendLine(formatErrorForLogging(reason));
+            });
         }
         return this.kernelManager.startKernelFor(language)
             .then(kernel => {
@@ -103,22 +110,16 @@ export class Jupyter extends vscode.Disposable {
     }
     private executeAndDisplay(kernel: Kernel, code: string) {
         return this.executeCodeInKernel(kernel, code).then(result => {
-            if (result[1].length === 0) {
+            if (result.length === 0) {
                 return;
             }
-            return this.display.showResults(result[0], result[1]);
+            return this.display.showResults(result);
         });
     }
-    private executeCodeInKernel(kernel: Kernel, code: string): Promise<[string, any[]]> {
-        return new Promise<[string, any[]]>((resolve, reject) => {
-            let htmlResponse = '';
+    private executeCodeInKernel(kernel: Kernel, code: string): Promise<any[]> {
+        return new Promise<any[]>((resolve, reject) => {
             let responses = [];
             return kernel.execute(code).subscribe(result => {
-                if (result.stream === 'status' && result.type === 'text' &&
-                    (result.data === 'ok' || result.data === 'error')) {
-                    //return resolve([htmlResponse, responses]);
-                    const x = '';
-                }
                 if (typeof result.data['text/html'] === 'string') {
                     result.data['text/html'] = result.data['text/html'].replace(/<\/script>/g, '</scripts>');
                 }
@@ -126,7 +127,7 @@ export class Jupyter extends vscode.Disposable {
             }, reason => {
                 reject(reason);
             }, () => {
-                resolve([htmlResponse, responses]);
+                resolve(responses);
             });
         });
     }

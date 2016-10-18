@@ -34,7 +34,7 @@ export class JupyterDisplay extends vscode.Disposable {
 
     private displayed = false;
     private appendResults = PythonSettings.getInstance().jupyter.appendResults;
-    public showResults(result: string, data: any): Thenable<any> {
+    public showResults(results: any[]): Thenable<any> {
         return this.server.start().then(port => {
             this.previewWindow.ServerPort = port;
             // If we need to append the results, then do so if we have any result windows open
@@ -42,9 +42,9 @@ export class JupyterDisplay extends vscode.Disposable {
             return sendDataToResultView.then(clientConnected => {
                 // vscode.commands.executeCommand('_webview.openDevTools');
                 if (clientConnected) {
-                    return this.server.sendResults(data);
+                    return this.server.sendResults(results);
                 }
-                this.previewWindow.setText(result, data);
+                this.previewWindow.setResult(results);
                 this.previewWindow.AppendResults = this.appendResults;
                 // Dirty hack to support instances when document has been closed
                 if (this.displayed) {
