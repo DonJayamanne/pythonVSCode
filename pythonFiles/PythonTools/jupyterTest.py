@@ -149,27 +149,32 @@ def _execute_cell(code, shell, iopub, timeout=300):
 
     # Execute input
     #shell.execute("10+20")
-    shell.execute("import time\ntime.sleep(10)\nprint(112341234)")
-    shell.execute("1+2")
+    # msg_id = shell.execute("print(1)\nimport time\ntime.sleep(10)\nprint(11)")
+    # print(msg_id)
+    # msg_id = shell.execute("1+2")
+    # print(msg_id)
+    # msg_id = shell.execute("print(2)\nimport time\ntime.sleep(10)\nprint(22)")
+    # print(msg_id)
+
+    msg_id = shell.execute("print(2)\nimport time\ntime.sleep(10)\nprint(x)")
+    print(msg_id)
 
     cell_outputs = list()
 
     # Poll for iopub messages until no more messages are available
     while True:
         try:
-            exe_result = shell.get_shell_msg(timeout=timeout)
+            exe_result = shell.get_shell_msg(timeout=0.5)
             print('exe_result')
             print(exe_result)
             print('')
-            if exe_result['content']['status'] == 'error':
-                print('-----------------------crap---------------------')
-                raise RuntimeError('Failed to execute cell due to error: {!r}'.format(
-                    str(exe_result['content']['evalue'])))
+            # if exe_result['content']['status'] == 'error':
+            #     print('-----------------------crap---------------------')
+            #     raise RuntimeError('Failed to execute cell due to error: {!r}'.format(
+            #         str(exe_result['content']['evalue'])))
         except Empty:
-            print('quue empty, try again')
             pass
 
-        print('\n\n-------------------------------------------------\ntrying\n----------------------------------\n')
         try:
             msg = iopub.get_iopub_msg(timeout=0.5)
             print('get_iopub_msg')
@@ -177,41 +182,40 @@ def _execute_cell(code, shell, iopub, timeout=300):
             print(msg)
             print('')
         except Empty:
-            print('get_iopub_msg is empty--------------------------------------')
             pass
 
-        msg_type = msg['msg_type']
-        if msg_type in ('status', 'pyin', 'execute_input', 'execute_result'):
-            continue
+        # msg_type = msg['msg_type']
+        # if msg_type in ('status', 'pyin', 'execute_input', 'execute_result'):
+        #     continue
 
-        content = msg['content']
-        node = NotebookNode(output_type=msg_type)
+        # content = msg['content']
+        # node = NotebookNode(output_type=msg_type)
 
-        if msg_type == 'stream':
-            node.stream = content['name']
-            if 'text' in content:
-                # v4 notebook format
-                node.text = content['text']
-            else:
-                # v3 notebook format
-                node.text = content['data']
-        elif msg_type in ('display_data', 'pyout'):
-            node['metadata'] = content['metadata']
-            for mime, data in content['data'].items():
-                attr = mime.split('/')[-1].lower()
-                attr = attr.replace('+xml', '').replace('plain', 'text')
-                setattr(node, attr, data)
-            if msg_type == 'pyout':
-                node.prompt_number = content['execution_count']
-        elif msg_type == 'pyerr':
-            node.ename = content['ename']
-            node.evalue = content['evalue']
-            node.traceback = content['traceback']
-        else:
-            raise RuntimeError('Unhandled iopub message of type: {}'.format(
-                msg_type))
+        # if msg_type == 'stream':
+        #     node.stream = content['name']
+        #     if 'text' in content:
+        #         # v4 notebook format
+        #         node.text = content['text']
+        #     else:
+        #         # v3 notebook format
+        #         node.text = content['data']
+        # elif msg_type in ('display_data', 'pyout'):
+        #     node['metadata'] = content['metadata']
+        #     for mime, data in content['data'].items():
+        #         attr = mime.split('/')[-1].lower()
+        #         attr = attr.replace('+xml', '').replace('plain', 'text')
+        #         setattr(node, attr, data)
+        #     if msg_type == 'pyout':
+        #         node.prompt_number = content['execution_count']
+        # elif msg_type == 'pyerr':
+        #     node.ename = content['ename']
+        #     node.evalue = content['evalue']
+        #     node.traceback = content['traceback']
+        # else:
+        #     raise RuntimeError('Unhandled iopub message of type: {}'.format(
+        #         msg_type))
 
-        cell_outputs.append(node)
+        # cell_outputs.append(node)
 
     return cell_outputs
 

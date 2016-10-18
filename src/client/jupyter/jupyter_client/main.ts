@@ -4,13 +4,16 @@ import * as child_process from 'child_process';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { createDeferred, Deferred } from '../../common/helpers';
-import { KernelspecMetadata, Kernelspec } from '../contracts';
+import { KernelspecMetadata, Kernelspec, ParsedIOMessage } from '../contracts';
 import { IJupyterClient } from './contracts';
-import {KernelCommand} from './contracts';
-import {PythonSettings} from '../../common/configSettings';
+import { KernelCommand } from './contracts';
+import { PythonSettings } from '../../common/configSettings';
+import * as Rx from 'rx';
+import { EventEmitter } from 'events';
 
-export class JupyterClient implements IJupyterClient {
+export class JupyterClient extends EventEmitter implements IJupyterClient {
     constructor(private outputChannel: vscode.OutputChannel, private rootDir: string) {
+        super();
     }
 
     private process: child_process.ChildProcess;
@@ -91,6 +94,9 @@ export class JupyterClient implements IJupyterClient {
     private startSocketServer(): Promise<number> {
         this.socketServer = new SocketServer();
         this.ipythonAdapter = new iPythonAdapter(this.socketServer);
+        this.ipythonAdapter.on('status', status=>{
+            this.emit('status', status);
+        })
         return this.socketServer.Start();
     }
 
@@ -116,8 +122,15 @@ export class JupyterClient implements IJupyterClient {
     public restartKernel(kernelUUID: string): Promise<any> {
         return this.start().then(() => this.ipythonAdapter.sendKernelCommand(kernelUUID, KernelCommand.restart));
     }
-    public runCode(code: string): Promise<any>{
+    public runCode(code: string): Promise<any> {
         return this.start().then(() => this.ipythonAdapter.runCode(code))
+    }
+    public runCodeEx(code: string, onResults: Function): Promise<any> {
+        return this.start().then(() => {
+            return this.ipythonAdapter.runCodeEx(code).subscribe(data => {
+                onResults(data);
+            });
+        });
     }
 }
 

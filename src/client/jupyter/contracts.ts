@@ -22,6 +22,13 @@ export interface KernelEvents {
     onStatusChange: vscode.Event<[KernelspecMetadata, string]>;
 }
 
+export interface ParsedIOMessage {
+    data: { [key: string]: any } | string;
+    type: string;
+    stream: string;
+    message?: string;
+}
+
 // export interface JupyterMessage extends Object {
 //     parent_header: any;
 //     content: any;
@@ -37,7 +44,8 @@ export interface JupyterMessage {
     msg_id: string;
     msg_type: 'execute_request' | 'execute_reply';
     parent_header: {
-        msg_id: string
+        msg_id: string,
+        msg_type: string
     };
     content: {
         // status = 'busy', sent back as soon as a request is received by the kernel (kind of an ACK)

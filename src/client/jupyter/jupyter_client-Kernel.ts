@@ -1,27 +1,16 @@
-import * as child_process from 'child_process';
-import * as path from 'path';
-import * as fs from 'fs';
 import { Kernel } from './kernel';
-import * as vscode from 'vscode';
 import { KernelspecMetadata, JupyterMessage } from './contracts';
-import { iPythonAdapter } from './jupyter_client/ipythonAdapter';
-import { SocketServer } from '../common/comms/socketServer';
-import { createDeferred } from '../common/helpers';
-import * as settings from '../common/configSettings';
 import { IJupyterClient } from './jupyter_client/contracts';
-
-const pythonSettings = settings.PythonSettings.getInstance();
+import { EventEmitter } from 'events';
 
 export class JupyterClientKernel extends Kernel {
-    private process: child_process.ChildProcess;
-    private socketServer: SocketServer;
-    private ipythonAdapter: iPythonAdapter;
-
     constructor(kernelSpec: KernelspecMetadata, language: string, private connection: any, private connectionFile: string, private kernelUUID: string, private jupyterClient: IJupyterClient) {
         super(kernelSpec, language);
+        ((this.jupyterClient as any) as EventEmitter).on('status', status => {
+            this.raiseOnStatusChange(status);
+        });
     }
 
-    private shutdownPromise: Promise<any>;
     public dispose() {
         this.shutdown();
         super.dispose();
@@ -39,11 +28,9 @@ export class JupyterClientKernel extends Kernel {
     };
 
     public execute(code: string, onResults: Function) {
-        this.jupyterClient.runCode(code).then(() => {
-            const y = '';
-        }).catch(reason => {
-            const x = '';
-        })
+        this.jupyterClient.runCodeEx(code, (data) => {
+            onResults(data);
+        });
     };
 
     public executeWatch(code: string, onResults: Function) {

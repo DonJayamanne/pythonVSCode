@@ -6,11 +6,18 @@ import { SocketServer } from '../../common/comms/socketServer';
 import { IdDispenser } from '../../common/idDispenser';
 import { createDeferred, Deferred } from '../../common/helpers';
 import { KernelCommand } from './contracts';
-
+import { KernelspecMetadata, JupyterMessage, ParsedIOMessage } from '../contracts';
+import { Helpers } from './helpers';
+import * as Rx from 'rx';
 export class iPythonAdapter extends SocketCallbackHandler {
     private idDispenser: IdDispenser;
+    private helpers: Helpers;
     constructor(socketServer: SocketServer) {
         super(socketServer);
+        this.helpers = new Helpers();
+        this.helpers.on('status', status => {
+            this.emit('status', status);
+        });
         this.registerCommandHandler(ResponseCommands.Pong, this.onPong.bind(this));
         this.registerCommandHandler(ResponseCommands.ListKernelsSpecs, this.onKernelsListed.bind(this));
         this.registerCommandHandler(ResponseCommands.Error, this.onError.bind(this));
@@ -49,7 +56,7 @@ export class iPythonAdapter extends SocketCallbackHandler {
     private pendingCommands = new Map<string, Deferred<any>>();
 
     private createId<T>(): [Deferred<T>, string] {
-        const def = createDeferred<T>()
+        const def = createDeferred<T>();
         const id = this.idDispenser.Allocate().toString();
         this.pendingCommands.set(id, def);
         return [def, id];
@@ -78,7 +85,7 @@ export class iPythonAdapter extends SocketCallbackHandler {
 
         let kernelList: any;
         try {
-            kernelList = JSON.parse(kernels)
+            kernelList = JSON.parse(kernels);
         }
         catch (ex) {
             def.reject(ex);
@@ -106,7 +113,7 @@ export class iPythonAdapter extends SocketCallbackHandler {
         const def = this.pendingCommands.get(id);
         let config = {};
         try {
-            config = JSON.parse(configStr)
+            config = JSON.parse(configStr);
         }
         catch (ex) {
             def.reject(ex);
@@ -153,7 +160,7 @@ export class iPythonAdapter extends SocketCallbackHandler {
         const [def, id] = this.createId<string[]>();
         this.SendRawCommand(Commands.PingBytes);
         this.stream.WriteString(id);
-        this.stream.WriteString(message)
+        this.stream.WriteString(message);
         return def.promise;
     }
 
@@ -168,11 +175,33 @@ export class iPythonAdapter extends SocketCallbackHandler {
         def.resolve(message);
     }
 
-    runCode(code): Promise<any> {
-        const [def, id] = this.createId<string[]>();
+    private msgSubject = new Map<string, Rx.Subject<ParsedIOMessage>>();
+    private unhandledMessages = new Map<string, ParsedIOMessage[]>();
+    private finalMessage = new Map<string, { shellMessage?: ParsedIOMessage, ioStatusSent: boolean }>();
+    runCodeEx(code: string): Rx.IObservable<ParsedIOMessage> {
+        const [def, id] = this.createId<string>();
         this.SendRawCommand(Commands.RunCodeBytes);
         this.stream.WriteString(id);
-        this.stream.WriteString(code)
+        this.stream.WriteString(code);
+
+        const observable = new Rx.Subject<ParsedIOMessage>();
+        def.promise.then(msg_id => {
+            this.msgSubject.set(msg_id, observable);
+
+            // Remember we could have received both messages together
+            // I.e. we could have received the msg_id (response) for code execution as well as the shell and io message
+            if (this.unhandledMessages.has(msg_id)) {
+                const messages = this.unhandledMessages.get(msg_id);
+                messages.forEach(msg => observable.onNext(msg));
+            }
+        });
+        return observable;
+    }
+    runCode(code): Promise<string> {
+        const [def, id] = this.createId<string>();
+        this.SendRawCommand(Commands.RunCodeBytes);
+        this.stream.WriteString(id);
+        this.stream.WriteString(code);
         return def.promise;
     }
     private onCodeSentForExecution() {
@@ -192,23 +221,128 @@ export class iPythonAdapter extends SocketCallbackHandler {
             return;
         }
         try {
-            const y = JSON.parse(jsonResult);
+            const message = JSON.parse(jsonResult) as JupyterMessage;
+            if (!this.helpers.isValidMessag(message)) {
+                return;
+            }
+            const msg_id = message.parent_header.msg_id;
+            if (!msg_id) {
+                return;
+            }
+            if (!this.msgSubject.has(msg_id)) {
+                return;
+            }
+            const subject = this.msgSubject.get(msg_id);
+            const status = message.content.status;
+            let parsedMesage: ParsedIOMessage;
+            switch (status) {
+                case 'error': {
+                    const msg_type = message.header.msg_type;
+                    // http://jupyter-client.readthedocs.io/en/latest/messaging.html#request-reply
+                    if (msg_type !== 'complete_reply' && msg_type !== 'inspect_reply') {
+                        parsedMesage = {
+                            data: 'error',
+                            type: 'text',
+                            stream: 'status'
+                        };
+                    }
+                    break;
+                }
+                case 'ok': {
+                    const msg_type = message.header.msg_type;
+                    // http://jupyter-client.readthedocs.io/en/latest/messaging.html#request-reply
+                    if (msg_type !== 'complete_reply' && msg_type !== 'inspect_reply') {
+                        parsedMesage = {
+                            data: 'ok',
+                            type: 'text',
+                            stream: 'status'
+                        };
+                    }
+                }
+            }
+            if (!parsedMesage) {
+                return;
+            }
+            if (this.finalMessage.has(msg_id)) {
+                const info = this.finalMessage.get(msg_id);
+                if (info.ioStatusSent) {
+                    this.finalMessage.delete(msg_id);
+                    subject.onNext(parsedMesage);
+                    subject.onCompleted();
+                }
+            }
+            else {
+                this.finalMessage.set(msg_id, { shellMessage: parsedMesage, ioStatusSent: false });
+            }
         }
         catch (ex) {
             const x = '';
+            // emit error with jsonResult for logging
+            // remember not to emit event 'error', emit event 'shellmessageparseerror'
         }
     }
 
     private onIOPUBMessage() {
         const jsonResult = this.stream.readStringInTransaction();
-        if (jsonResult == undefined) {
+        if (!jsonResult) {
             return;
         }
         try {
-            const y = JSON.parse(jsonResult);
+            const message = JSON.parse(jsonResult) as JupyterMessage;
+            if (!this.helpers.isValidMessag(message)) {
+                return;
+            }
+            const msg_type = message.header.msg_type;
+            if (msg_type === 'status') {
+                this.emit('status', message.content.execution_state);
+            }
+            const msg_id = message.parent_header.msg_id;
+            if (!msg_id) {
+                return;
+            }
+
+            // Ok, if we have received a status of 'idle' this means the execution has completed
+            if (msg_type === 'status' && message.content.execution_state === 'idle' && this.msgSubject.has(msg_id)) {
+                // Just in case we have more messages coming through
+                setTimeout(() => {
+                    const subject = this.msgSubject.get(msg_id);
+                    this.msgSubject.delete(msg_id);
+                    // Last message sent on shell channel (status='ok' or status='error')
+                    if (this.finalMessage.has(msg_id)) {
+                        const info = this.finalMessage.get(msg_id);
+                        this.finalMessage.delete(msg_id);
+                        if (info.shellMessage) {
+                            subject.onNext(info.shellMessage);
+                        }
+                        subject.onCompleted();
+                    }
+                    else {
+                        this.finalMessage.set(msg_id, { ioStatusSent: true });
+                    }
+                }, 10);
+            }
+
+            const parsedMesage = this.helpers.parseIOMessage(message);
+            if (!parsedMesage) {
+                return;
+            }
+            if (this.msgSubject.has(msg_id)) {
+                this.msgSubject.get(msg_id).onNext(parsedMesage);
+            }
+            else {
+                let data = [];
+                if (this.unhandledMessages.has(msg_id)) {
+                    data = this.unhandledMessages.get(msg_id);
+                }
+                data.push(parsedMesage);
+                this.unhandledMessages.set(msg_id, data);
+                return;
+            }
         }
         catch (ex) {
             const x = '';
+            // emit error with jsonResult for logging
+            // remember not to emit event 'error', emit event 'shellmessageparseerror'
         }
     }
 

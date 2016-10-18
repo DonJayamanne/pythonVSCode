@@ -1,76 +1,142 @@
-// http://jupyter-client.readthedocs.io/en/latest/messaging.html#to-do
+import { EventEmitter } from 'events';
+import { JupyterMessage, ParsedIOMessage } from '../contracts';
 
-import * as vscode from 'vscode';
-import * as child_process from 'child_process';
-import * as path from 'path';
-import {KernelspecMetadata, KernelEvents} from './contracts';
-
-export abstract class Kernel extends vscode.Disposable implements KernelEvents {
-    private watchCallbacks: any[];
-    constructor(public kernelSpec: KernelspecMetadata, private language: string) {
-        super(() => { });
-        this.watchCallbacks = [];
+export class Helpers extends EventEmitter {
+    constructor() {
+        super();
     }
 
-    public dispose() {
-
-    }
-
-    private _onStatusChange = new vscode.EventEmitter<[KernelspecMetadata, string]>();
-    get onStatusChange(): vscode.Event<[KernelspecMetadata, string]> {
-        return this._onStatusChange.event;
-    }
-    protected raiseOnStatusChange(status: string) {
-        this._onStatusChange.fire([this.kernelSpec, status]);
-    }
-
-    public addWatchCallback(watchCallback) {
-        return this.watchCallbacks.push(watchCallback);
+    private onShellMessage(message: JupyterMessage) {
+        // let callback: Function;
+        // if (!this.isValidMessag(message)) {
+        //     return;
+        // }
+        // const msg_id = message.parent_header.msg_id;
+        // if (msg_id != null && this.executionCallbacks.has(msg_id)) {
+        //     callback = this.executionCallbacks.get(msg_id);
+        // }
+        // if (!callback) {
+        //     return;
+        // }
+        // const status = message.content.status;
+        // if (status === 'error') {
+        //     const msg_type = message.header.msg_type;
+        //     // http://jupyter-client.readthedocs.io/en/latest/messaging.html#request-reply
+        //     if (msg_type === 'execution_reply' || msg_type === 'execute_reply') {
+        //         this.executionCallbacks.delete(msg_id);
+        //         return callback({
+        //             data: 'error',
+        //             type: 'text',
+        //             stream: 'status'
+        //         });
+        //     }
+        //     return;
+        // }
+        // if (status === 'ok') {
+        //     const msg_type = message.header.msg_type;
+        //     // http://jupyter-client.readthedocs.io/en/latest/messaging.html#request-reply
+        //     if (msg_type === 'execution_reply' || msg_type === 'execute_reply') {
+        //         this.executionCallbacks.delete(msg_id);
+        //         return callback({
+        //             data: 'ok',
+        //             type: 'text',
+        //             stream: 'status'
+        //         });
+        //     } else if (msg_type === 'complete_reply') {
+        //         return callback(message.content);
+        //     } else if (msg_type === 'inspect_reply') {
+        //         return callback({
+        //             data: message.content.data,
+        //             found: message.content.found
+        //         });
+        //     } else {
+        //         this.executionCallbacks.delete(msg_id);
+        //         return callback({
+        //             data: 'ok',
+        //             type: 'text',
+        //             stream: 'status'
+        //         });
+        //     }
+        // }
     };
 
-    public _callWatchCallbacks() {
-        return this.watchCallbacks.forEach(watchCallback => {
-            watchCallback();
-        });
+
+    public parseIOMessage(message: JupyterMessage): ParsedIOMessage {
+        if (!this.isValidMessag(message)) {
+            return;
+        }
+        const msg_type = message.header.msg_type;
+        if (msg_type === 'status') {
+            this.emit('status', message.content.execution_state);
+        }
+        const msg_id = message.parent_header.msg_id;
+        if (!msg_id) {
+            return;
+        }
+        return this._parseIOMessage(message);
     };
 
-    public abstract interrupt();
-    public abstract shutdown();
-    public abstract execute(code: string, onResults: Function);
-    public abstract executeWatch(code: string, onResults);
-    public abstract complete(code: string, onResults);
-    public abstract inspect(code: string, cursor_pos, onResults);
+    public isValidMessag(message: JupyterMessage) {
+        if (!message) {
+            return false;
+        }
+        if (!message.content) {
+            return false;
+        }
+        if (message.content.execution_state === 'starting') {
+            return false;
+        }
+        if (!message.parent_header) {
+            return false;
+        }
+        if (typeof message.parent_header.msg_id !== 'string') {
+            return false;
+        }
+        if (typeof message.parent_header.msg_type !== 'string') {
+            return false;
+        }
+        if (!message.header) {
+            return false;
+        }
+        if (typeof message.header.msg_id !== 'string') {
+            return false;
+        }
+        if (typeof message.header.msg_type !== 'string') {
+            return false;
+        }
+        return true;
+    };
 
-    public _parseIOMessage(message) {
+    private _parseIOMessage(message: JupyterMessage): ParsedIOMessage {
         let result = this._parseDisplayIOMessage(message);
-        if (result == null) {
+        if (!result) {
             result = this._parseResultIOMessage(message);
         }
-        if (result == null) {
+        if (!result) {
             result = this._parseErrorIOMessage(message);
         }
-        if (result == null) {
+        if (!result) {
             result = this._parseStreamIOMessage(message);
         }
         return result;
-    };
+    }
 
-    public _parseDisplayIOMessage(message) {
+    private _parseDisplayIOMessage(message): ParsedIOMessage {
         if (message.header.msg_type === 'display_data') {
             return this._parseDataMime(message.content.data);
         }
-        return null;
-    };
+        return;
+    }
 
-    public _parseResultIOMessage(message) {
+    private _parseResultIOMessage(message): ParsedIOMessage {
         const msg_type = message.header.msg_type;
         if (msg_type === 'execute_result' || msg_type === 'pyout') {
             return this._parseDataMime(message.content.data);
         }
         return null;
-    };
+    }
 
-    public _parseDataMime(data) {
+    private _parseDataMime(data): ParsedIOMessage {
         if (data == null) {
             return null;
         }
@@ -97,9 +163,9 @@ export abstract class Kernel extends vscode.Disposable implements KernelEvents {
             result.data[mime] = data[mime];
         }
         return result;
-    };
+    }
 
-    public _getMimeType(data) {
+    private _getMimeType(data): string {
         const imageMimes = Object.getOwnPropertyNames(data).filter(mime => {
             return mime.startsWith('image/');
         });
@@ -124,17 +190,17 @@ export abstract class Kernel extends vscode.Disposable implements KernelEvents {
             mime = 'text/plain';
         }
         return mime;
-    };
+    }
 
-    public _parseErrorIOMessage(message) {
+    private _parseErrorIOMessage(message): ParsedIOMessage {
         const msg_type = message.header.msg_type;
         if (msg_type === 'error' || msg_type === 'pyerr') {
             return this._parseErrorMessage(message);
         }
         return null;
-    };
+    }
 
-    public _parseErrorMessage(message) {
+    private _parseErrorMessage(message): ParsedIOMessage {
         let errorString: string;
         const ename = message.content.ename != null ? message.content.ename : '';
         const evalue = message.content.evalue != null ? message.content.evalue : '';
@@ -152,9 +218,9 @@ export abstract class Kernel extends vscode.Disposable implements KernelEvents {
             type: 'text',
             stream: 'error'
         };
-    };
+    }
 
-    public _parseStreamIOMessage(message) {
+    private _parseStreamIOMessage(message): ParsedIOMessage {
         let result;
         if (message.header.msg_type === 'stream') {
             result = {
@@ -185,5 +251,5 @@ export abstract class Kernel extends vscode.Disposable implements KernelEvents {
             result.data['text/plain'] = result.data['text/plain'].trim();
         }
         return result;
-    };
+    }
 }

@@ -77,6 +77,7 @@ if not TEST:
 
 # End of the great "support IPython 2, 3, 4" strat
 
+
 def _debug_write(out):
     if DEBUG:
         sys.__stdout__.write(out)
@@ -140,7 +141,8 @@ class iPythonKernelResponseMonitor(object):
         self.shell_channel = shell_channel
         self.iopub_channel = iopub_channel
         self.send_lock = send_lock
-        thread.start_new_thread(self.start_processing, ())
+        thread.start_new_thread(self.start_processing, ('shell', 1))
+        thread.start_new_thread(self.start_processing, ('io', 1))
 
     def stop(self):
         self.is_stop_requested = True
@@ -156,7 +158,7 @@ class iPythonKernelResponseMonitor(object):
         except AttributeError:
             pass
 
-    def start_processing(self):
+    def start_processing(self, channel, *args):
         """loop to read the io ports/messages"""
 
         _debug_write('Started processing thread')
@@ -165,30 +167,32 @@ class iPythonKernelResponseMonitor(object):
                 if self.check_for_exit_socket_loop():
                     break
 
-                try:
-                    # We can ignore msgtype=execute_request
+                # message can be JSON, but not always
+                # (http://jupyter-client.readthedocs.io/en/latest/messaging.html)
+                # assume for now that dates are the only crappy (non JSONable
+                # stuff sent)
+                if channel == 'shell':
+                    try:
+                        exe_result = self.shell_channel.get_shell_msg(
+                            timeout=30)
+                        json_to_send = json.dumps(exe_result, default=str)
+                        with self.send_lock:
+                            _debug_write('shell_result')
+                            write_bytes(self.conn, iPythonSocketServer._SHEL)
+                            write_string(self.conn, json_to_send)
+                    except Empty:
+                        pass
 
-                    exe_result = self.shell_channel.get_shell_msg(timeout=1)
-                    # message can be JSON, but not always
-                    # (http://jupyter-client.readthedocs.io/en/latest/messaging.html)
-                    # assume for now that dates are the only crappy (non JSONable stuff sent)
-                    json_to_send = json.dumps(exe_result, default=str)
-                    with self.send_lock:
-                        _debug_write('shell_result')
-                        write_bytes(self.conn, iPythonSocketServer._SHEL)
-                        write_string(self.conn, json_to_send)
-                except Empty:
-                    pass
-
-                try:
-                    msg = self.iopub_channel.get_iopub_msg(timeout=10)
-                    json_to_send = json.dumps(msg, default=str)
-                    with self.send_lock:
-                        _debug_write('iopub_msg')
-                        write_bytes(self.conn, iPythonSocketServer._IOPB)
-                        write_string(self.conn, json_to_send)
-                except Empty:
-                    pass
+                if channel == 'io':
+                    try:
+                        msg = self.iopub_channel.get_iopub_msg(timeout=30)
+                        json_to_send = json.dumps(msg, default=str)
+                        with self.send_lock:
+                            _debug_write('iopub_msg')
+                            write_bytes(self.conn, iPythonSocketServer._IOPB)
+                            write_string(self.conn, json_to_send)
+                    except Empty:
+                        pass
 
         except IPythonExitException:
             _debug_write('IPythonExitException')
@@ -294,7 +298,8 @@ actual inspection and introspection."""
                         except:
                             commandName = utf_8.decode(inp)[0]
                             try:
-                                commandName = ascii.Codec.encode(commandName)[0]
+                                commandName = ascii.Codec.encode(commandName)[
+                                    0]
                             except UnicodeEncodeError:
                                 pass
                             self.replyWithError(commandName, id)
@@ -406,6 +411,7 @@ actual inspection and introspection."""
             kernel_client.wait_for_ready()
             iopub = kernel_client
             shell = kernel_client
+            # todo: get_stdin_msg
         except AttributeError:
             # Ipython 2.x
             # Based on https://github.com/paulgb/runipy/pull/49/files
@@ -413,6 +419,7 @@ actual inspection and introspection."""
             shell = kernel_client.shell_channel
             shell.get_shell_msg = shell.get_msg
             iopub.get_iopub_msg = iopub.get_msg
+            # todo: get_stdin_msg
 
         self.shell_channel = shell
         self.kernelMonitor = iPythonKernelResponseMonitor(
