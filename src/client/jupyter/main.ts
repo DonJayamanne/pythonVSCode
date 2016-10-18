@@ -7,6 +7,7 @@ import { Commands, PythonLanguage } from '../common/constants';
 import { JupyterCodeLensProvider } from './editorIntegration/codeLensProvider';
 import { JupyterSymbolProvider } from './editorIntegration/symbolProvider';
 import { formatErrorForLogging } from '../common/utils';
+import {Documentation} from '../common/constants';
 import * as telemetryHelper from '../common/telemetry';
 import * as telemetryContracts from '../common/telemetryContracts';
 import * as main from './jupyter_client/main';
@@ -104,12 +105,20 @@ export class Jupyter extends vscode.Disposable {
                 }
             }).catch(reason => {
                 const message = typeof reason === 'string' ? reason : reason.message;
-                vscode.window.showErrorMessage(message);
                 this.outputChannel.appendLine(formatErrorForLogging(reason));
+                vscode.window.showErrorMessage(message, 'Help', 'View Errors').then(item => {
+                    if (item === 'Help') {
+                        vscode.commands.executeCommand('python.displayHelp', Documentation.Jupyter.Setup);
+                    }
+                    if (item === 'View Errors') {
+                        this.outputChannel.show();
+                    }
+                });
             });
     }
     private executeAndDisplay(kernel: Kernel, code: string) {
         return this.executeCodeInKernel(kernel, code).then(result => {
+            // No results to display
             if (result.length === 0) {
                 return;
             }

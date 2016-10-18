@@ -2,14 +2,12 @@ import * as os from 'os';
 import * as vscode from 'vscode';
 import { Kernel } from './kernel';
 import { KernelspecMetadata, Kernelspec } from './contracts';
-import { Commands, Documentation } from '../common/constants';
+import { Commands } from '../common/constants';
 import { EventEmitter } from 'events';
 import { PythonSettings } from '../common/configSettings';
 import { formatErrorForLogging } from '../common/utils';
-import { JmpModuleLoadError } from '../common/errors';
 import { JupyterClient } from './jupyter_client/main';
 import { JupyterClientKernel } from './jupyter_client-Kernel';
-// Todo: Refactor the error handling and displaying of messages
 
 const pythonSettings = PythonSettings.getInstance();
 
@@ -74,7 +72,7 @@ export class KernelManagerImpl extends EventEmitter {
 
         return startupPromise.catch(reason => {
             let message = 'Failed to start the kernel.';
-            if (typeof reason === 'object' && reason.message) {
+            if (reason && reason.message) {
                 message = reason.message;
             }
             vscode.window.showErrorMessage(message);
@@ -84,31 +82,8 @@ export class KernelManagerImpl extends EventEmitter {
     }
 
     public startKernelFor(language: string): Promise<Kernel> {
-        // We'll display the custom message here
-        // Todo: Yes we could create custom error classes, possibly later
-        // Then the main class can handle individual errors and display specific messages
-        let hasKernelSpec = false;
         return this.getKernelSpecFor(language).then(kernelSpec => {
-            hasKernelSpec = true;
             return this.startKernel(kernelSpec, language);
-        }).catch(reason => {
-            let message = `Ensure you have a Jupyter/IPython and the prerequisites installed.`;
-            let isCompatibilityIssue = false;
-            if (typeof reason === 'object' && reason instanceof JmpModuleLoadError) {
-                message = reason.message;
-                isCompatibilityIssue = true;
-            }
-            vscode.window.showErrorMessage(message, 'Help', 'View Errors').then(item => {
-                if (item === 'Help') {
-                    const helpPage = isCompatibilityIssue ? Documentation.Jupyter.VersionIncompatiblity : Documentation.Jupyter.Setup;
-                    vscode.commands.executeCommand('python.displayHelp', helpPage);
-                }
-                if (item === 'View Errors') {
-                    this.outputChannel.show();
-                }
-            });
-            this.outputChannel.appendLine(formatErrorForLogging(reason));
-            return;
         });
     }
 
@@ -137,15 +112,19 @@ export class KernelManagerImpl extends EventEmitter {
         return new Promise<any>((resolve, reject) => {
             let errorMessage = 'Failed to execute kernel startup code. ';
             kernel.execute(startupCode).subscribe(result => {
+                if (result.stream === 'error' && result.type === 'text' && typeof result.message === 'string') {
+                    errorMessage += 'Details: ' + result.message;
+                }
                 if (result.stream === 'status' && result.type === 'text' && result.data === 'error') {
                     this.outputChannel.appendLine(errorMessage);
                     vscode.window.showWarningMessage(errorMessage);
                 }
-                if (result.stream === 'error' && result.type === 'text' && typeof result.message === 'string') {
-                    errorMessage += 'Details: ' + result.message;
-                }
             }, reason => {
-                reject(reason);
+                // It doesn't matter if startup code execution Failed
+                // Possible they have placed some stuff that is invalid or we have some missing packages (e.g. matplot lib)
+                this.outputChannel.appendLine(formatErrorForLogging(reason));
+                vscode.window.showWarningMessage(errorMessage);
+                resolve();
             }, () => {
                 resolve();
             });
@@ -198,11 +177,7 @@ export class KernelManagerImpl extends EventEmitter {
         return this.getKernelSpecsFromJupyter().then(kernelSpecsFromJupyter => {
             this._kernelSpecs = kernelSpecsFromJupyter;
             if (Object.keys(this._kernelSpecs).length === 0) {
-                throw new Error('No kernel specs found, Update IPython/Jupyter to a version that supports: `jupyter kernelspec list --json` or `ipython kernelspec list --json`');
-            } else {
-                const message = 'VS Code Kernels updated:';
-                const details = Object.keys(this._kernelSpecs).map(key => this._kernelSpecs[key].spec.display_name).join(', ');
-                this.outputChannel.appendLine(message + ', ' + details);
+                throw new Error('No kernel specs found, Install or update IPython/Jupyter to a later version');
             }
             return this._kernelSpecs;
         });
