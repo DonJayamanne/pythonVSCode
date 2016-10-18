@@ -7,7 +7,7 @@ import { Commands, PythonLanguage } from '../common/constants';
 import { JupyterCodeLensProvider } from './editorIntegration/codeLensProvider';
 import { JupyterSymbolProvider } from './editorIntegration/symbolProvider';
 import { formatErrorForLogging } from '../common/utils';
-import {Documentation} from '../common/constants';
+import { Documentation } from '../common/constants';
 import * as telemetryHelper from '../common/telemetry';
 import * as telemetryContracts from '../common/telemetryContracts';
 import * as main from './jupyter_client/main';
@@ -27,8 +27,8 @@ export class Jupyter extends vscode.Disposable {
         this.registerCommands();
         this.registerKernelCommands();
     }
-    activate() {
-        const jupyterClient = new main.JupyterClient(this.outputChannel, vscode.workspace.rootPath);
+    activate(rootPath: string) {
+        const jupyterClient = new main.JupyterClient(this.outputChannel, rootPath);
         this.kernelManager = new KernelManagerImpl(this.outputChannel, jupyterClient);
         this.disposables.push(this.kernelManager);
         this.disposables.push(vscode.window.onDidChangeActiveTextEditor(this.onEditorChanged.bind(this)));

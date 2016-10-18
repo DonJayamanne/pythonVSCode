@@ -80,7 +80,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     jupMain = new jup.Jupyter(lintingOutChannel);
     const documentHasJupyterCodeCells = jupMain.hasCodeCells.bind(jupMain);
-    jupMain.activate(null);
+    jupMain.activate(vscode.workspace.rootPath);
     context.subscriptions.push(jupMain);
 
     context.subscriptions.push(new LintProvider(context, lintingOutChannel, vscode.workspace.rootPath, documentHasJupyterCodeCells));
