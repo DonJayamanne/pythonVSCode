@@ -69,7 +69,7 @@ export class Helpers {
     }
 
     private static parseDataMime(data): ParsedIOMessage {
-        if (data == null) {
+        if (!data) {
             return null;
         }
         const mime = Helpers.getMimeType(data);
