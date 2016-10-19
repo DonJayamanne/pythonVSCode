@@ -1,9 +1,9 @@
 "use strict";
 
-import {DebugSession, OutputEvent} from "vscode-debugadapter";
-import {IPythonProcess, IDebugServer} from "../Common/Contracts";
+import { DebugSession, OutputEvent } from "vscode-debugadapter";
+import { IPythonProcess, IDebugServer } from "../Common/Contracts";
 import * as net from "net";
-import {BaseDebugServer} from "./BaseDebugServer";
+import { BaseDebugServer } from "./BaseDebugServer";
 
 export class LocalDebugServer extends BaseDebugServer {
     private debugSocketServer: net.Server = null;
@@ -13,7 +13,7 @@ export class LocalDebugServer extends BaseDebugServer {
     }
 
     public Stop() {
-        if (this.debugSocketServer === null) return;
+        if (this.debugSocketServer === null) { return; }
         try {
             this.debugSocketServer.close();
         }
@@ -57,7 +57,7 @@ export class LocalDebugServer extends BaseDebugServer {
                     msg = `The port used for debugging is in use, please try again or try restarting Visual Studio Code, Error = ${exMessage}`;
                 }
                 else {
-                    if (connected){
+                    if (connected) {
                         // Under what circumstance does this happen?
                         // Needs to be documented
                         return;

@@ -11,7 +11,7 @@ export class SocketServer extends EventEmitter {
     }
 
     public Stop() {
-        if (this.socketServer === null) return;
+        if (this.socketServer === null) { return; }
         try {
             this.socketServer.close();
         }
@@ -21,8 +21,6 @@ export class SocketServer extends EventEmitter {
 
     public Start(): Promise<number> {
         const def = createDeferred<number>();
-        let that = this;
-        let connected = false;
         this.socketServer = net.createServer(this.connectionListener.bind(this));
 
         this.socketServer.listen(0, function (this: SocketServer) {
@@ -51,7 +49,7 @@ export class SocketServer extends EventEmitter {
         }.bind(this));
 
         client.on("timeout", d => {
-            let msg = "Debugger client timedout, " + d;
+            // let msg = "Debugger client timedout, " + d;
         });
     }
 }
