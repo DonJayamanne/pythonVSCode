@@ -353,7 +353,7 @@ class iPythonSocketServer(object):
         _debug_write('Listing kernel specs')
         kernelspecs = json.dumps(listKernelSpecs())
         with self.send_lock:
-            _debug_write('Replying with kernel Specs= ' + kernelspecs)
+            _debug_write('Replying with kernel Specs')
             write_bytes(self.conn, iPythonSocketServer._LSKS)
             write_string(self.conn, id)
             write_string(self.conn, kernelspecs)
@@ -455,16 +455,8 @@ class iPythonSocketServer(object):
             except socket.timeout:
                 pass
 
-        try:
-            if self.kernelMonitor is not None:
-                self.kernelMonitor.stop()
-        finally:
-            self.kernelMonitor = None
-
         kernel_manager = multiKernelManager.get_kernel(kernelUUID)
         kernel_manager.restart_kernel(now=True)
-
-        self._postStartKernel(kernelUUID)
 
         with self.send_lock:
             write_bytes(self.conn, iPythonSocketServer._RSTK)
