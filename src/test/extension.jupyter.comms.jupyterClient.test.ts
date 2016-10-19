@@ -9,7 +9,6 @@ import * as assert from 'assert';
 
 // You can import and use all API from the 'vscode' module
 // as well as import your extension to test it
-import * as vscode from 'vscode';
 import { JupyterClientAdapter } from '../client/jupyter/jupyter_client/main';
 import * as mocks from './mockClasses';
 import { KernelRestartedError, KernelShutdownError } from '../client/jupyter/common/errors';
@@ -328,7 +327,6 @@ suite('JupyterClient', () => {
                     // interrupt this kernel immediately
                     jupyter.interruptKernel(startedInfo[0]).then(() => {
                         // Do nothing
-                        const y = '';
                     }, reason => {
                         assert.fail(reason, null, 'Failed to interrupt the kernel', '');
                     });

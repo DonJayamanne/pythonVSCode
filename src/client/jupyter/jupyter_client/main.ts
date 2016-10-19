@@ -27,7 +27,7 @@ export class JupyterClientAdapter extends EventEmitter implements IJupyterClient
 
     public dispose() {
         try {
-            this.ipythonAdapter.sendKernelCommand(this.lastStartedKernelUUID, KernelCommand.shutdown)
+            this.ipythonAdapter.sendKernelCommand(this.lastStartedKernelUUID, KernelCommand.shutdown);
         }
         catch (ex) {
         }
