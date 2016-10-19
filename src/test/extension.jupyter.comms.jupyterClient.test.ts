@@ -12,6 +12,7 @@ import * as assert from 'assert';
 import { JupyterClientAdapter } from '../client/jupyter/jupyter_client/main';
 import * as mocks from './mockClasses';
 import { KernelRestartedError, KernelShutdownError } from '../client/jupyter/common/errors';
+import { createDeferred } from '../client/common/helpers';
 
 suiteSetup(done => {
     initialize().then(() => {
@@ -404,6 +405,64 @@ suite('JupyterClient', () => {
                 }
             }, () => {
                 assert.fail('Complete event fired', 'none', 'Completed fired for observable', '');
+            });
+        }).catch(reason => {
+            assert.fail(reason, undefined, 'Failed to retrieve kernelspecs', '');
+            done();
+        });
+        process.env['PYTHON_DONJAYAMANNE_TEST'] = '1';
+    });
+    test('Execute multiple blocks of Code', done => {
+        process.env['PYTHON_DONJAYAMANNE_TEST'] = '0';
+        const output = new mocks.MockOutputChannel('Jupyter');
+        const jupyter = new JupyterClientAdapter(output, __dirname);
+        jupyter.start().then(() => {
+            return jupyter.getAllKernelSpecs();
+        }).then(kernelSpecs => {
+            const kernelNames = Object.keys(kernelSpecs);
+            assert.notEqual(kernelNames.length, 0, 'kernelSpecs not found');
+            // Get name of any kernel
+            return jupyter.startKernel(kernelSpecs[kernelNames[0]].spec);
+        }).then(startedInfo => {
+            const output1 = [];
+            const output2 = [];
+            const output3 = [];
+            const def1 = createDeferred<any>();
+            const def2 = createDeferred<any>();
+            const def3 = createDeferred<any>();
+            jupyter.runCode('1+2').subscribe(data => {
+                output1.push(data);
+            }, reason => {
+                assert.fail(reason, null, 'Code execution failed in jupyter', '');
+            }, () => {
+                assert.equal(output1.some(d => d.stream === 'pyout' && d.type === 'text' && d.data['text/plain'] === '3'), true, 'pyout not found in output');
+                assert.equal(output1.some(d => d.stream === 'status' && d.type === 'text' && d.data === 'ok'), true, 'status not found in output');
+                def1.resolve();
+            });
+            jupyter.runCode('print(2)\nimport time\ntime.sleep(5)\nprint(3)').subscribe(data => {
+                output2.push(data);
+            }, reason => {
+                assert.fail(reason, null, 'Code execution failed in jupyter', '');
+            }, () => {
+                assert.equal(output2.some(d => d.stream === 'stdout' && d.type === 'text' && d.data['text/plain'] === '2'), true, 'stdout (2) not found in output');
+                assert.equal(output2.some(d => d.stream === 'stdout' && d.type === 'text' && d.data['text/plain'] === '3'), true, 'stdout (3) not found in output');
+                assert.equal(output2.some(d => d.stream === 'status' && d.type === 'text' && d.data === 'ok'), true, 'status not found in output');
+                def2.resolve();
+            });
+            jupyter.runCode('print(1)').subscribe(data => {
+                output3.push(data);
+            }, reason => {
+                assert.fail(reason, null, 'Code execution failed in jupyter', '');
+            }, () => {
+                assert.equal(output3.some(d => d.stream === 'stdout' && d.type === 'text' && d.data['text/plain'] === '1'), true, 'pyout not found in output');
+                assert.equal(output3.some(d => d.stream === 'status' && d.type === 'text' && d.data === 'ok'), true, 'status not found in output');
+                def3.resolve();
+            });
+
+            Promise.all([def1.promise, def2.promise, def3.promise]).then(() => {
+                done();
+            }).catch(reason => {
+                assert.fail(reason, null, 'One of the code executions failed', '');
             });
         }).catch(reason => {
             assert.fail(reason, undefined, 'Failed to retrieve kernelspecs', '');
