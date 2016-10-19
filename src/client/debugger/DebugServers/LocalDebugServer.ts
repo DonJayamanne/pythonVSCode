@@ -24,7 +24,7 @@ export class LocalDebugServer extends BaseDebugServer {
     public Start(): Promise<IDebugServer> {
         return new Promise<IDebugServer>((resolve, reject) => {
             let that = this;
-            let connectedResolve = this.debugClientConnected.resolve;
+            let connectedResolve = this.debugClientConnected.resolve.bind(this.debugClientConnected);
             let connected = false;
             this.debugSocketServer = net.createServer(c => {
                 // "connection" listener
