@@ -51,7 +51,7 @@ export interface JupyterMessage {
         // status = 'busy', sent back as soon as a request is received by the kernel (kind of an ACK)
         // status = 'error', then ename, evalue, traceback will be returned
         // status = 'error', then ename, evalue, traceback will be returned
-        status: 'busy' | 'error' | 'ok' | 'abort';
+        status: 'busy' | 'error' | 'ok' | 'abort'| 'aborted';
 
         // ********************************************************
         // RESPONSE for status = 'error'
