@@ -24,6 +24,33 @@ export class JupyterClientAdapter extends EventEmitter implements IJupyterClient
     private ipythonAdapter: JupyterSocketClient;
 
     private startDef: Deferred<any>;
+
+    public dispose() {
+        try {
+            this.ipythonAdapter.sendKernelCommand(this.lastStartedKernelUUID, KernelCommand.shutdown)
+        }
+        catch (ex) {
+        }
+        try {
+            this.ipythonAdapter.dispose();
+        }
+        catch (ex) {
+        }
+        try {
+            this.process.kill();
+        }
+        catch (ex) {
+        }
+        try {
+            this.socketServer.Stop();
+        }
+        catch (ex) {
+        }
+        this.ipythonAdapter = null;
+        this.process = null;
+        this.socketServer = null;
+        this.startDef = null;
+    }
     public start(envVariables?: { [key: string]: string }): Promise<any> {
         if (this.startDef) {
             return this.startDef.promise;
@@ -32,6 +59,7 @@ export class JupyterClientAdapter extends EventEmitter implements IJupyterClient
         this.startDef = createDeferred<any>();
         const pyFile = path.join(__dirname, '..', '..', '..', '..', 'pythonFiles', 'PythonTools', 'ipythonServer.py');
         const newEnv = {};
+        // const newEnv = {'DEBUG_DJAYAMANNE_IPYTHON':'1'};
         Object.assign(newEnv, envVariables);
         Object.assign(newEnv, process.env);
 
@@ -119,6 +147,7 @@ export class JupyterClientAdapter extends EventEmitter implements IJupyterClient
     public getAllKernelSpecs(): Promise<{ [key: string]: Kernelspec }> {
         return this.start().then(() => this.ipythonAdapter.listKernelSpecs());
     }
+    private lastStartedKernelUUID: string;
     public startKernel(kernelSpec: KernelspecMetadata): Promise<[string, any, string]> {
         return this.start().then(() => this.getAllKernelSpecs()).then(specks => {
             // ok given the specks, find the name of the kernelspec
@@ -126,7 +155,10 @@ export class JupyterClientAdapter extends EventEmitter implements IJupyterClient
                 const spec = specks[kernelSpecName];
                 return spec.spec.display_name === kernelSpec.display_name;
             });
-            return this.ipythonAdapter.startKernel(kernelSpecName);
+            return this.ipythonAdapter.startKernel(kernelSpecName).then(info => {
+                this.lastStartedKernelUUID = info[0];
+                return info;
+            });
         });
     }
     public shutdownkernel(kernelUUID: string): Promise<any> {

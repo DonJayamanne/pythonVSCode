@@ -33,6 +33,7 @@ export class KernelManagerImpl extends EventEmitter {
             kernel.dispose();
         });
         this._runningKernels.clear();
+        this.jupyterClient.dispose();
     }
 
     public setRunningKernelFor(language: string, kernel: Kernel) {
