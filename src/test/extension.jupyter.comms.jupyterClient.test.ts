@@ -13,6 +13,7 @@ import { JupyterClientAdapter } from '../client/jupyter/jupyter_client/main';
 import * as mocks from './mockClasses';
 import { KernelRestartedError, KernelShutdownError } from '../client/jupyter/common/errors';
 import { createDeferred } from '../client/common/helpers';
+import { KernelspecMetadata } from '../client/jupyter/contracts';
 
 suiteSetup(done => {
     initialize().then(() => {
@@ -279,6 +280,62 @@ suite('JupyterClient', () => {
         process.env['PYTHON_DONJAYAMANNE_TEST'] = '1';
     });
 
+    test('Execute code after shutdowning down when executing code', done => {
+        process.env['PYTHON_DONJAYAMANNE_TEST'] = '0';
+        const output = new mocks.MockOutputChannel('Jupyter');
+        const jupyter = new JupyterClientAdapter(output, __dirname);
+        let kernelSpecUsed: KernelspecMetadata;
+        jupyter.start().then(() => {
+            return jupyter.getAllKernelSpecs();
+        }).then(kernelSpecs => {
+            const kernelNames = Object.keys(kernelSpecs);
+            assert.notEqual(kernelNames.length, 0, 'kernelSpecs not found');
+            // Get name of any kernel
+            kernelSpecUsed = kernelSpecs[kernelNames[0]].spec;
+            return jupyter.startKernel(kernelSpecUsed);
+        }).then(startedInfo => {
+            const output = [];
+            let runFailedWithError = false;
+            jupyter.runCode('print(2)\nimport time\ntime.sleep(5)\nprint(3)').subscribe(data => {
+                output.push(data);
+                if (output.length === 1) {
+                    // Shutdown this kernel immediately
+                    jupyter.shutdownkernel(startedInfo[0]).then(() => {
+                        assert.equal(runFailedWithError, true, 'Error event not raised in observale');
+                        jupyter.startKernel(kernelSpecUsed).then(() => {
+                            const output2 = [];
+                            jupyter.runCode('1+2').subscribe(data => {
+                                output2.push(data);
+                            }, reason => {
+                                assert.fail(reason, null, 'Code execution failed in jupyter', '');
+                            }, () => {
+                                assert.equal(output2.some(d => d.stream === 'pyout' && d.type === 'text' && d.data['text/plain'] === '3'), true, 'pyout not found in output');
+                                assert.equal(output2.some(d => d.stream === 'status' && d.type === 'text' && d.data === 'ok'), true, 'status not found in output');
+                                done();
+                            });
+                        }).catch(reason => {
+                            assert.fail(reason, null, 'Failed to restart the kernel', '');
+                        });
+                    }, reason => {
+                        assert.fail(reason, null, 'Failed to shutdown the kernel', '');
+                    });
+                }
+            }, reason => {
+                if (reason instanceof KernelShutdownError) {
+                    runFailedWithError = true;
+                }
+                else {
+                    assert.fail(reason, null, 'Code execution failed in jupyter with invalid error', '');
+                }
+            }, () => {
+                assert.fail('Complete event fired', 'none', 'Completed fired for observable', '');
+            });
+        }).catch(reason => {
+            assert.fail(reason, undefined, 'Failed to retrieve kernelspecs', '');
+            done();
+        });
+        process.env['PYTHON_DONJAYAMANNE_TEST'] = '1';
+    });
 
     test('Interrupt Kernel', done => {
         process.env['PYTHON_DONJAYAMANNE_TEST'] = '0';
