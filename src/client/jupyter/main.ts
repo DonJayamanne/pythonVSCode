@@ -179,7 +179,7 @@ export class Jupyter extends vscode.Disposable {
             });
         }));
         this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.Kernel.Kernel_Shut_Down, () => {
-            this.kernel.shutdown();
+            this.kernelManager.destroyRunningKernelFor('python');
             this.onKernelChanged();
         }));
     }

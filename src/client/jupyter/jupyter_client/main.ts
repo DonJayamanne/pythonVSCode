@@ -65,7 +65,6 @@ export class JupyterClientAdapter extends EventEmitter implements IJupyterClient
 
         this.startSocketServer().then(port => {
             const def = createDeferred<any>();
-            //const newEnv = { "DEBUG_DJAYAMANNE_IPYTHON": "1" };
             const options = { env: newEnv, cwd: this.rootDir };
             this.process = child_process.spawn(PythonSettings.getInstance().pythonPath, [pyFile, port.toString()], options);
             this.process.stdout.setEncoding('utf8');
