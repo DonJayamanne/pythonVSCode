@@ -8,6 +8,7 @@ import { PythonSettings } from '../common/configSettings';
 import { formatErrorForLogging } from '../common/utils';
 import { JupyterClientAdapter } from './jupyter_client/main';
 import { JupyterClientKernel } from './jupyter_client-Kernel';
+import { KernelRestartedError, KernelShutdownError } from './common/errors';
 
 const pythonSettings = PythonSettings.getInstance();
 
@@ -120,6 +121,9 @@ export class KernelManagerImpl extends EventEmitter {
                     vscode.window.showWarningMessage(errorMessage);
                 }
             }, reason => {
+                if (reason instanceof KernelRestartedError || reason instanceof KernelShutdownError) {
+                    return resolve();
+                }
                 // It doesn't matter if startup code execution Failed
                 // Possible they have placed some stuff that is invalid or we have some missing packages (e.g. matplot lib)
                 this.outputChannel.appendLine(formatErrorForLogging(reason));

@@ -9,6 +9,7 @@ import { KernelCommand } from './contracts';
 import { JupyterMessage, ParsedIOMessage } from '../contracts';
 import { Helpers } from '../common/helpers';
 import * as Rx from 'rx';
+import { KernelRestartedError, KernelShutdownError } from '../common/errors';
 
 export class JupyterSocketClient extends SocketCallbackHandler {
     constructor(socketServer: SocketServer) {
@@ -30,6 +31,13 @@ export class JupyterSocketClient extends SocketCallbackHandler {
     private pid: number;
     private guid: string;
 
+    public dispose() {
+        try {
+            this.SendRawCommand(Commands.ExitCommandBytes);
+        }
+        catch (ex) {
+        }
+    }
     protected handleHandshake(): boolean {
         if (typeof this.guid !== 'string') {
             this.guid = this.stream.readStringInTransaction();
@@ -121,6 +129,7 @@ export class JupyterSocketClient extends SocketCallbackHandler {
     public sendKernelCommand(kernelUUID: string, command: KernelCommand): Promise<any> {
         const [def, id] = this.createId<any>();
         let commandBytes: Buffer;
+        let error;
         switch (command) {
             case KernelCommand.interrupt: {
                 commandBytes = Commands.InterruptKernelBytes;
@@ -128,10 +137,12 @@ export class JupyterSocketClient extends SocketCallbackHandler {
             }
             case KernelCommand.restart: {
                 commandBytes = Commands.RestartKernelBytes;
+                error = new KernelRestartedError();
                 break;
             }
             case KernelCommand.shutdown: {
                 commandBytes = Commands.ShutdownKernelBytes;
+                error = new KernelShutdownError();
                 break;
             }
             default: {
@@ -141,6 +152,25 @@ export class JupyterSocketClient extends SocketCallbackHandler {
         this.SendRawCommand(commandBytes);
         this.stream.WriteString(id);
         this.stream.WriteString(kernelUUID);
+
+        if (error) {
+            // Throw errors for pending commands
+            this.pendingCommands.forEach((pendingDef, key) => {
+                if (id !== key) {
+                    this.pendingCommands.delete(id);
+                    pendingDef.reject(error);
+                }
+            });
+
+            this.msgSubject.forEach((subject, key) => {
+                subject.onError(error);
+            });
+
+            this.msgSubject.clear();
+            this.unhandledMessages.clear();
+            this.finalMessage.clear();
+        }
+
         return def.promise;
     }
     public onKernelCommandComplete() {
@@ -232,6 +262,8 @@ export class JupyterSocketClient extends SocketCallbackHandler {
             const status = message.content.status;
             let parsedMesage: ParsedIOMessage;
             switch (status) {
+                case 'abort':
+                case 'aborted':
                 case 'error': {
                     // http://jupyter-client.readthedocs.io/en/latest/messaging.html#request-reply
                     if (msg_type !== 'complete_reply' && msg_type !== 'inspect_reply') {
@@ -262,6 +294,7 @@ export class JupyterSocketClient extends SocketCallbackHandler {
                 // If th io message with status='idle' has been received, that means message execution is deemed complete
                 if (info.ioStatusSent) {
                     this.finalMessage.delete(msg_id);
+                    this.msgSubject.delete(msg_id);
                     subject.onNext(parsedMesage);
                     subject.onCompleted();
                 }
@@ -297,15 +330,26 @@ export class JupyterSocketClient extends SocketCallbackHandler {
 
             // Ok, if we have received a status of 'idle' this means the execution has completed
             if (msg_type === 'status' && message.content.execution_state === 'idle' && this.msgSubject.has(msg_id)) {
-                // Wait for the shell message to come through
-                setTimeout(() => {
-                    const subject = this.msgSubject.get(msg_id);
-                    this.msgSubject.delete(msg_id);
+                let timesWaited = 0;
+                const waitForFinalIOMessage = () => {
+                    timesWaited += 1;
+                    // The Shell message handler has processed the message
+                    if (!this.msgSubject.has(msg_id)) {
+                        return;
+                    }
                     // Last message sent on shell channel (status='ok' or status='error')
                     // and now we have a status message, this means the exection is deemed complete
                     if (this.finalMessage.has(msg_id)) {
+                        const subject = this.msgSubject.get(msg_id);
                         const info = this.finalMessage.get(msg_id);
+                        if (!info.shellMessage && timesWaited < 10) {
+                            setTimeout(() => {
+                                waitForFinalIOMessage();
+                            }, 10);
+                            return;
+                        }
                         this.finalMessage.delete(msg_id);
+                        this.msgSubject.delete(msg_id);
                         if (info.shellMessage) {
                             subject.onNext(info.shellMessage);
                         }
@@ -314,6 +358,11 @@ export class JupyterSocketClient extends SocketCallbackHandler {
                     else {
                         this.finalMessage.set(msg_id, { ioStatusSent: true });
                     }
+                };
+
+                // Wait for the shell message to come through
+                setTimeout(() => {
+                    waitForFinalIOMessage();
                 }, 10);
             }
 
@@ -344,6 +393,9 @@ export class JupyterSocketClient extends SocketCallbackHandler {
         const id = this.stream.readStringInTransaction();
         const trace = this.stream.readStringInTransaction();
         if (typeof trace !== 'string') {
+            return;
+        }
+        if (cmd === 'exit') {
             return;
         }
         if (id.length > 0 && this.pendingCommands.has(id)) {

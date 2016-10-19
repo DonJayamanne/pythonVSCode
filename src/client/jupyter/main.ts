@@ -11,6 +11,7 @@ import { Documentation } from '../common/constants';
 import * as telemetryHelper from '../common/telemetry';
 import * as telemetryContracts from '../common/telemetryContracts';
 import * as main from './jupyter_client/main';
+import { KernelRestartedError, KernelShutdownError } from './common/errors';
 
 // Todo: Refactor the error handling and displaying of messages
 
@@ -134,6 +135,9 @@ export class Jupyter extends vscode.Disposable {
                 }
                 responses.push(result.data);
             }, reason => {
+                if (reason instanceof KernelRestartedError || reason instanceof KernelShutdownError) {
+                    return resolve([]);
+                }
                 reject(reason);
             }, () => {
                 resolve(responses);
