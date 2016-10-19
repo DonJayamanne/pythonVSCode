@@ -470,4 +470,37 @@ suite('JupyterClient', () => {
         });
         process.env['PYTHON_DONJAYAMANNE_TEST'] = '1';
     });
+    test('Status change', done => {
+        process.env['PYTHON_DONJAYAMANNE_TEST'] = '0';
+        const output = new mocks.MockOutputChannel('Jupyter');
+        const jupyter = new JupyterClientAdapter(output, __dirname);
+        jupyter.start().then(() => {
+            return jupyter.getAllKernelSpecs();
+        }).then(kernelSpecs => {
+            const kernelNames = Object.keys(kernelSpecs);
+            assert.notEqual(kernelNames.length, 0, 'kernelSpecs not found');
+            // Get name of any kernel
+            return jupyter.startKernel(kernelSpecs[kernelNames[0]].spec);
+        }).then(startedInfo => {
+            const output = [];
+            const statuses = [];
+            jupyter.on('status', status => {
+                statuses.push(status);
+            });
+            jupyter.runCode('1+2').subscribe(data => {
+                output.push(data);
+            }, reason => {
+                assert.fail(reason, null, 'Code execution failed in jupyter', '');
+            }, () => {
+                assert.equal(output.some(d => d.stream === 'pyout' && d.type === 'text' && d.data['text/plain'] === '3'), true, 'pyout not found in output');
+                assert.equal(output.some(d => d.stream === 'status' && d.type === 'text' && d.data === 'ok'), true, 'status not found in output');
+                assert.equal(statuses.indexOf('busy'), 0, 'busy status not the first status');
+                assert.equal(statuses.indexOf('idle'), 1, 'idle status not the last status');
+                done();
+            });
+        }).catch(reason => {
+            assert.fail(reason, undefined, 'Failed to retrieve kernelspecs', '');
+        });
+        process.env['PYTHON_DONJAYAMANNE_TEST'] = '1';
+    });
 });
