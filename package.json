@@ -109,27 +109,27 @@
       },
       {
         "command": "jupyter.runSelectionLine",
-        "title": "Run selection/line",
+        "title": "Run Selection/Line",
         "category": "Jupyter"
       },
       {
         "command": "jupyter:execCurrentCell",
-        "title": "Run cell",
+        "title": "Run Cell",
         "category": "Jupyter"
       },
       {
         "command": "jupyter:execCurrentCellAndAdvance",
-        "title": "Run cell and advance",
+        "title": "Run Cell and Advance",
         "category": "Jupyter"
       },
       {
         "command": "jupyter:gotToPreviousCell",
-        "title": "Go to previous cell",
+        "title": "Go to Previous Cell",
         "category": "Jupyter"
       },
       {
         "command": "jupyter:gotToNextCell",
-        "title": "Go to next cell",
+        "title": "Go to Next Cell",
         "category": "Jupyter"
       },
       {
