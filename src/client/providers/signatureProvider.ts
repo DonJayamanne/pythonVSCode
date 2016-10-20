@@ -60,7 +60,7 @@ export class PythonSignatureProvider implements vscode.SignatureHelpProvider {
                 // i.e. line feeds are not respected, long content is stripped
                 let sig = <vscode.SignatureInformation>{
                     // documentation: def.docstring,
-                    label: def.docstring,
+                    label: def.description,
                     parameters: []
                 };
                 sig.parameters = def.params.map(arg => {
