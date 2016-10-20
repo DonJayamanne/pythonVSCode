@@ -1,12 +1,12 @@
 'use strict';
 
-import * as path from 'path';
 import * as baseLinter from './baseLinter';
-import {OutputChannel, workspace} from 'vscode';
+import {OutputChannel} from 'vscode';
+import { Product } from '../common/installer';
 
 export class Linter extends baseLinter.BaseLinter {
     constructor(outputChannel: OutputChannel, workspaceRootPath: string) {
-        super('pep8', outputChannel, workspaceRootPath);
+        super('pep8', Product.pep8, outputChannel, workspaceRootPath);
     }
 
     public isEnabled(): Boolean {

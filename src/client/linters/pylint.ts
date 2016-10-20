@@ -1,12 +1,12 @@
 'use strict';
 
-import * as path from 'path';
 import * as baseLinter from './baseLinter';
-import {OutputChannel, workspace} from 'vscode';
+import {OutputChannel} from 'vscode';
+import { Product } from '../common/installer';
 
 export class Linter extends baseLinter.BaseLinter {
     constructor(outputChannel: OutputChannel, workspaceRootPath: string) {
-        super('pylint', outputChannel, workspaceRootPath);
+        super('pylint', Product.pylint, outputChannel, workspaceRootPath);
     }
 
     private parseMessagesSeverity(category: string): baseLinter.LintMessageSeverity {

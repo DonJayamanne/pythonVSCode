@@ -3,10 +3,11 @@
 import * as vscode from 'vscode';
 import {BaseFormatter} from './baseFormatter';
 import * as settings from './../common/configSettings';
+import { Product } from '../common/installer';
 
 export class YapfFormatter extends BaseFormatter {
     constructor(protected outputChannel: vscode.OutputChannel, protected pythonSettings: settings.IPythonSettings, protected workspaceRootPath: string) {
-        super('yapf', outputChannel, pythonSettings, workspaceRootPath);
+        super('yapf', Product.yapf, outputChannel, pythonSettings, workspaceRootPath);
     }
 
     public formatDocument(document: vscode.TextDocument, options: vscode.FormattingOptions, token: vscode.CancellationToken, range?: vscode.Range): Thenable<vscode.TextEdit[]> {

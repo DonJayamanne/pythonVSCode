@@ -1,11 +1,9 @@
 'use strict';
 import * as vscode from 'vscode';
-import {Tests, TestsToRun, TestFolder, TestFile, TestStatus, TestSuite, TestFunction, CANCELLATION_REASON} from '../common/contracts';
-import {PythonSettings} from '../../common/configSettings';
+import { Tests, CANCELLATION_REASON } from '../common/contracts';
 import * as constants from '../../common/constants';
-import {displayTestErrorMessage} from '../common/testUtils';
-
-const settings = PythonSettings.getInstance();
+import { displayTestErrorMessage } from '../common/testUtils';
+import { isNotInstalledError } from '../../common/helpers';
 
 export class TestResultDisplay {
     private statusBar: vscode.StatusBarItem;
@@ -75,7 +73,7 @@ export class TestResultDisplay {
             this.statusBar.tooltip = 'Run Tests';
         }
         else {
-            this.statusBar.text = `$(octicon-alert) Tests Failed`;
+            this.statusBar.text = `$(alert) Tests Failed`;
             this.statusBar.tooltip = 'Running Tests Failed';
             displayTestErrorMessage('There was an error in running the tests.');
         }
@@ -133,8 +131,13 @@ export class TestResultDisplay {
         this.statusBar.tooltip = 'Discover Tests';
         this.statusBar.command = constants.Commands.Tests_Discover;
         this.statusBar.show();
-        if (reason !== CANCELLATION_REASON && !quietMode) {
-            vscode.window.showErrorMessage('There was an error in discovering tests');
+        this.statusBar.color = 'yellow';
+        if (reason !== CANCELLATION_REASON) {
+            this.statusBar.text = `$(alert) Test discovery failed`;
+            this.statusBar.tooltip = `Discovering Tests failed (view 'Python Test Log' output panel for details)`;
+            if (!isNotInstalledError(reason) && !quietMode) {
+                vscode.window.showErrorMessage('There was an error in discovering tests');
+            }
         }
     }
 }

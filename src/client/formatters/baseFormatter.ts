@@ -1,15 +1,17 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import * as path from 'path';
 import * as fs from 'fs';
-import {execPythonFile} from './../common/utils';
+import { execPythonFile } from './../common/utils';
 import * as settings from './../common/configSettings';
-import {getTextEditsFromPatch, getTempFileWithDocumentContents} from './../common/editor';
-import {isNotInstalledError} from '../common/helpers';
+import { getTextEditsFromPatch, getTempFileWithDocumentContents } from './../common/editor';
+import { isNotInstalledError } from '../common/helpers';
+import { Installer, Product } from '../common/installer';
 
 export abstract class BaseFormatter {
-    constructor(public Id: string, protected outputChannel: vscode.OutputChannel, protected pythonSettings: settings.IPythonSettings, protected workspaceRootPath: string) {
+    private installer: Installer;
+    constructor(public Id: string, private product: Product, protected outputChannel: vscode.OutputChannel, protected pythonSettings: settings.IPythonSettings, protected workspaceRootPath: string) {
+        this.installer = new Installer();
     }
 
     public abstract formatDocument(document: vscode.TextDocument, options: vscode.FormattingOptions, token: vscode.CancellationToken, range?: vscode.Range): Thenable<vscode.TextEdit[]>;
@@ -59,6 +61,7 @@ export abstract class BaseFormatter {
             }
             else {
                 customError += `\nYou could either install the '${this.Id}' formatter, turn it off or use another formatter.`;
+                this.installer.promptToInstall(this.product);
             }
         }
 

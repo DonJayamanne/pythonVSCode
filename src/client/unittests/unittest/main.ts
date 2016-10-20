@@ -5,11 +5,12 @@ import {runTest} from './runner';
 import * as vscode from 'vscode';
 import {discoverTests} from './collector';
 import {BaseTestManager} from '../common/baseTestManager';
+import { Product } from '../../common/installer';
 
 const settings = PythonSettings.getInstance();
 export class TestManager extends BaseTestManager {
     constructor(rootDirectory: string, outputChannel: vscode.OutputChannel) {
-        super('pytest', rootDirectory, outputChannel);
+        super('unitest', Product.unittest, rootDirectory, outputChannel);
     }
     discoverTestsImpl(ignoreCache: boolean): Promise<Tests> {
         let args = settings.unitTest.unittestArgs.slice(0);

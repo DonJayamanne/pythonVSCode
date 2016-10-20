@@ -1,11 +1,9 @@
 'use strict';
-import * as child_process from 'child_process';
-import * as path from 'path';
-import { exec } from 'child_process';
-import {execPythonFile} from './../common/utils';
+import { execPythonFile } from './../common/utils';
 import * as settings from './../common/configSettings';
-import {OutputChannel, window} from 'vscode';
-import {isNotInstalledError} from '../common/helpers';
+import { OutputChannel } from 'vscode';
+import { isNotInstalledError } from '../common/helpers';
+import { Installer, Product } from '../common/installer';
 
 let NamedRegexp = null;
 const REGEX = '(?<line>\\d+),(?<column>\\d+),(?<type>\\w+),(?<code>\\w\\d+):(?<message>.*)\\r?(\\n|$)';
@@ -51,9 +49,11 @@ export function matchNamedRegEx(data, regex): IRegexGroup {
 
 export abstract class BaseLinter {
     public Id: string;
+    private installer: Installer;
     protected pythonSettings: settings.IPythonSettings;
-    constructor(id: string, protected outputChannel: OutputChannel, protected workspaceRootPath: string) {
+    constructor(id: string, private product:Product, protected outputChannel: OutputChannel, protected workspaceRootPath: string) {
         this.Id = id;
+        this.installer = new Installer();
         this.pythonSettings = settings.PythonSettings.getInstance();
     }
     public abstract isEnabled(): Boolean;
@@ -61,7 +61,6 @@ export abstract class BaseLinter {
 
     protected run(command: string, args: string[], filePath: string, txtDocumentLines: string[], cwd: string, regEx: string = REGEX): Promise<ILintMessage[]> {
         let outputChannel = this.outputChannel;
-        let linterId = this.Id;
 
         return new Promise<ILintMessage[]>((resolve, reject) => {
             execPythonFile(command, args, cwd, true).then(data => {
@@ -83,7 +82,6 @@ export abstract class BaseLinter {
                         if (!isNaN(match.column)) {
                             let sourceLine = txtDocumentLines[match.line - 1];
                             let sourceStart = sourceLine.substring(match.column - 1);
-                            let endCol = txtDocumentLines[match.line - 1].length;
 
                             // try to get the first word from the startig position
                             let possibleProblemWords = sourceStart.match(/\w+/g);
@@ -105,7 +103,6 @@ export abstract class BaseLinter {
                     catch (ex) {
                         // Hmm, need to handle this later
                         // TODO:
-                        let y = '';
                     }
                 });
 
@@ -132,7 +129,7 @@ export abstract class BaseLinter {
                     'For further details, please see https://github.com/DonJayamanne/pythonVSCode/wiki/Troubleshooting-Linting#2-linting-with-xxx-failed-';
             }
             else {
-                customError += `\nYou could either install the '${this.Id}' linter or turn it off in setings.json via "python.linting.${this.Id}Enabled = false".`;
+                customError += `\nYou could either install the '${this.Id}' linter or turn it off in setings.json via "python.linting.${this.Id}Enabled = false".`;this.installer.promptToInstall(this.product);
             }
         }
 

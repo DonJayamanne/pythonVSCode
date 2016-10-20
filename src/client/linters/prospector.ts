@@ -1,9 +1,9 @@
 'use strict';
 
-import * as path from 'path';
 import * as baseLinter from './baseLinter';
-import {OutputChannel, workspace, window} from 'vscode';
+import {OutputChannel} from 'vscode';
 import {execPythonFile} from './../common/utils';
+import { Product } from '../common/installer';
 
 interface IProspectorResponse {
     messages: IProspectorMessage[];
@@ -24,7 +24,7 @@ interface IProspectorLocation {
 
 export class Linter extends baseLinter.BaseLinter {
     constructor(outputChannel: OutputChannel, workspaceRootPath: string) {
-        super('prospector', outputChannel, workspaceRootPath);
+        super('prospector', Product.prospector, outputChannel, workspaceRootPath);
     }
 
     public isEnabled(): Boolean {
@@ -37,7 +37,6 @@ export class Linter extends baseLinter.BaseLinter {
 
         let prospectorPath = this.pythonSettings.linting.prospectorPath;
         let outputChannel = this.outputChannel;
-        let linterId = this.Id;
         let prospectorArgs = Array.isArray(this.pythonSettings.linting.prospectorArgs) ? this.pythonSettings.linting.prospectorArgs : [];
         return new Promise<baseLinter.ILintMessage[]>((resolve, reject) => {
             execPythonFile(prospectorPath, prospectorArgs.concat(['--absolute-paths', '--output-format=json', filePath]), this.workspaceRootPath, false).then(data => {
@@ -56,7 +55,6 @@ export class Linter extends baseLinter.BaseLinter {
 		    let lineNumber = msg.location.line === null || isNaN(msg.location.line) ? 1 : msg.location.line;
 		    let sourceLine = txtDocumentLines[lineNumber - 1];
                     let sourceStart = sourceLine.substring(msg.location.character);
-                    let endCol = txtDocumentLines[lineNumber - 1].length;
 
                     // try to get the first word from the starting position
                     let possibleProblemWords = sourceStart.match(/\w+/g);

@@ -1,14 +1,14 @@
 'use strict';
 
-import * as path from 'path';
 import * as baseLinter from './baseLinter';
-import {OutputChannel, workspace} from 'vscode';
+import {OutputChannel} from 'vscode';
+import { Product } from '../common/installer';
 
 const REGEX = '(?<file>.py):(?<line>\\d+): (?<type>\\w+): (?<message>.*)\\r?(\\n|$)';
 
 export class Linter extends baseLinter.BaseLinter {
     constructor(outputChannel: OutputChannel, workspaceRootPath: string) {
-        super('mypy', outputChannel, workspaceRootPath);
+        super('mypy', Product.mypy, outputChannel, workspaceRootPath);
     }
     private parseMessagesSeverity(category: string): baseLinter.LintMessageSeverity {
         switch (category) {

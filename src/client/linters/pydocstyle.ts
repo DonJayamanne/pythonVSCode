@@ -2,14 +2,14 @@
 
 import * as path from 'path';
 import * as baseLinter from './baseLinter';
-import {ILintMessage} from './baseLinter';
-import {OutputChannel, window} from 'vscode';
-import { exec } from 'child_process';
-import {execPythonFile, IS_WINDOWS} from './../common/utils';
+import { ILintMessage } from './baseLinter';
+import { OutputChannel } from 'vscode';
+import { execPythonFile, IS_WINDOWS } from './../common/utils';
+import { Product } from '../common/installer';
 
 export class Linter extends baseLinter.BaseLinter {
     constructor(outputChannel: OutputChannel, workspaceRootPath: string) {
-        super('pydocstyle', outputChannel, workspaceRootPath);
+        super('pydocstyle', Product.pydocstyle, outputChannel, workspaceRootPath);
     }
 
     public isEnabled(): Boolean {
@@ -36,10 +36,8 @@ export class Linter extends baseLinter.BaseLinter {
 
     protected run(commandLine: string, args: string[], filePath: string, txtDocumentLines: string[]): Promise<ILintMessage[]> {
         let outputChannel = this.outputChannel;
-        let linterId = this.Id;
 
         return new Promise<ILintMessage[]>((resolve, reject) => {
-            let fileDir = path.dirname(filePath);
             execPythonFile(commandLine, args, this.workspaceRootPath, true).then(data => {
                 outputChannel.append('#'.repeat(10) + 'Linting Output - ' + this.Id + '#'.repeat(10) + '\n');
                 outputChannel.append(data);
@@ -81,7 +79,6 @@ export class Linter extends baseLinter.BaseLinter {
                         let sourceLine = txtDocumentLines[lineNumber - 1];
                         let trmmedSourceLine = sourceLine.trim();
                         let sourceStart = sourceLine.indexOf(trmmedSourceLine);
-                        let endCol = sourceStart + trmmedSourceLine.length;
 
                         diagnostics.push({
                             code: code,
@@ -94,7 +91,6 @@ export class Linter extends baseLinter.BaseLinter {
                     }
                     catch (ex) {
                         // Hmm, need to handle this later
-                        let y = '';
                     }
                 });
                 resolve(diagnostics);

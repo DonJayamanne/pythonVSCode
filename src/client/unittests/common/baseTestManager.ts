@@ -1,15 +1,17 @@
 // import {TestFolder, TestsToRun, Tests, TestFile, TestSuite, TestFunction, TestStatus, FlattenedTestFunction, FlattenedTestSuite, CANCELLATION_REASON} from './contracts';
-import {Tests, TestStatus, TestsToRun, CANCELLATION_REASON} from './contracts';
+import { Tests, TestStatus, TestsToRun, CANCELLATION_REASON } from './contracts';
 import * as vscode from 'vscode';
-import * as os from 'os';
-import {resetTestResults, displayTestErrorMessage, storeDiscoveredTests} from './testUtils';
+import { resetTestResults, displayTestErrorMessage, storeDiscoveredTests } from './testUtils';
 import * as telemetryHelper from '../../common/telemetry';
 import * as telemetryContracts from '../../common/telemetryContracts';
+import { Installer, Product } from '../../common/installer';
+import {isNotInstalledError} from '../../common/helpers';
 
 export abstract class BaseTestManager {
     private tests: Tests;
     private _status: TestStatus = TestStatus.Unknown;
     private cancellationTokenSource: vscode.CancellationTokenSource;
+    private installer: Installer;
     protected get cancellationToken(): vscode.CancellationToken {
         return this.cancellationTokenSource && this.cancellationTokenSource.token;
     }
@@ -23,8 +25,9 @@ export abstract class BaseTestManager {
             this.cancellationTokenSource.cancel();
         }
     }
-    constructor(private testProvider: string, protected rootDirectory: string, protected outputChannel: vscode.OutputChannel) {
+    constructor(private testProvider: string, private product: Product, protected rootDirectory: string, protected outputChannel: vscode.OutputChannel) {
         this._status = TestStatus.Unknown;
+        this.installer = new Installer();
     }
     public reset() {
         this._status = TestStatus.Unknown;
@@ -93,6 +96,10 @@ export abstract class BaseTestManager {
 
                 return tests;
             }).catch(reason => {
+                if (isNotInstalledError(reason) && !quietMode){
+                    this.installer.promptToInstall(this.product);
+                }
+
                 this.tests = null;
                 this.discoverTestsPromise = null;
                 if (this.cancellationToken && this.cancellationToken.isCancellationRequested) {
