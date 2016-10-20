@@ -80,10 +80,10 @@ export class Installer {
         const useOtherFormatter = `Use '${alternateFormatter}' formatter`;
         const options = [];
         if (Formatters.indexOf(product) === -1) {
-            options.push(...[installOption, disableOption, 'Help']);
+            options.push(...[installOption, disableOption]);
         }
         else {
-            options.push(...[installOption, useOtherFormatter, 'Help']);
+            options.push(...[installOption, useOtherFormatter]);
         }
         vscode.window.showErrorMessage(`${productType} ${productName} is not installed`, ...options).then(item => {
             switch (item) {
@@ -92,9 +92,14 @@ export class Installer {
                     break;
                 }
                 case disableOption: {
-                    const pythonConfig = vscode.workspace.getConfiguration('python');
-                    const settingToDisable = SettingToDisableProduct.get(product);
-                    pythonConfig.update(settingToDisable, false);
+                    if (Linters.indexOf(product) >= 0) {
+                        disableLinter(product);
+                    }
+                    else {
+                        const pythonConfig = vscode.workspace.getConfiguration('python');
+                        const settingToDisable = SettingToDisableProduct.get(product);
+                        pythonConfig.update(settingToDisable, false);
+                    }
                     break;
                 }
                 case useOtherFormatter: {
@@ -128,4 +133,10 @@ export class Installer {
         Installer.terminal.sendText(installScript);
         Installer.terminal.show(false);
     }
+}
+
+export function disableLinter(product: Product) {
+    const pythonConfig = vscode.workspace.getConfiguration('python');
+    const settingToDisable = SettingToDisableProduct.get(product);
+    pythonConfig.update(settingToDisable, false);
 }

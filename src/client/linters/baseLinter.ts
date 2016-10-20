@@ -3,7 +3,8 @@ import { execPythonFile } from './../common/utils';
 import * as settings from './../common/configSettings';
 import { OutputChannel } from 'vscode';
 import { isNotInstalledError } from '../common/helpers';
-import { Installer, Product } from '../common/installer';
+import { Installer, Product, disableLinter } from '../common/installer';
+import * as vscode from 'vscode';
 
 let NamedRegexp = null;
 const REGEX = '(?<line>\\d+),(?<column>\\d+),(?<type>\\w+),(?<code>\\w\\d+):(?<message>.*)\\r?(\\n|$)';
@@ -51,7 +52,7 @@ export abstract class BaseLinter {
     public Id: string;
     private installer: Installer;
     protected pythonSettings: settings.IPythonSettings;
-    constructor(id: string, private product:Product, protected outputChannel: OutputChannel, protected workspaceRootPath: string) {
+    constructor(id: string, private product: Product, protected outputChannel: OutputChannel, protected workspaceRootPath: string) {
         this.Id = id;
         this.installer = new Installer();
         this.pythonSettings = settings.PythonSettings.getInstance();
@@ -127,12 +128,31 @@ export abstract class BaseLinter {
                 customError = `Linting failed, custom arguments in the 'python.linting.${this.Id}Path' is not supported.\n` +
                     `Custom arguments to the linters can be defined in 'python.linting.${this.Id}Args' setting of settings.json.\n` +
                     'For further details, please see https://github.com/DonJayamanne/pythonVSCode/wiki/Troubleshooting-Linting#2-linting-with-xxx-failed-';
+                vscode.window.showErrorMessage(`Unsupported configuration for '${this.Id}'`, 'View Errors').then(item => {
+                    if (item === 'View Errors') {
+                        this.outputChannel.show();
+                    }
+                });
             }
             else {
-                customError += `\nYou could either install the '${this.Id}' linter or turn it off in setings.json via "python.linting.${this.Id}Enabled = false".`;this.installer.promptToInstall(this.product);
+                customError += `\nYou could either install the '${this.Id}' linter or turn it off in setings.json via "python.linting.${this.Id}Enabled = false".`;
+                this.installer.promptToInstall(this.product);
             }
         }
-
+        else {
+            vscode.window.showErrorMessage(`There was an error in running the linter '${this.Id}'`, 'Disable linter', 'View Errors').then(item => {
+                switch (item) {
+                    case 'Disable linter': {
+                        disableLinter(this.product);
+                        break;
+                    }
+                    case 'View Errors': {
+                        this.outputChannel.show();
+                        break;
+                    }
+                }
+            });
+        }
         this.outputChannel.appendLine(`\n${customError}\n${error + ''}`);
     }
 }
