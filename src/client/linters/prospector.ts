@@ -53,9 +53,10 @@ export class Linter extends baseLinter.BaseLinter {
                 let diagnostics: baseLinter.ILintMessage[] = [];
                 parsedData.messages.filter((value, index) => index <= this.pythonSettings.linting.maxNumberOfProblems).forEach(msg => {
 
-                    let sourceLine = txtDocumentLines[msg.location.line - 1];
+		    let lineNumber = msg.location.line === null || isNaN(msg.location.line) ? 1 : msg.location.line;
+		    let sourceLine = txtDocumentLines[lineNumber - 1];
                     let sourceStart = sourceLine.substring(msg.location.character);
-                    let endCol = txtDocumentLines[msg.location.line - 1].length;
+                    let endCol = txtDocumentLines[lineNumber - 1].length;
 
                     // try to get the first word from the starting position
                     let possibleProblemWords = sourceStart.match(/\w+/g);
@@ -68,7 +69,7 @@ export class Linter extends baseLinter.BaseLinter {
                         code: msg.code,
                         message: msg.message,
                         column: msg.location.character,
-                        line: msg.location.line,
+                        line: lineNumber,
                         possibleWord: possibleWord,
                         type: msg.code,
                         provider: `${this.Id} - ${msg.source}`
