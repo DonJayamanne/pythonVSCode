@@ -754,12 +754,13 @@ def get_django_frame_source(frame):
         except:
             pass    
     if frame.f_code.co_name == 'render':
-        origin = _get_template_file_name(frame)
-        line = _get_template_line(frame)
-        position = None
         self_obj = frame.f_locals.get('self', None)
         if self_obj is None:
             return None
+
+        origin = _get_template_file_name(frame)
+        line = _get_template_line(frame)
+        position = None
 
         if self_obj is not None and hasattr(self_obj, 'token') and hasattr(self_obj.token, 'position'):
             position = self_obj.token.position
