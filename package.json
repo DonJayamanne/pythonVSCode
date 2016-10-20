@@ -56,6 +56,12 @@
         "path": "./snippets/python.json"
       }
     ],
+    "keybindings": [
+      {
+        "command": "jupyter.runSelectionLine",
+        "key": "ctrl+alt+enter"
+      }
+    ],
     "commands": [
       {
         "command": "python.sortImports",
