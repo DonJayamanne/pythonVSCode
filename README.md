@@ -95,7 +95,7 @@ For further information and details continue through to the [documentation](http
 
 ![Image of Local Help](https://raw.githubusercontent.com/DonJayamanne/pythonVSCodeDocs/master/images/help.gif)
 
-## [Roadmap](https://github.com/DonJayamanne/pythonVSCodeDocs/master/docs/roadmap/)
+## [Roadmap](https://donjayamanne.github.io/pythonVSCodeDocs/docs/roadmap/)
 
 ## [Change Log](https://github.com/DonJayamanne/pythonVSCode/releases)
 
