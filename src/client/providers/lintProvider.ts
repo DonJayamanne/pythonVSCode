@@ -14,6 +14,7 @@ import * as telemetryHelper from '../common/telemetry';
 import * as telemetryContracts from '../common/telemetryContracts';
 import { LinterErrors } from '../common/constants'
 const lintSeverityToVSSeverity = new Map<linter.LintMessageSeverity, vscode.DiagnosticSeverity>();
+lintSeverityToVSSeverity.set(linter.LintMessageSeverity.Ignore, vscode.DiagnosticSeverity.Ignore)
 lintSeverityToVSSeverity.set(linter.LintMessageSeverity.Error, vscode.DiagnosticSeverity.Error)
 lintSeverityToVSSeverity.set(linter.LintMessageSeverity.Hint, vscode.DiagnosticSeverity.Hint)
 lintSeverityToVSSeverity.set(linter.LintMessageSeverity.Information, vscode.DiagnosticSeverity.Information)
@@ -154,7 +155,9 @@ export class LintProvider extends vscode.Disposable {
                                 d.code === LinterErrors.flake8.InvalidSyntax)) {
                             return;
                         }
-                        diagnostics.push(createDiagnostics(d, documentLines));
+                        if (d.severity !== linter.LintMessageSeverity.Ignore) {
+                            diagnostics.push(createDiagnostics(d, documentLines));
+                        }
                     });
 
                     // Limit the number of messages to the max value

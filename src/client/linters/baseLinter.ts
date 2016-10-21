@@ -31,7 +31,8 @@ export enum LintMessageSeverity {
     Hint,
     Error,
     Warning,
-    Information
+    Information,
+    Ignore
 }
 
 export function matchNamedRegEx(data, regex): IRegexGroup {
