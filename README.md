@@ -55,7 +55,7 @@ For further information and details continue through to the [documentation](http
 * [Linting](https://github.com/DonJayamanne/pythonVSCode/wiki/Linting)
  + It can be turned off (default is to be turned on and use pylint)
  + Multiple linters supported (along with support for configuration files for each linter)
- + Supported linters include pylit, pep8, flake8, pydocstyle, prospector
+ + Supported linters include pylint, pep8, flake8, pydocstyle, prospector
  + Paths to each of the linters can be optionally configured
  + Custom plugins such as pylint plugin for Django can be easily used by modifying the settings as follows:
 ```json
