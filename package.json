@@ -59,7 +59,8 @@
     "keybindings": [
       {
         "command": "jupyter.runSelectionLine",
-        "key": "ctrl+alt+enter"
+        "key": "ctrl+alt+enter",
+        "when": "editorFocus && !replaceActive && !searchViewletVisible && !findWidgetVisible"
       }
     ],
     "commands": [
