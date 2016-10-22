@@ -11,12 +11,12 @@ import * as assert from 'assert';
 // You can import and use all API from the 'vscode' module
 // as well as import your extension to test it
 import * as vscode from 'vscode';
-import {AutoPep8Formatter} from '../client/formatters/autoPep8Formatter';
-import {YapfFormatter} from '../client/formatters/yapfFormatter';
+import { AutoPep8Formatter } from '../client/formatters/autoPep8Formatter';
+import { YapfFormatter } from '../client/formatters/yapfFormatter';
 import * as path from 'path';
 import * as settings from '../client/common/configSettings';
 import * as fs from 'fs-extra';
-import {execPythonFile} from '../client/common/utils';
+import { execPythonFile } from '../client/common/utils';
 
 let pythonSettings = settings.PythonSettings.getInstance();
 let ch = vscode.window.createOutputChannel('Tests');
@@ -46,7 +46,7 @@ suiteSetup(done => {
             formattedAutoPep8 = formattedResults[1];
         }).then(() => {
             done();
-        }, reason=>{
+        }, reason => {
             console.error(reason);
             console.error('Failed to initialize format tests');
             done();
@@ -81,7 +81,7 @@ suite('Formatting', () => {
             });
         }).then(edited => {
             assert.equal(textEditor.document.getText(), formattedContents, 'Formatted text is not the same');
-        }, reason=>{
+        }, reason => {
             assert.fail(reason, undefined, 'Formatting failed', '');
         });
     }
@@ -91,5 +91,36 @@ suite('Formatting', () => {
 
     test('Yapf', done => {
         testFormatting(new YapfFormatter(ch, pythonSettings, pythoFilesPath), formattedYapf, yapfFileToFormat).then(done, done);
+    });
+
+    function testAutoFormatting(formatter: string, formattedContents: string, fileToFormat: string): PromiseLike<void> {
+        let textDocument: vscode.TextDocument;
+        pythonSettings.formatting.formatOnSave = true;
+        pythonSettings.formatting.provider = formatter;
+        return vscode.workspace.openTextDocument(fileToFormat).then(document => {
+            textDocument = document;
+            return vscode.window.showTextDocument(textDocument);
+        }).then(editor => {
+            return editor.edit(editBuilder => {
+                editBuilder.insert(new vscode.Position(0, 0), '#\n');
+            });
+        }).then(edited => {
+            return textDocument.save();
+        }).then(saved => {
+            return new Promise<any>((resolve, reject) => {
+                setTimeout(() => {
+                    resolve();
+                }, 4000);
+            });
+        }).then(() => {
+            assert.equal(textDocument.getText(), formattedContents, 'Formatted contents are not the same');
+        });
+    }
+    test('AutoPep8 autoformat on save', done => {
+        testAutoFormatting('autopep8', '#\n' + formattedAutoPep8, autoPep8FileToAutoFormat).then(done, done);
+    });
+
+    test('Yapf autoformat on save', done => {
+        testAutoFormatting('yapf', '#\n' + formattedYapf, yapfFileToAutoFormat).then(done, done);
     });
 });

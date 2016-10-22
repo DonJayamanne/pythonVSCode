@@ -22,6 +22,7 @@ import * as tests from './unittests/main';
 import * as jup from './jupyter/main';
 import { HelpProvider } from './helpProvider';
 import { Documentation } from './common/constants';
+import {activateFormatOnSaveProvider} from './providers/formatOnSaveProvider';
 
 const PYTHON: vscode.DocumentFilter = { language: 'python', scheme: 'file' };
 let unitTestOutChannel: vscode.OutputChannel;
@@ -50,6 +51,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(activateSetInterpreterProvider());
     context.subscriptions.push(...activateExecInTerminalProvider());
     activateSimplePythonRefactorProvider(context, formatOutChannel);
+    context.subscriptions.push(activateFormatOnSaveProvider(PYTHON, settings.PythonSettings.getInstance(), formatOutChannel, vscode.workspace.rootPath));
 
     // Enable indentAction
     vscode.languages.setLanguageConfiguration(PYTHON.language, {
@@ -92,16 +94,6 @@ export function activate(context: vscode.ExtensionContext) {
 
     const hepProvider = new HelpProvider();
     context.subscriptions.push(hepProvider);
-
-    // Check for old outdated settings
-    const pySettings = vscode.workspace.getConfiguration('python');
-    if (pySettings.get('formatting.formatOnSave') === true) {
-        vscode.window.showInformationMessage(`'python.formatting.formatOnSave' has been deprecated. Please use 'editor.formatOnSave' instead`, 'Help').then(item => {
-            if (item === 'Help') {
-                vscode.commands.executeCommand('python.displayHelp', Documentation.Formatting.FormatOnSave);
-            }
-        });
-    }
 }
 
 function disableOtherDocumentSymbolsProvider() {

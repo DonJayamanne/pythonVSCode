@@ -65,6 +65,7 @@ export interface IFormattingSettings {
     autopep8Args: string[];
     yapfPath: string;
     yapfArgs: string[];
+    formatOnSave: boolean;
     outputWindow: string;
 }
 export interface IAutoCompeteSettings {
@@ -152,7 +153,8 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
             autopep8Args: [], autopep8Path: 'autopep8',
             outputWindow: 'python',
             provider: 'autopep8',
-            yapfArgs: [], yapfPath: 'yapf'
+            yapfArgs: [], yapfPath: 'yapf',
+            formatOnSave: false
         };
         this.formatting.autopep8Path = getAbsolutePath(this.formatting.autopep8Path, workspaceRoot);
         this.formatting.yapfPath = getAbsolutePath(this.formatting.yapfPath, workspaceRoot);
