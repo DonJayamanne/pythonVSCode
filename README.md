@@ -101,7 +101,7 @@ For further information and details continue through to the [documentation](http
 
 ### Current Version 0.5.0
 * Remove dependency on zmq when using Jupyter or IPython (pure python solution)
-* Added a default keybinding for ```Jupyter:Run Selectiong/Line``` of ```ctrl+alt+enter```
+* Added a default keybinding for ```Jupyter:Run Selection/Line``` of ```ctrl+alt+enter```
 * Changes to update settings.json with path to python using [native API](https://github.com/DonJayamanne/pythonVSCode/commit/bce22a2b4af87eaf40669c6360eff3675280cdad)
 * Changes to use [native API](https://github.com/DonJayamanne/pythonVSCode/commit/bce22a2b4af87eaf40669c6360eff3675280cdad) for formatting when saving documents
 * Reusing existing terminal instead of creating new terminals
