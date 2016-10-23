@@ -9,7 +9,7 @@ An extension with rich support for the [Python language](https://www.python.org/
 * Code refactoring ([Rename](https://github.com/DonJayamanne/pythonVSCode/wiki/Refactoring:-Rename), [Extract Variable](https://github.com/DonJayamanne/pythonVSCode/wiki/Refactoring:-Extract-Variable), [Extract Method](https://github.com/DonJayamanne/pythonVSCode/wiki/Refactoring:-Extract-Method), [Sort Imports](https://github.com/DonJayamanne/pythonVSCode/wiki/Refactoring:-Sort-Imports))
 * Viewing references, code navigation, view signature
 * Excellent debugging support (remote debugging, mutliple threads, django, flask)
-* Unit testing, including debuggin ([unittest](https://docs.python.org/3/library/unittest.html#module-unittest), [pytest](https://pypi.io/project/pytest/), [nosetests](https://pypi.io/project/nose/), with config files)
+* Unit testing, including debugging ([unittest](https://docs.python.org/3/library/unittest.html#module-unittest), [pytest](https://pypi.io/project/pytest/), [nosetests](https://pypi.io/project/nose/), with config files)
 * Execute file or code in a python terminal
 * Local help file (offline documentation)
 * Snippets
