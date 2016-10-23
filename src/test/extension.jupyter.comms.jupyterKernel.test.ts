@@ -13,7 +13,7 @@ import { JupyterClientAdapter } from '../client/jupyter/jupyter_client/main';
 import * as mocks from './mockClasses';
 import { KernelRestartedError, KernelShutdownError } from '../client/jupyter/common/errors';
 import { createDeferred } from '../client/common/helpers';
-import { JupyterClientKernel } from '../client/jupyter/jupyter_client-kernel';
+import { JupyterClientKernel } from '../client/jupyter/jupyter_client-Kernel';
 import { KernelspecMetadata } from '../client/jupyter/contracts';
 
 suiteSetup(done => {

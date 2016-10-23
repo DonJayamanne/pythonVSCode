@@ -13,6 +13,8 @@ export class Linter extends baseLinter.BaseLinter {
         if (this.pythonSettings.linting.pylintCategorySeverity[category]) {
             let severityName = this.pythonSettings.linting.pylintCategorySeverity[category];
             switch (severityName) {
+                case 'Ignore':
+                    return baseLinter.LintMessageSeverity.Ignore;
                 case 'Error':
                     return baseLinter.LintMessageSeverity.Error;
                 case 'Hint':

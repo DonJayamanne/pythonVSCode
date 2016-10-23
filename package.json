@@ -526,7 +526,8 @@
             "Hint",
             "Error",
             "Information",
-            "Warning"
+            "Warning",
+            "Ignore"
           ]
         },
         "python.linting.pylintCategorySeverity.refactor": {
@@ -537,7 +538,9 @@
             "Hint",
             "Error",
             "Information",
-            "Warning"
+            "Warning",
+            "Ignore"
+
           ]
         },
         "python.linting.pylintCategorySeverity.warning": {
@@ -548,7 +551,9 @@
             "Hint",
             "Error",
             "Information",
-            "Warning"
+            "Warning",
+            "Ignore"
+
           ]
         },
         "python.linting.pylintCategorySeverity.error": {
@@ -559,7 +564,9 @@
             "Hint",
             "Error",
             "Information",
-            "Warning"
+            "Warning",
+            "Ignore"
+
           ]
         },
         "python.linting.pylintCategorySeverity.fatal": {
@@ -570,7 +577,9 @@
             "Hint",
             "Error",
             "Information",
-            "Warning"
+            "Warning",
+            "Ignore"
+
           ]
         },
         "python.linting.prospectorPath": {
