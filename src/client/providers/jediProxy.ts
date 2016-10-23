@@ -1,7 +1,5 @@
 'use strict';
 
-import * as fs from 'fs';
-import * as os from 'os';
 import * as child_process from 'child_process';
 import * as vscode from 'vscode';
 import * as path from 'path';
@@ -214,7 +212,7 @@ function spawnProcess(dir: string) {
     proc.stdout.on("data", (data: string) => {
         //Possible there was an exception in parsing the data returned
         //So append the data then parse it
-        var dataStr = previousData = previousData + data + ""
+        var dataStr = previousData = previousData + data + "";
         var responses: any[];
         try {
             responses = dataStr.split(/\r?\n/g).filter(line => line.length > 0).map(resp => JSON.parse(resp));
@@ -272,7 +270,7 @@ function spawnProcess(dir: string) {
                         let completionResult: ICompletionResult = {
                             items: results,
                             requestId: cmd.id
-                        }
+                        };
                         cmd.resolve(completionResult);
                         break;
                     }
@@ -304,7 +302,7 @@ function spawnProcess(dir: string) {
                         var defResults: ISymbolResult = {
                             requestId: cmd.id,
                             definitions: []
-                        }
+                        };
                         defResults.definitions = defs.map(def => {
                             const originalType = def.type as string;
                             return <IDefinition>{
@@ -321,7 +319,7 @@ function spawnProcess(dir: string) {
                         break;
                     }
                     case CommandType.Usages: {
-                        var defs = <any[]>response['results'];
+                        let defs = <any[]>response['results'];
                         defs = Array.isArray(defs) ? defs : [];
                         var refResult: IReferenceResult = {
                             requestId: cmd.id,
@@ -358,7 +356,7 @@ function spawnProcess(dir: string) {
                     if (commands.has(id)) {
                         commands.delete(id);
                     }
-                })
+                });
             }
         });
     });
@@ -386,6 +384,7 @@ function sendCommand<T extends ICommandResult>(cmd: ICommand<T>): Promise<T> {
             }
             else {
                 handleError("sendCommand", ex.message);
+                console.error(ex);
             }
             reject(ex.message);
         }
@@ -497,18 +496,18 @@ export interface ICommand<T extends ICommandResult> {
 
 interface IExecutionCommand<T extends ICommandResult> extends ICommand<T> {
     id?: number;
-    resolve: (value?: T) => void
+    resolve: (value?: T) => void;
     reject: (ICommandError) => void;
     token: vscode.CancellationToken;
     delays: telemetryHelper.Delays;
 }
 
 export interface ICommandError {
-    message: string
+    message: string;
 }
 
 export interface ICommandResult {
-    requestId: number
+    requestId: number;
 }
 export interface ICompletionResult extends ICommandResult {
     items: IAutoCompleteItem[];
@@ -541,11 +540,11 @@ export interface IArgument {
 }
 
 export interface IReference {
-    name: string,
-    fileName: string,
-    columnIndex: number,
-    lineIndex: number,
-    moduleName: string
+    name: string;
+    fileName: string;
+    columnIndex: number;
+    lineIndex: number;
+    moduleName: string;
 }
 
 export interface IAutoCompleteItem {
