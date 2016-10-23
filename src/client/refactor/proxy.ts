@@ -49,7 +49,7 @@ export class RefactorProxy extends vscode.Disposable {
             return Promise.reject<T>('Missing blank line at the end of document (PEP8).')
         }
         let command = { "lookup": "extract_method", "file": filePath, "start": document.offsetAt(range.start).toString(), "end": document.offsetAt(range.end).toString(), "id": "1", "name": name };
-        return this.sendCommand<T>(JSON.stringify(command), REFACTOR.ExtractVariable);
+        return this.sendCommand<T>(JSON.stringify(command), REFACTOR.ExtractMethod);
     }
     private sendCommand<T>(command: string, telemetryEvent: string): Promise<T> {
         let timer = new Delays();
