@@ -3,7 +3,7 @@
 // Please refer to their documentation on https://mochajs.org/ for help.
 //
 // Place this right on top
-import { initialize } from './initialize';
+import { initialize, IS_TRAVIS, PYTHON_PATH, TEST_TIMEOUT } from './initialize';
 // The module 'assert' provides assertion methods from node
 import * as assert from 'assert';
 import * as vscode from 'vscode';
@@ -12,43 +12,110 @@ import * as vscode from 'vscode';
 import { JupyterClientAdapter } from '../client/jupyter/jupyter_client/main';
 import * as mocks from './mockClasses';
 import { KernelManagerImpl } from '../client/jupyter/kernel-manager';
+import * as settings from '../client/common/configSettings';
 
-suiteSetup(done => {
-    initialize().then(() => {
-        done();
-    });
-});
+let pythonSettings = settings.PythonSettings.getInstance();
+
+export class MockOutputChannel implements vscode.OutputChannel {
+    constructor(name: string) {
+        this.name = name;
+        this.output = '';
+        this.timeOut = setTimeout(() => {
+            console.log(this.output);
+            this.writeToConsole = true;
+            this.timeOut = null;
+        }, TEST_TIMEOUT - 1000);
+    }
+    private timeOut: number;
+    name: string;
+    output: string;
+    isShown: boolean;
+    private writeToConsole: boolean;
+    append(value: string) {
+        this.output += value;
+        if (this.writeToConsole) {
+            console.log(value);
+        }
+    }
+    appendLine(value: string) {
+        this.append(value); this.append('\n');
+        if (this.writeToConsole) {
+            console.log(value);
+            console.log('\n');
+        }
+    }
+    clear() { }
+    show(preservceFocus?: boolean): void;
+    show(column?: vscode.ViewColumn, preserveFocus?: boolean): void;
+    show(x?: any, y?: any): void {
+        this.isShown = true;
+    }
+    hide() {
+        this.isShown = false;
+    }
+    dispose() {
+        if (this.timeOut) {
+            clearTimeout(this.timeOut);
+            this.timeOut = null;
+        }
+    }
+}
 
 // Defines a Mocha test suite to group tests of similar kind together
 suite('Kernel Manager', () => {
+    suiteSetup(done => {
+        initialize().then(() => {
+            if (IS_TRAVIS) {
+                pythonSettings.pythonPath = PYTHON_PATH;
+            }
+            done();
+        });
+        setup(() => {
+            disposables = [];
+            output = new MockOutputChannel('Jupyter');
+            disposables.push(output);
+            jupyter = new JupyterClientAdapter(output, __dirname);
+            disposables.push(jupyter);
+            process.env['PYTHON_DONJAYAMANNE_TEST'] = '0';
+            process.env['DEBUG_DJAYAMANNE_IPYTHON'] = '1';
+            // Hack hack hack hack hack :)
+            cmds.registerCommand = function () { };
+        });
+        teardown(() => {
+            process.env['PYTHON_DONJAYAMANNE_TEST'] = '1';
+            process.env['DEBUG_DJAYAMANNE_IPYTHON'] = '0';
+            output.dispose();
+            jupyter.dispose();
+            disposables.forEach(d => {
+                try {
+                    d.dispose();
+                } catch (error) {
+                }
+            });
+            cmds.registerCommand = oldRegisterCommand;
+        });
+    });
+
+    let output: MockOutputChannel;
+    let jupyter: JupyterClientAdapter;
+    let disposables: { dispose: Function }[];
+    const cmds = (vscode.commands as any);
+    const oldRegisterCommand = vscode.commands.registerCommand;
+
     test('GetAllKernelSpecsFor python', done => {
         process.env['PYTHON_DONJAYAMANNE_TEST'] = '0';
-        const output = new mocks.MockOutputChannel('Jupyter');
-        const jupyter = new JupyterClientAdapter(output, __dirname);
-        const cmds = (vscode.commands as any);
-        const oldRegisterCommand = vscode.commands.registerCommand;
-        // Hack hack hack hack hack :)
-        cmds.registerCommand = function () { };
         const mgr = new KernelManagerImpl(output, jupyter);
-        cmds.registerCommand = oldRegisterCommand;
+        disposables.push(mgr);
         mgr.getAllKernelSpecsFor('python').then(specMetadata => {
             assert.notEqual(specMetadata.length, 0, 'No spec metatadata');
             done();
         }).catch(reason => {
             assert.fail(reason, null, 'Some error', '');
         });
-        process.env['PYTHON_DONJAYAMANNE_TEST'] = '1';
     });
     test('Start a kernel', done => {
-        process.env['PYTHON_DONJAYAMANNE_TEST'] = '0';
-        const output = new mocks.MockOutputChannel('Jupyter');
-        const jupyter = new JupyterClientAdapter(output, __dirname);
-        const cmds = (vscode.commands as any);
-        const oldRegisterCommand = vscode.commands.registerCommand;
-        // Hack hack hack hack hack :)
-        cmds.registerCommand = function () { };
         const mgr = new KernelManagerImpl(output, jupyter);
-        cmds.registerCommand = oldRegisterCommand;
+        disposables.push(mgr);
         mgr.getAllKernelSpecsFor('python').then(specMetadata => {
             assert.notEqual(specMetadata.length, 0, 'No spec metatadata');
             return mgr.startKernel(specMetadata[0], 'python');
@@ -58,24 +125,15 @@ suite('Kernel Manager', () => {
         }).catch(reason => {
             assert.fail(reason, null, 'Some error', '');
         });
-        process.env['PYTHON_DONJAYAMANNE_TEST'] = '1';
     });
     test('Start any kernel for Python', done => {
-        process.env['PYTHON_DONJAYAMANNE_TEST'] = '0';
-        const output = new mocks.MockOutputChannel('Jupyter');
-        const jupyter = new JupyterClientAdapter(output, __dirname);
-        const cmds = (vscode.commands as any);
-        const oldRegisterCommand = vscode.commands.registerCommand;
-        // Hack hack hack hack hack :)
-        cmds.registerCommand = function () { };
         const mgr = new KernelManagerImpl(output, jupyter);
-        cmds.registerCommand = oldRegisterCommand;
+        disposables.push(mgr);
         mgr.startKernelFor('python').then(kernel => {
             assert.equal(typeof kernel === 'object' && kernel !== null, true, 'Kernel instance not returned');
             done();
         }).catch(reason => {
             assert.fail(reason, null, 'Some error', '');
         });
-        process.env['PYTHON_DONJAYAMANNE_TEST'] = '1';
     });
 });

@@ -100,7 +100,6 @@ suite('JupyterClient', () => {
             assert.fail(reason, undefined, 'Failed to start jupyter adapter', '');
             done();
         });
-        process.env['PYTHON_DONJAYAMANNE_TEST'] = '1';
     });
     test('List Kernels (with start)', done => {
         jupyter.start().then(() => {
@@ -112,7 +111,6 @@ suite('JupyterClient', () => {
             assert.fail(reason, undefined, 'Failed to retrieve kernelspecs', '');
             done();
         });
-        process.env['PYTHON_DONJAYAMANNE_TEST'] = '1';
     });
     test('List Kernels (without starting)', done => {
         jupyter.getAllKernelSpecs().then(kernelSpecs => {
@@ -122,7 +120,6 @@ suite('JupyterClient', () => {
             assert.fail(reason, undefined, 'Failed to retrieve kernelspecs', '');
             done();
         });
-        process.env['PYTHON_DONJAYAMANNE_TEST'] = '1';
     });
 
     test('Start Kernel (with start)', done => {
@@ -142,7 +139,6 @@ suite('JupyterClient', () => {
             assert.fail(reason, undefined, 'Failed to retrieve kernelspecs', '');
             done();
         });
-        process.env['PYTHON_DONJAYAMANNE_TEST'] = '1';
     });
     test('Start Kernel (without start)', done => {
         jupyter.getAllKernelSpecs().then(kernelSpecs => {
