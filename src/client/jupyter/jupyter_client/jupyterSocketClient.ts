@@ -203,38 +203,20 @@ export class JupyterSocketClient extends SocketCallbackHandler {
     }
 
     private msgSubject = new Map<string, Rx.Subject<ParsedIOMessage>>();
+    private msgSubjectIndexedWithRunId = new Map<string, Rx.Subject<ParsedIOMessage>>();
     private unhandledMessages = new Map<string, ParsedIOMessage[]>();
     private finalMessage = new Map<string, { shellMessage?: ParsedIOMessage, ioStatusSent: boolean }>();
     runCode(code: string): Rx.IObservable<ParsedIOMessage> {
         const [def, id] = this.createId<string>();
+        const observable = new Rx.Subject<ParsedIOMessage>();
+        this.msgSubjectIndexedWithRunId.set(id, observable);
+
         this.SendRawCommand(Commands.RunCodeBytes);
         this.stream.WriteString(id);
         this.stream.WriteString(code);
-
-        const observable = new Rx.Subject<ParsedIOMessage>();
         def.promise.then(msg_id => {
-            this.msgSubject.set(msg_id, observable);
-
-            // Remember we could have received both messages together
-            // I.e. we could have received the msg_id (response) for code execution as well as the shell and io message
-            if (this.unhandledMessages.has(msg_id)) {
-                const messages = this.unhandledMessages.get(msg_id);
-                messages.forEach(msg => {
-                    observable.onNext(msg);
-                });
-            }
-
-            if (this.finalMessage.has(msg_id)) {
-                const info = this.finalMessage.get(msg_id);
-                // If th io message with status='idle' has been received, that means message execution is deemed complete
-                if (info.ioStatusSent && info.shellMessage) {
-                    console.log('info.ioStatusSent');
-                    this.finalMessage.delete(msg_id);
-                    this.msgSubject.delete(msg_id);
-                    observable.onNext(info.shellMessage);
-                    observable.onCompleted();
-                }
-            }
+            // Do nothing, code moved to 
+            // onCodeSentForExecution (so we have synchronous processing)
         }).catch(reason => {
             observable.onError(reason);
         });
@@ -250,6 +232,10 @@ export class JupyterSocketClient extends SocketCallbackHandler {
         const def = this.pendingCommands.get(id);
         this.releaseId(id);
         def.resolve(msg_id);
+
+        const observable = this.msgSubjectIndexedWithRunId.get(id);
+        this.msgSubjectIndexedWithRunId.delete(id);
+        this.msgSubject.set(msg_id, observable);
     }
 
     private onShellResult() {
