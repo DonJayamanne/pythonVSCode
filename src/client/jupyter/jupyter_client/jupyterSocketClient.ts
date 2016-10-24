@@ -37,6 +37,7 @@ export class JupyterSocketClient extends SocketCallbackHandler {
         }
         catch (ex) {
         }
+        super.dispose();
     }
     protected handleHandshake(): boolean {
         if (typeof this.guid !== 'string') {
@@ -106,7 +107,7 @@ export class JupyterSocketClient extends SocketCallbackHandler {
         this.stream.WriteString(kernelName);
         return def.promise;
     }
-    public onKernelStarted() {
+    private onKernelStarted() {
         const id = this.stream.readStringInTransaction();
         const kernelUUID = this.stream.readStringInTransaction();
         const configStr = this.stream.readStringInTransaction();
@@ -173,7 +174,7 @@ export class JupyterSocketClient extends SocketCallbackHandler {
 
         return def.promise;
     }
-    public onKernelCommandComplete() {
+    private onKernelCommandComplete() {
         const id = this.stream.readStringInTransaction();
         if (typeof id !== 'string') {
             return;
@@ -233,7 +234,7 @@ export class JupyterSocketClient extends SocketCallbackHandler {
                     observable.onNext(info.shellMessage);
                     observable.onCompleted();
                 }
-            }            
+            }
         }).catch(reason => {
             observable.onError(reason);
         });
@@ -298,9 +299,9 @@ export class JupyterSocketClient extends SocketCallbackHandler {
             }
             if (!parsedMesage) {
                 return;
-            }            
+            }
             if (this.finalMessage.has(msg_id) && this.msgSubject.has(msg_id)) {
-                const subject = this.msgSubject.get(msg_id);          
+                const subject = this.msgSubject.get(msg_id);
                 const info = this.finalMessage.get(msg_id);
                 // If th io message with status='idle' has been received, that means message execution is deemed complete
                 if (info.ioStatusSent) {
@@ -312,7 +313,7 @@ export class JupyterSocketClient extends SocketCallbackHandler {
             }
             else {
                 // Wait for the io message with status='idle' to arrive
-                const info = this.finalMessage.has(msg_id) ? this.finalMessage.get(msg_id): {ioStatusSent: false };
+                const info = this.finalMessage.has(msg_id) ? this.finalMessage.get(msg_id) : { ioStatusSent: false };
                 info.shellMessage = parsedMesage;
                 this.finalMessage.set(msg_id, info);
             }
