@@ -218,8 +218,22 @@ export class JupyterSocketClient extends SocketCallbackHandler {
             // I.e. we could have received the msg_id (response) for code execution as well as the shell and io message
             if (this.unhandledMessages.has(msg_id)) {
                 const messages = this.unhandledMessages.get(msg_id);
-                messages.forEach(msg => observable.onNext(msg));
+                messages.forEach(msg => {
+                    observable.onNext(msg);
+                });
             }
+
+            if (this.finalMessage.has(msg_id)) {
+                const info = this.finalMessage.get(msg_id);
+                // If th io message with status='idle' has been received, that means message execution is deemed complete
+                if (info.ioStatusSent && info.shellMessage) {
+                    console.log('info.ioStatusSent');
+                    this.finalMessage.delete(msg_id);
+                    this.msgSubject.delete(msg_id);
+                    observable.onNext(info.shellMessage);
+                    observable.onCompleted();
+                }
+            }            
         }).catch(reason => {
             observable.onError(reason);
         });
@@ -255,10 +269,6 @@ export class JupyterSocketClient extends SocketCallbackHandler {
             if (!msg_id) {
                 return;
             }
-            if (!this.msgSubject.has(msg_id)) {
-                return;
-            }
-            const subject = this.msgSubject.get(msg_id);
             const status = message.content.status;
             let parsedMesage: ParsedIOMessage;
             switch (status) {
@@ -288,8 +298,9 @@ export class JupyterSocketClient extends SocketCallbackHandler {
             }
             if (!parsedMesage) {
                 return;
-            }
-            if (this.finalMessage.has(msg_id)) {
+            }            
+            if (this.finalMessage.has(msg_id) && this.msgSubject.has(msg_id)) {
+                const subject = this.msgSubject.get(msg_id);          
                 const info = this.finalMessage.get(msg_id);
                 // If th io message with status='idle' has been received, that means message execution is deemed complete
                 if (info.ioStatusSent) {
@@ -301,7 +312,9 @@ export class JupyterSocketClient extends SocketCallbackHandler {
             }
             else {
                 // Wait for the io message with status='idle' to arrive
-                this.finalMessage.set(msg_id, { shellMessage: parsedMesage, ioStatusSent: false });
+                const info = this.finalMessage.has(msg_id) ? this.finalMessage.get(msg_id): {ioStatusSent: false };
+                info.shellMessage = parsedMesage;
+                this.finalMessage.set(msg_id, info);
             }
         }
         catch (ex) {
@@ -329,7 +342,7 @@ export class JupyterSocketClient extends SocketCallbackHandler {
             }
 
             // Ok, if we have received a status of 'idle' this means the execution has completed
-            if (msg_type === 'status' && message.content.execution_state === 'idle' && this.msgSubject.has(msg_id)) {
+            if (msg_type === 'status' && message.content.execution_state === 'idle') {
                 let timesWaited = 0;
                 const waitForFinalIOMessage = () => {
                     timesWaited += 1;
