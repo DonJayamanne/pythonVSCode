@@ -6,3 +6,4 @@ prospector==0.11.7
 flake8==2.6.0
 pydocstyle==1.0.0
 jupyter
+ipython
