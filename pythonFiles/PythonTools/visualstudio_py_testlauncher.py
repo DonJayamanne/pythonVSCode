@@ -308,11 +308,11 @@ def main():
                     test = ''
                 )
         if opts.uvInt is None:
-            opts.uvInt = 0
-        runner = unittest.TextTestRunner(verbosity=opts.uvInt, resultclass=VsTestResult)
+            opts.uvInt = 0        
         if opts.uf is not None:
-            runner.failfast = 1
-          
+            runner = unittest.TextTestRunner(verbosity=opts.uvInt, resultclass=VsTestResult, failfast=True)
+        else:
+            runner = unittest.TextTestRunner(verbosity=opts.uvInt, resultclass=VsTestResult)  
         result = runner.run(tests)
         sys.exit(not result.wasSuccessful())
     finally:

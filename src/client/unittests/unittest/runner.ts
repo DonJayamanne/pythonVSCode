@@ -2,14 +2,14 @@
 
 'use strict';
 import * as path from 'path';
-import {createDeferred, createTemporaryFile} from '../../common/helpers';
-import {TestFile, TestsToRun, TestSuite, TestFunction, FlattenedTestFunction, Tests, TestStatus, FlattenedTestSuite} from '../common/contracts';
-import {extractBetweenDelimiters, flattenTestFiles, updateResults, convertFileToPackage} from '../common/testUtils';
-import {BaseTestManager} from '../common/baseTestManager';
-import {CancellationToken, OutputChannel} from 'vscode';
-import {run} from '../common/runner';
-import {Server} from './socketServer';
-import {PythonSettings} from '../../common/configSettings';
+import { createDeferred, createTemporaryFile } from '../../common/helpers';
+import { TestFile, TestsToRun, TestSuite, TestFunction, FlattenedTestFunction, Tests, TestStatus, FlattenedTestSuite } from '../common/contracts';
+import { extractBetweenDelimiters, flattenTestFiles, updateResults, convertFileToPackage } from '../common/testUtils';
+import { BaseTestManager } from '../common/baseTestManager';
+import { CancellationToken, OutputChannel } from 'vscode';
+import { run } from '../common/runner';
+import { Server } from './socketServer';
+import { PythonSettings } from '../../common/configSettings';
 
 const settings = PythonSettings.getInstance();
 interface TestStatusMap {
@@ -30,12 +30,12 @@ interface ITestData {
     traceback: string;
 }
 
-export function runTest(rootDirectory: string, tests: Tests, args: string[], testsToRun?: TestsToRun, token?: CancellationToken, outChannel?: OutputChannel): Promise<Tests> {
+export function runTest(testManager: BaseTestManager, rootDirectory: string, tests: Tests, args: string[], testsToRun?: TestsToRun, token?: CancellationToken, outChannel?: OutputChannel): Promise<Tests> {
     tests.summary.errors = 0;
     tests.summary.failures = 0;
     tests.summary.passed = 0;
     tests.summary.skipped = 0;
-
+    let failFast = false;
     const testLauncherFile = path.join(__dirname, '..', '..', '..', '..', 'pythonFiles', 'PythonTools', 'visualstudio_py_testlauncher.py');
     const server = new Server();
     server.on('error', (message: string, ...data: string[]) => {
@@ -55,6 +55,10 @@ export function runTest(rootDirectory: string, tests: Tests, args: string[], tes
             test.testFunction.message = data.message;
             test.testFunction.traceback = data.traceback;
             tests.summary[statusDetails.summaryProperty] += 1;
+
+            if (failFast && (statusDetails.summaryProperty === 'failures' || statusDetails.summaryProperty === 'errors')) {
+                testManager.stop();
+            }
         }
     });
     server.on('socket.disconnected', (data) => {
@@ -69,6 +73,9 @@ export function runTest(rootDirectory: string, tests: Tests, args: string[], tes
 
         function runTest(testFile: string = '', testId: string = '') {
             let testArgs = buildTestArgs(args);
+            failFast = testArgs.indexOf('--uf') >= 0;
+            testArgs = testArgs.filter(arg=>arg !== '--uf');
+
             testArgs.push(`--result-port=${port}`);
             testArgs.push(`--us=${startTestDiscoveryDirectory}`);
             if (testId.length > 0) {

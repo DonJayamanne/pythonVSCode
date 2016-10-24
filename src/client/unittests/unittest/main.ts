@@ -24,6 +24,6 @@ export class TestManager extends BaseTestManager {
                 return fn.testFunction.status === TestStatus.Error || fn.testFunction.status === TestStatus.Fail;
             }).map(fn => fn.testFunction);
         }
-        return runTest(this.rootDirectory, tests, args, testsToRun, this.cancellationToken, this.outputChannel);
+        return runTest(this, this.rootDirectory, tests, args, testsToRun, this.cancellationToken, this.outputChannel);
     }
 }

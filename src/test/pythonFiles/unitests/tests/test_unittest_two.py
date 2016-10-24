@@ -7,6 +7,13 @@ class Test_test2(unittest.TestCase):
     def test_B2(self):
         self.assertEqual(1,1,'Not equal')
 
+    def test_C2(self):
+        self.assertEqual(1,2,'Not equal')
+
+    def test_D2(self):
+        raise ArithmeticError()
+        pass
+
 class Test_test2a(unittest.TestCase):
     def test_222A2(self):
         self.fail("Not implemented")
