@@ -21,11 +21,7 @@ suite('Deferred', () => {
             assert.equal(value, valueToSent);
             assert.equal(def.resolved, true, 'resolved property value is not `true`');
             done();
-        }).catch(reason => {
-            assert.fail(reason, 'value', 'Was expecting promise to resolve, however it got rejected', '');
-            assert.equal(def.rejected, true, 'resolved property value is not `true`');
-            done();
-        });
+        }).catch(done);
 
         assert.equal(def.resolved, false, 'Promise is resolved even when it should not be');
         assert.equal(def.rejected, false, 'Promise is rejected even when it should not be');
@@ -46,7 +42,7 @@ suite('Deferred', () => {
         }).catch(reason => {
             assert.equal(reason, errorToSend, 'Error received is not the same');
             done();
-        });
+        }).catch(done);
 
         assert.equal(def.resolved, false, 'Promise is resolved even when it should not be');
         assert.equal(def.rejected, false, 'Promise is rejected even when it should not be');
