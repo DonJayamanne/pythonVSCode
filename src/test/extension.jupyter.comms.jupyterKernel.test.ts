@@ -10,7 +10,6 @@ import * as assert from 'assert';
 // You can import and use all API from the 'vscode' module
 // as well as import your extension to test it
 import { JupyterClientAdapter } from '../client/jupyter/jupyter_client/main';
-import * as mocks from './mockClasses';
 import { KernelShutdownError } from '../client/jupyter/common/errors';
 import { createDeferred } from '../client/common/helpers';
 import { JupyterClientKernel } from '../client/jupyter/jupyter_client-Kernel';
