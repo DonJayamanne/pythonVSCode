@@ -15,8 +15,15 @@ export abstract class SocketCallbackHandler extends EventEmitter {
         this.commandHandlers = new Map<string, Function>();
         socketServer.on('data', this.onData.bind(this));
     }
-
+    private disposed: boolean;
+    public dispose() {
+        this.disposed = true;
+        this.commandHandlers.clear();
+    }
     private onData(socketClient: net.Socket, data: Buffer) {
+        if (this.disposed) {
+            return;
+        }
         this.HandleIncomingData(data, socketClient);
     }
 
@@ -52,7 +59,7 @@ export abstract class SocketCallbackHandler extends EventEmitter {
         return true;
     }
 
-    public HandleIncomingDataFromStream() {
+    private HandleIncomingDataFromStream() {
         if (this.stream.Length === 0) {
             return;
         }
