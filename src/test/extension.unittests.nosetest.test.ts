@@ -4,7 +4,7 @@
 // Please refer to their documentation on https://mochajs.org/ for help.
 //
 // Place this right on top
-import { initialize } from './initialize';
+import { initialize, PYTHON_PATH } from './initialize';
 
 // The module \'assert\' provides assertion methods from node
 import * as assert from 'assert';
@@ -45,6 +45,7 @@ class MockOutputChannel implements vscode.OutputChannel {
 suite('Unit Tests (nosetest)', () => {
     suiteSetup(done => {
         initialize().then(() => {
+            pythonSettings.pythonPath = PYTHON_PATH;
             done();
         });
     });
