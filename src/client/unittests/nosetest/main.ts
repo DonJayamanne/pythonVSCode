@@ -1,11 +1,11 @@
 'use strict';
-import {PythonSettings} from '../../common/configSettings';
-import {OutputChannel} from 'vscode';
-import {TestsToRun, Tests} from '../common/contracts';
+import { PythonSettings } from '../../common/configSettings';
+import { OutputChannel } from 'vscode';
+import { TestsToRun, Tests } from '../common/contracts';
 import * as vscode from 'vscode';
-import {discoverTests} from './collector';
-import {BaseTestManager} from '../common/baseTestManager';
-import {runTest} from './runner';
+import { discoverTests } from './collector';
+import { BaseTestManager } from '../common/baseTestManager';
+import { runTest } from './runner';
 import { Product } from '../../common/installer';
 
 const settings = PythonSettings.getInstance();
@@ -23,7 +23,7 @@ export class TestManager extends BaseTestManager {
         if (runFailedTests === true && args.indexOf('--failed') === -1) {
             args.push('--failed');
         }
-        if (args.indexOf('--with-id') === -1){
+        if (!runFailedTests && args.indexOf('--with-id') === -1) {
             args.push('--with-id');
         }
         return runTest(this.rootDirectory, tests, args, testsToRun, this.cancellationToken, this.outputChannel);
