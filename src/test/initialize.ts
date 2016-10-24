@@ -41,7 +41,8 @@ export const IS_TRAVIS = (process.env['TRAVIS'] + '') === 'true';
 export const TEST_TIMEOUT = 10000;
 
 function getPythonPath(): string {
-    const pythonPaths = ['/home/travis/virtualenv/python3.5.2/bin/python'];
+    const pythonPaths = ['/home/travis/virtualenv/python3.5.2/bin/python',
+        '/Users/travis/.pyenv/versions/3.5.1/envs/MYVERSION/bin/python'];
     for (let counter = 0; counter < pythonPaths.length; counter++) {
         if (fs.existsSync(pythonPaths[counter])) {
             return pythonPaths[counter];
