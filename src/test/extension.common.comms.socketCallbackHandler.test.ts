@@ -181,10 +181,9 @@ suite('SocketCallbackHandler', () => {
             socketClient = new MockSocketClient(port);
             return socketClient.start();
         }).then(() => {
-
+            const def = createDeferred<any>();
             let timeOut = setTimeout(() => {
-                assert.fail(null, null, 'Handshake not completed in allocated time', 'handshake');
-                done();
+                def.reject('Handshake not completed in allocated time');
             }, 5000);
 
             callbackHandler.on('handshake', () => {
@@ -192,26 +191,22 @@ suite('SocketCallbackHandler', () => {
                     clearTimeout(timeOut);
                     timeOut = null;
                 }
-                done();
+                def.resolve();
             });
             callbackHandler.on('error', (actual: string, expected: string, message: string) => {
                 if (timeOut) {
                     clearTimeout(timeOut);
                     timeOut = null;
                 }
-                assert.fail(actual, expected, message, '');
-                done();
+                def.reject({ actual: actual, expected: expected, message: message });
             });
 
             // Client has connected, now send information to the callback handler via sockets
             const guidBuffer = Buffer.concat([new Buffer('A'), uint64be.encode(GUID.length), new Buffer(GUID)]);
             socketClient.SocketStream.Write(guidBuffer);
             socketClient.SocketStream.WriteInt32(PID);
-
-        }).catch(reason => {
-            assert.fail(reason, undefined, 'Failed to start socket server', 'Start');
-            done();
-        });
+            return def.promise;
+        }).then(done).catch(done);
     });
     test('Unsuccesful Handshake', done => {
         const socketServer = new SocketServer();
@@ -222,10 +217,9 @@ suite('SocketCallbackHandler', () => {
             socketClient = new MockSocketClient(port);
             return socketClient.start();
         }).then(() => {
-
+            const def = createDeferred<any>();
             let timeOut = setTimeout(() => {
-                assert.fail(null, null, 'Handshake not completed in allocated time', 'handshake');
-                done();
+                def.reject('Handshake not completed in allocated time');
             }, 5000);
 
             callbackHandler.on('handshake', () => {
@@ -233,16 +227,19 @@ suite('SocketCallbackHandler', () => {
                     clearTimeout(timeOut);
                     timeOut = null;
                 }
-                assert.fail(undefined, undefined, 'handshake should fail, but it succeeded!', '');
-                done();
+                def.reject('handshake should fail, but it succeeded!');
             });
-            callbackHandler.on('error', (actual: string, expected: string, message: string) => {
+            callbackHandler.on('error', (actual: string | number, expected: string, message: string) => {
                 if (timeOut) {
                     clearTimeout(timeOut);
                     timeOut = null;
                 }
-                assert.equal(expected, PID);
-                done();
+                if (actual === 0 && message === 'pids not the same') {
+                    def.resolve();
+                }
+                else {
+                    def.reject({ actual: actual, expected: expected, message: message });
+                }
             });
 
             // Client has connected, now send information to the callback handler via sockets
@@ -251,11 +248,8 @@ suite('SocketCallbackHandler', () => {
 
             // Send the wrong pid
             socketClient.SocketStream.WriteInt32(0);
-
-        }).catch(reason => {
-            assert.fail(reason, undefined, 'Failed to start socket server', 'Start');
-            done();
-        });
+            return def.promise;
+        }).then(done).catch(done);
     });
     test('Ping with message', done => {
         const socketServer = new SocketServer();
@@ -266,10 +260,10 @@ suite('SocketCallbackHandler', () => {
             socketClient = new MockSocketClient(port);
             return socketClient.start();
         }).then(() => {
+            const def = createDeferred<any>();
             const PING_MESSAGE = 'This is the Ping Message - Функция проверки ИНН и КПП - 说明';
             let timeOut = setTimeout(() => {
-                assert.fail(null, null, 'Handshake not completed in allocated time', 'handshake');
-                done();
+                def.reject('Handshake not completed in allocated time');
             }, 5000);
 
             callbackHandler.on('handshake', () => {
@@ -281,16 +275,20 @@ suite('SocketCallbackHandler', () => {
                     clearTimeout(timeOut);
                     timeOut = null;
                 }
-                assert.equal(message, PING_MESSAGE);
-                done();
+                try {
+                    assert.equal(message, PING_MESSAGE);
+                    def.resolve();
+                }
+                catch (ex) {
+                    def.reject(ex);
+                }
             });
             callbackHandler.on('error', (actual: string, expected: string, message: string) => {
                 if (timeOut) {
                     clearTimeout(timeOut);
                     timeOut = null;
                 }
-                assert.fail(actual, expected, message, '');
-                done();
+                def.reject({ actual: actual, expected: expected, message: message });
             });
 
             // Client has connected, now send information to the callback handler via sockets
@@ -299,10 +297,7 @@ suite('SocketCallbackHandler', () => {
 
             // Send the wrong pid
             socketClient.SocketStream.WriteInt32(PID);
-
-        }).catch(reason => {
-            assert.fail(reason, undefined, 'Failed to start socket server', 'Start');
-            done();
-        });
+            return def.promise;
+        }).then(done).catch(done);
     });
 });

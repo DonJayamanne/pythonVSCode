@@ -12,6 +12,7 @@ import * as assert from 'assert';
 // as well as import your extension to test it
 import { execPythonFile } from '../client/common/utils';
 import {EOL} from 'os';
+import { createDeferred } from '../client/common/helpers';
 
 // Defines a Mocha test suite to group tests of similar kind together
 suite('ChildProc', () => {
@@ -24,12 +25,13 @@ suite('ChildProc', () => {
         }).then(done, done);
     });
     test('Error Response', done => {
-        execPythonFile('python', ['-c', 'print(1'], __dirname, false).then(data => {
-            assert.ok(false);
-            done();
+        const def = createDeferred<any>();
+        execPythonFile('python', ['-c', 'print(1'], __dirname, false).then(() => {
+            def.reject('Should have failed');
         }).catch(() => {
-            assert.ok(true);
-            done();
+            def.resolve();
         });
+
+        def.promise.then(done).catch(done);
     });
 });
