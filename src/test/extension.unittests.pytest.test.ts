@@ -12,7 +12,7 @@ import * as assert from 'assert';
 // You can import and use all API from the \'vscode\' module
 // as well as import your extension to test it
 import * as vscode from 'vscode';
-import { TestsToRun } from '../client/unittests/common/contracts';
+import { TestsToRun, TestFile, TestFunction, TestSuite } from '../client/unittests/common/contracts';
 import * as pytest from '../client/unittests/pytest/main';
 import { TestResultDisplay } from '../client/unittests/display/main';
 
@@ -23,6 +23,8 @@ import * as configSettings from '../client/common/configSettings';
 let pythonSettings = configSettings.PythonSettings.getInstance();
 
 const UNITTEST_TEST_FILES_PATH = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'unitests');
+const UNITTEST_TEST_FILES_PATH_WITH_CONFIGS = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'unitestsWithConfigs');
+
 class MockOutputChannel implements vscode.OutputChannel {
     constructor(name: string) {
         this.name = name;
@@ -53,6 +55,7 @@ suite('Unit Tests (PyTest)', () => {
         done();
     });
     setup(() => {
+        rootDirectory = UNITTEST_TEST_FILES_PATH;
         outChannel = new MockOutputChannel('Python Test Log');
         testResultDisplay = new TestResultDisplay(outChannel);
     });
@@ -64,7 +67,7 @@ suite('Unit Tests (PyTest)', () => {
     function createTestManager() {
         testManager = new pytest.TestManager(rootDirectory, outChannel);
     }
-    const rootDirectory = UNITTEST_TEST_FILES_PATH;
+    let rootDirectory = UNITTEST_TEST_FILES_PATH;
     let testManager: pytest.TestManager;
     let testResultDisplay: TestResultDisplay;
     let outChannel: vscode.OutputChannel;
@@ -97,6 +100,21 @@ suite('Unit Tests (PyTest)', () => {
             assert.equal(tests.testFunctions.length, 2, 'Incorrect number of test functions');
             assert.equal(tests.testSuits.length, 1, 'Incorrect number of test suites');
             assert.equal(tests.testFiles.some(t => t.name === 'tests/unittest_three_test.py' && t.nameToRun === t.name), true, 'Test File not found');
+            done();
+        }).catch(done);
+    });
+
+
+    test('Discover Tests (with config)', done => {
+        pythonSettings.unitTest.pyTestArgs = [];
+        rootDirectory = UNITTEST_TEST_FILES_PATH_WITH_CONFIGS;
+        createTestManager();
+        testManager.discoverTests(true, true).then(tests => {
+            assert.equal(tests.testFiles.length, 2, 'Incorrect number of test files');
+            assert.equal(tests.testFunctions.length, 14, 'Incorrect number of test functions');
+            assert.equal(tests.testSuits.length, 4, 'Incorrect number of test suites');
+            assert.equal(tests.testFiles.some(t => t.name === 'other/test_unittest_one.py' && t.nameToRun === t.name), true, 'Test File not found');
+            assert.equal(tests.testFiles.some(t => t.name === 'other/test_pytest.py' && t.nameToRun === t.name), true, 'Test File not found');
             done();
         }).catch(done);
     });
@@ -142,8 +160,17 @@ suite('Unit Tests (PyTest)', () => {
         ];
         createTestManager();
         testManager.discoverTests(true, true).then(tests => {
-            const testFile: TestsToRun = { testFile: [tests.testFiles[0]], testFolder: [], testFunction: [], testSuite: [] };
-            return testManager.runTest(testFile).then(tests => {
+            const testFile: TestFile = {
+                fullPath: path.join(rootDirectory, 'tests', 'test_another_pytest.py'),
+                name: 'tests/test_another_pytest.py',
+                nameToRun: 'tests/test_another_pytest.py',
+                xmlName: 'tests/test_another_pytest.py',
+                functions: [],
+                suites: [],
+                time: 0
+            };
+            const testFileToRun: TestsToRun = { testFile: [testFile], testFolder: [], testFunction: [], testSuite: [] };
+            return testManager.runTest(testFileToRun).then(tests => {
                 assert.equal(tests.summary.errors, 0, 'Errors');
                 assert.equal(tests.summary.failures, 1, 'Failures');
                 assert.equal(tests.summary.passed, 3, 'Passed');
