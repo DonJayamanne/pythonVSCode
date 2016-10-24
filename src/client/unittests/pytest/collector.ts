@@ -1,11 +1,11 @@
 'use strict';
-import {execPythonFile} from './../../common/utils';
-import {TestFile, TestsToRun, TestSuite, TestFunction, FlattenedTestFunction, Tests, TestStatus, FlattenedTestSuite} from '../common/contracts';
+import { execPythonFile } from './../../common/utils';
+import { TestFile, TestsToRun, TestSuite, TestFunction, FlattenedTestFunction, Tests, TestStatus, FlattenedTestSuite } from '../common/contracts';
 import * as os from 'os';
-import {extractBetweenDelimiters, flattenTestFiles, updateResults, convertFileToPackage} from '../common/testUtils';
+import { extractBetweenDelimiters, flattenTestFiles, updateResults, convertFileToPackage } from '../common/testUtils';
 import * as vscode from 'vscode';
 import * as path from 'path';
-import {PythonSettings} from '../../common/configSettings';
+import { PythonSettings } from '../../common/configSettings';
 
 const pythonSettings = PythonSettings.getInstance();
 
@@ -47,7 +47,7 @@ export function discoverTests(rootDirectory: string, args: string[], token: vsco
             if (token && token.isCancellationRequested) {
                 return;
             }
-            if (line.trim().startsWith('<Module \'')) {
+            if (line.trim().startsWith('<Module \'') || index === lines.length - 1) {
                 // process the previous lines
                 parsePyTestModuleCollectionResult(rootDirectory, logOutputLines, testFiles, parentNodes);
                 logOutputLines = [''];
