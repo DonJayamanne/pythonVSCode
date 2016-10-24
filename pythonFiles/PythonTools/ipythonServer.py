@@ -412,7 +412,46 @@ class iPythonSocketServer(object):
         self.kernelMonitor = iPythonKernelResponseMonitor(
             kernelUUID, self.conn, self.send_lock, shell, iopub)
 
+    def stopKernel(self, kernelUUID):
+        """Shutdown a kernel by UUID"""
+        try:
+            if self.kernelMonitor is not None:
+                self.kernelMonitor.stop()
+        finally:
+            pass
+
+        try:
+            kernel_manager = multiKernelManager.get_kernel(kernelUUID)
+            kernel_client = kernel_manager.client()
+            kernel_client.stop_channels()
+        finally:
+            pass
+
+        try:
+            kernel_manager = multiKernelManager.get_kernel(kernelUUID)
+            kernel_manager.shutdown_kernel()
+        except:
+            pass
+        finally:
+            self.shell_channel = None
+            self.kernelMonitor = None
+
     def _cmd_stpk(self, id):
+        """Shutdown a kernel by UUID"""
+        while True:
+            try:
+                kernelUUID = read_string(self.conn)
+                break
+            except socket.timeout:
+                pass
+
+        self.stopKernel(kernelUUID)
+        
+        with self.send_lock:
+            write_bytes(self.conn, iPythonSocketServer._STPK)
+            write_string(self.conn, id)
+
+    def _cmd_kill(self, id):
         """Shutdown a kernel by UUID"""
         while True:
             try:
@@ -439,13 +478,7 @@ class iPythonSocketServer(object):
             kernel_manager.shutdown_kernel()
         except:
             pass
-        finally:
-            self.shell_channel = None
-            self.kernelMonitor = None
-            with self.send_lock:
-                write_bytes(self.conn, iPythonSocketServer._STPK)
-                write_string(self.conn, id)
-
+                    
     def _cmd_rstk(self, id):
         """Restart a kernel by UUID"""
         while True:
@@ -562,7 +595,6 @@ class iPythonSocketServer(object):
 
     def exit_process(self):
         """exits the REPL process"""
-        # TODO: Probably should cleanly shutdown the kernels
         sys.exit(0)
 
     def flush(self):
@@ -580,6 +612,7 @@ class iPythonSocketServer(object):
         to_bytes('stpk'): _cmd_stpk,
         to_bytes('rstk'): _cmd_rstk,
         to_bytes('itpk'): _cmd_itpk,
+        to_bytes('kill'): _cmd_kill,
     }
 
     _COMMANDS_WITH_IDS = {
@@ -650,7 +683,17 @@ class iPythonReadLine(object):
         sys.__stdout__.flush()
         while True:
             try:
-                self._process_request(self._input.readline())
+                kernelUUID = self._input.readline()
+                sys.__stdout__.write('about to die\n')
+                sys.__stdout__.flush()
+                if (len(kernelUUID) > 0):
+                    try:
+                        server.stopKernel(kernelUUID)
+                    except:
+                        pass
+                server.exit_requested = True
+                sys.__stdout__.write('adios\n')
+                sys.__stdout__.flush()
             except Exception:
                 sys.stderr.write(traceback.format_exc() + '\n')
                 sys.stderr.flush()

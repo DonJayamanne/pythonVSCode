@@ -32,11 +32,6 @@ export class JupyterSocketClient extends SocketCallbackHandler {
     private guid: string;
 
     public dispose() {
-        try {
-            this.SendRawCommand(Commands.ExitCommandBytes);
-        }
-        catch (ex) {
-        }
         super.dispose();
     }
     protected handleHandshake(): boolean {

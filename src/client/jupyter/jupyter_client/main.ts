@@ -27,17 +27,15 @@ export class JupyterClientAdapter extends EventEmitter implements IJupyterClient
 
     public dispose() {
         try {
-            this.ipythonAdapter.sendKernelCommand(this.lastStartedKernelUUID, KernelCommand.shutdown).catch(()=>{});
+            if (this.process){
+                this.process.stdin.write(this.lastStartedKernelUUID ? this.lastStartedKernelUUID : '');
+                this.process.stdin.write('\n'); 
+            }
         }
         catch (ex) {
         }
         try {
             this.ipythonAdapter.dispose();
-        }
-        catch (ex) {
-        }
-        try {
-            this.process.kill();
         }
         catch (ex) {
         }
@@ -77,7 +75,7 @@ export class JupyterClientAdapter extends EventEmitter implements IJupyterClient
             const promiseToResolve = isInTestRun ? testDef.resolve.bind(testDef) : def.resolve.bind(def);
 
             this.process.stdout.on('data', (data: string) => {
-                if (data.split(/\r?\n/g).some(line => line === 'Started')) {
+                if (!processStarted && data.split(/\r?\n/g).some(line => line === 'Started')) {
                     processStarted = true;
                     if (processStarted && handshakeDone) {
                         promiseToResolve();
@@ -85,7 +83,7 @@ export class JupyterClientAdapter extends EventEmitter implements IJupyterClient
                     return;
                 }
                 this.outputChannel.append(data);
-            });
+            });            
             this.process.stderr.on('data', (data: string) => {
                 this.outputChannel.append(data);
             });
@@ -128,6 +126,11 @@ export class JupyterClientAdapter extends EventEmitter implements IJupyterClient
         this.ipythonAdapter = new JupyterSocketClient(this.socketServer);
         this.ipythonAdapter.on('status', status => {
             this.emit('status', status);
+        });
+        this.ipythonAdapter.on('error', error => {
+            this.emit('error', error);
+            console.error(error);
+            this.outputChannel.appendLine('Error received: ' + error);
         });
         this.ipythonAdapter.on('commanderror', (commandError: { command: string, id: string, trace: string }) => {
             this.outputChannel.appendLine(`Unhandled command Error from Jupyter. '${JSON.stringify(commandError)}'`);
