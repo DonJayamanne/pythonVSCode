@@ -41,7 +41,7 @@ before_install: |
   fi
 install:
   - pip install -r requirements.txt
-  - ./scripts/npm.sh install
+  - npm install
   - npm run vscode:prepublish
   
 script:
