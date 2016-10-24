@@ -60,80 +60,78 @@ export class MockOutputChannel implements vscode.OutputChannel {
     }
 }
 
-if (!IS_TRAVIS) {
-    suite('Kernel Manager', () => {
-        suiteSetup(done => {
-            initialize().then(() => {
-                if (IS_TRAVIS) {
-                    pythonSettings.pythonPath = PYTHON_PATH;
-                }
-                done();
-            });
-            setup(() => {
-                disposables = [];
-                output = new MockOutputChannel('Jupyter');
-                disposables.push(output);
-                jupyter = new JupyterClientAdapter(output, __dirname);
-                disposables.push(jupyter);
-                process.env['PYTHON_DONJAYAMANNE_TEST'] = '0';
-                process.env['DEBUG_DJAYAMANNE_IPYTHON'] = '1';
-                // Hack hack hack hack hack :)
-                cmds.registerCommand = function () { };
-            });
-            teardown(() => {
-                process.env['PYTHON_DONJAYAMANNE_TEST'] = '1';
-                process.env['DEBUG_DJAYAMANNE_IPYTHON'] = '0';
-                output.dispose();
-                jupyter.dispose();
-                disposables.forEach(d => {
-                    try {
-                        d.dispose();
-                    } catch (error) {
-                    }
-                });
-                cmds.registerCommand = oldRegisterCommand;
-            });
+suite('Kernel Manager', () => {
+    suiteSetup(done => {
+        initialize().then(() => {
+            if (IS_TRAVIS) {
+                pythonSettings.pythonPath = PYTHON_PATH;
+            }
+            done();
         });
-
-        let output: MockOutputChannel;
-        let jupyter: JupyterClientAdapter;
-        let disposables: { dispose: Function }[];
-        const cmds = (vscode.commands as any);
-        const oldRegisterCommand = vscode.commands.registerCommand;
-
-        test('GetAllKernelSpecsFor python', done => {
+        setup(() => {
+            disposables = [];
+            output = new MockOutputChannel('Jupyter');
+            disposables.push(output);
+            jupyter = new JupyterClientAdapter(output, __dirname);
+            disposables.push(jupyter);
             process.env['PYTHON_DONJAYAMANNE_TEST'] = '0';
-            const mgr = new KernelManagerImpl(output, jupyter);
-            disposables.push(mgr);
-            mgr.getAllKernelSpecsFor('python').then(specMetadata => {
-                assert.notEqual(specMetadata.length, 0, 'No spec metatadata');
-                done();
-            }).catch(reason => {
-                assert.fail(reason, null, 'Some error', '');
-            });
+            process.env['DEBUG_DJAYAMANNE_IPYTHON'] = '1';
+            // Hack hack hack hack hack :)
+            cmds.registerCommand = function () { };
         });
-        test('Start a kernel', done => {
-            const mgr = new KernelManagerImpl(output, jupyter);
-            disposables.push(mgr);
-            mgr.getAllKernelSpecsFor('python').then(specMetadata => {
-                assert.notEqual(specMetadata.length, 0, 'No spec metatadata');
-                return mgr.startKernel(specMetadata[0], 'python');
-            }).then(kernel => {
-                assert.equal(typeof kernel === 'object' && kernel !== null, true, 'Kernel instance not returned');
-                done();
-            }).catch(reason => {
-                assert.fail(reason, null, 'Some error', '');
+        teardown(() => {
+            process.env['PYTHON_DONJAYAMANNE_TEST'] = '1';
+            process.env['DEBUG_DJAYAMANNE_IPYTHON'] = '0';
+            output.dispose();
+            jupyter.dispose();
+            disposables.forEach(d => {
+                try {
+                    d.dispose();
+                } catch (error) {
+                }
             });
-        });
-        test('Start any kernel for Python', done => {
-            const mgr = new KernelManagerImpl(output, jupyter);
-            disposables.push(mgr);
-            mgr.startKernelFor('python').then(kernel => {
-                assert.equal(typeof kernel === 'object' && kernel !== null, true, 'Kernel instance not returned');
-                done();
-            }).catch(reason => {
-                assert.fail(reason, null, 'Some error', '');
-            });
+            cmds.registerCommand = oldRegisterCommand;
         });
     });
-}
+
+    let output: MockOutputChannel;
+    let jupyter: JupyterClientAdapter;
+    let disposables: { dispose: Function }[];
+    const cmds = (vscode.commands as any);
+    const oldRegisterCommand = vscode.commands.registerCommand;
+
+    test('GetAllKernelSpecsFor python', done => {
+        process.env['PYTHON_DONJAYAMANNE_TEST'] = '0';
+        const mgr = new KernelManagerImpl(output, jupyter);
+        disposables.push(mgr);
+        mgr.getAllKernelSpecsFor('python').then(specMetadata => {
+            assert.notEqual(specMetadata.length, 0, 'No spec metatadata');
+            done();
+        }).catch(reason => {
+            assert.fail(reason, null, 'Some error', '');
+        });
+    });
+    test('Start a kernel', done => {
+        const mgr = new KernelManagerImpl(output, jupyter);
+        disposables.push(mgr);
+        mgr.getAllKernelSpecsFor('python').then(specMetadata => {
+            assert.notEqual(specMetadata.length, 0, 'No spec metatadata');
+            return mgr.startKernel(specMetadata[0], 'python');
+        }).then(kernel => {
+            assert.equal(typeof kernel === 'object' && kernel !== null, true, 'Kernel instance not returned');
+            done();
+        }).catch(reason => {
+            assert.fail(reason, null, 'Some error', '');
+        });
+    });
+    test('Start any kernel for Python', done => {
+        const mgr = new KernelManagerImpl(output, jupyter);
+        disposables.push(mgr);
+        mgr.startKernelFor('python').then(kernel => {
+            assert.equal(typeof kernel === 'object' && kernel !== null, true, 'Kernel instance not returned');
+            done();
+        }).catch(reason => {
+            assert.fail(reason, null, 'Some error', '');
+        });
+    });
+});
