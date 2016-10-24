@@ -8,6 +8,7 @@ process.env['PYTHON_DONJAYAMANNE_TEST'] = "1";
 
 // The module 'assert' provides assertion methods from node
 import * as assert from "assert";
+import * as fs from 'fs';
 
 // You can import and use all API from the 'vscode' module
 // as well as import your extension to test it
@@ -37,3 +38,16 @@ export function closeActiveWindows(counter: number = 0): Thenable<any> {
 }
 
 export const IS_TRAVIS = (process.env['TRAVIS'] + '') === 'true';
+export const TEST_TIMEOUT = 10000;
+
+function getPythonPath(): string {
+    const pythonPaths = ['/home/travis/virtualenv/python3.5.2/bin/python'];
+    for (let counter = 0; counter < pythonPaths.length; counter++) {
+        if (fs.existsSync(pythonPaths[counter])) {
+            return pythonPaths[counter];
+        }
+    }
+    return 'python';
+}
+
+export const PYTHON_PATH = IS_TRAVIS ? getPythonPath() : 'python';
