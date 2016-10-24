@@ -1,5 +1,5 @@
 // Place this right on top
-import { initialize, closeActiveWindows } from './initialize';
+import { initialize, closeActiveWindows, PYTHON_PATH } from './initialize';
 /// <reference path="../../node_modules/@types/mocha/index.d.ts" />
 import * as assert from 'assert';
 
@@ -97,18 +97,12 @@ class MockTextDocument implements vscode.TextDocument {
 suiteSetup(done => {
     fs.copySync(refactorSourceFile, refactorTargetFile, { clobber: true });
     initialize().then(() => {
-        new Promise<string>(resolve => {
-            // Support for travis
-            let version = process.env['TRAVIS_PYTHON_VERSION'];
-            if (typeof version === 'string') {
-                return resolve(version);
-            }
-            // Support for local tests
-            execPythonFile('python', ['--version'], __dirname, true).then(resolve);
+        pythonSettings.pythonPath = PYTHON_PATH;
+        initialize().then(() => {
+            return execPythonFile(pythonSettings.pythonPath, ['--version'], __dirname, true);
         }).then(version => {
             isPython3 = version.indexOf('3.') >= 0;
-            done();
-        });
+        }).then(done, done);
     });
 });
 

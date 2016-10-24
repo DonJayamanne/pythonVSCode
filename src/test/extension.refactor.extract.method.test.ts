@@ -1,5 +1,5 @@
 // Place this right on top
-import { initialize, closeActiveWindows } from './initialize';
+import { initialize, closeActiveWindows, PYTHON_PATH } from './initialize';
 import * as assert from 'assert';
 
 // You can import and use all API from the \'vscode\' module
@@ -93,30 +93,21 @@ class MockTextDocument implements vscode.TextDocument {
     }
 }
 
-suiteSetup(done => {
-    fs.copySync(refactorSourceFile, refactorTargetFile, { clobber: true });
-    initialize().then(() => {
-        new Promise<string>(resolve => {
-            // Support for travis
-            let version = process.env['TRAVIS_PYTHON_VERSION'];
-            if (typeof version === 'string') {
-                return resolve(version);
-            }
-            // Support for local tests
-            execPythonFile('python', ['--version'], __dirname, true).then(resolve);
+suite('Method Extraction', () => {
+    suiteSetup(done => {
+        fs.copySync(refactorSourceFile, refactorTargetFile, { clobber: true });
+        pythonSettings.pythonPath = PYTHON_PATH;
+        initialize().then(() => {
+            return execPythonFile(pythonSettings.pythonPath, ['--version'], __dirname, true);
         }).then(version => {
             isPython3 = version.indexOf('3.') >= 0;
-            done();
-        });
+        }).then(done, done);
     });
-});
 
-suiteTeardown(done => {
-    // deleteFile(targetPythonFileToLint).then(done, done);
-    done();
-});
-
-suite('Method Extraction', () => {
+    suiteTeardown(done => {
+        // deleteFile(targetPythonFileToLint).then(done, done);
+        done();
+    });
     setup(() => {
         if (fs.existsSync(refactorTargetFile)) {
             fs.unlinkSync(refactorTargetFile);

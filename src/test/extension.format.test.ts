@@ -31,41 +31,42 @@ const yapfFileToAutoFormat = path.join(__dirname, 'pythonFiles', 'formatting', '
 let formattedYapf = '';
 let formattedAutoPep8 = '';
 
-suiteSetup(done => {
-    initialize().then(() => {
-        [autoPep8FileToFormat, autoPep8FileToAutoFormat, yapfFileToFormat, yapfFileToAutoFormat].forEach(file => {
-            if (fs.existsSync(file)) { fs.unlinkSync(file); }
-            fs.copySync(originalUnformattedFile, file);
-        });
-
-        fs.ensureDirSync(path.dirname(autoPep8FileToFormat));
-        let yapf = execPythonFile('yapf', [originalUnformattedFile], pythoFilesPath, false);
-        let autoPep8 = execPythonFile('autopep8', [originalUnformattedFile], pythoFilesPath, false);
-        return Promise.all<string>([yapf, autoPep8]).then(formattedResults => {
-            formattedYapf = formattedResults[0];
-            formattedAutoPep8 = formattedResults[1];
-        }).then(() => {
-            done();
-        }, reason => {
-            console.error(reason);
-            console.error('Failed to initialize format tests');
-            done();
-        });
-    }, done);
-});
-
-suiteTeardown(() => {
-    if (vscode.window.activeTextEditor) {
-        return vscode.commands.executeCommand('workbench.action.closeActiveEditor');
-    }
-});
-
 suite('Formatting', () => {
+    suiteSetup(done => {
+        initialize().then(() => {
+            [autoPep8FileToFormat, autoPep8FileToAutoFormat, yapfFileToFormat, yapfFileToAutoFormat].forEach(file => {
+                if (fs.existsSync(file)) { fs.unlinkSync(file); }
+                fs.copySync(originalUnformattedFile, file);
+            });
+
+            fs.ensureDirSync(path.dirname(autoPep8FileToFormat));
+            let yapf = execPythonFile('yapf', [originalUnformattedFile], pythoFilesPath, false);
+            let autoPep8 = execPythonFile('autopep8', [originalUnformattedFile], pythoFilesPath, false);
+            return Promise.all<string>([yapf, autoPep8]).then(formattedResults => {
+                formattedYapf = formattedResults[0];
+                formattedAutoPep8 = formattedResults[1];
+            }).then(() => {
+                done();
+            }, reason => {
+                console.error(reason);
+                console.error('Failed to initialize format tests');
+                done();
+            });
+        }, done);
+    });
+
+    suiteTeardown(() => {
+        if (vscode.window.activeTextEditor) {
+            return vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+        }
+    });
+
     teardown(() => {
         if (vscode.window.activeTextEditor) {
             return vscode.commands.executeCommand('workbench.action.closeActiveEditor');
         }
     });
+
     function testFormatting(formatter: AutoPep8Formatter | YapfFormatter, formattedContents: string, fileToFormat: string): PromiseLike<void> {
         let textEditor: vscode.TextEditor;
         let textDocument: vscode.TextDocument;

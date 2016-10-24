@@ -2,7 +2,7 @@
 // Note: This example test is leveraging the Mocha test framework.
 // Please refer to their documentation on https://mochajs.org/ for help.
 // Place this right on top
-import { initialize, IS_TRAVIS } from './initialize';
+import { initialize, IS_TRAVIS, PYTHON_PATH } from './initialize';
 // The module \'assert\' provides assertion methods from node
 import * as assert from 'assert';
 
@@ -136,31 +136,18 @@ let fiteredPydocstyleMessagseToBeReturned: baseLinter.ILintMessage[] = [
     { 'code': 'D102', severity: baseLinter.LintMessageSeverity.Information, 'message': 'Missing docstring in public method', 'column': 4, 'line': 8, 'type': '', 'provider': 'pydocstyle' }
 ];
 
-suiteSetup(done => {
-    pylintFileToLintLines = fs.readFileSync(fileToLint).toString('utf-8').split(/\r?\n/g);
-    initialize().then(() => {
-        new Promise<string>(resolve => {
-            // Support for travis
-            let version = process.env['TRAVIS_PYTHON_VERSION'];
-            if (typeof version === 'string') {
-                return resolve(version);
-            }
-            // Support for local tests
-            execPythonFile('python', ['--version'], __dirname, true).then(resolve);
+suite('Linting', () => {
+
+    suiteSetup(done => {
+        pylintFileToLintLines = fs.readFileSync(fileToLint).toString('utf-8').split(/\r?\n/g);
+        pythonSettings.pythonPath = PYTHON_PATH;
+        initialize().then(() => {
+            return execPythonFile(pythonSettings.pythonPath, ['--version'], __dirname, true);
         }).then(version => {
             isPython3 = version.indexOf('3.') >= 0;
-            done();
-        });
+        }).then(done, done);
     });
-});
-suiteTeardown(done => {
-    // deleteFile(targetPythonFileToLint).then(done, done);
-    done();
-});
-
-suite('Linting', () => {
     setup(() => {
-        pythonSettings.pythonPath = 'python2.7';
         pythonSettings.linting.enabled = true;
         pythonSettings.linting.pylintEnabled = true;
         pythonSettings.linting.flake8Enabled = true;
