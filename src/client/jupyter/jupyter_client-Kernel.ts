@@ -12,7 +12,7 @@ export class JupyterClientKernel extends Kernel {
     }
 
     public dispose() {
-        this.shutdown();
+        this.shutdown().catch(()=>{});
         super.dispose();
     };
 
