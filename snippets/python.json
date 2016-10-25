@@ -190,8 +190,7 @@
             "\t${pass}",
             "",
             "if __name__ == '__main__':",
-            "\timport sys",
-            "\tsys.exit(int(main() or 0))"
+            "\tmain()"
         ],
         "description": "Code snippet for a main function"
     },
