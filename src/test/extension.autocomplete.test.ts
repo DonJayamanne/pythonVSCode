@@ -65,7 +65,6 @@ suite('Autocomplete', () => {
             const position = new vscode.Position(30, 4);
             return vscode.commands.executeCommand('vscode.executeCompletionItemProvider', textDocument.uri, position);
         }).then((list: { isIncomplete: boolean, items: vscode.CompletionItem[] }) => {
-            assert.notEqual(list.items.filter(item => item.label === 'description').length, 0, 'description not found');
             assert.notEqual(list.items.filter(item => item.label === 'method1').length, 0, 'method1 not found');
             assert.notEqual(list.items.filter(item => item.label === 'method2').length, 0, 'method2 not found');
         }).then(done, done);

@@ -28,5 +28,4 @@ class Class1(object):
         pass
 
 obj = Class1()
-print(obj.description)
-print(obj.method1)
+obj.method1()
