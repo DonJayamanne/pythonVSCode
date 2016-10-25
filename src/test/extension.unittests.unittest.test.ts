@@ -22,7 +22,8 @@ import * as configSettings from '../client/common/configSettings';
 
 let pythonSettings = configSettings.PythonSettings.getInstance();
 
-const UNITTEST_TEST_FILES_PATH = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'unitests');
+const UNITTEST_TEST_FILES_PATH = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'standard');
+const UNITTEST_SINGLE_TEST_FILE_PATH = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'single');
 class MockOutputChannel implements vscode.OutputChannel {
     constructor(name: string) {
         this.name = name;
@@ -69,6 +70,20 @@ suite('Unit Tests (unittest)', () => {
     let testResultDisplay: TestResultDisplay;
     let outChannel: vscode.OutputChannel;
 
+    test('Discover Tests (single test file)', done => {
+        pythonSettings.unitTest.unittestArgs = [
+            '-s=./tests',
+            '-p=test_*.py'
+        ];
+        testManager = new unittest.TestManager(UNITTEST_SINGLE_TEST_FILE_PATH, outChannel);
+        testManager.discoverTests(true, true).then(tests => {
+            assert.equal(tests.testFiles.length, 1, 'Incorrect number of test files');
+            assert.equal(tests.testFunctions.length, 3, 'Incorrect number of test functions');
+            assert.equal(tests.testSuits.length, 1, 'Incorrect number of test suites');
+            assert.equal(tests.testFiles.some(t => t.name === 'test_one.py' && t.nameToRun === 'Test_test1.test_A'), true, 'Test File not found');
+        }).then(done).catch(done);
+    });
+
     test('Discover Tests', done => {
         pythonSettings.unitTest.unittestArgs = [
             '-s=./tests',
@@ -81,8 +96,7 @@ suite('Unit Tests (unittest)', () => {
             assert.equal(tests.testSuits.length, 3, 'Incorrect number of test suites');
             assert.equal(tests.testFiles.some(t => t.name === 'test_unittest_one.py' && t.nameToRun === 'Test_test1.test_A'), true, 'Test File not found');
             assert.equal(tests.testFiles.some(t => t.name === 'test_unittest_two.py' && t.nameToRun === 'Test_test2.test_A2'), true, 'Test File not found');
-            done();
-        }).catch(done);
+        }).then(done).catch(done);
     });
 
     test('Discover Tests (pattern = *_test_*.py)', done => {
@@ -96,8 +110,7 @@ suite('Unit Tests (unittest)', () => {
             assert.equal(tests.testFunctions.length, 2, 'Incorrect number of test functions');
             assert.equal(tests.testSuits.length, 1, 'Incorrect number of test suites');
             assert.equal(tests.testFiles.some(t => t.name === 'unittest_three_test.py' && t.nameToRun === 'Test_test3.test_A'), true, 'Test File not found');
-            done();
-        }).catch(done);
+        }).then(done).catch(done);
     });
 
     test('Run Tests', done => {
@@ -111,8 +124,7 @@ suite('Unit Tests (unittest)', () => {
             assert.equal(results.summary.failures, 5, 'Failures');
             assert.equal(results.summary.passed, 4, 'Passed');
             assert.equal(results.summary.skipped, 1, 'skipped');
-            done();
-        }).catch(done);
+        }).then(done).catch(done);
     });
 
     // test('Fail Fast', done => {
@@ -148,9 +160,8 @@ suite('Unit Tests (unittest)', () => {
                 assert.equal(results.summary.failures, 5, 'Failed Failures');
                 assert.equal(results.summary.passed, 0, 'Failed Passed');
                 assert.equal(results.summary.skipped, 0, 'Failed skipped');
-                done();
             });
-        }).catch(done);
+        }).then(done).catch(done);
     });
 
     test('Run Specific Test File', done => {
@@ -166,9 +177,8 @@ suite('Unit Tests (unittest)', () => {
                 assert.equal(tests.summary.failures, 1, 'Failures');
                 assert.equal(tests.summary.passed, 1, 'Passed');
                 assert.equal(tests.summary.skipped, 1, 'skipped');
-                done();
             });
-        }).catch(done);
+        }).then(done).catch(done);
     });
 
     test('Run Specific Test Suite', done => {
@@ -184,9 +194,8 @@ suite('Unit Tests (unittest)', () => {
                 assert.equal(tests.summary.failures, 1, 'Failures');
                 assert.equal(tests.summary.passed, 1, 'Passed');
                 assert.equal(tests.summary.skipped, 1, 'skipped');
-                done();
             });
-        }).catch(done);
+        }).then(done).catch(done);
     });
 
     test('Run Specific Test Function', done => {
@@ -202,8 +211,7 @@ suite('Unit Tests (unittest)', () => {
                 assert.equal(tests.summary.failures, 1, 'Failures');
                 assert.equal(tests.summary.passed, 0, 'Passed');
                 assert.equal(tests.summary.skipped, 0, 'skipped');
-                done();
             });
-        }).catch(done);
+        }).then(done).catch(done);
     });
 });

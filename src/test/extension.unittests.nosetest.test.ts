@@ -22,8 +22,9 @@ import * as configSettings from '../client/common/configSettings';
 
 let pythonSettings = configSettings.PythonSettings.getInstance();
 
-const UNITTEST_TEST_FILES_PATH = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'unitests');
-const UNITTEST_TEST_ID_FILE_PATH = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'unitests', '.noseids');
+const UNITTEST_TEST_FILES_PATH = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'standard');
+const UNITTEST_SINGLE_TEST_FILE_PATH = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'single');
+const UNITTEST_TEST_ID_FILE_PATH = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'standard', '.noseids');
 class MockOutputChannel implements vscode.OutputChannel {
     constructor(name: string) {
         this.name = name;
@@ -45,7 +46,7 @@ class MockOutputChannel implements vscode.OutputChannel {
 
 suite('Unit Tests (nosetest)', () => {
     suiteSetup(done => {
-        if (fs.existsSync(UNITTEST_TEST_ID_FILE_PATH)){
+        if (fs.existsSync(UNITTEST_TEST_ID_FILE_PATH)) {
             fs.unlinkSync(UNITTEST_TEST_ID_FILE_PATH);
         }
         initialize().then(() => {
@@ -54,7 +55,7 @@ suite('Unit Tests (nosetest)', () => {
         });
     });
     suiteTeardown(done => {
-        if (fs.existsSync(UNITTEST_TEST_ID_FILE_PATH)){
+        if (fs.existsSync(UNITTEST_TEST_ID_FILE_PATH)) {
             fs.unlinkSync(UNITTEST_TEST_ID_FILE_PATH);
         }
         done();
@@ -76,38 +77,50 @@ suite('Unit Tests (nosetest)', () => {
     let testResultDisplay: TestResultDisplay;
     let outChannel: vscode.OutputChannel;
 
+    test('Discover Tests (single test file)', done => {
+        pythonSettings.unitTest.nosetestArgs = [
+        ];
+        testManager = new nose.TestManager(UNITTEST_SINGLE_TEST_FILE_PATH, outChannel);
+        testManager.discoverTests(true, true).then(tests => {
+            assert.equal(tests.testFiles.length, 1, 'Incorrect number of test files');
+            assert.equal(tests.testFunctions.length, 3, 'Incorrect number of test functions');
+            assert.equal(tests.testSuits.length, 1, 'Incorrect number of test suites');
+            assert.equal(tests.testFiles.some(t => t.name === 'tests/test_one.py' && t.nameToRun === t.name), true, 'Test File not found');
+        }).then(done).catch(done);
+    });
+
     test('Discover Tests (pattern = test_)', done => {
         pythonSettings.unitTest.nosetestArgs = [
 
         ];
         createTestManager();
         testManager.discoverTests(true, true).then(tests => {
-            assert.equal(tests.testFiles.length, 4, 'Incorrect number of test files');
-            assert.equal(tests.testFunctions.length, 17, 'Incorrect number of test functions');
-            assert.equal(tests.testSuits.length, 4, 'Incorrect number of test suites');
+            assert.equal(tests.testFiles.length, 5, 'Incorrect number of test files');
+            assert.equal(tests.testFunctions.length, 19, 'Incorrect number of test functions');
+            assert.equal(tests.testSuits.length, 5, 'Incorrect number of test suites');
             assert.equal(tests.testFiles.some(t => t.name === 'tests/test_unittest_one.py' && t.nameToRun === t.name), true, 'Test File not found');
             assert.equal(tests.testFiles.some(t => t.name === 'tests/test_unittest_two.py' && t.nameToRun === t.name), true, 'Test File not found');
             assert.equal(tests.testFiles.some(t => t.name === 'tests/test_pytest.py' && t.nameToRun === t.name), true, 'Test File not found');
             assert.equal(tests.testFiles.some(t => t.name === 'tests/test_another_pytest.py' && t.nameToRun === t.name), true, 'Test File not found');
-            done();
-        }).catch(done);
+            assert.equal(tests.testFiles.some(t => t.name === 'tests/unittest_three_test.py' && t.nameToRun === t.name), true, 'Test File not found');
+        }).then(done).catch(done);
     });
 
-    test('Discover Tests (pattern = test_)', done => {
+    test('Discover Tests (pattern = _test_)', done => {
         pythonSettings.unitTest.nosetestArgs = [
             '-m=*test*'
         ];
         createTestManager();
         testManager.discoverTests(true, true).then(tests => {
-            assert.equal(tests.testFiles.length, 4, 'Incorrect number of test files');
-            assert.equal(tests.testFunctions.length, 13, 'Incorrect number of test functions');
-            assert.equal(tests.testSuits.length, 3, 'Incorrect number of test suites');
+            assert.equal(tests.testFiles.length, 5, 'Incorrect number of test files');
+            assert.equal(tests.testFunctions.length, 15, 'Incorrect number of test functions');
+            assert.equal(tests.testSuits.length, 4, 'Incorrect number of test suites');
             assert.equal(tests.testFiles.some(t => t.name === 'tests/test_unittest_one.py' && t.nameToRun === t.name), true, 'Test File not found');
             assert.equal(tests.testFiles.some(t => t.name === 'tests/test_unittest_two.py' && t.nameToRun === t.name), true, 'Test File not found');
             assert.equal(tests.testFiles.some(t => t.name === 'tests/test_pytest.py' && t.nameToRun === t.name), true, 'Test File not found');
             assert.equal(tests.testFiles.some(t => t.name === 'tests/test_another_pytest.py' && t.nameToRun === t.name), true, 'Test File not found');
-            done();
-        }).catch(done);
+            assert.equal(tests.testFiles.some(t => t.name === 'tests/unittest_three_test.py' && t.nameToRun === t.name), true, 'Test File not found');
+        }).then(done).catch(done);
     });
 
     test('Run Tests', done => {
@@ -119,8 +132,7 @@ suite('Unit Tests (nosetest)', () => {
             assert.equal(results.summary.failures, 5, 'Failures');
             assert.equal(results.summary.passed, 7, 'Passed');
             assert.equal(results.summary.skipped, 2, 'skipped');
-            done();
-        }).catch(done);
+        }).then(done).catch(done);
     });
 
     test('Run Failed Tests', done => {
@@ -138,9 +150,8 @@ suite('Unit Tests (nosetest)', () => {
                 assert.equal(results.summary.failures, 5, 'Failures');
                 assert.equal(results.summary.passed, 0, 'Passed');
                 assert.equal(results.summary.skipped, 0, 'skipped');
-                done();
             });
-        }).catch(done);
+        }).then(done).catch(done);
     });
 
     test('Run Specific Test File', done => {
@@ -154,9 +165,8 @@ suite('Unit Tests (nosetest)', () => {
                 assert.equal(tests.summary.failures, 0, 'Failures');
                 assert.equal(tests.summary.passed, 0, 'Passed');
                 assert.equal(tests.summary.skipped, 0, 'skipped');
-                done();
             });
-        }).catch(done);
+        }).then(done).catch(done);
     });
 
     test('Run Specific Test Suite', done => {
@@ -170,9 +180,8 @@ suite('Unit Tests (nosetest)', () => {
                 assert.equal(tests.summary.failures, 0, 'Failures');
                 assert.equal(tests.summary.passed, 0, 'Passed');
                 assert.equal(tests.summary.skipped, 0, 'skipped');
-                done();
             });
-        }).catch(done);
+        }).then(done).catch(done);
     });
 
     test('Run Specific Test Function', done => {
@@ -186,8 +195,7 @@ suite('Unit Tests (nosetest)', () => {
                 assert.equal(tests.summary.failures, 0, 'Failures');
                 assert.equal(tests.summary.passed, 0, 'Passed');
                 assert.equal(tests.summary.skipped, 0, 'skipped');
-                done();
             });
-        }).catch(done);
+        }).then(done).catch(done);
     });
 });

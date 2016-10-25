@@ -54,7 +54,7 @@ export function discoverTests(rootDirectory: string, args: string[], token: Canc
     }
     function processOutput(output: string) {
         output.split(/\r?\n/g).forEach((line, index, lines) => {
-            if (line.trim().startsWith('nose.selector: DEBUG: wantModule <module \'')) {
+            if (line.trim().startsWith('nose.selector: DEBUG: wantModule <module \'') || index === lines.length - 1) {
                 // process the previous lines
                 parseNoseTestModuleCollectionResult(rootDirectory, logOutputLines, testFiles);
                 logOutputLines = [''];
