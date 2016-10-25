@@ -51,8 +51,7 @@ suite('Autocomplete', () => {
             assert.notEqual(list.items.filter(item => item.label === 'api_version').length, 0, 'api_version not found');
             assert.notEqual(list.items.filter(item => item.label === 'argv').length, 0, 'argv not found');
             assert.notEqual(list.items.filter(item => item.label === 'prefix').length, 0, 'prefix not found');
-            done();
-        }, done);
+        }).then(done, done);
     });
 
     test('For custom class', done => {
@@ -69,8 +68,7 @@ suite('Autocomplete', () => {
             assert.notEqual(list.items.filter(item => item.label === 'description').length, 0, 'description not found');
             assert.notEqual(list.items.filter(item => item.label === 'method1').length, 0, 'method1 not found');
             assert.notEqual(list.items.filter(item => item.label === 'method2').length, 0, 'method2 not found');
-            done();
-        }, done);
+        }).then(done, done);
     });
 
     test('With Unicode Characters', done => {
