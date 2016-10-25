@@ -30,6 +30,7 @@
     "Debuggers",
     "Linters",
     "Snippets",
+    "Formatters",
     "Other"
   ],
   "activationEvents": [
