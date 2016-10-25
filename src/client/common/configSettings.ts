@@ -14,7 +14,13 @@ export interface IPythonSettings {
     autoComplete: IAutoCompeteSettings;
     terminal: ITerminalSettings;
     jupyter: JupyterSettings;
+    sortImports: ISortImportSettings;
 }
+
+export interface ISortImportSettings {
+    args: string[];
+}
+
 export interface IUnitTestSettings {
     nosetestsEnabled: boolean;
     nosetestPath: string;
@@ -113,10 +119,16 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         }
         else {
             this.linting = lintingSettings;
-            if (IS_TEST_EXECUTION && !this.linting) {
-                this.linting = {} as ILintingSettings;
-            }
         }
+        let sortImportSettings = systemVariables.resolveAny(pythonSettings.get<ISortImportSettings>('sortImports'));
+        if (this.sortImports) {
+            Object.assign<ISortImportSettings, ISortImportSettings>(this.sortImports, sortImportSettings);
+        }
+        else {
+            this.sortImports = sortImportSettings;
+        }
+        // Support for travis
+        this.sortImports = this.sortImports ? this.sortImports : { args: [] };
         // Support for travis
         this.linting = this.linting ? this.linting : {
             enabled: false,
@@ -182,6 +194,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
             }
         }
         this.emit('change');
+
         // Support for travis
         this.unitTest = this.unitTest ? this.unitTest : {
             nosetestArgs: [], nosetestPath: 'nosetest', nosetestsEnabled: false,
@@ -228,6 +241,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
     public unitTest: IUnitTestSettings;
     public terminal: ITerminalSettings;
     public jupyter: JupyterSettings;
+    public sortImports: ISortImportSettings;
 }
 
 function getAbsolutePath(pathToCheck: string, rootDir: string): string {
