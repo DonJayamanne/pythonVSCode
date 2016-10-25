@@ -123,7 +123,7 @@ export class JupyterClientAdapter extends EventEmitter implements IJupyterClient
     }
     private startSocketServer(): Promise<number> {
         this.socketServer = new SocketServer();
-        this.ipythonAdapter = new JupyterSocketClient(this.socketServer);
+        this.ipythonAdapter = new JupyterSocketClient(this.socketServer, this.outputChannel);
         this.ipythonAdapter.on('status', status => {
             this.emit('status', status);
         });

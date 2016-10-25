@@ -171,6 +171,7 @@ class iPythonKernelResponseMonitor(object):
                         json_to_send = json.dumps(exe_result, default=str)
                         with self.send_lock:
                             _debug_write('shell_result')
+                            _debug_write(json_to_send)
                             write_bytes(self.conn, iPythonSocketServer._SHEL)
                             write_string(self.conn, json_to_send)
                     except Empty:
@@ -182,6 +183,7 @@ class iPythonKernelResponseMonitor(object):
                         json_to_send = json.dumps(msg, default=str)
                         with self.send_lock:
                             _debug_write('iopub_msg')
+                            _debug_write(json_to_send)
                             write_bytes(self.conn, iPythonSocketServer._IOPB)
                             write_string(self.conn, json_to_send)
                     except Empty:
@@ -196,7 +198,6 @@ class iPythonKernelResponseMonitor(object):
             _debug_write(traceback.format_exc())
             pass
         except:
-            print('crap')
             _debug_write('error in repl loop')
             _debug_write(traceback.format_exc())
 
@@ -306,7 +307,6 @@ class iPythonSocketServer(object):
             _debug_write(traceback.format_exc())
             pass
         except:
-            print('crap')
             _debug_write('error in repl loop')
             _debug_write(traceback.format_exc())
 
@@ -518,6 +518,7 @@ class iPythonSocketServer(object):
             except socket.timeout:
                 pass
         msg_id = self.shell_channel.execute(code)
+        _debug_write('msg_id = ' + msg_id)
         with self.send_lock:
             write_bytes(self.conn, iPythonSocketServer._RUN)
             write_string(self.conn, id)

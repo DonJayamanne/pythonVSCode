@@ -10,10 +10,13 @@ import { JupyterMessage, ParsedIOMessage } from '../contracts';
 import { Helpers } from '../common/helpers';
 import * as Rx from 'rx';
 import { KernelRestartedError, KernelShutdownError } from '../common/errors';
+import { OutputChannel } from 'vscode';
 
 export class JupyterSocketClient extends SocketCallbackHandler {
-    constructor(socketServer: SocketServer) {
+    private isDebugging: boolean;
+    constructor(socketServer: SocketServer, private outputChannel: OutputChannel) {
         super(socketServer);
+        this.isDebugging = process.env['DEBUG_DJAYAMANNE_IPYTHON'] === '1';
         this.registerCommandHandler(ResponseCommands.Pong, this.onPong.bind(this));
         this.registerCommandHandler(ResponseCommands.ListKernelsSpecs, this.onKernelsListed.bind(this));
         this.registerCommandHandler(ResponseCommands.Error, this.onError.bind(this));
@@ -30,7 +33,12 @@ export class JupyterSocketClient extends SocketCallbackHandler {
     private idDispenser: IdDispenser;
     private pid: number;
     private guid: string;
-
+    private writeToDebugLog(message: string) {
+        if (!this.isDebugging){
+            return;
+        }
+        this.outputChannel.appendLine(message);
+    }
     public dispose() {
         super.dispose();
     }
@@ -205,7 +213,7 @@ export class JupyterSocketClient extends SocketCallbackHandler {
         const [def, id] = this.createId<string>();
         const observable = new Rx.Subject<ParsedIOMessage>();
         this.msgSubjectIndexedWithRunId.set(id, observable);
-
+        this.writeToDebugLog(`Send Code with Id = ${id}`);
         this.SendRawCommand(Commands.RunCodeBytes);
         this.stream.WriteString(id);
         this.stream.WriteString(code);
@@ -224,6 +232,7 @@ export class JupyterSocketClient extends SocketCallbackHandler {
         if (typeof msg_id !== 'string') {
             return;
         }
+        this.writeToDebugLog(`Code with Id = ${id} has msg_id = ${msg_id}`);
         const def = this.pendingCommands.get(id);
         this.releaseId(id);
         def.resolve(msg_id);
@@ -245,6 +254,7 @@ export class JupyterSocketClient extends SocketCallbackHandler {
             }
             const msg_type = message.header.msg_type;
             if (msg_type === 'status') {
+                this.writeToDebugLog(`Kernel Status = ${message.content.execution_state}`);
                 this.emit('status', message.content.execution_state);
             }
             const msg_id = message.parent_header.msg_id;
@@ -278,21 +288,30 @@ export class JupyterSocketClient extends SocketCallbackHandler {
                     }
                 }
             }
+            this.writeToDebugLog(`Shell Result with msg_id = ${msg_id} with status = ${status}`);
             if (!parsedMesage) {
+                this.writeToDebugLog(`Shell Result with msg_id = ${msg_id} with status = ${status} ignored`);
                 return;
             }
+            this.writeToDebugLog(`Shell Result with msg_id = ${msg_id} has message of: '\n${jsonResult}`);
             if (this.finalMessage.has(msg_id) && this.msgSubject.has(msg_id)) {
                 const subject = this.msgSubject.get(msg_id);
                 const info = this.finalMessage.get(msg_id);
+                this.writeToDebugLog(`Shell Result with msg_id = ${msg_id} found in finalMessage and msgSubject`);
                 // If th io message with status='idle' has been received, that means message execution is deemed complete
                 if (info.ioStatusSent) {
+                    this.writeToDebugLog(`Shell Result with msg_id = ${msg_id} found in finalMessage and msgSubject, and ioStatusSent = true`);
                     this.finalMessage.delete(msg_id);
                     this.msgSubject.delete(msg_id);
                     subject.onNext(parsedMesage);
                     subject.onCompleted();
                 }
+                else {
+                    this.writeToDebugLog(`Shell Result with msg_id = ${msg_id} found in finalMessage and msgSubject, and ioStatusSent = false`);
+                }
             }
             else {
+                this.writeToDebugLog(`Shell Result with msg_id = ${msg_id} not found in finalMessage or not found in msgSubject`);
                 // Wait for the io message with status='idle' to arrive
                 const info = this.finalMessage.has(msg_id) ? this.finalMessage.get(msg_id) : { ioStatusSent: false };
                 info.shellMessage = parsedMesage;
@@ -316,28 +335,35 @@ export class JupyterSocketClient extends SocketCallbackHandler {
             }
             const msg_type = message.header.msg_type;
             if (msg_type === 'status') {
+                this.writeToDebugLog(`io Kernel Status = ${message.content.execution_state}`);
                 this.emit('status', message.content.execution_state);
             }
             const msg_id = message.parent_header.msg_id;
             if (!msg_id) {
                 return;
             }
+            this.writeToDebugLog(`iopub with msg_id = ${msg_id}`);
 
             // Ok, if we have received a status of 'idle' this means the execution has completed
             if (msg_type === 'status' && message.content.execution_state === 'idle') {
+                this.writeToDebugLog(`iopub with msg_id = ${msg_id} and msg_type == status and execution_state == idle`);
                 let timesWaited = 0;
                 const waitForFinalIOMessage = () => {
                     timesWaited += 1;
                     // The Shell message handler has processed the message
                     if (!this.msgSubject.has(msg_id)) {
+                        this.writeToDebugLog(`iopub with msg_id = ${msg_id} and msg_type == status and execution_state == idle, not yet in msgSubject`);
                         return;
                     }
                     // Last message sent on shell channel (status='ok' or status='error')
                     // and now we have a status message, this means the exection is deemed complete
                     if (this.finalMessage.has(msg_id)) {
+                        this.writeToDebugLog(`iopub with msg_id = ${msg_id} and msg_type == status and execution_state == idle, found in finalMessage`);
                         const subject = this.msgSubject.get(msg_id);
                         const info = this.finalMessage.get(msg_id);
                         if (!info.shellMessage && timesWaited < 10) {
+                            this.writeToDebugLog(`iopub with msg_id = ${msg_id} and msg_type == status and execution_state == idle, found in finalMessage and info.shellMessage = ` + typeof (info.shellMessage));
+                            this.writeToDebugLog(`iopub with msg_id = ${msg_id} and msg_type == status and execution_state == idle, found in finalMessage and timesWaited = ` + timesWaited.toString());
                             setTimeout(() => {
                                 waitForFinalIOMessage();
                             }, 10);
@@ -345,12 +371,16 @@ export class JupyterSocketClient extends SocketCallbackHandler {
                         }
                         this.finalMessage.delete(msg_id);
                         this.msgSubject.delete(msg_id);
+                        this.writeToDebugLog(`iopub with msg_id = ${msg_id} and msg_type == status and execution_state == idle almost done`);
                         if (info.shellMessage) {
+                            this.writeToDebugLog(`iopub with msg_id = ${msg_id} and msg_type == status and execution_state == idle, and shell message being sent out`);
                             subject.onNext(info.shellMessage);
                         }
+                        this.writeToDebugLog(`iopub with msg_id = ${msg_id} and msg_type == status and execution_state == idle, done`);
                         subject.onCompleted();
                     }
                     else {
+                        this.writeToDebugLog(`iopub with msg_id = ${msg_id} and msg_type == status and execution_state == idle, inserted into finalMessage`);
                         this.finalMessage.set(msg_id, { ioStatusSent: true });
                     }
                 };
@@ -366,9 +396,11 @@ export class JupyterSocketClient extends SocketCallbackHandler {
                 return;
             }
             if (this.msgSubject.has(msg_id)) {
+                this.writeToDebugLog(`iopub with msg_id = ${msg_id} found in msgSubject`);
                 this.msgSubject.get(msg_id).onNext(parsedMesage);
             }
             else {
+                this.writeToDebugLog(`iopub with msg_id = ${msg_id} not found in msgSubject and inserted into unhandledMessages`);
                 let data = [];
                 if (this.unhandledMessages.has(msg_id)) {
                     data = this.unhandledMessages.get(msg_id);

@@ -26,7 +26,7 @@ const fileToFormatWithConfig1 = path.join(__dirname, '..', '..', 'src', 'test', 
 const originalFileToFormatWithConfig1 = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'sorting', 'withconfig', 'original.1.py');
 const extensionDir = path.join(__dirname, '..', '..');
 
-suite('Formatting', () => {
+suite('Sorting', () => {
     suiteSetup(done => {
         initialize().then(() => {
             pythonSettings.pythonPath = PYTHON_PATH;

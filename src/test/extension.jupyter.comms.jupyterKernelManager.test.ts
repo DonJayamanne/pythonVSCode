@@ -69,13 +69,13 @@ suite('Kernel Manager', () => {
             done();
         });
         setup(() => {
+            process.env['PYTHON_DONJAYAMANNE_TEST'] = '0';
+            process.env['DEBUG_DJAYAMANNE_IPYTHON'] = '1';
             disposables = [];
             output = new MockOutputChannel('Jupyter');
             disposables.push(output);
             jupyter = new JupyterClientAdapter(output, __dirname);
             disposables.push(jupyter);
-            process.env['PYTHON_DONJAYAMANNE_TEST'] = '0';
-            process.env['DEBUG_DJAYAMANNE_IPYTHON'] = '1';
             // Hack hack hack hack hack :)
             cmds.registerCommand = function () { };
         });

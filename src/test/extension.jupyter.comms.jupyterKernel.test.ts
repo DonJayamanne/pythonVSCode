@@ -73,13 +73,13 @@ suite('Jupyter Kernel', () => {
             done();
         });
         setup(() => {
+            process.env['PYTHON_DONJAYAMANNE_TEST'] = '0';
+            process.env['DEBUG_DJAYAMANNE_IPYTHON'] = '1';
             disposables = [];
             output = new MockOutputChannel('Jupyter');
             disposables.push(output);
             jupyter = new JupyterClientAdapter(output, __dirname);
             disposables.push(jupyter);
-            process.env['PYTHON_DONJAYAMANNE_TEST'] = '0';
-            process.env['DEBUG_DJAYAMANNE_IPYTHON'] = '1';
         });
         teardown(() => {
             process.env['PYTHON_DONJAYAMANNE_TEST'] = '1';

@@ -68,10 +68,10 @@ suite('JupyterClient', () => {
             done();
         });
         setup(() => {
-            output = new MockOutputChannel('Jupyter');
-            jupyter = new JupyterClientAdapter(output, __dirname);
             process.env['PYTHON_DONJAYAMANNE_TEST'] = '0';
             process.env['DEBUG_DJAYAMANNE_IPYTHON'] = '1';
+            output = new MockOutputChannel('Jupyter');
+            jupyter = new JupyterClientAdapter(output, __dirname);
         });
         teardown(() => {
             process.env['PYTHON_DONJAYAMANNE_TEST'] = '1';
