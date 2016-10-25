@@ -63,7 +63,7 @@ suite('Autocomplete', () => {
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
             textEditor = editor;
-            const position = new vscode.Position(30, 10);
+            const position = new vscode.Position(30, 4);
             return vscode.commands.executeCommand('vscode.executeCompletionItemProvider', textDocument.uri, position);
         }).then((list: { isIncomplete: boolean, items: vscode.CompletionItem[] }) => {
             assert.notEqual(list.items.filter(item => item.label === 'description').length, 0, 'description not found');
@@ -134,12 +134,12 @@ suite('Code Definition', () => {
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
             textEditor = editor;
-            const position = new vscode.Position(30, 12);
+            const position = new vscode.Position(30, 5);
             return vscode.commands.executeCommand('vscode.executeDefinitionProvider', textDocument.uri, position);
         }).then((def: [{ range: vscode.Range, uri: vscode.Uri }]) => {
             assert.equal(def.length, 1, 'Definition lenght is incorrect');
-            assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '10,4', 'Start position is incorrect');
-            assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '10,4', 'End position is incorrect');
+            assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '17,8', 'Start position is incorrect');
+            assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '17,8', 'End position is incorrect');
         }).then(done, done);
     });
 
@@ -221,12 +221,12 @@ suite('Hover Definition', () => {
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
             textEditor = editor;
-            const position = new vscode.Position(31, 14);
+            const position = new vscode.Position(30, 5);
             return vscode.commands.executeCommand('vscode.executeHoverProvider', textDocument.uri, position);
         }).then((def: [{ range: vscode.Range, contents: { language: string, value: string }[] }]) => {
             assert.equal(def.length, 1, 'Definition lenght is incorrect');
-            assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '31,10', 'Start position is incorrect');
-            assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '31,17', 'End position is incorrect');
+            assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '30,4', 'Start position is incorrect');
+            assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '30,11', 'End position is incorrect');
             assert.equal(def[0].contents.length, 1, 'Invalid content items');
             assert.equal(def[0].contents[0].value, `method1(self)${EOL}${EOL}This is method1`, 'Invalid conents');
         }).then(done, done);
