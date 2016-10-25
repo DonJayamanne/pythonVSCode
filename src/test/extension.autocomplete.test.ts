@@ -266,7 +266,7 @@ suite('Hover Definition', () => {
             assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '25,4', 'Start position is incorrect');
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '25,7', 'End position is incorrect');
             assert.equal(def[0].contents.length, 1, 'Invalid content items');
-            const documentation = `bar()${EOL}${EOL}说明 - keep this line, it works${EOL}delete following line, it works${EOL}如果存在需要等待审批或正在执行的任务，将不刷新页面`
+            const documentation = `bar()${EOL}${EOL}说明 - keep this line, it works${EOL}delete following line, it works${EOL}如果存在需要等待审批或正在执行的任务，将不刷新页面`;
             assert.equal(def[0].contents[0].value, documentation, 'Invalid conents');
         }).then(done, done);
     });
@@ -286,7 +286,7 @@ suite('Hover Definition', () => {
             assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '1,5', 'Start position is incorrect');
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '1,16', 'End position is incorrect');
             assert.equal(def[0].contents.length, 1, 'Invalid content items');
-            const documentation = `showMessage()${EOL}${EOL}Кюм ут жэмпэр пошжим льаборэж, коммюны янтэрэсщэт нам ед, декта игнота ныморэ жят эи. ${EOL}Шэа декам экшырки эи, эи зыд эррэм докэндё, векж факэтэ пэрчыквюэрёж ку.`
+            const documentation = `showMessage()${EOL}${EOL}Кюм ут жэмпэр пошжим льаборэж, коммюны янтэрэсщэт нам ед, декта игнота ныморэ жят эи. ${EOL}Шэа декам экшырки эи, эи зыд эррэм докэндё, векж факэтэ пэрчыквюэрёж ку.`;
             assert.equal(def[0].contents[0].value, documentation, 'Invalid conents');
         }).then(done, done);
     });
