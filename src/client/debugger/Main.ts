@@ -1,26 +1,26 @@
 "use strict";
 
-import {Variable, DebugSession, InitializedEvent, TerminatedEvent, StoppedEvent, OutputEvent, Thread, StackFrame, Scope, Source, Handles} from "vscode-debugadapter";
-import {ThreadEvent} from "vscode-debugadapter";
-import {DebugProtocol} from "vscode-debugprotocol";
-import {readFileSync} from "fs";
-import {basename} from "path";
+import { Variable, DebugSession, InitializedEvent, TerminatedEvent, StoppedEvent, OutputEvent, Thread, StackFrame, Scope, Source, Handles } from "vscode-debugadapter";
+import { ThreadEvent } from "vscode-debugadapter";
+import { DebugProtocol } from "vscode-debugprotocol";
+import { readFileSync } from "fs";
+import { basename } from "path";
 import * as path from "path";
 import * as os from "os";
 import * as fs from "fs";
 import * as child_process from "child_process";
 import * as StringDecoder from "string_decoder";
 import * as net from "net";
-import {PythonProcess} from "./PythonProcess";
-import {FrameKind, IPythonProcess, IPythonThread, IPythonModule, IPythonEvaluationResult, IPythonStackFrame, IDebugServer} from "./Common/Contracts";
-import {IPythonBreakpoint, PythonBreakpointConditionKind, PythonBreakpointPassCountKind, IPythonException, PythonEvaluationResultReprKind, enum_EXCEPTION_STATE} from "./Common/Contracts";
-import {BaseDebugServer} from "./DebugServers/BaseDebugServer";
-import {DebugClient, DebugType} from "./DebugClients/DebugClient";
-import {CreateAttachDebugClient, CreateLaunchDebugClient} from "./DebugClients/DebugFactory";
-import {DjangoApp, LaunchRequestArguments, AttachRequestArguments, DebugFlags, DebugOptions, TelemetryEvent, PythonEvaluationResultFlags} from "./Common/Contracts";
+import { PythonProcess } from "./PythonProcess";
+import { FrameKind, IPythonProcess, IPythonThread, IPythonModule, IPythonEvaluationResult, IPythonStackFrame, IDebugServer } from "./Common/Contracts";
+import { IPythonBreakpoint, PythonBreakpointConditionKind, PythonBreakpointPassCountKind, IPythonException, PythonEvaluationResultReprKind, enum_EXCEPTION_STATE } from "./Common/Contracts";
+import { BaseDebugServer } from "./DebugServers/BaseDebugServer";
+import { DebugClient, DebugType } from "./DebugClients/DebugClient";
+import { CreateAttachDebugClient, CreateLaunchDebugClient } from "./DebugClients/DebugFactory";
+import { DjangoApp, LaunchRequestArguments, AttachRequestArguments, DebugFlags, DebugOptions, TelemetryEvent, PythonEvaluationResultFlags } from "./Common/Contracts";
 import * as telemetryContracts from "../common/telemetryContracts";
-import {validatePath, validatePathSync} from './Common/Utils';
-import {isNotInstalledError} from '../common/helpers';
+import { validatePath, validatePathSync } from './Common/Utils';
+import { isNotInstalledError } from '../common/helpers';
 
 const CHILD_ENUMEARATION_TIMEOUT = 5000;
 
@@ -41,7 +41,7 @@ export class PythonDebugger extends DebugSession {
     private configurationDone: Promise<any>;
     private configurationDonePromiseResolve: () => void;
     private lastException: IPythonException;
-    private _supportsRunInTerminalRequest:boolean;
+    private _supportsRunInTerminalRequest: boolean;
     public constructor(debuggerLinesStartAt1: boolean, isServer: boolean) {
         super(debuggerLinesStartAt1, isServer === true);
         this._variableHandles = new Handles<IDebugVariable>();
@@ -70,8 +70,8 @@ export class PythonDebugger extends DebugSession {
             }
         ];
         if (typeof args.supportsRunInTerminalRequest === 'boolean') {
-			this._supportsRunInTerminalRequest = args.supportsRunInTerminalRequest;
-		}        
+            this._supportsRunInTerminalRequest = args.supportsRunInTerminalRequest;
+        }
         this.sendResponse(response);
         // now we are ready to accept breakpoints -> fire the initialized event to give UI a chance to set breakpoints
         this.sendEvent(new InitializedEvent());
@@ -147,7 +147,7 @@ export class PythonDebugger extends DebugSession {
         }
         // If launching the integrated terminal is not supported, then defer to external terminal 
         // that will be displayed by our own code
-        if (!this._supportsRunInTerminalRequest && this.launchArgs && this.launchArgs.console === 'integratedTerminal'){
+        if (!this._supportsRunInTerminalRequest && this.launchArgs && this.launchArgs.console === 'integratedTerminal') {
             this.launchArgs.console = 'externalTerminal';
         }
         if (this.launchArgs && this.launchArgs.stopOnEntry === true) {
@@ -499,13 +499,13 @@ export class PythonDebugger extends DebugSession {
                         TypeName: 'string', IsExpandable: false, HexRepr: '',
                         ChildName: '', ExceptionText: '', Length: 0, Process: null
                     },
-                        {
-                            Frame: frame, Expression: 'Description',
-                            Flags: PythonEvaluationResultFlags.Raw,
-                            StringRepr: this.lastException.Description,
-                            TypeName: 'string', IsExpandable: false, HexRepr: '',
-                            ChildName: '', ExceptionText: '', Length: 0, Process: null
-                        }],
+                    {
+                        Frame: frame, Expression: 'Description',
+                        Flags: PythonEvaluationResultFlags.Raw,
+                        StringRepr: this.lastException.Description,
+                        TypeName: 'string', IsExpandable: false, HexRepr: '',
+                        ChildName: '', ExceptionText: '', Length: 0, Process: null
+                    }],
                     evaluateChildren: false
                 };
                 scopes.push(new Scope("Exception", this._variableHandles.create(values), false));
@@ -598,12 +598,11 @@ export class PythonDebugger extends DebugSession {
             if (args.filters.indexOf("all") >= 0) {
                 mode = enum_EXCEPTION_STATE.BREAK_MODE_ALWAYS;
             }
-            let exToIgnore = null;
+            let exToIgnore = new Map<string, enum_EXCEPTION_STATE>();
             let exceptionHandling = this.launchArgs ? this.launchArgs.exceptionHandling : null;
             // Todo: exception handling for remote debugging
             // let exceptionHandling = this.launchArgs ? this.launchArgs.exceptionHandling : this.attachArgs.exceptionHandling;
             if (exceptionHandling) {
-                exToIgnore = new Map<string, enum_EXCEPTION_STATE>();
                 if (Array.isArray(exceptionHandling.ignore)) {
                     exceptionHandling.ignore.forEach(exType => {
                         exToIgnore.set(exType, enum_EXCEPTION_STATE.BREAK_MODE_NEVER);
@@ -619,6 +618,16 @@ export class PythonDebugger extends DebugSession {
                         exToIgnore.set(exType, enum_EXCEPTION_STATE.BREAK_MODE_UNHANDLED);
                     });
                 }
+
+            }
+            // For some reason on python 3.5 iterating through generators throws the StopIteration, GeneratorExit Exceptions
+            // https://docs.python.org/2/library/exceptions.html#exceptions.StandardError
+            // Lets ignore them
+            if (!exToIgnore.has('StopIteration')) {
+                exToIgnore.set('StopIteration', enum_EXCEPTION_STATE.BREAK_MODE_NEVER);
+            }
+            if (!exToIgnore.has('GeneratorExit')) {
+                exToIgnore.set('GeneratorExit', enum_EXCEPTION_STATE.BREAK_MODE_NEVER);
             }
             this.pythonProcess.SendExceptionInfo(mode, exToIgnore);
             this.sendResponse(response);
