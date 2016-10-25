@@ -58,7 +58,7 @@ function execInTerminal(fileUri?: vscode.Uri) {
     const launchArgs = settings.PythonSettings.getInstance().terminal.launchArgs;
     const launchArgsString = launchArgs.length > 0 ? " ".concat(launchArgs.join(" ")) : "";
     if (IS_WINDOWS) {
-        const cmd = `${currentPythonPath}${launchArgsString} ${filePath}`;
+        const cmd = `"${currentPythonPath}"${launchArgsString} ${filePath}`;
         terminal.sendText(cmd.replace(/\\/g,"/"));
     }
     else {
@@ -85,7 +85,7 @@ function execSelectionInTerminal() {
     if (IS_WINDOWS) {
         // Multi line commands don't work the same way on windows terminals as it does on other OS
         // So just start the Python REPL, then send the commands
-        terminal.sendText(`${currentPythonPath}${launchArgsString}`);
+        terminal.sendText(`"${currentPythonPath}"${launchArgsString}`);
         terminal.sendText(code);
     }
     else {
