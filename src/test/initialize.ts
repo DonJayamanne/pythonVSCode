@@ -27,10 +27,14 @@ export function closeActiveWindows(counter: number = 0): Thenable<any> {
     return new Promise<any>(resolve => {
         setTimeout(function () {
             if (!vscode.window.activeTextEditor) {
-                return resolve();
+                setTimeout(function () {
+                    resolve();
+                }, 1000);
             }
 
             vscode.commands.executeCommand('workbench.action.closeActiveEditor').then(() => {
+                closeActiveWindows(counter++).then(resolve, resolve);
+            }, ()=>{
                 closeActiveWindows(counter++).then(resolve, resolve);
             });
         }, 500);

@@ -10,7 +10,6 @@ import { TextDocument, TextLine, Position, Range } from 'vscode';
 import * as path from 'path';
 import * as settings from '../client/common/configSettings';
 import * as fs from 'fs-extra';
-import { execPythonFile } from '../client/common/utils';
 import { extractVariable } from '../client/providers/simpleRefactorProvider';
 import { RefactorProxy } from '../client/refactor/proxy';
 import { getTextEditsFromPatch } from '../client/common/editor';
@@ -20,8 +19,6 @@ let pythonSettings = settings.PythonSettings.getInstance();
 
 const refactorSourceFile = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'refactoring', 'standAlone', 'refactor.py');
 const refactorTargetFile = path.join(__dirname, '..', '..', 'out', 'test', 'pythonFiles', 'refactoring', 'standAlone', 'refactor.py');
-let isPython3 = true;
-let isTRAVIS = (process.env['TRAVIS'] + '') === 'true';
 
 interface RenameResponse {
     results: [{ diff: string }];
@@ -94,24 +91,17 @@ class MockTextDocument implements vscode.TextDocument {
     }
 }
 
-suiteSetup(done => {
-    fs.copySync(refactorSourceFile, refactorTargetFile, { clobber: true });
-    initialize().then(() => {
-        pythonSettings.pythonPath = PYTHON_PATH;
-        initialize().then(() => {
-            return execPythonFile(pythonSettings.pythonPath, ['--version'], __dirname, true);
-        }).then(version => {
-            isPython3 = version.indexOf('3.') >= 0;
-        }).then(done, done);
-    });
-});
-
-suiteTeardown(done => {
-    // deleteFile(targetPythonFileToLint).then(done, done);
-    done();
-});
-
 suite('Variable Extraction', () => {
+    suiteSetup(done => {
+        fs.copySync(refactorSourceFile, refactorTargetFile, { clobber: true });
+        initialize().then(() => {
+            pythonSettings.pythonPath = PYTHON_PATH;
+            initialize().then(() => done(), () => done());
+        });
+    });
+    suiteTeardown(done => {
+        closeActiveWindows().then(done);
+    });
     setup(() => {
         if (fs.existsSync(refactorTargetFile)) {
             fs.unlinkSync(refactorTargetFile);
@@ -119,11 +109,7 @@ suite('Variable Extraction', () => {
         fs.copySync(refactorSourceFile, refactorTargetFile, { clobber: true });
     });
     teardown(done => {
-        closeActiveWindows().then(() => {
-            setTimeout(function () {
-                done();
-            }, 1000);
-        });
+        closeActiveWindows().then(done);
     });
 
     function testingVariableExtraction(shouldError: boolean, pythonSettings: settings.IPythonSettings, startPos: Position, endPos: Position) {
@@ -181,91 +167,73 @@ suite('Variable Extraction', () => {
         testingVariableExtraction(false, clonedSettings, startPos, endPos).then(() => done(), done);
     });
 
-    // test('Extract Variable will not work in Python 3.x', done => {
-    //     let startPos = new vscode.Position(234, 29);
-    //     let endPos = new vscode.Position(234, 38);
-    //     let clonedSettings = JSON.parse(JSON.stringify(pythonSettings));
-    //     clonedSettings.pythonPath = 'python3';
-    //     testingVariableExtraction(true, clonedSettings, startPos, endPos).then(() => done(), done);
-    // });
-
-    if (!isTRAVIS) {
-        function testingVariableExtractionEndToEnd(shouldError: boolean, pythonSettings: settings.IPythonSettings, startPos: Position, endPos: Position) {
-            let ch = new MockOutputChannel('Python');
-            let textDocument: vscode.TextDocument;
-            let textEditor: vscode.TextEditor;
-            let rangeOfTextToExtract = new vscode.Range(startPos, endPos);
-            let ignoreErrorHandling = false;
-            return vscode.workspace.openTextDocument(refactorTargetFile).then(document => {
-                textDocument = document;
-                return vscode.window.showTextDocument(textDocument);
-            }).then(editor => {
-                editor.selections = [new vscode.Selection(rangeOfTextToExtract.start, rangeOfTextToExtract.end)];
-                editor.selection = new vscode.Selection(rangeOfTextToExtract.start, rangeOfTextToExtract.end);
-                textEditor = editor;
-                return;
-            }).then(() => {
-                return extractVariable(EXTENSION_DIR, textEditor, rangeOfTextToExtract, ch, path.dirname(refactorTargetFile), pythonSettings).then(() => {
-                    if (shouldError) {
-                        ignoreErrorHandling = true;
-                        assert.fail('No error', 'Error', 'Extraction should fail with an error', '');
-                    }
-                    assert.equal(ch.output.length, 0, 'Output channel is not empty');
-                    assert.equal(textDocument.lineAt(234).text.trim().indexOf('newvariable'), 0, 'New Variable not created');
-                    assert.equal(textDocument.lineAt(234).text.trim().endsWith('= "STARTED"'), true, 'Started Text Assigned to variable');
-                    assert.equal(textDocument.lineAt(235).text.indexOf('(newvariable') >= 0, true, 'New Variable not being used');
-                }).catch(error => {
-                    if (ignoreErrorHandling) {
-                        return Promise.reject(error);
-                    }
-                    if (shouldError) {
-                        // Wait a minute this shouldn't work, what's going on
-                        assert.equal(true, true, 'Error raised as expected');
-                        return;
-                    }
-
-                    return Promise.reject(error);
-                });
-            }, error => {
+    function testingVariableExtractionEndToEnd(shouldError: boolean, pythonSettings: settings.IPythonSettings, startPos: Position, endPos: Position) {
+        let ch = new MockOutputChannel('Python');
+        let textDocument: vscode.TextDocument;
+        let textEditor: vscode.TextEditor;
+        let rangeOfTextToExtract = new vscode.Range(startPos, endPos);
+        let ignoreErrorHandling = false;
+        return vscode.workspace.openTextDocument(refactorTargetFile).then(document => {
+            textDocument = document;
+            return vscode.window.showTextDocument(textDocument);
+        }).then(editor => {
+            editor.selections = [new vscode.Selection(rangeOfTextToExtract.start, rangeOfTextToExtract.end)];
+            editor.selection = new vscode.Selection(rangeOfTextToExtract.start, rangeOfTextToExtract.end);
+            textEditor = editor;
+            return;
+        }).then(() => {
+            return extractVariable(EXTENSION_DIR, textEditor, rangeOfTextToExtract, ch, path.dirname(refactorTargetFile), pythonSettings).then(() => {
+                if (shouldError) {
+                    ignoreErrorHandling = true;
+                    assert.fail('No error', 'Error', 'Extraction should fail with an error', '');
+                }
+                assert.equal(ch.output.length, 0, 'Output channel is not empty');
+                assert.equal(textDocument.lineAt(234).text.trim().indexOf('newvariable'), 0, 'New Variable not created');
+                assert.equal(textDocument.lineAt(234).text.trim().endsWith('= "STARTED"'), true, 'Started Text Assigned to variable');
+                assert.equal(textDocument.lineAt(235).text.indexOf('(newvariable') >= 0, true, 'New Variable not being used');
+            }).catch(error => {
                 if (ignoreErrorHandling) {
                     return Promise.reject(error);
                 }
                 if (shouldError) {
                     // Wait a minute this shouldn't work, what's going on
                     assert.equal(true, true, 'Error raised as expected');
+                    return;
                 }
-                else {
-                    assert.fail(error + '', null, 'Variable extraction failed\n' + ch.output, '');
-                    return Promise.reject(error);
-                }
+
+                return Promise.reject(error);
             });
-        }
-
-        test('Extract Variable (end to end)', done => {
-            let startPos = new vscode.Position(234, 29);
-            let endPos = new vscode.Position(234, 38);
-            testingVariableExtractionEndToEnd(false, pythonSettings, startPos, endPos).then(() => done(), done);
+        }, error => {
+            if (ignoreErrorHandling) {
+                return Promise.reject(error);
+            }
+            if (shouldError) {
+                // Wait a minute this shouldn't work, what's going on
+                assert.equal(true, true, 'Error raised as expected');
+            }
+            else {
+                assert.fail(error + '', null, 'Variable extraction failed\n' + ch.output, '');
+                return Promise.reject(error);
+            }
         });
-
-        test('Extract Variable fails if whole string not selected (end to end)', done => {
-            let startPos = new vscode.Position(234, 20);
-            let endPos = new vscode.Position(234, 38);
-            testingVariableExtractionEndToEnd(true, pythonSettings, startPos, endPos).then(() => done(), done);
-        });
-
-        test('Extract Variable will try to find Python 2.x (end to end)', done => {
-            let startPos = new vscode.Position(234, 29);
-            let endPos = new vscode.Position(234, 38);
-            let clonedSettings = JSON.parse(JSON.stringify(pythonSettings));
-            testingVariableExtractionEndToEnd(false, clonedSettings, startPos, endPos).then(() => done(), done);
-        });
-
-        // test('Extract Variable will not work in Python 3.x (end to end)', done => {
-        //     let startPos = new vscode.Position(234, 29);
-        //     let endPos = new vscode.Position(234, 38);
-        //     let clonedSettings = JSON.parse(JSON.stringify(pythonSettings));
-        //     clonedSettings.pythonPath = 'python3';
-        //     testingVariableExtractionEndToEnd(true, clonedSettings, startPos, endPos).then(() => done(), done);
-        // });
     }
+
+    test('Extract Variable (end to end)', done => {
+        let startPos = new vscode.Position(234, 29);
+        let endPos = new vscode.Position(234, 38);
+        testingVariableExtractionEndToEnd(false, pythonSettings, startPos, endPos).then(() => done(), done);
+    });
+
+    test('Extract Variable fails if whole string not selected (end to end)', done => {
+        let startPos = new vscode.Position(234, 20);
+        let endPos = new vscode.Position(234, 38);
+        testingVariableExtractionEndToEnd(true, pythonSettings, startPos, endPos).then(() => done(), done);
+    });
+
+    test('Extract Variable will try to find Python 2.x (end to end)', done => {
+        let startPos = new vscode.Position(234, 29);
+        let endPos = new vscode.Position(234, 38);
+        let clonedSettings = JSON.parse(JSON.stringify(pythonSettings));
+        testingVariableExtractionEndToEnd(false, clonedSettings, startPos, endPos).then(() => done(), done);
+    });
 });

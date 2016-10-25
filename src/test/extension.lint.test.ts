@@ -137,7 +137,6 @@ let fiteredPydocstyleMessagseToBeReturned: baseLinter.ILintMessage[] = [
 ];
 
 suite('Linting', () => {
-
     suiteSetup(done => {
         pylintFileToLintLines = fs.readFileSync(fileToLint).toString('utf-8').split(/\r?\n/g);
         pythonSettings.pythonPath = PYTHON_PATH;
