@@ -12,9 +12,11 @@ import * as telemetryHelper from '../common/telemetry';
 import * as telemetryContracts from '../common/telemetryContracts';
 import * as main from './jupyter_client/main';
 import { KernelRestartedError, KernelShutdownError } from './common/errors';
+import { PythonSettings } from '../common/configSettings';
+
+const pythonSettings = PythonSettings.getInstance();
 
 // Todo: Refactor the error handling and displaying of messages
-
 export class Jupyter extends vscode.Disposable {
     public kernelManager: KernelManagerImpl;
     public kernel: Kernel = null;
@@ -22,16 +24,41 @@ export class Jupyter extends vscode.Disposable {
     private disposables: vscode.Disposable[];
     private display: JupyterDisplay;
     private codeLensProvider: JupyterCodeLensProvider;
-    constructor(private outputChannel: vscode.OutputChannel) {
+    private lastUsedPythonPath: string;
+    constructor(private outputChannel: vscode.OutputChannel, private rootPath: string) {
         super(() => { });
         this.disposables = [];
         this.registerCommands();
         this.registerKernelCommands();
+
+        pythonSettings.on('change', this.onConfigurationChanged.bind(this));
+        this.lastUsedPythonPath = pythonSettings.pythonPath;
     }
-    activate(rootPath: string) {
-        const jupyterClient = new main.JupyterClientAdapter(this.outputChannel, rootPath);
+    private onConfigurationChanged() {
+        if (this.lastUsedPythonPath === pythonSettings.pythonPath) {
+            return;
+        }
+        this.kernelManager.dispose();
+        this.createKernelManager();
+    }
+    public dispose() {
+        this.kernelManager.dispose();
+        this.disposables.forEach(d => d.dispose());
+    }
+    private createKernelManager() {
+        const jupyterClient = new main.JupyterClientAdapter(this.outputChannel, this.rootPath);
         this.kernelManager = new KernelManagerImpl(this.outputChannel, jupyterClient);
-        this.disposables.push(this.kernelManager);
+
+        // This happend when user changes it from status bar
+        this.kernelManager.on('kernelChanged', (kernel: Kernel, language: string) => {
+            if (this.kernel !== kernel && (this.kernel && this.kernel.kernelSpec.language === kernel.kernelSpec.language)) {
+                this.onKernelChanged(kernel);
+            }
+        });
+    }
+    activate() {
+        this.createKernelManager();
+
         this.disposables.push(vscode.window.onDidChangeActiveTextEditor(this.onEditorChanged.bind(this)));
         this.codeLensProvider = new JupyterCodeLensProvider();
         this.disposables.push(vscode.languages.registerCodeLensProvider(PythonLanguage, this.codeLensProvider));
@@ -40,13 +67,6 @@ export class Jupyter extends vscode.Disposable {
         this.disposables.push(this.status);
         this.display = new JupyterDisplay(this.codeLensProvider);
         this.disposables.push(this.display);
-
-        // This happend when user changes it from status bar
-        this.kernelManager.on('kernelChanged', (kernel: Kernel, language: string) => {
-            if (this.kernel !== kernel && (this.kernel && this.kernel.kernelSpec.language === kernel.kernelSpec.language)) {
-                this.onKernelChanged(kernel);
-            }
-        });
     }
     public hasCodeCells(document: vscode.TextDocument, token: vscode.CancellationToken): Promise<boolean> {
         return new Promise<boolean>(resolve => {
@@ -58,9 +78,6 @@ export class Jupyter extends vscode.Disposable {
                 resolve(false);
             });
         });
-    }
-    public dispose() {
-        this.disposables.forEach(d => d.dispose());
     }
     private onEditorChanged(editor: vscode.TextEditor) {
         if (!editor || !editor.document) {

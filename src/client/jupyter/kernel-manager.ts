@@ -29,6 +29,7 @@ export class KernelManagerImpl extends EventEmitter {
         this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.StartKernelForKernelSpeck, this.startKernel.bind(this)));
     }
     public dispose() {
+        this.removeAllListeners();
         this._runningKernels.forEach(kernel => {
             kernel.dispose();
         });

@@ -80,9 +80,9 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.languages.registerDocumentRangeFormattingEditProvider(PYTHON, formatProvider));
 
 
-    jupMain = new jup.Jupyter(lintingOutChannel);
+    jupMain = new jup.Jupyter(lintingOutChannel, vscode.workspace.rootPath);
     const documentHasJupyterCodeCells = jupMain.hasCodeCells.bind(jupMain);
-    jupMain.activate(vscode.workspace.rootPath);
+    jupMain.activate();
     context.subscriptions.push(jupMain);
 
     context.subscriptions.push(new LintProvider(context, lintingOutChannel, vscode.workspace.rootPath, documentHasJupyterCodeCells));
