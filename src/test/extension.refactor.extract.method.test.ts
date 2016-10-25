@@ -157,13 +157,6 @@ suite('Method Extraction', () => {
         testingMethodExtraction(true, pythonSettings, startPos, endPos).then(() => done(), done);
     });
 
-    test('Extract Method will try to find Python 2.x', done => {
-        let startPos = new vscode.Position(239, 0);
-        let endPos = new vscode.Position(241, 35);
-        let clonedSettings = JSON.parse(JSON.stringify(pythonSettings));
-        testingMethodExtraction(false, clonedSettings, startPos, endPos).then(() => done(), done);
-    });
-
     function testingMethodExtractionEndToEnd(shouldError: boolean, pythonSettings: settings.IPythonSettings, startPos: Position, endPos: Position) {
         let ch = new MockOutputChannel('Python');
         let textDocument: vscode.TextDocument;
@@ -225,12 +218,5 @@ suite('Method Extraction', () => {
         let startPos = new vscode.Position(239, 30);
         let endPos = new vscode.Position(241, 35);
         testingMethodExtractionEndToEnd(true, pythonSettings, startPos, endPos).then(() => done(), done);
-    });
-
-    test('Extract Method will try to find Python 2.x (end to end)', done => {
-        let startPos = new vscode.Position(239, 0);
-        let endPos = new vscode.Position(241, 35);
-        let clonedSettings = JSON.parse(JSON.stringify(pythonSettings));
-        testingMethodExtractionEndToEnd(false, clonedSettings, startPos, endPos).then(() => done(), done);
     });
 });

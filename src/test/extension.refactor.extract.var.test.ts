@@ -160,13 +160,6 @@ suite('Variable Extraction', () => {
         testingVariableExtraction(true, pythonSettings, startPos, endPos).then(() => done(), done);
     });
 
-    test('Extract Variable will try to find Python 2.x', done => {
-        let startPos = new vscode.Position(234, 29);
-        let endPos = new vscode.Position(234, 38);
-        let clonedSettings = JSON.parse(JSON.stringify(pythonSettings));
-        testingVariableExtraction(false, clonedSettings, startPos, endPos).then(() => done(), done);
-    });
-
     function testingVariableExtractionEndToEnd(shouldError: boolean, pythonSettings: settings.IPythonSettings, startPos: Position, endPos: Position) {
         let ch = new MockOutputChannel('Python');
         let textDocument: vscode.TextDocument;
@@ -228,12 +221,5 @@ suite('Variable Extraction', () => {
         let startPos = new vscode.Position(234, 20);
         let endPos = new vscode.Position(234, 38);
         testingVariableExtractionEndToEnd(true, pythonSettings, startPos, endPos).then(() => done(), done);
-    });
-
-    test('Extract Variable will try to find Python 2.x (end to end)', done => {
-        let startPos = new vscode.Position(234, 29);
-        let endPos = new vscode.Position(234, 38);
-        let clonedSettings = JSON.parse(JSON.stringify(pythonSettings));
-        testingVariableExtractionEndToEnd(false, clonedSettings, startPos, endPos).then(() => done(), done);
     });
 });

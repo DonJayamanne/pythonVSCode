@@ -4,7 +4,7 @@
 
 
 // Place this right on top
-import { initialize, IS_TRAVIS } from './initialize';
+import { initialize, IS_TRAVIS, PYTHON_PATH, closeActiveWindows } from './initialize';
 // The module 'assert' provides assertion methods from node
 import * as assert from 'assert';
 
@@ -34,6 +34,7 @@ let formattedAutoPep8 = '';
 suite('Formatting', () => {
     suiteSetup(done => {
         initialize().then(() => {
+            pythonSettings.pythonPath = PYTHON_PATH;
             [autoPep8FileToFormat, autoPep8FileToAutoFormat, yapfFileToFormat, yapfFileToAutoFormat].forEach(file => {
                 if (fs.existsSync(file)) { fs.unlinkSync(file); }
                 fs.copySync(originalUnformattedFile, file);
@@ -47,24 +48,14 @@ suite('Formatting', () => {
                 formattedAutoPep8 = formattedResults[1];
             }).then(() => {
                 done();
-            }, reason => {
-                console.error(reason);
-                console.error('Failed to initialize format tests');
-                done();
-            });
+            }, done);
         }, done);
     });
-
-    suiteTeardown(() => {
-        if (vscode.window.activeTextEditor) {
-            return vscode.commands.executeCommand('workbench.action.closeActiveEditor');
-        }
+    suiteTeardown(done => {
+        closeActiveWindows().then(done, done);
     });
-
-    teardown(() => {
-        if (vscode.window.activeTextEditor) {
-            return vscode.commands.executeCommand('workbench.action.closeActiveEditor');
-        }
+    teardown(done => {
+        closeActiveWindows().then(done, done);
     });
 
     function testFormatting(formatter: AutoPep8Formatter | YapfFormatter, formattedContents: string, fileToFormat: string): PromiseLike<void> {
