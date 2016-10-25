@@ -44,6 +44,8 @@ suite('Formatting', () => {
         fs.writeFileSync(fileToFormatWithoutConfig, fs.readFileSync(originalFileToFormatWithoutConfig));
     });
     teardown(() => {
+        fs.writeFileSync(fileToFormatWithConfig, fs.readFileSync(originalFileToFormatWithConfig));
+        fs.writeFileSync(fileToFormatWithoutConfig, fs.readFileSync(originalFileToFormatWithoutConfig));
         if (vscode.window.activeTextEditor) {
             return vscode.commands.executeCommand('workbench.action.closeActiveEditor');
         }
@@ -59,11 +61,27 @@ suite('Formatting', () => {
             textEditor = editor;
             const sorter = new PythonImportSortProvider();
             return sorter.sortImports(extensionDir, textDocument);
-        }).then(edits => {            
+        }).then(edits => {
             assert.equal(edits.filter(value => value.newText === EOL && value.range.isEqual(new vscode.Range(2, 0, 2, 0))).length, 1, 'EOL not found');
             assert.equal(edits.filter(value => value.newText === '' && value.range.isEqual(new vscode.Range(3, 0, 4, 0))).length, 1, '"" not found');
             assert.equal(edits.filter(value => value.newText === `from rope.base import libutils${EOL}from rope.refactor.extract import ExtractMethod, ExtractVariable${EOL}from rope.refactor.rename import Rename${EOL}` && value.range.isEqual(new vscode.Range(6, 0, 6, 0))).length, 1, 'Text not found');
             assert.equal(edits.filter(value => value.newText === '' && value.range.isEqual(new vscode.Range(13, 0, 18, 0))).length, 1, '"" not found');
+        }).then(done, done);
+    });
+
+    test('Without Config (via Command)', done => {
+        let textEditor: vscode.TextEditor;
+        let textDocument: vscode.TextDocument;
+        let originalContent = '';
+        return vscode.workspace.openTextDocument(fileToFormatWithoutConfig).then(document => {
+            textDocument = document;
+            originalContent = textDocument.getText();
+            return vscode.window.showTextDocument(textDocument);
+        }).then(editor => {
+            textEditor = editor;
+            return vscode.commands.executeCommand('python.sortImports');
+        }).then(() => {
+            assert.notEqual(originalContent, textDocument.getText(), 'Contents have not changed');
         }).then(done, done);
     });
 
@@ -83,6 +101,22 @@ suite('Formatting', () => {
         }).then(done, done);
     });
 
+    test('With Config (via Command)', done => {
+        let textEditor: vscode.TextEditor;
+        let textDocument: vscode.TextDocument;
+        let originalContent = '';
+        return vscode.workspace.openTextDocument(fileToFormatWithConfig).then(document => {
+            textDocument = document;
+            originalContent = document.getText();
+            return vscode.window.showTextDocument(textDocument);
+        }).then(editor => {
+            textEditor = editor;
+            return vscode.commands.executeCommand('python.sortImports');
+        }).then(() => {
+            assert.notEqual(originalContent, textDocument.getText(), 'Contents have not changed');
+        }).then(done, done);
+    });
+
     test('With Changes and Config in Args', done => {
         let textEditor: vscode.TextEditor;
         let textDocument: vscode.TextDocument;
@@ -99,8 +133,32 @@ suite('Formatting', () => {
             const sorter = new PythonImportSortProvider();
             return sorter.sortImports(extensionDir, textDocument);
         }).then(edits => {
-            const newValue = `from third_party import lib2${EOL}from third_party import lib3${EOL}from third_party import lib4${EOL}from third_party import lib5${EOL}from third_party import lib6${EOL}from third_party import lib7${EOL}from third_party import lib8${EOL}from third_party import lib9${EOL}`;
-            assert.equal(edits.filter(value => value.newText === newValue && value.range.isEqual(new vscode.Range(1, 0, 4, 0))).length, 1, 'New Text not found');
+            const newValue = `from third_party import lib1${EOL}from third_party import lib2${EOL}from third_party import lib3${EOL}from third_party import lib4${EOL}from third_party import lib5${EOL}from third_party import lib6${EOL}from third_party import lib7${EOL}from third_party import lib8${EOL}from third_party import lib9${EOL}`;
+            assert.equal(edits.length, 1, 'Incorrect number of edits');
+            assert.equal(edits[0].newText, newValue, 'New Value is not the same');
+            assert.equal(`${edits[0].range.start.line},${edits[0].range.start.character}`, '1,0', 'Start position is not the same');
+            assert.equal(`${edits[0].range.end.line},${edits[0].range.end.character}`, '2,0', 'End position is not the same');
+        }).then(done, done);
+    });
+
+    test('With Changes and Config in Args (via Command)', done => {
+        let textEditor: vscode.TextEditor;
+        let textDocument: vscode.TextDocument;
+        let originalContent = '';
+        pythonSettings.sortImports.args = ['-sp', path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'sorting', 'withconfig')];
+        return vscode.workspace.openTextDocument(fileToFormatWithConfig).then(document => {
+            textDocument = document;
+            return vscode.window.showTextDocument(textDocument);
+        }).then(editor => {
+            textEditor = editor;
+            return editor.edit(editor => {
+                editor.insert(new vscode.Position(0, 0), 'from third_party import lib0' + EOL);
+            });
+        }).then(() => {
+            originalContent = textDocument.getText();
+            return vscode.commands.executeCommand('python.sortImports');
+        }).then(edits => {
+            assert.notEqual(originalContent, textDocument.getText(), 'Contents have not changed');
         }).then(done, done);
     });
 });

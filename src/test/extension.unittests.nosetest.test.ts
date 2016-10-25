@@ -15,7 +15,7 @@ import * as vscode from 'vscode';
 import { TestsToRun } from '../client/unittests/common/contracts';
 import * as nose from '../client/unittests/nosetest/main';
 import { TestResultDisplay } from '../client/unittests/display/main';
-
+import * as fs from 'fs';
 
 import * as path from 'path';
 import * as configSettings from '../client/common/configSettings';
@@ -23,6 +23,7 @@ import * as configSettings from '../client/common/configSettings';
 let pythonSettings = configSettings.PythonSettings.getInstance();
 
 const UNITTEST_TEST_FILES_PATH = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'unitests');
+const UNITTEST_TEST_ID_FILE_PATH = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'unitests', '.noseids');
 class MockOutputChannel implements vscode.OutputChannel {
     constructor(name: string) {
         this.name = name;
@@ -44,12 +45,18 @@ class MockOutputChannel implements vscode.OutputChannel {
 
 suite('Unit Tests (nosetest)', () => {
     suiteSetup(done => {
+        if (fs.existsSync(UNITTEST_TEST_ID_FILE_PATH)){
+            fs.unlinkSync(UNITTEST_TEST_ID_FILE_PATH);
+        }
         initialize().then(() => {
             pythonSettings.pythonPath = PYTHON_PATH;
             done();
         });
     });
     suiteTeardown(done => {
+        if (fs.existsSync(UNITTEST_TEST_ID_FILE_PATH)){
+            fs.unlinkSync(UNITTEST_TEST_ID_FILE_PATH);
+        }
         done();
     });
     setup(() => {

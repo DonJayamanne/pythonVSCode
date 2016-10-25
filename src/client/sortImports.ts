@@ -12,10 +12,10 @@ export function activate(context: vscode.ExtensionContext, outChannel: vscode.Ou
         let activeEditor = vscode.window.activeTextEditor;
         if (!activeEditor || activeEditor.document.languageId !== 'python') {
             vscode.window.showErrorMessage('Please open a Python source file to sort the imports.');
-            return;
+            return Promise.resolve();
         }
         if (activeEditor.document.lineCount <= 1) {
-            return;
+            return Promise.resolve();
         }
 
         let delays = new telemetryHelper.Delays();
@@ -31,7 +31,7 @@ export function activate(context: vscode.ExtensionContext, outChannel: vscode.Ou
                 }).then(resolve, reject);
             });
         }
-        emptyLineAdded.then(() => {
+        return emptyLineAdded.then(() => {
             return new sortProvider.PythonImportSortProvider().sortImports(rootDir, activeEditor.document);
         }).then(changes => {
             if (changes.length === 0) {
