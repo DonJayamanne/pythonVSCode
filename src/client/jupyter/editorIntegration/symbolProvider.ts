@@ -1,7 +1,7 @@
 'use strict';
 import {DocumentSymbolProvider, TextDocument, CancellationToken, SymbolInformation, SymbolKind} from 'vscode';
 import * as telemetryContracts from '../../common/telemetryContracts';
-import {CellHelper} from '../common/cells';
+import {CellHelper} from '../common/cellHelper';
 
 export class JupyterSymbolProvider implements DocumentSymbolProvider {
     public provideDocumentSymbols(document: TextDocument, token: CancellationToken): Thenable<SymbolInformation[]> {

@@ -13,6 +13,7 @@ import * as telemetryContracts from '../common/telemetryContracts';
 import * as main from './jupyter_client/main';
 import { KernelRestartedError, KernelShutdownError } from './common/errors';
 import { PythonSettings } from '../common/configSettings';
+import { CodeHelper } from './common/codeHelper';
 
 const pythonSettings = PythonSettings.getInstance();
 
@@ -25,6 +26,7 @@ export class Jupyter extends vscode.Disposable {
     private display: JupyterDisplay;
     private codeLensProvider: JupyterCodeLensProvider;
     private lastUsedPythonPath: string;
+    private codeHelper: CodeHelper;
     constructor(private outputChannel: vscode.OutputChannel, private rootPath: string) {
         super(() => { });
         this.disposables = [];
@@ -67,6 +69,7 @@ export class Jupyter extends vscode.Disposable {
         this.disposables.push(this.status);
         this.display = new JupyterDisplay(this.codeLensProvider);
         this.disposables.push(this.display);
+        this.codeHelper = new CodeHelper(this.codeLensProvider);
     }
     public hasCodeCells(document: vscode.TextDocument, token: vscode.CancellationToken): Promise<boolean> {
         return new Promise<boolean>(resolve => {
@@ -161,19 +164,14 @@ export class Jupyter extends vscode.Disposable {
             });
         });
     }
-    executeSelection() {
+    executeSelection(): Promise<any> {
         const activeEditor = vscode.window.activeTextEditor;
         if (!activeEditor || !activeEditor.document) {
-            return;
+            return Promise.resolve();
         }
-        let code = '';
-        if (activeEditor.selection.isEmpty) {
-            code = activeEditor.document.lineAt(activeEditor.selection.start.line).text;
-        }
-        else {
-            code = activeEditor.document.getText(activeEditor.selection);
-        }
-        this.executeCode(code, activeEditor.document.languageId);
+        return this.codeHelper.getSelectedCode().then(code => {
+            this.executeCode(code, activeEditor.document.languageId);
+        });
     }
     private registerCommands() {
         this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.ExecuteRangeInKernel, (document: vscode.TextDocument, range: vscode.Range) => {

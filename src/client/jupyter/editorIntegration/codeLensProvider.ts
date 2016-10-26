@@ -3,7 +3,7 @@
 import {CodeLensProvider, TextDocument, CancellationToken, CodeLens, Command} from 'vscode';
 import * as telemetryContracts from '../../common/telemetryContracts';
 import {Commands} from '../../common/constants';
-import {CellHelper} from '../common/cells';
+import {CellHelper} from '../common/cellHelper';
 
 export class JupyterCodeLensProvider implements CodeLensProvider {
     private cache: { fileName: string, documentVersion: number, lenses: CodeLens[] }[] = [];
