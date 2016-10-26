@@ -36,14 +36,14 @@ suite('Sorting', () => {
         fs.writeFileSync(fileToFormatWithConfig, fs.readFileSync(originalFileToFormatWithConfig));
         fs.writeFileSync(fileToFormatWithConfig1, fs.readFileSync(originalFileToFormatWithConfig1));
         fs.writeFileSync(fileToFormatWithoutConfig, fs.readFileSync(originalFileToFormatWithoutConfig));
-        closeActiveWindows().then(done, done);
+        closeActiveWindows().then(done).catch(done);
     });
     setup(done => {
         pythonSettings.sortImports.args = [];
         fs.writeFileSync(fileToFormatWithConfig, fs.readFileSync(originalFileToFormatWithConfig));
         fs.writeFileSync(fileToFormatWithoutConfig, fs.readFileSync(originalFileToFormatWithoutConfig));
         fs.writeFileSync(fileToFormatWithConfig1, fs.readFileSync(originalFileToFormatWithConfig1));
-        closeActiveWindows().then(done, done);
+        closeActiveWindows().then(done).catch(done);
     });
 
     test('Without Config', done => {
@@ -54,6 +54,7 @@ suite('Sorting', () => {
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
             textEditor = editor;
+            assert(vscode.window.activeTextEditor, 'No active editor');
             const sorter = new PythonImportSortProvider();
             return sorter.sortImports(extensionDir, textDocument);
         }).then(edits => {
@@ -73,6 +74,7 @@ suite('Sorting', () => {
             originalContent = textDocument.getText();
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
+            assert(vscode.window.activeTextEditor, 'No active editor');
             textEditor = editor;
             return vscode.commands.executeCommand('python.sortImports');
         }).then(() => {
@@ -87,6 +89,7 @@ suite('Sorting', () => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
+            assert(vscode.window.activeTextEditor, 'No active editor');
             textEditor = editor;
             const sorter = new PythonImportSortProvider();
             return sorter.sortImports(extensionDir, textDocument);
@@ -105,6 +108,7 @@ suite('Sorting', () => {
             originalContent = document.getText();
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
+            assert(vscode.window.activeTextEditor, 'No active editor');
             textEditor = editor;
             return vscode.commands.executeCommand('python.sortImports');
         }).then(() => {
@@ -122,6 +126,7 @@ suite('Sorting', () => {
                 textDocument = document;
                 return vscode.window.showTextDocument(textDocument);
             }).then(editor => {
+                assert(vscode.window.activeTextEditor, 'No active editor');
                 textEditor = editor;
                 return editor.edit(editor => {
                     editor.insert(new vscode.Position(0, 0), 'from third_party import lib0' + EOL);
@@ -147,6 +152,7 @@ suite('Sorting', () => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
+            assert(vscode.window.activeTextEditor, 'No active editor');
             textEditor = editor;
             return editor.edit(editor => {
                 editor.insert(new vscode.Position(0, 0), 'from third_party import lib0' + EOL);

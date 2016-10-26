@@ -168,6 +168,7 @@ suite('Method Extraction', () => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
+            assert(vscode.window.activeTextEditor, 'No active editor');
             editor.selections = [new vscode.Selection(rangeOfTextToExtract.start, rangeOfTextToExtract.end)];
             editor.selection = new vscode.Selection(rangeOfTextToExtract.start, rangeOfTextToExtract.end);
             textEditor = editor;

@@ -100,7 +100,7 @@ suite('Variable Extraction', () => {
         });
     });
     suiteTeardown(done => {
-        closeActiveWindows().then(done);
+        closeActiveWindows().then(done).catch(done);
     });
     setup(() => {
         if (fs.existsSync(refactorTargetFile)) {
@@ -109,7 +109,7 @@ suite('Variable Extraction', () => {
         fs.copySync(refactorSourceFile, refactorTargetFile, { clobber: true });
     });
     teardown(done => {
-        closeActiveWindows().then(done);
+        closeActiveWindows().then(done).catch(done);
     });
 
     function testingVariableExtraction(shouldError: boolean, pythonSettings: settings.IPythonSettings, startPos: Position, endPos: Position) {
@@ -170,6 +170,7 @@ suite('Variable Extraction', () => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
+            assert(vscode.window.activeTextEditor, 'No active editor');
             editor.selections = [new vscode.Selection(rangeOfTextToExtract.start, rangeOfTextToExtract.end)];
             editor.selection = new vscode.Selection(rangeOfTextToExtract.start, rangeOfTextToExtract.end);
             textEditor = editor;

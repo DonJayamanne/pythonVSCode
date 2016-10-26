@@ -20,8 +20,7 @@ suite('Deferred', () => {
         def.promise.then(value => {
             assert.equal(value, valueToSent);
             assert.equal(def.resolved, true, 'resolved property value is not `true`');
-            done();
-        }).catch(done);
+        }).then(done).catch(done);
 
         assert.equal(def.resolved, false, 'Promise is resolved even when it should not be');
         assert.equal(def.rejected, false, 'Promise is rejected even when it should not be');

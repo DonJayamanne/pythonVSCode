@@ -16,28 +16,39 @@ import * as vscode from "vscode";
 import * as path from "path";
 let dummyPythonFile = path.join(__dirname, "..", "..", "src", "test", "pythonFiles", "dummy.py");
 
-export function initialize(): Thenable<any> {
-    return vscode.workspace.openTextDocument(dummyPythonFile);
+export function initialize(): Promise<any> {
+    return new Promise<any>((resolve, reject) => {
+        vscode.workspace.openTextDocument(dummyPythonFile).then(resolve, reject);
+    });
 }
 
-export function closeActiveWindows(counter: number = 0): Thenable<any> {
-    if (counter >= 10 || !vscode.window.activeTextEditor) {
-        return Promise.resolve();
-    }
-    return new Promise<any>(resolve => {
-        setTimeout(function () {
-            if (!vscode.window.activeTextEditor) {
-                setTimeout(function () {
-                    resolve();
-                }, 1000);
+export async function closeActiveWindows(): Promise<any> {
+    // https://github.com/Microsoft/vscode/blob/master/extensions/vscode-api-tests/src/utils.ts
+    return new Promise((c, e) => {
+        if (vscode.window.visibleTextEditors.length === 0) {
+            return c();
+        }
+
+        // TODO: the visibleTextEditors variable doesn't seem to be
+        // up to date after a onDidChangeActiveTextEditor event, not
+        // even using a setTimeout 0... so we MUST poll :(
+        let interval = setInterval(() => {
+            if (vscode.window.visibleTextEditors.length > 0) {
+                return;
             }
 
-            vscode.commands.executeCommand('workbench.action.closeActiveEditor').then(() => {
-                closeActiveWindows(counter++).then(resolve, resolve);
-            }, ()=>{
-                closeActiveWindows(counter++).then(resolve, resolve);
+            clearInterval(interval);
+            c();
+        }, 10);
+
+        vscode.commands.executeCommand('workbench.action.closeAllEditors')
+            .then(() => null, (err: any) => {
+                clearInterval(interval);
+                e(err);
             });
-        }, 500);
+    }).then(() => {
+        assert.equal(vscode.window.visibleTextEditors.length, 0);
+        assert(!vscode.window.activeTextEditor);
     });
 }
 

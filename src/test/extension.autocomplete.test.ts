@@ -44,6 +44,7 @@ suite('Autocomplete', () => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
+            assert(vscode.window.activeTextEditor, 'No active editor');
             textEditor = editor;
             const position = new vscode.Position(3, 10);
             return vscode.commands.executeCommand('vscode.executeCompletionItemProvider', textDocument.uri, position);
@@ -61,6 +62,7 @@ suite('Autocomplete', () => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
+            assert(vscode.window.activeTextEditor, 'No active editor');
             textEditor = editor;
             const position = new vscode.Position(30, 4);
             return vscode.commands.executeCommand('vscode.executeCompletionItemProvider', textDocument.uri, position);
@@ -77,6 +79,7 @@ suite('Autocomplete', () => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
+            assert(vscode.window.activeTextEditor, 'No active editor');
             textEditor = editor;
             const position = new vscode.Position(25, 4);
             return vscode.commands.executeCommand('vscode.executeCompletionItemProvider', textDocument.uri, position);
@@ -94,6 +97,7 @@ suite('Autocomplete', () => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
+            assert(vscode.window.activeTextEditor, 'No active editor');
             textEditor = editor;
             const position = new vscode.Position(1, 5);
             return vscode.commands.executeCommand('vscode.executeCompletionItemProvider', textDocument.uri, position);
@@ -130,6 +134,7 @@ suite('Code Definition', () => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
+            assert(vscode.window.activeTextEditor, 'No active editor');
             textEditor = editor;
             const position = new vscode.Position(30, 5);
             return vscode.commands.executeCommand('vscode.executeDefinitionProvider', textDocument.uri, position);
@@ -147,6 +152,7 @@ suite('Code Definition', () => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
+            assert(vscode.window.activeTextEditor, 'No active editor');
             textEditor = editor;
             const position = new vscode.Position(1, 5);
             return vscode.commands.executeCommand('vscode.executeDefinitionProvider', textDocument.uri, position);
@@ -165,6 +171,7 @@ suite('Code Definition', () => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
+            assert(vscode.window.activeTextEditor, 'No active editor');
             textEditor = editor;
             const position = new vscode.Position(25, 6);
             return vscode.commands.executeCommand('vscode.executeDefinitionProvider', textDocument.uri, position);
@@ -183,6 +190,7 @@ suite('Code Definition', () => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
+            assert(vscode.window.activeTextEditor, 'No active editor');
             textEditor = editor;
             const position = new vscode.Position(1, 11);
             return vscode.commands.executeCommand('vscode.executeDefinitionProvider', textDocument.uri, position);
@@ -217,6 +225,7 @@ suite('Hover Definition', () => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
+            assert(vscode.window.activeTextEditor, 'No active editor');
             textEditor = editor;
             const position = new vscode.Position(30, 5);
             return vscode.commands.executeCommand('vscode.executeHoverProvider', textDocument.uri, position);
@@ -236,6 +245,7 @@ suite('Hover Definition', () => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
+            assert(vscode.window.activeTextEditor, 'No active editor');
             textEditor = editor;
             const position = new vscode.Position(1, 12);
             return vscode.commands.executeCommand('vscode.executeHoverProvider', textDocument.uri, position);
@@ -255,6 +265,7 @@ suite('Hover Definition', () => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
+            assert(vscode.window.activeTextEditor, 'No active editor');
             textEditor = editor;
             const position = new vscode.Position(25, 6);
             return vscode.commands.executeCommand('vscode.executeHoverProvider', textDocument.uri, position);
@@ -275,6 +286,7 @@ suite('Hover Definition', () => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
+            assert(vscode.window.activeTextEditor, 'No active editor');
             textEditor = editor;
             const position = new vscode.Position(1, 11);
             return vscode.commands.executeCommand('vscode.executeHoverProvider', textDocument.uri, position);

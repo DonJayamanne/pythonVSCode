@@ -23,7 +23,7 @@ suite('ChildProc', () => {
     test('Standard Response', done => {
         execPythonFile('python', ['-c', 'print(1)'], __dirname, false).then(data => {
             assert.ok(data === '1' + EOL);
-        }).then(done, done);
+        }).then(done).catch(done);
     });
     test('Error Response', done => {
         const def = createDeferred<any>();
@@ -44,7 +44,7 @@ suite('ChildProc', () => {
         execPythonFile('python', ['-c', 'print(1)'], __dirname, false, handleOutput).then(() => {
             assert.equal(output.length, 1, 'Ouput length incorrect');
             assert.equal(output[0], '1' + EOL, 'Ouput value incorrect');
-        }).then(done, done);
+        }).then(done).catch(done);
     });
 
     test('Stream Stdout with Threads', done => {
@@ -56,7 +56,7 @@ suite('ChildProc', () => {
             assert.equal(output.length, 2, 'Ouput length incorrect');
             assert.equal(output[0], '1' + EOL, 'First Ouput value incorrect');
             assert.equal(output[1], '2' + EOL, 'Second Ouput value incorrect');
-        }).then(done, done);
+        }).then(done).catch(done);
     });
 
     test('Kill', done => {

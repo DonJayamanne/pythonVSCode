@@ -46,10 +46,8 @@ suite('Formatting', () => {
             return Promise.all<string>([yapf, autoPep8]).then(formattedResults => {
                 formattedYapf = formattedResults[0];
                 formattedAutoPep8 = formattedResults[1];
-            }).then(() => {
-                done();
-            }, done);
-        }, done);
+            }).then(() => { });
+        }).then(done).catch(done);
     });
     suiteTeardown(done => {
         closeActiveWindows().then(done, done);
@@ -65,6 +63,7 @@ suite('Formatting', () => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
+            assert(vscode.window.activeTextEditor, 'No active editor');
             textEditor = editor;
             return formatter.formatDocument(textDocument, null, null);
         }).then(edits => {
@@ -93,6 +92,7 @@ suite('Formatting', () => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
+            assert(vscode.window.activeTextEditor, 'No active editor');
             return editor.edit(editBuilder => {
                 editBuilder.insert(new vscode.Position(0, 0), '#\n');
             });
