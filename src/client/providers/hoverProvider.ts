@@ -76,10 +76,10 @@ function extractHoverInfo(definition: proxy.IAutoCompleteItem): vscode.Hover {
     const rawDocString = typeof definition.raw_docstring === 'string' ? definition.raw_docstring.trim() : '';
     const firstLineOfRawDocString = rawDocString.length > 0 ? rawDocString.split(EOL)[0] : '';
     const lines = txt.split(EOL);
-    const startIndexOfDocString = lines.findIndex(line => line.indexOf(firstLineOfRawDocString) === 0);
+    const startIndexOfDocString = firstLineOfRawDocString === '' ? -1 : lines.findIndex(line => line.indexOf(firstLineOfRawDocString) === 0);
 
     let signatureLines = startIndexOfDocString === -1 ? [lines.shift()] : lines.splice(0, startIndexOfDocString);
-    let signature = signatureLines.filter(line=>line.trim().length > 0).join(EOL);
+    let signature = signatureLines.filter(line => line.trim().length > 0).join(EOL);
 
     switch (definition.type) {
         case vscode.CompletionItemKind.Constructor:
@@ -95,7 +95,7 @@ function extractHoverInfo(definition: proxy.IAutoCompleteItem): vscode.Hover {
     }
     const hoverInfo: vscode.MarkedString[] = [{ language: 'python', value: signature }];
     if (lines.some(line => line.trim().length > 0)) {
-        hoverInfo.push(lines.join(EOL));
+        hoverInfo.push(lines.join(EOL).trim().replace(/^\s+|\s+$/g, '').trim());
     }
     return new vscode.Hover(hoverInfo);
 }

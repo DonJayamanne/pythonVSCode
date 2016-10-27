@@ -379,7 +379,28 @@ suite('Hover Definition', () => {
             assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '12,5', 'Start position is incorrect');
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '12,12', 'End position is incorrect');
             assert.equal(def[0].contents[0].value, 'def randint(self, a, b)', 'Invalid content items');
-            const documentation = `Return random integer in range [a, b], including both end points.${EOL}        `;
+            const documentation = `Return random integer in range [a, b], including both end points.`;
+            assert.equal(def[0].contents[1], documentation, 'Invalid conents');
+        }).then(done, done);
+    });
+
+    test('Highlight Function', done => {
+        let textEditor: vscode.TextEditor;
+        let textDocument: vscode.TextDocument;
+        return vscode.workspace.openTextDocument(fileHover).then(document => {
+            textDocument = document;
+            return vscode.window.showTextDocument(textDocument);
+        }).then(editor => {
+            assert(vscode.window.activeTextEditor, 'No active editor');
+            textEditor = editor;
+            const position = new vscode.Position(8, 14);
+            return vscode.commands.executeCommand('vscode.executeHoverProvider', textDocument.uri, position);
+        }).then((def: [{ range: vscode.Range, contents: { language: string, value: string }[] }]) => {
+            assert.equal(def.length, 1, 'Definition lenght is incorrect');
+            assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '8,11', 'Start position is incorrect');
+            assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '8,15', 'End position is incorrect');
+            assert.equal(def[0].contents[0].value, 'def acos(x)', 'Invalid content items');
+            const documentation = `Return the arc cosine (measured in radians) of x.`;
             assert.equal(def[0].contents[1], documentation, 'Invalid conents');
         }).then(done, done);
     });
@@ -393,27 +414,15 @@ suite('Hover Definition', () => {
         }).then(editor => {
             assert(vscode.window.activeTextEditor, 'No active editor');
             textEditor = editor;
-            const position = new vscode.Position(15, 10);
+            const position = new vscode.Position(14, 14);
             return vscode.commands.executeCommand('vscode.executeHoverProvider', textDocument.uri, position);
         }).then((def: [{ range: vscode.Range, contents: { language: string, value: string }[] }]) => {
             assert.equal(def.length, 1, 'Definition lenght is incorrect');
-            assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '15,2', 'Start position is incorrect');
-            assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '15,10', 'End position is incorrect');
-            const signature = `def __init__(self, group=None, target=None, name=None,${EOL}args=(), kwargs=None, verbose=None)`;
+            assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '14,9', 'Start position is incorrect');
+            assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '14,15', 'End position is incorrect');
+            const signature = `"class Thread(self, group=None, target=None, name=None,${EOL}args=(), kwargs=None, verbose=None)"`;
             assert.equal(def[0].contents[0].value, signature, 'Invalid content items');
-            const documentation = `This constructor should always be called with keyword arguments. Arguments are:${EOL}${EOL}` +
-                `*group* should be None; reserved for future extension when a ThreadGroup${EOL}` +
-                `class is implemented.${EOL}${EOL}` +
-                `*target* is the callable object to be invoked by the run()${EOL}` +
-                `method. Defaults to None, meaning nothing is called.${EOL}${EOL}` +
-                `*name* is the thread name. By default, a unique name is constructed of${EOL}` +
-                `the form "Thread-N" where N is a small decimal number.${EOL}${EOL}` +
-                `*args* is the argument tuple for the target invocation. Defaults to ().${EOL}${EOL}` +
-                `*kwargs* is a dictionary of keyword arguments for the target${EOL}` +
-                `invocation. Defaults to {}.${EOL}${EOL}` +
-                `If a subclass overrides the constructor, it must make sure to invoke${EOL}` +
-                `the base class constructor (Thread.__init__()) before doing anything${EOL}` +
-                `else to the thread.`;
+            const documentation = `A class that represents a thread of control.${EOL}${EOL}This class can be safely subclassed in a limited fashion.`;
             assert.equal(def[0].contents[1], documentation, 'Invalid conents');
         }).then(done, done);
     });
