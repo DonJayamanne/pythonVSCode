@@ -13,7 +13,13 @@ export class PythonReferenceProvider implements vscode.ReferenceProvider {
     }
     private static parseData(data: proxy.IReferenceResult): vscode.Location[] {
         if (data && data.references.length > 0) {
-            var references = data.references.map(ref => {
+            var references = data.references.filter(ref => {
+                if (!ref || typeof ref.columnIndex !== 'number' || typeof ref.lineIndex !== 'number'
+                    || typeof ref.fileName !== 'string' || ref.columnIndex === -1 || ref.lineIndex === -1 || ref.fileName.length === 0) {
+                    return false;
+                }
+                return true;
+            }).map(ref => {
                 var definitionResource = vscode.Uri.file(ref.fileName);
                 var range = new vscode.Range(ref.lineIndex, ref.columnIndex, ref.lineIndex, ref.columnIndex);
 
