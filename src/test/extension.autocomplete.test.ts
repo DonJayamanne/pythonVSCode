@@ -357,7 +357,7 @@ suite('Hover Definition', () => {
                 `generator of your own devising: in that case, override the following${EOL}` +
                 `methods:  random(), seed(), getstate(), and setstate().${EOL}` +
                 `Optionally, implement a getrandbits() method so that randrange()${EOL}` +
-                `can cover arbitrarily large ranges.`
+                `can cover arbitrarily large ranges.`;
 
             assert.equal(def[0].contents[1], documentation, 'Invalid conents');
         }).then(done, done);
@@ -420,7 +420,7 @@ suite('Hover Definition', () => {
             assert.equal(def.length, 1, 'Definition lenght is incorrect');
             assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '14,9', 'Start position is incorrect');
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '14,15', 'End position is incorrect');
-            const signature = `"class Thread(self, group=None, target=None, name=None,${EOL}args=(), kwargs=None, verbose=None)"`;
+            const signature = `class Thread(self, group=None, target=None, name=None,${EOL}args=(), kwargs=None, verbose=None)`;
             assert.equal(def[0].contents[0].value, signature, 'Invalid content items');
             const documentation = `A class that represents a thread of control.${EOL}${EOL}This class can be safely subclassed in a limited fashion.`;
             assert.equal(def[0].contents[1], documentation, 'Invalid conents');
