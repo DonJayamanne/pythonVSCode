@@ -222,7 +222,9 @@ function spawnProcess(dir: string) {
         catch (ex) {
             // Possible we've only received part of the data, hence don't clear previousData
             // Don't log errors when we haven't received the entire response
-            if (ex.message.indexOf('Unexpected end of input') === -1 && ex.message.indexOf('Unexpected end of JSON input') === -1) {
+            if (ex.message.indexOf('Unexpected end of input') === -1 && 
+                ex.message.indexOf('Unexpected end of JSON input') === -1 && 
+                ex.message.indexOf('Unexpected token d in JSON at position') === -1) {
                 handleError("stdout", ex.message);
             }
             return;
