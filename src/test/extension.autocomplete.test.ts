@@ -235,8 +235,8 @@ suite('Hover Definition', () => {
             assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '30,4', 'Start position is incorrect');
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '30,11', 'End position is incorrect');
             assert.equal(def[0].contents.length, 2, 'Invalid content items');
-            assert.equal(def[0].contents[0].value, 'method1(self)', 'function signature incorrect');
-            assert.equal(def[0].contents[1], `${EOL}This is method1`, 'Invalid conents');
+            assert.equal(def[0].contents[0].value, 'def method1(self)', 'function signature incorrect');
+            assert.equal(def[0].contents[1], `This is method1`, 'Invalid conents');
         }).then(done, done);
     });
 
@@ -255,8 +255,8 @@ suite('Hover Definition', () => {
             assert.equal(def.length, 1, 'Definition lenght is incorrect');
             assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '1,9', 'Start position is incorrect');
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '1,12', 'End position is incorrect');
-            assert.equal(def[0].contents[0].value, 'fun()', 'function signature incorrect');
-            assert.equal(def[0].contents[1], `${EOL}This is fun`, 'Invalid conents');
+            assert.equal(def[0].contents[0].value, 'def fun()', 'function signature incorrect');
+            assert.equal(def[0].contents[1], `This is fun`, 'Invalid conents');
         }).then(done, done);
     });
 
@@ -275,8 +275,8 @@ suite('Hover Definition', () => {
             assert.equal(def.length, 1, 'Definition lenght is incorrect');
             assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '25,4', 'Start position is incorrect');
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '25,7', 'End position is incorrect');
-            assert.equal(def[0].contents[0].value, 'bar()', 'function signature incorrect');
-            const documentation = `${EOL}说明 - keep this line, it works${EOL}delete following line, it works${EOL}如果存在需要等待审批或正在执行的任务，将不刷新页面`;
+            assert.equal(def[0].contents[0].value, 'def bar()', 'function signature incorrect');
+            const documentation = `说明 - keep this line, it works${EOL}delete following line, it works${EOL}如果存在需要等待审批或正在执行的任务，将不刷新页面`;
             assert.equal(def[0].contents[1], documentation, 'Invalid conents');
         }).then(done, done);
     });
@@ -296,8 +296,8 @@ suite('Hover Definition', () => {
             assert.equal(def.length, 1, 'Definition lenght is incorrect');
             assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '1,5', 'Start position is incorrect');
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '1,16', 'End position is incorrect');
-            assert.equal(def[0].contents[0].value, 'showMessage()', 'Invalid content items');
-            const documentation = `${EOL}Кюм ут жэмпэр пошжим льаборэж, коммюны янтэрэсщэт нам ед, декта игнота ныморэ жят эи. ${EOL}Шэа декам экшырки эи, эи зыд эррэм докэндё, векж факэтэ пэрчыквюэрёж ку.`;
+            assert.equal(def[0].contents[0].value, 'def showMessage()', 'Invalid content items');
+            const documentation = `Кюм ут жэмпэр пошжим льаборэж, коммюны янтэрэсщэт нам ед, декта игнота ныморэ жят эи. ${EOL}Шэа декам экшырки эи, эи зыд эррэм докэндё, векж факэтэ пэрчыквюэрёж ку.`;
             assert.equal(def[0].contents[1], documentation, 'Invalid conents');
         }).then(done, done);
     });
@@ -331,6 +331,90 @@ suite('Hover Definition', () => {
             return vscode.commands.executeCommand('vscode.executeHoverProvider', textDocument.uri, position);
         }).then((def: [{ range: vscode.Range, contents: { language: string, value: string }[] }]) => {
             assert.equal(def.length, 0, 'Definition lenght is incorrect');
+        }).then(done, done);
+    });
+
+    test('Highlighting Class', done => {
+        let textEditor: vscode.TextEditor;
+        let textDocument: vscode.TextDocument;
+        return vscode.workspace.openTextDocument(fileHover).then(document => {
+            textDocument = document;
+            return vscode.window.showTextDocument(textDocument);
+        }).then(editor => {
+            assert(vscode.window.activeTextEditor, 'No active editor');
+            textEditor = editor;
+            const position = new vscode.Position(11, 15);
+            return vscode.commands.executeCommand('vscode.executeHoverProvider', textDocument.uri, position);
+        }).then((def: [{ range: vscode.Range, contents: { language: string, value: string }[] }]) => {
+            assert.equal(def.length, 1, 'Definition lenght is incorrect');
+            assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '11,12', 'Start position is incorrect');
+            assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '11,18', 'End position is incorrect');
+            assert.equal(def[0].contents[0].value, 'class Random(self, x=None)', 'Invalid content items');
+            const documentation = `Random number generator base class used by bound module functions.${EOL}${EOL}` +
+                `Used to instantiate instances of Random to get generators that don't${EOL}` +
+                `share state.${EOL}${EOL}` +
+                `Class Random can also be subclassed if you want to use a different basic${EOL}` +
+                `generator of your own devising: in that case, override the following${EOL}` +
+                `methods:  random(), seed(), getstate(), and setstate().${EOL}` +
+                `Optionally, implement a getrandbits() method so that randrange()${EOL}` +
+                `can cover arbitrarily large ranges.`
+
+            assert.equal(def[0].contents[1], documentation, 'Invalid conents');
+        }).then(done, done);
+    });
+
+    test('Highlight Method', done => {
+        let textEditor: vscode.TextEditor;
+        let textDocument: vscode.TextDocument;
+        return vscode.workspace.openTextDocument(fileHover).then(document => {
+            textDocument = document;
+            return vscode.window.showTextDocument(textDocument);
+        }).then(editor => {
+            assert(vscode.window.activeTextEditor, 'No active editor');
+            textEditor = editor;
+            const position = new vscode.Position(12, 10);
+            return vscode.commands.executeCommand('vscode.executeHoverProvider', textDocument.uri, position);
+        }).then((def: [{ range: vscode.Range, contents: { language: string, value: string }[] }]) => {
+            assert.equal(def.length, 1, 'Definition lenght is incorrect');
+            assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '12,5', 'Start position is incorrect');
+            assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '12,12', 'End position is incorrect');
+            assert.equal(def[0].contents[0].value, 'def randint(self, a, b)', 'Invalid content items');
+            const documentation = `Return random integer in range [a, b], including both end points.${EOL}        `;
+            assert.equal(def[0].contents[1], documentation, 'Invalid conents');
+        }).then(done, done);
+    });
+
+    test('Highlight Multiline Method Signature', done => {
+        let textEditor: vscode.TextEditor;
+        let textDocument: vscode.TextDocument;
+        return vscode.workspace.openTextDocument(fileHover).then(document => {
+            textDocument = document;
+            return vscode.window.showTextDocument(textDocument);
+        }).then(editor => {
+            assert(vscode.window.activeTextEditor, 'No active editor');
+            textEditor = editor;
+            const position = new vscode.Position(15, 10);
+            return vscode.commands.executeCommand('vscode.executeHoverProvider', textDocument.uri, position);
+        }).then((def: [{ range: vscode.Range, contents: { language: string, value: string }[] }]) => {
+            assert.equal(def.length, 1, 'Definition lenght is incorrect');
+            assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '15,2', 'Start position is incorrect');
+            assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '15,10', 'End position is incorrect');
+            const signature = `def __init__(self, group=None, target=None, name=None,${EOL}args=(), kwargs=None, verbose=None)`;
+            assert.equal(def[0].contents[0].value, signature, 'Invalid content items');
+            const documentation = `This constructor should always be called with keyword arguments. Arguments are:${EOL}${EOL}` +
+                `*group* should be None; reserved for future extension when a ThreadGroup${EOL}` +
+                `class is implemented.${EOL}${EOL}` +
+                `*target* is the callable object to be invoked by the run()${EOL}` +
+                `method. Defaults to None, meaning nothing is called.${EOL}${EOL}` +
+                `*name* is the thread name. By default, a unique name is constructed of${EOL}` +
+                `the form "Thread-N" where N is a small decimal number.${EOL}${EOL}` +
+                `*args* is the argument tuple for the target invocation. Defaults to ().${EOL}${EOL}` +
+                `*kwargs* is a dictionary of keyword arguments for the target${EOL}` +
+                `invocation. Defaults to {}.${EOL}${EOL}` +
+                `If a subclass overrides the constructor, it must make sure to invoke${EOL}` +
+                `the base class constructor (Thread.__init__()) before doing anything${EOL}` +
+                `else to the thread.`;
+            assert.equal(def[0].contents[1], documentation, 'Invalid conents');
         }).then(done, done);
     });
 });

@@ -26,8 +26,8 @@ class JediCompletion(object):
 
     def _get_definition_type(self, definition):
         is_built_in = definition.in_builtin_module
-        if definition.type not in ['import', 'keyword'] and is_built_in():
-            return 'builtin'
+        #if definition.type not in ['import', 'keyword'] and is_built_in():
+        #    return 'builtin'
         if definition.type in ['statement'] and definition.name.isupper():
             return 'constant'
         return self.basic_types.get(definition.type, definition.type)
@@ -111,6 +111,7 @@ class JediCompletion(object):
                    "paramindex": 0, "params": [], "bracketstart": []}
             sig["description"] = signature.description
             sig["docstring"] = signature.docstring()
+            sig["raw_docstring"] = signature.docstring(raw=True)
             sig["name"] = signature.name
             sig["paramindex"] = signature.index
             sig["bracketstart"].append(signature.index)
@@ -154,6 +155,7 @@ class JediCompletion(object):
                 continue
             _completion = {
                 'type': 'property',
+                'raw_type':'',
                 'rightLabel': self._additional_info(signature)
             }
             # we pass 'text' here only for fuzzy matcher
@@ -166,6 +168,7 @@ class JediCompletion(object):
                 _completion['displayText'] = name
             if self.show_doc_strings:
                 _completion['description'] = signature.docstring()
+                _completion['raw_docstring'] = signature.docstring(raw=True)
             else:
                 _completion['description'] = self._generate_signature(
                     signature)
@@ -183,7 +186,9 @@ class JediCompletion(object):
             _completion = {
                 'text': completion.name,
                 'type': self._get_definition_type(completion),
+                'raw_type': completion.type,
                 'description': description,
+                'raw_docstring': completion.docstring(raw=True),
                 'rightLabel': self._additional_info(completion)
             }
             if any([c['text'].split('=')[0] == _completion['text']
@@ -236,6 +241,7 @@ class JediCompletion(object):
                     _definition = {
                         'text': definition.name,
                         'type': self._get_definition_type(definition),
+                        'raw_type': definition.type,
                         'fileName': definition.module_path,
                         'line': definition.line - 1,
                         'column': definition.column

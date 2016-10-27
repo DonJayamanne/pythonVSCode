@@ -222,9 +222,9 @@ function spawnProcess(dir: string) {
         catch (ex) {
             // Possible we've only received part of the data, hence don't clear previousData
             // Don't log errors when we haven't received the entire response
-            if (ex.message.indexOf('Unexpected end of input') === -1 && 
-                ex.message.indexOf('Unexpected end of JSON input') === -1 && 
-                ex.message.indexOf('Unexpected token d in JSON at position') === -1) {
+            if (ex.message.indexOf('Unexpected end of input') === -1 &&
+                ex.message.indexOf('Unexpected end of JSON input') === -1 &&
+                ex.message.indexOf('Unexpected token') === -1) {
                 handleError("stdout", ex.message);
             }
             return;
@@ -269,6 +269,7 @@ function spawnProcess(dir: string) {
                             const originalType = <string><any>item.type;
                             item.type = getMappedVSCodeType(originalType);
                             item.kind = getMappedVSCodeSymbol(originalType);
+                            item.raw_type = getMappedVSCodeType(originalType);
                         });
 
                         let completionResult: ICompletionResult = {
@@ -557,9 +558,11 @@ export interface IReference {
 
 export interface IAutoCompleteItem {
     type: vscode.CompletionItemKind;
+    raw_type: vscode.CompletionItemKind;
     kind: vscode.SymbolKind;
     text: string;
     description: string;
+    raw_docstring: string;
     rightLabel: string;
 }
 export interface IDefinition {
