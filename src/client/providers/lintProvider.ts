@@ -81,6 +81,13 @@ export class LintProvider extends vscode.Disposable {
         });
         this.context.subscriptions.push(disposable);
 
+        vscode.workspace.onDidOpenTextDocument((e) => {
+            if (e.languageId !== 'python' || !this.settings.linting.enabled) {
+                return;
+            }
+            this.lintDocument(e, e.uri, e.getText().split(/\r?\n/g), 100);
+        }, this.context.subscriptions);
+
         disposable = vscode.workspace.onDidCloseTextDocument(textDocument => {
             if (!textDocument || !textDocument.fileName || !textDocument.uri) {
                 return;
