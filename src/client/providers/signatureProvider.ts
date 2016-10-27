@@ -1,7 +1,7 @@
 "use strict";
 
 import * as vscode from "vscode";
-import {TextDocument, Position, CancellationToken, SignatureHelp, ExtensionContext} from "vscode";
+import { TextDocument, Position, CancellationToken, SignatureHelp, ExtensionContext } from "vscode";
 import * as proxy from "./jediProxy";
 import * as telemetryContracts from "../common/telemetryContracts";
 
@@ -47,7 +47,7 @@ export class PythonSignatureProvider implements vscode.SignatureHelpProvider {
     private jediProxyHandler: proxy.JediProxyHandler<proxy.IArgumentsResult, vscode.SignatureHelp>;
 
     public constructor(context: vscode.ExtensionContext, jediProxy: proxy.JediProxy = null) {
-        this.jediProxyHandler = new proxy.JediProxyHandler(context, null, PythonSignatureProvider.parseData, jediProxy);
+        this.jediProxyHandler = new proxy.JediProxyHandler(context, jediProxy);
     }
     private static parseData(data: proxy.IArgumentsResult): vscode.SignatureHelp {
         if (data && Array.isArray(data.definitions) && data.definitions.length > 0) {
@@ -89,7 +89,9 @@ export class PythonSignatureProvider implements vscode.SignatureHelpProvider {
                 lineIndex: position.line,
                 source: document.getText()
             };
-            this.jediProxyHandler.sendCommand(cmd, resolve, token);
+            return this.jediProxyHandler.sendCommand(cmd, token).then(data => {
+                return PythonSignatureProvider.parseData(data);
+            });
         });
     }
 }

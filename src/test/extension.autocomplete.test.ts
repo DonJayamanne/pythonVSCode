@@ -21,6 +21,7 @@ const fileTwo = path.join(autoCompPath, 'two.py');
 const fileThree = path.join(autoCompPath, 'three.py');
 const fileEncoding = path.join(autoCompPath, 'four.py');
 const fileEncodingUsed = path.join(autoCompPath, 'five.py');
+const fileHover = path.join(autoCompPath, 'hoverTest.py');
 
 suite('Autocomplete', () => {
     suiteSetup(done => {
@@ -233,8 +234,9 @@ suite('Hover Definition', () => {
             assert.equal(def.length, 1, 'Definition lenght is incorrect');
             assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '30,4', 'Start position is incorrect');
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '30,11', 'End position is incorrect');
-            assert.equal(def[0].contents.length, 1, 'Invalid content items');
-            assert.equal(def[0].contents[0].value, `method1(self)${EOL}${EOL}This is method1`, 'Invalid conents');
+            assert.equal(def[0].contents.length, 2, 'Invalid content items');
+            assert.equal(def[0].contents[0].value, 'method1(self)', 'function signature incorrect');
+            assert.equal(def[0].contents[1], `${EOL}This is method1`, 'Invalid conents');
         }).then(done, done);
     });
 
@@ -253,8 +255,8 @@ suite('Hover Definition', () => {
             assert.equal(def.length, 1, 'Definition lenght is incorrect');
             assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '1,9', 'Start position is incorrect');
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '1,12', 'End position is incorrect');
-            assert.equal(def[0].contents.length, 1, 'Invalid content items');
-            assert.equal(def[0].contents[0].value, `fun()${EOL}${EOL}This is fun`, 'Invalid conents');
+            assert.equal(def[0].contents[0].value, 'fun()', 'function signature incorrect');
+            assert.equal(def[0].contents[1], `${EOL}This is fun`, 'Invalid conents');
         }).then(done, done);
     });
 
@@ -273,9 +275,9 @@ suite('Hover Definition', () => {
             assert.equal(def.length, 1, 'Definition lenght is incorrect');
             assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '25,4', 'Start position is incorrect');
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '25,7', 'End position is incorrect');
-            assert.equal(def[0].contents.length, 1, 'Invalid content items');
-            const documentation = `bar()${EOL}${EOL}说明 - keep this line, it works${EOL}delete following line, it works${EOL}如果存在需要等待审批或正在执行的任务，将不刷新页面`;
-            assert.equal(def[0].contents[0].value, documentation, 'Invalid conents');
+            assert.equal(def[0].contents[0].value, 'bar()', 'function signature incorrect');
+            const documentation = `${EOL}说明 - keep this line, it works${EOL}delete following line, it works${EOL}如果存在需要等待审批或正在执行的任务，将不刷新页面`;
+            assert.equal(def[0].contents[1], documentation, 'Invalid conents');
         }).then(done, done);
     });
 
@@ -294,9 +296,41 @@ suite('Hover Definition', () => {
             assert.equal(def.length, 1, 'Definition lenght is incorrect');
             assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '1,5', 'Start position is incorrect');
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '1,16', 'End position is incorrect');
-            assert.equal(def[0].contents.length, 1, 'Invalid content items');
-            const documentation = `showMessage()${EOL}${EOL}Кюм ут жэмпэр пошжим льаборэж, коммюны янтэрэсщэт нам ед, декта игнота ныморэ жят эи. ${EOL}Шэа декам экшырки эи, эи зыд эррэм докэндё, векж факэтэ пэрчыквюэрёж ку.`;
-            assert.equal(def[0].contents[0].value, documentation, 'Invalid conents');
+            assert.equal(def[0].contents[0].value, 'showMessage()', 'Invalid content items');
+            const documentation = `${EOL}Кюм ут жэмпэр пошжим льаборэж, коммюны янтэрэсщэт нам ед, декта игнота ныморэ жят эи. ${EOL}Шэа декам экшырки эи, эи зыд эррэм докэндё, векж факэтэ пэрчыквюэрёж ку.`;
+            assert.equal(def[0].contents[1], documentation, 'Invalid conents');
+        }).then(done, done);
+    });
+
+    test('Nothing for keywords (class)', done => {
+        let textEditor: vscode.TextEditor;
+        let textDocument: vscode.TextDocument;
+        return vscode.workspace.openTextDocument(fileOne).then(document => {
+            textDocument = document;
+            return vscode.window.showTextDocument(textDocument);
+        }).then(editor => {
+            assert(vscode.window.activeTextEditor, 'No active editor');
+            textEditor = editor;
+            const position = new vscode.Position(5, 1);
+            return vscode.commands.executeCommand('vscode.executeHoverProvider', textDocument.uri, position);
+        }).then((def: [{ range: vscode.Range, contents: { language: string, value: string }[] }]) => {
+            assert.equal(def.length, 0, 'Definition lenght is incorrect');
+        }).then(done, done);
+    });
+
+    test('Nothing for keywords (for)', done => {
+        let textEditor: vscode.TextEditor;
+        let textDocument: vscode.TextDocument;
+        return vscode.workspace.openTextDocument(fileHover).then(document => {
+            textDocument = document;
+            return vscode.window.showTextDocument(textDocument);
+        }).then(editor => {
+            assert(vscode.window.activeTextEditor, 'No active editor');
+            textEditor = editor;
+            const position = new vscode.Position(3, 1);
+            return vscode.commands.executeCommand('vscode.executeHoverProvider', textDocument.uri, position);
+        }).then((def: [{ range: vscode.Range, contents: { language: string, value: string }[] }]) => {
+            assert.equal(def.length, 0, 'Definition lenght is incorrect');
         }).then(done, done);
     });
 });

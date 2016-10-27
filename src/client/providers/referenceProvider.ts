@@ -9,7 +9,7 @@ export class PythonReferenceProvider implements vscode.ReferenceProvider {
     private jediProxyHandler: proxy.JediProxyHandler<proxy.IReferenceResult, vscode.Location[]>;
 
     public constructor(context: vscode.ExtensionContext, jediProxy: proxy.JediProxy = null) {
-        this.jediProxyHandler = new proxy.JediProxyHandler(context, [], PythonReferenceProvider.parseData, jediProxy);
+        this.jediProxyHandler = new proxy.JediProxyHandler(context, jediProxy);
     }
     private static parseData(data: proxy.IReferenceResult): vscode.Location[] {
         if (data && data.references.length > 0) {
@@ -26,31 +26,30 @@ export class PythonReferenceProvider implements vscode.ReferenceProvider {
     }
 
     public provideReferences(document: vscode.TextDocument, position: vscode.Position, context: vscode.ReferenceContext, token: vscode.CancellationToken): Thenable<vscode.Location[]> {
-        return new Promise<vscode.Definition>((resolve, reject) => {
-            var filename = document.fileName;
-            if (document.lineAt(position.line).text.match(/^\s*\/\//)) {
-                return resolve();
-            }
-            if (position.character <= 0) {
-                return resolve();
-            }
+        var filename = document.fileName;
+        if (document.lineAt(position.line).text.match(/^\s*\/\//)) {
+            return Promise.resolve();
+        }
+        if (position.character <= 0) {
+            return Promise.resolve();
+        }
 
-            var range = document.getWordRangeAtPosition(position);
-            var columnIndex = range.isEmpty ? position.character : range.end.character;
-            var cmd: proxy.ICommand<proxy.IReferenceResult> = {
-                telemetryEvent: telemetryContracts.IDE.Reference,
-                command: proxy.CommandType.Usages,
-                fileName: filename,
-                columnIndex: columnIndex,
-                lineIndex: position.line
-            };
+        var range = document.getWordRangeAtPosition(position);
+        var columnIndex = range.isEmpty ? position.character : range.end.character;
+        var cmd: proxy.ICommand<proxy.IReferenceResult> = {
+            telemetryEvent: telemetryContracts.IDE.Reference,
+            command: proxy.CommandType.Usages,
+            fileName: filename,
+            columnIndex: columnIndex,
+            lineIndex: position.line
+        };
 
-            if (document.isDirty){
-                cmd.source = document.getText();
-            }
-            var definition: proxy.IAutoCompleteItem = null;
+        if (document.isDirty) {
+            cmd.source = document.getText();
+        }
 
-            this.jediProxyHandler.sendCommand(cmd, resolve, token);
+        return this.jediProxyHandler.sendCommand(cmd, token).then(data => {
+            return PythonReferenceProvider.parseData(data);
         });
     }
 }

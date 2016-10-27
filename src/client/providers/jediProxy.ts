@@ -7,6 +7,7 @@ import * as settings from './../common/configSettings';
 import * as logger from './../common/logger';
 import * as telemetryHelper from "../common/telemetry";
 import { execPythonFile, validatePath } from "../common/utils";
+import { createDeferred, Deferred } from '../common/helpers';
 
 const IS_WINDOWS = /^win/.test(process.platform);
 var proc: child_process.ChildProcess;
@@ -158,7 +159,7 @@ function onPythonSettingsChanged() {
 function clearPendingRequests() {
     commandQueue = [];
     commands.forEach(item => {
-        item.resolve();
+        item.deferred.resolve();
     });
     commands.clear();
 }
@@ -254,6 +255,7 @@ function spawnProcess(dir: string) {
 
                 // Check if this command has expired
                 if (cmd.token.isCancellationRequested) {
+                    cmd.deferred.resolve();
                     return;
                 }
 
@@ -271,7 +273,7 @@ function spawnProcess(dir: string) {
                             items: results,
                             requestId: cmd.id
                         };
-                        cmd.resolve(completionResult);
+                        cmd.deferred.resolve(completionResult);
                         break;
                     }
                     case CommandType.Definitions: {
@@ -293,7 +295,7 @@ function spawnProcess(dir: string) {
                             };
                         }
 
-                        cmd.resolve(defResult);
+                        cmd.deferred.resolve(defResult);
                         break;
                     }
                     case CommandType.Symbols: {
@@ -315,7 +317,7 @@ function spawnProcess(dir: string) {
                             };
                         });
 
-                        cmd.resolve(defResults);
+                        cmd.deferred.resolve(defResults);
                         break;
                     }
                     case CommandType.Usages: {
@@ -335,12 +337,12 @@ function spawnProcess(dir: string) {
                             )
                         };
 
-                        cmd.resolve(refResult);
+                        cmd.deferred.resolve(refResult);
                         break;
                     }
                     case CommandType.Arguments: {
                         let defs = <any[]>response["results"];
-                        cmd.resolve(<IArgumentsResult>{
+                        cmd.deferred.resolve(<IArgumentsResult>{
                             requestId: cmd.id,
                             definitions: defs
                         });
@@ -354,6 +356,12 @@ function spawnProcess(dir: string) {
                 var items = commandQueue.splice(0, commandQueue.length - 10);
                 items.forEach(id => {
                     if (commands.has(id)) {
+                        const cmd = commands.get(id);
+                        try {
+                            cmd.deferred.resolve(null);
+                        }
+                        catch (ex) {
+                        }
                         commands.delete(id);
                     }
                 });
@@ -363,32 +371,31 @@ function spawnProcess(dir: string) {
 }
 
 function sendCommand<T extends ICommandResult>(cmd: ICommand<T>): Promise<T> {
-    return new Promise<ICommandResult>((resolve, reject) => {
-        if (!proc) {
-            return reject("Python proc not initialized");
+    if (!proc) {
+        return Promise.reject(new Error("Python proc not initialized"));
+    }
+    var executionCmd = <IExecutionCommand<T>>cmd;
+    var payload = createPayload(executionCmd);
+    executionCmd.deferred = createDeferred<ICommandResult>();
+    executionCmd.delays = new telemetryHelper.Delays();
+    try {
+        proc.stdin.write(JSON.stringify(payload) + "\n");
+        commands.set(executionCmd.id, executionCmd);
+        commandQueue.push(executionCmd.id);
+    }
+    catch (ex) {
+        console.error(ex);
+        //If 'This socket is closed.' that means process didn't start at all (at least not properly)
+        if (ex.message === "This socket is closed.") {
+
+            killProcess();
         }
-        var exexcutionCmd = <IExecutionCommand<T>>cmd;
-        var payload = createPayload(exexcutionCmd);
-        exexcutionCmd.resolve = resolve;
-        exexcutionCmd.reject = reject;
-        exexcutionCmd.delays = new telemetryHelper.Delays();
-        try {
-            proc.stdin.write(JSON.stringify(payload) + "\n");
-            commands.set(exexcutionCmd.id, exexcutionCmd);
-            commandQueue.push(exexcutionCmd.id);
+        else {
+            handleError("sendCommand", ex.message);
         }
-        catch (ex) {
-            //If 'This socket is closed.' that means process didn't start at all (at least not properly)
-            if (ex.message === "This socket is closed.") {
-                killProcess();
-            }
-            else {
-                handleError("sendCommand", ex.message);
-                console.error(ex);
-            }
-            reject(ex.message);
-        }
-    });
+        return Promise.reject(ex);
+    }
+    return executionCmd.deferred.promise;
 }
 
 function createPayload<T extends ICommandResult>(cmd: IExecutionCommand<T>): any {
@@ -496,8 +503,7 @@ export interface ICommand<T extends ICommandResult> {
 
 interface IExecutionCommand<T extends ICommandResult> extends ICommand<T> {
     id?: number;
-    resolve: (value?: T) => void;
-    reject: (ICommandError) => void;
+    deferred?: Deferred<T>;
     token: vscode.CancellationToken;
     delays: telemetryHelper.Delays;
 }
@@ -563,43 +569,23 @@ export interface IDefinition {
     lineIndex: number;
 }
 
-let jediProxy_singleton: JediProxy = null;
-
 export class JediProxyHandler<R extends ICommandResult, T> {
     private jediProxy: JediProxy;
-    private defaultCallbackData: T;
-
     private lastToken: vscode.CancellationToken;
     private lastCommandId: number;
-    private promiseResolve: (value?: T) => void;
-    private parseResponse: (data: R) => T;
     private cancellationTokenSource: vscode.CancellationTokenSource;
 
     public get JediProxy(): JediProxy {
         return this.jediProxy;
     }
 
-    public constructor(context: vscode.ExtensionContext, defaultCallbackData: T, parseResponse: (data: R) => T, jediProxy: JediProxy = null) {
-        if (jediProxy) {
-            this.jediProxy = jediProxy;
-        }
-        else {
-            if (pythonSettings.devOptions.indexOf("SINGLE_JEDI") >= 0) {
-                if (jediProxy_singleton === null) {
-                    jediProxy_singleton = new JediProxy(context);
-                }
-                this.jediProxy = jediProxy_singleton;
-            }
-            else {
-                this.jediProxy = new JediProxy(context);
-            }
-        }
-        this.defaultCallbackData = defaultCallbackData;
-        this.parseResponse = parseResponse;
+    public constructor(context: vscode.ExtensionContext, jediProxy: JediProxy = null) {
+        this.jediProxy = jediProxy ? jediProxy : new JediProxy(context);
     }
 
-    public sendCommand(cmd: ICommand<R>, resolve: (value: T) => void, token?: vscode.CancellationToken) {
+    public sendCommand(cmd: ICommand<R>, token?: vscode.CancellationToken): Promise<R> {
         var executionCmd = <IExecutionCommand<R>>cmd;
+        const def = createDeferred<R>();
         executionCmd.id = executionCmd.id || this.jediProxy.getNextCommandId();
 
         if (this.cancellationTokenSource) {
@@ -611,22 +597,23 @@ export class JediProxyHandler<R extends ICommandResult, T> {
 
         this.cancellationTokenSource = new vscode.CancellationTokenSource();
         executionCmd.token = this.cancellationTokenSource.token;
-
-        this.jediProxy.sendCommand<R>(executionCmd).then(data => this.onResolved(data), () => { });
-        this.lastCommandId = executionCmd.id;
         this.lastToken = token;
-        this.promiseResolve = resolve;
-    }
+        this.lastCommandId = executionCmd.id;
 
-    private onResolved(data: R) {
-        if (this.lastToken.isCancellationRequested || !data || data.requestId !== this.lastCommandId) {
-            this.promiseResolve(this.defaultCallbackData);
-        }
-        if (data) {
-            this.promiseResolve(this.parseResponse(data));
-        }
-        else {
-            this.promiseResolve(this.defaultCallbackData);
-        }
+        this.jediProxy.sendCommand<R>(executionCmd).then(data => {
+            if (this.lastToken.isCancellationRequested || !data || data.requestId !== this.lastCommandId) {
+                def.resolve();
+            }
+            if (data) {
+                def.resolve(data);
+            }
+            else {
+                def.resolve();
+            }
+        }).catch(reason => {
+            console.error(reason);
+            def.resolve();
+        });
+        return def.promise;
     }
 }

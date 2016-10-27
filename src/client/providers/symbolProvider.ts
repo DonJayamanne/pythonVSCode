@@ -8,7 +8,7 @@ export class PythonSymbolProvider implements vscode.DocumentSymbolProvider {
     private jediProxyHandler: proxy.JediProxyHandler<proxy.ISymbolResult, vscode.SymbolInformation[]>;
 
     public constructor(context: vscode.ExtensionContext, jediProxy: proxy.JediProxy = null) {
-        this.jediProxyHandler = new proxy.JediProxyHandler(context, [], PythonSymbolProvider.parseData, jediProxy);
+        this.jediProxyHandler = new proxy.JediProxyHandler(context, jediProxy);
     }
     private static parseData(data: proxy.ISymbolResult): vscode.SymbolInformation[] {
         if (data) {
@@ -20,25 +20,25 @@ export class PythonSymbolProvider implements vscode.DocumentSymbolProvider {
 
             return symbols;
         }
-        return;
+        return [];
     }
     public provideDocumentSymbols(document: vscode.TextDocument, token: vscode.CancellationToken): Thenable<vscode.SymbolInformation[]> {
-        return new Promise<vscode.SymbolInformation[]>((resolve, reject) => {
-            var filename = document.fileName;
+        var filename = document.fileName;
 
-            var cmd: proxy.ICommand<proxy.ISymbolResult> = {
-                telemetryEvent: telemetryContracts.IDE.Symbol,
-                command: proxy.CommandType.Symbols,
-                fileName: filename,
-                columnIndex: 0,
-                lineIndex: 0
-            };
+        var cmd: proxy.ICommand<proxy.ISymbolResult> = {
+            telemetryEvent: telemetryContracts.IDE.Symbol,
+            command: proxy.CommandType.Symbols,
+            fileName: filename,
+            columnIndex: 0,
+            lineIndex: 0
+        };
 
-            if (document.isDirty){
-                cmd.source = document.getText();
-            }
+        if (document.isDirty) {
+            cmd.source = document.getText();
+        }
 
-            this.jediProxyHandler.sendCommand(cmd, resolve, token);
+        return this.jediProxyHandler.sendCommand(cmd, token).then(data => {
+            return PythonSymbolProvider.parseData(data);
         });
     }
 }
