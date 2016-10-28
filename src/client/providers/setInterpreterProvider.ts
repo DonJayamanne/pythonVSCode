@@ -26,12 +26,12 @@ function getSearchPaths(): Promise<string[]> {
         const localAppData = process.env['LOCALAPPDATA'];
         const appData = process.env['APPDATA'];
         const lookupParentDirectories = [process.env['PROGRAMFILES'], process.env['PROGRAMFILES(X86)'],
-                                        localAppData, appData, 
-                                        process.env['SystemDrive']];
-        if (appData){
+            localAppData, appData,
+        process.env['SystemDrive']];
+        if (appData) {
             lookupParentDirectories.push(path.join(localAppData, 'Programs'))
         }
-        if (localAppData){
+        if (localAppData) {
             lookupParentDirectories.push(path.join(appData, 'Programs'))
         }
         const dirPromises = lookupParentDirectories.map(rootDir => {
@@ -47,7 +47,7 @@ function getSearchPaths(): Promise<string[]> {
                 files.forEach(name => {
                     const fullPath = path.join(rootDir, name);
                     try {
-                        if ((name.toUpperCase().indexOf('PYTHON') >= 0 || name.toUpperCase().indexOf('ANACONDA') >= 0) && 
+                        if ((name.toUpperCase().indexOf('PYTHON') >= 0 || name.toUpperCase().indexOf('ANACONDA') >= 0) &&
                             fs.statSync(fullPath).isDirectory()) {
                             possiblePythonDirs.push(fullPath);
                         }
@@ -64,7 +64,13 @@ function getSearchPaths(): Promise<string[]> {
             return validPathsCollection.reduce((previousValue, currentValue) => previousValue.concat(currentValue), []);
         });
     } else {
-        return Promise.resolve(['/usr/local/bin', '/usr/bin', '/bin', '/usr/sbin', '/sbin']);
+        const paths = ['/usr/local/bin', '/usr/bin', '/bin', '/usr/sbin', '/sbin', '/usr/local/sbin'];
+        // Add support for paths such as /Users/xxx/anaconda/bin
+        if (process.env['HOME']) {
+            paths.push(path.join(process.env['HOME'], 'anaconda', 'bin'));
+            paths.push(path.join(process.env['HOME'], 'python', 'bin'));
+        }
+        return Promise.resolve(paths);
     }
 }
 
