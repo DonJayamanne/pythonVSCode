@@ -61,7 +61,7 @@ export function activate(context: vscode.ExtensionContext) {
         ]
     });
 
-    context.subscriptions.push(vscode.languages.registerRenameProvider(PYTHON, new PythonRenameProvider()));
+    context.subscriptions.push(vscode.languages.registerRenameProvider(PYTHON, new PythonRenameProvider(formatOutChannel)));
     context.subscriptions.push(vscode.languages.registerHoverProvider(PYTHON, new PythonHoverProvider(context)));
     const definitionProvider = new PythonDefinitionProvider(context);
     const jediProx = definitionProvider.JediProxy;

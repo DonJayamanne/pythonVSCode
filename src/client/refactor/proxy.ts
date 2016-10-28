@@ -2,16 +2,10 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as fs from 'fs';
 import * as child_process from 'child_process';
-import { ExtractResult } from './contracts';
-import { execPythonFile } from '../common/utils';
 import { IPythonSettings } from '../common/configSettings';
 import { REFACTOR } from '../common/telemetryContracts';
 import { sendTelemetryEvent, Delays } from '../common/telemetry';
-
-const ROPE_PYTHON_VERSION = 'Currently code refactoring is only supported in Python 2.x';
-const ERROR_PREFIX = '$ERROR';
 
 export class RefactorProxy extends vscode.Disposable {
     private _process: child_process.ChildProcess;
@@ -46,7 +40,7 @@ export class RefactorProxy extends vscode.Disposable {
     extractMethod<T>(document: vscode.TextDocument, name: string, filePath: string, range: vscode.Range): Promise<T> {
         // Ensure last line is an empty line
         if (!document.lineAt(document.lineCount - 1).isEmptyOrWhitespace && range.start.line === document.lineCount - 1) {
-            return Promise.reject<T>('Missing blank line at the end of document (PEP8).')
+            return Promise.reject<T>('Missing blank line at the end of document (PEP8).');
         }
         let command = { "lookup": "extract_method", "file": filePath, "start": document.offsetAt(range.start).toString(), "end": document.offsetAt(range.end).toString(), "id": "1", "name": name };
         return this.sendCommand<T>(JSON.stringify(command), REFACTOR.ExtractMethod);
@@ -109,6 +103,7 @@ export class RefactorProxy extends vscode.Disposable {
             this._previousStdErrData = '';
         }
         catch (ex) {
+            console.error(ex);
             // Possible we've only received part of the data, hence don't clear previousData
             return;
         }

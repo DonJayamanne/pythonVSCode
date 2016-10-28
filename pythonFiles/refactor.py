@@ -264,16 +264,10 @@ class RopeRefactoring(object):
         while True:
             try:
                 self._process_request(self._input.readline())
-            except Exception as ex:
-                message = ""
-                try:
-                    message = ex.message
-                except:
-                    pass
-
-                message = message + '  \n' + traceback.format_exc()
-                jsonMessage = {'error': True, 'message': message,
-                               'traceback': traceback.format_exc()}
+            except:
+                exc_type, exc_value, exc_tb = sys.exc_info()
+                tb_info = traceback.extract_tb(exc_tb)
+                jsonMessage = {'error': True, 'message': str(exc_value), 'traceback': str(tb_info), 'type': str(exc_type)}
                 sys.stderr.write(json.dumps(jsonMessage))
                 sys.stderr.flush()
 

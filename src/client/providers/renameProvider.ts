@@ -1,11 +1,10 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import * as telemetryContracts from "../common/telemetryContracts";
-import {RefactorProxy} from '../refactor/proxy';
-import {getWorkspaceEditsFromPatch, getTextEdits} from '../common/editor';
+import { RefactorProxy } from '../refactor/proxy';
+import { getWorkspaceEditsFromPatch } from '../common/editor';
 import * as path from 'path';
-import {PythonSettings} from '../common/configSettings';
+import { PythonSettings } from '../common/configSettings';
 
 const pythonSettings = PythonSettings.getInstance();
 const EXTENSION_DIR = path.join(__dirname, '..', '..', '..');
@@ -14,6 +13,8 @@ interface RenameResponse {
 }
 
 export class PythonRenameProvider implements vscode.RenameProvider {
+    constructor(private outputChannel: vscode.OutputChannel) {
+    }
     public provideRenameEdits(document: vscode.TextDocument, position: vscode.Position, newName: string, token: vscode.CancellationToken): Thenable<vscode.WorkspaceEdit> {
         return vscode.workspace.saveAll(false).then(() => {
             return this.doRename(document, position, newName, token);
@@ -21,7 +22,6 @@ export class PythonRenameProvider implements vscode.RenameProvider {
     }
 
     private doRename(document: vscode.TextDocument, position: vscode.Position, newName: string, token: vscode.CancellationToken): Thenable<vscode.WorkspaceEdit> {
-        var filename = document.fileName;
         if (document.lineAt(position.line).text.match(/^\s*\/\//)) {
             return;
         }
@@ -29,9 +29,8 @@ export class PythonRenameProvider implements vscode.RenameProvider {
             return;
         }
 
-        var source = document.getText();
         var range = document.getWordRangeAtPosition(position);
-        if (range == undefined || range == null || range.isEmpty) {
+        if (!range || range.isEmpty) {
             return;
         }
         const oldName = document.getText(range);
@@ -40,12 +39,14 @@ export class PythonRenameProvider implements vscode.RenameProvider {
         }
 
         let proxy = new RefactorProxy(EXTENSION_DIR, pythonSettings, vscode.workspace.rootPath);
-        return new Promise<vscode.WorkspaceEdit>(resolve => {
-            proxy.rename<RenameResponse>(document, newName, document.uri.fsPath, range).then(response => {
-                //return response.results[0].diff;
-                const workspaceEdit = getWorkspaceEditsFromPatch(response.results.map(fileChanges => fileChanges.diff));
-                resolve(workspaceEdit);
-            });
+        return proxy.rename<RenameResponse>(document, newName, document.uri.fsPath, range).then(response => {
+            //return response.results[0].diff;
+            const workspaceEdit = getWorkspaceEditsFromPatch(response.results.map(fileChanges => fileChanges.diff));
+            return workspaceEdit;
+        }).catch(reason => {
+            vscode.window.showErrorMessage(reason);
+            this.outputChannel.appendLine(reason);
+            return;
         });
     }
 }
