@@ -94,7 +94,7 @@ export abstract class BaseLinter {
                         diagnostics.push({
                             code: match.code,
                             message: match.message,
-                            column: isNaN(match.column) ? 0 : match.column,
+                            column: isNaN(match.column) || match.column === 0 ? 0 : match.column - 1,
                             line: match.line,
                             possibleWord: possibleWord,
                             type: match.type,
