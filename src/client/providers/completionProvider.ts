@@ -37,7 +37,6 @@ export class PythonCompletionItemProvider implements vscode.CompletionItemProvid
             return Promise.resolve([]);
         }
 
-        const txt = document.getText(new vscode.Range(new vscode.Position(position.line, position.character - 1), position));
         const type = proxy.CommandType.Completions;
         const columnIndex = position.character;
 

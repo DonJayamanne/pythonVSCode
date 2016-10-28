@@ -4,58 +4,54 @@ import * as path from "path";
 import * as fs from "fs";
 import * as vscode from "vscode";
 import * as settings from "./../common/configSettings";
-import * as utils from "./../common/utils";
-let ncp = require("copy-paste");
+import * as utils from "../common/utils";
+import { createDeferred } from '../common/helpers';
 
 // where to find the Python binary within a conda env
-const CONDA_RELATIVE_PY_PATH = utils.IS_WINDOWS ? ['python'] : ['bin', 'python']
-const REPLACE_PYTHONPATH_REGEXP = /("python\.pythonPath"\s*:\s*)"(.*)"/g;
+const CONDA_RELATIVE_PY_PATH = utils.IS_WINDOWS ? ['python'] : ['bin', 'python'];
 const CHECK_PYTHON_INTERPRETER_REGEXP = utils.IS_WINDOWS ? /^python(\d+(.\d+)?)?\.exe$/ : /^python(\d+(.\d+)?)?$/;
 
 interface PythonPathSuggestion {
-    label: string, // myenvname
-    path: string,  // /full/path/to/bin/python
-    type: string   // conda
+    label: string; // myenvname
+    path: string;  // /full/path/to/bin/python
+    type: string;   // conda
 }
 
 interface PythonPathQuickPickItem extends vscode.QuickPickItem {
-    path: string
+    path: string;
 }
 
-function isPythonInterpreter(filePath: string): boolean {
-    return CHECK_PYTHON_INTERPRETER_REGEXP.test(filePath);
-}
-
-function getSearchPaths(): string[] {
+function getSearchPaths(): Promise<string[]> {
     if (utils.IS_WINDOWS) {
-        return [
-            'C:\\Python2.7',
-            'C:\\Python27',
-            'C:\\Python3.4',
-            'C:\\Python34',
-            'C:\\Python3.5',
-            'C:\\Python35',
-            'C:\\Python35-32',
-            'C:\\Anaconda',
-            'C:\\Anaconda3',
-            'C:\\Program Files (x86)\\Python 2.7',
-            'C:\\Program Files (x86)\\Python 3.4',
-            'C:\\Program Files (x86)\\Python 3.5',
-            'C:\\Program Files (x64)\\Python 2.7',
-            'C:\\Program Files (x64)\\Python 3.4',
-            'C:\\Program Files (x64)\\Python 3.5',
-            'C:\\Program Files\\Python 2.7',
-            'C:\\Program Files\\Python 3.4',
-            'C:\\Program Files\\Python 3.5',
-            'C:\\Program Files\\Anaconda',
-            'C:\\Program Files\\Anaconda3'
-        ];
+        const lookupParentDirectories = ['PROGRAMFILES', 'PROGRAMFILES(X86)', 'LOCALAPPDATA', 'APPDATA', 'SystemDrive'];
+        const dirPromises = lookupParentDirectories.map(rootDir => {
+            const def = createDeferred<string[]>();
+            fs.readdir(rootDir, (error, files) => {
+                if (error) {
+                    return def.resolve([]);
+                }
+                const possiblePythonDirs = [];
+                files.forEach(name => {
+                    const fullPath = path.join(rootDir, name);
+                    if (fs.statSync(fullPath).isDirectory() &&
+                        (name.toUpperCase().indexOf('PYTHON') >= 0 || name.toUpperCase().indexOf('ANACONDA') >= 0)) {
+                        possiblePythonDirs.push(fullPath);
+                    }
+                });
+                def.resolve(possiblePythonDirs);
+            });
+            return def.promise;
+        });
+
+        return Promise.all(dirPromises).then(validPathsCollection => {
+            return validPathsCollection.reduce((previousValue, currentValue) => previousValue.concat(currentValue), []);
+        });
     } else {
-        return ['/usr/local/bin', '/usr/bin', '/bin', '/usr/sbin', '/sbin'];
+        return Promise.resolve(['/usr/local/bin', '/usr/bin', '/bin', '/usr/sbin', '/sbin']);
     }
 }
 
-export function activateSetInterpreterProvider():vscode.Disposable {
+export function activateSetInterpreterProvider(): vscode.Disposable {
     return vscode.commands.registerCommand("python.setInterpreter", setInterpreter);
 }
 
@@ -92,17 +88,17 @@ function lookForInterpretersInVirtualEnvs(pathToCheck: string): Promise<PythonPa
                         envsInterpreters.push({
                             label: path.basename(interpter), path: interpter, type: ''
                         });
-                    })
+                    });
                 });
 
                 resolve(envsInterpreters);
-            })
+            });
         });
     });
 }
 function suggestionsFromKnownPaths(): Promise<PythonPathSuggestion[]> {
-    return new Promise(resolve => {
-        const validPaths = getSearchPaths().map(p => {
+    return getSearchPaths().then(paths => {
+        const promises = paths.map(p => {
             return utils.validatePath(p).then(validatedPath => {
                 if (validatedPath.length === 0) {
                     return Promise.resolve<string[]>([]);
@@ -111,16 +107,15 @@ function suggestionsFromKnownPaths(): Promise<PythonPathSuggestion[]> {
                 return lookForInterpretersInPath(validatedPath);
             });
         });
-        Promise.all<string[]>(validPaths).then(listOfInterpreters => {
+        return Promise.all<string[]>(promises).then(listOfInterpreters => {
             const suggestions: PythonPathSuggestion[] = [];
-            listOfInterpreters.forEach(interpreters => {
-                interpreters.filter(interpter => interpter.length > 0).map(interpter => {
-                    suggestions.push({
-                        label: path.basename(interpter), path: interpter, type: ''
-                    });
+            const interpreters = listOfInterpreters.reduce((previous, current) => previous.concat(current));
+            interpreters.filter(interpter => interpter.length > 0).map(interpter => {
+                suggestions.push({
+                    label: path.basename(interpter), path: interpter, type: ''
                 });
             });
-            resolve(suggestions);
+            return suggestions;
         });
     });
 }
@@ -129,36 +124,36 @@ function suggestionsFromConda(): Promise<PythonPathSuggestion[]> {
         // interrogate conda (if it's on the path) to find all environments
         child_process.execFile('conda', ['info', '--json'], (error, stdout, stderr) => {
             try {
-                const info = JSON.parse(stdout)
+                const info = JSON.parse(stdout);
 
                 // envs reported as e.g.: /Users/bob/miniconda3/envs/someEnv
-                const envs = <string[]>info['envs']
+                const envs = <string[]>info['envs'];
 
                 // The root of the conda environment is itself a Python interpreter
-                envs.push(info["default_prefix"])
+                envs.push(info["default_prefix"]);
 
                 const suggestions = envs.map(env => ({
                     label: path.basename(env),  // e.g. someEnv, miniconda3
                     path: path.join(env, ...CONDA_RELATIVE_PY_PATH),
                     type: 'conda',
-                }))
-                resolve(suggestions)
+                }));
+                resolve(suggestions);
             } catch (e) {
                 // Failed because either:
                 //   1. conda is not installed
                 //   2. `conda info --json` has changed signature
                 //   3. output of `conda info --json` has changed in structure
                 // In all cases, we can't offer conda pythonPath suggestions.
-                return resolve([])
+                return resolve([]);
             }
-        })
+        });
     });
 }
 
 function suggestionToQuickPickItem(suggestion: PythonPathSuggestion): PythonPathQuickPickItem {
     let detail = suggestion.path;
     if (suggestion.path.startsWith(vscode.workspace.rootPath)) {
-        detail = path.relative(vscode.workspace.rootPath, suggestion.path);
+        detail = `.${path.sep}` + path.relative(vscode.workspace.rootPath, suggestion.path);
     }
     detail = utils.IS_WINDOWS ? detail.replace(/\\/g, "/") : detail;
     return {
@@ -166,7 +161,7 @@ function suggestionToQuickPickItem(suggestion: PythonPathSuggestion): PythonPath
         description: suggestion.type,
         detail: detail,
         path: utils.IS_WINDOWS ? suggestion.path.replace(/\\/g, "/") : suggestion.path
-    }
+    };
 }
 
 function suggestPythonPaths(): Promise<PythonPathQuickPickItem[]> {
@@ -197,7 +192,7 @@ function setPythonPath(pythonPath: string, created: boolean = false) {
     }, reason => {
         vscode.window.showErrorMessage(`Failed to set 'pythonPath'. Error: ${reason.message}`);
         console.error(reason);
-    })
+    });
 }
 
 function presentQuickPickOfSuggestedPythonPaths() {
@@ -206,7 +201,7 @@ function presentQuickPickOfSuggestedPythonPaths() {
         matchOnDetail: true,
         matchOnDescription: false,
         placeHolder: `current: ${currentPythonPath}`
-    }
+    };
 
     suggestPythonPaths().then(suggestions => {
         vscode.window.showQuickPick(suggestions, quickPickOptions).then(
