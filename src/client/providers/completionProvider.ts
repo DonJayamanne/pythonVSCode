@@ -3,6 +3,8 @@
 import * as vscode from 'vscode';
 import * as proxy from './jediProxy';
 import * as telemetryContracts from '../common/telemetryContracts';
+import { extractSignatureAndDocumentation } from './jediHelpers';
+import { EOL } from 'os';
 
 export class PythonCompletionItemProvider implements vscode.CompletionItemProvider {
     private jediProxyHandler: proxy.JediProxyHandler<proxy.ICompletionResult, vscode.CompletionItem[]>;
@@ -13,9 +15,12 @@ export class PythonCompletionItemProvider implements vscode.CompletionItemProvid
     private static parseData(data: proxy.ICompletionResult): vscode.CompletionItem[] {
         if (data && data.items.length > 0) {
             return data.items.map(item => {
+                const sigAndDocs = extractSignatureAndDocumentation(item);
                 let completionItem = new vscode.CompletionItem(item.text);
                 completionItem.kind = item.type;
-                completionItem.documentation = item.description;
+                completionItem.documentation = sigAndDocs[1].length === 0 ? item.description : sigAndDocs[1];
+                completionItem.detail = sigAndDocs[0].split(EOL).join('');
+
                 // ensure the built in memebers are at the bottom
                 completionItem.sortText = (completionItem.label.startsWith('__') ? 'z' : (completionItem.label.startsWith('_') ? 'y' : '__')) + completionItem.label;
                 return completionItem;

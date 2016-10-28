@@ -3,7 +3,7 @@
 import * as vscode from 'vscode';
 import * as proxy from './jediProxy';
 import * as telemetryContracts from "../common/telemetryContracts";
-import { EOL } from 'os';
+import { extractHoverInfo} from './jediHelpers';
 
 export class PythonHoverProvider implements vscode.HoverProvider {
     private jediProxyHandler: proxy.JediProxyHandler<proxy.ICompletionResult, vscode.Hover>;
@@ -58,44 +58,4 @@ export class PythonHoverProvider implements vscode.HoverProvider {
             return extractHoverInfo(definition);
         });
     }
-}
-
-function extractHoverInfo(definition: proxy.IAutoCompleteItem): vscode.Hover {
-    // Somtimes the signature of the function, class (whatever) is broken into multiple lines
-    // Here's an example
-    // ```python
-    // def __init__(self, group=None, target=None, name=None,
-    //              args=(), kwargs=None, verbose=None):
-    //     """This constructor should always be called with keyword arguments. Arguments are:
-
-    //     *group* should be None; reserved for future extension when a ThreadGroup
-    //     class is implemented.
-    ///    """
-    /// ```
-    const txt = definition.description || definition.text;
-    const rawDocString = typeof definition.raw_docstring === 'string' ? definition.raw_docstring.trim() : '';
-    const firstLineOfRawDocString = rawDocString.length > 0 ? rawDocString.split(EOL)[0] : '';
-    const lines = txt.split(EOL);
-    const startIndexOfDocString = firstLineOfRawDocString === '' ? -1 : lines.findIndex(line => line.indexOf(firstLineOfRawDocString) === 0);
-
-    let signatureLines = startIndexOfDocString === -1 ? [lines.shift()] : lines.splice(0, startIndexOfDocString);
-    let signature = signatureLines.filter(line => line.trim().length > 0).join(EOL);
-
-    switch (definition.type) {
-        case vscode.CompletionItemKind.Constructor:
-        case vscode.CompletionItemKind.Function:
-        case vscode.CompletionItemKind.Method: {
-            signature = 'def ' + signature;
-            break;
-        }
-        case vscode.CompletionItemKind.Class: {
-            signature = 'class ' + signature;
-            break;
-        }
-    }
-    const hoverInfo: vscode.MarkedString[] = [{ language: 'python', value: signature }];
-    if (lines.some(line => line.trim().length > 0)) {
-        hoverInfo.push(lines.join(EOL).trim().replace(/^\s+|\s+$/g, '').trim());
-    }
-    return new vscode.Hover(hoverInfo);
 }
