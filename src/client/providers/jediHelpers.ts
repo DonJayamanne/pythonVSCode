@@ -40,7 +40,7 @@ export function extractSignatureAndDocumentation(definition: proxy.IAutoComplete
 
 export function extractHoverInfo(definition: proxy.IAutoCompleteItem): vscode.Hover {
     const parts = extractSignatureAndDocumentation(definition);
-    const hoverInfo: vscode.MarkedString[] = [{ language: 'python', value: parts[0] }];
+    const hoverInfo: vscode.MarkedString[] = parts[0].length === 0 ? [] : [{ language: 'python', value: parts[0] }];
     if (parts[1].length > 0) {
         hoverInfo.push(parts[1]);
     }
