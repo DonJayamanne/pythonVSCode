@@ -23,8 +23,21 @@ interface PythonPathQuickPickItem extends vscode.QuickPickItem {
 
 function getSearchPaths(): Promise<string[]> {
     if (utils.IS_WINDOWS) {
-        const lookupParentDirectories = ['PROGRAMFILES', 'PROGRAMFILES(X86)', 'LOCALAPPDATA', 'APPDATA', 'SystemDrive'];
+        const localAppData = process.env['LOCALAPPDATA'];
+        const appData = process.env['APPDATA'];
+        const lookupParentDirectories = [process.env['PROGRAMFILES'], process.env['PROGRAMFILES(X86)'],
+                                        localAppData, appData, 
+                                        process.env['SystemDrive']];
+        if (appData){
+            lookupParentDirectories.push(path.join(localAppData, 'Programs'))
+        }
+        if (localAppData){
+            lookupParentDirectories.push(path.join(appData, 'Programs'))
+        }
         const dirPromises = lookupParentDirectories.map(rootDir => {
+            if (!rootDir) {
+                return Promise.resolve([]);
+            }
             const def = createDeferred<string[]>();
             fs.readdir(rootDir, (error, files) => {
                 if (error) {
@@ -33,9 +46,13 @@ function getSearchPaths(): Promise<string[]> {
                 const possiblePythonDirs = [];
                 files.forEach(name => {
                     const fullPath = path.join(rootDir, name);
-                    if (fs.statSync(fullPath).isDirectory() &&
-                        (name.toUpperCase().indexOf('PYTHON') >= 0 || name.toUpperCase().indexOf('ANACONDA') >= 0)) {
-                        possiblePythonDirs.push(fullPath);
+                    try {
+                        if ((name.toUpperCase().indexOf('PYTHON') >= 0 || name.toUpperCase().indexOf('ANACONDA') >= 0) && 
+                            fs.statSync(fullPath).isDirectory()) {
+                            possiblePythonDirs.push(fullPath);
+                        }
+                    }
+                    catch (ex) {
                     }
                 });
                 def.resolve(possiblePythonDirs);
@@ -109,7 +126,7 @@ function suggestionsFromKnownPaths(): Promise<PythonPathSuggestion[]> {
         });
         return Promise.all<string[]>(promises).then(listOfInterpreters => {
             const suggestions: PythonPathSuggestion[] = [];
-            const interpreters = listOfInterpreters.reduce((previous, current) => previous.concat(current));
+            const interpreters = listOfInterpreters.reduce((previous, current) => previous.concat(current), []);
             interpreters.filter(interpter => interpter.length > 0).map(interpter => {
                 suggestions.push({
                     label: path.basename(interpter), path: interpter, type: ''
