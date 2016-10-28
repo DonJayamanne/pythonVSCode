@@ -86,7 +86,6 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(jupMain);
 
     context.subscriptions.push(new LintProvider(context, lintingOutChannel, vscode.workspace.rootPath, documentHasJupyterCodeCells));
-    context.subscriptions.push(vscode.languages.registerCodeActionsProvider(PYTHON, new PythonCodeActionsProvider(context)));
     tests.activate(context, unitTestOutChannel);
 
     // Possible this extension loads before the others, so lets wait for 5 seconds
