@@ -86,7 +86,7 @@ suite('Autocomplete', () => {
             return vscode.commands.executeCommand('vscode.executeCompletionItemProvider', textDocument.uri, position);
         }).then((list: { isIncomplete: boolean, items: vscode.CompletionItem[] }) => {
             assert.equal(list.items.filter(item => item.label === 'bar').length, 1, 'bar not found');
-            const documentation = `bar()${EOL}${EOL}说明 - keep this line, it works${EOL}delete following line, it works${EOL}如果存在需要等待审批或正在执行的任务，将不刷新页面`;
+            const documentation = `说明 - keep this line, it works${EOL}delete following line, it works${EOL}如果存在需要等待审批或正在执行的任务，将不刷新页面`;
             assert.equal(list.items.filter(item => item.label === 'bar')[0].documentation, documentation, 'unicode documentation is incorrect');
         }).then(done, done);
     });
@@ -107,7 +107,7 @@ suite('Autocomplete', () => {
             assert.equal(list.items.filter(item => item.label === 'Foo')[0].documentation, '说明', 'Foo unicode documentation is incorrect');
 
             assert.equal(list.items.filter(item => item.label === 'showMessage').length, 1, 'showMessage not found');
-            const documentation = `showMessage()${EOL}${EOL}Кюм ут жэмпэр пошжим льаборэж, коммюны янтэрэсщэт нам ед, декта игнота ныморэ жят эи. ${EOL}Шэа декам экшырки эи, эи зыд эррэм докэндё, векж факэтэ пэрчыквюэрёж ку.`;
+            const documentation = `Кюм ут жэмпэр пошжим льаборэж, коммюны янтэрэсщэт нам ед, декта игнота ныморэ жят эи. ${EOL}Шэа декам экшырки эи, эи зыд эррэм докэндё, векж факэтэ пэрчыквюэрёж ку.`;
             assert.equal(list.items.filter(item => item.label === 'showMessage')[0].documentation, documentation, 'showMessage unicode documentation is incorrect');
         }).then(done, done);
     });
