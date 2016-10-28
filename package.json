@@ -88,12 +88,12 @@
       {
         "command": "python.refactorExtractVariable",
         "title": "Extract Variable",
-        "category": "Refactor"
+        "category": "Python Refactor"
       },
       {
         "command": "python.refactorExtractMethod",
         "title": "Extract Method",
-        "category": "Refactor"
+        "category": "Python Refactor"
       },
       {
         "command": "python.viewTestOutput",
