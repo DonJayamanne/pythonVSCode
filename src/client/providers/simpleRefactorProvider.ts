@@ -92,10 +92,15 @@ function extractName(extensionDir: string, textEditor: vscode.TextEditor, range:
             return newWordPosition;
         }
         return null;
-    }).then(newWordPosition => {
+    }).then(newWordPosition => {        
         if (newWordPosition) {
-            // Now that we have selected the new variable, lets invoke the rename command
-            vscode.commands.executeCommand('editor.action.rename');
+            return textEditor.document.save().then(saved=>{
+                if (!saved){
+                    return;
+                }
+                // Now that we have selected the new variable, lets invoke the rename command
+                return vscode.commands.executeCommand('editor.action.rename');
+            });
         }
     }).catch(error => {
         let errorMessage = error + '';

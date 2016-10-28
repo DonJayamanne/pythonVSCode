@@ -6,6 +6,7 @@ import * as child_process from 'child_process';
 import { IPythonSettings } from '../common/configSettings';
 import { REFACTOR } from '../common/telemetryContracts';
 import { sendTelemetryEvent, Delays } from '../common/telemetry';
+import {IS_WINDOWS} from '../common/utils';
 
 export class RefactorProxy extends vscode.Disposable {
     private _process: child_process.ChildProcess;
@@ -29,12 +30,24 @@ export class RefactorProxy extends vscode.Disposable {
         }
         this._process = null;
     }
+    private getOffsetAt(document: vscode.TextDocument, position:vscode.Position):number {
+        if (!IS_WINDOWS){
+            return document.offsetAt(position);
+        }
+
+        // get line count
+        // Rope always uses LF, instead of CRLF on windows, funny isn't it
+        // So for each line, reduce one characer (for CR)
+        const offset = document.offsetAt(position);
+        return offset - position.line;
+    }
     rename<T>(document: vscode.TextDocument, name: string, filePath: string, range: vscode.Range): Promise<T> {
-        let command = { "lookup": "rename", "file": filePath, "start": document.offsetAt(range.start).toString(), "id": "1", "name": name };
+        let command = { "lookup": "rename", "file": filePath, "start": this.getOffsetAt(document, range.start).toString(), "id": "1", "name": name };
+        
         return this.sendCommand<T>(JSON.stringify(command), REFACTOR.Rename);
     }
     extractVariable<T>(document: vscode.TextDocument, name: string, filePath: string, range: vscode.Range): Promise<T> {
-        let command = { "lookup": "extract_variable", "file": filePath, "start": document.offsetAt(range.start).toString(), "end": document.offsetAt(range.end).toString(), "id": "1", "name": name };
+        let command = { "lookup": "extract_variable", "file": filePath, "start": this.getOffsetAt(document, range.start).toString(), "end": this.getOffsetAt(document, range.end).toString(), "id": "1", "name": name };
         return this.sendCommand<T>(JSON.stringify(command), REFACTOR.ExtractVariable);
     }
     extractMethod<T>(document: vscode.TextDocument, name: string, filePath: string, range: vscode.Range): Promise<T> {
@@ -42,7 +55,7 @@ export class RefactorProxy extends vscode.Disposable {
         if (!document.lineAt(document.lineCount - 1).isEmptyOrWhitespace && range.start.line === document.lineCount - 1) {
             return Promise.reject<T>('Missing blank line at the end of document (PEP8).');
         }
-        let command = { "lookup": "extract_method", "file": filePath, "start": document.offsetAt(range.start).toString(), "end": document.offsetAt(range.end).toString(), "id": "1", "name": name };
+        let command = { "lookup": "extract_method", "file": filePath, "start": this.getOffsetAt(document, range.start).toString(), "end": this.getOffsetAt(document, range.end).toString(), "id": "1", "name": name };
         return this.sendCommand<T>(JSON.stringify(command), REFACTOR.ExtractMethod);
     }
     private sendCommand<T>(command: string, telemetryEvent: string): Promise<T> {
