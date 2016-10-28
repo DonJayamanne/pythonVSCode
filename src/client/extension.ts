@@ -14,14 +14,12 @@ import { PythonSignatureProvider } from './providers/signatureProvider';
 import * as settings from './common/configSettings';
 import * as telemetryHelper from './common/telemetry';
 import * as telemetryContracts from './common/telemetryContracts';
-import { PythonCodeActionsProvider } from './providers/codeActionProvider';
 import { activateSimplePythonRefactorProvider } from './providers/simpleRefactorProvider';
 import { activateSetInterpreterProvider } from './providers/setInterpreterProvider';
 import { activateExecInTerminalProvider } from './providers/execInTerminalProvider';
 import * as tests from './unittests/main';
 import * as jup from './jupyter/main';
 import { HelpProvider } from './helpProvider';
-import { Documentation } from './common/constants';
 import {activateFormatOnSaveProvider} from './providers/formatOnSaveProvider';
 
 const PYTHON: vscode.DocumentFilter = { language: 'python', scheme: 'file' };
