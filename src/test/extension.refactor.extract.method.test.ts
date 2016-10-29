@@ -91,21 +91,29 @@ class MockTextDocument implements vscode.TextDocument {
 }
 
 suite('Method Extraction', () => {
+    // Hack hac hack
+    const oldExecuteCommand = vscode.commands.executeCommand;
     suiteSetup(done => {
         fs.copySync(refactorSourceFile, refactorTargetFile, { clobber: true });
         pythonSettings.pythonPath = PYTHON_PATH;
         initialize().then(() => done(), () => done());
     });
     suiteTeardown(done => {
+        vscode.commands.executeCommand = oldExecuteCommand;
         closeActiveWindows().then(done, done);
     });
-    setup(() => {
+    setup(done => {
         if (fs.existsSync(refactorTargetFile)) {
             fs.unlinkSync(refactorTargetFile);
         }
         fs.copySync(refactorSourceFile, refactorTargetFile, { clobber: true });
+        closeActiveWindows().then(() => {
+            vscode.commands.executeCommand = (cmd) => Promise.resolve();
+            done();
+        }).catch(done);
     });
     teardown(done => {
+        vscode.commands.executeCommand = oldExecuteCommand;
         closeActiveWindows().then(done, done);
     });
 

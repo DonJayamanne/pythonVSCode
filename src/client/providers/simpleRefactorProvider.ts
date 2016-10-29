@@ -1,8 +1,6 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import * as path from 'path';
-import * as fs from 'fs';
 import {RefactorProxy} from '../refactor/proxy';
 import {getTextEditsFromPatch} from '../common/editor';
 import {PythonSettings, IPythonSettings} from '../common/configSettings';
@@ -94,10 +92,7 @@ function extractName(extensionDir: string, textEditor: vscode.TextEditor, range:
         return null;
     }).then(newWordPosition => {        
         if (newWordPosition) {
-            return textEditor.document.save().then(saved=>{
-                if (!saved){
-                    return;
-                }
+            return textEditor.document.save().then(()=>{
                 // Now that we have selected the new variable, lets invoke the rename command
                 return vscode.commands.executeCommand('editor.action.rename');
             });

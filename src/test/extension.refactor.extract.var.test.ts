@@ -92,24 +92,30 @@ class MockTextDocument implements vscode.TextDocument {
 }
 
 suite('Variable Extraction', () => {
+    // Hack hac hack
+    const oldExecuteCommand = vscode.commands.executeCommand;
     suiteSetup(done => {
         fs.copySync(refactorSourceFile, refactorTargetFile, { clobber: true });
-        initialize().then(() => {
-            pythonSettings.pythonPath = PYTHON_PATH;
-            initialize().then(() => done(), () => done());
-        });
+        pythonSettings.pythonPath = PYTHON_PATH;
+        initialize().then(() => done(), () => done());
     });
     suiteTeardown(done => {
-        closeActiveWindows().then(done).catch(done);
+        vscode.commands.executeCommand = oldExecuteCommand;
+        closeActiveWindows().then(done, done);
     });
-    setup(() => {
+    setup(done => {
         if (fs.existsSync(refactorTargetFile)) {
             fs.unlinkSync(refactorTargetFile);
         }
         fs.copySync(refactorSourceFile, refactorTargetFile, { clobber: true });
+        closeActiveWindows().then(() => {
+            vscode.commands.executeCommand = (cmd) => Promise.resolve();
+            done();
+        }).catch(done);
     });
     teardown(done => {
-        closeActiveWindows().then(done).catch(done);
+        vscode.commands.executeCommand = oldExecuteCommand;
+        closeActiveWindows().then(done, done);
     });
 
     function testingVariableExtraction(shouldError: boolean, pythonSettings: settings.IPythonSettings, startPos: Position, endPos: Position) {
