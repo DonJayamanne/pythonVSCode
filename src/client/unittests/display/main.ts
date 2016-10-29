@@ -108,7 +108,7 @@ export class TestResultDisplay {
     public DisplayDiscoverStatus(tests: Promise<Tests>, quietMode: boolean = false) {
         this.displayProgress('Discovering Tests', 'Discovering Tests (Click to Stop)', constants.Commands.Tests_Ask_To_Stop_Discovery);
         return tests.then(tests => {
-            this.updateWithDiscoverSuccess(tests);
+            this.updateWithDiscoverSuccess(tests, quietMode);
             return tests;
         }).catch(reason => {
             this.updateWithDiscoverFailure(reason, quietMode);
@@ -116,13 +116,19 @@ export class TestResultDisplay {
         });
     }
 
-    private updateWithDiscoverSuccess(tests: Tests) {
+    private updateWithDiscoverSuccess(tests: Tests, quietMode: boolean = false) {
         this.clearProgressTicker();
         const haveTests = tests && (tests.testFunctions.length > 0);
         this.statusBar.text = haveTests ? '$(zap) Run Tests' : 'No Tests';
         this.statusBar.tooltip = haveTests ? 'Run Tests' : 'No Tests discovered';
         this.statusBar.command = haveTests ? constants.Commands.Tests_View_UI : constants.Commands.Tests_Discover;
         this.statusBar.show();
+
+        if (!haveTests && !quietMode){
+            // TODO: show an option that will invoke a command 'python.test.configureTest' or similar
+            // This will be hanlded by main.ts that will capture input from user and configure the tests
+            vscode.window.showInformationMessage('No Tests discovered');
+        }
     }
 
     private updateWithDiscoverFailure(reason: any, quietMode: boolean = false) {
