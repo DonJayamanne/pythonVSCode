@@ -124,7 +124,7 @@ export class TestResultDisplay {
         this.statusBar.command = haveTests ? constants.Commands.Tests_View_UI : constants.Commands.Tests_Discover;
         this.statusBar.show();
 
-        if (!haveTests && !quietMode){
+        if (!haveTests && !quietMode) {
             // TODO: show an option that will invoke a command 'python.test.configureTest' or similar
             // This will be hanlded by main.ts that will capture input from user and configure the tests
             vscode.window.showInformationMessage('No Tests discovered');
@@ -141,7 +141,10 @@ export class TestResultDisplay {
         if (reason !== CANCELLATION_REASON) {
             this.statusBar.text = `$(alert) Test discovery failed`;
             this.statusBar.tooltip = `Discovering Tests failed (view 'Python Test Log' output panel for details)`;
+            // TODO: ignore this quitemode, always display the error message (inform the user)
             if (!isNotInstalledError(reason) && !quietMode) {
+                // TODO: show an option that will invoke a command 'python.test.configureTest' or similar
+                // This will be hanlded by main.ts that will capture input from user and configure the tests
                 vscode.window.showErrorMessage('There was an error in discovering tests');
             }
         }
