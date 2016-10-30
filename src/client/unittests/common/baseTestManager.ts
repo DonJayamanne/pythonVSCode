@@ -5,7 +5,7 @@ import { resetTestResults, displayTestErrorMessage, storeDiscoveredTests } from 
 import * as telemetryHelper from '../../common/telemetry';
 import * as telemetryContracts from '../../common/telemetryContracts';
 import { Installer, Product } from '../../common/installer';
-import {isNotInstalledError} from '../../common/helpers';
+import { isNotInstalledError } from '../../common/helpers';
 
 export abstract class BaseTestManager {
     private tests: Tests;
@@ -96,7 +96,7 @@ export abstract class BaseTestManager {
 
                 return tests;
             }).catch(reason => {
-                if (isNotInstalledError(reason) && !quietMode){
+                if (isNotInstalledError(reason) && !quietMode) {
                     this.installer.promptToInstall(this.product);
                 }
 

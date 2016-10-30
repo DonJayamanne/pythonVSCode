@@ -1,19 +1,17 @@
 'use strict';
 import * as vscode from 'vscode';
-import { Tests, TestsToRun, TestFolder, TestFile, TestStatus, TestSuite, TestFunction, FlattenedTestFunction, CANCELLATION_REASON } from './common/contracts';
+import { TestsToRun, TestStatus, TestFunction, FlattenedTestFunction, CANCELLATION_REASON } from './common/contracts';
 import * as nosetests from './nosetest/main';
 import * as pytest from './pytest/main';
 import * as unittest from './unittest/main';
 import { resolveValueAsTestToRun, getDiscoveredTests } from './common/testUtils';
 import { BaseTestManager } from './common/baseTestManager';
-import { PythonSettings, IUnitTestSettings } from '../common/configSettings';
+import { PythonSettings } from '../common/configSettings';
 import { TestResultDisplay } from './display/main';
 import { TestDisplay } from './display/picker';
-import * as fs from 'fs';
-import * as path from 'path';
 import * as constants from '../common/constants';
 import { activateCodeLenses } from './codeLenses/main';
-import { Product } from '../common/installer';
+import { displayTestFrameworkError } from './configuration';
 
 const settings = PythonSettings.getInstance();
 let testManager: BaseTestManager;
@@ -23,7 +21,6 @@ let nosetestManager: nosetests.TestManager;
 let testResultDisplay: TestResultDisplay;
 let testDisplay: TestDisplay;
 let outChannel: vscode.OutputChannel;
-let lastRanTests: TestsToRun = null;
 
 export function activate(context: vscode.ExtensionContext, outputChannel: vscode.OutputChannel) {
     context.subscriptions.push({ dispose: dispose });
@@ -151,44 +148,6 @@ function onConfigChanged() {
 
     // No need to display errors
     discoverTests(true, true);
-}
-function promptToEnableTestFramework() {
-    const items = [{
-        label: 'unittest', settingToEnable: 'unitTest.unittestEnabled',
-        description: 'Standard Python test framework',
-        detail: 'https://docs.python.org/2/library/unittest.html'
-    },
-    {
-        label: 'pytest', settingToEnable: 'unitTest.pyTestEnabled',
-        description: 'Can run unittest (including trial) and nose test suites out of the box',
-        detail: 'http://docs.pytest.org/en/latest/'
-    },
-    {
-        label: 'nose', settingToEnable: 'unitTest.nosetestsEnabled',
-        description: 'nose framework',
-        detail: 'https://docs.python.org/2/library/unittest.html'
-    }];
-    vscode.window.showQuickPick(items, { matchOnDescription: true, matchOnDetail: true, placeHolder: 'Select a test framework/tool to enable' }).then(item => {
-        if (!item) {
-            return;
-        }
-        const pythonConfig = vscode.workspace.getConfiguration('python');
-        pythonConfig.update(item.settingToEnable, true);
-    });
-}
-function displayTestFrameworkError() {
-    if (settings.unitTest.pyTestEnabled && settings.unitTest.nosetestsEnabled && settings.unitTest.unittestEnabled) {
-        vscode.window.showErrorMessage("Enable only one of the test frameworks (nosetest or pytest), not both.");
-    }
-    else {
-        const option = 'Enable a Test Framework/Tool';
-        vscode.window.showInformationMessage('Please enable one of the test frameworks (unittest, pytest or nosetest)', option).then(item => {
-            if (item === option) {
-                promptToEnableTestFramework();
-            }
-        });
-    }
-    return null;
 }
 function getTestRunner() {
     const rootDirectory = vscode.workspace.rootPath;

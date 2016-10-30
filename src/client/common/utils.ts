@@ -239,3 +239,25 @@ export function formatErrorForLogging(error: Error | string): string {
     }
     return message;
 }
+
+export function getSubDirectories(rootDir: string): Promise<string[]> {
+    return new Promise<string[]>(resolve => {
+        fs.readdir(rootDir, (error, files) => {
+            if (error) {
+                return resolve([]);
+            }
+            const subDirs = [];
+            files.forEach(name => {
+                const fullPath = path.join(rootDir, name);
+                try {
+                    if (fs.statSync(fullPath).isDirectory()) {
+                        subDirs.push(fullPath);
+                    }
+                }
+                catch (ex) {
+                }
+            });
+            resolve(subDirs);
+        });
+    });
+}

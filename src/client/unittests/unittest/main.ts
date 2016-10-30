@@ -1,16 +1,18 @@
 'use strict';
-import {PythonSettings} from '../../common/configSettings';
-import {TestsToRun, Tests, TestStatus} from '../common/contracts';
-import {runTest} from './runner';
+import { PythonSettings } from '../../common/configSettings';
+import { TestsToRun, Tests, TestStatus } from '../common/contracts';
+import { runTest } from './runner';
 import * as vscode from 'vscode';
-import {discoverTests} from './collector';
-import {BaseTestManager} from '../common/baseTestManager';
+import { discoverTests } from './collector';
+import { BaseTestManager } from '../common/baseTestManager';
 import { Product } from '../../common/installer';
 
 const settings = PythonSettings.getInstance();
 export class TestManager extends BaseTestManager {
     constructor(rootDirectory: string, outputChannel: vscode.OutputChannel) {
         super('unitest', Product.unittest, rootDirectory, outputChannel);
+    }
+    configure() {
     }
     discoverTestsImpl(ignoreCache: boolean): Promise<Tests> {
         let args = settings.unitTest.unittestArgs.slice(0);
