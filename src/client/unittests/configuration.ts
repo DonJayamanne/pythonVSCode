@@ -6,7 +6,6 @@ import { TestConfigurationManager } from './common/testConfigurationManager';
 import * as nose from './nosetest/testConfigurationManager';
 import * as pytest from './pytest/testConfigurationManager';
 import * as unittest from './unittest/testConfigurationManager';
-import { createDeferred } from '../common/helpers';
 
 const settings = PythonSettings.getInstance();
 
@@ -57,8 +56,8 @@ function promptToEnableAndConfigureTestFramework(messageToDisplay: string = 'Sel
             }
         }
 
-        configMgr.enable();
         if (enableOnly) {
+            configMgr.enable();
             // Ensure others are disabled
             if (item.product !== Product.unittest) {
                 (new unittest.ConfigurationManager()).disable();
@@ -71,7 +70,16 @@ function promptToEnableAndConfigureTestFramework(messageToDisplay: string = 'Sel
             }
             return Promise.resolve();
         }
-        return configMgr.configure(vscode.workspace.rootPath);
+
+        // Configure everything before enabling
+        // Cuz we don't want the test engine (in main.ts file - tests get discovered when config changes are detected) 
+        // to start discovering tests when tests haven't been configured properly
+        return configMgr.configure(vscode.workspace.rootPath).then(() => {
+            configMgr.enable();
+        }).catch(reason => {
+            configMgr.enable();
+            return Promise.reject(reason);
+        });
     });
 }
 export function displayTestFrameworkError(): Thenable<any> {
