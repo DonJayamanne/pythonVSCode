@@ -3,13 +3,13 @@ import * as path from 'path';
 import { TestConfigurationManager } from '../common/testConfigurationManager';
 
 export class ConfigurationManager extends TestConfigurationManager {
-    public enable() {
+    public enable(): Thenable<any> {
         const pythonConfig = vscode.workspace.getConfiguration('python');
-        pythonConfig.update('unitTest.unittestEnabled', true);
+        return pythonConfig.update('unitTest.unittestEnabled', true);
     }
-    public disable() {
+    public disable(): Thenable<any> {
         const pythonConfig = vscode.workspace.getConfiguration('python');
-        pythonConfig.update('unitTest.unittestEnabled', false);
+        return pythonConfig.update('unitTest.unittestEnabled', false);
     }
 
     public configure(rootDir: string): Promise<any> {
@@ -36,7 +36,7 @@ export class ConfigurationManager extends TestConfigurationManager {
             }
         }).then(() => {
             const pythonConfig = vscode.workspace.getConfiguration('python');
-            pythonConfig.update('unitTest.unittestArgs', args);
+            return pythonConfig.update('unitTest.unittestArgs', args);
         });
     }
 }

@@ -6,6 +6,8 @@ import { TestConfigurationManager } from './common/testConfigurationManager';
 import * as nose from './nosetest/testConfigurationManager';
 import * as pytest from './pytest/testConfigurationManager';
 import * as unittest from './unittest/testConfigurationManager';
+import { getSubDirectories } from '../common/utils';
+import * as path from 'path';
 
 const settings = PythonSettings.getInstance();
 
@@ -57,7 +59,6 @@ function promptToEnableAndConfigureTestFramework(messageToDisplay: string = 'Sel
         }
 
         if (enableOnly) {
-            configMgr.enable();
             // Ensure others are disabled
             if (item.product !== Product.unittest) {
                 (new unittest.ConfigurationManager()).disable();
@@ -68,17 +69,27 @@ function promptToEnableAndConfigureTestFramework(messageToDisplay: string = 'Sel
             if (item.product !== Product.nosetest) {
                 (new nose.ConfigurationManager()).disable();
             }
-            return Promise.resolve();
+            return configMgr.enable();
         }
 
         // Configure everything before enabling
         // Cuz we don't want the test engine (in main.ts file - tests get discovered when config changes are detected) 
         // to start discovering tests when tests haven't been configured properly
+        function enableTest(): Thenable<any> {
+            const pythonConfig = vscode.workspace.getConfiguration('python');
+            if (settings.unitTest.promptToConfigure) {
+                return configMgr.enable();
+            }
+            return pythonConfig.update('unitTest.promptToConfigure', undefined).then(() => {
+                return configMgr.enable();
+            }, reason => {
+                return configMgr.enable().then(() => Promise.reject(reason));
+            });
+        }
         return configMgr.configure(vscode.workspace.rootPath).then(() => {
-            configMgr.enable();
+            return enableTest();
         }).catch(reason => {
-            configMgr.enable();
-            return Promise.reject(reason);
+            return enableTest().then(() => Promise.reject(reason));
         });
     });
 }
@@ -98,4 +109,42 @@ export function displayTestFrameworkError(): Thenable<any> {
             return Promise.reject(null);
         });
     }
+}
+export function displayPromptToEnableTests(rootDir: string): Thenable<any> {
+    if (settings.unitTest.pyTestEnabled ||
+        settings.unitTest.nosetestsEnabled ||
+        settings.unitTest.unittestEnabled) {
+        return Promise.reject(null);
+    }
+
+    if (!settings.unitTest.promptToConfigure) {
+        return Promise.reject(null);
+    }
+
+    const yes = 'Yes';
+    const no = `No`;
+    const noNotAgain = `No, don't ask again`;
+
+    checkIfHasTestDirs(rootDir).then(hasTests => {
+        if (!yes) {
+            return Promise.reject(null);
+        }
+        return vscode.window.showInformationMessage('You seem to have tests, would you like to enable a test framework?', yes, no, noNotAgain).then(item => {
+            if (!item || item === no) {
+                return Promise.reject(null);
+            }
+            if (item === yes) {
+                return promptToEnableAndConfigureTestFramework();
+            }
+            else {
+                const pythonConfig = vscode.workspace.getConfiguration('python');
+                return pythonConfig.update('unitTest.promptToConfigure', false);
+            }
+        });
+    });
+}
+function checkIfHasTestDirs(rootDir: string): Promise<boolean> {
+    return getSubDirectories(rootDir).then(subDirs => {
+        return subDirs.map(dir => path.relative(rootDir, dir)).filter(dir => dir.match(/test/i)).length > 0;
+    });
 }

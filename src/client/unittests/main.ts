@@ -11,7 +11,7 @@ import { TestResultDisplay } from './display/main';
 import { TestDisplay } from './display/picker';
 import * as constants from '../common/constants';
 import { activateCodeLenses } from './codeLenses/main';
-import { displayTestFrameworkError } from './configuration';
+import { displayTestFrameworkError, displayPromptToEnableTests } from './configuration';
 
 const settings = PythonSettings.getInstance();
 let testManager: BaseTestManager;
@@ -22,7 +22,7 @@ let testResultDisplay: TestResultDisplay;
 let testDisplay: TestDisplay;
 let outChannel: vscode.OutputChannel;
 
-export function activate(context: vscode.ExtensionContext, outputChannel: vscode.OutputChannel) {
+export function activate(context: vscode.ExtensionContext, outputChannel: vscode.OutputChannel) {    
     context.subscriptions.push({ dispose: dispose });
     outChannel = outputChannel;
     let disposables = registerCommands();
@@ -35,6 +35,8 @@ export function activate(context: vscode.ExtensionContext, outputChannel: vscode
     });
     settings.addListener('change', onConfigChanged);
     context.subscriptions.push(activateCodeLenses());
+
+    displayPromptToEnableTests(vscode.workspace.rootPath);
 }
 function dispose() {
     if (pyTestManager) {

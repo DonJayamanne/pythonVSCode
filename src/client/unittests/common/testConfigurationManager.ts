@@ -4,8 +4,8 @@ import { getSubDirectories } from '../../common/utils';
 import * as path from 'path';
 
 export abstract class TestConfigurationManager {
-    public abstract enable();
-    public abstract disable();
+    public abstract enable(): Thenable<any>;
+    public abstract disable(): Thenable<any>;
 
     public abstract configure(rootDir: string): Promise<any>;
 

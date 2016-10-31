@@ -715,6 +715,11 @@
           "default": [],
           "description": "List of paths to libraries and the like that need to be imported by auto complete engine. E.g. when using Google App SDK, the paths are not in system path, hence need to be added into this list."
         },
+        "python.unitTest.promptToConfigure": {
+          "type": "boolean",
+          "default": true,
+          "description": "Where to prompt to configure a test framework if potential tests directories are discovered."
+        },
         "python.unitTest.nosetestsEnabled": {
           "type": "boolean",
           "default": false,
