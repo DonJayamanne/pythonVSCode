@@ -187,6 +187,8 @@ suite('Method Extraction', () => {
                     ignoreErrorHandling = true;
                     assert.fail('No error', 'Error', 'Extraction should fail with an error', '');
                 }
+                return textEditor.document.save();
+            }).then(()=>{
                 assert.equal(ch.output.length, 0, 'Output channel is not empty');
                 assert.equal(textDocument.lineAt(241).text.trim().indexOf('def newmethod'), 0, 'New Method not created');
                 assert.equal(textDocument.lineAt(239).text.trim().startsWith('self.newmethod'), true, 'New Method not being used');
