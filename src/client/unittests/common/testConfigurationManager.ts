@@ -9,7 +9,7 @@ export abstract class TestConfigurationManager {
 
     public abstract configure(rootDir: string): Promise<any>;
 
-    protected selectTestDir(rootDir: string, subDirs: string[]): Promise<string> {
+    protected selectTestDir(rootDir: string, subDirs: string[], customOptions: vscode.QuickPickItem[] = []): Promise<string> {
         const options = {
             matchOnDescription: true,
             matchOnDetail: true,
@@ -27,7 +27,7 @@ export abstract class TestConfigurationManager {
         }).filter(item => item !== null);
 
         items = [{ label: '.', description: 'Root directory' }, ...items];
-
+        items = customOptions.concat(items);
         const def = createDeferred<string>();
         vscode.window.showQuickPick(items, options).then(item => {
             if (!item) {
