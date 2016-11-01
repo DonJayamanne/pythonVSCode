@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
 import * as settings from './configSettings';
+import { createDeferred, isNotInstalledError } from './helpers';
+import { execPythonFile } from './utils';
 
 export enum Product {
     pytest,
@@ -133,10 +135,36 @@ export class Installer {
         Installer.terminal.sendText(installScript);
         Installer.terminal.show(false);
     }
+
+    isProductInstalled(product: Product): Promise<boolean> {
+        return isProductInstalled(product);
+    }
 }
 
 export function disableLinter(product: Product) {
     const pythonConfig = vscode.workspace.getConfiguration('python');
     const settingToDisable = SettingToDisableProduct.get(product);
     pythonConfig.update(settingToDisable, false);
+}
+
+function isPyTestInstalled(): Promise<boolean> {
+    const def = createDeferred<boolean>();
+    execPythonFile('py.test', ['--version'], vscode.workspace.rootPath, false)
+        .then(() => {
+            def.resolve(true);
+        }).catch(reason => {
+            if (isNotInstalledError(reason)) {
+                def.resolve(false);
+            }
+            else {
+                def.resolve(true);
+            }
+        });
+    return def.promise;
+}
+function isProductInstalled(product: Product): Promise<boolean> {
+    if (product === Product.pytest) {
+        return isPyTestInstalled();
+    }
+    throw new Error('Not supported');
 }
