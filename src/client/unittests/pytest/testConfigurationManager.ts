@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
 import { TestConfigurationManager } from '../common/testConfigurationManager';
+import * as fs from 'fs';
+import * as path from 'path';
 
 export class ConfigurationManager extends TestConfigurationManager {
     public enable(): Thenable<any> {
@@ -11,15 +13,36 @@ export class ConfigurationManager extends TestConfigurationManager {
         return pythonConfig.update('unitTest.pyTestEnabled', false);
     }
 
+    private static configFilesExist(rootDir: string): Promise<boolean> {
+        const promises = [
+            new Promise<boolean>(resolve => {
+                fs.exists(path.join(rootDir, 'pytest.ini'), exists => { resolve(true); });
+            }),
+            new Promise<boolean>(resolve => {
+                fs.exists(path.join(rootDir, 'tox.ini'), exists => { resolve(true); });
+            }),
+            new Promise<boolean>(resolve => {
+                fs.exists(path.join(rootDir, 'setup.cfg'), exists => { resolve(true); });
+            })];
+        return Promise.all(promises).then(values => {
+            return values.some(exists => exists);
+        });
+    }
     public configure(rootDir: string): Promise<any> {
         const args = [];
         const configFileOptionLabel = 'Use existing config file';
-        return this.getTestDirs(rootDir).then(subDirs => {
-            const rootConfigFileOption = <vscode.QuickPickItem>{
-                label: configFileOptionLabel,
-                description: 'pytest.ini, tox.ini or setup.cfg'
-            };
-            return this.selectTestDir(rootDir, subDirs, [rootConfigFileOption]);
+        const options: vscode.QuickPickItem[] = [];
+        return ConfigurationManager.configFilesExist(rootDir).then(configExists => {
+            if (configExists) {
+                options.push({
+                    label: configFileOptionLabel,
+                    description: 'pytest.ini, tox.ini or setup.cfg'
+                });
+            }
+        }).then(() => {
+            return this.getTestDirs(rootDir);
+        }).then(subDirs => {
+            return this.selectTestDir(rootDir, subDirs, options);
         }).then(testDir => {
             if (typeof testDir === 'string' && testDir !== configFileOptionLabel) {
                 args.push(testDir);
