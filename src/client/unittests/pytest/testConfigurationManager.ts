@@ -12,11 +12,21 @@ export class ConfigurationManager extends TestConfigurationManager {
     }
 
     public configure(rootDir: string): Promise<any> {
-        // TODO: 
-        // 1. Ask if pytest configuration exists
-        // 2. Ask to create a py test config or use arguments
-        // 3. Finally check if pytest is installed, if not prompt to install it
-        //    Do we have issues if pytest is installed in a separate place (will pytest be able to import the files??)
-        return Promise.resolve();
+        const args = [];
+        const configFileOptionLabel = 'Use existing config file';
+        return this.getTestDirs(rootDir).then(subDirs => {
+            const rootConfigFileOption = <vscode.QuickPickItem>{
+                label: configFileOptionLabel,
+                description: 'pytest.ini, tox.ini or setup.cfg'
+            };
+            return this.selectTestDir(rootDir, subDirs, [rootConfigFileOption]);
+        }).then(testDir => {
+            if (typeof testDir === 'string' && testDir !== configFileOptionLabel) {
+                args.push(testDir);
+            }
+        }).then(() => {
+            const pythonConfig = vscode.workspace.getConfiguration('python');
+            return pythonConfig.update('unitTest.pyTestArgs', args);
+        });
     }
 }
