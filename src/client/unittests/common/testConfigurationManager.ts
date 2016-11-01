@@ -6,7 +6,7 @@ import * as path from 'path';
 export abstract class TestConfigurationManager {
     public abstract enable(): Thenable<any>;
     public abstract disable(): Thenable<any>;
-
+    constructor(protected readonly outputChannel: vscode.OutputChannel) { }
     public abstract configure(rootDir: string): Promise<any>;
 
     protected selectTestDir(rootDir: string, subDirs: string[], customOptions: vscode.QuickPickItem[] = []): Promise<string> {

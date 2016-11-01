@@ -22,7 +22,7 @@ let testResultDisplay: TestResultDisplay;
 let testDisplay: TestDisplay;
 let outChannel: vscode.OutputChannel;
 
-export function activate(context: vscode.ExtensionContext, outputChannel: vscode.OutputChannel) {    
+export function activate(context: vscode.ExtensionContext, outputChannel: vscode.OutputChannel) {
     context.subscriptions.push({ dispose: dispose });
     outChannel = outputChannel;
     let disposables = registerCommands();
@@ -36,7 +36,7 @@ export function activate(context: vscode.ExtensionContext, outputChannel: vscode
     settings.addListener('change', onConfigChanged);
     context.subscriptions.push(activateCodeLenses());
 
-    displayPromptToEnableTests(vscode.workspace.rootPath);
+    displayPromptToEnableTests(vscode.workspace.rootPath, outChannel);
 }
 function dispose() {
     if (pyTestManager) {
@@ -72,7 +72,7 @@ function registerCommands(): vscode.Disposable[] {
 function displayUI() {
     let testManager = getTestRunner();
     if (!testManager) {
-        return displayTestFrameworkError();
+        return displayTestFrameworkError(outChannel);
     }
 
     testDisplay = testDisplay ? testDisplay : new TestDisplay();
@@ -81,7 +81,7 @@ function displayUI() {
 function displayPickerUI(file: string, testFunctions: TestFunction[]) {
     let testManager = getTestRunner();
     if (!testManager) {
-        return displayTestFrameworkError();
+        return displayTestFrameworkError(outChannel);
     }
 
     testDisplay = testDisplay ? testDisplay : new TestDisplay();
@@ -90,7 +90,7 @@ function displayPickerUI(file: string, testFunctions: TestFunction[]) {
 function selectAndRunTestMethod() {
     let testManager = getTestRunner();
     if (!testManager) {
-        return displayTestFrameworkError();
+        return displayTestFrameworkError(outChannel);
     }
     testManager.discoverTests(true, true).then(() => {
         const tests = getDiscoveredTests();
@@ -103,7 +103,7 @@ function selectAndRunTestMethod() {
 function displayStopUI(message: string) {
     let testManager = getTestRunner();
     if (!testManager) {
-        return displayTestFrameworkError();
+        return displayTestFrameworkError(outChannel);
     }
 
     testDisplay = testDisplay ? testDisplay : new TestDisplay();
@@ -175,7 +175,7 @@ function discoverTests(ignoreCache?: boolean, quietMode: boolean = false) {
     let testManager = getTestRunner();
     if (!testManager) {
         if (!quietMode) {
-            displayTestFrameworkError();
+            displayTestFrameworkError(outChannel);
         }
         return Promise.resolve(null);
     }
@@ -225,7 +225,7 @@ function identifyTestType(rootDirectory: string, arg?: vscode.Uri | TestsToRun |
 function runTestsImpl(arg?: vscode.Uri | TestsToRun | boolean | FlattenedTestFunction) {
     let testManager = getTestRunner();
     if (!testManager) {
-        return displayTestFrameworkError();
+        return displayTestFrameworkError(outChannel);
     }
 
     // lastRanTests = testsToRun;

@@ -17,17 +17,17 @@ export enum Product {
     unittest
 }
 
-const ProductInstallScripts = new Map<Product, string>();
-ProductInstallScripts.set(Product.autopep8, 'pip install autopep8');
-ProductInstallScripts.set(Product.flake8, 'pip install flake8');
-ProductInstallScripts.set(Product.mypy, 'pip install mypy-lang');
-ProductInstallScripts.set(Product.nosetest, 'pip install nose');
-ProductInstallScripts.set(Product.pep8, 'pip install pep8');
-ProductInstallScripts.set(Product.prospector, 'pip install prospector');
-ProductInstallScripts.set(Product.pydocstyle, 'pip install pydocstyle');
-ProductInstallScripts.set(Product.pylint, 'pip install pylint');
-ProductInstallScripts.set(Product.pytest, 'pip install -U pytest');
-ProductInstallScripts.set(Product.yapf, 'pip install yapf');
+const ProductInstallScripts = new Map<Product, string[]>();
+ProductInstallScripts.set(Product.autopep8, ['pip', 'install', 'autopep8']);
+ProductInstallScripts.set(Product.flake8, ['pip', 'install', 'flake8']);
+ProductInstallScripts.set(Product.mypy, ['pip', 'install', 'mypy-lang']);
+ProductInstallScripts.set(Product.nosetest, ['pip', 'install', 'nose']);
+ProductInstallScripts.set(Product.pep8, ['pip', 'install', 'pep8']);
+ProductInstallScripts.set(Product.prospector, ['pip', 'install', 'prospector']);
+ProductInstallScripts.set(Product.pydocstyle, ['pip', 'install', 'pydocstyle']);
+ProductInstallScripts.set(Product.pylint, ['pip', 'install', 'pylint']);
+ProductInstallScripts.set(Product.pytest, ['pip', 'install', '-U', 'pytest']);
+ProductInstallScripts.set(Product.yapf, ['pip', 'install', 'yapf']);
 
 
 const Linters: Product[] = [Product.flake8, Product.pep8, Product.prospector, Product.pylint, Product.mypy, Product.pydocstyle];
@@ -61,7 +61,7 @@ SettingToDisableProduct.set(Product.yapf, 'yapf');
 export class Installer {
     private static terminal: vscode.Terminal;
     private disposables: vscode.Disposable[] = [];
-    constructor() {
+    constructor(private outputChannel: vscode.OutputChannel = null) {
         this.disposables.push(vscode.window.onDidCloseTerminal(term => {
             if (term === Installer.terminal) {
                 Installer.terminal = null;
@@ -72,7 +72,7 @@ export class Installer {
         this.disposables.forEach(d => d.dispose());
     }
 
-    promptToInstall(product: Product) {
+    promptToInstall(product: Product): Thenable<any> {
         let productType = Linters.indexOf(product) >= 0 ? 'Linter' : (Formatters.indexOf(product) >= 0 ? 'Formatter' : 'Test Framework');
         const productName = ProductNames.get(product);
 
@@ -87,53 +87,61 @@ export class Installer {
         else {
             options.push(...[installOption, useOtherFormatter]);
         }
-        vscode.window.showErrorMessage(`${productType} ${productName} is not installed`, ...options).then(item => {
+        return vscode.window.showErrorMessage(`${productType} ${productName} is not installed`, ...options).then(item => {
             switch (item) {
                 case installOption: {
-                    this.installProduct(product);
-                    break;
+                    return this.installProduct(product);
                 }
                 case disableOption: {
                     if (Linters.indexOf(product) >= 0) {
-                        disableLinter(product);
+                        return disableLinter(product);
                     }
                     else {
                         const pythonConfig = vscode.workspace.getConfiguration('python');
                         const settingToDisable = SettingToDisableProduct.get(product);
-                        pythonConfig.update(settingToDisable, false);
+                        return pythonConfig.update(settingToDisable, false);
                     }
-                    break;
                 }
                 case useOtherFormatter: {
                     const pythonConfig = vscode.workspace.getConfiguration('python');
-                    pythonConfig.update('formatting.provider', alternateFormatter);
-                    break;
+                    return pythonConfig.update('formatting.provider', alternateFormatter);
                 }
                 case 'Help': {
-                    break;
+                    return Promise.resolve();
                 }
             }
         });
     }
 
-    installProduct(product: Product) {
-        if (!Installer.terminal) {
+    installProduct(product: Product): Promise<any> {
+        if (!this.outputChannel && !Installer.terminal) {
             Installer.terminal = vscode.window.createTerminal('Python Installer');
         }
 
-        let installScript = ProductInstallScripts.get(product);
-        if (installScript.startsWith('pip install')) {
-            const pythonPath = settings.PythonSettings.getInstance().pythonPath;
+        let installArgs = ProductInstallScripts.get(product);
+        const pythonPath = settings.PythonSettings.getInstance().pythonPath;
+
+        if (this.outputChannel) {
+            // Errors are just displayed to the user
+            this.outputChannel.show();
+            return execPythonFile(pythonPath, ['-m', ...installArgs], vscode.workspace.rootPath, true, (data) => {
+                this.outputChannel.append(data);
+            });
+        }
+        else {
+            let installScript = installArgs.join(' ');
             if (pythonPath.indexOf(' ') >= 0) {
                 installScript = `"${pythonPath}" -m ${installScript}`;
             }
             else {
                 installScript = `${pythonPath} -m ${installScript}`;
             }
-        }
 
-        Installer.terminal.sendText(installScript);
-        Installer.terminal.show(false);
+            Installer.terminal.sendText(installScript);
+            Installer.terminal.show(false);
+            // Unfortunately we won't know when the command has completed
+            return Promise.resolve();
+        }
     }
 
     isProductInstalled(product: Product): Promise<boolean> {

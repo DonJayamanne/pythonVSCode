@@ -11,7 +11,7 @@ import * as path from 'path';
 
 const settings = PythonSettings.getInstance();
 
-function promptToEnableAndConfigureTestFramework(messageToDisplay: string = 'Select a test framework/tool to enable', enableOnly: boolean = false): Thenable<any> {
+function promptToEnableAndConfigureTestFramework(outputChannel: vscode.OutputChannel, messageToDisplay: string = 'Select a test framework/tool to enable', enableOnly: boolean = false): Thenable<any> {
     const items = [{
         label: 'unittest',
         product: Product.unittest,
@@ -42,15 +42,15 @@ function promptToEnableAndConfigureTestFramework(messageToDisplay: string = 'Sel
         let configMgr: TestConfigurationManager;
         switch (item.product) {
             case Product.unittest: {
-                configMgr = new unittest.ConfigurationManager();
+                configMgr = new unittest.ConfigurationManager(outputChannel);
                 break;
             }
             case Product.pytest: {
-                configMgr = new pytest.ConfigurationManager();
+                configMgr = new pytest.ConfigurationManager(outputChannel);
                 break;
             }
             case Product.nosetest: {
-                configMgr = new nose.ConfigurationManager();
+                configMgr = new nose.ConfigurationManager(outputChannel);
                 break;
             }
             default: {
@@ -61,13 +61,13 @@ function promptToEnableAndConfigureTestFramework(messageToDisplay: string = 'Sel
         if (enableOnly) {
             // Ensure others are disabled
             if (item.product !== Product.unittest) {
-                (new unittest.ConfigurationManager()).disable();
+                (new unittest.ConfigurationManager(outputChannel)).disable();
             }
             if (item.product !== Product.pytest) {
-                (new pytest.ConfigurationManager()).disable();
+                (new pytest.ConfigurationManager(outputChannel)).disable();
             }
             if (item.product !== Product.nosetest) {
-                (new nose.ConfigurationManager()).disable();
+                (new nose.ConfigurationManager(outputChannel)).disable();
             }
             return configMgr.enable();
         }
@@ -93,24 +93,24 @@ function promptToEnableAndConfigureTestFramework(messageToDisplay: string = 'Sel
         });
     });
 }
-export function displayTestFrameworkError(): Thenable<any> {
+export function displayTestFrameworkError(outputChannel: vscode.OutputChannel): Thenable<any> {
     let enabledCount = settings.unitTest.pyTestEnabled ? 1 : 0;
     enabledCount += settings.unitTest.nosetestsEnabled ? 1 : 0;
     enabledCount += settings.unitTest.unittestEnabled ? 1 : 0;
     if (enabledCount > 1) {
-        return promptToEnableAndConfigureTestFramework('Enable only one of the test frameworks (unittest, pytest or nosetest).', true);
+        return promptToEnableAndConfigureTestFramework(outputChannel, 'Enable only one of the test frameworks (unittest, pytest or nosetest).', true);
     }
     else {
         const option = 'Enable and configure a Test Framework';
         return vscode.window.showInformationMessage('No test framework configured (unittest, pytest or nosetest)', option).then(item => {
             if (item === option) {
-                return promptToEnableAndConfigureTestFramework();
+                return promptToEnableAndConfigureTestFramework(outputChannel);
             }
             return Promise.reject(null);
         });
     }
 }
-export function displayPromptToEnableTests(rootDir: string): Thenable<any> {
+export function displayPromptToEnableTests(rootDir: string, outputChannel: vscode.OutputChannel): Thenable<any> {
     if (settings.unitTest.pyTestEnabled ||
         settings.unitTest.nosetestsEnabled ||
         settings.unitTest.unittestEnabled) {
@@ -134,7 +134,7 @@ export function displayPromptToEnableTests(rootDir: string): Thenable<any> {
                 return Promise.reject(null);
             }
             if (item === yes) {
-                return promptToEnableAndConfigureTestFramework();
+                return promptToEnableAndConfigureTestFramework(outputChannel);
             }
             else {
                 const pythonConfig = vscode.workspace.getConfiguration('python');

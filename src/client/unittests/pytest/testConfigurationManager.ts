@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { TestConfigurationManager } from '../common/testConfigurationManager';
 import * as fs from 'fs';
 import * as path from 'path';
+import { Installer, Product } from '../../common/installer';
 
 export class ConfigurationManager extends TestConfigurationManager {
     public enable(): Thenable<any> {
@@ -32,6 +33,7 @@ export class ConfigurationManager extends TestConfigurationManager {
         const args = [];
         const configFileOptionLabel = 'Use existing config file';
         const options: vscode.QuickPickItem[] = [];
+        let installer = new Installer(this.outputChannel);
         return ConfigurationManager.configFilesExist(rootDir).then(configExists => {
             if (configExists) {
                 options.push({
@@ -46,6 +48,12 @@ export class ConfigurationManager extends TestConfigurationManager {
         }).then(testDir => {
             if (typeof testDir === 'string' && testDir !== configFileOptionLabel) {
                 args.push(testDir);
+            }
+        }).then(() => {
+            return installer.isProductInstalled(Product.pytest);
+        }).then(installed => {
+            if (!installed){
+                return installer.installProduct(Product.pytest);
             }
         }).then(() => {
             const pythonConfig = vscode.workspace.getConfiguration('python');
