@@ -32,7 +32,7 @@ ProductInstallScripts.set(Product.yapf, 'pip install yapf');
 
 const Linters: Product[] = [Product.flake8, Product.pep8, Product.prospector, Product.pylint, Product.mypy, Product.pydocstyle];
 const Formatters: Product[] = [Product.autopep8, Product.yapf];
-const TestFrameworks: Product[] = [Product.pytest, Product.nosetest];
+const TestFrameworks: Product[] = [Product.pytest, Product.nosetest, Product.unittest];
 
 const ProductNames = new Map<Product, string>();
 ProductNames.set(Product.autopep8, 'autopep8');
