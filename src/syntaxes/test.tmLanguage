@@ -109,6 +109,12 @@
             </dict>
             <dict>
                 <key>match</key>
+                <string>^ERROR: .*</string>
+                <key>name</key>
+                <string>error-token</string>
+            </dict>
+            <dict>
+                <key>match</key>
                 <string>^([a-z]|[A-Z])*Error: .*</string>
                 <key>name</key>
                 <string>error-token</string>
