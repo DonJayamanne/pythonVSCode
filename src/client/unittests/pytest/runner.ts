@@ -1,14 +1,14 @@
 /// <reference path="../../../../typings/globals/xml2js/index.d.ts" />
 
 'use strict';
-import {createDeferred, createTemporaryFile} from '../../common/helpers';
-import {TestFile, TestsToRun, TestSuite, TestFunction, FlattenedTestFunction, Tests, TestStatus, FlattenedTestSuite} from '../common/contracts';
-import {extractBetweenDelimiters, flattenTestFiles, updateResults, convertFileToPackage} from '../common/testUtils';
-import {BaseTestManager} from '../common/baseTestManager';
-import {CancellationToken, OutputChannel} from 'vscode';
-import {updateResultsFromXmlLogFile, PassCalculationFormulae} from '../common/xUnitParser';
-import {run} from '../common/runner';
-import {PythonSettings} from '../../common/configSettings';
+import { createDeferred, createTemporaryFile } from '../../common/helpers';
+import { TestFile, TestsToRun, TestSuite, TestFunction, FlattenedTestFunction, Tests, TestStatus, FlattenedTestSuite } from '../common/contracts';
+import { extractBetweenDelimiters, flattenTestFiles, updateResults, convertFileToPackage } from '../common/testUtils';
+import { BaseTestManager } from '../common/baseTestManager';
+import { CancellationToken, OutputChannel } from 'vscode';
+import { updateResultsFromXmlLogFile, PassCalculationFormulae } from '../common/xUnitParser';
+import { run } from '../common/runner';
+import { PythonSettings } from '../../common/configSettings';
 
 const pythonSettings = PythonSettings.getInstance();
 
@@ -33,7 +33,11 @@ export function runTest(rootDirectory: string, tests: Tests, args: string[], tes
     return createTemporaryFile('.xml').then(xmlLogResult => {
         xmlLogFile = xmlLogResult.filePath;
         xmlLogFileCleanup = xmlLogResult.cleanupCallback;
-        const testArgs = args.concat([`--junitxml=${xmlLogFile}`]).concat(testPaths);
+        if (testPaths.length > 0){
+            // Ignore the test directories, as we're running a specific test
+            args = args.filter(arg => arg.trim().startsWith('-'));
+        }
+        const testArgs = testPaths.concat(args, [`--junitxml=${xmlLogFile}`]);
         return run(pythonSettings.unitTest.pyTestPath, testArgs, rootDirectory, token, outChannel);
     }).then(() => {
         return updateResultsFromLogFiles(tests, xmlLogFile);
