@@ -67,6 +67,52 @@
                 <key>name</key>
                 <string>error-token</string>
             </dict>
+            <!-- unittest error -->
+            <!-- 
+            test_A (test_one.Test_test1) ... FAIL
+            Traceback (most recent call last):
+            File "/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/unittest/case.py", line 331, in run
+                testMethod()
+            File "/Users/donjayamanne/Desktop/Development/Python/Temp/MyEnvs/tests/test_one.py", line 8, in test_A
+                self.fail("Not implemented")
+            File "/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/unittest/case.py", line 412, in fail
+                raise self.failureException(msg)
+            AssertionError: Not implemented
+            -->
+            <dict>
+                <key>match</key>
+                <string>\.\.\. FAIL$</string>
+                <key>name</key>
+                <string>error-token</string>
+            </dict>
+            <dict>
+                <key>match</key>
+                <string>\.\.\. skipped '.*'$</string>
+                <key>name</key>
+                <string>warn-token</string>
+            </dict>
+            <!-- unittest error -->
+            <!-- 
+            ======================================================================
+            FAIL: test_A (test_one.Test_test1)
+            ----------------------------------------------------------------------
+            Traceback (most recent call last):
+            File "/Users/donjayamanne/Desktop/Development/Python/Temp/MyEnvs/tests/test_one.py", line 8, in test_A
+                self.fail("Not implemented")
+            AssertionError: Not implemented
+            -->
+            <dict>
+                <key>match</key>
+                <string>^FAIL: .*\)$</string>
+                <key>name</key>
+                <string>error-token</string>
+            </dict>
+            <dict>
+                <key>match</key>
+                <string>^([a-z]|[A-Z])*Error: .*</string>
+                <key>name</key>
+                <string>error-token</string>
+            </dict>
             <!-- py.test summary -->
             <!-- 
             ================ 8 failed, 28 passed, 2 skipped in 0.11 seconds ================
@@ -94,6 +140,37 @@
                 <string>collected [0-9]+ items</string>
                 <key>name</key>
                 <string>info-token</string>
+            </dict>
+            <!-- py.test summary -->
+            <!-- 
+            ----------------------------------------------------------------------
+            Ran 10 tests in 0.005s
+
+            FAILED (failures=4, skipped=2)
+            -->
+            <dict>
+                <key>match</key>
+                <string>^RAN [0-9]+ test(s){0,1} in [0-9]+\.[0-9]+s$</string>
+                <key>name</key>
+                <string>info-token</string>
+            </dict>
+            <dict>
+                <key>match</key>
+                <string>^FAILED \(.*\)$</string>
+                <key>name</key>
+                <string>error-token</string>
+            </dict>
+            <dict>
+                <key>match</key>
+                <string>^OK$</string>
+                <key>name</key>
+                <string>comment.line</string>
+            </dict>
+            <dict>
+                <key>match</key>
+                <string>^OK \(skipped=[0-9]+\)$</string>
+                <key>name</key>
+                <string>comment.line</string>
             </dict>
         </array>
         <key>uuid</key>
