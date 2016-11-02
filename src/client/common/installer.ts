@@ -155,9 +155,10 @@ export function disableLinter(product: Product) {
     pythonConfig.update(settingToDisable, false);
 }
 
-function isPyTestInstalled(): Promise<boolean> {
+function isTestFrameworkInstalled(product: Product): Promise<boolean> {
+    const fileToRun = product === Product.pytest ? 'py.test' : 'nosetests';
     const def = createDeferred<boolean>();
-    execPythonFile('py.test', ['--version'], vscode.workspace.rootPath, false)
+    execPythonFile(fileToRun, ['--version'], vscode.workspace.rootPath, false)
         .then(() => {
             def.resolve(true);
         }).catch(reason => {
@@ -171,8 +172,13 @@ function isPyTestInstalled(): Promise<boolean> {
     return def.promise;
 }
 function isProductInstalled(product: Product): Promise<boolean> {
-    if (product === Product.pytest) {
-        return isPyTestInstalled();
+    switch (product) {
+        case Product.pytest: {
+            return isTestFrameworkInstalled(product);
+        }
+        case Product.nosetest: {
+            return isTestFrameworkInstalled(product);
+        }
     }
     throw new Error('Not supported');
 }
