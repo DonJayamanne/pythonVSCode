@@ -27,12 +27,15 @@ export function activate(context: vscode.ExtensionContext, outputChannel: vscode
     outChannel = outputChannel;
     let disposables = registerCommands();
     context.subscriptions.push(...disposables);
-    // Ignore the exceptions returned
-    // This function is invoked via a command which will be invoked else where in the extension
-    discoverTests(true, true).catch(() => {
-        // Ignore the errors
-        let x = '';
-    });
+
+    if (settings.unitTest.nosetestsEnabled || settings.unitTest.pyTestEnabled || settings.unitTest.unittestEnabled) {
+        // Ignore the exceptions returned
+        // This function is invoked via a command which will be invoked else where in the extension
+        discoverTests(true).catch(() => {
+            // Ignore the errors
+        });
+    }
+
     settings.addListener('change', onConfigChanged);
     context.subscriptions.push(activateCodeLenses());
 
@@ -51,10 +54,10 @@ function dispose() {
 }
 function registerCommands(): vscode.Disposable[] {
     const disposables = [];
-    disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Discover, (quiteMode: boolean) => {
+    disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Discover, () => {
         // Ignore the exceptions returned
         // This command will be invoked else where in the extension
-        discoverTests(true, quiteMode).catch(() => { return null; });
+        discoverTests(true).catch(() => { return null; });
     }));
     disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Run_Failed, () => runTestsImpl(true)));
     disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Run, (testId) => runTestsImpl(testId)));
@@ -149,7 +152,9 @@ function onConfigChanged() {
     }
 
     // No need to display errors
-    discoverTests(true, true);
+    if (settings.unitTest.nosetestsEnabled || settings.unitTest.pyTestEnabled || settings.unitTest.unittestEnabled) {
+        discoverTests(true);
+    }
 }
 function getTestRunner() {
     const rootDirectory = vscode.workspace.rootPath;
@@ -171,18 +176,16 @@ function stopTests() {
         testManager.stop();
     }
 }
-function discoverTests(ignoreCache?: boolean, quietMode: boolean = false) {
+function discoverTests(ignoreCache?: boolean) {
     let testManager = getTestRunner();
     if (!testManager) {
-        if (!quietMode) {
-            displayTestFrameworkError(outChannel);
-        }
+        displayTestFrameworkError(outChannel);
         return Promise.resolve(null);
     }
 
     if (testManager && (testManager.status !== TestStatus.Discovering && testManager.status !== TestStatus.Running)) {
         testResultDisplay = testResultDisplay ? testResultDisplay : new TestResultDisplay(outChannel);
-        return testResultDisplay.DisplayDiscoverStatus(testManager.discoverTests(ignoreCache, quietMode), quietMode);
+        return testResultDisplay.DisplayDiscoverStatus(testManager.discoverTests(ignoreCache));
     }
     else {
         return Promise.resolve(null);

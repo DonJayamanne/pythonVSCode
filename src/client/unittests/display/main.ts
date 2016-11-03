@@ -62,6 +62,10 @@ export class TestResultDisplay {
         this.statusBar.text = statusText.length === 0 ? 'No Tests Ran' : statusText.join(' ');
         this.statusBar.color = foreColor;
         this.statusBar.command = constants.Commands.Tests_View_UI;
+
+        if (statusText.length === 0){
+            vscode.window.showWarningMessage('No tests ran, please check the configuration settings for the tests.');
+        }
         return tests;
     }
 
@@ -105,18 +109,18 @@ export class TestResultDisplay {
         this.discoverCounter = 0;
     }
 
-    public DisplayDiscoverStatus(tests: Promise<Tests>, quietMode: boolean = false) {
+    public DisplayDiscoverStatus(tests: Promise<Tests>) {
         this.displayProgress('Discovering Tests', 'Discovering Tests (Click to Stop)', constants.Commands.Tests_Ask_To_Stop_Discovery);
         return tests.then(tests => {
-            this.updateWithDiscoverSuccess(tests, quietMode);
+            this.updateWithDiscoverSuccess(tests);
             return tests;
         }).catch(reason => {
-            this.updateWithDiscoverFailure(reason, quietMode);
+            this.updateWithDiscoverFailure(reason);
             return Promise.reject(reason);
         });
     }
 
-    private updateWithDiscoverSuccess(tests: Tests, quietMode: boolean = false) {
+    private updateWithDiscoverSuccess(tests: Tests) {
         this.clearProgressTicker();
         const haveTests = tests && (tests.testFunctions.length > 0);
         this.statusBar.text = haveTests ? '$(zap) Run Tests' : 'No Tests';
@@ -124,14 +128,12 @@ export class TestResultDisplay {
         this.statusBar.command = haveTests ? constants.Commands.Tests_View_UI : constants.Commands.Tests_Discover;
         this.statusBar.show();
 
-        if (!haveTests && !quietMode) {
-            // TODO: show an option that will invoke a command 'python.test.configureTest' or similar
-            // This will be hanlded by main.ts that will capture input from user and configure the tests
-            vscode.window.showInformationMessage('No Tests discovered');
+        if (!haveTests) {
+            vscode.window.showInformationMessage('No tests discovered, please check the configuration settings for the tests.');
         }
     }
 
-    private updateWithDiscoverFailure(reason: any, quietMode: boolean = false) {
+    private updateWithDiscoverFailure(reason: any) {
         this.clearProgressTicker();
         this.statusBar.text = `$(zap) Discover Tests`;
         this.statusBar.tooltip = 'Discover Tests';
@@ -142,10 +144,10 @@ export class TestResultDisplay {
             this.statusBar.text = `$(alert) Test discovery failed`;
             this.statusBar.tooltip = `Discovering Tests failed (view 'Python Test Log' output panel for details)`;
             // TODO: ignore this quitemode, always display the error message (inform the user)
-            if (!isNotInstalledError(reason) && !quietMode) {
+            if (!isNotInstalledError(reason)) {
                 // TODO: show an option that will invoke a command 'python.test.configureTest' or similar
                 // This will be hanlded by main.ts that will capture input from user and configure the tests
-                vscode.window.showErrorMessage('There was an error in discovering tests');
+                vscode.window.showErrorMessage('There was an error in discovering tests, please check the configuration settings for the tests.');
             }
         }
     }
