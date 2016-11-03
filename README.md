@@ -8,7 +8,7 @@ An extension with rich support for the [Python language](https://www.python.org/
 * Code formatting ([autopep8](https://pypi.io/project/autopep8/), [yapf](https://pypi.io/project/yapf/), with config files)
 * Code refactoring ([Rename](https://github.com/DonJayamanne/pythonVSCode/wiki/Refactoring:-Rename), [Extract Variable](https://github.com/DonJayamanne/pythonVSCode/wiki/Refactoring:-Extract-Variable), [Extract Method](https://github.com/DonJayamanne/pythonVSCode/wiki/Refactoring:-Extract-Method), [Sort Imports](https://github.com/DonJayamanne/pythonVSCode/wiki/Refactoring:-Sort-Imports))
 * Viewing references, code navigation, view signature
-* Excellent debugging support (remote debugging, mutliple threads, django, flask)
+* Excellent debugging support (remote debugging over SSH, mutliple threads, django, flask)
 * Unit testing, including debugging ([unittest](https://docs.python.org/3/library/unittest.html#module-unittest), [pytest](https://pypi.io/project/pytest/), [nosetests](https://pypi.io/project/nose/), with config files)
 * Execute file or code in a python terminal
 * Local help file (offline documentation)
@@ -48,7 +48,7 @@ For further information and details continue through to the [documentation](http
 * [Scientific tools (Jupyter/IPython)](https://github.com/DonJayamanne/pythonVSCode/wiki/Jupyter-(IPython))
  + Executing blocks of code (cells) in a Jupyter Kernel
  + Managing kernels (restarting, stopping, interrupting and selecting different kernels)
- + Viewing interactive graphs, HTML, SVG, laText output from Jupyter from within Visual Studio Code 
+ + Viewing interactive graphs, HTML, SVG, LaTeX output from Jupyter from within Visual Studio Code 
 * [Code formatting](https://github.com/DonJayamanne/pythonVSCode/wiki/Formatting)
  + Auto formatting of code upon saving changes (default to 'Off')
  + Use either yapf or autopep8 for code formatting (defaults to autopep8)
@@ -67,10 +67,10 @@ For further information and details continue through to the [documentation](http
  + Step through code (Step in, Step out, Continue)
  + Add/remove break points
  + Local variables and arguments
- + Multiple Threads and Web Applications (such as Flask, Django)
+ + Multiple Threads and Web Applications (such as Flask, Django, with template debugging)
  + Expanding values (viewing children, properties, etc)
  + Conditional break points
- + Remote debugging
+ + Remote debugging (over SSH)
  + Google App Engine
  + Debugging in the integrated or external terminal window
  * Debugging as sudo
