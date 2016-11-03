@@ -11,5 +11,5 @@ export function activateCodeLenses(): vscode.Disposable {
         dispose: function () {
             disposables.forEach(d => d.dispose());
         }
-    }
+    };
 }

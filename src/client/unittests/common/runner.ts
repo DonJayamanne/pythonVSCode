@@ -1,6 +1,6 @@
-import {execPythonFile} from './../../common/utils';
-import {CancellationToken, OutputChannel, window, workspace} from 'vscode';
-import {getPythonInterpreterDirectory, IS_WINDOWS} from '../../common/utils';
+import { execPythonFile } from './../../common/utils';
+import { CancellationToken, OutputChannel, window, workspace } from 'vscode';
+import { getPythonInterpreterDirectory, IS_WINDOWS } from '../../common/utils';
 
 let terminal = null;
 export function run(file: string, args: string[], cwd: string, token?: CancellationToken, outChannel?: OutputChannel): Promise<string> {
@@ -18,10 +18,10 @@ function runTestInTerminal(file: string, args: string[], cwd: string): Promise<a
     return getPythonInterpreterDirectory().then(pyPath => {
         let commands = [];
         if (IS_WINDOWS) {
-            commands.push(`set PATH=%PATH%;${pyPath}`)
+            commands.push(`set PATH=%PATH%;${pyPath}`);
         }
         else {
-            commands.push(`export PATH=$PATH:${pyPath}`)
+            commands.push(`export PATH=$PATH:${pyPath}`);
         }
         if (cwd !== workspace.rootPath) {
             commands.push(`cd ${cwd}`);

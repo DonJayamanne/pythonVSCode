@@ -2,8 +2,7 @@
 
 import * as vscode from 'vscode';
 import {CodeLensProvider, TextDocument, CancellationToken, CodeLens, SymbolInformation} from 'vscode';
-import * as telemetryContracts from '../../common/telemetryContracts';
-import {Tests, TestFile, TestsToRun, TestSuite, TestFunction} from '../common/contracts';
+import {TestFile, TestsToRun, TestSuite, TestFunction} from '../common/contracts';
 import * as constants from '../../common/constants';
 import {getDiscoveredTests} from '../common/testUtils';
 

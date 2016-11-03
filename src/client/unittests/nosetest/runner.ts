@@ -1,11 +1,8 @@
 'use strict';
-import * as path from 'path';
-import {createDeferred, createTemporaryFile} from '../../common/helpers';
-import {OutputChannel, window, CancellationToken} from 'vscode';
-import {TestFile, TestsToRun, TestSuite, TestFunction, FlattenedTestFunction, Tests, TestStatus, FlattenedTestSuite} from '../common/contracts';
-import * as vscode from 'vscode';
-import {extractBetweenDelimiters, convertFileToPackage, flattenTestFiles, updateResults} from '../common/testUtils';
-import {BaseTestManager} from '../common/baseTestManager';
+import {createTemporaryFile} from '../../common/helpers';
+import {OutputChannel, CancellationToken} from 'vscode';
+import {TestsToRun, Tests} from '../common/contracts';
+import {updateResults} from '../common/testUtils';
 import {updateResultsFromXmlLogFile, PassCalculationFormulae} from '../common/xUnitParser';
 import {run} from '../common/runner';
 import {PythonSettings} from '../../common/configSettings';

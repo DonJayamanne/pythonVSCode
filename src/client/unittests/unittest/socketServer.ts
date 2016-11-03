@@ -2,7 +2,7 @@
 import * as net from 'net';
 import * as fs from 'fs';
 import * as os from 'os';
-import {Disposable} from 'vscode'
+import {Disposable} from 'vscode';
 import {createDeferred, Deferred} from '../../common/helpers';
 import {EventEmitter} from 'events';
 
@@ -26,7 +26,7 @@ export class Server extends EventEmitter implements Disposable {
     private ipcBuffer: string = '';
     constructor() {
         super();
-        this.path = (getIPType() == 'IPv6') ? '::1' : '127.0.0.1';
+        this.path = (getIPType() === 'IPv6') ? '::1' : '127.0.0.1';
     }
     public get clientsConnected(): boolean {
         return this.sockets.length > 0;
@@ -41,7 +41,7 @@ export class Server extends EventEmitter implements Disposable {
         }
     }
     public start(): Promise<number> {
-        this.startedDef = createDeferred<number>()
+        this.startedDef = createDeferred<number>();
         fs.unlink(this.path, () => {
             this.server = net.createServer(this.connectionListener.bind(this));
             this.server.maxConnections = MaxConnections;

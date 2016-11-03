@@ -2,9 +2,8 @@
 
 'use strict';
 import * as path from 'path';
-import { createDeferred, createTemporaryFile } from '../../common/helpers';
-import { TestFile, TestsToRun, TestSuite, TestFunction, FlattenedTestFunction, Tests, TestStatus, FlattenedTestSuite } from '../common/contracts';
-import { extractBetweenDelimiters, flattenTestFiles, updateResults, convertFileToPackage } from '../common/testUtils';
+import { TestsToRun, Tests, TestStatus } from '../common/contracts';
+import { updateResults } from '../common/testUtils';
 import { BaseTestManager } from '../common/baseTestManager';
 import { CancellationToken, OutputChannel } from 'vscode';
 import { run } from '../common/runner';

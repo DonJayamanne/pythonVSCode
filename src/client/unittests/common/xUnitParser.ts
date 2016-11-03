@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as xml2js from 'xml2js';
-import {TestFile, TestsToRun, TestSuite, TestFunction, FlattenedTestFunction, Tests, TestStatus, FlattenedTestSuite} from './contracts';
+import { Tests, TestStatus } from './contracts';
 
 export enum PassCalculationFormulae {
     pytest,

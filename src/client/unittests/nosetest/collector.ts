@@ -1,11 +1,11 @@
 'use strict';
 import * as path from 'path';
-import {execPythonFile} from './../../common/utils';
-import {TestFile, TestsToRun, TestSuite, TestFunction, FlattenedTestFunction, Tests, TestStatus, FlattenedTestSuite} from '../common/contracts';
+import { execPythonFile } from './../../common/utils';
+import { TestFile, TestSuite, TestFunction, Tests } from '../common/contracts';
 import * as os from 'os';
-import {extractBetweenDelimiters, convertFileToPackage, flattenTestFiles} from '../common/testUtils';
-import {CancellationToken} from 'vscode';
-import {PythonSettings} from '../../common/configSettings';
+import { extractBetweenDelimiters, convertFileToPackage, flattenTestFiles } from '../common/testUtils';
+import { CancellationToken } from 'vscode';
+import { PythonSettings } from '../../common/configSettings';
 
 const pythonSettings = PythonSettings.getInstance();
 
@@ -23,7 +23,6 @@ const settingsInArgsToExcludeForDiscovery = ['--verbosity', '--debug', '--debug-
 export function discoverTests(rootDirectory: string, args: string[], token: CancellationToken): Promise<Tests> {
     let logOutputLines: string[] = [''];
     let testFiles: TestFile[] = [];
-    let collectionCountReported = false;
 
     // Remove unwanted arguments
     args = args.filter(arg => {
@@ -100,9 +99,6 @@ function parseNoseTestModuleCollectionResult(rootDirectory: string, lines: strin
     let moduleName = '';
     let testFile: TestFile;
     lines.forEach(line => {
-        let x = lines;
-        let y = x;
-
         if (line.startsWith('nose.selector: DEBUG: wantModule <module \'')) {
             fileName = line.substring(line.indexOf('\' from \'') + '\' from \''.length);
             fileName = fileName.substring(0, fileName.lastIndexOf('\''));
@@ -116,7 +112,7 @@ function parseNoseTestModuleCollectionResult(rootDirectory: string, lines: strin
                 fileName = fileName.substring(0, fileName.length - 1);
             }
             currentPackage = convertFileToPackage(fileName);
-            const fullyQualifiedName = path.isAbsolute(fileName) ? fileName : path.resolve(rootDirectory, fileName)
+            const fullyQualifiedName = path.isAbsolute(fileName) ? fileName : path.resolve(rootDirectory, fileName);
             testFile = {
                 functions: [], suites: [], name: fileName, nameToRun: fileName,
                 xmlName: currentPackage, time: 0, functionsFailed: 0, functionsPassed: 0,

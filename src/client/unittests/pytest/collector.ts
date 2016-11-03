@@ -1,8 +1,8 @@
 'use strict';
 import { execPythonFile } from './../../common/utils';
-import { TestFile, TestsToRun, TestSuite, TestFunction, FlattenedTestFunction, Tests, TestStatus, FlattenedTestSuite } from '../common/contracts';
+import { TestFile, TestSuite, TestFunction, Tests } from '../common/contracts';
 import * as os from 'os';
-import { extractBetweenDelimiters, flattenTestFiles, updateResults, convertFileToPackage } from '../common/testUtils';
+import { extractBetweenDelimiters, flattenTestFiles, convertFileToPackage } from '../common/testUtils';
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { PythonSettings } from '../../common/configSettings';
@@ -23,7 +23,6 @@ export function discoverTests(rootDirectory: string, args: string[], token: vsco
     let logOutputLines: string[] = [''];
     let testFiles: TestFile[] = [];
     let parentNodes: { indent: number, item: TestFile | TestSuite }[] = [];
-    let collectionCountReported = false;
     const errorLine = /==*( *)ERRORS( *)=*/;
     const errorFileLine = /__*( *)ERROR collecting (.*)/;
     const lastLineWithErrors = /==*.*/;
@@ -98,7 +97,6 @@ export function discoverTests(rootDirectory: string, args: string[], token: vsco
 }
 
 const DELIMITER = '\'';
-const DEFAULT_CLASS_INDENT = 2;
 
 function parsePyTestModuleCollectionError(rootDirectory: string, lines: string[], testFiles: TestFile[],
     parentNodes: { indent: number, item: TestFile | TestSuite }[]) {
