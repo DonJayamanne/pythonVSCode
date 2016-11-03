@@ -80,18 +80,16 @@ export class PythonSignatureProvider implements vscode.SignatureHelpProvider {
         return new SignatureHelp();
     }
     provideSignatureHelp(document: TextDocument, position: Position, token: CancellationToken): Thenable<SignatureHelp> {
-        return new Promise<SignatureHelp>((resolve, reject) => {
-            let cmd: proxy.ICommand<proxy.IArgumentsResult> = {
-                telemetryEvent: telemetryContracts.IDE.Symbol,
-                command: proxy.CommandType.Arguments,
-                fileName: document.fileName,
-                columnIndex: position.character,
-                lineIndex: position.line,
-                source: document.getText()
-            };
-            return this.jediProxyHandler.sendCommand(cmd, token).then(data => {
-                return PythonSignatureProvider.parseData(data);
-            });
+        let cmd: proxy.ICommand<proxy.IArgumentsResult> = {
+            telemetryEvent: telemetryContracts.IDE.Symbol,
+            command: proxy.CommandType.Arguments,
+            fileName: document.fileName,
+            columnIndex: position.character,
+            lineIndex: position.line,
+            source: document.getText()
+        };
+        return this.jediProxyHandler.sendCommand(cmd, token).then(data => {
+            return PythonSignatureProvider.parseData(data);
         });
     }
 }
