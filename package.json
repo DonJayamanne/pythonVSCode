@@ -788,7 +788,11 @@
           "type": "array",
           "description": "Arguments passed in. Each argument is a separate item in the array.",
           "default": [
-            "-v"
+            "-v",
+            "-s",
+            ".",
+            "-p",
+            "*test*.py"
           ],
           "items": {
             "type": "string"
