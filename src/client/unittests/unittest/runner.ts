@@ -48,8 +48,8 @@ export function runTest(testManager: BaseTestManager, rootDirectory: string, tes
     });
     server.on('result', (data: ITestData) => {
         const test = tests.testFunctions.find(t => t.testFunction.nameToRun === data.test);
+        const statusDetails = outcomeMapping.get(data.outcome);
         if (test) {
-            const statusDetails = outcomeMapping.get(data.outcome);
             test.testFunction.status = statusDetails.status;
             test.testFunction.message = data.message;
             test.testFunction.traceback = data.traceback;
@@ -57,6 +57,11 @@ export function runTest(testManager: BaseTestManager, rootDirectory: string, tes
 
             if (failFast && (statusDetails.summaryProperty === 'failures' || statusDetails.summaryProperty === 'errors')) {
                 testManager.stop();
+            }
+        }
+        else {
+            if (statusDetails){
+                tests.summary[statusDetails.summaryProperty] += 1;
             }
         }
     });
@@ -73,7 +78,7 @@ export function runTest(testManager: BaseTestManager, rootDirectory: string, tes
         function runTest(testFile: string = '', testId: string = '') {
             let testArgs = buildTestArgs(args);
             failFast = testArgs.indexOf('--uf') >= 0;
-            testArgs = testArgs.filter(arg=>arg !== '--uf');
+            testArgs = testArgs.filter(arg => arg !== '--uf');
 
             testArgs.push(`--result-port=${port}`);
             testArgs.push(`--us=${startTestDiscoveryDirectory}`);
