@@ -361,19 +361,6 @@
         },
         "initialConfigurations": [
           {
-            "name": "Python",
-            "type": "python",
-            "request": "launch",
-            "stopOnEntry": true,
-            "pythonPath": "${config.python.pythonPath}",
-            "program": "${file}",
-            "debugOptions": [
-              "WaitOnAbnormalExit",
-              "WaitOnNormalExit",
-              "RedirectOutput"
-            ]
-          },
-          {
             "name": "Integrated Terminal/Console",
             "type": "python",
             "request": "launch",
@@ -384,6 +371,19 @@
             "debugOptions": [
               "WaitOnAbnormalExit",
               "WaitOnNormalExit"
+            ]
+          },
+          {
+            "name": "Python",
+            "type": "python",
+            "request": "launch",
+            "stopOnEntry": true,
+            "pythonPath": "${config.python.pythonPath}",
+            "program": "${file}",
+            "debugOptions": [
+              "WaitOnAbnormalExit",
+              "WaitOnNormalExit",
+              "RedirectOutput"
             ]
           },
           {
