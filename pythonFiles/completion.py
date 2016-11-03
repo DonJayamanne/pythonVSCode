@@ -4,10 +4,6 @@ import re
 import sys
 import json
 import traceback
-sys.path.append(os.path.dirname(__file__))
-import jedi
-# remove jedi from path after we import it so it will not be completed
-sys.path.pop(0)
 
 WORD_RE = re.compile(r'\w')
 
@@ -26,7 +22,7 @@ class JediCompletion(object):
 
     def _get_definition_type(self, definition):
         is_built_in = definition.in_builtin_module
-        #if definition.type not in ['import', 'keyword'] and is_built_in():
+        # if definition.type not in ['import', 'keyword'] and is_built_in():
         #    return 'builtin'
         if definition.type in ['statement'] and definition.name.isupper():
             return 'constant'
@@ -107,7 +103,7 @@ class JediCompletion(object):
         except KeyError:
             call_signatures = []
         for signature in call_signatures:
-            sig = {"name": "", "description": "", "docstring": "", 
+            sig = {"name": "", "description": "", "docstring": "",
                    "paramindex": 0, "params": [], "bracketstart": []}
             sig["description"] = signature.description
             sig["docstring"] = signature.docstring()
@@ -129,10 +125,11 @@ class JediCompletion(object):
                 except ValueError:
                     name = param.description
                     value = None
-                #if name.startswith('*'):
+                # if name.startswith('*'):
                 #    continue
                 #_signatures.append((signature, name, value))
-                sig["params"].append({"name": name, "value":value, "docstring":param.docstring(), "description":param.description})
+                sig["params"].append({"name": name, "value": value, "docstring": param.docstring(
+                ), "description": param.description})
         return _signatures
 
     def _serialize_completions(self, script, identifier=None, prefix=''):
@@ -151,11 +148,11 @@ class JediCompletion(object):
 
         for signature, name, value in self._get_call_signatures(script):
             if not self.fuzzy_matcher and not name.lower().startswith(
-              prefix.lower()):
+                    prefix.lower()):
                 continue
             _completion = {
                 'type': 'property',
-                'raw_type':'',
+                'raw_type': '',
                 'rightLabel': self._additional_info(signature)
             }
             # we pass 'text' here only for fuzzy matcher
@@ -193,8 +190,8 @@ class JediCompletion(object):
             }
             if any([c['text'].split('=')[0] == _completion['text']
                     for c in _completions]):
-              # ignore function arguments we already have
-              continue
+                # ignore function arguments we already have
+                continue
             _completions.append(_completion)
         return json.dumps({'id': identifier, 'results': _completions})
 
@@ -208,7 +205,7 @@ class JediCompletion(object):
         Returns:
             Serialized string to send to VSCode.
         """
-        return json.dumps({"id": identifier, "results" : self._get_call_signatures_with_args(script) })
+        return json.dumps({"id": identifier, "results": self._get_call_signatures_with_args(script)})
 
     def _serialize_definitions(self, definitions, identifier=None):
         """Serialize response to be read from VSCode.
@@ -222,14 +219,14 @@ class JediCompletion(object):
         """
 
         def _top_definition(definition):
-          for d in definition.goto_assignments():
-            if d == definition:
-              continue
-            if d.type == 'import':
-              return _top_definition(d)
-            else:
-              return d
-          return definition
+            for d in definition.goto_assignments():
+                if d == definition:
+                    continue
+                if d.type == 'import':
+                    return _top_definition(d)
+                else:
+                    return d
+            return definition
 
         _definitions = []
         for definition in definitions:
@@ -252,16 +249,16 @@ class JediCompletion(object):
         return json.dumps({'id': identifier, 'results': _definitions})
 
     def _serialize_usages(self, usages, identifier=None):
-      _usages = []
-      for usage in usages:
-        _usages.append({
-          'name': usage.name,
-          'moduleName': usage.module_name,
-          'fileName': usage.module_path,
-          'line': usage.line,
-          'column': usage.column,
-        })
-      return json.dumps({'id': identifier, 'results': _usages})
+        _usages = []
+        for usage in usages:
+            _usages.append({
+                'name': usage.name,
+                'moduleName': usage.module_name,
+                'fileName': usage.module_path,
+                'line': usage.line,
+                'column': usage.column,
+            })
+        return json.dumps({'id': identifier, 'results': _usages})
 
     def _deserialize(self, request):
         """Deserialize request from VSCode.
@@ -309,11 +306,11 @@ class JediCompletion(object):
         if lookup == 'names':
             return self._write_response(self._serialize_definitions(
                 jedi.api.names(
-                    source=request.get('source', None), 
+                    source=request.get('source', None),
                     path=request.get('path', ''),
                     all_scopes=True),
                 request['id']))
-                
+
         script = jedi.api.Script(
             source=request.get('source', None), line=request['line'] + 1,
             column=request['column'], path=request.get('path', ''))
@@ -345,4 +342,19 @@ class JediCompletion(object):
                 sys.stderr.flush()
 
 if __name__ == '__main__':
+    jediPreview = False
+    if len(sys.argv) > 1 and sys.argv[1] == 'preview':
+        jediPath = os.path.join(os.path.dirname(__file__), 'preview', 'jedi')
+        jediPreview = False
+    else:
+        jediPath = os.path.join(os.path.dirname(__file__), 'release')
+
+    sys.path.append(jediPath)
+    import jedi
+    if jediPreview:
+        jedi.settings.cache_directory = os.path.join(
+            jedi.settings.cache_directory, 'v' + jedi.__version__.replace('.', ''))
+
+    # remove jedi from path after we import it so it will not be completed
+    sys.path.pop(0)
     JediCompletion().watch()

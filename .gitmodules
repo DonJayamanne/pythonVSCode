@@ -2,3 +2,6 @@
 	path = docs
 	url = https://github.com/DonJayamanne/pythonVSCodeDocs.git
 	branch = help
+[submodule "pythonFiles/preview/jedi"]
+	path = pythonFiles/preview/jedi
+	url = https://github.com/davidhalter/jedi.git

@@ -236,7 +236,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
     }
 
     public pythonPath: string;
-    public devOptions: any[];
+    public devOptions: string[];
     public linting: ILintingSettings;
     public formatting: IFormattingSettings;
     public autoComplete: IAutoCompeteSettings;
