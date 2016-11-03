@@ -219,7 +219,10 @@ function setPythonPath(pythonPath: string, created: boolean = false) {
 }
 
 function presentQuickPickOfSuggestedPythonPaths() {
-    const currentPythonPath = settings.PythonSettings.getInstance().pythonPath;
+    let currentPythonPath = settings.PythonSettings.getInstance().pythonPath;
+    if (currentPythonPath.startsWith(vscode.workspace.rootPath)) {
+        currentPythonPath = `.${path.sep}` + path.relative(vscode.workspace.rootPath, currentPythonPath);
+    }
     const quickPickOptions: vscode.QuickPickOptions = {
         matchOnDetail: true,
         matchOnDescription: false,
@@ -227,6 +230,7 @@ function presentQuickPickOfSuggestedPythonPaths() {
     };
 
     suggestPythonPaths().then(suggestions => {
+        suggestions = suggestions.sort((a, b) => a.path > b.path ? 1 : -1);
         vscode.window.showQuickPick(suggestions, quickPickOptions).then(
             value => {
                 if (value !== undefined) {
