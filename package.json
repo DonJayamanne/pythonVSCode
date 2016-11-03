@@ -91,7 +91,7 @@
       {
         "command": "python.sortImports",
         "title": "Sort Imports",
-        "category": "Refactor"
+        "category": "Python Refactor"
       },
       {
         "command": "python.runtests",
@@ -182,6 +182,12 @@
           "title": "Refactor: Extract Method",
           "group": "Refactor",
           "when": "editorHasSelection && editorLangId == python"
+        },
+        {
+          "command": "python.sortImports",
+          "title": "Refactor: Sort Imports",
+          "group": "Refactor",
+          "when": "editorLangId == python"
         },
         {
           "command": "python.execSelectionInTerminal",
