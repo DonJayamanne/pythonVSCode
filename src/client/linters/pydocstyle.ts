@@ -21,7 +21,7 @@ export class Linter extends baseLinter.BaseLinter {
         }
 
         let pydocStylePath = this.pythonSettings.linting.pydocStylePath;
-        let pydocstyleArgs = Array.isArray(this.pythonSettings.linting.pydocstleArgs) ? this.pythonSettings.linting.pydocstleArgs : [];
+        let pydocstyleArgs = Array.isArray(this.pythonSettings.linting.pydocstyleArgs) ? this.pythonSettings.linting.pydocstyleArgs : [];
         return new Promise<baseLinter.ILintMessage[]>(resolve => {
             this.run(pydocStylePath, pydocstyleArgs.concat([filePath]), filePath, txtDocumentLines).then(messages => {
                 // All messages in pep8 are treated as warnings for now

@@ -51,7 +51,7 @@ export interface ILintingSettings {
     flake8Enabled: boolean;
     flake8Args: string[];
     pydocstyleEnabled: boolean;
-    pydocstleArgs: string[];
+    pydocstyleArgs: string[];
     lintOnTextChange: boolean;
     lintOnSave: boolean;
     maxNumberOfProblems: number;
@@ -138,7 +138,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
             mypyArgs: [], mypyEnabled: false, mypyPath: 'mypy',
             outputWindow: 'python', pep8Args: [], pep8Enabled: false, pep8Path: 'pep8',
             prospectorArgs: [], prospectorEnabled: false, prospectorPath: 'prospector',
-            pydocstleArgs: [], pydocstyleEnabled: false, pydocStylePath: 'pydocstyle',
+            pydocstyleArgs: [], pydocstyleEnabled: false, pydocStylePath: 'pydocstyle',
             pylintArgs: [], pylintEnabled: false, pylintPath: 'pylint',
             pylintCategorySeverity: {
                 convention: vscode.DiagnosticSeverity.Hint,

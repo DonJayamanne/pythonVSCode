@@ -625,7 +625,7 @@
           "default": "flake8",
           "description": "Path to flake8, you can use a custom version of flake8 by modifying this setting to include the full path."
         },
-        "python.linting.pydocStylePath": {
+        "python.linting.pydocstylePath": {
           "type": "string",
           "default": "pydocstyle",
           "description": "Path to pydocstyle, you can use a custom version of pydocstyle by modifying this setting to include the full path."
@@ -667,7 +667,7 @@
             "type": "string"
           }
         },
-        "python.linting.pydocStyleArgs": {
+        "python.linting.pydocstyleArgs": {
           "type": "array",
           "description": "Arguments passed in. Each argument is a separate item in the array.",
           "default": [],
