@@ -20,10 +20,10 @@ export class Linter extends baseLinter.BaseLinter {
             return Promise.resolve([]);
         }
 
-        let pydocStylePath = this.pythonSettings.linting.pydocStylePath;
+        let pydocstylePath = this.pythonSettings.linting.pydocstylePath;
         let pydocstyleArgs = Array.isArray(this.pythonSettings.linting.pydocstyleArgs) ? this.pythonSettings.linting.pydocstyleArgs : [];
         return new Promise<baseLinter.ILintMessage[]>(resolve => {
-            this.run(pydocStylePath, pydocstyleArgs.concat([filePath]), filePath, txtDocumentLines).then(messages => {
+            this.run(pydocstylePath, pydocstyleArgs.concat([filePath]), filePath, txtDocumentLines).then(messages => {
                 // All messages in pep8 are treated as warnings for now
                 messages.forEach(msg => {
                     msg.severity = baseLinter.LintMessageSeverity.Information;

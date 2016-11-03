@@ -60,7 +60,7 @@ export interface ILintingSettings {
     pylintPath: string;
     pep8Path: string;
     flake8Path: string;
-    pydocStylePath: string;
+    pydocstylePath: string;
     outputWindow: string;
     mypyEnabled: boolean;
     mypyArgs: string[];
@@ -138,7 +138,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
             mypyArgs: [], mypyEnabled: false, mypyPath: 'mypy',
             outputWindow: 'python', pep8Args: [], pep8Enabled: false, pep8Path: 'pep8',
             prospectorArgs: [], prospectorEnabled: false, prospectorPath: 'prospector',
-            pydocstyleArgs: [], pydocstyleEnabled: false, pydocStylePath: 'pydocstyle',
+            pydocstyleArgs: [], pydocstyleEnabled: false, pydocstylePath: 'pydocstyle',
             pylintArgs: [], pylintEnabled: false, pylintPath: 'pylint',
             pylintCategorySeverity: {
                 convention: vscode.DiagnosticSeverity.Hint,
@@ -152,7 +152,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         this.linting.flake8Path = getAbsolutePath(this.linting.flake8Path, workspaceRoot);
         this.linting.pep8Path = getAbsolutePath(this.linting.pep8Path, workspaceRoot);
         this.linting.prospectorPath = getAbsolutePath(this.linting.prospectorPath, workspaceRoot);
-        this.linting.pydocStylePath = getAbsolutePath(this.linting.pydocStylePath, workspaceRoot);
+        this.linting.pydocstylePath = getAbsolutePath(this.linting.pydocstylePath, workspaceRoot);
 
         let formattingSettings = systemVariables.resolveAny(pythonSettings.get<IFormattingSettings>('formatting'));
         if (this.formatting) {
