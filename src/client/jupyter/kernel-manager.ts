@@ -21,13 +21,8 @@ export class KernelManagerImpl extends EventEmitter {
         this.disposables = [];
         this._runningKernels = new Map<string, Kernel>();
         this._kernelSpecs = {};
-        this.registerCommands();
     }
 
-    private registerCommands() {
-        this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.Get_All_KernelSpecs_For_Language, this.getAllKernelSpecsFor.bind(this)));
-        this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.StartKernelForKernelSpeck, this.startKernel.bind(this)));
-    }
     public dispose() {
         this.removeAllListeners();
         this._runningKernels.forEach(kernel => {

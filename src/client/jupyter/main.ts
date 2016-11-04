@@ -14,6 +14,7 @@ import * as main from './jupyter_client/main';
 import { KernelRestartedError, KernelShutdownError } from './common/errors';
 import { PythonSettings } from '../common/configSettings';
 import { CodeHelper } from './common/codeHelper';
+import { KernelspecMetadata } from './contracts';
 
 const pythonSettings = PythonSettings.getInstance();
 
@@ -183,6 +184,18 @@ export class Jupyter extends vscode.Disposable {
         }));
         this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.ExecuteSelectionOrLineInKernel,
             this.executeSelection.bind(this)));
+        this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.Get_All_KernelSpecs_For_Language, (language: string) => {
+            if (this.kernelManager) {
+                return this.kernelManager.getAllKernelSpecsFor(language);
+            }
+            return Promise.resolve();
+        }));
+        this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.StartKernelForKernelSpeck, (kernelSpec: KernelspecMetadata, language: string) => {
+            if (this.kernelManager) {
+                return this.kernelManager.startKernel(kernelSpec, language);
+            }
+            return Promise.resolve();
+        }));
     }
     private registerKernelCommands() {
         this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.Kernel.Kernel_Interrupt, () => {
