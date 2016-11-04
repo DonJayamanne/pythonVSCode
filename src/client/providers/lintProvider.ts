@@ -12,6 +12,8 @@ import * as mypy from './../linters/mypy';
 import * as settings from '../common/configSettings';
 import * as telemetryHelper from '../common/telemetry';
 import * as telemetryContracts from '../common/telemetryContracts';
+import * as fs from 'fs';
+
 import { LinterErrors } from '../common/constants'
 const lintSeverityToVSSeverity = new Map<linter.LintMessageSeverity, vscode.DiagnosticSeverity>();
 lintSeverityToVSSeverity.set(linter.LintMessageSeverity.Error, vscode.DiagnosticSeverity.Error)
@@ -83,6 +85,9 @@ export class LintProvider extends vscode.Disposable {
 
         vscode.workspace.onDidOpenTextDocument((e) => {
             if (e.languageId !== 'python' || !this.settings.linting.enabled) {
+                return;
+            }
+            if (!e.uri.path || (path.basename(e.uri.path) === e.uri.path && !fs.existsSync(e.uri.path))){
                 return;
             }
             this.lintDocument(e, e.uri, e.getText().split(/\r?\n/g), 100);
