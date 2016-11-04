@@ -2,7 +2,7 @@
 
 An extension with rich support for the [Python language](https://www.python.org/), with features including the following and more:   
 * Linting ([Prospector](https://pypi.io/project/prospector/), [Pylint](https://pypi.io/project/pylint/), [pycodestyle](https://pypi.io/project/pycodestyle/)/Pep8, [Flake8](https://pypi.io/project/flake8/), [pydocstyle](https://pypi.io/project/pydocstyle/) with config files and plugins)
-* Intellisense (autocompletion)
+* Intellisense (autocompletion with support for PEP-0484)
 * Scientific tools (Jupyter/IPython)
 * Auto indenting
 * Code formatting ([autopep8](https://pypi.io/project/autopep8/), [yapf](https://pypi.io/project/yapf/), with config files)
@@ -36,7 +36,7 @@ For further information and details continue through to the [documentation](http
  + Code definition (Peek and hover definition, View Signature)
  + Rename refactoring
  + Sorting Import statements (use "Python: Sort Imports" command)
-* [Intellisense and Autocomplete](https://github.com/DonJayamanne/pythonVSCode/wiki/Autocomplete-Intellisense)
+* [Intellisense and Autocomplete](https://github.com/DonJayamanne/pythonVSCode/wiki/Autocomplete-Intellisense) with support for PEP-0484
  + Ability to include custom module paths (e.g. include paths for libraries like Google App Engine, etc.)
  + Use the `setting python.autoComplete.extraPaths = []`
  + For instance getting autocomplete/intellisense for Google App Engine, add the following to your settings file:
@@ -97,7 +97,7 @@ For further information and details continue through to the [documentation](http
 
 ## [Roadmap](https://donjayamanne.github.io/pythonVSCodeDocs/docs/roadmap/)
 
-## [Change Log](https://github.com/DonJayamanne/pythonVSCode/releases)
+## [Change Log](https://github.com/DonJayamanne/pythonVSCode/blob/master/CHANGELOG.md)
 
 ### Current Version 0.5.0
 * Remove dependency on zmq when using Jupyter or IPython (pure python solution)
