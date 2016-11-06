@@ -125,7 +125,7 @@ export function displayPromptToEnableTests(rootDir: string, outputChannel: vscod
     const no = `No`;
     const noNotAgain = `No, don't ask again`;
 
-    checkIfHasTestDirs(rootDir).then(hasTests => {
+    return checkIfHasTestDirs(rootDir).then(hasTests => {
         if (!yes) {
             return Promise.reject(null);
         }
