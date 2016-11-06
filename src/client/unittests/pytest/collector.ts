@@ -9,15 +9,13 @@ import { PythonSettings } from '../../common/configSettings';
 
 const pythonSettings = PythonSettings.getInstance();
 
-const argsToExcludeForDiscovery = ['--lf', '--last-failed', '--markers', '-x',
-    '--exitfirst', '--maxfail', '--fixtures', '--funcargs', '-pdb', '--capture',
-    '-s', ' --runxfail', ' --ff', '--failed-first', '--cache-show', '--cache-clear',
-    '-v', '--verbose', '-q', '-quiet', '-r ', '--report', '--tb', '--color',
-    '--durations', '--pastebin', '--junit-xml=path', '--junit-prefix',
-    '--result-log', '--version', '-h', '--help', '--debug'];
-const settingsInArgsToExcludeForDiscovery = ['--maxfail', '--capture',
-    '-r ', '--report', '--tb', '--color', '--durations', '--pastebin',
-    '--junit-xml=path', '--junit-prefix', '--result-log'];
+const argsToExcludeForDiscovery = ['-x', '--exitfirst',
+    '--fixtures-per-test', '--pdb', '--runxfail',
+    '--lf', '--last-failed', '--ff', '--failed-first',
+    '--cache-show', '--cache-clear',
+    '-v', '--verbose', '-q', '-quiet',
+    '--disable-pytest-warnings', '-l', '--showlocals'];
+const settingsInArgsToExcludeForDiscovery = [];
 
 export function discoverTests(rootDirectory: string, args: string[], token: vscode.CancellationToken, ignoreCache: boolean): Promise<Tests> {
     let logOutputLines: string[] = [''];

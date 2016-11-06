@@ -9,16 +9,13 @@ import { PythonSettings } from '../../common/configSettings';
 
 const pythonSettings = PythonSettings.getInstance();
 
-const argsToExcludeForDiscovery = ['-v', '--verbose', 'l DEBUG', '--debug=DEBUG', '-x',
-    '--stop', '--cover-erase', '--cover-tests', '--cover-inclusive', '--cover-html',
-    '--cover-branches', '--cover-xml', '--pdb', '--pdb-failures', '--pdb-errors',
-    '--no-deprecated', '-d', '--detailed-errors', ' --failure-detail', '--process-restartworker',
-    '--with-xunit'];
-const settingsInArgsToExcludeForDiscovery = ['--verbosity', '--debug', '--debug-log',
-    '--logging-format', '--logging-datefmt', '--logging-filter', '--logging-level',
-    '--cover-package', '--cover-min-percentage', '--cover-html-dir', '--cover-xml-file',
-    '--profile-sort', '--profile-stats-file', '--profile-restrict', '--id-file',
-    '--failed', '--processes', '--process-timeout', '--xunit-file', '--xunit-testsuite-name'];
+const argsToExcludeForDiscovery = ['-v', '--verbose',
+    '-q', '--quiet', '-x', '--stop',
+    '--with-coverage', '--cover-erase', '--cover-tests',
+    '--cover-inclusive', '--cover-html', '--cover-branches', '--cover-xml',
+    '--pdb', '--pdb-failures', '--pdb-errors',
+    '--failed', '--process-restartworker', '--with-xunit'];
+const settingsInArgsToExcludeForDiscovery = ['--verbosity'];
 
 export function discoverTests(rootDirectory: string, args: string[], token: CancellationToken): Promise<Tests> {
     let logOutputLines: string[] = [''];
