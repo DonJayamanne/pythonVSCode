@@ -140,6 +140,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
             lintOnSave: false, lintOnTextChange: false, maxNumberOfProblems: 100,
             mypyArgs: [], mypyEnabled: false, mypyPath: 'mypy',
             outputWindow: 'python', pep8Args: [], pep8Enabled: false, pep8Path: 'pep8',
+            pylamaArgs: [], pylamaEnabled: false, pylamaPath: 'pylama',
             prospectorArgs: [], prospectorEnabled: false, prospectorPath: 'prospector',
             pydocstyleArgs: [], pydocstyleEnabled: false, pydocstylePath: 'pydocstyle',
             pylintArgs: [], pylintEnabled: false, pylintPath: 'pylint',
