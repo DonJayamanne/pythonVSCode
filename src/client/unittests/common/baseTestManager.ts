@@ -13,7 +13,9 @@ export abstract class BaseTestManager {
     private cancellationTokenSource: vscode.CancellationTokenSource;
     private installer: Installer;
     protected get cancellationToken(): vscode.CancellationToken {
-        return this.cancellationTokenSource && this.cancellationTokenSource.token;
+        if (this.cancellationTokenSource) {
+            return this.cancellationTokenSource.token;
+        }
     }
     public dispose() {
     }
@@ -63,7 +65,6 @@ export abstract class BaseTestManager {
         let delays = new telemetryHelper.Delays();
         this._status = TestStatus.Discovering;
 
-        this.cancellationTokenSource = new vscode.CancellationTokenSource();
         this.createCancellationToken();
         return this.discoverTestsPromise = this.discoverTestsImpl(ignoreCache)
             .then(tests => {
