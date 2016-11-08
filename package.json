@@ -804,6 +804,24 @@
             "type": "string"
           }
         },
+        "python.linting.pylamaEnabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to lint Python files using pylama."
+        },
+        "python.linting.pylamaPath": {
+          "type": "string",
+          "default": "pylama",
+          "description": "Path to pylama, you can use a custom version of pylama by modifying this setting to include the full path."
+        },
+        "python.linting.pylamaArgs": {
+          "type": "array",
+          "description": "Arguments passed in. Each argument is a separate item in the array.",
+          "default": [],
+          "items": {
+            "type": "string"
+          }
+        },
         "python.unitTest.outputWindow": {
           "type": "string",
           "default": "Python Test Log",
