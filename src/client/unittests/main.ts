@@ -38,9 +38,6 @@ export function activate(context: vscode.ExtensionContext, outputChannel: vscode
 
     settings.addListener('change', onConfigChanged);
     context.subscriptions.push(activateCodeLenses());
-
-    //Swallow rejections (else written to console as unhandled promise rejections)
-    displayPromptToEnableTests(vscode.workspace.rootPath, outChannel).then(() => { }, () => { });
 }
 function dispose() {
     if (pyTestManager) {
