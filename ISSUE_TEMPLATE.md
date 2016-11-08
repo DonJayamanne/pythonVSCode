@@ -1,8 +1,9 @@
 ## Environment data
 VS Code version:  
 Python Extension version:  
+Python Version:   
 OS and version:    
-Your launch.json:  
+Your launch.json (if dealing with debugger issues):  
 ```json
 ```   
 Your settings.json:   
