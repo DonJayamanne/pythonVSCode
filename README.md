@@ -1,7 +1,7 @@
 # Python
 
 An extension with rich support for the [Python language](https://www.python.org/), with features including the following and more:   
-* Linting ([Prospector](https://pypi.io/project/prospector/), [Pylint](https://pypi.io/project/pylint/), [pycodestyle](https://pypi.io/project/pycodestyle/)/Pep8, [Flake8](https://pypi.io/project/flake8/), [pydocstyle](https://pypi.io/project/pydocstyle/) with config files and plugins)
+* Linting ([Prospector](https://pypi.io/project/prospector/), [Pylint](https://pypi.io/project/pylint/), [pycodestyle](https://pypi.io/project/pycodestyle/)/Pep8, [Flake8](https://pypi.io/project/flake8/), [pylama](https://github.com/klen/pylama), [pydocstyle](https://pypi.io/project/pydocstyle/) with config files and plugins)
 * Intellisense (autocompletion with support for PEP-0484)
 * Scientific tools (Jupyter/IPython)
 * Auto indenting
@@ -99,30 +99,14 @@ For further information and details continue through to the [documentation](http
 
 ## [Change Log](https://github.com/DonJayamanne/pythonVSCode/blob/master/CHANGELOG.md)
 
-### Current Version 0.5.0
-* Remove dependency on zmq when using Jupyter or IPython (pure python solution)
-* Added a default keybinding for ```Jupyter:Run Selection/Line``` of ```ctrl+alt+enter```
-* Changes to update settings.json with path to python using [native API](https://github.com/DonJayamanne/pythonVSCode/commit/bce22a2b4af87eaf40669c6360eff3675280cdad)
-* Changes to use [native API](https://github.com/DonJayamanne/pythonVSCode/commit/bce22a2b4af87eaf40669c6360eff3675280cdad) for formatting when saving documents
-* Reusing existing terminal instead of creating new terminals
-* Limiting linter messages to opened documents (hide messages if document is closed) [#375](https://github.com/DonJayamanne/pythonVSCode/issues/375)
-* Resolving extension load errors when  [#375](https://github.com/DonJayamanne/pythonVSCode/issues/375)
-* Fixes to discovering unittests [#386](https://github.com/DonJayamanne/pythonVSCode/issues/386)
-* Fixes to sending code to terminal on Windows [#387](https://github.com/DonJayamanne/pythonVSCode/issues/387)
-* Fixes to executing python file in terminal on Windows [#385](https://github.com/DonJayamanne/pythonVSCode/issues/385)
-* Fixes to launching local help (documentation) on Linux
-* Fixes to typo in configuration documentation [#391](https://github.com/DonJayamanne/pythonVSCode/pull/391)
-* Fixes to use ```python.pythonPath``` when sorting imports  [#393](https://github.com/DonJayamanne/pythonVSCode/pull/393)
-* Fixes to linters to handle situations when line numbers aren't returned [#399](https://github.com/DonJayamanne/pythonVSCode/pull/399)
-* Fixes to signature tooltips when docstring is very long [#368](https://github.com/DonJayamanne/pythonVSCode/issues/368), [#113](https://github.com/DonJayamanne/pythonVSCode/issues/113)
-
 ### Thanks
-* [Igor Novozhilov](https://github.com/IgorNovozhilov)
-    + Fix for autocompletion and code navigation with unicode characters [#372](https://github.com/DonJayamanne/pythonVSCode/issues/372), [#364](https://github.com/DonJayamanne/pythonVSCode/issues/364)
-* [Luca Mussi](https://github.com/splendido)
-    + Fix typo in configuration documentation [#391](https://github.com/DonJayamanne/pythonVSCode/pull/391)
-    + Fix to use ```python.pythonPath``` when sorting imports  [#393](https://github.com/DonJayamanne/pythonVSCode/pull/393)
+* [Thijs Damsma](https://github.com/tdamsma)
+* [Siddhartha Gandhi](https://github.com/gandhis1)
+* [Nobuhiro Nakamura](https://github.com/lefb766)
+* [Water Zheng](https://github.com/zhengxiaoyao0716)
 * [Andris Raugulis](https://github.com/arthepsy)
+* [Igor Novozhilov](https://github.com/IgorNovozhilov)
+* [Luca Mussi](https://github.com/splendido)
 
 ## Source
 
