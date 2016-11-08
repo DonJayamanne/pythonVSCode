@@ -119,6 +119,7 @@ MODULES = []
 BREAK_ON_SYSTEMEXIT_ZERO = False
 DEBUG_STDLIB = False
 DJANGO_DEBUG = False
+IGNORE_DJANGO_TEMPLATE_WARNINGS = False
 
 # Py3k compat - alias unicode to str
 try:
@@ -2289,6 +2290,7 @@ def attach_process_from_socket(sock, debug_options, report = False, block = Fals
 
     BREAK_ON_SYSTEMEXIT_ZERO = 'BreakOnSystemExitZero' in debug_options
     DJANGO_DEBUG = 'DjangoDebugging' in debug_options
+    IGNORE_DJANGO_TEMPLATE_WARNINGS = 'IgnoreDjangoTemplateWarnings' in debug_options
 
     if '' in PREFIXES:
         # If one or more of the prefixes are empty, we can't reliably distinguish stdlib
@@ -2649,6 +2651,9 @@ def _get_source_django_18_or_lower(frame):
         if hasattr(node, 'source'):
             return node.source
         else:
+            if IGNORE_DJANGO_TEMPLATE_WARNINGS:
+                return None
+                
             if IS_DJANGO18:
                 # The debug setting was changed since Django 1.8
                 print("WARNING: Template path is not available. Set the 'debug' option in the OPTIONS of a DjangoTemplates "
@@ -2675,12 +2680,14 @@ def _get_template_file_name(frame):
             return None
         source = _get_source_django_18_or_lower(frame)
         if source is None:
-            print("Source is None\n")
+            if not IGNORE_DJANGO_TEMPLATE_WARNINGS:
+                print("Source is None\n")
             return None
         fname = source[0].name
 
         if fname == '<unknown source>':
-            print("Source name is %s\n" + fname)
+            if not IGNORE_DJANGO_TEMPLATE_WARNINGS:
+                print("Source name is %s\n" + fname)
             return None
         else:
             abs_path_real_path_and_base = get_abs_path_real_path_and_base_from_file(fname)

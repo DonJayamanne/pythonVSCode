@@ -286,7 +286,8 @@
                     "DebugStdLib",
                     "BreakOnSystemExitZero",
                     "DjangoDebugging",
-                    "Sudo"
+                    "Sudo",
+                    "IgnoreDjangoTemplateWarnings"
                   ]
                 },
                 "default": [
