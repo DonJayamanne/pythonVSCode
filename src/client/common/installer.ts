@@ -9,6 +9,7 @@ export enum Product {
     pylint,
     flake8,
     pep8,
+    pylama,
     prospector,
     pydocstyle,
     yapf,
@@ -23,6 +24,7 @@ ProductInstallScripts.set(Product.flake8, ['pip', 'install', 'flake8']);
 ProductInstallScripts.set(Product.mypy, ['pip', 'install', 'mypy-lang']);
 ProductInstallScripts.set(Product.nosetest, ['pip', 'install', 'nose']);
 ProductInstallScripts.set(Product.pep8, ['pip', 'install', 'pep8']);
+ProductInstallScripts.set(Product.pylama, ['pip', 'install', 'pylama']);
 ProductInstallScripts.set(Product.prospector, ['pip', 'install', 'prospector']);
 ProductInstallScripts.set(Product.pydocstyle, ['pip', 'install', 'pydocstyle']);
 ProductInstallScripts.set(Product.pylint, ['pip', 'install', 'pylint']);
@@ -30,7 +32,7 @@ ProductInstallScripts.set(Product.pytest, ['pip', 'install', '-U', 'pytest']);
 ProductInstallScripts.set(Product.yapf, ['pip', 'install', 'yapf']);
 
 
-const Linters: Product[] = [Product.flake8, Product.pep8, Product.prospector, Product.pylint, Product.mypy, Product.pydocstyle];
+const Linters: Product[] = [Product.flake8, Product.pep8, Product.pylama, Product.prospector, Product.pylint, Product.mypy, Product.pydocstyle];
 const Formatters: Product[] = [Product.autopep8, Product.yapf];
 const TestFrameworks: Product[] = [Product.pytest, Product.nosetest, Product.unittest];
 
@@ -40,6 +42,7 @@ ProductNames.set(Product.flake8, 'flake8');
 ProductNames.set(Product.mypy, 'mypy');
 ProductNames.set(Product.nosetest, 'nosetest');
 ProductNames.set(Product.pep8, 'pep8');
+ProductNames.set(Product.pylama, 'pylama');
 ProductNames.set(Product.prospector, 'prospector');
 ProductNames.set(Product.pydocstyle, 'pydocstyle');
 ProductNames.set(Product.pylint, 'pylint');
@@ -52,6 +55,7 @@ SettingToDisableProduct.set(Product.flake8, 'linting.flake8Enabled');
 SettingToDisableProduct.set(Product.mypy, 'linting.mypyEnabled');
 SettingToDisableProduct.set(Product.nosetest, 'unitTest.nosetestsEnabled');
 SettingToDisableProduct.set(Product.pep8, 'linting.pep8Enabled');
+SettingToDisableProduct.set(Product.pylama, 'linting.pylamaEnabled');
 SettingToDisableProduct.set(Product.prospector, 'linting.prospectorEnabled');
 SettingToDisableProduct.set(Product.pydocstyle, 'linting.pydocstyleEnabled');
 SettingToDisableProduct.set(Product.pylint, 'linting.pylintEnabled');

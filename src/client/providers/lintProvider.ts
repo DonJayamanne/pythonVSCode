@@ -6,6 +6,7 @@ import * as linter from '../linters/baseLinter';
 import * as prospector from './../linters/prospector';
 import * as pylint from './../linters/pylint';
 import * as pep8 from './../linters/pep8Linter';
+import * as pylama from './../linters/pylama';
 import * as flake8 from './../linters/flake8';
 import * as pydocstyle from './../linters/pydocstyle';
 import * as mypy from './../linters/mypy';
@@ -71,6 +72,7 @@ export class LintProvider extends vscode.Disposable {
         this.linters.push(new prospector.Linter(this.outputChannel, this.workspaceRootPath));
         this.linters.push(new pylint.Linter(this.outputChannel, this.workspaceRootPath));
         this.linters.push(new pep8.Linter(this.outputChannel, this.workspaceRootPath));
+        this.linters.push(new pylama.Linter(this.outputChannel, this.workspaceRootPath));
         this.linters.push(new flake8.Linter(this.outputChannel, this.workspaceRootPath));
         this.linters.push(new pydocstyle.Linter(this.outputChannel, this.workspaceRootPath));
         this.linters.push(new mypy.Linter(this.outputChannel, this.workspaceRootPath));

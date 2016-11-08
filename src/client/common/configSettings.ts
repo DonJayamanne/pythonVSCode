@@ -48,6 +48,8 @@ export interface ILintingSettings {
     pylintArgs: string[];
     pep8Enabled: boolean;
     pep8Args: string[];
+    pylamaEnabled: boolean;
+    pylamaArgs: string[];
     flake8Enabled: boolean;
     flake8Args: string[];
     pydocstyleEnabled: boolean;
@@ -59,6 +61,7 @@ export interface ILintingSettings {
     prospectorPath: string;
     pylintPath: string;
     pep8Path: string;
+    pylamaPath: string;
     flake8Path: string;
     pydocstylePath: string;
     outputWindow: string;
@@ -137,6 +140,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
             lintOnSave: false, lintOnTextChange: false, maxNumberOfProblems: 100,
             mypyArgs: [], mypyEnabled: false, mypyPath: 'mypy',
             outputWindow: 'python', pep8Args: [], pep8Enabled: false, pep8Path: 'pep8',
+            pylamaArgs: [], pylamaEnabled: false, pylamaPath: 'pylama',
             prospectorArgs: [], prospectorEnabled: false, prospectorPath: 'prospector',
             pydocstyleArgs: [], pydocstyleEnabled: false, pydocstylePath: 'pydocstyle',
             pylintArgs: [], pylintEnabled: false, pylintPath: 'pylint',
@@ -151,6 +155,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         this.linting.pylintPath = getAbsolutePath(this.linting.pylintPath, workspaceRoot);
         this.linting.flake8Path = getAbsolutePath(this.linting.flake8Path, workspaceRoot);
         this.linting.pep8Path = getAbsolutePath(this.linting.pep8Path, workspaceRoot);
+        this.linting.pylamaPath = getAbsolutePath(this.linting.pylamaPath, workspaceRoot);
         this.linting.prospectorPath = getAbsolutePath(this.linting.prospectorPath, workspaceRoot);
         this.linting.pydocstylePath = getAbsolutePath(this.linting.pydocstylePath, workspaceRoot);
 
