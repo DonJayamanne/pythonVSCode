@@ -1,3 +1,36 @@
+## 0.5.1
+* Prompt to install linter if not installed [#255](https://github.com/DonJayamanne/pythonVSCode/issues/255)
+* Prompt to configure and install test framework
+* Added support for pylama [#495](https://github.com/DonJayamanne/pythonVSCode/pull/495)
+* Partial support for PEP484
+* Linting python files when they are opened [#462](https://github.com/DonJayamanne/pythonVSCode/issues/462)
+* Fixes to unit tests discovery [#307](https://github.com/DonJayamanne/pythonVSCode/issues/307),
+[#459](https://github.com/DonJayamanne/pythonVSCode/issues/459)
+* Fixes to intelliense [#438](https://github.com/DonJayamanne/pythonVSCode/issues/438), 
+[#433](https://github.com/DonJayamanne/pythonVSCode/issues/433), 
+[#457](https://github.com/DonJayamanne/pythonVSCode/issues/457), 
+[#436](https://github.com/DonJayamanne/pythonVSCode/issues/436), 
+[#434](https://github.com/DonJayamanne/pythonVSCode/issues/434), 
+[#447](https://github.com/DonJayamanne/pythonVSCode/issues/447), 
+[#448](https://github.com/DonJayamanne/pythonVSCode/issues/448),
+[#293](https://github.com/DonJayamanne/pythonVSCode/issues/293),
+[#381](https://github.com/DonJayamanne/pythonVSCode/pull/381)
+* Supporting additional search paths for interpreters on windows [#446](https://github.com/DonJayamanne/pythonVSCode/issues/446)
+* Fixes to code refactoring [#440](https://github.com/DonJayamanne/pythonVSCode/issues/440), 
+[#467](https://github.com/DonJayamanne/pythonVSCode/issues/467), 
+[#468](https://github.com/DonJayamanne/pythonVSCode/issues/468),
+[#445](https://github.com/DonJayamanne/pythonVSCode/issues/445)
+* Fixes to linters [#463](https://github.com/DonJayamanne/pythonVSCode/issues/463)
+[#439](https://github.com/DonJayamanne/pythonVSCode/issues/439),
+* Bug fix in handling nosetest arguments [#407](https://github.com/DonJayamanne/pythonVSCode/issues/407)
+* Better error handling when linter fails [#402](https://github.com/DonJayamanne/pythonVSCode/issues/402)
+* Restoring extension specific formatting [#421](https://github.com/DonJayamanne/pythonVSCode/issues/421)
+* Fixes to debugger (unwanted breakpoints) [#392](https://github.com/DonJayamanne/pythonVSCode/issues/392), [#379](https://github.com/DonJayamanne/pythonVSCode/issues/379)
+* Support spaces in python path when executing in terminal [#428](https://github.com/DonJayamanne/pythonVSCode/pull/428)
+* Changes to snippets [#429](https://github.com/DonJayamanne/pythonVSCode/pull/429)
+* Marketplace changes [#430](https://github.com/DonJayamanne/pythonVSCode/pull/430)
+* Cleanup and miscellaneous fixes (typos, keyboard bindings and the liks)
+
 ## 0.5.0
 * Remove dependency on zmq when using Jupyter or IPython (pure python solution)
 * Added a default keybinding for ```Jupyter:Run Selection/Line``` of ```ctrl+alt+enter```
