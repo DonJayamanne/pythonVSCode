@@ -192,14 +192,20 @@ function spawnProcess(dir: string) {
 
         logger.log('child_process.spawn in jediProxy', 'Value of pythonSettings.pythonPath is :' + pythonSettings.pythonPath);
         const args = ["completion.py"];
-        if (Array.isArray(pythonSettings.devOptions) &&
-            pythonSettings.devOptions.some(item => item.toUpperCase().trim() === 'USERELEASEAUTOCOMP')) {
-            // Use standard version of jedi library
-            args.push('std');
+        if (typeof pythonSettings.jediPath !== 'string' || pythonSettings.jediPath.length === 0) {
+            if (Array.isArray(pythonSettings.devOptions) &&
+                pythonSettings.devOptions.some(item => item.toUpperCase().trim() === 'USERELEASEAUTOCOMP')) {
+                // Use standard version of jedi library
+                args.push('std');
+            }
+            else {
+                // Use preview version of jedi library
+                args.push('preview');
+            }
         }
         else {
-            // Use preview version of jedi library
-            args.push('preview');
+            args.push('custom');
+            args.push(pythonSettings.jediPath);
         }
         proc = child_process.spawn(pythonSettings.pythonPath, args, {
             cwd: dir,

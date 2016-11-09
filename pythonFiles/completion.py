@@ -408,17 +408,21 @@ class JediCompletion(object):
 
 if __name__ == '__main__':
     jediPreview = False
+    cachePrefix = 'v'
     if len(sys.argv) > 0 and sys.argv[1] == 'preview':
         jediPath = os.path.join(os.path.dirname(__file__), 'preview', 'jedi')
         jediPreview = True
+    elif len(sys.argv) > 0 and sys.argv[1] == 'custom':
+        jediPath = sys.argv[2]
+        jediPreview = True
+        cachePrefix = 'custom_v'
     else:
         jediPath = os.path.join(os.path.dirname(__file__), 'release')
-
     sys.path.insert(0, jediPath)
-    import jedi
+    import jedi    
     if jediPreview:
         jedi.settings.cache_directory = os.path.join(
-            jedi.settings.cache_directory, 'v' + jedi.__version__.replace('.', ''))
+            jedi.settings.cache_directory, cachePrefix + jedi.__version__.replace('.', ''))
     # remove jedi from path after we import it so it will not be completed
     sys.path.pop(0)
     JediCompletion().watch()

@@ -7,6 +7,7 @@ import * as path from 'path';
 
 export interface IPythonSettings {
     pythonPath: string;
+    jediPath: string;
     devOptions: string[];
     linting: ILintingSettings;
     formatting: IFormattingSettings;
@@ -115,6 +116,13 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         let pythonSettings = vscode.workspace.getConfiguration('python');
         this.pythonPath = systemVariables.resolveAny(pythonSettings.get<string>('pythonPath'));
         this.pythonPath = getAbsolutePath(this.pythonPath, IS_TEST_EXECUTION ? __dirname : workspaceRoot);
+        this.jediPath = systemVariables.resolveAny(pythonSettings.get<string>('jediPath'));
+        if (typeof this.jediPath === 'string' && this.jediPath.length > 0) {
+            this.jediPath = getAbsolutePath(this.jediPath, IS_TEST_EXECUTION ? __dirname : workspaceRoot);
+        }
+        else {
+            this.jediPath = '';
+        }
         this.devOptions = systemVariables.resolveAny(pythonSettings.get<any[]>('devOptions'));
         this.devOptions = Array.isArray(this.devOptions) ? this.devOptions : [];
         let lintingSettings = systemVariables.resolveAny(pythonSettings.get<ILintingSettings>('linting'));
@@ -203,7 +211,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
 
         // Support for travis
         this.unitTest = this.unitTest ? this.unitTest : {
-            promptToConfigure:true,
+            promptToConfigure: true,
             nosetestArgs: [], nosetestPath: 'nosetest', nosetestsEnabled: false,
             outputWindow: 'python',
             pyTestArgs: [], pyTestEnabled: false, pyTestPath: 'pytest',
@@ -241,6 +249,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
     }
 
     public pythonPath: string;
+    public jediPath: string;
     public devOptions: string[];
     public linting: ILintingSettings;
     public formatting: IFormattingSettings;
