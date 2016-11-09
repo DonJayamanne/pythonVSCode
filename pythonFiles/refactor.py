@@ -166,12 +166,12 @@ class RopeRefactoring(object):
         self.default_sys_path = sys.path
         self._input = io.open(sys.stdin.fileno(), encoding='utf-8')
 
-    def _rename(self, filePath, start, newName):
+    def _rename(self, filePath, start, newName, indent_size):
         """
         Extracts a variale
         """
         project = rope.base.project.Project(
-            WORKSPACE_ROOT, ropefolder=ROPE_PROJECT_FOLDER, save_history=False)
+            WORKSPACE_ROOT, ropefolder=ROPE_PROJECT_FOLDER, save_history=False, indent_size=indent_size)
         resourceToRefactor = libutils.path_to_resource(project, filePath)
         refactor = RenameRefactor(
             project, resourceToRefactor, startOffset=start, newName=newName)
@@ -183,12 +183,12 @@ class RopeRefactoring(object):
             valueToReturn.append({'diff': change.diff})
         return valueToReturn
 
-    def _extractVariable(self, filePath, start, end, newName):
+    def _extractVariable(self, filePath, start, end, newName, indent_size):
         """
         Extracts a variale
         """
         project = rope.base.project.Project(
-            WORKSPACE_ROOT, ropefolder=ROPE_PROJECT_FOLDER, save_history=False)
+            WORKSPACE_ROOT, ropefolder=ROPE_PROJECT_FOLDER, save_history=False, indent_size=indent_size)
         resourceToRefactor = libutils.path_to_resource(project, filePath)
         refactor = ExtractVariableRefactor(
             project, resourceToRefactor, startOffset=start, endOffset=end, newName=newName, similar=True)
@@ -200,12 +200,12 @@ class RopeRefactoring(object):
             valueToReturn.append({'diff': change.diff})
         return valueToReturn
 
-    def _extractMethod(self, filePath, start, end, newName):
+    def _extractMethod(self, filePath, start, end, newName, indent_size):
         """
         Extracts a method
         """
         project = rope.base.project.Project(
-            WORKSPACE_ROOT, ropefolder=ROPE_PROJECT_FOLDER, save_history=False)
+            WORKSPACE_ROOT, ropefolder=ROPE_PROJECT_FOLDER, save_history=False, indent_size=indent_size)
         resourceToRefactor = libutils.path_to_resource(project, filePath)
         refactor = ExtractMethodRefactor(
             project, resourceToRefactor, startOffset=start, endOffset=end, newName=newName, similar=True)
@@ -244,15 +244,15 @@ class RopeRefactoring(object):
             pass
         elif lookup == 'rename':
             changes = self._rename(request['file'], int(
-                request['start']), request['name'])
+                request['start']), request['name'], int(request['indent_size']))
             return self._write_response(self._serialize(request['id'], changes))
         elif lookup == 'extract_variable':
             changes = self._extractVariable(request['file'], int(
-                request['start']), int(request['end']), request['name'])
+                request['start']), int(request['end']), request['name'], int(request['indent_size']))
             return self._write_response(self._serialize(request['id'], changes))
         elif lookup == 'extract_method':
             changes = self._extractMethod(request['file'], int(
-                request['start']), int(request['end']), request['name'])
+                request['start']), int(request['end']), request['name'], int(request['indent_size']))
             return self._write_response(self._serialize(request['id'], changes))
 
     def _write_response(self, response):

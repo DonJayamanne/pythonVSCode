@@ -35,7 +35,7 @@ export function extractVariable(extensionDir: string, textEditor: vscode.TextEdi
     return validateDocumentForRefactor(textEditor).then(() => {
         let newName = 'newvariable' + new Date().getMilliseconds().toString();
         let proxy = new RefactorProxy(extensionDir, pythonSettings, workspaceRoot);
-        let rename = proxy.extractVariable<RenameResponse>(textEditor.document, newName, textEditor.document.uri.fsPath, range).then(response => {
+        let rename = proxy.extractVariable<RenameResponse>(textEditor.document, newName, textEditor.document.uri.fsPath, range, textEditor.options).then(response => {
             return response.results[0].diff;
         });
 
@@ -51,7 +51,7 @@ export function extractMethod(extensionDir: string, textEditor: vscode.TextEdito
     return validateDocumentForRefactor(textEditor).then(() => {
         let newName = 'newmethod' + new Date().getMilliseconds().toString();
         let proxy = new RefactorProxy(extensionDir, pythonSettings, workspaceRoot);
-        let rename = proxy.extractMethod<RenameResponse>(textEditor.document, newName, textEditor.document.uri.fsPath, range).then(response => {
+        let rename = proxy.extractMethod<RenameResponse>(textEditor.document, newName, textEditor.document.uri.fsPath, range, textEditor.options).then(response => {
             return response.results[0].diff;
         });
 
