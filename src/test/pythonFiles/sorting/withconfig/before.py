@@ -1,10 +1,3 @@
-from third_party import lib0
-from third_party import lib1
-from third_party import lib2
-from third_party import lib3
-from third_party import lib4
-from third_party import lib5
-from third_party import lib6
-from third_party import lib7
-from third_party import lib8
-from third_party import lib9
+from third_party import (lib1, lib2, lib3,
+                         lib4, lib5, lib6,
+                         lib7, lib8, lib9)

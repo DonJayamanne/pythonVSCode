@@ -42,6 +42,8 @@
     "onCommand:python.viewTestUI",
     "onCommand:python.viewTestOutput",
     "onCommand:python.selectAndRunTestMethod",
+    "onCommand:python.selectAndRunTestFile",
+    "onCommand:python.runCurrentTestFile",
     "onCommand:python.runFailedTests",
     "onCommand:python.execSelectionInTerminal",
     "onCommand:jupyter.runSelectionLine",
@@ -126,6 +128,16 @@
       {
         "command": "python.selectAndRunTestMethod",
         "title": "Run Unit Test Method ...",
+        "category": "Python"
+      },
+      {
+        "command": "python.selectAndRunTestFile",
+        "title": "Run Unit Test File ...",
+        "category": "Python"
+      },
+      {
+        "command": "python.runCurrentTestFile",
+        "title": "Run Current Unit Test File",
         "category": "Python"
       },
       {
