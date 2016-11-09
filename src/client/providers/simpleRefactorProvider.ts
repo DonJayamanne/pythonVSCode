@@ -1,9 +1,9 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import {RefactorProxy} from '../refactor/proxy';
-import {getTextEditsFromPatch} from '../common/editor';
-import {PythonSettings, IPythonSettings} from '../common/configSettings';
+import { RefactorProxy } from '../refactor/proxy';
+import { getTextEditsFromPatch } from '../common/editor';
+import { PythonSettings, IPythonSettings } from '../common/configSettings';
 
 interface RenameResponse {
     results: [{ diff: string }];
@@ -31,26 +31,49 @@ export function activateSimplePythonRefactorProvider(context: vscode.ExtensionCo
 export function extractVariable(extensionDir: string, textEditor: vscode.TextEditor, range: vscode.Range,
     outputChannel: vscode.OutputChannel, workspaceRoot: string = vscode.workspace.rootPath,
     pythonSettings: IPythonSettings = PythonSettings.getInstance()): Promise<any> {
-    let newName = 'newvariable' + new Date().getMilliseconds().toString();
-    let proxy = new RefactorProxy(extensionDir, pythonSettings, workspaceRoot);
-    let rename = proxy.extractVariable<RenameResponse>(textEditor.document, newName, textEditor.document.uri.fsPath, range).then(response => {
-        return response.results[0].diff;
-    });
 
-    return extractName(extensionDir, textEditor, range, newName, rename, outputChannel);
+    return validateDocumentForRefactor(textEditor).then(() => {
+        let newName = 'newvariable' + new Date().getMilliseconds().toString();
+        let proxy = new RefactorProxy(extensionDir, pythonSettings, workspaceRoot);
+        let rename = proxy.extractVariable<RenameResponse>(textEditor.document, newName, textEditor.document.uri.fsPath, range).then(response => {
+            return response.results[0].diff;
+        });
+
+        return extractName(extensionDir, textEditor, range, newName, rename, outputChannel);
+    });
 }
 
 // Exported for unit testing
 export function extractMethod(extensionDir: string, textEditor: vscode.TextEditor, range: vscode.Range,
     outputChannel: vscode.OutputChannel, workspaceRoot: string = vscode.workspace.rootPath,
     pythonSettings: IPythonSettings = PythonSettings.getInstance()): Promise<any> {
-    let newName = 'newmethod' + new Date().getMilliseconds().toString();
-    let proxy = new RefactorProxy(extensionDir, pythonSettings, workspaceRoot);
-    let rename = proxy.extractMethod<RenameResponse>(textEditor.document, newName, textEditor.document.uri.fsPath, range).then(response => {
-        return response.results[0].diff;
-    });
 
-    return extractName(extensionDir, textEditor, range, newName, rename, outputChannel);
+    return validateDocumentForRefactor(textEditor).then(() => {
+        let newName = 'newmethod' + new Date().getMilliseconds().toString();
+        let proxy = new RefactorProxy(extensionDir, pythonSettings, workspaceRoot);
+        let rename = proxy.extractMethod<RenameResponse>(textEditor.document, newName, textEditor.document.uri.fsPath, range).then(response => {
+            return response.results[0].diff;
+        });
+
+        return extractName(extensionDir, textEditor, range, newName, rename, outputChannel);
+    });
+}
+
+function validateDocumentForRefactor(textEditor: vscode.TextEditor): Promise<any> {
+    if (!textEditor.document.isDirty) {
+        return Promise.resolve();
+    }
+
+    return new Promise<any>((resolve, reject) => {
+        vscode.window.showInformationMessage('Please save changes before refactoring', 'Save').then(item => {
+            if (item === 'Save') {
+                textEditor.document.save().then(resolve, reject);
+            }
+            else {
+                return reject();
+            }
+        });
+    });
 }
 
 function extractName(extensionDir: string, textEditor: vscode.TextEditor, range: vscode.Range, newName: string,
@@ -90,9 +113,9 @@ function extractName(extensionDir: string, textEditor: vscode.TextEditor, range:
             return newWordPosition;
         }
         return null;
-    }).then(newWordPosition => {        
+    }).then(newWordPosition => {
         if (newWordPosition) {
-            return textEditor.document.save().then(()=>{
+            return textEditor.document.save().then(() => {
                 // Now that we have selected the new variable, lets invoke the rename command
                 return vscode.commands.executeCommand('editor.action.rename');
             });
