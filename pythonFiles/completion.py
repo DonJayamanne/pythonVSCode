@@ -410,7 +410,7 @@ if __name__ == '__main__':
     jediPreview = False
     cachePrefix = 'v'
     if len(sys.argv) > 0 and sys.argv[1] == 'preview':
-        jediPath = os.path.join(os.path.dirname(__file__), 'preview', 'jedi')
+        jediPath = os.path.join(os.path.dirname(__file__), 'preview')
         jediPreview = True
     elif len(sys.argv) > 0 and sys.argv[1] == 'custom':
         jediPath = sys.argv[2]
