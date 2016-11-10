@@ -61,7 +61,7 @@
         "extensions": [
           ".log"
         ],
-        "configuration": "./src/syntaxes/test.configuration.json",
+        "configuration": "./syntaxes/test.configuration.json",
         "mimetypes": [
           "text/x-code-output"
         ]
@@ -71,7 +71,7 @@
       {
         "language": "testOutput",
         "scopeName": "testOutput.log",
-        "path": "./src/syntaxes/test.tmLanguage"
+        "path": "./syntaxes/test.tmLanguage"
       }
     ],
     "snippets": [
