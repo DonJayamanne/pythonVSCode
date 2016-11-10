@@ -1,3 +1,12 @@
+## 0.5.2
+* Fix issue with mypy linter [#505](https://github.com/DonJayamanne/pythonVSCode/issues/505)
+* Fix auto completion for files with different encodings [#496](https://github.com/DonJayamanne/pythonVSCode/issues/496)
+* Disable warnings when debugging Django version prior to 1.8 [#479](https://github.com/DonJayamanne/pythonVSCode/issues/479)
+* Prompt to save changes when refactoring without saving any changes [#441](https://github.com/DonJayamanne/pythonVSCode/issues/441)
+* Prompt to save changes when renaminv without saving any changes [#443](https://github.com/DonJayamanne/pythonVSCode/issues/443)
+* Use editor indentation size when refactoring code [#442](https://github.com/DonJayamanne/pythonVSCode/issues/442)
+* Add support for custom jedi paths [#500](https://github.com/DonJayamanne/pythonVSCode/issues/500)
+
 ## 0.5.1
 * Prompt to install linter if not installed [#255](https://github.com/DonJayamanne/pythonVSCode/issues/255)
 * Prompt to configure and install test framework
