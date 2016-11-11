@@ -21,10 +21,6 @@ Output from ```Console window``` (Help->Developer Tools menu)
 
 ## Expected  behavior
 
-
-## Actual behavior
-
-
 ## Steps to reproduce:  
 -  
 -  
