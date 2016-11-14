@@ -8,8 +8,8 @@ import { extractHoverInfo} from './jediHelpers';
 export class PythonHoverProvider implements vscode.HoverProvider {
     private jediProxyHandler: proxy.JediProxyHandler<proxy.ICompletionResult, vscode.Hover>;
 
-    public constructor(context: vscode.ExtensionContext) {
-        this.jediProxyHandler = new proxy.JediProxyHandler(context);
+    public constructor(context: vscode.ExtensionContext, jediProxy: proxy.JediProxy = null) {
+        this.jediProxyHandler = new proxy.JediProxyHandler(context, jediProxy);
     }
     public provideHover(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): Thenable<vscode.Hover> {
         var filename = document.fileName;

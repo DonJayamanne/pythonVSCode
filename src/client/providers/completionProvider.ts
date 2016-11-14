@@ -9,8 +9,8 @@ import { EOL } from 'os';
 export class PythonCompletionItemProvider implements vscode.CompletionItemProvider {
     private jediProxyHandler: proxy.JediProxyHandler<proxy.ICompletionResult, vscode.CompletionItem[]>;
 
-    public constructor(context: vscode.ExtensionContext) {
-        this.jediProxyHandler = new proxy.JediProxyHandler(context);
+    public constructor(context: vscode.ExtensionContext, jediProxy: proxy.JediProxy = null) {
+        this.jediProxyHandler = new proxy.JediProxyHandler(context, jediProxy);
     }
     private static parseData(data: proxy.ICompletionResult): vscode.CompletionItem[] {
         if (data && data.items.length > 0) {
