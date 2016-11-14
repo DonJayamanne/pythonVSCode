@@ -12,7 +12,7 @@ import { CancellationToken } from 'vscode';
 import { isNotInstalledError } from './helpers';
 
 export const IS_WINDOWS = /^win/.test(process.platform);
-const PATH_VARIABLE_NAME = IS_WINDOWS ? 'Path' : 'PATH';
+export const PATH_VARIABLE_NAME = IS_WINDOWS ? 'Path' : 'PATH';
 
 const PathValidity: Map<string, boolean> = new Map<string, boolean>();
 export function validatePath(filePath: string): Promise<string> {
