@@ -1,5 +1,6 @@
 import * as Types from './types';
 import * as vscode from 'vscode';
+import * as Path from 'path';
 
 /**
  * An interface for a JavaScript object that
@@ -131,11 +132,13 @@ export abstract class AbstractSystemVariables implements ISystemVariables {
 
 export class SystemVariables extends AbstractSystemVariables {
     private _workspaceRoot: string;
+    private _workspaceRootFolderName: string;
     private _execPath: string;
 
     constructor() {
         super();
         this._workspaceRoot = vscode.workspace.rootPath;
+        this._workspaceRootFolderName = Path.basename(this._workspaceRoot);
         Object.keys(process.env).forEach(key => {
             this[`env.${key}`] = process.env[key];
         });
@@ -147,5 +150,9 @@ export class SystemVariables extends AbstractSystemVariables {
 
     public get workspaceRoot(): string {
         return this._workspaceRoot;
+    }
+
+    public get workspaceRootFolderName(): string {
+        return this._workspaceRootFolderName;
     }
 }
