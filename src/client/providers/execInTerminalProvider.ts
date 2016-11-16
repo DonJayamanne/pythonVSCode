@@ -4,7 +4,7 @@ import * as settings from '../common/configSettings';
 import { Commands, PythonLanguage } from '../common/constants';
 let path = require('path');
 let terminal: vscode.Terminal;
-import {IS_WINDOWS} from '../common/utils';
+import { IS_WINDOWS } from '../common/utils';
 
 export function activateExecInTerminalProvider(): vscode.Disposable[] {
     const disposables: vscode.Disposable[] = [];
@@ -50,8 +50,8 @@ function execInTerminal(fileUri?: vscode.Uri) {
     }
     terminal = terminal ? terminal : vscode.window.createTerminal(`Python`);
     if (pythonSettings.terminal && pythonSettings.terminal.executeInFileDir) {
-        const fileDirPath = path.dirname(filePath).substring(1);
-        if (fileDirPath !== vscode.workspace.rootPath) {
+        const fileDirPath = path.dirname(filePath);
+        if (fileDirPath !== vscode.workspace.rootPath && fileDirPath.substring(1) !== vscode.workspace.rootPath) {
             terminal.sendText(`cd "${fileDirPath}"`);
         }
     }
@@ -59,7 +59,7 @@ function execInTerminal(fileUri?: vscode.Uri) {
     const launchArgsString = launchArgs.length > 0 ? " ".concat(launchArgs.join(" ")) : "";
     if (IS_WINDOWS) {
         const cmd = `"${currentPythonPath}"${launchArgsString} ${filePath}`;
-        terminal.sendText(cmd.replace(/\\/g,"/"));
+        terminal.sendText(cmd.replace(/\\/g, "/"));
     }
     else {
         terminal.sendText(`${currentPythonPath}${launchArgsString} ${filePath}`);
@@ -89,7 +89,7 @@ function execSelectionInTerminal() {
         terminal.sendText(code);
     }
     else {
-        terminal.sendText(`${currentPythonPath}${launchArgsString} -c "${code}"`);        
+        terminal.sendText(`${currentPythonPath}${launchArgsString} -c "${code}"`);
     }
     terminal.show();
 }
