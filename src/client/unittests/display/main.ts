@@ -63,7 +63,7 @@ export class TestResultDisplay {
         this.statusBar.color = foreColor;
         this.statusBar.command = constants.Commands.Tests_View_UI;
 
-        if (statusText.length === 0){
+        if (statusText.length === 0) {
             vscode.window.showWarningMessage('No tests ran, please check the configuration settings for the tests.');
         }
         return tests;
@@ -123,9 +123,9 @@ export class TestResultDisplay {
     private updateWithDiscoverSuccess(tests: Tests) {
         this.clearProgressTicker();
         const haveTests = tests && (tests.testFunctions.length > 0);
-        this.statusBar.text = haveTests ? '$(zap) Run Tests' : 'No Tests';
-        this.statusBar.tooltip = haveTests ? 'Run Tests' : 'No Tests discovered';
-        this.statusBar.command = haveTests ? constants.Commands.Tests_View_UI : constants.Commands.Tests_Discover;
+        this.statusBar.text = '$(zap) Run Tests';
+        this.statusBar.tooltip = 'Run Tests';
+        this.statusBar.command = constants.Commands.Tests_View_UI;
         this.statusBar.show();
 
         if (!haveTests) {

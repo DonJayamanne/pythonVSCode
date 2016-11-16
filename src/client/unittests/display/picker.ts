@@ -1,7 +1,7 @@
-import {QuickPickItem, window} from 'vscode';
+import { QuickPickItem, window } from 'vscode';
 import * as vscode from 'vscode';
-import {Tests, TestsToRun, TestFolder, TestFile, TestFunction, TestSuite, FlattenedTestFunction, TestStatus} from '../common/contracts';
-import {getDiscoveredTests} from '../common/testUtils';
+import { Tests, TestFunction, FlattenedTestFunction, TestStatus } from '../common/contracts';
+import { getDiscoveredTests } from '../common/testUtils';
 import * as constants from '../../common/constants';
 import * as path from 'path';
 
@@ -13,7 +13,7 @@ export class TestDisplay {
             if (item === message) {
                 vscode.commands.executeCommand(constants.Commands.Tests_Stop);
             }
-        })
+        });
     }
     public displayTestUI(rootDirectory: string) {
         const tests = getDiscoveredTests();
@@ -93,6 +93,9 @@ function getSummary(tests?: Tests) {
 function buildItems(rootDirectory: string, tests?: Tests): TestItem[] {
     const items: TestItem[] = [];
     items.push({ description: '', label: 'Run All Unit Tests', type: Type.RunAll });
+    if (!tests || tests.testFiles.length === 0){
+        items.push({ description: '', label: 'Discover Unit Tests', type: Type.ReDiscover });
+    }
     items.push({ description: '', label: 'Run Unit Test Method ...', type: Type.SelectAndRunMethod });
 
     let summary = getSummary(tests);
@@ -114,7 +117,6 @@ statusSortPrefix[TestStatus.Pass] = '4';
 function buildItemsForFunctions(rootDirectory: string, tests: FlattenedTestFunction[], sortBasedOnResults: boolean = false, displayStatusIcons: boolean = false): TestItem[] {
     let functionItems: TestItem[] = [];
     tests.forEach(fn => {
-        const classPrefix = fn.parentTestSuite ? fn.parentTestSuite.name + '.' : '';
         let icon = '';
         if (displayStatusIcons && statusIconMapping.has(fn.testFunction.status)) {
             icon = `${statusIconMapping.get(fn.testFunction.status)} `;
