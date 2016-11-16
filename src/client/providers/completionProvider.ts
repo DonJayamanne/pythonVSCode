@@ -5,6 +5,9 @@ import * as proxy from './jediProxy';
 import * as telemetryContracts from '../common/telemetryContracts';
 import { extractSignatureAndDocumentation } from './jediHelpers';
 import { EOL } from 'os';
+import { PythonSettings } from '../common/configSettings';
+
+const pythonSettings = PythonSettings.getInstance();
 
 export class PythonCompletionItemProvider implements vscode.CompletionItemProvider {
     private jediProxyHandler: proxy.JediProxyHandler<proxy.ICompletionResult, vscode.CompletionItem[]>;
@@ -20,6 +23,10 @@ export class PythonCompletionItemProvider implements vscode.CompletionItemProvid
                 completionItem.kind = item.type;
                 completionItem.documentation = sigAndDocs[1].length === 0 ? item.description : sigAndDocs[1];
                 completionItem.detail = sigAndDocs[0].split(EOL).join('');
+                if (pythonSettings.autoComplete.addBrackets === true &&
+                    (item.kind === vscode.SymbolKind.Function || item.kind === vscode.SymbolKind.Method)) {
+                    completionItem.insertText = item.text + '({{}})';
+                }
 
                 // ensure the built in memebers are at the bottom
                 completionItem.sortText = (completionItem.label.startsWith('__') ? 'z' : (completionItem.label.startsWith('_') ? 'y' : '__')) + completionItem.label;

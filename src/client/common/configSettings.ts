@@ -80,6 +80,7 @@ export interface IFormattingSettings {
     outputWindow: string;
 }
 export interface IAutoCompeteSettings {
+    addBrackets: boolean;
     extraPaths: string[];
 }
 export interface ITerminalSettings {
@@ -194,7 +195,8 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         }
         // Support for travis
         this.autoComplete = this.autoComplete ? this.autoComplete : {
-            extraPaths: []
+            extraPaths: [],
+            addBrackets: false
         };
 
         let unitTestSettings = systemVariables.resolveAny(pythonSettings.get<IUnitTestSettings>('unitTest'));

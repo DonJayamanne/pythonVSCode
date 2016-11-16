@@ -776,6 +776,11 @@
           "default": [],
           "description": "List of paths to libraries and the like that need to be imported by auto complete engine. E.g. when using Google App SDK, the paths are not in system path, hence need to be added into this list."
         },
+        "python.autoComplete.addBrackets": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically add brackets for functions."
+        },
         "python.unitTest.promptToConfigure": {
           "type": "boolean",
           "default": true,
