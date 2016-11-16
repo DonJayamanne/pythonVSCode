@@ -82,6 +82,9 @@ export class PythonDebugger extends DebugSession {
 
     private startDebugServer(): Promise<IDebugServer> {
         let programDirectory = this.launchArgs ? path.dirname(this.launchArgs.program) : this.attachArgs.localRoot;
+        if (typeof this.launchArgs.cwd === 'string' && this.launchArgs.cwd.length > 0) {
+            programDirectory = this.launchArgs.cwd;
+        }
         this.pythonProcess = new PythonProcess(0, "", programDirectory);
         this.debugServer = this.debugClient.CreateDebugServer(this.pythonProcess);
         this.InitializeEventHandlers();
@@ -178,8 +181,16 @@ export class PythonDebugger extends DebugSession {
     }
     protected launchRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments): void {
         // Confirm the file exists
-        if (!fs.existsSync(args.program)) {
-            return this.sendErrorResponse(response, 2001, `File does not exist. "${args.program}"`);
+        if (typeof args.module !== 'string' || args.module.length === 0) {
+            if (!fs.existsSync(args.program)) {
+                return this.sendErrorResponse(response, 2001, `File does not exist. "${args.program}"`);
+            }
+        }
+        else {
+            // When using modules ensure the cwd has been provided
+            if (typeof args.cwd !== 'string' || args.cwd.length === 0){
+                return this.sendErrorResponse(response, 2001, `'cwd' in 'launch.json' needs to point to the working directory`);
+            }
         }
         this.sendEvent(new TelemetryEvent(telemetryContracts.Debugger.Load, {
             Debug_Console: args.console,
