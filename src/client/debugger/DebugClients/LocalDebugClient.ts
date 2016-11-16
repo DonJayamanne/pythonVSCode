@@ -181,6 +181,9 @@ export class LocalDebugClient extends DebugClient {
         }
 
         let programArgs = Array.isArray(this.args.args) && this.args.args.length > 0 ? this.args.args : [];
+        if (typeof this.args.module === 'string' && this.args.module.length > 0) {
+            return [vsDebugOptions, '-m', this.args.module].concat(programArgs);
+        }
         return [vsDebugOptions, this.args.program].concat(programArgs);
         // Use this ability to debug unit tests or modules
         // Adding breakpoints programatically to the first executable line of the test program

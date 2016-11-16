@@ -232,6 +232,11 @@
               "program"
             ],
             "properties": {
+              "module": {
+                "type": "string",
+                "description": "Name of the module to be debugged.",
+                "default": ""
+              },
               "program": {
                 "type": "string",
                 "description": "Absolute path to the program.",
@@ -374,6 +379,21 @@
             "stopOnEntry": true,
             "pythonPath": "${config.python.pythonPath}",
             "program": "${file}",
+            "cwd": "null",
+            "debugOptions": [
+              "WaitOnAbnormalExit",
+              "WaitOnNormalExit",
+              "RedirectOutput"
+            ]
+          },
+          {
+            "name": "Python Module",
+            "type": "python",
+            "request": "launch",
+            "stopOnEntry": true,
+            "pythonPath": "${config.python.pythonPath}",
+            "module": "module.name",
+            "cwd": "${workspaceRoot}",
             "debugOptions": [
               "WaitOnAbnormalExit",
               "WaitOnNormalExit",
@@ -387,6 +407,7 @@
             "stopOnEntry": true,
             "pythonPath": "${config.python.pythonPath}",
             "program": "${file}",
+            "cwd": "null",
             "console": "integratedTerminal",
             "debugOptions": [
               "WaitOnAbnormalExit",
@@ -400,6 +421,7 @@
             "stopOnEntry": true,
             "pythonPath": "${config.python.pythonPath}",
             "program": "${file}",
+            "cwd": "null",
             "console": "externalTerminal",
             "debugOptions": [
               "WaitOnAbnormalExit",
@@ -413,6 +435,7 @@
             "stopOnEntry": true,
             "pythonPath": "${config.python.pythonPath}",
             "program": "${workspaceRoot}/manage.py",
+            "cwd": "null",
             "args": [
               "runserver",
               "--noreload"
@@ -431,6 +454,7 @@
             "stopOnEntry": false,
             "pythonPath": "${config.python.pythonPath}",
             "program": "fully qualified path fo 'flask' executable. Generally located along with python interpreter",
+            "cwd": "null",
             "env": {
               "FLASK_APP": "${workspaceRoot}/quickstart/app.py"
             },
@@ -452,6 +476,7 @@
             "stopOnEntry": false,
             "pythonPath": "${config.python.pythonPath}",
             "program": "${workspaceRoot}/run.py",
+            "cwd": "null",
             "args": [],
             "debugOptions": [
               "WaitOnAbnormalExit",
@@ -466,6 +491,7 @@
             "stopOnEntry": true,
             "pythonPath": "${config.python.pythonPath}",
             "program": "${workspaceRoot}/console.py",
+            "cwd": "null",
             "args": [
               "dev",
               "runserver",
