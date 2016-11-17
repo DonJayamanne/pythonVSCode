@@ -98,6 +98,7 @@ export function runTest(testManager: BaseTestManager, rootDirectory: string, tes
             if (debug === true) {
                 const def = createDeferred<any>();
                 const launchDef = createDeferred<any>();
+                let outputChannelShown = false;
 
                 // start the debug adapter only once we have started the debug process
                 execPythonFile(settings.pythonPath, [testLauncherFile].concat(testArgs), rootDirectory, true, (data: string) => {
@@ -106,6 +107,10 @@ export function runTest(testManager: BaseTestManager, rootDirectory: string, tes
                         launchDef.resolve();
                     }
                     else {
+                        if (!outputChannelShown) {
+                            outputChannelShown = true;
+                            outChannel.show();
+                        }
                         outChannel.append(data);
                     }
                 }, token).catch(reason => {
