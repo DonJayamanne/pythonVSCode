@@ -1,3 +1,6 @@
+## 0.5.3
+* Debugging unittests (UnitTest, pytest, nose) 
+
 ## 0.5.2
 * Fix issue with mypy linter [#505](https://github.com/DonJayamanne/pythonVSCode/issues/505)
 * Fix auto completion for files with different encodings [#496](https://github.com/DonJayamanne/pythonVSCode/issues/496)
