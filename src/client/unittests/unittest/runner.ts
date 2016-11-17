@@ -84,11 +84,9 @@ export function runTest(testManager: BaseTestManager, rootDirectory: string, tes
             failFast = testArgs.indexOf('--uf') >= 0;
             testArgs = testArgs.filter(arg => arg !== '--uf');
 
+            testArgs.push(`--result-port=${port}`);
             if (debug === true) {
                 testArgs.push(...[`--secret=my_secret`, `--port=3000`]);
-            }
-            else {
-                testArgs.push(`--result-port=${port}`);
             }
             testArgs.push(`--us=${startTestDiscoveryDirectory}`);
             if (testId.length > 0) {
