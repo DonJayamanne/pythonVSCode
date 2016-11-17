@@ -235,6 +235,9 @@ def main():
         DEBUG_ENTRYPOINTS.add(get_code(main))
 
         enable_attach(opts.secret, ('127.0.0.1', getattr(opts, 'port', DEFAULT_PORT)), redirect_output = True)
+        sys.stdout.flush()
+        print('READY')
+        sys.stdout.flush()
         wait_for_attach()
     elif opts.mixed_mode:
         # For mixed-mode attach, there's no ptvsd and hence no wait_for_attach(), 
@@ -312,7 +315,7 @@ def main():
         if opts.uf is not None:
             runner = unittest.TextTestRunner(verbosity=opts.uvInt, resultclass=VsTestResult, failfast=True)
         else:
-            runner = unittest.TextTestRunner(verbosity=opts.uvInt, resultclass=VsTestResult)  
+            runner = unittest.TextTestRunner(verbosity=opts.uvInt, resultclass=VsTestResult)
         result = runner.run(tests)
         sys.exit(not result.wasSuccessful())
     finally:

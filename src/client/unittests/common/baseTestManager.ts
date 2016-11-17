@@ -123,10 +123,10 @@ export abstract class BaseTestManager {
                 return Promise.reject(reason);
             });
     }
-    abstract discoverTestsImpl(ignoreCache: boolean): Promise<Tests>;
-    public runTest(testsToRun?: TestsToRun): Promise<Tests>;
-    public runTest(runFailedTests?: boolean): Promise<Tests>;
-    public runTest(args: any): Promise<Tests> {
+    abstract discoverTestsImpl(ignoreCache: boolean, debug?: boolean): Promise<Tests>;
+    public runTest(testsToRun?: TestsToRun, debug?: boolean): Promise<Tests>;
+    public runTest(runFailedTests?: boolean, debug?: boolean): Promise<Tests>;
+    public runTest(args: any, debug?: boolean): Promise<Tests> {
         let runFailedTests = false;
         let testsToRun: TestsToRun = null;
         let moreInfo = {
@@ -177,7 +177,7 @@ export abstract class BaseTestManager {
                 };
             })
             .then(tests => {
-                return this.runTestImpl(tests, testsToRun, runFailedTests);
+                return this.runTestImpl(tests, testsToRun, runFailedTests, debug);
             }).then(() => {
                 this._status = TestStatus.Idle;
                 this.disposeCancellationToken();
@@ -198,5 +198,5 @@ export abstract class BaseTestManager {
                 return Promise.reject(reason);
             });
     }
-    abstract runTestImpl(tests: Tests, testsToRun?: TestsToRun, runFailedTests?: boolean): Promise<any>;
+    abstract runTestImpl(tests: Tests, testsToRun?: TestsToRun, runFailedTests?: boolean, debug?: boolean): Promise<any>;
 }

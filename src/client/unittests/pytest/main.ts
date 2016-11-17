@@ -16,7 +16,7 @@ export class TestManager extends BaseTestManager {
         let args = settings.unitTest.pyTestArgs.slice(0);
         return discoverTests(this.rootDirectory, args, this.cancellationToken, ignoreCache);
     }
-    runTestImpl(tests: Tests, testsToRun?: TestsToRun, runFailedTests?: boolean): Promise<any> {
+    runTestImpl(tests: Tests, testsToRun?: TestsToRun, runFailedTests?: boolean, debug?: boolean): Promise<any> {
         let args = settings.unitTest.pyTestArgs.slice(0);
         if (runFailedTests === true && args.indexOf('--lf') === -1 && args.indexOf('--last-failed') === -1) {
             args.push('--last-failed');

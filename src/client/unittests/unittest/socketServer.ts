@@ -2,9 +2,9 @@
 import * as net from 'net';
 import * as fs from 'fs';
 import * as os from 'os';
-import {Disposable} from 'vscode';
-import {createDeferred, Deferred} from '../../common/helpers';
-import {EventEmitter} from 'events';
+import { Disposable } from 'vscode'
+import { createDeferred, Deferred } from '../../common/helpers';
+import { EventEmitter } from 'events';
 
 const MaxConnections = 100;
 
@@ -41,7 +41,7 @@ export class Server extends EventEmitter implements Disposable {
         }
     }
     public start(): Promise<number> {
-        this.startedDef = createDeferred<number>();
+        this.startedDef = createDeferred<number>()
         fs.unlink(this.path, () => {
             this.server = net.createServer(this.connectionListener.bind(this));
             this.server.maxConnections = MaxConnections;

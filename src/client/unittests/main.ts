@@ -59,13 +59,16 @@ function registerCommands(): vscode.Disposable[] {
     }));
     disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Run_Failed, () => runTestsImpl(true)));
     disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Run, (testId) => runTestsImpl(testId)));
+    disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Debug, (testId) => runTestsImpl(testId, true)));
     disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_View_UI, () => displayUI()));
     disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Picker_UI, (file, testFunctions) => displayPickerUI(file, testFunctions)));
+    disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Picker_UI_Debug, (file, testFunctions) => displayPickerUI(file, testFunctions, true)));
     disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Stop, () => stopTests()));
     disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_ViewOutput, () => outChannel.show()));
     disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Ask_To_Stop_Discovery, () => displayStopUI('Stop discovering tests')));
     disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Ask_To_Stop_Test, () => displayStopUI('Stop running tests')));
     disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Select_And_Run_Method, () => selectAndRunTestMethod()));
+    disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Select_And_Debug_Method, () => selectAndRunTestMethod(true)));
 
     return disposables;
 }
@@ -79,16 +82,16 @@ function displayUI() {
     testDisplay = testDisplay ? testDisplay : new TestDisplay();
     testDisplay.displayTestUI(vscode.workspace.rootPath);
 }
-function displayPickerUI(file: string, testFunctions: TestFunction[]) {
+function displayPickerUI(file: string, testFunctions: TestFunction[], debug?: boolean) {
     let testManager = getTestRunner();
     if (!testManager) {
         return displayTestFrameworkError(outChannel);
     }
 
     testDisplay = testDisplay ? testDisplay : new TestDisplay();
-    testDisplay.displayFunctionTestPickerUI(vscode.workspace.rootPath, file, testFunctions);
+    testDisplay.displayFunctionTestPickerUI(vscode.workspace.rootPath, file, testFunctions, debug);
 }
-function selectAndRunTestMethod() {
+function selectAndRunTestMethod(debug?: boolean) {
     let testManager = getTestRunner();
     if (!testManager) {
         return displayTestFrameworkError(outChannel);
@@ -97,7 +100,7 @@ function selectAndRunTestMethod() {
         const tests = getDiscoveredTests();
         testDisplay = testDisplay ? testDisplay : new TestDisplay();
         testDisplay.selectTestFunction(vscode.workspace.rootPath, tests).then(testFn => {
-            runTestsImpl(testFn);
+            runTestsImpl(testFn, debug);
         }).catch(() => { });
     });
 }
@@ -223,7 +226,7 @@ function identifyTestType(rootDirectory: string, arg?: vscode.Uri | TestsToRun |
     }
     return null;
 }
-function runTestsImpl(arg?: vscode.Uri | TestsToRun | boolean | FlattenedTestFunction) {
+function runTestsImpl(arg?: vscode.Uri | TestsToRun | boolean | FlattenedTestFunction, debug: boolean = false) {
     let testManager = getTestRunner();
     if (!testManager) {
         return displayTestFrameworkError(outChannel);
@@ -234,7 +237,7 @@ function runTestsImpl(arg?: vscode.Uri | TestsToRun | boolean | FlattenedTestFun
 
     testResultDisplay = testResultDisplay ? testResultDisplay : new TestResultDisplay(outChannel);
 
-    let runPromise = testManager.runTest(runInfo).catch(reason => {
+    let runPromise = testManager.runTest(runInfo, debug).catch(reason => {
         if (reason !== CANCELLATION_REASON) {
             outChannel.appendLine('Error: ' + reason);
         }

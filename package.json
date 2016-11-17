@@ -38,10 +38,12 @@
     "onCommand:python.execInTerminal",
     "onCommand:python.sortImports",
     "onCommand:python.runtests",
+    "onCommand:python.debugtests",
     "onCommand:python.setInterpreter",
     "onCommand:python.viewTestUI",
     "onCommand:python.viewTestOutput",
     "onCommand:python.selectAndRunTestMethod",
+    "onCommand:python.selectAndDebugTestMethod",
     "onCommand:python.runFailedTests",
     "onCommand:python.execSelectionInTerminal",
     "onCommand:jupyter.runSelectionLine",
@@ -99,6 +101,11 @@
         "category": "Python"
       },
       {
+        "command": "python.debugtests",
+        "title": "Debug All Unit Tests",
+        "category": "Python"
+      },
+      {
         "command": "python.execInTerminal",
         "title": "Run Python File in Terminal",
         "category": "Python"
@@ -126,6 +133,11 @@
       {
         "command": "python.selectAndRunTestMethod",
         "title": "Run Unit Test Method ...",
+        "category": "Python"
+      },
+      {
+        "command": "python.selectAndDebugTestMethod",
+        "title": "Debug Unit Test Method ...",
         "category": "Python"
       },
       {
@@ -204,6 +216,11 @@
         {
           "when": "resourceLangId == python",
           "command": "python.runtests",
+          "group": "Python"
+        },
+        {
+          "when": "resourceLangId == python",
+          "command": "python.debugtests",
           "group": "Python"
         },
         {

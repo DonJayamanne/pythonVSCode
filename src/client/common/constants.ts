@@ -7,15 +7,18 @@ export namespace Commands {
     export const Exec_Selection_In_Terminal = 'python.execSelectionInTerminal';
     export const Tests_View_UI = 'python.viewTestUI';
     export const Tests_Picker_UI = 'python.selectTestToRun';
+    export const Tests_Picker_UI_Debug = 'python.selectTestToDebug';
     export const Tests_Discover = 'python.discoverTests';
     export const Tests_Run_Failed = 'python.runFailedTests';
     export const Sort_Imports = 'python.sortImports';
     export const Tests_Run = 'python.runtests';
+    export const Tests_Debug = 'python.debugtests';
     export const Tests_Ask_To_Stop_Test = 'python.askToStopUnitTests';
     export const Tests_Ask_To_Stop_Discovery = 'python.askToStopUnitTestDiscovery';
     export const Tests_Stop = 'python.stopUnitTests';
     export const Tests_ViewOutput = 'python.viewTestOutput';
     export const Tests_Select_And_Run_Method = 'python.selectAndRunTestMethod';
+    export const Tests_Select_And_Debug_Method = 'python.selectAndDebugTestMethod';
     export const Refactor_Extract_Variable = 'python.refactorExtractVariable';
     export const Refaactor_Extract_Method = 'python.refactorExtractMethod';
 
@@ -53,7 +56,8 @@ export namespace Octicons {
 export const Button_Text_Tests_View_Output = 'View Output';
 
 export namespace Text {
-    export const CodeLensUnitTest = 'Test';
+    export const CodeLensRunUnitTest = 'Run Test';
+    export const CodeLensDebugUnitTest = 'Debug Test';
 }
 export namespace Delays {
     // Max time to wait before aborting the generation of code lenses for unit tests

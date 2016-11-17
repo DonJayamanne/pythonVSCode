@@ -30,7 +30,7 @@ export class TestDisplay {
                 }, reject);
         });
     }
-    public displayFunctionTestPickerUI(rootDirectory: string, fileName: string, testFunctions: TestFunction[]) {
+    public displayFunctionTestPickerUI(rootDirectory: string, fileName: string, testFunctions: TestFunction[], debug?: boolean) {
         const tests = getDiscoveredTests();
         if (!tests) {
             return;
@@ -44,7 +44,10 @@ export class TestDisplay {
                 testFunctions.some(testFunc => testFunc.nameToRun === fn.testFunction.nameToRun);
         });
 
-        window.showQuickPick(buildItemsForFunctions(rootDirectory, flattenedFunctions), { matchOnDescription: true, matchOnDetail: true }).then(onItemSelected);
+        window.showQuickPick(buildItemsForFunctions(rootDirectory, flattenedFunctions),
+            { matchOnDescription: true, matchOnDetail: true }).then(testItem => {
+                return onItemSelected(testItem, debug);
+            });
     }
 }
 
@@ -93,7 +96,7 @@ function getSummary(tests?: Tests) {
 function buildItems(rootDirectory: string, tests?: Tests): TestItem[] {
     const items: TestItem[] = [];
     items.push({ description: '', label: 'Run All Unit Tests', type: Type.RunAll });
-    if (!tests || tests.testFiles.length === 0){
+    if (!tests || tests.testFiles.length === 0) {
         items.push({ description: '', label: 'Discover Unit Tests', type: Type.ReDiscover });
     }
     items.push({ description: '', label: 'Run Unit Test Method ...', type: Type.SelectAndRunMethod });
@@ -147,7 +150,7 @@ function buildItemsForFunctions(rootDirectory: string, tests: FlattenedTestFunct
     });
     return functionItems;
 }
-function onItemSelected(selection: TestItem) {
+function onItemSelected(selection: TestItem, debug?: boolean) {
     if (!selection || typeof selection.type !== 'number') {
         return;
     }
@@ -174,7 +177,7 @@ function onItemSelected(selection: TestItem) {
             break;
         }
         case Type.SelectAndRunMethod: {
-            cmd = constants.Commands.Tests_Select_And_Run_Method;
+            cmd = debug ? constants.Commands.Tests_Select_And_Debug_Method : constants.Commands.Tests_Select_And_Run_Method;
             break;
         }
         case Type.RunMethod: {

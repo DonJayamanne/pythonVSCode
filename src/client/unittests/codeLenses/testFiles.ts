@@ -1,10 +1,10 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import {CodeLensProvider, TextDocument, CancellationToken, CodeLens, SymbolInformation} from 'vscode';
-import {TestFile, TestsToRun, TestSuite, TestFunction} from '../common/contracts';
+import { CodeLensProvider, TextDocument, CancellationToken, CodeLens, SymbolInformation } from 'vscode';
+import { TestFile, TestsToRun, TestSuite, TestFunction } from '../common/contracts';
 import * as constants from '../../common/constants';
-import {getDiscoveredTests} from '../common/testUtils';
+import { getDiscoveredTests } from '../common/testUtils';
 
 interface CodeLensData {
     symbolKind: vscode.SymbolKind;
@@ -69,7 +69,7 @@ function getCodeLenses(documentUri: vscode.Uri, token: vscode.CancellationToken)
 
                 return getCodeLens(documentUri.fsPath, allFuncsAndSuites,
                     range, symbol.name, symbol.kind);
-            }).filter(codeLens => codeLens !== null);
+            }).reduce((previous, current) => previous.concat(current), []).filter(codeLens => codeLens !== null);
         }, reason => {
             if (token.isCancellationRequested) {
                 return [];
@@ -82,7 +82,7 @@ function getCodeLenses(documentUri: vscode.Uri, token: vscode.CancellationToken)
 const testParametirizedFunction = /.*\[.*\]/g;
 
 function getCodeLens(fileName: string, allFuncsAndSuites: FunctionsAndSuites,
-    range: vscode.Range, symbolName: string, symbolKind: vscode.SymbolKind): vscode.CodeLens {
+    range: vscode.Range, symbolName: string, symbolKind: vscode.SymbolKind): vscode.CodeLens[] {
 
     switch (symbolKind) {
         case vscode.SymbolKind.Function:
@@ -94,11 +94,18 @@ function getCodeLens(fileName: string, allFuncsAndSuites: FunctionsAndSuites,
             if (!cls) {
                 return null;
             }
-            return new CodeLens(range, {
-                title: constants.Text.CodeLensUnitTest,
-                command: constants.Commands.Tests_Run,
-                arguments: [<TestsToRun>{ testSuite: [cls] }]
-            });
+            return [
+                new CodeLens(range, {
+                    title: constants.Text.CodeLensRunUnitTest,
+                    command: constants.Commands.Tests_Run,
+                    arguments: [<TestsToRun>{ testSuite: [cls] }]
+                }),
+                new CodeLens(range, {
+                    title: constants.Text.CodeLensDebugUnitTest,
+                    command: constants.Commands.Tests_Debug,
+                    arguments: [<TestsToRun>{ testSuite: [cls] }]
+                })
+            ];
         }
     }
 
@@ -106,15 +113,22 @@ function getCodeLens(fileName: string, allFuncsAndSuites: FunctionsAndSuites,
 }
 
 function getFunctionCodeLens(filePath: string, functionsAndSuites: FunctionsAndSuites,
-    symbolName: string, range: vscode.Range): vscode.CodeLens {
+    symbolName: string, range: vscode.Range): vscode.CodeLens[] {
 
     const fn = functionsAndSuites.functions.find(fn => fn.name === symbolName);
     if (fn) {
-        return new CodeLens(range, {
-            title: constants.Text.CodeLensUnitTest,
-            command: constants.Commands.Tests_Run,
-            arguments: [<TestsToRun>{ testFunction: [fn] }]
-        });
+        return [
+            new CodeLens(range, {
+                title: constants.Text.CodeLensRunUnitTest,
+                command: constants.Commands.Tests_Run,
+                arguments: [<TestsToRun>{ testFunction: [fn] }]
+            }),
+            new CodeLens(range, {
+                title: constants.Text.CodeLensDebugUnitTest,
+                command: constants.Commands.Tests_Debug,
+                arguments: [<TestsToRun>{ testFunction: [fn] }]
+            })
+        ];
     }
 
     // Ok, possible we're dealing with parameterized unit tests
@@ -124,19 +138,33 @@ function getFunctionCodeLens(filePath: string, functionsAndSuites: FunctionsAndS
         return null;
     }
     if (functions.length === 0) {
-        return new CodeLens(range, {
-            title: constants.Text.CodeLensUnitTest,
-            command: constants.Commands.Tests_Run,
-            arguments: [<TestsToRun>{ testFunction: functions }]
-        });
+        return [
+            new CodeLens(range, {
+                title: constants.Text.CodeLensRunUnitTest,
+                command: constants.Commands.Tests_Run,
+                arguments: [<TestsToRun>{ testFunction: functions }]
+            }),
+            new CodeLens(range, {
+                title: constants.Text.CodeLensDebugUnitTest,
+                command: constants.Commands.Tests_Debug,
+                arguments: [<TestsToRun>{ testFunction: functions }]
+            })
+        ];
     }
 
     // Find all flattened functions
-    return new CodeLens(range, {
-        title: constants.Text.CodeLensUnitTest + ' (Multiple)',
-        command: constants.Commands.Tests_Picker_UI,
-        arguments: [filePath, functions]
-    });
+    return [
+        new CodeLens(range, {
+            title: constants.Text.CodeLensRunUnitTest + ' (Multiple)',
+            command: constants.Commands.Tests_Picker_UI,
+            arguments: [filePath, functions]
+        }),
+        new CodeLens(range, {
+            title: constants.Text.CodeLensDebugUnitTest + ' (Multiple)',
+            command: constants.Commands.Tests_Picker_UI_Debug,
+            arguments: [filePath, functions]
+        })
+    ];
 }
 
 function getAllTestSuitesAndFunctionsPerFile(testFile: TestFile): FunctionsAndSuites {
