@@ -21,16 +21,16 @@ export class TestResultDisplay {
             this.statusBar.hide();
         }
     }
-    public DisplayProgressStatus(tests: Promise<Tests>) {
+    public DisplayProgressStatus(tests: Promise<Tests>, debug: boolean = false) {
         this.displayProgress('Running Tests', `Running Tests (Click to Stop)`, constants.Commands.Tests_Ask_To_Stop_Test);
         tests
-            .then(this.updateTestRunWithSuccess.bind(this))
+            .then(tests => this.updateTestRunWithSuccess(tests, debug))
             .catch(this.updateTestRunWithFailure.bind(this))
             // We don't care about any other exceptions returned by updateTestRunWithFailure
             .catch(() => { });
     }
 
-    private updateTestRunWithSuccess(tests: Tests): Tests {
+    private updateTestRunWithSuccess(tests: Tests, debug: boolean = false): Tests {
         this.clearProgressTicker();
 
         // Treat errors as a special case, as we generally wouldn't have any errors
@@ -63,7 +63,7 @@ export class TestResultDisplay {
         this.statusBar.color = foreColor;
         this.statusBar.command = constants.Commands.Tests_View_UI;
 
-        if (statusText.length === 0) {
+        if (statusText.length === 0 && !debug) {
             vscode.window.showWarningMessage('No tests ran, please check the configuration settings for the tests.');
         }
         return tests;

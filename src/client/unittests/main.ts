@@ -244,5 +244,5 @@ function runTestsImpl(arg?: vscode.Uri | TestsToRun | boolean | FlattenedTestFun
         return Promise.reject(reason);
     });
 
-    testResultDisplay.DisplayProgressStatus(runPromise);
+    testResultDisplay.DisplayProgressStatus(runPromise, debug);
 }
