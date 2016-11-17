@@ -93,6 +93,8 @@ class MockTextDocument implements vscode.TextDocument {
 suite('Method Extraction', () => {
     // Hack hac hack
     const oldExecuteCommand = vscode.commands.executeCommand;
+    const options: vscode.TextEditorOptions = { cursorStyle: vscode.TextEditorCursorStyle.Line, insertSpaces: true, lineNumbers: vscode.TextEditorLineNumbersStyle.Off, tabSize: 4 };
+
     suiteSetup(done => {
         fs.copySync(refactorSourceFile, refactorTargetFile, { clobber: true });
         pythonSettings.pythonPath = PYTHON_PATH;
@@ -125,8 +127,7 @@ suite('Method Extraction', () => {
 
         const DIFF = `--- a/refactor.py\n+++ b/refactor.py\n@@ -237,9 +237,12 @@\n             try:\n                 self._process_request(self._input.readline())\n             except Exception as ex:\n-                message = ex.message + '  \\n' + traceback.format_exc()\n-                sys.stderr.write(str(len(message)) + ':' + message)\n-                sys.stderr.flush()\n+                self.myNewMethod(ex)\n+\n+    def myNewMethod(self, ex):\n+        message = ex.message + '  \\n' + traceback.format_exc()\n+        sys.stderr.write(str(len(message)) + ':' + message)\n+        sys.stderr.flush()\n \n if __name__ == '__main__':\n     RopeRefactoring().watch()\n`;
         let expectedTextEdits = getTextEditsFromPatch(mockTextDoc.getText(), DIFF);
-
-        return proxy.extractMethod<RenameResponse>(mockTextDoc, 'myNewMethod', refactorTargetFile, rangeOfTextToExtract)
+        return proxy.extractMethod<RenameResponse>(mockTextDoc, 'myNewMethod', refactorTargetFile, rangeOfTextToExtract, options)
             .then(response => {
                 if (shouldError) {
                     ignoreErrorHandling = true;
@@ -188,7 +189,7 @@ suite('Method Extraction', () => {
                     assert.fail('No error', 'Error', 'Extraction should fail with an error', '');
                 }
                 return textEditor.document.save();
-            }).then(()=>{
+            }).then(() => {
                 assert.equal(ch.output.length, 0, 'Output channel is not empty');
                 assert.equal(textDocument.lineAt(241).text.trim().indexOf('def newmethod'), 0, 'New Method not created');
                 assert.equal(textDocument.lineAt(239).text.trim().startsWith('self.newmethod'), true, 'New Method not being used');
