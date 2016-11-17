@@ -803,6 +803,11 @@
           "default": true,
           "description": "Where to prompt to configure a test framework if potential tests directories are discovered."
         },
+        "python.unitTest.debugPort": {
+          "type": "number",
+          "default": 3000,
+          "description": "Port number used for debugging of unittests."
+        },
         "python.unitTest.nosetestsEnabled": {
           "type": "boolean",
           "default": false,

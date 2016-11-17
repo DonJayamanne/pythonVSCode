@@ -131,7 +131,7 @@ export function runTest(testManager: BaseTestManager, rootDirectory: string, tes
                         "request": "attach",
                         "localRoot": rootDirectory,
                         "remoteRoot": rootDirectory,
-                        "port": 3000,
+                        "port": settings.unitTest.debugPort,
                         "secret": "my_secret",
                         "host": "localhost"
                     });

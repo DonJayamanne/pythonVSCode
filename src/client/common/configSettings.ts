@@ -24,6 +24,7 @@ export interface ISortImportSettings {
 
 export interface IUnitTestSettings {
     promptToConfigure: boolean;
+    debugPort: number;
     nosetestsEnabled: boolean;
     nosetestPath: string;
     nosetestArgs: string[];
@@ -214,6 +215,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         // Support for travis
         this.unitTest = this.unitTest ? this.unitTest : {
             promptToConfigure: true,
+            debugPort: 3000,
             nosetestArgs: [], nosetestPath: 'nosetest', nosetestsEnabled: false,
             outputWindow: 'python',
             pyTestArgs: [], pyTestEnabled: false, pyTestPath: 'pytest',
