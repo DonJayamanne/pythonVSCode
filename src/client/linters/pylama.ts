@@ -4,7 +4,7 @@ import * as baseLinter from './baseLinter';
 import {OutputChannel} from 'vscode';
 import { Product } from '../common/installer';
 
-const REGEX = '(?<file>.py):(?<line>\\d+):(?<column>\\d+): \\[(?<type>\\w+)\\] (?<code>\\w\\d+) (?<message>.*)\\r?(\\n|$)';
+const REGEX = '(?<file>.py):(?<line>\\d+):(?<column>\\d+): \\[(?<type>\\w+)\\] (?<code>\\w\\d+):? (?<message>.*)\\r?(\\n|$)';
 
 export class Linter extends baseLinter.BaseLinter {
     constructor(outputChannel: OutputChannel, workspaceRootPath: string) {
