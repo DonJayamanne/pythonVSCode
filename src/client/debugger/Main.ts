@@ -82,7 +82,7 @@ export class PythonDebugger extends DebugSession {
 
     private startDebugServer(): Promise<IDebugServer> {
         let programDirectory = this.launchArgs ? path.dirname(this.launchArgs.program) : this.attachArgs.localRoot;
-        if (typeof this.launchArgs.cwd === 'string' && this.launchArgs.cwd.length > 0) {
+        if (this.launchArgs && typeof this.launchArgs.cwd === 'string' && this.launchArgs.cwd.length > 0) {
             programDirectory = this.launchArgs.cwd;
         }
         this.pythonProcess = new PythonProcess(0, "", programDirectory);
