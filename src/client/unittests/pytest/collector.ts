@@ -6,6 +6,7 @@ import { extractBetweenDelimiters, flattenTestFiles, convertFileToPackage } from
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { PythonSettings } from '../../common/configSettings';
+import { OutputChannel } from 'vscode';
 
 const pythonSettings = PythonSettings.getInstance();
 
@@ -17,7 +18,7 @@ const argsToExcludeForDiscovery = ['-x', '--exitfirst',
     '--disable-pytest-warnings', '-l', '--showlocals'];
 const settingsInArgsToExcludeForDiscovery = [];
 
-export function discoverTests(rootDirectory: string, args: string[], token: vscode.CancellationToken, ignoreCache: boolean): Promise<Tests> {
+export function discoverTests(rootDirectory: string, args: string[], token: vscode.CancellationToken, ignoreCache: boolean, outChannel: OutputChannel): Promise<Tests> {
     let logOutputLines: string[] = [''];
     let testFiles: TestFile[] = [];
     let parentNodes: { indent: number, item: TestFile | TestSuite }[] = [];
@@ -86,6 +87,7 @@ export function discoverTests(rootDirectory: string, args: string[], token: vsco
 
     return execPythonFile(pythonSettings.unitTest.pyTestPath, args.concat(['--collect-only']), rootDirectory, false, null, token)
         .then(data => {
+            outChannel.appendLine(data);
             processOutput(data);
             if (token && token.isCancellationRequested) {
                 return Promise.reject<Tests>('cancelled');

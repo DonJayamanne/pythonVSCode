@@ -6,6 +6,7 @@ import * as os from 'os';
 import { extractBetweenDelimiters, convertFileToPackage, flattenTestFiles } from '../common/testUtils';
 import { CancellationToken } from 'vscode';
 import { PythonSettings } from '../../common/configSettings';
+import { OutputChannel } from 'vscode';
 
 const pythonSettings = PythonSettings.getInstance();
 const NOSE_WANT_FILE_PREFIX = 'nose.selector: DEBUG: wantFile ';
@@ -20,7 +21,7 @@ const argsToExcludeForDiscovery = ['-v', '--verbose',
     '--failed', '--process-restartworker', '--with-xunit'];
 const settingsInArgsToExcludeForDiscovery = ['--verbosity'];
 
-export function discoverTests(rootDirectory: string, args: string[], token: CancellationToken): Promise<Tests> {
+export function discoverTests(rootDirectory: string, args: string[], token: CancellationToken, ignoreCache: boolean, outChannel: OutputChannel): Promise<Tests> {
     let logOutputLines: string[] = [''];
     let testFiles: TestFile[] = [];
 
@@ -79,6 +80,7 @@ export function discoverTests(rootDirectory: string, args: string[], token: Canc
 
     return execPythonFile(pythonSettings.unitTest.nosetestPath, args.concat(['--collect-only', '-vvv']), rootDirectory, true)
         .then(data => {
+            outChannel.appendLine(data);            
             processOutput(data);
 
             // Exclude tests that don't have any functions or test suites

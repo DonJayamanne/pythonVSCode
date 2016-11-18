@@ -5,10 +5,11 @@ import { flattenTestFiles } from '../common/testUtils';
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { PythonSettings } from '../../common/configSettings';
+import { OutputChannel } from 'vscode';
 
 const pythonSettings = PythonSettings.getInstance();
 
-export function discoverTests(rootDirectory: string, args: string[], token: vscode.CancellationToken): Promise<Tests> {
+export function discoverTests(rootDirectory: string, args: string[], token: vscode.CancellationToken, ignoreCache: boolean, outChannel: OutputChannel): Promise<Tests> {
     let startDirectory = '.';
     let pattern = 'test*.py';
     const indexOfStartDir = args.findIndex(arg => arg.indexOf('-s') === 0);
@@ -74,6 +75,7 @@ for suite in suites._tests:
     args = [];
     return execPythonFile(pythonSettings.pythonPath, args.concat(['-c', pythonScript]), rootDirectory, true, null, token)
         .then(data => {
+            outChannel.appendLine(data);
             processOutput(data);
             if (token && token.isCancellationRequested) {
                 return Promise.reject<Tests>('cancelled');

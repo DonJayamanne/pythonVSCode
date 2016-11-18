@@ -14,7 +14,7 @@ export class TestManager extends BaseTestManager {
     }
     discoverTestsImpl(ignoreCache: boolean): Promise<Tests> {
         let args = settings.unitTest.pyTestArgs.slice(0);
-        return discoverTests(this.rootDirectory, args, this.cancellationToken, ignoreCache);
+        return discoverTests(this.rootDirectory, args, this.cancellationToken, ignoreCache, this.outputChannel);
     }
     runTestImpl(tests: Tests, testsToRun?: TestsToRun, runFailedTests?: boolean, debug?: boolean): Promise<any> {
         let args = settings.unitTest.pyTestArgs.slice(0);
