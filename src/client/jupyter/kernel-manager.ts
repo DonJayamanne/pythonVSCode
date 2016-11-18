@@ -2,7 +2,6 @@ import * as os from 'os';
 import * as vscode from 'vscode';
 import { Kernel } from './kernel';
 import { KernelspecMetadata, Kernelspec } from './contracts';
-import { Commands } from '../common/constants';
 import { EventEmitter } from 'events';
 import { PythonSettings } from '../common/configSettings';
 import { formatErrorForLogging } from '../common/utils';
