@@ -1,11 +1,9 @@
-import {BaseDebugServer} from "../DebugServers/BaseDebugServer";
-import {RemoteDebugServer} from "../DebugServers/RemoteDebugServer";
-import {IPythonProcess, IPythonThread, IDebugServer} from "../Common/Contracts";
-import {DebugSession, OutputEvent} from "vscode-debugadapter";
-import * as path from "path";
-import * as child_process from "child_process";
-import {AttachRequestArguments} from "../Common/Contracts";
-import {DebugClient, DebugType} from "./DebugClient";
+import { BaseDebugServer } from "../DebugServers/BaseDebugServer";
+import { RemoteDebugServer } from "../DebugServers/RemoteDebugServer";
+import { IPythonProcess } from "../Common/Contracts";
+import { DebugSession } from "vscode-debugadapter";
+import { AttachRequestArguments } from "../Common/Contracts";
+import { DebugClient, DebugType } from "./DebugClient";
 
 export class RemoteDebugClient extends DebugClient {
     private args: AttachRequestArguments;

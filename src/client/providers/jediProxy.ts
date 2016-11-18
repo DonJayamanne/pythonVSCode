@@ -223,7 +223,7 @@ function spawnProcess(dir: string) {
         logger.error('spawnProcess.end', "End - " + end);
     });
     proc.on("error", error => {
-        handleError("error", error);
+        handleError("error", error + '');
     });
     proc.stdout.setEncoding('utf8');
     proc.stdout.on("data", (data: string) => {
