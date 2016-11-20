@@ -25,7 +25,7 @@ export abstract class BaseFormatter {
         // to be done here in node (extension), i.e. extension cpu, i.e. les responsive solution
         let tmpFileCreated = document.isDirty;
         let filePromise = tmpFileCreated ? getTempFileWithDocumentContents(document) : Promise.resolve(document.fileName);
-        return filePromise.then(filePath => {
+        const promise = filePromise.then(filePath => {
             if (token && token.isCancellationRequested) {
                 return [filePath, ''];
             }
@@ -43,6 +43,8 @@ export abstract class BaseFormatter {
             this.handleError(this.Id, command, error);
             return [];
         });
+        vscode.window.setStatusBarMessage(`Formatting with ${this.Id}`, promise);
+        return promise;
     }
 
     protected handleError(expectedFileName: string, fileName: string, error: Error) {
