@@ -22,6 +22,7 @@ import * as jup from './jupyter/main';
 import { HelpProvider } from './helpProvider';
 import { activateFormatOnSaveProvider } from './providers/formatOnSaveProvider';
 import { WorkspaceSymbols } from './workspaceSymbols/main';
+import { BlockFormatProviders } from './typeFormatters/blockFormatProvider';
 import * as os from 'os';
 
 const PYTHON: vscode.DocumentFilter = { language: 'python', scheme: 'file' };
@@ -95,6 +96,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(new WorkspaceSymbols(lintingOutChannel));
 
+    context.subscriptions.push(vscode.languages.registerOnTypeFormattingEditProvider(PYTHON, new BlockFormatProviders(), ':'));
     // In case we have CR LF
     const triggerCharacters: string[] = os.EOL.split('');
     triggerCharacters.shift();
