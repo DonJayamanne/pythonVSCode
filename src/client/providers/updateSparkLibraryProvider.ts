@@ -30,4 +30,5 @@ function updateSparkLibrary() {
             console.error(reason);
         });
     }
+    vscode.window.showInformationMessage(`Make sure you have SPARK_HOME environment variable set to the root path of the local spark installation!`);
 }
