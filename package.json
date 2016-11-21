@@ -122,6 +122,11 @@
         "category": "Python"
       },
       {
+        "command": "python.updateSparkLibrary",
+        "title": "Update Workspace PySpark Libraries",
+        "category": "Python"
+      },
+      {
         "command": "python.refactorExtractVariable",
         "title": "Extract Variable",
         "category": "Python Refactor"
@@ -402,7 +407,21 @@
             "stopOnEntry": true,
             "pythonPath": "${config.python.pythonPath}",
             "program": "${file}",
-            "cwd": "null",
+            "cwd": "${workspaceRoot}",
+            "debugOptions": [
+              "WaitOnAbnormalExit",
+              "WaitOnNormalExit",
+              "RedirectOutput"
+            ]
+          },
+          {
+            "name": "PySpark",
+            "type": "python",
+            "request": "launch",
+            "stopOnEntry": true,
+            "pythonPath": "${env.SPARK_HOME}/bin/spark-submit",
+            "program": "${file}",
+            "cwd": "${workspaceRoot}",
             "debugOptions": [
               "WaitOnAbnormalExit",
               "WaitOnNormalExit",

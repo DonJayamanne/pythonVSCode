@@ -20,10 +20,12 @@ import { activateExecInTerminalProvider } from './providers/execInTerminalProvid
 import * as tests from './unittests/main';
 import * as jup from './jupyter/main';
 import { HelpProvider } from './helpProvider';
+import { activateUpdateSparkLibraryProvider } from './providers/updateSparkLibraryProvider';
 import { activateFormatOnSaveProvider } from './providers/formatOnSaveProvider';
 import { WorkspaceSymbols } from './workspaceSymbols/main';
 import { BlockFormatProviders } from './typeFormatters/blockFormatProvider';
 import * as os from 'os';
+
 
 const PYTHON: vscode.DocumentFilter = { language: 'python', scheme: 'file' };
 let unitTestOutChannel: vscode.OutputChannel;
@@ -51,6 +53,7 @@ export function activate(context: vscode.ExtensionContext) {
     sortImports.activate(context, formatOutChannel);
     context.subscriptions.push(activateSetInterpreterProvider());
     context.subscriptions.push(...activateExecInTerminalProvider());
+    context.subscriptions.push(activateUpdateSparkLibraryProvider());
     activateSimplePythonRefactorProvider(context, formatOutChannel);
     context.subscriptions.push(activateFormatOnSaveProvider(PYTHON, settings.PythonSettings.getInstance(), formatOutChannel, vscode.workspace.rootPath));
 
