@@ -16,12 +16,14 @@ import * as telemetryHelper from './common/telemetry';
 import * as telemetryContracts from './common/telemetryContracts';
 import { activateSimplePythonRefactorProvider } from './providers/simpleRefactorProvider';
 import { activateSetInterpreterProvider } from './providers/setInterpreterProvider';
+import { CommentNewLineFormatProvider } from './providers/commentNewLineFormatProvider';
 import { activateExecInTerminalProvider } from './providers/execInTerminalProvider';
 import * as tests from './unittests/main';
 import * as jup from './jupyter/main';
 import { HelpProvider } from './helpProvider';
 import { activateFormatOnSaveProvider } from './providers/formatOnSaveProvider';
 import { WorkspaceSymbols } from './workspaceSymbols/main';
+import * as os from 'os';
 
 const PYTHON: vscode.DocumentFilter = { language: 'python', scheme: 'file' };
 let unitTestOutChannel: vscode.OutputChannel;
@@ -88,7 +90,11 @@ export function activate(context: vscode.ExtensionContext) {
     tests.activate(context, unitTestOutChannel);
 
     context.subscriptions.push(new WorkspaceSymbols(lintingOutChannel));
-    
+
+    // In case we have CR LF
+    const triggerCharacters: string[] = os.EOL.split('');
+    triggerCharacters.shift();
+    context.subscriptions.push(vscode.languages.registerOnTypeFormattingEditProvider(PYTHON, new CommentNewLineFormatProvider(), os.EOL.substring(0, 1), ...triggerCharacters));
     const hepProvider = new HelpProvider();
     context.subscriptions.push(hepProvider);
 }
