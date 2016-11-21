@@ -1,6 +1,3 @@
-import { FormattingOptions, TextEdit, TextDocument } from 'vscode';
-import { Position } from 'vscode';
-
 export class BlockRegEx {
     constructor(private regEx: RegExp, public startWord) {
 
@@ -24,8 +21,3 @@ export const EXCEPT_REGEX = new BlockRegEx(/^( |\t)*except *\w* *(as)? *\w* *: *
 export const DEF_REGEX = new BlockRegEx(/^( |\t)*def \w *\(.*$/g, 'def');
 export const ASYNC_DEF_REGEX = new BlockRegEx(/^( |\t)*async *def \w *\(.*$/g, 'async');
 export const CLASS_REGEX = new BlockRegEx(/^( |\t)*class *\w* *.*: *$/g, 'class');
-
-export interface CodeBlockFormatProvider {
-    canProvideEdits(line: string): boolean;
-    provideEdits(document: TextDocument, position: Position, ch: string, options: FormattingOptions, line: string): TextEdit[];
-}
