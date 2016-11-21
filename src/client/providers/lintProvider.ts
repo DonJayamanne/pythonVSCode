@@ -14,17 +14,16 @@ import * as settings from '../common/configSettings';
 import * as telemetryHelper from '../common/telemetry';
 import * as telemetryContracts from '../common/telemetryContracts';
 import * as fs from 'fs';
+import { LinterErrors } from '../common/constants';
+const Minimatch = require("minimatch").Minimatch;
 
-import { LinterErrors } from '../common/constants'
 const lintSeverityToVSSeverity = new Map<linter.LintMessageSeverity, vscode.DiagnosticSeverity>();
-lintSeverityToVSSeverity.set(linter.LintMessageSeverity.Error, vscode.DiagnosticSeverity.Error)
-lintSeverityToVSSeverity.set(linter.LintMessageSeverity.Hint, vscode.DiagnosticSeverity.Hint)
-lintSeverityToVSSeverity.set(linter.LintMessageSeverity.Information, vscode.DiagnosticSeverity.Information)
-lintSeverityToVSSeverity.set(linter.LintMessageSeverity.Warning, vscode.DiagnosticSeverity.Warning)
+lintSeverityToVSSeverity.set(linter.LintMessageSeverity.Error, vscode.DiagnosticSeverity.Error);
+lintSeverityToVSSeverity.set(linter.LintMessageSeverity.Hint, vscode.DiagnosticSeverity.Hint);
+lintSeverityToVSSeverity.set(linter.LintMessageSeverity.Information, vscode.DiagnosticSeverity.Information);
+lintSeverityToVSSeverity.set(linter.LintMessageSeverity.Warning, vscode.DiagnosticSeverity.Warning);
 
 function createDiagnostics(message: linter.ILintMessage, txtDocumentLines: string[]): vscode.Diagnostic {
-    let sourceLine = txtDocumentLines[message.line - 1];
-    let sourceStart = sourceLine.substring(message.column - 1);
     let endCol = txtDocumentLines[message.line - 1].length;
 
     // try to get the first word from the startig position
@@ -51,17 +50,31 @@ export class LintProvider extends vscode.Disposable {
     private pendingLintings = new Map<string, vscode.CancellationTokenSource>();
     private outputChannel: vscode.OutputChannel;
     private context: vscode.ExtensionContext;
-
+    private disposables: vscode.Disposable[];
+    private ignoreMinmatches: { match: (fname: string) => boolean }[];
     public constructor(context: vscode.ExtensionContext, outputChannel: vscode.OutputChannel,
         private workspaceRootPath: string, private documentHasJupyterCodeCells: DocumentHasJupyterCodeCells) {
         super(() => { });
         this.outputChannel = outputChannel;
         this.context = context;
         this.settings = settings.PythonSettings.getInstance();
-
+        this.disposables = [];
+        this.ignoreMinmatches = [];
         this.initialize();
-    }
 
+        this.disposables.push(vscode.workspace.onDidChangeConfiguration(this.onConfigChanged.bind(this)));
+    }
+    dispose() {
+        this.disposables.forEach(d => d.dispose());
+    }
+    private onConfigChanged() {
+        this.initializeGlobs();
+    }
+    private initializeGlobs() {
+        this.ignoreMinmatches = settings.PythonSettings.getInstance().linting.ignorePatterns.map(pattern => {
+            return new Minimatch(pattern);
+        });
+    }
     private isDocumentOpen(uri: vscode.Uri): boolean {
         return vscode.window.visibleTextEditors.some(editor => editor.document && editor.document.uri.fsPath === uri.fsPath);
     }
@@ -89,7 +102,7 @@ export class LintProvider extends vscode.Disposable {
             if (e.languageId !== 'python' || !this.settings.linting.enabled) {
                 return;
             }
-            if (!e.uri.path || (path.basename(e.uri.path) === e.uri.path && !fs.existsSync(e.uri.path))){
+            if (!e.uri.path || (path.basename(e.uri.path) === e.uri.path && !fs.existsSync(e.uri.path))) {
                 return;
             }
             this.lintDocument(e, e.uri, e.getText().split(/\r?\n/g), 100);
@@ -106,6 +119,7 @@ export class LintProvider extends vscode.Disposable {
             }
         });
         this.context.subscriptions.push(disposable);
+        this.initializeGlobs();
     }
 
     private lastTimeout: number;
@@ -123,6 +137,11 @@ export class LintProvider extends vscode.Disposable {
     }
 
     private onLintDocument(document: vscode.TextDocument, documentUri: vscode.Uri, documentLines: string[]): void {
+        // Check if we need to lint this document
+        const relativeFileName = path.relative(vscode.workspace.rootPath, document.fileName);
+        if (this.ignoreMinmatches.some(matcher => matcher.match(document.fileName) || matcher.match(relativeFileName))) {
+            return;
+        }
         if (this.pendingLintings.has(documentUri.fsPath)) {
             this.pendingLintings.get(documentUri.fsPath).cancel();
             this.pendingLintings.delete(documentUri.fsPath);

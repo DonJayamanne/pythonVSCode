@@ -45,6 +45,7 @@ export interface IPylintCategorySeverity {
 }
 export interface ILintingSettings {
     enabled: boolean;
+    ignorePatterns: string[];
     prospectorEnabled: boolean;
     prospectorArgs: string[];
     pylintEnabled: boolean;
@@ -155,6 +156,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         // Support for travis
         this.linting = this.linting ? this.linting : {
             enabled: false,
+            ignorePatterns: [],
             flake8Args: [], flake8Enabled: false, flake8Path: 'flake',
             lintOnSave: false, lintOnTextChange: false, maxNumberOfProblems: 100,
             mypyArgs: [], mypyEnabled: false, mypyPath: 'mypy',

@@ -71,7 +71,7 @@ export abstract class BaseLinter {
                 let diagnostics: ILintMessage[] = [];
                 outputLines.filter((value, index) => index <= this.pythonSettings.linting.maxNumberOfProblems).forEach(line => {
                     let match = matchNamedRegEx(line, regEx);
-                    if (match == null) {
+                    if (!match) {
                         return;
                     }
 
