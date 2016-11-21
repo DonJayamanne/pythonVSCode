@@ -16,6 +16,7 @@ export interface IPythonSettings {
     terminal: ITerminalSettings;
     jupyter: JupyterSettings;
     sortImports: ISortImportSettings;
+    workspaceSymbols: IWorkspaceSymbolSettings;
 }
 
 export interface ISortImportSettings {
@@ -83,6 +84,14 @@ export interface IFormattingSettings {
 export interface IAutoCompeteSettings {
     addBrackets: boolean;
     extraPaths: string[];
+}
+export interface IWorkspaceSymbolSettings {
+    enabled: boolean;
+    tagFilePath: string;
+    rebuildOnStart: boolean;
+    rebuildOnFileSave: boolean;
+    ctagsPath: string;
+    exclusionPatterns: string[];
 }
 export interface ITerminalSettings {
     executeInFileDir: boolean;
@@ -200,6 +209,23 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
             addBrackets: false
         };
 
+        let workspaceSymbolsSettings = systemVariables.resolveAny(pythonSettings.get<IWorkspaceSymbolSettings>('workspaceSymbols'));
+        if (this.workspaceSymbols) {
+            Object.assign<IWorkspaceSymbolSettings, IWorkspaceSymbolSettings>(this.workspaceSymbols, workspaceSymbolsSettings);
+        }
+        else {
+            this.workspaceSymbols = workspaceSymbolsSettings;
+        }
+        // Support for travis
+        this.workspaceSymbols = this.workspaceSymbols ? this.workspaceSymbols : {
+            ctagsPath: 'ctags',
+            enabled: true,
+            exclusionPatterns: [],
+            rebuildOnFileSave: true,
+            rebuildOnStart: true,
+            tagFilePath: path.join(vscode.workspace.rootPath, "tags")
+        };
+
         let unitTestSettings = systemVariables.resolveAny(pythonSettings.get<IUnitTestSettings>('unitTest'));
         if (this.unitTest) {
             Object.assign<IUnitTestSettings, IUnitTestSettings>(this.unitTest, unitTestSettings);
@@ -262,6 +288,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
     public terminal: ITerminalSettings;
     public jupyter: JupyterSettings;
     public sortImports: ISortImportSettings;
+    public workspaceSymbols: IWorkspaceSymbolSettings;
 }
 
 function getAbsolutePath(pathToCheck: string, rootDir: string): string {

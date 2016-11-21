@@ -21,6 +21,7 @@ export namespace Commands {
     export const Tests_Select_And_Debug_Method = 'python.selectAndDebugTestMethod';
     export const Refactor_Extract_Variable = 'python.refactorExtractVariable';
     export const Refaactor_Extract_Method = 'python.refactorExtractMethod';
+    export const Build_Workspace_Symbols = 'python.buildWorkspaceSymbols';
 
     export namespace Jupyter {
         export const Get_All_KernelSpecs_For_Language = 'jupyter:getAllKernelSpecsForLanguage';
@@ -86,5 +87,9 @@ export namespace Documentation {
     }
     export namespace Formatting {
         export const FormatOnSave = '/docs/formatting/';
+    }
+    export namespace Workspace {
+        export const Home = '/docs/workspaceSymbols/';
+        export const InstallOnWindows = '/docs/workspaceSymbols/#Install-Windows';
     }
 }

@@ -2,6 +2,8 @@ import * as vscode from 'vscode';
 import * as settings from './configSettings';
 import { createDeferred, isNotInstalledError } from './helpers';
 import { execPythonFile } from './utils';
+import * as os from 'os';
+import { Documentation } from './constants';
 
 export enum Product {
     pytest,
@@ -15,22 +17,34 @@ export enum Product {
     yapf,
     autopep8,
     mypy,
-    unittest
+    unittest,
+    ctags
 }
 
 const ProductInstallScripts = new Map<Product, string[]>();
-ProductInstallScripts.set(Product.autopep8, ['pip', 'install', 'autopep8']);
-ProductInstallScripts.set(Product.flake8, ['pip', 'install', 'flake8']);
-ProductInstallScripts.set(Product.mypy, ['pip', 'install', 'mypy-lang']);
-ProductInstallScripts.set(Product.nosetest, ['pip', 'install', 'nose']);
-ProductInstallScripts.set(Product.pep8, ['pip', 'install', 'pep8']);
-ProductInstallScripts.set(Product.pylama, ['pip', 'install', 'pylama']);
-ProductInstallScripts.set(Product.prospector, ['pip', 'install', 'prospector']);
-ProductInstallScripts.set(Product.pydocstyle, ['pip', 'install', 'pydocstyle']);
-ProductInstallScripts.set(Product.pylint, ['pip', 'install', 'pylint']);
-ProductInstallScripts.set(Product.pytest, ['pip', 'install', '-U', 'pytest']);
-ProductInstallScripts.set(Product.yapf, ['pip', 'install', 'yapf']);
-
+ProductInstallScripts.set(Product.autopep8, ['-m', 'pip', 'install', 'autopep8']);
+ProductInstallScripts.set(Product.flake8, ['-m', 'pip', 'install', 'flake8']);
+ProductInstallScripts.set(Product.mypy, ['-m', 'pip', 'install', 'mypy-lang']);
+ProductInstallScripts.set(Product.nosetest, ['-m', 'pip', 'install', 'nose']);
+ProductInstallScripts.set(Product.pep8, ['-m', 'pip', 'install', 'pep8']);
+ProductInstallScripts.set(Product.pylama, ['-m', 'pip', 'install', 'pylama']);
+ProductInstallScripts.set(Product.prospector, ['-m', 'pip', 'install', 'prospector']);
+ProductInstallScripts.set(Product.pydocstyle, ['-m', 'pip', 'install', 'pydocstyle']);
+ProductInstallScripts.set(Product.pylint, ['-m', 'pip', 'install', 'pylint']);
+ProductInstallScripts.set(Product.pytest, ['-m', 'pip', 'install', '-U', 'pytest']);
+ProductInstallScripts.set(Product.yapf, ['-m', 'pip', 'install', 'yapf']);
+switch (os.platform()) {
+    case 'win32': {
+        // Nothing
+        break;
+    }
+    case 'darwin': {
+        ProductInstallScripts.set(Product.ctags, ['brew install ctags']);
+    }
+    default: {
+        ProductInstallScripts.set(Product.ctags, ['sudo apt-get install exuberant-ctags']);
+    }
+}
 
 const Linters: Product[] = [Product.flake8, Product.pep8, Product.pylama, Product.prospector, Product.pylint, Product.mypy, Product.pydocstyle];
 const Formatters: Product[] = [Product.autopep8, Product.yapf];
@@ -122,25 +136,31 @@ export class Installer {
             Installer.terminal = vscode.window.createTerminal('Python Installer');
         }
 
+        if (product === Product.ctags && os.platform() === 'win32') {
+            vscode.commands.executeCommand('python.displayHelp', Documentation.Workspace.InstallOnWindows);
+            return Promise.resolve();
+        }
+
         let installArgs = ProductInstallScripts.get(product);
         const pythonPath = settings.PythonSettings.getInstance().pythonPath;
 
-        if (this.outputChannel) {
+        if (this.outputChannel && installArgs[0] === '-m') {
             // Errors are just displayed to the user
             this.outputChannel.show();
-            return execPythonFile(pythonPath, ['-m', ...installArgs], vscode.workspace.rootPath, true, (data) => {
+            return execPythonFile(pythonPath, installArgs, vscode.workspace.rootPath, true, (data) => {
                 this.outputChannel.append(data);
             });
         }
         else {
             let installScript = installArgs.join(' ');
-            if (pythonPath.indexOf(' ') >= 0) {
-                installScript = `"${pythonPath}" -m ${installScript}`;
+            if (installArgs[0] === '-m') {
+                if (pythonPath.indexOf(' ') >= 0) {
+                    installScript = `"${pythonPath}" -m ${installScript}`;
+                }
+                else {
+                    installScript = `${pythonPath} -m ${installScript}`;
+                }
             }
-            else {
-                installScript = `${pythonPath} -m ${installScript}`;
-            }
-
             Installer.terminal.sendText(installScript);
             Installer.terminal.show(false);
             // Unfortunately we won't know when the command has completed

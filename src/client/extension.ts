@@ -20,7 +20,8 @@ import { activateExecInTerminalProvider } from './providers/execInTerminalProvid
 import * as tests from './unittests/main';
 import * as jup from './jupyter/main';
 import { HelpProvider } from './helpProvider';
-import {activateFormatOnSaveProvider} from './providers/formatOnSaveProvider';
+import { activateFormatOnSaveProvider } from './providers/formatOnSaveProvider';
+import { WorkspaceSymbols } from './workspaceSymbols/main';
 
 const PYTHON: vscode.DocumentFilter = { language: 'python', scheme: 'file' };
 let unitTestOutChannel: vscode.OutputChannel;
@@ -86,18 +87,10 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(new LintProvider(context, lintingOutChannel, vscode.workspace.rootPath, documentHasJupyterCodeCells));
     tests.activate(context, unitTestOutChannel);
 
-    // Possible this extension loads before the others, so lets wait for 5 seconds
-    setTimeout(disableOtherDocumentSymbolsProvider, 5000);
-
+    context.subscriptions.push(new WorkspaceSymbols(lintingOutChannel));
+    
     const hepProvider = new HelpProvider();
     context.subscriptions.push(hepProvider);
-}
-
-function disableOtherDocumentSymbolsProvider() {
-    const symbolsExt = vscode.extensions.getExtension('donjayamanne.language-symbols');
-    if (symbolsExt && symbolsExt.isActive) {
-        symbolsExt.exports.disableDocumentSymbolProvider(PYTHON);
-    }
 }
 
 // this method is called when your extension is deactivated

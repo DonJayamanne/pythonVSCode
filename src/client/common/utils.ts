@@ -29,6 +29,14 @@ export function validatePath(filePath: string): Promise<string> {
         });
     });
 }
+export function fsExistsAsync(filePath: string): Promise<boolean> {
+    return new Promise<boolean>(resolve => {
+        fs.exists(filePath, exists => {
+            PathValidity.set(filePath, exists);
+            return resolve(exists);
+        });
+    });
+}
 
 let pythonInterpretterDirectory: string = null;
 let previouslyIdentifiedPythonPath: string = null;
