@@ -16,7 +16,6 @@ import * as telemetryHelper from './common/telemetry';
 import * as telemetryContracts from './common/telemetryContracts';
 import { activateSimplePythonRefactorProvider } from './providers/simpleRefactorProvider';
 import { activateSetInterpreterProvider } from './providers/setInterpreterProvider';
-import { CommentNewLineFormatProvider } from './providers/commentNewLineFormatProvider';
 import { activateExecInTerminalProvider } from './providers/execInTerminalProvider';
 import * as tests from './unittests/main';
 import * as jup from './jupyter/main';
@@ -60,6 +59,11 @@ export function activate(context: vscode.ExtensionContext) {
             {
                 beforeText: /^\s*(?:def|class|for|if|elif|else|while|try|with|finally|except|async).*?:\s*$/,
                 action: { indentAction: vscode.IndentAction.Indent }
+            },
+            {
+                beforeText: /^ *#.*$/,
+                afterText: /.+$/,
+                action: { indentAction: vscode.IndentAction.None, appendText: '# ' }
             }
         ]
     });
@@ -94,7 +98,7 @@ export function activate(context: vscode.ExtensionContext) {
     // In case we have CR LF
     const triggerCharacters: string[] = os.EOL.split('');
     triggerCharacters.shift();
-    context.subscriptions.push(vscode.languages.registerOnTypeFormattingEditProvider(PYTHON, new CommentNewLineFormatProvider(), os.EOL.substring(0, 1), ...triggerCharacters));
+
     const hepProvider = new HelpProvider();
     context.subscriptions.push(hepProvider);
 }
