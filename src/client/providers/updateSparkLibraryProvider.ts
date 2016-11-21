@@ -2,6 +2,7 @@
 import { Commands } from '../common/constants';
 import * as vscode from "vscode";
 import * as path from 'path';
+import { IS_WINDOWS } from '../common/utils';
 
 export function activateUpdateSparkLibraryProvider(): vscode.Disposable {
     console.log('Register command python.updateSparkLibrary');
@@ -19,4 +20,14 @@ function updateSparkLibrary() {
         vscode.window.showErrorMessage(`Failed to update ${extraLibPath}. Error: ${reason.message}`);
         console.error(reason);
     });
+    if (IS_WINDOWS) {        
+        const pysparkPath = 'pysparkPath';
+        console.log('Overriding ' + pysparkPath);
+        pythonConfig.update(pysparkPath, path.join(sparkHomePath, 'bin', 'spark-submit.cmd')).then(() => {
+        //Done
+        }, reason => {
+            vscode.window.showErrorMessage(`Failed to update ${pysparkPath}. Error: ${reason.message}`);
+            console.error(reason);
+        });
+    }
 }
