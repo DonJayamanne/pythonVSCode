@@ -40,8 +40,9 @@ export class CodeBlockFormatProvider {
             const startPosition = new Position(position.line, 0);
             const endPosition = new Position(position.line, line.firstNonWhitespaceCharacterIndex - startOfBlockInLine);
 
-            if (startPosition === endPosition) {
-                return [];
+            if (startPosition.isEqual(endPosition)) {
+                // current block cannot be at the same level as a preivous block
+                continue;
             }
             if (options.insertSpaces) {
                 return [
