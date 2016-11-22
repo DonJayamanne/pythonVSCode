@@ -50,7 +50,8 @@
     "onCommand:jupyter.execCurrentCell",
     "onCommand:jupyter.execCurrentCellAndAdvance",
     "onCommand:python.displayHelp",
-    "onCommand:python.buildWorkspaceSymbols"
+    "onCommand:python.buildWorkspaceSymbols",
+    "onCommand:python.updateSparkLibrary"
   ],
   "main": "./out/client/extension",
   "contributes": {
