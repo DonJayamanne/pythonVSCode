@@ -3,7 +3,7 @@
 An extension with rich support for the [Python language](https://www.python.org/), with features including the following and more:   
 * Linting ([Prospector](https://pypi.io/project/prospector/), [Pylint](https://pypi.io/project/pylint/), [pycodestyle](https://pypi.io/project/pycodestyle/)/Pep8, [Flake8](https://pypi.io/project/flake8/), [pylama](https://github.com/klen/pylama), [pydocstyle](https://pypi.io/project/pydocstyle/) with config files and plugins)
 * Intellisense (autocompletion with support for PEP-0484)
-* Scientific tools (Jupyter/IPython)
+* PySpark and Scientific tools (Jupyter/IPython)
 * Auto indenting
 * Code formatting ([autopep8](https://pypi.io/project/autopep8/), [yapf](https://pypi.io/project/yapf/), with config files)
 * Code refactoring ([Rename](https://github.com/DonJayamanne/pythonVSCode/wiki/Refactoring:-Rename), [Extract Variable](https://github.com/DonJayamanne/pythonVSCode/wiki/Refactoring:-Extract-Variable), [Extract Method](https://github.com/DonJayamanne/pythonVSCode/wiki/Refactoring:-Extract-Method), [Sort Imports](https://github.com/DonJayamanne/pythonVSCode/wiki/Refactoring:-Sort-Imports))
@@ -103,13 +103,7 @@ For further information and details continue through to the [documentation](http
 ## [Change Log](https://github.com/DonJayamanne/pythonVSCode/blob/master/CHANGELOG.md)
 
 ### Thanks
-* [Thijs Damsma](https://github.com/tdamsma)
-* [Siddhartha Gandhi](https://github.com/gandhis1)
-* [Nobuhiro Nakamura](https://github.com/lefb766)
-* [Water Zheng](https://github.com/zhengxiaoyao0716)
-* [Andris Raugulis](https://github.com/arthepsy)
-* [Igor Novozhilov](https://github.com/IgorNovozhilov)
-* [Luca Mussi](https://github.com/splendido)
+* [Shengyu Fu](https://github.com/shengyfu)
 
 ## Source
 
