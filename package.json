@@ -419,7 +419,15 @@
             "type": "python",
             "request": "launch",
             "stopOnEntry": true,
-            "pythonPath": "${config.python.pysparkPath}",
+            "osx": {
+                "pythonPath": "${env.SPARK_HOME}/bin/spark-submit"
+            },
+            "windows": {
+                "pythonPath": "${env.SPARK_HOME}/bin/spark-submit.cmd"
+            },
+            "linux": {
+                "pythonPath": "${env.SPARK_HOME}/bin/spark-submit"
+            },
             "program": "${file}",
             "cwd": "${workspaceRoot}",
             "debugOptions": [
@@ -566,11 +574,6 @@
           "type": "string",
           "default": "python",
           "description": "Path to Python, you can use a custom version of Python by modifying this setting to include the full path."
-        },
-        "python.pysparkPath": {
-          "type": "string",
-          "default": "${env.SPARK_HOME}/bin/spark-submit",
-          "description": "Path to spark-submit executable, you can use a custom version of Spark by modifying this setting to include the full path."
         },
         "python.jediPath": {
           "type": "string",

@@ -19,16 +19,6 @@ function updateSparkLibrary() {
     }, reason => {
         vscode.window.showErrorMessage(`Failed to update ${extraLibPath}. Error: ${reason.message}`);
         console.error(reason);
-    });
-    if (IS_WINDOWS) {        
-        const pysparkPath = 'pysparkPath';
-        console.log('Overriding ' + pysparkPath);
-        pythonConfig.update(pysparkPath, path.join(sparkHomePath, 'bin', 'spark-submit.cmd')).then(() => {
-        //Done
-        }, reason => {
-            vscode.window.showErrorMessage(`Failed to update ${pysparkPath}. Error: ${reason.message}`);
-            console.error(reason);
-        });
-    }
+    });    
     vscode.window.showInformationMessage(`Make sure you have SPARK_HOME environment variable set to the root path of the local spark installation!`);
 }
