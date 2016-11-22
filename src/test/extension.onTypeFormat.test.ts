@@ -20,20 +20,38 @@ let srcPythoFilesPath = path.join(__dirname, '..', '..', 'src', 'test', 'pythonF
 let outPythoFilesPath = path.join(__dirname, '..', 'pythonFiles', 'typeFormatFiles');
 
 const tryBlock2OutFilePath = path.join(outPythoFilesPath, 'tryBlocks2.py');
+const tryBlock4OutFilePath = path.join(outPythoFilesPath, 'tryBlocks4.py');
+const tryBlockTabOutFilePath = path.join(outPythoFilesPath, 'tryBlocksTab.py');
+const provider = new BlockFormatProviders();
 
-suite('Formatting', () => {
-    let provider: BlockFormatProviders;
-    const formatOptions2: vscode.FormattingOptions = {
-        insertSpaces: true, tabSize: 2
-    };
+function testFormatting(fileToFormat: string, position: vscode.Position, expectedEdits: vscode.TextEdit[], formatOptions: vscode.FormattingOptions): PromiseLike<void> {
+    let textDocument: vscode.TextDocument;
+    return vscode.workspace.openTextDocument(fileToFormat).then(document => {
+        textDocument = document;
+        return vscode.window.showTextDocument(textDocument);
+    }).then(editor => {
+        return provider.provideOnTypeFormattingEdits(textDocument, position, ':', formatOptions, null);
+    }).then(edits => {
+        assert.equal(edits.length, expectedEdits.length, 'Number of edits not the same');
+        edits.forEach((edit, index) => {
+            const expectedEdit = expectedEdits[index];
+            assert.equal(edit.newText, expectedEdit.newText, `newText for edit is not the same for index = ${index}`);
+            const providedRange = `${edit.range.start.line},${edit.range.start.character},${edit.range.end.line},${edit.range.end.character}`;
+            const expectedRange = `${expectedEdit.range.start.line},${expectedEdit.range.start.character},${expectedEdit.range.end.line},${expectedEdit.range.end.character}`;
+            assert.ok(edit.range.isEqual(expectedEdit.range), `range for edit is not the same for index = ${index}, provided ${providedRange}, expected ${expectedRange}`);
+        });
+    }, reason => {
+        assert.fail(reason, undefined, 'Type Formatting failed', '');
+    });
+}
 
+suite('Try blocks with indentation of 2 spaces', () => {
     suiteSetup(done => {
         initialize().then(() => {
-            provider = new BlockFormatProviders();
             pythonSettings.pythonPath = PYTHON_PATH;
             fs.ensureDirSync(path.dirname(outPythoFilesPath));
 
-            ['tryBlocks2.py', 'tryBlocks4.py', 'tryBlocksTab.py'].forEach(file => {
+            ['tryBlocks2.py'].forEach(file => {
                 const targetFile = path.join(outPythoFilesPath, file);
                 if (fs.existsSync(targetFile)) { fs.unlinkSync(targetFile); }
                 fs.copySync(path.join(srcPythoFilesPath, file), targetFile);
@@ -47,99 +65,295 @@ suite('Formatting', () => {
         closeActiveWindows().then(done, done);
     });
 
-    function testFormatting(fileToFormat: string, position: vscode.Position, expectedEdits: vscode.TextEdit[]): PromiseLike<void> {
-        let textEditor: vscode.TextEditor;
-        let textDocument: vscode.TextDocument;
-        return vscode.workspace.openTextDocument(fileToFormat).then(document => {
-            textDocument = document;
-            return vscode.window.showTextDocument(textDocument);
-        }).then(editor => {
-            return provider.provideOnTypeFormattingEdits(textDocument, position, ':', formatOptions2, null);
-        }).then(edits => {
-            assert.equal(edits.length, expectedEdits.length, 'Number of edits not the same');
-            edits.forEach((edit, index) => {
-                const expectedEdit = expectedEdits[index];
-                assert.equal(edit.newText, expectedEdit.newText, `newText for edit is not the same for index = ${index}`);
-                assert.ok(edit.range.isEqual(expectedEdit.range), `range for edit is not the same for index = ${index}, provided ${edit.range + ''}, expected ${expectedEdit.range + ''}`);
-            });
-        }, reason => {
-            assert.fail(reason, undefined, 'Type Formatting failed', '');
-        });
+    interface TestCase {
+        title: string;
+        line: number;
+        column: number;
+        expectedEdits: vscode.TextEdit[];
     }
-    test('1. except off by tab', done => {
-        const lineNumber = 6;
-        const pos = new vscode.Position(lineNumber, 22);
-        const expectedEdits = [
-            vscode.TextEdit.delete(new vscode.Range(lineNumber, 0, lineNumber, 2))
-        ];
-        testFormatting(tryBlock2OutFilePath, pos, expectedEdits).then(done, done);
+    const testCases: TestCase[] = [
+        {
+            title: 'except off by tab',
+            line: 6, column: 22,
+            expectedEdits: [
+                vscode.TextEdit.delete(new vscode.Range(6, 0, 6, 2))
+            ]
+        },
+        {
+            title: 'except off by one should not be formatted',
+            line: 15, column: 21,
+            expectedEdits: []
+        },
+        {
+            title: 'except off by tab inside a for loop',
+            line: 35, column: 13,
+            expectedEdits: [
+                vscode.TextEdit.delete(new vscode.Range(35, 0, 35, 2))
+            ]
+        },
+        {
+            title: 'except off by one inside a for loop should not be formatted',
+            line: 47, column: 12,
+            expectedEdits: [
+            ]
+        },
+        {
+            title: 'except IOError: off by tab inside a for loop',
+            line: 54, column: 19,
+            expectedEdits: [
+                vscode.TextEdit.delete(new vscode.Range(54, 0, 54, 2))
+            ]
+        },
+        {
+            title: 'else: off by tab inside a for loop',
+            line: 76, column: 9,
+            expectedEdits: [
+                vscode.TextEdit.delete(new vscode.Range(76, 0, 76, 2))
+            ]
+        },
+        {
+            title: 'except ValueError:: off by tab inside a function',
+            line: 143, column: 22,
+            expectedEdits: [
+                vscode.TextEdit.delete(new vscode.Range(143, 0, 143, 2))
+            ]
+        },
+        {
+            title: 'except ValueError as err: off by one inside a function should not be formatted',
+            line: 157, column: 25,
+            expectedEdits: [
+            ]
+        },
+        {
+            title: 'else: off by tab inside function',
+            line: 172, column: 11,
+            expectedEdits: [
+                vscode.TextEdit.delete(new vscode.Range(172, 0, 172, 2))
+            ]
+        },
+        {
+            title: 'finally: off by tab inside function',
+            line: 195, column: 12,
+            expectedEdits: [
+                vscode.TextEdit.delete(new vscode.Range(195, 0, 195, 2))
+            ]
+        }
+    ];
+
+    const formatOptions: vscode.FormattingOptions = {
+        insertSpaces: true, tabSize: 2
+    };
+
+    testCases.forEach((testCase, index) => {
+        test(`${index + 1}. ${testCase.title}`, done => {
+            const pos = new vscode.Position(testCase.line, testCase.column);
+            testFormatting(tryBlock2OutFilePath, pos, testCase.expectedEdits, formatOptions).then(done, done);
+        });
     });
-    test('2. except off by one should not be formatted', done => {
-        const lineNumber = 15;
-        const pos = new vscode.Position(lineNumber, 21);
-        const expectedEdits = [];
-        testFormatting(tryBlock2OutFilePath, pos, expectedEdits).then(done, done);
+});
+
+suite('Try blocks with indentation of 4 spaces', () => {
+    suiteSetup(done => {
+        initialize().then(() => {
+            pythonSettings.pythonPath = PYTHON_PATH;
+            fs.ensureDirSync(path.dirname(outPythoFilesPath));
+
+            ['tryBlocks4.py'].forEach(file => {
+                const targetFile = path.join(outPythoFilesPath, file);
+                if (fs.existsSync(targetFile)) { fs.unlinkSync(targetFile); }
+                fs.copySync(path.join(srcPythoFilesPath, file), targetFile);
+            });
+        }).then(done).catch(done);
     });
-    test('3. except off by tab inside a for loop', done => {
-        const lineNumber = 35;
-        const pos = new vscode.Position(lineNumber, 13);
-        const expectedEdits = [
-            vscode.TextEdit.delete(new vscode.Range(lineNumber, 0, lineNumber, 2))
-        ];
-        testFormatting(tryBlock2OutFilePath, pos, expectedEdits).then(done, done);
+    suiteTeardown(done => {
+        closeActiveWindows().then(done, done);
     });
-    test('4. except off by one inside a for loop should not be formatted', done => {
-        const lineNumber = 47;
-        const pos = new vscode.Position(lineNumber, 12);
-        const expectedEdits = [
-        ];
-        testFormatting(tryBlock2OutFilePath, pos, expectedEdits).then(done, done);
+    teardown(done => {
+        closeActiveWindows().then(done, done);
     });
-    test('5. except IOError: off by tab inside a for loop', done => {
-        const lineNumber = 54;
-        const pos = new vscode.Position(lineNumber, 19);
-        const expectedEdits = [
-            vscode.TextEdit.delete(new vscode.Range(lineNumber, 0, lineNumber, 2))
-        ];
-        testFormatting(tryBlock2OutFilePath, pos, expectedEdits).then(done, done);
+
+    interface TestCase {
+        title: string;
+        line: number;
+        column: number;
+        expectedEdits: vscode.TextEdit[];
+    }
+    const testCases: TestCase[] = [
+        {
+            title: 'except off by tab',
+            line: 6, column: 22,
+            expectedEdits: [
+                vscode.TextEdit.delete(new vscode.Range(6, 0, 6, 4))
+            ]
+        },
+        {
+            title: 'except off by one should not be formatted',
+            line: 15, column: 21,
+            expectedEdits: []
+        },
+        {
+            title: 'except off by tab inside a for loop',
+            line: 35, column: 13,
+            expectedEdits: [
+                vscode.TextEdit.delete(new vscode.Range(35, 0, 35, 4))
+            ]
+        },
+        {
+            title: 'except off by one inside a for loop should not be formatted',
+            line: 47, column: 12,
+            expectedEdits: [
+            ]
+        },
+        {
+            title: 'except IOError: off by tab inside a for loop',
+            line: 54, column: 19,
+            expectedEdits: [
+                vscode.TextEdit.delete(new vscode.Range(54, 0, 54, 4))
+            ]
+        },
+        {
+            title: 'else: off by tab inside a for loop',
+            line: 76, column: 9,
+            expectedEdits: [
+                vscode.TextEdit.delete(new vscode.Range(76, 0, 76, 4))
+            ]
+        },
+        {
+            title: 'except ValueError:: off by tab inside a function',
+            line: 143, column: 22,
+            expectedEdits: [
+                vscode.TextEdit.delete(new vscode.Range(143, 0, 143, 4))
+            ]
+        },
+        {
+            title: 'except ValueError as err: off by one inside a function should not be formatted',
+            line: 157, column: 25,
+            expectedEdits: [
+            ]
+        },
+        {
+            title: 'else: off by tab inside function',
+            line: 172, column: 11,
+            expectedEdits: [
+                vscode.TextEdit.delete(new vscode.Range(172, 0, 172, 4))
+            ]
+        },
+        {
+            title: 'finally: off by tab inside function',
+            line: 195, column: 12,
+            expectedEdits: [
+                vscode.TextEdit.delete(new vscode.Range(195, 0, 195, 4))
+            ]
+        }
+    ];
+
+    const formatOptions: vscode.FormattingOptions = {
+        insertSpaces: true, tabSize: 4
+    };
+
+    testCases.forEach((testCase, index) => {
+        test(`${index + 1}. ${testCase.title}`, done => {
+            const pos = new vscode.Position(testCase.line, testCase.column);
+            testFormatting(tryBlock4OutFilePath, pos, testCase.expectedEdits, formatOptions).then(done, done);
+        });
     });
-    test('6. else: off by tab inside a for loop', done => {
-        const lineNumber = 76;
-        const pos = new vscode.Position(lineNumber, 9);
-        const expectedEdits = [
-            vscode.TextEdit.delete(new vscode.Range(lineNumber, 0, lineNumber, 2))
-        ];
-        testFormatting(tryBlock2OutFilePath, pos, expectedEdits).then(done, done);
+});
+
+
+suite('Try blocks with indentation of Tab', () => {
+    suiteSetup(done => {
+        initialize().then(() => {
+            pythonSettings.pythonPath = PYTHON_PATH;
+            fs.ensureDirSync(path.dirname(outPythoFilesPath));
+
+            ['tryBlocksTab.py'].forEach(file => {
+                const targetFile = path.join(outPythoFilesPath, file);
+                if (fs.existsSync(targetFile)) { fs.unlinkSync(targetFile); }
+                fs.copySync(path.join(srcPythoFilesPath, file), targetFile);
+            });
+        }).then(done).catch(done);
     });
-    test('7. except ValueError:: off by tab inside a function', done => {
-        const lineNumber = 143;
-        const pos = new vscode.Position(lineNumber, 22);
-        const expectedEdits = [
-            vscode.TextEdit.delete(new vscode.Range(lineNumber, 0, lineNumber, 2))
-        ];
-        testFormatting(tryBlock2OutFilePath, pos, expectedEdits).then(done, done);
+    suiteTeardown(done => {
+        closeActiveWindows().then(done, done);
     });
-    test('8. except ValueError as err: off by one inside a function should not be formatted', done => {
-        const lineNumber = 157;
-        const pos = new vscode.Position(lineNumber, 25);
-        const expectedEdits = [
-        ];
-        testFormatting(tryBlock2OutFilePath, pos, expectedEdits).then(done, done);
+    teardown(done => {
+        closeActiveWindows().then(done, done);
     });
-    test('9. else: off by tab inside function', done => {
-        const lineNumber = 172;
-        const pos = new vscode.Position(lineNumber, 11);
-        const expectedEdits = [
-            vscode.TextEdit.delete(new vscode.Range(lineNumber, 0, lineNumber, 2))
-        ];
-        testFormatting(tryBlock2OutFilePath, pos, expectedEdits).then(done, done);
-    });
-    test('10. finally: off by tab inside function', done => {
-        const lineNumber = 195;
-        const pos = new vscode.Position(lineNumber, 12);
-        const expectedEdits = [
-            vscode.TextEdit.delete(new vscode.Range(lineNumber, 0, lineNumber, 2))
-        ];
-        testFormatting(tryBlock2OutFilePath, pos, expectedEdits).then(done, done);
+
+    interface TestCase {
+        title: string;
+        line: number;
+        column: number;
+        expectedEdits: vscode.TextEdit[];
+    }
+    const TAB = '	';
+    const testCases: TestCase[] = [
+        {
+            title: 'except off by tab',
+            line: 6, column: 22,
+            expectedEdits: [
+                vscode.TextEdit.delete(new vscode.Range(6, 0, 6, 2)),
+                vscode.TextEdit.insert(new vscode.Position(6, 0), TAB)
+            ]
+        },
+        {
+            title: 'except off by tab inside a for loop',
+            line: 35, column: 13,
+            expectedEdits: [
+                vscode.TextEdit.delete(new vscode.Range(35, 0, 35, 2)),
+                vscode.TextEdit.insert(new vscode.Position(35, 0), TAB)
+            ]
+        },
+        {
+            title: 'except IOError: off by tab inside a for loop',
+            line: 54, column: 19,
+            expectedEdits: [
+                vscode.TextEdit.delete(new vscode.Range(54, 0, 54, 2)),
+                vscode.TextEdit.insert(new vscode.Position(54, 0), TAB)
+            ]
+        },
+        {
+            title: 'else: off by tab inside a for loop',
+            line: 76, column: 9,
+            expectedEdits: [
+                vscode.TextEdit.delete(new vscode.Range(76, 0, 76, 2)),
+                vscode.TextEdit.insert(new vscode.Position(76, 0), TAB)
+            ]
+        },
+        {
+            title: 'except ValueError:: off by tab inside a function',
+            line: 143, column: 22,
+            expectedEdits: [
+                vscode.TextEdit.delete(new vscode.Range(143, 0, 143, 2)),
+                vscode.TextEdit.insert(new vscode.Position(143, 0), TAB)
+            ]
+        },
+        {
+            title: 'else: off by tab inside function',
+            line: 172, column: 11,
+            expectedEdits: [
+                vscode.TextEdit.delete(new vscode.Range(172, 0, 172, 3)),
+                vscode.TextEdit.insert(new vscode.Position(172, 0), TAB + TAB)
+            ]
+        },
+        {
+            title: 'finally: off by tab inside function',
+            line: 195, column: 12,
+            expectedEdits: [
+                vscode.TextEdit.delete(new vscode.Range(195, 0, 195, 2)),
+                vscode.TextEdit.insert(new vscode.Position(195, 0), TAB)
+            ]
+        }
+    ];
+
+    const formatOptions: vscode.FormattingOptions = {
+        insertSpaces: false, tabSize: 4
+    };
+
+    testCases.forEach((testCase, index) => {
+        test(`${index + 1}. ${testCase.title}`, done => {
+            const pos = new vscode.Position(testCase.line, testCase.column);
+            testFormatting(tryBlockTabOutFilePath, pos, testCase.expectedEdits, formatOptions).then(done, done);
+        });
     });
 });

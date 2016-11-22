@@ -4,7 +4,7 @@ while True:
         x = int(input("Please enter a number: "))
         break
         # except should be in same column as try:
-        except ValueError
+        except ValueError:
         print("Oops!    That was no valid number.    Try again...")
 
 
@@ -13,7 +13,7 @@ while True:
         x = int(input("Please enter a number: "))
         break
         # except should be in same column as try:
-     except ValueError
+     except ValueError:
         print("Oops!    That was no valid number.    Try again...")
 
 class B(Exception):
@@ -33,7 +33,7 @@ for cls in [B, C, D]:
     except C:
         print("C")
         # except should be in same level as except
-        except B
+        except B:
         print("B")
 
 
@@ -45,14 +45,14 @@ for cls in [B, C, D]:
     except C:
         print("C")
         # except should be in same level as except
-     except B
+     except B:
         print("B")
 
 for arg in sys.argv[1:]:
     try:
         f = open(arg, 'r')
         #except should be in same level as try
-        except IOError
+        except IOError:
         print('cannot open', arg)
     else:
         print(arg, 'has', len(f.readlines()), 'lines')
@@ -62,7 +62,7 @@ for arg in sys.argv[1:]:
     try:
         f = open(arg, 'r')
         #except should be in same level as try
-     except IOError
+     except IOError:
         print('cannot open', arg)
     else:
         print(arg, 'has', len(f.readlines()), 'lines')
@@ -71,7 +71,7 @@ for arg in sys.argv[1:]:
 for arg in sys.argv[1:]:
     try:
         f = open(arg, 'r')
-    except IOError
+    except IOError:
         print('cannot open', arg)
         #else should be in same level as try
         else:
@@ -81,7 +81,7 @@ for arg in sys.argv[1:]:
 for arg in sys.argv[1:]:
     try:
         f = open(arg, 'r')
-    except IOError
+    except IOError:
         print('cannot open', arg)
         #else should be in same level as try
      else:
@@ -94,7 +94,7 @@ def minus():
             x = int(input("Please enter a number: "))
             break
             #except should be in same level as try:
-            except ValueError
+            except ValueError:
             print("Oops!    That was no valid number.    Try again...")
 
 def minus():
@@ -103,7 +103,7 @@ def minus():
             x = int(input("Please enter a number: "))
             break
             #except should be in same level as try:
-         except ValueError
+         except ValueError:
             print("Oops!    That was no valid number.    Try again...")
 
     
