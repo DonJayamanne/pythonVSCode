@@ -25,6 +25,19 @@
   "engines": {
     "vscode": "^1.6.0"
   },
+  "keywords": [
+    "python",
+    "jupyter",
+    "django",
+    "flask",
+    "ipython",
+    "watson",
+    "pyspark",
+    "numpy",
+    "matplotlib",
+    "spark",
+    "notebook"
+  ],
   "categories": [
     "Languages",
     "Debuggers",
@@ -421,13 +434,13 @@
             "request": "launch",
             "stopOnEntry": true,
             "osx": {
-                "pythonPath": "${env.SPARK_HOME}/bin/spark-submit"
+              "pythonPath": "${env.SPARK_HOME}/bin/spark-submit"
             },
             "windows": {
-                "pythonPath": "${env.SPARK_HOME}/bin/spark-submit.cmd"
+              "pythonPath": "${env.SPARK_HOME}/bin/spark-submit.cmd"
             },
             "linux": {
-                "pythonPath": "${env.SPARK_HOME}/bin/spark-submit"
+              "pythonPath": "${env.SPARK_HOME}/bin/spark-submit"
             },
             "program": "${file}",
             "cwd": "${workspaceRoot}",
