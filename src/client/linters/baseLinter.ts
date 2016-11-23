@@ -52,9 +52,14 @@ export abstract class BaseLinter {
     public Id: string;
     private installer: Installer;
     protected pythonSettings: settings.IPythonSettings;
-    constructor(id: string, private product: Product, protected outputChannel: OutputChannel, protected workspaceRootPath: string) {
+    private _workspaceRootPath: string;
+    protected get workspaceRootPath(): string {
+        return typeof this._workspaceRootPath === 'string' ? this._workspaceRootPath : vscode.workspace.rootPath;
+    }
+    constructor(id: string, private product: Product, protected outputChannel: OutputChannel, workspaceRootPath: string) {
         this.Id = id;
         this.installer = new Installer();
+        this._workspaceRootPath = workspaceRootPath;
         this.pythonSettings = settings.PythonSettings.getInstance();
     }
     public abstract isEnabled(): Boolean;

@@ -23,7 +23,7 @@ function runTestInTerminal(file: string, args: string[], cwd: string): Promise<a
         else {
             commands.push(`export ${PATH_VARIABLE_NAME}=$${PATH_VARIABLE_NAME}:${pyPath}`);
         }
-        if (cwd !== workspace.rootPath) {
+        if (cwd !== workspace.rootPath && typeof cwd === 'string') {
             commands.push(`cd ${cwd}`);
         }
         commands.push(`${file} ${args.join(' ')}`);

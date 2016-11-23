@@ -23,7 +23,7 @@ interface IProspectorLocation {
 }
 
 export class Linter extends baseLinter.BaseLinter {
-    constructor(outputChannel: OutputChannel, workspaceRootPath: string) {
+    constructor(outputChannel: OutputChannel, workspaceRootPath?: string) {
         super('prospector', Product.prospector, outputChannel, workspaceRootPath);
     }
 

@@ -5,7 +5,7 @@ import {OutputChannel} from 'vscode';
 import { Product } from '../common/installer';
 
 export class Linter extends baseLinter.BaseLinter {
-    constructor(outputChannel: OutputChannel, workspaceRootPath: string) {
+    constructor(outputChannel: OutputChannel, workspaceRootPath?: string) {
         super('flake8', Product.flake8, outputChannel, workspaceRootPath);
     }
 

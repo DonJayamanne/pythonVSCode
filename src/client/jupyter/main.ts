@@ -28,7 +28,7 @@ export class Jupyter extends vscode.Disposable {
     private codeLensProvider: JupyterCodeLensProvider;
     private lastUsedPythonPath: string;
     private codeHelper: CodeHelper;
-    constructor(private outputChannel: vscode.OutputChannel, private rootPath: string) {
+    constructor(private outputChannel: vscode.OutputChannel) {
         super(() => { });
         this.disposables = [];
         this.registerCommands();
@@ -49,7 +49,7 @@ export class Jupyter extends vscode.Disposable {
         this.disposables.forEach(d => d.dispose());
     }
     private createKernelManager() {
-        const jupyterClient = new main.JupyterClientAdapter(this.outputChannel, this.rootPath);
+        const jupyterClient = new main.JupyterClientAdapter(this.outputChannel, vscode.workspace.rootPath);
         this.kernelManager = new KernelManagerImpl(this.outputChannel, jupyterClient);
 
         // This happend when user changes it from status bar

@@ -53,7 +53,7 @@ export class LintProvider extends vscode.Disposable {
     private disposables: vscode.Disposable[];
     private ignoreMinmatches: { match: (fname: string) => boolean }[];
     public constructor(context: vscode.ExtensionContext, outputChannel: vscode.OutputChannel,
-        private workspaceRootPath: string, private documentHasJupyterCodeCells: DocumentHasJupyterCodeCells) {
+        private documentHasJupyterCodeCells: DocumentHasJupyterCodeCells) {
         super(() => { });
         this.outputChannel = outputChannel;
         this.context = context;
@@ -82,13 +82,13 @@ export class LintProvider extends vscode.Disposable {
     private initialize() {
         this.diagnosticCollection = vscode.languages.createDiagnosticCollection('python');
 
-        this.linters.push(new prospector.Linter(this.outputChannel, this.workspaceRootPath));
-        this.linters.push(new pylint.Linter(this.outputChannel, this.workspaceRootPath));
-        this.linters.push(new pep8.Linter(this.outputChannel, this.workspaceRootPath));
-        this.linters.push(new pylama.Linter(this.outputChannel, this.workspaceRootPath));
-        this.linters.push(new flake8.Linter(this.outputChannel, this.workspaceRootPath));
-        this.linters.push(new pydocstyle.Linter(this.outputChannel, this.workspaceRootPath));
-        this.linters.push(new mypy.Linter(this.outputChannel, this.workspaceRootPath));
+        this.linters.push(new prospector.Linter(this.outputChannel));
+        this.linters.push(new pylint.Linter(this.outputChannel));
+        this.linters.push(new pep8.Linter(this.outputChannel));
+        this.linters.push(new pylama.Linter(this.outputChannel));
+        this.linters.push(new flake8.Linter(this.outputChannel));
+        this.linters.push(new pydocstyle.Linter(this.outputChannel));
+        this.linters.push(new mypy.Linter(this.outputChannel));
 
         let disposable = vscode.workspace.onDidSaveTextDocument((e) => {
             if (e.languageId !== 'python' || !this.settings.linting.enabled || !this.settings.linting.lintOnSave) {
@@ -138,7 +138,7 @@ export class LintProvider extends vscode.Disposable {
 
     private onLintDocument(document: vscode.TextDocument, documentUri: vscode.Uri, documentLines: string[]): void {
         // Check if we need to lint this document
-        const relativeFileName = path.relative(vscode.workspace.rootPath, document.fileName);
+        const relativeFileName = typeof vscode.workspace.rootPath === 'string' ? path.relative(vscode.workspace.rootPath, document.fileName) : document.fileName;
         if (this.ignoreMinmatches.some(matcher => matcher.match(document.fileName) || matcher.match(relativeFileName))) {
             return;
         }

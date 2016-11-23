@@ -10,7 +10,7 @@ import * as settings from "./../common/configSettings";
 import * as telemetryHelper from "../common/telemetry";
 import * as telemetryContracts from "../common/telemetryContracts";
 
-export function activateFormatOnSaveProvider(languageFilter: vscode.DocumentFilter, settings: settings.IPythonSettings, outputChannel: vscode.OutputChannel, workspaceRootPath: string): vscode.Disposable {
+export function activateFormatOnSaveProvider(languageFilter: vscode.DocumentFilter, settings: settings.IPythonSettings, outputChannel: vscode.OutputChannel, workspaceRootPath?: string): vscode.Disposable {
     let formatters = new Map<string, BaseFormatter>();
     let pythonSettings = settings;
 

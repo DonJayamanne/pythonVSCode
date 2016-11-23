@@ -106,25 +106,26 @@ export interface JupyterSettings {
 
 const IS_TEST_EXECUTION = process.env['PYTHON_DONJAYAMANNE_TEST'] === '1';
 
-const systemVariables: SystemVariables = new SystemVariables();
 export class PythonSettings extends EventEmitter implements IPythonSettings {
     private static pythonSettings: PythonSettings = new PythonSettings();
+    private disposables: vscode.Disposable[] = [];
     constructor() {
         super();
         if (PythonSettings.pythonSettings) {
             throw new Error('Singleton class, Use getInstance method');
         }
-        vscode.workspace.onDidChangeConfiguration(() => {
+        this.disposables.push(vscode.workspace.onDidChangeConfiguration(() => {
             this.initializeSettings();
-        });
-
+        }));
+        
         this.initializeSettings();
     }
     public static getInstance(): PythonSettings {
         return PythonSettings.pythonSettings;
     }
     private initializeSettings() {
-        const workspaceRoot = IS_TEST_EXECUTION ? __dirname : vscode.workspace.rootPath;
+        const systemVariables: SystemVariables = new SystemVariables();
+        const workspaceRoot = (IS_TEST_EXECUTION || typeof vscode.workspace.rootPath !== 'string') ? __dirname : vscode.workspace.rootPath;
         let pythonSettings = vscode.workspace.getConfiguration('python');
         this.pythonPath = systemVariables.resolveAny(pythonSettings.get<string>('pythonPath'));
         this.pythonPath = getAbsolutePath(this.pythonPath, IS_TEST_EXECUTION ? __dirname : workspaceRoot);
@@ -225,7 +226,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
             exclusionPatterns: [],
             rebuildOnFileSave: true,
             rebuildOnStart: true,
-            tagFilePath: path.join(vscode.workspace.rootPath, "tags")
+            tagFilePath: path.join(workspaceRoot, "tags")
         };
 
         let unitTestSettings = systemVariables.resolveAny(pythonSettings.get<IUnitTestSettings>('unitTest'));
@@ -238,7 +239,6 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
                 this.unitTest = { nosetestArgs: [], pyTestArgs: [], unittestArgs: [] } as IUnitTestSettings;
             }
         }
-        this.emit('change');
 
         // Support for travis
         this.unitTest = this.unitTest ? this.unitTest : {
@@ -278,6 +278,8 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         this.jupyter = this.jupyter ? this.jupyter : {
             appendResults: true, defaultKernel: '', startupCode: []
         };
+
+        this.emit('change');
     }
 
     public pythonPath: string;

@@ -10,7 +10,7 @@ import { Installer, Product } from '../common/installer';
 
 export abstract class BaseFormatter {
     private installer: Installer;
-    constructor(public Id: string, private product: Product, protected outputChannel: vscode.OutputChannel, protected pythonSettings: settings.IPythonSettings, protected workspaceRootPath: string) {
+    constructor(public Id: string, private product: Product, protected outputChannel: vscode.OutputChannel, protected pythonSettings: settings.IPythonSettings, protected workspaceRootPath?: string) {
         this.installer = new Installer();
     }
 
@@ -29,7 +29,8 @@ export abstract class BaseFormatter {
             if (token && token.isCancellationRequested) {
                 return [filePath, ''];
             }
-            return Promise.all<string>([Promise.resolve(filePath), execPythonFile(command, args.concat([filePath]), this.workspaceRootPath)]);
+            const workspaceRoot = this.workspaceRootPath ? this.workspaceRootPath : vscode.workspace.rootPath;
+            return Promise.all<string>([Promise.resolve(filePath), execPythonFile(command, args.concat([filePath]), workspaceRoot)]);
         }).then(data => {
             // Delete the temporary file created
             if (tmpFileCreated) {

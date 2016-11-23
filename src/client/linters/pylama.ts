@@ -7,7 +7,7 @@ import { Product } from '../common/installer';
 const REGEX = '(?<file>.py):(?<line>\\d+):(?<column>\\d+): \\[(?<type>\\w+)\\] (?<code>\\w\\d+):? (?<message>.*)\\r?(\\n|$)';
 
 export class Linter extends baseLinter.BaseLinter {
-    constructor(outputChannel: OutputChannel, workspaceRootPath: string) {
+    constructor(outputChannel: OutputChannel, workspaceRootPath?: string) {
         super('pylama', Product.pylama, outputChannel, workspaceRootPath);
     }
 

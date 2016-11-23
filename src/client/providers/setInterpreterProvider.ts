@@ -241,5 +241,8 @@ function presentQuickPickOfSuggestedPythonPaths() {
 }
 
 function setInterpreter() {
+    if (typeof vscode.workspace.rootPath !== 'string'){
+        return vscode.window.showErrorMessage('Please open a workspace to select the Python Interpreter');
+    }
     presentQuickPickOfSuggestedPythonPaths();
 }

@@ -7,7 +7,7 @@ import { Product } from '../common/installer';
 const REGEX = '(?<file>.py):(?<line>\\d+): (?<type>\\w+): (?<message>.*)\\r?(\\n|$)';
 
 export class Linter extends baseLinter.BaseLinter {
-    constructor(outputChannel: OutputChannel, workspaceRootPath: string) {
+    constructor(outputChannel: OutputChannel, workspaceRootPath?: string) {
         super('mypy', Product.mypy, outputChannel, workspaceRootPath);
     }
     private parseMessagesSeverity(category: string): baseLinter.LintMessageSeverity {

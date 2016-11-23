@@ -12,9 +12,9 @@ import * as telemetryContracts from '../common/telemetryContracts';
 export class PythonFormattingEditProvider implements vscode.DocumentFormattingEditProvider, vscode.DocumentRangeFormattingEditProvider {
     private formatters = new Map<string, BaseFormatter>();
 
-    public constructor(context: vscode.ExtensionContext, outputChannel: vscode.OutputChannel, private settings: settings.IPythonSettings, workspaceRootPath: string) {
-        let yapfFormatter = new YapfFormatter(outputChannel, settings, workspaceRootPath);
-        let autoPep8 = new AutoPep8Formatter(outputChannel, settings, workspaceRootPath);
+    public constructor(context: vscode.ExtensionContext, outputChannel: vscode.OutputChannel, private settings: settings.IPythonSettings) {
+        let yapfFormatter = new YapfFormatter(outputChannel, settings);
+        let autoPep8 = new AutoPep8Formatter(outputChannel, settings);
         this.formatters.set(yapfFormatter.Id, yapfFormatter);
         this.formatters.set(autoPep8.Id, autoPep8);
     }

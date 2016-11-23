@@ -6,7 +6,7 @@ import * as settings from './../common/configSettings';
 import { Product } from '../common/installer';
 
 export class YapfFormatter extends BaseFormatter {
-    constructor(protected outputChannel: vscode.OutputChannel, protected pythonSettings: settings.IPythonSettings, protected workspaceRootPath: string) {
+    constructor(outputChannel: vscode.OutputChannel, pythonSettings: settings.IPythonSettings, workspaceRootPath?: string) {
         super('yapf', Product.yapf, outputChannel, pythonSettings, workspaceRootPath);
     }
 

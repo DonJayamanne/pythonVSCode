@@ -55,7 +55,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(...activateExecInTerminalProvider());
     context.subscriptions.push(activateUpdateSparkLibraryProvider());
     activateSimplePythonRefactorProvider(context, formatOutChannel);
-    context.subscriptions.push(activateFormatOnSaveProvider(PYTHON, settings.PythonSettings.getInstance(), formatOutChannel, vscode.workspace.rootPath));
+    context.subscriptions.push(activateFormatOnSaveProvider(PYTHON, settings.PythonSettings.getInstance(), formatOutChannel));
 
     // Enable indentAction
     vscode.languages.setLanguageConfiguration(PYTHON.language, {
@@ -84,17 +84,17 @@ export function activate(context: vscode.ExtensionContext) {
     if (pythonSettings.devOptions.indexOf('DISABLE_SIGNATURE') === -1) {
         context.subscriptions.push(vscode.languages.registerSignatureHelpProvider(PYTHON, new PythonSignatureProvider(context, jediProx), '(', ','));
     }
-    const formatProvider = new PythonFormattingEditProvider(context, formatOutChannel, pythonSettings, vscode.workspace.rootPath);
+    const formatProvider = new PythonFormattingEditProvider(context, formatOutChannel, pythonSettings);
     context.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider(PYTHON, formatProvider));
     context.subscriptions.push(vscode.languages.registerDocumentRangeFormattingEditProvider(PYTHON, formatProvider));
 
 
-    jupMain = new jup.Jupyter(lintingOutChannel, vscode.workspace.rootPath);
+    jupMain = new jup.Jupyter(lintingOutChannel);
     const documentHasJupyterCodeCells = jupMain.hasCodeCells.bind(jupMain);
     jupMain.activate();
     context.subscriptions.push(jupMain);
 
-    context.subscriptions.push(new LintProvider(context, lintingOutChannel, vscode.workspace.rootPath, documentHasJupyterCodeCells));
+    context.subscriptions.push(new LintProvider(context, lintingOutChannel, documentHasJupyterCodeCells));
     tests.activate(context, unitTestOutChannel);
 
     context.subscriptions.push(new WorkspaceSymbols(lintingOutChannel));
