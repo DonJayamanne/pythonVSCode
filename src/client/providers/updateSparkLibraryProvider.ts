@@ -2,7 +2,6 @@
 import { Commands } from '../common/constants';
 import * as vscode from "vscode";
 import * as path from 'path';
-import { IS_WINDOWS } from '../common/utils';
 
 export function activateUpdateSparkLibraryProvider(): vscode.Disposable {
     return vscode.commands.registerCommand(Commands.Update_SparkLibrary, updateSparkLibrary);
