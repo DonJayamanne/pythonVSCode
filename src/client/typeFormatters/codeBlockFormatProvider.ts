@@ -17,7 +17,7 @@ export class CodeBlockFormatProvider {
         // while x:
 
         // We need to find a block statement that is less than or equal to this statement block (but not greater)
-        for (let lineNumber = position.line - 1; lineNumber > 0; lineNumber--) {
+        for (let lineNumber = position.line - 1; lineNumber >= 0; lineNumber--) {
             const prevLine = document.lineAt(lineNumber);
             const prevLineText = prevLine.text;
 
