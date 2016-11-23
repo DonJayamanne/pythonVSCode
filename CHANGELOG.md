@@ -1,5 +1,27 @@
 ## 0.5.3
-* Debugging unittests (UnitTest, pytest, nose) 
+* Added support for [PySpark](http://spark.apache.org/docs/0.9.0/python-programming-guide.html) [#539](https://github.com/DonJayamanne/pythonVSCode/pull/539), [#540](https://github.com/DonJayamanne/pythonVSCode/pull/540)
+* Debugging unittests (UnitTest, pytest, nose) [#333](https://github.com/DonJayamanne/pythonVSCode/issues/333)
+* Displaying progress for formatting [#327](https://github.com/DonJayamanne/pythonVSCode/issues/327) 
+* Auto indenting ```else:``` inside ```if``` and similar code blocks [#432](https://github.com/DonJayamanne/pythonVSCode/issues/432) 
+* Prefixing new lines with '#' when new lines are added in the middle of a comment string [#365](https://github.com/DonJayamanne/pythonVSCode/issues/365) 
+* Debugging python modules [#518](https://github.com/DonJayamanne/pythonVSCode/issues/518), [#354](https://github.com/DonJayamanne/pythonVSCode/issues/354)
+    + Use new debug configuration ```Python Module```  
+* Added support for workspace symbols using Exuberant CTags [#138](https://github.com/DonJayamanne/pythonVSCode/issues/138)
+    + New command ```Python: Build Workspace Symbols```  
+* Added ability for linter to ignore paths or files [#501](https://github.com/DonJayamanne/pythonVSCode/issues/501)
+    + Add the following setting in ```settings.json```
+```python
+        "python.linting.ignorePatterns":  [
+            ".vscode/*.py",
+            "**/site-packages/**/*.py"
+          ],
+```               
+* Automatically adding brackets when autocompleting functions/methods [#425](https://github.com/DonJayamanne/pythonVSCode/issues/425)
+    + To enable this feature, turn on the setting ```"python.autoComplete.addBrackets": true``` 
+* Running nose tests with the arguments '--with-xunit' and '--xunit-file' [#517](https://github.com/DonJayamanne/pythonVSCode/issues/517)
+* Added support for workspaceRootFolderName in settings.json [#525](https://github.com/DonJayamanne/pythonVSCode/pull/525), [#522](https://github.com/DonJayamanne/pythonVSCode/issues/522)
+* Added support for workspaceRootFolderName in settings.json [#525](https://github.com/DonJayamanne/pythonVSCode/pull/525), [#522](https://github.com/DonJayamanne/pythonVSCode/issues/522)
+* Fixes to running code in terminal [#515](https://github.com/DonJayamanne/pythonVSCode/issues/515)
 
 ## 0.5.2
 * Fix issue with mypy linter [#505](https://github.com/DonJayamanne/pythonVSCode/issues/505)

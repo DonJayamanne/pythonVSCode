@@ -104,6 +104,8 @@ For further information and details continue through to the [documentation](http
 
 ### Thanks
 * [Shengyu Fu](https://github.com/shengyfu)
+* [codebetter](https://github.com/skilliscode)
+* [Thijs Damsma](https://github.com/tdamsma)
 
 ## Source
 
