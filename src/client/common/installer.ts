@@ -155,10 +155,10 @@ export class Installer {
             let installScript = installArgs.join(' ');
             if (installArgs[0] === '-m') {
                 if (pythonPath.indexOf(' ') >= 0) {
-                    installScript = `"${pythonPath}" -m ${installScript}`;
+                    installScript = `"${pythonPath}" ${installScript}`;
                 }
                 else {
-                    installScript = `${pythonPath} -m ${installScript}`;
+                    installScript = `${pythonPath} ${installScript}`;
                 }
             }
             Installer.terminal.sendText(installScript);
