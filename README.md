@@ -102,20 +102,28 @@ For further information and details continue through to the [documentation](http
 
 ## [Change Log](https://github.com/DonJayamanne/pythonVSCode/blob/master/CHANGELOG.md)
 ### 0.5.4
+* Fixes to installing missing packages [#544](https://github.com/DonJayamanne/pythonVSCode/issues/544)
+* Fixes to indentation of blocks of code [#432](https://github.com/DonJayamanne/pythonVSCode/issues/432)
+* Fixes to debugging of unittests [#543](https://github.com/DonJayamanne/pythonVSCode/issues/543)
+* Fixes to extension when a workspace (folder) isn't open [#542](https://github.com/DonJayamanne/pythonVSCode/issues/542)
 
 ### Version 0.5.3 (23 November 2016)
 * Added support for [PySpark](http://spark.apache.org/docs/0.9.0/python-programming-guide.html) [#539](https://github.com/DonJayamanne/pythonVSCode/pull/539), [#540](https://github.com/DonJayamanne/pythonVSCode/pull/540)
 * Debugging unittests (UnitTest, pytest, nose) [#333](https://github.com/DonJayamanne/pythonVSCode/issues/333)
 * Displaying progress for formatting [#327](https://github.com/DonJayamanne/pythonVSCode/issues/327) 
-* Auto indenting ```else:``` inside ```if``` and similar code blocks [#432](https://github.com/DonJayamanne/pythonVSCode/issues/432) 
 * Prefixing new lines with '#' when new lines are added in the middle of a comment string [#365](https://github.com/DonJayamanne/pythonVSCode/issues/365) 
 * Debugging python modules [#518](https://github.com/DonJayamanne/pythonVSCode/issues/518), [#354](https://github.com/DonJayamanne/pythonVSCode/issues/354)
     + Use new debug configuration ```Python Module```  
 * Added support for workspace symbols using Exuberant CTags [#138](https://github.com/DonJayamanne/pythonVSCode/issues/138)
     + New command ```Python: Build Workspace Symbols```  
+* Auto indenting ```else:``` inside ```if``` and similar code blocks [#432](https://github.com/DonJayamanne/pythonVSCode/issues/432) 
+    + Add the following setting in user ```settings.json```
+```jsong
+        "editor.formatOnType": true,
+```               
 * Added ability for linter to ignore paths or files [#501](https://github.com/DonJayamanne/pythonVSCode/issues/501)
     + Add the following setting in ```settings.json```
-```python
+```json
         "python.linting.ignorePatterns":  [
             ".vscode/*.py",
             "**/site-packages/**/*.py"
