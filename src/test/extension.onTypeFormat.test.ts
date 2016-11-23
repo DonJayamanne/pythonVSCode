@@ -4,7 +4,7 @@
 
 
 // Place this right on top
-import { initialize, IS_TRAVIS, PYTHON_PATH, closeActiveWindows } from './initialize';
+import { initialize, PYTHON_PATH, closeActiveWindows } from './initialize';
 // The module 'assert' provides assertion methods from node
 import * as assert from 'assert';
 
@@ -17,7 +17,7 @@ import * as fs from 'fs-extra';
 import { BlockFormatProviders } from '../client/typeFormatters/blockFormatProvider';
 let pythonSettings = settings.PythonSettings.getInstance();
 let srcPythoFilesPath = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'typeFormatFiles');
-let outPythoFilesPath = path.join(__dirname, '..', 'pythonFiles', 'typeFormatFiles');
+let outPythoFilesPath = path.join(__dirname, 'pythonFiles', 'typeFormatFiles');
 
 const tryBlock2OutFilePath = path.join(outPythoFilesPath, 'tryBlocks2.py');
 const tryBlock4OutFilePath = path.join(outPythoFilesPath, 'tryBlocks4.py');
@@ -26,6 +26,10 @@ const tryBlockTabOutFilePath = path.join(outPythoFilesPath, 'tryBlocksTab.py');
 const elseBlock2OutFilePath = path.join(outPythoFilesPath, 'elseBlocks2.py');
 const elseBlock4OutFilePath = path.join(outPythoFilesPath, 'elseBlocks4.py');
 const elseBlockTabOutFilePath = path.join(outPythoFilesPath, 'elseBlocksTab.py');
+
+const elseBlockFirstLine2OutFilePath = path.join(outPythoFilesPath, 'elseBlocksFirstLine2.py');
+const elseBlockFirstLine4OutFilePath = path.join(outPythoFilesPath, 'elseBlocksFirstLine4.py');
+const elseBlockFirstLineTabOutFilePath = path.join(outPythoFilesPath, 'elseBlocksFirstLineTab.py');
 
 const provider = new BlockFormatProviders();
 
@@ -49,6 +53,75 @@ function testFormatting(fileToFormat: string, position: vscode.Position, expecte
         assert.fail(reason, undefined, 'Type Formatting failed', '');
     });
 }
+
+
+suite('Else block with if in first line of file', () => {
+    suiteSetup(done => {
+        initialize().then(() => {
+            pythonSettings.pythonPath = PYTHON_PATH;
+            fs.ensureDirSync(path.dirname(outPythoFilesPath));
+
+            ['elseBlocksFirstLine2.py', 'elseBlocksFirstLine4.py', 'elseBlocksFirstLineTab.py'].forEach(file => {
+                const targetFile = path.join(outPythoFilesPath, file);
+                if (fs.existsSync(targetFile)) { fs.unlinkSync(targetFile); }
+                fs.copySync(path.join(srcPythoFilesPath, file), targetFile);
+            });
+        }).then(done).catch(done);
+    });
+    suiteTeardown(done => {
+        closeActiveWindows().then(done, done);
+    });
+    teardown(done => {
+        closeActiveWindows().then(done, done);
+    });
+
+    interface TestCase {
+        title: string;
+        line: number;
+        column: number;
+        expectedEdits: vscode.TextEdit[];
+        formatOptions: vscode.FormattingOptions;
+        filePath: string;
+    }
+    const TAB = '	';
+    const testCases: TestCase[] = [
+        {
+            title: 'else block with 2 spaces',
+            line: 3, column: 7,
+            expectedEdits: [
+                vscode.TextEdit.delete(new vscode.Range(3, 0, 3, 2))
+            ],
+            formatOptions: { insertSpaces: true, tabSize: 2 },
+            filePath: elseBlockFirstLine2OutFilePath
+        },
+        {
+            title: 'else block with 4 spaces',
+            line: 3, column: 9,
+            expectedEdits: [
+                vscode.TextEdit.delete(new vscode.Range(3, 0, 3, 4))
+            ],
+            formatOptions: { insertSpaces: true, tabSize: 4 },
+            filePath: elseBlockFirstLine4OutFilePath
+        },
+        {
+            title: 'else block with Tab',
+            line: 3, column: 6,
+            expectedEdits: [
+                vscode.TextEdit.delete(new vscode.Range(3, 0, 3, 1)),
+                vscode.TextEdit.insert(new vscode.Position(3, 0), '')
+            ],
+            formatOptions: { insertSpaces: false, tabSize: 4 },
+            filePath: elseBlockFirstLineTabOutFilePath
+        }
+    ];
+
+    testCases.forEach((testCase, index) => {
+        test(`${index + 1}. ${testCase.title}`, done => {
+            const pos = new vscode.Position(testCase.line, testCase.column);
+            testFormatting(testCase.filePath, pos, testCase.expectedEdits, testCase.formatOptions).then(done, done);
+        });
+    });
+});
 
 suite('Try blocks with indentation of 2 spaces', () => {
     suiteSetup(done => {
@@ -650,7 +723,6 @@ suite('Else blocks with indentation of Tab', () => {
         closeActiveWindows().then(done, done);
     });
 
-    const TAB = '	';
     interface TestCase {
         title: string;
         line: number;
