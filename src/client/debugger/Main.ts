@@ -188,7 +188,7 @@ export class PythonDebugger extends DebugSession {
         }
         else {
             // When using modules ensure the cwd has been provided
-            if (typeof args.cwd !== 'string' || args.cwd.length === 0){
+            if (typeof args.cwd !== 'string' || args.cwd.length === 0) {
                 return this.sendErrorResponse(response, 2001, `'cwd' in 'launch.json' needs to point to the working directory`);
             }
         }
@@ -196,6 +196,7 @@ export class PythonDebugger extends DebugSession {
             Debug_Console: args.console,
             Debug_DebugOptions: args.debugOptions.join(","),
             Debug_DJango: args.debugOptions.indexOf("DjangoDebugging") >= 0 ? "true" : "false",
+            Debug_PySpark: typeof args.pythonPath === 'string' && args.pythonPath.indexOf('spark-submit') > 0 ? 'true' : 'false',
             Debug_HasEnvVaraibles: args.env && typeof args.env === "object" ? "true" : "false"
         }));
 
