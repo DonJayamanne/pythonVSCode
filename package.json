@@ -29,11 +29,6 @@
     "python",
     "jupyter",
     "django",
-    "flask",
-    "ipython",
-    "watson",
-    "pyspark",
-    "snippets",
     "debugger",
     "unittest"
   ],
