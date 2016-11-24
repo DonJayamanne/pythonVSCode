@@ -493,7 +493,7 @@
             "stopOnEntry": true,
             "pythonPath": "${config.python.pythonPath}",
             "program": "${workspaceRoot}/manage.py",
-            "cwd": "null",
+            "cwd": "${workspaceRoot}",
             "args": [
               "runserver",
               "--noreload"
@@ -512,7 +512,7 @@
             "stopOnEntry": false,
             "pythonPath": "${config.python.pythonPath}",
             "program": "fully qualified path fo 'flask' executable. Generally located along with python interpreter",
-            "cwd": "null",
+            "cwd": "${workspaceRoot}",
             "env": {
               "FLASK_APP": "${workspaceRoot}/quickstart/app.py"
             },
@@ -534,7 +534,7 @@
             "stopOnEntry": false,
             "pythonPath": "${config.python.pythonPath}",
             "program": "${workspaceRoot}/run.py",
-            "cwd": "null",
+            "cwd": "${workspaceRoot}",
             "args": [],
             "debugOptions": [
               "WaitOnAbnormalExit",
@@ -549,7 +549,7 @@
             "stopOnEntry": true,
             "pythonPath": "${config.python.pythonPath}",
             "program": "${workspaceRoot}/console.py",
-            "cwd": "null",
+            "cwd": "${workspaceRoot}",
             "args": [
               "dev",
               "runserver",

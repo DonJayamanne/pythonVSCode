@@ -82,7 +82,7 @@ export class PythonDebugger extends DebugSession {
 
     private startDebugServer(): Promise<IDebugServer> {
         let programDirectory = this.launchArgs ? path.dirname(this.launchArgs.program) : this.attachArgs.localRoot;
-        if (this.launchArgs && typeof this.launchArgs.cwd === 'string' && this.launchArgs.cwd.length > 0) {
+        if (this.launchArgs && typeof this.launchArgs.cwd === 'string' && this.launchArgs.cwd.length > 0 && this.launchArgs.cwd !== 'null') {
             programDirectory = this.launchArgs.cwd;
         }
         this.pythonProcess = new PythonProcess(0, "", programDirectory);
@@ -188,7 +188,7 @@ export class PythonDebugger extends DebugSession {
         }
         else {
             // When using modules ensure the cwd has been provided
-            if (typeof args.cwd !== 'string' || args.cwd.length === 0) {
+            if (typeof args.cwd !== 'string' || args.cwd.length === 0 || this.launchArgs.cwd === 'null') {
                 return this.sendErrorResponse(response, 2001, `'cwd' in 'launch.json' needs to point to the working directory`);
             }
         }
