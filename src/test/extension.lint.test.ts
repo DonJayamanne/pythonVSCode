@@ -2,7 +2,7 @@
 // Note: This example test is leveraging the Mocha test framework.
 // Please refer to their documentation on https://mochajs.org/ for help.
 // Place this right on top
-import { initialize, IS_TRAVIS, PYTHON_PATH } from './initialize';
+import { initialize, IS_TRAVIS, PYTHON_PATH, closeActiveWindows } from './initialize';
 // The module \'assert\' provides assertion methods from node
 import * as assert from 'assert';
 
@@ -154,6 +154,12 @@ suite('Linting', () => {
         pythonSettings.linting.prospectorEnabled = true;
         pythonSettings.linting.pydocstyleEnabled = true;
     });
+    suiteTeardown(done => {
+        closeActiveWindows().then(done, done);
+    });
+    teardown(done => {
+        closeActiveWindows().then(done, done);
+    });
 
     function testEnablingDisablingOfLinter(linter: baseLinter.BaseLinter, propertyName: string) {
         pythonSettings.linting[propertyName] = true;
@@ -183,50 +189,53 @@ suite('Linting', () => {
         testEnablingDisablingOfLinter(new pydocstyle.Linter(ch, pythoFilesPath), 'pydocstyleEnabled');
     });
 
-    function testLinterMessages(linter: baseLinter.BaseLinter, outputChannel: MockOutputChannel, pythonFile: string, pythonFileLines: string[], messagesToBeReceived: baseLinter.ILintMessage[]): Promise<any> {
-        return linter.runLinter(pythonFile, pythonFileLines).then(messages => {
-            // Different versions of python return different errors,
-            if (messagesToBeReceived.length === 0) {
-                assert.equal(messages.length, 0, 'No errors in linter, Output - ' + outputChannel.output);
-            }
-            else {
-                if (outputChannel.output.indexOf('ENOENT') === -1) {
-                    // Pylint for Python Version 2.7 could return 80 linter messages, where as in 3.5 it might only return 1
-                    // Looks like pylint stops linting as soon as it comes across any ERRORS
-                    assert.notEqual(messages.length, 0, 'No errors in linter, Output - ' + outputChannel.output);
+    function testLinterMessages(linter: baseLinter.BaseLinter, outputChannel: MockOutputChannel, pythonFile: string, messagesToBeReceived: baseLinter.ILintMessage[]): Thenable<any> {
+        return vscode.workspace.openTextDocument(pythonFile)
+            .then(document => vscode.window.showTextDocument(document))
+            .then(editor => linter.runLinter(editor.document))
+            .then(messages => {
+                // Different versions of python return different errors,
+                if (messagesToBeReceived.length === 0) {
+                    assert.equal(messages.length, 0, 'No errors in linter, Output - ' + outputChannel.output);
                 }
                 else {
-                    assert.ok('Linter not installed', 'Linter not installed');
+                    if (outputChannel.output.indexOf('ENOENT') === -1) {
+                        // Pylint for Python Version 2.7 could return 80 linter messages, where as in 3.5 it might only return 1
+                        // Looks like pylint stops linting as soon as it comes across any ERRORS
+                        assert.notEqual(messages.length, 0, 'No errors in linter, Output - ' + outputChannel.output);
+                    }
+                    else {
+                        assert.ok('Linter not installed', 'Linter not installed');
+                    }
                 }
-            }
-            // messagesToBeReceived.forEach(msg => {
-            //     let similarMessages = messages.filter(m => m.code === msg.code && m.column === msg.column &&
-            //         m.line === msg.line && m.message === msg.message && m.severity === msg.severity);
-            //     assert.equal(true, similarMessages.length > 0, 'Error not found, ' + JSON.stringify(msg) + '\n, Output - ' + outputChannel.output);
-            // });
-        }, error => {
-            assert.fail(error, null, 'Linter error, Output - ' + outputChannel.output, '');
-        });
+                // messagesToBeReceived.forEach(msg => {
+                //     let similarMessages = messages.filter(m => m.code === msg.code && m.column === msg.column &&
+                //         m.line === msg.line && m.message === msg.message && m.severity === msg.severity);
+                //     assert.equal(true, similarMessages.length > 0, 'Error not found, ' + JSON.stringify(msg) + '\n, Output - ' + outputChannel.output);
+                // });
+            }, error => {
+                assert.fail(error, null, 'Linter error, Output - ' + outputChannel.output, '');
+            });
     }
     test('PyLint', done => {
         let ch = new MockOutputChannel('Lint');
         let linter = new pyLint.Linter(ch, pythoFilesPath);
-        return testLinterMessages(linter, ch, fileToLint, pylintFileToLintLines, pylintMessagesToBeReturned).then(done, done);
+        return testLinterMessages(linter, ch, fileToLint, pylintMessagesToBeReturned).then(done, done);
     });
     test('Flake8', done => {
         let ch = new MockOutputChannel('Lint');
         let linter = new flake8.Linter(ch, pythoFilesPath);
-        return testLinterMessages(linter, ch, fileToLint, pylintFileToLintLines, flake8MessagesToBeReturned).then(done, done);
+        return testLinterMessages(linter, ch, fileToLint, flake8MessagesToBeReturned).then(done, done);
     });
     test('Pep8', done => {
         let ch = new MockOutputChannel('Lint');
         let linter = new pep8.Linter(ch, pythoFilesPath);
-        return testLinterMessages(linter, ch, fileToLint, pylintFileToLintLines, pep8MessagesToBeReturned).then(done, done);
+        return testLinterMessages(linter, ch, fileToLint, pep8MessagesToBeReturned).then(done, done);
     });
     test('Pydocstyle', done => {
         let ch = new MockOutputChannel('Lint');
         let linter = new pydocstyle.Linter(ch, pythoFilesPath);
-        return testLinterMessages(linter, ch, fileToLint, pylintFileToLintLines, pydocstyleMessagseToBeReturned).then(done, done);
+        return testLinterMessages(linter, ch, fileToLint, pydocstyleMessagseToBeReturned).then(done, done);
     });
     // Version dependenant, will be enabled once we have fixed this
     // TODO: Check version of python running and accordingly change the values
@@ -234,22 +243,22 @@ suite('Linting', () => {
         test('PyLint with config in root', done => {
             let ch = new MockOutputChannel('Lint');
             let linter = new pyLint.Linter(ch, pylintConfigPath);
-            return testLinterMessages(linter, ch, path.join(pylintConfigPath, 'file.py'), pylintFileToLintLines, filteredPylintMessagesToBeReturned).then(done, done);
+            return testLinterMessages(linter, ch, path.join(pylintConfigPath, 'file.py'), filteredPylintMessagesToBeReturned).then(done, done);
         });
     }
     test('Flake8 with config in root', done => {
         let ch = new MockOutputChannel('Lint');
         let linter = new flake8.Linter(ch, flake8ConfigPath);
-        return testLinterMessages(linter, ch, path.join(flake8ConfigPath, 'file.py'), pylintFileToLintLines, filteredFlake8MessagesToBeReturned).then(done, done);
+        return testLinterMessages(linter, ch, path.join(flake8ConfigPath, 'file.py'), filteredFlake8MessagesToBeReturned).then(done, done);
     });
     test('Pep8 with config in root', done => {
         let ch = new MockOutputChannel('Lint');
         let linter = new pep8.Linter(ch, pep8ConfigPath);
-        return testLinterMessages(linter, ch, path.join(pep8ConfigPath, 'file.py'), pylintFileToLintLines, filteredPep88MessagesToBeReturned).then(done, done);
+        return testLinterMessages(linter, ch, path.join(pep8ConfigPath, 'file.py'), filteredPep88MessagesToBeReturned).then(done, done);
     });
     test('Pydocstyle with config in root', done => {
         let ch = new MockOutputChannel('Lint');
         let linter = new pydocstyle.Linter(ch, pydocstyleConfigPath);
-        return testLinterMessages(linter, ch, path.join(pydocstyleConfigPath, 'file.py'), pylintFileToLintLines, fiteredPydocstyleMessagseToBeReturned).then(done, done);
+        return testLinterMessages(linter, ch, path.join(pydocstyleConfigPath, 'file.py'), fiteredPydocstyleMessagseToBeReturned).then(done, done);
     });
 });

@@ -4,6 +4,7 @@ import * as baseLinter from './baseLinter';
 import {OutputChannel} from 'vscode';
 import {execPythonFile} from './../common/utils';
 import { Product } from '../common/installer';
+import { TextDocument } from 'vscode';
 
 interface IProspectorResponse {
     messages: IProspectorMessage[];
@@ -30,7 +31,7 @@ export class Linter extends baseLinter.BaseLinter {
     public isEnabled(): Boolean {
         return this.pythonSettings.linting.prospectorEnabled;
     }
-    public runLinter(filePath: string, txtDocumentLines: string[]): Promise<baseLinter.ILintMessage[]> {
+    public runLinter(document:TextDocument): Promise<baseLinter.ILintMessage[]> {
         if (!this.pythonSettings.linting.prospectorEnabled) {
             return Promise.resolve([]);
         }
@@ -39,7 +40,7 @@ export class Linter extends baseLinter.BaseLinter {
         let outputChannel = this.outputChannel;
         let prospectorArgs = Array.isArray(this.pythonSettings.linting.prospectorArgs) ? this.pythonSettings.linting.prospectorArgs : [];
         return new Promise<baseLinter.ILintMessage[]>((resolve, reject) => {
-            execPythonFile(prospectorPath, prospectorArgs.concat(['--absolute-paths', '--output-format=json', filePath]), this.workspaceRootPath, false).then(data => {
+            execPythonFile(prospectorPath, prospectorArgs.concat(['--absolute-paths', '--output-format=json', document.uri.fsPath]), this.workspaceRootPath, false).then(data => {
                 let parsedData: IProspectorResponse;
                 try {
                     parsedData = JSON.parse(data);
@@ -53,7 +54,7 @@ export class Linter extends baseLinter.BaseLinter {
                 parsedData.messages.filter((value, index) => index <= this.pythonSettings.linting.maxNumberOfProblems).forEach(msg => {
 
 		    let lineNumber = msg.location.line === null || isNaN(msg.location.line) ? 1 : msg.location.line;
-		    let sourceLine = txtDocumentLines[lineNumber - 1];
+		    let sourceLine = document.lineAt(lineNumber - 1).text;
                     let sourceStart = sourceLine.substring(msg.location.character);
 
                     // try to get the first word from the starting position

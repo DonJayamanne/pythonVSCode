@@ -23,8 +23,8 @@ lintSeverityToVSSeverity.set(linter.LintMessageSeverity.Hint, vscode.DiagnosticS
 lintSeverityToVSSeverity.set(linter.LintMessageSeverity.Information, vscode.DiagnosticSeverity.Information);
 lintSeverityToVSSeverity.set(linter.LintMessageSeverity.Warning, vscode.DiagnosticSeverity.Warning);
 
-function createDiagnostics(message: linter.ILintMessage, txtDocumentLines: string[]): vscode.Diagnostic {
-    let endCol = txtDocumentLines[message.line - 1].length;
+function createDiagnostics(message: linter.ILintMessage, document: vscode.TextDocument): vscode.Diagnostic {
+    let endCol = document.lineAt(message.line - 1).text.length;
 
     // try to get the first word from the startig position
     if (message.possibleWord === 'string' && message.possibleWord.length > 0) {
@@ -94,7 +94,7 @@ export class LintProvider extends vscode.Disposable {
             if (e.languageId !== 'python' || !this.settings.linting.enabled || !this.settings.linting.lintOnSave) {
                 return;
             }
-            this.lintDocument(e, e.uri, e.getText().split(/\r?\n/g), 100);
+            this.lintDocument(e, 100);
         });
         this.context.subscriptions.push(disposable);
 
@@ -105,7 +105,7 @@ export class LintProvider extends vscode.Disposable {
             if (!e.uri.path || (path.basename(e.uri.path) === e.uri.path && !fs.existsSync(e.uri.path))) {
                 return;
             }
-            this.lintDocument(e, e.uri, e.getText().split(/\r?\n/g), 100);
+            this.lintDocument(e, 100);
         }, this.context.subscriptions);
 
         disposable = vscode.workspace.onDidCloseTextDocument(textDocument => {
@@ -123,7 +123,7 @@ export class LintProvider extends vscode.Disposable {
     }
 
     private lastTimeout: number;
-    private lintDocument(document: vscode.TextDocument, documentUri: vscode.Uri, documentLines: string[], delay: number): void {
+    private lintDocument(document: vscode.TextDocument, delay: number): void {
         // Since this is a hack, lets wait for 2 seconds before linting
         // Give user to continue typing before we waste CPU time
         if (this.lastTimeout) {
@@ -132,36 +132,36 @@ export class LintProvider extends vscode.Disposable {
         }
 
         this.lastTimeout = setTimeout(() => {
-            this.onLintDocument(document, documentUri, documentLines);
+            this.onLintDocument(document);
         }, delay);
     }
 
-    private onLintDocument(document: vscode.TextDocument, documentUri: vscode.Uri, documentLines: string[]): void {
+    private onLintDocument(document: vscode.TextDocument): void {
         // Check if we need to lint this document
         const relativeFileName = typeof vscode.workspace.rootPath === 'string' ? path.relative(vscode.workspace.rootPath, document.fileName) : document.fileName;
         if (this.ignoreMinmatches.some(matcher => matcher.match(document.fileName) || matcher.match(relativeFileName))) {
             return;
         }
-        if (this.pendingLintings.has(documentUri.fsPath)) {
-            this.pendingLintings.get(documentUri.fsPath).cancel();
-            this.pendingLintings.delete(documentUri.fsPath);
+        if (this.pendingLintings.has(document.uri.fsPath)) {
+            this.pendingLintings.get(document.uri.fsPath).cancel();
+            this.pendingLintings.delete(document.uri.fsPath);
         }
 
         let cancelToken = new vscode.CancellationTokenSource();
         cancelToken.token.onCancellationRequested(() => {
-            if (this.pendingLintings.has(documentUri.fsPath)) {
-                this.pendingLintings.delete(documentUri.fsPath);
+            if (this.pendingLintings.has(document.uri.fsPath)) {
+                this.pendingLintings.delete(document.uri.fsPath);
             }
         });
 
-        this.pendingLintings.set(documentUri.fsPath, cancelToken);
+        this.pendingLintings.set(document.uri.fsPath, cancelToken);
         this.outputChannel.clear();
         let promises: Promise<linter.ILintMessage[]>[] = this.linters.map(linter => {
             if (!linter.isEnabled()) {
                 return Promise.resolve([]);
             }
             let delays = new telemetryHelper.Delays();
-            return linter.runLinter(documentUri.fsPath, documentLines).then(results => {
+            return linter.runLinter(document).then(results => {
                 delays.stop();
                 telemetryHelper.sendTelemetryEvent(telemetryContracts.IDE.Lint, { Lint_Provider: linter.Id }, delays.toMeasures());
                 return results;
@@ -181,23 +181,23 @@ export class LintProvider extends vscode.Disposable {
                     // Build the message and suffix the message with the name of the linter used
                     msgs.forEach(d => {
                         // ignore magic commands from jupyter
-                        if (hasJupyterCodeCells && documentLines[d.line - 1].trim().startsWith('%') &&
+                        if (hasJupyterCodeCells && document.lineAt(d.line - 1).text.trim().startsWith('%') &&
                             (d.code === LinterErrors.pylint.InvalidSyntax ||
                                 d.code === LinterErrors.prospector.InvalidSyntax ||
                                 d.code === LinterErrors.flake8.InvalidSyntax)) {
                             return;
                         }
-                        diagnostics.push(createDiagnostics(d, documentLines));
+                        diagnostics.push(createDiagnostics(d, document));
                     });
 
                     // Limit the number of messages to the max value
                     diagnostics = diagnostics.filter((value, index) => index <= this.settings.linting.maxNumberOfProblems);
 
-                    if (!this.isDocumentOpen(documentUri)) {
+                    if (!this.isDocumentOpen(document.uri)) {
                         diagnostics = [];
                     }
                     // set all diagnostics found in this pass, as this method always clears existing diagnostics.
-                    this.diagnosticCollection.set(documentUri, diagnostics);
+                    this.diagnosticCollection.set(document.uri, diagnostics);
                 });
             });
         });

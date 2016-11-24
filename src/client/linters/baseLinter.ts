@@ -63,9 +63,9 @@ export abstract class BaseLinter {
         this.pythonSettings = settings.PythonSettings.getInstance();
     }
     public abstract isEnabled(): Boolean;
-    public abstract runLinter(filePath: string, txtDocumentLines: string[]): Promise<ILintMessage[]>;
+    public abstract runLinter(document: vscode.TextDocument): Promise<ILintMessage[]>;
 
-    protected run(command: string, args: string[], filePath: string, txtDocumentLines: string[], cwd: string, regEx: string = REGEX): Promise<ILintMessage[]> {
+    protected run(command: string, args: string[], document: vscode.TextDocument, cwd: string, regEx: string = REGEX): Promise<ILintMessage[]> {
         let outputChannel = this.outputChannel;
 
         return new Promise<ILintMessage[]>((resolve, reject) => {
@@ -86,7 +86,7 @@ export abstract class BaseLinter {
 
                         let possibleWord: string;
                         if (!isNaN(match.column)) {
-                            let sourceLine = txtDocumentLines[match.line - 1];
+                            let sourceLine = document.lineAt(match.line - 1).text;
                             let sourceStart = sourceLine.substring(match.column - 1);
 
                             // try to get the first word from the startig position
