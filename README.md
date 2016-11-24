@@ -101,6 +101,9 @@ For further information and details continue through to the [documentation](http
 ## [Roadmap](https://donjayamanne.github.io/pythonVSCodeDocs/docs/roadmap/)
 
 ## [Change Log](https://github.com/DonJayamanne/pythonVSCode/blob/master/CHANGELOG.md)
+### Version 0.5.5 (25 November 2016)
+* Fixes to debugging of unittests (nose and pytest) [#543](https://github.com/DonJayamanne/pythonVSCode/issues/543)
+
 ### Version 0.5.4 (24 November 2016)
 * Fixes to installing missing packages [#544](https://github.com/DonJayamanne/pythonVSCode/issues/544)
 * Fixes to indentation of blocks of code [#432](https://github.com/DonJayamanne/pythonVSCode/issues/432)
