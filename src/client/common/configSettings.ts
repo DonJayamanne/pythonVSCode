@@ -4,6 +4,9 @@ import * as vscode from 'vscode';
 import { SystemVariables } from './systemVariables';
 import { EventEmitter } from 'events';
 import * as path from 'path';
+import * as child_process from 'child_process';
+
+export const IS_WINDOWS = /^win/.test(process.platform);
 
 export interface IPythonSettings {
     pythonPath: string;
@@ -117,7 +120,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         this.disposables.push(vscode.workspace.onDidChangeConfiguration(() => {
             this.initializeSettings();
         }));
-        
+
         this.initializeSettings();
     }
     public static getInstance(): PythonSettings {
@@ -282,7 +285,23 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         this.emit('change');
     }
 
-    public pythonPath: string;
+    private _pythonPath: string;
+    public get pythonPath(): string {
+        return this._pythonPath;
+    }
+    public set pythonPath(value: string) {
+        if (this._pythonPath === value) {
+            return;
+        }
+        // Add support for specifying just the directory where the python executable will be located
+        // E.g. virtual directory name
+        try {
+            this._pythonPath = getPythonExecutable(value);
+        }
+        catch (ex) {
+            this._pythonPath = value;
+        }
+    }
     public jediPath: string;
     public devOptions: string[];
     public linting: ILintingSettings;
@@ -301,4 +320,47 @@ function getAbsolutePath(pathToCheck: string, rootDir: string): string {
         return pathToCheck;
     }
     return path.isAbsolute(pathToCheck) ? pathToCheck : path.resolve(rootDir, pathToCheck);
+}
+
+function getPythonExecutable(pythonPath: string): string {
+    // If only 'python'
+    if (pythonPath === 'python' ||
+        pythonPath.indexOf(path.sep) === -1 ||
+        path.basename(pythonPath) === path.dirname(pythonPath)) {
+        return pythonPath;
+    }
+
+    if (isValidPythonPath(pythonPath)) {
+        return pythonPath;
+    }
+
+    // Suffix with 'python' for linux and 'osx', and 'python.exe' for 'windows'
+    if (IS_WINDOWS) {
+        if (isValidPythonPath(path.join(pythonPath, 'python.exe'))) {
+            return path.join(pythonPath, 'python.exe');
+        }
+        if (isValidPythonPath(path.join(pythonPath, 'scripts', 'python.exe'))) {
+            return path.join(pythonPath, 'scripts', 'python.exe');
+        }
+    }
+    else {
+        if (isValidPythonPath(path.join(pythonPath, 'python'))) {
+            return path.join(pythonPath, 'python');
+        }
+        if (isValidPythonPath(path.join(pythonPath, 'bin', 'python'))) {
+            return path.join(pythonPath, 'bin', 'python');
+        }
+    }
+
+    return pythonPath;
+}
+
+function isValidPythonPath(pythonPath): boolean {
+    try {
+        let output = child_process.execFileSync(pythonPath, ['-c', 'print(1234)'], { encoding: 'utf8' });
+        return output.startsWith('1234');
+    }
+    catch (ex) {
+        return false;
+    }
 }
