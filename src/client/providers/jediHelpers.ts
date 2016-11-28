@@ -2,7 +2,7 @@ import * as proxy from './jediProxy';
 import { EOL } from 'os';
 import * as vscode from 'vscode';
 
-export function extractSignatureAndDocumentation(definition: proxy.IAutoCompleteItem): [string, string] {
+export function extractSignatureAndDocumentation(definition: proxy.IAutoCompleteItem, highlightCode: boolean = false): [string, string] {
     // Somtimes the signature of the function, class (whatever) is broken into multiple lines
     // Here's an example
     // ```python
@@ -17,7 +17,7 @@ export function extractSignatureAndDocumentation(definition: proxy.IAutoComplete
     const txt = definition.description || definition.text;
     const rawDocString = typeof definition.raw_docstring === 'string' ? definition.raw_docstring.trim() : '';
     const firstLineOfRawDocString = rawDocString.length > 0 ? rawDocString.split(EOL)[0] : '';
-    const lines = txt.split(EOL);
+    let lines = txt.split(EOL);
     const startIndexOfDocString = firstLineOfRawDocString === '' ? -1 : lines.findIndex(line => line.indexOf(firstLineOfRawDocString) === 0);
 
     let signatureLines = startIndexOfDocString === -1 ? [lines.shift()] : lines.splice(0, startIndexOfDocString);
@@ -35,11 +35,21 @@ export function extractSignatureAndDocumentation(definition: proxy.IAutoComplete
             break;
         }
     }
+
+    // check if we have any sample code in the documentation
+    if (highlightCode) {
+        lines = lines.map(line => {
+            if (line.trim().startsWith('>>> ')) {
+                return '```python\n' + line.substring(4).trim() + '\n```';
+            }
+            return line;
+        });
+    }
     return [signature, lines.join(EOL).trim().replace(/^\s+|\s+$/g, '').trim()];
 }
 
 export function extractHoverInfo(definition: proxy.IAutoCompleteItem): vscode.Hover {
-    const parts = extractSignatureAndDocumentation(definition);
+    const parts = extractSignatureAndDocumentation(definition, true);
     const hoverInfo: vscode.MarkedString[] = parts[0].length === 0 ? [] : [{ language: 'python', value: parts[0] }];
     if (parts[1].length > 0) {
         hoverInfo.push(parts[1]);
