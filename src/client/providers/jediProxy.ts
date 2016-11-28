@@ -266,7 +266,7 @@ function spawnProcess(dir: string) {
                 var index = commandQueue.indexOf(cmd.id);
                 commandQueue.splice(index, 1);
 
-                if (cmd.delays) {
+                if (cmd.delays && typeof cmd.telemetryEvent === 'string') {
                     cmd.delays.stop();
                     telemetryHelper.sendTelemetryEvent(cmd.telemetryEvent, null, cmd.delays.toMeasures());
                 }
@@ -396,7 +396,9 @@ function sendCommand<T extends ICommandResult>(cmd: ICommand<T>): Promise<T> {
     var executionCmd = <IExecutionCommand<T>>cmd;
     var payload = createPayload(executionCmd);
     executionCmd.deferred = createDeferred<ICommandResult>();
-    executionCmd.delays = new telemetryHelper.Delays();
+    if (typeof executionCmd.telemetryEvent === 'string') {
+        executionCmd.delays = new telemetryHelper.Delays();
+    }
     try {
         proc.stdin.write(JSON.stringify(payload) + "\n");
         commands.set(executionCmd.id, executionCmd);
@@ -520,7 +522,7 @@ function getConfig() {
 }
 
 export interface ICommand<T extends ICommandResult> {
-    telemetryEvent: string;
+    telemetryEvent?: string;
     command: CommandType;
     source?: string;
     fileName: string;
@@ -532,7 +534,7 @@ interface IExecutionCommand<T extends ICommandResult> extends ICommand<T> {
     id?: number;
     deferred?: Deferred<T>;
     token: vscode.CancellationToken;
-    delays: telemetryHelper.Delays;
+    delays?: telemetryHelper.Delays;
 }
 
 export interface ICommandError {

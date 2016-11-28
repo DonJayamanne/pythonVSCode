@@ -49,7 +49,6 @@ export class PythonCompletionItemProvider implements vscode.CompletionItemProvid
 
         const source = document.getText();
         const cmd: proxy.ICommand<proxy.ICommandResult> = {
-            telemetryEvent: telemetryContracts.IDE.Completion,
             command: type,
             fileName: filename,
             columnIndex: columnIndex,

@@ -81,7 +81,6 @@ export class PythonSignatureProvider implements vscode.SignatureHelpProvider {
     }
     provideSignatureHelp(document: TextDocument, position: Position, token: CancellationToken): Thenable<SignatureHelp> {
         let cmd: proxy.ICommand<proxy.IArgumentsResult> = {
-            telemetryEvent: telemetryContracts.IDE.Symbol,
             command: proxy.CommandType.Arguments,
             fileName: document.fileName,
             columnIndex: position.character,

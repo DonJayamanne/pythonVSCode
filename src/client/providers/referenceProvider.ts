@@ -43,7 +43,6 @@ export class PythonReferenceProvider implements vscode.ReferenceProvider {
         var range = document.getWordRangeAtPosition(position);
         var columnIndex = range.isEmpty ? position.character : range.end.character;
         var cmd: proxy.ICommand<proxy.IReferenceResult> = {
-            telemetryEvent: telemetryContracts.IDE.Reference,
             command: proxy.CommandType.Usages,
             fileName: filename,
             columnIndex: columnIndex,

@@ -34,7 +34,6 @@ export class PythonDefinitionProvider implements vscode.DefinitionProvider {
         var range = document.getWordRangeAtPosition(position);
         var columnIndex = range.isEmpty ? position.character : range.end.character;
         var cmd: proxy.ICommand<proxy.IDefinitionResult> = {
-            telemetryEvent: telemetryContracts.IDE.Definition,
             command: proxy.CommandType.Definitions,
             fileName: filename,
             columnIndex: columnIndex,

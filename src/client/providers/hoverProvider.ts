@@ -26,7 +26,6 @@ export class PythonHoverProvider implements vscode.HoverProvider {
         }
         var columnIndex = range.start.character < range.end.character ? range.start.character + 2 : range.end.character;
         var cmd: proxy.ICommand<proxy.ICompletionResult> = {
-            telemetryEvent: telemetryContracts.IDE.HoverDefinition,
             command: proxy.CommandType.Completions,
             fileName: filename,
             columnIndex: columnIndex,

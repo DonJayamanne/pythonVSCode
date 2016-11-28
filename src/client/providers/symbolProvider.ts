@@ -26,7 +26,6 @@ export class PythonSymbolProvider implements vscode.DocumentSymbolProvider {
         var filename = document.fileName;
 
         var cmd: proxy.ICommand<proxy.ISymbolResult> = {
-            telemetryEvent: telemetryContracts.IDE.Symbol,
             command: proxy.CommandType.Symbols,
             fileName: filename,
             columnIndex: 0,
