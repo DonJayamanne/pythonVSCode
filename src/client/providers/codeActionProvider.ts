@@ -2,8 +2,6 @@
 
 import * as vscode from 'vscode';
 import {TextDocument, Range, CodeActionContext, CancellationToken, Command} from 'vscode';
-import * as proxy from './jediProxy';
-import * as telemetryContracts from '../common/telemetryContracts';
 
 export class PythonCodeActionsProvider implements vscode.CodeActionProvider {
     public constructor(context: vscode.ExtensionContext) {
@@ -21,7 +19,6 @@ export class PythonCodeActionsProvider implements vscode.CodeActionProvider {
                 let wordRange = document.getWordRangeAtPosition(range.start);
                 // If no word has been selected by the user, then don't display rename
                 // If something has been selected, then ensure we have selected a word (i.e. end and start matches the word range) 
-                let selectionIsEmpty = range.isEmpty;
                 if (wordRange && !wordRange.isEmpty && wordRange.isEqual(vscode.window.activeTextEditor.selection)) {
                     let word = document.getText(wordRange).trim();
                     if (word.length > 0) {
