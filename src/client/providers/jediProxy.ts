@@ -181,6 +181,7 @@ function handleError(source: string, errorMessage: string) {
     logger.error(source + ' jediProxy', `Error (${source}) ${errorMessage}`);
 }
 
+let spawnRetryAttempts = 0;;
 function spawnProcess(dir: string) {
     try {
         let environmentVariables = { 'PYTHONUNBUFFERED': '1' };
@@ -224,6 +225,11 @@ function spawnProcess(dir: string) {
     });
     proc.on("error", error => {
         handleError("error", error + '');
+        spawnRetryAttempts++;
+        if (spawnRetryAttempts < 10 && error && error.message &&
+            error.message.indexOf('This socket has been ended by the other party') >= 0) {
+            spawnProcess(dir);
+        }
     });
     proc.stdout.setEncoding('utf8');
     proc.stdout.on("data", (data: string) => {
