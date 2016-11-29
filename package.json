@@ -105,6 +105,11 @@
         "category": "Python Refactor"
       },
       {
+        "command": "python.startREPL",
+        "title": "Start REPL",
+        "category": "Python"
+      },
+      {
         "command": "python.buildWorkspaceSymbols",
         "title": "Build Workspace Symbols",
         "category": "Python"

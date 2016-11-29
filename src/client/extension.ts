@@ -17,6 +17,7 @@ import * as telemetryContracts from './common/telemetryContracts';
 import { activateSimplePythonRefactorProvider } from './providers/simpleRefactorProvider';
 import { activateSetInterpreterProvider } from './providers/setInterpreterProvider';
 import { activateExecInTerminalProvider } from './providers/execInTerminalProvider';
+import { Commands } from './common/constants';
 import * as tests from './unittests/main';
 import * as jup from './jupyter/main';
 import { HelpProvider } from './helpProvider';
@@ -58,6 +59,12 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(activateUpdateSparkLibraryProvider());
     activateSimplePythonRefactorProvider(context, formatOutChannel);
     context.subscriptions.push(activateFormatOnSaveProvider(PYTHON, settings.PythonSettings.getInstance(), formatOutChannel));
+
+    context.subscriptions.push(vscode.commands.registerCommand(Commands.Start_REPL, () => {
+        let term = vscode.window.createTerminal('Python', pythonSettings.pythonPath);
+        term.show();
+        context.subscriptions.push(term);        
+    }));
 
     // Enable indentAction
     vscode.languages.setLanguageConfiguration(PYTHON.language, {

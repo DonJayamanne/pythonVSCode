@@ -23,6 +23,7 @@ export namespace Commands {
     export const Refaactor_Extract_Method = 'python.refactorExtractMethod';
     export const Update_SparkLibrary = 'python.updateSparkLibrary';
     export const Build_Workspace_Symbols = 'python.buildWorkspaceSymbols';
+    export const Start_REPL = 'python.startREPL';
     export namespace Jupyter {
         export const Get_All_KernelSpecs_For_Language = 'jupyter:getAllKernelSpecsForLanguage';
         export const Get_All_KernelSpecs = 'jupyter:getAllKernelSpecs';
