@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import { Tests, CANCELLATION_REASON } from '../common/contracts';
 import * as constants from '../../common/constants';
 import { displayTestErrorMessage } from '../common/testUtils';
-import { isNotInstalledError } from '../../common/helpers';
+import { isNotInstalledError, createDeferred } from '../../common/helpers';
 
 export class TestResultDisplay {
     private statusBar: vscode.StatusBarItem;
@@ -120,6 +120,24 @@ export class TestResultDisplay {
         });
     }
 
+    private disableTests(): Promise<any> {
+        const def = createDeferred<any>();
+        const pythonConfig = vscode.workspace.getConfiguration('python');
+        let settingsToDisable = ['unitTest.promptToConfigure', 'unitTest.pyTestEnabled',
+            'unitTest.unittestEnabled', 'unitTest.nosetestsEnabled'];
+
+        function disableTest() {
+            if (settingsToDisable.length === 0) {
+                return def.resolve();
+            }
+            pythonConfig.update(settingsToDisable.shift(), false)
+                .then(disableTest.bind(this), disableTest.bind(this));
+        }
+
+        disableTest();
+        return def.promise;
+    }
+
     private updateWithDiscoverSuccess(tests: Tests) {
         this.clearProgressTicker();
         const haveTests = tests && (tests.testFunctions.length > 0);
@@ -129,7 +147,11 @@ export class TestResultDisplay {
         this.statusBar.show();
 
         if (!haveTests) {
-            vscode.window.showInformationMessage('No tests discovered, please check the configuration settings for the tests.');
+            vscode.window.showInformationMessage('No tests discovered, please check the configuration settings for the tests.', 'Disable Tests').then(item => {
+                if (item === 'Disable Tests') {
+                    this.disableTests();
+                }
+            });
         }
     }
 
