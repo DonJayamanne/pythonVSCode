@@ -188,7 +188,7 @@ export class PythonDebugger extends DebugSession {
         }
         else {
             // When using modules ensure the cwd has been provided
-            if (typeof args.cwd !== 'string' || args.cwd.length === 0 || this.launchArgs.cwd === 'null') {
+            if (typeof args.cwd !== 'string' || args.cwd.length === 0 || (this.launchArgs && this.launchArgs.cwd === 'null')) {
                 return this.sendErrorResponse(response, 2001, `'cwd' in 'launch.json' needs to point to the working directory`);
             }
         }
