@@ -141,9 +141,15 @@ For further information and details continue through to the [documentation](http
 * Fixes to running code in terminal [#515](https://github.com/DonJayamanne/pythonVSCode/issues/515)
 
 ### Thanks
+* [Thijs Damsma](https://github.com/tdamsma)
+* [Siddhartha Gandhi](https://github.com/gandhis1)
+* [Nobuhiro Nakamura](https://github.com/lefb766)
+* [Water Zheng](https://github.com/zhengxiaoyao0716)
+* [Andris Raugulis](https://github.com/arthepsy)
+* [Igor Novozhilov](https://github.com/IgorNovozhilov)
+* [Luca Mussi](https://github.com/splendido)
 * [Shengyu Fu](https://github.com/shengyfu)
 * [codebetter](https://github.com/skilliscode)
-* [Thijs Damsma](https://github.com/tdamsma)
 
 ## Source
 
