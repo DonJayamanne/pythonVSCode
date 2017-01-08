@@ -34,10 +34,10 @@ export class PythonReferenceProvider implements vscode.ReferenceProvider {
     public provideReferences(document: vscode.TextDocument, position: vscode.Position, context: vscode.ReferenceContext, token: vscode.CancellationToken): Thenable<vscode.Location[]> {
         var filename = document.fileName;
         if (document.lineAt(position.line).text.match(/^\s*\/\//)) {
-            return Promise.resolve();
+            return Promise.resolve(null);
         }
         if (position.character <= 0) {
-            return Promise.resolve();
+            return Promise.resolve(null);
         }
 
         var range = document.getWordRangeAtPosition(position);

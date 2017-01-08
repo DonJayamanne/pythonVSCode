@@ -25,10 +25,10 @@ export class PythonDefinitionProvider implements vscode.DefinitionProvider {
     public provideDefinition(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): Thenable<vscode.Definition> {
         var filename = document.fileName;
         if (document.lineAt(position.line).text.match(/^\s*\/\//)) {
-            return Promise.resolve();
+            return Promise.resolve(null);
         }
         if (position.character <= 0) {
-            return Promise.resolve();
+            return Promise.resolve(null);
         }
 
         var range = document.getWordRangeAtPosition(position);
