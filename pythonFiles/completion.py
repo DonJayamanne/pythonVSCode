@@ -249,6 +249,52 @@ class JediCompletion(object):
                 return d
         return definition
 
+    def _extract_range(self, definition):
+        """Provides the definition range of a given definition
+
+        For regular symbols it returns the start and end location of the
+        characters making up the symbol.
+
+        For scoped containers it will return the entire definition of the
+        scope.
+
+        The scope that jedi provides ends with the first character of the next
+        scope so it's not ideal. For vscode we need the scope to end with the
+        last character of actual code. That's why we extract the lines that
+        make up our scope and trim the trailing whitespace.
+        """
+        from jedi import common
+        from jedi.parser.utils import load_parser
+        # get the scope range
+        if definition.type in ['class', 'function', 'method']:
+            scope = definition._name.get_parent_scope()
+            start_line = scope.start_pos[0] - 1
+            start_column = scope.start_pos[1]
+            end_line = scope.end_pos[0] - 1
+            end_column = scope.end_pos[1]
+            # get the lines
+            path = definition._name.get_parent_until().path
+            parser = load_parser(path)
+            lines = common.splitlines(parser.source)
+            lines[end_line] = lines[end_line][:end_column]
+            # trim the lines
+            lines = lines[start_line:end_line + 1]
+            lines = '\n'.join(lines).rstrip().split('\n')
+            end_line = start_line + len(lines) - 1
+            end_column = len(lines[-1]) - 1
+        else:
+            symbol = definition._name
+            start_line = symbol.start_pos[0] - 1
+            start_column = symbol.start_pos[1]
+            end_line = symbol.end_pos[0] - 1
+            end_column =  symbol.end_pos[1]
+        return {
+            'start_line': start_line,
+            'start_column': start_column,
+            'end_line': end_line,
+            'end_column': end_column
+        }
+
     def _serialize_definitions(self, definitions, identifier=None):
         """Serialize response to be read from VSCode.
 
@@ -267,13 +313,18 @@ class JediCompletion(object):
                         definition = self._top_definition(definition)
                     if not definition.module_path:
                         continue
+                    try:
+                        parent = definition.parent()
+                        container = parent.name if parent.type != 'module' else ''
+                    except Exception:
+                        container = ''
                     _definition = {
                         'text': definition.name,
                         'type': self._get_definition_type(definition),
                         'raw_type': definition.type,
                         'fileName': definition.module_path,
-                        'line': definition.line - 1,
-                        'column': definition.column
+                        'container': container,
+                        'range': self._extract_range(definition)
                     }
                     _definitions.append(_definition)
             except Exception as e:
@@ -419,7 +470,7 @@ if __name__ == '__main__':
     else:
         jediPath = os.path.join(os.path.dirname(__file__), 'release')
     sys.path.insert(0, jediPath)
-    import jedi    
+    import jedi
     if jediPreview:
         jedi.settings.cache_directory = os.path.join(
             jedi.settings.cache_directory, cachePrefix + jedi.__version__.replace('.', ''))

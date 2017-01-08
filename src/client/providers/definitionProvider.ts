@@ -15,9 +15,11 @@ export class PythonDefinitionProvider implements vscode.DefinitionProvider {
     }
     private static parseData(data: proxy.IDefinitionResult): vscode.Definition {
         if (data && data.definition) {
-            var definitionResource = vscode.Uri.file(data.definition.fileName);
-            var range = new vscode.Range(data.definition.lineIndex, data.definition.columnIndex, data.definition.lineIndex, data.definition.columnIndex);
-
+            const definition = data.definition;
+            const definitionResource = vscode.Uri.file(definition.fileName);
+            const range = new vscode.Range(
+                definition.range.startLine, definition.range.startColumn,
+                definition.range.endLine, definition.range.endColumn);
             return new vscode.Location(definitionResource, range);
         }
         return null;

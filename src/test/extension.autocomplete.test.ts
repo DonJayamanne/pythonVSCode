@@ -141,8 +141,8 @@ suite('Code Definition', () => {
             return vscode.commands.executeCommand<vscode.Location[]>('vscode.executeDefinitionProvider', textDocument.uri, position);
         }).then(def => {
             assert.equal(def.length, 1, 'Definition lenght is incorrect');
-            assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '17,8', 'Start position is incorrect');
-            assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '17,8', 'End position is incorrect');
+            assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '17,4', 'Start position is incorrect');
+            assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '21,11', 'End position is incorrect');
         }).then(done, done);
     });
 
@@ -159,8 +159,8 @@ suite('Code Definition', () => {
             return vscode.commands.executeCommand<vscode.Location[]>('vscode.executeDefinitionProvider', textDocument.uri, position);
         }).then(def => {
             assert.equal(def.length, 1, 'Definition lenght is incorrect');
-            assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '0,6', 'Start position is incorrect');
-            assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '0,6', 'End position is incorrect');
+            assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '0,0', 'Start position is incorrect');
+            assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '5,11', 'End position is incorrect');
             assert.equal(def[0].uri.fsPath, fileTwo, 'File is incorrect');
         }).then(done, done);
     });
@@ -178,8 +178,8 @@ suite('Code Definition', () => {
             return vscode.commands.executeCommand<vscode.Location[]>('vscode.executeDefinitionProvider', textDocument.uri, position);
         }).then(def => {
             assert.equal(def.length, 1, 'Definition lenght is incorrect');
-            assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '10,8', 'Start position is incorrect');
-            assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '10,8', 'End position is incorrect');
+            assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '10,4', 'Start position is incorrect');
+            assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '16,35', 'End position is incorrect');
             assert.equal(def[0].uri.fsPath, fileEncoding, 'File is incorrect');
         }).then(done, done);
     });
@@ -197,8 +197,8 @@ suite('Code Definition', () => {
             return vscode.commands.executeCommand<vscode.Location[]>('vscode.executeDefinitionProvider', textDocument.uri, position);
         }).then(def => {
             assert.equal(def.length, 1, 'Definition lenght is incorrect');
-            assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '18,4', 'Start position is incorrect');
-            assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '18,4', 'End position is incorrect');
+            assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '18,0', 'Start position is incorrect');
+            assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '23,16', 'End position is incorrect');
             assert.equal(def[0].uri.fsPath, fileEncoding, 'File is incorrect');
         }).then(done, done);
     });
