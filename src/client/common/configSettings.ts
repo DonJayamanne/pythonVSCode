@@ -23,6 +23,7 @@ export interface IPythonSettings {
 }
 
 export interface ISortImportSettings {
+    path: string;
     args: string[];
 }
 
@@ -156,7 +157,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
             this.sortImports = sortImportSettings;
         }
         // Support for travis
-        this.sortImports = this.sortImports ? this.sortImports : { args: [] };
+        this.sortImports = this.sortImports ? this.sortImports : { path: '', args: [] };
         // Support for travis
         this.linting = this.linting ? this.linting : {
             enabled: false,
