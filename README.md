@@ -16,6 +16,9 @@ An extension with rich support for the [Python language](https://www.python.org/
 
 ## Quick Start
 * Install the extension
+* Make sure `jedi` and `ctags` are installed.
+  + Install `jedi` using `pip install jedi`.
+  + Install `ctags` from [here](http://ctags.sourceforge.net/), or using `brew install ctags` on OSX.
 * If Python is in the current path
   + You're ready to use it.
 * If using a custom Python Version or a Virtual Environment, use the command [```Select Workspace Interpreter```](https://github.com/DonJayamanne/pythonVSCode/wiki/Miscellaneous#select-an-interpreter)) 
