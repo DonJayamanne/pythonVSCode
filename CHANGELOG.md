@@ -6,6 +6,7 @@
 * Fixes to debugging of modules [#589](https://github.com/DonJayamanne/pythonVSCode/issues/589)
 * Reminder to install jedi and ctags in Quick Start [#642](https://github.com/DonJayamanne/pythonVSCode/pull/642)    
 * Improvements to Symbol Provider [#622](https://github.com/DonJayamanne/pythonVSCode/pull/622)  
+* Changes to disable unit test prompts for workspace [#559](https://github.com/DonJayamanne/pythonVSCode/issues/559)
 * Minor fixes [#627](https://github.com/DonJayamanne/pythonVSCode/pull/627)
 
 ### Version 0.5.5 (25 November 2016)
