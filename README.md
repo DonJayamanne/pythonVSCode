@@ -1,6 +1,6 @@
 # Python
 
-An extension with rich support for the [Python language](https://www.python.org/), with features including the following and more:   
+An extension with rich support for the [Python language](https://www.python.org/) (_including Python 3.6_), with features including the following and more:   
 * Linting ([Prospector](https://pypi.io/project/prospector/), [Pylint](https://pypi.io/project/pylint/), [pycodestyle](https://pypi.io/project/pycodestyle/)/Pep8, [Flake8](https://pypi.io/project/flake8/), [pylama](https://github.com/klen/pylama), [pydocstyle](https://pypi.io/project/pydocstyle/) with config files and plugins)
 * Intellisense (autocompletion with support for PEP-0484)
 * PySpark and Scientific tools (Jupyter/IPython)
@@ -104,44 +104,15 @@ For further information and details continue through to the [documentation](http
 ## [Roadmap](https://donjayamanne.github.io/pythonVSCodeDocs/docs/roadmap/)
 
 ## [Change Log](https://github.com/DonJayamanne/pythonVSCode/blob/master/CHANGELOG.md)
-### Version 0.5.5 (25 November 2016)
-* Fixes to debugging of unittests (nose and pytest) [#543](https://github.com/DonJayamanne/pythonVSCode/issues/543)
-* Fixes to debugging of Django [#546](https://github.com/DonJayamanne/pythonVSCode/issues/546)
-
-### Version 0.5.4 (24 November 2016)
-* Fixes to installing missing packages [#544](https://github.com/DonJayamanne/pythonVSCode/issues/544)
-* Fixes to indentation of blocks of code [#432](https://github.com/DonJayamanne/pythonVSCode/issues/432)
-* Fixes to debugging of unittests [#543](https://github.com/DonJayamanne/pythonVSCode/issues/543)
-* Fixes to extension when a workspace (folder) isn't open [#542](https://github.com/DonJayamanne/pythonVSCode/issues/542)
-
-### Version 0.5.3 (23 November 2016)
-* Added support for [PySpark](http://spark.apache.org/docs/0.9.0/python-programming-guide.html) [#539](https://github.com/DonJayamanne/pythonVSCode/pull/539), [#540](https://github.com/DonJayamanne/pythonVSCode/pull/540)
-* Debugging unittests (UnitTest, pytest, nose) [#333](https://github.com/DonJayamanne/pythonVSCode/issues/333)
-* Displaying progress for formatting [#327](https://github.com/DonJayamanne/pythonVSCode/issues/327) 
-* Prefixing new lines with '#' when new lines are added in the middle of a comment string [#365](https://github.com/DonJayamanne/pythonVSCode/issues/365) 
-* Debugging python modules [#518](https://github.com/DonJayamanne/pythonVSCode/issues/518), [#354](https://github.com/DonJayamanne/pythonVSCode/issues/354)
-    + Use new debug configuration ```Python Module```  
-* Added support for workspace symbols using Exuberant CTags [#138](https://github.com/DonJayamanne/pythonVSCode/issues/138)
-    + New command ```Python: Build Workspace Symbols```  
-* Auto indenting ```else:``` inside ```if``` and similar code blocks [#432](https://github.com/DonJayamanne/pythonVSCode/issues/432) 
-    + Add the following setting in user ```settings.json```
-```jsong
-        "editor.formatOnType": true,
-```               
-* Added ability for linter to ignore paths or files [#501](https://github.com/DonJayamanne/pythonVSCode/issues/501)
-    + Add the following setting in ```settings.json```
-```json
-        "python.linting.ignorePatterns":  [
-            ".vscode/*.py",
-            "**/site-packages/**/*.py"
-          ],
-```               
-* Automatically adding brackets when autocompleting functions/methods [#425](https://github.com/DonJayamanne/pythonVSCode/issues/425)
-    + To enable this feature, turn on the setting ```"python.autoComplete.addBrackets": true``` 
-* Running nose tests with the arguments '--with-xunit' and '--xunit-file' [#517](https://github.com/DonJayamanne/pythonVSCode/issues/517)
-* Added support for workspaceRootFolderName in settings.json [#525](https://github.com/DonJayamanne/pythonVSCode/pull/525), [#522](https://github.com/DonJayamanne/pythonVSCode/issues/522)
-* Added support for workspaceRootFolderName in settings.json [#525](https://github.com/DonJayamanne/pythonVSCode/pull/525), [#522](https://github.com/DonJayamanne/pythonVSCode/issues/522)
-* Fixes to running code in terminal [#515](https://github.com/DonJayamanne/pythonVSCode/issues/515)
+### Version 0.5.5 (16 January 2017)
+* Added support for Python 3.6 [#646](https://github.com/DonJayamanne/pythonVSCode/issues/646), [#631](https://github.com/DonJayamanne/pythonVSCode/issues/631), [#619](https://github.com/DonJayamanne/pythonVSCode/issues/619), [#613](https://github.com/DonJayamanne/pythonVSCode/issues/613)
+* Autodetect in python path in virtual environments [#353](https://github.com/DonJayamanne/pythonVSCode/issues/353)
+* Add syntax highlighting of code samples in hover defintion [#555](https://github.com/DonJayamanne/pythonVSCode/issues/555)
+* Launch REPL for currently selected interpreter [#560](https://github.com/DonJayamanne/pythonVSCode/issues/560)
+* Fixes to debugging of modules [#589](https://github.com/DonJayamanne/pythonVSCode/issues/589)
+* Reminder to install jedi and ctags in Quick Start [#642](https://github.com/DonJayamanne/pythonVSCode/pull/642)    
+* Improvements to Symbol Provider [#622](https://github.com/DonJayamanne/pythonVSCode/pull/622)  
+* Minor fixes [#627](https://github.com/DonJayamanne/pythonVSCode/pull/627)
 
 ### Thanks
 * [Thijs Damsma](https://github.com/tdamsma)
@@ -153,6 +124,8 @@ For further information and details continue through to the [documentation](http
 * [Luca Mussi](https://github.com/splendido)
 * [Shengyu Fu](https://github.com/shengyfu)
 * [codebetter](https://github.com/skilliscode)
+* [Shay Palachy](https://github.com/shaypal5)
+* [Patryk Zawadzki](https://github.com/patrys)
 
 ## Source
 

@@ -1,3 +1,13 @@
+### Version 0.5.6 (16 January 2017)
+* Added support for Python 3.6 [#646](https://github.com/DonJayamanne/pythonVSCode/issues/646), [#631](https://github.com/DonJayamanne/pythonVSCode/issues/631), [#619](https://github.com/DonJayamanne/pythonVSCode/issues/619), [#613](https://github.com/DonJayamanne/pythonVSCode/issues/613)
+* Autodetect in python path in virtual environments [#353](https://github.com/DonJayamanne/pythonVSCode/issues/353)
+* Add syntax highlighting of code samples in hover defintion [#555](https://github.com/DonJayamanne/pythonVSCode/issues/555)
+* Launch REPL for currently selected interpreter [#560](https://github.com/DonJayamanne/pythonVSCode/issues/560)
+* Fixes to debugging of modules [#589](https://github.com/DonJayamanne/pythonVSCode/issues/589)
+* Reminder to install jedi and ctags in Quick Start [#642](https://github.com/DonJayamanne/pythonVSCode/pull/642)    
+* Improvements to Symbol Provider [#622](https://github.com/DonJayamanne/pythonVSCode/pull/622)  
+* Minor fixes [#627](https://github.com/DonJayamanne/pythonVSCode/pull/627)
+
 ### Version 0.5.5 (25 November 2016)
 * Fixes to debugging of unittests (nose and pytest) [#543](https://github.com/DonJayamanne/pythonVSCode/issues/543)
 * Fixes to debugging of Django [#546](https://github.com/DonJayamanne/pythonVSCode/issues/546)
