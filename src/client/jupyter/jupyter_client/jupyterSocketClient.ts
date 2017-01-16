@@ -187,7 +187,7 @@ export class JupyterSocketClient extends SocketCallbackHandler {
         def.resolve();
     }
     public ping(message: string) {
-        const [def, id] = this.createId<string[]>();
+        const [def, id] = this.createId<string>();
         this.SendRawCommand(Commands.PingBytes);
         this.stream.WriteString(id);
         this.stream.WriteString(message);

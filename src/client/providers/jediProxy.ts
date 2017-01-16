@@ -311,12 +311,17 @@ function spawnProcess(dir: string) {
                             let def = defs[0];
                             const originalType = def.type as string;
                             defResult.definition = {
-                                columnIndex: Number(def.column),
                                 fileName: def.fileName,
-                                lineIndex: Number(def.line),
                                 text: def.text,
                                 type: getMappedVSCodeType(originalType),
-                                kind: getMappedVSCodeSymbol(originalType)
+                                kind: getMappedVSCodeSymbol(originalType),
+                                container: def.container,
+                                range: {
+                                    startLine: def.range.start_line,
+                                    startColumn: def.range.start_column,
+                                    endLine: def.range.end_line,
+                                    endColumn: def.range.end_column
+                                }
                             };
                         }
 
@@ -330,15 +335,20 @@ function spawnProcess(dir: string) {
                             requestId: cmd.id,
                             definitions: []
                         };
-                        defResults.definitions = defs.map(def => {
+                        defResults.definitions = defs.map<IDefinition>(def => {
                             const originalType = def.type as string;
-                            return <IDefinition>{
-                                columnIndex: <number>def.column,
-                                fileName: <string>def.fileName,
-                                lineIndex: <number>def.line,
-                                text: <string>def.text,
+                            return {
+                                fileName: def.fileName,
+                                text: def.text,
                                 type: getMappedVSCodeType(originalType),
-                                kind: getMappedVSCodeSymbol(originalType)
+                                kind: getMappedVSCodeSymbol(originalType),
+                                container: def.container,
+                                range: {
+                                    startLine: def.range.start_line,
+                                    startColumn: def.range.start_column,
+                                    endLine: def.range.end_line,
+                                    endColumn: def.range.end_column
+                                }
                             };
                         });
 
@@ -597,13 +607,19 @@ export interface IAutoCompleteItem {
     raw_docstring: string;
     rightLabel: string;
 }
+interface IDefinitionRange {
+    startLine: number;
+    startColumn: number;
+    endLine: number;
+    endColumn: number;
+}
 export interface IDefinition {
     type: vscode.CompletionItemKind;
     kind: vscode.SymbolKind;
     text: string;
     fileName: string;
-    columnIndex: number;
-    lineIndex: number;
+    container: string;
+    range: IDefinitionRange;
 }
 
 export class JediProxyHandler<R extends ICommandResult, T> {

@@ -11,29 +11,23 @@ export class WorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider {
     public constructor(private tagGenerator: Generator, private outputChannel: vscode.OutputChannel) {
     }
 
-    provideWorkspaceSymbols(query: string, token: vscode.CancellationToken): Thenable<vscode.SymbolInformation[]> {
+    async provideWorkspaceSymbols(query: string, token: vscode.CancellationToken): Promise<vscode.SymbolInformation[]> {
         if (!pythonSettings.workspaceSymbols.enabled) {
-            return Promise.resolve([]);
+            return [];
         }
-        return fsExistsAsync(pythonSettings.workspaceSymbols.tagFilePath).then(exits => {
-            let def = createDeferred<any>();
-            if (exits) {
-                def.resolve();
-            }
-            else {
-                vscode.commands.executeCommand(Commands.Build_Workspace_Symbols, false, token).then(() => def.resolve(), reason => def.reject(reason));
-            }
-
-            return def.promise
-                .then(() => parseTags(query, token))
-                .then(items => {
-                    if (!Array.isArray(items)) {
-                        return [];
-                    }
-                    return items.map(item => new vscode.SymbolInformation(item.symbolName,
-                        item.symbolKind, '',
-                        new vscode.Location(vscode.Uri.file(item.fileName), item.position)));
-                });
-        });
+        // check whether tag file needs to be built
+        const tagFileExists = await fsExistsAsync(pythonSettings.workspaceSymbols.tagFilePath);
+        if (!tagFileExists) {
+            await vscode.commands.executeCommand(Commands.Build_Workspace_Symbols, false, token);
+        }
+        // load tags
+        const items = await parseTags(query, token);
+        if (!Array.isArray(items)) {
+            return [];
+        }
+        return items.map(item => new vscode.SymbolInformation(
+            item.symbolName, item.symbolKind, '',
+            new vscode.Location(vscode.Uri.file(item.fileName), item.position)
+        ));
     }
 }

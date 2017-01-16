@@ -14,15 +14,15 @@ export class PythonHoverProvider implements vscode.HoverProvider {
     public provideHover(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): Thenable<vscode.Hover> {
         var filename = document.fileName;
         if (document.lineAt(position.line).text.match(/^\s*\/\//)) {
-            return Promise.resolve();
+            return Promise.resolve(null);
         }
         if (position.character <= 0) {
-            return Promise.resolve();
+            return Promise.resolve(null);
         }
 
         var range = document.getWordRangeAtPosition(position);
         if (!range || range.isEmpty) {
-            return Promise.resolve();
+            return Promise.resolve(null);
         }
         var columnIndex = range.start.character < range.end.character ? range.start.character + 2 : range.end.character;
         var cmd: proxy.ICommand<proxy.ICompletionResult> = {

@@ -88,16 +88,16 @@ export class KernelManagerImpl extends EventEmitter {
         throw new Error('Start Existing Kernel not implemented');
     }
 
-    public startKernel(kernelSpec: KernelspecMetadata, language: string): Promise<Kernel> {
+    public async startKernel(kernelSpec: KernelspecMetadata, language: string): Promise<Kernel> {
         this.destroyRunningKernelFor(language);
-        return this.jupyterClient.startKernel(kernelSpec).then((kernelInfo: [string, any, string]) => {
-            const kernelUUID = kernelInfo[0];
-            const config = kernelInfo[1];
-            const connectionFile = kernelInfo[2];
-            const kernel = new JupyterClientKernel(kernelSpec, language, config, connectionFile, kernelUUID, this.jupyterClient);
-            this.setRunningKernelFor(language, kernel);
-            return this.executeStartupCode(kernel).then(() => kernel);
-        });
+        const kernelInfo = await this.jupyterClient.startKernel(kernelSpec);
+        const kernelUUID = kernelInfo[0];
+        const config = kernelInfo[1];
+        const connectionFile = kernelInfo[2];
+        const kernel = new JupyterClientKernel(kernelSpec, language, config, connectionFile, kernelUUID, this.jupyterClient);
+        this.setRunningKernelFor(language, kernel);
+        await this.executeStartupCode(kernel);
+        return kernel;
     }
 
     private executeStartupCode(kernel: Kernel): Promise<any> {
