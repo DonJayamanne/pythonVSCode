@@ -26,6 +26,7 @@ import { activateFormatOnSaveProvider } from './providers/formatOnSaveProvider';
 import { WorkspaceSymbols } from './workspaceSymbols/main';
 import { BlockFormatProviders } from './typeFormatters/blockFormatProvider';
 import * as os from 'os';
+import * as fs from 'fs';
 
 
 const PYTHON: vscode.DocumentFilter = { language: 'python', scheme: 'file' };
@@ -36,6 +37,7 @@ let jupMain: jup.Jupyter;
 
 export function activate(context: vscode.ExtensionContext) {
     let pythonSettings = settings.PythonSettings.getInstance();
+    let pythonExt = new PythonExt()
     const hasPySparkInCompletionPath = pythonSettings.autoComplete.extraPaths.some(p => p.toLowerCase().indexOf('spark') >= 0);
     telemetryHelper.sendTelemetryEvent(telemetryContracts.EVENT_LOAD, {
         CodeComplete_Has_ExtraPaths: pythonSettings.autoComplete.extraPaths.length > 0 ? 'true' : 'false',
@@ -120,3 +122,35 @@ export function activate(context: vscode.ExtensionContext) {
 // this method is called when your extension is deactivated
 export function deactivate() {
 }
+
+class PythonExt {
+
+	private _isDjangoProject: ContextKey;
+
+	constructor() {
+		this._isDjangoProject = new ContextKey('python.isDjangoProject');
+		this._ensureState();
+	}
+
+	private _ensureState(): void {
+		// context: python.isDjangoProject
+		this._isDjangoProject.set(fs.existsSync(vscode.workspace.rootPath.concat("/manage.py")));
+	}
+}
+
+class ContextKey { 
+ 	private _name: string; 
+ 	private _lastValue: boolean;  
+ 
+ 	constructor(name:string) { 
+ 		this._name = name; 
+ 	}  
+ 
+ 	public set(value:boolean): void { 
+ 		if (this._lastValue === value) { 
+ 			return; 
+ 		} 
+ 		this._lastValue = value; 
+ 		vscode.commands.executeCommand('setContext', this._name, this._lastValue); 
+ 	} 
+} 
