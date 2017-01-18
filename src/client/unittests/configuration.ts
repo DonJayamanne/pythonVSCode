@@ -126,7 +126,7 @@ export function displayPromptToEnableTests(rootDir: string, outputChannel: vscod
     const noNotAgain = `No, don't ask again`;
 
     return checkIfHasTestDirs(rootDir).then(hasTests => {
-        if (!yes) {
+        if (!hasTests) {
             return Promise.reject(null);
         }
         return vscode.window.showInformationMessage('You seem to have tests, would you like to enable a test framework?', yes, no, noNotAgain).then(item => {
