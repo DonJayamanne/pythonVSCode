@@ -85,7 +85,12 @@ function execSelectionInTerminal() {
     if (IS_WINDOWS) {
         // Multi line commands don't work the same way on windows terminals as it does on other OS
         // So just start the Python REPL, then send the commands
-        terminal.sendText(`"${currentPythonPath}"${launchArgsString}`);
+        if (currentPythonPath.indexOf(' ') > 0) {
+            terminal.sendText(`"${currentPythonPath}"${launchArgsString}`);
+        }
+        else {
+            terminal.sendText(`${currentPythonPath}${launchArgsString}`);
+        }
         terminal.sendText(code);
     }
     else {
