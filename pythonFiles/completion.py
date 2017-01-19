@@ -266,14 +266,14 @@ class JediCompletion(object):
         from jedi import common
         from jedi.parser.utils import load_parser
         # get the scope range
-        if definition.type in ['class', 'function', 'method']:
-            scope = definition._name.get_parent_scope()
+        if definition.type in ['class', 'function']:
+            scope = definition._definition
             start_line = scope.start_pos[0] - 1
             start_column = scope.start_pos[1]
             end_line = scope.end_pos[0] - 1
             end_column = scope.end_pos[1]
             # get the lines
-            path = definition._name.get_parent_until().path
+            path = definition._definition.get_parent_until().path
             parser = load_parser(path)
             lines = common.splitlines(parser.source)
             lines[end_line] = lines[end_line][:end_column]
@@ -334,27 +334,26 @@ class JediCompletion(object):
     def _serialize_tooltip(self, definitions, identifier=None):
         _definitions = []
         for definition in definitions:
-            if definition.module_path:
-                if definition.type == 'import':
-                    definition = self._top_definition(definition)
-                if not definition.module_path:
-                  continue
-
-                description = definition.docstring()
-                if description is not None:
-                  description = description.strip()
-                if not description:
-                  description = self._additional_info(definition)
-                _definition = {
-                    'text': definition.name,
-                    'type': self._get_definition_type(definition),
-                    'fileName': definition.module_path,
-                    'description': description,
-                    'line': definition.line - 1,
-                    'column': definition.column
-                }
-                _definitions.append(_definition)
-                break
+            signature = definition.name
+            description = None
+            if definition.type in ['class', 'function']:
+                signature = self._generate_signature(definition)
+                description = definition.docstring(raw=True).strip()
+                if not description and not definition.get_line_code():
+                    # jedi returns an empty string for compiled objects
+                    description = definition.docstring().strip()
+            if definition.type == 'module':
+                signature = definition.full_name
+                description = definition.docstring(raw=True).strip()
+                if not description and not definition.get_line_code():
+                    # jedi returns an empty string for compiled objects
+                    description = definition.docstring().strip()
+            _definition = {
+                'type': self._get_definition_type(definition),
+                'description': description,
+                'signature': signature
+            }
+            _definitions.append(_definition)
         return json.dumps({'id': identifier, 'results': _definitions})
 
     def _serialize_usages(self, usages, identifier=None):
@@ -429,7 +428,7 @@ class JediCompletion(object):
                 script.goto_assignments(), request['id']))
         if lookup == 'tooltip':
             return self._write_response(self._serialize_tooltip(
-                script.goto_assignments(), request['id']))
+                script.goto_definitions(), request['id']))
         elif lookup == 'arguments':
             return self._write_response(self._serialize_arguments(
                 script, request['id']))

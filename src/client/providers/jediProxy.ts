@@ -106,6 +106,7 @@ function getMappedVSCodeSymbol(pythonType: string): vscode.SymbolKind {
 export enum CommandType {
     Arguments,
     Completions,
+    Hover,
     Usages,
     Definitions,
     Symbols
@@ -115,6 +116,7 @@ var commandNames = new Map<CommandType, string>();
 commandNames.set(CommandType.Arguments, "arguments");
 commandNames.set(CommandType.Completions, "completions");
 commandNames.set(CommandType.Definitions, "definitions");
+commandNames.set(CommandType.Hover, "tooltip");
 commandNames.set(CommandType.Usages, "usages");
 commandNames.set(CommandType.Symbols, "names");
 
@@ -291,7 +293,7 @@ function spawnProcess(dir: string) {
                             const originalType = <string><any>item.type;
                             item.type = getMappedVSCodeType(originalType);
                             item.kind = getMappedVSCodeSymbol(originalType);
-                            item.raw_type = getMappedVSCodeType(originalType);
+                            item.rawType = getMappedVSCodeType(originalType);
                         });
 
                         let completionResult: ICompletionResult = {
@@ -313,6 +315,7 @@ function spawnProcess(dir: string) {
                             defResult.definition = {
                                 fileName: def.fileName,
                                 text: def.text,
+                                rawType: originalType,
                                 type: getMappedVSCodeType(originalType),
                                 kind: getMappedVSCodeSymbol(originalType),
                                 container: def.container,
@@ -324,6 +327,22 @@ function spawnProcess(dir: string) {
                                 }
                             };
                         }
+
+                        cmd.deferred.resolve(defResult);
+                        break;
+                    }
+                    case CommandType.Hover: {
+                        var defs = <any[]>response['results'];
+                        var defResult: IHoverResult = {
+                            requestId: cmd.id,
+                            items: defs.map(def => {
+                                return {
+                                    kind: getMappedVSCodeSymbol(def.type),
+                                    description: def.description,
+                                    signature: def.signature
+                                }
+                            })
+                        };
 
                         cmd.deferred.resolve(defResult);
                         break;
@@ -340,6 +359,7 @@ function spawnProcess(dir: string) {
                             return {
                                 fileName: def.fileName,
                                 text: def.text,
+                                rawType: originalType,
                                 type: getMappedVSCodeType(originalType),
                                 kind: getMappedVSCodeSymbol(originalType),
                                 container: def.container,
@@ -563,6 +583,9 @@ export interface ICommandResult {
 export interface ICompletionResult extends ICommandResult {
     items: IAutoCompleteItem[];
 }
+export interface IHoverResult extends ICommandResult {
+    items: IHoverItem[];
+}
 export interface IDefinitionResult extends ICommandResult {
     definition: IDefinition;
 }
@@ -600,7 +623,7 @@ export interface IReference {
 
 export interface IAutoCompleteItem {
     type: vscode.CompletionItemKind;
-    raw_type: vscode.CompletionItemKind;
+    rawType: vscode.CompletionItemKind;
     kind: vscode.SymbolKind;
     text: string;
     description: string;
@@ -614,6 +637,7 @@ interface IDefinitionRange {
     endColumn: number;
 }
 export interface IDefinition {
+    rawType: string;
     type: vscode.CompletionItemKind;
     kind: vscode.SymbolKind;
     text: string;
@@ -622,7 +646,13 @@ export interface IDefinition {
     range: IDefinitionRange;
 }
 
-export class JediProxyHandler<R extends ICommandResult, T> {
+export interface IHoverItem {
+    kind: vscode.SymbolKind;
+    description: string;
+    signature: string;
+}
+
+export class JediProxyHandler<R extends ICommandResult> {
     private jediProxy: JediProxy;
     private lastToken: vscode.CancellationToken;
     private lastCommandId: number;
