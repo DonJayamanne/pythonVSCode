@@ -6,7 +6,7 @@ import * as telemetryContracts from "../common/telemetryContracts";
 
 
 export class PythonReferenceProvider implements vscode.ReferenceProvider {
-    private jediProxyHandler: proxy.JediProxyHandler<proxy.IReferenceResult, vscode.Location[]>;
+    private jediProxyHandler: proxy.JediProxyHandler<proxy.IReferenceResult>;
 
     public constructor(context: vscode.ExtensionContext, jediProxy: proxy.JediProxy = null) {
         this.jediProxyHandler = new proxy.JediProxyHandler(context, jediProxy);

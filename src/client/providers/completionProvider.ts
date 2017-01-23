@@ -10,7 +10,7 @@ import { PythonSettings } from '../common/configSettings';
 const pythonSettings = PythonSettings.getInstance();
 
 export class PythonCompletionItemProvider implements vscode.CompletionItemProvider {
-    private jediProxyHandler: proxy.JediProxyHandler<proxy.ICompletionResult, vscode.CompletionItem[]>;
+    private jediProxyHandler: proxy.JediProxyHandler<proxy.ICompletionResult>;
 
     public constructor(context: vscode.ExtensionContext, jediProxy: proxy.JediProxy = null) {
         this.jediProxyHandler = new proxy.JediProxyHandler(context, jediProxy);

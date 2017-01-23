@@ -5,7 +5,7 @@ import * as proxy from './jediProxy';
 import * as telemetryContracts from "../common/telemetryContracts";
 
 export class PythonSymbolProvider implements vscode.DocumentSymbolProvider {
-    private jediProxyHandler: proxy.JediProxyHandler<proxy.ISymbolResult, vscode.SymbolInformation[]>;
+    private jediProxyHandler: proxy.JediProxyHandler<proxy.ISymbolResult>;
 
     public constructor(context: vscode.ExtensionContext, jediProxy: proxy.JediProxy = null) {
         this.jediProxyHandler = new proxy.JediProxyHandler(context, jediProxy);

@@ -5,7 +5,7 @@ import * as proxy from './jediProxy';
 import * as telemetryContracts from "../common/telemetryContracts";
 
 export class PythonDefinitionProvider implements vscode.DefinitionProvider {
-    private jediProxyHandler: proxy.JediProxyHandler<proxy.IDefinitionResult, vscode.Definition>;
+    private jediProxyHandler: proxy.JediProxyHandler<proxy.IDefinitionResult>;
     public get JediProxy(): proxy.JediProxy {
         return this.jediProxyHandler.JediProxy;
     }
