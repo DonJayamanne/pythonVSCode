@@ -339,7 +339,7 @@ class JediCompletion(object):
             if definition.type in ['class', 'function']:
                 signature = self._generate_signature(definition)
                 description = definition.docstring(raw=True).strip()
-                if not description and not definition.get_line_code():
+                if not description and not hasattr(definition, 'get_line_code'):
                     # jedi returns an empty string for compiled objects
                     description = definition.docstring().strip()
             if definition.type == 'module':
