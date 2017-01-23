@@ -53,6 +53,7 @@
     "onCommand:python.selectAndDebugTestMethod",
     "onCommand:python.runFailedTests",
     "onCommand:python.execSelectionInTerminal",
+    "onCommand:python.execSelectionInDjangoShell",
     "onCommand:jupyter.runSelectionLine",
     "onCommand:jupyter.execCurrentCell",
     "onCommand:jupyter.execCurrentCellAndAdvance",
@@ -175,6 +176,11 @@
         "category": "Python"
       },
       {
+        "command": "python.execSelectionInDjangoShell",
+        "title": "Run Selection in Django Shell",
+        "category": "Python"
+      },
+      {
         "command": "jupyter.runSelectionLine",
         "title": "Run Selection/Line",
         "category": "Jupyter"
@@ -229,6 +235,11 @@
           "command": "python.execSelectionInTerminal",
           "group": "Python",
           "when": "editorHasSelection && editorLangId == python"
+        },
+        {
+          "command": "python.execSelectionInDjangoShell",
+          "group": "Python",
+          "when": "editorHasSelection && editorLangId == python && python.isDjangoProject"
         },
         {
           "when": "resourceLangId == python",
