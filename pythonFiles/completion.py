@@ -266,34 +266,77 @@ class JediCompletion(object):
         from jedi import common
         from jedi.parser.utils import load_parser
         # get the scope range
-        if definition.type in ['class', 'function']:
-            scope = definition._definition
-            start_line = scope.start_pos[0] - 1
-            start_column = scope.start_pos[1]
-            end_line = scope.end_pos[0] - 1
-            end_column = scope.end_pos[1]
-            # get the lines
-            path = definition._definition.get_parent_until().path
-            parser = load_parser(path)
-            lines = common.splitlines(parser.source)
-            lines[end_line] = lines[end_line][:end_column]
-            # trim the lines
-            lines = lines[start_line:end_line + 1]
-            lines = '\n'.join(lines).rstrip().split('\n')
-            end_line = start_line + len(lines) - 1
-            end_column = len(lines[-1]) - 1
-        else:
-            symbol = definition._name
-            start_line = symbol.start_pos[0] - 1
-            start_column = symbol.start_pos[1]
-            end_line = symbol.end_pos[0] - 1
-            end_column =  symbol.end_pos[1]
-        return {
-            'start_line': start_line,
-            'start_column': start_column,
-            'end_line': end_line,
-            'end_column': end_column
-        }
+        try:
+            if definition.type in ['class', 'function'] and hasattr(definition, '_definition'):
+                scope = definition._definition
+                start_line = scope.start_pos[0] - 1
+                start_column = scope.start_pos[1]
+                end_line = scope.end_pos[0] - 1
+                end_column = scope.end_pos[1]
+                # get the lines
+                path = definition._definition.get_parent_until().path
+                parser = load_parser(path)
+                lines = common.splitlines(parser.source)
+                lines[end_line] = lines[end_line][:end_column]
+                # trim the lines
+                lines = lines[start_line:end_line + 1]
+                lines = '\n'.join(lines).rstrip().split('\n')
+                end_line = start_line + len(lines) - 1
+                end_column = len(lines[-1]) - 1
+            else:
+                symbol = definition._name
+                start_line = symbol.start_pos[0] - 1
+                start_column = symbol.start_pos[1]
+                end_line = symbol.end_pos[0] - 1
+                end_column =  symbol.end_pos[1]
+            return {
+                'start_line': start_line,
+                'start_column': start_column,
+                'end_line': end_line,
+                'end_column': end_column
+            }
+        except Exception as e:
+            return {
+                'start_line': definition.line - 1,
+                'start_column': definition.column, 
+                'end_line': definition.line - 1,
+                'end_column': definition.column
+            }
+    def _get_definitions(self, definitions, identifier=None):
+        """Serialize response to be read from VSCode.
+
+        Args:
+            definitions: List of jedi.api.classes.Definition objects.
+            identifier: Unique completion identifier to pass back to VSCode.
+
+        Returns:
+            Serialized string to send to VSCode.
+        """
+        _definitions = []
+        for definition in definitions:
+            try:
+                if definition.module_path:
+                    if definition.type == 'import':
+                        definition = self._top_definition(definition)
+                    if not definition.module_path:
+                        continue
+                    try:
+                        parent = definition.parent()
+                        container = parent.name if parent.type != 'module' else ''
+                    except Exception:
+                        container = ''
+                    _definition = {
+                        'text': definition.name,
+                        'type': self._get_definition_type(definition),
+                        'raw_type': definition.type,
+                        'fileName': definition.module_path,
+                        'container': container,
+                        'range': self._extract_range(definition)
+                    }
+                    _definitions.append(_definition)
+            except Exception as e:
+                pass
+        return _definitions
 
     def _serialize_definitions(self, definitions, identifier=None):
         """Serialize response to be read from VSCode.
@@ -424,8 +467,10 @@ class JediCompletion(object):
             column=request['column'], path=request.get('path', ''))
 
         if lookup == 'definitions':
-            return self._write_response(self._serialize_definitions(
-                script.goto_assignments(), request['id']))
+            defs = self._get_definitions(script.goto_definitions(), request['id'])
+            if len(defs) == 0:
+                defs = self._get_definitions(script.goto_assignments(), request['id'])
+            return self._write_response(json.dumps({'id': request['id'], 'results': defs}))
         if lookup == 'tooltip':
             return self._write_response(self._serialize_tooltip(
                 script.goto_definitions(), request['id']))
