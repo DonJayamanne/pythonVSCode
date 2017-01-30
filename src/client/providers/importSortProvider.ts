@@ -25,7 +25,7 @@ export class PythonImportSortProvider {
                 const isort = settings.PythonSettings.getInstance().sortImports.path;
                 const args = settings.PythonSettings.getInstance().sortImports.args.join(' ');
                 let isort_cmd = '';
-                if (isort) {
+                if (typeof isort === 'string' && isort.length > 0) {
                     isort_cmd = `${isort} "${filePath}" --diff ${args}`;
                 } else {
                     isort_cmd = `${pythonPath} "${importScript}" "${filePath}" --diff ${args}`;
