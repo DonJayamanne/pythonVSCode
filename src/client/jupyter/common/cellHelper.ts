@@ -3,7 +3,7 @@ import { TextDocument, Range } from 'vscode';
 import { JupyterCodeLensProvider } from '../editorIntegration/codeLensProvider';
 import * as vscode from 'vscode';
 
-const CellIdentifier = /^(# %%|#%%|# \<codecell\>|# In\[\d?\]|# In\[ \])(.*)/i;
+const CellIdentifier = /^(# %%|#%%|# \<codecell\>|# In\[\d*\]|# In\[ \])(.*)/i;
 
 export class CellHelper {
     constructor(private cellCodeLenses: JupyterCodeLensProvider) {
