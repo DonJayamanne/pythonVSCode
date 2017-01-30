@@ -249,6 +249,95 @@ class JediCompletion(object):
                 return d
         return definition
 
+    def _extract_range(self, definition):
+        """Provides the definition range of a given definition
+
+        For regular symbols it returns the start and end location of the
+        characters making up the symbol.
+
+        For scoped containers it will return the entire definition of the
+        scope.
+
+        The scope that jedi provides ends with the first character of the next
+        scope so it's not ideal. For vscode we need the scope to end with the
+        last character of actual code. That's why we extract the lines that
+        make up our scope and trim the trailing whitespace.
+        """
+        from jedi import common
+        from jedi.parser.utils import load_parser
+        # get the scope range
+        try:
+            if definition.type in ['class', 'function'] and hasattr(definition, '_definition'):
+                scope = definition._definition
+                start_line = scope.start_pos[0] - 1
+                start_column = scope.start_pos[1]
+                end_line = scope.end_pos[0] - 1
+                end_column = scope.end_pos[1]
+                # get the lines
+                path = definition._definition.get_parent_until().path
+                parser = load_parser(path)
+                lines = common.splitlines(parser.source)
+                lines[end_line] = lines[end_line][:end_column]
+                # trim the lines
+                lines = lines[start_line:end_line + 1]
+                lines = '\n'.join(lines).rstrip().split('\n')
+                end_line = start_line + len(lines) - 1
+                end_column = len(lines[-1]) - 1
+            else:
+                symbol = definition._name
+                start_line = symbol.start_pos[0] - 1
+                start_column = symbol.start_pos[1]
+                end_line = symbol.end_pos[0] - 1
+                end_column =  symbol.end_pos[1]
+            return {
+                'start_line': start_line,
+                'start_column': start_column,
+                'end_line': end_line,
+                'end_column': end_column
+            }
+        except Exception as e:
+            return {
+                'start_line': definition.line - 1,
+                'start_column': definition.column, 
+                'end_line': definition.line - 1,
+                'end_column': definition.column
+            }
+    def _get_definitions(self, definitions, identifier=None):
+        """Serialize response to be read from VSCode.
+
+        Args:
+            definitions: List of jedi.api.classes.Definition objects.
+            identifier: Unique completion identifier to pass back to VSCode.
+
+        Returns:
+            Serialized string to send to VSCode.
+        """
+        _definitions = []
+        for definition in definitions:
+            try:
+                if definition.module_path:
+                    if definition.type == 'import':
+                        definition = self._top_definition(definition)
+                    if not definition.module_path:
+                        continue
+                    try:
+                        parent = definition.parent()
+                        container = parent.name if parent.type != 'module' else ''
+                    except Exception:
+                        container = ''
+                    _definition = {
+                        'text': definition.name,
+                        'type': self._get_definition_type(definition),
+                        'raw_type': definition.type,
+                        'fileName': definition.module_path,
+                        'container': container,
+                        'range': self._extract_range(definition)
+                    }
+                    _definitions.append(_definition)
+            except Exception as e:
+                pass
+        return _definitions
+
     def _serialize_definitions(self, definitions, identifier=None):
         """Serialize response to be read from VSCode.
 
@@ -267,13 +356,18 @@ class JediCompletion(object):
                         definition = self._top_definition(definition)
                     if not definition.module_path:
                         continue
+                    try:
+                        parent = definition.parent()
+                        container = parent.name if parent.type != 'module' else ''
+                    except Exception:
+                        container = ''
                     _definition = {
                         'text': definition.name,
                         'type': self._get_definition_type(definition),
                         'raw_type': definition.type,
                         'fileName': definition.module_path,
-                        'line': definition.line - 1,
-                        'column': definition.column
+                        'container': container,
+                        'range': self._extract_range(definition)
                     }
                     _definitions.append(_definition)
             except Exception as e:
@@ -283,27 +377,26 @@ class JediCompletion(object):
     def _serialize_tooltip(self, definitions, identifier=None):
         _definitions = []
         for definition in definitions:
-            if definition.module_path:
-                if definition.type == 'import':
-                    definition = self._top_definition(definition)
-                if not definition.module_path:
-                  continue
-
-                description = definition.docstring()
-                if description is not None:
-                  description = description.strip()
-                if not description:
-                  description = self._additional_info(definition)
-                _definition = {
-                    'text': definition.name,
-                    'type': self._get_definition_type(definition),
-                    'fileName': definition.module_path,
-                    'description': description,
-                    'line': definition.line - 1,
-                    'column': definition.column
-                }
-                _definitions.append(_definition)
-                break
+            signature = definition.name
+            description = None
+            if definition.type in ['class', 'function']:
+                signature = self._generate_signature(definition)
+                description = definition.docstring(raw=True).strip()
+                if not description and not hasattr(definition, 'get_line_code'):
+                    # jedi returns an empty string for compiled objects
+                    description = definition.docstring().strip()
+            if definition.type == 'module':
+                signature = definition.full_name
+                description = definition.docstring(raw=True).strip()
+                if not description and not definition.get_line_code():
+                    # jedi returns an empty string for compiled objects
+                    description = definition.docstring().strip()
+            _definition = {
+                'type': self._get_definition_type(definition),
+                'description': description,
+                'signature': signature
+            }
+            _definitions.append(_definition)
         return json.dumps({'id': identifier, 'results': _definitions})
 
     def _serialize_usages(self, usages, identifier=None):
@@ -374,11 +467,13 @@ class JediCompletion(object):
             column=request['column'], path=request.get('path', ''))
 
         if lookup == 'definitions':
-            return self._write_response(self._serialize_definitions(
-                script.goto_assignments(), request['id']))
+            defs = self._get_definitions(script.goto_definitions(), request['id'])
+            if len(defs) == 0:
+                defs = self._get_definitions(script.goto_assignments(), request['id'])
+            return self._write_response(json.dumps({'id': request['id'], 'results': defs}))
         if lookup == 'tooltip':
             return self._write_response(self._serialize_tooltip(
-                script.goto_assignments(), request['id']))
+                script.goto_definitions(), request['id']))
         elif lookup == 'arguments':
             return self._write_response(self._serialize_arguments(
                 script, request['id']))
@@ -419,7 +514,7 @@ if __name__ == '__main__':
     else:
         jediPath = os.path.join(os.path.dirname(__file__), 'release')
     sys.path.insert(0, jediPath)
-    import jedi    
+    import jedi
     if jediPreview:
         jedi.settings.cache_directory = os.path.join(
             jedi.settings.cache_directory, cachePrefix + jedi.__version__.replace('.', ''))
