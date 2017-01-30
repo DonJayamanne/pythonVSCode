@@ -22,8 +22,15 @@ export class PythonImportSortProvider {
             let filePromise = tmpFileCreated ? getTempFileWithDocumentContents(document) : Promise.resolve(document.fileName);
             filePromise.then(filePath => {
                 const pythonPath = settings.PythonSettings.getInstance().pythonPath;
+                const isort = settings.PythonSettings.getInstance().sortImports.path;
                 const args = settings.PythonSettings.getInstance().sortImports.args.join(' ');
-                child_process.exec(`${pythonPath} "${importScript}" "${filePath}" --diff ${args}`, (error, stdout, stderr) => {
+                let isort_cmd = '';
+                if (typeof isort === 'string' && isort.length > 0) {
+                    isort_cmd = `${isort} "${filePath}" --diff ${args}`;
+                } else {
+                    isort_cmd = `${pythonPath} "${importScript}" "${filePath}" --diff ${args}`;
+                }    
+                child_process.exec(isort_cmd, (error, stdout, stderr) => {
                     if (tmpFileCreated) {
                         fs.unlink(filePath);
                     }

@@ -794,6 +794,11 @@
 					"default": "",
 					"description": "Path to directory containing the Jedi library (this path will contain the 'Jedi' sub directory)."
 				},
+        "python.sortImports.path": {
+          "type": "string",
+          "description": "Path to isort script, default using inner version",
+          "default": ""
+        },
 				"python.sortImports.args": {
 					"type": "array",
 					"description": "Arguments passed in. Each argument is a separate item in the array.",
