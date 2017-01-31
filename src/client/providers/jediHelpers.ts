@@ -47,3 +47,15 @@ export function extractSignatureAndDocumentation(definition: proxy.IAutoComplete
     }
     return [signature, lines.join(EOL).trim().replace(/^\s+|\s+$/g, '').trim()];
 }
+
+export function highlightCode(documentation: string): string {
+    let lines = documentation.split(EOL);
+    lines = lines.map(line => {
+        if (line.trim().startsWith('>>> ')) {
+            return '```python\n' + line.substring(4).trim() + '\n```';
+        }
+        return line;
+    });
+
+    return lines.join(EOL).trim().replace(/^\s+|\s+$/g, '').trim();
+}

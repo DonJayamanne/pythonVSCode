@@ -3,6 +3,7 @@
 import * as vscode from 'vscode';
 import * as proxy from './jediProxy';
 import * as telemetryContracts from "../common/telemetryContracts";
+import { highlightCode } from './jediHelpers';
 
 export class PythonHoverProvider implements vscode.HoverProvider {
     private jediProxyHandler: proxy.JediProxyHandler<proxy.IHoverResult>;
@@ -26,9 +27,10 @@ export class PythonHoverProvider implements vscode.HoverProvider {
                     break;
                 }
             }
-            results.push({language: 'python', value: signature});
+            results.push({ language: 'python', value: signature });
             if (item.description) {
-                results.push(description);
+                var descriptionWithHighlightedCode = highlightCode(item.description);
+                results.push(descriptionWithHighlightedCode);
             }
         });
         return new vscode.Hover(results);
