@@ -30,7 +30,7 @@ class JediCompletion(object):
 
     def _additional_info(self, completion):
         """Provide additional information about the completion object."""
-        if completion._definition is None:
+        if not hasattr(completion, '_definition') or completion._definition is None:
             return ''
         if completion.type == 'statement':
             nodes_to_display = ['InstanceElement', 'String', 'Node', 'Lambda',
