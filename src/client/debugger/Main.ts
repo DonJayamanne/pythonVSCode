@@ -19,7 +19,7 @@ import { DebugClient, DebugType } from "./DebugClients/DebugClient";
 import { CreateAttachDebugClient, CreateLaunchDebugClient } from "./DebugClients/DebugFactory";
 import { DjangoApp, LaunchRequestArguments, AttachRequestArguments, DebugFlags, DebugOptions, TelemetryEvent, PythonEvaluationResultFlags } from "./Common/Contracts";
 import * as telemetryContracts from "../common/telemetryContracts";
-import { validatePath, validatePathSync } from './Common/Utils';
+import { validatePath, validatePathSync, getPythonExecutable } from './Common/Utils';
 import { isNotInstalledError } from '../common/helpers';
 
 const CHILD_ENUMEARATION_TIMEOUT = 5000;
@@ -199,6 +199,14 @@ export class PythonDebugger extends DebugSession {
             Debug_PySpark: typeof args.pythonPath === 'string' && args.pythonPath.indexOf('spark-submit') > 0 ? 'true' : 'false',
             Debug_HasEnvVaraibles: args.env && typeof args.env === "object" ? "true" : "false"
         }));
+
+        // Add support for specifying just the directory where the python executable will be located
+        // E.g. virtual directory name
+        try {
+            args.pythonPath = getPythonExecutable(args.pythonPath);
+        }
+        catch (ex) {
+        }
 
         this.launchArgs = args;
         this.debugClient = CreateLaunchDebugClient(args, this);
