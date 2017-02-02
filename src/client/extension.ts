@@ -28,6 +28,7 @@ import { BlockFormatProviders } from './typeFormatters/blockFormatProvider';
 import * as os from 'os';
 import * as fs from 'fs';
 import { activateSingleFileDebug } from './singleFileDebug';
+import { getPathFromPythonCommand } from './common/utils';
 
 const PYTHON: vscode.DocumentFilter = { language: 'python', scheme: 'file' };
 let unitTestOutChannel: vscode.OutputChannel;
@@ -63,9 +64,13 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(activateFormatOnSaveProvider(PYTHON, settings.PythonSettings.getInstance(), formatOutChannel));
 
     context.subscriptions.push(vscode.commands.registerCommand(Commands.Start_REPL, () => {
-        let term = vscode.window.createTerminal('Python', pythonSettings.pythonPath);
-        term.show();
-        context.subscriptions.push(term);
+        getPathFromPythonCommand(["-c", "import sys;print(sys.executable)"]).catch(()=>{
+            return pythonSettings.pythonPath;
+        }).then(pythonExecutablePath => {
+            let term = vscode.window.createTerminal('Python', pythonExecutablePath);
+            term.show();
+            context.subscriptions.push(term);
+        });
     }));
 
     // Enable indentAction
@@ -136,7 +141,12 @@ class PythonExt {
 
     private _ensureState(): void {
         // context: python.isDjangoProject
-        this._isDjangoProject.set(fs.existsSync(vscode.workspace.rootPath.concat("/manage.py")));
+        if (typeof vscode.workspace.rootPath === 'string'){
+            this._isDjangoProject.set(fs.existsSync(vscode.workspace.rootPath.concat("/manage.py")));
+        }
+        else {
+            this._isDjangoProject.set(false);
+        }
     }
 }
 

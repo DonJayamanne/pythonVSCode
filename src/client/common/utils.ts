@@ -81,6 +81,17 @@ export function getPythonInterpreterDirectory(): Promise<string> {
         return pythonInterpretterDirectory = '';
     });
 }
+export function getPathFromPythonCommand(args: string[]): Promise<string> {
+    return execPythonFile(settings.PythonSettings.getInstance().pythonPath, args, __dirname).then(stdout => {
+        if (stdout.length === 0) {
+            return "";
+        }
+        let lines = stdout.split(/\r?\n/g).filter(line => line.length > 0);
+        return validatePath(lines[0]);
+    }).catch(() => {
+        return "";
+    });
+}
 
 export function execPythonFile(file: string, args: string[], cwd: string, includeErrorAsResponse: boolean = false, stdOut: (line: string) => void = null, token?: CancellationToken): Promise<string> {
     // If running the python file, then always revert to execFileInternal
