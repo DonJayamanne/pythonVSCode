@@ -27,7 +27,7 @@ import { WorkspaceSymbols } from './workspaceSymbols/main';
 import { BlockFormatProviders } from './typeFormatters/blockFormatProvider';
 import * as os from 'os';
 import * as fs from 'fs';
-
+import { activateSingleFileDebug } from './singleFileDebug';
 
 const PYTHON: vscode.DocumentFilter = { language: 'python', scheme: 'file' };
 let unitTestOutChannel: vscode.OutputChannel;
@@ -65,7 +65,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand(Commands.Start_REPL, () => {
         let term = vscode.window.createTerminal('Python', pythonSettings.pythonPath);
         term.show();
-        context.subscriptions.push(term);        
+        context.subscriptions.push(term);
     }));
 
     // Enable indentAction
@@ -117,6 +117,8 @@ export function activate(context: vscode.ExtensionContext) {
 
     const hepProvider = new HelpProvider();
     context.subscriptions.push(hepProvider);
+
+    context.subscriptions.push(activateSingleFileDebug());
 }
 
 // this method is called when your extension is deactivated
@@ -125,32 +127,32 @@ export function deactivate() {
 
 class PythonExt {
 
-	private _isDjangoProject: ContextKey;
+    private _isDjangoProject: ContextKey;
 
-	constructor() {
-		this._isDjangoProject = new ContextKey('python.isDjangoProject');
-		this._ensureState();
-	}
+    constructor() {
+        this._isDjangoProject = new ContextKey('python.isDjangoProject');
+        this._ensureState();
+    }
 
-	private _ensureState(): void {
-		// context: python.isDjangoProject
-		this._isDjangoProject.set(fs.existsSync(vscode.workspace.rootPath.concat("/manage.py")));
-	}
+    private _ensureState(): void {
+        // context: python.isDjangoProject
+        this._isDjangoProject.set(fs.existsSync(vscode.workspace.rootPath.concat("/manage.py")));
+    }
 }
 
-class ContextKey { 
- 	private _name: string; 
- 	private _lastValue: boolean;  
- 
- 	constructor(name:string) { 
- 		this._name = name; 
- 	}  
- 
- 	public set(value:boolean): void { 
- 		if (this._lastValue === value) { 
- 			return; 
- 		} 
- 		this._lastValue = value; 
- 		vscode.commands.executeCommand('setContext', this._name, this._lastValue); 
- 	} 
+class ContextKey {
+    private _name: string;
+    private _lastValue: boolean;
+
+    constructor(name: string) {
+        this._name = name;
+    }
+
+    public set(value: boolean): void {
+        if (this._lastValue === value) {
+            return;
+        }
+        this._lastValue = value;
+        vscode.commands.executeCommand('setContext', this._name, this._lastValue);
+    }
 } 

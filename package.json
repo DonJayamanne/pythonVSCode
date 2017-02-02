@@ -257,6 +257,10 @@
 		"debuggers": [{
 			"type": "python",
 			"label": "Python",
+			"languages": [
+				"python"
+			],
+			"startSessionCommand": "python.python-debug.startSession",
 			"enableBreakpointsFor": {
 				"languageIds": [
 					"python",
