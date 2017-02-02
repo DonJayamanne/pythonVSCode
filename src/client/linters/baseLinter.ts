@@ -145,6 +145,9 @@ export abstract class BaseLinter {
             }
         }
         else {
+            if (typeof error === 'string' && (error as string).indexOf("OSError: [Errno 2] No such file or directory: '/") > 0) {
+                return;
+            }
             vscode.window.showErrorMessage(`There was an error in running the linter '${this.Id}'`, 'Disable linter', 'View Errors').then(item => {
                 switch (item) {
                     case 'Disable linter': {
