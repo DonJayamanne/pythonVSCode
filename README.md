@@ -126,6 +126,8 @@ For further information and details continue through to the [documentation](http
 * [codebetter](https://github.com/skilliscode)
 * [Shay Palachy](https://github.com/shaypal5)
 * [Patryk Zawadzki](https://github.com/patrys)
+* [Alexander Millin](https://github.com/millin)
+* [viewstar000](https://github.com/viewstar000)
 
 ## Source
 
