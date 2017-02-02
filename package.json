@@ -274,9 +274,9 @@
 						"type": "python",
 						"request": "launch",
 						"stopOnEntry": true,
-						"pythonPath": "${config.python.pythonPath}",
-						"program": "${file}",
-						"cwd": "${workspaceRoot}",
+						"pythonPath": "$${{config.python.pythonPath}}",
+						"program": "$${{file}}",
+						"cwd": "$${{workspaceRoot}}",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
 							"WaitOnNormalExit",
@@ -293,16 +293,16 @@
 						"request": "launch",
 						"stopOnEntry": true,
 						"osx": {
-							"pythonPath": "${env.SPARK_HOME}/bin/spark-submit"
+							"pythonPath": "$${env.SPARK_HOME}}/bin/spark-submit"
 						},
 						"windows": {
-							"pythonPath": "${env.SPARK_HOME}/bin/spark-submit.cmd"
+							"pythonPath": "$${{env.SPARK_HOME}}/bin/spark-submit.cmd"
 						},
 						"linux": {
-							"pythonPath": "${env.SPARK_HOME}/bin/spark-submit"
+							"pythonPath": "$${{env.SPARK_HOME}}/bin/spark-submit"
 						},
-						"program": "${file}",
-						"cwd": "${workspaceRoot}",
+						"program": "$${{file}}",
+						"cwd": "$${{workspaceRoot}}",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
 							"WaitOnNormalExit",
@@ -318,9 +318,9 @@
 						"type": "python",
 						"request": "launch",
 						"stopOnEntry": true,
-						"pythonPath": "${config.python.pythonPath}",
+						"pythonPath": "$${{config.python.pythonPath}}",
 						"module": "module.name",
-						"cwd": "${workspaceRoot}",
+						"cwd": "$${{workspaceRoot}}",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
 							"WaitOnNormalExit",
@@ -336,8 +336,8 @@
 						"type": "python",
 						"request": "launch",
 						"stopOnEntry": true,
-						"pythonPath": "${config.python.pythonPath}",
-						"program": "${file}",
+						"pythonPath": "$${{config.python.pythonPath}}",
+						"program": "$${{file}}",
 						"cwd": "null",
 						"console": "integratedTerminal",
 						"debugOptions": [
@@ -354,8 +354,8 @@
 						"type": "python",
 						"request": "launch",
 						"stopOnEntry": true,
-						"pythonPath": "${config.python.pythonPath}",
-						"program": "${file}",
+						"pythonPath": "$${{config.python.pythonPath}}",
+						"program": "${{file}}",
 						"cwd": "null",
 						"console": "externalTerminal",
 						"debugOptions": [
@@ -372,9 +372,9 @@
 						"type": "python",
 						"request": "launch",
 						"stopOnEntry": true,
-						"pythonPath": "${config.python.pythonPath}",
-						"program": "${workspaceRoot}/manage.py",
-						"cwd": "${workspaceRoot}",
+						"pythonPath": "$${{config.python.pythonPath}}",
+						"program": "$${{workspaceRoot}/manage.py",
+						"cwd": "$${{workspaceRoot}}",
 						"args": [
 							"runserver",
 							"--noreload"
@@ -395,11 +395,11 @@
 						"type": "python",
 						"request": "launch",
 						"stopOnEntry": false,
-						"pythonPath": "${config.python.pythonPath}",
+						"pythonPath": "$${{config.python.pythonPath}}",
 						"program": "fully qualified path fo 'flask' executable. Generally located along with python interpreter",
-						"cwd": "${workspaceRoot}",
+						"cwd": "$${{workspaceRoot}}",
 						"env": {
-							"FLASK_APP": "${workspaceRoot}/quickstart/app.py"
+							"FLASK_APP": "$${{workspaceRoot}}/quickstart/app.py"
 						},
 						"args": [
 							"run",
@@ -421,9 +421,9 @@
 						"type": "python",
 						"request": "launch",
 						"stopOnEntry": false,
-						"pythonPath": "${config.python.pythonPath}",
-						"program": "${workspaceRoot}/run.py",
-						"cwd": "${workspaceRoot}",
+						"pythonPath": "$${{config.python.pythonPath}}",
+						"program": "$${{workspaceRoot}}/run.py",
+						"cwd": "$${{workspaceRoot}}",
 						"args": [],
 						"debugOptions": [
 							"WaitOnAbnormalExit",
@@ -440,9 +440,9 @@
 						"type": "python",
 						"request": "launch",
 						"stopOnEntry": true,
-						"pythonPath": "${config.python.pythonPath}",
-						"program": "${workspaceRoot}/console.py",
-						"cwd": "${workspaceRoot}",
+						"pythonPath": "$${{config.python.pythonPath}}",
+						"program": "$${{workspaceRoot}}/console.py",
+						"cwd": "$${{workspaceRoot}}",
 						"args": [
 							"dev",
 							"runserver",
@@ -462,8 +462,8 @@
 						"name": "Attach (Remote Debug)",
 						"type": "python",
 						"request": "attach",
-						"localRoot": "${workspaceRoot}",
-						"remoteRoot": "${workspaceRoot}",
+						"localRoot": "$${{workspaceRoot}}",
+						"remoteRoot": "$${{workspaceRoot}}",
 						"port": 3000,
 						"secret": "my_secret",
 						"host": "localhost"
