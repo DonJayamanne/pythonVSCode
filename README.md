@@ -102,6 +102,10 @@ For further information and details continue through to the [documentation](http
 ## [Roadmap](https://donjayamanne.github.io/pythonVSCodeDocs/docs/roadmap/)
 
 ## [Change Log](https://github.com/DonJayamanne/pythonVSCode/blob/master/CHANGELOG.md)
+### Version 0.5.8 (3 February 2017)
+* Fixed a bug in [debugging single files without a launch configuration](https://code.visualstudio.com/updates/v1_9#_debugging-without-a-launch-configuration) [#700](https://github.com/DonJayamanne/pythonVSCode/issues/700)  
+* Fixed error when starting REPL [#692](https://github.com/DonJayamanne/pythonVSCode/issues/692)  
+
 ### Version 0.5.7 (3 February 2017)
 * Added support for [debugging single files without a launch configuration](https://code.visualstudio.com/updates/v1_9#_debugging-without-a-launch-configuration)  
 * Adding support for debug snippets [#660](https://github.com/DonJayamanne/pythonVSCode/issues/660)  
