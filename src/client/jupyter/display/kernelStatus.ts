@@ -10,9 +10,9 @@ export class KernelStatus extends vscode.Disposable {
         super(() => { });
         this.disposables = [];
         this.statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
-        this.statusBar.command = 'jupyter:proxyKernelOptionsCmd';
+        this.statusBar.command = 'jupyter.proxyKernelOptionsCmd';
         this.disposables.push(this.statusBar);
-        this.disposables.push(vscode.commands.registerCommand('jupyter:proxyKernelOptionsCmd', () => {
+        this.disposables.push(vscode.commands.registerCommand('jupyter.proxyKernelOptionsCmd', () => {
             vscode.commands.executeCommand(Commands.Jupyter.Kernel_Options, this.activeKernalDetails);
         }));
 

@@ -178,22 +178,22 @@
 				"category": "Jupyter"
 			},
 			{
-				"command": "jupyter:execCurrentCell",
+				"command": "jupyter.execCurrentCell",
 				"title": "Run Cell",
 				"category": "Jupyter"
 			},
 			{
-				"command": "jupyter:execCurrentCellAndAdvance",
+				"command": "jupyter.execCurrentCellAndAdvance",
 				"title": "Run Cell and Advance",
 				"category": "Jupyter"
 			},
 			{
-				"command": "jupyter:gotToPreviousCell",
+				"command": "jupyter.gotToPreviousCell",
 				"title": "Go to Previous Cell",
 				"category": "Jupyter"
 			},
 			{
-				"command": "jupyter:gotToNextCell",
+				"command": "jupyter.gotToNextCell",
 				"title": "Go to Next Cell",
 				"category": "Jupyter"
 			},
