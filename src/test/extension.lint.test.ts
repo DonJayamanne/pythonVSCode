@@ -74,22 +74,22 @@ let pyLint3MessagesToBeReturned: baseLinter.ILintMessage[] = [
     { line: 13, column: 0, severity: baseLinter.LintMessageSeverity.Error, code: 'E0001', message: 'Missing parentheses in call to \'print\'', possibleWord: '', provider: '', type: '' }
 ];
 let flake8MessagesToBeReturned: baseLinter.ILintMessage[] = [
-    { line: 5, column: 1, severity: baseLinter.LintMessageSeverity.Information, code: 'E302', message: 'expected 2 blank lines, found 1', possibleWord: '', provider: '', type: '' },
-    { line: 19, column: 15, severity: baseLinter.LintMessageSeverity.Information, code: 'E127', message: 'continuation line over-indented for visual indent', possibleWord: '', provider: '', type: '' },
-    { line: 24, column: 23, severity: baseLinter.LintMessageSeverity.Information, code: 'E261', message: 'at least two spaces before inline comment', possibleWord: '', provider: '', type: '' },
-    { line: 62, column: 30, severity: baseLinter.LintMessageSeverity.Information, code: 'E261', message: 'at least two spaces before inline comment', possibleWord: '', provider: '', type: '' },
-    { line: 70, column: 22, severity: baseLinter.LintMessageSeverity.Information, code: 'E261', message: 'at least two spaces before inline comment', possibleWord: '', provider: '', type: '' },
-    { line: 80, column: 5, severity: baseLinter.LintMessageSeverity.Information, code: 'E303', message: 'too many blank lines (2)', possibleWord: '', provider: '', type: '' },
-    { line: 87, column: 24, severity: baseLinter.LintMessageSeverity.Information, code: 'W292', message: 'no newline at end of file', possibleWord: '', provider: '', type: '' }
+    { line: 5, column: 1, severity: baseLinter.LintMessageSeverity.Error, code: 'E302', message: 'expected 2 blank lines, found 1', possibleWord: '', provider: '', type: '' },
+    { line: 19, column: 15, severity: baseLinter.LintMessageSeverity.Error, code: 'E127', message: 'continuation line over-indented for visual indent', possibleWord: '', provider: '', type: '' },
+    { line: 24, column: 23, severity: baseLinter.LintMessageSeverity.Error, code: 'E261', message: 'at least two spaces before inline comment', possibleWord: '', provider: '', type: '' },
+    { line: 62, column: 30, severity: baseLinter.LintMessageSeverity.Error, code: 'E261', message: 'at least two spaces before inline comment', possibleWord: '', provider: '', type: '' },
+    { line: 70, column: 22, severity: baseLinter.LintMessageSeverity.Error, code: 'E261', message: 'at least two spaces before inline comment', possibleWord: '', provider: '', type: '' },
+    { line: 80, column: 5, severity: baseLinter.LintMessageSeverity.Error, code: 'E303', message: 'too many blank lines (2)', possibleWord: '', provider: '', type: '' },
+    { line: 87, column: 24, severity: baseLinter.LintMessageSeverity.Warning, code: 'W292', message: 'no newline at end of file', possibleWord: '', provider: '', type: '' }
 ];
 let pep8MessagesToBeReturned: baseLinter.ILintMessage[] = [
-    { line: 5, column: 1, severity: baseLinter.LintMessageSeverity.Information, code: 'E302', message: 'expected 2 blank lines, found 1', possibleWord: '', provider: '', type: '' },
-    { line: 19, column: 15, severity: baseLinter.LintMessageSeverity.Information, code: 'E127', message: 'continuation line over-indented for visual indent', possibleWord: '', provider: '', type: '' },
-    { line: 24, column: 23, severity: baseLinter.LintMessageSeverity.Information, code: 'E261', message: 'at least two spaces before inline comment', possibleWord: '', provider: '', type: '' },
-    { line: 62, column: 30, severity: baseLinter.LintMessageSeverity.Information, code: 'E261', message: 'at least two spaces before inline comment', possibleWord: '', provider: '', type: '' },
-    { line: 70, column: 22, severity: baseLinter.LintMessageSeverity.Information, code: 'E261', message: 'at least two spaces before inline comment', possibleWord: '', provider: '', type: '' },
-    { line: 80, column: 5, severity: baseLinter.LintMessageSeverity.Information, code: 'E303', message: 'too many blank lines (2)', possibleWord: '', provider: '', type: '' },
-    { line: 87, column: 24, severity: baseLinter.LintMessageSeverity.Information, code: 'W292', message: 'no newline at end of file', possibleWord: '', provider: '', type: '' }
+    { line: 5, column: 1, severity: baseLinter.LintMessageSeverity.Error, code: 'E302', message: 'expected 2 blank lines, found 1', possibleWord: '', provider: '', type: '' },
+    { line: 19, column: 15, severity: baseLinter.LintMessageSeverity.Error, code: 'E127', message: 'continuation line over-indented for visual indent', possibleWord: '', provider: '', type: '' },
+    { line: 24, column: 23, severity: baseLinter.LintMessageSeverity.Error, code: 'E261', message: 'at least two spaces before inline comment', possibleWord: '', provider: '', type: '' },
+    { line: 62, column: 30, severity: baseLinter.LintMessageSeverity.Error, code: 'E261', message: 'at least two spaces before inline comment', possibleWord: '', provider: '', type: '' },
+    { line: 70, column: 22, severity: baseLinter.LintMessageSeverity.Error, code: 'E261', message: 'at least two spaces before inline comment', possibleWord: '', provider: '', type: '' },
+    { line: 80, column: 5, severity: baseLinter.LintMessageSeverity.Error, code: 'E303', message: 'too many blank lines (2)', possibleWord: '', provider: '', type: '' },
+    { line: 87, column: 24, severity: baseLinter.LintMessageSeverity.Warning, code: 'W292', message: 'no newline at end of file', possibleWord: '', provider: '', type: '' }
 ];
 let pydocstyleMessagseToBeReturned: baseLinter.ILintMessage[] = [
     { 'code': 'D400', severity: baseLinter.LintMessageSeverity.Information, 'message': 'First line should end with a period (not \'e\')', 'column': 0, 'line': 1, 'type': '', 'provider': 'pydocstyle' },
@@ -127,10 +127,10 @@ let filteredPylintMessagesToBeReturned: baseLinter.ILintMessage[] = [
 let filteredPylint3MessagesToBeReturned: baseLinter.ILintMessage[] = [
 ];
 let filteredFlake8MessagesToBeReturned: baseLinter.ILintMessage[] = [
-    { line: 87, column: 24, severity: baseLinter.LintMessageSeverity.Information, code: 'W292', message: 'no newline at end of file', possibleWord: '', provider: '', type: '' }
+    { line: 87, column: 24, severity: baseLinter.LintMessageSeverity.Warning, code: 'W292', message: 'no newline at end of file', possibleWord: '', provider: '', type: '' }
 ];
 let filteredPep88MessagesToBeReturned: baseLinter.ILintMessage[] = [
-    { line: 87, column: 24, severity: baseLinter.LintMessageSeverity.Information, code: 'W292', message: 'no newline at end of file', possibleWord: '', provider: '', type: '' }
+    { line: 87, column: 24, severity: baseLinter.LintMessageSeverity.Warning, code: 'W292', message: 'no newline at end of file', possibleWord: '', provider: '', type: '' }
 ];
 let fiteredPydocstyleMessagseToBeReturned: baseLinter.ILintMessage[] = [
     { 'code': 'D102', severity: baseLinter.LintMessageSeverity.Information, 'message': 'Missing docstring in public method', 'column': 4, 'line': 8, 'type': '', 'provider': 'pydocstyle' }

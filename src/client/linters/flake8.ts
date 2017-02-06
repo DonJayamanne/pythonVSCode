@@ -10,6 +10,20 @@ export class Linter extends baseLinter.BaseLinter {
         super('flake8', Product.flake8, outputChannel, workspaceRootPath);
     }
 
+    private parseMessagesCodeSeverity(error: string): baseLinter.LintMessageSeverity {
+
+        let category_letter = error[0];
+        switch (category_letter) {
+            case 'F':
+            case 'E':
+                return baseLinter.LintMessageSeverity.Error;
+            case 'W':
+                return baseLinter.LintMessageSeverity.Warning;
+            default:
+                return baseLinter.LintMessageSeverity.Information;
+        }
+    }
+
     public isEnabled(): Boolean {
         return this.pythonSettings.linting.flake8Enabled;
     }
@@ -22,9 +36,8 @@ export class Linter extends baseLinter.BaseLinter {
         let flake8Args = Array.isArray(this.pythonSettings.linting.flake8Args) ? this.pythonSettings.linting.flake8Args : [];
         return new Promise<baseLinter.ILintMessage[]>((resolve, reject) => {
             this.run(flake8Path, flake8Args.concat(['--format=%(row)d,%(col)d,%(code)s,%(code)s:%(text)s', document.uri.fsPath]), document, this.workspaceRootPath).then(messages => {
-                // All messages in pep8 are treated as warnings for now
                 messages.forEach(msg => {
-                    msg.severity = baseLinter.LintMessageSeverity.Information;
+                    msg.severity = this.parseMessagesCodeSeverity(msg.type);
                 });
 
                 resolve(messages);
