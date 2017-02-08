@@ -13,9 +13,10 @@ export class PythonDefinitionProvider implements vscode.DefinitionProvider {
     public constructor(context: vscode.ExtensionContext) {
         this.jediProxyHandler = new proxy.JediProxyHandler(context);
     }
-    private static parseData(data: proxy.IDefinitionResult): vscode.Definition {
-        if (data && data.definition) {
-            const definition = data.definition;
+    private static parseData(data: proxy.IDefinitionResult, possibleWord: string): vscode.Definition {
+        if (data && Array.isArray(data.definitions) && data.definitions.length > 0) {
+            const definitions = data.definitions.filter(d => d.text === possibleWord);
+            const definition = definitions.length > 0 ? definitions[0] : data.definitions[data.definitions.length - 1];
             const definitionResource = vscode.Uri.file(definition.fileName);
             const range = new vscode.Range(
                 definition.range.startLine, definition.range.startColumn,
@@ -44,8 +45,9 @@ export class PythonDefinitionProvider implements vscode.DefinitionProvider {
         if (document.isDirty) {
             cmd.source = document.getText();
         }
+        let possibleWord = document.getText(range);
         return this.jediProxyHandler.sendCommand(cmd, token).then(data => {
-            return PythonDefinitionProvider.parseData(data);
+            return PythonDefinitionProvider.parseData(data, possibleWord);
         });
     }
 }

@@ -307,25 +307,26 @@ function spawnProcess(dir: string) {
                         let defs = <any[]>response['results'];
                         let defResult: IDefinitionResult = {
                             requestId: cmd.id,
-                            definition: null
+                            definitions: []
                         };
                         if (defs.length > 0) {
-                            let def = defs[0];
-                            const originalType = def.type as string;
-                            defResult.definition = {
-                                fileName: def.fileName,
-                                text: def.text,
-                                rawType: originalType,
-                                type: getMappedVSCodeType(originalType),
-                                kind: getMappedVSCodeSymbol(originalType),
-                                container: def.container,
-                                range: {
-                                    startLine: def.range.start_line,
-                                    startColumn: def.range.start_column,
-                                    endLine: def.range.end_line,
-                                    endColumn: def.range.end_column
-                                }
-                            };
+                            defResult.definitions = defs.map(def => {
+                                const originalType = def.type as string;
+                                return {
+                                    fileName: def.fileName,
+                                    text: def.text,
+                                    rawType: originalType,
+                                    type: getMappedVSCodeType(originalType),
+                                    kind: getMappedVSCodeSymbol(originalType),
+                                    container: def.container,
+                                    range: {
+                                        startLine: def.range.start_line,
+                                        startColumn: def.range.start_column,
+                                        endLine: def.range.end_line,
+                                        endColumn: def.range.end_column
+                                    }
+                                };
+                            });
                         }
 
                         cmd.deferred.resolve(defResult);
@@ -587,7 +588,7 @@ export interface IHoverResult extends ICommandResult {
     items: IHoverItem[];
 }
 export interface IDefinitionResult extends ICommandResult {
-    definition: IDefinition;
+    definitions: IDefinition[];
 }
 export interface IReferenceResult extends ICommandResult {
     references: IReference[];
