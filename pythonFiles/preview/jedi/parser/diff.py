@@ -124,28 +124,6 @@ class DiffParser(object):
         self._new_used_names = {}
         self._nodes_stack = _NodesStack(self._module)
 
-    def __update(self, lines_new):
-        """For now we use this function for better error reporting."""
-        old_source = self._parser.source
-        try:
-            return self._update(lines_new)
-        except Exception:
-            # Only log for linux, it's easier.
-            import sys
-            if 'linux' in sys.platform:
-                lines_old = splitlines(old_source, keepends=True)
-                import traceback
-                with open('/tmp/jedi_error.log', 'w') as f:
-                    f.write(
-                        'parser issue, please report:\n%s\n%s\n%s' % (
-                            repr(''.join(lines_old)),
-                            repr(''.join(lines_new)),
-                            traceback.format_exc()
-                         )
-                    )
-                raise Exception("There's a parser issue. Please report /tmp/jedi_error.log")
-            raise
-
     def update(self, lines_new):
         '''
         The algorithm works as follows:
@@ -177,9 +155,15 @@ class DiffParser(object):
         line_length = len(lines_new)
         lines_old = splitlines(self._parser.source, keepends=True)
         sm = difflib.SequenceMatcher(None, lines_old, self._parser_lines_new)
+        opcodes = sm.get_opcodes()
         debug.speed('diff parser calculated')
         debug.dbg('diff: line_lengths old: %s, new: %s' % (len(lines_old), line_length))
-        for operation, i1, i2, j1, j2 in sm.get_opcodes():
+
+        if len(opcodes) == 1 and opcodes[0][0] == 'equal':
+            self._copy_count = 1
+            return self._module
+
+        for operation, i1, i2, j1, j2 in opcodes:
             debug.dbg('diff %s old[%s:%s] new[%s:%s]',
                       operation, i1 + 1, i2, j1 + 1, j2)
 
@@ -436,8 +420,6 @@ class _NodesStackNode(object):
     def add(self, children, line_offset=0, last_line_offset_leaf=None):
         group = self.ChildrenGroup(children, line_offset, last_line_offset_leaf)
         self.children_groups.append(group)
-        if len(self.children_groups) > 42:
-            raise NotImplementedError
 
     def get_last_line(self, suffix):
         if not self.children_groups:
