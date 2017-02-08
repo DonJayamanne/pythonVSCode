@@ -334,22 +334,27 @@ function getPythonExecutable(pythonPath: string): string {
     if (isValidPythonPath(pythonPath)) {
         return pythonPath;
     }
-
-    // Suffix with 'python' for linux and 'osx', and 'python.exe' for 'windows'
-    if (IS_WINDOWS) {
-        if (isValidPythonPath(path.join(pythonPath, 'python.exe'))) {
-            return path.join(pythonPath, 'python.exe');
+    // Keep python right on top, for backwards compatibility
+    const KnownPythonExecutables = ['python', 'python4', 'python3.6', 'python3.5', 'python3', 'python2.7', 'python2'];
+    
+    for (let executableName of KnownPythonExecutables) {
+        // Suffix with 'python' for linux and 'osx', and 'python.exe' for 'windows'
+        if (IS_WINDOWS) {
+            executableName = executableName + '.exe';
+            if (isValidPythonPath(path.join(pythonPath, executableName))) {
+                return path.join(pythonPath, executableName);
+            }
+            if (isValidPythonPath(path.join(pythonPath, 'scripts', executableName))) {
+                return path.join(pythonPath, 'scripts', executableName);
+            }
         }
-        if (isValidPythonPath(path.join(pythonPath, 'scripts', 'python.exe'))) {
-            return path.join(pythonPath, 'scripts', 'python.exe');
-        }
-    }
-    else {
-        if (isValidPythonPath(path.join(pythonPath, 'python'))) {
-            return path.join(pythonPath, 'python');
-        }
-        if (isValidPythonPath(path.join(pythonPath, 'bin', 'python'))) {
-            return path.join(pythonPath, 'bin', 'python');
+        else {
+            if (isValidPythonPath(path.join(pythonPath, executableName))) {
+                return path.join(pythonPath, executableName);
+            }
+            if (isValidPythonPath(path.join(pythonPath, 'bin', executableName))) {
+                return path.join(pythonPath, 'bin', executableName);
+            }
         }
     }
 
