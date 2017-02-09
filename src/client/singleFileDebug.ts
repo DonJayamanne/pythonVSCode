@@ -1,10 +1,13 @@
 import * as vscode from 'vscode';
-import { dirname } from 'path';
+import { dirname, join } from 'path';
 
 export function activateSingleFileDebug() {
     return vscode.commands.registerCommand('python.python-debug.startSession', config => {
 
-        if (!config.request) { // if 'request' is missing interpret this as a missing launch.json
+        if (!config.request) { // if 'request' is missing interpret this as a missing launch.json        
+            if (vscode.workspace && vscode.workspace.rootPath) {
+                config.envFile = join(vscode.workspace.rootPath, '.env');
+            }
             config.type = 'python';
             config.name = 'Launch';
             config.request = 'launch';
@@ -17,7 +20,7 @@ export function activateSingleFileDebug() {
             config.stopOnEntry = true;
             config.module = '';
             config.args = [];
-            config.console = "integratedTerminal";
+            config.console = "none";
             config.exceptionHandling = [];
             config.env = null;
 

@@ -1,9 +1,10 @@
 "use strict";
 
-import {IPythonProcess, IPythonThread, IPythonModule, IPythonEvaluationResult} from "./Contracts";
+import { IPythonProcess, IPythonThread, IPythonModule, IPythonEvaluationResult } from "./Contracts";
 import * as path from "path";
 import * as fs from 'fs';
 import * as child_process from 'child_process';
+import { mergeEnvVariables, parseEnvFile } from '../../common/envFileParser';
 
 export const IS_WINDOWS = /^win/.test(process.platform);
 export const PATH_VARIABLE_NAME = IS_WINDOWS ? 'Path' : 'PATH';
@@ -111,4 +112,28 @@ function isValidPythonPath(pythonPath): boolean {
     catch (ex) {
         return false;
     }
+}
+
+export function getCustomEnvVars(envVars: any, envFile: string): any {
+    let envFileVars = null;
+    if (typeof envFile === 'string' && envFile.length > 0 && fs.existsSync(envFile)) {
+        try {
+            envFileVars = parseEnvFile(envFile);
+        }
+        catch (ex) {
+            console.error('Failed to load env file');
+            console.error(ex);
+        }
+    }
+
+    if (envVars && envFileVars) {
+        return mergeEnvVariables(envVars, envFileVars);
+    }
+    if (envVars) {
+        return envVars;
+    }
+    if (envFileVars) {
+        return envFileVars;
+    }
+    return null;
 }

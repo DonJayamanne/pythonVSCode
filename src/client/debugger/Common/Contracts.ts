@@ -53,6 +53,7 @@ export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArgum
     cwd?: string;
     debugOptions?: string[];
     env?: Object;
+    envFile: string;
     exceptionHandling?: ExceptionHandling;
     console?: "none" | "integratedTerminal" | "externalTerminal";
 }

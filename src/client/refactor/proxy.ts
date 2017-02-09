@@ -6,7 +6,8 @@ import * as child_process from 'child_process';
 import { IPythonSettings } from '../common/configSettings';
 import { REFACTOR } from '../common/telemetryContracts';
 import { sendTelemetryEvent, Delays } from '../common/telemetry';
-import { IS_WINDOWS } from '../common/utils';
+import { IS_WINDOWS, getCustomEnvVars } from '../common/utils';
+import { mergeEnvVariables } from '../common/envFileParser';
 
 export class RefactorProxy extends vscode.Disposable {
     private _process: child_process.ChildProcess;
@@ -112,11 +113,11 @@ export class RefactorProxy extends vscode.Disposable {
         return new Promise<any>((resolve, reject) => {
             this._initializeReject = reject;
             let environmentVariables = { 'PYTHONUNBUFFERED': '1' };
-            for (let setting in process.env) {
-                if (!environmentVariables[setting]) {
-                    environmentVariables[setting] = process.env[setting];
-                }
+            let customEnvironmentVars = getCustomEnvVars();
+            if (customEnvironmentVars) {
+                environmentVariables = mergeEnvVariables(environmentVariables, customEnvironmentVars);
             }
+            environmentVariables = mergeEnvVariables(environmentVariables);
             this._process = child_process.spawn(pythonPath, ['refactor.py', this.workspaceRoot],
                 {
                     cwd: path.join(this._extensionDir, 'pythonFiles'),

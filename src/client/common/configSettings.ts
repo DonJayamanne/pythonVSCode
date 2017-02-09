@@ -20,8 +20,8 @@ export interface IPythonSettings {
     jupyter: JupyterSettings;
     sortImports: ISortImportSettings;
     workspaceSymbols: IWorkspaceSymbolSettings;
+    envFile: string;
 }
-
 export interface ISortImportSettings {
     path: string;
     args: string[];
@@ -140,6 +140,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         else {
             this.jediPath = '';
         }
+        this.envFile = systemVariables.resolveAny(pythonSettings.get<string>('envFile'));
         this.devOptions = systemVariables.resolveAny(pythonSettings.get<any[]>('devOptions'));
         this.devOptions = Array.isArray(this.devOptions) ? this.devOptions : [];
         let lintingSettings = systemVariables.resolveAny(pythonSettings.get<ILintingSettings>('linting'));
@@ -304,6 +305,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         }
     }
     public jediPath: string;
+    public envFile: string;
     public devOptions: string[];
     public linting: ILintingSettings;
     public formatting: IFormattingSettings;
@@ -336,7 +338,7 @@ function getPythonExecutable(pythonPath: string): string {
     }
     // Keep python right on top, for backwards compatibility
     const KnownPythonExecutables = ['python', 'python4', 'python3.6', 'python3.5', 'python3', 'python2.7', 'python2'];
-    
+
     for (let executableName of KnownPythonExecutables) {
         // Suffix with 'python' for linux and 'osx', and 'python.exe' for 'windows'
         if (IS_WINDOWS) {

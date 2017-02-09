@@ -282,6 +282,8 @@
 						"pythonPath": "$${{config.python.pythonPath}}",
 						"program": "$${{file}}",
 						"cwd": "$${{workspaceRoot}}",
+						"env": null,
+						"envFile": "$${{workspaceRoot}}.env",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
 							"WaitOnNormalExit",
@@ -308,6 +310,8 @@
 						},
 						"program": "$${{file}}",
 						"cwd": "$${{workspaceRoot}}",
+						"env": null,
+						"envFile": "$${{workspaceRoot}}.env",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
 							"WaitOnNormalExit",
@@ -326,6 +330,8 @@
 						"pythonPath": "$${{config.python.pythonPath}}",
 						"module": "module.name",
 						"cwd": "$${{workspaceRoot}}",
+						"env": null,
+						"envFile": "$${{workspaceRoot}}.env",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
 							"WaitOnNormalExit",
@@ -345,6 +351,8 @@
 						"program": "$${{file}}",
 						"cwd": "null",
 						"console": "integratedTerminal",
+						"env": null,
+						"envFile": "$${{workspaceRoot}}.env",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
 							"WaitOnNormalExit"
@@ -363,6 +371,8 @@
 						"program": "${{file}}",
 						"cwd": "null",
 						"console": "externalTerminal",
+						"env": null,
+						"envFile": "$${{workspaceRoot}}.env",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
 							"WaitOnNormalExit"
@@ -384,6 +394,8 @@
 							"runserver",
 							"--noreload"
 						],
+						"env": null,
+						"envFile": "$${{workspaceRoot}}.env",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
 							"WaitOnNormalExit",
@@ -411,6 +423,7 @@
 							"--no-debugger",
 							"--no-reload"
 						],
+						"envFile": "$${{workspaceRoot}}.env",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
 							"WaitOnNormalExit",
@@ -430,6 +443,8 @@
 						"program": "$${{workspaceRoot}}/run.py",
 						"cwd": "$${{workspaceRoot}}",
 						"args": [],
+						"env": null,
+						"envFile": "$${{workspaceRoot}}.env",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
 							"WaitOnNormalExit",
@@ -453,6 +468,8 @@
 							"runserver",
 							"--noreload=True"
 						],
+						"env": null,
+						"envFile": "$${{workspaceRoot}}.env",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
 							"WaitOnNormalExit",
@@ -583,6 +600,11 @@
 							"type": "object",
 							"description": "Environment variables defined as a key value pair. Property ends up being the Environment Variable and the value of the property ends up being the value of the Env Variable.",
 							"default": null
+						},
+						"envFile": {
+							"type": "string",
+							"description": "Absolute path to a file containing environment variable definitions.",
+							"default": null
 						}
 					}
 				},
@@ -628,6 +650,8 @@
 					"pythonPath": "${config.python.pythonPath}",
 					"program": "${file}",
 					"cwd": "${workspaceRoot}",
+					"env": null,
+					"envFile": "$${{workspaceRoot}}.env",
 					"debugOptions": [
 						"WaitOnAbnormalExit",
 						"WaitOnNormalExit",
@@ -650,6 +674,8 @@
 					},
 					"program": "${file}",
 					"cwd": "${workspaceRoot}",
+					"env": null,
+					"envFile": "$${{workspaceRoot}}.env",
 					"debugOptions": [
 						"WaitOnAbnormalExit",
 						"WaitOnNormalExit",
@@ -664,6 +690,8 @@
 					"pythonPath": "${config.python.pythonPath}",
 					"module": "module.name",
 					"cwd": "${workspaceRoot}",
+					"env": null,
+					"envFile": "$${{workspaceRoot}}.env",
 					"debugOptions": [
 						"WaitOnAbnormalExit",
 						"WaitOnNormalExit",
@@ -679,6 +707,8 @@
 					"program": "${file}",
 					"cwd": "null",
 					"console": "integratedTerminal",
+					"env": null,
+					"envFile": "$${{workspaceRoot}}.env",
 					"debugOptions": [
 						"WaitOnAbnormalExit",
 						"WaitOnNormalExit"
@@ -693,6 +723,8 @@
 					"program": "${file}",
 					"cwd": "null",
 					"console": "externalTerminal",
+					"env": null,
+					"envFile": "$${{workspaceRoot}}.env",
 					"debugOptions": [
 						"WaitOnAbnormalExit",
 						"WaitOnNormalExit"
@@ -710,6 +742,8 @@
 						"runserver",
 						"--noreload"
 					],
+					"env": null,
+					"envFile": "$${{workspaceRoot}}.env",
 					"debugOptions": [
 						"WaitOnAbnormalExit",
 						"WaitOnNormalExit",
@@ -733,6 +767,7 @@
 						"--no-debugger",
 						"--no-reload"
 					],
+					"envFile": "$${{workspaceRoot}}.env",
 					"debugOptions": [
 						"WaitOnAbnormalExit",
 						"WaitOnNormalExit",
@@ -748,6 +783,8 @@
 					"program": "${workspaceRoot}/run.py",
 					"cwd": "${workspaceRoot}",
 					"args": [],
+					"env": null,
+					"envFile": "$${{workspaceRoot}}.env",
 					"debugOptions": [
 						"WaitOnAbnormalExit",
 						"WaitOnNormalExit",
@@ -767,6 +804,8 @@
 						"runserver",
 						"--noreload=True"
 					],
+					"env": null,
+					"envFile": "$${{workspaceRoot}}.env",
 					"debugOptions": [
 						"WaitOnAbnormalExit",
 						"WaitOnNormalExit",
@@ -794,16 +833,21 @@
 					"default": "python",
 					"description": "Path to Python, you can use a custom version of Python by modifying this setting to include the full path."
 				},
+				"python.envFile": {
+					"type": "string",
+					"description": "Absolute path to a file containing environment variable definitions.",
+					"default": null
+				},
 				"python.jediPath": {
 					"type": "string",
 					"default": "",
 					"description": "Path to directory containing the Jedi library (this path will contain the 'Jedi' sub directory)."
 				},
-        "python.sortImports.path": {
-          "type": "string",
-          "description": "Path to isort script, default using inner version",
-          "default": ""
-        },
+				"python.sortImports.path": {
+					"type": "string",
+					"description": "Path to isort script, default using inner version",
+					"default": ""
+				},
 				"python.sortImports.args": {
 					"type": "array",
 					"description": "Arguments passed in. Each argument is a separate item in the array.",

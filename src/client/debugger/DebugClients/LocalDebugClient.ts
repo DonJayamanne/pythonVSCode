@@ -8,6 +8,8 @@ import * as child_process from 'child_process';
 import { LaunchRequestArguments } from '../Common/Contracts';
 import { DebugClient, DebugType } from './DebugClient';
 import { open } from '../../common/open';
+import { getCustomEnvVars } from '../Common/Utils';
+
 const VALID_DEBUG_OPTIONS = ['WaitOnAbnormalExit',
     'WaitOnNormalExit',
     'RedirectOutput',
@@ -73,7 +75,8 @@ export class LocalDebugClient extends DebugClient {
             if (typeof this.args.pythonPath === 'string' && this.args.pythonPath.trim().length > 0) {
                 pythonPath = this.args.pythonPath;
             }
-            let environmentVariables = this.args.env ? this.args.env : {};
+            let environmentVariables = getCustomEnvVars(this.args.env, this.args.envFile);
+            environmentVariables = environmentVariables ? environmentVariables : {};
             let newEnvVars = {};
             if (environmentVariables) {
                 for (let setting in environmentVariables) {

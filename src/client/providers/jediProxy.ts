@@ -8,6 +8,8 @@ import * as logger from './../common/logger';
 import * as telemetryHelper from "../common/telemetry";
 import { execPythonFile, validatePath } from "../common/utils";
 import { createDeferred, Deferred } from '../common/helpers';
+import { getCustomEnvVars } from '../common/utils';
+import { mergeEnvVariables } from '../common/envFileParser';
 
 const IS_WINDOWS = /^win/.test(process.platform);
 var proc: child_process.ChildProcess;
@@ -187,11 +189,11 @@ let spawnRetryAttempts = 0;;
 function spawnProcess(dir: string) {
     try {
         let environmentVariables = { 'PYTHONUNBUFFERED': '1' };
-        for (let setting in process.env) {
-            if (!environmentVariables[setting]) {
-                environmentVariables[setting] = process.env[setting];
-            }
+        let customEnvironmentVars = getCustomEnvVars();
+        if (customEnvironmentVars) {
+            environmentVariables = mergeEnvVariables(environmentVariables, customEnvironmentVars);
         }
+        environmentVariables = mergeEnvVariables(environmentVariables);
 
         logger.log('child_process.spawn in jediProxy', 'Value of pythonSettings.pythonPath is :' + pythonSettings.pythonPath);
         const args = ["completion.py"];

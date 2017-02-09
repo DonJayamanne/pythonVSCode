@@ -10,6 +10,7 @@ import * as child_process from 'child_process';
 import * as settings from './configSettings';
 import { CancellationToken } from 'vscode';
 import { isNotInstalledError } from './helpers';
+import { mergeEnvVariables, parseEnvFile } from './envFileParser';
 
 export const IS_WINDOWS = /^win/.test(process.platform);
 export const PATH_VARIABLE_NAME = IS_WINDOWS ? 'Path' : 'PATH';
@@ -113,19 +114,21 @@ export function execPythonFile(file: string, args: string[], cwd: string, includ
         }
 
         if (customEnvVariables === null) {
+            customEnvVariables = getCustomEnvVars();
+            customEnvVariables = customEnvVariables ? customEnvVariables : {};
             // Ensure to include the path of the current python 
             let newPath = '';
+            let currentPath = typeof customEnvVariables[PATH_VARIABLE_NAME] === 'string' ? customEnvVariables[PATH_VARIABLE_NAME] : process.env[PATH_VARIABLE_NAME];
             if (IS_WINDOWS) {
-                newPath = pyPath + '\\' + path.delimiter + path.join(pyPath, 'Scripts\\') + path.delimiter + process.env[PATH_VARIABLE_NAME];
+                newPath = pyPath + '\\' + path.delimiter + path.join(pyPath, 'Scripts\\') + path.delimiter + currentPath;
                 // This needs to be done for windows
                 process.env[PATH_VARIABLE_NAME] = newPath;
             }
             else {
-                newPath = pyPath + path.delimiter + process.env[PATH_VARIABLE_NAME];
+                newPath = pyPath + path.delimiter + currentPath;
             }
-            let customSettings = <{ [key: string]: string }>{};
-            customSettings[PATH_VARIABLE_NAME] = newPath;
-            customEnvVariables = mergeEnvVariables(customSettings);
+            customEnvVariables = mergeEnvVariables(customEnvVariables, process.env);
+            customEnvVariables[PATH_VARIABLE_NAME] = newPath;
         }
 
         if (stdOut) {
@@ -224,16 +227,6 @@ function execInternal(command: string, args: string[], options: child_process.Ex
     });
 }
 
-export function mergeEnvVariables(newVariables: { [key: string]: string }): any {
-    for (let setting in process.env) {
-        if (!newVariables[setting]) {
-            newVariables[setting] = process.env[setting];
-        }
-    }
-
-    return newVariables;
-}
-
 export function formatErrorForLogging(error: Error | string): string {
     let message: string = '';
     if (typeof error === 'string') {
@@ -279,4 +272,22 @@ export function getSubDirectories(rootDir: string): Promise<string[]> {
             resolve(subDirs);
         });
     });
+}
+
+export function getCustomEnvVars(): any {
+    const envFile = settings.PythonSettings.getInstance().envFile;
+    if (typeof envFile === 'string' &&
+        envFile.length > 0 &&
+        fs.existsSync(envFile)) {
+
+        try {
+            return parseEnvFile(envFile);
+        }
+        catch (ex) {
+            console.error('Failed to load env file');
+            console.error(ex);
+            return null;
+        }
+    }
+    return null;
 }
