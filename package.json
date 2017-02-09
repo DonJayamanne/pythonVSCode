@@ -1101,7 +1101,7 @@
 				},
 				"python.workspaceSymbols.tagFilePath": {
 					"type": "string",
-					"default": "${workspaceRoot}/tags",
+					"default": "${workspaceRoot}/.vscode/tags",
 					"description": "Fully qualified path to tag file (exuberant ctag file), used to provide workspace symbols."
 				},
 				"python.workspaceSymbols.enabled": {
