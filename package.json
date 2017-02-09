@@ -283,7 +283,7 @@
 						"program": "$${{file}}",
 						"cwd": "$${{workspaceRoot}}",
 						"env": null,
-						"envFile": null,
+						"envFile": "$${{workspaceRoot}}/.env",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
 							"WaitOnNormalExit",
@@ -311,7 +311,7 @@
 						"program": "$${{file}}",
 						"cwd": "$${{workspaceRoot}}",
 						"env": null,
-						"envFile": null,
+						"envFile": "$${{workspaceRoot}}/.env",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
 							"WaitOnNormalExit",
@@ -331,7 +331,7 @@
 						"module": "module.name",
 						"cwd": "$${{workspaceRoot}}",
 						"env": null,
-						"envFile": null,
+						"envFile": "$${{workspaceRoot}}/.env",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
 							"WaitOnNormalExit",
@@ -352,7 +352,7 @@
 						"cwd": "null",
 						"console": "integratedTerminal",
 						"env": null,
-						"envFile": null,
+						"envFile": "$${{workspaceRoot}}/.env",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
 							"WaitOnNormalExit"
@@ -372,7 +372,7 @@
 						"cwd": "null",
 						"console": "externalTerminal",
 						"env": null,
-						"envFile": null,
+						"envFile": "$${{workspaceRoot}}/.env",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
 							"WaitOnNormalExit"
@@ -395,7 +395,7 @@
 							"--noreload"
 						],
 						"env": null,
-						"envFile": null,
+						"envFile": "$${{workspaceRoot}}/.env",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
 							"WaitOnNormalExit",
@@ -423,7 +423,7 @@
 							"--no-debugger",
 							"--no-reload"
 						],
-						"envFile": null,
+						"envFile": "$${{workspaceRoot}}/.env",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
 							"WaitOnNormalExit",
@@ -444,7 +444,7 @@
 						"cwd": "$${{workspaceRoot}}",
 						"args": [],
 						"env": null,
-						"envFile": null,
+						"envFile": "$${{workspaceRoot}}/.env",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
 							"WaitOnNormalExit",
@@ -469,7 +469,7 @@
 							"--noreload=True"
 						],
 						"env": null,
-						"envFile": null,
+						"envFile": "$${{workspaceRoot}}/.env",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
 							"WaitOnNormalExit",
@@ -651,7 +651,7 @@
 					"program": "${file}",
 					"cwd": "${workspaceRoot}",
 					"env": null,
-					"envFile": null,
+					"envFile": "${workspaceRoot}/.env",
 					"debugOptions": [
 						"WaitOnAbnormalExit",
 						"WaitOnNormalExit",
@@ -675,7 +675,7 @@
 					"program": "${file}",
 					"cwd": "${workspaceRoot}",
 					"env": null,
-					"envFile": null,
+					"envFile": "${workspaceRoot}/.env",
 					"debugOptions": [
 						"WaitOnAbnormalExit",
 						"WaitOnNormalExit",
@@ -691,7 +691,7 @@
 					"module": "module.name",
 					"cwd": "${workspaceRoot}",
 					"env": null,
-					"envFile": null,
+					"envFile": "${workspaceRoot}/.env",
 					"debugOptions": [
 						"WaitOnAbnormalExit",
 						"WaitOnNormalExit",
@@ -708,7 +708,7 @@
 					"cwd": "null",
 					"console": "integratedTerminal",
 					"env": null,
-					"envFile": null,
+					"envFile": "${workspaceRoot}/.env",
 					"debugOptions": [
 						"WaitOnAbnormalExit",
 						"WaitOnNormalExit"
@@ -724,7 +724,7 @@
 					"cwd": "null",
 					"console": "externalTerminal",
 					"env": null,
-					"envFile": null,
+					"envFile": "${workspaceRoot}/.env",
 					"debugOptions": [
 						"WaitOnAbnormalExit",
 						"WaitOnNormalExit"
@@ -743,7 +743,7 @@
 						"--noreload"
 					],
 					"env": null,
-					"envFile": null,
+					"envFile": "${workspaceRoot}/.env",
 					"debugOptions": [
 						"WaitOnAbnormalExit",
 						"WaitOnNormalExit",
@@ -767,7 +767,7 @@
 						"--no-debugger",
 						"--no-reload"
 					],
-					"envFile": null,
+					"envFile": "${workspaceRoot}/.env",
 					"debugOptions": [
 						"WaitOnAbnormalExit",
 						"WaitOnNormalExit",
@@ -784,7 +784,7 @@
 					"cwd": "${workspaceRoot}",
 					"args": [],
 					"env": null,
-					"envFile": null,
+					"envFile": "${workspaceRoot}/.env",
 					"debugOptions": [
 						"WaitOnAbnormalExit",
 						"WaitOnNormalExit",
@@ -805,7 +805,7 @@
 						"--noreload=True"
 					],
 					"env": null,
-					"envFile": null,
+					"envFile": "${workspaceRoot}/.env",
 					"debugOptions": [
 						"WaitOnAbnormalExit",
 						"WaitOnNormalExit",
@@ -836,7 +836,7 @@
 				"python.envFile": {
 					"type": "string",
 					"description": "Absolute path to a file containing environment variable definitions.",
-					"default": null
+					"default": "${workspaceRoot}/.env}"
 				},
 				"python.jediPath": {
 					"type": "string",

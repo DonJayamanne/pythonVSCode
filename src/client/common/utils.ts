@@ -281,7 +281,10 @@ export function getCustomEnvVars(): any {
         fs.existsSync(envFile)) {
 
         try {
-            return parseEnvFile(envFile);
+            let vars = parseEnvFile(envFile);
+            if (vars && typeof vars === 'object' && Object.keys(vars).length > 0) {
+                return vars;
+            }
         }
         catch (ex) {
             console.error('Failed to load env file');

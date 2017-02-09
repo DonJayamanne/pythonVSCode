@@ -131,15 +131,19 @@ export function getCustomEnvVars(envVars: any, envFile: string): any {
             console.error(ex);
         }
     }
-
+    let configVars = null;
     if (envVars && envFileVars) {
-        return mergeEnvVariables(envVars, envFileVars);
+        configVars = mergeEnvVariables(envVars, envFileVars);
     }
     if (envVars) {
-        return envVars;
+        configVars = envVars;
     }
     if (envFileVars) {
-        return envFileVars;
+        configVars = envFileVars;
     }
+    if (configVars && typeof configVars === 'object' && Object.keys(configVars).length > 0) {
+        return configVars;
+    }
+
     return null;
 }
