@@ -5,9 +5,8 @@ import re
 from collections import namedtuple
 
 from jedi._compatibility import u
-from jedi.evaluate.helpers import evaluate_call_of_leaf
+from jedi.evaluate.helpers import call_of_leaf
 from jedi import parser
-from jedi.parser import tree
 from jedi.parser import tokenize
 from jedi.cache import time_cache
 from jedi import common
@@ -21,8 +20,8 @@ def sorted_definitions(defs):
     return sorted(defs, key=lambda x: (x.module_path or '', x.line or 0, x.column or 0))
 
 
-def get_on_completion_name(module_node, lines, position):
-    leaf = module_node.get_leaf_for_position(position)
+def get_on_completion_name(module, lines, position):
+    leaf = module.get_leaf_for_position(position)
     if leaf is None or leaf.type in ('string', 'error_leaf'):
         # Completions inside strings are a bit special, we need to parse the
         # string. The same is true for comments and error_leafs.
@@ -52,6 +51,19 @@ class OnErrorLeaf(Exception):
 
 
 def _is_on_comment(leaf, position):
+    # We might be on a comment.
+    if leaf.type == 'endmarker':
+        try:
+            dedent = leaf.get_previous_leaf()
+            if dedent.type == 'dedent' and dedent.prefix:
+                # TODO This is needed because the fast parser uses multiple
+                # endmarker tokens within a file which is obviously ugly.
+                # This is so ugly that I'm not even commenting how it exactly
+                # happens, but let me tell you that I want to get rid of it.
+                leaf = dedent
+        except IndexError:
+            pass
+
     comment_lines = common.splitlines(leaf.prefix)
     difference = leaf.start_pos[0] - position[0]
     prefix_start_pos = leaf.get_start_pos_of_prefix()
@@ -65,8 +77,8 @@ def _is_on_comment(leaf, position):
     return '#' in line
 
 
-def _get_code_for_stack(code_lines, module_node, position):
-    leaf = module_node.get_leaf_for_position(position, include_prefixes=True)
+def _get_code_for_stack(code_lines, module, position):
+    leaf = module.get_leaf_for_position(position, include_prefixes=True)
     # It might happen that we're on whitespace or on a comment. This means
     # that we would not get the right leaf.
     if leaf.start_pos >= position:
@@ -86,11 +98,9 @@ def _get_code_for_stack(code_lines, module_node, position):
         except IndexError:
             return u('')
 
-    if leaf.type == 'error_leaf' or leaf.type == 'string':
-        if leaf.start_pos[0] < position[0]:
-            # On a different line, we just begin anew.
-            return u('')
-
+    if leaf.type in ('indent', 'dedent'):
+        return u('')
+    elif leaf.type == 'error_leaf' or leaf.type == 'string':
         # Error leafs cannot be parsed, completion in strings is also
         # impossible.
         raise OnErrorLeaf(leaf)
@@ -112,7 +122,7 @@ def _get_code_for_stack(code_lines, module_node, position):
         return _get_code(code_lines, user_stmt.get_start_pos_of_prefix(), position)
 
 
-def get_stack_at_position(grammar, code_lines, module_node, pos):
+def get_stack_at_position(grammar, code_lines, module, pos):
     """
     Returns the possible node names (e.g. import_from, xor_test or yield_stmt).
     """
@@ -127,18 +137,19 @@ def get_stack_at_position(grammar, code_lines, module_node, pos):
             else:
                 yield token_
 
-    code = _get_code_for_stack(code_lines, module_node, pos)
+    code = _get_code_for_stack(code_lines, module, pos)
     # We use a word to tell Jedi when we have reached the start of the
     # completion.
     # Use Z as a prefix because it's not part of a number suffix.
     safeword = 'ZZZ_USER_WANTS_TO_COMPLETE_HERE_WITH_JEDI'
+    # Remove as many indents from **all** code lines as possible.
     code = code + safeword
 
     p = parser.ParserWithRecovery(grammar, code, start_parsing=False)
     try:
         p.parse(tokenizer=tokenize_without_endmarker(code))
     except EndMarkerReached:
-        return Stack(p.pgen_parser.stack)
+        return Stack(p.stack)
     raise SystemError("This really shouldn't happen. There's a bug in Jedi.")
 
 
@@ -193,20 +204,22 @@ def get_possible_completion_types(grammar, stack):
     return keywords, grammar_labels
 
 
-def evaluate_goto_definition(evaluator, context, leaf):
+def evaluate_goto_definition(evaluator, leaf):
     if leaf.type == 'name':
         # In case of a name we can just use goto_definition which does all the
         # magic itself.
-        return evaluator.goto_definitions(context, leaf)
+        return evaluator.goto_definitions(leaf)
 
+    node = None
     parent = leaf.parent
     if parent.type == 'atom':
-        return context.eval_node(leaf.parent)
+        node = leaf.parent
     elif parent.type == 'trailer':
-        return evaluate_call_of_leaf(context, leaf)
-    elif isinstance(leaf, tree.Literal):
-        return context.evaluator.eval_atom(context, leaf)
-    return []
+        node = call_of_leaf(leaf)
+
+    if node is None:
+        return []
+    return evaluator.eval_element(node)
 
 
 CallSignatureDetails = namedtuple(
@@ -253,17 +266,9 @@ def _get_call_signature_details_from_error_node(node, position):
 
 def get_call_signature_details(module, position):
     leaf = module.get_leaf_for_position(position, include_prefixes=True)
-    if leaf.start_pos >= position:
-        # Whitespace / comments after the leaf count towards the previous leaf.
-        try:
-            leaf = leaf.get_previous_leaf()
-        except IndexError:
-            return None
-
     if leaf == ')':
         if leaf.end_pos == position:
             leaf = leaf.get_next_leaf()
-
     # Now that we know where we are in the syntax tree, we start to look at
     # parents for possible function definitions.
     node = leaf.parent
@@ -290,7 +295,7 @@ def get_call_signature_details(module, position):
 
 
 @time_cache("call_signatures_validity")
-def cache_call_signatures(evaluator, context, bracket_leaf, code_lines, user_pos):
+def cache_call_signatures(evaluator, bracket_leaf, code_lines, user_pos):
     """This function calculates the cache key."""
     index = user_pos[0] - 1
 
@@ -306,6 +311,5 @@ def cache_call_signatures(evaluator, context, bracket_leaf, code_lines, user_pos
         yield (module_path, before_bracket, bracket_leaf.start_pos)
     yield evaluate_goto_definition(
         evaluator,
-        context,
         bracket_leaf.get_previous_leaf()
     )

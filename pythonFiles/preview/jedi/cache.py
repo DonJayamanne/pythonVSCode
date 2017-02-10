@@ -80,8 +80,7 @@ def time_cache(time_add_setting):
 def memoize_method(method):
     """A normal memoize function."""
     def wrapper(self, *args, **kwargs):
-        cache_dict = self.__dict__.setdefault('_memoize_method_dct', {})
-        dct = cache_dict.setdefault(method, {})
+        dct = self.__dict__.setdefault('_memoize_method_dct', {})
         key = (args, frozenset(kwargs.items()))
         try:
             return dct[key]
@@ -89,6 +88,14 @@ def memoize_method(method):
             result = method(self, *args, **kwargs)
             dct[key] = result
             return result
+    return wrapper
+
+
+def cache_star_import(func):
+    @time_cache("star_import_cache_validity")
+    def wrapper(self):
+        yield self.base  # The cache key
+        yield func(self)
     return wrapper
 
 

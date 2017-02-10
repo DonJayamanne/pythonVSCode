@@ -256,11 +256,6 @@ class str():
     def __init__(self, obj):
         pass
 
-    def strip(self):
-        return str()
-
-    def split(self):
-        return [str()]
 
 class type():
     def mro():
