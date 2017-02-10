@@ -152,7 +152,7 @@ function parseTagsLine(line: string, searchPattern: string): Tag {
     }
     let file = match.file;
     if (!path.isAbsolute(file)) {
-        file = path.resolve(vscode.workspace.rootPath, file);
+        file = path.resolve(vscode.workspace.rootPath, '.vscode', file);
     }
 
     const symbolKind = CTagKinMapping.has(match.type) ? CTagKinMapping.get(match.type) : vscode.SymbolKind.Null;
