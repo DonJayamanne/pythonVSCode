@@ -162,7 +162,7 @@ export class LintProvider extends vscode.Disposable {
             }
             // turn off telemetry for linters (at least for now)
             //let delays = new telemetryHelper.Delays();
-            return linter.runLinter(document).then(results => {
+            return linter.runLinter(document, cancelToken.token).then(results => {
                 //delays.stop();
                 //telemetryHelper.sendTelemetryEvent(telemetryContracts.IDE.Lint, { Lint_Provider: linter.Id }, delays.toMeasures());
                 return results;

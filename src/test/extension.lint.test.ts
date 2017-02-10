@@ -190,9 +190,10 @@ suite('Linting', () => {
     });
 
     function testLinterMessages(linter: baseLinter.BaseLinter, outputChannel: MockOutputChannel, pythonFile: string, messagesToBeReceived: baseLinter.ILintMessage[]): Thenable<any> {
+        let cancelToken = new vscode.CancellationTokenSource();
         return vscode.workspace.openTextDocument(pythonFile)
             .then(document => vscode.window.showTextDocument(document))
-            .then(editor => linter.runLinter(editor.document))
+            .then(editor => linter.runLinter(editor.document, cancelToken.token))
             .then(messages => {
                 // Different versions of python return different errors,
                 if (messagesToBeReceived.length === 0) {

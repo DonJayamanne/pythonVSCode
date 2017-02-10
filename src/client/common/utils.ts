@@ -101,7 +101,7 @@ export function execPythonFile(file: string, args: string[], cwd: string, includ
         if (stdOut) {
             return spawnFileInternal(file, args, { cwd }, includeErrorAsResponse, stdOut, token);
         }
-        return execFileInternal(file, args, { cwd: cwd }, includeErrorAsResponse);
+        return execFileInternal(file, args, { cwd: cwd }, includeErrorAsResponse, token);
     }
 
     return getPythonInterpreterDirectory().then(pyPath => {
@@ -110,7 +110,7 @@ export function execPythonFile(file: string, args: string[], cwd: string, includ
             if (stdOut) {
                 return spawnFileInternal(file, args, { cwd }, includeErrorAsResponse, stdOut, token);
             }
-            return execFileInternal(file, args, { cwd: cwd }, includeErrorAsResponse);
+            return execFileInternal(file, args, { cwd: cwd }, includeErrorAsResponse, token);
         }
 
         if (customEnvVariables === null) {
@@ -134,7 +134,7 @@ export function execPythonFile(file: string, args: string[], cwd: string, includ
         if (stdOut) {
             return spawnFileInternal(file, args, { cwd, env: customEnvVariables }, includeErrorAsResponse, stdOut, token);
         }
-        return execFileInternal(file, args, { cwd, env: customEnvVariables }, includeErrorAsResponse);
+        return execFileInternal(file, args, { cwd, env: customEnvVariables }, includeErrorAsResponse, token);
     });
 }
 
@@ -160,11 +160,19 @@ function handleResponse(file: string, includeErrorAsResponse: boolean, error: Er
         resolve(stdout + '');
     });
 }
-function execFileInternal(file: string, args: string[], options: child_process.ExecFileOptions, includeErrorAsResponse: boolean): Promise<string> {
+function execFileInternal(file: string, args: string[], options: child_process.ExecFileOptions, includeErrorAsResponse: boolean, token?: CancellationToken): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-        child_process.execFile(file, args, options, (error, stdout, stderr) => {
+        let proc = child_process.execFile(file, args, options, (error, stdout, stderr) => {
             handleResponse(file, includeErrorAsResponse, error, stdout, stderr).then(resolve, reject);
         });
+        if (token && token.onCancellationRequested) {
+            token.onCancellationRequested(() => {
+                if (proc) {
+                    proc.kill();
+                    proc = null;
+                }
+            });
+        }
     });
 }
 function spawnFileInternal(file: string, args: string[], options: child_process.ExecFileOptions, includeErrorAsResponse: boolean, stdOut: (line: string) => void, token?: CancellationToken): Promise<string> {

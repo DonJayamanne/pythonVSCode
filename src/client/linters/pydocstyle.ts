@@ -6,7 +6,7 @@ import { ILintMessage } from './baseLinter';
 import { OutputChannel } from 'vscode';
 import { execPythonFile, IS_WINDOWS } from './../common/utils';
 import { Product } from '../common/installer';
-import { TextDocument } from 'vscode';
+import { TextDocument, CancellationToken } from 'vscode';
 
 export class Linter extends baseLinter.BaseLinter {
     constructor(outputChannel: OutputChannel, workspaceRootPath?: string) {
@@ -16,7 +16,7 @@ export class Linter extends baseLinter.BaseLinter {
     public isEnabled(): Boolean {
         return this.pythonSettings.linting.pydocstyleEnabled;
     }
-    public runLinter(document:TextDocument): Promise<baseLinter.ILintMessage[]> {
+    public runLinter(document: TextDocument, cancellation: CancellationToken): Promise<baseLinter.ILintMessage[]> {
         if (!this.pythonSettings.linting.pydocstyleEnabled) {
             return Promise.resolve([]);
         }
@@ -24,7 +24,7 @@ export class Linter extends baseLinter.BaseLinter {
         let pydocstylePath = this.pythonSettings.linting.pydocstylePath;
         let pydocstyleArgs = Array.isArray(this.pythonSettings.linting.pydocstyleArgs) ? this.pythonSettings.linting.pydocstyleArgs : [];
         return new Promise<baseLinter.ILintMessage[]>(resolve => {
-            this.run(pydocstylePath, pydocstyleArgs.concat([document.uri.fsPath]), document).then(messages => {
+            this.run(pydocstylePath, pydocstyleArgs.concat([document.uri.fsPath]), document, null, cancellation).then(messages => {
                 // All messages in pep8 are treated as warnings for now
                 messages.forEach(msg => {
                     msg.severity = baseLinter.LintMessageSeverity.Information;
@@ -35,11 +35,11 @@ export class Linter extends baseLinter.BaseLinter {
         });
     }
 
-    protected run(commandLine: string, args: string[], document:TextDocument): Promise<ILintMessage[]> {
+    protected run(commandLine: string, args: string[], document: TextDocument, cwd: any, cancellation: CancellationToken): Promise<ILintMessage[]> {
         let outputChannel = this.outputChannel;
 
         return new Promise<ILintMessage[]>((resolve, reject) => {
-            execPythonFile(commandLine, args, this.workspaceRootPath, true).then(data => {
+            execPythonFile(commandLine, args, this.workspaceRootPath, true, null, cancellation).then(data => {
                 outputChannel.append('#'.repeat(10) + 'Linting Output - ' + this.Id + '#'.repeat(10) + '\n');
                 outputChannel.append(data);
                 let outputLines = data.split(/\r?\n/g);

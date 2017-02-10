@@ -63,13 +63,13 @@ export abstract class BaseLinter {
         this.pythonSettings = settings.PythonSettings.getInstance();
     }
     public abstract isEnabled(): Boolean;
-    public abstract runLinter(document: vscode.TextDocument): Promise<ILintMessage[]>;
+    public abstract runLinter(document: vscode.TextDocument, cancellation: vscode.CancellationToken): Promise<ILintMessage[]>;
 
-    protected run(command: string, args: string[], document: vscode.TextDocument, cwd: string, regEx: string = REGEX): Promise<ILintMessage[]> {
+    protected run(command: string, args: string[], document: vscode.TextDocument, cwd: string, cancellation: vscode.CancellationToken, regEx: string = REGEX): Promise<ILintMessage[]> {
         let outputChannel = this.outputChannel;
 
         return new Promise<ILintMessage[]>((resolve, reject) => {
-            execPythonFile(command, args, cwd, true).then(data => {
+            execPythonFile(command, args, cwd, true, null, cancellation).then(data => {
                 outputChannel.append('#'.repeat(10) + 'Linting Output - ' + this.Id + '#'.repeat(10) + '\n');
                 outputChannel.append(data);
                 let outputLines = data.split(/\r?\n/g);
