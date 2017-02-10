@@ -19,9 +19,6 @@
             "name": "Launch Extension as debugServer", // https://code.visualstudio.com/docs/extensions/example-debuggers
             "type": "node",
             "request": "launch",
-            "runtimeArgs": [
-                "--harmony"
-            ],
             "program": "${workspaceRoot}/out/client/debugger/Main.js",
             "stopOnEntry": false,
             "args": [

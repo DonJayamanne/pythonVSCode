@@ -155,6 +155,9 @@ class JediCompletion(object):
                 'raw_type': '',
                 'rightLabel': self._additional_info(signature)
             }
+            _completion['description'] = ''
+            _completion['raw_docstring'] = ''
+            
             # we pass 'text' here only for fuzzy matcher
             if value:
                 _completion['snippet'] = '%s=${1:%s}$0' % (name, value)
@@ -188,6 +191,15 @@ class JediCompletion(object):
                 'raw_docstring': completion.docstring(raw=True),
                 'rightLabel': self._additional_info(completion)
             }
+            for c in _completions:
+                if c['text'] == _completion['text']:
+                    c['type'] = _completion['type']
+                    c['raw_type'] = _completion['raw_type']
+                    if len(c['description']) == 0 and len(c['raw_docstring']) == 0:
+                        c['description'] = _completion['description']
+                        c['raw_docstring'] = _completion['description']
+                    
+            
             if any([c['text'].split('=')[0] == _completion['text']
                     for c in _completions]):
                 # ignore function arguments we already have
@@ -388,7 +400,7 @@ class JediCompletion(object):
             if definition.type == 'module':
                 signature = definition.full_name
                 description = definition.docstring(raw=True).strip()
-                if not description and not definition.get_line_code():
+                if not description and hasattr(definition, 'get_line_code'):
                     # jedi returns an empty string for compiled objects
                     description = definition.docstring().strip()
             _definition = {
