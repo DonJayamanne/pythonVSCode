@@ -180,6 +180,21 @@ export class PythonDebugger extends DebugSession {
         return Promise.resolve(true);
     }
     protected launchRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments): void {
+        // Add support for specifying just the directory where the python executable will be located
+        // E.g. virtual directory name
+        try {
+            args.pythonPath = getPythonExecutable(args.pythonPath);
+        }
+        catch (ex) {
+        }
+        if (Array.isArray(args.debugOptions) && args.debugOptions.indexOf("Pyramid") >= 0) {
+            if (fs.existsSync(args.pythonPath)) {
+                args.program = path.join(path.dirname(args.pythonPath), "pserve");
+            }
+            else {
+                args.program = "pserve";
+            }
+        }
         // Confirm the file exists
         if (typeof args.module !== 'string' || args.module.length === 0) {
             if (!fs.existsSync(args.program)) {
@@ -199,14 +214,6 @@ export class PythonDebugger extends DebugSession {
             Debug_PySpark: typeof args.pythonPath === 'string' && args.pythonPath.indexOf('spark-submit') > 0 ? 'true' : 'false',
             Debug_HasEnvVaraibles: args.env && typeof args.env === "object" ? "true" : "false"
         }));
-
-        // Add support for specifying just the directory where the python executable will be located
-        // E.g. virtual directory name
-        try {
-            args.pythonPath = getPythonExecutable(args.pythonPath);
-        }
-        catch (ex) {
-        }
 
         this.launchArgs = args;
         this.debugClient = CreateLaunchDebugClient(args, this);

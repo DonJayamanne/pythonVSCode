@@ -558,7 +558,8 @@
 									"BreakOnSystemExitZero",
 									"DjangoDebugging",
 									"Sudo",
-									"IgnoreDjangoTemplateWarnings"
+									"IgnoreDjangoTemplateWarnings",
+									"Pyramid"
 								]
 							},
 							"default": [
@@ -789,6 +790,25 @@
 						"WaitOnAbnormalExit",
 						"WaitOnNormalExit",
 						"RedirectOutput"
+					]
+				},
+				{
+					"name": "Pyramid",
+					"type": "python",
+					"request": "launch",
+					"stopOnEntry": true,
+					"pythonPath": "${config.python.pythonPath}",
+					"cwd": "${workspaceRoot}",
+					"env": null,
+					"envFile": "${workspaceRoot}/.env",
+					"args": [
+						"${workspaceRoot}/development.ini"
+					],
+					"debugOptions": [
+						"WaitOnAbnormalExit",
+						"WaitOnNormalExit",
+						"RedirectOutput",
+						"Pyramid"
 					]
 				},
 				{
