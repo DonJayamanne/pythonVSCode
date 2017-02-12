@@ -342,8 +342,10 @@ function spawnProcess(dir: string) {
                                 return {
                                     kind: getMappedVSCodeSymbol(def.type),
                                     description: def.description,
-                                    signature: def.signature
-                                }
+                                    signature: def.signature,
+                                    docstring: def.docstring,
+                                    text: def.text
+                                };
                             })
                         };
 
@@ -651,7 +653,9 @@ export interface IDefinition {
 
 export interface IHoverItem {
     kind: vscode.SymbolKind;
+    text: string;
     description: string;
+    docstring: string;
     signature: string;
 }
 

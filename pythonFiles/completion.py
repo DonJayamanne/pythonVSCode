@@ -6,6 +6,7 @@ import json
 import traceback
 
 WORD_RE = re.compile(r'\w')
+jediPreview = False
 
 
 class JediCompletion(object):
@@ -314,7 +315,7 @@ class JediCompletion(object):
                 'end_line': definition.line - 1,
                 'end_column': definition.column
             }
-    def _get_definitions(self, definitions, identifier=None):
+    def _get_definitionsx(self, definitions, identifier=None, ignoreNoModulePath=False):
         """Serialize response to be read from VSCode.
 
         Args:
@@ -327,25 +328,39 @@ class JediCompletion(object):
         _definitions = []
         for definition in definitions:
             try:
-                if definition.module_path:
-                    if definition.type == 'import':
-                        definition = self._top_definition(definition)
-                    if not definition.module_path:
+                if definition.type == 'import':
+                    definition = self._top_definition(definition)
+                definitionRange = {
+                    'start_line': 0,
+                    'start_column': 0, 
+                    'end_line': 0,
+                    'end_column': 0
+                }
+                module_path = ''
+                if hasattr(definition, 'module_path') and definition.module_path:
+                    module_path = definition.module_path
+                    definitionRange = self._extract_range(definition)
+                else:
+                    if not ignoreNoModulePath:
                         continue
-                    try:
-                        parent = definition.parent()
-                        container = parent.name if parent.type != 'module' else ''
-                    except Exception:
-                        container = ''
-                    _definition = {
-                        'text': definition.name,
-                        'type': self._get_definition_type(definition),
-                        'raw_type': definition.type,
-                        'fileName': definition.module_path,
-                        'container': container,
-                        'range': self._extract_range(definition)
-                    }
-                    _definitions.append(_definition)
+                try:
+                    parent = definition.parent()
+                    container = parent.name if parent.type != 'module' else ''
+                except Exception:
+                    container = ''
+                _definition = {
+                    'text': definition.name,
+                    'type': self._get_definition_type(definition),
+                    'raw_type': definition.type,
+                    'fileName': module_path,
+                    'container': container,
+                    'range': definitionRange,
+                    'description': definition.description,
+                    'docstring': definition.docstring(),
+                    'raw_docstring': definition.docstring(raw=True),
+                    'signature': self._generate_signature(definition)
+                }
+                _definitions.append(_definition)
             except Exception as e:
                 pass
         return _definitions
@@ -379,7 +394,10 @@ class JediCompletion(object):
                         'raw_type': definition.type,
                         'fileName': definition.module_path,
                         'container': container,
-                        'range': self._extract_range(definition)
+                        'range': self._extract_range(definition),
+                        'description': definition.description,
+                        'docstring': definition.docstring(),
+                        'raw_docstring': definition.docstring(raw=True)
                     }
                     _definitions.append(_definition)
             except Exception as e:
@@ -405,7 +423,9 @@ class JediCompletion(object):
                     description = definition.docstring().strip()
             _definition = {
                 'type': self._get_definition_type(definition),
+                'text': definition.name,
                 'description': description,
+                'docstring': description, 
                 'signature': signature
             }
             _definitions.append(_definition)
@@ -477,15 +497,20 @@ class JediCompletion(object):
         script = jedi.api.Script(
             source=request.get('source', None), line=request['line'] + 1,
             column=request['column'], path=request.get('path', ''))
-
+        
         if lookup == 'definitions':
-            defs = self._get_definitions(script.goto_definitions(), request['id'])
+            defs = self._get_definitionsx(script.goto_definitions(), request['id'])
             if len(defs) == 0:
-                defs = self._get_definitions(script.goto_assignments(), request['id'])
+                defs = self._get_definitionsx(script.goto_assignments(), request['id'])
             return self._write_response(json.dumps({'id': request['id'], 'results': defs}))
         if lookup == 'tooltip':
-            return self._write_response(self._serialize_tooltip(
-                script.goto_definitions(), request['id']))
+            if jediPreview:
+                defs = self._get_definitionsx(script.goto_definitions(), request['id'], True)
+                if len(defs) == 0:
+                    defs = self._get_definitionsx(script.goto_assignments(), request['id'], True)
+                return self._write_response(json.dumps({'id': request['id'], 'results': defs}))
+            else:
+                return self._write_response(self._serialize_tooltip(script.goto_definitions(), request['id']))
         elif lookup == 'arguments':
             return self._write_response(self._serialize_arguments(
                 script, request['id']))
@@ -514,7 +539,6 @@ class JediCompletion(object):
                 sys.stderr.flush()
 
 if __name__ == '__main__':
-    jediPreview = False
     cachePrefix = 'v'
     if len(sys.argv) > 0 and sys.argv[1] == 'preview':
         jediPath = os.path.join(os.path.dirname(__file__), 'preview')
