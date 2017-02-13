@@ -234,9 +234,8 @@ suite('Hover Definition', () => {
             assert.equal(def.length, 1, 'Definition length is incorrect');
             assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '30,4', 'Start position is incorrect');
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '30,11', 'End position is incorrect');
-            assert.equal(def[0].contents.length, 2, 'Invalid content items');
-            assert.equal(def[0].contents[0]['value'], 'def method1()', 'function signature incorrect');
-            assert.equal(def[0].contents[1], `This is method1`, 'Invalid conents');
+            assert.equal(def[0].contents.length, 1, 'Invalid content items');
+            assert.equal(def[0].contents[0], '```python' + EOL + 'def method1()' + EOL + '```' + EOL + 'This is method1', 'function signature incorrect');
         }).then(done, done);
     });
 
@@ -255,8 +254,7 @@ suite('Hover Definition', () => {
             assert.equal(def.length, 1, 'Definition length is incorrect');
             assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '1,9', 'Start position is incorrect');
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '1,12', 'End position is incorrect');
-            assert.equal(def[0].contents[0]['value'], 'def fun()', 'function signature incorrect');
-            assert.equal(def[0].contents[1], `This is fun`, 'Invalid conents');
+            assert.equal(def[0].contents[0], '```python' + EOL + 'def fun()' + EOL + '```' + EOL + 'This is fun', 'Invalid conents');
         }).then(done, done);
     });
 
@@ -275,9 +273,9 @@ suite('Hover Definition', () => {
             assert.equal(def.length, 1, 'Definition length is incorrect');
             assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '25,4', 'Start position is incorrect');
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '25,7', 'End position is incorrect');
-            assert.equal(def[0].contents[0]['value'], 'def bar()', 'function signature incorrect');
-            const documentation = `说明 - keep this line, it works${EOL}delete following line, it works${EOL}如果存在需要等待审批或正在执行的任务，将不刷新页面`;
-            assert.equal(def[0].contents[1], documentation, 'Invalid conents');
+            assert.equal(def[0].contents[0], '```python' + EOL + 'def bar()' + EOL + '```' + EOL +
+                '说明 - keep this line, it works' + EOL + 'delete following line, it works' +
+                EOL + '如果存在需要等待审批或正在执行的任务，将不刷新页面', 'Invalid conents');
         }).then(done, done);
     });
 
@@ -296,9 +294,11 @@ suite('Hover Definition', () => {
             assert.equal(def.length, 1, 'Definition length is incorrect');
             assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '1,5', 'Start position is incorrect');
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '1,16', 'End position is incorrect');
-            assert.equal(def[0].contents[0]['value'], 'def showMessage()', 'Invalid content items');
-            const documentation = `Кюм ут жэмпэр пошжим льаборэж, коммюны янтэрэсщэт нам ед, декта игнота ныморэ жят эи. ${EOL}Шэа декам экшырки эи, эи зыд эррэм докэндё, векж факэтэ пэрчыквюэрёж ку.`;
-            assert.equal(def[0].contents[1], documentation, 'Invalid conents');
+            assert.equal(def[0].contents[0], '```python' + EOL +
+                'def showMessage()' + EOL +
+                '```' + EOL +
+                'Кюм ут жэмпэр пошжим льаборэж, коммюны янтэрэсщэт нам ед, декта игнота ныморэ жят эи. ' + EOL +
+                'Шэа декам экшырки эи, эи зыд эррэм докэндё, векж факэтэ пэрчыквюэрёж ку.', 'Invalid conents');
         }).then(done, done);
     });
 
@@ -349,17 +349,21 @@ suite('Hover Definition', () => {
             assert.equal(def.length, 1, 'Definition length is incorrect');
             assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '11,12', 'Start position is incorrect');
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '11,18', 'End position is incorrect');
-            assert.equal(def[0].contents[0]['value'], 'class Random(x=None)', 'Invalid content items');
-            const documentation = `Random number generator base class used by bound module functions.${EOL}${EOL}` +
-                `Used to instantiate instances of Random to get generators that don't${EOL}` +
-                `share state.${EOL}${EOL}` +
-                `Class Random can also be subclassed if you want to use a different basic${EOL}` +
-                `generator of your own devising: in that case, override the following${EOL}` +
-                `methods:  random(), seed(), getstate(), and setstate().${EOL}` +
-                `Optionally, implement a getrandbits() method so that randrange()${EOL}` +
-                `can cover arbitrarily large ranges.`;
+            let documentation = "```python" + EOL +
+                "class Random(x=None)" + EOL +
+                "```" + EOL +
+                "Random number generator base class used by bound module functions." + EOL +
+                "" + EOL +
+                "Used to instantiate instances of Random to get generators that don't" + EOL +
+                "share state." + EOL +
+                "" + EOL +
+                "Class Random can also be subclassed if you want to use a different basic" + EOL +
+                "generator of your own devising: in that case, override the following" + EOL +
+                "methods:  random(), seed(), getstate(), and setstate()." + EOL +
+                "Optionally, implement a getrandbits() method so that randrange()" + EOL +
+                "can cover arbitrarily large ranges.";
 
-            assert.equal(def[0].contents[1], documentation, 'Invalid conents');
+            assert.equal(def[0].contents[0], documentation, 'Invalid conents');
         }).then(done, done);
     });
 
@@ -378,9 +382,10 @@ suite('Hover Definition', () => {
             assert.equal(def.length, 1, 'Definition length is incorrect');
             assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '12,5', 'Start position is incorrect');
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '12,12', 'End position is incorrect');
-            assert.equal(def[0].contents[0]['value'], 'def randint(a, b)', 'Invalid content items');
-            const documentation = `Return random integer in range [a, b], including both end points.`;
-            assert.equal(def[0].contents[1], documentation, 'Invalid conents');
+            assert.equal(def[0].contents[0], '```python' + EOL +
+                'def randint(a, b)' + EOL +
+                '```' + EOL +
+                'Return random integer in range [a, b], including both end points.', 'Invalid conents');
         }).then(done, done);
     });
 
@@ -399,9 +404,10 @@ suite('Hover Definition', () => {
             assert.equal(def.length, 1, 'Definition length is incorrect');
             assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '8,11', 'Start position is incorrect');
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '8,15', 'End position is incorrect');
-            assert.equal(def[0].contents[0]['value'], 'def acos(x)', 'Invalid content items');
-            const documentation = `acos(x)${EOL}${EOL}Return the arc cosine (measured in radians) of x.`;
-            assert.equal(def[0].contents[1], documentation, 'Invalid conents');
+            assert.equal(def[0].contents[0], '```python' + EOL +
+                'def acos(x)' + EOL +
+                '```' + EOL +
+                'Return the arc cosine (measured in radians) of x.', 'Invalid conents');
         }).then(done, done);
     });
 
@@ -420,10 +426,15 @@ suite('Hover Definition', () => {
             assert.equal(def.length, 1, 'Definition length is incorrect');
             assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '14,9', 'Start position is incorrect');
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '14,15', 'End position is incorrect');
-            const signature = `class Thread(group=None, target=None, name=None, args=(), kwargs=None, verbose=None)`;
-            assert.equal(def[0].contents[0]['value'], signature, 'Invalid content items');
-            const documentation = `A class that represents a thread of control.${EOL}${EOL}This class can be safely subclassed in a limited fashion.`;
-            assert.equal(def[0].contents[1], documentation, 'Invalid conents');
+            assert.equal(def[0].contents[0], '```python' + EOL +
+                'class Thread(group=None, target=None, name=None, args=(), kwargs=None, verbose=None)' + EOL +
+                '```' + EOL +
+                'Thread(self, group=None, target=None, name=None,' + EOL +
+                'args=(), kwargs=None, verbose=None)' + EOL +
+                '' + EOL +
+                'A class that represents a thread of control.' + EOL +
+                '' + EOL +
+                'This class can be safely subclassed in a limited fashion.', 'Invalid content items');
         }).then(done, done);
     });
 
@@ -441,8 +452,21 @@ suite('Hover Definition', () => {
         }).then(def => {
             assert.equal(def.length, 1, 'Definition length is incorrect');
             assert.equal(def[0].contents.length, 1, 'Only expected one result');
-            const signature = 'Random';
-            assert.equal(def[0].contents[0]['value'], signature, 'Invalid content items');
+            assert.equal(def[0].contents[0], '```python' + EOL +
+                'Random' + EOL +
+                '```' + EOL +
+                'Random(self, x=None)' + EOL +
+                EOL +
+                'Random number generator base class used by bound module functions.' + EOL +
+                EOL +
+                "Used to instantiate instances of Random to get generators that don't" + EOL +
+                'share state.' + EOL +
+                EOL +
+                'Class Random can also be subclassed if you want to use a different basic' + EOL +
+                'generator of your own devising: in that case, override the following' + EOL +
+                'methods:  random(), seed(), getstate(), and setstate().' + EOL +
+                'Optionally, implement a getrandbits() method so that randrange()' + EOL +
+                'can cover arbitrarily large ranges.', 'Invalid content items');
         }).then(done, done);
     });
 });
