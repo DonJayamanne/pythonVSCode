@@ -158,7 +158,7 @@ class Completion:
                 # No completions for ``with x as foo`` and ``import x as foo``.
                 # Also true for defining names as a class or function.
                 return list(self._get_class_context_completions(is_function=True))
-            elif symbol_names[-1] == 'trailer' and nodes[-1] == '.':
+            elif symbol_names[-1] in ('trailer', 'dotted_name') and nodes[-1] == '.':
                 dot = self._module.get_leaf_for_position(self._position)
                 atom_expr = call_of_leaf(dot.get_previous_leaf())
                 completion_names += self._trailer_completions(atom_expr)
