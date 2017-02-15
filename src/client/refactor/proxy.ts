@@ -6,7 +6,7 @@ import * as child_process from 'child_process';
 import { IPythonSettings } from '../common/configSettings';
 import { REFACTOR } from '../common/telemetryContracts';
 import { sendTelemetryEvent, Delays } from '../common/telemetry';
-import { IS_WINDOWS, getCustomEnvVars } from '../common/utils';
+import { IS_WINDOWS, getCustomEnvVars, getWindowsLineEndingCount } from '../common/utils';
 import { mergeEnvVariables } from '../common/envFileParser';
 
 export class RefactorProxy extends vscode.Disposable {
@@ -39,8 +39,11 @@ export class RefactorProxy extends vscode.Disposable {
         // get line count
         // Rope always uses LF, instead of CRLF on windows, funny isn't it
         // So for each line, reduce one characer (for CR)
+        // But Not all Windows users use CRLF
         const offset = document.offsetAt(position);
-        return offset - position.line;
+
+        const winEols = getWindowsLineEndingCount(document.getText(), offset);        
+        return offset - winEols;
     }
     rename<T>(document: vscode.TextDocument, name: string, filePath: string, range: vscode.Range, options?: vscode.TextEditorOptions): Promise<T> {
         if (!options) {

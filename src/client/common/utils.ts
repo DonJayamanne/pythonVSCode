@@ -302,3 +302,18 @@ export function getCustomEnvVars(): any {
     }
     return null;
 }
+
+export function getWindowsLineEndingCount(text:String, offset:Number)  {
+    const eolPattern = new RegExp('\r', 'g');
+    const readBlock = 1024;
+    let count = 0;
+
+    // In order to prevent the one-time loading of large files from taking up too much memory
+    for (let pos = 0; pos < offset; pos += readBlock)   {
+        let partialText = text.slice(pos, pos + readBlock);
+        let cr = partialText.match(eolPattern);
+
+        count += cr ? cr.length : 0;
+    }
+    return count;
+}
