@@ -41,8 +41,8 @@ export class RefactorProxy extends vscode.Disposable {
         // So for each line, reduce one characer (for CR)
         // But Not all Windows users use CRLF
         const offset = document.offsetAt(position);
-
-        const winEols = getWindowsLineEndingCount(document.getText(), offset);        
+        const winEols = getWindowsLineEndingCount(document, offset);        
+        
         return offset - winEols;
     }
     rename<T>(document: vscode.TextDocument, name: string, filePath: string, range: vscode.Range, options?: vscode.TextEditorOptions): Promise<T> {
