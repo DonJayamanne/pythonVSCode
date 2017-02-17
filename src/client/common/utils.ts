@@ -8,7 +8,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as child_process from 'child_process';
 import * as settings from './configSettings';
-import { CancellationToken } from 'vscode';
+import { CancellationToken, TextDocument, Range, Position } from 'vscode';
 import { isNotInstalledError } from './helpers';
 import { mergeEnvVariables, parseEnvFile } from './envFileParser';
 
@@ -301,4 +301,22 @@ export function getCustomEnvVars(): any {
         }
     }
     return null;
+}
+
+export function getWindowsLineEndingCount(document:TextDocument, offset:Number)  {
+    const eolPattern = new RegExp('\r\n', 'g');
+    const readBlock = 1024;
+    let count = 0;
+
+    // In order to prevent the one-time loading of large files from taking up too much memory
+    for (let pos = 0; pos < offset; pos += readBlock)   {
+        let startAt = document.positionAt(pos)
+        let endAt = document.positionAt(pos + readBlock);
+
+        let text = document.getText(new Range(startAt, endAt));
+        let cr = text.match(eolPattern);
+        
+        count += cr ? cr.length : 0;
+    }
+    return count;
 }
