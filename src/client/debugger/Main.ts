@@ -81,7 +81,10 @@ export class PythonDebugger extends DebugSession {
     private debugServer: BaseDebugServer;
 
     private startDebugServer(): Promise<IDebugServer> {
-        let programDirectory = this.launchArgs ? path.dirname(this.launchArgs.program) : this.attachArgs.localRoot;
+        let programDirectory = '';
+        if ((this.launchArgs && this.launchArgs.program) || (this.attachArgs && this.attachArgs.localRoot)) {
+            programDirectory = this.launchArgs ? path.dirname(this.launchArgs.program) : this.attachArgs.localRoot;
+        }
         if (this.launchArgs && typeof this.launchArgs.cwd === 'string' && this.launchArgs.cwd.length > 0 && this.launchArgs.cwd !== 'null') {
             programDirectory = this.launchArgs.cwd;
         }
