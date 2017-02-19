@@ -48,6 +48,10 @@ export class PythonCompletionItemProvider implements vscode.CompletionItemProvid
         if (lineText.trim().startsWith('#')) {
             return Promise.resolve([]);
         }
+        // If starts with a """ (possible doc string), then return
+        if (lineText.trim().startsWith('"""')) {
+            return Promise.resolve([]);
+        }
         const type = proxy.CommandType.Completions;
         const columnIndex = position.character;
 
