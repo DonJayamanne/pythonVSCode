@@ -1150,7 +1150,7 @@
 					"items": {
 						"type": "string"
 					},
-					"description": "Pattern used to exclude files and folders from ctags (see http://ctags.sourceforge.net/ctags.html)."
+					"description": "Pattern used to exclude files and folders from ctags See http://ctags.sourceforge.net/ctags.html."
 				},
 				"python.unitTest.promptToConfigure": {
 					"type": "boolean",
