@@ -15,6 +15,9 @@ export class WorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider {
         if (!pythonSettings.workspaceSymbols.enabled) {
             return [];
         }
+        if (!vscode.workspace || typeof vscode.workspace.rootPath !== 'string' || vscode.workspace.rootPath.length === 0) {
+            return Promise.resolve([]);
+        }
         // check whether tag file needs to be built
         const tagFileExists = await fsExistsAsync(pythonSettings.workspaceSymbols.tagFilePath);
         if (!tagFileExists) {

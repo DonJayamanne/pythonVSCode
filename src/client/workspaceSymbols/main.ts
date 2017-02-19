@@ -59,6 +59,9 @@ export class WorkspaceSymbols implements vscode.Disposable {
         if (!pythonSettings.workspaceSymbols.enabled || (token && token.isCancellationRequested)) {
             return Promise.resolve([]);
         }
+        if (!vscode.workspace || typeof vscode.workspace.rootPath !== 'string' || vscode.workspace.rootPath.length === 0) {
+            return Promise.resolve([]);
+        }
         return fsExistsAsync(pythonSettings.workspaceSymbols.tagFilePath).then(exits => {
             let promise = Promise.resolve();
 
