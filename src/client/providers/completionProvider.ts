@@ -36,14 +36,18 @@ export class PythonCompletionItemProvider implements vscode.CompletionItemProvid
         return [];
     }
     public provideCompletionItems(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): Thenable<vscode.CompletionItem[]> {
-        const filename = document.fileName;
-        if (document.lineAt(position.line).text.match(/^\s*\/\//)) {
-            return Promise.resolve([]);
-        }
         if (position.character <= 0) {
             return Promise.resolve([]);
         }
-
+        const filename = document.fileName;
+        const lineText = document.lineAt(position.line).text;
+        if (lineText.match(/^\s*\/\//)) {
+            return Promise.resolve([]);
+        }
+        // If starts with a comment, then return
+        if (lineText.trim().startsWith('#')) {
+            return Promise.resolve([]);
+        }
         const type = proxy.CommandType.Completions;
         const columnIndex = position.character;
 
