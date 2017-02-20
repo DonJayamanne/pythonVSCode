@@ -2,7 +2,7 @@
 
 import * as vscode from 'vscode';
 import { CodeLensProvider, TextDocument, CancellationToken, CodeLens, SymbolInformation } from 'vscode';
-import { TestFile, TestsToRun, TestSuite, TestFunction } from '../common/contracts';
+import { TestFile, TestsToRun, TestSuite, TestFunction, TestStatus } from '../common/contracts';
 import * as constants from '../../common/constants';
 import { getDiscoveredTests } from '../common/testUtils';
 
@@ -17,6 +17,13 @@ interface FunctionsAndSuites {
 }
 
 export class TestFileCodeLensProvider implements CodeLensProvider {
+    constructor(private _onDidChange: vscode.EventEmitter<void>) {
+    }
+
+    get onDidChangeCodeLenses(): vscode.Event<void> {
+        return this._onDidChange.event;
+    }
+
     public provideCodeLenses(document: TextDocument, token: CancellationToken): Thenable<CodeLens[]> {
         let testItems = getDiscoveredTests();
         if (!testItems || testItems.testFiles.length === 0 || testItems.testFunctions.length === 0) {
@@ -96,12 +103,12 @@ function getCodeLens(fileName: string, allFuncsAndSuites: FunctionsAndSuites,
             }
             return [
                 new CodeLens(range, {
-                    title: constants.Text.CodeLensRunUnitTest,
+                    title: getTestStatusIcon(cls.status) + constants.Text.CodeLensRunUnitTest,
                     command: constants.Commands.Tests_Run,
                     arguments: [<TestsToRun>{ testSuite: [cls] }]
                 }),
                 new CodeLens(range, {
-                    title: constants.Text.CodeLensDebugUnitTest,
+                    title: getTestStatusIcon(cls.status) + constants.Text.CodeLensDebugUnitTest,
                     command: constants.Commands.Tests_Debug,
                     arguments: [<TestsToRun>{ testSuite: [cls] }]
                 })
@@ -112,6 +119,41 @@ function getCodeLens(fileName: string, allFuncsAndSuites: FunctionsAndSuites,
     return null;
 }
 
+function getTestStatusIcon(status: TestStatus): string {
+    switch (status) {
+        case TestStatus.Pass: {
+            return '✔ ';
+        }
+        case TestStatus.Error:
+        case TestStatus.Fail: {
+            return '✘ ';
+        }
+        case TestStatus.Skipped: {
+            return '⃠ ';
+        }
+        default: {
+            return '';
+        }
+    }
+}
+
+function getTestStatusIcons(fns: TestFunction[]): string {
+    let statuses: string[] = [];
+    let count = fns.filter(fn => fn.status === TestStatus.Pass).length;
+    if (count > 0) {
+        statuses.push(`✔ ${count}`);
+    }
+    count = fns.filter(fn => fn.status === TestStatus.Error || fn.status === TestStatus.Fail).length;
+    if (count > 0) {
+        statuses.push(`✘ ${count}`);
+    }
+    count = fns.filter(fn => fn.status === TestStatus.Skipped).length;
+    if (count > 0) {
+        statuses.push(`⃠ ${count}`);
+    }
+
+    return statuses.join(' ');
+}
 function getFunctionCodeLens(filePath: string, functionsAndSuites: FunctionsAndSuites,
     symbolName: string, range: vscode.Range): vscode.CodeLens[] {
 
@@ -119,12 +161,12 @@ function getFunctionCodeLens(filePath: string, functionsAndSuites: FunctionsAndS
     if (fn) {
         return [
             new CodeLens(range, {
-                title: constants.Text.CodeLensRunUnitTest,
+                title: getTestStatusIcon(fn.status) + constants.Text.CodeLensRunUnitTest,
                 command: constants.Commands.Tests_Run,
                 arguments: [<TestsToRun>{ testFunction: [fn] }]
             }),
             new CodeLens(range, {
-                title: constants.Text.CodeLensDebugUnitTest,
+                title: getTestStatusIcon(fn.status) + constants.Text.CodeLensDebugUnitTest,
                 command: constants.Commands.Tests_Debug,
                 arguments: [<TestsToRun>{ testFunction: [fn] }]
             })
@@ -155,12 +197,12 @@ function getFunctionCodeLens(filePath: string, functionsAndSuites: FunctionsAndS
     // Find all flattened functions
     return [
         new CodeLens(range, {
-            title: constants.Text.CodeLensRunUnitTest + ' (Multiple)',
+            title: getTestStatusIcons(functions) + constants.Text.CodeLensRunUnitTest + ' (Multiple)',
             command: constants.Commands.Tests_Picker_UI,
             arguments: [filePath, functions]
         }),
         new CodeLens(range, {
-            title: constants.Text.CodeLensDebugUnitTest + ' (Multiple)',
+            title: getTestStatusIcons(functions) + constants.Text.CodeLensDebugUnitTest + ' (Multiple)',
             command: constants.Commands.Tests_Picker_UI_Debug,
             arguments: [filePath, functions]
         })

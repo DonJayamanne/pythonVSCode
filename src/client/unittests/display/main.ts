@@ -7,7 +7,7 @@ import { isNotInstalledError, createDeferred } from '../../common/helpers';
 
 export class TestResultDisplay {
     private statusBar: vscode.StatusBarItem;
-    constructor(private outputChannel: vscode.OutputChannel) {
+    constructor(private outputChannel: vscode.OutputChannel, private onDidChange: vscode.EventEmitter<any> = null) {
         this.statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
     }
     public dispose() {
@@ -62,7 +62,9 @@ export class TestResultDisplay {
         this.statusBar.text = statusText.length === 0 ? 'No Tests Ran' : statusText.join(' ');
         this.statusBar.color = foreColor;
         this.statusBar.command = constants.Commands.Tests_View_UI;
-
+        if (this.onDidChange) {
+            this.onDidChange.fire();
+        }
         if (statusText.length === 0 && !debug) {
             vscode.window.showWarningMessage('No tests ran, please check the configuration settings for the tests.');
         }

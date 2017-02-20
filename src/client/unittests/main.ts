@@ -21,6 +21,7 @@ let nosetestManager: nosetests.TestManager;
 let testResultDisplay: TestResultDisplay;
 let testDisplay: TestDisplay;
 let outChannel: vscode.OutputChannel;
+let onDidChange: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
 
 export function activate(context: vscode.ExtensionContext, outputChannel: vscode.OutputChannel) {
     context.subscriptions.push({ dispose: dispose });
@@ -37,7 +38,7 @@ export function activate(context: vscode.ExtensionContext, outputChannel: vscode
     }
 
     settings.addListener('change', onConfigChanged);
-    context.subscriptions.push(activateCodeLenses());
+    context.subscriptions.push(activateCodeLenses(onDidChange));
 }
 function dispose() {
     if (pyTestManager) {
@@ -185,7 +186,7 @@ function discoverTests(ignoreCache?: boolean) {
     }
 
     if (testManager && (testManager.status !== TestStatus.Discovering && testManager.status !== TestStatus.Running)) {
-        testResultDisplay = testResultDisplay ? testResultDisplay : new TestResultDisplay(outChannel);
+        testResultDisplay = testResultDisplay ? testResultDisplay : new TestResultDisplay(outChannel, onDidChange);
         return testResultDisplay.DisplayDiscoverStatus(testManager.discoverTests(ignoreCache));
     }
     else {
@@ -235,7 +236,7 @@ function runTestsImpl(arg?: vscode.Uri | TestsToRun | boolean | FlattenedTestFun
     // lastRanTests = testsToRun;
     let runInfo = identifyTestType(vscode.workspace.rootPath, arg);
 
-    testResultDisplay = testResultDisplay ? testResultDisplay : new TestResultDisplay(outChannel);
+    testResultDisplay = testResultDisplay ? testResultDisplay : new TestResultDisplay(outChannel, onDidChange);
 
     let runPromise = testManager.runTest(runInfo, debug).catch(reason => {
         if (reason !== CANCELLATION_REASON) {
