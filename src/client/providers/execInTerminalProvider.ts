@@ -21,7 +21,7 @@ export function activateExecInTerminalProvider(): vscode.Disposable[] {
 }
 
 function removeBlankLines(code: string): string {
-    let codeLines = code.split(/\r?\n/g)
+    let codeLines = code.split(/\r?\n/g);
     let codeLinesWithoutEmptyLines = codeLines.filter(line => line.trim().length > 0);
     let lastLineIsEmpty = codeLines.length > 0 && codeLines[codeLines.length - 1].trim().length === 0;
     if (lastLineIsEmpty) {

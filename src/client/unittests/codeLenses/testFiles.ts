@@ -85,9 +85,6 @@ function getCodeLenses(documentUri: vscode.Uri, token: vscode.CancellationToken)
         });
 }
 
-// Move all of this rubbis into a separate file // too long
-const testParametirizedFunction = /.*\[.*\]/g;
-
 function getCodeLens(fileName: string, allFuncsAndSuites: FunctionsAndSuites,
     range: vscode.Range, symbolName: string, symbolKind: vscode.SymbolKind): vscode.CodeLens[] {
 
