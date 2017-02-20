@@ -2,6 +2,7 @@
 import * as vscode from 'vscode';
 import * as settings from '../common/configSettings';
 import { Commands, PythonLanguage } from '../common/constants';
+import { EOL } from 'os';
 let path = require('path');
 let terminal: vscode.Terminal;
 import { IS_WINDOWS } from '../common/utils';
@@ -19,6 +20,15 @@ export function activateExecInTerminalProvider(): vscode.Disposable[] {
     return disposables;
 }
 
+function removeBlankLines(code: string): string {
+    let codeLines = code.split(/\r?\n/g)
+    let codeLinesWithoutEmptyLines = codeLines.filter(line => line.trim().length > 0);
+    let lastLineIsEmpty = codeLines.length > 0 && codeLines[codeLines.length - 1].trim().length === 0;
+    if (lastLineIsEmpty) {
+        codeLinesWithoutEmptyLines.unshift('');
+    }
+    return codeLinesWithoutEmptyLines.join(EOL);
+}
 function execInTerminal(fileUri?: vscode.Uri) {
     const terminalShellSettings = vscode.workspace.getConfiguration('terminal.integrated.shell');
     const IS_POWERSHELL = /powershell/.test(terminalShellSettings.get<string>('windows'));
@@ -108,6 +118,7 @@ function execSelectionInTerminal() {
     if (code.length === 0) {
         return;
     }
+    code = removeBlankLines(code);
     const launchArgs = settings.PythonSettings.getInstance().terminal.launchArgs;
     const launchArgsString = launchArgs.length > 0 ? " ".concat(launchArgs.join(" ")) : "";
     const command = `${currentPythonPath}${launchArgsString}`;
