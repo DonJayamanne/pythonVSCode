@@ -1147,7 +1147,7 @@
 				},
 				"python.workspaceSymbols.exclusionPatterns": {
 					"type": "array",
-					"default": [],
+					"default": ["**/site-packages/**"],
 					"items": {
 						"type": "string"
 					},

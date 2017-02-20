@@ -15,7 +15,6 @@
 --exclude=**/*.jar
 --exclude=**/*.class
 --exclude=**/.idea/
---exclude=**/site-packages/**
 --exclude=build
 --exclude=Builds
 --exclude=doc
