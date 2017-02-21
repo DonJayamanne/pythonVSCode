@@ -17,6 +17,7 @@ export class PythonHoverProvider implements vscode.HoverProvider {
         let capturedInfo: string[] = [];
         data.items.forEach(item => {
             let { description, signature } = item;
+            const rawSignature = signature;
             switch (item.kind) {
                 case vscode.SymbolKind.Constructor:
                 case vscode.SymbolKind.Function:
@@ -34,8 +35,13 @@ export class PythonHoverProvider implements vscode.HoverProvider {
             }
             if (item.docstring) {
                 let lines = item.docstring.split(EOL);
-                if (lines.length > 0 && lines[0] === item.signature) {
+                // If the docstring starts with the signature, then remove those lines from the docstring
+                if (lines.length > 0 && item.signature.indexOf(lines[0]) === 0) {
                     lines.shift();
+                    let endIndex = lines.findIndex(line => item.signature.endsWith(line));
+                    if (endIndex >= 0) {
+                        lines = lines.filter((line, index) => index > endIndex);
+                    }
                 }
                 if (lines.length > 0 && item.signature.startsWith(currentWord) && lines[0].startsWith(currentWord) && lines[0].endsWith(')')) {
                     lines.shift();
