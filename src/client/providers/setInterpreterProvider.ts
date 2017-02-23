@@ -29,10 +29,13 @@ function getSearchPaths(): Promise<string[]> {
             localAppData, appData,
         process.env['SystemDrive']];
         if (appData) {
-            lookupParentDirectories.push(path.join(localAppData, 'Programs'))
+            lookupParentDirectories.push(path.join(localAppData, 'Programs'));
         }
         if (localAppData) {
-            lookupParentDirectories.push(path.join(appData, 'Programs'))
+            lookupParentDirectories.push(path.join(appData, 'Programs'));
+        }
+        if (settings.PythonSettings.getInstance().venvPath) {
+            lookupParentDirectories.push(settings.PythonSettings.getInstance().venvPath);
         }
         const dirPromises = lookupParentDirectories.map(rootDir => {
             if (!rootDir) {
@@ -64,11 +67,14 @@ function getSearchPaths(): Promise<string[]> {
             return validPathsCollection.reduce((previousValue, currentValue) => previousValue.concat(currentValue), []);
         });
     } else {
-        const paths = ['/usr/local/bin', '/usr/bin', '/bin', '/usr/sbin', '/sbin', '/usr/local/sbin'];
+        const paths = ['/usr/local/bin', '/usr/bin', '/bin', '/usr/sbin', '/sbin', '/usr/local/sbin', '/Envs', '/.virtualenvs', '/.pyenv'];
         // Add support for paths such as /Users/xxx/anaconda/bin
         if (process.env['HOME']) {
             paths.push(path.join(process.env['HOME'], 'anaconda', 'bin'));
             paths.push(path.join(process.env['HOME'], 'python', 'bin'));
+        }
+        if (settings.PythonSettings.getInstance().venvPath) {
+            paths.push(settings.PythonSettings.getInstance().venvPath);
         }
         return Promise.resolve(paths);
     }
@@ -241,7 +247,7 @@ function presentQuickPickOfSuggestedPythonPaths() {
 }
 
 function setInterpreter() {
-    if (typeof vscode.workspace.rootPath !== 'string'){
+    if (typeof vscode.workspace.rootPath !== 'string') {
         return vscode.window.showErrorMessage('Please open a workspace to select the Python Interpreter');
     }
     presentQuickPickOfSuggestedPythonPaths();

@@ -854,6 +854,11 @@
 					"default": "python",
 					"description": "Path to Python, you can use a custom version of Python by modifying this setting to include the full path."
 				},
+				"python.venvPath": {
+					"type": "string",
+					"default": "",
+					"description": "Path to folder with a list of Virtual Environments (e.g. ~/.pyenv, ~/Envs, ~/.virtualenvs)."
+				},
 				"python.envFile": {
 					"type": "string",
 					"description": "Absolute path to a file containing environment variable definitions.",

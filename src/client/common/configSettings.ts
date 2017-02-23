@@ -10,6 +10,7 @@ export const IS_WINDOWS = /^win/.test(process.platform);
 
 export interface IPythonSettings {
     pythonPath: string;
+    venvPath: string;
     jediPath: string;
     devOptions: string[];
     linting: ILintingSettings;
@@ -134,6 +135,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         let pythonSettings = vscode.workspace.getConfiguration('python');
         this.pythonPath = systemVariables.resolveAny(pythonSettings.get<string>('pythonPath'));
         this.pythonPath = getAbsolutePath(this.pythonPath, IS_TEST_EXECUTION ? __dirname : workspaceRoot);
+        this.venvPath = systemVariables.resolveAny(pythonSettings.get<string>('venvPath'));
         this.jediPath = systemVariables.resolveAny(pythonSettings.get<string>('jediPath'));
         if (typeof this.jediPath === 'string' && this.jediPath.length > 0) {
             this.jediPath = getAbsolutePath(this.jediPath, IS_TEST_EXECUTION ? __dirname : workspaceRoot);
@@ -308,6 +310,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
     }
     public jediPath: string;
     public envFile: string;
+    public venvPath: string;
     public devOptions: string[];
     public linting: ILintingSettings;
     public formatting: IFormattingSettings;
