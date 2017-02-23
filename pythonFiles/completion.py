@@ -25,9 +25,12 @@ class JediCompletion(object):
         is_built_in = definition.in_builtin_module
         # if definition.type not in ['import', 'keyword'] and is_built_in():
         #    return 'builtin'
-        if definition.type in ['statement'] and definition.name.isupper():
-            return 'constant'
-        return self.basic_types.get(definition.type, definition.type)
+        try:
+            if definition.type in ['statement'] and definition.name.isupper():
+                return 'constant'
+            return self.basic_types.get(definition.type, definition.type)
+        except Exception:
+            return 'builtin'
 
     def _additional_info(self, completion):
         """Provide additional information about the completion object."""
@@ -107,8 +110,13 @@ class JediCompletion(object):
             sig = {"name": "", "description": "", "docstring": "",
                    "paramindex": 0, "params": [], "bracketstart": []}
             sig["description"] = signature.description
-            sig["docstring"] = signature.docstring()
-            sig["raw_docstring"] = signature.docstring(raw=True)
+            try:
+                sig["docstring"] = signature.docstring()
+                sig["raw_docstring"] = signature.docstring(raw=True)
+            except Exception:
+                sig["docstring"] = ''
+                sig["raw_docstring"] = ''
+                
             sig["name"] = signature.name
             sig["paramindex"] = signature.index
             sig["bracketstart"].append(signature.index)
@@ -129,8 +137,13 @@ class JediCompletion(object):
                 # if name.startswith('*'):
                 #    continue
                 #_signatures.append((signature, name, value))
-                sig["params"].append({"name": name, "value": value, "docstring": param.docstring(
-                ), "description": param.description})
+                paramDocstring = ''
+                try:
+                    paramDocstring = param.docstring()
+                except Exception:
+                    paramDocstring = ''
+
+                sig["params"].append({"name": name, "value": value, "docstring": paramDocstring, "description": param.description})
         return _signatures
 
     def _serialize_completions(self, script, identifier=None, prefix=''):
@@ -168,8 +181,12 @@ class JediCompletion(object):
                 _completion['text'] = name
                 _completion['displayText'] = name
             if self.show_doc_strings:
-                _completion['description'] = signature.docstring()
-                _completion['raw_docstring'] = signature.docstring(raw=True)
+                try:
+                    _completion['description'] = signature.docstring()
+                    _completion['raw_docstring'] = signature.docstring(raw=True)
+                except Exception:
+                    _completion['description'] = ''
+                    _completion['raw_docstring'] = ''
             else:
                 _completion['description'] = self._generate_signature(
                     signature)
@@ -181,17 +198,26 @@ class JediCompletion(object):
             completions = []
         for completion in completions:
             if self.show_doc_strings:
-                description = completion.docstring()
+                try:
+                    description = completion.docstring()
+                except Exception:
+                    description = ''
             else:
                 description = self._generate_signature(completion)
-            _completion = {
-                'text': completion.name,
-                'type': self._get_definition_type(completion),
-                'raw_type': completion.type,
-                'description': description,
-                'raw_docstring': completion.docstring(raw=True),
-                'rightLabel': self._additional_info(completion)
-            }
+
+            try:
+                rawDocstring = completion.docstring(raw=True)
+                _completion = {
+                    'text': completion.name,
+                    'type': self._get_definition_type(completion),
+                    'raw_type': completion.type,
+                    'description': description,
+                    'raw_docstring': rawDocstring,
+                    'rightLabel': self._additional_info(completion)
+                }                
+            except Exception:
+                continue
+
             for c in _completions:
                 if c['text'] == _completion['text']:
                     c['type'] = _completion['type']
@@ -348,6 +374,13 @@ class JediCompletion(object):
                     container = parent.name if parent.type != 'module' else ''
                 except Exception:
                     container = ''
+                
+                try:
+                    docstring = definition.docstring()
+                    rawdocstring = definition.docstring(raw=True)
+                except Exception:
+                    docstring = ''
+                    rawdocstring = ''
                 _definition = {
                     'text': definition.name,
                     'type': self._get_definition_type(definition),
@@ -356,8 +389,8 @@ class JediCompletion(object):
                     'container': container,
                     'range': definitionRange,
                     'description': definition.description,
-                    'docstring': definition.docstring(),
-                    'raw_docstring': definition.docstring(raw=True),
+                    'docstring': docstring,
+                    'raw_docstring': rawdocstring,
                     'signature': self._generate_signature(definition)
                 }
                 _definitions.append(_definition)
@@ -388,6 +421,13 @@ class JediCompletion(object):
                         container = parent.name if parent.type != 'module' else ''
                     except Exception:
                         container = ''
+                
+                    try:
+                        docstring = definition.docstring()
+                        rawdocstring = definition.docstring(raw=True)
+                    except Exception:
+                        docstring = ''
+                        rawdocstring = ''
                     _definition = {
                         'text': definition.name,
                         'type': self._get_definition_type(definition),
@@ -396,8 +436,8 @@ class JediCompletion(object):
                         'container': container,
                         'range': self._extract_range(definition),
                         'description': definition.description,
-                        'docstring': definition.docstring(),
-                        'raw_docstring': definition.docstring(raw=True)
+                        'docstring': docstring,
+                        'raw_docstring': rawdocstring
                     }
                     _definitions.append(_definition)
             except Exception as e:
@@ -411,13 +451,19 @@ class JediCompletion(object):
             description = None
             if definition.type in ['class', 'function']:
                 signature = self._generate_signature(definition)
-                description = definition.docstring(raw=True).strip()
+                try:
+                    description = definition.docstring(raw=True).strip()
+                except Exception:
+                    description = ''
                 if not description and not hasattr(definition, 'get_line_code'):
                     # jedi returns an empty string for compiled objects
                     description = definition.docstring().strip()
             if definition.type == 'module':
                 signature = definition.full_name
-                description = definition.docstring(raw=True).strip()
+                try:
+                    description = definition.docstring(raw=True).strip()
+                except Exception:
+                    description = ''
                 if not description and hasattr(definition, 'get_line_code'):
                     # jedi returns an empty string for compiled objects
                     description = definition.docstring().strip()
@@ -540,15 +586,24 @@ class JediCompletion(object):
 
 if __name__ == '__main__':
     cachePrefix = 'v'
+    modulesToLoad = ''
     if len(sys.argv) > 0 and sys.argv[1] == 'preview':
         jediPath = os.path.join(os.path.dirname(__file__), 'preview')
         jediPreview = True
+        if len(sys.argv) > 2:
+            modulesToLoad = sys.argv[2]
     elif len(sys.argv) > 0 and sys.argv[1] == 'custom':
         jediPath = sys.argv[2]
         jediPreview = True
         cachePrefix = 'custom_v'
+        if len(sys.argv) > 3:
+            modulesToLoad = sys.argv[3]
     else:
+        #std
         jediPath = os.path.join(os.path.dirname(__file__), 'release')
+        if len(sys.argv) > 2:
+            modulesToLoad = sys.argv[2]
+
     sys.path.insert(0, jediPath)
     import jedi
     if jediPreview:
@@ -556,4 +611,6 @@ if __name__ == '__main__':
             jedi.settings.cache_directory, cachePrefix + jedi.__version__.replace('.', ''))
     # remove jedi from path after we import it so it will not be completed
     sys.path.pop(0)
+    if len(modulesToLoad) > 0:
+        jedi.preload_module(modulesToLoad.split(','))
     JediCompletion().watch()

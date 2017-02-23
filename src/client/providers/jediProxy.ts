@@ -212,6 +212,11 @@ function spawnProcess(dir: string) {
             args.push('custom');
             args.push(pythonSettings.jediPath);
         }
+        if (Array.isArray(pythonSettings.autoComplete.preloadModules) &&
+            pythonSettings.autoComplete.preloadModules.length > 0) {
+            var modules = pythonSettings.autoComplete.preloadModules.filter(m => m.trim().length > 0).join(',');
+            args.push(modules);
+        }
         proc = child_process.spawn(pythonSettings.pythonPath, args, {
             cwd: dir,
             env: environmentVariables

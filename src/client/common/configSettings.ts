@@ -91,6 +91,7 @@ export interface IFormattingSettings {
 export interface IAutoCompeteSettings {
     addBrackets: boolean;
     extraPaths: string[];
+    preloadModules: string[];
 }
 export interface IWorkspaceSymbolSettings {
     enabled: boolean;
@@ -165,7 +166,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         // Support for travis
         this.linting = this.linting ? this.linting : {
             enabled: false,
-            enabledWithoutWorkspace: false, 
+            enabledWithoutWorkspace: false,
             ignorePatterns: [],
             flake8Args: [], flake8Enabled: false, flake8Path: 'flake',
             lintOnSave: false, lintOnTextChange: false, maxNumberOfProblems: 100,
@@ -218,7 +219,8 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         // Support for travis
         this.autoComplete = this.autoComplete ? this.autoComplete : {
             extraPaths: [],
-            addBrackets: false
+            addBrackets: false,
+            preloadModules: []
         };
 
         let workspaceSymbolsSettings = systemVariables.resolveAny(pythonSettings.get<IWorkspaceSymbolSettings>('workspaceSymbols'));

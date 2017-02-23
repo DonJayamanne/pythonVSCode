@@ -1120,6 +1120,14 @@
 					"default": "Python",
 					"description": "The output window name for the formatting messages, defaults to Python output window."
 				},
+				"python.autoComplete.preloadModules": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"default": [],
+					"description": "Comma delimited list of modules preloaded to speed up Auto Complete (e.g. add Numpy, Pandas, etc, items slow to load when autocompleting)."
+				},
 				"python.autoComplete.extraPaths": {
 					"type": "array",
 					"default": [],
