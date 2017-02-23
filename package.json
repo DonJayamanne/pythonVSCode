@@ -882,6 +882,11 @@
 					"default": true,
 					"description": "Whether to lint Python files."
 				},
+				"python.linting.enabledWithoutWorkspace": {
+					"type": "boolean",
+					"default": true,
+					"description": "Whether to lint Python files when no workspace is opened."
+				},
 				"python.linting.prospectorEnabled": {
 					"type": "boolean",
 					"default": false,

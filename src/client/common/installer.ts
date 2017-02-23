@@ -64,7 +64,7 @@ ProductNames.set(Product.pytest, 'py.test');
 ProductNames.set(Product.yapf, 'yapf');
 
 const SettingToDisableProduct = new Map<Product, string>();
-SettingToDisableProduct.set(Product.autopep8, '');
+SettingToDisableProduct.set(Product.autopep8, 'autopep8');
 SettingToDisableProduct.set(Product.flake8, 'linting.flake8Enabled');
 SettingToDisableProduct.set(Product.mypy, 'linting.mypyEnabled');
 SettingToDisableProduct.set(Product.nosetest, 'unitTest.nosetestsEnabled');
@@ -176,7 +176,12 @@ export class Installer {
 export function disableLinter(product: Product) {
     const pythonConfig = vscode.workspace.getConfiguration('python');
     const settingToDisable = SettingToDisableProduct.get(product);
-    pythonConfig.update(settingToDisable, false);
+    if (vscode.workspace.rootPath) {
+        return pythonConfig.update(settingToDisable, false);
+    }
+    else {
+        return pythonConfig.update('linting.enabledWithoutWorkspace', false, true);
+    }
 }
 
 function isTestFrameworkInstalled(product: Product): Promise<boolean> {

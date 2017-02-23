@@ -157,6 +157,9 @@ export class LintProvider extends vscode.Disposable {
         this.pendingLintings.set(document.uri.fsPath, cancelToken);
         this.outputChannel.clear();
         let promises: Promise<linter.ILintMessage[]>[] = this.linters.map(linter => {
+            if (!vscode.workspace.rootPath && !this.settings.linting.enabledWithoutWorkspace) {
+                return Promise.resolve([]);
+            }
             if (!linter.isEnabled()) {
                 return Promise.resolve([]);
             }
