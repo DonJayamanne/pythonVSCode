@@ -11,8 +11,6 @@ import * as flake8 from './../linters/flake8';
 import * as pydocstyle from './../linters/pydocstyle';
 import * as mypy from './../linters/mypy';
 import * as settings from '../common/configSettings';
-import * as telemetryHelper from '../common/telemetry';
-import * as telemetryContracts from '../common/telemetryContracts';
 import * as fs from 'fs';
 import { LinterErrors } from '../common/constants';
 const Minimatch = require("minimatch").Minimatch;
@@ -164,12 +162,7 @@ export class LintProvider extends vscode.Disposable {
                 return Promise.resolve([]);
             }
             // turn off telemetry for linters (at least for now)
-            //let delays = new telemetryHelper.Delays();
-            return linter.runLinter(document, cancelToken.token).then(results => {
-                //delays.stop();
-                //telemetryHelper.sendTelemetryEvent(telemetryContracts.IDE.Lint, { Lint_Provider: linter.Id }, delays.toMeasures());
-                return results;
-            });
+            return linter.runLinter(document, cancelToken.token);
         });
         this.documentHasJupyterCodeCells(document, cancelToken.token).then(hasJupyterCodeCells => {
             // linters will resolve asynchronously - keep a track of all 

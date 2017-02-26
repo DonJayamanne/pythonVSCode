@@ -5,7 +5,6 @@ import * as path from 'path';
 import * as child_process from 'child_process';
 import { IPythonSettings } from '../common/configSettings';
 import { REFACTOR } from '../common/telemetryContracts';
-import { sendTelemetryEvent, Delays } from '../common/telemetry';
 import { IS_WINDOWS, getCustomEnvVars, getWindowsLineEndingCount } from '../common/utils';
 import { mergeEnvVariables } from '../common/envFileParser';
 
@@ -41,8 +40,8 @@ export class RefactorProxy extends vscode.Disposable {
         // So for each line, reduce one characer (for CR)
         // But Not all Windows users use CRLF
         const offset = document.offsetAt(position);
-        const winEols = getWindowsLineEndingCount(document, offset);        
-        
+        const winEols = getWindowsLineEndingCount(document, offset);
+
         return offset - winEols;
     }
     rename<T>(document: vscode.TextDocument, name: string, filePath: string, range: vscode.Range, options?: vscode.TextEditorOptions): Promise<T> {
@@ -95,21 +94,12 @@ export class RefactorProxy extends vscode.Disposable {
         return this.sendCommand<T>(JSON.stringify(command), REFACTOR.ExtractMethod);
     }
     private sendCommand<T>(command: string, telemetryEvent: string): Promise<T> {
-        let timer = new Delays();
         return this.initialize(this.pythonSettings.pythonPath).then(() => {
             return new Promise<T>((resolve, reject) => {
                 this._commandResolve = resolve;
                 this._commandReject = reject;
                 this._process.stdin.write(command + '\n');
             });
-        }).then(value => {
-            timer.stop();
-            sendTelemetryEvent(telemetryEvent, null, timer.toMeasures());
-            return value;
-        }).catch(reason => {
-            timer.stop();
-            sendTelemetryEvent(telemetryEvent, null, timer.toMeasures());
-            return Promise.reject(reason);
         });
     }
     private initialize(pythonPath: string): Promise<string> {
