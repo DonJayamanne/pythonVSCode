@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { dirname, join } from 'path';
+import { PythonSettings } from './common/configSettings';
 
 export function activateSingleFileDebug() {
     return vscode.commands.registerCommand('python.python-debug.startSession', config => {
@@ -8,7 +9,7 @@ export function activateSingleFileDebug() {
             config.type = 'python';
             config.name = 'Launch';
             config.request = 'launch';
-            config.pythonPath = "python";
+            config.pythonPath = PythonSettings.getInstance().pythonPath;
             config.debugOptions = [
                 "WaitOnAbnormalExit",
                 "WaitOnNormalExit",
@@ -39,10 +40,10 @@ export function activateSingleFileDebug() {
             if (vscode.workspace && vscode.workspace.rootPath) {
                 config.envFile = join(vscode.workspace.rootPath, '.env');
             }
-            if (!config.envFile && typeof config.cwd === 'string' && config.cwd.lengths > 0){
+            if (!config.envFile && typeof config.cwd === 'string' && config.cwd.lengths > 0) {
                 config.envFile = join(config.cwd, '.env');
             }
-            
+
         }
 
         vscode.commands.executeCommand('vscode.startDebug', config);
