@@ -139,7 +139,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         this.venvPath = systemVariables.resolveAny(pythonSettings.get<string>('venvPath'));
         this.jediPath = systemVariables.resolveAny(pythonSettings.get<string>('jediPath'));
         if (typeof this.jediPath === 'string' && this.jediPath.length > 0) {
-            this.jediPath = getAbsolutePath(this.jediPath, IS_TEST_EXECUTION ? __dirname : workspaceRoot);
+            this.jediPath = getAbsolutePath(systemVariables.resolveAny(this.jediPath), IS_TEST_EXECUTION ? __dirname : workspaceRoot);
         }
         else {
             this.jediPath = '';
@@ -184,12 +184,12 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
                 warning: vscode.DiagnosticSeverity.Warning
             }
         };
-        this.linting.pylintPath = getAbsolutePath(this.linting.pylintPath, workspaceRoot);
-        this.linting.flake8Path = getAbsolutePath(this.linting.flake8Path, workspaceRoot);
-        this.linting.pep8Path = getAbsolutePath(this.linting.pep8Path, workspaceRoot);
-        this.linting.pylamaPath = getAbsolutePath(this.linting.pylamaPath, workspaceRoot);
-        this.linting.prospectorPath = getAbsolutePath(this.linting.prospectorPath, workspaceRoot);
-        this.linting.pydocstylePath = getAbsolutePath(this.linting.pydocstylePath, workspaceRoot);
+        this.linting.pylintPath = getAbsolutePath(systemVariables.resolveAny(this.linting.pylintPath), workspaceRoot);
+        this.linting.flake8Path = getAbsolutePath(systemVariables.resolveAny(this.linting.flake8Path), workspaceRoot);
+        this.linting.pep8Path = getAbsolutePath(systemVariables.resolveAny(this.linting.pep8Path), workspaceRoot);
+        this.linting.pylamaPath = getAbsolutePath(systemVariables.resolveAny(this.linting.pylamaPath), workspaceRoot);
+        this.linting.prospectorPath = getAbsolutePath(systemVariables.resolveAny(this.linting.prospectorPath), workspaceRoot);
+        this.linting.pydocstylePath = getAbsolutePath(systemVariables.resolveAny(this.linting.pydocstylePath), workspaceRoot);
 
         let formattingSettings = systemVariables.resolveAny(pythonSettings.get<IFormattingSettings>('formatting'));
         if (this.formatting) {
@@ -206,8 +206,8 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
             yapfArgs: [], yapfPath: 'yapf',
             formatOnSave: false
         };
-        this.formatting.autopep8Path = getAbsolutePath(this.formatting.autopep8Path, workspaceRoot);
-        this.formatting.yapfPath = getAbsolutePath(this.formatting.yapfPath, workspaceRoot);
+        this.formatting.autopep8Path = getAbsolutePath(systemVariables.resolveAny(this.formatting.autopep8Path), workspaceRoot);
+        this.formatting.yapfPath = getAbsolutePath(systemVariables.resolveAny(this.formatting.yapfPath), workspaceRoot);
 
         let autoCompleteSettings = systemVariables.resolveAny(pythonSettings.get<IAutoCompeteSettings>('autoComplete'));
         if (this.autoComplete) {
@@ -260,8 +260,8 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
             pyTestArgs: [], pyTestEnabled: false, pyTestPath: 'pytest',
             unittestArgs: [], unittestEnabled: false
         };
-        this.unitTest.pyTestPath = getAbsolutePath(this.unitTest.pyTestPath, workspaceRoot);
-        this.unitTest.nosetestPath = getAbsolutePath(this.unitTest.nosetestPath, workspaceRoot);
+        this.unitTest.pyTestPath = getAbsolutePath(systemVariables.resolveAny(this.unitTest.pyTestPath), workspaceRoot);
+        this.unitTest.nosetestPath = getAbsolutePath(systemVariables.resolveAny(this.unitTest.nosetestPath), workspaceRoot);
 
         // Resolve any variables found in the test arguments
         this.unitTest.nosetestArgs = this.unitTest.nosetestArgs.map(arg => systemVariables.resolveAny(arg));
