@@ -102,7 +102,7 @@ For further information and details continue through to the [documentation](http
 ## [Roadmap](https://donjayamanne.github.io/pythonVSCodeDocs/docs/roadmap/)
 
 ## [Change Log](https://github.com/DonJayamanne/pythonVSCode/blob/master/CHANGELOG.md)
-### Version 0.5.9 (3 Marhc 2017)
+### Version 0.5.9 (2 March 2017)
 * Fixed navigating to definitions [#711](https://github.com/DonJayamanne/pythonVSCode/issues/711)  
 * Support auto detecting binaries from Python Path [#716](https://github.com/DonJayamanne/pythonVSCode/issues/716)  
 * Setting PYTHONPATH environment variable [#686](https://github.com/DonJayamanne/pythonVSCode/issues/686)  
