@@ -1,9 +1,10 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import {BaseFormatter} from './../formatters/baseFormatter';
-import {YapfFormatter} from './../formatters/yapfFormatter';
-import {AutoPep8Formatter} from './../formatters/autoPep8Formatter';
+import { BaseFormatter } from './../formatters/baseFormatter';
+import { YapfFormatter } from './../formatters/yapfFormatter';
+import { AutoPep8Formatter } from './../formatters/autoPep8Formatter';
+import { DummyFormatter } from './../formatters/dummyFormatter';
 import * as settings from './../common/configSettings';
 
 export class PythonFormattingEditProvider implements vscode.DocumentFormattingEditProvider, vscode.DocumentRangeFormattingEditProvider {
@@ -12,8 +13,10 @@ export class PythonFormattingEditProvider implements vscode.DocumentFormattingEd
     public constructor(context: vscode.ExtensionContext, outputChannel: vscode.OutputChannel, private settings: settings.IPythonSettings) {
         let yapfFormatter = new YapfFormatter(outputChannel, settings);
         let autoPep8 = new AutoPep8Formatter(outputChannel, settings);
+        let dummy = new DummyFormatter(outputChannel, settings);
         this.formatters.set(yapfFormatter.Id, yapfFormatter);
         this.formatters.set(autoPep8.Id, autoPep8);
+        this.formatters.set(dummy.Id, dummy);
     }
 
     public provideDocumentFormattingEdits(document: vscode.TextDocument, options: vscode.FormattingOptions, token: vscode.CancellationToken): Thenable<vscode.TextEdit[]> {

@@ -100,9 +100,11 @@ export function activate(context: vscode.ExtensionContext) {
     if (pythonSettings.devOptions.indexOf('DISABLE_SIGNATURE') === -1) {
         context.subscriptions.push(vscode.languages.registerSignatureHelpProvider(PYTHON, new PythonSignatureProvider(context, jediProx), '(', ','));
     }
-    const formatProvider = new PythonFormattingEditProvider(context, formatOutChannel, pythonSettings);
-    context.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider(PYTHON, formatProvider));
-    context.subscriptions.push(vscode.languages.registerDocumentRangeFormattingEditProvider(PYTHON, formatProvider));
+    if (pythonSettings.formatting.provider !== 'none') {
+        const formatProvider = new PythonFormattingEditProvider(context, formatOutChannel, pythonSettings);
+        context.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider(PYTHON, formatProvider));
+        context.subscriptions.push(vscode.languages.registerDocumentRangeFormattingEditProvider(PYTHON, formatProvider));
+    }
 
     const jupyterExtInstalled = vscode.extensions.getExtension('donjayamanne.jupyter');
     let linterProvider = new LintProvider(context, lintingOutChannel, (a, b) => Promise.resolve(false));
