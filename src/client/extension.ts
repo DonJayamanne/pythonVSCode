@@ -29,16 +29,16 @@ import * as os from 'os';
 import * as fs from 'fs';
 import { activateSingleFileDebug } from './singleFileDebug';
 import { getPathFromPythonCommand } from './common/utils';
+import { JupyterProvider } from './jupyter/provider';
 
 const PYTHON: vscode.DocumentFilter = { language: 'python', scheme: 'file' };
 let unitTestOutChannel: vscode.OutputChannel;
 let formatOutChannel: vscode.OutputChannel;
 let lintingOutChannel: vscode.OutputChannel;
 let jupMain: jup.Jupyter;
-
 export function activate(context: vscode.ExtensionContext) {
     let pythonSettings = settings.PythonSettings.getInstance();
-    let pythonExt = new PythonExt()
+    let pythonExt = new PythonExt();
     const hasPySparkInCompletionPath = pythonSettings.autoComplete.extraPaths.some(p => p.toLowerCase().indexOf('spark') >= 0);
     telemetryHelper.sendTelemetryEvent(telemetryContracts.EVENT_LOAD, {
         CodeComplete_Has_ExtraPaths: pythonSettings.autoComplete.extraPaths.length > 0 ? 'true' : 'false',
@@ -64,7 +64,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(activateFormatOnSaveProvider(PYTHON, settings.PythonSettings.getInstance(), formatOutChannel));
 
     context.subscriptions.push(vscode.commands.registerCommand(Commands.Start_REPL, () => {
-        getPathFromPythonCommand(["-c", "import sys;print(sys.executable)"]).catch(()=>{
+        getPathFromPythonCommand(["-c", "import sys;print(sys.executable)"]).catch(() => {
             return pythonSettings.pythonPath;
         }).then(pythonExecutablePath => {
             let term = vscode.window.createTerminal('Python', pythonExecutablePath);
@@ -104,13 +104,27 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider(PYTHON, formatProvider));
     context.subscriptions.push(vscode.languages.registerDocumentRangeFormattingEditProvider(PYTHON, formatProvider));
 
+    const jupyterExtInstalled = vscode.extensions.getExtension('donjayamanne.jupyter');
+    let linterProvider = new LintProvider(context, lintingOutChannel, (a, b) => Promise.resolve(false));
+    context.subscriptions.push();
+    if (jupyterExtInstalled) {
+        if (jupyterExtInstalled.isActive) {
+            jupyterExtInstalled.exports.registerLanguageProvider(PYTHON.language, new JupyterProvider());
+            linterProvider.documentHasJupyterCodeCells = jupyterExtInstalled.exports.hasCodeCells;
+        }
 
-    jupMain = new jup.Jupyter(lintingOutChannel);
-    const documentHasJupyterCodeCells = jupMain.hasCodeCells.bind(jupMain);
-    jupMain.activate();
-    context.subscriptions.push(jupMain);
-
-    context.subscriptions.push(new LintProvider(context, lintingOutChannel, documentHasJupyterCodeCells));
+        jupyterExtInstalled.activate().then(() => {
+            jupyterExtInstalled.exports.registerLanguageProvider(PYTHON.language, new JupyterProvider());
+            linterProvider.documentHasJupyterCodeCells = jupyterExtInstalled.exports.hasCodeCells;
+        });
+    }
+    else {
+        jupMain = new jup.Jupyter(lintingOutChannel);
+        const documentHasJupyterCodeCells = jupMain.hasCodeCells.bind(jupMain);
+        jupMain.activate();
+        context.subscriptions.push(jupMain);
+        linterProvider.documentHasJupyterCodeCells = documentHasJupyterCodeCells;
+    }
     tests.activate(context, unitTestOutChannel);
 
     context.subscriptions.push(new WorkspaceSymbols(lintingOutChannel));
@@ -129,7 +143,6 @@ export function activate(context: vscode.ExtensionContext) {
 // this method is called when your extension is deactivated
 export function deactivate() {
 }
-
 class PythonExt {
 
     private _isDjangoProject: ContextKey;
@@ -141,7 +154,7 @@ class PythonExt {
 
     private _ensureState(): void {
         // context: python.isDjangoProject
-        if (typeof vscode.workspace.rootPath === 'string'){
+        if (typeof vscode.workspace.rootPath === 'string') {
             this._isDjangoProject.set(fs.existsSync(vscode.workspace.rootPath.concat("/manage.py")));
         }
         else {

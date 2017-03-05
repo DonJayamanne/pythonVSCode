@@ -51,7 +51,7 @@ export class LintProvider extends vscode.Disposable {
     private disposables: vscode.Disposable[];
     private ignoreMinmatches: { match: (fname: string) => boolean }[];
     public constructor(context: vscode.ExtensionContext, outputChannel: vscode.OutputChannel,
-        private documentHasJupyterCodeCells: DocumentHasJupyterCodeCells) {
+        public documentHasJupyterCodeCells: DocumentHasJupyterCodeCells) {
         super(() => { });
         this.outputChannel = outputChannel;
         this.context = context;
