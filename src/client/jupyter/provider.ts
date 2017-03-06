@@ -8,7 +8,7 @@ export class JupyterProvider {
      * @memberOf LanguageProvider
      */
     get cellIdentifier(): RegExp {
-        return /^(# %%|#%%|# \<codecell\>|# In\[\d?\]|# In\[ \])(.*)/i;
+        return /^(# %%|#%%|# \<codecell\>|# In\[\d*?\]|# In\[ \])(.*)/i;
     }
 
     /**
