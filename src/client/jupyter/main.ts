@@ -8,8 +8,8 @@ import { JupyterCodeLensProvider } from './editorIntegration/codeLensProvider';
 import { JupyterSymbolProvider } from './editorIntegration/symbolProvider';
 import { formatErrorForLogging } from '../common/utils';
 import { Documentation } from '../common/constants';
-import * as telemetryHelper from '../common/telemetry';
-import * as telemetryContracts from '../common/telemetryContracts';
+// import * as telemetryHelper from '../common/telemetry';
+// import * as telemetryContracts from '../common/telemetryContracts';
 import * as main from './jupyter_client/main';
 import { KernelRestartedError, KernelShutdownError } from './common/errors';
 import { PythonSettings } from '../common/configSettings';
@@ -107,10 +107,7 @@ export class Jupyter extends vscode.Disposable {
         this.status.setActiveKernel(this.kernel ? this.kernel.kernelSpec : null);
     }
     executeCode(code: string, language: string): Promise<any> {
-        // const m = new main.JupyterClient(this.outputChannel);
-        // m.start();
-        // return Promise.resolve();
-        telemetryHelper.sendTelemetryEvent(telemetryContracts.Jupyter.Usage);
+        // telemetryHelper.sendTelemetryEvent(telemetryContracts.Jupyter.Usage);
 
         if (this.kernel && this.kernel.kernelSpec.language === language) {
             return this.executeAndDisplay(this.kernel, code).catch(reason => {

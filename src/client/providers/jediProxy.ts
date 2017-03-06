@@ -282,8 +282,8 @@ function spawnProcess(dir: string) {
                 commandQueue.splice(index, 1);
 
                 if (cmd.delays && typeof cmd.telemetryEvent === 'string') {
-                    cmd.delays.stop();
-                    telemetryHelper.sendTelemetryEvent(cmd.telemetryEvent, null, cmd.delays.toMeasures());
+                    // cmd.delays.stop();
+                    // telemetryHelper.sendTelemetryEvent(cmd.telemetryEvent, null, cmd.delays.toMeasures());
                 }
 
                 // Check if this command has expired
@@ -442,9 +442,9 @@ function sendCommand<T extends ICommandResult>(cmd: ICommand<T>): Promise<T> {
     var executionCmd = <IExecutionCommand<T>>cmd;
     var payload = createPayload(executionCmd);
     executionCmd.deferred = createDeferred<ICommandResult>();
-    if (typeof executionCmd.telemetryEvent === 'string') {
-        executionCmd.delays = new telemetryHelper.Delays();
-    }
+    // if (typeof executionCmd.telemetryEvent === 'string') {
+    //     executionCmd.delays = new telemetryHelper.Delays();
+    // }
     try {
         proc.stdin.write(JSON.stringify(payload) + "\n");
         commands.set(executionCmd.id, executionCmd);
