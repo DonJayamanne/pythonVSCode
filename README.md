@@ -3,7 +3,6 @@
 An extension with rich support for the [Python language](https://www.python.org/) (_including Python 3.6_), with features including the following and more:   
 * Linting ([Prospector](https://pypi.io/project/prospector/), [Pylint](https://pypi.io/project/pylint/), [pycodestyle](https://pypi.io/project/pycodestyle/)/Pep8, [Flake8](https://pypi.io/project/flake8/), [pylama](https://github.com/klen/pylama), [pydocstyle](https://pypi.io/project/pydocstyle/) with config files and plugins)
 * Intellisense (autocompletion with support for PEP-0484)
-* PySpark and Scientific tools (Jupyter/IPython)
 * Auto indenting
 * Code formatting ([autopep8](https://pypi.io/project/autopep8/), [yapf](https://pypi.io/project/yapf/), with config files)
 * Code refactoring ([Rename](https://github.com/DonJayamanne/pythonVSCode/wiki/Refactoring:-Rename), [Extract Variable](https://github.com/DonJayamanne/pythonVSCode/wiki/Refactoring:-Extract-Variable), [Extract Method](https://github.com/DonJayamanne/pythonVSCode/wiki/Refactoring:-Extract-Method), [Sort Imports](https://github.com/DonJayamanne/pythonVSCode/wiki/Refactoring:-Sort-Imports))
@@ -46,10 +45,8 @@ For further information and details continue through to the [documentation](http
     "C:/Program Files (x86)/Google/google_appengine",
     "C:/Program Files (x86)/Google/google_appengine/lib" ]
 ```
-* [Scientific tools (Jupyter/IPython)](https://github.com/DonJayamanne/pythonVSCode/wiki/Jupyter-(IPython))
- + Executing blocks of code (cells) in a Jupyter Kernel
- + Managing kernels (restarting, stopping, interrupting and selecting different kernels)
- + Viewing interactive graphs, HTML, SVG, LaTeX output from Jupyter from within Visual Studio Code 
+* [Scientific tools (Jupyter/IPython)](https://marketplace.visualstudio.com/items?itemName=donjayamanne.python)
+ + This functionality has been moved into a separate extension [Jupyter](https://marketplace.visualstudio.com/items?itemName=donjayamanne.python)
 * [Code formatting](https://github.com/DonJayamanne/pythonVSCode/wiki/Formatting)
  + Auto formatting of code upon saving changes (default to 'Off')
  + Use either yapf or autopep8 for code formatting (defaults to autopep8)
@@ -102,6 +99,14 @@ For further information and details continue through to the [documentation](http
 ## [Roadmap](https://donjayamanne.github.io/pythonVSCodeDocs/docs/roadmap/)
 
 ## [Change Log](https://github.com/DonJayamanne/pythonVSCode/blob/master/CHANGELOG.md)
+### Version 0.6.0 (10 March 2017)
+* Moved Jupyter functionality into a separate extension [Jupyter]()
+* Updated readme [#779](https://github.com/DonJayamanne/pythonVSCode/issues/779)
+* Changing default arguments of ```mypy``` [#658](https://github.com/DonJayamanne/pythonVSCode/issues/658)
+* Added ability to disable formatting [#559](https://github.com/DonJayamanne/pythonVSCode/issues/559)
+* Fixing ability to run a Python file in a terminal [#784](https://github.com/DonJayamanne/pythonVSCode/issues/784)
+* Added support for Proxy settings when installing Python packages using Pip [#778](https://github.com/DonJayamanne/pythonVSCode/issues/778)
+
 ### Version 0.5.9 (2 March 2017)
 * Fixed navigating to definitions [#711](https://github.com/DonJayamanne/pythonVSCode/issues/711)  
 * Support auto detecting binaries from Python Path [#716](https://github.com/DonJayamanne/pythonVSCode/issues/716)  
