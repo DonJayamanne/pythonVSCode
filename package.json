@@ -25,6 +25,9 @@
 	"engines": {
 		"vscode": "^1.9.0"
 	},
+	"recommendations":[
+		"donjayamanne.jupyter"
+	],
 	"keywords": [
 		"python",
 		"jupyter",
