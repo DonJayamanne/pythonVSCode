@@ -1,3 +1,11 @@
+### Version 0.6.0 (10 March 2017)
+* Moved Jupyter functionality into a separate extension [Jupyter]()
+* Updated readme [#779](https://github.com/DonJayamanne/pythonVSCode/issues/779)
+* Changing default arguments of ```mypy``` [#658](https://github.com/DonJayamanne/pythonVSCode/issues/658)
+* Added ability to disable formatting [#559](https://github.com/DonJayamanne/pythonVSCode/issues/559)
+* Fixing ability to run a Python file in a terminal [#784](https://github.com/DonJayamanne/pythonVSCode/issues/784)
+* Added support for Proxy settings when installing Python packages using Pip [#778](https://github.com/DonJayamanne/pythonVSCode/issues/778)
+
 ### Version 0.5.9 (3 March 2017)
 * Fixed navigating to definitions [#711](https://github.com/DonJayamanne/pythonVSCode/issues/711)  
 * Support auto detecting binaries from Python Path [#716](https://github.com/DonJayamanne/pythonVSCode/issues/716)  
