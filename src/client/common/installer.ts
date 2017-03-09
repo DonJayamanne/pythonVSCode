@@ -142,6 +142,15 @@ export class Installer {
         }
 
         let installArgs = ProductInstallScripts.get(product);
+        let pipIndex = installArgs.indexOf('pip');
+        if (pipIndex > 0) {
+            installArgs = installArgs.slice();
+            let proxy = vscode.workspace.getConfiguration('http').get('proxy', '');
+            if (proxy.length > 0) {
+                installArgs.splice(2, 0, proxy);
+                installArgs.splice(2, 0, '--proxy');
+            }
+        }
         const pythonPath = settings.PythonSettings.getInstance().pythonPath;
 
         if (this.outputChannel && installArgs[0] === '-m') {
