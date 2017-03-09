@@ -41,7 +41,7 @@ function execInTerminal(fileUri?: vscode.Uri) {
         currentPythonPath = `"${currentPythonPath}"`;
     }
 
-    if (fileUri === undefined || typeof fileUri.fsPath !== 'string') {
+    if (fileUri === undefined || fileUri === null || typeof fileUri.fsPath !== 'string') {
         const activeEditor = vscode.window.activeTextEditor;
         if (activeEditor !== undefined) {
             if (!activeEditor.document.isUntitled) {
