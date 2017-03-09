@@ -28,6 +28,27 @@ export class Jupyter extends vscode.Disposable {
     private codeLensProvider: JupyterCodeLensProvider;
     private lastUsedPythonPath: string;
     private codeHelper: CodeHelper;
+
+    private async displaySuggestion(): Promise<void> {
+        return new Promise<void>(resolve => {
+            let recommend = vscode.workspace.getConfiguration('python').get('promptToInstallJupyter', true);
+            if (!recommend) {
+                return resolve();
+            }
+            vscode.window.showInformationMessage('Deprecated: Please install the new Jupyter extension. Jupyter functionality within this extension has been deprecated.', 'Do not show again')
+                .then(item => {
+                    if (item !== 'Do not show again') {
+                        return resolve();
+                    }
+                    vscode.workspace.getConfiguration('python').update('promptToInstallJupyter', false)
+                        .then(() => {
+                            resolve();
+                        }, ex => {
+                            resolve();
+                        });
+                });
+        });
+    }
     constructor(private outputChannel: vscode.OutputChannel) {
         super(() => { });
         this.disposables = [];
@@ -116,7 +137,8 @@ export class Jupyter extends vscode.Disposable {
                 this.outputChannel.appendLine(formatErrorForLogging(reason));
             });
         }
-        return this.kernelManager.startKernelFor(language)
+        return this.displaySuggestion()
+            .then(() => this.kernelManager.startKernelFor(language))
             .then(kernel => {
                 if (kernel) {
                     this.onKernelChanged(kernel);

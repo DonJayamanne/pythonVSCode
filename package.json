@@ -852,6 +852,11 @@
 			"type": "object",
 			"title": "Python Configuration",
 			"properties": {
+				"python.promptToInstallJupyter": {
+					"type": "boolean",
+					"default": true,
+					"description": "Display prompt to install Jupyter Extension."
+				},
 				"python.pythonPath": {
 					"type": "string",
 					"default": "python",
