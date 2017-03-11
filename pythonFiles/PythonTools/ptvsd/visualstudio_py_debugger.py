@@ -13,6 +13,7 @@
 # 
 # See the Apache Version 2.0 License for specific language governing
 # permissions and limitations under the License.
+# With number of modifications by Don Jayamanne
 
 from __future__ import with_statement
 
@@ -110,21 +111,7 @@ def thread_creator(func, args, kwargs = {}, *extra_args):
 
     return _start_new_thread(new_thread_wrapper, (func, args, kwargs))
 
-_thread_start_new_thread = thread.start_new_thread
-def _start_new_thread(func, args, kwargs = {}):
-    t_lock = thread.allocate_lock()
-    t_lock.acquire()
-    
-    tid = []
-    def thread_starter(a, kw):
-        tid.append(thread.get_ident())
-        t_lock.release()
-        return func(*a, **kw)
-    
-    _thread_start_new_thread(thread_starter, (args, kwargs))
-    with t_lock:
-        return tid[0]
-
+_start_new_thread = thread.start_new_thread
 THREADS = {}
 THREADS_LOCK = thread.allocate_lock()
 MODULES = []
@@ -134,6 +121,7 @@ DEBUG_STDLIB = False
 DJANGO_DEBUG = False
 
 RICH_EXCEPTIONS = False
+IGNORE_DJANGO_TEMPLATE_WARNINGS = False
 
 # Py3k compat - alias unicode to str
 try:
@@ -189,6 +177,26 @@ BREAKPOINT_PASS_COUNT_ALWAYS = 0
 BREAKPOINT_PASS_COUNT_EVERY = 1
 BREAKPOINT_PASS_COUNT_WHEN_EQUAL = 2
 BREAKPOINT_PASS_COUNT_WHEN_EQUAL_OR_GREATER = 3
+
+## Begin modification by Don Jayamanne
+DJANGO_VERSIONS_IDENTIFIED = False
+IS_DJANGO18 = False
+IS_DJANGO19 = False
+IS_DJANGO19_OR_HIGHER = False
+
+try:
+    dict_contains = dict.has_key
+except:
+    try:
+        #Py3k does not have has_key anymore, and older versions don't have __contains__
+        dict_contains = dict.__contains__
+    except:
+        try:
+            dict_contains = dict.has_key
+        except NameError:
+            def dict_contains(d, key):
+                return d.has_key(key)
+## End modification by Don Jayamanne
 
 class BreakpointInfo(object):
     __slots__ = [
@@ -388,14 +396,12 @@ def is_file_in_zip(filename):
         return False
     elif parent in KNOWN_ZIPS:
         return True
-    elif path.isfile(parent):
-        KNOWN_ZIPS.add(parent) 
-        return True     
-    elif path.isdir(parent):    
+    elif path.isdir(parent):
         KNOWN_DIRECTORIES.add(parent)
         return False
     else:
-        return is_file_in_zip(parent)
+        KNOWN_ZIPS.add(parent)
+        return True
 
 def lookup_builtin(name, frame):
     try:
@@ -583,7 +589,7 @@ def should_debug_code(code):
 
     return True
 
-attach_lock = thread.allocate_lock()
+attach_lock = thread.allocate()
 attach_sent_break = False
 
 local_path_to_vs_path = {}
@@ -638,19 +644,57 @@ def update_all_thread_stacks(blocking_thread = None, check_is_blocked = True):
         cur_thread._block_starting_lock.release()
         
 DJANGO_BREAKPOINTS = {}
+DJANGO_TEMPLATES = {}
 
 class DjangoBreakpointInfo(object):
     def __init__(self, filename):
         self._line_locations = None
         self.filename = filename
         self.breakpoints = {}
+        self.rangeIsPlainText = {}
     
     def add_breakpoint(self, lineno, brkpt_id):
         self.breakpoints[lineno] = brkpt_id
 
     def remove_breakpoint(self, lineno):
-        del self.breakpoints[lineno]
-    
+        try:
+            del self.breakpoints[lineno]
+        except:
+            pass
+
+    def has_breakpoint_for_line(self, lineNumber):
+        return self.breakpoints.get(lineNumber) is not None
+
+    def is_range_plain_text(self, start, end):
+        key = str(start) + '-' + str(end)
+        if self.rangeIsPlainText.get(key) is None:
+            # we need to calculate our line number offset information
+            try:
+                with open(self.filename, 'rb') as contents:
+                    contents.seek(start, 0)           # 0 = start of file, optional in this case
+                    data = contents.read(end - start)
+                    isPlainText = True 
+                    if data.startswith('{{') and data.endswith('}}'):
+                        isPlainText = False
+                    if data.startswith('{%') and data.endswith('%}'):
+                        isPlainText = False
+                    self.rangeIsPlainText[key] = isPlainText
+                    return isPlainText  
+            except:
+                return False
+        else:
+            return self.rangeIsPlainText.get(key)
+
+    def line_number_to_offset(self, lineNumber):
+        line_locs = self.line_locations 
+        if line_locs is not None:
+            low_line = line_locs[lineNumber - 1]
+            hi_line = line_locs[lineNumber]
+
+            return low_line, hi_line
+
+        return (None, None)
+
     @property
     def line_locations(self):
         if self._line_locations is None:
@@ -699,28 +743,43 @@ class DjangoBreakpointInfo(object):
         return False, 0
 
 def get_django_frame_source(frame):
+    global DJANGO_VERSIONS_IDENTIFIED
+    global IS_DJANGO18
+    global IS_DJANGO19
+    global IS_DJANGO19_OR_HIGHER
+    if DJANGO_VERSIONS_IDENTIFIED == False:
+        DJANGO_VERSIONS_IDENTIFIED = True
+        try:
+            import django
+            version = django.VERSION
+            IS_DJANGO18 = version[0] == 1 and version[1] == 8
+            IS_DJANGO19 = version[0] == 1 and version[1] == 9
+            IS_DJANGO19_OR_HIGHER = ((version[0] == 1 and version[1] >= 9) or version[0] > 1)
+        except:
+            pass    
     if frame.f_code.co_name == 'render':
         self_obj = frame.f_locals.get('self', None)
         if self_obj is None:
             return None
-        name = type(self_obj).__name__
-        if name in ('Template', 'TextNode'):
-            return None
-        source_obj = getattr(self_obj, 'source', None)
-        if source_obj and hasattr(source_obj, '__len__') and len(source_obj) == 2:
-            return str(source_obj[0]), source_obj[1]
 
-        token_obj = getattr(self_obj, 'token', None)
-        if token_obj is None:
-            return None
-        template_obj = getattr(frame.f_locals.get('context', None), 'template', None)
-        if template_obj is None:
-            return None
-        template_name = getattr(template_obj, 'origin', None)
-        position = getattr(token_obj, 'position', None)
-        if template_name and position:
-            return str(template_name), position
+        origin = _get_template_file_name(frame)
+        line = _get_template_line(frame)
+        position = None
 
+        if self_obj is not None and hasattr(self_obj, 'token') and hasattr(self_obj.token, 'position'):
+            position = self_obj.token.position
+
+        if origin is not None and position is None:
+            active_bps = DJANGO_BREAKPOINTS.get(origin.lower())
+            if active_bps is None:
+                active_bps = DJANGO_TEMPLATES.get(origin.lower())
+            if active_bps is None:
+                DJANGO_BREAKPOINTS[origin.lower()] = active_bps = DjangoBreakpointInfo(origin.lower())
+            if active_bps is not None:
+                if line is not None:
+                    position = active_bps.line_number_to_offset(line)
+        if origin and position:
+            return str(origin), position, line
 
     return None
 
@@ -920,12 +979,15 @@ class Thread(object):
         if DJANGO_BREAKPOINTS:
             source_obj = get_django_frame_source(frame)
             if source_obj is not None:
-                origin, (start, end) = source_obj
+                origin, (start, end), lineNumber = source_obj
                 
                 active_bps = DJANGO_BREAKPOINTS.get(origin.lower())
                 should_break = False
-                if active_bps is not None:
+                if active_bps is not None and origin != '<unknown source>':   
                     should_break, bkpt_id = active_bps.should_break(start, end)
+                    isPlainText = active_bps.is_range_plain_text(start, end)
+                    if isPlainText:
+                        should_break = False
                     if should_break:
                         probe_stack()
                         update_all_thread_stacks(self)
@@ -1478,18 +1540,12 @@ class Thread(object):
                 # collect globals used locally, skipping undefined found in builtins
                 f_globals = cur_frame.f_globals
                 if f_globals: # ensure globals to work with (IPy may have None for cur_frame.f_globals for frames within stdlib)
-                    self.collect_variables(
-                        vars,
-                        f_globals,
-                        getattr(cur_frame.f_code, 'co_names', ()),
-                        treated,
-                        skip_unknown = True
-                    )
+                    self.collect_variables(vars, f_globals, cur_frame.f_code.co_names, treated, skip_unknown = True)
             
             frame_info = None
 
             if source_obj is not None:
-                origin, (start, end) = source_obj
+                origin, (start, end), lineNumber = source_obj
 
                 filename = str(origin)
                 bp_info = DJANGO_BREAKPOINTS.get(filename.lower())
@@ -1630,7 +1686,7 @@ class DebuggerLoop(object):
 
     instance = None
 
-    def __init__(self, conn, rich_exceptions=False):
+    def __init__(self, connrich_exceptions=False):
         DebuggerLoop.instance = self
         self.conn = conn
         self.repl_backend = None
@@ -2040,6 +2096,7 @@ def report_thread_exit(old_thread):
 
 def report_exception(frame, exc_info, tid, break_type):
     exc_type = exc_info[0]
+    exc_name = get_exception_name(exc_type)
     exc_value = exc_info[1]
     tb_value = exc_info[2]
     
@@ -2071,7 +2128,7 @@ def report_exception(frame, exc_info, tid, break_type):
             'message': data['message'],
         }
 
-    with _SendLockCtx:
+     with _SendLockCtx:
         if RICH_EXCEPTIONS:
             write_bytes(conn, EXC2)
             write_int(conn, tid)
@@ -2241,7 +2298,9 @@ def intercept_threads(for_attach = False):
     global _INTERCEPTING_FOR_ATTACH
     _INTERCEPTING_FOR_ATTACH = for_attach
 
-def attach_process(port_num, debug_id, debug_options, report = False, block = False):
+## Modified parameters by Don Jayamanne
+# Accept current Process id to pass back to debugger
+def attach_process(port_num, debug_id, debug_options, currentPid, report = False, block = False):
     global conn
     for i in xrange(50):
         try:
@@ -2249,6 +2308,10 @@ def attach_process(port_num, debug_id, debug_options, report = False, block = Fa
             conn.connect(('127.0.0.1', port_num))
             write_string(conn, debug_id)
             write_int(conn, 0)  # success
+            ## Begin modification by Don Jayamanne
+            # Pass current Process id to pass back to debugger
+            write_int(conn, currentPid)  # success
+            ## End Modification by Don Jayamanne            
             break
         except:
             import time
@@ -2263,6 +2326,7 @@ def attach_process_from_socket(sock, debug_options, report = False, block = Fals
 
     BREAK_ON_SYSTEMEXIT_ZERO = 'BreakOnSystemExitZero' in debug_options
     DJANGO_DEBUG = 'DjangoDebugging' in debug_options
+    IGNORE_DJANGO_TEMPLATE_WARNINGS = 'IgnoreDjangoTemplateWarnings' in debug_options
 
     if '' in PREFIXES:
         # If one or more of the prefixes are empty, we can't reliably distinguish stdlib
@@ -2527,7 +2591,9 @@ def print_exception(exc_type, exc_value, exc_tb):
 def parse_debug_options(s):
     return set([opt.strip() for opt in s.split(',')])
 
-def debug(file, port_num, debug_id, debug_options, run_as = 'script'):
+## Modified parameters by Don Jayamanne
+# Accept current Process id to pass back to debugger
+def debug(file, port_num, debug_id, debug_options, currentPid, run_as = 'script'):
     # remove us from modules so there's no trace of us
     sys.modules['$visualstudio_py_debugger'] = sys.modules['visualstudio_py_debugger']
     __name__ = '$visualstudio_py_debugger'
@@ -2535,7 +2601,10 @@ def debug(file, port_num, debug_id, debug_options, run_as = 'script'):
 
     wait_on_normal_exit = 'WaitOnNormalExit' in debug_options
 
-    attach_process(port_num, debug_id, debug_options, report = True)
+    ## Begin modification by Don Jayamanne
+    # Pass current Process id to pass back to debugger
+    attach_process(port_num, debug_id, debug_options, currentPid, report = True)
+    ## End Modification by Don Jayamanne
 
     # setup the current thread
     cur_thread = new_thread()
@@ -2585,3 +2654,99 @@ DEBUG_ENTRYPOINTS = set((
     get_code(exec_code),
     get_code(new_thread_wrapper)
 ))
+
+## Begin modification by Don Jayamanne
+def _read_file(filename):
+    f = open(filename, "r")
+    s = f.read()
+    f.close()
+    return s
+
+
+def _offset_to_line_number(text, offset):
+    curLine = 1
+    curOffset = 0
+    while curOffset < offset:
+        if curOffset == len(text):
+            return -1
+        c = text[curOffset]
+        if c == '\n':
+            curLine += 1
+        elif c == '\r':
+            curLine += 1
+            if curOffset < len(text) and text[curOffset + 1] == '\n':
+                curOffset += 1
+
+        curOffset += 1
+
+    return curLine
+
+
+def _get_source_django_18_or_lower(frame):
+    # This method is usable only for the Django <= 1.8
+    try:
+        node = frame.f_locals['self']
+        if hasattr(node, 'source'):
+            return node.source
+        else:
+            if IGNORE_DJANGO_TEMPLATE_WARNINGS:
+                return None
+                
+            if IS_DJANGO18:
+                # The debug setting was changed since Django 1.8
+                print("WARNING: Template path is not available. Set the 'debug' option in the OPTIONS of a DjangoTemplates "
+                                     "backend.")
+            else:
+                # The debug setting for Django < 1.8
+                print("WARNING: Template path is not available. Please set TEMPLATE_DEBUG=True in your settings.py to make "
+                                     "django template breakpoints working")
+            return None
+
+    except:
+        print(traceback.format_exc())
+        return None
+
+def _get_template_file_name(frame):
+    try:
+        if IS_DJANGO19_OR_HIGHER:
+            # The Node source was removed since Django 1.9
+            if dict_contains(frame.f_locals, 'context'):
+                context = frame.f_locals['context']
+                if hasattr(context, 'template') and hasattr(context.template, 'origin') and \
+                        hasattr(context.template.origin, 'name'):
+                    return context.template.origin.name
+            return None
+        source = _get_source_django_18_or_lower(frame)
+        if source is None:
+            if not IGNORE_DJANGO_TEMPLATE_WARNINGS:
+                print("Source is None\n")
+            return None
+        fname = source[0].name
+
+        if fname == '<unknown source>':
+            if not IGNORE_DJANGO_TEMPLATE_WARNINGS:
+                print("Source name is %s\n" + fname)
+            return None
+        else:
+            abs_path_real_path_and_base = get_abs_path_real_path_and_base_from_file(fname)
+            return abs_path_real_path_and_base[1]
+    except:
+        print(traceback.format_exc())
+        return None
+
+
+def _get_template_line(frame):
+    if IS_DJANGO19_OR_HIGHER:
+        # The Node source was removed since Django 1.9
+        self = frame.f_locals['self']
+        if hasattr(self, 'token') and hasattr(self.token, 'lineno'):
+            return self.token.lineno
+        else:
+            return None
+    source = _get_source_django_18_or_lower(frame)
+    file_name = _get_template_file_name(frame)
+    try:
+        return _offset_to_line_number(_read_file(file_name), source[1][0])
+    except:
+        return None
+## End modification by Don Jayamanne

@@ -49,6 +49,7 @@ export class PythonProcessCallbackHandler extends EventEmitter {
             case "CHLD": this.HandleEnumChildren(); break;
             case "REQH": this.HandleRequestHandlers(); break;
             case "EXCP": this.HandleException(); break;
+            case "EXC2": this.HandleRichException(); break;
             case "EXCR": this.HandleExecutionResult(); break;
             case "EXCE": this.HandleExecutionException(); break;
             case "ASBR": this.HandleAsyncBreak(); break;
@@ -269,6 +270,28 @@ export class PythonProcessCallbackHandler extends EventEmitter {
             this.emit("exceptionRaised", pyThread, ex, breakType === 1 /* BREAK_TYPE_UNHANLDED */);
         }
         this._stoppedForException = true;
+    }
+    private HandleRichException() {
+        // let typeName = this.stream.ReadString();
+        // let threadId = this.stream.ReadInt64();
+        // let breakType = this.stream.ReadInt32();
+        // let desc = this.stream.ReadString();
+        // if (this.stream.HasInsufficientDataForReading) {
+        //     return;
+        // }
+
+        // if (typeName != null && desc != null) {
+        //     let ex: IPythonException = {
+        //         TypeName: typeName,
+        //         Description: desc
+        //     };
+        //     let pyThread: IPythonThread;
+        //     if (this.process.Threads.has(threadId)) {
+        //         pyThread = this.process.Threads.get(threadId);
+        //     }
+        //     this.emit("exceptionRaised", pyThread, ex, breakType === 1 /* BREAK_TYPE_UNHANLDED */);
+        // }
+        // this._stoppedForException = true;
     }
     private HandleExecutionException() {
         let execId = this.stream.ReadInt32();
