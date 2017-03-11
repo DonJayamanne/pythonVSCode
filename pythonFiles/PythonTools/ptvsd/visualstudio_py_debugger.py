@@ -1,18 +1,23 @@
- # ############################################################################
- #
- # Copyright (c) Microsoft Corporation. 
- #
- # This source code is subject to terms and conditions of the Apache License, Version 2.0. A 
- # copy of the license can be found in the License.html file at the root of this distribution. If 
- # you cannot locate the Apache License, Version 2.0, please send an email to 
- # vspython@microsoft.com. By using this source code in any fashion, you are agreeing to be bound 
- # by the terms of the Apache License, Version 2.0.
- #
- # You must not remove this notice, or any other, from this software.
- #
- # ###########################################################################
+# Python Tools for Visual Studio
+# Copyright(c) Microsoft Corporation
+# All rights reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the License); you may not use
+# this file except in compliance with the License. You may obtain a copy of the
+# License at http://www.apache.org/licenses/LICENSE-2.0
+# 
+# THIS CODE IS PROVIDED ON AN  *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS
+# OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY
+# IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
+# MERCHANTABLITY OR NON-INFRINGEMENT.
+# 
+# See the Apache Version 2.0 License for specific language governing
+# permissions and limitations under the License.
 
 from __future__ import with_statement
+
+__author__ = "Microsoft Corporation <ptvshelp@microsoft.com>"
+__version__ = "3.0.0.0"
 
 # This module MUST NOT import threading in global scope. This is because in a direct (non-ptvsd)
 # attach scenario, it is loaded on the injected debugger attach thread, and if threading module
@@ -105,7 +110,21 @@ def thread_creator(func, args, kwargs = {}, *extra_args):
 
     return _start_new_thread(new_thread_wrapper, (func, args, kwargs))
 
-_start_new_thread = thread.start_new_thread
+_thread_start_new_thread = thread.start_new_thread
+def _start_new_thread(func, args, kwargs = {}):
+    t_lock = thread.allocate_lock()
+    t_lock.acquire()
+    
+    tid = []
+    def thread_starter(a, kw):
+        tid.append(thread.get_ident())
+        t_lock.release()
+        return func(*a, **kw)
+    
+    _thread_start_new_thread(thread_starter, (args, kwargs))
+    with t_lock:
+        return tid[0]
+
 THREADS = {}
 THREADS_LOCK = thread.allocate_lock()
 MODULES = []
@@ -113,6 +132,8 @@ MODULES = []
 BREAK_ON_SYSTEMEXIT_ZERO = False
 DEBUG_STDLIB = False
 DJANGO_DEBUG = False
+
+RICH_EXCEPTIONS = False
 
 # Py3k compat - alias unicode to str
 try:
@@ -330,6 +351,7 @@ NEWT = to_bytes('NEWT')
 EXTT = to_bytes('EXTT')
 EXIT = to_bytes('EXIT')
 EXCP = to_bytes('EXCP')
+EXC2 = to_bytes('EXC2')
 MODL = to_bytes('MODL')
 STPD = to_bytes('STPD')
 BRKS = to_bytes('BRKS')
@@ -366,12 +388,14 @@ def is_file_in_zip(filename):
         return False
     elif parent in KNOWN_ZIPS:
         return True
-    elif path.isdir(parent):
+    elif path.isfile(parent):
+        KNOWN_ZIPS.add(parent) 
+        return True     
+    elif path.isdir(parent):    
         KNOWN_DIRECTORIES.add(parent)
         return False
     else:
-        KNOWN_ZIPS.add(parent)
-        return True
+        return is_file_in_zip(parent)
 
 def lookup_builtin(name, frame):
     try:
@@ -455,8 +479,7 @@ class ExceptionBreakInfo(object):
         if break_type:
             if issubclass(ex_type, SystemExit):
                 if not BREAK_ON_SYSTEMEXIT_ZERO:
-                    if ((isinstance(ex_value, int) and not ex_value) or 
-                        (isinstance(ex_value, SystemExit) and not ex_value.code)):
+                    if not ex_value or (isinstance(ex_value, SystemExit) and not ex_value.code):
                         break_type = BREAK_TYPE_NONE
 
         return break_type
@@ -560,7 +583,7 @@ def should_debug_code(code):
 
     return True
 
-attach_lock = thread.allocate()
+attach_lock = thread.allocate_lock()
 attach_sent_break = False
 
 local_path_to_vs_path = {}
@@ -642,9 +665,12 @@ class DjangoBreakpointInfo(object):
                     line_info = []
                     file_len = 0
                     for line in contents:
+                        line_len = len(line)
                         if not line_info and line.startswith(BOM_UTF8):
-                            line = line[3:] # Strip the BOM, Django seems to ignore this...
-                        file_len += len(line)
+                            line_len -= len(BOM_UTF8) # Strip the BOM, Django seems to ignore this...
+                        if line.endswith(to_bytes('\r\n')):
+                            line_len -= 1 # Django normalizes newlines to \n
+                        file_len += line_len
                         line_info.append(file_len)
                     contents.close()
                     self._line_locations = line_info
@@ -675,10 +701,26 @@ class DjangoBreakpointInfo(object):
 def get_django_frame_source(frame):
     if frame.f_code.co_name == 'render':
         self_obj = frame.f_locals.get('self', None)
-        if self_obj is not None and type(self_obj).__name__ != 'TextNode':
-            source_obj = getattr(self_obj, 'source', None)
-            if source_obj is not None:
-                return source_obj
+        if self_obj is None:
+            return None
+        name = type(self_obj).__name__
+        if name in ('Template', 'TextNode'):
+            return None
+        source_obj = getattr(self_obj, 'source', None)
+        if source_obj and hasattr(source_obj, '__len__') and len(source_obj) == 2:
+            return str(source_obj[0]), source_obj[1]
+
+        token_obj = getattr(self_obj, 'token', None)
+        if token_obj is None:
+            return None
+        template_obj = getattr(frame.f_locals.get('context', None), 'template', None)
+        if template_obj is None:
+            return None
+        template_name = getattr(template_obj, 'origin', None)
+        position = getattr(token_obj, 'position', None)
+        if template_name and position:
+            return str(template_name), position
+
 
     return None
 
@@ -879,8 +921,8 @@ class Thread(object):
             source_obj = get_django_frame_source(frame)
             if source_obj is not None:
                 origin, (start, end) = source_obj
-                    
-                active_bps = DJANGO_BREAKPOINTS.get(origin.name.lower())
+                
+                active_bps = DJANGO_BREAKPOINTS.get(origin.lower())
                 should_break = False
                 if active_bps is not None:
                     should_break, bkpt_id = active_bps.should_break(start, end)
@@ -1436,7 +1478,13 @@ class Thread(object):
                 # collect globals used locally, skipping undefined found in builtins
                 f_globals = cur_frame.f_globals
                 if f_globals: # ensure globals to work with (IPy may have None for cur_frame.f_globals for frames within stdlib)
-                    self.collect_variables(vars, f_globals, cur_frame.f_code.co_names, treated, skip_unknown = True)
+                    self.collect_variables(
+                        vars,
+                        f_globals,
+                        getattr(cur_frame.f_code, 'co_names', ()),
+                        treated,
+                        skip_unknown = True
+                    )
             
             frame_info = None
 
@@ -1582,10 +1630,11 @@ class DebuggerLoop(object):
 
     instance = None
 
-    def __init__(self, conn):
+    def __init__(self, conn, rich_exceptions=False):
         DebuggerLoop.instance = self
         self.conn = conn
         self.repl_backend = None
+        self.rich_exceptions = rich_exceptions
         self.command_table = {
             to_bytes('stpi') : self.command_step_into,
             to_bytes('stpo') : self.command_step_out,
@@ -1599,6 +1648,7 @@ class DebuggerLoop(object):
             to_bytes('brka') : self.command_break_all,
             to_bytes('resa') : self.command_resume_all,
             to_bytes('rest') : self.command_resume_thread,
+            to_bytes('thrf') : self.command_get_thread_frames,
             to_bytes('ares') : self.command_auto_resume,
             to_bytes('exec') : self.command_execute_code,
             to_bytes('chld') : self.command_enum_children,
@@ -1781,6 +1831,13 @@ class DebuggerLoop(object):
         global SEND_BREAK_COMPLETE
         SEND_BREAK_COMPLETE = True
         mark_all_threads_for_break()
+
+    def command_get_thread_frames(self):
+        tid = read_int(self.conn)
+        THREADS_LOCK.acquire()
+        thread = THREADS[tid]
+        THREADS_LOCK.release()
+        thread.enum_thread_frames_locally()
 
     def command_resume_all(self):
         # resume all
@@ -1983,7 +2040,6 @@ def report_thread_exit(old_thread):
 
 def report_exception(frame, exc_info, tid, break_type):
     exc_type = exc_info[0]
-    exc_name = get_exception_name(exc_type)
     exc_value = exc_info[1]
     tb_value = exc_info[2]
     
@@ -1992,14 +2048,45 @@ def report_exception(frame, exc_info, tid, break_type):
         # so we can get the correct msg.
         exc_value = exc_type(*exc_value)
     
-    excp_text = str(exc_value)
+    data = {
+        'typename': get_exception_name(exc_type),
+        'message': str(exc_value),
+    }
+    if break_type == 1:
+        data['breaktype'] = 'unhandled'
+    if tb_value:
+        try:
+            data['trace'] = '\n'.join(','.join(repr(v) for v in line) for line in traceback.extract_tb(tb_value))
+        except:
+            pass
+    if not DJANGO_DEBUG or get_django_frame_source(frame) is None:
+        data['excvalue'] = '__exception_info'
+        i = 0
+        while data['excvalue'] in frame.f_locals:
+            i += 1
+            data['excvalue'] = '__exception_info_%d' % i
+        frame.f_locals[data['excvalue']] = {
+            'exception': exc_value,
+            'exception_type': exc_type,
+            'message': data['message'],
+        }
 
     with _SendLockCtx:
-        write_bytes(conn, EXCP)
-        write_string(conn, exc_name)
-        write_int(conn, tid)
-        write_int(conn, break_type)
-        write_string(conn, excp_text)
+        if RICH_EXCEPTIONS:
+            write_bytes(conn, EXC2)
+            write_int(conn, tid)
+            write_int(conn, len(data))
+            for key, value in data.items():
+                write_string(conn, key)
+                write_string(conn, str(value))
+        else:
+            # Old message is fixed format. If RichExceptions is not passed in
+            # debug options, we'll send this format.
+            write_bytes(conn, EXCP)
+            write_string(conn, str(data['typename']))
+            write_int(conn, tid)
+            write_int(conn, 1 if 'breaktype' in data else 0)
+            write_string(conn, str(data['message']))
 
 def new_module(frame):
     mod = Module(get_code_filename(frame.f_code))
@@ -2172,6 +2259,7 @@ def attach_process(port_num, debug_id, debug_options, report = False, block = Fa
 
 def attach_process_from_socket(sock, debug_options, report = False, block = False):
     global conn, attach_sent_break, DETACHED, DEBUG_STDLIB, BREAK_ON_SYSTEMEXIT_ZERO, DJANGO_DEBUG
+    global RICH_EXCEPTIONS
 
     BREAK_ON_SYSTEMEXIT_ZERO = 'BreakOnSystemExitZero' in debug_options
     DJANGO_DEBUG = 'DjangoDebugging' in debug_options
@@ -2186,10 +2274,12 @@ def attach_process_from_socket(sock, debug_options, report = False, block = Fals
     wait_on_normal_exit = 'WaitOnNormalExit' in debug_options
     wait_on_abnormal_exit = 'WaitOnAbnormalExit' in debug_options
 
+    RICH_EXCEPTIONS = 'RichExceptions' in debug_options
+
     def _excepthook(exc_type, exc_value, exc_tb):
         # Display the exception and wait on exit
         if exc_type is SystemExit:
-            if (wait_on_abnormal_exit and exc_value.code != 0) or (wait_on_normal_exit and exc_value.code == 0):
+            if (wait_on_abnormal_exit and exc_value.code) or (wait_on_normal_exit and not exc_value.code):
                 print_exception(exc_type, exc_value, exc_tb)
                 do_wait()
         else:
