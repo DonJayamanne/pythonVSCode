@@ -113,9 +113,12 @@ function lookForInterpretersInVirtualEnvs(pathToCheck: string): Promise<PythonPa
             });
             Promise.all<string[]>(promises).then(pathsWithInterpreters => {
                 pathsWithInterpreters.forEach(interpreters => {
-                    interpreters.map(interpter => {
+                    interpreters.map(interpreter => {
+                        let venvName = path.basename(path.dirname(path.dirname(interpreter)))
                         envsInterpreters.push({
-                            label: path.basename(interpter), path: interpter, type: ''
+                            label: `${venvName} - ${path.basename(interpreter)}`, 
+                            path: interpreter, 
+                            type: ''
                         });
                     });
                 });
@@ -139,9 +142,9 @@ function suggestionsFromKnownPaths(): Promise<PythonPathSuggestion[]> {
         return Promise.all<string[]>(promises).then(listOfInterpreters => {
             const suggestions: PythonPathSuggestion[] = [];
             const interpreters = listOfInterpreters.reduce((previous, current) => previous.concat(current), []);
-            interpreters.filter(interpter => interpter.length > 0).map(interpter => {
+            interpreters.filter(interpreter => interpreter.length > 0).map(interpreter => {
                 suggestions.push({
-                    label: path.basename(interpter), path: interpter, type: ''
+                    label: path.basename(interpreter), path: interpreter, type: ''
                 });
             });
             return suggestions;
@@ -197,11 +200,17 @@ function suggestPythonPaths(): Promise<PythonPathQuickPickItem[]> {
     // For now we only interrogate conda for suggestions.
     const condaSuggestions = suggestionsFromConda();
     const knownPathSuggestions = suggestionsFromKnownPaths();
-    const virtualEnvSuggestions = lookForInterpretersInVirtualEnvs(vscode.workspace.rootPath);
+    const workspaceVirtualEnvSuggestions = lookForInterpretersInVirtualEnvs(vscode.workspace.rootPath);
+    
+    const suggestionPromises = [condaSuggestions, knownPathSuggestions, workspaceVirtualEnvSuggestions];
+
+    if (settings.PythonSettings.getInstance().venvPath) {
+        suggestionPromises.push(lookForInterpretersInVirtualEnvs(settings.PythonSettings.getInstance().venvPath));
+    }
 
     // Here we could also look for virtualenvs/default install locations...
 
-    return Promise.all<PythonPathSuggestion[]>([condaSuggestions, knownPathSuggestions, virtualEnvSuggestions]).then(suggestions => {
+    return Promise.all<PythonPathSuggestion[]>(suggestionPromises).then(suggestions => {
         const quickPicks: PythonPathQuickPickItem[] = [];
         suggestions.forEach(list => {
             quickPicks.push(...list.map(suggestionToQuickPickItem));
