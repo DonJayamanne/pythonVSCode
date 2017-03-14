@@ -1068,6 +1068,83 @@
 						"Warning"
 					]
 				},
+				"python.linting.pep8CategorySeverity.W": {
+					"type": "string",
+					"default": "Warning",
+					"description": "Severity of Pep8 message type 'W'.",
+					"enum": [
+						"Hint",
+						"Error",
+						"Information",
+						"Warning"
+					]
+				},
+				"python.linting.pep8CategorySeverity.E": {
+					"type": "string",
+					"default": "Error",
+					"description": "Severity of Pep8 message type 'E'.",
+					"enum": [
+						"Hint",
+						"Error",
+						"Information",
+						"Warning"
+					]
+				},
+				"python.linting.flake8CategorySeverity.F": {
+					"type": "string",
+					"default": "Error",
+					"description": "Severity of Flake8 message type 'F'.",
+					"enum": [
+						"Hint",
+						"Error",
+						"Information",
+						"Warning"
+					]
+				},
+				"python.linting.flake8CategorySeverity.E": {
+					"type": "string",
+					"default": "Error",
+					"description": "Severity of Flake8 message type 'E'.",
+					"enum": [
+						"Hint",
+						"Error",
+						"Information",
+						"Warning"
+					]
+				},
+				"python.linting.flake8CategorySeverity.W": {
+					"type": "string",
+					"default": "Warning",
+					"description": "Severity of Flake8 message type 'W'.",
+					"enum": [
+						"Hint",
+						"Error",
+						"Information",
+						"Warning"
+					]
+				},
+				"python.linting.mypyCategorySeverity.error": {
+					"type": "string",
+					"default": "Error",
+					"description": "Severity of Mypy message type 'Error'.",
+					"enum": [
+						"Hint",
+						"Error",
+						"Information",
+						"Warning"
+					]
+				},
+				"python.linting.mypyCategorySeverity.note": {
+					"type": "string",
+					"default": "Information",
+					"description": "Severity of Mypy message type 'Note'.",
+					"enum": [
+						"Hint",
+						"Error",
+						"Information",
+						"Warning"
+					]
+				},
 				"python.linting.prospectorPath": {
 					"type": "string",
 					"default": "prospector",

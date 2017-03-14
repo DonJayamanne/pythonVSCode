@@ -11,19 +11,6 @@ export class Linter extends baseLinter.BaseLinter {
     constructor(outputChannel: OutputChannel, workspaceRootPath?: string) {
         super('mypy', Product.mypy, outputChannel, workspaceRootPath);
     }
-    private parseMessagesSeverity(category: string): baseLinter.LintMessageSeverity {
-        switch (category) {
-            case 'error': {
-                return baseLinter.LintMessageSeverity.Error;
-            }
-            case 'note': {
-                return baseLinter.LintMessageSeverity.Hint;
-            }
-            default: {
-                return baseLinter.LintMessageSeverity.Information;
-            }
-        }
-    }
 
     public isEnabled(): Boolean {
         return this.pythonSettings.linting.mypyEnabled;
@@ -38,7 +25,7 @@ export class Linter extends baseLinter.BaseLinter {
         return new Promise<baseLinter.ILintMessage[]>((resolve, reject) => {
             this.run(mypyPath, mypyArgs.concat([document.uri.fsPath]), document, this.workspaceRootPath, cancellation, REGEX).then(messages => {
                 messages.forEach(msg => {
-                    msg.severity = this.parseMessagesSeverity(msg.type);
+                    msg.severity = this.parseMessagesSeverity(msg.type, this.pythonSettings.linting.mypyCategorySeverity);
                     msg.code = msg.type;
                 });
 

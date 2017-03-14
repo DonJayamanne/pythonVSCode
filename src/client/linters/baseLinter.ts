@@ -65,6 +65,29 @@ export abstract class BaseLinter {
     public abstract isEnabled(): Boolean;
     public abstract runLinter(document: vscode.TextDocument, cancellation: vscode.CancellationToken): Promise<ILintMessage[]>;
 
+    protected parseMessagesSeverity(error: string, categorySeverity: any): LintMessageSeverity {
+         if (categorySeverity[error]) {
+            let severityName = categorySeverity[error];
+            switch (severityName) {
+                case 'Error':
+                    return LintMessageSeverity.Error;
+                case 'Hint':
+                    return LintMessageSeverity.Hint;
+                case 'Information':
+                    return LintMessageSeverity.Information;
+                case 'Warning':
+                    return LintMessageSeverity.Warning;
+                default: {
+                    if (LintMessageSeverity[severityName]) {
+                        return <LintMessageSeverity><any>LintMessageSeverity[severityName];
+                    }
+                }
+            }
+        }
+
+        return LintMessageSeverity.Information;
+    }
+
     protected run(command: string, args: string[], document: vscode.TextDocument, cwd: string, cancellation: vscode.CancellationToken, regEx: string = REGEX): Promise<ILintMessage[]> {
         let outputChannel = this.outputChannel;
 
