@@ -46,7 +46,7 @@ For further information and details continue through to the [documentation](http
     "C:/Program Files (x86)/Google/google_appengine/lib" ]
 ```
 * [Scientific tools (Jupyter/IPython)](https://marketplace.visualstudio.com/items?itemName=donjayamanne.python)
- + This functionality has been moved into a separate extension [Jupyter](https://marketplace.visualstudio.com/items?itemName=donjayamanne.python)
+ + This functionality has been moved into a separate extension [Jupyter](https://marketplace.visualstudio.com/items?itemName=donjayamanne.jupyter)
 * [Code formatting](https://github.com/DonJayamanne/pythonVSCode/wiki/Formatting)
  + Auto formatting of code upon saving changes (default to 'Off')
  + Use either yapf or autopep8 for code formatting (defaults to autopep8)
