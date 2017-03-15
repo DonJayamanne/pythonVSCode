@@ -311,7 +311,7 @@ export function getWindowsLineEndingCount(document:TextDocument, offset:Number) 
     // In order to prevent the one-time loading of large files from taking up too much memory
     for (let pos = 0; pos < offset; pos += readBlock)   {
         let startAt = document.positionAt(pos)
-        let endAt = document.positionAt(pos + readBlock);
+        let endAt = document.positionAt(pos + offset.valueOf());
 
         let text = document.getText(new Range(startAt, endAt));
         let cr = text.match(eolPattern);
