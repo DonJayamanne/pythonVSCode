@@ -1,6 +1,7 @@
 .vscode/**
 typings/**
 out/test/**
+out/pythonFiles/**
 test/**
 src/**
 scripts/**

@@ -9,6 +9,10 @@ import { CancellationToken, OutputChannel } from 'vscode';
 import { run } from '../common/runner';
 import { Server } from './socketServer';
 import { PythonSettings } from '../../common/configSettings';
+import * as vscode from 'vscode';
+import { execPythonFile } from './../../common/utils';
+import { createDeferred } from './../../common/helpers';
+import * as os from 'os';
 
 const settings = PythonSettings.getInstance();
 interface TestStatusMap {
@@ -29,7 +33,7 @@ interface ITestData {
     traceback: string;
 }
 
-export function runTest(testManager: BaseTestManager, rootDirectory: string, tests: Tests, args: string[], testsToRun?: TestsToRun, token?: CancellationToken, outChannel?: OutputChannel): Promise<Tests> {
+export function runTest(testManager: BaseTestManager, rootDirectory: string, tests: Tests, args: string[], testsToRun?: TestsToRun, token?: CancellationToken, outChannel?: OutputChannel, debug?: boolean): Promise<Tests> {
     tests.summary.errors = 0;
     tests.summary.failures = 0;
     tests.summary.passed = 0;
@@ -60,7 +64,7 @@ export function runTest(testManager: BaseTestManager, rootDirectory: string, tes
             }
         }
         else {
-            if (statusDetails){
+            if (statusDetails) {
                 tests.summary[statusDetails.summaryProperty] += 1;
             }
         }
@@ -81,6 +85,9 @@ export function runTest(testManager: BaseTestManager, rootDirectory: string, tes
             testArgs = testArgs.filter(arg => arg !== '--uf');
 
             testArgs.push(`--result-port=${port}`);
+            if (debug === true) {
+                testArgs.push(...[`--secret=my_secret`, `--port=3000`]);
+            }
             testArgs.push(`--us=${startTestDiscoveryDirectory}`);
             if (testId.length > 0) {
                 testArgs.push(`-t${testId}`);
@@ -88,7 +95,60 @@ export function runTest(testManager: BaseTestManager, rootDirectory: string, tes
             if (testFile.length > 0) {
                 testArgs.push(`--testFile=${testFile}`);
             }
-            return run(settings.pythonPath, [testLauncherFile].concat(testArgs), rootDirectory, token, outChannel);
+            if (debug === true) {
+                const def = createDeferred<any>();
+                const launchDef = createDeferred<any>();
+                let outputChannelShown = false;
+
+                // start the debug adapter only once we have started the debug process
+                execPythonFile(settings.pythonPath, [testLauncherFile].concat(testArgs), rootDirectory, true, (data: string) => {
+                    if (data === 'READY' + os.EOL) {
+                        // debug socket server has started
+                        launchDef.resolve();
+                    }
+                    else {
+                        if (!outputChannelShown) {
+                            outputChannelShown = true;
+                            outChannel.show();
+                        }
+                        outChannel.append(data);
+                    }
+                }, token).catch(reason => {
+                    if (!def.rejected && !def.resolved) {
+                        def.reject(reason);
+                    }
+                }).then(() => {
+                    if (!def.rejected && !def.resolved) {
+                        def.resolve();
+                    }
+                }).catch(reason => {
+                    if (!def.rejected && !def.resolved) {
+                        def.reject(reason);
+                    }
+                });
+
+                launchDef.promise.then(() => {
+                    return vscode.commands.executeCommand('vscode.startDebug', {
+                        "name": "Debug Unit Test",
+                        "type": "python",
+                        "request": "attach",
+                        "localRoot": rootDirectory,
+                        "remoteRoot": rootDirectory,
+                        "port": settings.unitTest.debugPort,
+                        "secret": "my_secret",
+                        "host": "localhost"
+                    });
+                }).catch(reason => {
+                    if (!def.rejected && !def.resolved) {
+                        def.reject(reason);
+                    }
+                });
+
+                return def.promise;
+            }
+            else {
+                return run(settings.pythonPath, [testLauncherFile].concat(testArgs), rootDirectory, token, outChannel);
+            }
         }
 
         // Test everything
@@ -119,6 +179,8 @@ export function runTest(testManager: BaseTestManager, rootDirectory: string, tes
     }).then(() => {
         updateResults(tests);
         return tests;
+    }).catch(reason => {
+        return Promise.reject(reason);
     });
 }
 

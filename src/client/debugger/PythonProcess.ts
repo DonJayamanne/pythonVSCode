@@ -235,7 +235,7 @@ export class PythonProcess extends EventEmitter implements IPythonProcess {
         let index = this.breakpointCommands.findIndex(cmd => cmd.Id === breakpointId);
         if (index === -1) {
             // Hmm this is not possible, log this exception and carry on
-            this.emit("error", "command.breakpoint.hit", `Uknown Breakpoit Id ${breakpointId}`);
+            // this.emit("error", "command.breakpoint.hit", `Uknown Breakpoit Id ${breakpointId}`);
             return;
         }
 

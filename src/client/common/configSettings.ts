@@ -4,9 +4,13 @@ import * as vscode from 'vscode';
 import { SystemVariables } from './systemVariables';
 import { EventEmitter } from 'events';
 import * as path from 'path';
+import * as child_process from 'child_process';
+
+export const IS_WINDOWS = /^win/.test(process.platform);
 
 export interface IPythonSettings {
     pythonPath: string;
+    venvPath: string;
     jediPath: string;
     devOptions: string[];
     linting: ILintingSettings;
@@ -16,14 +20,17 @@ export interface IPythonSettings {
     terminal: ITerminalSettings;
     jupyter: JupyterSettings;
     sortImports: ISortImportSettings;
+    workspaceSymbols: IWorkspaceSymbolSettings;
+    envFile: string;
 }
-
 export interface ISortImportSettings {
+    path: string;
     args: string[];
 }
 
 export interface IUnitTestSettings {
     promptToConfigure: boolean;
+    debugPort: number;
     nosetestsEnabled: boolean;
     nosetestPath: string;
     nosetestArgs: string[];
@@ -43,6 +50,8 @@ export interface IPylintCategorySeverity {
 }
 export interface ILintingSettings {
     enabled: boolean;
+    enabledWithoutWorkspace: boolean;
+    ignorePatterns: string[];
     prospectorEnabled: boolean;
     prospectorArgs: string[];
     pylintEnabled: boolean;
@@ -80,7 +89,17 @@ export interface IFormattingSettings {
     outputWindow: string;
 }
 export interface IAutoCompeteSettings {
+    addBrackets: boolean;
     extraPaths: string[];
+    preloadModules: string[];
+}
+export interface IWorkspaceSymbolSettings {
+    enabled: boolean;
+    tagFilePath: string;
+    rebuildOnStart: boolean;
+    rebuildOnFileSave: boolean;
+    ctagsPath: string;
+    exclusionPatterns: string[];
 }
 export interface ITerminalSettings {
     executeInFileDir: boolean;
@@ -94,17 +113,17 @@ export interface JupyterSettings {
 
 const IS_TEST_EXECUTION = process.env['PYTHON_DONJAYAMANNE_TEST'] === '1';
 
-const systemVariables: SystemVariables = new SystemVariables();
 export class PythonSettings extends EventEmitter implements IPythonSettings {
     private static pythonSettings: PythonSettings = new PythonSettings();
+    private disposables: vscode.Disposable[] = [];
     constructor() {
         super();
         if (PythonSettings.pythonSettings) {
             throw new Error('Singleton class, Use getInstance method');
         }
-        vscode.workspace.onDidChangeConfiguration(() => {
+        this.disposables.push(vscode.workspace.onDidChangeConfiguration(() => {
             this.initializeSettings();
-        });
+        }));
 
         this.initializeSettings();
     }
@@ -112,17 +131,20 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         return PythonSettings.pythonSettings;
     }
     private initializeSettings() {
-        const workspaceRoot = IS_TEST_EXECUTION ? __dirname : vscode.workspace.rootPath;
+        const systemVariables: SystemVariables = new SystemVariables();
+        const workspaceRoot = (IS_TEST_EXECUTION || typeof vscode.workspace.rootPath !== 'string') ? __dirname : vscode.workspace.rootPath;
         let pythonSettings = vscode.workspace.getConfiguration('python');
         this.pythonPath = systemVariables.resolveAny(pythonSettings.get<string>('pythonPath'));
         this.pythonPath = getAbsolutePath(this.pythonPath, IS_TEST_EXECUTION ? __dirname : workspaceRoot);
+        this.venvPath = systemVariables.resolveAny(pythonSettings.get<string>('venvPath'));
         this.jediPath = systemVariables.resolveAny(pythonSettings.get<string>('jediPath'));
         if (typeof this.jediPath === 'string' && this.jediPath.length > 0) {
-            this.jediPath = getAbsolutePath(this.jediPath, IS_TEST_EXECUTION ? __dirname : workspaceRoot);
+            this.jediPath = getAbsolutePath(systemVariables.resolveAny(this.jediPath), IS_TEST_EXECUTION ? __dirname : workspaceRoot);
         }
         else {
             this.jediPath = '';
         }
+        this.envFile = systemVariables.resolveAny(pythonSettings.get<string>('envFile'));
         this.devOptions = systemVariables.resolveAny(pythonSettings.get<any[]>('devOptions'));
         this.devOptions = Array.isArray(this.devOptions) ? this.devOptions : [];
         let lintingSettings = systemVariables.resolveAny(pythonSettings.get<ILintingSettings>('linting'));
@@ -140,10 +162,12 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
             this.sortImports = sortImportSettings;
         }
         // Support for travis
-        this.sortImports = this.sortImports ? this.sortImports : { args: [] };
+        this.sortImports = this.sortImports ? this.sortImports : { path: '', args: [] };
         // Support for travis
         this.linting = this.linting ? this.linting : {
             enabled: false,
+            enabledWithoutWorkspace: false,
+            ignorePatterns: [],
             flake8Args: [], flake8Enabled: false, flake8Path: 'flake',
             lintOnSave: false, lintOnTextChange: false, maxNumberOfProblems: 100,
             mypyArgs: [], mypyEnabled: false, mypyPath: 'mypy',
@@ -160,12 +184,12 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
                 warning: vscode.DiagnosticSeverity.Warning
             }
         };
-        this.linting.pylintPath = getAbsolutePath(this.linting.pylintPath, workspaceRoot);
-        this.linting.flake8Path = getAbsolutePath(this.linting.flake8Path, workspaceRoot);
-        this.linting.pep8Path = getAbsolutePath(this.linting.pep8Path, workspaceRoot);
-        this.linting.pylamaPath = getAbsolutePath(this.linting.pylamaPath, workspaceRoot);
-        this.linting.prospectorPath = getAbsolutePath(this.linting.prospectorPath, workspaceRoot);
-        this.linting.pydocstylePath = getAbsolutePath(this.linting.pydocstylePath, workspaceRoot);
+        this.linting.pylintPath = getAbsolutePath(systemVariables.resolveAny(this.linting.pylintPath), workspaceRoot);
+        this.linting.flake8Path = getAbsolutePath(systemVariables.resolveAny(this.linting.flake8Path), workspaceRoot);
+        this.linting.pep8Path = getAbsolutePath(systemVariables.resolveAny(this.linting.pep8Path), workspaceRoot);
+        this.linting.pylamaPath = getAbsolutePath(systemVariables.resolveAny(this.linting.pylamaPath), workspaceRoot);
+        this.linting.prospectorPath = getAbsolutePath(systemVariables.resolveAny(this.linting.prospectorPath), workspaceRoot);
+        this.linting.pydocstylePath = getAbsolutePath(systemVariables.resolveAny(this.linting.pydocstylePath), workspaceRoot);
 
         let formattingSettings = systemVariables.resolveAny(pythonSettings.get<IFormattingSettings>('formatting'));
         if (this.formatting) {
@@ -182,8 +206,8 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
             yapfArgs: [], yapfPath: 'yapf',
             formatOnSave: false
         };
-        this.formatting.autopep8Path = getAbsolutePath(this.formatting.autopep8Path, workspaceRoot);
-        this.formatting.yapfPath = getAbsolutePath(this.formatting.yapfPath, workspaceRoot);
+        this.formatting.autopep8Path = getAbsolutePath(systemVariables.resolveAny(this.formatting.autopep8Path), workspaceRoot);
+        this.formatting.yapfPath = getAbsolutePath(systemVariables.resolveAny(this.formatting.yapfPath), workspaceRoot);
 
         let autoCompleteSettings = systemVariables.resolveAny(pythonSettings.get<IAutoCompeteSettings>('autoComplete'));
         if (this.autoComplete) {
@@ -194,7 +218,26 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         }
         // Support for travis
         this.autoComplete = this.autoComplete ? this.autoComplete : {
-            extraPaths: []
+            extraPaths: [],
+            addBrackets: false,
+            preloadModules: []
+        };
+
+        let workspaceSymbolsSettings = systemVariables.resolveAny(pythonSettings.get<IWorkspaceSymbolSettings>('workspaceSymbols'));
+        if (this.workspaceSymbols) {
+            Object.assign<IWorkspaceSymbolSettings, IWorkspaceSymbolSettings>(this.workspaceSymbols, workspaceSymbolsSettings);
+        }
+        else {
+            this.workspaceSymbols = workspaceSymbolsSettings;
+        }
+        // Support for travis
+        this.workspaceSymbols = this.workspaceSymbols ? this.workspaceSymbols : {
+            ctagsPath: 'ctags',
+            enabled: true,
+            exclusionPatterns: [],
+            rebuildOnFileSave: true,
+            rebuildOnStart: true,
+            tagFilePath: path.join(workspaceRoot, "tags")
         };
 
         let unitTestSettings = systemVariables.resolveAny(pythonSettings.get<IUnitTestSettings>('unitTest'));
@@ -207,18 +250,18 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
                 this.unitTest = { nosetestArgs: [], pyTestArgs: [], unittestArgs: [] } as IUnitTestSettings;
             }
         }
-        this.emit('change');
 
         // Support for travis
         this.unitTest = this.unitTest ? this.unitTest : {
             promptToConfigure: true,
+            debugPort: 3000,
             nosetestArgs: [], nosetestPath: 'nosetest', nosetestsEnabled: false,
             outputWindow: 'python',
             pyTestArgs: [], pyTestEnabled: false, pyTestPath: 'pytest',
             unittestArgs: [], unittestEnabled: false
         };
-        this.unitTest.pyTestPath = getAbsolutePath(this.unitTest.pyTestPath, workspaceRoot);
-        this.unitTest.nosetestPath = getAbsolutePath(this.unitTest.nosetestPath, workspaceRoot);
+        this.unitTest.pyTestPath = getAbsolutePath(systemVariables.resolveAny(this.unitTest.pyTestPath), workspaceRoot);
+        this.unitTest.nosetestPath = getAbsolutePath(systemVariables.resolveAny(this.unitTest.nosetestPath), workspaceRoot);
 
         // Resolve any variables found in the test arguments
         this.unitTest.nosetestArgs = this.unitTest.nosetestArgs.map(arg => systemVariables.resolveAny(arg));
@@ -246,10 +289,30 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         this.jupyter = this.jupyter ? this.jupyter : {
             appendResults: true, defaultKernel: '', startupCode: []
         };
+
+        this.emit('change');
     }
 
-    public pythonPath: string;
+    private _pythonPath: string;
+    public get pythonPath(): string {
+        return this._pythonPath;
+    }
+    public set pythonPath(value: string) {
+        if (this._pythonPath === value) {
+            return;
+        }
+        // Add support for specifying just the directory where the python executable will be located
+        // E.g. virtual directory name
+        try {
+            this._pythonPath = getPythonExecutable(value);
+        }
+        catch (ex) {
+            this._pythonPath = value;
+        }
+    }
     public jediPath: string;
+    public envFile: string;
+    public venvPath: string;
     public devOptions: string[];
     public linting: ILintingSettings;
     public formatting: IFormattingSettings;
@@ -258,6 +321,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
     public terminal: ITerminalSettings;
     public jupyter: JupyterSettings;
     public sortImports: ISortImportSettings;
+    public workspaceSymbols: IWorkspaceSymbolSettings;
 }
 
 function getAbsolutePath(pathToCheck: string, rootDir: string): string {
@@ -266,4 +330,52 @@ function getAbsolutePath(pathToCheck: string, rootDir: string): string {
         return pathToCheck;
     }
     return path.isAbsolute(pathToCheck) ? pathToCheck : path.resolve(rootDir, pathToCheck);
+}
+
+function getPythonExecutable(pythonPath: string): string {
+    // If only 'python'
+    if (pythonPath === 'python' ||
+        pythonPath.indexOf(path.sep) === -1 ||
+        path.basename(pythonPath) === path.dirname(pythonPath)) {
+        return pythonPath;
+    }
+
+    if (isValidPythonPath(pythonPath)) {
+        return pythonPath;
+    }
+    // Keep python right on top, for backwards compatibility
+    const KnownPythonExecutables = ['python', 'python4', 'python3.6', 'python3.5', 'python3', 'python2.7', 'python2'];
+
+    for (let executableName of KnownPythonExecutables) {
+        // Suffix with 'python' for linux and 'osx', and 'python.exe' for 'windows'
+        if (IS_WINDOWS) {
+            executableName = executableName + '.exe';
+            if (isValidPythonPath(path.join(pythonPath, executableName))) {
+                return path.join(pythonPath, executableName);
+            }
+            if (isValidPythonPath(path.join(pythonPath, 'scripts', executableName))) {
+                return path.join(pythonPath, 'scripts', executableName);
+            }
+        }
+        else {
+            if (isValidPythonPath(path.join(pythonPath, executableName))) {
+                return path.join(pythonPath, executableName);
+            }
+            if (isValidPythonPath(path.join(pythonPath, 'bin', executableName))) {
+                return path.join(pythonPath, 'bin', executableName);
+            }
+        }
+    }
+
+    return pythonPath;
+}
+
+function isValidPythonPath(pythonPath): boolean {
+    try {
+        let output = child_process.execFileSync(pythonPath, ['-c', 'print(1234)'], { encoding: 'utf8' });
+        return output.startsWith('1234');
+    }
+    catch (ex) {
+        return false;
+    }
 }

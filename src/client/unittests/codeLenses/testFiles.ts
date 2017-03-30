@@ -1,10 +1,10 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import {CodeLensProvider, TextDocument, CancellationToken, CodeLens, SymbolInformation} from 'vscode';
-import {TestFile, TestsToRun, TestSuite, TestFunction} from '../common/contracts';
+import { CodeLensProvider, TextDocument, CancellationToken, CodeLens, SymbolInformation } from 'vscode';
+import { TestFile, TestsToRun, TestSuite, TestFunction, TestStatus } from '../common/contracts';
 import * as constants from '../../common/constants';
-import {getDiscoveredTests} from '../common/testUtils';
+import { getDiscoveredTests } from '../common/testUtils';
 
 interface CodeLensData {
     symbolKind: vscode.SymbolKind;
@@ -17,6 +17,13 @@ interface FunctionsAndSuites {
 }
 
 export class TestFileCodeLensProvider implements CodeLensProvider {
+    constructor(private _onDidChange: vscode.EventEmitter<void>) {
+    }
+
+    get onDidChangeCodeLenses(): vscode.Event<void> {
+        return this._onDidChange.event;
+    }
+
     public provideCodeLenses(document: TextDocument, token: CancellationToken): Thenable<CodeLens[]> {
         let testItems = getDiscoveredTests();
         if (!testItems || testItems.testFiles.length === 0 || testItems.testFunctions.length === 0) {
@@ -69,7 +76,7 @@ function getCodeLenses(documentUri: vscode.Uri, token: vscode.CancellationToken)
 
                 return getCodeLens(documentUri.fsPath, allFuncsAndSuites,
                     range, symbol.name, symbol.kind);
-            }).filter(codeLens => codeLens !== null);
+            }).reduce((previous, current) => previous.concat(current), []).filter(codeLens => codeLens !== null);
         }, reason => {
             if (token.isCancellationRequested) {
                 return [];
@@ -78,11 +85,8 @@ function getCodeLenses(documentUri: vscode.Uri, token: vscode.CancellationToken)
         });
 }
 
-// Move all of this rubbis into a separate file // too long
-const testParametirizedFunction = /.*\[.*\]/g;
-
 function getCodeLens(fileName: string, allFuncsAndSuites: FunctionsAndSuites,
-    range: vscode.Range, symbolName: string, symbolKind: vscode.SymbolKind): vscode.CodeLens {
+    range: vscode.Range, symbolName: string, symbolKind: vscode.SymbolKind): vscode.CodeLens[] {
 
     switch (symbolKind) {
         case vscode.SymbolKind.Function:
@@ -94,27 +98,76 @@ function getCodeLens(fileName: string, allFuncsAndSuites: FunctionsAndSuites,
             if (!cls) {
                 return null;
             }
-            return new CodeLens(range, {
-                title: constants.Text.CodeLensUnitTest,
-                command: constants.Commands.Tests_Run,
-                arguments: [<TestsToRun>{ testSuite: [cls] }]
-            });
+            return [
+                new CodeLens(range, {
+                    title: getTestStatusIcon(cls.status) + constants.Text.CodeLensRunUnitTest,
+                    command: constants.Commands.Tests_Run,
+                    arguments: [<TestsToRun>{ testSuite: [cls] }]
+                }),
+                new CodeLens(range, {
+                    title: getTestStatusIcon(cls.status) + constants.Text.CodeLensDebugUnitTest,
+                    command: constants.Commands.Tests_Debug,
+                    arguments: [<TestsToRun>{ testSuite: [cls] }]
+                })
+            ];
         }
     }
 
     return null;
 }
 
+function getTestStatusIcon(status: TestStatus): string {
+    switch (status) {
+        case TestStatus.Pass: {
+            return '✔ ';
+        }
+        case TestStatus.Error:
+        case TestStatus.Fail: {
+            return '✘ ';
+        }
+        case TestStatus.Skipped: {
+            return '⃠ ';
+        }
+        default: {
+            return '';
+        }
+    }
+}
+
+function getTestStatusIcons(fns: TestFunction[]): string {
+    let statuses: string[] = [];
+    let count = fns.filter(fn => fn.status === TestStatus.Pass).length;
+    if (count > 0) {
+        statuses.push(`✔ ${count}`);
+    }
+    count = fns.filter(fn => fn.status === TestStatus.Error || fn.status === TestStatus.Fail).length;
+    if (count > 0) {
+        statuses.push(`✘ ${count}`);
+    }
+    count = fns.filter(fn => fn.status === TestStatus.Skipped).length;
+    if (count > 0) {
+        statuses.push(`⃠ ${count}`);
+    }
+
+    return statuses.join(' ');
+}
 function getFunctionCodeLens(filePath: string, functionsAndSuites: FunctionsAndSuites,
-    symbolName: string, range: vscode.Range): vscode.CodeLens {
+    symbolName: string, range: vscode.Range): vscode.CodeLens[] {
 
     const fn = functionsAndSuites.functions.find(fn => fn.name === symbolName);
     if (fn) {
-        return new CodeLens(range, {
-            title: constants.Text.CodeLensUnitTest,
-            command: constants.Commands.Tests_Run,
-            arguments: [<TestsToRun>{ testFunction: [fn] }]
-        });
+        return [
+            new CodeLens(range, {
+                title: getTestStatusIcon(fn.status) + constants.Text.CodeLensRunUnitTest,
+                command: constants.Commands.Tests_Run,
+                arguments: [<TestsToRun>{ testFunction: [fn] }]
+            }),
+            new CodeLens(range, {
+                title: getTestStatusIcon(fn.status) + constants.Text.CodeLensDebugUnitTest,
+                command: constants.Commands.Tests_Debug,
+                arguments: [<TestsToRun>{ testFunction: [fn] }]
+            })
+        ];
     }
 
     // Ok, possible we're dealing with parameterized unit tests
@@ -124,19 +177,33 @@ function getFunctionCodeLens(filePath: string, functionsAndSuites: FunctionsAndS
         return null;
     }
     if (functions.length === 0) {
-        return new CodeLens(range, {
-            title: constants.Text.CodeLensUnitTest,
-            command: constants.Commands.Tests_Run,
-            arguments: [<TestsToRun>{ testFunction: functions }]
-        });
+        return [
+            new CodeLens(range, {
+                title: constants.Text.CodeLensRunUnitTest,
+                command: constants.Commands.Tests_Run,
+                arguments: [<TestsToRun>{ testFunction: functions }]
+            }),
+            new CodeLens(range, {
+                title: constants.Text.CodeLensDebugUnitTest,
+                command: constants.Commands.Tests_Debug,
+                arguments: [<TestsToRun>{ testFunction: functions }]
+            })
+        ];
     }
 
     // Find all flattened functions
-    return new CodeLens(range, {
-        title: constants.Text.CodeLensUnitTest + ' (Multiple)',
-        command: constants.Commands.Tests_Picker_UI,
-        arguments: [filePath, functions]
-    });
+    return [
+        new CodeLens(range, {
+            title: getTestStatusIcons(functions) + constants.Text.CodeLensRunUnitTest + ' (Multiple)',
+            command: constants.Commands.Tests_Picker_UI,
+            arguments: [filePath, functions]
+        }),
+        new CodeLens(range, {
+            title: getTestStatusIcons(functions) + constants.Text.CodeLensDebugUnitTest + ' (Multiple)',
+            command: constants.Commands.Tests_Picker_UI_Debug,
+            arguments: [filePath, functions]
+        })
+    ];
 }
 
 function getAllTestSuitesAndFunctionsPerFile(testFile: TestFile): FunctionsAndSuites {

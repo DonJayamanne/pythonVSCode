@@ -101,7 +101,7 @@ export class JupyterClientAdapter extends EventEmitter implements IJupyterClient
                     // Ok everything has started, now test ping
                     const msg1 = 'Hello world from Type Script - Функция проверки ИНН и КПП - 长城!1';
                     const msg2 = 'Hello world from Type Script - Функция проверки ИНН и КПП - 长城!2';
-                    Promise.all<string>([this.ipythonAdapter.ping(msg1), this.ipythonAdapter.ping(msg2)]).then(msgs => {
+                    Promise.all<string, string>([this.ipythonAdapter.ping(msg1), this.ipythonAdapter.ping(msg2)]).then(msgs => {
                         if (msgs.indexOf(msg1) === -1 || msgs.indexOf(msg2) === -1) {
                             def.reject('msg1 or msg2 not returned');
                         }

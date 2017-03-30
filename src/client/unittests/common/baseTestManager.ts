@@ -2,8 +2,6 @@
 import { Tests, TestStatus, TestsToRun, CANCELLATION_REASON } from './contracts';
 import * as vscode from 'vscode';
 import { resetTestResults, displayTestErrorMessage, storeDiscoveredTests } from './testUtils';
-import * as telemetryHelper from '../../common/telemetry';
-import * as telemetryContracts from '../../common/telemetryContracts';
 import { Installer, Product } from '../../common/installer';
 import { isNotInstalledError } from '../../common/helpers';
 
@@ -62,7 +60,6 @@ export abstract class BaseTestManager {
             this._status = TestStatus.Idle;
             return Promise.resolve(this.tests);
         }
-        let delays = new telemetryHelper.Delays();
         this._status = TestStatus.Discovering;
 
         this.createCancellationToken();
@@ -90,11 +87,6 @@ export abstract class BaseTestManager {
                 storeDiscoveredTests(tests);
                 this.disposeCancellationToken();
 
-                delays.stop();
-                telemetryHelper.sendTelemetryEvent(telemetryContracts.UnitTests.Discover, {
-                    Test_Provider: this.testProvider
-                }, delays.toMeasures());
-
                 return tests;
             }).catch(reason => {
                 if (isNotInstalledError(reason) && !quietMode) {
@@ -114,19 +106,13 @@ export abstract class BaseTestManager {
                 }
                 storeDiscoveredTests(null);
                 this.disposeCancellationToken();
-
-                delays.stop();
-                telemetryHelper.sendTelemetryEvent(telemetryContracts.UnitTests.Discover, {
-                    Test_Provider: this.testProvider
-                }, delays.toMeasures());
-
                 return Promise.reject(reason);
             });
     }
-    abstract discoverTestsImpl(ignoreCache: boolean): Promise<Tests>;
-    public runTest(testsToRun?: TestsToRun): Promise<Tests>;
-    public runTest(runFailedTests?: boolean): Promise<Tests>;
-    public runTest(args: any): Promise<Tests> {
+    abstract discoverTestsImpl(ignoreCache: boolean, debug?: boolean): Promise<Tests>;
+    public runTest(testsToRun?: TestsToRun, debug?: boolean): Promise<Tests>;
+    public runTest(runFailedTests?: boolean, debug?: boolean): Promise<Tests>;
+    public runTest(args: any, debug?: boolean): Promise<Tests> {
         let runFailedTests = false;
         let testsToRun: TestsToRun = null;
         let moreInfo = {
@@ -157,8 +143,6 @@ export abstract class BaseTestManager {
             this.resetTestResults();
         }
 
-        let delays = new telemetryHelper.Delays();
-
         this._status = TestStatus.Running;
         this.createCancellationToken();
         // If running failed tests, then don't clear the previously build UnitTests
@@ -177,12 +161,10 @@ export abstract class BaseTestManager {
                 };
             })
             .then(tests => {
-                return this.runTestImpl(tests, testsToRun, runFailedTests);
+                return this.runTestImpl(tests, testsToRun, runFailedTests, debug);
             }).then(() => {
                 this._status = TestStatus.Idle;
                 this.disposeCancellationToken();
-                delays.stop();
-                telemetryHelper.sendTelemetryEvent(telemetryContracts.UnitTests.Run, moreInfo as any, delays.toMeasures());
                 return this.tests;
             }).catch(reason => {
                 if (this.cancellationToken && this.cancellationToken.isCancellationRequested) {
@@ -193,10 +175,8 @@ export abstract class BaseTestManager {
                     this._status = TestStatus.Error;
                 }
                 this.disposeCancellationToken();
-                delays.stop();
-                telemetryHelper.sendTelemetryEvent(telemetryContracts.UnitTests.Run, moreInfo as any, delays.toMeasures());
                 return Promise.reject(reason);
             });
     }
-    abstract runTestImpl(tests: Tests, testsToRun?: TestsToRun, runFailedTests?: boolean): Promise<any>;
+    abstract runTestImpl(tests: Tests, testsToRun?: TestsToRun, runFailedTests?: boolean, debug?: boolean): Promise<any>;
 }

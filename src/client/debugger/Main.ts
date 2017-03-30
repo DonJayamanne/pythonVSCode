@@ -19,7 +19,7 @@ import { DebugClient, DebugType } from "./DebugClients/DebugClient";
 import { CreateAttachDebugClient, CreateLaunchDebugClient } from "./DebugClients/DebugFactory";
 import { DjangoApp, LaunchRequestArguments, AttachRequestArguments, DebugFlags, DebugOptions, TelemetryEvent, PythonEvaluationResultFlags } from "./Common/Contracts";
 import * as telemetryContracts from "../common/telemetryContracts";
-import { validatePath, validatePathSync } from './Common/Utils';
+import { validatePath, validatePathSync, getPythonExecutable } from './Common/Utils';
 import { isNotInstalledError } from '../common/helpers';
 
 const CHILD_ENUMEARATION_TIMEOUT = 5000;
@@ -81,7 +81,13 @@ export class PythonDebugger extends DebugSession {
     private debugServer: BaseDebugServer;
 
     private startDebugServer(): Promise<IDebugServer> {
-        let programDirectory = this.launchArgs ? path.dirname(this.launchArgs.program) : this.attachArgs.localRoot;
+        let programDirectory = '';
+        if ((this.launchArgs && this.launchArgs.program) || (this.attachArgs && this.attachArgs.localRoot)) {
+            programDirectory = this.launchArgs ? path.dirname(this.launchArgs.program) : this.attachArgs.localRoot;
+        }
+        if (this.launchArgs && typeof this.launchArgs.cwd === 'string' && this.launchArgs.cwd.length > 0 && this.launchArgs.cwd !== 'null') {
+            programDirectory = this.launchArgs.cwd;
+        }
         this.pythonProcess = new PythonProcess(0, "", programDirectory);
         this.debugServer = this.debugClient.CreateDebugServer(this.pythonProcess);
         this.InitializeEventHandlers();
@@ -177,14 +183,38 @@ export class PythonDebugger extends DebugSession {
         return Promise.resolve(true);
     }
     protected launchRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments): void {
+        // Add support for specifying just the directory where the python executable will be located
+        // E.g. virtual directory name
+        try {
+            args.pythonPath = getPythonExecutable(args.pythonPath);
+        }
+        catch (ex) {
+        }
+        if (Array.isArray(args.debugOptions) && args.debugOptions.indexOf("Pyramid") >= 0) {
+            if (fs.existsSync(args.pythonPath)) {
+                args.program = path.join(path.dirname(args.pythonPath), "pserve");
+            }
+            else {
+                args.program = "pserve";
+            }
+        }
         // Confirm the file exists
-        if (!fs.existsSync(args.program)) {
-            return this.sendErrorResponse(response, 2001, `File does not exist. "${args.program}"`);
+        if (typeof args.module !== 'string' || args.module.length === 0) {
+            if (!fs.existsSync(args.program)) {
+                return this.sendErrorResponse(response, 2001, `File does not exist. "${args.program}"`);
+            }
+        }
+        else {
+            // When using modules ensure the cwd has been provided
+            if (typeof args.cwd !== 'string' || args.cwd.length === 0 || (this.launchArgs && this.launchArgs.cwd === 'null')) {
+                return this.sendErrorResponse(response, 2001, `'cwd' in 'launch.json' needs to point to the working directory`);
+            }
         }
         this.sendEvent(new TelemetryEvent(telemetryContracts.Debugger.Load, {
             Debug_Console: args.console,
             Debug_DebugOptions: args.debugOptions.join(","),
             Debug_DJango: args.debugOptions.indexOf("DjangoDebugging") >= 0 ? "true" : "false",
+            Debug_PySpark: typeof args.pythonPath === 'string' && args.pythonPath.indexOf('spark-submit') > 0 ? 'true' : 'false',
             Debug_HasEnvVaraibles: args.env && typeof args.env === "object" ? "true" : "false"
         }));
 

@@ -6,8 +6,12 @@ import * as os from 'os';
 import { extractBetweenDelimiters, convertFileToPackage, flattenTestFiles } from '../common/testUtils';
 import { CancellationToken } from 'vscode';
 import { PythonSettings } from '../../common/configSettings';
+import { OutputChannel } from 'vscode';
 
 const pythonSettings = PythonSettings.getInstance();
+const NOSE_WANT_FILE_PREFIX = 'nose.selector: DEBUG: wantFile ';
+const NOSE_WANT_FILE_SUFFIX = '.py? True';
+const NOSE_WANT_FILE_SUFFIX_WITHOUT_EXT = '? True';
 
 const argsToExcludeForDiscovery = ['-v', '--verbose',
     '-q', '--quiet', '-x', '--stop',
@@ -17,7 +21,7 @@ const argsToExcludeForDiscovery = ['-v', '--verbose',
     '--failed', '--process-restartworker', '--with-xunit'];
 const settingsInArgsToExcludeForDiscovery = ['--verbosity'];
 
-export function discoverTests(rootDirectory: string, args: string[], token: CancellationToken): Promise<Tests> {
+export function discoverTests(rootDirectory: string, args: string[], token: CancellationToken, ignoreCache: boolean, outChannel: OutputChannel): Promise<Tests> {
     let logOutputLines: string[] = [''];
     let testFiles: TestFile[] = [];
 
@@ -50,7 +54,8 @@ export function discoverTests(rootDirectory: string, args: string[], token: Canc
     }
     function processOutput(output: string) {
         output.split(/\r?\n/g).forEach((line, index, lines) => {
-            if (line.trim().startsWith('nose.selector: DEBUG: wantModule <module \'') || index === lines.length - 1) {
+            if ((line.startsWith(NOSE_WANT_FILE_PREFIX) && line.endsWith(NOSE_WANT_FILE_SUFFIX)) ||
+                index === lines.length - 1) {
                 // process the previous lines
                 parseNoseTestModuleCollectionResult(rootDirectory, logOutputLines, testFiles);
                 logOutputLines = [''];
@@ -75,17 +80,11 @@ export function discoverTests(rootDirectory: string, args: string[], token: Canc
 
     return execPythonFile(pythonSettings.unitTest.nosetestPath, args.concat(['--collect-only', '-vvv']), rootDirectory, true)
         .then(data => {
+            outChannel.appendLine(data);            
             processOutput(data);
-            // Exclude tests that don't have any functions or test suites
-            let indices = testFiles.filter(testFile => {
-                return testFile.suites.length === 0 && testFile.functions.length === 0;
-            }).map((testFile, index) => index);
-            indices.sort();
 
-            indices.forEach((indexToRemove, index) => {
-                let newIndexToRemove = indexToRemove - index;
-                testFiles.splice(newIndexToRemove, 1);
-            });
+            // Exclude tests that don't have any functions or test suites
+            testFiles = testFiles.filter(testFile => testFile.suites.length > 0 || testFile.functions.length > 0);
             return flattenTestFiles(testFiles);
         });
 }
@@ -93,14 +92,11 @@ export function discoverTests(rootDirectory: string, args: string[], token: Canc
 function parseNoseTestModuleCollectionResult(rootDirectory: string, lines: string[], testFiles: TestFile[]) {
     let currentPackage: string = '';
     let fileName = '';
-    let moduleName = '';
     let testFile: TestFile;
     lines.forEach(line => {
-        if (line.startsWith('nose.selector: DEBUG: wantModule <module \'')) {
-            fileName = line.substring(line.indexOf('\' from \'') + '\' from \''.length);
-            fileName = fileName.substring(0, fileName.lastIndexOf('\''));
-            moduleName = line.substring(line.indexOf('nose.selector: DEBUG: wantModule <module \'') + 'nose.selector: DEBUG: wantModule <module \''.length);
-            moduleName = moduleName.substring(0, moduleName.indexOf('\''));
+        if (line.startsWith(NOSE_WANT_FILE_PREFIX) && line.endsWith(NOSE_WANT_FILE_SUFFIX)) {
+            fileName = line.substring(NOSE_WANT_FILE_PREFIX.length);
+            fileName = fileName.substring(0, fileName.lastIndexOf(NOSE_WANT_FILE_SUFFIX_WITHOUT_EXT));
 
             // We need to display the path relative to the current directory
             fileName = fileName.substring(rootDirectory.length + 1);

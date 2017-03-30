@@ -44,7 +44,7 @@ function extractParamDocString(paramName: string, docString: string): string {
     return paramDocString.trim();
 }
 export class PythonSignatureProvider implements vscode.SignatureHelpProvider {
-    private jediProxyHandler: proxy.JediProxyHandler<proxy.IArgumentsResult, vscode.SignatureHelp>;
+    private jediProxyHandler: proxy.JediProxyHandler<proxy.IArgumentsResult>;
 
     public constructor(context: vscode.ExtensionContext, jediProxy: proxy.JediProxy = null) {
         this.jediProxyHandler = new proxy.JediProxyHandler(context, jediProxy);
@@ -81,7 +81,6 @@ export class PythonSignatureProvider implements vscode.SignatureHelpProvider {
     }
     provideSignatureHelp(document: TextDocument, position: Position, token: CancellationToken): Thenable<SignatureHelp> {
         let cmd: proxy.ICommand<proxy.IArgumentsResult> = {
-            telemetryEvent: telemetryContracts.IDE.Symbol,
             command: proxy.CommandType.Arguments,
             fileName: document.fileName,
             columnIndex: position.character,

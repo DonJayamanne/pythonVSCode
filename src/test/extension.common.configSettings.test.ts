@@ -12,6 +12,7 @@ import * as assert from 'assert';
 // as well as import your extension to test it
 import * as vscode from 'vscode';
 import { PythonSettings } from '../client/common/configSettings';
+import { SystemVariables } from '../client/common/systemVariables';
 
 const pythonSettings = PythonSettings.getInstance();
 
@@ -22,11 +23,15 @@ suite('Configuration Settings', () => {
     });
     if (!IS_TRAVIS) {
         test('Check Values', done => {
+            const systemVariables: SystemVariables = new SystemVariables();
             const pythonConfig = vscode.workspace.getConfiguration('python');
             Object.keys(pythonSettings).forEach(key => {
-                const settingValue = pythonConfig.get(key, 'Not a config');
+                let settingValue = pythonConfig.get(key, 'Not a config');
                 if (settingValue === 'Not a config') {
                     return;
+                }
+                if (typeof settingValue === 'object' && settingValue !== null) {
+                    settingValue = systemVariables.resolve(settingValue);
                 }
                 assert.deepEqual(settingValue, pythonSettings[key], `Setting ${key} not the same`);
             });

@@ -8,11 +8,12 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as child_process from 'child_process';
 import * as settings from './configSettings';
-import { CancellationToken } from 'vscode';
+import { CancellationToken, TextDocument, Range, Position } from 'vscode';
 import { isNotInstalledError } from './helpers';
+import { mergeEnvVariables, parseEnvFile } from './envFileParser';
 
 export const IS_WINDOWS = /^win/.test(process.platform);
-const PATH_VARIABLE_NAME = IS_WINDOWS ? 'Path' : 'PATH';
+export const PATH_VARIABLE_NAME = IS_WINDOWS ? 'Path' : 'PATH';
 
 const PathValidity: Map<string, boolean> = new Map<string, boolean>();
 export function validatePath(filePath: string): Promise<string> {
@@ -26,6 +27,14 @@ export function validatePath(filePath: string): Promise<string> {
         fs.exists(filePath, exists => {
             PathValidity.set(filePath, exists);
             return resolve(exists ? filePath : '');
+        });
+    });
+}
+export function fsExistsAsync(filePath: string): Promise<boolean> {
+    return new Promise<boolean>(resolve => {
+        fs.exists(filePath, exists => {
+            PathValidity.set(filePath, exists);
+            return resolve(exists);
         });
     });
 }
@@ -73,6 +82,17 @@ export function getPythonInterpreterDirectory(): Promise<string> {
         return pythonInterpretterDirectory = '';
     });
 }
+export function getPathFromPythonCommand(args: string[]): Promise<string> {
+    return execPythonFile(settings.PythonSettings.getInstance().pythonPath, args, __dirname).then(stdout => {
+        if (stdout.length === 0) {
+            return "";
+        }
+        let lines = stdout.split(/\r?\n/g).filter(line => line.length > 0);
+        return validatePath(lines[0]);
+    }).catch(() => {
+        return "";
+    });
+}
 
 export function execPythonFile(file: string, args: string[], cwd: string, includeErrorAsResponse: boolean = false, stdOut: (line: string) => void = null, token?: CancellationToken): Promise<string> {
     // If running the python file, then always revert to execFileInternal
@@ -81,7 +101,7 @@ export function execPythonFile(file: string, args: string[], cwd: string, includ
         if (stdOut) {
             return spawnFileInternal(file, args, { cwd }, includeErrorAsResponse, stdOut, token);
         }
-        return execFileInternal(file, args, { cwd: cwd }, includeErrorAsResponse);
+        return execFileInternal(file, args, { cwd: cwd }, includeErrorAsResponse, token);
     }
 
     return getPythonInterpreterDirectory().then(pyPath => {
@@ -90,29 +110,31 @@ export function execPythonFile(file: string, args: string[], cwd: string, includ
             if (stdOut) {
                 return spawnFileInternal(file, args, { cwd }, includeErrorAsResponse, stdOut, token);
             }
-            return execFileInternal(file, args, { cwd: cwd }, includeErrorAsResponse);
+            return execFileInternal(file, args, { cwd: cwd }, includeErrorAsResponse, token);
         }
 
         if (customEnvVariables === null) {
+            customEnvVariables = getCustomEnvVars();
+            customEnvVariables = customEnvVariables ? customEnvVariables : {};
             // Ensure to include the path of the current python 
             let newPath = '';
+            let currentPath = typeof customEnvVariables[PATH_VARIABLE_NAME] === 'string' ? customEnvVariables[PATH_VARIABLE_NAME] : process.env[PATH_VARIABLE_NAME];
             if (IS_WINDOWS) {
-                newPath = pyPath + '\\' + path.delimiter + path.join(pyPath, 'Scripts\\') + path.delimiter + process.env[PATH_VARIABLE_NAME];
+                newPath = pyPath + '\\' + path.delimiter + path.join(pyPath, 'Scripts\\') + path.delimiter + currentPath;
                 // This needs to be done for windows
                 process.env[PATH_VARIABLE_NAME] = newPath;
             }
             else {
-                newPath = pyPath + path.delimiter + process.env[PATH_VARIABLE_NAME];
+                newPath = pyPath + path.delimiter + currentPath;
             }
-            let customSettings = <{ [key: string]: string }>{};
-            customSettings[PATH_VARIABLE_NAME] = newPath;
-            customEnvVariables = mergeEnvVariables(customSettings);
+            customEnvVariables = mergeEnvVariables(customEnvVariables, process.env);
+            customEnvVariables[PATH_VARIABLE_NAME] = newPath;
         }
 
         if (stdOut) {
             return spawnFileInternal(file, args, { cwd, env: customEnvVariables }, includeErrorAsResponse, stdOut, token);
         }
-        return execFileInternal(file, args, { cwd, env: customEnvVariables }, includeErrorAsResponse);
+        return execFileInternal(file, args, { cwd, env: customEnvVariables }, includeErrorAsResponse, token);
     });
 }
 
@@ -138,11 +160,19 @@ function handleResponse(file: string, includeErrorAsResponse: boolean, error: Er
         resolve(stdout + '');
     });
 }
-function execFileInternal(file: string, args: string[], options: child_process.ExecFileOptions, includeErrorAsResponse: boolean): Promise<string> {
+function execFileInternal(file: string, args: string[], options: child_process.ExecFileOptions, includeErrorAsResponse: boolean, token?: CancellationToken): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-        child_process.execFile(file, args, options, (error, stdout, stderr) => {
+        let proc = child_process.execFile(file, args, options, (error, stdout, stderr) => {
             handleResponse(file, includeErrorAsResponse, error, stdout, stderr).then(resolve, reject);
         });
+        if (token && token.onCancellationRequested) {
+            token.onCancellationRequested(() => {
+                if (proc) {
+                    proc.kill();
+                    proc = null;
+                }
+            });
+        }
     });
 }
 function spawnFileInternal(file: string, args: string[], options: child_process.ExecFileOptions, includeErrorAsResponse: boolean, stdOut: (line: string) => void, token?: CancellationToken): Promise<string> {
@@ -205,16 +235,6 @@ function execInternal(command: string, args: string[], options: child_process.Ex
     });
 }
 
-export function mergeEnvVariables(newVariables: { [key: string]: string }): any {
-    for (let setting in process.env) {
-        if (!newVariables[setting]) {
-            newVariables[setting] = process.env[setting];
-        }
-    }
-
-    return newVariables;
-}
-
 export function formatErrorForLogging(error: Error | string): string {
     let message: string = '';
     if (typeof error === 'string') {
@@ -260,4 +280,43 @@ export function getSubDirectories(rootDir: string): Promise<string[]> {
             resolve(subDirs);
         });
     });
+}
+
+export function getCustomEnvVars(): any {
+    const envFile = settings.PythonSettings.getInstance().envFile;
+    if (typeof envFile === 'string' &&
+        envFile.length > 0 &&
+        fs.existsSync(envFile)) {
+
+        try {
+            let vars = parseEnvFile(envFile);
+            if (vars && typeof vars === 'object' && Object.keys(vars).length > 0) {
+                return vars;
+            }
+        }
+        catch (ex) {
+            console.error('Failed to load env file');
+            console.error(ex);
+            return null;
+        }
+    }
+    return null;
+}
+
+export function getWindowsLineEndingCount(document:TextDocument, offset:Number)  {
+    const eolPattern = new RegExp('\r\n', 'g');
+    const readBlock = 1024;
+    let count = 0;
+
+    // In order to prevent the one-time loading of large files from taking up too much memory
+    for (let pos = 0; pos < offset; pos += readBlock)   {
+        let startAt = document.positionAt(pos)
+        let endAt = document.positionAt(pos + readBlock);
+
+        let text = document.getText(new Range(startAt, endAt));
+        let cr = text.match(eolPattern);
+        
+        count += cr ? cr.length : 0;
+    }
+    return count;
 }

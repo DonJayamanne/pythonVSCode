@@ -52,8 +52,8 @@ export class RemoteDebugServer extends BaseDebugServer {
                 resolve(options);
             });
             this.socket.on("end", (ex) => {
-                let msg = `Debugger client disconneced, ex`;
-                that.debugSession.sendEvent(new OutputEvent(msg + "\n", "stderr"));
+                // let msg = `Debugger client disconneced, ex`;
+                // that.debugSession.sendEvent(new OutputEvent(msg + "\n", "stderr"));
             });
             this.socket.on("data", (buffer: Buffer) => {
                 if (connected) {

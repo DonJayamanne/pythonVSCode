@@ -1,21 +1,15 @@
-import {BaseDebugServer} from '../DebugServers/BaseDebugServer';
-import {LocalDebugServer} from '../DebugServers/LocalDebugServer';
-import {IPythonProcess, IPythonThread, IDebugServer} from '../Common/Contracts';
-import {DebugSession, OutputEvent} from 'vscode-debugadapter';
-import {DebugProtocol} from 'vscode-debugprotocol';
+import { BaseDebugServer } from '../DebugServers/BaseDebugServer';
+import { LocalDebugServer } from '../DebugServers/LocalDebugServer';
+import { IPythonProcess, IDebugServer } from '../Common/Contracts';
+import { DebugSession, OutputEvent } from 'vscode-debugadapter';
+import { DebugProtocol } from 'vscode-debugprotocol';
 import * as path from 'path';
 import * as child_process from 'child_process';
-import {LaunchRequestArguments} from '../Common/Contracts';
-import {DebugClient, DebugType} from './DebugClient';
-import * as fs from 'fs';
-import {open} from '../../common/open';
-let fsExtra = require('fs-extra');
-let tmp = require('tmp');
-let prependFile = require('prepend-file');
-let LineByLineReader = require('line-by-line');
+import { LaunchRequestArguments } from '../Common/Contracts';
+import { DebugClient, DebugType } from './DebugClient';
+import { open } from '../../common/open';
+import { getCustomEnvVars } from '../Common/Utils';
 
-const PTVS_FILES = ['visualstudio_ipython_repl.py', 'visualstudio_py_debugger.py',
-    'visualstudio_py_launcher.py', 'visualstudio_py_repl.py', 'visualstudio_py_util.py'];
 const VALID_DEBUG_OPTIONS = ['WaitOnAbnormalExit',
     'WaitOnNormalExit',
     'RedirectOutput',
@@ -72,17 +66,17 @@ export class LocalDebugClient extends DebugClient {
     }
     public LaunchApplicationToDebug(dbgServer: IDebugServer, processErrored: (error: any) => void): Promise<any> {
         return new Promise<any>((resolve, reject) => {
-            let fileDir = path.dirname(this.args.program);
+            let fileDir = this.args && this.args.program ? path.dirname(this.args.program) : '';
             let processCwd = fileDir;
-            if (typeof this.args.cwd === 'string' && this.args.cwd.length > 0) {
+            if (typeof this.args.cwd === 'string' && this.args.cwd.length > 0 && this.args.cwd !== 'null') {
                 processCwd = this.args.cwd;
             }
-            let fileNameWithoutPath = path.basename(this.args.program);
             let pythonPath = 'python';
             if (typeof this.args.pythonPath === 'string' && this.args.pythonPath.trim().length > 0) {
                 pythonPath = this.args.pythonPath;
             }
-            let environmentVariables = this.args.env ? this.args.env : {};
+            let environmentVariables = getCustomEnvVars(this.args.env, this.args.envFile);
+            environmentVariables = environmentVariables ? environmentVariables : {};
             let newEnvVars = {};
             if (environmentVariables) {
                 for (let setting in environmentVariables) {
@@ -102,81 +96,81 @@ export class LocalDebugClient extends DebugClient {
                 newEnvVars['PYTHONIOENCODING'] = 'UTF-8';
                 process.env['PYTHONIOENCODING'] = 'UTF-8';
             }
-            let currentFileName = module.filename;
             let ptVSToolsFilePath = this.getPTVSToolsFilePath();
             let launcherArgs = this.buildLauncherArguments();
 
             let args = [ptVSToolsFilePath, processCwd, dbgServer.port.toString(), '34806ad9-833a-4524-8cd6-18ca4aa74f14'].concat(launcherArgs);
-            if (this.args.console === 'externalTerminal') {
-                const isSudo = Array.isArray(this.args.debugOptions) && this.args.debugOptions.some(opt => opt === 'Sudo');
-                open({ wait: false, app: [pythonPath].concat(args), cwd: processCwd, env: environmentVariables, sudo: isSudo }).then(proc => {
-                    this.pyProc = proc;
-                    resolve();
-                }, error => {
-                    // TODO: This condition makes no sense (refactor)
-                    if (!this.debugServer && this.debugServer.IsRunning) {
-                        return;
-                    }
-                    reject(error);
-                });
-                return;
-            }
-
-            if (this.args.console === 'integratedTerminal') {
-                const isSudo = Array.isArray(this.args.debugOptions) && this.args.debugOptions.some(opt => opt === 'Sudo');
-                const command = isSudo ? 'sudo' : pythonPath;
-                const commandArgs = isSudo ? [pythonPath].concat(args) : args;
-                const options = { cwd: processCwd, env: environmentVariables };
-                const termArgs: DebugProtocol.RunInTerminalRequestArguments = {
-                    kind: 'integrated',
-                    title: 'Python Debug Console',
-                    cwd: processCwd,
-                    args: [command].concat(commandArgs),
-                    env: newEnvVars as { [key: string]: string }
-                };
-                this.debugSession.runInTerminalRequest(termArgs, 5000, (response) => {
-                    if (response.success) {
+            switch (this.args.console) {
+                case 'externalTerminal': {
+                    const isSudo = Array.isArray(this.args.debugOptions) && this.args.debugOptions.some(opt => opt === 'Sudo');
+                    open({ wait: false, app: [pythonPath].concat(args), cwd: processCwd, env: environmentVariables, sudo: isSudo }).then(proc => {
+                        this.pyProc = proc;
                         resolve();
-                    } else {
-                        reject(response);
-                    }
-                });
-                return;
+                    }, error => {
+                        // TODO: This condition makes no sense (refactor)
+                        if (!this.debugServer && this.debugServer.IsRunning) {
+                            return;
+                        }
+                        reject(error);
+                    });
+                    break;
+                }
+                case 'integratedTerminal': {
+                    const isSudo = Array.isArray(this.args.debugOptions) && this.args.debugOptions.some(opt => opt === 'Sudo');
+                    const command = isSudo ? 'sudo' : pythonPath;
+                    const commandArgs = isSudo ? [pythonPath].concat(args) : args;
+                    const termArgs: DebugProtocol.RunInTerminalRequestArguments = {
+                        kind: 'integrated',
+                        title: 'Python Debug Console',
+                        cwd: processCwd,
+                        args: [command].concat(commandArgs),
+                        env: newEnvVars as { [key: string]: string }
+                    };
+                    this.debugSession.runInTerminalRequest(termArgs, 5000, (response) => {
+                        if (response.success) {
+                            resolve();
+                        } else {
+                            reject(response);
+                        }
+                    });
+                    break;
+                }
+                default: {
+                    this.pyProc = child_process.spawn(pythonPath, args, { cwd: processCwd, env: environmentVariables });
+                    this.pyProc.on('error', error => {
+                        // TODO: This condition makes no sense (refactor)
+                        if (!this.debugServer && this.debugServer.IsRunning) {
+                            return;
+                        }
+                        if (!this.debugServer.IsRunning && typeof (error) === 'object' && error !== null) {
+                            // return processErrored(error);
+                            return reject(error);
+                        }
+                        this.displayError(error);
+                    });
+                    this.pyProc.stderr.setEncoding('utf8');
+                    this.pyProc.stderr.on('data', error => {
+                        // We generally don't need to display the errors as stderr output is being captured by debugger
+                        // and it gets sent out to the debug client
+
+                        // Either way, we need some code in here so we read the stdout of the python process
+                        // Else it just keep building up (related to issue #203 and #52)
+                        if (this.debugServer && !this.debugServer.IsRunning) {
+                            return reject(error);
+                        }
+                    });
+                    this.pyProc.stdout.on('data', d => {
+                        // This is necessary so we read the stdout of the python process
+                        // Else it just keep building up (related to issue #203 and #52)
+                        let x = 0;
+                    });
+
+                    // Here we wait for the application to connect to the socket server
+                    // Only once connected do we know that the application has successfully launched
+                    // resolve();
+                    this.debugServer.DebugClientConnected.then(resolve);
+                }
             }
-
-            this.pyProc = child_process.spawn(pythonPath, args, { cwd: processCwd, env: environmentVariables });
-            this.pyProc.on('error', error => {
-                // TODO: This condition makes no sense (refactor)
-                if (!this.debugServer && this.debugServer.IsRunning) {
-                    return;
-                }
-                if (!this.debugServer.IsRunning && typeof (error) === 'object' && error !== null) {
-                    // return processErrored(error);
-                    return reject(error);
-                }
-                this.displayError(error);
-            });
-            this.pyProc.stderr.setEncoding('utf8');
-            this.pyProc.stderr.on('data', error => {
-                // We generally don't need to display the errors as stderr output is being captured by debugger
-                // and it gets sent out to the debug client
-
-                // Either way, we need some code in here so we read the stdout of the python process
-                // Else it just keep building up (related to issue #203 and #52)
-                if (this.debugServer && !this.debugServer.IsRunning) {
-                    return reject(error);
-                }
-            });
-            this.pyProc.stdout.on('data', d => {
-                // This is necessary so we read the stdout of the python process
-                // Else it just keep building up (related to issue #203 and #52)
-                let x = 0;
-            });
-
-            // Here we wait for the application to connect to the socket server
-            // Only once connected do we know that the application has successfully launched
-            // resolve();
-            this.debugServer.DebugClientConnected.then(resolve);
         });
     }
     protected buildLauncherArguments(): string[] {
@@ -190,6 +184,9 @@ export class LocalDebugClient extends DebugClient {
         }
 
         let programArgs = Array.isArray(this.args.args) && this.args.args.length > 0 ? this.args.args : [];
+        if (typeof this.args.module === 'string' && this.args.module.length > 0) {
+            return [vsDebugOptions, '-m', this.args.module].concat(programArgs);
+        }
         return [vsDebugOptions, this.args.program].concat(programArgs);
         // Use this ability to debug unit tests or modules
         // Adding breakpoints programatically to the first executable line of the test program

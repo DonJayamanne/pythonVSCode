@@ -213,6 +213,10 @@ def main():
     parser.add_option('--uf', '--failfast', type='str', help='Stop on first failure')
     parser.add_option('--uc', '--catch', type='str', help='Catch control-C and display results')
     (opts, _) = parser.parse_args()
+
+    if opts.secret and opts.port:
+        from ptvsd.visualstudio_py_debugger import DONT_DEBUG, DEBUG_ENTRYPOINTS, get_code
+        from ptvsd.attach_server import DEFAULT_PORT, enable_attach, wait_for_attach
     
     sys.path[0] = os.getcwd()
     if opts.result_port:
@@ -228,13 +232,13 @@ def main():
         sys.stderr = _TestOutput(sys.stderr, is_stdout = False)
 
     if opts.secret and opts.port:
-        from ptvsd.visualstudio_py_debugger import DONT_DEBUG, DEBUG_ENTRYPOINTS, get_code
-        from ptvsd.attach_server import DEFAULT_PORT, enable_attach, wait_for_attach
-
         DONT_DEBUG.append(os.path.normcase(__file__))
         DEBUG_ENTRYPOINTS.add(get_code(main))
 
         enable_attach(opts.secret, ('127.0.0.1', getattr(opts, 'port', DEFAULT_PORT)), redirect_output = True)
+        sys.stdout.flush()
+        print('READY')
+        sys.stdout.flush()
         wait_for_attach()
     elif opts.mixed_mode:
         # For mixed-mode attach, there's no ptvsd and hence no wait_for_attach(), 
@@ -312,7 +316,7 @@ def main():
         if opts.uf is not None:
             runner = unittest.TextTestRunner(verbosity=opts.uvInt, resultclass=VsTestResult, failfast=True)
         else:
-            runner = unittest.TextTestRunner(verbosity=opts.uvInt, resultclass=VsTestResult)  
+            runner = unittest.TextTestRunner(verbosity=opts.uvInt, resultclass=VsTestResult)
         result = runner.run(tests)
         sys.exit(not result.wasSuccessful())
     finally:

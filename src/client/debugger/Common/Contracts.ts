@@ -1,7 +1,7 @@
 "use strict";
 import * as net from "net";
-import {DebugProtocol} from "vscode-debugprotocol";
-import {OutputEvent} from "vscode-debugadapter";
+import { DebugProtocol } from "vscode-debugprotocol";
+import { OutputEvent } from "vscode-debugadapter";
 
 export class TelemetryEvent extends OutputEvent {
     body: {
@@ -42,6 +42,7 @@ export interface ExceptionHandling {
 
 export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
     /** An absolute path to the program to debug. */
+    module?: string;
     program: string;
     pythonPath: string;
     /** Automatically stop target after launch. If not specified, target does not stop. */
@@ -52,6 +53,7 @@ export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArgum
     cwd?: string;
     debugOptions?: string[];
     env?: Object;
+    envFile: string;
     exceptionHandling?: ExceptionHandling;
     console?: "none" | "integratedTerminal" | "externalTerminal";
 }

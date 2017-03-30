@@ -8,8 +8,8 @@ import { JupyterCodeLensProvider } from './editorIntegration/codeLensProvider';
 import { JupyterSymbolProvider } from './editorIntegration/symbolProvider';
 import { formatErrorForLogging } from '../common/utils';
 import { Documentation } from '../common/constants';
-import * as telemetryHelper from '../common/telemetry';
-import * as telemetryContracts from '../common/telemetryContracts';
+// import * as telemetryHelper from '../common/telemetry';
+// import * as telemetryContracts from '../common/telemetryContracts';
 import * as main from './jupyter_client/main';
 import { KernelRestartedError, KernelShutdownError } from './common/errors';
 import { PythonSettings } from '../common/configSettings';
@@ -28,7 +28,28 @@ export class Jupyter extends vscode.Disposable {
     private codeLensProvider: JupyterCodeLensProvider;
     private lastUsedPythonPath: string;
     private codeHelper: CodeHelper;
-    constructor(private outputChannel: vscode.OutputChannel, private rootPath: string) {
+
+    private async displaySuggestion(): Promise<void> {
+        return new Promise<void>(resolve => {
+            let recommend = vscode.workspace.getConfiguration('python').get('promptToInstallJupyter', true);
+            if (!recommend) {
+                return resolve();
+            }
+            vscode.window.showInformationMessage('Deprecated: Please install the new Jupyter extension. Jupyter functionality within this extension has been deprecated.', 'Do not show again')
+                .then(item => {
+                    if (item !== 'Do not show again') {
+                        return resolve();
+                    }
+                    vscode.workspace.getConfiguration('python').update('promptToInstallJupyter', false)
+                        .then(() => {
+                            resolve();
+                        }, ex => {
+                            resolve();
+                        });
+                });
+        });
+    }
+    constructor(private outputChannel: vscode.OutputChannel) {
         super(() => { });
         this.disposables = [];
         this.registerCommands();
@@ -49,7 +70,7 @@ export class Jupyter extends vscode.Disposable {
         this.disposables.forEach(d => d.dispose());
     }
     private createKernelManager() {
-        const jupyterClient = new main.JupyterClientAdapter(this.outputChannel, this.rootPath);
+        const jupyterClient = new main.JupyterClientAdapter(this.outputChannel, vscode.workspace.rootPath);
         this.kernelManager = new KernelManagerImpl(this.outputChannel, jupyterClient);
 
         // This happend when user changes it from status bar
@@ -107,10 +128,7 @@ export class Jupyter extends vscode.Disposable {
         this.status.setActiveKernel(this.kernel ? this.kernel.kernelSpec : null);
     }
     executeCode(code: string, language: string): Promise<any> {
-        // const m = new main.JupyterClient(this.outputChannel);
-        // m.start();
-        // return Promise.resolve();
-        telemetryHelper.sendTelemetryEvent(telemetryContracts.Jupyter.Usage);
+        // telemetryHelper.sendTelemetryEvent(telemetryContracts.Jupyter.Usage);
 
         if (this.kernel && this.kernel.kernelSpec.language === language) {
             return this.executeAndDisplay(this.kernel, code).catch(reason => {
@@ -119,7 +137,8 @@ export class Jupyter extends vscode.Disposable {
                 this.outputChannel.appendLine(formatErrorForLogging(reason));
             });
         }
-        return this.kernelManager.startKernelFor(language)
+        return this.displaySuggestion()
+            .then(() => this.kernelManager.startKernelFor(language))
             .then(kernel => {
                 if (kernel) {
                     this.onKernelChanged(kernel);

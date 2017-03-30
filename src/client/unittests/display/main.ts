@@ -3,11 +3,11 @@ import * as vscode from 'vscode';
 import { Tests, CANCELLATION_REASON } from '../common/contracts';
 import * as constants from '../../common/constants';
 import { displayTestErrorMessage } from '../common/testUtils';
-import { isNotInstalledError } from '../../common/helpers';
+import { isNotInstalledError, createDeferred } from '../../common/helpers';
 
 export class TestResultDisplay {
     private statusBar: vscode.StatusBarItem;
-    constructor(private outputChannel: vscode.OutputChannel) {
+    constructor(private outputChannel: vscode.OutputChannel, private onDidChange: vscode.EventEmitter<any> = null) {
         this.statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
     }
     public dispose() {
@@ -21,16 +21,16 @@ export class TestResultDisplay {
             this.statusBar.hide();
         }
     }
-    public DisplayProgressStatus(tests: Promise<Tests>) {
+    public DisplayProgressStatus(tests: Promise<Tests>, debug: boolean = false) {
         this.displayProgress('Running Tests', `Running Tests (Click to Stop)`, constants.Commands.Tests_Ask_To_Stop_Test);
         tests
-            .then(this.updateTestRunWithSuccess.bind(this))
+            .then(tests => this.updateTestRunWithSuccess(tests, debug))
             .catch(this.updateTestRunWithFailure.bind(this))
             // We don't care about any other exceptions returned by updateTestRunWithFailure
             .catch(() => { });
     }
 
-    private updateTestRunWithSuccess(tests: Tests): Tests {
+    private updateTestRunWithSuccess(tests: Tests, debug: boolean = false): Tests {
         this.clearProgressTicker();
 
         // Treat errors as a special case, as we generally wouldn't have any errors
@@ -62,8 +62,10 @@ export class TestResultDisplay {
         this.statusBar.text = statusText.length === 0 ? 'No Tests Ran' : statusText.join(' ');
         this.statusBar.color = foreColor;
         this.statusBar.command = constants.Commands.Tests_View_UI;
-
-        if (statusText.length === 0){
+        if (this.onDidChange) {
+            this.onDidChange.fire();
+        }
+        if (statusText.length === 0 && !debug) {
             vscode.window.showWarningMessage('No tests ran, please check the configuration settings for the tests.');
         }
         return tests;
@@ -120,16 +122,38 @@ export class TestResultDisplay {
         });
     }
 
+    private disableTests(): Promise<any> {
+        const def = createDeferred<any>();
+        const pythonConfig = vscode.workspace.getConfiguration('python');
+        let settingsToDisable = ['unitTest.promptToConfigure', 'unitTest.pyTestEnabled',
+            'unitTest.unittestEnabled', 'unitTest.nosetestsEnabled'];
+
+        function disableTest() {
+            if (settingsToDisable.length === 0) {
+                return def.resolve();
+            }
+            pythonConfig.update(settingsToDisable.shift(), false)
+                .then(disableTest.bind(this), disableTest.bind(this));
+        }
+
+        disableTest();
+        return def.promise;
+    }
+
     private updateWithDiscoverSuccess(tests: Tests) {
         this.clearProgressTicker();
         const haveTests = tests && (tests.testFunctions.length > 0);
-        this.statusBar.text = haveTests ? '$(zap) Run Tests' : 'No Tests';
-        this.statusBar.tooltip = haveTests ? 'Run Tests' : 'No Tests discovered';
-        this.statusBar.command = haveTests ? constants.Commands.Tests_View_UI : constants.Commands.Tests_Discover;
+        this.statusBar.text = '$(zap) Run Tests';
+        this.statusBar.tooltip = 'Run Tests';
+        this.statusBar.command = constants.Commands.Tests_View_UI;
         this.statusBar.show();
 
         if (!haveTests) {
-            vscode.window.showInformationMessage('No tests discovered, please check the configuration settings for the tests.');
+            vscode.window.showInformationMessage('No tests discovered, please check the configuration settings for the tests.', 'Disable Tests').then(item => {
+                if (item === 'Disable Tests') {
+                    this.disableTests();
+                }
+            });
         }
     }
 

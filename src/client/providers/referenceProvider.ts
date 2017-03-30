@@ -6,7 +6,7 @@ import * as telemetryContracts from "../common/telemetryContracts";
 
 
 export class PythonReferenceProvider implements vscode.ReferenceProvider {
-    private jediProxyHandler: proxy.JediProxyHandler<proxy.IReferenceResult, vscode.Location[]>;
+    private jediProxyHandler: proxy.JediProxyHandler<proxy.IReferenceResult>;
 
     public constructor(context: vscode.ExtensionContext, jediProxy: proxy.JediProxy = null) {
         this.jediProxyHandler = new proxy.JediProxyHandler(context, jediProxy);
@@ -34,16 +34,15 @@ export class PythonReferenceProvider implements vscode.ReferenceProvider {
     public provideReferences(document: vscode.TextDocument, position: vscode.Position, context: vscode.ReferenceContext, token: vscode.CancellationToken): Thenable<vscode.Location[]> {
         var filename = document.fileName;
         if (document.lineAt(position.line).text.match(/^\s*\/\//)) {
-            return Promise.resolve();
+            return Promise.resolve(null);
         }
         if (position.character <= 0) {
-            return Promise.resolve();
+            return Promise.resolve(null);
         }
 
         var range = document.getWordRangeAtPosition(position);
         var columnIndex = range.isEmpty ? position.character : range.end.character;
         var cmd: proxy.ICommand<proxy.IReferenceResult> = {
-            telemetryEvent: telemetryContracts.IDE.Reference,
             command: proxy.CommandType.Usages,
             fileName: filename,
             columnIndex: columnIndex,

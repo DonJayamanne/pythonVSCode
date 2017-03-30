@@ -1,8 +1,13 @@
 "use strict";
 
-import {IPythonProcess, IPythonThread, IPythonModule, IPythonEvaluationResult} from "./Contracts";
+import { IPythonProcess, IPythonThread, IPythonModule, IPythonEvaluationResult } from "./Contracts";
 import * as path from "path";
 import * as fs from 'fs';
+import * as child_process from 'child_process';
+import { mergeEnvVariables, parseEnvFile } from '../../common/envFileParser';
+
+export const IS_WINDOWS = /^win/.test(process.platform);
+export const PATH_VARIABLE_NAME = IS_WINDOWS ? 'Path' : 'PATH';
 
 const PathValidity: Map<string, boolean> = new Map<string, boolean>();
 export function validatePath(filePath: string): Promise<string> {
@@ -66,3 +71,79 @@ export function FixupEscapedUnicodeChars(value: string): string {
     return value;
 }
 
+export function getPythonExecutable(pythonPath: string): string {
+    // If only 'python'
+    if (pythonPath === 'python' ||
+        pythonPath.indexOf(path.sep) === -1 ||
+        path.basename(pythonPath) === path.dirname(pythonPath)) {
+        return pythonPath;
+    }
+
+    if (isValidPythonPath(pythonPath)) {
+        return pythonPath;
+    }
+    // Keep python right on top, for backwards compatibility
+    const KnownPythonExecutables = ['python', 'python4', 'python3.6', 'python3.5', 'python3', 'python2.7', 'python2'];
+
+    for (let executableName of KnownPythonExecutables) {
+        // Suffix with 'python' for linux and 'osx', and 'python.exe' for 'windows'
+        if (IS_WINDOWS) {
+            executableName = executableName + '.exe';
+            if (isValidPythonPath(path.join(pythonPath, executableName))) {
+                return path.join(pythonPath, executableName);
+            }
+            if (isValidPythonPath(path.join(pythonPath, 'scripts', executableName))) {
+                return path.join(pythonPath, 'scripts', executableName);
+            }
+        }
+        else {
+            if (isValidPythonPath(path.join(pythonPath, executableName))) {
+                return path.join(pythonPath, executableName);
+            }
+            if (isValidPythonPath(path.join(pythonPath, 'bin', executableName))) {
+                return path.join(pythonPath, 'bin', executableName);
+            }
+        }
+    }
+
+    return pythonPath;
+}
+
+function isValidPythonPath(pythonPath): boolean {
+    try {
+        let output = child_process.execFileSync(pythonPath, ['-c', 'print(1234)'], { encoding: 'utf8' });
+        return output.startsWith('1234');
+    }
+    catch (ex) {
+        return false;
+    }
+}
+
+
+export function getCustomEnvVars(envVars: any, envFile: string): any {
+    let envFileVars = null;
+    if (typeof envFile === 'string' && envFile.length > 0 && fs.existsSync(envFile)) {
+        try {
+            envFileVars = parseEnvFile(envFile);
+        }
+        catch (ex) {
+            console.error('Failed to load env file');
+            console.error(ex);
+        }
+    }
+    let configVars = null;
+    if (envVars && envFileVars) {
+        configVars = mergeEnvVariables(envVars, envFileVars);
+    }
+    if (envVars) {
+        configVars = envVars;
+    }
+    if (envFileVars) {
+        configVars = envFileVars;
+    }
+    if (configVars && typeof configVars === 'object' && Object.keys(configVars).length > 0) {
+        return configVars;
+    }
+
+    return null;
+}

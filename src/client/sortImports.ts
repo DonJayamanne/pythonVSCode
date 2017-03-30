@@ -2,8 +2,6 @@
 
 import * as vscode from 'vscode';
 import * as sortProvider from './providers/importSortProvider';
-import * as telemetryHelper from './common/telemetry';
-import * as telemetryContracts from './common/telemetryContracts';
 import * as os from 'os';
 
 export function activate(context: vscode.ExtensionContext, outChannel: vscode.OutputChannel) {
@@ -17,8 +15,6 @@ export function activate(context: vscode.ExtensionContext, outChannel: vscode.Ou
         if (activeEditor.document.lineCount <= 1) {
             return Promise.resolve();
         }
-
-        let delays = new telemetryHelper.Delays();
 
         // Hack, if the document doesn't contain an empty line at the end, then add it
         // Else the library strips off the last line
@@ -41,9 +37,6 @@ export function activate(context: vscode.ExtensionContext, outChannel: vscode.Ou
             return activeEditor.edit(builder => {
                 changes.forEach(change => builder.replace(change.range, change.newText));
             });
-        }).then(() => {
-            delays.stop();
-            telemetryHelper.sendTelemetryEvent(telemetryContracts.Commands.SortImports, null, delays.toMeasures());
         }).catch(error => {
             let message = typeof error === 'string' ? error : (error.message ? error.message : error);
             outChannel.appendLine(error);

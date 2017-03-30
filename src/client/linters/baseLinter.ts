@@ -52,26 +52,31 @@ export abstract class BaseLinter {
     public Id: string;
     private installer: Installer;
     protected pythonSettings: settings.IPythonSettings;
-    constructor(id: string, private product: Product, protected outputChannel: OutputChannel, protected workspaceRootPath: string) {
+    private _workspaceRootPath: string;
+    protected get workspaceRootPath(): string {
+        return typeof this._workspaceRootPath === 'string' ? this._workspaceRootPath : vscode.workspace.rootPath;
+    }
+    constructor(id: string, private product: Product, protected outputChannel: OutputChannel, workspaceRootPath: string) {
         this.Id = id;
         this.installer = new Installer();
+        this._workspaceRootPath = workspaceRootPath;
         this.pythonSettings = settings.PythonSettings.getInstance();
     }
     public abstract isEnabled(): Boolean;
-    public abstract runLinter(filePath: string, txtDocumentLines: string[]): Promise<ILintMessage[]>;
+    public abstract runLinter(document: vscode.TextDocument, cancellation: vscode.CancellationToken): Promise<ILintMessage[]>;
 
-    protected run(command: string, args: string[], filePath: string, txtDocumentLines: string[], cwd: string, regEx: string = REGEX): Promise<ILintMessage[]> {
+    protected run(command: string, args: string[], document: vscode.TextDocument, cwd: string, cancellation: vscode.CancellationToken, regEx: string = REGEX): Promise<ILintMessage[]> {
         let outputChannel = this.outputChannel;
 
         return new Promise<ILintMessage[]>((resolve, reject) => {
-            execPythonFile(command, args, cwd, true).then(data => {
+            execPythonFile(command, args, cwd, true, null, cancellation).then(data => {
                 outputChannel.append('#'.repeat(10) + 'Linting Output - ' + this.Id + '#'.repeat(10) + '\n');
                 outputChannel.append(data);
                 let outputLines = data.split(/\r?\n/g);
                 let diagnostics: ILintMessage[] = [];
                 outputLines.filter((value, index) => index <= this.pythonSettings.linting.maxNumberOfProblems).forEach(line => {
                     let match = matchNamedRegEx(line, regEx);
-                    if (match == null) {
+                    if (!match) {
                         return;
                     }
 
@@ -81,7 +86,7 @@ export abstract class BaseLinter {
 
                         let possibleWord: string;
                         if (!isNaN(match.column)) {
-                            let sourceLine = txtDocumentLines[match.line - 1];
+                            let sourceLine = document.lineAt(match.line - 1).text;
                             let sourceStart = sourceLine.substring(match.column - 1);
 
                             // try to get the first word from the startig position
@@ -140,6 +145,9 @@ export abstract class BaseLinter {
             }
         }
         else {
+            if (typeof error === 'string' && (error as string).indexOf("OSError: [Errno 2] No such file or directory: '/") > 0) {
+                return;
+            }
             vscode.window.showErrorMessage(`There was an error in running the linter '${this.Id}'`, 'Disable linter', 'View Errors').then(item => {
                 switch (item) {
                     case 'Disable linter': {

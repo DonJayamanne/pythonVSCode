@@ -1,7 +1,7 @@
-import {QuickPickItem, window} from 'vscode';
+import { QuickPickItem, window } from 'vscode';
 import * as vscode from 'vscode';
-import {Tests, TestsToRun, TestFolder, TestFile, TestFunction, TestSuite, FlattenedTestFunction, TestStatus} from '../common/contracts';
-import {getDiscoveredTests} from '../common/testUtils';
+import { Tests, TestFile, TestFunction, FlattenedTestFunction, TestStatus } from '../common/contracts';
+import { getDiscoveredTests } from '../common/testUtils';
 import * as constants from '../../common/constants';
 import * as path from 'path';
 
@@ -13,7 +13,7 @@ export class TestDisplay {
             if (item === message) {
                 vscode.commands.executeCommand(constants.Commands.Tests_Stop);
             }
-        })
+        });
     }
     public displayTestUI(rootDirectory: string) {
         const tests = getDiscoveredTests();
@@ -41,7 +41,7 @@ export class TestDisplay {
                 }, reject);
         });
     }
-    public displayFunctionTestPickerUI(rootDirectory: string, fileName: string, testFunctions: TestFunction[]) {
+    public displayFunctionTestPickerUI(rootDirectory: string, fileName: string, testFunctions: TestFunction[], debug?: boolean) {
         const tests = getDiscoveredTests();
         if (!tests) {
             return;
@@ -55,7 +55,10 @@ export class TestDisplay {
                 testFunctions.some(testFunc => testFunc.nameToRun === fn.testFunction.nameToRun);
         });
 
-        window.showQuickPick(buildItemsForFunctions(rootDirectory, flattenedFunctions), { matchOnDescription: true, matchOnDetail: true }).then(onItemSelected);
+        window.showQuickPick(buildItemsForFunctions(rootDirectory, flattenedFunctions),
+            { matchOnDescription: true, matchOnDetail: true }).then(testItem => {
+                return onItemSelected(testItem, debug);
+            });
     }
 }
 
@@ -108,6 +111,9 @@ function getSummary(tests?: Tests) {
 function buildItems(rootDirectory: string, tests?: Tests): TestItem[] {
     const items: TestItem[] = [];
     items.push({ description: '', label: 'Run All Unit Tests', type: Type.RunAll });
+    if (!tests || tests.testFiles.length === 0) {
+        items.push({ description: '', label: 'Discover Unit Tests', type: Type.ReDiscover });
+    }
     items.push({ description: '', label: 'Run Unit Test Method ...', type: Type.SelectAndRunMethod });
 
     let summary = getSummary(tests);
@@ -129,7 +135,6 @@ statusSortPrefix[TestStatus.Pass] = '4';
 function buildItemsForFunctions(rootDirectory: string, tests: FlattenedTestFunction[], sortBasedOnResults: boolean = false, displayStatusIcons: boolean = false): TestItem[] {
     let functionItems: TestItem[] = [];
     tests.forEach(fn => {
-        const classPrefix = fn.parentTestSuite ? fn.parentTestSuite.name + '.' : '';
         let icon = '';
         if (displayStatusIcons && statusIconMapping.has(fn.testFunction.status)) {
             icon = `${statusIconMapping.get(fn.testFunction.status)} `;
@@ -181,7 +186,7 @@ function buildItemsForTestFiles(rootDirectory: string, testFiles: TestFile[]): T
     })
     return fileItems;
 }
-function onItemSelected(selection: TestItem) {
+function onItemSelected(selection: TestItem, debug?: boolean) {
     if (!selection || typeof selection.type !== 'number') {
         return;
     }
@@ -208,7 +213,7 @@ function onItemSelected(selection: TestItem) {
             break;
         }
         case Type.SelectAndRunMethod: {
-            cmd = constants.Commands.Tests_Select_And_Run_Method;
+            cmd = debug ? constants.Commands.Tests_Select_And_Debug_Method : constants.Commands.Tests_Select_And_Run_Method;
             break;
         }
         case Type.RunMethod: {

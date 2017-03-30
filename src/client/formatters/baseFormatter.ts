@@ -10,14 +10,15 @@ import { Installer, Product } from '../common/installer';
 
 export abstract class BaseFormatter {
     private installer: Installer;
-    constructor(public Id: string, private product: Product, protected outputChannel: vscode.OutputChannel, protected pythonSettings: settings.IPythonSettings, protected workspaceRootPath: string) {
+    constructor(public Id: string, private product: Product, protected outputChannel: vscode.OutputChannel, protected pythonSettings: settings.IPythonSettings, protected workspaceRootPath?: string) {
         this.installer = new Installer();
     }
 
     public abstract formatDocument(document: vscode.TextDocument, options: vscode.FormattingOptions, token: vscode.CancellationToken, range?: vscode.Range): Thenable<vscode.TextEdit[]>;
 
-    protected provideDocumentFormattingEdits(document: vscode.TextDocument, options: vscode.FormattingOptions, token: vscode.CancellationToken, command: string, args: string[]): Thenable<vscode.TextEdit[]> {
+    protected provideDocumentFormattingEdits(document: vscode.TextDocument, options: vscode.FormattingOptions, token: vscode.CancellationToken, command: string, args: string[], cwd: string = null): Thenable<vscode.TextEdit[]> {
         this.outputChannel.clear();
+        cwd = typeof cwd === 'string' && cwd.length > 0 ? cwd : (this.workspaceRootPath ? this.workspaceRootPath : vscode.workspace.rootPath);
 
         // autopep8 and yapf have the ability to read from the process input stream and return the formatted code out of the output stream
         // However they don't support returning the diff of the formatted text when reading data from the input stream
@@ -25,11 +26,11 @@ export abstract class BaseFormatter {
         // to be done here in node (extension), i.e. extension cpu, i.e. les responsive solution
         let tmpFileCreated = document.isDirty;
         let filePromise = tmpFileCreated ? getTempFileWithDocumentContents(document) : Promise.resolve(document.fileName);
-        return filePromise.then(filePath => {
+        const promise = filePromise.then(filePath => {
             if (token && token.isCancellationRequested) {
                 return [filePath, ''];
             }
-            return Promise.all<string>([Promise.resolve(filePath), execPythonFile(command, args.concat([filePath]), this.workspaceRootPath)]);
+            return Promise.all<string>([Promise.resolve(filePath), execPythonFile(command, args.concat([filePath]), cwd)]);
         }).then(data => {
             // Delete the temporary file created
             if (tmpFileCreated) {
@@ -43,6 +44,8 @@ export abstract class BaseFormatter {
             this.handleError(this.Id, command, error);
             return [];
         });
+        vscode.window.setStatusBarMessage(`Formatting with ${this.Id}`, promise);
+        return promise;
     }
 
     protected handleError(expectedFileName: string, fileName: string, error: Error) {

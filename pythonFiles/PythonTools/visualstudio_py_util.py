@@ -87,7 +87,10 @@ def exec_code(code, file, global_variables):
             except AttributeError:
                 pass
 
-    sys.path[0] = os.path.split(file)[0]
+    if os.path.isdir(sys.path[0]):
+        sys.path.insert(0, os.path.split(file)[0])
+    else:
+        sys.path[0] = os.path.split(file)[0]
     code_obj = compile(code, file, 'exec')
     exec(code_obj, global_variables)
 
@@ -131,7 +134,10 @@ NONE_PREFIX = to_bytes('N')
 def read_bytes(conn, count):
     b = to_bytes('')
     while len(b) < count:
-        b += conn.recv(count - len(b))
+        received_data = conn.recv(count - len(b))
+        if received_data is None:
+            break
+        b += received_data
     return b
 
 

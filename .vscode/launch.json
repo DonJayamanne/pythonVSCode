@@ -1,66 +1,68 @@
 // A launch configuration that compiles the extension and then opens it inside a new window
 {
-    "version": "0.1.0",
-    "configurations": [
-        {
-            "name": "Launch Extension",
-            "type": "extensionHost",
-            "request": "launch",
-            "runtimeExecutable": "${execPath}",
-            "args": [
-                "--extensionDevelopmentPath=${workspaceRoot}"
-            ],
-            "stopOnEntry": false,
-            "sourceMaps": true,
-            "outDir": "${workspaceRoot}/out",
-            "preLaunchTask": "npm"
-        },
-        {
-            "name": "Launch Extension as debugServer", // https://code.visualstudio.com/docs/extensions/example-debuggers
-            "type": "node",
-            "request": "launch",
-            "runtimeArgs": [
-                "--harmony"
-            ],
-            "program": "${workspaceRoot}/out/client/debugger/Main.js",
-            "stopOnEntry": false,
-            "args": [
-                "--server=4711"
-            ],
-            "sourceMaps": true,
-            "outDir": "${workspaceRoot}/out/client",
-            "cwd": "${workspaceRoot}"
-        },
-        {
-            "name": "Launch Tests",
-            "type": "extensionHost",
-            "request": "launch",
-            "runtimeExecutable": "${execPath}",
-            "args": [
-                "${workspaceRoot}/src/test",
-                "--extensionDevelopmentPath=${workspaceRoot}",
-                "--extensionTestsPath=${workspaceRoot}/out/test"
-            ],
-            "stopOnEntry": false,
-            "sourceMaps": true,
-            "outDir": "${workspaceRoot}/out/test",
-            "preLaunchTask": "npm"
-        },
-        {
-            "name": "Python",
-            "type": "python",
-            "request": "launch",
-            "stopOnEntry": true,
-            "pythonPath": "python",
-            "program": "${file}",
-            "console": "integratedTerminal",
-            "args": [],
-            "debugOptions": [
-                "WaitOnAbnormalExit",
-                "WaitOnNormalExit",
-                "RedirectOutput"
-            ],
-            "cwd": "${workspaceRoot}"
-        }
-    ]
+	"version": "0.1.0",
+	"configurations": [{
+			"name": "Launch Extension",
+			"type": "extensionHost",
+			"request": "launch",
+			"runtimeExecutable": "${execPath}",
+			"args": [
+				"--extensionDevelopmentPath=${workspaceRoot}"
+			],
+			"stopOnEntry": false,
+			"sourceMaps": true,
+			"outDir": "${workspaceRoot}/out",
+			"preLaunchTask": "npm"
+		},
+		{
+			"name": "Launch Extension as debugServer", // https://code.visualstudio.com/docs/extensions/example-debuggers
+			"type": "node",
+			"request": "launch",
+			"program": "${workspaceRoot}/out/client/debugger/Main.js",
+			"stopOnEntry": false,
+			"args": [
+				"--server=4711"
+			],
+			"sourceMaps": true,
+			"outDir": "${workspaceRoot}/out/client",
+			"cwd": "${workspaceRoot}"
+		},
+		{
+			"name": "Launch Tests",
+			"type": "extensionHost",
+			"request": "launch",
+			"runtimeExecutable": "${execPath}",
+			"args": [
+				"${workspaceRoot}/src/test",
+				"--extensionDevelopmentPath=${workspaceRoot}",
+				"--extensionTestsPath=${workspaceRoot}/out/test"
+			],
+			"stopOnEntry": false,
+			"sourceMaps": true,
+			"outDir": "${workspaceRoot}/out/test",
+			"preLaunchTask": "npm"
+		},
+		{
+			"name": "Python",
+			"type": "python",
+			"request": "launch",
+			"stopOnEntry": true,
+			"pythonPath": "python",
+			"program": "${file}",
+			"console": "integratedTerminal",
+			"args": [],
+			"debugOptions": [
+				"WaitOnAbnormalExit",
+				"WaitOnNormalExit",
+				"RedirectOutput"
+			],
+			"cwd": "${workspaceRoot}"
+		}
+	],
+	"compounds": [{
+		"name": "Extension + Debugger",
+		"configurations": [
+			"Launch Extension", "Launch Extension as debugServer"
+		]
+	}]
 }

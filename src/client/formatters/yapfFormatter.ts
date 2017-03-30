@@ -1,12 +1,13 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import {BaseFormatter} from './baseFormatter';
+import { BaseFormatter } from './baseFormatter';
 import * as settings from './../common/configSettings';
 import { Product } from '../common/installer';
+import * as path from 'path';
 
 export class YapfFormatter extends BaseFormatter {
-    constructor(protected outputChannel: vscode.OutputChannel, protected pythonSettings: settings.IPythonSettings, protected workspaceRootPath: string) {
+    constructor(outputChannel: vscode.OutputChannel, pythonSettings: settings.IPythonSettings, workspaceRootPath?: string) {
         super('yapf', Product.yapf, outputChannel, pythonSettings, workspaceRootPath);
     }
 
@@ -17,6 +18,8 @@ export class YapfFormatter extends BaseFormatter {
         if (range && !range.isEmpty) {
             yapfArgs = yapfArgs.concat(['--lines', `${range.start.line + 1}-${range.end.line + 1}`]);
         }
-        return super.provideDocumentFormattingEdits(document, options, token, yapfPath, yapfArgs);
+        // Yapf starts looking for config file starting from the file path
+        let cwd = path.dirname(document.fileName);
+        return super.provideDocumentFormattingEdits(document, options, token, yapfPath, yapfArgs, cwd);
     }
 }

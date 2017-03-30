@@ -8,6 +8,8 @@ import * as logger from './../common/logger';
 import * as telemetryHelper from "../common/telemetry";
 import { execPythonFile, validatePath } from "../common/utils";
 import { createDeferred, Deferred } from '../common/helpers';
+import { getCustomEnvVars } from '../common/utils';
+import { mergeEnvVariables } from '../common/envFileParser';
 
 const IS_WINDOWS = /^win/.test(process.platform);
 var proc: child_process.ChildProcess;
@@ -106,6 +108,7 @@ function getMappedVSCodeSymbol(pythonType: string): vscode.SymbolKind {
 export enum CommandType {
     Arguments,
     Completions,
+    Hover,
     Usages,
     Definitions,
     Symbols
@@ -115,6 +118,7 @@ var commandNames = new Map<CommandType, string>();
 commandNames.set(CommandType.Arguments, "arguments");
 commandNames.set(CommandType.Completions, "completions");
 commandNames.set(CommandType.Definitions, "definitions");
+commandNames.set(CommandType.Hover, "tooltip");
 commandNames.set(CommandType.Usages, "usages");
 commandNames.set(CommandType.Symbols, "names");
 
@@ -181,14 +185,15 @@ function handleError(source: string, errorMessage: string) {
     logger.error(source + ' jediProxy', `Error (${source}) ${errorMessage}`);
 }
 
+let spawnRetryAttempts = 0;;
 function spawnProcess(dir: string) {
     try {
         let environmentVariables = { 'PYTHONUNBUFFERED': '1' };
-        for (let setting in process.env) {
-            if (!environmentVariables[setting]) {
-                environmentVariables[setting] = process.env[setting];
-            }
+        let customEnvironmentVars = getCustomEnvVars();
+        if (customEnvironmentVars) {
+            environmentVariables = mergeEnvVariables(environmentVariables, customEnvironmentVars);
         }
+        environmentVariables = mergeEnvVariables(environmentVariables);
 
         logger.log('child_process.spawn in jediProxy', 'Value of pythonSettings.pythonPath is :' + pythonSettings.pythonPath);
         const args = ["completion.py"];
@@ -207,6 +212,11 @@ function spawnProcess(dir: string) {
             args.push('custom');
             args.push(pythonSettings.jediPath);
         }
+        if (Array.isArray(pythonSettings.autoComplete.preloadModules) &&
+            pythonSettings.autoComplete.preloadModules.length > 0) {
+            var modules = pythonSettings.autoComplete.preloadModules.filter(m => m.trim().length > 0).join(',');
+            args.push(modules);
+        }
         proc = child_process.spawn(pythonSettings.pythonPath, args, {
             cwd: dir,
             env: environmentVariables
@@ -223,7 +233,12 @@ function spawnProcess(dir: string) {
         logger.error('spawnProcess.end', "End - " + end);
     });
     proc.on("error", error => {
-        handleError("error", error);
+        handleError("error", error + '');
+        spawnRetryAttempts++;
+        if (spawnRetryAttempts < 10 && error && error.message &&
+            error.message.indexOf('This socket has been ended by the other party') >= 0) {
+            spawnProcess(dir);
+        }
     });
     proc.stdout.setEncoding('utf8');
     proc.stdout.on("data", (data: string) => {
@@ -266,9 +281,9 @@ function spawnProcess(dir: string) {
                 var index = commandQueue.indexOf(cmd.id);
                 commandQueue.splice(index, 1);
 
-                if (cmd.delays) {
-                    cmd.delays.stop();
-                    telemetryHelper.sendTelemetryEvent(cmd.telemetryEvent, null, cmd.delays.toMeasures());
+                if (cmd.delays && typeof cmd.telemetryEvent === 'string') {
+                    // cmd.delays.stop();
+                    // telemetryHelper.sendTelemetryEvent(cmd.telemetryEvent, null, cmd.delays.toMeasures());
                 }
 
                 // Check if this command has expired
@@ -285,7 +300,7 @@ function spawnProcess(dir: string) {
                             const originalType = <string><any>item.type;
                             item.type = getMappedVSCodeType(originalType);
                             item.kind = getMappedVSCodeSymbol(originalType);
-                            item.raw_type = getMappedVSCodeType(originalType);
+                            item.rawType = getMappedVSCodeType(originalType);
                         });
 
                         let completionResult: ICompletionResult = {
@@ -299,20 +314,45 @@ function spawnProcess(dir: string) {
                         let defs = <any[]>response['results'];
                         let defResult: IDefinitionResult = {
                             requestId: cmd.id,
-                            definition: null
+                            definitions: []
                         };
                         if (defs.length > 0) {
-                            let def = defs[0];
-                            const originalType = def.type as string;
-                            defResult.definition = {
-                                columnIndex: Number(def.column),
-                                fileName: def.fileName,
-                                lineIndex: Number(def.line),
-                                text: def.text,
-                                type: getMappedVSCodeType(originalType),
-                                kind: getMappedVSCodeSymbol(originalType)
-                            };
+                            defResult.definitions = defs.map(def => {
+                                const originalType = def.type as string;
+                                return {
+                                    fileName: def.fileName,
+                                    text: def.text,
+                                    rawType: originalType,
+                                    type: getMappedVSCodeType(originalType),
+                                    kind: getMappedVSCodeSymbol(originalType),
+                                    container: def.container,
+                                    range: {
+                                        startLine: def.range.start_line,
+                                        startColumn: def.range.start_column,
+                                        endLine: def.range.end_line,
+                                        endColumn: def.range.end_column
+                                    }
+                                };
+                            });
                         }
+
+                        cmd.deferred.resolve(defResult);
+                        break;
+                    }
+                    case CommandType.Hover: {
+                        var defs = <any[]>response['results'];
+                        var defResult: IHoverResult = {
+                            requestId: cmd.id,
+                            items: defs.map(def => {
+                                return {
+                                    kind: getMappedVSCodeSymbol(def.type),
+                                    description: def.description,
+                                    signature: def.signature,
+                                    docstring: def.docstring,
+                                    text: def.text
+                                };
+                            })
+                        };
 
                         cmd.deferred.resolve(defResult);
                         break;
@@ -324,15 +364,21 @@ function spawnProcess(dir: string) {
                             requestId: cmd.id,
                             definitions: []
                         };
-                        defResults.definitions = defs.map(def => {
+                        defResults.definitions = defs.map<IDefinition>(def => {
                             const originalType = def.type as string;
-                            return <IDefinition>{
-                                columnIndex: <number>def.column,
-                                fileName: <string>def.fileName,
-                                lineIndex: <number>def.line,
-                                text: <string>def.text,
+                            return {
+                                fileName: def.fileName,
+                                text: def.text,
+                                rawType: originalType,
                                 type: getMappedVSCodeType(originalType),
-                                kind: getMappedVSCodeSymbol(originalType)
+                                kind: getMappedVSCodeSymbol(originalType),
+                                container: def.container,
+                                range: {
+                                    startLine: def.range.start_line,
+                                    startColumn: def.range.start_column,
+                                    endLine: def.range.end_line,
+                                    endColumn: def.range.end_column
+                                }
                             };
                         });
 
@@ -396,7 +442,9 @@ function sendCommand<T extends ICommandResult>(cmd: ICommand<T>): Promise<T> {
     var executionCmd = <IExecutionCommand<T>>cmd;
     var payload = createPayload(executionCmd);
     executionCmd.deferred = createDeferred<ICommandResult>();
-    executionCmd.delays = new telemetryHelper.Delays();
+    // if (typeof executionCmd.telemetryEvent === 'string') {
+    //     executionCmd.delays = new telemetryHelper.Delays();
+    // }
     try {
         proc.stdin.write(JSON.stringify(payload) + "\n");
         commands.set(executionCmd.id, executionCmd);
@@ -495,13 +543,21 @@ function getConfig() {
         if (path.isAbsolute(extraPath)) {
             return extraPath;
         }
+        if (typeof vscode.workspace.rootPath !== 'string') {
+            return '';
+        }
         return path.join(vscode.workspace.rootPath, extraPath);
     });
 
     // Always add workspace path into extra paths
-    extraPaths.unshift(vscode.workspace.rootPath);
+    if (typeof vscode.workspace.rootPath === 'string') {
+        extraPaths.unshift(vscode.workspace.rootPath);
+    }
 
-    let distinctExtraPaths = extraPaths.concat(additionalAutoCopletePaths).filter((value, index, self) => self.indexOf(value) === index);
+    let distinctExtraPaths = extraPaths.concat(additionalAutoCopletePaths)
+        .filter(value => value.length > 0)
+        .filter((value, index, self) => self.indexOf(value) === index);
+
     return {
         extraPaths: distinctExtraPaths,
         useSnippets: false,
@@ -512,7 +568,7 @@ function getConfig() {
 }
 
 export interface ICommand<T extends ICommandResult> {
-    telemetryEvent: string;
+    telemetryEvent?: string;
     command: CommandType;
     source?: string;
     fileName: string;
@@ -524,7 +580,7 @@ interface IExecutionCommand<T extends ICommandResult> extends ICommand<T> {
     id?: number;
     deferred?: Deferred<T>;
     token: vscode.CancellationToken;
-    delays: telemetryHelper.Delays;
+    delays?: telemetryHelper.Delays;
 }
 
 export interface ICommandError {
@@ -537,8 +593,11 @@ export interface ICommandResult {
 export interface ICompletionResult extends ICommandResult {
     items: IAutoCompleteItem[];
 }
+export interface IHoverResult extends ICommandResult {
+    items: IHoverItem[];
+}
 export interface IDefinitionResult extends ICommandResult {
-    definition: IDefinition;
+    definitions: IDefinition[];
 }
 export interface IReferenceResult extends ICommandResult {
     references: IReference[];
@@ -574,23 +633,38 @@ export interface IReference {
 
 export interface IAutoCompleteItem {
     type: vscode.CompletionItemKind;
-    raw_type: vscode.CompletionItemKind;
+    rawType: vscode.CompletionItemKind;
     kind: vscode.SymbolKind;
     text: string;
     description: string;
     raw_docstring: string;
     rightLabel: string;
 }
+interface IDefinitionRange {
+    startLine: number;
+    startColumn: number;
+    endLine: number;
+    endColumn: number;
+}
 export interface IDefinition {
+    rawType: string;
     type: vscode.CompletionItemKind;
     kind: vscode.SymbolKind;
     text: string;
     fileName: string;
-    columnIndex: number;
-    lineIndex: number;
+    container: string;
+    range: IDefinitionRange;
 }
 
-export class JediProxyHandler<R extends ICommandResult, T> {
+export interface IHoverItem {
+    kind: vscode.SymbolKind;
+    text: string;
+    description: string;
+    docstring: string;
+    signature: string;
+}
+
+export class JediProxyHandler<R extends ICommandResult> {
     private jediProxy: JediProxy;
     private lastToken: vscode.CancellationToken;
     private lastCommandId: number;
