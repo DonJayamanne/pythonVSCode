@@ -283,7 +283,7 @@
 						"type": "python",
 						"request": "launch",
 						"stopOnEntry": true,
-						"pythonPath": "$${{config.python.pythonPath}}",
+						"pythonPath": "$${{config:python.pythonPath}}",
 						"program": "$${{file}}",
 						"cwd": "$${{workspaceRoot}}",
 						"env": null,
@@ -304,13 +304,13 @@
 						"request": "launch",
 						"stopOnEntry": true,
 						"osx": {
-							"pythonPath": "$${env.SPARK_HOME}}/bin/spark-submit"
+							"pythonPath": "$${env:SPARK_HOME}}/bin/spark-submit"
 						},
 						"windows": {
-							"pythonPath": "$${{env.SPARK_HOME}}/bin/spark-submit.cmd"
+							"pythonPath": "$${{env:SPARK_HOME}}/bin/spark-submit.cmd"
 						},
 						"linux": {
-							"pythonPath": "$${{env.SPARK_HOME}}/bin/spark-submit"
+							"pythonPath": "$${{env:SPARK_HOME}}/bin/spark-submit"
 						},
 						"program": "$${{file}}",
 						"cwd": "$${{workspaceRoot}}",
@@ -331,7 +331,7 @@
 						"type": "python",
 						"request": "launch",
 						"stopOnEntry": true,
-						"pythonPath": "$${{config.python.pythonPath}}",
+						"pythonPath": "$${{config:python.pythonPath}}",
 						"module": "module.name",
 						"cwd": "$${{workspaceRoot}}",
 						"env": null,
@@ -351,7 +351,7 @@
 						"type": "python",
 						"request": "launch",
 						"stopOnEntry": true,
-						"pythonPath": "$${{config.python.pythonPath}}",
+						"pythonPath": "$${{config:python.pythonPath}}",
 						"program": "$${{file}}",
 						"cwd": null,
 						"console": "integratedTerminal",
@@ -371,7 +371,7 @@
 						"type": "python",
 						"request": "launch",
 						"stopOnEntry": true,
-						"pythonPath": "$${{config.python.pythonPath}}",
+						"pythonPath": "$${{config:python.pythonPath}}",
 						"program": "${{file}}",
 						"cwd": null,
 						"console": "externalTerminal",
@@ -391,7 +391,7 @@
 						"type": "python",
 						"request": "launch",
 						"stopOnEntry": true,
-						"pythonPath": "$${{config.python.pythonPath}}",
+						"pythonPath": "$${{config:python.pythonPath}}",
 						"program": "$${{workspaceRoot}/manage.py",
 						"cwd": "$${{workspaceRoot}}",
 						"args": [
@@ -416,7 +416,7 @@
 						"type": "python",
 						"request": "launch",
 						"stopOnEntry": false,
-						"pythonPath": "$${{config.python.pythonPath}}",
+						"pythonPath": "$${{config:python.pythonPath}}",
 						"program": "fully qualified path fo 'flask' executable. Generally located along with python interpreter",
 						"cwd": "$${{workspaceRoot}}",
 						"env": {
@@ -443,7 +443,7 @@
 						"type": "python",
 						"request": "launch",
 						"stopOnEntry": false,
-						"pythonPath": "$${{config.python.pythonPath}}",
+						"pythonPath": "$${{config:python.pythonPath}}",
 						"program": "$${{workspaceRoot}}/run.py",
 						"cwd": "$${{workspaceRoot}}",
 						"args": [],
@@ -464,7 +464,7 @@
 						"type": "python",
 						"request": "launch",
 						"stopOnEntry": true,
-						"pythonPath": "$${{config.python.pythonPath}}",
+						"pythonPath": "$${{config:python.pythonPath}}",
 						"program": "$${{workspaceRoot}}/console.py",
 						"cwd": "$${{workspaceRoot}}",
 						"args": [
@@ -515,7 +515,7 @@
 						"pythonPath": {
 							"type": "string",
 							"description": "Path (fully qualified) to python executable. Defaults to the value in settings.json",
-							"default": "${config.python.pythonPath}"
+							"default": "${config:python.pythonPath}"
 						},
 						"args": {
 							"type": "array",
@@ -652,7 +652,7 @@
 					"type": "python",
 					"request": "launch",
 					"stopOnEntry": true,
-					"pythonPath": "${config.python.pythonPath}",
+					"pythonPath": "${config:python.pythonPath}",
 					"program": "${file}",
 					"cwd": "${workspaceRoot}",
 					"env": null,
@@ -669,13 +669,13 @@
 					"request": "launch",
 					"stopOnEntry": true,
 					"osx": {
-						"pythonPath": "${env.SPARK_HOME}/bin/spark-submit"
+						"pythonPath": "${env:SPARK_HOME}/bin/spark-submit"
 					},
 					"windows": {
-						"pythonPath": "${env.SPARK_HOME}/bin/spark-submit.cmd"
+						"pythonPath": "${env:SPARK_HOME}/bin/spark-submit.cmd"
 					},
 					"linux": {
-						"pythonPath": "${env.SPARK_HOME}/bin/spark-submit"
+						"pythonPath": "${env:SPARK_HOME}/bin/spark-submit"
 					},
 					"program": "${file}",
 					"cwd": "${workspaceRoot}",
@@ -692,7 +692,7 @@
 					"type": "python",
 					"request": "launch",
 					"stopOnEntry": true,
-					"pythonPath": "${config.python.pythonPath}",
+					"pythonPath": "${config:python.pythonPath}",
 					"module": "module.name",
 					"cwd": "${workspaceRoot}",
 					"env": null,
@@ -708,7 +708,7 @@
 					"type": "python",
 					"request": "launch",
 					"stopOnEntry": true,
-					"pythonPath": "${config.python.pythonPath}",
+					"pythonPath": "${config:python.pythonPath}",
 					"program": "${file}",
 					"cwd": null,
 					"console": "integratedTerminal",
@@ -724,7 +724,7 @@
 					"type": "python",
 					"request": "launch",
 					"stopOnEntry": true,
-					"pythonPath": "${config.python.pythonPath}",
+					"pythonPath": "${config:python.pythonPath}",
 					"program": "${file}",
 					"cwd": null,
 					"console": "externalTerminal",
@@ -740,7 +740,7 @@
 					"type": "python",
 					"request": "launch",
 					"stopOnEntry": true,
-					"pythonPath": "${config.python.pythonPath}",
+					"pythonPath": "${config:python.pythonPath}",
 					"program": "${workspaceRoot}/manage.py",
 					"cwd": "${workspaceRoot}",
 					"args": [
@@ -761,7 +761,7 @@
 					"type": "python",
 					"request": "launch",
 					"stopOnEntry": false,
-					"pythonPath": "${config.python.pythonPath}",
+					"pythonPath": "${config:python.pythonPath}",
 					"program": "fully qualified path fo 'flask' executable. Generally located along with python interpreter",
 					"cwd": "${workspaceRoot}",
 					"env": {
@@ -784,7 +784,7 @@
 					"type": "python",
 					"request": "launch",
 					"stopOnEntry": false,
-					"pythonPath": "${config.python.pythonPath}",
+					"pythonPath": "${config:python.pythonPath}",
 					"program": "${workspaceRoot}/run.py",
 					"cwd": "${workspaceRoot}",
 					"args": [],
@@ -801,7 +801,7 @@
 					"type": "python",
 					"request": "launch",
 					"stopOnEntry": true,
-					"pythonPath": "${config.python.pythonPath}",
+					"pythonPath": "${config:python.pythonPath}",
 					"cwd": "${workspaceRoot}",
 					"env": null,
 					"envFile": "${workspaceRoot}/.env",
@@ -820,7 +820,7 @@
 					"type": "python",
 					"request": "launch",
 					"stopOnEntry": true,
-					"pythonPath": "${config.python.pythonPath}",
+					"pythonPath": "${config:python.pythonPath}",
 					"program": "${workspaceRoot}/console.py",
 					"cwd": "${workspaceRoot}",
 					"args": [
