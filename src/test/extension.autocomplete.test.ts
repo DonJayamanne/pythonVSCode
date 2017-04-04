@@ -41,7 +41,7 @@ suite('Autocomplete', () => {
     test('For "sys."', done => {
         let textEditor: vscode.TextEditor;
         let textDocument: vscode.TextDocument;
-        return vscode.workspace.openTextDocument(fileOne).then(document => {
+        vscode.workspace.openTextDocument(fileOne).then(document => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
@@ -59,7 +59,7 @@ suite('Autocomplete', () => {
     test('For custom class', done => {
         let textEditor: vscode.TextEditor;
         let textDocument: vscode.TextDocument;
-        return vscode.workspace.openTextDocument(fileOne).then(document => {
+        vscode.workspace.openTextDocument(fileOne).then(document => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
@@ -76,7 +76,7 @@ suite('Autocomplete', () => {
     test('With Unicode Characters', done => {
         let textEditor: vscode.TextEditor;
         let textDocument: vscode.TextDocument;
-        return vscode.workspace.openTextDocument(fileEncoding).then(document => {
+        vscode.workspace.openTextDocument(fileEncoding).then(document => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
@@ -94,7 +94,7 @@ suite('Autocomplete', () => {
     test('Across files With Unicode Characters', done => {
         let textEditor: vscode.TextEditor;
         let textDocument: vscode.TextDocument;
-        return vscode.workspace.openTextDocument(fileEncodingUsed).then(document => {
+        vscode.workspace.openTextDocument(fileEncodingUsed).then(document => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
@@ -131,7 +131,7 @@ suite('Code Definition', () => {
     test('Go to method', done => {
         let textEditor: vscode.TextEditor;
         let textDocument: vscode.TextDocument;
-        return vscode.workspace.openTextDocument(fileOne).then(document => {
+        vscode.workspace.openTextDocument(fileOne).then(document => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
@@ -149,7 +149,7 @@ suite('Code Definition', () => {
     test('Across files', done => {
         let textEditor: vscode.TextEditor;
         let textDocument: vscode.TextDocument;
-        return vscode.workspace.openTextDocument(fileThree).then(document => {
+        vscode.workspace.openTextDocument(fileThree).then(document => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
@@ -168,7 +168,7 @@ suite('Code Definition', () => {
     test('With Unicode Characters', done => {
         let textEditor: vscode.TextEditor;
         let textDocument: vscode.TextDocument;
-        return vscode.workspace.openTextDocument(fileEncoding).then(document => {
+        vscode.workspace.openTextDocument(fileEncoding).then(document => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
@@ -187,7 +187,7 @@ suite('Code Definition', () => {
     test('Across files with Unicode Characters', done => {
         let textEditor: vscode.TextEditor;
         let textDocument: vscode.TextDocument;
-        return vscode.workspace.openTextDocument(fileEncodingUsed).then(document => {
+        vscode.workspace.openTextDocument(fileEncodingUsed).then(document => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
@@ -222,7 +222,7 @@ suite('Hover Definition', () => {
     test('Method', done => {
         let textEditor: vscode.TextEditor;
         let textDocument: vscode.TextDocument;
-        return vscode.workspace.openTextDocument(fileOne).then(document => {
+        vscode.workspace.openTextDocument(fileOne).then(document => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
@@ -242,7 +242,7 @@ suite('Hover Definition', () => {
     test('Across files', done => {
         let textEditor: vscode.TextEditor;
         let textDocument: vscode.TextDocument;
-        return vscode.workspace.openTextDocument(fileThree).then(document => {
+        vscode.workspace.openTextDocument(fileThree).then(document => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
@@ -261,7 +261,7 @@ suite('Hover Definition', () => {
     test('With Unicode Characters', done => {
         let textEditor: vscode.TextEditor;
         let textDocument: vscode.TextDocument;
-        return vscode.workspace.openTextDocument(fileEncoding).then(document => {
+        vscode.workspace.openTextDocument(fileEncoding).then(document => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
@@ -282,7 +282,7 @@ suite('Hover Definition', () => {
     test('Across files with Unicode Characters', done => {
         let textEditor: vscode.TextEditor;
         let textDocument: vscode.TextDocument;
-        return vscode.workspace.openTextDocument(fileEncodingUsed).then(document => {
+        vscode.workspace.openTextDocument(fileEncodingUsed).then(document => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
@@ -305,7 +305,7 @@ suite('Hover Definition', () => {
     test('Nothing for keywords (class)', done => {
         let textEditor: vscode.TextEditor;
         let textDocument: vscode.TextDocument;
-        return vscode.workspace.openTextDocument(fileOne).then(document => {
+        vscode.workspace.openTextDocument(fileOne).then(document => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
@@ -321,7 +321,7 @@ suite('Hover Definition', () => {
     test('Nothing for keywords (for)', done => {
         let textEditor: vscode.TextEditor;
         let textDocument: vscode.TextDocument;
-        return vscode.workspace.openTextDocument(fileHover).then(document => {
+        vscode.workspace.openTextDocument(fileHover).then(document => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
@@ -337,7 +337,7 @@ suite('Hover Definition', () => {
     test('Highlighting Class', done => {
         let textEditor: vscode.TextEditor;
         let textDocument: vscode.TextDocument;
-        return vscode.workspace.openTextDocument(fileHover).then(document => {
+        vscode.workspace.openTextDocument(fileHover).then(document => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
@@ -370,7 +370,7 @@ suite('Hover Definition', () => {
     test('Highlight Method', done => {
         let textEditor: vscode.TextEditor;
         let textDocument: vscode.TextDocument;
-        return vscode.workspace.openTextDocument(fileHover).then(document => {
+        vscode.workspace.openTextDocument(fileHover).then(document => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
@@ -392,7 +392,7 @@ suite('Hover Definition', () => {
     test('Highlight Function', done => {
         let textEditor: vscode.TextEditor;
         let textDocument: vscode.TextDocument;
-        return vscode.workspace.openTextDocument(fileHover).then(document => {
+        vscode.workspace.openTextDocument(fileHover).then(document => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
@@ -414,7 +414,7 @@ suite('Hover Definition', () => {
     test('Highlight Multiline Method Signature', done => {
         let textEditor: vscode.TextEditor;
         let textDocument: vscode.TextDocument;
-        return vscode.workspace.openTextDocument(fileHover).then(document => {
+        vscode.workspace.openTextDocument(fileHover).then(document => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
@@ -441,7 +441,7 @@ suite('Hover Definition', () => {
     test('Variable', done => {
         let textEditor: vscode.TextEditor;
         let textDocument: vscode.TextDocument;
-        return vscode.workspace.openTextDocument(fileHover).then(document => {
+        vscode.workspace.openTextDocument(fileHover).then(document => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
@@ -452,21 +452,12 @@ suite('Hover Definition', () => {
         }).then(def => {
             assert.equal(def.length, 1, 'Definition length is incorrect');
             assert.equal(def[0].contents.length, 1, 'Only expected one result');
-            assert.equal(def[0].contents[0], '```python' + EOL +
+            assert.ok(def[0].contents[0].toString().startsWith('```python' + EOL +
                 'Random' + EOL +
                 '```' + EOL +
                 'Random(self, x=None)' + EOL +
                 EOL +
-                'Random number generator base class used by bound module functions.' + EOL +
-                EOL +
-                "Used to instantiate instances of Random to get generators that don't" + EOL +
-                'share state.' + EOL +
-                EOL +
-                'Class Random can also be subclassed if you want to use a different basic' + EOL +
-                'generator of your own devising: in that case, override the following' + EOL +
-                'methods:  random(), seed(), getstate(), and setstate().' + EOL +
-                'Optionally, implement a getrandbits() method so that randrange()' + EOL +
-                'can cover arbitrarily large ranges.', 'Invalid content items');
+                'Random number generator base class used by bound module functions.'), 'Invalid content items');
         }).then(done, done);
     });
 });
