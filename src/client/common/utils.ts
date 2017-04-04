@@ -307,11 +307,19 @@ export function getWindowsLineEndingCount(document:TextDocument, offset:Number) 
     const eolPattern = new RegExp('\r\n', 'g');
     const readBlock = 1024;
     let count = 0;
+    let offsetDiff = offset.valueOf();
 
     // In order to prevent the one-time loading of large files from taking up too much memory
     for (let pos = 0; pos < offset; pos += readBlock)   {
         let startAt = document.positionAt(pos)
-        let endAt = document.positionAt(pos + readBlock);
+        let endAt = null;
+        
+        if (offsetDiff >= readBlock) {
+            endAt = document.positionAt(pos + readBlock);
+            offsetDiff = offsetDiff - readBlock;
+        } else {
+            endAt = document.positionAt(pos + offsetDiff);
+        }
 
         let text = document.getText(new Range(startAt, endAt));
         let cr = text.match(eolPattern);
