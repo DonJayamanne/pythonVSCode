@@ -1686,7 +1686,7 @@ class DebuggerLoop(object):
 
     instance = None
 
-    def __init__(self, connrich_exceptions=False):
+    def __init__(self, conn, rich_exceptions=False):
         DebuggerLoop.instance = self
         self.conn = conn
         self.repl_backend = None
@@ -2128,7 +2128,7 @@ def report_exception(frame, exc_info, tid, break_type):
             'message': data['message'],
         }
 
-     with _SendLockCtx:
+    with _SendLockCtx:
         if RICH_EXCEPTIONS:
             write_bytes(conn, EXC2)
             write_int(conn, tid)
