@@ -27,7 +27,7 @@ export class WorkspaceSymbols implements vscode.Disposable {
         this.buildWorkspaceSymbols(true);
     }
     registerCommands() {
-        this.disposables.push(vscode.commands.registerCommand(Commands.Build_Workspace_Symbols, this.buildWorkspaceSymbols.bind(this)));
+        this.disposables.push(vscode.commands.registerCommand(Commands.Build_Workspace_Symbols, this.buildWorkspaceSymbols.bind(this, true)));
     }
     registerOnSaveHandlers() {
         this.disposables.push(vscode.workspace.onDidSaveTextDocument(this.onDidSaveTextDocument.bind(this)));
