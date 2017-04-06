@@ -138,8 +138,11 @@ export function execPythonFile(file: string, args: string[], cwd: string, includ
     });
 }
 
-function handleResponse(file: string, includeErrorAsResponse: boolean, error: Error, stdout: string, stderr: string): Promise<string> {
+function handleResponse(file: string, includeErrorAsResponse: boolean, error: Error, stdout: string, stderr: string, token?: CancellationToken): Promise<string> {
     return new Promise<string>((resolve, reject) => {
+        if (token.isCancellationRequested) {
+            return;
+        }
         if (isNotInstalledError(error)) {
             return reject(error);
         }
@@ -170,7 +173,7 @@ function handleResponse(file: string, includeErrorAsResponse: boolean, error: Er
 function execFileInternal(file: string, args: string[], options: child_process.ExecFileOptions, includeErrorAsResponse: boolean, token?: CancellationToken): Promise<string> {
     return new Promise<string>((resolve, reject) => {
         let proc = child_process.execFile(file, args, options, (error, stdout, stderr) => {
-            handleResponse(file, includeErrorAsResponse, error, stdout, stderr).then(resolve, reject);
+            handleResponse(file, includeErrorAsResponse, error, stdout, stderr, token).then(resolve, reject);
         });
         if (token && token.onCancellationRequested) {
             token.onCancellationRequested(() => {
@@ -310,17 +313,17 @@ export function getCustomEnvVars(): any {
     return null;
 }
 
-export function getWindowsLineEndingCount(document:TextDocument, offset:Number)  {
+export function getWindowsLineEndingCount(document: TextDocument, offset: Number) {
     const eolPattern = new RegExp('\r\n', 'g');
     const readBlock = 1024;
     let count = 0;
     let offsetDiff = offset.valueOf();
 
     // In order to prevent the one-time loading of large files from taking up too much memory
-    for (let pos = 0; pos < offset; pos += readBlock)   {
+    for (let pos = 0; pos < offset; pos += readBlock) {
         let startAt = document.positionAt(pos)
         let endAt = null;
-        
+
         if (offsetDiff >= readBlock) {
             endAt = document.positionAt(pos + readBlock);
             offsetDiff = offsetDiff - readBlock;
@@ -330,7 +333,7 @@ export function getWindowsLineEndingCount(document:TextDocument, offset:Number) 
 
         let text = document.getText(new Range(startAt, endAt));
         let cr = text.match(eolPattern);
-        
+
         count += cr ? cr.length : 0;
     }
     return count;
