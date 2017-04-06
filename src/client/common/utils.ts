@@ -157,13 +157,6 @@ function handleResponse(file: string, includeErrorAsResponse: boolean, error: Er
         let hasErrors = (error && error.message.length > 0) || (stderr && stderr.length > 0);
         if (hasErrors && (typeof stdout !== 'string' || stdout.length === 0)) {
             let errorMsg = (error && error.message) ? error.message : (stderr && stderr.length > 0 ? stderr + '' : '');
-            console.error('stdout');
-            console.error(stdout);
-            console.error('stderr');
-            console.error(stderr);
-            console.error('error');
-            console.error(error);
-            console.error('Over');
             return reject(errorMsg);
         }
 
