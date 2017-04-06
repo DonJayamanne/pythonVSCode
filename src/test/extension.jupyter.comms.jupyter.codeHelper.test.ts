@@ -36,7 +36,7 @@ suite('Jupyter Code Helper', () => {
 
     test('Get Line (without any selection)', done => {
         let textDocument: vscode.TextDocument;
-        return vscode.workspace.openTextDocument(FILE_WITH_CELLS).then(document => {
+        vscode.workspace.openTextDocument(FILE_WITH_CELLS).then(document => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
@@ -50,7 +50,7 @@ suite('Jupyter Code Helper', () => {
 
     test('Get Selected Text', done => {
         let textDocument: vscode.TextDocument;
-        return vscode.workspace.openTextDocument(FILE_WITH_CELLS).then(document => {
+        vscode.workspace.openTextDocument(FILE_WITH_CELLS).then(document => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
@@ -64,7 +64,7 @@ suite('Jupyter Code Helper', () => {
 
     test('Get Selected Line', done => {
         let textDocument: vscode.TextDocument;
-        return vscode.workspace.openTextDocument(FILE_WITH_CELLS).then(document => {
+        vscode.workspace.openTextDocument(FILE_WITH_CELLS).then(document => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
@@ -79,7 +79,7 @@ suite('Jupyter Code Helper', () => {
 
     test('Get Selected Text (multi-line)', done => {
         let textDocument: vscode.TextDocument;
-        return vscode.workspace.openTextDocument(FILE_WITH_CELLS).then(document => {
+        vscode.workspace.openTextDocument(FILE_WITH_CELLS).then(document => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
@@ -93,7 +93,7 @@ suite('Jupyter Code Helper', () => {
 
     test('Get Code Block (for in)', done => {
         let textDocument: vscode.TextDocument;
-        return vscode.workspace.openTextDocument(FILE_WITH_CELLS).then(document => {
+        vscode.workspace.openTextDocument(FILE_WITH_CELLS).then(document => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
