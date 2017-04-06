@@ -5,7 +5,7 @@ import * as path from "path";
 import * as fs from "fs";
 import * as child_process from "child_process";
 import * as settings from '../common/configSettings';
-import {getTextEditsFromPatch, getTempFileWithDocumentContents} from "../common/editor";
+import { getTextEditsFromPatch, getTempFileWithDocumentContents } from "../common/editor";
 
 export class PythonImportSortProvider {
     public sortImports(extensionDir: string, document: vscode.TextDocument): Promise<vscode.TextEdit[]> {
@@ -26,10 +26,20 @@ export class PythonImportSortProvider {
                 const args = settings.PythonSettings.getInstance().sortImports.args.join(' ');
                 let isort_cmd = '';
                 if (typeof isort === 'string' && isort.length > 0) {
-                    isort_cmd = `${isort} "${filePath}" --diff ${args}`;
+                    if (isort.indexOf(' ') > 0) {
+                        isort_cmd = `"${isort}" "${filePath}" --diff ${args}`;
+                    }
+                    else {
+                        isort_cmd = `${isort} "${filePath}" --diff ${args}`;
+                    }
                 } else {
-                    isort_cmd = `${pythonPath} "${importScript}" "${filePath}" --diff ${args}`;
-                }    
+                    if (pythonPath.indexOf(' ') > 0) {
+                        isort_cmd = `"${pythonPath}" "${importScript}" "${filePath}" --diff ${args}`;
+                    }
+                    else {
+                        isort_cmd = `${pythonPath} "${importScript}" "${filePath}" --diff ${args}`;
+                    }
+                }
                 child_process.exec(isort_cmd, (error, stdout, stderr) => {
                     if (tmpFileCreated) {
                         fs.unlink(filePath);
@@ -38,7 +48,6 @@ export class PythonImportSortProvider {
                         return reject(error ? error : stderr);
                     }
 
-                    let formattedText = stdout;
                     let edits = getTextEditsFromPatch(document.getText(), stdout);
                     resolve(edits);
                 });
