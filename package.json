@@ -1160,7 +1160,7 @@
 				"python.workspaceSymbols.rebuildOnStart": {
 					"type": "boolean",
 					"default": true,
-					"description": "Whether to re-build the tags file on start (deaults to true)."
+					"description": "Whether to re-build the tags file on start (defaults to true)."
 				},
 				"python.workspaceSymbols.rebuildOnFileSave": {
 					"type": "boolean",
