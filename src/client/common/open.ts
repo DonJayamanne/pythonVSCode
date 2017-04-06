@@ -16,10 +16,10 @@ export function open(opts: any): Promise<childProcess.ChildProcess> {
     var appArgs = [];
     var args = [];
     var cpOpts: any = {};
-    if (opts.cwd) {
+    if (opts.cwd && typeof opts.cwd === 'string' && opts.cwd.length > 0) {
         cpOpts.cwd = opts.cwd;
     }
-    if (opts.env) {
+    if (opts.env && Object.keys(opts.env).length > 0) {
         cpOpts.env = opts.env;
     }
 
@@ -30,11 +30,11 @@ export function open(opts: any): Promise<childProcess.ChildProcess> {
 
     if (process.platform === 'darwin') {
         const sudoPrefix = opts.sudo === true ? 'sudo ' : '';
-        cmd = 'osascript';        
-        args = [ '-e', 'tell application "terminal"',
-                '-e', 'activate',
-                '-e', 'do script "' + sudoPrefix + [opts.app].concat(appArgs).join(" ") + '"',
-                '-e', 'end tell' ];
+        cmd = 'osascript';
+        args = ['-e', 'tell application "terminal"',
+            '-e', 'activate',
+            '-e', 'do script "' + sudoPrefix + [opts.app].concat(appArgs).join(" ") + '"',
+            '-e', 'end tell'];
     } else if (process.platform === 'win32') {
         cmd = 'cmd';
         args.push('/c', 'start');
@@ -59,10 +59,10 @@ export function open(opts: any): Promise<childProcess.ChildProcess> {
     var cp = childProcess.spawn(cmd, args, cpOpts);
 
     if (opts.wait) {
-        return new Promise(function(resolve, reject) {
+        return new Promise(function (resolve, reject) {
             cp.once('error', reject);
 
-            cp.once('close', function(code) {
+            cp.once('close', function (code) {
                 if (code > 0) {
                     reject(new Error('Exited with code ' + code));
                     return;

@@ -25,7 +25,7 @@
 	"engines": {
 		"vscode": "^1.9.0"
 	},
-	"recommendations":[
+	"recommendations": [
 		"donjayamanne.jupyter"
 	],
 	"keywords": [
@@ -286,7 +286,7 @@
 						"pythonPath": "$${{config:python.pythonPath}}",
 						"program": "$${{file}}",
 						"cwd": "$${{workspaceRoot}}",
-						"env": null,
+						"env": {},
 						"envFile": "$${{workspaceRoot}}/.env",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
@@ -314,7 +314,7 @@
 						},
 						"program": "$${{file}}",
 						"cwd": "$${{workspaceRoot}}",
-						"env": null,
+						"env": {},
 						"envFile": "$${{workspaceRoot}}/.env",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
@@ -334,7 +334,7 @@
 						"pythonPath": "$${{config:python.pythonPath}}",
 						"module": "module.name",
 						"cwd": "$${{workspaceRoot}}",
-						"env": null,
+						"env": {},
 						"envFile": "$${{workspaceRoot}}/.env",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
@@ -353,9 +353,9 @@
 						"stopOnEntry": true,
 						"pythonPath": "$${{config:python.pythonPath}}",
 						"program": "$${{file}}",
-						"cwd": null,
+						"cwd": "",
 						"console": "integratedTerminal",
-						"env": null,
+						"env": {},
 						"envFile": "$${{workspaceRoot}}/.env",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
@@ -373,9 +373,9 @@
 						"stopOnEntry": true,
 						"pythonPath": "$${{config:python.pythonPath}}",
 						"program": "${{file}}",
-						"cwd": null,
+						"cwd": "",
 						"console": "externalTerminal",
-						"env": null,
+						"env": {},
 						"envFile": "$${{workspaceRoot}}/.env",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
@@ -398,7 +398,7 @@
 							"runserver",
 							"--noreload"
 						],
-						"env": null,
+						"env": {},
 						"envFile": "$${{workspaceRoot}}/.env",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
@@ -447,7 +447,7 @@
 						"program": "$${{workspaceRoot}}/run.py",
 						"cwd": "$${{workspaceRoot}}",
 						"args": [],
-						"env": null,
+						"env": {},
 						"envFile": "$${{workspaceRoot}}/.env",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
@@ -472,7 +472,7 @@
 							"runserver",
 							"--noreload=True"
 						],
-						"env": null,
+						"env": {},
 						"envFile": "$${{workspaceRoot}}/.env",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
@@ -546,8 +546,8 @@
 						},
 						"cwd": {
 							"type": "string",
-							"description": "Absolute path to the working directory of the program being debugged. Default is the root directory of the file (leave null).",
-							"default": null
+							"description": "Absolute path to the working directory of the program being debugged. Default is the root directory of the file (leave empty).",
+							"default": ""
 						},
 						"debugOptions": {
 							"type": "array",
@@ -604,12 +604,12 @@
 						"env": {
 							"type": "object",
 							"description": "Environment variables defined as a key value pair. Property ends up being the Environment Variable and the value of the property ends up being the value of the Env Variable.",
-							"default": null
+							"default": {}
 						},
 						"envFile": {
 							"type": "string",
 							"description": "Absolute path to a file containing environment variable definitions.",
-							"default": null
+							"default": ""
 						}
 					}
 				},
@@ -627,12 +627,12 @@
 						"remoteRoot": {
 							"type": "string",
 							"description": "The source root of the remote host.",
-							"default": null
+							"default": ""
 						},
 						"port": {
 							"type": "number",
 							"description": "Debug port to attach",
-							"default": null
+							"default": 0
 						},
 						"host": {
 							"type": "string",
@@ -655,7 +655,7 @@
 					"pythonPath": "${config:python.pythonPath}",
 					"program": "${file}",
 					"cwd": "${workspaceRoot}",
-					"env": null,
+					"env": {},
 					"envFile": "${workspaceRoot}/.env",
 					"debugOptions": [
 						"WaitOnAbnormalExit",
@@ -679,7 +679,7 @@
 					},
 					"program": "${file}",
 					"cwd": "${workspaceRoot}",
-					"env": null,
+					"env": {},
 					"envFile": "${workspaceRoot}/.env",
 					"debugOptions": [
 						"WaitOnAbnormalExit",
@@ -695,7 +695,7 @@
 					"pythonPath": "${config:python.pythonPath}",
 					"module": "module.name",
 					"cwd": "${workspaceRoot}",
-					"env": null,
+					"env": {},
 					"envFile": "${workspaceRoot}/.env",
 					"debugOptions": [
 						"WaitOnAbnormalExit",
@@ -710,9 +710,9 @@
 					"stopOnEntry": true,
 					"pythonPath": "${config:python.pythonPath}",
 					"program": "${file}",
-					"cwd": null,
+					"cwd": "",
 					"console": "integratedTerminal",
-					"env": null,
+					"env": {},
 					"envFile": "${workspaceRoot}/.env",
 					"debugOptions": [
 						"WaitOnAbnormalExit",
@@ -726,9 +726,9 @@
 					"stopOnEntry": true,
 					"pythonPath": "${config:python.pythonPath}",
 					"program": "${file}",
-					"cwd": null,
+					"cwd": "",
 					"console": "externalTerminal",
-					"env": null,
+					"env": {},
 					"envFile": "${workspaceRoot}/.env",
 					"debugOptions": [
 						"WaitOnAbnormalExit",
@@ -747,7 +747,7 @@
 						"runserver",
 						"--noreload"
 					],
-					"env": null,
+					"env": {},
 					"envFile": "${workspaceRoot}/.env",
 					"debugOptions": [
 						"WaitOnAbnormalExit",
@@ -788,7 +788,7 @@
 					"program": "${workspaceRoot}/run.py",
 					"cwd": "${workspaceRoot}",
 					"args": [],
-					"env": null,
+					"env": {},
 					"envFile": "${workspaceRoot}/.env",
 					"debugOptions": [
 						"WaitOnAbnormalExit",
@@ -803,7 +803,7 @@
 					"stopOnEntry": true,
 					"pythonPath": "${config:python.pythonPath}",
 					"cwd": "${workspaceRoot}",
-					"env": null,
+					"env": {},
 					"envFile": "${workspaceRoot}/.env",
 					"args": [
 						"${workspaceRoot}/development.ini"
@@ -828,7 +828,7 @@
 						"runserver",
 						"--noreload=True"
 					],
-					"env": null,
+					"env": {},
 					"envFile": "${workspaceRoot}/.env",
 					"debugOptions": [
 						"WaitOnAbnormalExit",

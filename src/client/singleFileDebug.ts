@@ -20,7 +20,7 @@ export function activateSingleFileDebug() {
             config.args = [];
             config.console = "none";
             config.exceptionHandling = [];
-            config.env = null;
+            config.env = {};
 
             if (vscode.workspace.rootPath) {
                 config.cwd = vscode.workspace.rootPath;

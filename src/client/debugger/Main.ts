@@ -215,7 +215,7 @@ export class PythonDebugger extends DebugSession {
             Debug_DebugOptions: args.debugOptions.join(","),
             Debug_DJango: args.debugOptions.indexOf("DjangoDebugging") >= 0 ? "true" : "false",
             Debug_PySpark: typeof args.pythonPath === 'string' && args.pythonPath.indexOf('spark-submit') > 0 ? 'true' : 'false',
-            Debug_HasEnvVaraibles: args.env && typeof args.env === "object" ? "true" : "false"
+            Debug_HasEnvVaraibles: args.env && typeof args.env === "object" && Object.keys(args.env).length > 0 ? "true" : "false"
         }));
 
         this.launchArgs = args;

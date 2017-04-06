@@ -132,10 +132,10 @@ export function getCustomEnvVars(envVars: any, envFile: string): any {
         }
     }
     let configVars = null;
-    if (envVars && envFileVars) {
+    if (envVars && Object.keys(envVars).length > 0 && envFileVars) {
         configVars = mergeEnvVariables(envVars, envFileVars);
     }
-    if (envVars) {
+    if (envVars && Object.keys(envVars).length > 0) {
         configVars = envVars;
     }
     if (envFileVars) {
