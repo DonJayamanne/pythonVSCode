@@ -221,22 +221,22 @@ suite('Linting', () => {
     test('PyLint', done => {
         let ch = new MockOutputChannel('Lint');
         let linter = new pyLint.Linter(ch, pythoFilesPath);
-        return testLinterMessages(linter, ch, fileToLint, pylintMessagesToBeReturned).then(done, done);
+        testLinterMessages(linter, ch, fileToLint, pylintMessagesToBeReturned).then(done, done);
     });
     test('Flake8', done => {
         let ch = new MockOutputChannel('Lint');
         let linter = new flake8.Linter(ch, pythoFilesPath);
-        return testLinterMessages(linter, ch, fileToLint, flake8MessagesToBeReturned).then(done, done);
+        testLinterMessages(linter, ch, fileToLint, flake8MessagesToBeReturned).then(done, done);
     });
     test('Pep8', done => {
         let ch = new MockOutputChannel('Lint');
         let linter = new pep8.Linter(ch, pythoFilesPath);
-        return testLinterMessages(linter, ch, fileToLint, pep8MessagesToBeReturned).then(done, done);
+        testLinterMessages(linter, ch, fileToLint, pep8MessagesToBeReturned).then(done, done);
     });
     test('Pydocstyle', done => {
         let ch = new MockOutputChannel('Lint');
         let linter = new pydocstyle.Linter(ch, pythoFilesPath);
-        return testLinterMessages(linter, ch, fileToLint, pydocstyleMessagseToBeReturned).then(done, done);
+        testLinterMessages(linter, ch, fileToLint, pydocstyleMessagseToBeReturned).then(done, done);
     });
     // Version dependenant, will be enabled once we have fixed this
     // TODO: Check version of python running and accordingly change the values
@@ -244,22 +244,22 @@ suite('Linting', () => {
         test('PyLint with config in root', done => {
             let ch = new MockOutputChannel('Lint');
             let linter = new pyLint.Linter(ch, pylintConfigPath);
-            return testLinterMessages(linter, ch, path.join(pylintConfigPath, 'file.py'), filteredPylintMessagesToBeReturned).then(done, done);
+            testLinterMessages(linter, ch, path.join(pylintConfigPath, 'file.py'), filteredPylintMessagesToBeReturned).then(done, done);
         });
     }
     test('Flake8 with config in root', done => {
         let ch = new MockOutputChannel('Lint');
         let linter = new flake8.Linter(ch, flake8ConfigPath);
-        return testLinterMessages(linter, ch, path.join(flake8ConfigPath, 'file.py'), filteredFlake8MessagesToBeReturned).then(done, done);
+        testLinterMessages(linter, ch, path.join(flake8ConfigPath, 'file.py'), filteredFlake8MessagesToBeReturned).then(done, done);
     });
     test('Pep8 with config in root', done => {
         let ch = new MockOutputChannel('Lint');
         let linter = new pep8.Linter(ch, pep8ConfigPath);
-        return testLinterMessages(linter, ch, path.join(pep8ConfigPath, 'file.py'), filteredPep88MessagesToBeReturned).then(done, done);
+        testLinterMessages(linter, ch, path.join(pep8ConfigPath, 'file.py'), filteredPep88MessagesToBeReturned).then(done, done);
     });
     test('Pydocstyle with config in root', done => {
         let ch = new MockOutputChannel('Lint');
         let linter = new pydocstyle.Linter(ch, pydocstyleConfigPath);
-        return testLinterMessages(linter, ch, path.join(pydocstyleConfigPath, 'file.py'), fiteredPydocstyleMessagseToBeReturned).then(done, done);
+        testLinterMessages(linter, ch, path.join(pydocstyleConfigPath, 'file.py'), fiteredPydocstyleMessagseToBeReturned).then(done, done);
     });
 });

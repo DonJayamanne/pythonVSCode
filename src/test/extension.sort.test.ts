@@ -49,7 +49,7 @@ suite('Sorting', () => {
     test('Without Config', done => {
         let textEditor: vscode.TextEditor;
         let textDocument: vscode.TextDocument;
-        return vscode.workspace.openTextDocument(fileToFormatWithoutConfig).then(document => {
+        vscode.workspace.openTextDocument(fileToFormatWithoutConfig).then(document => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
@@ -69,7 +69,7 @@ suite('Sorting', () => {
         let textEditor: vscode.TextEditor;
         let textDocument: vscode.TextDocument;
         let originalContent = '';
-        return vscode.workspace.openTextDocument(fileToFormatWithoutConfig).then(document => {
+        vscode.workspace.openTextDocument(fileToFormatWithoutConfig).then(document => {
             textDocument = document;
             originalContent = textDocument.getText();
             return vscode.window.showTextDocument(textDocument);
@@ -85,7 +85,7 @@ suite('Sorting', () => {
     test('With Config', done => {
         let textEditor: vscode.TextEditor;
         let textDocument: vscode.TextDocument;
-        return vscode.workspace.openTextDocument(fileToFormatWithConfig).then(document => {
+        vscode.workspace.openTextDocument(fileToFormatWithConfig).then(document => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
@@ -103,7 +103,7 @@ suite('Sorting', () => {
         let textEditor: vscode.TextEditor;
         let textDocument: vscode.TextDocument;
         let originalContent = '';
-        return vscode.workspace.openTextDocument(fileToFormatWithConfig).then(document => {
+        vscode.workspace.openTextDocument(fileToFormatWithConfig).then(document => {
             textDocument = document;
             originalContent = document.getText();
             return vscode.window.showTextDocument(textDocument);
@@ -122,7 +122,7 @@ suite('Sorting', () => {
             let textEditor: vscode.TextEditor;
             let textDocument: vscode.TextDocument;
             pythonSettings.sortImports.args = ['-sp', path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'sorting', 'withconfig')];
-            return vscode.workspace.openTextDocument(fileToFormatWithConfig).then(document => {
+            vscode.workspace.openTextDocument(fileToFormatWithConfig).then(document => {
                 textDocument = document;
                 return vscode.window.showTextDocument(textDocument);
             }).then(editor => {
@@ -148,7 +148,7 @@ suite('Sorting', () => {
         let textDocument: vscode.TextDocument;
         let originalContent = '';
         pythonSettings.sortImports.args = ['-sp', path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'sorting', 'withconfig')];
-        return vscode.workspace.openTextDocument(fileToFormatWithConfig).then(document => {
+        vscode.workspace.openTextDocument(fileToFormatWithConfig).then(document => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
