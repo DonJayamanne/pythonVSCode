@@ -140,7 +140,7 @@ export function execPythonFile(file: string, args: string[], cwd: string, includ
 
 function handleResponse(file: string, includeErrorAsResponse: boolean, error: Error, stdout: string, stderr: string, token?: CancellationToken): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-        if (token.isCancellationRequested) {
+        if (token && token.isCancellationRequested) {
             return;
         }
         if (isNotInstalledError(error)) {
