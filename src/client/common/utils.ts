@@ -55,32 +55,34 @@ export function getPythonInterpreterDirectory(): Promise<string> {
         return Promise.resolve(pythonInterpretterDirectory);
     }
 
+    let pythonFileName = settings.PythonSettings.getInstance().pythonPath;
+
+    // Check if we have the path
+    if (path.basename(pythonFileName) === pythonFileName) {
+        // No path provided, however we can get it by using sys.executableFile
+        return getPathFromPythonCommand(["-c", "import sys;print(sys.executable)"])
+            .then(pythonExecutablePath => pythonInterpretterDirectory = path.dirname(pythonExecutablePath))
+            .catch(() => pythonInterpretterDirectory = '');
+    }
+
     return new Promise<string>(resolve => {
-        let pythonFileName = settings.PythonSettings.getInstance().pythonPath;
-
-        // Check if we have the path
-        if (path.basename(pythonFileName) === pythonFileName) {
-            // No path provided
-            return resolve('');
-        }
-
         // If we can execute the python, then get the path from the fully qualified name
         child_process.execFile(pythonFileName, ['-c', 'print(1234)'], (error, stdout, stderr) => {
             // Yes this is a valid python path
             if (stdout.startsWith('1234')) {
-                return resolve(path.dirname(pythonFileName));
+                previouslyIdentifiedPythonPath = path.dirname(pythonFileName);
+            }
+            else {
+                previouslyIdentifiedPythonPath = '';
             }
             // No idea, didn't work, hence don't reject, but return empty path
-            resolve('');
+            resolve(previouslyIdentifiedPythonPath);
         });
-    }).then(value => {
-        // Cache and return
-        previouslyIdentifiedPythonPath = settings.PythonSettings.getInstance().pythonPath;
-        return pythonInterpretterDirectory = value;
-    }).catch(() => {
-        // Don't care what the error is, all we know is that this doesn't work
-        return pythonInterpretterDirectory = '';
     });
+}
+export function getFullyQualifiedPythonInterpreterPath(): Promise<string> {
+    return getPythonInterpreterDirectory()
+        .then(pyPath => path.join(pyPath, path.basename(settings.PythonSettings.getInstance().pythonPath)));
 }
 export function getPathFromPythonCommand(args: string[]): Promise<string> {
     return execPythonFile(settings.PythonSettings.getInstance().pythonPath, args, __dirname).then(stdout => {

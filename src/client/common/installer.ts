@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as settings from './configSettings';
 import { createDeferred, isNotInstalledError } from './helpers';
-import { execPythonFile } from './utils';
+import { execPythonFile, getFullyQualifiedPythonInterpreterPath } from './utils';
 import * as os from 'os';
 import { Documentation } from './constants';
 
@@ -151,29 +151,33 @@ export class Installer {
                 installArgs.splice(2, 0, '--proxy');
             }
         }
-        const pythonPath = settings.PythonSettings.getInstance().pythonPath;
-
         if (this.outputChannel && installArgs[0] === '-m') {
             // Errors are just displayed to the user
             this.outputChannel.show();
-            return execPythonFile(pythonPath, installArgs, vscode.workspace.rootPath, true, (data) => {
+            return execPythonFile(settings.PythonSettings.getInstance().pythonPath, installArgs, vscode.workspace.rootPath, true, (data) => {
                 this.outputChannel.append(data);
             });
         }
         else {
-            let installScript = installArgs.join(' ');
-            if (installArgs[0] === '-m') {
-                if (pythonPath.indexOf(' ') >= 0) {
-                    installScript = `"${pythonPath}" ${installScript}`;
-                }
-                else {
-                    installScript = `${pythonPath} ${installScript}`;
-                }
-            }
-            Installer.terminal.sendText(installScript);
-            Installer.terminal.show(false);
-            // Unfortunately we won't know when the command has completed
-            return Promise.resolve();
+            // When using terminal get the fully qualitified path
+            // Cuz people may launch vs code from terminal when they have activated the appropriate virtual env
+            // Problem is terminal doesn't use the currently activated virtual env
+            // Must have something to do with the process being launched in the terminal
+            return getFullyQualifiedPythonInterpreterPath()
+                .then(pythonPath => {
+                    let installScript = installArgs.join(' ');
+
+                    if (installArgs[0] === '-m') {
+                        if (pythonPath.indexOf(' ') >= 0) {
+                            installScript = `"${pythonPath}" ${installScript}`;
+                        }
+                        else {
+                            installScript = `${pythonPath} ${installScript}`;
+                        }
+                    }
+                    Installer.terminal.sendText(installScript);
+                    Installer.terminal.show(false);
+                });
         }
     }
 
