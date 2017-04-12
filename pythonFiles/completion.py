@@ -612,5 +612,5 @@ if __name__ == '__main__':
     # remove jedi from path after we import it so it will not be completed
     sys.path.pop(0)
     if len(modulesToLoad) > 0:
-        jedi.preload_module(modulesToLoad.split(','))
+        jedi.preload_module(*modulesToLoad.split(','))
     JediCompletion().watch()
