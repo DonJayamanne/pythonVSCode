@@ -1,6 +1,6 @@
 import { QuickPickItem, window } from 'vscode';
 import * as vscode from 'vscode';
-import { Tests, TestFunction, FlattenedTestFunction, TestStatus } from '../common/contracts';
+import { Tests, TestFile, TestFunction, FlattenedTestFunction, TestStatus } from '../common/contracts';
 import { getDiscoveredTests } from '../common/testUtils';
 import * as constants from '../../common/constants';
 import * as path from 'path';
@@ -25,6 +25,17 @@ export class TestDisplay {
                 .then(item => {
                     if (item && item.fn) {
                         return resolve(item.fn);
+                    }
+                    return reject();
+                }, reject);
+        });
+    }
+    public selectTestFile(rootDirectory: string, tests: Tests): Promise<TestFile> {
+        return new Promise<TestFile>((resolve, reject) => {
+            window.showQuickPick(buildItemsForTestFiles(rootDirectory, tests.testFiles), { matchOnDescription: true, matchOnDetail: true })
+                .then(item => {
+                    if (item && item.testFile) {
+                        return resolve(item.testFile);
                     }
                     return reject();
                 }, reject);
@@ -72,6 +83,10 @@ statusIconMapping.set(TestStatus.Skipped, constants.Octicons.Test_Skip);
 interface TestItem extends QuickPickItem {
     type: Type;
     fn?: FlattenedTestFunction;
+}
+interface TestFileItem extends QuickPickItem {
+    type: Type;
+    testFile?: TestFile;
 }
 function getSummary(tests?: Tests) {
     if (!tests || !tests.summary) {
@@ -149,6 +164,27 @@ function buildItemsForFunctions(rootDirectory: string, tests: FlattenedTestFunct
         return 0;
     });
     return functionItems;
+}
+function buildItemsForTestFiles(rootDirectory: string, testFiles: TestFile[]): TestFileItem[] {
+    let fileItems: TestFileItem[] = testFiles.map(testFile => {
+        return {
+            description: '',
+            detail: path.relative(rootDirectory, testFile.fullPath),
+            type: Type.RunFile,
+            label: path.basename(testFile.fullPath),
+            testFile: testFile
+        }
+    })
+    fileItems.sort((a, b) => {
+        if (a.detail < b.detail) {
+            return -1;
+        }
+        if (a.detail > b.detail) {
+            return 1;
+        }
+        return 0;
+    })
+    return fileItems;
 }
 function onItemSelected(selection: TestItem, debug?: boolean) {
     if (!selection || typeof selection.type !== 'number') {

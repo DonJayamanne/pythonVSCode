@@ -55,6 +55,8 @@
 		"onCommand:python.viewTestOutput",
 		"onCommand:python.selectAndRunTestMethod",
 		"onCommand:python.selectAndDebugTestMethod",
+		"onCommand:python.selectAndRunTestFile",
+		"onCommand:python.runCurrentTestFile",
 		"onCommand:python.runFailedTests",
 		"onCommand:python.execSelectionInTerminal",
 		"onCommand:python.execSelectionInDjangoShell",
@@ -159,6 +161,16 @@
 			{
 				"command": "python.selectAndDebugTestMethod",
 				"title": "Debug Unit Test Method ...",
+				"category": "Python"
+			},
+			{
+				"command": "python.selectAndRunTestFile",
+				"title": "Run Unit Test File ...",
+				"category": "Python"
+			},
+			{
+				"command": "python.runCurrentTestFile",
+				"title": "Run Current Unit Test File",
 				"category": "Python"
 			},
 			{
