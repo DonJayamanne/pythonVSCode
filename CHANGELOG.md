@@ -1,3 +1,19 @@
+### Version 0.6.1 (10 March 2017)
+* Add support for new variable syntax in upcoming VS Code release [#774](https://github.com/DonJayamanne/pythonVSCode/issues/774), [#855](https://github.com/DonJayamanne/pythonVSCode/issues/855), [#873](https://github.com/DonJayamanne/pythonVSCode/issues/873), [#823](https://github.com/DonJayamanne/pythonVSCode/issues/823)  
+* Resolve issues in code refactoring [#802](https://github.com/DonJayamanne/pythonVSCode/issues/802), [#824](https://github.com/DonJayamanne/pythonVSCode/issues/824), [#825](https://github.com/DonJayamanne/pythonVSCode/pull/825)  
+* Changes to labels in Python Interpreter lookup [#815](https://github.com/DonJayamanne/pythonVSCode/pull/815)  
+* Resolve Typos [#852](https://github.com/DonJayamanne/pythonVSCode/issues/852)  
+* Use fully qualitified Python Path when installing dependencies [#866](https://github.com/DonJayamanne/pythonVSCode/issues/866)  
+* Commands for running tests from a file [#502](https://github.com/DonJayamanne/pythonVSCode/pull/502)  
+* Fix Sorting of imports when path contains spaces [#811](https://github.com/DonJayamanne/pythonVSCode/issues/811) 
+* Fixing occasional failure of linters [#793](https://github.com/DonJayamanne/pythonVSCode/issues/793), [#833](https://github.com/DonJayamanne/pythonVSCode/issues/838), [#860](https://github.com/DonJayamanne/pythonVSCode/issues/860)  
+* Added ability to pre-load some modules to improve autocompletion [#581](https://github.com/DonJayamanne/pythonVSCode/issues/581)   
+
+#### Thanks 
+* [Ashwin Mathews](https://github.com/ajmathews)  
+* [Alexander Ioannidis](https://github.com/slint)  
+* [Andreas Schlapsi](https://github.com/aschlapsi)  
+  
 ### Version 0.6.0 (10 March 2017)
 * Moved Jupyter functionality into a separate extension [Jupyter]()
 * Updated readme [#779](https://github.com/DonJayamanne/pythonVSCode/issues/779)
@@ -375,3 +391,4 @@
 
 ## Version 0.0.3
 * Added support for debugging using PDB
+
