@@ -20,6 +20,8 @@ export namespace Commands {
     export const Tests_ViewOutput = 'python.viewTestOutput';
     export const Tests_Select_And_Run_Method = 'python.selectAndRunTestMethod';
     export const Tests_Select_And_Debug_Method = 'python.selectAndDebugTestMethod';
+    export const Tests_Select_And_Run_File = 'python.selectAndRunTestFile';
+    export const Tests_Run_Current_File = 'python.runCurrentTestFile';
     export const Refactor_Extract_Variable = 'python.refactorExtractVariable';
     export const Refaactor_Extract_Method = 'python.refactorExtractMethod';
     export const Update_SparkLibrary = 'python.updateSparkLibrary';

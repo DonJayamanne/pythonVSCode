@@ -70,6 +70,8 @@ function registerCommands(): vscode.Disposable[] {
     disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Ask_To_Stop_Test, () => displayStopUI('Stop running tests')));
     disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Select_And_Run_Method, () => selectAndRunTestMethod()));
     disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Select_And_Debug_Method, () => selectAndRunTestMethod(true)));
+    disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Select_And_Run_File, () => selectAndRunTestFile()));
+    disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Run_Current_File, () => runCurrentTestFile()));
 
     return disposables;
 }
@@ -103,6 +105,39 @@ function selectAndRunTestMethod(debug?: boolean) {
         testDisplay.selectTestFunction(vscode.workspace.rootPath, tests).then(testFn => {
             runTestsImpl(testFn, debug);
         }).catch(() => { });
+    });
+}
+function selectAndRunTestFile() {
+    let testManager = getTestRunner();
+    if (!testManager) {
+        return displayTestFrameworkError(outChannel);
+    }
+    testManager.discoverTests(true, true).then(() => {
+        const tests = getDiscoveredTests();
+        testDisplay = testDisplay ? testDisplay : new TestDisplay();
+        testDisplay.selectTestFile(vscode.workspace.rootPath, tests).then(testFile => {
+            runTestsImpl({testFile: [testFile]});
+        }).catch(() => { });
+    });
+}
+function runCurrentTestFile() {
+    if (!vscode.window.activeTextEditor) {
+        return;
+    }
+    const currentFilePath = vscode.window.activeTextEditor.document.fileName;
+    let testManager = getTestRunner();
+    if (!testManager) {
+        return displayTestFrameworkError(outChannel);
+    }
+    testManager.discoverTests(true, true).then(() => {
+        const tests = getDiscoveredTests();
+        const testFiles = tests.testFiles.filter(testFile => {
+            return testFile.fullPath == currentFilePath;
+        });
+        if (testFiles.length < 1) {
+            return;
+        }
+        runTestsImpl({testFile: [testFiles[0]]});
     });
 }
 function displayStopUI(message: string) {
