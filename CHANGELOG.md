@@ -1,3 +1,9 @@
+### Version 0.6.2 (13 March 2017)
+* Fix incorrect indenting [#880](https://github.com/DonJayamanne/pythonVSCode/issues/880)
+
+#### Thanks  
+* [Yuwei Ba](https://github.com/ibigbug)  
+  
 ### Version 0.6.1 (10 March 2017)
 * Add support for new variable syntax in upcoming VS Code release [#774](https://github.com/DonJayamanne/pythonVSCode/issues/774), [#855](https://github.com/DonJayamanne/pythonVSCode/issues/855), [#873](https://github.com/DonJayamanne/pythonVSCode/issues/873), [#823](https://github.com/DonJayamanne/pythonVSCode/issues/823)  
 * Resolve issues in code refactoring [#802](https://github.com/DonJayamanne/pythonVSCode/issues/802), [#824](https://github.com/DonJayamanne/pythonVSCode/issues/824), [#825](https://github.com/DonJayamanne/pythonVSCode/pull/825)  
