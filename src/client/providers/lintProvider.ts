@@ -112,7 +112,7 @@ export class LintProvider extends vscode.Disposable {
             }
 
             // Check if this document is still open as a duplicate editor
-            if (this.isDocumentOpen(textDocument.uri) && this.diagnosticCollection.has(textDocument.uri)) {
+            if (!this.isDocumentOpen(textDocument.uri) && this.diagnosticCollection.has(textDocument.uri)) {
                 this.diagnosticCollection.set(textDocument.uri, []);
             }
         });
