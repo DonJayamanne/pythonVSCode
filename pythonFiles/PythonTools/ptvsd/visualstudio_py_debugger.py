@@ -2128,7 +2128,7 @@ def report_exception(frame, exc_info, tid, break_type):
             'message': data['message'],
         }
 
-     with _SendLockCtx:
+    with _SendLockCtx:
         if RICH_EXCEPTIONS:
             write_bytes(conn, EXC2)
             write_int(conn, tid)
