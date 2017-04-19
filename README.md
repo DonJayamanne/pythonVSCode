@@ -105,6 +105,7 @@ For further information and details continue through to the [documentation](http
 
 ### Version 0.6.2 (13 March 2017)
 * Fix incorrect indenting [#880](https://github.com/DonJayamanne/pythonVSCode/issues/880)
+* Improvements to debugging unit tests (check if string starts with, instead of comparing equality) [#797](https://github.com/DonJayamanne/pythonVSCode/issues/797)  
 
 #### Thanks  
 * [Yuwei Ba](https://github.com/ibigbug)  
