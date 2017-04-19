@@ -496,10 +496,10 @@ class ExceptionBreakInfo(object):
             return False
 
         if trace.tb_next is not None:
-          if should_send_frame(trace.tb_next.tb_frame) and should_debug_code(trace.tb_next.tb_frame.f_code):
-            # don't break if this is not the top of the traceback,
-            # unless the previous frame was not debuggable
-            return True
+            if should_send_frame(trace.tb_next.tb_frame) and should_debug_code(trace.tb_next.tb_frame.f_code):
+                # don't break if this is not the top of the traceback,
+                # unless the previous frame was not debuggable
+                return True
             
         cur_frame = trace.tb_frame
         
@@ -1686,7 +1686,7 @@ class DebuggerLoop(object):
 
     instance = None
 
-    def __init__(self, connrich_exceptions=False):
+    def __init__(self, conn, rich_exceptions=False):
         DebuggerLoop.instance = self
         self.conn = conn
         self.repl_backend = None
