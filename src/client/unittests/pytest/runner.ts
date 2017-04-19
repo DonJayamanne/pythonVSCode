@@ -52,17 +52,17 @@ export function runTest(rootDirectory: string, tests: Tests, args: string[], tes
             const pytestlauncherargs = [rootDirectory, 'my_secret', pythonSettings.unitTest.debugPort.toString(), 'pytest'];
             let outputChannelShown = false;
             execPythonFile(pythonSettings.pythonPath, [testLauncherFile].concat(pytestlauncherargs).concat(testArgs), rootDirectory, true, (data: string) => {
-                if (data === 'READY' + os.EOL) {
+                if (data.startsWith('READY' + os.EOL)) {
                     // debug socket server has started
                     launchDef.resolve();
+                    data = data.substring(('READY' + os.EOL).length);
                 }
-                else {
-                    if (!outputChannelShown){
-                        outputChannelShown = true;
-                        outChannel.show();
-                    }
-                    outChannel.append(data);
+
+                if (!outputChannelShown) {
+                    outputChannelShown = true;
+                    outChannel.show();
                 }
+                outChannel.append(data);
             }, token).catch(reason => {
                 if (!def.rejected && !def.resolved) {
                     def.reject(reason);

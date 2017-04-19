@@ -102,17 +102,17 @@ export function runTest(testManager: BaseTestManager, rootDirectory: string, tes
 
                 // start the debug adapter only once we have started the debug process
                 execPythonFile(settings.pythonPath, [testLauncherFile].concat(testArgs), rootDirectory, true, (data: string) => {
-                    if (data === 'READY' + os.EOL) {
+                    if (data.startsWith('READY' + os.EOL)) {
                         // debug socket server has started
                         launchDef.resolve();
+                        data = data.substring(('READY' + os.EOL).length);
                     }
-                    else {
-                        if (!outputChannelShown) {
-                            outputChannelShown = true;
-                            outChannel.show();
-                        }
-                        outChannel.append(data);
+
+                    if (!outputChannelShown) {
+                        outputChannelShown = true;
+                        outChannel.show();
                     }
+                    outChannel.append(data);
                 }, token).catch(reason => {
                     if (!def.rejected && !def.resolved) {
                         def.reject(reason);
@@ -127,22 +127,24 @@ export function runTest(testManager: BaseTestManager, rootDirectory: string, tes
                     }
                 });
 
-                launchDef.promise.then(() => {
-                    return vscode.commands.executeCommand('vscode.startDebug', {
-                        "name": "Debug Unit Test",
-                        "type": "python",
-                        "request": "attach",
-                        "localRoot": rootDirectory,
-                        "remoteRoot": rootDirectory,
-                        "port": settings.unitTest.debugPort,
-                        "secret": "my_secret",
-                        "host": "localhost"
+                launchDef.promise
+                    .then(() => {
+                        return vscode.commands.executeCommand('vscode.startDebug', {
+                            "name": "Debug Unit Test",
+                            "type": "python",
+                            "request": "attach",
+                            "localRoot": rootDirectory,
+                            "remoteRoot": rootDirectory,
+                            "port": settings.unitTest.debugPort,
+                            "secret": "my_secret",
+                            "host": "localhost"
+                        });
+                    })
+                    .catch(reason => {
+                        if (!def.rejected && !def.resolved) {
+                            def.reject(reason);
+                        }
                     });
-                }).catch(reason => {
-                    if (!def.rejected && !def.resolved) {
-                        def.reject(reason);
-                    }
-                });
 
                 return def.promise;
             }

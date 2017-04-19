@@ -74,17 +74,17 @@ export function runTest(rootDirectory: string, tests: Tests, args: string[], tes
             const nosetestlauncherargs = [rootDirectory, 'my_secret', pythonSettings.unitTest.debugPort.toString(), 'nose'];
             let outputChannelShown = false;
             execPythonFile(pythonSettings.pythonPath, [testLauncherFile].concat(nosetestlauncherargs).concat(noseTestArgs.concat(testPaths)), rootDirectory, true, (data: string) => {
-                if (data === 'READY' + os.EOL) {
+                if (data.startsWith('READY' + os.EOL)) {
                     // debug socket server has started
                     launchDef.resolve();
+                    data = data.substring(('READY' + os.EOL).length);
                 }
-                else {
-                    if (!outputChannelShown) {
-                        outputChannelShown = true;
-                        outChannel.show();
-                    }
-                    outChannel.append(data);
+
+                if (!outputChannelShown) {
+                    outputChannelShown = true;
+                    outChannel.show();
                 }
+                outChannel.append(data);
             }, token).catch(reason => {
                 if (!def.rejected && !def.resolved) {
                     def.reject(reason);
