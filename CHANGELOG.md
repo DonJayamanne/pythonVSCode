@@ -1,3 +1,6 @@
+### Version 0.6.3 (19 March 2017)
+* Fix debugger issue [#893](https://github.com/DonJayamanne/pythonVSCode/issues/893)
+
 ### Version 0.6.2 (13 March 2017)
 * Fix incorrect indenting [#880](https://github.com/DonJayamanne/pythonVSCode/issues/880)
 
