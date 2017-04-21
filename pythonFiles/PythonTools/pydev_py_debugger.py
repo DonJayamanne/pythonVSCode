@@ -9,7 +9,7 @@ import sys
 import time
 import os
 
-from pydev_py_comm import VSCodeWriterThread, VSCodeReaderThread
+from pydev_py_comm import VSCodeWriter, VSCodeReader, PydevWriter
 from debugger_unittest import DebuggerRunner
 from copy import copy
 
@@ -79,16 +79,14 @@ class Debugger(DebuggerRunner):
                 self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.conn.connect(('127.0.0.1', self.port_num))
 
-                self.writer = VSCodeWriterThread(self.conn)
+                self.reader = VSCodeReader(self.conn)
+                self.writer = VSCodeWriter(self.conn)
 
-                # TODO: This reader instance isn't actually reused in the writer
-                self.reader = VSCodeReaderThread(self.conn)
-
-                self.reader.write_string(self.debug_id)
-                self.reader.write_int(0)  # success
+                self.writer.write_string(self.debug_id)
+                self.writer.write_int(0)  # success
                 ## Begin modification by Don Jayamanne
                 # Pass current Process id to pass back to debugger
-                self.reader.write_int(self.current_pid)  # success
+                self.writer.write_int(self.current_pid)  # success
                 ## End Modification by Don Jayamanne            
                 logging.debug('attached')
                 break
@@ -99,22 +97,23 @@ class Debugger(DebuggerRunner):
             raise Exception('failed to attach')
 
         try:
-            self.writer.start()
+            writer = PydevWriter(self.writer, self.reader)
+            writer.start()
             for _i in range(40000):
-                if hasattr(self.writer, 'port'):
+                if hasattr(writer, 'port'):
                     break
                 time.sleep(.01)
 
             args = self.get_command_line()
             args = self.add_command_line_args(args)
-            ret = self.run_process(args, writer_thread)
+            ret = self.run_process(args, writer)
         finally:
-            self.writer.do_kill()
-            self.writer.log = []
+            writer.do_kill()
+            writer.log = []
 
         stdout = ret['stdout']
         stderr = ret['stderr']
-        self.writer.additional_output_checks(''.join(stdout), ''.join(stderr))
+        writer.additional_output_checks(''.join(stdout), ''.join(stderr))
         return ret
 
 
