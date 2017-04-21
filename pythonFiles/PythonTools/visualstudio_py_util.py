@@ -43,6 +43,8 @@ try:
 except:
     xrange = range
 
+    
+log_file = open(os.path.join(os.path.dirname(__file__), 'visualstudio_debugger.log'), 'w')
 
 if sys.version_info[0] >= 3:
     def to_bytes(cmd_str):
@@ -87,10 +89,7 @@ def exec_code(code, file, global_variables):
             except AttributeError:
                 pass
 
-    if os.path.isdir(sys.path[0]):
-        sys.path.insert(0, os.path.split(file)[0])
-    else:
-        sys.path[0] = os.path.split(file)[0]
+    sys.path[0] = os.path.split(file)[0]
     code_obj = compile(code, file, 'exec')
     exec(code_obj, global_variables)
 
@@ -131,31 +130,52 @@ ASCII_PREFIX = to_bytes('A')
 NONE_PREFIX = to_bytes('N')
 
 
-def read_bytes(conn, count):
+def read_bytes(conn, count, log=True):
+    global log_file
+    
     b = to_bytes('')
     while len(b) < count:
-        received_data = conn.recv(count - len(b))
-        if received_data is None:
-            break
-        b += received_data
+        b += conn.recv(count - len(b))
+    
+    if log:
+        log_file.write('read_bytes: {}\n'.format(b))
     return b
 
 
-def write_bytes(conn, b):
+def write_bytes(conn, b, log=True):
+    global log_file
+
+    if log:
+        log_file.write('write_bytes: {}\n'.format(b))
     conn.sendall(b)
 
 
-def read_int(conn):
-    return struct.unpack('!q', read_bytes(conn, 8))[0]
+def read_int(conn, log=True):
+    global log_file
 
 
-def write_int(conn, i):
-    write_bytes(conn, struct.pack('!q', i))
+    i = struct.unpack('!q', read_bytes(conn, 8, log=False))[0]
+
+    if log:
+        log_file.write('read_int: {}\n'.format(i))
+        
+    return i
 
 
-def read_string(conn):
+def write_int(conn, i, log=True):
+    global log_file
+
+    write_bytes(conn, struct.pack('!q', i), log=False)
+    
+    if log:
+        log_file.write('write_int: {}\n'.format(i))
+
+
+def read_string(conn, log=True):
     """ reads length of text to read, and then the text encoded in UTF-8, and returns the string"""
-    strlen = read_int(conn)
+    global log_file
+    
+    strlen = read_int(conn, log=False)
     if not strlen:
         return ''
     res = to_bytes('')
@@ -170,25 +190,35 @@ def read_string(conn):
         except UnicodeEncodeError:
             pass
 
+    
+    if log:
+        log_file.write('read_string: {}\n'.format(res))
+            
     return res
 
 
-def write_string(conn, s):
+def write_string(conn, s, log=True):
+    global log_file
+
     if s is None:
-        write_bytes(conn, NONE_PREFIX)
+        write_bytes(conn, NONE_PREFIX, log=False)
     elif isinstance(s, unicode):
         b = utf_8.encode(s)[0]
         b_len = len(b)
-        write_bytes(conn, UNICODE_PREFIX)
-        write_int(conn, b_len)
+        write_bytes(conn, UNICODE_PREFIX, log=False)
+        write_int(conn, b_len, log=False)
         if b_len > 0:
-            write_bytes(conn, b)
+            write_bytes(conn, b, log=False)
     else:
         s_len = len(s)
-        write_bytes(conn, ASCII_PREFIX)
-        write_int(conn, s_len)
+        write_bytes(conn, ASCII_PREFIX, log=False)
+        write_int(conn, s_len, log=False)
         if s_len > 0:
-            write_bytes(conn, s)
+            write_bytes(conn, s, log=False)
+            
+   
+    if log:
+        log_file.write('write_string: {}\n'.format(s))
 
 class SafeRepr(object):
     # String types are truncated to maxstring_outer when at the outer-
