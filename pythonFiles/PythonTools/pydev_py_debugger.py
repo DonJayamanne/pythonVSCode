@@ -80,6 +80,8 @@ class Debugger(DebuggerRunner):
                 self.conn.connect(('127.0.0.1', self.port_num))
 
                 self.writer = VSCodeWriterThread(self.conn)
+
+                # TODO: This reader instance isn't actually reused in the writer
                 self.reader = VSCodeReaderThread(self.conn)
 
                 self.reader.write_string(self.debug_id)

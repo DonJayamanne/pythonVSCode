@@ -22,15 +22,15 @@ ASCII_PREFIX = to_bytes('A')
 NONE_PREFIX = to_bytes('N')
 
 
-class SocketContainer(object):
-    def __init__(self, vs_sock):
-        super().__init__()
-        self.vs_sock = vs_sock
-
-
 # TODO: Unify these clases
-class VSCodeReaderThread(SocketContainer):
+class VSCodeReaderThread(ReaderThread):
     """"reads information from the pydev debugger and writes it to vscode"""
+
+    def __init__(self, vs_sock, sock=None):
+        if sock:
+            super().__init__(sock)
+
+        self.vs_sock = vs_sock
 
     def write_bytes(self, b, log=True):
 
@@ -69,8 +69,12 @@ class VSCodeReaderThread(SocketContainer):
             logging.debug('write_string: {}'.format(s))
 
 
-class VSCodeWriterThread(SocketContainer, AbstractWriterThread):
+class VSCodeWriterThread(AbstractWriterThread):
     """reads commands from VSCode and writes them to the pydev debugger"""
+
+    def __init__(self, vs_sock):
+        super().__init__()
+        self.vs_sock = vs_sock
 
     def run(self):
         self.start_socket()
@@ -133,3 +137,33 @@ class VSCodeWriterThread(SocketContainer, AbstractWriterThread):
             logging.debug('read_string: {}'.format(res))
 
         return res
+
+    def start_socket(self, port=None):
+        from _pydev_bundle.pydev_localhost import get_socket_name
+        if SHOW_WRITES_AND_READS:
+            print('start_socket')
+
+        if port is None:
+            socket_name = get_socket_name(close=True)
+        else:
+            socket_name = (pydev_localhost.get_localhost(), port)
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.bind(socket_name)
+        self.port = socket_name[1]
+        s.listen(1)
+        if SHOW_WRITES_AND_READS:
+            print('Waiting in socket.accept()')
+        self.server_socket = s
+        newSock, addr = s.accept()
+        if SHOW_WRITES_AND_READS:
+            print('Test Writer Thread Socket:', newSock, addr)
+
+        reader_thread = self.reader_thread = VSCodeReaderThread(
+            self.vs_sock, newSock)
+        reader_thread.start()
+        self.sock = newSock
+
+        self._sequence = -1
+        # initial command is always the version
+        self.write_version()
+        self.log.append('start_socket')
