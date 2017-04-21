@@ -23,20 +23,20 @@ NONE_PREFIX = to_bytes('N')
 
 
 class SocketContainer(object):
-    def __init__(self, sock):
+    def __init__(self, vs_sock):
         super().__init__()
-        self.sock = sock
+        self.vs_sock = vs_sock
 
 
 # TODO: Unify these clases
-class VSCodeWriterThread(ReaderThread):
+class VSCodeReaderThread(SocketContainer):
     """"reads information from the pydev debugger and writes it to vscode"""
 
     def write_bytes(self, b, log=True):
 
         if log:
             logging.debug('write_bytes: {}'.format(b))
-        self.sock.sendall(b)
+        self.vs_sock.sendall(b)
 
     def write_int(self, i, log=True):
 
@@ -69,7 +69,7 @@ class VSCodeWriterThread(ReaderThread):
             logging.debug('write_string: {}'.format(s))
 
 
-class VSCodeReaderThread(SocketContainer, AbstractWriterThread):
+class VSCodeWriterThread(SocketContainer, AbstractWriterThread):
     """reads commands from VSCode and writes them to the pydev debugger"""
 
     def run(self):
@@ -96,7 +96,7 @@ class VSCodeReaderThread(SocketContainer, AbstractWriterThread):
 
         b = to_bytes('')
         while len(b) < count:
-            b += self.sock.recv(count - len(b))
+            b += self.vs_sock.recv(count - len(b))
 
         if log:
             logging.debug('read_bytes: {}'.format(b))
@@ -119,7 +119,7 @@ class VSCodeReaderThread(SocketContainer, AbstractWriterThread):
             return ''
         res = to_bytes('')
         while len(res) < strlen:
-            res = res + self.sock.recv(strlen - len(res))
+            res = res + self.vs_sock.recv(strlen - len(res))
 
         res = utf_8.decode(res)[0]
         if sys.version_info[0] == 2 and sys.platform != 'cli':

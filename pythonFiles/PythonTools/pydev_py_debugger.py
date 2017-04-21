@@ -82,11 +82,11 @@ class Debugger(DebuggerRunner):
                 self.writer = VSCodeWriterThread(self.conn)
                 self.reader = VSCodeReaderThread(self.conn)
 
-                self.writer.write_string(self.debug_id)
-                self.writer.write_int(0)  # success
+                self.reader.write_string(self.debug_id)
+                self.reader.write_int(0)  # success
                 ## Begin modification by Don Jayamanne
                 # Pass current Process id to pass back to debugger
-                self.writer.write_int(self.current_pid)  # success
+                self.reader.write_int(self.current_pid)  # success
                 ## End Modification by Don Jayamanne            
                 logging.debug('attached')
                 break
