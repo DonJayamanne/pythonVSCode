@@ -43,9 +43,6 @@ class VSCodeWriter(object):
             logging.debug('write_int: {}'.format(i))
 
     def write_string(self, s, log=True):
-
-        logging.debug('prepare to write_string')
-
         if s is None:
             self.write_bytes(NONE_PREFIX, log=False)
         elif isinstance(s, unicode):
@@ -157,18 +154,16 @@ class PydevWriter(AbstractWriterThread):
         else:
             socket_name = (pydev_localhost.get_localhost(), port)
 
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.bind(socket_name)
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.port = socket_name[1]
-        s.listen(1)
-        logging.debug('Waiting in socket.accept()')
-        self.server_socket = s
-        newSock, addr = s.accept()
-        logging.debug('Test Writer Thread Socket:', newSock, addr)
+        logging.debug('pydev port: {}'.format(self.port))
+        self.sock.bind(('127.0.0.1', self.port))
+        self.sock.listen(1)
+        self.sock, addr = self.sock.accept()
 
-        reader_thread = self.reader_thread = PydevReader(newSock, self.writer)
-        reader_thread.start()
-        self.sock = newSock
+        logging.debug('connected from {}'.format(addr))
+        self.reader_thread = PydevReader(self.sock, self.writer)
+        self.reader_thread.start()
 
         self._sequence = -1
         # initial command is always the version

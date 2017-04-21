@@ -70,6 +70,9 @@ class Debugger(DebuggerRunner):
     def parse_debug_options(s):
         return set([opt.strip() for opt in s.split(',')])
 
+    def run_process(self, args, writer_thread):
+        process = self.create_process(args, writer_thread)
+
     ## Modified parameters by Don Jayamanne
     # Accept current Process id to pass back to debugger
     def debug(self):
@@ -104,17 +107,11 @@ class Debugger(DebuggerRunner):
                     break
                 time.sleep(.01)
 
-            args = self.get_command_line()
-            args = self.add_command_line_args(args)
-            ret = self.run_process(args, writer)
+            self.run_process(
+                self.add_command_line_args(self.get_command_line()), writer)
         finally:
             writer.do_kill()
             writer.log = []
-
-        stdout = ret['stdout']
-        stderr = ret['stderr']
-        writer.additional_output_checks(''.join(stdout), ''.join(stderr))
-        return ret
 
 
 if __name__ == '__main__':
