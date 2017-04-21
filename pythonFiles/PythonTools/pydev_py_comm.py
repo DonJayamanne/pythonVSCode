@@ -68,6 +68,64 @@ class VSCodeReaderThread(ReaderThread):
         if log:
             logging.debug('write_string: {}'.format(s))
 
+    def handle_message(self):
+        msg = self.get_next_message()
+        # handle message
+    
+    def write_messages(self):
+        while True:
+            try:
+                self.handle_message()
+            except AssertionError:
+                break
+
+    def get_next_message(self):
+        try:
+            msg = self._queue.get(block=False)
+        except:
+            raise AssertionError(
+                'No message was written in 15 seconds.'
+        else:
+            frame = sys._getframe().f_back
+            frame_info = ' --  File "%s", line %s, in %s\n' % (
+                frame.f_code.co_filename, frame.f_lineno, frame.f_code.co_name)
+            frame_info += ' --  File "%s", line %s, in %s\n' % (
+                frame.f_back.f_code.co_filename, frame.f_back.f_lineno,
+                frame.f_back.f_code.co_name)
+            frame = None
+            sys.stdout.write(
+                'Message returned in get_next_message(): %s --  ctx: %s, returned to:\n%s\n')
+        return msg
+
+    def run(self):
+        try:
+            buf = ''
+            while not self._kill:
+                l = self.sock.recv(1024)
+                if IS_PY3K:
+                    l = l.decode('utf-8')
+                self.all_received.append(l)
+                buf += l
+
+                while '\n' in buf:
+                    # Print each part...
+                    i = buf.index('\n') + 1
+                    last_received = buf[:i]
+                    buf = buf[i:]
+
+                    if SHOW_WRITES_AND_READS:
+                        print('Test Reader Thread Received %s' %
+                              (last_received, ))
+
+                    self._queue.put(last_received)
+                
+                self.write_messages()
+        except:
+            pass  # ok, finished it
+        finally:
+            del self.all_received[:]
+
+
 
 class VSCodeWriterThread(AbstractWriterThread):
     """reads commands from VSCode and writes them to the pydev debugger"""
