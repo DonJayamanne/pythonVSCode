@@ -48,14 +48,17 @@ export function extractSignatureAndDocumentation(definition: proxy.IAutoComplete
     return [signature, lines.join(EOL).trim().replace(/^\s+|\s+$/g, '').trim()];
 }
 
-export function highlightCode(documentation: string): string {
-    let lines = documentation.split(EOL);
-    lines = lines.map(line => {
-        if (line.trim().startsWith('>>> ')) {
-            return '```python\n' + line.substring(4).trim() + '\n```';
-        }
-        return line;
-    });
-
-    return lines.join(EOL).trim().replace(/^\s+|\s+$/g, '').trim();
+export function highlightCode(docstring: string): string {
+    // '.. directive::' -> '**directive**'
+    docstring = docstring.replace(/ {0,4}\.\. (.*)::/g, '**$1**');
+    // Pattern of 'var : description'
+    let paramLinePattern = '[\\w]+ ?:[^:\r\n]+';
+    // Add new line before and after param line
+    docstring = docstring.replace(new RegExp(`(${EOL + paramLinePattern + EOL})    `, 'g'), `$1${EOL}`);
+    docstring = docstring.replace(new RegExp(`(${EOL + paramLinePattern + EOL + EOL})`, 'g'), `${EOL}$1`);
+    // 'var : description' -> '`var` description'
+    docstring = docstring.replace(/\r?\n(\w+) ?: ?([^:\r\n]+\r?\n)/g, `${EOL}\`$1\` $2`);
+    // Code block in Examples section
+    docstring = docstring.replace(/(Examples\r?\n-{8}\r?\n)([\w\W]+)/, `${'$1```python' + EOL}$2${EOL + '```'}`);
+    return docstring;
 }
