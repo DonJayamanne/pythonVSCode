@@ -34,7 +34,7 @@ export class PythonHoverProvider implements vscode.HoverProvider {
                 }
             }
             if (item.docstring) {
-                let lines = item.docstring.split(EOL);
+                let lines = item.docstring.split(/\r?\n/);
                 // If the docstring starts with the signature, then remove those lines from the docstring
                 if (lines.length > 0 && item.signature.indexOf(lines[0]) === 0) {
                     lines.shift();
