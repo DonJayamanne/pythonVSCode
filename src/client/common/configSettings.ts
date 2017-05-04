@@ -5,6 +5,7 @@ import { SystemVariables } from './systemVariables';
 import { EventEmitter } from 'events';
 import * as path from 'path';
 import * as child_process from 'child_process';
+import * as untildify from 'untildify';
 
 export const IS_WINDOWS = /^win/.test(process.platform);
 
@@ -325,6 +326,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
 }
 
 function getAbsolutePath(pathToCheck: string, rootDir: string): string {
+    pathToCheck = untildify(pathToCheck);
     if (IS_TEST_EXECUTION && !pathToCheck) { return rootDir; }
     if (pathToCheck.indexOf(path.sep) === -1) {
         return pathToCheck;
@@ -333,6 +335,8 @@ function getAbsolutePath(pathToCheck: string, rootDir: string): string {
 }
 
 function getPythonExecutable(pythonPath: string): string {
+    pythonPath = untildify(pythonPath);
+
     // If only 'python'
     if (pythonPath === 'python' ||
         pythonPath.indexOf(path.sep) === -1 ||

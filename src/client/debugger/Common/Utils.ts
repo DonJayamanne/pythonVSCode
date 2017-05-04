@@ -5,6 +5,7 @@ import * as path from "path";
 import * as fs from 'fs';
 import * as child_process from 'child_process';
 import { mergeEnvVariables, parseEnvFile } from '../../common/envFileParser';
+import * as untildify from 'untildify';
 
 export const IS_WINDOWS = /^win/.test(process.platform);
 export const PATH_VARIABLE_NAME = IS_WINDOWS ? 'Path' : 'PATH';
@@ -72,6 +73,7 @@ export function FixupEscapedUnicodeChars(value: string): string {
 }
 
 export function getPythonExecutable(pythonPath: string): string {
+    pythonPath = untildify(pythonPath);
     // If only 'python'
     if (pythonPath === 'python' ||
         pythonPath.indexOf(path.sep) === -1 ||
