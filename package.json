@@ -500,6 +500,32 @@
 					}
 				},
 				{
+					"label": "%python.snippet.launch.scrapy.label%",
+					"description": "%python.snippet.launch.scrapy.description%",
+					"body": {
+						"name": "Scrapy",
+						"type": "python",
+						"request": "launch",
+						"stopOnEntry": true,
+						"pythonPath": "$${{config:python.pythonPath}}",
+						"program": "~/.virtualenvs/scrapy/bin/scrapy",
+						"cwd": "$${{workspaceRoot}}",
+						"args": [
+							"crawl",
+							"specs",
+							"-o",
+							"bikes.json"
+						],
+						"console": "integratedTerminal",
+						"env": {},
+						"envFile": "$${{workspaceRoot}}/.env",
+						"debugOptions": [
+							"WaitOnAbnormalExit",
+							"WaitOnNormalExit"
+						]
+					}
+				},
+				{
 					"label": "%python.snippet.launch.attach.label%",
 					"description": "%python.snippet.launch.attach.description%",
 					"body": {
