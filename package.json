@@ -66,7 +66,8 @@
 		"onCommand:python.displayHelp",
 		"onCommand:python.buildWorkspaceSymbols",
 		"onCommand:python.updateSparkLibrary",
-		"onCommand:python.startREPL"
+		"onCommand:python.startREPL",
+		"onCommand:python.goToPythonObject"
 	],
 	"main": "./out/client/extension",
 	"contributes": {
@@ -216,6 +217,11 @@
 			{
 				"command": "python.displayHelp",
 				"title": "Help",
+				"category": "Python"
+			},
+			{
+				"command": "python.goToPythonObject",
+				"title": "Go to Python Object",
 				"category": "Python"
 			}
 		],
