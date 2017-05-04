@@ -579,7 +579,14 @@ class JediCompletion(object):
     def watch(self):
         while True:
             try:
-                self._process_request(self._input.readline())
+                rq = self._input.readline()
+                if len(rq) == 0:
+                    """ Reached EOF - indication our parent process is gone """
+                    sys.stderr.write('Received EOF from the standard input,exiting' + '\n')
+                    sys.stderr.flush()
+                    return
+                self._process_request(rq)
+
             except Exception:
                 sys.stderr.write(traceback.format_exc() + '\n')
                 sys.stderr.flush()
