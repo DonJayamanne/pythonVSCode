@@ -240,6 +240,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
             rebuildOnStart: true,
             tagFilePath: path.join(workspaceRoot, "tags")
         };
+        this.workspaceSymbols.tagFilePath = getAbsolutePath(systemVariables.resolveAny(this.workspaceSymbols.tagFilePath), workspaceRoot);
 
         let unitTestSettings = systemVariables.resolveAny(pythonSettings.get<IUnitTestSettings>('unitTest'));
         if (this.unitTest) {
