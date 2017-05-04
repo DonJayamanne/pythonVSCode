@@ -49,16 +49,45 @@ export function extractSignatureAndDocumentation(definition: proxy.IAutoComplete
 }
 
 export function highlightCode(docstring: string): string {
-    // '.. directive::' -> '**directive**'
-    docstring = docstring.replace(/ {0,4}\.\. (.*)::/g, '**$1**');
+    // Section title -> heading level 2
+    docstring = docstring.replace(/(.+\r?\n)=+\r?\n/g, '## $1' + EOL);
+    // Directives: '.. directive::' -> '**directive**'
+    docstring = docstring.replace(/\.\. (.*)::/g, '**$1**');
+    // Field lists: ':field:' -> '**field**'
+    docstring = docstring.replace(/:(.+?):/g, '**$1** ');
     // Pattern of 'var : description'
-    let paramLinePattern = '[\\w]+ ?:[^:\r\n]+';
-    // Add new line before and after param line
-    docstring = docstring.replace(new RegExp(`(${EOL + paramLinePattern + EOL})    `, 'g'), `$1${EOL}`);
-    docstring = docstring.replace(new RegExp(`(${EOL + paramLinePattern + EOL + EOL})`, 'g'), `${EOL}$1`);
+    let paramLinePattern = '[\\*\\w_]+ ?:[^:\r\n]+';
+    // Add new line after and before param line
+    docstring = docstring.replace(new RegExp(`(${EOL + paramLinePattern})`, 'g'), `$1${EOL}`);
+    docstring = docstring.replace(new RegExp(`(${EOL + paramLinePattern + EOL})`, 'g'), `${EOL}$1`);
     // 'var : description' -> '`var` description'
-    docstring = docstring.replace(/\r?\n(\w+) ?: ?([^:\r\n]+\r?\n)/g, `${EOL}\`$1\` $2`);
-    // Code block in Examples section
-    docstring = docstring.replace(/(Examples\r?\n-{8}\r?\n)([\w\W]+)/, `${'$1```python' + EOL}$2${EOL + '```'}`);
+    docstring = docstring.replace(/\r?\n([\*\w]+) ?: ?([^:\r\n]+\r?\n)/g, `${EOL}\`$1\` $2`);
+    // Doctest blocks: begin with `>>>` and end with blank line
+    docstring = docstring + EOL + EOL; // Add blank line to the end
+    docstring = docstring.replace(/(>>>[\w\W]+?\r?\n)\r?\n/g, `${'```python' + EOL}$1${'```' + EOL + EOL}`);
+    // Literal blocks: begin with `::` (literal blocks are indented or quoted; for simplicity, we end literal blocks with blank line)
+    docstring = docstring.replace(/(\r?\n[^\.]*)::\r?\n\r?\n([\w\W]+?\r?\n)\r?\n/g, `$1${EOL + '```' + EOL}$2${'```' + EOL + EOL}`);
+    // Remove indentation in Field lists and Literal blocks
+    let inCodeBlock = false;
+    let codeIndentation = 0;
+    let lines = docstring.split(/\r?\n/);
+    for (let i = 0; i < lines.length; i++) {
+        let line = lines[i];
+        if (line.startsWith('```')) {
+            inCodeBlock = !inCodeBlock;
+            if (inCodeBlock) {
+                codeIndentation = lines[i + 1].match(/^ */)[0].length;
+            }
+            continue;
+        }
+        if (!inCodeBlock) {
+            lines[i] = line.replace(/^ {4,8}/, '');
+        } else {
+            if (codeIndentation != 0) {
+                lines[i] = line.substring(codeIndentation);
+            }
+        }
+    }
+    docstring = lines.join(EOL);
     return docstring;
 }
