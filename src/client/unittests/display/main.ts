@@ -147,6 +147,9 @@ export class TestResultDisplay {
         this.statusBar.tooltip = 'Run Tests';
         this.statusBar.command = constants.Commands.Tests_View_UI;
         this.statusBar.show();
+        if (this.onDidChange) {
+            this.onDidChange.fire();
+        }
 
         if (!haveTests) {
             vscode.window.showInformationMessage('No tests discovered, please check the configuration settings for the tests.', 'Disable Tests').then(item => {

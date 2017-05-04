@@ -39,7 +39,30 @@ export function activate(context: vscode.ExtensionContext, outputChannel: vscode
 
     settings.addListener('change', onConfigChanged);
     context.subscriptions.push(activateCodeLenses(onDidChange));
+    context.subscriptions.push(vscode.workspace.onDidSaveTextDocument(onDocumentSaved));
 }
+
+let timeoutId: number;
+async function onDocumentSaved(doc: vscode.TextDocument): Promise<void> {
+    let testManager = getTestRunner();
+    if (!testManager) {
+        return;
+    }
+
+    let tests = await testManager.discoverTests(false, true);
+    if (!tests || !Array.isArray(tests.testFiles) || tests.testFiles.length === 0) {
+        return;
+    }
+    if (tests.testFiles.findIndex(f => f.fullPath === doc.uri.fsPath) === -1) {
+        return;
+    }
+
+    if (timeoutId) {
+        clearTimeout(timeoutId);
+    }
+    timeoutId = setTimeout(() => { discoverTests(true); }, 1000);
+}
+
 function dispose() {
     if (pyTestManager) {
         pyTestManager.dispose();
@@ -116,7 +139,7 @@ function selectAndRunTestFile() {
         const tests = getDiscoveredTests();
         testDisplay = testDisplay ? testDisplay : new TestDisplay();
         testDisplay.selectTestFile(vscode.workspace.rootPath, tests).then(testFile => {
-            runTestsImpl({testFile: [testFile]});
+            runTestsImpl({ testFile: [testFile] });
         }).catch(() => { });
     });
 }
@@ -137,7 +160,7 @@ function runCurrentTestFile() {
         if (testFiles.length < 1) {
             return;
         }
-        runTestsImpl({testFile: [testFiles[0]]});
+        runTestsImpl({ testFile: [testFiles[0]] });
     });
 }
 function displayStopUI(message: string) {
