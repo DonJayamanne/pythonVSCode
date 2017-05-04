@@ -111,9 +111,7 @@ function getSummary(tests?: Tests) {
 function buildItems(rootDirectory: string, tests?: Tests): TestItem[] {
     const items: TestItem[] = [];
     items.push({ description: '', label: 'Run All Unit Tests', type: Type.RunAll });
-    if (!tests || tests.testFiles.length === 0) {
-        items.push({ description: '', label: 'Discover Unit Tests', type: Type.ReDiscover });
-    }
+    items.push({ description: '', label: 'Discover Unit Tests', type: Type.ReDiscover });
     items.push({ description: '', label: 'Run Unit Test Method ...', type: Type.SelectAndRunMethod });
 
     let summary = getSummary(tests);
