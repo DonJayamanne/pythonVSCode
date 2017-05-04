@@ -103,6 +103,10 @@ export class LintProvider extends vscode.Disposable {
             if (!e.uri.path || (path.basename(e.uri.path) === e.uri.path && !fs.existsSync(e.uri.path))) {
                 return;
             }
+            // Exclude files opened by vscode when showing a diff view
+            if (e.uri.scheme === 'git') {
+                return;
+            }
             this.lintDocument(e, 100);
         }, this.context.subscriptions);
 
