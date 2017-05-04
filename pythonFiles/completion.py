@@ -581,7 +581,7 @@ class JediCompletion(object):
             try:
                 rq = self._input.readline()
                 if len(rq) == 0:
-                    """ Reached EOF - indication our parent process is gone """
+                    # Reached EOF - indication our parent process is gone. 
                     sys.stderr.write('Received EOF from the standard input,exiting' + '\n')
                     sys.stderr.flush()
                     return
