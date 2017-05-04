@@ -16,8 +16,8 @@ export function extractSignatureAndDocumentation(definition: proxy.IAutoComplete
     /// ```
     const txt = definition.description || definition.text;
     const rawDocString = typeof definition.raw_docstring === 'string' ? definition.raw_docstring.trim() : '';
-    const firstLineOfRawDocString = rawDocString.length > 0 ? rawDocString.split(EOL)[0] : '';
-    let lines = txt.split(EOL);
+    const firstLineOfRawDocString = rawDocString.length > 0 ? rawDocString.split(/\r?\n/)[0] : '';
+    let lines = txt.split(/\r?\n/);
     const startIndexOfDocString = firstLineOfRawDocString === '' ? -1 : lines.findIndex(line => line.indexOf(firstLineOfRawDocString) === 0);
 
     let signatureLines = startIndexOfDocString === -1 ? [lines.shift()] : lines.splice(0, startIndexOfDocString);
@@ -49,7 +49,7 @@ export function extractSignatureAndDocumentation(definition: proxy.IAutoComplete
 }
 
 export function highlightCode(documentation: string): string {
-    let lines = documentation.split(EOL);
+    let lines = documentation.split(/\r?\n/);
     lines = lines.map(line => {
         if (line.trim().startsWith('>>> ')) {
             return '```python\n' + line.substring(4).trim() + '\n```';
