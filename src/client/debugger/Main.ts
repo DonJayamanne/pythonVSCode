@@ -104,7 +104,7 @@ export class PythonDebugger extends DebugSession {
         }
     }
     private InitializeEventHandlers() {
-        this.pythonProcess.on("last", arg => this.onDetachDebugger());
+        this.pythonProcess.on("last", arg => this.onLastCommand());
         this.pythonProcess.on("threadExited", arg => this.onPythonThreadExited(arg));
         this.pythonProcess.on("moduleLoaded", arg => this.onPythonModuleLoaded(arg));
         this.pythonProcess.on("threadCreated", arg => this.onPythonThreadCreated(arg));
@@ -118,6 +118,17 @@ export class PythonDebugger extends DebugSession {
         this.pythonProcess.on("asyncBreakCompleted", arg => this.onPythonProcessPaused(arg));
 
         this.debugServer.on("detach", () => this.onDetachDebugger());
+    }
+    private onLastCommand() {
+        // If we're running in terminal (integrated or external)
+        // Then don't stop the debug server
+        if (this.launchArgs && (this.launchArgs.console === "externalTerminal" ||
+            this.launchArgs.console === "integratedTerminal")) {
+            return;
+        }
+
+        // Else default behaviour as previous, which was to perform the same as onDetachDebugger
+        this.onDetachDebugger();
     }
     private onDetachDebugger() {
         this.stopDebugServer();
