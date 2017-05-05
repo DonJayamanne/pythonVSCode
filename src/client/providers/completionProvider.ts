@@ -22,7 +22,7 @@ export class PythonCompletionItemProvider implements vscode.CompletionItemProvid
                 let completionItem = new vscode.CompletionItem(item.text);
                 completionItem.kind = item.type;
                 completionItem.documentation = sigAndDocs[1].length === 0 ? item.description : sigAndDocs[1];
-                completionItem.detail = sigAndDocs[0].split(EOL).join('');
+                completionItem.detail = sigAndDocs[0].split(/\r?\n/).join('');
                 if (pythonSettings.autoComplete.addBrackets === true &&
                     (item.kind === vscode.SymbolKind.Function || item.kind === vscode.SymbolKind.Method)) {
                     completionItem.insertText = item.text + '({{}})';

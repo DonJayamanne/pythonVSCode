@@ -6,6 +6,7 @@ import * as vscode from "vscode";
 import * as settings from "./../common/configSettings";
 import * as utils from "../common/utils";
 import { createDeferred } from '../common/helpers';
+import * as untildify from 'untildify';
 
 // where to find the Python binary within a conda env
 const CONDA_RELATIVE_PY_PATH = utils.IS_WINDOWS ? ['python'] : ['bin', 'python'];
@@ -67,7 +68,11 @@ function getSearchPaths(): Promise<string[]> {
             return validPathsCollection.reduce((previousValue, currentValue) => previousValue.concat(currentValue), []);
         });
     } else {
-        const paths = ['/usr/local/bin', '/usr/bin', '/bin', '/usr/sbin', '/sbin', '/usr/local/sbin', '/Envs', '/.virtualenvs', '/.pyenv'];
+        let paths = ['/usr/local/bin', '/usr/bin', '/bin', '/usr/sbin', '/sbin', '/usr/local/sbin', '/Envs', '/.virtualenvs', '/.pyenv',
+            '/.pyenv/versions'];
+        paths.forEach(p => {
+            paths.concat(untildify('~' + p));
+        });
         // Add support for paths such as /Users/xxx/anaconda/bin
         if (process.env['HOME']) {
             paths.push(path.join(process.env['HOME'], 'anaconda', 'bin'));
@@ -116,8 +121,8 @@ function lookForInterpretersInVirtualEnvs(pathToCheck: string): Promise<PythonPa
                     interpreters.map(interpreter => {
                         let venvName = path.basename(path.dirname(path.dirname(interpreter)))
                         envsInterpreters.push({
-                            label: `${venvName} - ${path.basename(interpreter)}`, 
-                            path: interpreter, 
+                            label: `${venvName} - ${path.basename(interpreter)}`,
+                            path: interpreter,
                             type: ''
                         });
                     });
@@ -201,7 +206,7 @@ function suggestPythonPaths(): Promise<PythonPathQuickPickItem[]> {
     const condaSuggestions = suggestionsFromConda();
     const knownPathSuggestions = suggestionsFromKnownPaths();
     const workspaceVirtualEnvSuggestions = lookForInterpretersInVirtualEnvs(vscode.workspace.rootPath);
-    
+
     const suggestionPromises = [condaSuggestions, knownPathSuggestions, workspaceVirtualEnvSuggestions];
 
     if (settings.PythonSettings.getInstance().venvPath) {

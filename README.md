@@ -100,31 +100,18 @@ For further information and details continue through to the [documentation](http
 
 ## [Change Log](https://github.com/DonJayamanne/pythonVSCode/blob/master/CHANGELOG.md)
 
-### Version 0.6.3 (19 April 2017)
-* Fix debugger issue [#893](https://github.com/DonJayamanne/pythonVSCode/issues/893)
+### Version 0.6.4 (4 May 2017)
+* Fix dates in changelog [#899](https://github.com/DonJayamanne/pythonVSCode/pull/899/files)
+* Using charriage return or line feeds to split a document into multiple lines [#917](https://github.com/DonJayamanne/pythonVSCode/pull/917), [#821](https://github.com/DonJayamanne/pythonVSCode/issues/821)
+* Doc string not being displayed [#888](https://github.com/DonJayamanne/pythonVSCode/issues/888)
+* Supporting paths that begin with the ~/ [#909](https://github.com/DonJayamanne/pythonVSCode/issues/909)
+* Supporting more paths when searching for Python interpreters [#569](https://github.com/DonJayamanne/pythonVSCode/issues/569)
+* Supporting ~/ paths when providing the path to ctag file [#910](https://github.com/DonJayamanne/pythonVSCode/issues/910)
+* Disable linting of python files opened in diff viewer [#896](https://github.com/DonJayamanne/pythonVSCode/issues/896)
+* Added a new command ```Go to Python Object``` [#928](https://github.com/DonJayamanne/pythonVSCode/issues/928)
+* Restored the menu item to rediscover tests [#863](https://github.com/DonJayamanne/pythonVSCode/issues/863)
+* Changes to rediscover tests when test files are altered and saved [#863](https://github.com/DonJayamanne/pythonVSCode/issues/863)
 
-### Version 0.6.2 (13 April 2017)
-* Fix incorrect indenting [#880](https://github.com/DonJayamanne/pythonVSCode/issues/880)
-* Improvements to debugging unit tests (check if string starts with, instead of comparing equality) [#797](https://github.com/DonJayamanne/pythonVSCode/issues/797)  
-
-#### Thanks  
-* [Yuwei Ba](https://github.com/ibigbug)  
-
-### Version 0.6.1 (10 April 2017)
-* Add support for new variable syntax in upcoming VS Code release [#774](https://github.com/DonJayamanne/pythonVSCode/issues/774), [#855](https://github.com/DonJayamanne/pythonVSCode/issues/855), [#873](https://github.com/DonJayamanne/pythonVSCode/issues/873), [#823](https://github.com/DonJayamanne/pythonVSCode/issues/823)  
-* Resolve issues in code refactoring [#802](https://github.com/DonJayamanne/pythonVSCode/issues/802), [#824](https://github.com/DonJayamanne/pythonVSCode/issues/824), [#825](https://github.com/DonJayamanne/pythonVSCode/pull/825)  
-* Changes to labels in Python Interpreter lookup [#815](https://github.com/DonJayamanne/pythonVSCode/pull/815)  
-* Resolve Typos [#852](https://github.com/DonJayamanne/pythonVSCode/issues/852)  
-* Use fully qualitified Python Path when installing dependencies [#866](https://github.com/DonJayamanne/pythonVSCode/issues/866)  
-* Commands for running tests from a file [#502](https://github.com/DonJayamanne/pythonVSCode/pull/502)  
-* Fix Sorting of imports when path contains spaces [#811](https://github.com/DonJayamanne/pythonVSCode/issues/811) 
-* Fixing occasional failure of linters [#793](https://github.com/DonJayamanne/pythonVSCode/issues/793), [#833](https://github.com/DonJayamanne/pythonVSCode/issues/838), [#860](https://github.com/DonJayamanne/pythonVSCode/issues/860)  
-* Added ability to pre-load some modules to improve autocompletion [#581](https://github.com/DonJayamanne/pythonVSCode/issues/581)   
-
-#### Thanks 
-* [Ashwin Mathews](https://github.com/ajmathews)  
-* [Alexander Ioannidis](https://github.com/slint)  
-* [Andreas Schlapsi](https://github.com/aschlapsi)  
 
 ## Source
 

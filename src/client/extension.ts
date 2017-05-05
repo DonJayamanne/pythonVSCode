@@ -30,6 +30,7 @@ import * as fs from 'fs';
 import { activateSingleFileDebug } from './singleFileDebug';
 import { getPathFromPythonCommand } from './common/utils';
 import { JupyterProvider } from './jupyter/provider';
+import { activateGoToObjectDefinitionProvider } from './providers/objectDefinitionProvider';
 
 const PYTHON: vscode.DocumentFilter = { language: 'python', scheme: 'file' };
 let unitTestOutChannel: vscode.OutputChannel;
@@ -62,6 +63,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(activateUpdateSparkLibraryProvider());
     activateSimplePythonRefactorProvider(context, formatOutChannel);
     context.subscriptions.push(activateFormatOnSaveProvider(PYTHON, settings.PythonSettings.getInstance(), formatOutChannel));
+    context.subscriptions.push(activateGoToObjectDefinitionProvider(context));
 
     context.subscriptions.push(vscode.commands.registerCommand(Commands.Start_REPL, () => {
         getPathFromPythonCommand(["-c", "import sys;print(sys.executable)"]).catch(() => {

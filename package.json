@@ -2,7 +2,7 @@
 	"name": "python",
 	"displayName": "Python",
 	"description": "Linting, Debugging (multi-threaded, remote), Intellisense, code formatting, refactoring, unit tests, snippets, Data Science (with Jupyter), PySpark and more.",
-	"version": "0.6.3",
+	"version": "0.6.4",
 	"publisher": "donjayamanne",
 	"author": {
 		"name": "Don Jayamanne",
@@ -66,7 +66,8 @@
 		"onCommand:python.displayHelp",
 		"onCommand:python.buildWorkspaceSymbols",
 		"onCommand:python.updateSparkLibrary",
-		"onCommand:python.startREPL"
+		"onCommand:python.startREPL",
+		"onCommand:python.goToPythonObject"
 	],
 	"main": "./out/client/extension",
 	"contributes": {
@@ -216,6 +217,11 @@
 			{
 				"command": "python.displayHelp",
 				"title": "Help",
+				"category": "Python"
+			},
+			{
+				"command": "python.goToPythonObject",
+				"title": "Go to Python Object",
 				"category": "Python"
 			}
 		],
@@ -1085,7 +1091,10 @@
 				"python.linting.mypyArgs": {
 					"type": "array",
 					"description": "Arguments passed in. Each argument is a separate item in the array.",
-					"default": ["--ignore-missing-imports", "--follow-imports=silent"],
+					"default": [
+						"--ignore-missing-imports",
+						"--follow-imports=silent"
+					],
 					"items": {
 						"type": "string"
 					}
@@ -1350,6 +1359,7 @@
 		"transformime-marked": "0.0.1",
 		"tree-kill": "^1.1.0",
 		"uint64be": "^1.0.1",
+		"untildify": "^3.0.2",
 		"vscode-debugadapter": "^1.0.1",
 		"vscode-debugprotocol": "^1.0.1",
 		"vscode-extension-telemetry": "0.0.5",
