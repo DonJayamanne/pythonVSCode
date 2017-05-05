@@ -2,7 +2,6 @@
 
 import * as vscode from 'vscode';
 import * as proxy from './jediProxy';
-import * as telemetryContracts from "../common/telemetryContracts";
 import { highlightCode } from './jediHelpers';
 import { EOL } from 'os';
 
@@ -16,8 +15,7 @@ export class PythonHoverProvider implements vscode.HoverProvider {
         let results = [];
         let capturedInfo: string[] = [];
         data.items.forEach(item => {
-            let { description, signature } = item;
-            const rawSignature = signature;
+            let { signature } = item;
             switch (item.kind) {
                 case vscode.SymbolKind.Constructor:
                 case vscode.SymbolKind.Function:

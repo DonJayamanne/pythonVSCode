@@ -119,7 +119,7 @@ function lookForInterpretersInVirtualEnvs(pathToCheck: string): Promise<PythonPa
             Promise.all<string[]>(promises).then(pathsWithInterpreters => {
                 pathsWithInterpreters.forEach(interpreters => {
                     interpreters.map(interpreter => {
-                        let venvName = path.basename(path.dirname(path.dirname(interpreter)))
+                        let venvName = path.basename(path.dirname(path.dirname(interpreter)));
                         envsInterpreters.push({
                             label: `${venvName} - ${path.basename(interpreter)}`,
                             path: interpreter,
