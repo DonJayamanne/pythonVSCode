@@ -73,16 +73,16 @@ export class PydevDebugger extends EventEmitter {
 				let str = chunk.toString();
 				if (this.onstdout) { this.onstdout(str); }
 			});
-
-
 			this.debugProcess.on('close', (code) => { });
 			this.debugProcess.on('error', function (err) { });
-
 		});
+	}
+
+	public start() {
 		this.server.listen();
 	}
 
-	call(command: WriteCommand, args: any[] = []) {
+	public call(command: WriteCommand, args: any[] = []) {
 		let msg: string = [command.toString(), this.nextSequence().toString()].concat(args).join("\t");
 		verbose('Debugger sent message: ' + msg);
 		this.server.Write(msg);
