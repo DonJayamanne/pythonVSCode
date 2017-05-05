@@ -151,11 +151,7 @@ export function activate(context: vscode.ExtensionContext) {
     }));
 
     context.subscriptions.push(vscode.commands.registerCommand('extension.pydev-debug.provideInitialConfigurations', () => {
-        return [
-            '// Use IntelliSense to learn about possible Mock debug attributes.',
-            '// Hover to view descriptions of existing attributes.',
-            JSON.stringify(initialConfigurations, null, '\t')
-        ].join('\n');
+        return [].join('\n');
     }));
 }
 
