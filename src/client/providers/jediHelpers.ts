@@ -52,7 +52,7 @@ export function highlightCode(docstring: string): string {
     // Add blank line
     docstring = EOL + EOL + docstring + EOL + EOL;
     // Section title -> heading level 2
-    docstring = docstring.replace(/(.+\r?\n)=+\r?\n/g, '## $1' + EOL);
+    docstring = docstring.replace(/(.+\r?\n)[-=]+\r?\n/g, '## $1' + EOL);
     // Directives: '.. directive::' -> '**directive**'
     docstring = docstring.replace(/\.\. (.*)::/g, '**$1**');
     // Field lists: ':field:' -> '**field**'
