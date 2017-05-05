@@ -11,7 +11,7 @@ import {
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { readFileSync } from 'fs';
 import { basename } from 'path';
-import { PydevDebugger, ReadCommand, WriteCommand } from './pydevDebugger';
+import { PydevDebugger, Command } from './pydevDebugger';
 
 
 function logArgsToString(args: any[]): string {
@@ -114,11 +114,11 @@ class PythonDebugSession extends LoggingDebugSession {
 		let localhost = '127.0.0.1';
 
 		this.pydevd = new PydevDebugger(port, localhost, args.program, args);
-		this.pydevd.on('call', (command: ReadCommand, sequence: number, args) => {
+		this.pydevd.on('call', (command: Command, sequence: number, args) => {
 			switch (command) {
-				case ReadCommand.BuildNumber:
+				case Command.BuildNumber:
 					break
-				case ReadCommand.Thread:
+				case Command.Thread:
 					break
 			}
 		});
@@ -287,7 +287,7 @@ class PythonDebugSession extends LoggingDebugSession {
 
 	protected nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments): void {
 
-		this.pydevd.call(WriteCommand.StepOver);
+		this.pydevd.call(Command.StepOver);
 
 		for (let ln = this._currentLine + 1; ln < this._sourceLines.length; ln++) {
 			if (this.fireStepEvent(response, ln)) {
@@ -300,11 +300,11 @@ class PythonDebugSession extends LoggingDebugSession {
 	}
 
 	protected stepInRequest(response: DebugProtocol.StepInResponse): void {
-		this.pydevd.call(WriteCommand.StepIn);
+		this.pydevd.call(Command.StepIn);
 	}
 
 	protected stepOutRequest(response: DebugProtocol.StepOutResponse): void {
-		this.pydevd.call(WriteCommand.StepOut);
+		this.pydevd.call(Command.StepOut);
 	}
 
 	protected evaluateRequest(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments): void {
