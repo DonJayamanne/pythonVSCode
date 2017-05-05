@@ -278,20 +278,20 @@
             ]
         },
         "debuggers": [{
-                "type": "mock",
+                "type": "pydev",
                 "label": "Pydev Debug",
                 "program": "./out/pydev/pythonDebug.js",
                 "runtime": "node",
                 "variables": {
-                    "AskForProgramName": "extension.mock-debug.getProgramName"
+                    "AskForProgramName": "extension.pydev-debug.getProgramName"
                 },
                 "configurationSnippets": [{
                     "label": "Pydev Debug: Launch",
-                    "description": "A new configuration for launching a mock debug program",
+                    "description": "A new configuration for launching a pydev debug program",
                     "body": {
-                        "type": "mock",
+                        "type": "pydev",
                         "request": "launch",
-                        "name": "mock test",
+                        "name": "pydev test",
                         "program": "${workspaceRoot}/sample.py",
                         "stopOnEntry": true,
                         "debugServer": 4711,
@@ -320,7 +320,7 @@
                         }
                     }
                 },
-                "initialConfigurations": "extension.mock-debug.provideInitialConfigurations"
+                "initialConfigurations": "extension.pydev-debug.provideInitialConfigurations"
             },
             {
                 "type": "python",
