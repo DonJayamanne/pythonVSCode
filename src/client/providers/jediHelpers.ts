@@ -49,6 +49,8 @@ export function extractSignatureAndDocumentation(definition: proxy.IAutoComplete
 }
 
 export function highlightCode(docstring: string): string {
+    // Add blank line
+    docstring = EOL + EOL + docstring + EOL + EOL;
     // Section title -> heading level 2
     docstring = docstring.replace(/(.+\r?\n)=+\r?\n/g, '## $1' + EOL);
     // Directives: '.. directive::' -> '**directive**'
@@ -63,7 +65,6 @@ export function highlightCode(docstring: string): string {
     // 'var : description' -> '`var` description'
     docstring = docstring.replace(/\r?\n([\*\w]+) ?: ?([^:\r\n]+\r?\n)/g, `${EOL}\`$1\` $2`);
     // Doctest blocks: begin with `>>>` and end with blank line
-    docstring = docstring + EOL + EOL; // Add blank line to the end
     docstring = docstring.replace(/(>>>[\w\W]+?\r?\n)\r?\n/g, `${'```python' + EOL}$1${'```' + EOL + EOL}`);
     // Literal blocks: begin with `::` (literal blocks are indented or quoted; for simplicity, we end literal blocks with blank line)
     docstring = docstring.replace(/(\r?\n[^\.]*)::\r?\n\r?\n([\w\W]+?\r?\n)\r?\n/g, `$1${EOL + '```' + EOL}$2${'```' + EOL + EOL}`);
