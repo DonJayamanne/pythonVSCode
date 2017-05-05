@@ -124,6 +124,12 @@ export class PydevDebugger extends EventEmitter {
 	private sequence: number = 0;
 	private sequences: Map<number, Function>;
 
+	/*	 
+		Create a pydev debugger. There are two ways to receive debugger events: 
+			1. Subscribe to the on 'message' event.
+			2. Write a command and '.then' wait until pydb responds with the same
+			   sequence number.
+	*/
 	constructor(port: number, host: string, program: string, launchArgs: LaunchRequestArguments) {
 		super();
 
@@ -176,6 +182,14 @@ export class PydevDebugger extends EventEmitter {
 		this.server.listen();
 	}
 
+	/*
+		Calls the specified command as soon as possible, and returns 
+		a promise that is resolved when the pydev debugger emits
+		the same sequence number. Note that the command is not called
+		immediately, but as soon as the pydev debugger is available.
+
+		This function does not block.
+	*/
 	public call(command: Command, args: any[] = []): Promise<any> {
 		let sequence = this.nextSequence();
 		let msg: string = [command.toString(), sequence.toString()].concat(args).join("\t");
