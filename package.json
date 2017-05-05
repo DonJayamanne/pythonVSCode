@@ -280,8 +280,7 @@
         "debuggers": [{
                 "type": "mock",
                 "label": "Pydev Debug",
-
-                "program": "./out/pythonDebug.js",
+                "program": "./out/pydev/pythonDebug.js",
                 "runtime": "node",
                 "variables": {
                     "AskForProgramName": "extension.mock-debug.getProgramName"

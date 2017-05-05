@@ -142,6 +142,21 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(hepProvider);
 
     context.subscriptions.push(activateSingleFileDebug());
+
+    context.subscriptions.push(vscode.commands.registerCommand('extension.mock-debug.getProgramName', config => {
+        return vscode.window.showInputBox({
+            placeHolder: "Please enter the name of a markdown file in the workspace folder",
+            value: "readme.md"
+        });
+    }));
+
+    context.subscriptions.push(vscode.commands.registerCommand('extension.mock-debug.provideInitialConfigurations', () => {
+        return [
+            '// Use IntelliSense to learn about possible Mock debug attributes.',
+            '// Hover to view descriptions of existing attributes.',
+            JSON.stringify(initialConfigurations, null, '\t')
+        ].join('\n');
+    }));
 }
 
 // this method is called when your extension is deactivated
@@ -182,4 +197,4 @@ class ContextKey {
         this._lastValue = value;
         vscode.commands.executeCommand('setContext', this._name, this._lastValue);
     }
-} 
+}
