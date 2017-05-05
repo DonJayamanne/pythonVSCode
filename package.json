@@ -71,35 +71,44 @@
     ],
     "main": "./out/client/extension",
     "contributes": {
-        "languages": [{
-            "id": "testOutput",
-            "aliases": [
-                "vscode-output-colorizer",
-                "testOutput"
-            ],
-            "extensions": [
-                ".log"
-            ],
-            "configuration": "./syntaxes/test.configuration.json",
-            "mimetypes": [
-                "text/x-code-output"
-            ]
-        }],
-        "grammars": [{
-            "language": "testOutput",
-            "scopeName": "testOutput.log",
-            "path": "./syntaxes/test.tmLanguage"
-        }],
-        "snippets": [{
-            "language": "python",
-            "path": "./snippets/python.json"
-        }],
-        "keybindings": [{
-            "command": "jupyter.runSelectionLine",
-            "key": "ctrl+alt+enter",
-            "when": "editorFocus && !replaceActive && !searchViewletVisible && !findWidgetVisible"
-        }],
-        "commands": [{
+        "languages": [
+            {
+                "id": "testOutput",
+                "aliases": [
+                    "vscode-output-colorizer",
+                    "testOutput"
+                ],
+                "extensions": [
+                    ".log"
+                ],
+                "configuration": "./syntaxes/test.configuration.json",
+                "mimetypes": [
+                    "text/x-code-output"
+                ]
+            }
+        ],
+        "grammars": [
+            {
+                "language": "testOutput",
+                "scopeName": "testOutput.log",
+                "path": "./syntaxes/test.tmLanguage"
+            }
+        ],
+        "snippets": [
+            {
+                "language": "python",
+                "path": "./snippets/python.json"
+            }
+        ],
+        "keybindings": [
+            {
+                "command": "jupyter.runSelectionLine",
+                "key": "ctrl+alt+enter",
+                "when": "editorFocus && !replaceActive && !searchViewletVisible && !findWidgetVisible"
+            }
+        ],
+        "commands": [
+            {
                 "command": "python.sortImports",
                 "title": "Sort Imports",
                 "category": "Python Refactor"
@@ -226,7 +235,8 @@
             }
         ],
         "menus": {
-            "editor/context": [{
+            "editor/context": [
+                {
                     "command": "python.refactorExtractVariable",
                     "title": "Refactor: Extract Variable",
                     "group": "Refactor",
@@ -260,7 +270,8 @@
                     "group": "Python"
                 }
             ],
-            "explorer/context": [{
+            "explorer/context": [
+                {
                     "when": "resourceLangId == python",
                     "command": "python.runtests",
                     "group": "Python"
@@ -277,7 +288,8 @@
                 }
             ]
         },
-        "debuggers": [{
+        "debuggers": [
+            {
                 "type": "pydev",
                 "label": "Pydev Debug",
                 "program": "./out/pydev/pythonDebug.js",
@@ -285,22 +297,26 @@
                 "variables": {
                     "AskForProgramName": "extension.pydev-debug.getProgramName"
                 },
-                "configurationSnippets": [{
-                    "label": "Pydev Debug: Launch",
-                    "description": "A new configuration for launching a pydev debug program",
-                    "body": {
-                        "type": "pydev",
-                        "request": "launch",
-                        "name": "pydev test",
-                        "program": "${workspaceRoot}/sample.py",
-                        "stopOnEntry": true,
-                        "debugServer": 4711,
-                        "trace": true
+                "configurationSnippets": [
+                    {
+                        "label": "Pydev Debug: Launch",
+                        "description": "A new configuration for launching a pydev debug program",
+                        "body": {
+                            "type": "pydev",
+                            "request": "launch",
+                            "name": "pydev test",
+                            "program": "${workspaceRoot}/sample.py",
+                            "stopOnEntry": true,
+                            "debugServer": 4711,
+                            "trace": true
+                        }
                     }
-                }],
+                ],
                 "configurationAttributes": {
                     "launch": {
-                        "required": ["program"],
+                        "required": [
+                            "program"
+                        ],
                         "properties": {
                             "program": {
                                 "type": "string",
@@ -338,7 +354,8 @@
                 "aiKey": "fce7a3d5-4665-4404-b786-31a6306749a6",
                 "program": "./out/client/debugger/Main.js",
                 "runtime": "node",
-                "configurationSnippets": [{
+                "configurationSnippets": [
+                    {
                         "label": "%python.snippet.launch.standard.label%",
                         "description": "%python.snippet.launch.standard.description%",
                         "body": {
@@ -710,7 +727,8 @@
                         }
                     }
                 },
-                "initialConfigurations": [{
+                "initialConfigurations": [
+                    {
                         "name": "Python",
                         "type": "python",
                         "request": "launch",
