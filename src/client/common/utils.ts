@@ -173,6 +173,7 @@ function handleResponse(file: string, includeErrorAsResponse: boolean, error: Er
     });
 }
 function execFileInternal(file: string, args: string[], options: child_process.ExecFileOptions, includeErrorAsResponse: boolean, token?: CancellationToken): Promise<string> {
+    options.maxBuffer = options.maxBuffer ? options.maxBuffer : 1024 * 102400;
     return new Promise<string>((resolve, reject) => {
         let proc = child_process.execFile(file, args, options, (error, stdout, stderr) => {
             handleResponse(file, includeErrorAsResponse, error, stdout, stderr, token).then(resolve, reject);
