@@ -6,7 +6,7 @@ import { verbose } from './pythonDebug';
 
 
 export class Server extends EventEmitter {
-	private _port: number;
+	private requestedPort: number;
 	private server: net.Server;
 	private buffer: Buffer;
 	private socket: net.Socket;
@@ -16,7 +16,7 @@ export class Server extends EventEmitter {
 	constructor(port: number) {
 		super();
 
-		this._port = port;
+		this.requestedPort = port;
 		this.buffer = new Buffer('');
 	}
 
@@ -24,7 +24,7 @@ export class Server extends EventEmitter {
 		if (this.server) {
 			return this.server.address().port;
 		} else {
-			return this._port;
+			return null;
 		}
 	}
 
@@ -53,7 +53,7 @@ export class Server extends EventEmitter {
 			});
 		});
 
-		this.server.listen(this._port, function () {
+		this.server.listen(this.requestedPort, function () {
 			that.emit('connect');
 		});
 	}
