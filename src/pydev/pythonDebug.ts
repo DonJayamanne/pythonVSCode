@@ -116,9 +116,9 @@ class PythonDebugSession extends LoggingDebugSession {
 		this.pydevd = new PydevDebugger(port, localhost, args.program, args);
 		this.pydevd.on('call', (command: Command, sequence: number, args) => {
 			switch (command) {
-				case Command.BuildNumber:
+				case Command.CMD_VERSION:
 					break
-				case Command.Thread:
+				case Command.CMD_THREAD_CREATE:
 					break
 			}
 		});
@@ -287,7 +287,7 @@ class PythonDebugSession extends LoggingDebugSession {
 
 	protected nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments): void {
 
-		this.pydevd.call(Command.StepOver);
+		this.pydevd.call(Command.CMD_STEP_OVER);
 
 		for (let ln = this._currentLine + 1; ln < this._sourceLines.length; ln++) {
 			if (this.fireStepEvent(response, ln)) {
@@ -300,11 +300,11 @@ class PythonDebugSession extends LoggingDebugSession {
 	}
 
 	protected stepInRequest(response: DebugProtocol.StepInResponse): void {
-		this.pydevd.call(Command.StepIn);
+		this.pydevd.call(Command.CMD_STEP_INTO);
 	}
 
 	protected stepOutRequest(response: DebugProtocol.StepOutResponse): void {
-		this.pydevd.call(Command.StepOut);
+		this.pydevd.call(Command.CMD_STEP_RETURN);
 	}
 
 	protected evaluateRequest(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments): void {
