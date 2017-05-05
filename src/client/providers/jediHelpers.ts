@@ -89,5 +89,8 @@ export function highlightCode(docstring: string): string {
         }
     }
     docstring = lines.join(EOL);
+    // Grid Tables
+    docstring = docstring.replace(/\r?\n[\+-]+\r?\n/g, EOL);
+    docstring = docstring.replace(/\r?\n[\+=]+\r?\n/g, s => s.replace(/\+/g, '|').replace(/=/g, '-'));
     return docstring;
 }
