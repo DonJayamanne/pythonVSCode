@@ -122,6 +122,7 @@ export class PydevDebugger extends EventEmitter {
 	onclose: (code: number) => void;
 
 	private sequence: number = 0;
+	private sequences: Map<number, Function>;
 
 	constructor(port: number, host: string, program: string, launchArgs: LaunchRequestArguments) {
 		super();
@@ -136,6 +137,11 @@ export class PydevDebugger extends EventEmitter {
 			let args = msg.split('\t');
 			let command: Command = args[0];
 			let sequence: number = parseInt(args[1]);
+
+			if (this.sequences.has(sequence)) {
+				this.sequences[sequence](command, sequence, args.slice(2)); // Resolve the promise
+				this.sequences.delete(sequence); // Cleanup memory
+			}
 
 			that.emit('call', command, sequence, args.slice(2));
 		});
@@ -170,10 +176,15 @@ export class PydevDebugger extends EventEmitter {
 		this.server.listen();
 	}
 
-	public call(command: Command, args: any[] = []) {
-		let msg: string = [command.toString(), this.nextSequence().toString()].concat(args).join("\t");
+	public call(command: Command, args: any[] = []): Promise<any> {
+		let sequence = this.nextSequence();
+		let msg: string = [command.toString(), sequence.toString()].concat(args).join("\t");
 		verbose('Debugger sent message: ' + msg);
 		this.server.Write(msg);
+
+		return new Promise(resolve => {
+			this.sequences[sequence] = resolve;
+		});
 	}
 
 	/* Book-keeping methods */
