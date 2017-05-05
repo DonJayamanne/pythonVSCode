@@ -71,7 +71,7 @@ function getSearchPaths(): Promise<string[]> {
         let paths = ['/usr/local/bin', '/usr/bin', '/bin', '/usr/sbin', '/sbin', '/usr/local/sbin', '/Envs', '/.virtualenvs', '/.pyenv',
             '/.pyenv/versions'];
         paths.forEach(p => {
-            paths.concat(untildify('~' + p));
+            paths.push(untildify('~' + p));
         });
         // Add support for paths such as /Users/xxx/anaconda/bin
         if (process.env['HOME']) {
@@ -119,7 +119,7 @@ function lookForInterpretersInVirtualEnvs(pathToCheck: string): Promise<PythonPa
             Promise.all<string[]>(promises).then(pathsWithInterpreters => {
                 pathsWithInterpreters.forEach(interpreters => {
                     interpreters.map(interpreter => {
-                        let venvName = path.basename(path.dirname(path.dirname(interpreter)))
+                        let venvName = path.basename(path.dirname(path.dirname(interpreter)));
                         envsInterpreters.push({
                             label: `${venvName} - ${path.basename(interpreter)}`,
                             path: interpreter,

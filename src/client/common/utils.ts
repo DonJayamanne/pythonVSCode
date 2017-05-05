@@ -8,7 +8,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as child_process from 'child_process';
 import * as settings from './configSettings';
-import { CancellationToken, TextDocument, Range, Position } from 'vscode';
+import { CancellationToken, TextDocument, Range } from 'vscode';
 import { isNotInstalledError } from './helpers';
 import { mergeEnvVariables, parseEnvFile } from './envFileParser';
 
@@ -173,6 +173,7 @@ function handleResponse(file: string, includeErrorAsResponse: boolean, error: Er
     });
 }
 function execFileInternal(file: string, args: string[], options: child_process.ExecFileOptions, includeErrorAsResponse: boolean, token?: CancellationToken): Promise<string> {
+    options.maxBuffer = options.maxBuffer ? options.maxBuffer : 1024 * 102400;
     return new Promise<string>((resolve, reject) => {
         let proc = child_process.execFile(file, args, options, (error, stdout, stderr) => {
             handleResponse(file, includeErrorAsResponse, error, stdout, stderr, token).then(resolve, reject);
@@ -323,7 +324,7 @@ export function getWindowsLineEndingCount(document: TextDocument, offset: Number
 
     // In order to prevent the one-time loading of large files from taking up too much memory
     for (let pos = 0; pos < offset; pos += readBlock) {
-        let startAt = document.positionAt(pos)
+        let startAt = document.positionAt(pos);
         let endAt = null;
 
         if (offsetDiff >= readBlock) {

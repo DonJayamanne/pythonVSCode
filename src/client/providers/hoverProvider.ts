@@ -2,7 +2,6 @@
 
 import * as vscode from 'vscode';
 import * as proxy from './jediProxy';
-import * as telemetryContracts from "../common/telemetryContracts";
 import { highlightCode } from './jediHelpers';
 import { EOL } from 'os';
 
@@ -16,8 +15,7 @@ export class PythonHoverProvider implements vscode.HoverProvider {
         let results = [];
         let capturedInfo: string[] = [];
         data.items.forEach(item => {
-            let { description, signature } = item;
-            const rawSignature = signature;
+            let { signature } = item;
             switch (item.kind) {
                 case vscode.SymbolKind.Constructor:
                 case vscode.SymbolKind.Function:
@@ -47,7 +45,7 @@ export class PythonHoverProvider implements vscode.HoverProvider {
                     lines.shift();
                 }
                 let descriptionWithHighlightedCode = highlightCode(lines.join(EOL));
-                let hoverInfo = '```python' + EOL + signature + EOL + '```' + EOL + descriptionWithHighlightedCode;
+                let hoverInfo = ['```python', signature, '```', descriptionWithHighlightedCode].join(EOL);
                 let key = signature + lines.join('');
                 // Sometimes we have duplicate documentation, one with a period at the end
                 if (capturedInfo.indexOf(key) >= 0 || capturedInfo.indexOf(key + '.') >= 0) {

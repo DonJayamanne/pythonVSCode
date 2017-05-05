@@ -562,6 +562,32 @@
                         }
                     },
                     {
+                        "label": "%python.snippet.launch.scrapy.label%",
+                        "description": "%python.snippet.launch.scrapy.description%",
+                        "body": {
+                            "name": "Scrapy",
+                            "type": "python",
+                            "request": "launch",
+                            "stopOnEntry": true,
+                            "pythonPath": "$${{config:python.pythonPath}}",
+                            "program": "~/.virtualenvs/scrapy/bin/scrapy",
+                            "cwd": "$${{workspaceRoot}}",
+                            "args": [
+                                "crawl",
+                                "specs",
+                                "-o",
+                                "bikes.json"
+                            ],
+                            "console": "integratedTerminal",
+                            "env": {},
+                            "envFile": "$${{workspaceRoot}}/.env",
+                            "debugOptions": [
+                                "WaitOnAbnormalExit",
+                                "WaitOnNormalExit"
+                            ]
+                        }
+                    },
+                    {
                         "label": "%python.snippet.launch.attach.label%",
                         "description": "%python.snippet.launch.attach.description%",
                         "body": {
@@ -1429,8 +1455,7 @@
         "vscode-extension-telemetry": "0.0.5",
         "vscode-languageclient": "^1.1.0",
         "vscode-languageserver": "^1.1.0",
-        "xml2js": "^0.4.17",
-        "vscode-debug-logger": "^0.0.4"
+        "xml2js": "^0.4.17"
     },
     "devDependencies": {
         "@types/jquery": "^1.10.31",
@@ -1448,7 +1473,7 @@
         "retyped-diff-match-patch-tsd-ambient": "^1.0.0-0",
         "ts-loader": "^0.8.2",
         "tslint": "^3.15.1",
-        "typescript": "^2.0.3",
+        "typescript": "^2.3.2",
         "vscode": "^1.0.3",
         "webpack": "^1.13.2"
     }

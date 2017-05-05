@@ -48,14 +48,50 @@ export function extractSignatureAndDocumentation(definition: proxy.IAutoComplete
     return [signature, lines.join(EOL).trim().replace(/^\s+|\s+$/g, '').trim()];
 }
 
-export function highlightCode(documentation: string): string {
-    let lines = documentation.split(/\r?\n/);
-    lines = lines.map(line => {
-        if (line.trim().startsWith('>>> ')) {
-            return '```python\n' + line.substring(4).trim() + '\n```';
+export function highlightCode(docstring: string): string {
+    // Add blank line
+    docstring = EOL + EOL + docstring + EOL + EOL;
+    // Section title -> heading level 2
+    docstring = docstring.replace(/(.+\r?\n)[-=]+\r?\n/g, '## $1' + EOL);
+    // Directives: '.. directive::' -> '**directive**'
+    docstring = docstring.replace(/\.\. (.*)::/g, '**$1**');
+    // Field lists: ':field:' -> '**field**'
+    docstring = docstring.replace(/:(.+?):/g, '**$1** ');
+    // Pattern of 'var : description'
+    let paramLinePattern = '[\\*\\w_]+ ?:[^:\r\n]+';
+    // Add new line after and before param line
+    docstring = docstring.replace(new RegExp(`(${EOL + paramLinePattern})`, 'g'), `$1${EOL}`);
+    docstring = docstring.replace(new RegExp(`(${EOL + paramLinePattern + EOL})`, 'g'), `${EOL}$1`);
+    // 'var : description' -> '`var` description'
+    docstring = docstring.replace(/\r?\n([\*\w]+) ?: ?([^:\r\n]+\r?\n)/g, `${EOL}\`$1\` $2`);
+    // Doctest blocks: begin with `>>>` and end with blank line
+    docstring = docstring.replace(/(>>>[\w\W]+?\r?\n)\r?\n/g, `${'```python' + EOL}$1${'```' + EOL + EOL}`);
+    // Literal blocks: begin with `::` (literal blocks are indented or quoted; for simplicity, we end literal blocks with blank line)
+    docstring = docstring.replace(/(\r?\n[^\.]*)::\r?\n\r?\n([\w\W]+?\r?\n)\r?\n/g, `$1${EOL + '```' + EOL}$2${'```' + EOL + EOL}`);
+    // Remove indentation in Field lists and Literal blocks
+    let inCodeBlock = false;
+    let codeIndentation = 0;
+    let lines = docstring.split(/\r?\n/);
+    for (let i = 0; i < lines.length; i++) {
+        let line = lines[i];
+        if (line.startsWith('```')) {
+            inCodeBlock = !inCodeBlock;
+            if (inCodeBlock) {
+                codeIndentation = lines[i + 1].match(/^ */)[0].length;
+            }
+            continue;
         }
-        return line;
-    });
-
-    return lines.join(EOL).trim().replace(/^\s+|\s+$/g, '').trim();
+        if (!inCodeBlock) {
+            lines[i] = line.replace(/^ {4,8}/, '');
+        } else {
+            if (codeIndentation != 0) {
+                lines[i] = line.substring(codeIndentation);
+            }
+        }
+    }
+    docstring = lines.join(EOL);
+    // Grid Tables
+    docstring = docstring.replace(/\r?\n[\+-]+\r?\n/g, EOL);
+    docstring = docstring.replace(/\r?\n[\+=]+\r?\n/g, s => s.replace(/\+/g, '|').replace(/=/g, '-'));
+    return docstring;
 }

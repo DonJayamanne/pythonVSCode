@@ -18,5 +18,7 @@
 	"python.snippet.launch.watson.label": "Watson Application",
 	"python.snippet.launch.watson.description": "Debug a Watson Application",
 	"python.snippet.launch.attach.label": "Attach Python Debugger",
-	"python.snippet.launch.attach.description": "Attach the debugger for remote debugging"
+	"python.snippet.launch.attach.description": "Attach the debugger for remote debugging",
+	"python.snippet.launch.scrapy.label": "Debug Scrapy",
+	"python.snippet.launch.scrapy.description": "Scrapy with Integrated Terminal/Console"
 }

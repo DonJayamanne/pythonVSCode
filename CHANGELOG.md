@@ -1,5 +1,10 @@
+### Version 0.6.5 (5 May 2017)
+* Better formatting of docstring [#821](https://github.com/DonJayamanne/pythonVSCode/pull/821), [#919](https://github.com/DonJayamanne/pythonVSCode/pull/919)  
+* Supporting more paths when searching for Python interpreters [#569](https://github.com/DonJayamanne/pythonVSCode/issues/569)  
+* Increase buffer output (to support detection large number of tests) [#927](https://github.com/DonJayamanne/pythonVSCode/issues/927)  
+
 ### Version 0.6.4 (4 May 2017)
-* Fix dates in changelog [#899](https://github.com/DonJayamanne/pythonVSCode/pull/899/files)
+* Fix dates in changelog [#899](https://github.com/DonJayamanne/pythonVSCode/pull/899)
 * Using charriage return or line feeds to split a document into multiple lines [#917](https://github.com/DonJayamanne/pythonVSCode/pull/917), [#821](https://github.com/DonJayamanne/pythonVSCode/issues/821)
 * Doc string not being displayed [#888](https://github.com/DonJayamanne/pythonVSCode/issues/888)
 * Supporting paths that begin with the ~/ [#909](https://github.com/DonJayamanne/pythonVSCode/issues/909)
