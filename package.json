@@ -305,7 +305,7 @@
                             "type": "pydev",
                             "request": "launch",
                             "name": "pydev test",
-                            "program": "${workspaceRoot}/sample.py",
+                            "program": "$${{file}}",
                             "stopOnEntry": true,
                             "debugServer": 4711,
                             "trace": true

@@ -121,8 +121,8 @@ export class PydevDebugger extends EventEmitter {
 	onstderr: (str: string) => void;
 	onclose: (code: number) => void;
 
-	private sequence: number = 0;
-	private sequences: Map<number, Function>;
+	private sequence: number = -1;
+	private sequences: Map<number, Function> = new Map<number, Function>();
 
 	/*	 
 		Create a pydev debugger. There are two ways to receive debugger events: 
