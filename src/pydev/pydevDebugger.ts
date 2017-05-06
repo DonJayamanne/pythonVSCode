@@ -176,6 +176,9 @@ export class PydevDebugger extends EventEmitter {
 			this.debugProcess.on('close', (code) => { });
 			this.debugProcess.on('error', function (err) { });
 		});
+
+		/* Write the version before all other commands */
+		this.call(Command.CMD_VERSION, ['1.0', 'WINDOWS ID']);
 	}
 
 	public start() {

@@ -123,6 +123,7 @@ class PythonDebugSession extends LoggingDebugSession {
 			}
 		});
 		this.pydevd.start();
+		this.pydevd.call(Command.CMD_RUN);
 
 		// make sure to 'Stop' the buffered logging if 'trace' is not set
 		logger.setup(args.trace ? Logger.LogLevel.Verbose : Logger.LogLevel.Stop, false);
