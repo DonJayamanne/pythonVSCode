@@ -53,7 +53,7 @@ class PythonDebugSession extends LoggingDebugSession {
 
 	// since we want to send breakpoint events, we will assign an id to every event
 	// so that the frontend can match events with breakpoints.
-	private _breakpointId = 1000;
+	private _breakpointId = 1;
 
 	// This is the next line that will be 'executed'
 	private __currentLine = 0;
@@ -144,13 +144,27 @@ class PythonDebugSession extends LoggingDebugSession {
 
 	protected setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments): void {
 
+		// breakpoint_id, 'python-line', self.get_main_filename(), line, func)
+
 		const path = <string>args.source.path;
 		const clientLines = args.lines || [];
 
 		// read file contents into array for direct access
 		const lines = readFileSync(path).toString().split('\n');
-
 		const breakpoints = new Array<Breakpoint>();
+
+		this._breakPoints.get(path).map(existingBP => {
+			verbose('Clearing: ' + existingBP.id);
+			return this.pydevd.call(Command.CMD_REMOVE_BREAK, ['python-line', path, existingBP.id]);
+		});
+
+		args.lines.map(line => {
+			verbose('Creating on: ' + path + line);
+			this._breakpointId++;
+			this.pydevd.call(Command.CMD_SET_BREAK, [this._breakpointId, 'python-line', 'None', 'None', 'None']);
+		});
+
+		// TODO: replace this boilerplate code
 
 		// verify breakpoint locations
 		for (let i = 0; i < clientLines.length; i++) {
@@ -186,6 +200,10 @@ class PythonDebugSession extends LoggingDebugSession {
 	}
 
 	protected threadsRequest(response: DebugProtocol.ThreadsResponse): void {
+
+		this.pydevd.call(Command.CMD_LIST_THREADS).then(result => {
+			/* TODO: Do something with the result */
+		});
 
 		// return the default thread
 		response.body = {

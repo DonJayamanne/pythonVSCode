@@ -145,7 +145,7 @@ export class PydevDebugger extends EventEmitter {
 			let sequence: number = parseInt(args[1]);
 
 			if (this.sequences.has(sequence)) {
-				this.sequences[sequence](command, sequence, args.slice(2)); // Resolve the promise
+				this.sequences[sequence]([command, sequence, args.slice(2)]); // Resolve the promise
 				this.sequences.delete(sequence); // Cleanup memory
 			}
 
