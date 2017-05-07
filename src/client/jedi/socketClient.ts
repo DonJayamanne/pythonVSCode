@@ -1,15 +1,12 @@
 "use strict";
 
-import { SocketCallbackHandler } from "../../common/comms/socketCallbackHandler";
+import { SocketCallbackHandler } from "../common/comms/socketCallbackHandler";
 import { Commands, ResponseCommands } from "./commands";
-import { SocketServer } from '../../common/comms/socketServer';
-import { IdDispenser } from '../../common/idDispenser';
-import { createDeferred, Deferred } from '../../common/helpers';
+import { SocketServer } from '../common/comms/socketServer';
+import { IdDispenser } from '../common/idDispenser';
+import { createDeferred, Deferred } from '../common/helpers';
 import { KernelCommand } from './contracts';
-import { JupyterMessage, ParsedIOMessage } from '../contracts';
-import { Helpers } from '../common/helpers';
 import * as Rx from 'rx';
-import { KernelRestartedError, KernelShutdownError } from '../common/errors';
 import { OutputChannel } from 'vscode';
 
 export class JupyterSocketClient extends SocketCallbackHandler {
