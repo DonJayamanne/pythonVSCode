@@ -2,6 +2,25 @@
 {
 	"version": "0.1.0",
 	"configurations": [{
+			"name": "CompletionServer.ppy",
+			"type": "python",
+			"request": "launch",
+			"stopOnEntry": true,
+			"pythonPath": "python",
+			"program": "${workspaceRoot}/pythonFiles/completionServer.py",
+			"cwd": "${workspaceRoot}",
+			"env": {},
+			"args": [
+				"123"
+			],
+			"envFile": "${workspaceRoot}/.env",
+			"debugOptions": [
+				"WaitOnAbnormalExit",
+				"WaitOnNormalExit",
+				"RedirectOutput"
+			]
+		},
+		{
 			"name": "Launch Extension",
 			"type": "extensionHost",
 			"request": "launch",
