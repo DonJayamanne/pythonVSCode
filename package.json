@@ -322,7 +322,7 @@
 						"request": "launch",
 						"stopOnEntry": true,
 						"osx": {
-							"pythonPath": "$${env:SPARK_HOME}}/bin/spark-submit"
+							"pythonPath": "$${{env:SPARK_HOME}}/bin/spark-submit"
 						},
 						"windows": {
 							"pythonPath": "$${{env:SPARK_HOME}}/bin/spark-submit.cmd"
