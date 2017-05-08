@@ -4,6 +4,10 @@ import { highlightCode } from '../../providers/jediHelpers';
 import { EOL } from 'os';
 export class HoverParser {
     public static parse(data: proxy.IHoverResult, currentWord: string): Hover {
+        if (!data || !Array.isArray(data.items) || data.items.length === 0) {
+            return new Hover([]);
+        }
+
         let results = [];
         let capturedInfo: string[] = [];
         data.items.forEach(item => {
