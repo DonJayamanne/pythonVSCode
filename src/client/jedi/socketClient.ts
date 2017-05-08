@@ -1,36 +1,25 @@
 "use strict";
 
 import { SocketCallbackHandler } from "../common/comms/socketCallbackHandler";
-import { Commands, ResponseCommands } from "./commands";
+import { RequestCommands, ResponseCommands } from "./commands";
 import { SocketServer } from '../common/comms/socketServer';
 import { IdDispenser } from '../common/idDispenser';
 import { createDeferred, Deferred } from '../common/helpers';
 import { OutputChannel, CancellationToken } from 'vscode';
-
-/*
-    public static Exit: Buffer = new Buffer("exit");
-    public static Ping: Buffer = new Buffer("ping");
-    public static Arguments = new Buffer("args");
-    public static Completions = new Buffer("comp");
-    public static Definitions = new Buffer("defs");
-    public static Hover = new Buffer("hovr");
-    public static Usages = new Buffer("usag");
-    public static Names = new Buffer("name");
-*/
-
 
 export class SocketClient extends SocketCallbackHandler {
     constructor(socketServer: SocketServer, private outputChannel: OutputChannel) {
         super(socketServer);
         this.registerCommandHandler(ResponseCommands.Pong, this.onPong.bind(this));
         this.registerCommandHandler(ResponseCommands.Error, this.onError.bind(this));
+        this.registerCommandHandler(ResponseCommands.TraceLog, this.onWriteToLog.bind(this));
 
-        this.registerCommandHandler(ResponseCommands.Arguments, this.onResponseReceived.bind(this));
+        this.registerCommandHandler(ResponseCommands.Signature, this.onResponseReceived.bind(this));
         this.registerCommandHandler(ResponseCommands.Completions, this.onResponseReceived.bind(this));
         this.registerCommandHandler(ResponseCommands.Definitions, this.onResponseReceived.bind(this));
         this.registerCommandHandler(ResponseCommands.Hover, this.onResponseReceived.bind(this));
-        this.registerCommandHandler(ResponseCommands.Names, this.onResponseReceived.bind(this));
-        this.registerCommandHandler(ResponseCommands.Usages, this.onResponseReceived.bind(this));
+        this.registerCommandHandler(ResponseCommands.DocumentSymbols, this.onResponseReceived.bind(this));
+        this.registerCommandHandler(ResponseCommands.References, this.onResponseReceived.bind(this));
 
         this.idDispenser = new IdDispenser();
     }
@@ -49,9 +38,6 @@ export class SocketClient extends SocketCallbackHandler {
     }
     private idDispenser: IdDispenser;
     private pid: number;
-    private writeToDebugLog(message: string) {
-        this.outputChannel.appendLine(message);
-    }
     public dispose() {
         super.dispose();
     }
@@ -108,9 +94,17 @@ export class SocketClient extends SocketCallbackHandler {
 
         def.resolve(jsonResponse);
     }
+    private onWriteToLog() {
+        const message = this.stream.readStringInTransaction();
+        if (typeof message !== 'string') {
+            return;
+        }
+        this.outputChannel.appendLine(message);
+    }
+
     public ping(message: string) {
         const [def, id] = this.createId<string>(null);
-        this.SendRawCommand(Commands.Ping);
+        this.SendRawCommand(RequestCommands.Ping);
         this.stream.WriteString(id);
         this.stream.WriteString(message);
         return def.promise;
