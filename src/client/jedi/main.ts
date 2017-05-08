@@ -8,7 +8,6 @@ import * as vscode from 'vscode';
 import { createDeferred, Deferred } from '../common/helpers';
 import { PythonSettings } from '../common/configSettings';
 import { EventEmitter } from 'events';
-import { formatErrorForLogging } from '../common/utils';
 import { CancellationToken } from 'vscode';
 import { RequestCommands } from "./commands";
 
