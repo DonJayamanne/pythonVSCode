@@ -18,22 +18,6 @@ import { OutputChannel, CancellationToken } from 'vscode';
     public static Names = new Buffer("name");
 */
 
-export enum Command {
-    Signature,
-    Completions,
-    HoverDefinition,
-    Usages,
-    Definitions,
-    Symbols
-}
-
-const commandMapping = new Map<Command, Buffer>();
-commandMapping.set(Command.Signature, Commands.Arguments);
-commandMapping.set(Command.Completions, Commands.Completions);
-commandMapping.set(Command.Definitions, Commands.Definitions);
-commandMapping.set(Command.HoverDefinition, Commands.Hover);
-commandMapping.set(Command.Usages, Commands.Usages);
-commandMapping.set(Command.Symbols, Commands.Names);
 
 export class SocketClient extends SocketCallbackHandler {
     constructor(socketServer: SocketServer, private outputChannel: OutputChannel) {
@@ -50,11 +34,10 @@ export class SocketClient extends SocketCallbackHandler {
 
         this.idDispenser = new IdDispenser();
     }
-    public getResult<T>(command: Command, token: CancellationToken, fileName: string, columnIndex: number, lineIndex: number, source: string): Promise<T> {
-        const cmd = commandMapping.get(command);
+    public getResult<T>(command: Buffer, token: CancellationToken, fileName: string, columnIndex: number, lineIndex: number, source: string): Promise<T> {
 
         const [def, id] = this.createId<T>(token);
-        this.SendRawCommand(cmd);
+        this.SendRawCommand(command);
         this.stream.WriteString(id);
 
         this.stream.WriteString(fileName);
