@@ -10,13 +10,7 @@ import { PythonSettings } from '../common/configSettings';
 import { EventEmitter } from 'events';
 import { formatErrorForLogging } from '../common/utils';
 import { CancellationToken } from 'vscode';
-import { CompletionItem, Definition, Hover, Location, SignatureHelp, SymbolInformation } from 'vscode';
 import { RequestCommands } from "./commands";
-import { DefinitionParser } from './parsers/DefinitionParser';
-import { HoverParser } from './parsers/HoverParser';
-import { LocationParser } from './parsers/LocationParser';
-import { SignatureHelpParser } from './parsers/SignatureHelpParser';
-import { SymbolInformationParser } from './parsers/SymbolInformationParser';
 
 export enum Command {
     Completions,
