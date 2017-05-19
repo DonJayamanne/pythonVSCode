@@ -6,6 +6,8 @@ import { Product } from '../common/installer';
 import { TextDocument, CancellationToken } from 'vscode';
 
 export class Linter extends baseLinter.BaseLinter {
+    _columnOffset = 1;
+
     constructor(outputChannel: OutputChannel, workspaceRootPath?: string) {
         super('flake8', Product.flake8, outputChannel, workspaceRootPath);
     }
