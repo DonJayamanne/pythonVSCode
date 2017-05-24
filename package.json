@@ -301,11 +301,11 @@
 						"type": "python",
 						"request": "launch",
 						"stopOnEntry": true,
-						"pythonPath": "$${{config:python.pythonPath}}",
-						"program": "$${{file}}",
-						"cwd": "$${{workspaceRoot}}",
+						"pythonPath": "^\"\\${config:python.pythonPath}\"",
+						"program": "^\"\\${file}\"",
+						"cwd": "^\"\\${workspaceRoot}\"",
 						"env": {},
-						"envFile": "$${{workspaceRoot}}/.env",
+						"envFile": "^\"\\${workspaceRoot}/.env\"",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
 							"WaitOnNormalExit",
@@ -322,18 +322,18 @@
 						"request": "launch",
 						"stopOnEntry": true,
 						"osx": {
-							"pythonPath": "$${{env:SPARK_HOME}}/bin/spark-submit"
+							"pythonPath": "^\"\\${env:SPARK_HOME}/bin/spark-submit\""
 						},
 						"windows": {
-							"pythonPath": "$${{env:SPARK_HOME}}/bin/spark-submit.cmd"
+							"pythonPath": "^\"\\${env:SPARK_HOME}/bin/spark-submit.cmd\""
 						},
 						"linux": {
-							"pythonPath": "$${{env:SPARK_HOME}}/bin/spark-submit"
+							"pythonPath": "^\"\\${env:SPARK_HOME}/bin/spark-submit\""
 						},
-						"program": "$${{file}}",
-						"cwd": "$${{workspaceRoot}}",
+						"program": "^\"\\${file}\"",
+						"cwd": "^\"\\${workspaceRoot}\"",
 						"env": {},
-						"envFile": "$${{workspaceRoot}}/.env",
+						"envFile": "^\"\\${workspaceRoot}/.env\"",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
 							"WaitOnNormalExit",
@@ -349,11 +349,11 @@
 						"type": "python",
 						"request": "launch",
 						"stopOnEntry": true,
-						"pythonPath": "$${{config:python.pythonPath}}",
+						"pythonPath": "^\"\\${config:python.pythonPath}\"",
 						"module": "module.name",
-						"cwd": "$${{workspaceRoot}}",
+						"cwd": "^\"\\${workspaceRoot}\"",
 						"env": {},
-						"envFile": "$${{workspaceRoot}}/.env",
+						"envFile": "^\"\\${workspaceRoot}/.env\"",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
 							"WaitOnNormalExit",
@@ -369,12 +369,12 @@
 						"type": "python",
 						"request": "launch",
 						"stopOnEntry": true,
-						"pythonPath": "$${{config:python.pythonPath}}",
-						"program": "$${{file}}",
+						"pythonPath": "^\"\\${config:python.pythonPath}\"",
+						"program": "^\"\\${file}\"",
 						"cwd": "",
 						"console": "integratedTerminal",
 						"env": {},
-						"envFile": "$${{workspaceRoot}}/.env",
+						"envFile": "^\"\\${workspaceRoot}/.env\"",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
 							"WaitOnNormalExit"
@@ -389,12 +389,12 @@
 						"type": "python",
 						"request": "launch",
 						"stopOnEntry": true,
-						"pythonPath": "$${{config:python.pythonPath}}",
-						"program": "${{file}}",
+						"pythonPath": "^\"\\${config:python.pythonPath}\"",
+						"program": "^\"\\${file}\"",
 						"cwd": "",
 						"console": "externalTerminal",
 						"env": {},
-						"envFile": "$${{workspaceRoot}}/.env",
+						"envFile": "^\"\\${workspaceRoot}/.env\"",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
 							"WaitOnNormalExit"
@@ -409,15 +409,15 @@
 						"type": "python",
 						"request": "launch",
 						"stopOnEntry": true,
-						"pythonPath": "$${{config:python.pythonPath}}",
-						"program": "$${{workspaceRoot}/manage.py",
-						"cwd": "$${{workspaceRoot}}",
+						"pythonPath": "^\"\\${config:python.pythonPath}\"",
+						"program": "^\"\\${workspaceRoot}/manage.py\"",
+						"cwd": "^\"\\${workspaceRoot}\"",
 						"args": [
 							"runserver",
 							"--noreload"
 						],
 						"env": {},
-						"envFile": "$${{workspaceRoot}}/.env",
+						"envFile": "^\"\\${workspaceRoot}/.env\"",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
 							"WaitOnNormalExit",
@@ -434,18 +434,18 @@
 						"type": "python",
 						"request": "launch",
 						"stopOnEntry": false,
-						"pythonPath": "$${{config:python.pythonPath}}",
+						"pythonPath": "^\"\\${config:python.pythonPath}\"",
 						"program": "fully qualified path fo 'flask' executable. Generally located along with python interpreter",
-						"cwd": "$${{workspaceRoot}}",
+						"cwd": "^\"\\${workspaceRoot}\"",
 						"env": {
-							"FLASK_APP": "$${{workspaceRoot}}/quickstart/app.py"
+							"FLASK_APP": "^\"\\${workspaceRoot}/quickstart/app.py\""
 						},
 						"args": [
 							"run",
 							"--no-debugger",
 							"--no-reload"
 						],
-						"envFile": "$${{workspaceRoot}}/.env",
+						"envFile": "^\"\\${workspaceRoot}/.env\"",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
 							"WaitOnNormalExit",
@@ -461,16 +461,39 @@
 						"type": "python",
 						"request": "launch",
 						"stopOnEntry": false,
-						"pythonPath": "$${{config:python.pythonPath}}",
-						"program": "$${{workspaceRoot}}/run.py",
-						"cwd": "$${{workspaceRoot}}",
+						"pythonPath": "^\"\\${config:python.pythonPath}\"",
+						"program": "^\"\\${workspaceRoot}/run.py\"",
+						"cwd": "^\"\\${workspaceRoot}\"",
 						"args": [],
 						"env": {},
-						"envFile": "$${{workspaceRoot}}/.env",
+						"envFile": "^\"\\${workspaceRoot}/.env\"",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
 							"WaitOnNormalExit",
 							"RedirectOutput"
+						]
+					}
+				},
+				{
+					"label": "%python.snippet.launch.pyramid.label%",
+					"description": "%python.snippet.launch.pyramid.description%",
+					"body": {
+						"name": "Pyramid",
+						"type": "python",
+						"request": "launch",
+						"stopOnEntry": true,
+						"pythonPath": "^\"\\${config:python.pythonPath}\"",
+						"cwd": "^\"\\${workspaceRoot}\"",
+						"env": {},
+						"envFile": "^\"\\${workspaceRoot}/.env\"",
+						"args": [
+							"^\"\\${workspaceRoot}/development.ini\""
+						],
+						"debugOptions": [
+							"WaitOnAbnormalExit",
+							"WaitOnNormalExit",
+							"RedirectOutput",
+							"Pyramid"
 						]
 					}
 				},
@@ -482,16 +505,16 @@
 						"type": "python",
 						"request": "launch",
 						"stopOnEntry": true,
-						"pythonPath": "$${{config:python.pythonPath}}",
-						"program": "$${{workspaceRoot}}/console.py",
-						"cwd": "$${{workspaceRoot}}",
+						"pythonPath": "^\"\\${config:python.pythonPath}\"",
+						"program": "^\"\\${workspaceRoot}/console.py\"",
+						"cwd": "^\"\\${workspaceRoot}\"",
 						"args": [
 							"dev",
 							"runserver",
 							"--noreload=True"
 						],
 						"env": {},
-						"envFile": "$${{workspaceRoot}}/.env",
+						"envFile": "^\"\\${workspaceRoot}/.env\"",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
 							"WaitOnNormalExit",
@@ -507,9 +530,9 @@
 						"type": "python",
 						"request": "launch",
 						"stopOnEntry": true,
-						"pythonPath": "$${{config:python.pythonPath}}",
+						"pythonPath": "^\"\\${config:python.pythonPath}\"",
 						"program": "~/.virtualenvs/scrapy/bin/scrapy",
-						"cwd": "$${{workspaceRoot}}",
+						"cwd": "^\"\\${workspaceRoot}\"",
 						"args": [
 							"crawl",
 							"specs",
@@ -518,7 +541,7 @@
 						],
 						"console": "integratedTerminal",
 						"env": {},
-						"envFile": "$${{workspaceRoot}}/.env",
+						"envFile": "^\"\\${workspaceRoot}/.env\"",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
 							"WaitOnNormalExit"
@@ -532,8 +555,8 @@
 						"name": "Attach (Remote Debug)",
 						"type": "python",
 						"request": "attach",
-						"localRoot": "$${{workspaceRoot}}",
-						"remoteRoot": "$${{workspaceRoot}}",
+						"localRoot": "^\"\\${workspaceRoot}\"",
+						"remoteRoot": "^\"\\${workspaceRoot}\"",
 						"port": 3000,
 						"secret": "my_secret",
 						"host": "localhost"
