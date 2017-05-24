@@ -56,7 +56,7 @@ export class LocalDebugClient extends DebugClient {
     private getPTVSToolsFilePath(): string {
         let currentFileName = module.filename;
         let ptVSToolsPath = path.join(path.dirname(currentFileName), '..', '..', '..', '..', 'pythonFiles', 'PythonTools');
-        return path.join(ptVSToolsPath, 'visualstudio_py_launcher.py');
+        return path.join(ptVSToolsPath, 'pydev_py_debugger.py');
     }
     private displayError(error: any) {
         let errorMsg = typeof error === 'string' ? error : ((error.message && error.message.length > 0) ? error.message : '');
