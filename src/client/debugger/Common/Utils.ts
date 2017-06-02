@@ -110,6 +110,9 @@ export function getPythonExecutable(pythonPath: string): string {
 }
 
 function isValidPythonPath(pythonPath): boolean {
+    if (fs.existsSync(pythonPath)) {
+        return true;
+    }
     try {
         const output = child_process.execFileSync(pythonPath, ['-c', 'print(1234)'], { encoding: 'utf8' });
         return output.startsWith('1234');
