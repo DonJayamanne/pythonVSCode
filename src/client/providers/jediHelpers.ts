@@ -49,8 +49,8 @@ export function extractSignatureAndDocumentation(definition: proxy.IAutoComplete
 }
 
 export function highlightCode(docstring: string): string {
-    // Add blank line
-    docstring = EOL + EOL + docstring + EOL + EOL;
+    // Add blank line before and after docstring
+    docstring = EOL + docstring.trim() + EOL;
     // Section title -> heading level 2
     docstring = docstring.replace(/(.+\r?\n)[-=]+\r?\n/g, '## $1' + EOL);
     // Directives: '.. directive::' -> '**directive**'
