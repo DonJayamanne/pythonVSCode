@@ -466,18 +466,15 @@ suite('Hover Definition', () => {
 Random number generator base class used by bound module functions.
 
 Used to instantiate instances of Random to get generators that don't
-share state.  Especially useful for multi-threaded programs, creating
-a different instance of Random for each thread, and using the jumpahead()
-method to ensure that the generated sequences seen by each thread don't
-overlap.
+share state.
 
 Class Random can also be subclassed if you want to use a different basic
 generator of your own devising: in that case, override the following
 
-\`methods\` random(), seed(), getstate(), setstate() and jumpahead().
+\`methods\`  random(), seed(), getstate(), and setstate().
 
-Optionally, implement a getrandbits() method so that randrange() can cover
-arbitrarily large ranges.
+Optionally, implement a getrandbits() method so that randrange()
+can cover arbitrarily large ranges.
 `,
             'Invalid content items');
         }).then(done, done);
