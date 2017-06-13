@@ -29,6 +29,7 @@ function getSearchPaths(): Promise<string[]> {
         const lookupParentDirectories = [process.env['PROGRAMFILES'], process.env['PROGRAMFILES(X86)'],
             localAppData, appData,
         process.env['SystemDrive']];
+        lookupParentDirectories.push(path.join(process.env['SystemDrive'], 'Python'));
         if (appData) {
             lookupParentDirectories.push(path.join(localAppData, 'Programs'));
         }
@@ -144,7 +145,18 @@ function suggestionsFromKnownPaths(): Promise<PythonPathSuggestion[]> {
                 return lookForInterpretersInPath(validatedPath);
             });
         });
-        return Promise.all<string[]>(promises).then(listOfInterpreters => {
+        const currentPythonInterpreter = utils.execPythonFile("python", ["-c", "import sys;print(sys.executable)"], __dirname)
+            .then(stdout => {
+                if (stdout.length === 0) {
+                    return [] as string[];
+                }
+                let lines = stdout.split(/\r?\n/g).filter(line => line.length > 0);
+                return utils.validatePath(lines[0]).then(p=> [p]);
+            }).catch(() => {
+                return [] as string[];
+            });
+
+        return Promise.all<string[]>(promises.concat(currentPythonInterpreter)).then(listOfInterpreters => {
             const suggestions: PythonPathSuggestion[] = [];
             const interpreters = listOfInterpreters.reduce((previous, current) => previous.concat(current), []);
             interpreters.filter(interpreter => interpreter.length > 0).map(interpreter => {
