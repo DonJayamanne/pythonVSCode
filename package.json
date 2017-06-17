@@ -99,7 +99,13 @@
 			"key": "ctrl+alt+enter",
 			"when": "editorFocus && !replaceActive && !searchViewletVisible && !findWidgetVisible"
 		}],
-		"commands": [{
+		"commands": [
+			{
+				"command": "python.autoImportAtCursor",
+				"title": "Auto Import Symbol under cursor",
+				"category": "Python Refactor"
+			},
+			{
 				"command": "python.sortImports",
 				"title": "Sort Imports",
 				"category": "Python Refactor"
