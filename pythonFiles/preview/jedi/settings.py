@@ -109,7 +109,7 @@ Use filesystem cache to save once parsed files with pickle.
 """
 
 if platform.system().lower() == 'windows':
-    _cache_directory = os.path.join(os.getenv('APPDATA') or '~', 'Jedi',
+    _cache_directory = os.path.join(os.getenv('LOCALAPPDATA') or '~', 'Jedi',
                                     'Jedi')
 elif platform.system().lower() == 'darwin':
     _cache_directory = os.path.join('~', 'Library', 'Caches', 'Jedi')
