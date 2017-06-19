@@ -53,9 +53,6 @@ The debugging experience provided is unparalleled. You could debug almost any ty
 * Auto-indenting as you type
 * Total control over the linters and formatters used
 
-### Creating pages manually
-If you prefer to not use the automatic generator, push a branch named `gh-pages` to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.
-
 ## Contributions and Suggestions
 If you have an idea, we’d love to hear about it, you can add them [here](https://github.com/DonJayamanne/pythonVSCode/issues/183).
 If you think you can build it, then by all means fork the repo, make the changes and create a pull request.
