@@ -81,13 +81,13 @@ function getSearchPaths(): Promise<string[]> {
 function getSearchVenvs(): Promise<string[]> {
     let paths = [];
     if (!utils.IS_WINDOWS) {
-        let defaultPaths = ['/Envs', '/.virtualenvs', '/.pyenv', '/.pyenv/versions'];
+        const defaultPaths = ['/Envs', '/.virtualenvs', '/.pyenv', '/.pyenv/versions'];
         defaultPaths.forEach(p => {
             paths.push(untildify('~' + p));
         });
     }
     if (settings.PythonSettings.getInstance().venvPath) {
-        let venvPath = settings.PythonSettings.getInstance().venvPath;
+        const venvPath = settings.PythonSettings.getInstance().venvPath;
         paths.push(untildify(venvPath));
     }
     return Promise.resolve(paths);
@@ -177,13 +177,17 @@ function suggestionsFromKnownPaths(): Promise<PythonPathSuggestion[]> {
 }
 function suggestionsFromKnownVenvs(): Promise<PythonPathSuggestion[]> {
     return getSearchVenvs().then(paths => {
-        const suggestions: PythonPathSuggestion[] = [];
-        paths.forEach(p => {
-            lookForInterpretersInVenvs(p).then((s) => {
+        const promises = paths.map(p => {
+            return lookForInterpretersInVenvs(p);
+        });
+
+        return Promise.all<PythonPathSuggestion[]>(promises).then((listOfInterpreters) => {
+            let suggestions: PythonPathSuggestion[] = [];
+            listOfInterpreters.forEach(s => {
                 suggestions.push(...s);
             });
+            return suggestions;
         });
-        return suggestions;
     });
 }
 function suggestionsFromConda(): Promise<PythonPathSuggestion[]> {
