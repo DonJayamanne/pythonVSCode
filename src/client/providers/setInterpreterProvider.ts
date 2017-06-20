@@ -86,8 +86,8 @@ function getSearchVenvs(): Promise<string[]> {
             paths.push(untildify('~' + p));
         });
     }
-    if (settings.PythonSettings.getInstance().venvPath) {
-        const venvPath = settings.PythonSettings.getInstance().venvPath;
+    const venvPath = settings.PythonSettings.getInstance().venvPath;
+    if (venvPath) {
         paths.push(untildify(venvPath));
     }
     return Promise.resolve(paths);
@@ -181,7 +181,7 @@ function suggestionsFromKnownVenvs(): Promise<PythonPathSuggestion[]> {
             return lookForInterpretersInVenvs(p);
         });
 
-        return Promise.all<PythonPathSuggestion[]>(promises).then((listOfInterpreters) => {
+        return Promise.all<PythonPathSuggestion[]>(promises).then(listOfInterpreters => {
             let suggestions: PythonPathSuggestion[] = [];
             listOfInterpreters.forEach(s => {
                 suggestions.push(...s);
