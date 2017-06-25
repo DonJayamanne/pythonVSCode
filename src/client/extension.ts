@@ -88,7 +88,7 @@ export function activate(context: vscode.ExtensionContext) {
                 action: { indentAction: vscode.IndentAction.None, appendText: '# ' },
             },
             {
-                beforeText: /^\s+(continue|break|return).*$/,
+                beforeText: /^\s+(continue|break|return)\b.*$/,
                 action: {indentAction: vscode.IndentAction.Outdent},
             }
         ]
