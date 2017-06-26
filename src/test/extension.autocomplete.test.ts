@@ -235,7 +235,7 @@ suite('Hover Definition', () => {
             assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '30,4', 'Start position is incorrect');
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '30,11', 'End position is incorrect');
             assert.equal(def[0].contents.length, 1, 'Invalid content items');
-            assert.equal(def[0].contents[0], '```python' + EOL + 'def method1()' + EOL + '```' + EOL + 'This is method1' + EOL, 'function signature incorrect');
+            assert.equal(def[0].contents[0], '```python' + EOL + 'def method1()' + EOL + '```' + EOL + 'This is method1', 'function signature incorrect');
         }).then(done, done);
     });
 
