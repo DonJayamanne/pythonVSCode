@@ -235,7 +235,7 @@ suite('Hover Definition', () => {
             assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '30,4', 'Start position is incorrect');
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '30,11', 'End position is incorrect');
             assert.equal(def[0].contents.length, 1, 'Invalid content items');
-            assert.equal(def[0].contents[0], '```python' + EOL + 'def method1()' + EOL + '```' + EOL + 'This is method1' + EOL, 'function signature incorrect');
+            assert.equal(def[0].contents[0], '```python' + EOL + 'def method1()' + EOL + '```' + EOL + 'This is method1', 'function signature incorrect');
         }).then(done, done);
     });
 
@@ -254,7 +254,7 @@ suite('Hover Definition', () => {
             assert.equal(def.length, 1, 'Definition length is incorrect');
             assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '1,9', 'Start position is incorrect');
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '1,12', 'End position is incorrect');
-            assert.equal(def[0].contents[0], '```python' + EOL + 'def fun()' + EOL + '```' + EOL + 'This is fun' + EOL, 'Invalid conents');
+            assert.equal(def[0].contents[0], '```python' + EOL + 'def fun()' + EOL + '```' + EOL + 'This is fun', 'Invalid conents');
         }).then(done, done);
     });
 
@@ -275,7 +275,7 @@ suite('Hover Definition', () => {
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '25,7', 'End position is incorrect');
             assert.equal(def[0].contents[0], '```python' + EOL + 'def bar()' + EOL + '```' + EOL +
                 '说明 - keep this line, it works' + EOL + 'delete following line, it works' +
-                EOL + '如果存在需要等待审批或正在执行的任务，将不刷新页面' + EOL, 'Invalid conents');
+                EOL + '如果存在需要等待审批或正在执行的任务，将不刷新页面', 'Invalid conents');
         }).then(done, done);
     });
 
@@ -298,7 +298,7 @@ suite('Hover Definition', () => {
                 'def showMessage()' + EOL +
                 '```' + EOL +
                 'Кюм ут жэмпэр пошжим льаборэж, коммюны янтэрэсщэт нам ед, декта игнота ныморэ жят эи. ' + EOL +
-                'Шэа декам экшырки эи, эи зыд эррэм докэндё, векж факэтэ пэрчыквюэрёж ку.' + EOL, 'Invalid conents');
+                'Шэа декам экшырки эи, эи зыд эррэм докэндё, векж факэтэ пэрчыквюэрёж ку.', 'Invalid conents');
         }).then(done, done);
     });
 
@@ -363,7 +363,7 @@ suite('Hover Definition', () => {
                 "`methods` random(), seed(), getstate(), and setstate()." + EOL +
                 EOL +
                 "Optionally, implement a getrandbits() method so that randrange()" + EOL +
-                "can cover arbitrarily large ranges." + EOL;
+                "can cover arbitrarily large ranges.";
 
             assert.equal(def[0].contents[0], documentation, 'Invalid conents');
         }).then(done, done);
@@ -387,7 +387,7 @@ suite('Hover Definition', () => {
             assert.equal(def[0].contents[0], '```python' + EOL +
                 'def randint(a, b)' + EOL +
                 '```' + EOL +
-                'Return random integer in range [a, b], including both end points.' + EOL,
+                'Return random integer in range [a, b], including both end points.',
                 'Invalid conents');
         }).then(done, done);
     });
@@ -410,7 +410,7 @@ suite('Hover Definition', () => {
             assert.equal(def[0].contents[0], '```python' + EOL +
                 'def acos(x)' + EOL +
                 '```' + EOL +
-                'Return the arc cosine (measured in radians) of x.' + EOL,
+                'Return the arc cosine (measured in radians) of x.',
                 'Invalid conents');
         }).then(done, done);
     });
@@ -438,7 +438,7 @@ suite('Hover Definition', () => {
                 '' + EOL +
                 'A class that represents a thread of control.' + EOL +
                 '' + EOL +
-                'This class can be safely subclassed in a limited fashion.' + EOL,
+                'This class can be safely subclassed in a limited fashion.',
                 'Invalid content items');
         }).then(done, done);
     });
@@ -474,7 +474,7 @@ generator of your own devising: in that case, override the following
 \`methods\`  random(), seed(), getstate(), and setstate().
 
 Optionally, implement a getrandbits() method so that randrange()
-can cover arbitrarily large ranges.` + EOL,
+can cover arbitrarily large ranges.`,
             'Invalid content items');
         }).then(done, done);
     });
