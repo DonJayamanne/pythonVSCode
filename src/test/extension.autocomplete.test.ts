@@ -235,7 +235,7 @@ suite('Hover Definition', () => {
             assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '30,4', 'Start position is incorrect');
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '30,11', 'End position is incorrect');
             assert.equal(def[0].contents.length, 1, 'Invalid content items');
-            assert.equal(def[0].contents[0], '```python' + EOL + 'def method1()' + EOL + '```' + EOL + EOL + 'This is method1' + EOL, 'function signature incorrect');
+            assert.equal(def[0].contents[0], '```python' + EOL + 'def method1()' + EOL + '```' + EOL + 'This is method1' + EOL, 'function signature incorrect');
         }).then(done, done);
     });
 
@@ -254,7 +254,7 @@ suite('Hover Definition', () => {
             assert.equal(def.length, 1, 'Definition length is incorrect');
             assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '1,9', 'Start position is incorrect');
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '1,12', 'End position is incorrect');
-            assert.equal(def[0].contents[0], '```python' + EOL + 'def fun()' + EOL + '```' + EOL + EOL + 'This is fun' + EOL, 'Invalid conents');
+            assert.equal(def[0].contents[0], '```python' + EOL + 'def fun()' + EOL + '```' + EOL + 'This is fun' + EOL, 'Invalid conents');
         }).then(done, done);
     });
 
@@ -273,7 +273,7 @@ suite('Hover Definition', () => {
             assert.equal(def.length, 1, 'Definition length is incorrect');
             assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '25,4', 'Start position is incorrect');
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '25,7', 'End position is incorrect');
-            assert.equal(def[0].contents[0], '```python' + EOL + 'def bar()' + EOL + '```' + EOL + EOL +
+            assert.equal(def[0].contents[0], '```python' + EOL + 'def bar()' + EOL + '```' + EOL +
                 '说明 - keep this line, it works' + EOL + 'delete following line, it works' +
                 EOL + '如果存在需要等待审批或正在执行的任务，将不刷新页面' + EOL, 'Invalid conents');
         }).then(done, done);
@@ -296,7 +296,7 @@ suite('Hover Definition', () => {
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '1,16', 'End position is incorrect');
             assert.equal(def[0].contents[0], '```python' + EOL +
                 'def showMessage()' + EOL +
-                '```' + EOL + EOL +
+                '```' + EOL +
                 'Кюм ут жэмпэр пошжим льаборэж, коммюны янтэрэсщэт нам ед, декта игнота ныморэ жят эи. ' + EOL +
                 'Шэа декам экшырки эи, эи зыд эррэм докэндё, векж факэтэ пэрчыквюэрёж ку.' + EOL, 'Invalid conents');
         }).then(done, done);
@@ -351,7 +351,7 @@ suite('Hover Definition', () => {
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '11,18', 'End position is incorrect');
             let documentation = "```python" + EOL +
                 "class Random(x=None)" + EOL +
-                "```" + EOL + EOL +
+                "```" + EOL +
                 "Random number generator base class used by bound module functions." + EOL +
                 "" + EOL +
                 "Used to instantiate instances of Random to get generators that don't" + EOL +
@@ -386,7 +386,7 @@ suite('Hover Definition', () => {
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '12,12', 'End position is incorrect');
             assert.equal(def[0].contents[0], '```python' + EOL +
                 'def randint(a, b)' + EOL +
-                '```' + EOL + EOL +
+                '```' + EOL +
                 'Return random integer in range [a, b], including both end points.' + EOL,
                 'Invalid conents');
         }).then(done, done);
@@ -409,7 +409,7 @@ suite('Hover Definition', () => {
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '8,15', 'End position is incorrect');
             assert.equal(def[0].contents[0], '```python' + EOL +
                 'def acos(x)' + EOL +
-                '```' + EOL + EOL +
+                '```' + EOL +
                 'Return the arc cosine (measured in radians) of x.' + EOL,
                 'Invalid conents');
         }).then(done, done);
@@ -432,14 +432,14 @@ suite('Hover Definition', () => {
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '14,15', 'End position is incorrect');
             assert.equal(def[0].contents[0], '```python' + EOL +
                 'class Thread(group=None, target=None, name=None, args=(), kwargs=None, verbose=None)' + EOL +
-                '```' + EOL + EOL +
+                '```' + EOL +
                 'Thread(self, group=None, target=None, name=None,' + EOL +
                 'args=(), kwargs=None, verbose=None)' + EOL +
                 '' + EOL +
                 'A class that represents a thread of control.' + EOL +
                 '' + EOL +
-                'This class can be safely subclassed in a limited fashion.'
-                + EOL, 'Invalid content items');
+                'This class can be safely subclassed in a limited fashion.' + EOL,
+                'Invalid content items');
         }).then(done, done);
     });
 
@@ -460,7 +460,7 @@ suite('Hover Definition', () => {
             assert.equal(def[0].contents[0],
             '```python' + EOL +
             'Random' + EOL +
-            '```' + EOL + EOL +
+            '```' + EOL +
             `Random(self, x=None)
 
 Random number generator base class used by bound module functions.
@@ -474,8 +474,7 @@ generator of your own devising: in that case, override the following
 \`methods\`  random(), seed(), getstate(), and setstate().
 
 Optionally, implement a getrandbits() method so that randrange()
-can cover arbitrarily large ranges.
-`,
+can cover arbitrarily large ranges.` + EOL,
             'Invalid content items');
         }).then(done, done);
     });

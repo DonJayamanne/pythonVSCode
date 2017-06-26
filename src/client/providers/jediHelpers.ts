@@ -50,7 +50,7 @@ export function extractSignatureAndDocumentation(definition: proxy.IAutoComplete
 
 export function highlightCode(docstring: string): string {
     // Add blank line before and after docstring
-    docstring = EOL + docstring.trim() + EOL;
+    docstring = EOL + EOL + docstring.trim() + EOL + EOL;
     // Section title -> heading level 2
     docstring = docstring.replace(/(.+\r?\n)[-=]+\r?\n/g, '## $1' + EOL);
     // Directives: '.. directive::' -> '**directive**'
@@ -93,5 +93,5 @@ export function highlightCode(docstring: string): string {
     // Grid Tables
     docstring = docstring.replace(/\r?\n[\+-]+\r?\n/g, EOL);
     docstring = docstring.replace(/\r?\n[\+=]+\r?\n/g, s => s.replace(/\+/g, '|').replace(/=/g, '-'));
-    return docstring;
+    return docstring.trim() + EOL;
 }
