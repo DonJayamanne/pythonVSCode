@@ -4,6 +4,7 @@ import re
 import sys
 import json
 import traceback
+import platform
 
 WORD_RE = re.compile(r'\w')
 jediPreview = False
@@ -20,6 +21,17 @@ class JediCompletion(object):
     def __init__(self):
         self.default_sys_path = sys.path
         self._input = io.open(sys.stdin.fileno(), encoding='utf-8')
+        if (os.path.sep == '/') and (platform.uname()[2].find('Microsoft') > -1):
+            # WSL; does not support UNC paths
+            self.drive_mount = '/mnt/'
+        elif sys.platform == 'cygwin':
+            # cygwin
+            self.drive_mount = '/cygdrive/'
+        else:
+            # Do no normalization, e.g. Windows build of Python.
+            # Could add additional test: ((os.path.sep == '/') and os.path.isdir('/mnt/c'))
+            # However, this may have more false positives trying to identify Windows/*nix hybrids
+            self.drive_mount = ''
 
     def _get_definition_type(self, definition):
         is_built_in = definition.in_builtin_module
@@ -520,6 +532,25 @@ class JediCompletion(object):
             if path and path not in sys.path:
                 sys.path.insert(0, path)
 
+    def _normalize_request_path(self, request):
+        """Normalize any Windows paths received by a *nix build of
+           Python. Does not alter the reverse os.path.sep=='\\',
+           i.e. *nix paths received by a Windows build of Python.
+        """
+        if 'path' in request:
+            if not self.drive_mount:
+                return
+            newPath = request['path'].replace('\\', '/')
+            if newPath[0:1] == '/':
+                # is absolute path with no drive letter
+                request['path'] = newPath
+            elif newPath[1:2] == ':':
+                # is path with drive letter, only absolute can be mapped
+                request['path'] = self.drive_mount + newPath[0:1].lower() + newPath[2:]
+            else:
+                # is relative path
+                request['path'] = newPath
+
     def _process_request(self, request):
         """Accept serialized request from VSCode and write response.
         """
@@ -527,6 +558,7 @@ class JediCompletion(object):
 
         self._set_request_config(request.get('config', {}))
 
+        self._normalize_request_path(request)
         path = self._get_top_level_module(request.get('path', ''))
         if path not in sys.path:
             sys.path.insert(0, path)
