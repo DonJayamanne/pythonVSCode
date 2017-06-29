@@ -23,7 +23,6 @@ export interface ILintMessage {
     code: string;
     message: string;
     type: string;
-    possibleWord?: string;
     severity?: LintMessageSeverity;
     provider: string;
 }
@@ -53,6 +52,7 @@ export abstract class BaseLinter {
     private installer: Installer;
     protected pythonSettings: settings.IPythonSettings;
     private _workspaceRootPath: string;
+    protected _columnOffset = 0;
     protected get workspaceRootPath(): string {
         return typeof this._workspaceRootPath === 'string' ? this._workspaceRootPath : vscode.workspace.rootPath;
     }
@@ -84,24 +84,11 @@ export abstract class BaseLinter {
                         match.line = Number(<any>match.line);
                         match.column = Number(<any>match.column);
 
-                        let possibleWord: string;
-                        if (!isNaN(match.column)) {
-                            let sourceLine = document.lineAt(match.line - 1).text;
-                            let sourceStart = sourceLine.substring(match.column - 1);
-
-                            // try to get the first word from the startig position
-                            let possibleProblemWords = sourceStart.match(/\w+/g);
-                            if (possibleProblemWords != null && possibleProblemWords.length > 0 && sourceStart.startsWith(possibleProblemWords[0])) {
-                                possibleWord = possibleProblemWords[0];
-                            }
-                        }
-
                         diagnostics.push({
                             code: match.code,
                             message: match.message,
-                            column: isNaN(match.column) || match.column === 0 ? 0 : match.column - 1,
+                            column: isNaN(match.column) || match.column === 0 ? 0 : match.column - this._columnOffset,
                             line: match.line,
-                            possibleWord: possibleWord,
                             type: match.type,
                             provider: this.Id
                         });

@@ -22,14 +22,8 @@ lintSeverityToVSSeverity.set(linter.LintMessageSeverity.Information, vscode.Diag
 lintSeverityToVSSeverity.set(linter.LintMessageSeverity.Warning, vscode.DiagnosticSeverity.Warning);
 
 function createDiagnostics(message: linter.ILintMessage, document: vscode.TextDocument): vscode.Diagnostic {
-    let endCol = document.lineAt(message.line - 1).text.length;
-
-    // try to get the first word from the startig position
-    if (message.possibleWord === 'string' && message.possibleWord.length > 0) {
-        endCol = message.column + message.possibleWord.length;
-    }
-
-    let range = new vscode.Range(new vscode.Position(message.line - 1, message.column), new vscode.Position(message.line - 1, endCol));
+    let position = new vscode.Position(message.line - 1, message.column);
+    let range = new vscode.Range(position, position);
 
     let severity = lintSeverityToVSSeverity.get(message.severity);
     let diagnostic = new vscode.Diagnostic(range, message.code + ':' + message.message, severity);
