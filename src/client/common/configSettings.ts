@@ -49,6 +49,19 @@ export interface IPylintCategorySeverity {
     error: vscode.DiagnosticSeverity;
     fatal: vscode.DiagnosticSeverity;
 }
+export interface IPep8CategorySeverity {
+    W: vscode.DiagnosticSeverity;
+    E: vscode.DiagnosticSeverity;
+}
+export interface Flake8CategorySeverity {
+    F: vscode.DiagnosticSeverity;
+    E: vscode.DiagnosticSeverity;
+    W: vscode.DiagnosticSeverity;
+}
+export interface IMypyCategorySeverity {
+    error: vscode.DiagnosticSeverity;
+    note: vscode.DiagnosticSeverity;
+}
 export interface ILintingSettings {
     enabled: boolean;
     enabledWithoutWorkspace: boolean;
@@ -69,6 +82,9 @@ export interface ILintingSettings {
     lintOnSave: boolean;
     maxNumberOfProblems: number;
     pylintCategorySeverity: IPylintCategorySeverity;
+    pep8CategorySeverity: IPep8CategorySeverity;
+    flake8CategorySeverity: Flake8CategorySeverity;
+    mypyCategorySeverity: IMypyCategorySeverity;
     prospectorPath: string;
     pylintPath: string;
     pep8Path: string;
@@ -183,6 +199,19 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
                 fatal: vscode.DiagnosticSeverity.Error,
                 refactor: vscode.DiagnosticSeverity.Hint,
                 warning: vscode.DiagnosticSeverity.Warning
+            },
+            pep8CategorySeverity: {
+                E: vscode.DiagnosticSeverity.Error,
+                W: vscode.DiagnosticSeverity.Warning
+            },
+            flake8CategorySeverity: {
+                F: vscode.DiagnosticSeverity.Error,
+                E: vscode.DiagnosticSeverity.Error,
+                W: vscode.DiagnosticSeverity.Warning
+            },
+            mypyCategorySeverity: {
+                error: vscode.DiagnosticSeverity.Error,
+                note: vscode.DiagnosticSeverity.Hint
             }
         };
         this.linting.pylintPath = getAbsolutePath(systemVariables.resolveAny(this.linting.pylintPath), workspaceRoot);
