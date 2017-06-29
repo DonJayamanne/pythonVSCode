@@ -226,6 +226,18 @@ export class PythonDebugger extends DebugSession {
                 return this.sendErrorResponse(response, 2001, `'cwd' in 'launch.json' needs to point to the working directory`);
             }
         }
+
+        let programDirectory = '';
+        if (args && args.program) {
+            programDirectory = path.dirname(args.program);
+        }
+        if (args && typeof args.cwd === 'string' && args.cwd.length > 0 && args.cwd !== 'null') {
+            programDirectory = args.cwd;
+        }
+        if (programDirectory.length > 0 && fs.existsSync(path.join(programDirectory, 'pyenv.cfg'))){
+            this.sendEvent(new OutputEvent(`Warning 'pyenv.cfg' can interfere with the debugger. Please rename or delete this file (temporary solution)`));            
+        }
+        
         this.sendEvent(new TelemetryEvent(telemetryContracts.Debugger.Load, {
             Debug_Console: args.console,
             Debug_DebugOptions: args.debugOptions.join(","),
