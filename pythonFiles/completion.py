@@ -8,6 +8,19 @@ import traceback
 WORD_RE = re.compile(r'\w')
 jediPreview = False
 
+class RedirectStdout(object):
+    def __init__(self, new_stdout=None):
+        """If stdout is None, redirect to /dev/null"""
+        self._new_stdout = new_stdout or open(os.devnull, 'w')
+
+    def __enter__(self):
+        sys.stdout.flush()
+        oldstdout_fno = self.oldstdout_fno = os.dup(sys.stdout.fileno())
+        os.dup2(self._new_stdout.fileno(), 1)
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self._new_stdout.flush()
+        os.dup2(self.oldstdout_fno, 1)
 
 class JediCompletion(object):
     basic_types = {
@@ -533,12 +546,12 @@ class JediCompletion(object):
         lookup = request.get('lookup', 'completions')
 
         if lookup == 'names':
-            return self._write_response(self._serialize_definitions(
+            return self._serialize_definitions(
                 jedi.api.names(
                     source=request.get('source', None),
                     path=request.get('path', ''),
                     all_scopes=True),
-                request['id']))
+                request['id'])
 
         script = jedi.api.Script(
             source=request.get('source', None), line=request['line'] + 1,
@@ -548,29 +561,27 @@ class JediCompletion(object):
             defs = self._get_definitionsx(script.goto_definitions(), request['id'])
             if len(defs) == 0:
                 defs = self._get_definitionsx(script.goto_assignments(), request['id'])
-            return self._write_response(json.dumps({'id': request['id'], 'results': defs}))
+            return json.dumps({'id': request['id'], 'results': defs})
         if lookup == 'tooltip':
             if jediPreview:
                 defs = self._get_definitionsx(script.goto_definitions(), request['id'], True)
                 if len(defs) == 0:
                     defs = self._get_definitionsx(script.goto_assignments(), request['id'], True)
-                return self._write_response(json.dumps({'id': request['id'], 'results': defs}))
+                return json.dumps({'id': request['id'], 'results': defs})
             else:
-                return self._write_response(self._serialize_tooltip(script.goto_definitions(), request['id']))
+                return self._serialize_tooltip(script.goto_definitions(), request['id'])
         elif lookup == 'arguments':
-            return self._write_response(self._serialize_arguments(
-                script, request['id']))
+            return self._serialize_arguments(
+                script, request['id'])
         elif lookup == 'usages':
-            return self._write_response(self._serialize_usages(
-                script.usages(), request['id']))
+            return self._serialize_usages(
+                script.usages(), request['id'])
         elif lookup == 'methods':
-          return self._write_response(
-              self._serialize_methods(script, request['id'],
-                                      request.get('prefix', '')))
+          return self._serialize_methods(script, request['id'],
+                                      request.get('prefix', ''))
         else:
-            return self._write_response(
-                self._serialize_completions(script, request['id'],
-                                            request.get('prefix', '')))
+            return self._serialize_completions(script, request['id'],
+                                            request.get('prefix', ''))
 
     def _write_response(self, response):
         sys.stdout.write(response + '\n')
@@ -585,7 +596,9 @@ class JediCompletion(object):
                     sys.stderr.write('Received EOF from the standard input,exiting' + '\n')
                     sys.stderr.flush()
                     return
-                self._process_request(rq)
+                with RedirectStdout():
+                    response = self._process_request(rq)
+                self._write_response(response)
 
             except Exception:
                 sys.stderr.write(traceback.format_exc() + '\n')
