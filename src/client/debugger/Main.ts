@@ -194,6 +194,11 @@ export class PythonDebugger extends DebugSession {
         return Promise.resolve(true);
     }
     protected launchRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments): void {
+        // Some versions may still exist with incorrect launch.json values
+        const setting = '${config.python.pythonPath}';
+        if (args.pythonPath === setting){
+            return this.sendErrorResponse(response, 2001, `Invalid launch.json (re-create it or replace 'config.python.pythonPath' with 'config:python.pythonPath')`);
+        }
         // Add support for specifying just the directory where the python executable will be located
         // E.g. virtual directory name
         try {
