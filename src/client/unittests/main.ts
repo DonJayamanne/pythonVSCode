@@ -296,7 +296,8 @@ function runTestsImpl(arg?: vscode.Uri | TestsToRun | boolean | FlattenedTestFun
 
     testResultDisplay = testResultDisplay ? testResultDisplay : new TestResultDisplay(outChannel, onDidChange);
 
-    let runPromise = testManager.runTest(runInfo, debug).catch(reason => {
+    let ret = typeof runInfo === 'boolean' ? testManager.runTest(runInfo, debug) : testManager.runTest(runInfo, debug);
+    let runPromise = ret.catch(reason => {
         if (reason !== CANCELLATION_REASON) {
             outChannel.appendLine('Error: ' + reason);
         }
