@@ -5,7 +5,7 @@ import * as assert from 'assert';
 // You can import and use all API from the \'vscode\' module
 // as well as import your extension to test it
 import * as vscode from 'vscode';
-import { TextDocument, TextLine, Position, Range } from 'vscode';
+import { TextLine, Position, Range } from 'vscode';
 import * as path from 'path';
 import * as settings from '../client/common/configSettings';
 import * as fs from 'fs-extra';
@@ -110,7 +110,7 @@ suite('Method Extraction', () => {
         }
         fs.copySync(refactorSourceFile, refactorTargetFile, { clobber: true });
         closeActiveWindows().then(() => {
-            vscode.commands.executeCommand = (cmd) => Promise.resolve();
+            (<any>vscode).commands.executeCommand = (cmd) => Promise.resolve();
             done();
         }).catch(done);
     });
