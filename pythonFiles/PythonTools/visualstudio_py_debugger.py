@@ -2623,6 +2623,8 @@ def debug(file, port_num, debug_id, debug_options, currentPid, run_as = 'script'
         elif run_as == 'code':
             exec_code(file, '<string>', globals_obj)
         else:
+            # fix sys.path to be the script file dir
+            sys.path[0] = ''
             exec_file(file, globals_obj)
     finally:
         sys.settrace(None)

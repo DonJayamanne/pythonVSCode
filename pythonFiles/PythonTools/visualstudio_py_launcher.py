@@ -72,9 +72,6 @@ def launch():
     # preserve filename before we del sys
     filename = sys.argv[0]
 
-    # fix sys.path to be the script file dir
-    sys.path[0] = ''
-
     # exclude ourselves from being debugged
     vspd.DONT_DEBUG.append(os.path.normcase(__file__))
 
