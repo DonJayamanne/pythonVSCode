@@ -1,9 +1,9 @@
 language: python
 sudo: true
 cache:
-  pip: true
   directories:
-  - node_modules # NPM packages
+    - $HOME/.cache/pip
+    - $HOME/.npm
 
 matrix:
     include:
