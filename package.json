@@ -2,7 +2,7 @@
 	"name": "python",
 	"displayName": "Python",
 	"description": "Linting, Debugging (multi-threaded, remote), Intellisense, code formatting, refactoring, unit tests, snippets, Data Science (with Jupyter), PySpark and more.",
-	"version": "0.6.4",
+	"version": "0.6.6",
 	"publisher": "donjayamanne",
 	"author": {
 		"name": "Don Jayamanne",
@@ -45,6 +45,7 @@
 	],
 	"activationEvents": [
 		"onLanguage:python",
+		"workspaceContains:*.py",
 		"onCommand:python.python-debug.startSession",
 		"onCommand:python.execInTerminal",
 		"onCommand:python.sortImports",
@@ -363,11 +364,11 @@
 							"type": "python",
 							"request": "launch",
 							"stopOnEntry": true,
-							"pythonPath": "$${{config:python.pythonPath}}",
-							"program": "$${{file}}",
-							"cwd": "$${{workspaceRoot}}",
+							"pythonPath": "^\"\\${config:python.pythonPath}\"",
+							"program": "^\"\\${file}\"",
+							"cwd": "^\"\\${workspaceRoot}\"",
 							"env": {},
-							"envFile": "$${{workspaceRoot}}/.env",
+							"envFile": "^\"\\${workspaceRoot}/.env\"",
 							"debugOptions": [
 								"WaitOnAbnormalExit",
 								"WaitOnNormalExit",
@@ -384,18 +385,18 @@
 							"request": "launch",
 							"stopOnEntry": true,
 							"osx": {
-								"pythonPath": "$${env:SPARK_HOME}}/bin/spark-submit"
+								"pythonPath": "^\"\\${env:SPARK_HOME}/bin/spark-submit\""
 							},
 							"windows": {
-								"pythonPath": "$${{env:SPARK_HOME}}/bin/spark-submit.cmd"
+								"pythonPath": "^\"\\${env:SPARK_HOME}/bin/spark-submit.cmd\""
 							},
 							"linux": {
-								"pythonPath": "$${{env:SPARK_HOME}}/bin/spark-submit"
+								"pythonPath": "^\"\\${env:SPARK_HOME}/bin/spark-submit\""
 							},
-							"program": "$${{file}}",
-							"cwd": "$${{workspaceRoot}}",
+							"program": "^\"\\${file}\"",
+							"cwd": "^\"\\${workspaceRoot}\"",
 							"env": {},
-							"envFile": "$${{workspaceRoot}}/.env",
+							"envFile": "^\"\\${workspaceRoot}/.env\"",
 							"debugOptions": [
 								"WaitOnAbnormalExit",
 								"WaitOnNormalExit",
@@ -411,11 +412,11 @@
 							"type": "python",
 							"request": "launch",
 							"stopOnEntry": true,
-							"pythonPath": "$${{config:python.pythonPath}}",
+							"pythonPath": "^\"\\${config:python.pythonPath}\"",
 							"module": "module.name",
-							"cwd": "$${{workspaceRoot}}",
+							"cwd": "^\"\\${workspaceRoot}\"",
 							"env": {},
-							"envFile": "$${{workspaceRoot}}/.env",
+							"envFile": "^\"\\${workspaceRoot}/.env\"",
 							"debugOptions": [
 								"WaitOnAbnormalExit",
 								"WaitOnNormalExit",
@@ -431,12 +432,12 @@
 							"type": "python",
 							"request": "launch",
 							"stopOnEntry": true,
-							"pythonPath": "$${{config:python.pythonPath}}",
-							"program": "$${{file}}",
+							"pythonPath": "^\"\\${config:python.pythonPath}\"",
+							"program": "^\"\\${file}\"",
 							"cwd": "",
 							"console": "integratedTerminal",
 							"env": {},
-							"envFile": "$${{workspaceRoot}}/.env",
+							"envFile": "^\"\\${workspaceRoot}/.env\"",
 							"debugOptions": [
 								"WaitOnAbnormalExit",
 								"WaitOnNormalExit"
@@ -451,12 +452,12 @@
 							"type": "python",
 							"request": "launch",
 							"stopOnEntry": true,
-							"pythonPath": "$${{config:python.pythonPath}}",
-							"program": "${{file}}",
+							"pythonPath": "^\"\\${config:python.pythonPath}\"",
+							"program": "^\"\\${file}\"",
 							"cwd": "",
 							"console": "externalTerminal",
 							"env": {},
-							"envFile": "$${{workspaceRoot}}/.env",
+							"envFile": "^\"\\${workspaceRoot}/.env\"",
 							"debugOptions": [
 								"WaitOnAbnormalExit",
 								"WaitOnNormalExit"
@@ -471,15 +472,15 @@
 							"type": "python",
 							"request": "launch",
 							"stopOnEntry": true,
-							"pythonPath": "$${{config:python.pythonPath}}",
-							"program": "$${{workspaceRoot}/manage.py",
-							"cwd": "$${{workspaceRoot}}",
+							"pythonPath": "^\"\\${config:python.pythonPath}\"",
+							"program": "^\"\\${workspaceRoot}/manage.py\"",
+							"cwd": "^\"\\${workspaceRoot}\"",
 							"args": [
 								"runserver",
 								"--noreload"
 							],
 							"env": {},
-							"envFile": "$${{workspaceRoot}}/.env",
+							"envFile": "^\"\\${workspaceRoot}/.env\"",
 							"debugOptions": [
 								"WaitOnAbnormalExit",
 								"WaitOnNormalExit",
@@ -496,18 +497,18 @@
 							"type": "python",
 							"request": "launch",
 							"stopOnEntry": false,
-							"pythonPath": "$${{config:python.pythonPath}}",
+							"pythonPath": "^\"\\${config:python.pythonPath}\"",
 							"program": "fully qualified path fo 'flask' executable. Generally located along with python interpreter",
-							"cwd": "$${{workspaceRoot}}",
+							"cwd": "^\"\\${workspaceRoot}\"",
 							"env": {
-								"FLASK_APP": "$${{workspaceRoot}}/quickstart/app.py"
+								"FLASK_APP": "^\"\\${workspaceRoot}/quickstart/app.py\""
 							},
 							"args": [
 								"run",
 								"--no-debugger",
 								"--no-reload"
 							],
-							"envFile": "$${{workspaceRoot}}/.env",
+							"envFile": "^\"\\${workspaceRoot}/.env\"",
 							"debugOptions": [
 								"WaitOnAbnormalExit",
 								"WaitOnNormalExit",
@@ -523,16 +524,39 @@
 							"type": "python",
 							"request": "launch",
 							"stopOnEntry": false,
-							"pythonPath": "$${{config:python.pythonPath}}",
-							"program": "$${{workspaceRoot}}/run.py",
-							"cwd": "$${{workspaceRoot}}",
+							"pythonPath": "^\"\\${config:python.pythonPath}\"",
+							"program": "^\"\\${workspaceRoot}/run.py\"",
+							"cwd": "^\"\\${workspaceRoot}\"",
 							"args": [],
 							"env": {},
-							"envFile": "$${{workspaceRoot}}/.env",
+							"envFile": "^\"\\${workspaceRoot}/.env\"",
 							"debugOptions": [
 								"WaitOnAbnormalExit",
 								"WaitOnNormalExit",
 								"RedirectOutput"
+							]
+						}
+					},
+					{
+						"label": "%python.snippet.launch.pyramid.label%",
+						"description": "%python.snippet.launch.pyramid.description%",
+						"body": {
+							"name": "Pyramid",
+							"type": "python",
+							"request": "launch",
+							"stopOnEntry": true,
+							"pythonPath": "^\"\\${config:python.pythonPath}\"",
+							"cwd": "^\"\\${workspaceRoot}\"",
+							"env": {},
+							"envFile": "^\"\\${workspaceRoot}/.env\"",
+							"args": [
+								"^\"\\${workspaceRoot}/development.ini\""
+							],
+							"debugOptions": [
+								"WaitOnAbnormalExit",
+								"WaitOnNormalExit",
+								"RedirectOutput",
+								"Pyramid"
 							]
 						}
 					},
@@ -544,16 +568,16 @@
 							"type": "python",
 							"request": "launch",
 							"stopOnEntry": true,
-							"pythonPath": "$${{config:python.pythonPath}}",
-							"program": "$${{workspaceRoot}}/console.py",
-							"cwd": "$${{workspaceRoot}}",
+							"pythonPath": "^\"\\${config:python.pythonPath}\"",
+							"program": "^\"\\${workspaceRoot}/console.py\"",
+							"cwd": "^\"\\${workspaceRoot}\"",
 							"args": [
 								"dev",
 								"runserver",
 								"--noreload=True"
 							],
 							"env": {},
-							"envFile": "$${{workspaceRoot}}/.env",
+							"envFile": "^\"\\${workspaceRoot}/.env\"",
 							"debugOptions": [
 								"WaitOnAbnormalExit",
 								"WaitOnNormalExit",
@@ -569,9 +593,9 @@
 							"type": "python",
 							"request": "launch",
 							"stopOnEntry": true,
-							"pythonPath": "$${{config:python.pythonPath}}",
+							"pythonPath": "^\"\\${config:python.pythonPath}\"",
 							"program": "~/.virtualenvs/scrapy/bin/scrapy",
-							"cwd": "$${{workspaceRoot}}",
+							"cwd": "^\"\\${workspaceRoot}\"",
 							"args": [
 								"crawl",
 								"specs",
@@ -580,7 +604,7 @@
 							],
 							"console": "integratedTerminal",
 							"env": {},
-							"envFile": "$${{workspaceRoot}}/.env",
+							"envFile": "^\"\\${workspaceRoot}/.env\"",
 							"debugOptions": [
 								"WaitOnAbnormalExit",
 								"WaitOnNormalExit"
@@ -594,8 +618,8 @@
 							"name": "Attach (Remote Debug)",
 							"type": "python",
 							"request": "attach",
-							"localRoot": "$${{workspaceRoot}}",
-							"remoteRoot": "$${{workspaceRoot}}",
+							"localRoot": "^\"\\${workspaceRoot}\"",
+							"remoteRoot": "^\"\\${workspaceRoot}\"",
 							"port": 3000,
 							"secret": "my_secret",
 							"host": "localhost"
@@ -1101,6 +1125,83 @@
 					"type": "string",
 					"default": "Error",
 					"description": "Severity of Pylint message type 'Fatal/F'.",
+					"enum": [
+						"Hint",
+						"Error",
+						"Information",
+						"Warning"
+					]
+				},
+				"python.linting.pep8CategorySeverity.W": {
+					"type": "string",
+					"default": "Warning",
+					"description": "Severity of Pep8 message type 'W'.",
+					"enum": [
+						"Hint",
+						"Error",
+						"Information",
+						"Warning"
+					]
+				},
+				"python.linting.pep8CategorySeverity.E": {
+					"type": "string",
+					"default": "Error",
+					"description": "Severity of Pep8 message type 'E'.",
+					"enum": [
+						"Hint",
+						"Error",
+						"Information",
+						"Warning"
+					]
+				},
+				"python.linting.flake8CategorySeverity.F": {
+					"type": "string",
+					"default": "Error",
+					"description": "Severity of Flake8 message type 'F'.",
+					"enum": [
+						"Hint",
+						"Error",
+						"Information",
+						"Warning"
+					]
+				},
+				"python.linting.flake8CategorySeverity.E": {
+					"type": "string",
+					"default": "Error",
+					"description": "Severity of Flake8 message type 'E'.",
+					"enum": [
+						"Hint",
+						"Error",
+						"Information",
+						"Warning"
+					]
+				},
+				"python.linting.flake8CategorySeverity.W": {
+					"type": "string",
+					"default": "Warning",
+					"description": "Severity of Flake8 message type 'W'.",
+					"enum": [
+						"Hint",
+						"Error",
+						"Information",
+						"Warning"
+					]
+				},
+				"python.linting.mypyCategorySeverity.error": {
+					"type": "string",
+					"default": "Error",
+					"description": "Severity of Mypy message type 'Error'.",
+					"enum": [
+						"Hint",
+						"Error",
+						"Information",
+						"Warning"
+					]
+				},
+				"python.linting.mypyCategorySeverity.note": {
+					"type": "string",
+					"default": "Information",
+					"description": "Severity of Mypy message type 'Note'.",
 					"enum": [
 						"Hint",
 						"Error",
