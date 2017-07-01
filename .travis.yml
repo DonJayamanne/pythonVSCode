@@ -1,6 +1,9 @@
 language: python
 sudo: true
-cache: pip
+cache:
+  pip: true
+  directories:
+  - node_modules # NPM packages
 
 matrix:
     include:
