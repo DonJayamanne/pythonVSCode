@@ -1,5 +1,5 @@
 language: python
-sudo: required
+sudo: true
 
 matrix:
     include:
@@ -8,7 +8,7 @@ matrix:
         #   sudo: required
         #   python: 2.7
         - os: linux
-          sudo: required
+          sudo: false
           python: 3.5
         # # Use generic language for osx
         # - os: osx
@@ -17,7 +17,6 @@ matrix:
         # # Use generic language for osx
         - os: osx
           language: generic
-          env: PYTHON=3.5.1
 # Perform the manual steps on osx to install python3 and activate venv
 before_install: |
   if [ $TRAVIS_OS_NAME == "linux" ]; then
@@ -26,20 +25,14 @@ before_install: |
     sleep 3;
   fi
   git submodule update --init --recursive
-  git clone https://github.com/creationix/nvm.git ./.nvm
-  source ./.nvm/nvm.sh
   nvm install 6.6.0
   nvm use 6.6.0
   npm config set python `which python`
-  if [ "$TRAVIS_OS_NAME" == "osx" ]; then
-    brew update; 
-    brew install openssl readline 
-    brew outdated pyenv || brew upgrade pyenv 
-    brew install pyenv-virtualenv
-    brew install pyenv-virtualenvwrapper
-    pyenv install $PYTHON 
-    pyenv virtualenv $PYTHON MYVERSION
-    source ~/.pyenv/versions/MYVERSION/bin/activate
+  if [[ $TRAVIS_OS_NAME == 'osx' ]]; then
+    brew update;
+    brew install python3;
+    python3 -m venv venv;
+    source venv/bin/activate;
     python --version 
     python -c 'import sys;print(sys.version)' 
     python -c 'import sys;print(sys.executable)' 
