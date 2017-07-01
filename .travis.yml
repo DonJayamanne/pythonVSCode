@@ -46,8 +46,9 @@ install:
 # else when running npm test, the python version picked is completely different :(
   - python --version 
   - python -c 'import sys;print(sys.executable)'
-  - pip install -r requirements.txt
-  - npm install
+  - pip install -r requirements.txt &
+  - npm install &
+  - wait
   - npm run vscode:prepublish
   
 script:
