@@ -1,9 +1,8 @@
 "use strict";
 
 import * as vscode from "vscode";
-import { TextDocument, Position, CancellationToken, SignatureHelp, ExtensionContext } from "vscode";
+import { TextDocument, Position, CancellationToken, SignatureHelp } from "vscode";
 import * as proxy from "./jediProxy";
-import * as telemetryContracts from "../common/telemetryContracts";
 
 const DOCSTRING_PARAM_PATTERNS = [
     "\\s*:type\\s*PARAMNAME:\\s*([^\\n, ]+)", // Sphinx

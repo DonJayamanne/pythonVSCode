@@ -11,7 +11,7 @@ import { TestResultDisplay } from './display/main';
 import { TestDisplay } from './display/picker';
 import * as constants from '../common/constants';
 import { activateCodeLenses } from './codeLenses/main';
-import { displayTestFrameworkError, displayPromptToEnableTests } from './configuration';
+import { displayTestFrameworkError } from './configuration';
 
 const settings = PythonSettings.getInstance();
 let testManager: BaseTestManager;
@@ -155,7 +155,7 @@ function runCurrentTestFile() {
     testManager.discoverTests(true, true).then(() => {
         const tests = getDiscoveredTests();
         const testFiles = tests.testFiles.filter(testFile => {
-            return testFile.fullPath == currentFilePath;
+            return testFile.fullPath === currentFilePath;
         });
         if (testFiles.length < 1) {
             return;
@@ -270,7 +270,7 @@ function isFlattenedTestFunction(arg: any): arg is FlattenedTestFunction {
     return arg && arg.testFunction && typeof arg.xmlClassName === 'string' &&
         arg.parentTestFile && typeof arg.testFunction.name === 'string';
 }
-function identifyTestType(rootDirectory: string, arg?: vscode.Uri | TestsToRun | boolean | FlattenedTestFunction): TestsToRun | Boolean {
+function identifyTestType(rootDirectory: string, arg?: vscode.Uri | TestsToRun | boolean | FlattenedTestFunction): TestsToRun | boolean {
     if (typeof arg === 'boolean') {
         return arg === true;
     }
@@ -296,7 +296,8 @@ function runTestsImpl(arg?: vscode.Uri | TestsToRun | boolean | FlattenedTestFun
 
     testResultDisplay = testResultDisplay ? testResultDisplay : new TestResultDisplay(outChannel, onDidChange);
 
-    let runPromise = testManager.runTest(runInfo, debug).catch(reason => {
+    let ret = typeof runInfo === 'boolean' ? testManager.runTest(runInfo, debug) : testManager.runTest(runInfo, debug);
+    let runPromise = ret.catch(reason => {
         if (reason !== CANCELLATION_REASON) {
             outChannel.appendLine('Error: ' + reason);
         }

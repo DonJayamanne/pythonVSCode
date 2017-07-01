@@ -54,22 +54,12 @@ export class Linter extends baseLinter.BaseLinter {
                 parsedData.messages.filter((value, index) => index <= this.pythonSettings.linting.maxNumberOfProblems).forEach(msg => {
 
                     let lineNumber = msg.location.line === null || isNaN(msg.location.line) ? 1 : msg.location.line;
-                    let sourceLine = document.lineAt(lineNumber - 1).text;
-                    let sourceStart = sourceLine.substring(msg.location.character);
-
-                    // try to get the first word from the starting position
-                    let possibleProblemWords = sourceStart.match(/\w+/g);
-                    let possibleWord: string;
-                    if (possibleProblemWords != null && possibleProblemWords.length > 0 && sourceStart.startsWith(possibleProblemWords[0])) {
-                        possibleWord = possibleProblemWords[0];
-                    }
 
                     diagnostics.push({
                         code: msg.code,
                         message: msg.message,
                         column: msg.location.character,
                         line: lineNumber,
-                        possibleWord: possibleWord,
                         type: msg.code,
                         provider: `${this.Id} - ${msg.source}`
                     });

@@ -1,25 +1,19 @@
 "use strict";
 
-import { Variable, DebugSession, InitializedEvent, TerminatedEvent, StoppedEvent, OutputEvent, Thread, StackFrame, Scope, Source, Handles } from "vscode-debugadapter";
+import { DebugSession, InitializedEvent, TerminatedEvent, StoppedEvent, OutputEvent, Thread, StackFrame, Scope, Source, Handles } from "vscode-debugadapter";
 import { ThreadEvent } from "vscode-debugadapter";
 import { DebugProtocol } from "vscode-debugprotocol";
-import { readFileSync } from "fs";
-import { basename } from "path";
 import * as path from "path";
-import * as os from "os";
 import * as fs from "fs";
-import * as child_process from "child_process";
-import * as StringDecoder from "string_decoder";
-import * as net from "net";
 import { PythonProcess } from "./PythonProcess";
-import { FrameKind, IPythonProcess, IPythonThread, IPythonModule, IPythonEvaluationResult, IPythonStackFrame, IDebugServer } from "./Common/Contracts";
+import { IPythonThread, IPythonModule, IPythonEvaluationResult, IPythonStackFrame, IDebugServer } from "./Common/Contracts";
 import { IPythonBreakpoint, PythonBreakpointConditionKind, PythonBreakpointPassCountKind, IPythonException, PythonEvaluationResultReprKind, enum_EXCEPTION_STATE } from "./Common/Contracts";
 import { BaseDebugServer } from "./DebugServers/BaseDebugServer";
-import { DebugClient, DebugType } from "./DebugClients/DebugClient";
+import { DebugClient } from "./DebugClients/DebugClient";
 import { CreateAttachDebugClient, CreateLaunchDebugClient } from "./DebugClients/DebugFactory";
-import { DjangoApp, LaunchRequestArguments, AttachRequestArguments, DebugFlags, DebugOptions, TelemetryEvent, PythonEvaluationResultFlags } from "./Common/Contracts";
+import { LaunchRequestArguments, AttachRequestArguments, DebugOptions, TelemetryEvent, PythonEvaluationResultFlags } from "./Common/Contracts";
 import * as telemetryContracts from "../common/telemetryContracts";
-import { validatePath, validatePathSync, getPythonExecutable } from './Common/Utils';
+import { validatePath, getPythonExecutable } from './Common/Utils';
 import { isNotInstalledError } from '../common/helpers';
 
 const CHILD_ENUMEARATION_TIMEOUT = 5000;
@@ -194,6 +188,11 @@ export class PythonDebugger extends DebugSession {
         return Promise.resolve(true);
     }
     protected launchRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments): void {
+        // Some versions may still exist with incorrect launch.json values
+        const setting = '${config.python.pythonPath}';
+        if (args.pythonPath === setting){
+            return this.sendErrorResponse(response, 2001, `Invalid launch.json (re-create it or replace 'config.python.pythonPath' with 'config:python.pythonPath')`);
+        }
         // Add support for specifying just the directory where the python executable will be located
         // E.g. virtual directory name
         try {
@@ -221,6 +220,18 @@ export class PythonDebugger extends DebugSession {
                 return this.sendErrorResponse(response, 2001, `'cwd' in 'launch.json' needs to point to the working directory`);
             }
         }
+
+        let programDirectory = '';
+        if (args && args.program) {
+            programDirectory = path.dirname(args.program);
+        }
+        if (args && typeof args.cwd === 'string' && args.cwd.length > 0 && args.cwd !== 'null') {
+            programDirectory = args.cwd;
+        }
+        if (programDirectory.length > 0 && fs.existsSync(path.join(programDirectory, 'pyenv.cfg'))){
+            this.sendEvent(new OutputEvent(`Warning 'pyenv.cfg' can interfere with the debugger. Please rename or delete this file (temporary solution)`));            
+        }
+        
         this.sendEvent(new TelemetryEvent(telemetryContracts.Debugger.Load, {
             Debug_Console: args.console,
             Debug_DebugOptions: args.debugOptions.join(","),
@@ -330,11 +341,10 @@ export class PythonDebugger extends DebugSession {
             }
 
             let breakpoints: { verified: boolean, line: number }[] = [];
-            let breakpointsToRemove = [];
             let linesToAdd = args.breakpoints.map(b => b.line);
             let registeredBks = this.registeredBreakpointsByFileName.get(args.source.path);
             let linesToRemove = registeredBks.map(b => b.LineNo).filter(oldLine => linesToAdd.indexOf(oldLine) === -1);
-            let linesToUpdate = registeredBks.map(b => b.LineNo).filter(oldLine => linesToAdd.indexOf(oldLine) >= 0);
+            // let linesToUpdate = registeredBks.map(b => b.LineNo).filter(oldLine => linesToAdd.indexOf(oldLine) >= 0);
 
             // Always add new breakpoints, don't re-enable previous breakpoints
             // Cuz sometimes some breakpoints get added too early (e.g. in django) and don't get registeredBks

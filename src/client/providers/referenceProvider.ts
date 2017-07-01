@@ -2,7 +2,6 @@
 
 import * as vscode from 'vscode';
 import * as proxy from './jediProxy';
-import * as telemetryContracts from "../common/telemetryContracts";
 
 
 export class PythonReferenceProvider implements vscode.ReferenceProvider {

@@ -340,7 +340,7 @@ function spawnProcess(dir: string) {
                         break;
                     }
                     case CommandType.Hover: {
-                        var defs = <any[]>response['results'];
+                        let defs = <any[]>response['results'];
                         var defResult: IHoverResult = {
                             requestId: cmd.id,
                             items: defs.map(def => {
@@ -358,7 +358,7 @@ function spawnProcess(dir: string) {
                         break;
                     }
                     case CommandType.Symbols: {
-                        var defs = <any[]>response['results'];
+                        let defs = <any[]>response['results'];
                         defs = Array.isArray(defs) ? defs : [];
                         var defResults: ISymbolResult = {
                             requestId: cmd.id,
@@ -441,7 +441,7 @@ function sendCommand<T extends ICommandResult>(cmd: ICommand<T>): Promise<T> {
     }
     var executionCmd = <IExecutionCommand<T>>cmd;
     var payload = createPayload(executionCmd);
-    executionCmd.deferred = createDeferred<ICommandResult>();
+    executionCmd.deferred = createDeferred<T>();
     // if (typeof executionCmd.telemetryEvent === 'string') {
     //     executionCmd.delays = new telemetryHelper.Delays();
     // }

@@ -359,7 +359,9 @@ suite('Hover Definition', () => {
                 "" + EOL +
                 "Class Random can also be subclassed if you want to use a different basic" + EOL +
                 "generator of your own devising: in that case, override the following" + EOL +
-                "methods:  random(), seed(), getstate(), and setstate()." + EOL +
+                EOL +
+                "`methods` random(), seed(), getstate(), and setstate()." + EOL +
+                EOL +
                 "Optionally, implement a getrandbits() method so that randrange()" + EOL +
                 "can cover arbitrarily large ranges.";
 
@@ -385,7 +387,8 @@ suite('Hover Definition', () => {
             assert.equal(def[0].contents[0], '```python' + EOL +
                 'def randint(a, b)' + EOL +
                 '```' + EOL +
-                'Return random integer in range [a, b], including both end points.', 'Invalid conents');
+                'Return random integer in range [a, b], including both end points.',
+                'Invalid conents');
         }).then(done, done);
     });
 
@@ -407,7 +410,8 @@ suite('Hover Definition', () => {
             assert.equal(def[0].contents[0], '```python' + EOL +
                 'def acos(x)' + EOL +
                 '```' + EOL +
-                'Return the arc cosine (measured in radians) of x.', 'Invalid conents');
+                'Return the arc cosine (measured in radians) of x.',
+                'Invalid conents');
         }).then(done, done);
     });
 
@@ -434,7 +438,8 @@ suite('Hover Definition', () => {
                 '' + EOL +
                 'A class that represents a thread of control.' + EOL +
                 '' + EOL +
-                'This class can be safely subclassed in a limited fashion.', 'Invalid content items');
+                'This class can be safely subclassed in a limited fashion.',
+                'Invalid content items');
         }).then(done, done);
     });
 
@@ -452,12 +457,25 @@ suite('Hover Definition', () => {
         }).then(def => {
             assert.equal(def.length, 1, 'Definition length is incorrect');
             assert.equal(def[0].contents.length, 1, 'Only expected one result');
-            assert.ok(def[0].contents[0].toString().startsWith('```python' + EOL +
-                'Random' + EOL +
-                '```' + EOL +
-                'Random(self, x=None)' + EOL +
-                EOL +
-                'Random number generator base class used by bound module functions.'), 'Invalid content items');
+            assert.equal(def[0].contents[0],
+            '```python' + EOL +
+            'Random' + EOL +
+            '```' + EOL +
+            `Random(self, x=None)
+
+Random number generator base class used by bound module functions.
+
+Used to instantiate instances of Random to get generators that don't
+share state.
+
+Class Random can also be subclassed if you want to use a different basic
+generator of your own devising: in that case, override the following
+
+\`methods\`  random(), seed(), getstate(), and setstate().
+
+Optionally, implement a getrandbits() method so that randrange()
+can cover arbitrarily large ranges.`,
+            'Invalid content items');
         }).then(done, done);
     });
 });

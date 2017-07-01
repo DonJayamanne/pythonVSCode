@@ -4,10 +4,24 @@ import re
 import sys
 import json
 import traceback
+import platform
 
 WORD_RE = re.compile(r'\w')
 jediPreview = False
 
+class RedirectStdout(object):
+    def __init__(self, new_stdout=None):
+        """If stdout is None, redirect to /dev/null"""
+        self._new_stdout = new_stdout or open(os.devnull, 'w')
+
+    def __enter__(self):
+        sys.stdout.flush()
+        oldstdout_fno = self.oldstdout_fno = os.dup(sys.stdout.fileno())
+        os.dup2(self._new_stdout.fileno(), 1)
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self._new_stdout.flush()
+        os.dup2(self.oldstdout_fno, 1)
 
 class JediCompletion(object):
     basic_types = {
@@ -20,6 +34,17 @@ class JediCompletion(object):
     def __init__(self):
         self.default_sys_path = sys.path
         self._input = io.open(sys.stdin.fileno(), encoding='utf-8')
+        if (os.path.sep == '/') and (platform.uname()[2].find('Microsoft') > -1):
+            # WSL; does not support UNC paths
+            self.drive_mount = '/mnt/'
+        elif sys.platform == 'cygwin':
+            # cygwin
+            self.drive_mount = '/cygdrive/'
+        else:
+            # Do no normalization, e.g. Windows build of Python.
+            # Could add additional test: ((os.path.sep == '/') and os.path.isdir('/mnt/c'))
+            # However, this may have more false positives trying to identify Windows/*nix hybrids
+            self.drive_mount = ''
 
     def _get_definition_type(self, definition):
         is_built_in = definition.in_builtin_module
@@ -520,6 +545,25 @@ class JediCompletion(object):
             if path and path not in sys.path:
                 sys.path.insert(0, path)
 
+    def _normalize_request_path(self, request):
+        """Normalize any Windows paths received by a *nix build of
+           Python. Does not alter the reverse os.path.sep=='\\',
+           i.e. *nix paths received by a Windows build of Python.
+        """
+        if 'path' in request:
+            if not self.drive_mount:
+                return
+            newPath = request['path'].replace('\\', '/')
+            if newPath[0:1] == '/':
+                # is absolute path with no drive letter
+                request['path'] = newPath
+            elif newPath[1:2] == ':':
+                # is path with drive letter, only absolute can be mapped
+                request['path'] = self.drive_mount + newPath[0:1].lower() + newPath[2:]
+            else:
+                # is relative path
+                request['path'] = newPath
+
     def _process_request(self, request):
         """Accept serialized request from VSCode and write response.
         """
@@ -527,18 +571,19 @@ class JediCompletion(object):
 
         self._set_request_config(request.get('config', {}))
 
+        self._normalize_request_path(request)
         path = self._get_top_level_module(request.get('path', ''))
         if path not in sys.path:
             sys.path.insert(0, path)
         lookup = request.get('lookup', 'completions')
 
         if lookup == 'names':
-            return self._write_response(self._serialize_definitions(
+            return self._serialize_definitions(
                 jedi.api.names(
                     source=request.get('source', None),
                     path=request.get('path', ''),
                     all_scopes=True),
-                request['id']))
+                request['id'])
 
         script = jedi.api.Script(
             source=request.get('source', None), line=request['line'] + 1,
@@ -548,29 +593,27 @@ class JediCompletion(object):
             defs = self._get_definitionsx(script.goto_definitions(), request['id'])
             if len(defs) == 0:
                 defs = self._get_definitionsx(script.goto_assignments(), request['id'])
-            return self._write_response(json.dumps({'id': request['id'], 'results': defs}))
+            return json.dumps({'id': request['id'], 'results': defs})
         if lookup == 'tooltip':
             if jediPreview:
                 defs = self._get_definitionsx(script.goto_definitions(), request['id'], True)
                 if len(defs) == 0:
                     defs = self._get_definitionsx(script.goto_assignments(), request['id'], True)
-                return self._write_response(json.dumps({'id': request['id'], 'results': defs}))
+                return json.dumps({'id': request['id'], 'results': defs})
             else:
-                return self._write_response(self._serialize_tooltip(script.goto_definitions(), request['id']))
+                return self._serialize_tooltip(script.goto_definitions(), request['id'])
         elif lookup == 'arguments':
-            return self._write_response(self._serialize_arguments(
-                script, request['id']))
+            return self._serialize_arguments(
+                script, request['id'])
         elif lookup == 'usages':
-            return self._write_response(self._serialize_usages(
-                script.usages(), request['id']))
+            return self._serialize_usages(
+                script.usages(), request['id'])
         elif lookup == 'methods':
-          return self._write_response(
-              self._serialize_methods(script, request['id'],
-                                      request.get('prefix', '')))
+          return self._serialize_methods(script, request['id'],
+                                      request.get('prefix', ''))
         else:
-            return self._write_response(
-                self._serialize_completions(script, request['id'],
-                                            request.get('prefix', '')))
+            return self._serialize_completions(script, request['id'],
+                                            request.get('prefix', ''))
 
     def _write_response(self, response):
         sys.stdout.write(response + '\n')
@@ -585,7 +628,9 @@ class JediCompletion(object):
                     sys.stderr.write('Received EOF from the standard input,exiting' + '\n')
                     sys.stderr.flush()
                     return
-                self._process_request(rq)
+                with RedirectStdout():
+                    response = self._process_request(rq)
+                self._write_response(response)
 
             except Exception:
                 sys.stderr.write(traceback.format_exc() + '\n')

@@ -8,6 +8,8 @@ import { TextDocument, CancellationToken } from 'vscode';
 const REGEX = '(?<file>.py):(?<line>\\d+):(?<column>\\d+): \\[(?<type>\\w+)\\] (?<code>\\w\\d+):? (?<message>.*)\\r?(\\n|$)';
 
 export class Linter extends baseLinter.BaseLinter {
+    _columnOffset = 1;
+
     constructor(outputChannel: OutputChannel, workspaceRootPath?: string) {
         super('pylama', Product.pylama, outputChannel, workspaceRootPath);
     }

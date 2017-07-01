@@ -49,8 +49,17 @@ export function extractSignatureAndDocumentation(definition: proxy.IAutoComplete
 }
 
 export function highlightCode(docstring: string): string {
-    // Add blank line
-    docstring = EOL + EOL + docstring + EOL + EOL;
+    /**********
+     * 
+     * Magic. Do not touch. [What is the best comment in source code](https://stackoverflow.com/a/185106)
+     * 
+     * This method uses several regexs to 'translate' reStructruedText syntax (Python doc syntax) to Markdown syntax.
+     * 
+     * Let's just keep it unchanged unless a better solution becomes possible.
+     * 
+     **********/
+    // Add 2 line break before and after docstring (used to match a blank line)
+    docstring = EOL + EOL + docstring.trim() + EOL + EOL;
     // Section title -> heading level 2
     docstring = docstring.replace(/(.+\r?\n)[-=]+\r?\n/g, '## $1' + EOL);
     // Directives: '.. directive::' -> '**directive**'
@@ -93,5 +102,5 @@ export function highlightCode(docstring: string): string {
     // Grid Tables
     docstring = docstring.replace(/\r?\n[\+-]+\r?\n/g, EOL);
     docstring = docstring.replace(/\r?\n[\+=]+\r?\n/g, s => s.replace(/\+/g, '|').replace(/=/g, '-'));
-    return docstring;
+    return docstring.trim();
 }
