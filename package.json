@@ -17,7 +17,7 @@
 	"bugs": {
 		"url": "https://github.com/DonJayamanne/pythonVSCode/issues"
 	},
-	"icon": "images/icon.svg",
+	"icon": "images/icon.jpg",
 	"galleryBanner": {
 		"color": "#1e415e",
 		"theme": "dark"
