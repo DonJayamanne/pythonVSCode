@@ -2,7 +2,7 @@
 	"name": "python",
 	"displayName": "Python",
 	"description": "Linting, Debugging (multi-threaded, remote), Intellisense, code formatting, refactoring, unit tests, snippets, Data Science (with Jupyter), PySpark and more.",
-	"version": "0.6.6",
+	"version": "0.6.",
 	"publisher": "donjayamanne",
 	"author": {
 		"name": "Don Jayamanne",
@@ -17,7 +17,7 @@
 	"bugs": {
 		"url": "https://github.com/DonJayamanne/pythonVSCode/issues"
 	},
-	"icon": "images/icon.jpg",
+	"icon": "images/icon.png",
 	"galleryBanner": {
 		"color": "#1e415e",
 		"theme": "dark"
