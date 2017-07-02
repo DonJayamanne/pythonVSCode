@@ -100,7 +100,7 @@ For further information and details continue through to the [documentation](http
 
 ## [Change Log](https://github.com/DonJayamanne/pythonVSCode/blob/master/CHANGELOG.md)
 
-### Version 0.6.6 (xxx)
+### Version 0.6.6 (02 July 2017)
 * Provide details of error with solution for changes to syntax in launch.json [#1047](https://github.com/DonJayamanne/pythonVSCode/issues/1047), [#1025](https://github.com/DonJayamanne/pythonVSCode/issues/1025)
 * Provide a warning about known issues with having pyenv.cfg whilst debugging [#913](https://github.com/DonJayamanne/pythonVSCode/issues/913)  
 * Create .vscode directory if not found [#1043](https://github.com/DonJayamanne/pythonVSCode/issues/1043)  
