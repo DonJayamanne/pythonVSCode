@@ -1,3 +1,4 @@
+"use strict";
 /*---------------------------------------------------------
  * Copyright (C) Microsoft Corporation. All rights reserved.
  *--------------------------------------------------------*/
@@ -110,30 +111,13 @@ interface DebugVariable {
 	unreadable: string;
 }
 
-class Deferred<T> extends Promise<T> {
-	public resolve: (value: T) => void
-	public reject: (reason?: any) => void
-	constructor() {
-		let that = {
-			resolve: null,
-			reject: null,
-		};
-		super((resolve, reject) => {
-			that.resolve = resolve;
-			that.reject = reject;
-		});
-		this.resolve = that.resolve;
-		this.reject = that.reject;
-	}
-}
-
 class PythonDebugSession extends LoggingDebugSession {
 
 	private _variableHandles: Handles<DebugVariable>;
 	private breakpoints: Map<string, DebugBreakpoint[]>;
 	private threads: Set<number>;
 	private debugState: DebuggerState;
-	private pydevd: Deferred<PydevDebugger>;
+	private pydevd: PydevDebugger;
 
 	private launchArgs: LaunchRequestArguments;
 
@@ -175,8 +159,6 @@ class PythonDebugSession extends LoggingDebugSession {
 			currentThread: null
 		};
 
-		this.pydevd = new Deferred();
-
 		response.body = response.body || {};
 		response.body.supportsConfigurationDoneRequest = true; // This debug adapter implements the configurationDoneRequest.
 		response.body.supportsEvaluateForHovers = true;	// make VS Code to use 'evaluate' when hovering over source
@@ -195,13 +177,14 @@ class PythonDebugSession extends LoggingDebugSession {
 		let port = args.port || 0; // Autoset the port number by default.
 		let host = args.host || '127.0.0.1';
 
-		this.pydevd.resolve(new PydevDebugger(port, host, args.program, args));
-		this.pydevd.then(pydevd => {
-			pydevd.on('call', (command: Command, sequence: number, args) => {
-				this.handleEvent(command, sequence, args);
-			});
-			pydevd.start();
-			pydevd.call(Command.CMD_RUN);
+		this.pydevd = new PydevDebugger(port, host, args.program, args);
+		this.pydevd.on('call', (command: Command, sequence: number, args) => {
+			this.handleEvent(command, sequence, args);
+		});
+		this.pydevd.start();
+
+		this.pydevd.started.then(() => {
+			this.pydevd.call(Command.CMD_RUN);
 		})
 
 		// make sure to 'Stop' the buffered logging if 'trace' is not set
@@ -227,20 +210,20 @@ class PythonDebugSession extends LoggingDebugSession {
 		}
 		// breakpoint_id, 'python-line', self.get_main_filename(), line, func)
 		let file = args.source.path;
+		let that = this;
 
-		this.pydevd.then(pydevd => {
-			this.breakpoints.get(file).map(existingBP => {
-				verbose('Clearing: ' + existingBP.id);
-				return pydevd.call(Command.CMD_REMOVE_BREAK, ['python-line', args.source.path, existingBP.id]);
-			});
-
-			args.lines.map(line => {
+		Promise.all(this.breakpoints.get(file).map(existingBP => {
+			verbose('Clearing: ' + existingBP.id);
+			that.pydevd.call(Command.CMD_REMOVE_BREAK, ['python-line', args.source.path, existingBP.id]);
+		})).then(() => {
+			verbose('All cleared')
+			return Promise.all(args.lines.map(line => {
 				verbose('Creating on: ' + file + ':' + line);
 
-				this.debugState.breakpointId++;
-				return pydevd.call(Command.CMD_SET_BREAK, [this.debugState.breakpointId, 'python-line', file, line, 'None']);
-			})
-
+				that.debugState.breakpointId++;
+				that.pydevd.call(Command.CMD_SET_BREAK, [this.debugState.breakpointId, 'python-line', file, line, 'None']);
+			}));
+		}).then(() => {
 			let breakpoints = args.lines.map(line => {
 				return { verified: false, line: line };
 			})

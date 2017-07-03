@@ -1,3 +1,4 @@
+"use strict";
 
 import { spawn, ChildProcess } from 'child_process';
 import { Server } from './server';
@@ -114,12 +115,15 @@ export enum Command {
 // TODO: match sequences with promise callback
 
 export class PydevDebugger extends EventEmitter {
-	program: string;
-	debugProcess: ChildProcess;
-	server: Server;
-	onstdout: (str: string) => void;
-	onstderr: (str: string) => void;
-	onclose: (code: number) => void;
+	private program: string;
+	private debugProcess: ChildProcess;
+	private server: Server;
+
+	public onstdout: (str: string) => void;
+	public onstderr: (str: string) => void;
+	public onclose: (code: number) => void;
+
+	public started: Promise<any>;
 
 	private sequence: number = -1;
 	private sequences: Map<number, Function> = new Map<number, Function>();
@@ -151,7 +155,7 @@ export class PydevDebugger extends EventEmitter {
 
 			that.emit('call', command, sequence, args.slice(2));
 		});
-		this.server.on('connect', function () {
+		this.server.on('connect', () => {
 			let args = [
 				'--DEBUG_RECORD_SOCKET_READS',
 				'--qt-support',
@@ -175,10 +179,16 @@ export class PydevDebugger extends EventEmitter {
 			});
 			this.debugProcess.on('close', (code) => { });
 			this.debugProcess.on('error', function (err) { });
+
+			that.emit('connect');
 		});
 
 		/* Write the version before all other commands */
 		this.call(Command.CMD_VERSION, ['1.0', 'WINDOWS ID']);
+
+		this.started = new Promise((resolve, reject) => {
+			that.on('connect', resolve);
+		});
 	}
 
 	public start() {
