@@ -21,9 +21,9 @@ export class Linter extends baseLinter.BaseLinter {
         let pylintPath = this.pythonSettings.linting.pylintPath;
         let pylintArgs = Array.isArray(this.pythonSettings.linting.pylintArgs) ? this.pythonSettings.linting.pylintArgs : [];
         
-        if (pep8Args.length === 0 && ProductExecutableAndArgs.has(Product.pep8)){
-            pep8Path = ProductExecutableAndArgs.get(Product.pep8).executable;
-            pep8Args = ProductExecutableAndArgs.get(Product.pep8).args;
+        if (pylintArgs.length === 0 && ProductExecutableAndArgs.has(Product.pylint)){
+            pylintPath = ProductExecutableAndArgs.get(Product.pylint).executable;
+            pylintArgs = ProductExecutableAndArgs.get(Product.pylint).args;
         }
 
         return new Promise<baseLinter.ILintMessage[]>((resolve, reject) => {
