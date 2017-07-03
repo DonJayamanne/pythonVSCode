@@ -24,7 +24,7 @@ export enum Product {
 const ProductInstallScripts = new Map<Product, string[]>();
 ProductInstallScripts.set(Product.autopep8, ['-m', 'pip', 'install', 'autopep8']);
 ProductInstallScripts.set(Product.flake8, ['-m', 'pip', 'install', 'flake8']);
-ProductInstallScripts.set(Product.mypy, ['-m', 'pip', 'install', 'mypy-lang']);
+ProductInstallScripts.set(Product.mypy, ['-m', 'pip', 'install', 'mypy']);
 ProductInstallScripts.set(Product.nosetest, ['-m', 'pip', 'install', 'nose']);
 ProductInstallScripts.set(Product.pep8, ['-m', 'pip', 'install', 'pep8']);
 ProductInstallScripts.set(Product.pylama, ['-m', 'pip', 'install', 'pylama']);
@@ -33,6 +33,16 @@ ProductInstallScripts.set(Product.pydocstyle, ['-m', 'pip', 'install', 'pydocsty
 ProductInstallScripts.set(Product.pylint, ['-m', 'pip', 'install', 'pylint']);
 ProductInstallScripts.set(Product.pytest, ['-m', 'pip', 'install', '-U', 'pytest']);
 ProductInstallScripts.set(Product.yapf, ['-m', 'pip', 'install', 'yapf']);
+
+const ProductExecutableAndArgs = new Map<Product, {executable: string, args: string[]}>();
+ProductExecutableAndArgs.set(Product.mypy, {executable: 'python', args:['-m', 'mypy']});
+ProductExecutableAndArgs.set(Product.nosetest, {executable: 'python', args:['-m', 'nose']});
+ProductExecutableAndArgs.set(Product.pep8, {executable: 'python', args:['-m', 'pep8']});
+ProductExecutableAndArgs.set(Product.pylama, {executable: 'python', args:['-m', 'pylama']});
+ProductExecutableAndArgs.set(Product.prospector, {executable: 'python', args:['-m', 'prospector']});
+ProductExecutableAndArgs.set(Product.pylint, {executable: 'python', args:['-m', 'pylint']});
+ProductExecutableAndArgs.set(Product.pytest, {executable: 'python', args:['-m', 'pytest']});
+
 switch (os.platform()) {
     case 'win32': {
         // Nothing
