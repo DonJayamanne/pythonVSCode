@@ -28,7 +28,7 @@ export class Generator implements vscode.Disposable {
     }
 
     generateWorkspaceTags(): Promise<any> {
-        const tagFile = pythonSettings.workspaceSymbols.tagFilePath;
+        const tagFile = path.normalize(pythonSettings.workspaceSymbols.tagFilePath);
         return this.generateTags(tagFile, { directory: vscode.workspace.rootPath });
     }
 
