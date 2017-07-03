@@ -258,6 +258,11 @@
 					"when": "resourceLangId == python",
 					"command": "python.execInTerminal",
 					"group": "Python"
+				},
+				{
+					"when": "resourceLangId == python",
+					"command": "python.runCurrentTestFile",
+					"group": "Python"
 				}
 			],
 			"explorer/context": [{
