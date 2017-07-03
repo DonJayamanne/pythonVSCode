@@ -2,7 +2,7 @@
 
 import * as baseLinter from './baseLinter';
 import { OutputChannel } from 'vscode';
-import { Product } from '../common/installer';
+import { Product, ProductExecutableAndArgs } from '../common/installer';
 import { TextDocument, CancellationToken } from 'vscode';
 
 const REGEX = '(?<file>.py):(?<line>\\d+): (?<type>\\w+): (?<message>.*)\\r?(\\n|$)';
@@ -22,6 +22,12 @@ export class Linter extends baseLinter.BaseLinter {
 
         let mypyPath = this.pythonSettings.linting.mypyPath;
         let mypyArgs = Array.isArray(this.pythonSettings.linting.mypyArgs) ? this.pythonSettings.linting.mypyArgs : [];
+        
+        if (mypyArgs.length === 0 && ProductExecutableAndArgs.has(Product.mypy)){
+            mypyPath = ProductExecutableAndArgs.get(Product.mypy).executable;
+            mypyArgs = ProductExecutableAndArgs.get(Product.mypy).args;
+        }
+
         return new Promise<baseLinter.ILintMessage[]>((resolve, reject) => {
             this.run(mypyPath, mypyArgs.concat([document.uri.fsPath]), document, this.workspaceRootPath, cancellation, REGEX).then(messages => {
                 messages.forEach(msg => {

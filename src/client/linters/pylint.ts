@@ -2,7 +2,7 @@
 
 import * as baseLinter from './baseLinter';
 import { OutputChannel } from 'vscode';
-import { Product } from '../common/installer';
+import { Product, ProductExecutableAndArgs } from '../common/installer';
 import { TextDocument, CancellationToken } from 'vscode';
 
 export class Linter extends baseLinter.BaseLinter {
@@ -20,6 +20,12 @@ export class Linter extends baseLinter.BaseLinter {
 
         let pylintPath = this.pythonSettings.linting.pylintPath;
         let pylintArgs = Array.isArray(this.pythonSettings.linting.pylintArgs) ? this.pythonSettings.linting.pylintArgs : [];
+        
+        if (pep8Args.length === 0 && ProductExecutableAndArgs.has(Product.pep8)){
+            pep8Path = ProductExecutableAndArgs.get(Product.pep8).executable;
+            pep8Args = ProductExecutableAndArgs.get(Product.pep8).args;
+        }
+
         return new Promise<baseLinter.ILintMessage[]>((resolve, reject) => {
             this.run(pylintPath, pylintArgs.concat(['--msg-template=\'{line},{column},{category},{msg_id}:{msg}\'', '--reports=n', '--output-format=text', document.uri.fsPath]), document, this.workspaceRootPath, cancellation).then(messages => {
                 messages.forEach(msg => {

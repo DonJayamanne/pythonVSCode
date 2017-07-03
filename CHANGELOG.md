@@ -1,5 +1,6 @@
 ### Version 0.6.8 (xxxx)
 # Add new editor menu 'Run Current Unit Test File' [#1061](https://github.com/DonJayamanne/pythonVSCode/issues/1061)
+# Changed 'mypy-lang' to mypy [#930](https://github.com/DonJayamanne/pythonVSCode/issues/930), [#998](https://github.com/DonJayamanne/pythonVSCode/issues/998)
 
 ### Version 0.6.7 (02 July 2017)
 * Updated icon from jpg to png (transparent background)
