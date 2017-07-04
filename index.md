@@ -6,7 +6,7 @@ Python for Visual Studio Code is an extension for Visual Studio which aims at pr
 
 ![Image of Debugging](https://raw.githubusercontent.com/DonJayamanne/pythonVSCode/master/images/standardDebugging.gif)
 
-### Open Source and Cross Platforma
+### Open Source and Cross Platform
 The extension along with the IDE is both open source and runs on multiple platforms such as Windows, Mac and Linux.
 Both the [Python extension](https://github.com/DonJayamanne/pythonVSCode) and [Visual Studio Code](https://github.com/Microsoft/vscode) are built using open source technologies such as NodeJs.
  
