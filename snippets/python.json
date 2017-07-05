@@ -232,5 +232,14 @@
         "prefix": "pdb",
         "body": "import pdb; pdb.set_trace()",
         "description": "Code snippet for pdb debug"
+    },
+    "def doc":{
+        "prefix": "def doc",
+        "body": ["\"\"\"",
+        "Args:",
+        "Returns:",
+        "Description:",
+        "\"\"\""],
+        "description": "function doc string"
     }
 }
