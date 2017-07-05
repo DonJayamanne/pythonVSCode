@@ -234,9 +234,11 @@ class PythonDebugSession extends LoggingDebugSession {
 
 	protected threadsRequest(response: DebugProtocol.ThreadsResponse): void {
 
-		this.pydevd.call(Command.CMD_LIST_THREADS).then(function ([command, sequence, args]: [Command, number, Array<string>]) {
-			//
-			//
+		this.pydevd.server.then(() => {
+			this.pydevd.call(Command.CMD_LIST_THREADS).then(function ([command, sequence, args]: [Command, number, Array<string>]) {
+				//
+				//
+			});
 		});
 
 		this.sendResponse(response);
