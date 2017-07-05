@@ -13,7 +13,7 @@ import { DebugProtocol } from 'vscode-debugprotocol';
 import { readFileSync } from 'fs';
 import { basename } from 'path';
 import { PydevDebugger, Command } from './pydevDebugger';
-
+import { parseString } from 'xml2js';
 
 function logArgsToString(args: any[]): string {
 	return args.map(arg => {
@@ -179,7 +179,7 @@ class PythonDebugSession extends LoggingDebugSession {
 
 		this.pydevd = new PydevDebugger(port, host, args.program, args);
 		this.pydevd.on('call', (command: Command, sequence: number, args) => {
-			this.handleEvent(command, sequence, args);
+			this.handleEvent(command, sequence, args, response);
 		});
 		this.pydevd.server.then(() => {
 			this.pydevd.call(Command.CMD_RUN);
@@ -191,16 +191,28 @@ class PythonDebugSession extends LoggingDebugSession {
 		logger.setup(Logger.LogLevel.Verbose, false);
 	}
 
-	private handleEvent(command: Command, sequence: number, args) {
+	private handleEvent(command: Command, sequence: number, args: [any], response: DebugProtocol.LaunchResponse) {
 		// Handle aribitrary commands
-		/*
-			switch (command) {
-				case Command.CMD_VERSION:
-					break
-				case Command.CMD_THREAD_CREATE:
-					break
-			}
-		*/
+		let handlers: Map<Command, (args: [any], response: DebugProtocol.LaunchResponse) => void> = new Map([
+			[Command.CMD_THREAD_SUSPEND, this.handleThreadSuspend],
+			[Command.CMD_ERROR, this.handleDebuggerError]
+		]);
+
+		if (handlers.has(command)) {
+			handlers[command](args, response);
+		}
+	}
+
+	private handleThreadSuspend(args: [string],response: DebugProtocol.LaunchResponse) {
+
+		parseString(args[0], (err, result) => {
+			this.sendEvent(new StoppedEvent('The thread has stopped', 0));
+		});
+	}
+
+	private handleDebuggerError(args: [string], response: DebugProtocol.LaunchResponse) {
+	
+		this.sendErrorResponse(response, 3000);
 	}
 
 	protected setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments): void {

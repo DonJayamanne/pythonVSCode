@@ -138,7 +138,7 @@ export class PydevDebugger extends EventEmitter {
 				verbose('Debugger received message: ' + msg);
 
 				let args = msg.split('\t');
-				let command: Command = args[0];
+				let command: Command = parseInt(args[0]);
 				let sequence: number = parseInt(args[1]);
 
 				if (this.sequences.has(sequence)) {
