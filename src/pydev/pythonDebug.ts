@@ -262,6 +262,10 @@ class PythonDebugSession extends LoggingDebugSession {
 
 	protected continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments): void {
 
+		this.pydevd.server.then(() => {
+			this.pydevd.call(Command.CMD_RUN);
+		});
+
 		this.sendResponse(response);
 		// no more lines: run to end
 		this.sendEvent(new TerminatedEvent());
@@ -269,7 +273,9 @@ class PythonDebugSession extends LoggingDebugSession {
 
 	protected nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments): void {
 
-		// this.pydevd.call(Command.CMD_STEP_OVER);
+		this.pydevd.server.then(() => {
+			this.pydevd.call(Command.CMD_STEP_OVER);
+		});
 
 		this.sendResponse(response);
 		// no more lines: run to end
@@ -278,13 +284,17 @@ class PythonDebugSession extends LoggingDebugSession {
 
 	protected stepInRequest(response: DebugProtocol.StepInResponse): void {
 
-		// this.pydevd.call(Command.CMD_STEP_INTO);
+		this.pydevd.server.then(() => {
+			this.pydevd.call(Command.CMD_STEP_INTO);
+		});
 		this.sendResponse(response);
 	}
 
 	protected stepOutRequest(response: DebugProtocol.StepOutResponse): void {
 
-		// this.pydevd.call(Command.CMD_STEP_RETURN);
+		this.pydevd.server.then(() => {
+			this.pydevd.call(Command.CMD_STEP_RETURN);
+		});
 		this.sendResponse(response);
 	}
 
