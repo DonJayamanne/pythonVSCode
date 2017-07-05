@@ -193,12 +193,14 @@ class PythonDebugSession extends LoggingDebugSession {
 
 	private handleEvent(command: Command, sequence: number, args) {
 		// Handle aribitrary commands
-		switch (command) {
-			case Command.CMD_VERSION:
-				break
-			case Command.CMD_THREAD_CREATE:
-				break
-		}
+		/*
+			switch (command) {
+				case Command.CMD_VERSION:
+					break
+				case Command.CMD_THREAD_CREATE:
+					break
+			}
+		*/
 	}
 
 	protected setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments): void {
@@ -208,18 +210,16 @@ class PythonDebugSession extends LoggingDebugSession {
 		}
 		// breakpoint_id, 'python-line', self.get_main_filename(), line, func)
 		let file = args.source.path;
-		let that = this;
-
 		Promise.all(this.breakpoints.get(file).map(existingBP => {
 			verbose('Clearing: ' + existingBP.id);
-			that.pydevd.call(Command.CMD_REMOVE_BREAK, ['python-line', args.source.path, existingBP.id]);
+			this.pydevd.call(Command.CMD_REMOVE_BREAK, ['python-line', args.source.path, existingBP.id]);
 		})).then(() => {
 			verbose('All cleared')
 			return Promise.all(args.lines.map(line => {
 				verbose('Creating on: ' + file + ':' + line);
 
-				that.debugState.breakpointId++;
-				that.pydevd.call(Command.CMD_SET_BREAK, [this.debugState.breakpointId, 'python-line', file, line, 'None']);
+				this.debugState.breakpointId++;
+				this.pydevd.call(Command.CMD_SET_BREAK, [this.debugState.breakpointId, 'python-line', file, line, 'None', 'None', 'None']);
 			}));
 		}).then(() => {
 			let breakpoints = args.lines.map(line => {
@@ -234,11 +234,10 @@ class PythonDebugSession extends LoggingDebugSession {
 
 	protected threadsRequest(response: DebugProtocol.ThreadsResponse): void {
 
-		/*
-			this.pydevd.call(Command.CMD_LIST_THREADS).then(function ([command, sequence, args]: [Command, number, Array<string>]) {
-					TODO: Do something with the result 
-			});
-		*/
+		this.pydevd.call(Command.CMD_LIST_THREADS).then(function ([command, sequence, args]: [Command, number, Array<string>]) {
+			//
+			//
+		});
 
 		this.sendResponse(response);
 	}
