@@ -112,18 +112,10 @@ export enum Command {
 	CMD_ERROR = 901,
 };
 
-// TODO: match sequences with promise callback
-
 export class PydevDebugger extends EventEmitter {
 	private program: string;
 	private debugProcess: ChildProcess;
-	private server: Server;
-
-	public onstdout: (str: string) => void;
-	public onstderr: (str: string) => void;
-	public onclose: (code: number) => void;
-
-	public started: Promise<any>;
+	public server: Promise<Server>;
 
 	private sequence: number = -1;
 	private sequences: Map<number, Function> = new Map<number, Function>();
@@ -140,59 +132,52 @@ export class PydevDebugger extends EventEmitter {
 		let that = this;
 		this.program = program;
 
-		this.server = new Server(port);
-		this.server.on('message', msg => {
-			verbose('Debugger received message: ' + msg);
+		let server = new Server(port);
+		this.server = new Promise((resolve, reject) => {
+			server.on('message', msg => {
+				verbose('Debugger received message: ' + msg);
 
-			let args = msg.split('\t');
-			let command: Command = args[0];
-			let sequence: number = parseInt(args[1]);
+				let args = msg.split('\t');
+				let command: Command = args[0];
+				let sequence: number = parseInt(args[1]);
 
-			if (this.sequences.has(sequence)) {
-				this.sequences[sequence]([command, sequence, args.slice(2)]); // Resolve the promise
-				this.sequences.delete(sequence); // Cleanup memory
-			}
+				if (this.sequences.has(sequence)) {
+					this.sequences[sequence]([command, sequence, args.slice(2)]); // Resolve the promise
+					this.sequences.delete(sequence); // Cleanup memory
+				}
 
-			that.emit('call', command, sequence, args.slice(2));
-		});
-		this.server.on('connect', () => {
-			let args = [
-				'--DEBUG_RECORD_SOCKET_READS',
-				'--qt-support',
-				'--client',
-				host,
-				'--port',
-				that.server.port.toString(),
-				'--file',
-				program
-			];
-			let env = {};
-
-			this.debugProcess = spawn('pydevd', args, { env });
-			this.debugProcess.stderr.on('data', chunk => {
-				let str = chunk.toString();
-				if (this.onstderr) { this.onstderr(str); }
+				that.emit('call', command, sequence, args.slice(2));
 			});
-			this.debugProcess.stdout.on('data', chunk => {
-				let str = chunk.toString();
-				if (this.onstdout) { this.onstdout(str); }
-			});
-			this.debugProcess.on('close', (code) => { });
-			this.debugProcess.on('error', function (err) { });
+			server.on('connect', () => {
+				let args = [
+					'--DEBUG_RECORD_SOCKET_READS',
+					'--qt-support',
+					'--client',
+					host,
+					'--port',
+					server.port.toString(),
+					'--file',
+					program
+				];
+				let env = {};
 
-			that.emit('connect');
+				this.debugProcess = spawn('pydevd', args, { env });
+				this.debugProcess.stderr.on('data', chunk => {
+					let str = chunk.toString();
+				});
+				this.debugProcess.stdout.on('data', chunk => {
+					let str = chunk.toString();
+				});
+				this.debugProcess.on('close', (code) => { });
+				this.debugProcess.on('error', function (err) { });
+
+				resolve(server);
+			});
 		});
+		server.listen();
 
 		/* Write the version before all other commands */
 		this.call(Command.CMD_VERSION, ['1.0', 'WINDOWS ID']);
-
-		this.started = new Promise((resolve, reject) => {
-			that.on('connect', resolve);
-		});
-	}
-
-	public start() {
-		this.server.listen();
 	}
 
 	/*
@@ -207,7 +192,9 @@ export class PydevDebugger extends EventEmitter {
 		let sequence = this.nextSequence();
 		let msg: string = [command.toString(), sequence.toString()].concat(args).join("\t");
 		verbose('Debugger sent message: ' + msg);
-		this.server.Write(msg);
+		this.server.then(server => {
+			server.Write(msg);
+		});
 
 		return new Promise(resolve => {
 			this.sequences[sequence] = resolve;

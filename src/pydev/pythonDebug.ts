@@ -181,9 +181,7 @@ class PythonDebugSession extends LoggingDebugSession {
 		this.pydevd.on('call', (command: Command, sequence: number, args) => {
 			this.handleEvent(command, sequence, args);
 		});
-		this.pydevd.start();
-
-		this.pydevd.started.then(() => {
+		this.pydevd.server.then(() => {
 			this.pydevd.call(Command.CMD_RUN);
 		})
 
