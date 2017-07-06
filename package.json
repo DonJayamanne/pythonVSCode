@@ -99,13 +99,7 @@
 			"key": "ctrl+alt+enter",
 			"when": "editorFocus && !replaceActive && !searchViewletVisible && !findWidgetVisible"
 		}],
-		"commands": [
-			{
-				"command": "python.autoImportAtCursor",
-				"title": "Auto Import Symbol under cursor",
-				"category": "Python Refactor"
-			},
-			{
+		"commands": [{
 				"command": "python.sortImports",
 				"title": "Sort Imports",
 				"category": "Python Refactor"
@@ -1512,11 +1506,13 @@
 		"@types/socket.io": "^1.4.27",
 		"@types/socket.io-client": "^1.4.27",
 		"@types/uuid": "^3.3.27",
+		"@types/sinon": "^2.3.2",
 		"babel-core": "^6.14.0",
 		"babel-loader": "^6.2.5",
 		"babel-preset-es2015": "^6.14.0",
 		"ignore-loader": "^0.1.1",
 		"mocha": "^2.3.3",
+		"sinon": "^2.3.6",
 		"retyped-diff-match-patch-tsd-ambient": "^1.0.0-0",
 		"ts-loader": "^0.8.2",
 		"tslint": "^3.15.1",
