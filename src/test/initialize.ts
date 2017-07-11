@@ -53,11 +53,13 @@ export async function closeActiveWindows(): Promise<any> {
 }
 
 export const IS_TRAVIS = (process.env['TRAVIS'] + '') === 'true';
-export const TEST_TIMEOUT = 10000;
+export const TEST_TIMEOUT = 25000;
 
 function getPythonPath(): string {
     const pythonPaths = ['/home/travis/virtualenv/python3.5.2/bin/python',
-        '/Users/travis/.pyenv/versions/3.5.1/envs/MYVERSION/bin/python'];
+        '/Users/travis/.pyenv/versions/3.5.1/envs/MYVERSION/bin/python',
+        '/Users/donjayamanne/Projects/PythonEnvs/p361/bin/python',
+        '/Users/donjayamanne/Projects/PythonEnvs/p27/bin/python'];
     for (let counter = 0; counter < pythonPaths.length; counter++) {
         if (fs.existsSync(pythonPaths[counter])) {
             return pythonPaths[counter];
@@ -66,4 +68,5 @@ function getPythonPath(): string {
     return 'python';
 }
 
-export const PYTHON_PATH = IS_TRAVIS ? getPythonPath() : 'python';
+// export const PYTHON_PATH = IS_TRAVIS ? getPythonPath() : 'python';
+export const PYTHON_PATH = getPythonPath();

@@ -193,7 +193,9 @@ suite('Linting', () => {
         let cancelToken = new vscode.CancellationTokenSource();
         return vscode.workspace.openTextDocument(pythonFile)
             .then(document => vscode.window.showTextDocument(document))
-            .then(editor => linter.runLinter(editor.document, cancelToken.token))
+            .then(editor => {
+                return linter.runLinter(editor.document, cancelToken.token);
+            })
             .then(messages => {
                 // Different versions of python return different errors,
                 if (messagesToBeReceived.length === 0) {
@@ -244,7 +246,7 @@ suite('Linting', () => {
         test('PyLint with config in root', done => {
             let ch = new MockOutputChannel('Lint');
             let linter = new pyLint.Linter(ch, pylintConfigPath);
-            testLinterMessages(linter, ch, path.join(pylintConfigPath, 'file.py'), filteredPylintMessagesToBeReturned).then(done, done);
+            testLinterMessages(linter, ch, path.join(pylintConfigPath, 'file.py'), filteredPylint3MessagesToBeReturned).then(done, done);
         });
     }
     test('Flake8 with config in root', done => {

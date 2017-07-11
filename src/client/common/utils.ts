@@ -96,12 +96,16 @@ export function getPathFromPythonCommand(args: string[]): Promise<string> {
     });
 }
 
-export function execPythonFile(file: string, args: string[], cwd: string, includeErrorAsResponse: boolean = false, stdOut: (line: string) => void = null, token?: CancellationToken): Promise<string> {
+export function execPythonFile(file: string, args: string[], cwd: string, includeErrorAsResponse: boolean = false, stdOut: (line: string) => void = null, token?: CancellationToken, execAsModule: boolean = false): Promise<string> {
     // If running the python file, then always revert to execFileInternal
     // Cuz python interpreter is always a file and we can and will always run it using child_process.execFile()
     if (file === settings.PythonSettings.getInstance().pythonPath) {
         if (stdOut) {
             return spawnFileInternal(file, args, { cwd }, includeErrorAsResponse, stdOut, token);
+        }
+        if (execAsModule) {
+            return getFullyQualifiedPythonInterpreterPath()
+                .then(p => execPythonModule(p, args, { cwd: cwd }, includeErrorAsResponse, token));
         }
         return execFileInternal(file, args, { cwd: cwd }, includeErrorAsResponse, token);
     }
@@ -136,47 +140,84 @@ export function execPythonFile(file: string, args: string[], cwd: string, includ
         if (stdOut) {
             return spawnFileInternal(file, args, { cwd, env: customEnvVariables }, includeErrorAsResponse, stdOut, token);
         }
+        if (execAsModule) {
+            return getFullyQualifiedPythonInterpreterPath()
+                .then(p => execPythonModule(p, args, { cwd: cwd }, includeErrorAsResponse, token));
+        }
         return execFileInternal(file, args, { cwd, env: customEnvVariables }, includeErrorAsResponse, token);
     });
 }
 
 function handleResponse(file: string, includeErrorAsResponse: boolean, error: Error, stdout: string, stderr: string, token?: CancellationToken): Promise<string> {
+    if (token && token.isCancellationRequested) {
+        return Promise.resolve(undefined);
+    }
+    if (isNotInstalledError(error)) {
+        return Promise.reject(error);
+    }
+
+    // pylint:
+    //      In the case of pylint we have some messages (such as config file not found and using default etc...) being returned in stderr
+    //      These error messages are useless when using pylint   
+    if (includeErrorAsResponse && (stdout.length > 0 || stderr.length > 0)) {
+        return Promise.resolve(stdout + '\n' + stderr);
+    }
+
+    let hasErrors = (error && error.message.length > 0) || (stderr && stderr.length > 0);
+    if (hasErrors && (typeof stdout !== 'string' || stdout.length === 0)) {
+        let errorMsg = (error && error.message) ? error.message : (stderr && stderr.length > 0 ? stderr + '' : '');
+        return Promise.reject(errorMsg);
+    }
+    else {
+        return Promise.resolve(stdout + '');
+    }
+}
+function handlePythonModuleResponse(includeErrorAsResponse: boolean, error: Error, stdout: string, stderr: string, token?: CancellationToken): Promise<string> {
+    if (token && token.isCancellationRequested) {
+        return Promise.resolve(undefined);
+    }
+    if (isNotInstalledError(error) || !!error) {
+        return Promise.reject(error);
+    }
+
+    // pylint:
+    //      In the case of pylint we have some messages (such as config file not found and using default etc...) being returned in stderr
+    //      These error messages are useless when using pylint   
+    if (includeErrorAsResponse && (stdout.length > 0 || stderr.length > 0)) {
+        return Promise.resolve(stdout + '\n' + stderr);
+    }
+    if (!includeErrorAsResponse && stderr.length > 0) {
+        return Promise.reject(stderr);
+    }
+
+    return Promise.resolve(stdout + '');
+}
+function execPythonModule(file: string, args: string[], options: child_process.ExecFileOptions, includeErrorAsResponse: boolean, token?: CancellationToken): Promise<string> {
+    options.maxBuffer = options.maxBuffer ? options.maxBuffer : 1024 * 102400;
     return new Promise<string>((resolve, reject) => {
-        if (token && token.isCancellationRequested) {
-            return;
+        let proc = child_process.execFile(file, args, options, (error, stdout, stderr) => {
+            handlePythonModuleResponse(includeErrorAsResponse, error, stdout, stderr, token)
+                .then(resolve)
+                .catch(reject);
+        });
+        if (token && token.onCancellationRequested) {
+            token.onCancellationRequested(() => {
+                if (proc) {
+                    proc.kill();
+                    proc = null;
+                }
+            });
         }
-        if (isNotInstalledError(error)) {
-            return reject(error);
-        }
-
-        // pylint:
-        //      In the case of pylint we have some messages (such as config file not found and using default etc...) being returned in stderr
-        //      These error messages are useless when using pylint   
-        if (includeErrorAsResponse && (stdout.length > 0 || stderr.length > 0)) {
-            return resolve(stdout + '\n' + stderr);
-        }
-
-        let hasErrors = (error && error.message.length > 0) || (stderr && stderr.length > 0);
-        if (hasErrors && (typeof stdout !== 'string' || stdout.length === 0)) {
-            let errorMsg = (error && error.message) ? error.message : (stderr && stderr.length > 0 ? stderr + '' : '');
-            console.error('stdout');
-            console.error(stdout);
-            console.error('stderr');
-            console.error(stderr);
-            console.error('error');
-            console.error(error);
-            console.error('Over');
-            return reject(errorMsg);
-        }
-
-        resolve(stdout + '');
     });
 }
+
 function execFileInternal(file: string, args: string[], options: child_process.ExecFileOptions, includeErrorAsResponse: boolean, token?: CancellationToken): Promise<string> {
     options.maxBuffer = options.maxBuffer ? options.maxBuffer : 1024 * 102400;
     return new Promise<string>((resolve, reject) => {
         let proc = child_process.execFile(file, args, options, (error, stdout, stderr) => {
-            handleResponse(file, includeErrorAsResponse, error, stdout, stderr, token).then(resolve, reject);
+            handleResponse(file, includeErrorAsResponse, error, stdout, stderr, token)
+                .then(data => resolve(data))
+                .catch(err => reject(err));
         });
         if (token && token.onCancellationRequested) {
             token.onCancellationRequested(() => {
@@ -202,7 +243,7 @@ function spawnFileInternal(file: string, args: string[], options: child_process.
             });
         }
         proc.on('error', error => {
-            return reject(error);
+            reject(error);
         });
         proc.stdout.setEncoding('utf8');
         proc.stderr.setEncoding('utf8');
@@ -243,7 +284,9 @@ function spawnFileInternal(file: string, args: string[], options: child_process.
 function execInternal(command: string, args: string[], options: child_process.ExecFileOptions, includeErrorAsResponse: boolean): Promise<string> {
     return new Promise<string>((resolve, reject) => {
         child_process.exec([command].concat(args).join(' '), options, (error, stdout, stderr) => {
-            handleResponse(command, includeErrorAsResponse, error, stdout, stderr).then(resolve, reject);
+            handleResponse(command, includeErrorAsResponse, error, stdout, stderr)
+                .then(data => resolve(data))
+                .catch(err => reject(err));
         });
     });
 }
@@ -308,9 +351,7 @@ export function getCustomEnvVars(): any {
             }
         }
         catch (ex) {
-            console.error('Failed to load env file');
-            console.error(ex);
-            return null;
+            console.error('Failed to load env file', ex);
         }
     }
     return null;

@@ -2,9 +2,9 @@
 import { execPythonFile } from './../common/utils';
 import * as settings from './../common/configSettings';
 import { OutputChannel } from 'vscode';
-import { isNotInstalledError } from '../common/helpers';
-import { Installer, Product, disableLinter } from '../common/installer';
+import { Installer, Product } from '../common/installer';
 import * as vscode from 'vscode';
+import { ErrorHandler } from './errorHandlers/main';
 
 let NamedRegexp = null;
 const REGEX = '(?<line>\\d+),(?<column>\\d+),(?<type>\\w+),(?<code>\\w\\d+):(?<message>.*)\\r?(\\n|$)';
@@ -49,24 +49,24 @@ export function matchNamedRegEx(data, regex): IRegexGroup {
 
 export abstract class BaseLinter {
     public Id: string;
-    private installer: Installer;
     protected pythonSettings: settings.IPythonSettings;
     private _workspaceRootPath: string;
     protected _columnOffset = 0;
+    private _errorHandler: ErrorHandler;
     protected get workspaceRootPath(): string {
         return typeof this._workspaceRootPath === 'string' ? this._workspaceRootPath : vscode.workspace.rootPath;
     }
-    constructor(id: string, private product: Product, protected outputChannel: OutputChannel, workspaceRootPath: string) {
+    constructor(id: string, product: Product, protected outputChannel: OutputChannel, workspaceRootPath: string) {
         this.Id = id;
-        this.installer = new Installer();
         this._workspaceRootPath = workspaceRootPath;
         this.pythonSettings = settings.PythonSettings.getInstance();
+        this._errorHandler = new ErrorHandler(this.Id, product, new Installer(), this.outputChannel);
     }
     public abstract isEnabled(): Boolean;
     public abstract runLinter(document: vscode.TextDocument, cancellation: vscode.CancellationToken): Promise<ILintMessage[]>;
 
     protected parseMessagesSeverity(error: string, categorySeverity: any): LintMessageSeverity {
-         if (categorySeverity[error]) {
+        if (categorySeverity[error]) {
             let severityName = categorySeverity[error];
             switch (severityName) {
                 case 'Error':
@@ -88,91 +88,59 @@ export abstract class BaseLinter {
         return LintMessageSeverity.Information;
     }
 
+    private parseLine(line: string, regEx: string) {
+        let match = matchNamedRegEx(line, regEx);
+        if (!match) {
+            return;
+        }
+
+        match.line = Number(<any>match.line);
+        match.column = Number(<any>match.column);
+
+        return {
+            code: match.code,
+            message: match.message,
+            column: isNaN(match.column) || match.column === 0 ? 0 : match.column - this._columnOffset,
+            line: match.line,
+            type: match.type,
+            provider: this.Id
+        };
+    }
+    private parseLines(outputLines: string[], regEx: string) {
+        let diagnostics: ILintMessage[] = [];
+        outputLines.filter((value, index) => index <= this.pythonSettings.linting.maxNumberOfProblems).forEach(line => {
+            try {
+                let msg = this.parseLine(line, regEx);
+                if (msg) {
+                    diagnostics.push(msg);
+                }
+            }
+            catch (ex) {
+                // Hmm, need to handle this later
+                // TODO:
+            }
+        });
+        return diagnostics;
+    }
+    private displayLinterResultHeader(data: string) {
+        this.outputChannel.append('#'.repeat(10) + 'Linting Output - ' + this.Id + '#'.repeat(10) + '\n');
+        this.outputChannel.append(data);
+    }
     protected run(command: string, args: string[], document: vscode.TextDocument, cwd: string, cancellation: vscode.CancellationToken, regEx: string = REGEX): Promise<ILintMessage[]> {
-        let outputChannel = this.outputChannel;
-
-        return new Promise<ILintMessage[]>((resolve, reject) => {
-            execPythonFile(command, args, cwd, true, null, cancellation).then(data => {
-                outputChannel.append('#'.repeat(10) + 'Linting Output - ' + this.Id + '#'.repeat(10) + '\n');
-                outputChannel.append(data);
-                let outputLines = data.split(/\r?\n/g);
-                let diagnostics: ILintMessage[] = [];
-                outputLines.filter((value, index) => index <= this.pythonSettings.linting.maxNumberOfProblems).forEach(line => {
-                    let match = matchNamedRegEx(line, regEx);
-                    if (!match) {
-                        return;
-                    }
-
-                    try {
-                        match.line = Number(<any>match.line);
-                        match.column = Number(<any>match.column);
-
-                        diagnostics.push({
-                            code: match.code,
-                            message: match.message,
-                            column: isNaN(match.column) || match.column === 0 ? 0 : match.column - this._columnOffset,
-                            line: match.line,
-                            type: match.type,
-                            provider: this.Id
-                        });
-                    }
-                    catch (ex) {
-                        // Hmm, need to handle this later
-                        // TODO:
-                    }
-                });
-
-                resolve(diagnostics);
-            }).catch(error => {
-                this.handleError(this.Id, command, error);
-                resolve([]);
-            });
+        return execPythonFile(command, args, cwd, true, null, cancellation).then(data => {
+            if (!data) {
+                data = '';
+            }
+            this.displayLinterResultHeader(data);
+            let outputLines = data.split(/\r?\n/g);
+            return this.parseLines(outputLines, regEx);
+        }).catch(error => {
+            this.handleError(this.Id, command, error);
+            return [];
         });
     }
 
     protected handleError(expectedFileName: string, fileName: string, error: Error) {
-        let customError = `Linting with ${this.Id} failed.`;
-
-        if (isNotInstalledError(error)) {
-            // Check if we have some custom arguments such as "pylint --load-plugins pylint_django"
-            // Such settings are no longer supported
-            let stuffAfterFileName = fileName.substring(fileName.toUpperCase().lastIndexOf(expectedFileName) + expectedFileName.length);
-
-            // Ok if we have a space after the file name, this means we have some arguments defined and this isn't supported
-            if (stuffAfterFileName.trim().indexOf(' ') > 0) {
-                customError = `Linting failed, custom arguments in the 'python.linting.${this.Id}Path' is not supported.\n` +
-                    `Custom arguments to the linters can be defined in 'python.linting.${this.Id}Args' setting of settings.json.\n` +
-                    'For further details, please see https://github.com/DonJayamanne/pythonVSCode/wiki/Troubleshooting-Linting#2-linting-with-xxx-failed-';
-                vscode.window.showErrorMessage(`Unsupported configuration for '${this.Id}'`, 'View Errors').then(item => {
-                    if (item === 'View Errors') {
-                        this.outputChannel.show();
-                    }
-                });
-            }
-            else {
-                customError += `\nYou could either install the '${this.Id}' linter or turn it off in setings.json via "python.linting.${this.Id}Enabled = false".`;
-                this.installer.promptToInstall(this.product);
-            }
-        }
-        else {
-            if (typeof error === 'string' && (error as string).indexOf("OSError: [Errno 2] No such file or directory: '/") > 0) {
-                return;
-            }
-            console.error('There was an error in running the linter');
-            console.error(error);
-            vscode.window.showErrorMessage(`There was an error in running the linter '${this.Id}'`, 'Disable linter', 'View Errors').then(item => {
-                switch (item) {
-                    case 'Disable linter': {
-                        disableLinter(this.product);
-                        break;
-                    }
-                    case 'View Errors': {
-                        this.outputChannel.show();
-                        break;
-                    }
-                }
-            });
-        }
-        this.outputChannel.appendLine(`\n${customError}\n${error + ''}`);
+        this._errorHandler.handleError(expectedFileName, fileName, error);
     }
 }
