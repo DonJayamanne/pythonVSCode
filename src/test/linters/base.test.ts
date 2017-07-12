@@ -2,7 +2,7 @@
 // Note: This example test is leveraging the Mocha test framework.
 // Please refer to their documentation on https://mochajs.org/ for help.
 // Place this right on top
-import { initialize, IS_TRAVIS, PYTHON_PATH, closeActiveWindows } from '../initialize';
+import { initialize, IS_TRAVIS, PYTHON_PATH, closeActiveWindows, setPythonExecutable } from '../initialize';
 // The module \'assert\' provides assertion methods from node
 import * as assert from 'assert';
 
@@ -15,13 +15,14 @@ import * as baseLinter from '../../client/linters/baseLinter';
 import * as path from 'path';
 import * as settings from '../../client/common/configSettings';
 import { MockOutputChannel } from '../mockClasses';
+import { Disposable } from 'vscode';
 
 const pythonSettings = settings.PythonSettings.getInstance();
 const pythoFilesPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'linting');
-
+let disposable: Disposable;
 suite('Linting', () => {
     suiteSetup(() => {
-        pythonSettings.pythonPath = PYTHON_PATH;
+        disposable = setPythonExecutable(pythonSettings);
     });
     setup(() => {
         pythonSettings.linting.enabled = true;
@@ -34,10 +35,11 @@ suite('Linting', () => {
         pythonSettings.linting.pylamaEnabled = true;
     });
     suiteTeardown(done => {
-        closeActiveWindows().then(done, done);
+        if (disposable) { disposable.dispose(); }
+        closeActiveWindows().then(() => done(), () => done());
     });
     teardown(done => {
-        closeActiveWindows().then(done, done);
+        closeActiveWindows().then(() => done(), () => done());
     });
 
     function testEnablingDisablingOfLinter(linter: baseLinter.BaseLinter, propertyName: string) {

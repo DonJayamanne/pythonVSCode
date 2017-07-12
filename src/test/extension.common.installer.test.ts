@@ -2,7 +2,7 @@
 // Note: This example test is leveraging the Mocha test framework.
 // Please refer to their documentation on https://mochajs.org/ for help.
 // Place this right on top
-import { PYTHON_PATH, closeActiveWindows } from './initialize';
+import { closeActiveWindows, setPythonExecutable } from './initialize';
 // The module \'assert\' provides assertion methods from node
 import * as assert from 'assert';
 
@@ -12,23 +12,26 @@ import * as settings from '../client/common/configSettings';
 import { MockOutputChannel } from './mockClasses';
 import { Installer, Product } from '../client/common/installer';
 import { EnumEx } from '../client/common/enumUtils';
+import { Disposable } from 'vscode';
 
 let pythonSettings = settings.PythonSettings.getInstance();
 
 suite('Installer', () => {
     let outputChannel: MockOutputChannel;
     let installer: Installer;
+    let setPythonPathDisposable: Disposable;
 
     suiteSetup(() => {
-        pythonSettings.pythonPath = PYTHON_PATH;
+        setPythonPathDisposable = setPythonExecutable(pythonSettings);
         outputChannel = new MockOutputChannel('Installer');
         installer = new Installer(outputChannel);
     });
     suiteTeardown(done => {
-        closeActiveWindows().then(done, done);
+        setPythonPathDisposable.dispose();
+        closeActiveWindows().then(() => done(), () => done());
     });
     teardown(done => {
-        closeActiveWindows().then(done, done);
+        closeActiveWindows().then(() => done(), () => done());
     });
 
     async function testUninstallingProduct(product: Product) {

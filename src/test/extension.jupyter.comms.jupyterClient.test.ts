@@ -3,7 +3,7 @@
 // Please refer to their documentation on https://mochajs.org/ for help.
 //
 // Place this right on top
-import { initialize, IS_TRAVIS, PYTHON_PATH, TEST_TIMEOUT } from './initialize';
+import { initialize, IS_TRAVIS, TEST_TIMEOUT, setPythonExecutable } from './initialize';
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { JupyterClientAdapter } from '../client/jupyter/jupyter_client/main';
@@ -13,6 +13,7 @@ import { KernelspecMetadata } from '../client/jupyter/contracts';
 import * as settings from '../client/common/configSettings';
 
 let pythonSettings = settings.PythonSettings.getInstance();
+let disposable = setPythonExecutable(pythonSettings);
 
 export class MockOutputChannel implements vscode.OutputChannel {
     constructor(name: string) {
@@ -62,23 +63,23 @@ export class MockOutputChannel implements vscode.OutputChannel {
 suite('JupyterClient', () => {
     suiteSetup(done => {
         initialize().then(() => {
-            if (IS_TRAVIS) {
-                pythonSettings.pythonPath = PYTHON_PATH;
-            }
             done();
         });
-        setup(() => {
-            process.env['PYTHON_DONJAYAMANNE_TEST'] = '0';
-            process.env['DEBUG_DJAYAMANNE_IPYTHON'] = '1';
-            output = new MockOutputChannel('Jupyter');
-            jupyter = new JupyterClientAdapter(output, __dirname);
-        });
-        teardown(() => {
-            process.env['PYTHON_DONJAYAMANNE_TEST'] = '1';
-            process.env['DEBUG_DJAYAMANNE_IPYTHON'] = '0';
-            output.dispose();
-            jupyter.dispose();
-        });
+    });
+    setup(() => {
+        process.env['PYTHON_DONJAYAMANNE_TEST'] = '0';
+        process.env['DEBUG_DJAYAMANNE_IPYTHON'] = '1';
+        output = new MockOutputChannel('Jupyter');
+        jupyter = new JupyterClientAdapter(output, __dirname);
+    });
+    suiteTeardown(done => {
+        disposable.dispose();
+    });
+    teardown(done => {
+        process.env['PYTHON_DONJAYAMANNE_TEST'] = '1';
+        process.env['DEBUG_DJAYAMANNE_IPYTHON'] = '0';
+        output.dispose();
+        jupyter.dispose();
     });
 
     let output: MockOutputChannel;

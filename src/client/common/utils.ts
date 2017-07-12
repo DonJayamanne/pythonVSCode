@@ -178,7 +178,7 @@ function handlePythonModuleResponse(includeErrorAsResponse: boolean, error: Erro
     if (token && token.isCancellationRequested) {
         return Promise.resolve(undefined);
     }
-    if (isNotInstalledError(error) || !!error) {
+    if (isNotInstalledError(error)) {
         return Promise.reject(error);
     }
 

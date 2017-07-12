@@ -4,7 +4,7 @@
 
 
 // Place this right on top
-import { initialize, IS_TRAVIS, PYTHON_PATH, closeActiveWindows } from './initialize';
+import { initialize, IS_TRAVIS, closeActiveWindows, setPythonExecutable } from './initialize';
 // The module 'assert' provides assertion methods from node
 import * as assert from 'assert';
 
@@ -19,6 +19,8 @@ import * as fs from 'fs-extra';
 import { execPythonFile } from '../client/common/utils';
 
 let pythonSettings = settings.PythonSettings.getInstance();
+let disposable = setPythonExecutable(pythonSettings);
+
 let ch = vscode.window.createOutputChannel('Tests');
 let pythoFilesPath = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'formatting');
 const originalUnformattedFile = path.join(pythoFilesPath, 'fileToFormat.py');
@@ -34,7 +36,6 @@ let formattedAutoPep8 = '';
 suite('Formatting', () => {
     suiteSetup(done => {
         initialize().then(() => {
-            pythonSettings.pythonPath = PYTHON_PATH;
             [autoPep8FileToFormat, autoPep8FileToAutoFormat, yapfFileToFormat, yapfFileToAutoFormat].forEach(file => {
                 if (fs.existsSync(file)) { fs.unlinkSync(file); }
                 fs.copySync(originalUnformattedFile, file);
@@ -50,10 +51,11 @@ suite('Formatting', () => {
         }).then(done).catch(done);
     });
     suiteTeardown(done => {
-        closeActiveWindows().then(done, done);
+        disposable.dispose();
+        closeActiveWindows().then(() => done(), () => done());
     });
     teardown(done => {
-        closeActiveWindows().then(done, done);
+        closeActiveWindows().then(() => done(), () => done());
     });
 
     function testFormatting(formatter: AutoPep8Formatter | YapfFormatter, formattedContents: string, fileToFormat: string): PromiseLike<void> {

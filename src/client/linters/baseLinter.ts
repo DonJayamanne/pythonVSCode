@@ -56,7 +56,7 @@ export abstract class BaseLinter {
     protected get workspaceRootPath(): string {
         return typeof this._workspaceRootPath === 'string' ? this._workspaceRootPath : vscode.workspace.rootPath;
     }
-    constructor(id: string, product: Product, protected outputChannel: OutputChannel, workspaceRootPath: string) {
+    constructor(id: string, public product: Product, protected outputChannel: OutputChannel, workspaceRootPath: string) {
         this.Id = id;
         this._workspaceRootPath = workspaceRootPath;
         this.pythonSettings = settings.PythonSettings.getInstance();

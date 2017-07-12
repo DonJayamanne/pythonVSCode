@@ -44,7 +44,7 @@ Foo	../pythonFiles/autocomp/four.py	/^class Foo(object):$/;"	kind:class	line:7
 Foo	../pythonFiles/linting/file.py	/^class Foo(object):$/;"	kind:class	line:5
 Foo	../pythonFiles/linting/flake8config/file.py	/^class Foo(object):$/;"	kind:class	line:5
 Foo	../pythonFiles/linting/pep8config/file.py	/^class Foo(object):$/;"	kind:class	line:5
-Foo	../pythonFiles/linting/pydocstyleconfig/file.py	/^class Foo(object):$/;"	kind:class	line:5
+Foo	../pythonFiles/linting/pydocstyleconfig27/file.py	/^class Foo(object):$/;"	kind:class	line:5
 Foo	../pythonFiles/linting/pylintconfig/file.py	/^class Foo(object):$/;"	kind:class	line:5
 Gaussian	../pythonFiles/jupyter/cells.py	/^class Gaussian(object):$/;"	kind:class	line:100
 HTML	../pythonFiles/jupyter/cells.py	/^from IPython.core.display import HTML$/;"	kind:namespace	line:53
@@ -149,7 +149,7 @@ __init__	../pythonFiles/jupyter/cells.py	/^    def __init__(self, mean=0.0, std=
 __init__	../pythonFiles/linting/file.py	/^    def __init__(self):$/;"	kind:member	line:8
 __init__	../pythonFiles/linting/flake8config/file.py	/^    def __init__(self):$/;"	kind:member	line:8
 __init__	../pythonFiles/linting/pep8config/file.py	/^    def __init__(self):$/;"	kind:member	line:8
-__init__	../pythonFiles/linting/pydocstyleconfig/file.py	/^    def __init__(self):$/;"	kind:member	line:8
+__init__	../pythonFiles/linting/pydocstyleconfig27/file.py	/^    def __init__(self):$/;"	kind:member	line:8
 __init__	../pythonFiles/linting/pylintconfig/file.py	/^    def __init__(self):$/;"	kind:member	line:8
 __init__	../pythonFiles/refactoring/standAlone/refactor.py	/^    def __init__(self):$/;"	kind:member	line:164
 __init__	../pythonFiles/refactoring/standAlone/refactor.py	/^    def __init__(self, filePath, fileMode=ChangeType.EDIT, diff=""):$/;"	kind:member	line:48
@@ -166,7 +166,7 @@ __repr__	../pythonFiles/autocomp/misc.py	/^    def __repr__(self):$/;"	kind:memb
 __revision__	../pythonFiles/linting/file.py	/^__revision__ = None$/;"	kind:variable	line:3
 __revision__	../pythonFiles/linting/flake8config/file.py	/^__revision__ = None$/;"	kind:variable	line:3
 __revision__	../pythonFiles/linting/pep8config/file.py	/^__revision__ = None$/;"	kind:variable	line:3
-__revision__	../pythonFiles/linting/pydocstyleconfig/file.py	/^__revision__ = None$/;"	kind:variable	line:3
+__revision__	../pythonFiles/linting/pydocstyleconfig27/file.py	/^__revision__ = None$/;"	kind:variable	line:3
 __revision__	../pythonFiles/linting/pylintconfig/file.py	/^__revision__ = None$/;"	kind:variable	line:3
 __setstate__	../pythonFiles/autocomp/misc.py	/^    def __setstate__(self, state):  # for pickle$/;"	kind:member	line:1425
 __stop	../pythonFiles/autocomp/misc.py	/^    def __stop(self):$/;"	kind:member	line:866
@@ -310,7 +310,7 @@ figure	../pythonFiles/jupyter/cells.py	/^from bokeh.plotting import figure, show
 file.py	../pythonFiles/linting/file.py	1;"	kind:file	line:1
 file.py	../pythonFiles/linting/flake8config/file.py	1;"	kind:file	line:1
 file.py	../pythonFiles/linting/pep8config/file.py	1;"	kind:file	line:1
-file.py	../pythonFiles/linting/pydocstyleconfig/file.py	1;"	kind:file	line:1
+file.py	../pythonFiles/linting/pydocstyleconfig27/file.py	1;"	kind:file	line:1
 file.py	../pythonFiles/linting/pylintconfig/file.py	1;"	kind:file	line:1
 fileToFormat.py	../pythonFiles/formatting/fileToFormat.py	1;"	kind:file	line:1
 five.py	../pythonFiles/autocomp/five.py	1;"	kind:file	line:1
@@ -372,42 +372,42 @@ matplotlib	../pythonFiles/jupyter/cells.py	/^import matplotlib.pyplot as plt$/;"
 meth1	../pythonFiles/linting/file.py	/^    def meth1(self, arg):$/;"	kind:member	line:11
 meth1	../pythonFiles/linting/flake8config/file.py	/^    def meth1(self, arg):$/;"	kind:member	line:11
 meth1	../pythonFiles/linting/pep8config/file.py	/^    def meth1(self, arg):$/;"	kind:member	line:11
-meth1	../pythonFiles/linting/pydocstyleconfig/file.py	/^    def meth1(self, arg):$/;"	kind:member	line:11
+meth1	../pythonFiles/linting/pydocstyleconfig27/file.py	/^    def meth1(self, arg):$/;"	kind:member	line:11
 meth1	../pythonFiles/linting/pylintconfig/file.py	/^    def meth1(self, arg):$/;"	kind:member	line:11
 meth2	../pythonFiles/linting/file.py	/^    def meth2(self, arg):$/;"	kind:member	line:15
 meth2	../pythonFiles/linting/flake8config/file.py	/^    def meth2(self, arg):$/;"	kind:member	line:15
 meth2	../pythonFiles/linting/pep8config/file.py	/^    def meth2(self, arg):$/;"	kind:member	line:15
-meth2	../pythonFiles/linting/pydocstyleconfig/file.py	/^    def meth2(self, arg):$/;"	kind:member	line:15
+meth2	../pythonFiles/linting/pydocstyleconfig27/file.py	/^    def meth2(self, arg):$/;"	kind:member	line:15
 meth2	../pythonFiles/linting/pylintconfig/file.py	/^    def meth2(self, arg):$/;"	kind:member	line:15
 meth3	../pythonFiles/linting/file.py	/^    def meth3(self):$/;"	kind:member	line:21
 meth3	../pythonFiles/linting/flake8config/file.py	/^    def meth3(self):$/;"	kind:member	line:21
 meth3	../pythonFiles/linting/pep8config/file.py	/^    def meth3(self):$/;"	kind:member	line:21
-meth3	../pythonFiles/linting/pydocstyleconfig/file.py	/^    def meth3(self):$/;"	kind:member	line:21
+meth3	../pythonFiles/linting/pydocstyleconfig27/file.py	/^    def meth3(self):$/;"	kind:member	line:21
 meth3	../pythonFiles/linting/pylintconfig/file.py	/^    def meth3(self):$/;"	kind:member	line:21
 meth4	../pythonFiles/linting/file.py	/^    def meth4(self):$/;"	kind:member	line:28
 meth4	../pythonFiles/linting/flake8config/file.py	/^    def meth4(self):$/;"	kind:member	line:28
 meth4	../pythonFiles/linting/pep8config/file.py	/^    def meth4(self):$/;"	kind:member	line:28
-meth4	../pythonFiles/linting/pydocstyleconfig/file.py	/^    def meth4(self):$/;"	kind:member	line:28
+meth4	../pythonFiles/linting/pydocstyleconfig27/file.py	/^    def meth4(self):$/;"	kind:member	line:28
 meth4	../pythonFiles/linting/pylintconfig/file.py	/^    def meth4(self):$/;"	kind:member	line:28
 meth5	../pythonFiles/linting/file.py	/^    def meth5(self):$/;"	kind:member	line:38
 meth5	../pythonFiles/linting/flake8config/file.py	/^    def meth5(self):$/;"	kind:member	line:38
 meth5	../pythonFiles/linting/pep8config/file.py	/^    def meth5(self):$/;"	kind:member	line:38
-meth5	../pythonFiles/linting/pydocstyleconfig/file.py	/^    def meth5(self):$/;"	kind:member	line:38
+meth5	../pythonFiles/linting/pydocstyleconfig27/file.py	/^    def meth5(self):$/;"	kind:member	line:38
 meth5	../pythonFiles/linting/pylintconfig/file.py	/^    def meth5(self):$/;"	kind:member	line:38
 meth6	../pythonFiles/linting/file.py	/^    def meth6(self):$/;"	kind:member	line:53
 meth6	../pythonFiles/linting/flake8config/file.py	/^    def meth6(self):$/;"	kind:member	line:53
 meth6	../pythonFiles/linting/pep8config/file.py	/^    def meth6(self):$/;"	kind:member	line:53
-meth6	../pythonFiles/linting/pydocstyleconfig/file.py	/^    def meth6(self):$/;"	kind:member	line:53
+meth6	../pythonFiles/linting/pydocstyleconfig27/file.py	/^    def meth6(self):$/;"	kind:member	line:53
 meth6	../pythonFiles/linting/pylintconfig/file.py	/^    def meth6(self):$/;"	kind:member	line:53
 meth7	../pythonFiles/linting/file.py	/^    def meth7(self):$/;"	kind:member	line:68
 meth7	../pythonFiles/linting/flake8config/file.py	/^    def meth7(self):$/;"	kind:member	line:68
 meth7	../pythonFiles/linting/pep8config/file.py	/^    def meth7(self):$/;"	kind:member	line:68
-meth7	../pythonFiles/linting/pydocstyleconfig/file.py	/^    def meth7(self):$/;"	kind:member	line:68
+meth7	../pythonFiles/linting/pydocstyleconfig27/file.py	/^    def meth7(self):$/;"	kind:member	line:68
 meth7	../pythonFiles/linting/pylintconfig/file.py	/^    def meth7(self):$/;"	kind:member	line:68
 meth8	../pythonFiles/linting/file.py	/^    def meth8(self):$/;"	kind:member	line:80
 meth8	../pythonFiles/linting/flake8config/file.py	/^    def meth8(self):$/;"	kind:member	line:80
 meth8	../pythonFiles/linting/pep8config/file.py	/^    def meth8(self):$/;"	kind:member	line:80
-meth8	../pythonFiles/linting/pydocstyleconfig/file.py	/^    def meth8(self):$/;"	kind:member	line:80
+meth8	../pythonFiles/linting/pydocstyleconfig27/file.py	/^    def meth8(self):$/;"	kind:member	line:80
 meth8	../pythonFiles/linting/pylintconfig/file.py	/^    def meth8(self):$/;"	kind:member	line:80
 method1	../pythonFiles/autocomp/one.py	/^    def method1(self):$/;"	kind:member	line:18
 method2	../pythonFiles/autocomp/one.py	/^    def method2(self):$/;"	kind:member	line:24

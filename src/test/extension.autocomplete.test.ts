@@ -4,7 +4,7 @@
 
 
 // Place this right on top
-import { initialize, PYTHON_PATH, closeActiveWindows } from './initialize';
+import { initialize, PYTHON_PATH, closeActiveWindows, setPythonExecutable } from './initialize';
 // The module 'assert' provides assertion methods from node
 import * as assert from 'assert';
 import { EOL } from 'os';
@@ -15,6 +15,8 @@ import * as path from 'path';
 import * as settings from '../client/common/configSettings';
 
 let pythonSettings = settings.PythonSettings.getInstance();
+let disposable: vscode.Disposable;
+
 let autoCompPath = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'autocomp');
 const fileOne = path.join(autoCompPath, 'one.py');
 const fileTwo = path.join(autoCompPath, 'two.py');
@@ -25,17 +27,17 @@ const fileHover = path.join(autoCompPath, 'hoverTest.py');
 
 suite('Autocomplete', () => {
     suiteSetup(done => {
+        disposable = setPythonExecutable(pythonSettings);
         initialize().then(() => {
-            pythonSettings.pythonPath = PYTHON_PATH;
             done();
         }, done);
     });
-
     suiteTeardown(done => {
-        closeActiveWindows().then(done, done);
+        disposable.dispose();
+        closeActiveWindows().then(() => done(), () => done());
     });
     teardown(done => {
-        closeActiveWindows().then(done, done);
+        closeActiveWindows().then(() => done(), () => done());
     });
 
     test('For "sys."', done => {
@@ -115,17 +117,18 @@ suite('Autocomplete', () => {
 
 suite('Code Definition', () => {
     suiteSetup(done => {
+        disposable = setPythonExecutable(pythonSettings);
         initialize().then(() => {
-            pythonSettings.pythonPath = PYTHON_PATH;
             done();
         }, done);
     });
 
     suiteTeardown(done => {
-        closeActiveWindows().then(done, done);
+        disposable.dispose();
+        closeActiveWindows().then(() => done(), () => done());
     });
     teardown(done => {
-        closeActiveWindows().then(done, done);
+        closeActiveWindows().then(() => done(), () => done());
     });
 
     test('Go to method', done => {
@@ -206,17 +209,18 @@ suite('Code Definition', () => {
 
 suite('Hover Definition', () => {
     suiteSetup(done => {
+        disposable = setPythonExecutable(pythonSettings);
         initialize().then(() => {
-            pythonSettings.pythonPath = PYTHON_PATH;
             done();
         }, done);
     });
 
     suiteTeardown(done => {
-        closeActiveWindows().then(done, done);
+        disposable.dispose();
+        closeActiveWindows().then(() => done(), () => done());
     });
     teardown(done => {
-        closeActiveWindows().then(done, done);
+        closeActiveWindows().then(() => done(), () => done());
     });
 
     test('Method', done => {
@@ -458,10 +462,10 @@ suite('Hover Definition', () => {
             assert.equal(def.length, 1, 'Definition length is incorrect');
             assert.equal(def[0].contents.length, 1, 'Only expected one result');
             assert.equal(def[0].contents[0],
-            '```python' + EOL +
-            'Random' + EOL +
-            '```' + EOL +
-            `Random(self, x=None)
+                '```python' + EOL +
+                'Random' + EOL +
+                '```' + EOL +
+                `Random(self, x=None)
 
 Random number generator base class used by bound module functions.
 
@@ -475,7 +479,7 @@ generator of your own devising: in that case, override the following
 
 Optionally, implement a getrandbits() method so that randrange()
 can cover arbitrarily large ranges.`,
-            'Invalid content items');
+                'Invalid content items');
         }).then(done, done);
     });
 });

@@ -73,7 +73,16 @@ switch (os.platform()) {
     }
 }
 
-const Linters: Product[] = [Product.flake8, Product.pep8, Product.pylama, Product.prospector, Product.pylint, Product.mypy, Product.pydocstyle];
+export const Linters: Product[] = [
+    Product.flake8,
+    Product.pep8,
+    Product.pylama,
+    Product.prospector,
+    Product.pylint,
+    Product.mypy,
+    Product.pydocstyle
+];
+
 const Formatters: Product[] = [Product.autopep8, Product.yapf];
 const TestFrameworks: Product[] = [Product.pytest, Product.nosetest, Product.unittest];
 

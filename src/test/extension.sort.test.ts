@@ -4,7 +4,7 @@
 
 
 // Place this right on top
-import { initialize, PYTHON_PATH, IS_TRAVIS, closeActiveWindows } from './initialize';
+import { initialize, IS_TRAVIS, closeActiveWindows, setPythonExecutable } from './initialize';
 // The module 'assert' provides assertion methods from node
 import * as assert from 'assert';
 
@@ -18,6 +18,8 @@ import * as fs from 'fs';
 import { EOL } from 'os';
 
 const pythonSettings = settings.PythonSettings.getInstance();
+const disposable = setPythonExecutable(pythonSettings);
+
 const fileToFormatWithoutConfig = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'sorting', 'noconfig', 'before.py');
 const originalFileToFormatWithoutConfig = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'sorting', 'noconfig', 'original.py');
 const fileToFormatWithConfig = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'sorting', 'withconfig', 'before.py');
@@ -28,22 +30,21 @@ const extensionDir = path.join(__dirname, '..', '..');
 
 suite('Sorting', () => {
     suiteSetup(done => {
-        initialize().then(() => {
-            pythonSettings.pythonPath = PYTHON_PATH;
-        }).then(done, done);
+        initialize().then(() => done(), () => done());
     });
     suiteTeardown(done => {
+        disposable.dispose();
         fs.writeFileSync(fileToFormatWithConfig, fs.readFileSync(originalFileToFormatWithConfig));
         fs.writeFileSync(fileToFormatWithConfig1, fs.readFileSync(originalFileToFormatWithConfig1));
         fs.writeFileSync(fileToFormatWithoutConfig, fs.readFileSync(originalFileToFormatWithoutConfig));
-        closeActiveWindows().then(done).catch(done);
+        closeActiveWindows().then(() => done(), () => done());
     });
     setup(done => {
         pythonSettings.sortImports.args = [];
         fs.writeFileSync(fileToFormatWithConfig, fs.readFileSync(originalFileToFormatWithConfig));
         fs.writeFileSync(fileToFormatWithoutConfig, fs.readFileSync(originalFileToFormatWithoutConfig));
         fs.writeFileSync(fileToFormatWithConfig1, fs.readFileSync(originalFileToFormatWithConfig1));
-        closeActiveWindows().then(done).catch(done);
+        closeActiveWindows().then(() => done(), () => done());
     });
 
     test('Without Config', done => {
