@@ -385,6 +385,7 @@ suite('Jupyter Kernel', () => {
             });
         }).catch(reason => {
             assert.fail(reason, undefined, 'Failed to interrupt Kernel', '');
+            done();
         });
     });
 });

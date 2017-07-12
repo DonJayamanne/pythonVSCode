@@ -72,10 +72,10 @@ suite('JupyterClient', () => {
         output = new MockOutputChannel('Jupyter');
         jupyter = new JupyterClientAdapter(output, __dirname);
     });
-    suiteTeardown(done => {
+    suiteTeardown(() => {
         disposable.dispose();
     });
-    teardown(done => {
+    teardown(() => {
         process.env['PYTHON_DONJAYAMANNE_TEST'] = '1';
         process.env['DEBUG_DJAYAMANNE_IPYTHON'] = '0';
         output.dispose();
@@ -551,6 +551,7 @@ suite('JupyterClient', () => {
             });
         }).catch(reason => {
             assert.fail(reason, undefined, 'Failed to retrieve kernelspecs', '');
+            done();
         });
     });
 });

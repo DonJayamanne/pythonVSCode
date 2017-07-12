@@ -133,6 +133,7 @@ suite('Kernel Manager', () => {
             done();
         }).catch(reason => {
             assert.fail(reason, null, 'Some error', '');
+            done();
         });
     });
 });
