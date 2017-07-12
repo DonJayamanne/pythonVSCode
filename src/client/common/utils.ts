@@ -96,7 +96,9 @@ export function getPathFromPythonCommand(args: string[]): Promise<string> {
     });
 }
 
-export function execPythonFile(file: string, args: string[], cwd: string, includeErrorAsResponse: boolean = false, stdOut: (line: string) => void = null, token?: CancellationToken, execAsModule: boolean = false): Promise<string> {
+export function execPythonFile(file: string, args: string[], cwd: string, includeErrorAsResponse: boolean = false, stdOut: (line: string) => void = null, token?: CancellationToken): Promise<string> {
+    const execAsModule = file.toUpperCase() === 'PYTHON' && args.length > 0 && args[0] === '-m';
+
     // If running the python file, then always revert to execFileInternal
     // Cuz python interpreter is always a file and we can and will always run it using child_process.execFile()
     if (file === settings.PythonSettings.getInstance().pythonPath) {

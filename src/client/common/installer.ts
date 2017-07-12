@@ -228,7 +228,7 @@ export function disableLinter(product: Product) {
 
 function isProductInstalled(product: Product): Promise<boolean> {
     const prodExec = ProductExecutableAndArgs.get(product);
-    return execPythonFile(prodExec.executable, prodExec.args.concat(['--version']), vscode.workspace.rootPath, false, undefined, undefined, true)
+    return execPythonFile(prodExec.executable, prodExec.args.concat(['--version']), vscode.workspace.rootPath, false)
         .then(() => {
             return true;
         }).catch(reason => {
@@ -238,5 +238,5 @@ function isProductInstalled(product: Product): Promise<boolean> {
 
 function uninstallproduct(product: Product): Promise<any> {
     const uninstallArgs = ProductUninstallScripts.get(product);
-    return execPythonFile('python', uninstallArgs, vscode.workspace.rootPath, false, undefined, undefined, true);
+    return execPythonFile('python', uninstallArgs, vscode.workspace.rootPath, false);
 }
