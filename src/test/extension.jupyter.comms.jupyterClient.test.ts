@@ -542,6 +542,7 @@ suite('JupyterClient', () => {
                 output.push(data);
             }, reason => {
                 assert.fail(reason, null, 'Code execution failed in jupyter', '');
+                done();
             }, () => {
                 assert.equal(output.some(d => d.stream === 'pyout' && d.type === 'text' && d.data['text/plain'] === '3'), true, 'pyout not found in output');
                 assert.equal(output.some(d => d.stream === 'status' && d.type === 'text' && d.data === 'ok'), true, 'status not found in output');

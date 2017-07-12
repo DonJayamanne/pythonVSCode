@@ -67,7 +67,7 @@ suite('Kernel Manager', () => {
             done();
         });
     });
-    suiteTeardown(done => {
+    suiteTeardown(() => {
         disposable.dispose();
     });
     setup(() => {
