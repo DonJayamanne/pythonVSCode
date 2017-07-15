@@ -313,20 +313,7 @@ class JediCompletion(object):
                 return d
         return definition
 
-    def _extract_range(self, definition):
-        """Provides the definition range of a given definition
-
-        For regular symbols it returns the start and end location of the
-        characters making up the symbol.
-
-        For scoped containers it will return the entire definition of the
-        scope.
-
-        The scope that jedi provides ends with the first character of the next
-        scope so it's not ideal. For vscode we need the scope to end with the
-        last character of actual code. That's why we extract the lines that
-        make up our scope and trim the trailing whitespace.
-        """
+    def _extract_range_1(self, definition):
         from jedi import common
         from jedi.parser.utils import load_parser
         # get the scope range
@@ -366,6 +353,63 @@ class JediCompletion(object):
                 'end_line': definition.line - 1,
                 'end_column': definition.column
             }
+
+    def _extract_range_2(self, definition):
+        from jedi import common
+        from jedi.parser.python import parse
+        # get the scope range
+        try:
+            if definition.type in ['class', 'function']:
+                tree_name = definition._name.tree_name
+                scope = tree_name.get_definition()
+                start_line = scope.start_pos[0] - 1
+                start_column = scope.start_pos[1]
+                # get the lines
+                code = scope.get_code(include_prefix=False)
+                lines = common.splitlines(code)
+                # trim the lines
+                lines = '\n'.join(lines).rstrip().split('\n')
+                end_line = start_line + len(lines) - 1
+                end_column = len(lines[-1]) - 1
+            else:
+                symbol = definition._name.tree_name
+                start_line = symbol.start_pos[0] - 1
+                start_column = symbol.start_pos[1]
+                end_line = symbol.end_pos[0] - 1
+                end_column =  symbol.end_pos[1]
+            return {
+                'start_line': start_line,
+                'start_column': start_column,
+                'end_line': end_line,
+                'end_column': end_column
+            }
+        except Exception as e:
+            return {
+                'start_line': definition.line - 1,
+                'start_column': definition.column,
+                'end_line': definition.line - 1,
+                'end_column': definition.column
+            }
+
+    def _extract_range(self, definition):
+        """Provides the definition range of a given definition
+
+        For regular symbols it returns the start and end location of the
+        characters making up the symbol.
+
+        For scoped containers it will return the entire definition of the
+        scope.
+
+        The scope that jedi provides ends with the first character of the next
+        scope so it's not ideal. For vscode we need the scope to end with the
+        last character of actual code. That's why we extract the lines that
+        make up our scope and trim the trailing whitespace.
+        """
+        if jedi.__version__ in ('0.9.0', '0.10.0'):
+            return self._extract_range_1(definition)
+        else:
+            return self._extract_range_2(definition)
+
     def _get_definitionsx(self, definitions, identifier=None, ignoreNoModulePath=False):
         """Serialize response to be read from VSCode.
 
