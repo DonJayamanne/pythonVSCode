@@ -66,8 +66,13 @@ function execInTerminal(fileUri?: vscode.Uri) {
     if (filePath.indexOf(' ') > 0) {
         filePath = `"${filePath}"`;
     }
+    //Auto save when running in terminal
+    vscode.commands.executeCommand("workbench.action.files.save");
 
-    terminal = terminal ? terminal : vscode.window.createTerminal(`Python`);
+    //Close the current active python terminal
+    if(terminal) terminal.dispose();
+    terminal = vscode.window.createTerminal(`Python`);
+
     if (pythonSettings.terminal && pythonSettings.terminal.executeInFileDir) {
         const fileDirPath = path.dirname(filePath);
         if (fileDirPath !== vscode.workspace.rootPath && fileDirPath.substring(1) !== vscode.workspace.rootPath) {
