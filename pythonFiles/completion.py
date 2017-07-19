@@ -313,7 +313,7 @@ class JediCompletion(object):
                 return d
         return definition
 
-    def _extract_range_1(self, definition):
+    def _extract_range_jedi_0_9_0(self, definition):
         from jedi import common
         from jedi.parser.utils import load_parser
         # get the scope range
@@ -354,7 +354,7 @@ class JediCompletion(object):
                 'end_column': definition.column
             }
 
-    def _extract_range_2(self, definition):
+    def _extract_range_jedi_0_10_1(self, definition):
         from jedi import common
         from jedi.parser.python import parse
         # get the scope range
@@ -406,9 +406,9 @@ class JediCompletion(object):
         make up our scope and trim the trailing whitespace.
         """
         if jedi.__version__ in ('0.9.0', '0.10.0'):
-            return self._extract_range_1(definition)
+            return self._extract_range_jedi_0_9_0(definition)
         else:
-            return self._extract_range_2(definition)
+            return self._extract_range_jedi_0_10_1(definition)
 
     def _get_definitionsx(self, definitions, identifier=None, ignoreNoModulePath=False):
         """Serialize response to be read from VSCode.
