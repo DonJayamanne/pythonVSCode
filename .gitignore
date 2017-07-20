@@ -3,4 +3,4 @@ out
 node_modules
 *.pyc
 .vscode/.ropeproject/**
-.vscode/extensions/pythonVSCode/src/test/.vscode/tags
+src/test/.vscode/tags
