@@ -223,7 +223,7 @@
     "async/with": {
         "prefix": "async/with",
         "body": [
-            "async with ${1:expr} in ${2:var}:",
+            "async with ${1:expr} as ${2:var}:",
             "\t${3:block}"
         ],
         "description": "Code snippet for a async with statement"
