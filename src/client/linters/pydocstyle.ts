@@ -23,8 +23,8 @@ export class Linter extends baseLinter.BaseLinter {
 
         let pydocstylePath = this.pythonSettings.linting.pydocstylePath;
         let pydocstyleArgs = Array.isArray(this.pythonSettings.linting.pydocstyleArgs) ? this.pythonSettings.linting.pydocstyleArgs : [];
-        
-        if (pydocstyleArgs.length === 0 && ProductExecutableAndArgs.has(Product.pydocstyle)){
+
+        if (pydocstyleArgs.length === 0 && ProductExecutableAndArgs.has(Product.pydocstyle) && pydocstylePath.toLocaleLowerCase() === 'pydocstyle') {
             pydocstylePath = ProductExecutableAndArgs.get(Product.pydocstyle).executable;
             pydocstyleArgs = ProductExecutableAndArgs.get(Product.pydocstyle).args;
         }

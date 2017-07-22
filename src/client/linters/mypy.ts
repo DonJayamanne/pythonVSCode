@@ -23,7 +23,7 @@ export class Linter extends baseLinter.BaseLinter {
         let mypyPath = this.pythonSettings.linting.mypyPath;
         let mypyArgs = Array.isArray(this.pythonSettings.linting.mypyArgs) ? this.pythonSettings.linting.mypyArgs : [];
         
-        if (mypyArgs.length === 0 && ProductExecutableAndArgs.has(Product.mypy)){
+        if (mypyArgs.length === 0 && ProductExecutableAndArgs.has(Product.mypy) && mypyPath.toLocaleLowerCase() === 'mypy'){
             mypyPath = ProductExecutableAndArgs.get(Product.mypy).executable;
             mypyArgs = ProductExecutableAndArgs.get(Product.mypy).args;
         }

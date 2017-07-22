@@ -23,7 +23,7 @@ export class Linter extends baseLinter.BaseLinter {
         let pep8Path = this.pythonSettings.linting.pep8Path;
         let pep8Args = Array.isArray(this.pythonSettings.linting.pep8Args) ? this.pythonSettings.linting.pep8Args : [];
         
-        if (pep8Args.length === 0 && ProductExecutableAndArgs.has(Product.pep8)){
+        if (pep8Args.length === 0 && ProductExecutableAndArgs.has(Product.pep8) && pep8Path.toLocaleLowerCase() === 'pep8'){
             pep8Path = ProductExecutableAndArgs.get(Product.pep8).executable;
             pep8Args = ProductExecutableAndArgs.get(Product.pep8).args;
         }

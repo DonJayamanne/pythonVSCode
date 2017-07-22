@@ -24,8 +24,8 @@ export class Linter extends baseLinter.BaseLinter {
 
         let pylamaPath = this.pythonSettings.linting.pylamaPath;
         let pylamaArgs = Array.isArray(this.pythonSettings.linting.pylamaArgs) ? this.pythonSettings.linting.pylamaArgs : [];
-        
-        if (pylamaArgs.length === 0 && ProductExecutableAndArgs.has(Product.pylama)){
+
+        if (pylamaArgs.length === 0 && ProductExecutableAndArgs.has(Product.pylama) && pylamaPath.toLocaleLowerCase() === 'pylama') {
             pylamaPath = ProductExecutableAndArgs.get(Product.pylama).executable;
             pylamaArgs = ProductExecutableAndArgs.get(Product.pylama).args;
         }
