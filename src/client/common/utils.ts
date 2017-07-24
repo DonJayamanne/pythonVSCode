@@ -115,10 +115,15 @@ export function execPythonFile(file: string, args: string[], cwd: string, includ
     return getPythonInterpreterDirectory().then(pyPath => {
         // We don't have a path
         if (pyPath.length === 0) {
-            if (stdOut) {
-                return spawnFileInternal(file, args, { cwd }, includeErrorAsResponse, stdOut, token);
+            let options: child_process.ExecFileOptions = { cwd };
+            const envVars = customEnvVariables || getCustomEnvVars();
+            if (envVars) {
+                options.env = envVars;
             }
-            return execFileInternal(file, args, { cwd: cwd }, includeErrorAsResponse, token);
+            if (stdOut) {
+                return spawnFileInternal(file, args, options, includeErrorAsResponse, stdOut, token);
+            }
+            return execFileInternal(file, args, options, includeErrorAsResponse, token);
         }
 
         if (customEnvVariables === null) {
@@ -144,7 +149,7 @@ export function execPythonFile(file: string, args: string[], cwd: string, includ
         }
         if (execAsModule) {
             return getFullyQualifiedPythonInterpreterPath()
-                .then(p => execPythonModule(p, args, { cwd: cwd }, includeErrorAsResponse, token));
+                .then(p => execPythonModule(p, args, { cwd: cwd, env: customEnvVariables }, includeErrorAsResponse, token));
         }
         return execFileInternal(file, args, { cwd, env: customEnvVariables }, includeErrorAsResponse, token);
     });
