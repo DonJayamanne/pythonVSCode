@@ -1,4 +1,4 @@
-import { CompletionItem, SymbolKind } from 'vscode';
+import { CompletionItem, SymbolKind, SnippetString } from 'vscode';
 import * as proxy from '../../providers/jediProxy';
 import { extractSignatureAndDocumentation } from '../../providers/jediHelpers';
 import { PythonSettings } from '../../common/configSettings';
@@ -18,7 +18,7 @@ export class CompletionParser {
             completionItem.detail = sigAndDocs[0].split(/\r?\n/).join('');
             if (pythonSettings.autoComplete.addBrackets === true &&
                 (item.kind === SymbolKind.Function || item.kind === SymbolKind.Method)) {
-                completionItem.insertText = item.text + '({{}})';
+                completionItem.insertText = new SnippetString(item.text).appendText("(").appendTabstop().appendText(")");
             }
 
             // ensure the built in memebers are at the bottom
