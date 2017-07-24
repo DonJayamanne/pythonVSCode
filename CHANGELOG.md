@@ -1,6 +1,5 @@
 ### Version 0.7.0 (24 July 2017)
 * Displaying internal documntation [#1008](https://github.com/DonJayamanne/pythonVSCode/issues/1008), [#10860](https://github.com/DonJayamanne/pythonVSCode/issues/10860)  
-* Support for auto importing packages [#1032](https://github.com/DonJayamanne/pythonVSCode/pull/1032), [#764](https://github.com/DonJayamanne/pythonVSCode/issues/764)  
 * Fixes to 'async with' snippet [#1108](https://github.com/DonJayamanne/pythonVSCode/pull/1108), [#996](https://github.com/DonJayamanne/pythonVSCode/issues/996)  
 * Add support for environment variable in unit tests [#1074](https://github.com/DonJayamanne/pythonVSCode/issues/1074)  
 * Fixes to unit test code lenses not being displayed [#1115](https://github.com/DonJayamanne/pythonVSCode/issues/1115)  
