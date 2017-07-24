@@ -5,6 +5,7 @@ import { CodeLensProvider, TextDocument, CancellationToken, CodeLens, SymbolInfo
 import { TestFile, TestsToRun, TestSuite, TestFunction, TestStatus } from '../common/contracts';
 import * as constants from '../../common/constants';
 import { getDiscoveredTests } from '../common/testUtils';
+import { PythonSymbolProvider } from '../../providers/symbolProvider';
 
 interface CodeLensData {
     symbolKind: vscode.SymbolKind;
@@ -17,7 +18,7 @@ interface FunctionsAndSuites {
 }
 
 export class TestFileCodeLensProvider implements CodeLensProvider {
-    constructor(private _onDidChange: vscode.EventEmitter<void>) {
+    constructor(private _onDidChange: vscode.EventEmitter<void>, private symbolProvider: PythonSymbolProvider) {
     }
 
     get onDidChangeCodeLenses(): vscode.Event<void> {
@@ -41,7 +42,7 @@ export class TestFileCodeLensProvider implements CodeLensProvider {
             }
         }, constants.Delays.MaxUnitTestCodeLensDelay);
 
-        return getCodeLenses(document.uri, token);
+        return getCodeLenses(document, token, this.symbolProvider);
     }
 
     resolveCodeLens(codeLens: CodeLens, token: CancellationToken): CodeLens | Thenable<CodeLens> {
@@ -50,7 +51,8 @@ export class TestFileCodeLensProvider implements CodeLensProvider {
     }
 }
 
-function getCodeLenses(documentUri: vscode.Uri, token: vscode.CancellationToken): Thenable<CodeLens[]> {
+function getCodeLenses(document: vscode.TextDocument, token: vscode.CancellationToken, symbolProvider: PythonSymbolProvider): Thenable<CodeLens[]> {
+    const documentUri = document.uri;
     const tests = getDiscoveredTests();
     if (!tests) {
         return null;
@@ -61,7 +63,7 @@ function getCodeLenses(documentUri: vscode.Uri, token: vscode.CancellationToken)
     }
     const allFuncsAndSuites = getAllTestSuitesAndFunctionsPerFile(file);
 
-    return vscode.commands.executeCommand('vscode.executeDocumentSymbolProvider', documentUri, token)
+    return symbolProvider.provideDocumentSymbolsForInternalUse(document, token)
         .then((symbols: vscode.SymbolInformation[]) => {
             return symbols.filter(symbol => {
                 return symbol.kind === vscode.SymbolKind.Function ||

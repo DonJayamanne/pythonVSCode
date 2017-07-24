@@ -12,6 +12,7 @@ import { TestDisplay } from './display/picker';
 import * as constants from '../common/constants';
 import { activateCodeLenses } from './codeLenses/main';
 import { displayTestFrameworkError } from './configuration';
+import { PythonSymbolProvider } from '../providers/symbolProvider';
 
 const settings = PythonSettings.getInstance();
 let testManager: BaseTestManager;
@@ -23,7 +24,7 @@ let testDisplay: TestDisplay;
 let outChannel: vscode.OutputChannel;
 let onDidChange: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
 
-export function activate(context: vscode.ExtensionContext, outputChannel: vscode.OutputChannel) {
+export function activate(context: vscode.ExtensionContext, outputChannel: vscode.OutputChannel, symboldProvider: PythonSymbolProvider) {
     context.subscriptions.push({ dispose: dispose });
     outChannel = outputChannel;
     let disposables = registerCommands();
@@ -38,7 +39,7 @@ export function activate(context: vscode.ExtensionContext, outputChannel: vscode
     }
 
     settings.addListener('change', onConfigChanged);
-    context.subscriptions.push(activateCodeLenses(onDidChange));
+    context.subscriptions.push(activateCodeLenses(onDidChange, symboldProvider));
     context.subscriptions.push(vscode.workspace.onDidSaveTextDocument(onDocumentSaved));
 }
 

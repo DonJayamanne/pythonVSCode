@@ -2,7 +2,6 @@
 
 import * as vscode from 'vscode';
 import * as proxy from './jediProxy';
-import * as telemetryContracts from "../common/telemetryContracts";
 
 export class PythonSymbolProvider implements vscode.DocumentSymbolProvider {
     private jediProxyHandler: proxy.JediProxyHandler<proxy.ISymbolResult>;
@@ -40,6 +39,24 @@ export class PythonSymbolProvider implements vscode.DocumentSymbolProvider {
         }
 
         return this.jediProxyHandler.sendCommand(cmd, token).then(data => {
+            return PythonSymbolProvider.parseData(document, data);
+        });
+    }
+    public provideDocumentSymbolsForInternalUse(document: vscode.TextDocument, token: vscode.CancellationToken): Thenable<vscode.SymbolInformation[]> {
+        var filename = document.fileName;
+
+        var cmd: proxy.ICommand<proxy.ISymbolResult> = {
+            command: proxy.CommandType.Symbols,
+            fileName: filename,
+            columnIndex: 0,
+            lineIndex: 0
+        };
+
+        if (document.isDirty) {
+            cmd.source = document.getText();
+        }
+
+        return this.jediProxyHandler.sendCommandNonCancellableCommand(cmd, token).then(data => {
             return PythonSymbolProvider.parseData(document, data);
         });
     }

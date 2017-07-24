@@ -89,7 +89,7 @@ export function activate(context: vscode.ExtensionContext) {
             },
             {
                 beforeText: /^\s+(continue|break|return)\b.*$/,
-                action: {indentAction: vscode.IndentAction.Outdent},
+                action: { indentAction: vscode.IndentAction.Outdent },
             }
         ]
     });
@@ -102,7 +102,8 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.languages.registerReferenceProvider(PYTHON, new PythonReferenceProvider(context, jediProx)));
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider(PYTHON, new PythonCompletionItemProvider(context, jediProx), '.'));
 
-    context.subscriptions.push(vscode.languages.registerDocumentSymbolProvider(PYTHON, new PythonSymbolProvider(context, jediProx)));
+    const symbolProvider = new PythonSymbolProvider(context, jediProx);
+    context.subscriptions.push(vscode.languages.registerDocumentSymbolProvider(PYTHON, symbolProvider));
     if (pythonSettings.devOptions.indexOf('DISABLE_SIGNATURE') === -1) {
         context.subscriptions.push(vscode.languages.registerSignatureHelpProvider(PYTHON, new PythonSignatureProvider(context, jediProx), '(', ','));
     }
@@ -133,7 +134,7 @@ export function activate(context: vscode.ExtensionContext) {
         context.subscriptions.push(jupMain);
         linterProvider.documentHasJupyterCodeCells = documentHasJupyterCodeCells;
     }
-    tests.activate(context, unitTestOutChannel);
+    tests.activate(context, unitTestOutChannel, symbolProvider);
 
     context.subscriptions.push(new WorkspaceSymbols(lintingOutChannel));
 
