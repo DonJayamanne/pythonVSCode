@@ -22,6 +22,7 @@ class RedirectStdout(object):
     def __exit__(self, exc_type, exc_value, traceback):
         self._new_stdout.flush()
         os.dup2(self.oldstdout_fno, 1)
+        os.close(self.oldstdout_fno)
 
 class JediCompletion(object):
     basic_types = {
