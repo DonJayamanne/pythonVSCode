@@ -419,7 +419,8 @@
 						"cwd": "^\"\\${workspaceRoot}\"",
 						"args": [
 							"runserver",
-							"--noreload"
+							"--noreload",
+							"--nothreading"
 						],
 						"env": {},
 						"envFile": "^\"\\${workspaceRoot}/.env\"",
@@ -817,7 +818,8 @@
 					"cwd": "${workspaceRoot}",
 					"args": [
 						"runserver",
-						"--noreload"
+						"--noreload",
+						"--nothreading"
 					],
 					"env": {},
 					"envFile": "${workspaceRoot}/.env",
