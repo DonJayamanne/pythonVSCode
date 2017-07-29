@@ -1,9 +1,10 @@
-### Version 0.7.0 (24 July 2017)
+### Version 0.7.0 (29 July 2017)
 * Displaying internal documntation [#1008](https://github.com/DonJayamanne/pythonVSCode/issues/1008), [#10860](https://github.com/DonJayamanne/pythonVSCode/issues/10860)  
 * Fixes to 'async with' snippet [#1108](https://github.com/DonJayamanne/pythonVSCode/pull/1108), [#996](https://github.com/DonJayamanne/pythonVSCode/issues/996)  
 * Add support for environment variable in unit tests [#1074](https://github.com/DonJayamanne/pythonVSCode/issues/1074)  
 * Fixes to unit test code lenses not being displayed [#1115](https://github.com/DonJayamanne/pythonVSCode/issues/1115)  
 * Fix to empty brackets being added [#1110](https://github.com/DonJayamanne/pythonVSCode/issues/1110)  
+* Fix debugging of Django applications [#819](https://github.com/DonJayamanne/pythonVSCode/issues/819), [#999](https://github.com/DonJayamanne/pythonVSCode/issues/999)   
 
 ### Version 0.6.9 (22 July 2017)
 * Fix to enure custom linter paths are respected [#1106](https://github.com/DonJayamanne/pythonVSCode/issues/1106)
