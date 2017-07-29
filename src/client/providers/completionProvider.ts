@@ -2,6 +2,7 @@
 
 import * as vscode from 'vscode';
 import * as proxy from './jediProxy';
+import * as telemetryHelper from '../common/telemetry';
 import * as telemetryContracts from '../common/telemetryContracts';
 import { extractSignatureAndDocumentation } from './jediHelpers';
 import { EOL } from 'os';
@@ -65,8 +66,12 @@ export class PythonCompletionItemProvider implements vscode.CompletionItemProvid
             source: source
         };
 
+        const timer = new telemetryHelper.Delays();
         return this.jediProxyHandler.sendCommand(cmd, token).then(data => {
-            return PythonCompletionItemProvider.parseData(data);
+            timer.stop();
+            telemetryHelper.sendTelemetryEvent(telemetryContracts.IDE.Completion, {}, timer.toMeasures());
+            const completions = PythonCompletionItemProvider.parseData(data);
+            return completions;
         });
     }
 }

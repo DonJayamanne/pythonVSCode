@@ -42,11 +42,11 @@ export function activate(context: vscode.ExtensionContext) {
     let pythonSettings = settings.PythonSettings.getInstance();
     let pythonExt = new PythonExt();
     const hasPySparkInCompletionPath = pythonSettings.autoComplete.extraPaths.some(p => p.toLowerCase().indexOf('spark') >= 0);
-    telemetryHelper.sendTelemetryEvent(telemetryContracts.EVENT_LOAD, {
-        CodeComplete_Has_ExtraPaths: pythonSettings.autoComplete.extraPaths.length > 0 ? 'true' : 'false',
-        Format_Has_Custom_Python_Path: pythonSettings.pythonPath.length !== 'python'.length ? 'true' : 'false',
-        Has_PySpark_Path: hasPySparkInCompletionPath ? 'true' : 'false'
-    });
+    // telemetryHelper.sendTelemetryEvent(telemetryContracts.EVENT_LOAD, {
+    //     CodeComplete_Has_ExtraPaths: pythonSettings.autoComplete.extraPaths.length > 0 ? 'true' : 'false',
+    //     Format_Has_Custom_Python_Path: pythonSettings.pythonPath.length !== 'python'.length ? 'true' : 'false',
+    //     Has_PySpark_Path: hasPySparkInCompletionPath ? 'true' : 'false'
+    // });
     lintingOutChannel = vscode.window.createOutputChannel(pythonSettings.linting.outputWindow);
     formatOutChannel = lintingOutChannel;
     if (pythonSettings.linting.outputWindow !== pythonSettings.formatting.outputWindow) {
