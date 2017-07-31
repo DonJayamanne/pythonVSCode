@@ -18,6 +18,7 @@ let autoCompPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'python
 const fileOne = path.join(autoCompPath, 'one.py');
 const fileTwo = path.join(autoCompPath, 'two.py');
 const fileThree = path.join(autoCompPath, 'three.py');
+const fileDecorator = path.join(autoCompPath, 'decorators.py');
 const fileEncoding = path.join(autoCompPath, 'four.py');
 const fileEncodingUsed = path.join(autoCompPath, 'five.py');
 
@@ -70,6 +71,26 @@ suite('Code Definition', () => {
             assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '32,0', 'Start position is incorrect');
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '33,21', 'End position is incorrect');
         }).then(done, done);
+    });
+
+    test('Go to function with decorator', async () => {
+        const textDocument = await vscode.workspace.openTextDocument(fileDecorator);
+        await vscode.window.showTextDocument(textDocument);
+        const position = new vscode.Position(7, 2);
+        const def = await vscode.commands.executeCommand<vscode.Location[]>('vscode.executeDefinitionProvider', textDocument.uri, position);
+        assert.equal(def.length, 1, 'Definition length is incorrect');
+        assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '4,0', 'Start position is incorrect');
+        assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '5,22', 'End position is incorrect');
+    });
+
+    test('Go to function decorator', async () => {
+        const textDocument = await vscode.workspace.openTextDocument(fileDecorator);
+        await vscode.window.showTextDocument(textDocument);
+        const position = new vscode.Position(3, 3);
+        const def = await vscode.commands.executeCommand<vscode.Location[]>('vscode.executeDefinitionProvider', textDocument.uri, position);
+        assert.equal(def.length, 1, 'Definition length is incorrect');
+        assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '0,0', 'Start position is incorrect');
+        assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '1,12', 'End position is incorrect');
     });
 
     test('Across files', done => {
