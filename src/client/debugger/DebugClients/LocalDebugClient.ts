@@ -9,7 +9,7 @@ import { PathUtils } from '../../common/platform/pathUtils';
 import { CurrentProcess } from '../../common/process/currentProcess';
 import { EnvironmentVariablesService } from '../../common/variables/environment';
 import { IServiceContainer } from '../../ioc/types';
-import { IDebugServer, IPythonProcess, LaunchRequestArguments } from '../Common/Contracts';
+import { IDebugServer, IPythonProcess, LaunchRequestArguments, VALID_DEBUG_OPTIONS } from '../Common/Contracts';
 import { IS_WINDOWS } from '../Common/Utils';
 import { BaseDebugServer } from '../DebugServers/BaseDebugServer';
 import { LocalDebugServer } from '../DebugServers/LocalDebugServer';
@@ -17,12 +17,6 @@ import { LocalDebugServerV2 } from '../DebugServers/LocalDebugServerV2';
 import { IDebugLauncherScriptProvider } from '../types';
 import { DebugClient, DebugType } from './DebugClient';
 import { DebugClientHelper } from './helper';
-
-const VALID_DEBUG_OPTIONS = [
-    'RedirectOutput',
-    'DebugStdLib',
-    'BreakOnSystemExitZero',
-    'DjangoDebugging'];
 
 enum DebugServerStatus {
     Unknown = 1,

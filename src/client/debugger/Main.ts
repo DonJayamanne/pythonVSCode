@@ -344,6 +344,11 @@ export class PythonDebugger extends LoggingDebugSession {
             this.launchArgs.debugOptions.indexOf(DebugOptions.DjangoDebugging) >= 0) {
             isDjangoFile = filePath.toUpperCase().endsWith(".HTML");
         }
+        if (this.attachArgs != null &&
+            Array.isArray(this.attachArgs.debugOptions) &&
+            this.attachArgs.debugOptions.indexOf(DebugOptions.DjangoDebugging) >= 0) {
+            isDjangoFile = filePath.toUpperCase().endsWith(".HTML");
+        }
 
         condition = typeof condition === "string" ? condition : "";
 
