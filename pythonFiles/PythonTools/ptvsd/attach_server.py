@@ -1,16 +1,16 @@
 # Python Tools for Visual Studio
 # Copyright(c) Microsoft Corporation
 # All rights reserved.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the License); you may not use
 # this file except in compliance with the License. You may obtain a copy of the
 # License at http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # THIS CODE IS PROVIDED ON AN  *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS
 # OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY
 # IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
 # MERCHANTABLITY OR NON-INFRINGEMENT.
-# 
+#
 # See the Apache Version 2.0 License for specific language governing
 # permissions and limitations under the License.
 
@@ -36,6 +36,14 @@ try:
     import ssl
 except ImportError:
     ssl = None
+
+import json
+import errno
+from socket import error as socket_error
+try:
+    from urllib.request import urlopen, Request, URLError
+except ImportError:
+    from urllib2 import urlopen, Request, URLError
 
 import ptvsd.visualstudio_py_debugger as vspd
 import ptvsd.visualstudio_py_repl as vspr
@@ -66,12 +74,12 @@ from ptvsd.visualstudio_py_util import to_bytes, read_bytes, read_int, read_stri
 #   (int64), and then the Python language version that the server is running represented by three int64s -
 #   major, minor, micro; From there on the socket is assumed to be using the normal PTVS debugging protocol.
 #   If attaching was not successful (which can happen if some other debugger is already attached), the server
-#   responds with 'RJCT' and closes the connection. 
+#   responds with 'RJCT' and closes the connection.
 #
 # 'REPL'
 #   Attach REPL to the process. If successful, the server responds with 'ACPT', and from there on the socket
 #   is assumed to be using the normal PTVS REPL protocol. If not successful (which can happen if there is
-#   no debugger attached), the server responds with 'RJCT' and closes the connection. 
+#   no debugger attached), the server responds with 'RJCT' and closes the connection.
 
 PTVS_VER = '2.2'
 DEFAULT_PORT = 5678
@@ -82,17 +90,20 @@ RJCT = to_bytes('RJCT')
 INFO = to_bytes('INFO')
 ATCH = to_bytes('ATCH')
 REPL = to_bytes('REPL')
+DEBUGGER_UI_PORT = 9615
 
 _attach_enabled = False
 _attached = threading.Event()
+_attach_port = None
+_ui_attach_enabled = False
+_ui_attach_options = {}
 vspd.DONT_DEBUG.append(os.path.normcase(__file__))
 
 
 class AttachAlreadyEnabledError(Exception):
     """`ptvsd.enable_attach` has already been called in this process."""
 
-
-def enable_attach(secret, address = ('0.0.0.0', DEFAULT_PORT), certfile = None, keyfile = None, redirect_output = True):
+def enable_attach(secret, address, certfile = None, keyfile = None, redirect_output = True):
     """Enables Python Tools for Visual Studio to attach to this process remotely
     to debug Python code.
 
@@ -105,7 +116,7 @@ def enable_attach(secret, address = ('0.0.0.0', DEFAULT_PORT), certfile = None, 
         hostname by ``'@'``, e.g.: ``'secret@myhost.cloudapp.net:5678'``. If
         secret is ``None``, there's no validation, and any client can connect
         freely.
-    address : (str, int), optional 
+    address : (str, int), optional
         Specifies the interface and port on which the debugging server should
         listen for TCP connections. It is in the same format as used for
         regular sockets of the `socket.AF_INET` family, i.e. a tuple of
@@ -116,7 +127,7 @@ def enable_attach(secret, address = ('0.0.0.0', DEFAULT_PORT), certfile = None, 
         Used to enable SSL. If not specified, or if set to ``None``, the
         connection between this program and the debugger will be unsecure,
         and can be intercepted on the wire. If specified, the meaning of this
-        parameter is the same as for `ssl.wrap_socket`. 
+        parameter is the same as for `ssl.wrap_socket`.
     keyfile : str, optional
         Used together with `certfile` when SSL is enabled. Its meaning is the
         same as for ``ssl.wrap_socket``.
@@ -131,7 +142,7 @@ def enable_attach(secret, address = ('0.0.0.0', DEFAULT_PORT), certfile = None, 
     is attached, call `ptvsd.wait_for_attach`. The debugger can be detached
     and re-attached multiple times after `enable_attach` is called.
 
-    This function can only be called once during the lifetime of the process. 
+    This function can only be called once during the lifetime of the process.
     On a second call, `AttachAlreadyEnabledError` is raised. In circumstances
     where the caller does not control how many times the function will be
     called (e.g. when a script with a single call is run more than once by
@@ -164,8 +175,15 @@ def enable_attach(secret, address = ('0.0.0.0', DEFAULT_PORT), certfile = None, 
 
     server = socket.socket(proto=socket.IPPROTO_TCP)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    if address is None:
+        if register_options is not None:
+            address = ('0.0.0.0', 0)
+        else:
+            address = ('0.0.0.0', DEFAULT_PORT)
     server.bind(address)
     server.listen(1)
+    global _attach_port
+    _attach_port = server.getsockname()[1]
     def server_thread_func():
         while True:
             client = None
@@ -298,8 +316,53 @@ def enable_attach(secret, address = ('0.0.0.0', DEFAULT_PORT), certfile = None, 
     vspd.intercept_threads(for_attach = True)
 
 
-# Alias for convenience of users of pydevd
-settrace = enable_attach
+# `set_trace` should pause debug execution and attach the debugger UI to the debugger engine
+def set_trace(options=None):
+    # Enable on-demand UI attach to the debugger.
+    enable_attach_ui(options)
+    # Trigger the debugger ui to attach, if one exists
+    debugger_ui_attach()
+    wait_for_attach()
+    break_into_debugger()
+
+
+def enable_attach_ui(options):
+    global _attach_enabled, _attach_port, _ui_attach_enabled, _ui_attach_options
+    if not _attach_enabled:
+        enable_attach(None, ('0.0.0.0', 0))
+    _ui_attach_options = options if options is not None else _ui_attach_options
+    if not _ui_attach_enabled:
+        _ui_attach_enabled = debugger_ui_enable_attach()
+
+
+def debugger_ui_attach():
+    if not vspd.DETACHED:
+        return
+    global _attach_port
+    attach_info = {"domain": "debug", "type": "python", "command": "attach", "port": _attach_port}
+    return debugger_ui_request(attach_info)
+
+
+def debugger_ui_enable_attach():
+    global _attach_port, _ui_attach_options
+    attach_info = {"domain": "debug", "type": "python", "command": "enable-attach",
+        "port": _attach_port, "options": _ui_attach_options}
+    return debugger_ui_request(attach_info)
+
+
+def debugger_ui_request(info):
+    req = Request('http://localhost:' + str(DEBUGGER_UI_PORT),
+        data=json.dumps(info).encode('utf8'),
+        headers={'Content-Type': 'application/json', 'Accept': 'application/json'})
+    try:
+        response = urlopen(req)
+    except URLError:
+        # It's okay if there's no debugger ui server waiting for that info
+        return False
+    json_response = json.loads(response.read())
+    if not json_response['success']:
+        raise RuntimeError('Failed attach attempt')
+    return True
 
 
 def wait_for_attach(timeout = None):
