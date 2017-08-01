@@ -1,7 +1,7 @@
 "use strict";
 
 import {DebugSession, OutputEvent} from "vscode-debugadapter";
-import {IPythonProcess, IDebugServer, AttachRequestArguments} from "../Common/Contracts";
+import {IPythonProcess, IDebugServer, AttachRequestArguments, VALID_DEBUG_OPTIONS} from "../Common/Contracts";
 import * as net from "net";
 import {BaseDebugServer} from "./BaseDebugServer";
 import {SocketStream} from "../../common/comms/SocketStream";
@@ -136,8 +136,11 @@ export class RemoteDebugServer extends BaseDebugServer {
 
                 if (!commandBytesWritten) {
                     that.stream.Write(AttachCommandBytes);
-                    let debugOptions = "WaitOnAbnormalExit, WaitOnNormalExit, RedirectOutput";
-                    that.stream.WriteString(debugOptions);
+                    let vsDebugOptions = 'WaitOnAbnormalExit,WaitOnNormalExit,RedirectOutput';
+                    if (Array.isArray(this.args.debugOptions)) {
+                        vsDebugOptions = this.args.debugOptions.filter(opt => VALID_DEBUG_OPTIONS.indexOf(opt) >= 0).join(',');
+                    }
+                    that.stream.WriteString(vsDebugOptions);
                     commandBytesWritten = true;
                 }
 

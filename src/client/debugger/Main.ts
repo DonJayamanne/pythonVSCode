@@ -302,12 +302,11 @@ export class PythonDebugger extends DebugSession {
             this.launchArgs.debugOptions.indexOf(DebugOptions.DjangoDebugging) >= 0) {
             isDjangoFile = filePath.toUpperCase().endsWith(".HTML");
         }
-        // Todo: Remote DJango debugging
-        // if (this.attachArgs != null &&
-        //     Array.isArray(this.attachArgs.debugOptions) &&
-        //     this.attachArgs.debugOptions.indexOf(DebugOptions.DjangoDebugging) >= 0) {
-        //     isDjangoFile = filePath.toUpperCase().endsWith(".HTML");
-        // }
+        if (this.attachArgs != null &&
+            Array.isArray(this.attachArgs.debugOptions) &&
+            this.attachArgs.debugOptions.indexOf(DebugOptions.DjangoDebugging) >= 0) {
+            isDjangoFile = filePath.toUpperCase().endsWith(".HTML");
+        }
 
         condition = typeof condition === "string" ? condition : "";
 

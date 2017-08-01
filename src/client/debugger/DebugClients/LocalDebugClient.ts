@@ -5,17 +5,10 @@ import { DebugSession, OutputEvent } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import * as path from 'path';
 import * as child_process from 'child_process';
-import { LaunchRequestArguments } from '../Common/Contracts';
+import { LaunchRequestArguments, VALID_DEBUG_OPTIONS } from '../Common/Contracts';
 import { DebugClient, DebugType } from './DebugClient';
 import { open } from '../../common/open';
 import { getCustomEnvVars } from '../Common/Utils';
-
-const VALID_DEBUG_OPTIONS = ['WaitOnAbnormalExit',
-    'WaitOnNormalExit',
-    'RedirectOutput',
-    'DebugStdLib',
-    'BreakOnSystemExitZero',
-    'DjangoDebugging'];
 
 export class LocalDebugClient extends DebugClient {
     protected args: LaunchRequestArguments;

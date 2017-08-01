@@ -20,6 +20,15 @@ export class TelemetryEvent extends OutputEvent {
     }
 }
 export const DjangoApp = "DJANGO";
+
+export const VALID_DEBUG_OPTIONS = ['WaitOnAbnormalExit',
+    'WaitOnNormalExit',
+    'RedirectOutput',
+    'DebugStdLib',
+    'BreakOnSystemExitZero',
+    'DjangoDebugging'];
+
+
 export enum DebugFlags {
     None = 0,
     IgnoreCommandBursts = 1
@@ -60,9 +69,10 @@ export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArgum
 
 export interface AttachRequestArguments extends DebugProtocol.AttachRequestArguments {
     /** An absolute path to local directory with source. */
-    localRoot: string;
-    remoteRoot: string;
-    port?: number;
+    debugOptions?: string[];
+    localRoot?: string;
+    remoteRoot?: string;
+    port: number;
     host?: string;
     secret?: string;
 }
