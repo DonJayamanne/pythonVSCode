@@ -3,7 +3,7 @@
 
 
 // Place this right on top
-import { initialize, PYTHON_PATH, closeActiveWindows } from '../initialize';
+import { initialize, PYTHON_PATH, closeActiveWindows, setPythonExecutable } from '../initialize';
 // The module 'assert' provides assertion methods from node
 import * as assert from 'assert';
 import { EOL } from 'os';
@@ -12,22 +12,29 @@ import { EOL } from 'os';
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as settings from '../../client/common/configSettings';
+import { execPythonFile } from '../../client/common/utils';
+import { createDeferred } from '../../client/common/helpers';
 
 let pythonSettings = settings.PythonSettings.getInstance();
+let disposable: vscode.Disposable;
 let autoCompPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'definition');
 const fileOne = path.join(autoCompPath, 'one.py');
 const fileTwo = path.join(autoCompPath, 'two.py');
 const fileThree = path.join(autoCompPath, 'three.py');
 const fileDecorator = path.join(autoCompPath, 'decorators.py');
+const fileAwait = path.join(autoCompPath, 'await.test.py');
 const fileEncoding = path.join(autoCompPath, 'four.py');
 const fileEncodingUsed = path.join(autoCompPath, 'five.py');
 
+
 suite('Code Definition', () => {
-    suiteSetup(done => {
-        initialize().then(() => {
-            pythonSettings.pythonPath = PYTHON_PATH;
-            done();
-        }, done);
+    const isPython3Deferred = createDeferred<boolean>();
+    const isPython3 = isPython3Deferred.promise;
+    suiteSetup(async () => {
+        disposable = setPythonExecutable(pythonSettings);
+        await initialize();
+        let version = await execPythonFile(pythonSettings.pythonPath, ['--version'], __dirname, true);
+        isPython3Deferred.resolve(version.indexOf('3.') >= 0);
     });
 
     suiteTeardown(done => {
@@ -50,6 +57,7 @@ suite('Code Definition', () => {
             return vscode.commands.executeCommand<vscode.Location[]>('vscode.executeDefinitionProvider', textDocument.uri, position);
         }).then(def => {
             assert.equal(def.length, 1, 'Definition length is incorrect');
+            assert.equal(def[0].uri.fsPath, fileOne, 'Incorrect file');
             assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '17,4', 'Start position is incorrect');
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '21,11', 'End position is incorrect');
         }).then(done, done);
@@ -68,6 +76,7 @@ suite('Code Definition', () => {
             return vscode.commands.executeCommand<vscode.Location[]>('vscode.executeDefinitionProvider', textDocument.uri, position);
         }).then(def => {
             assert.equal(def.length, 1, 'Definition length is incorrect');
+            assert.equal(def[0].uri.fsPath, fileOne, 'Incorrect file');
             assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '32,0', 'Start position is incorrect');
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '33,21', 'End position is incorrect');
         }).then(done, done);
@@ -79,8 +88,30 @@ suite('Code Definition', () => {
         const position = new vscode.Position(7, 2);
         const def = await vscode.commands.executeCommand<vscode.Location[]>('vscode.executeDefinitionProvider', textDocument.uri, position);
         assert.equal(def.length, 1, 'Definition length is incorrect');
+        assert.equal(def[0].uri.fsPath, fileDecorator, 'Incorrect file');
         assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '4,0', 'Start position is incorrect');
         assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '5,22', 'End position is incorrect');
+    });
+
+    test('Go to function with decorator (jit)', async () => {
+        const textDocument = await vscode.workspace.openTextDocument(fileDecorator);
+        await vscode.window.showTextDocument(textDocument);
+        const position = new vscode.Position(27, 2);
+        const def = await vscode.commands.executeCommand<vscode.Location[]>('vscode.executeDefinitionProvider', textDocument.uri, position);
+        assert.equal(def.length, 1, 'Definition length is incorrect');
+        assert.equal(def[0].uri.fsPath, fileDecorator, 'Incorrect file');
+        assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '19,0', 'Start position is incorrect');
+        assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '26,42', 'End position is incorrect');
+    });
+
+    test('Go to function with decorator (fabric)', async () => {
+        const textDocument = await vscode.workspace.openTextDocument(fileDecorator);
+        await vscode.window.showTextDocument(textDocument);
+        const position = new vscode.Position(13, 2);
+        const def = await vscode.commands.executeCommand<vscode.Location[]>('vscode.executeDefinitionProvider', textDocument.uri, position);
+        assert.equal(def.length, 1, 'Definition length is incorrect');
+        assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '19,0', 'Start position is incorrect');
+        assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '26,42', 'End position is incorrect');
     });
 
     test('Go to function decorator', async () => {
@@ -91,6 +122,34 @@ suite('Code Definition', () => {
         assert.equal(def.length, 1, 'Definition length is incorrect');
         assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '0,0', 'Start position is incorrect');
         assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '1,12', 'End position is incorrect');
+    });
+
+    test('Go to async method', async () => {
+        if (!await isPython3) {
+            return;
+        }
+        const textDocument = await vscode.workspace.openTextDocument(fileAwait);
+        await vscode.window.showTextDocument(textDocument);
+        const position = new vscode.Position(10, 22);
+        const def = await vscode.commands.executeCommand<vscode.Location[]>('vscode.executeDefinitionProvider', textDocument.uri, position);
+        assert.equal(def.length, 1, 'Definition length is incorrect (currently not working)');
+        assert.equal(def[0].uri.fsPath, fileAwait, 'Wrong file (currently not working)');
+        assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '6,10', 'Start position is incorrect (currently not working)');
+        assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '1,12', 'End position is incorrect (currently not working)');
+    });
+
+    test('Go to async function', async () => {
+        if (!await isPython3) {
+            return;
+        }
+        const textDocument = await vscode.workspace.openTextDocument(fileAwait);
+        await vscode.window.showTextDocument(textDocument);
+        const position = new vscode.Position(18, 12);
+        const def = await vscode.commands.executeCommand<vscode.Location[]>('vscode.executeDefinitionProvider', textDocument.uri, position);
+        assert.equal(def.length, 1, 'Definition length is incorrect (currently not working)');
+        assert.equal(def[0].uri.fsPath, fileAwait, 'Wrong file (currently not working)');
+        assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '6,10', 'Start position is incorrect (currently not working)');
+        assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '1,12', 'End position is incorrect (currently not working)');
     });
 
     test('Across files', done => {

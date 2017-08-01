@@ -103,6 +103,8 @@ class JediCompletion(object):
             call_signatures = script.call_signatures()
         except KeyError:
             call_signatures = []
+        except :
+            call_signatures = []
         for signature in call_signatures:
             for pos, param in enumerate(signature.params):
                 if not param.name:
@@ -221,6 +223,8 @@ class JediCompletion(object):
         try:
             completions = script.completions()
         except KeyError:
+            completions = []
+        except :
             completions = []
         for completion in completions:
             if self.show_doc_strings:
@@ -635,18 +639,40 @@ class JediCompletion(object):
             column=request['column'], path=request.get('path', ''))
         
         if lookup == 'definitions':
-            defs = self._get_definitionsx(script.goto_definitions(), request['id'])
-            if len(defs) == 0:
-                defs = self._get_definitionsx(script.goto_assignments(), request['id'])
+            defs = []
+            try:
+                defs = self._get_definitionsx(script.goto_assignments(follow_imports=False), request['id'])
+            except:
+                pass
+            try:
+                if len(defs) == 0:
+                    defs = self._get_definitionsx(script.goto_definitions(), request['id'])
+            except:
+                pass
+            try:
+                if len(defs) == 0:
+                    defs = self._get_definitionsx(script.goto_assignments(), request['id'])
+            except:
+                pass
             return json.dumps({'id': request['id'], 'results': defs})
         if lookup == 'tooltip':
             if jediPreview:
-                defs = self._get_definitionsx(script.goto_definitions(), request['id'], True)
-                if len(defs) == 0:
-                    defs = self._get_definitionsx(script.goto_assignments(), request['id'], True)
+                defs = []
+                try:
+                    defs = self._get_definitionsx(script.goto_definitions(), request['id'], True)
+                except:
+                    pass
+                try:
+                    if len(defs) == 0:
+                        defs = self._get_definitionsx(script.goto_assignments(), request['id'], True)
+                except:
+                    pass
                 return json.dumps({'id': request['id'], 'results': defs})
             else:
-                return self._serialize_tooltip(script.goto_definitions(), request['id'])
+                try:
+                    return self._serialize_tooltip(script.goto_definitions(), request['id'])
+                except:
+                    return json.dumps({'id': request['id'], 'results': []})
         elif lookup == 'arguments':
             return self._serialize_arguments(
                 script, request['id'])

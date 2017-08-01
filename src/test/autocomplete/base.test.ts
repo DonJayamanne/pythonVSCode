@@ -17,6 +17,9 @@ let pythonSettings = settings.PythonSettings.getInstance();
 let autoCompPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'autocomp');
 const fileOne = path.join(autoCompPath, 'one.py');
 const fileImport = path.join(autoCompPath, 'imp.py');
+const fileDoc = path.join(autoCompPath, 'doc.py');
+const fileLambda = path.join(autoCompPath, 'lamb.py');
+const fileDecorator = path.join(autoCompPath, 'deco.py');
 const fileEncoding = path.join(autoCompPath, 'four.py');
 const fileEncodingUsed = path.join(autoCompPath, 'five.py');
 
@@ -60,6 +63,60 @@ suite('Autocomplete', () => {
         const position = new vscode.Position(1, 4);
         const list = await vscode.commands.executeCommand<vscode.CompletionList>('vscode.executeCompletionItemProvider', textDocument.uri, position);
         assert.notEqual(list.items.filter(item => item.label === 'fstat').length, 0, 'fstat not found');
+    });
+
+    // https://github.com/DonJayamanne/pythonVSCode/issues/898
+    test('For "f.readlines()"', async () => {
+        const textDocument = await vscode.workspace.openTextDocument(fileDoc);
+        await vscode.window.showTextDocument(textDocument);
+        const position = new vscode.Position(5, 27);
+        const list = await vscode.commands.executeCommand<vscode.CompletionList>('vscode.executeCompletionItemProvider', textDocument.uri, position);
+        assert.notEqual(list.items.filter(item => item.label === 'capitalize').length, 0, 'capitalize not found (known not to work, Jedi issue)');
+        assert.notEqual(list.items.filter(item => item.label === 'upper').length, 0, 'upper not found');
+        assert.notEqual(list.items.filter(item => item.label === 'lower').length, 0, 'lower not found');
+    });
+
+    // https://github.com/DonJayamanne/pythonVSCode/issues/265
+    test('For "lambda"', async () => {
+        const textDocument = await vscode.workspace.openTextDocument(fileLambda);
+        await vscode.window.showTextDocument(textDocument);
+        const position = new vscode.Position(1, 19);
+        const list = await vscode.commands.executeCommand<vscode.CompletionList>('vscode.executeCompletionItemProvider', textDocument.uri, position);
+        assert.notEqual(list.items.filter(item => item.label === 'append').length, 0, 'append not found');
+        assert.notEqual(list.items.filter(item => item.label === 'clear').length, 0, 'clear not found');
+        assert.notEqual(list.items.filter(item => item.label === 'count').length, 0, 'cound not found');
+    });
+
+    // https://github.com/DonJayamanne/pythonVSCode/issues/630
+    test('For "abc.decorators"', async () => {
+        const textDocument = await vscode.workspace.openTextDocument(fileDecorator);
+        await vscode.window.showTextDocument(textDocument);
+        let position = new vscode.Position(3, 9);
+        let list = await vscode.commands.executeCommand<vscode.CompletionList>('vscode.executeCompletionItemProvider', textDocument.uri, position);
+        assert.notEqual(list.items.filter(item => item.label === 'ABCMeta').length, 0, 'ABCMeta not found');
+        assert.notEqual(list.items.filter(item => item.label === 'abstractmethod').length, 0, 'abstractmethod not found');
+
+        position = new vscode.Position(4, 9);
+        list = await vscode.commands.executeCommand<vscode.CompletionList>('vscode.executeCompletionItemProvider', textDocument.uri, position);
+        assert.notEqual(list.items.filter(item => item.label === 'ABCMeta').length, 0, 'ABCMeta not found');
+        assert.notEqual(list.items.filter(item => item.label === 'abstractmethod').length, 0, 'abstractmethod not found');
+
+        position = new vscode.Position(2, 30);
+        list = await vscode.commands.executeCommand<vscode.CompletionList>('vscode.executeCompletionItemProvider', textDocument.uri, position);
+        assert.notEqual(list.items.filter(item => item.label === 'ABCMeta').length, 0, 'ABCMeta not found');
+        assert.notEqual(list.items.filter(item => item.label === 'abstractmethod').length, 0, 'abstractmethod not found');
+    });
+
+    // https://github.com/DonJayamanne/pythonVSCode/issues/727
+    // https://github.com/DonJayamanne/pythonVSCode/issues/746
+    // https://github.com/davidhalter/jedi/issues/859
+    test('For "time.slee"', async () => {
+        const textDocument = await vscode.workspace.openTextDocument(fileDoc);
+        await vscode.window.showTextDocument(textDocument);
+        const position = new vscode.Position(10, 9);
+        const list = await vscode.commands.executeCommand<vscode.CompletionList>('vscode.executeCompletionItemProvider', textDocument.uri, position);
+        assert.notEqual(list.items.filter(item => item.label === 'sleep').length, 0, 'sleep not found');
+        assert.notEqual(list.items.filter(item => item.documentation.startsWith("Delay execution for a given number of seconds.  The argument may be")).length, 0, 'Documentation incorrect');
     });
 
     test('For custom class', done => {
