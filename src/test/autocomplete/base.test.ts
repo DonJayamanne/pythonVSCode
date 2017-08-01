@@ -3,7 +3,7 @@
 
 
 // Place this right on top
-import { initialize, PYTHON_PATH, closeActiveWindows } from '../initialize';
+import { initialize, PYTHON_PATH, closeActiveWindows, setPythonExecutable } from '../initialize';
 // The module 'assert' provides assertion methods from node
 import * as assert from 'assert';
 import { EOL } from 'os';
@@ -12,8 +12,11 @@ import { EOL } from 'os';
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as settings from '../../client/common/configSettings';
+import { execPythonFile } from '../../client/common/utils';
+import { createDeferred } from '../../client/common/helpers';
 
 let pythonSettings = settings.PythonSettings.getInstance();
+let disposable: vscode.Disposable;
 let autoCompPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'autocomp');
 const fileOne = path.join(autoCompPath, 'one.py');
 const fileImport = path.join(autoCompPath, 'imp.py');
@@ -24,11 +27,13 @@ const fileEncoding = path.join(autoCompPath, 'four.py');
 const fileEncodingUsed = path.join(autoCompPath, 'five.py');
 
 suite('Autocomplete', () => {
-    suiteSetup(done => {
-        initialize().then(() => {
-            pythonSettings.pythonPath = PYTHON_PATH;
-            done();
-        }, done);
+    const isPython3Deferred = createDeferred<boolean>();
+    const isPython3 = isPython3Deferred.promise;
+    suiteSetup(async () => {
+        disposable = setPythonExecutable(pythonSettings);
+        await initialize();
+        let version = await execPythonFile(pythonSettings.pythonPath, ['--version'], __dirname, true);
+        isPython3Deferred.resolve(version.indexOf('3.') >= 0);
     });
 
     suiteTeardown(done => {
@@ -78,6 +83,9 @@ suite('Autocomplete', () => {
 
     // https://github.com/DonJayamanne/pythonVSCode/issues/265
     test('For "lambda"', async () => {
+        if (!await isPython3) {
+            return;
+        }
         const textDocument = await vscode.workspace.openTextDocument(fileLambda);
         await vscode.window.showTextDocument(textDocument);
         const position = new vscode.Position(1, 19);

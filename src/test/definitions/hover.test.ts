@@ -271,22 +271,15 @@ suite('Hover Definition', () => {
         }).then(def => {
             assert.equal(def.length, 1, 'Definition length is incorrect');
             assert.equal(def[0].contents.length, 1, 'Only expected one result');
-            const expectedContent = '```python' + EOL +
-                'Random' + EOL +
-                '```' + EOL +
-                'Random(self, x=None)' + EOL +
-                EOL +
-                'Random number generator base class used by bound module functions.' + EOL +
-                EOL +
-                "Used to instantiate instances of Random to get generators that don't" + EOL +
-                'share state.' + EOL +
-                EOL +
-                'Class Random can also be subclassed if you want to use a different basic' + EOL +
-                'generator of your own devising: in that case, override the following' + EOL + EOL +
-                '`methods`  random(), seed(), getstate(), and setstate().' + EOL + EOL +
-                'Optionally, implement a getrandbits() method so that randrange()' + EOL +
-                'can cover arbitrarily large ranges.';
-            assert.equal(def[0].contents[0], expectedContent, 'Invalid content items');
+            if (def[0].contents[0].toString().indexOf("```python") === -1) {
+                assert.fail(def[0].contents[0].toString(), "", "First line is incorrect", "compare");
+            }
+            if (def[0].contents[0].toString().indexOf("Random number generator base class used by bound module functions.") === -1) {
+                assert.fail(def[0].contents[0].toString(), "", "'Random number generator' message missing", "compare");
+            }
+            if (def[0].contents[0].toString().indexOf("Class Random can also be subclassed if you want to use a different basic") === -1) {
+                assert.fail(def[0].contents[0].toString(), "", "'Class Random message' missing", "compare");
+            }
         }).then(done, done);
     });
 
@@ -297,11 +290,12 @@ suite('Hover Definition', () => {
         const def = await vscode.commands.executeCommand<vscode.Hover[]>('vscode.executeHoverProvider', textDocument.uri, position);
         assert.equal(def.length, 1, 'Definition length is incorrect');
         assert.equal(def[0].contents.length, 1, 'Only expected one result');
-        const expectedContents = "```python" + EOL +
-            "def capitalize()" + EOL +
-            "```" + EOL + "S.capitalize() -> str" + EOL + EOL +
-            "Return a capitalized version of S, i.e. make the first character" + EOL +
-            "have upper case and the rest lower case.";
-        assert.equal(def[0].contents[0], expectedContents, 'Invalid content items');
+        if (def[0].contents[0].toString().indexOf("def capitalize") === -1) {
+            assert.fail(def[0].contents[0].toString(), "", "'def capitalize' is missing", "compare");
+        }
+        if (def[0].contents[0].toString().indexOf("Return a capitalized version of S") === -1 &&
+            def[0].contents[0].toString().indexOf("Return a copy of the string S with only its first character") === -1) {
+            assert.fail(def[0].contents[0].toString(), "", "'Return a capitalized version of S/Return a copy of the string S with only its first character' message missing", "compare");
+        }
     });
 });

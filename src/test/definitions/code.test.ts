@@ -110,8 +110,11 @@ suite('Code Definition', () => {
         const position = new vscode.Position(13, 2);
         const def = await vscode.commands.executeCommand<vscode.Location[]>('vscode.executeDefinitionProvider', textDocument.uri, position);
         assert.equal(def.length, 1, 'Definition length is incorrect');
-        assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '19,0', 'Start position is incorrect');
-        assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '26,42', 'End position is incorrect');
+        if (!def[0].uri.fsPath.endsWith('operations.py')) {
+            assert.fail(def[0].uri.fsPath, 'operations.py', 'Source of sudo is incorrect', 'file source');
+        }
+        assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '1094,0', 'Start position is incorrect (3rd part operations.py could have changed)');
+        assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '1148,4', 'End position is incorrect (3rd part operations.py could have changed)');
     });
 
     test('Go to function decorator', async () => {
