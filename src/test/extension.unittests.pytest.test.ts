@@ -4,7 +4,7 @@
 // Please refer to their documentation on https://mochajs.org/ for help.
 //
 // Place this right on top
-import { initialize, PYTHON_PATH } from './initialize';
+import { initialize, setPythonExecutable } from './initialize';
 
 // The module \'assert\' provides assertion methods from node
 import * as assert from 'assert';
@@ -19,41 +19,23 @@ import { TestResultDisplay } from '../client/unittests/display/main';
 
 import * as path from 'path';
 import * as configSettings from '../client/common/configSettings';
+import { MockOutputChannel } from './mockClasses';
 
 let pythonSettings = configSettings.PythonSettings.getInstance();
+const disposable = setPythonExecutable(pythonSettings);
 
 const UNITTEST_TEST_FILES_PATH = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'standard');
 const UNITTEST_SINGLE_TEST_FILE_PATH = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'single');
 const UNITTEST_TEST_FILES_PATH_WITH_CONFIGS = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'unitestsWithConfigs');
 
-class MockOutputChannel implements vscode.OutputChannel {
-    constructor(name: string) {
-        this.name = name;
-        this.output = '';
-    }
-    name: string;
-    output: string;
-    append(value: string) {
-        this.output += value;
-    }
-    appendLine(value: string) { this.append(value); this.append('\n'); }
-    clear() { }
-    show(preservceFocus?: boolean): void;
-    show(column?: vscode.ViewColumn, preserveFocus?: boolean): void;
-    show(x?: any, y?: any): void { }
-    hide() { }
-    dispose() { }
-}
-
 suite('Unit Tests (PyTest)', () => {
     suiteSetup(done => {
         initialize().then(() => {
-            pythonSettings.pythonPath = PYTHON_PATH;
             done();
         });
     });
-    suiteTeardown(done => {
-        done();
+    suiteTeardown(() => {
+        disposable.dispose();
     });
     setup(() => {
         rootDirectory = UNITTEST_TEST_FILES_PATH;

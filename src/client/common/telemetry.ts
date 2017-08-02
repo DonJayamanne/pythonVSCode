@@ -44,7 +44,8 @@ export class Delays {
             shortDelays: this.shortDelays,
             mediumDelays: this.mediumDelays,
             idleDelays: this.idleDelays,
-            nonFocusDelays: this.nonFocusDelays
+            nonFocusDelays: this.nonFocusDelays,
+            bigDelays: this.bigDelays
         };
     }
 }

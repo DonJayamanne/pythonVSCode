@@ -1,10 +1,9 @@
-
 // Note: This example test is leveraging the Mocha test framework.
 // Please refer to their documentation on https://mochajs.org/ for help.
 
 
 // Place this right on top
-import { initialize, PYTHON_PATH, closeActiveWindows } from './initialize';
+import { initialize, PYTHON_PATH, closeActiveWindows } from '../initialize';
 // The module 'assert' provides assertion methods from node
 import * as assert from 'assert';
 import { EOL } from 'os';
@@ -12,197 +11,17 @@ import { EOL } from 'os';
 // as well as import your extension to test it
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as settings from '../client/common/configSettings';
+import * as settings from '../../client/common/configSettings';
 
-let pythonSettings = settings.PythonSettings.getInstance();
-let autoCompPath = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'autocomp');
+const pythonSettings = settings.PythonSettings.getInstance();
+const autoCompPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'autocomp');
+const hoverPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'hover');
 const fileOne = path.join(autoCompPath, 'one.py');
-const fileTwo = path.join(autoCompPath, 'two.py');
 const fileThree = path.join(autoCompPath, 'three.py');
 const fileEncoding = path.join(autoCompPath, 'four.py');
 const fileEncodingUsed = path.join(autoCompPath, 'five.py');
 const fileHover = path.join(autoCompPath, 'hoverTest.py');
-
-suite('Autocomplete', () => {
-    suiteSetup(done => {
-        initialize().then(() => {
-            pythonSettings.pythonPath = PYTHON_PATH;
-            done();
-        }, done);
-    });
-
-    suiteTeardown(done => {
-        closeActiveWindows().then(done, done);
-    });
-    teardown(done => {
-        closeActiveWindows().then(done, done);
-    });
-
-    test('For "sys."', done => {
-        let textEditor: vscode.TextEditor;
-        let textDocument: vscode.TextDocument;
-        vscode.workspace.openTextDocument(fileOne).then(document => {
-            textDocument = document;
-            return vscode.window.showTextDocument(textDocument);
-        }).then(editor => {
-            assert(vscode.window.activeTextEditor, 'No active editor');
-            textEditor = editor;
-            const position = new vscode.Position(3, 10);
-            return vscode.commands.executeCommand<vscode.CompletionList>('vscode.executeCompletionItemProvider', textDocument.uri, position);
-        }).then(list => {
-            assert.notEqual(list.items.filter(item => item.label === 'api_version').length, 0, 'api_version not found');
-            assert.notEqual(list.items.filter(item => item.label === 'argv').length, 0, 'argv not found');
-            assert.notEqual(list.items.filter(item => item.label === 'prefix').length, 0, 'prefix not found');
-        }).then(done, done);
-    });
-
-    test('For custom class', done => {
-        let textEditor: vscode.TextEditor;
-        let textDocument: vscode.TextDocument;
-        vscode.workspace.openTextDocument(fileOne).then(document => {
-            textDocument = document;
-            return vscode.window.showTextDocument(textDocument);
-        }).then(editor => {
-            assert(vscode.window.activeTextEditor, 'No active editor');
-            textEditor = editor;
-            const position = new vscode.Position(30, 4);
-            return vscode.commands.executeCommand<vscode.CompletionList>('vscode.executeCompletionItemProvider', textDocument.uri, position);
-        }).then(list => {
-            assert.notEqual(list.items.filter(item => item.label === 'method1').length, 0, 'method1 not found');
-            assert.notEqual(list.items.filter(item => item.label === 'method2').length, 0, 'method2 not found');
-        }).then(done, done);
-    });
-
-    test('With Unicode Characters', done => {
-        let textEditor: vscode.TextEditor;
-        let textDocument: vscode.TextDocument;
-        vscode.workspace.openTextDocument(fileEncoding).then(document => {
-            textDocument = document;
-            return vscode.window.showTextDocument(textDocument);
-        }).then(editor => {
-            assert(vscode.window.activeTextEditor, 'No active editor');
-            textEditor = editor;
-            const position = new vscode.Position(25, 4);
-            return vscode.commands.executeCommand<vscode.CompletionList>('vscode.executeCompletionItemProvider', textDocument.uri, position);
-        }).then(list => {
-            assert.equal(list.items.filter(item => item.label === 'bar').length, 1, 'bar not found');
-            const documentation = `说明 - keep this line, it works${EOL}delete following line, it works${EOL}如果存在需要等待审批或正在执行的任务，将不刷新页面`;
-            assert.equal(list.items.filter(item => item.label === 'bar')[0].documentation, documentation, 'unicode documentation is incorrect');
-        }).then(done, done);
-    });
-
-    test('Across files With Unicode Characters', done => {
-        let textEditor: vscode.TextEditor;
-        let textDocument: vscode.TextDocument;
-        vscode.workspace.openTextDocument(fileEncodingUsed).then(document => {
-            textDocument = document;
-            return vscode.window.showTextDocument(textDocument);
-        }).then(editor => {
-            assert(vscode.window.activeTextEditor, 'No active editor');
-            textEditor = editor;
-            const position = new vscode.Position(1, 5);
-            return vscode.commands.executeCommand<vscode.CompletionList>('vscode.executeCompletionItemProvider', textDocument.uri, position);
-        }).then(list => {
-            assert.equal(list.items.filter(item => item.label === 'Foo').length, 1, 'Foo not found');
-            assert.equal(list.items.filter(item => item.label === 'Foo')[0].documentation, '说明', 'Foo unicode documentation is incorrect');
-
-            assert.equal(list.items.filter(item => item.label === 'showMessage').length, 1, 'showMessage not found');
-            const documentation = `Кюм ут жэмпэр пошжим льаборэж, коммюны янтэрэсщэт нам ед, декта игнота ныморэ жят эи. ${EOL}Шэа декам экшырки эи, эи зыд эррэм докэндё, векж факэтэ пэрчыквюэрёж ку.`;
-            assert.equal(list.items.filter(item => item.label === 'showMessage')[0].documentation, documentation, 'showMessage unicode documentation is incorrect');
-        }).then(done, done);
-    });
-});
-
-suite('Code Definition', () => {
-    suiteSetup(done => {
-        initialize().then(() => {
-            pythonSettings.pythonPath = PYTHON_PATH;
-            done();
-        }, done);
-    });
-
-    suiteTeardown(done => {
-        closeActiveWindows().then(done, done);
-    });
-    teardown(done => {
-        closeActiveWindows().then(done, done);
-    });
-
-    test('Go to method', done => {
-        let textEditor: vscode.TextEditor;
-        let textDocument: vscode.TextDocument;
-        vscode.workspace.openTextDocument(fileOne).then(document => {
-            textDocument = document;
-            return vscode.window.showTextDocument(textDocument);
-        }).then(editor => {
-            assert(vscode.window.activeTextEditor, 'No active editor');
-            textEditor = editor;
-            const position = new vscode.Position(30, 5);
-            return vscode.commands.executeCommand<vscode.Location[]>('vscode.executeDefinitionProvider', textDocument.uri, position);
-        }).then(def => {
-            assert.equal(def.length, 1, 'Definition length is incorrect');
-            assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '17,4', 'Start position is incorrect');
-            assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '21,11', 'End position is incorrect');
-        }).then(done, done);
-    });
-
-    test('Across files', done => {
-        let textEditor: vscode.TextEditor;
-        let textDocument: vscode.TextDocument;
-        vscode.workspace.openTextDocument(fileThree).then(document => {
-            textDocument = document;
-            return vscode.window.showTextDocument(textDocument);
-        }).then(editor => {
-            assert(vscode.window.activeTextEditor, 'No active editor');
-            textEditor = editor;
-            const position = new vscode.Position(1, 5);
-            return vscode.commands.executeCommand<vscode.Location[]>('vscode.executeDefinitionProvider', textDocument.uri, position);
-        }).then(def => {
-            assert.equal(def.length, 1, 'Definition length is incorrect');
-            assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '0,0', 'Start position is incorrect');
-            assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '5,11', 'End position is incorrect');
-            assert.equal(def[0].uri.fsPath, fileTwo, 'File is incorrect');
-        }).then(done, done);
-    });
-
-    test('With Unicode Characters', done => {
-        let textEditor: vscode.TextEditor;
-        let textDocument: vscode.TextDocument;
-        vscode.workspace.openTextDocument(fileEncoding).then(document => {
-            textDocument = document;
-            return vscode.window.showTextDocument(textDocument);
-        }).then(editor => {
-            assert(vscode.window.activeTextEditor, 'No active editor');
-            textEditor = editor;
-            const position = new vscode.Position(25, 6);
-            return vscode.commands.executeCommand<vscode.Location[]>('vscode.executeDefinitionProvider', textDocument.uri, position);
-        }).then(def => {
-            assert.equal(def.length, 1, 'Definition length is incorrect');
-            assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '10,4', 'Start position is incorrect');
-            assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '16,35', 'End position is incorrect');
-            assert.equal(def[0].uri.fsPath, fileEncoding, 'File is incorrect');
-        }).then(done, done);
-    });
-
-    test('Across files with Unicode Characters', done => {
-        let textEditor: vscode.TextEditor;
-        let textDocument: vscode.TextDocument;
-        vscode.workspace.openTextDocument(fileEncodingUsed).then(document => {
-            textDocument = document;
-            return vscode.window.showTextDocument(textDocument);
-        }).then(editor => {
-            assert(vscode.window.activeTextEditor, 'No active editor');
-            textEditor = editor;
-            const position = new vscode.Position(1, 11);
-            return vscode.commands.executeCommand<vscode.Location[]>('vscode.executeDefinitionProvider', textDocument.uri, position);
-        }).then(def => {
-            assert.equal(def.length, 1, 'Definition length is incorrect');
-            assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '18,0', 'Start position is incorrect');
-            assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '23,16', 'End position is incorrect');
-            assert.equal(def[0].uri.fsPath, fileEncoding, 'File is incorrect');
-        }).then(done, done);
-    });
-});
+const fileStringFormat = path.join(hoverPath, 'stringFormat.py');
 
 suite('Hover Definition', () => {
     suiteSetup(done => {
@@ -358,10 +177,8 @@ suite('Hover Definition', () => {
                 "share state." + EOL +
                 "" + EOL +
                 "Class Random can also be subclassed if you want to use a different basic" + EOL +
-                "generator of your own devising: in that case, override the following" + EOL +
-                EOL +
-                "`methods` random(), seed(), getstate(), and setstate()." + EOL +
-                EOL +
+                "generator of your own devising: in that case, override the following" + EOL + EOL +
+                "`methods` random(), seed(), getstate(), and setstate()." + EOL + EOL +
                 "Optionally, implement a getrandbits() method so that randrange()" + EOL +
                 "can cover arbitrarily large ranges.";
 
@@ -387,8 +204,7 @@ suite('Hover Definition', () => {
             assert.equal(def[0].contents[0], '```python' + EOL +
                 'def randint(a, b)' + EOL +
                 '```' + EOL +
-                'Return random integer in range [a, b], including both end points.',
-                'Invalid conents');
+                'Return random integer in range [a, b], including both end points.', 'Invalid conents');
         }).then(done, done);
     });
 
@@ -410,8 +226,7 @@ suite('Hover Definition', () => {
             assert.equal(def[0].contents[0], '```python' + EOL +
                 'def acos(x)' + EOL +
                 '```' + EOL +
-                'Return the arc cosine (measured in radians) of x.',
-                'Invalid conents');
+                'Return the arc cosine (measured in radians) of x.', 'Invalid conents');
         }).then(done, done);
     });
 
@@ -438,8 +253,7 @@ suite('Hover Definition', () => {
                 '' + EOL +
                 'A class that represents a thread of control.' + EOL +
                 '' + EOL +
-                'This class can be safely subclassed in a limited fashion.',
-                'Invalid content items');
+                'This class can be safely subclassed in a limited fashion.', 'Invalid content items');
         }).then(done, done);
     });
 
@@ -457,25 +271,31 @@ suite('Hover Definition', () => {
         }).then(def => {
             assert.equal(def.length, 1, 'Definition length is incorrect');
             assert.equal(def[0].contents.length, 1, 'Only expected one result');
-            assert.equal(def[0].contents[0],
-            '```python' + EOL +
-            'Random' + EOL +
-            '```' + EOL +
-            `Random(self, x=None)
-
-Random number generator base class used by bound module functions.
-
-Used to instantiate instances of Random to get generators that don't
-share state.
-
-Class Random can also be subclassed if you want to use a different basic
-generator of your own devising: in that case, override the following
-
-\`methods\`  random(), seed(), getstate(), and setstate().
-
-Optionally, implement a getrandbits() method so that randrange()
-can cover arbitrarily large ranges.`,
-            'Invalid content items');
+            if (def[0].contents[0].toString().indexOf("```python") === -1) {
+                assert.fail(def[0].contents[0].toString(), "", "First line is incorrect", "compare");
+            }
+            if (def[0].contents[0].toString().indexOf("Random number generator base class used by bound module functions.") === -1) {
+                assert.fail(def[0].contents[0].toString(), "", "'Random number generator' message missing", "compare");
+            }
+            if (def[0].contents[0].toString().indexOf("Class Random can also be subclassed if you want to use a different basic") === -1) {
+                assert.fail(def[0].contents[0].toString(), "", "'Class Random message' missing", "compare");
+            }
         }).then(done, done);
+    });
+
+    test('format().capitalize()', async () => {
+        const textDocument = await vscode.workspace.openTextDocument(fileStringFormat);
+        await vscode.window.showTextDocument(textDocument);
+        const position = new vscode.Position(5, 41);
+        const def = await vscode.commands.executeCommand<vscode.Hover[]>('vscode.executeHoverProvider', textDocument.uri, position);
+        assert.equal(def.length, 1, 'Definition length is incorrect');
+        assert.equal(def[0].contents.length, 1, 'Only expected one result');
+        if (def[0].contents[0].toString().indexOf("def capitalize") === -1) {
+            assert.fail(def[0].contents[0].toString(), "", "'def capitalize' is missing", "compare");
+        }
+        if (def[0].contents[0].toString().indexOf("Return a capitalized version of S") === -1 &&
+            def[0].contents[0].toString().indexOf("Return a copy of the string S with only its first character") === -1) {
+            assert.fail(def[0].contents[0].toString(), "", "'Return a capitalized version of S/Return a copy of the string S with only its first character' message missing", "compare");
+        }
     });
 });

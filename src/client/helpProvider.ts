@@ -44,7 +44,7 @@ export class TextDocumentContentProvider extends Disposable implements vscode.Te
     }
 }
 const helpSchema = 'help-viewer';
-const previewUri = vscode.Uri.parse(helpSchema + '://authority/jupyter');
+const previewUri = vscode.Uri.parse(helpSchema + '://authority/python');
 
 export class HelpProvider {
     private disposables: Disposable[] = [];

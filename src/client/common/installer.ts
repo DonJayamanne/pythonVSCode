@@ -24,7 +24,7 @@ export enum Product {
 const ProductInstallScripts = new Map<Product, string[]>();
 ProductInstallScripts.set(Product.autopep8, ['-m', 'pip', 'install', 'autopep8']);
 ProductInstallScripts.set(Product.flake8, ['-m', 'pip', 'install', 'flake8']);
-ProductInstallScripts.set(Product.mypy, ['-m', 'pip', 'install', 'mypy-lang']);
+ProductInstallScripts.set(Product.mypy, ['-m', 'pip', 'install', 'mypy']);
 ProductInstallScripts.set(Product.nosetest, ['-m', 'pip', 'install', 'nose']);
 ProductInstallScripts.set(Product.pep8, ['-m', 'pip', 'install', 'pep8']);
 ProductInstallScripts.set(Product.pylama, ['-m', 'pip', 'install', 'pylama']);
@@ -33,6 +33,33 @@ ProductInstallScripts.set(Product.pydocstyle, ['-m', 'pip', 'install', 'pydocsty
 ProductInstallScripts.set(Product.pylint, ['-m', 'pip', 'install', 'pylint']);
 ProductInstallScripts.set(Product.pytest, ['-m', 'pip', 'install', '-U', 'pytest']);
 ProductInstallScripts.set(Product.yapf, ['-m', 'pip', 'install', 'yapf']);
+
+const ProductUninstallScripts = new Map<Product, string[]>();
+ProductUninstallScripts.set(Product.autopep8, ['-m', 'pip', 'uninstall', 'autopep8', '--yes']);
+ProductUninstallScripts.set(Product.flake8, ['-m', 'pip', 'uninstall', 'flake8', '--yes']);
+ProductUninstallScripts.set(Product.mypy, ['-m', 'pip', 'uninstall', 'mypy', '--yes']);
+ProductUninstallScripts.set(Product.nosetest, ['-m', 'pip', 'uninstall', 'nose', '--yes']);
+ProductUninstallScripts.set(Product.pep8, ['-m', 'pip', 'uninstall', 'pep8', '--yes']);
+ProductUninstallScripts.set(Product.pylama, ['-m', 'pip', 'uninstall', 'pylama', '--yes']);
+ProductUninstallScripts.set(Product.prospector, ['-m', 'pip', 'uninstall', 'prospector', '--yes']);
+ProductUninstallScripts.set(Product.pydocstyle, ['-m', 'pip', 'uninstall', 'pydocstyle', '--yes']);
+ProductUninstallScripts.set(Product.pylint, ['-m', 'pip', 'uninstall', 'pylint', '--yes']);
+ProductUninstallScripts.set(Product.pytest, ['-m', 'pip', 'uninstall', 'pytest', '--yes']);
+ProductUninstallScripts.set(Product.yapf, ['-m', 'pip', 'uninstall', 'yapf', '--yes']);
+
+export const ProductExecutableAndArgs = new Map<Product, { executable: string, args: string[] }>();
+ProductExecutableAndArgs.set(Product.mypy, { executable: 'python', args: ['-m', 'mypy'] });
+ProductExecutableAndArgs.set(Product.nosetest, { executable: 'python', args: ['-m', 'nose'] });
+ProductExecutableAndArgs.set(Product.pylama, { executable: 'python', args: ['-m', 'pylama'] });
+ProductExecutableAndArgs.set(Product.prospector, { executable: 'python', args: ['-m', 'prospector'] });
+ProductExecutableAndArgs.set(Product.pylint, { executable: 'python', args: ['-m', 'pylint'] });
+ProductExecutableAndArgs.set(Product.pytest, { executable: 'python', args: ['-m', 'pytest'] });
+ProductExecutableAndArgs.set(Product.autopep8, { executable: 'python', args: ['-m', 'autopep8'] });
+ProductExecutableAndArgs.set(Product.pep8, { executable: 'python', args: ['-m', 'pep8'] });
+ProductExecutableAndArgs.set(Product.pydocstyle, { executable: 'python', args: ['-m', 'pydocstyle'] });
+ProductExecutableAndArgs.set(Product.yapf, { executable: 'python', args: ['-m', 'yapf'] });
+ProductExecutableAndArgs.set(Product.flake8, { executable: 'python', args: ['-m', 'flake8'] });
+
 switch (os.platform()) {
     case 'win32': {
         // Nothing
@@ -46,7 +73,16 @@ switch (os.platform()) {
     }
 }
 
-const Linters: Product[] = [Product.flake8, Product.pep8, Product.pylama, Product.prospector, Product.pylint, Product.mypy, Product.pydocstyle];
+export const Linters: Product[] = [
+    Product.flake8,
+    Product.pep8,
+    Product.pylama,
+    Product.prospector,
+    Product.pylint,
+    Product.mypy,
+    Product.pydocstyle
+];
+
 const Formatters: Product[] = [Product.autopep8, Product.yapf];
 const TestFrameworks: Product[] = [Product.pytest, Product.nosetest, Product.unittest];
 
@@ -63,8 +99,7 @@ ProductNames.set(Product.pylint, 'pylint');
 ProductNames.set(Product.pytest, 'py.test');
 ProductNames.set(Product.yapf, 'yapf');
 
-const SettingToDisableProduct = new Map<Product, string>();
-SettingToDisableProduct.set(Product.autopep8, 'autopep8');
+export const SettingToDisableProduct = new Map<Product, string>();
 SettingToDisableProduct.set(Product.flake8, 'linting.flake8Enabled');
 SettingToDisableProduct.set(Product.mypy, 'linting.mypyEnabled');
 SettingToDisableProduct.set(Product.nosetest, 'unitTest.nosetestsEnabled');
@@ -74,7 +109,6 @@ SettingToDisableProduct.set(Product.prospector, 'linting.prospectorEnabled');
 SettingToDisableProduct.set(Product.pydocstyle, 'linting.pydocstyleEnabled');
 SettingToDisableProduct.set(Product.pylint, 'linting.pylintEnabled');
 SettingToDisableProduct.set(Product.pytest, 'unitTest.pyTestEnabled');
-SettingToDisableProduct.set(Product.yapf, 'yapf');
 
 export class Installer {
     private static terminal: vscode.Terminal;
@@ -108,7 +142,7 @@ export class Installer {
         return vscode.window.showErrorMessage(`${productType} ${productName} is not installed`, ...options).then(item => {
             switch (item) {
                 case installOption: {
-                    return this.installProduct(product);
+                    return this.install(product);
                 }
                 case disableOption: {
                     if (Linters.indexOf(product) >= 0) {
@@ -131,7 +165,7 @@ export class Installer {
         });
     }
 
-    installProduct(product: Product): Promise<any> {
+    install(product: Product): Promise<any> {
         if (!this.outputChannel && !Installer.terminal) {
             Installer.terminal = vscode.window.createTerminal('Python Installer');
         }
@@ -181,8 +215,12 @@ export class Installer {
         }
     }
 
-    isProductInstalled(product: Product): Promise<boolean> {
+    isInstalled(product: Product): Promise<boolean> {
         return isProductInstalled(product);
+    }
+
+    uninstall(product: Product): Promise<any> {
+        return uninstallproduct(product);
     }
 }
 
@@ -197,30 +235,17 @@ export function disableLinter(product: Product) {
     }
 }
 
-function isTestFrameworkInstalled(product: Product): Promise<boolean> {
-    const fileToRun = product === Product.pytest ? 'py.test' : 'nosetests';
-    const def = createDeferred<boolean>();
-    execPythonFile(fileToRun, ['--version'], vscode.workspace.rootPath, false)
-        .then(() => {
-            def.resolve(true);
-        }).catch(reason => {
-            if (isNotInstalledError(reason)) {
-                def.resolve(false);
-            }
-            else {
-                def.resolve(true);
-            }
-        });
-    return def.promise;
-}
 function isProductInstalled(product: Product): Promise<boolean> {
-    switch (product) {
-        case Product.pytest: {
-            return isTestFrameworkInstalled(product);
-        }
-        case Product.nosetest: {
-            return isTestFrameworkInstalled(product);
-        }
-    }
-    throw new Error('Not supported');
+    const prodExec = ProductExecutableAndArgs.get(product);
+    return execPythonFile(prodExec.executable, prodExec.args.concat(['--version']), vscode.workspace.rootPath, false)
+        .then(() => {
+            return true;
+        }).catch(reason => {
+            return !isNotInstalledError(reason);
+        });
+}
+
+function uninstallproduct(product: Product): Promise<any> {
+    const uninstallArgs = ProductUninstallScripts.get(product);
+    return execPythonFile('python', uninstallArgs, vscode.workspace.rootPath, false);
 }

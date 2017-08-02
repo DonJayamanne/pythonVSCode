@@ -2,7 +2,7 @@
 	"name": "python",
 	"displayName": "Python",
 	"description": "Linting, Debugging (multi-threaded, remote), Intellisense, code formatting, refactoring, unit tests, snippets, Data Science (with Jupyter), PySpark and more.",
-	"version": "0.6.6",
+	"version": "0.6.9",
 	"publisher": "donjayamanne",
 	"author": {
 		"name": "Don Jayamanne",
@@ -17,7 +17,7 @@
 	"bugs": {
 		"url": "https://github.com/DonJayamanne/pythonVSCode/issues"
 	},
-	"icon": "images/icon.svg",
+	"icon": "icon.png",
 	"galleryBanner": {
 		"color": "#1e415e",
 		"theme": "dark"
@@ -45,7 +45,6 @@
 	],
 	"activationEvents": [
 		"onLanguage:python",
-		"workspaceContains:*.py",
 		"onCommand:python.python-debug.startSession",
 		"onCommand:python.execInTerminal",
 		"onCommand:python.sortImports",
@@ -268,6 +267,11 @@
 				{
 					"when": "resourceLangId == python",
 					"command": "python.execInTerminal",
+					"group": "Python"
+				},
+				{
+					"when": "resourceLangId == python",
+					"command": "python.runCurrentTestFile",
 					"group": "Python"
 				}
 			],
@@ -876,7 +880,8 @@
 						"cwd": "${workspaceRoot}",
 						"args": [
 							"runserver",
-							"--noreload"
+							"--noreload",
+							"--nothreading"
 						],
 						"env": {},
 						"envFile": "${workspaceRoot}/.env",
@@ -977,9 +982,361 @@
 						"secret": "my_secret",
 						"host": "localhost"
 					}
-				]
-			}
-		],
+				}
+			],
+			"configurationAttributes": {
+				"launch": {
+					"required": [
+						"program"
+					],
+					"properties": {
+						"module": {
+							"type": "string",
+							"description": "Name of the module to be debugged.",
+							"default": ""
+						},
+						"program": {
+							"type": "string",
+							"description": "Absolute path to the program.",
+							"default": "${file}"
+						},
+						"pythonPath": {
+							"type": "string",
+							"description": "Path (fully qualified) to python executable. Defaults to the value in settings.json",
+							"default": "${config:python.pythonPath}"
+						},
+						"args": {
+							"type": "array",
+							"description": "Command line arguments passed to the program",
+							"default": [],
+							"items": {
+								"type": "string"
+							}
+						},
+						"stopOnEntry": {
+							"type": "boolean",
+							"description": "Automatically stop after launch.",
+							"default": true
+						},
+						"externalConsole": {
+							"type": "boolean",
+							"description": "Deprecated: use 'console' attribute instead.",
+							"default": false
+						},
+						"console": {
+							"enum": [
+								"none",
+								"integratedTerminal",
+								"externalTerminal"
+							],
+							"description": "Where to launch the debug target: internal console, integrated terminal, or external terminal.",
+							"default": "none"
+						},
+						"cwd": {
+							"type": "string",
+							"description": "Absolute path to the working directory of the program being debugged. Default is the root directory of the file (leave empty).",
+							"default": ""
+						},
+						"debugOptions": {
+							"type": "array",
+							"description": "Advanced options, view read me for further details.",
+							"items": {
+								"type": "string",
+								"enum": [
+									"WaitOnAbnormalExit",
+									"WaitOnNormalExit",
+									"RedirectOutput",
+									"DebugStdLib",
+									"BreakOnSystemExitZero",
+									"DjangoDebugging",
+									"Sudo",
+									"IgnoreDjangoTemplateWarnings",
+									"Pyramid"
+								]
+							},
+							"default": [
+								"WaitOnAbnormalExit",
+								"WaitOnNormalExit",
+								"RedirectOutput"
+							]
+						},
+						"exceptionHandling": {
+							"description": "List of exception types and how they are handled during debugging (ignore, always break or break only if unhandled).",
+							"properties": {
+								"ignore": {
+									"type": "array",
+									"description": "Never break into these exceptions, e.g. 'copy.Error'",
+									"default": [],
+									"items": {
+										"type": "string"
+									}
+								},
+								"always": {
+									"type": "array",
+									"description": "Always break into these exceptions, e.g. 'copy.Error'",
+									"default": [],
+									"items": {
+										"type": "string"
+									}
+								},
+								"unhandled": {
+									"type": "array",
+									"description": "Break into these exceptions if they aren't handled, e.g. 'copy.Error'",
+									"default": [],
+									"items": {
+										"type": "string"
+									}
+								}
+							}
+						},
+						"env": {
+							"type": "object",
+							"description": "Environment variables defined as a key value pair. Property ends up being the Environment Variable and the value of the property ends up being the value of the Env Variable.",
+							"default": {}
+						},
+						"envFile": {
+							"type": "string",
+							"description": "Absolute path to a file containing environment variable definitions.",
+							"default": ""
+						}
+					}
+				},
+				"attach": {
+					"required": [
+						"localRoot",
+						"remoteRoot"
+					],
+					"properties": {
+						"localRoot": {
+							"type": "string",
+							"description": "Local source root that corrresponds to the 'remoteRoot'.",
+							"default": "${workspaceRoot}"
+						},
+						"remoteRoot": {
+							"type": "string",
+							"description": "The source root of the remote host.",
+							"default": ""
+						},
+						"port": {
+							"type": "number",
+							"description": "Debug port to attach",
+							"default": 0
+						},
+						"host": {
+							"type": "string",
+							"description": "IP Address of the of remote server (default is localhost or use 127.0.0.1).",
+							"default": "localhost"
+						},
+						"secret": {
+							"type": "string",
+							"description": "Secret used to authenticate for remote debugging.",
+							"default": ""
+						}
+					}
+				}
+			},
+			"initialConfigurations": [{
+					"name": "Python",
+					"type": "python",
+					"request": "launch",
+					"stopOnEntry": true,
+					"pythonPath": "${config:python.pythonPath}",
+					"program": "${file}",
+					"cwd": "${workspaceRoot}",
+					"env": {},
+					"envFile": "${workspaceRoot}/.env",
+					"debugOptions": [
+						"WaitOnAbnormalExit",
+						"WaitOnNormalExit",
+						"RedirectOutput"
+					]
+				},
+				{
+					"name": "PySpark",
+					"type": "python",
+					"request": "launch",
+					"stopOnEntry": true,
+					"osx": {
+						"pythonPath": "${env:SPARK_HOME}/bin/spark-submit"
+					},
+					"windows": {
+						"pythonPath": "${env:SPARK_HOME}/bin/spark-submit.cmd"
+					},
+					"linux": {
+						"pythonPath": "${env:SPARK_HOME}/bin/spark-submit"
+					},
+					"program": "${file}",
+					"cwd": "${workspaceRoot}",
+					"env": {},
+					"envFile": "${workspaceRoot}/.env",
+					"debugOptions": [
+						"WaitOnAbnormalExit",
+						"WaitOnNormalExit",
+						"RedirectOutput"
+					]
+				},
+				{
+					"name": "Python Module",
+					"type": "python",
+					"request": "launch",
+					"stopOnEntry": true,
+					"pythonPath": "${config:python.pythonPath}",
+					"module": "module.name",
+					"cwd": "${workspaceRoot}",
+					"env": {},
+					"envFile": "${workspaceRoot}/.env",
+					"debugOptions": [
+						"WaitOnAbnormalExit",
+						"WaitOnNormalExit",
+						"RedirectOutput"
+					]
+				},
+				{
+					"name": "Integrated Terminal/Console",
+					"type": "python",
+					"request": "launch",
+					"stopOnEntry": true,
+					"pythonPath": "${config:python.pythonPath}",
+					"program": "${file}",
+					"cwd": "",
+					"console": "integratedTerminal",
+					"env": {},
+					"envFile": "${workspaceRoot}/.env",
+					"debugOptions": [
+						"WaitOnAbnormalExit",
+						"WaitOnNormalExit"
+					]
+				},
+				{
+					"name": "External Terminal/Console",
+					"type": "python",
+					"request": "launch",
+					"stopOnEntry": true,
+					"pythonPath": "${config:python.pythonPath}",
+					"program": "${file}",
+					"cwd": "",
+					"console": "externalTerminal",
+					"env": {},
+					"envFile": "${workspaceRoot}/.env",
+					"debugOptions": [
+						"WaitOnAbnormalExit",
+						"WaitOnNormalExit"
+					]
+				},
+				{
+					"name": "Django",
+					"type": "python",
+					"request": "launch",
+					"stopOnEntry": true,
+					"pythonPath": "${config:python.pythonPath}",
+					"program": "${workspaceRoot}/manage.py",
+					"cwd": "${workspaceRoot}",
+					"args": [
+						"runserver",
+						"--noreload",
+						"--nothreading"
+					],
+					"env": {},
+					"envFile": "${workspaceRoot}/.env",
+					"debugOptions": [
+						"WaitOnAbnormalExit",
+						"WaitOnNormalExit",
+						"RedirectOutput",
+						"DjangoDebugging"
+					]
+				},
+				{
+					"name": "Flask",
+					"type": "python",
+					"request": "launch",
+					"stopOnEntry": false,
+					"pythonPath": "${config:python.pythonPath}",
+					"program": "fully qualified path fo 'flask' executable. Generally located along with python interpreter",
+					"cwd": "${workspaceRoot}",
+					"env": {
+						"FLASK_APP": "${workspaceRoot}/quickstart/app.py"
+					},
+					"args": [
+						"run",
+						"--no-debugger",
+						"--no-reload"
+					],
+					"envFile": "${workspaceRoot}/.env",
+					"debugOptions": [
+						"WaitOnAbnormalExit",
+						"WaitOnNormalExit",
+						"RedirectOutput"
+					]
+				},
+				{
+					"name": "Flask (old)",
+					"type": "python",
+					"request": "launch",
+					"stopOnEntry": false,
+					"pythonPath": "${config:python.pythonPath}",
+					"program": "${workspaceRoot}/run.py",
+					"cwd": "${workspaceRoot}",
+					"args": [],
+					"env": {},
+					"envFile": "${workspaceRoot}/.env",
+					"debugOptions": [
+						"WaitOnAbnormalExit",
+						"WaitOnNormalExit",
+						"RedirectOutput"
+					]
+				},
+				{
+					"name": "Pyramid",
+					"type": "python",
+					"request": "launch",
+					"stopOnEntry": true,
+					"pythonPath": "${config:python.pythonPath}",
+					"cwd": "${workspaceRoot}",
+					"env": {},
+					"envFile": "${workspaceRoot}/.env",
+					"args": [
+						"${workspaceRoot}/development.ini"
+					],
+					"debugOptions": [
+						"WaitOnAbnormalExit",
+						"WaitOnNormalExit",
+						"RedirectOutput",
+						"Pyramid"
+					]
+				},
+				{
+					"name": "Watson",
+					"type": "python",
+					"request": "launch",
+					"stopOnEntry": true,
+					"pythonPath": "${config:python.pythonPath}",
+					"program": "${workspaceRoot}/console.py",
+					"cwd": "${workspaceRoot}",
+					"args": [
+						"dev",
+						"runserver",
+						"--noreload=True"
+					],
+					"env": {},
+					"envFile": "${workspaceRoot}/.env",
+					"debugOptions": [
+						"WaitOnAbnormalExit",
+						"WaitOnNormalExit",
+						"RedirectOutput"
+					]
+				},
+				{
+					"name": "Attach (Remote Debug)",
+					"type": "python",
+					"request": "attach",
+					"localRoot": "${workspaceRoot}",
+					"remoteRoot": "${workspaceRoot}",
+					"port": 3000,
+					"secret": "my_secret",
+					"host": "localhost"
+				}
+			]
+		}],
 		"configuration": {
 			"type": "object",
 			"title": "Python Configuration",
@@ -1566,11 +1923,13 @@
 		"@types/socket.io": "^1.4.27",
 		"@types/socket.io-client": "^1.4.27",
 		"@types/uuid": "^3.3.27",
+		"@types/sinon": "^2.3.2",
 		"babel-core": "^6.14.0",
 		"babel-loader": "^6.2.5",
 		"babel-preset-es2015": "^6.14.0",
 		"ignore-loader": "^0.1.1",
 		"mocha": "^2.3.3",
+		"sinon": "^2.3.6",
 		"retyped-diff-match-patch-tsd-ambient": "^1.0.0-0",
 		"ts-loader": "^0.8.2",
 		"tslint": "^3.15.1",

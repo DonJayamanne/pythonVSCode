@@ -232,13 +232,13 @@ export class PythonDebugger extends DebugSession {
             this.sendEvent(new OutputEvent(`Warning 'pyenv.cfg' can interfere with the debugger. Please rename or delete this file (temporary solution)`));            
         }
         
-        this.sendEvent(new TelemetryEvent(telemetryContracts.Debugger.Load, {
-            Debug_Console: args.console,
-            Debug_DebugOptions: args.debugOptions.join(","),
-            Debug_DJango: args.debugOptions.indexOf("DjangoDebugging") >= 0 ? "true" : "false",
-            Debug_PySpark: typeof args.pythonPath === 'string' && args.pythonPath.indexOf('spark-submit') > 0 ? 'true' : 'false',
-            Debug_HasEnvVaraibles: args.env && typeof args.env === "object" && Object.keys(args.env).length > 0 ? "true" : "false"
-        }));
+        // this.sendEvent(new TelemetryEvent(telemetryContracts.Debugger.Load, {
+        //     Debug_Console: args.console,
+        //     Debug_DebugOptions: args.debugOptions.join(","),
+        //     Debug_DJango: args.debugOptions.indexOf("DjangoDebugging") >= 0 ? "true" : "false",
+        //     Debug_PySpark: typeof args.pythonPath === 'string' && args.pythonPath.indexOf('spark-submit') > 0 ? 'true' : 'false',
+        //     Debug_HasEnvVaraibles: args.env && typeof args.env === "object" && Object.keys(args.env).length > 0 ? "true" : "false"
+        // }));
 
         this.launchArgs = args;
         this.debugClient = CreateLaunchDebugClient(args, this);

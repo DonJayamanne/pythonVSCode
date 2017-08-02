@@ -2,7 +2,7 @@
 
 import * as baseLinter from './baseLinter';
 import { OutputChannel } from 'vscode';
-import { Product } from '../common/installer';
+import { Product, ProductExecutableAndArgs } from '../common/installer';
 import { TextDocument, CancellationToken } from 'vscode';
 
 export class Linter extends baseLinter.BaseLinter {
@@ -22,6 +22,12 @@ export class Linter extends baseLinter.BaseLinter {
 
         let flake8Path = this.pythonSettings.linting.flake8Path;
         let flake8Args = Array.isArray(this.pythonSettings.linting.flake8Args) ? this.pythonSettings.linting.flake8Args : [];
+
+        if (flake8Args.length === 0 && ProductExecutableAndArgs.has(Product.flake8) && flake8Path.toLocaleLowerCase() === 'flake8') {
+            flake8Path = ProductExecutableAndArgs.get(Product.flake8).executable;
+            flake8Args = ProductExecutableAndArgs.get(Product.flake8).args;
+        }
+
         return new Promise<baseLinter.ILintMessage[]>((resolve, reject) => {
             this.run(flake8Path, flake8Args.concat(['--format=%(row)d,%(col)d,%(code).1s,%(code)s:%(text)s', document.uri.fsPath]), document, this.workspaceRootPath, cancellation).then(messages => {
                 messages.forEach(msg => {

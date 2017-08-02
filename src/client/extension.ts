@@ -8,6 +8,7 @@ import { PythonReferenceProvider } from './providers/referenceProvider';
 import { PythonRenameProvider } from './providers/renameProvider';
 import { PythonFormattingEditProvider } from './providers/formatProvider';
 import * as sortImports from './sortImports';
+import * as autoImport from './autoImport';
 import { LintProvider } from './providers/lintProvider';
 import { PythonSymbolProvider } from './providers/symbolProvider';
 import { PythonSignatureProvider } from './providers/signatureProvider';
@@ -41,11 +42,11 @@ export function activate(context: vscode.ExtensionContext) {
     let pythonSettings = settings.PythonSettings.getInstance();
     let pythonExt = new PythonExt();
     const hasPySparkInCompletionPath = pythonSettings.autoComplete.extraPaths.some(p => p.toLowerCase().indexOf('spark') >= 0);
-    telemetryHelper.sendTelemetryEvent(telemetryContracts.EVENT_LOAD, {
-        CodeComplete_Has_ExtraPaths: pythonSettings.autoComplete.extraPaths.length > 0 ? 'true' : 'false',
-        Format_Has_Custom_Python_Path: pythonSettings.pythonPath.length !== 'python'.length ? 'true' : 'false',
-        Has_PySpark_Path: hasPySparkInCompletionPath ? 'true' : 'false'
-    });
+    // telemetryHelper.sendTelemetryEvent(telemetryContracts.EVENT_LOAD, {
+    //     CodeComplete_Has_ExtraPaths: pythonSettings.autoComplete.extraPaths.length > 0 ? 'true' : 'false',
+    //     Format_Has_Custom_Python_Path: pythonSettings.pythonPath.length !== 'python'.length ? 'true' : 'false',
+    //     Has_PySpark_Path: hasPySparkInCompletionPath ? 'true' : 'false'
+    // });
     lintingOutChannel = vscode.window.createOutputChannel(pythonSettings.linting.outputWindow);
     formatOutChannel = lintingOutChannel;
     if (pythonSettings.linting.outputWindow !== pythonSettings.formatting.outputWindow) {
@@ -58,6 +59,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     sortImports.activate(context, formatOutChannel);
+    autoImport.activate(context, formatOutChannel);
     context.subscriptions.push(activateSetInterpreterProvider());
     context.subscriptions.push(...activateExecInTerminalProvider());
     context.subscriptions.push(activateUpdateSparkLibraryProvider());
@@ -89,7 +91,7 @@ export function activate(context: vscode.ExtensionContext) {
             },
             {
                 beforeText: /^\s+(continue|break|return)\b.*$/,
-                action: {indentAction: vscode.IndentAction.Outdent},
+                action: { indentAction: vscode.IndentAction.Outdent },
             }
         ]
     });
@@ -102,7 +104,8 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.languages.registerReferenceProvider(PYTHON, new PythonReferenceProvider(context, jediProx)));
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider(PYTHON, new PythonCompletionItemProvider(context, jediProx), '.'));
 
-    context.subscriptions.push(vscode.languages.registerDocumentSymbolProvider(PYTHON, new PythonSymbolProvider(context, jediProx)));
+    const symbolProvider = new PythonSymbolProvider(context, jediProx);
+    context.subscriptions.push(vscode.languages.registerDocumentSymbolProvider(PYTHON, symbolProvider));
     if (pythonSettings.devOptions.indexOf('DISABLE_SIGNATURE') === -1) {
         context.subscriptions.push(vscode.languages.registerSignatureHelpProvider(PYTHON, new PythonSignatureProvider(context, jediProx), '(', ','));
     }
@@ -133,7 +136,7 @@ export function activate(context: vscode.ExtensionContext) {
         context.subscriptions.push(jupMain);
         linterProvider.documentHasJupyterCodeCells = documentHasJupyterCodeCells;
     }
-    tests.activate(context, unitTestOutChannel);
+    tests.activate(context, unitTestOutChannel, symbolProvider);
 
     context.subscriptions.push(new WorkspaceSymbols(lintingOutChannel));
 

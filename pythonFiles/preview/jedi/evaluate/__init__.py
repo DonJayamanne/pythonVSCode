@@ -162,7 +162,7 @@ class Evaluator(object):
             types = finder.check_tuple_assignments(self, types, seek_name)
 
         first_operation = stmt.first_operation()
-        if first_operation not in ('=', None) and not isinstance(stmt, er.InstanceElement):  # TODO don't check for this.
+        if first_operation not in ('=', None) and not isinstance(stmt, er.InstanceElement) and first_operation.type == 'operator':  # TODO don't check for this.
             # `=` is always the last character in aug assignments -> -1
             operator = copy.copy(first_operation)
             operator.value = operator.value[:-1]
@@ -327,6 +327,8 @@ class Evaluator(object):
             types = types
         elif element.type == 'eval_input':
             types = self._eval_element_not_cached(element.children[0])
+        elif element.type == 'annassign':
+            types = self.eval_element(element.children[1])
         else:
             types = precedence.calculate_children(self, element.children)
         debug.dbg('eval_element result %s', types)

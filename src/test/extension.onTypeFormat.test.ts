@@ -4,7 +4,7 @@
 
 
 // Place this right on top
-import { initialize, PYTHON_PATH, closeActiveWindows } from './initialize';
+import { initialize, closeActiveWindows, setPythonExecutable } from './initialize';
 // The module 'assert' provides assertion methods from node
 import * as assert from 'assert';
 
@@ -16,6 +16,8 @@ import * as settings from '../client/common/configSettings';
 import * as fs from 'fs-extra';
 import { BlockFormatProviders } from '../client/typeFormatters/blockFormatProvider';
 let pythonSettings = settings.PythonSettings.getInstance();
+let disposable: vscode.Disposable;
+
 let srcPythoFilesPath = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'typeFormatFiles');
 let outPythoFilesPath = path.join(__dirname, 'pythonFiles', 'typeFormatFiles');
 
@@ -57,8 +59,8 @@ function testFormatting(fileToFormat: string, position: vscode.Position, expecte
 
 suite('Else block with if in first line of file', () => {
     suiteSetup(done => {
+        disposable = setPythonExecutable(pythonSettings);
         initialize().then(() => {
-            pythonSettings.pythonPath = PYTHON_PATH;
             fs.ensureDirSync(path.dirname(outPythoFilesPath));
 
             ['elseBlocksFirstLine2.py', 'elseBlocksFirstLine4.py', 'elseBlocksFirstLineTab.py'].forEach(file => {
@@ -69,10 +71,11 @@ suite('Else block with if in first line of file', () => {
         }).then(done).catch(done);
     });
     suiteTeardown(done => {
-        closeActiveWindows().then(done, done);
+        disposable.dispose();
+        closeActiveWindows().then(() => done(), () => done());
     });
     teardown(done => {
-        closeActiveWindows().then(done, done);
+        closeActiveWindows().then(() => done(), () => done());
     });
 
     interface TestCase {
@@ -125,8 +128,8 @@ suite('Else block with if in first line of file', () => {
 
 suite('Try blocks with indentation of 2 spaces', () => {
     suiteSetup(done => {
+        disposable = setPythonExecutable(pythonSettings);
         initialize().then(() => {
-            pythonSettings.pythonPath = PYTHON_PATH;
             fs.ensureDirSync(path.dirname(outPythoFilesPath));
 
             ['tryBlocks2.py'].forEach(file => {
@@ -137,10 +140,11 @@ suite('Try blocks with indentation of 2 spaces', () => {
         }).then(done).catch(done);
     });
     suiteTeardown(done => {
-        closeActiveWindows().then(done, done);
+        disposable.dispose();
+        closeActiveWindows().then(() => done(), () => done());
     });
     teardown(done => {
-        closeActiveWindows().then(done, done);
+        closeActiveWindows().then(() => done(), () => done());
     });
 
     interface TestCase {
@@ -232,8 +236,8 @@ suite('Try blocks with indentation of 2 spaces', () => {
 
 suite('Try blocks with indentation of 4 spaces', () => {
     suiteSetup(done => {
+        disposable = setPythonExecutable(pythonSettings);
         initialize().then(() => {
-            pythonSettings.pythonPath = PYTHON_PATH;
             fs.ensureDirSync(path.dirname(outPythoFilesPath));
 
             ['tryBlocks4.py'].forEach(file => {
@@ -244,10 +248,11 @@ suite('Try blocks with indentation of 4 spaces', () => {
         }).then(done).catch(done);
     });
     suiteTeardown(done => {
-        closeActiveWindows().then(done, done);
+        disposable.dispose();
+        closeActiveWindows().then(() => done(), () => done());
     });
     teardown(done => {
-        closeActiveWindows().then(done, done);
+        closeActiveWindows().then(() => done(), () => done());
     });
 
     interface TestCase {
@@ -339,8 +344,8 @@ suite('Try blocks with indentation of 4 spaces', () => {
 
 suite('Try blocks with indentation of Tab', () => {
     suiteSetup(done => {
+        disposable = setPythonExecutable(pythonSettings);
         initialize().then(() => {
-            pythonSettings.pythonPath = PYTHON_PATH;
             fs.ensureDirSync(path.dirname(outPythoFilesPath));
 
             ['tryBlocksTab.py'].forEach(file => {
@@ -351,10 +356,11 @@ suite('Try blocks with indentation of Tab', () => {
         }).then(done).catch(done);
     });
     suiteTeardown(done => {
-        closeActiveWindows().then(done, done);
+        disposable.dispose();
+        closeActiveWindows().then(() => done(), () => done());
     });
     teardown(done => {
-        closeActiveWindows().then(done, done);
+        closeActiveWindows().then(() => done(), () => done());
     });
 
     interface TestCase {
@@ -437,8 +443,8 @@ suite('Try blocks with indentation of Tab', () => {
 
 suite('Else blocks with indentation of 2 spaces', () => {
     suiteSetup(done => {
+        disposable = setPythonExecutable(pythonSettings);
         initialize().then(() => {
-            pythonSettings.pythonPath = PYTHON_PATH;
             fs.ensureDirSync(path.dirname(outPythoFilesPath));
 
             ['elseBlocks2.py'].forEach(file => {
@@ -449,10 +455,11 @@ suite('Else blocks with indentation of 2 spaces', () => {
         }).then(done).catch(done);
     });
     suiteTeardown(done => {
-        closeActiveWindows().then(done, done);
+        disposable.dispose();
+        closeActiveWindows().then(() => done(), () => done());
     });
     teardown(done => {
-        closeActiveWindows().then(done, done);
+        closeActiveWindows().then(() => done(), () => done());
     });
 
     interface TestCase {
@@ -574,8 +581,8 @@ suite('Else blocks with indentation of 2 spaces', () => {
 
 suite('Else blocks with indentation of 4 spaces', () => {
     suiteSetup(done => {
+        disposable = setPythonExecutable(pythonSettings);
         initialize().then(() => {
-            pythonSettings.pythonPath = PYTHON_PATH;
             fs.ensureDirSync(path.dirname(outPythoFilesPath));
 
             ['elseBlocks4.py'].forEach(file => {
@@ -586,10 +593,11 @@ suite('Else blocks with indentation of 4 spaces', () => {
         }).then(done).catch(done);
     });
     suiteTeardown(done => {
-        closeActiveWindows().then(done, done);
+        disposable.dispose();
+        closeActiveWindows().then(() => done(), () => done());
     });
     teardown(done => {
-        closeActiveWindows().then(done, done);
+        closeActiveWindows().then(() => done(), () => done());
     });
 
     interface TestCase {
@@ -705,8 +713,8 @@ suite('Else blocks with indentation of 4 spaces', () => {
 
 suite('Else blocks with indentation of Tab', () => {
     suiteSetup(done => {
+        disposable = setPythonExecutable(pythonSettings);
         initialize().then(() => {
-            pythonSettings.pythonPath = PYTHON_PATH;
             fs.ensureDirSync(path.dirname(outPythoFilesPath));
 
             ['elseBlocksTab.py'].forEach(file => {
@@ -717,10 +725,11 @@ suite('Else blocks with indentation of Tab', () => {
         }).then(done).catch(done);
     });
     suiteTeardown(done => {
-        closeActiveWindows().then(done, done);
+        disposable.dispose();
+        closeActiveWindows().then(() => done(), () => done());
     });
     teardown(done => {
-        closeActiveWindows().then(done, done);
+        closeActiveWindows().then(() => done(), () => done());
     });
 
     interface TestCase {
