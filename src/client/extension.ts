@@ -26,6 +26,7 @@ import { activateUpdateSparkLibraryProvider } from './providers/updateSparkLibra
 import { activateFormatOnSaveProvider } from './providers/formatOnSaveProvider';
 import { WorkspaceSymbols } from './workspaceSymbols/main';
 import { BlockFormatProviders } from './typeFormatters/blockFormatProvider';
+import { LineContinuationFormatProvider } from './typeFormatters/lineContinuationFormatProvider';
 import * as os from 'os';
 import * as fs from 'fs';
 import { activateSingleFileDebug } from './singleFileDebug';
@@ -141,9 +142,12 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(new WorkspaceSymbols(lintingOutChannel));
 
     context.subscriptions.push(vscode.languages.registerOnTypeFormattingEditProvider(PYTHON, new BlockFormatProviders(), ':'));
-    // In case we have CR LF
-    const triggerCharacters: string[] = os.EOL.split('');
-    triggerCharacters.shift();
+    // In case we have CR LF inside bracket
+    if (pythonSettings.formatting.indentNewlineInParams) {
+        const triggerCharacters: string[] = os.EOL.split('');
+        triggerCharacters.shift();
+        context.subscriptions.push(vscode.languages.registerOnTypeFormattingEditProvider(PYTHON, new LineContinuationFormatProvider(), triggerCharacters[0]));
+    }
 
     const hepProvider = new HelpProvider();
     context.subscriptions.push(hepProvider);

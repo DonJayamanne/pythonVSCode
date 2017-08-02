@@ -1283,6 +1283,11 @@
 					"default": "Python",
 					"description": "The output window name for the formatting messages, defaults to Python output window."
 				},
+                "python.formatting.indentNewlineInParams": {
+					"type": "boolean",
+					"default": false,
+					"description": "Automatically aligns indents when breaking up function parameters into multiple lines. Warning: Indentation might break when using tabs instead of spaces. (Needs window reload) (Only works if editor.formatOnType setting is set to true)"
+				},
 				"python.autoComplete.preloadModules": {
 					"type": "array",
 					"items": {
