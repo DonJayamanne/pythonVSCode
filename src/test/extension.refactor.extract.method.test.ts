@@ -1,20 +1,22 @@
 // Place this right on top
-import { initialize, closeActiveWindows, PYTHON_PATH, IS_TRAVIS } from './initialize';
+import { initialize, closeActiveWindows, IS_TRAVIS, setPythonExecutable } from './initialize';
 import * as assert from 'assert';
 
 // You can import and use all API from the \'vscode\' module
 // as well as import your extension to test it
 import * as vscode from 'vscode';
-import { TextDocument, TextLine, Position, Range } from 'vscode';
+import { TextLine, Position, Range } from 'vscode';
 import * as path from 'path';
 import * as settings from '../client/common/configSettings';
 import * as fs from 'fs-extra';
 import { extractMethod } from '../client/providers/simpleRefactorProvider';
 import { RefactorProxy } from '../client/refactor/proxy';
 import { getTextEditsFromPatch } from '../client/common/editor';
+import { MockOutputChannel } from './mockClasses';
 
 let EXTENSION_DIR = path.join(__dirname, '..', '..');
 let pythonSettings = settings.PythonSettings.getInstance();
+const disposable = setPythonExecutable(pythonSettings);
 
 const refactorSourceFile = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'refactoring', 'standAlone', 'refactor.py');
 const refactorTargetFile = path.join(__dirname, '..', '..', 'out', 'test', 'pythonFiles', 'refactoring', 'standAlone', 'refactor.py');
@@ -23,24 +25,6 @@ interface RenameResponse {
     results: [{ diff: string }];
 }
 
-class MockOutputChannel implements vscode.OutputChannel {
-    constructor(name: string) {
-        this.name = name;
-        this.output = '';
-    }
-    name: string;
-    output: string;
-    append(value: string) {
-        this.output += value;
-    }
-    appendLine(value: string) { this.append(value); this.append('\n'); }
-    clear() { }
-    show(preservceFocus?: boolean): void;
-    show(column?: vscode.ViewColumn, preserveFocus?: boolean): void;
-    show(x?: any, y?: any): void { }
-    hide() { }
-    dispose() { }
-}
 class MockTextDocument implements vscode.TextDocument {
     uri: vscode.Uri;
     fileName: string;
@@ -97,12 +81,12 @@ suite('Method Extraction', () => {
 
     suiteSetup(done => {
         fs.copySync(refactorSourceFile, refactorTargetFile, { clobber: true });
-        pythonSettings.pythonPath = PYTHON_PATH;
         initialize().then(() => done(), () => done());
     });
     suiteTeardown(done => {
+        disposable.dispose();
         vscode.commands.executeCommand = oldExecuteCommand;
-        closeActiveWindows().then(done, done);
+        closeActiveWindows().then(() => done(), () => done());
     });
     setup(done => {
         if (fs.existsSync(refactorTargetFile)) {
@@ -110,13 +94,13 @@ suite('Method Extraction', () => {
         }
         fs.copySync(refactorSourceFile, refactorTargetFile, { clobber: true });
         closeActiveWindows().then(() => {
-            vscode.commands.executeCommand = (cmd) => Promise.resolve();
+            (<any>vscode).commands.executeCommand = (cmd) => Promise.resolve();
             done();
         }).catch(done);
     });
     teardown(done => {
         vscode.commands.executeCommand = oldExecuteCommand;
-        closeActiveWindows().then(done, done);
+        closeActiveWindows().then(() => done(), () => done());
     });
 
     function testingMethodExtraction(shouldError: boolean, pythonSettings: settings.IPythonSettings, startPos: Position, endPos: Position) {

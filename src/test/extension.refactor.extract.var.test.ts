@@ -1,21 +1,23 @@
 // Place this right on top
-import { initialize, closeActiveWindows, PYTHON_PATH, IS_TRAVIS } from './initialize';
+import { initialize, closeActiveWindows, IS_TRAVIS, setPythonExecutable } from './initialize';
 /// <reference path="../../node_modules/@types/mocha/index.d.ts" />
 import * as assert from 'assert';
 
 // You can import and use all API from the \'vscode\' module
 // as well as import your extension to test it
 import * as vscode from 'vscode';
-import { TextDocument, TextLine, Position, Range } from 'vscode';
+import { TextLine, Position, Range } from 'vscode';
 import * as path from 'path';
 import * as settings from '../client/common/configSettings';
 import * as fs from 'fs-extra';
 import { extractVariable } from '../client/providers/simpleRefactorProvider';
 import { RefactorProxy } from '../client/refactor/proxy';
 import { getTextEditsFromPatch } from '../client/common/editor';
+import { MockOutputChannel } from './mockClasses';
 
 let EXTENSION_DIR = path.join(__dirname, '..', '..');
 let pythonSettings = settings.PythonSettings.getInstance();
+const disposable = setPythonExecutable(pythonSettings);
 
 const refactorSourceFile = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'refactoring', 'standAlone', 'refactor.py');
 const refactorTargetFile = path.join(__dirname, '..', '..', 'out', 'test', 'pythonFiles', 'refactoring', 'standAlone', 'refactor.py');
@@ -24,24 +26,6 @@ interface RenameResponse {
     results: [{ diff: string }];
 }
 
-class MockOutputChannel implements vscode.OutputChannel {
-    constructor(name: string) {
-        this.name = name;
-        this.output = '';
-    }
-    name: string;
-    output: string;
-    append(value: string) {
-        this.output += value;
-    }
-    appendLine(value: string) { this.append(value); this.append('\n'); }
-    clear() { }
-    show(preservceFocus?: boolean): void;
-    show(column?: vscode.ViewColumn, preserveFocus?: boolean): void;
-    show(x?: any, y?: any): void { }
-    hide() { }
-    dispose() { }
-}
 class MockTextDocument implements vscode.TextDocument {
     uri: vscode.Uri;
     fileName: string;
@@ -97,12 +81,12 @@ suite('Variable Extraction', () => {
     const options: vscode.TextEditorOptions = { cursorStyle: vscode.TextEditorCursorStyle.Line, insertSpaces: true, lineNumbers: vscode.TextEditorLineNumbersStyle.Off, tabSize: 4 };
     suiteSetup(done => {
         fs.copySync(refactorSourceFile, refactorTargetFile, { clobber: true });
-        pythonSettings.pythonPath = PYTHON_PATH;
         initialize().then(() => done(), () => done());
     });
     suiteTeardown(done => {
+        disposable.dispose();
         vscode.commands.executeCommand = oldExecuteCommand;
-        closeActiveWindows().then(done, done);
+        closeActiveWindows().then(() => done(), () => done());
     });
     setup(done => {
         if (fs.existsSync(refactorTargetFile)) {
@@ -110,13 +94,13 @@ suite('Variable Extraction', () => {
         }
         fs.copySync(refactorSourceFile, refactorTargetFile, { clobber: true });
         closeActiveWindows().then(() => {
-            vscode.commands.executeCommand = (cmd) => Promise.resolve();
+            (<any>vscode).commands.executeCommand = (cmd) => Promise.resolve();
             done();
         }).catch(done);
     });
     teardown(done => {
         vscode.commands.executeCommand = oldExecuteCommand;
-        closeActiveWindows().then(done, done);
+        closeActiveWindows().then(() => done(), () => done());
     });
 
     function testingVariableExtraction(shouldError: boolean, pythonSettings: settings.IPythonSettings, startPos: Position, endPos: Position) {
@@ -189,7 +173,7 @@ suite('Variable Extraction', () => {
                     assert.fail('No error', 'Error', 'Extraction should fail with an error', '');
                 }
                 return textEditor.document.save();
-            }).then(()=>{
+            }).then(() => {
                 assert.equal(ch.output.length, 0, 'Output channel is not empty');
                 assert.equal(textDocument.lineAt(234).text.trim().indexOf('newvariable'), 0, 'New Variable not created');
                 assert.equal(textDocument.lineAt(234).text.trim().endsWith('= "STARTED"'), true, 'Started Text Assigned to variable');

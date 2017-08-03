@@ -2,12 +2,14 @@
 
 import * as baseLinter from './baseLinter';
 import { OutputChannel } from 'vscode';
-import { Product } from '../common/installer';
+import { Product, ProductExecutableAndArgs } from '../common/installer';
 import { TextDocument, CancellationToken } from 'vscode';
 
 const REGEX = '(?<file>.py):(?<line>\\d+):(?<column>\\d+): \\[(?<type>\\w+)\\] (?<code>\\w\\d+):? (?<message>.*)\\r?(\\n|$)';
 
 export class Linter extends baseLinter.BaseLinter {
+    _columnOffset = 1;
+
     constructor(outputChannel: OutputChannel, workspaceRootPath?: string) {
         super('pylama', Product.pylama, outputChannel, workspaceRootPath);
     }
@@ -22,6 +24,12 @@ export class Linter extends baseLinter.BaseLinter {
 
         let pylamaPath = this.pythonSettings.linting.pylamaPath;
         let pylamaArgs = Array.isArray(this.pythonSettings.linting.pylamaArgs) ? this.pythonSettings.linting.pylamaArgs : [];
+
+        if (pylamaArgs.length === 0 && ProductExecutableAndArgs.has(Product.pylama) && pylamaPath.toLocaleLowerCase() === 'pylama') {
+            pylamaPath = ProductExecutableAndArgs.get(Product.pylama).executable;
+            pylamaArgs = ProductExecutableAndArgs.get(Product.pylama).args;
+        }
+
         return new Promise<baseLinter.ILintMessage[]>(resolve => {
             this.run(pylamaPath, pylamaArgs.concat(['--format=parsable', document.uri.fsPath]), document, this.workspaceRootPath, cancellation, REGEX).then(messages => {
                 // All messages in pylama are treated as warnings for now

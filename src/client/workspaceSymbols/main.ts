@@ -84,7 +84,7 @@ export class WorkspaceSymbols implements vscode.Disposable {
                         'Install', `Don't ask again`).then(item => {
                             switch (item) {
                                 case 'Install': {
-                                    this.installer.installProduct(Product.ctags).then(() => {
+                                    this.installer.install(Product.ctags).then(() => {
                                         return this.buildWorkspaceSymbols(rebuild, token);
                                     }).catch(reason => reject(reason));
                                     break;

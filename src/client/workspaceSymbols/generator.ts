@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as fs from 'fs';
 import * as child_process from 'child_process';
 import { PythonSettings } from '../common/configSettings';
 
@@ -27,7 +28,7 @@ export class Generator implements vscode.Disposable {
     }
 
     generateWorkspaceTags(): Promise<any> {
-        const tagFile = pythonSettings.workspaceSymbols.tagFilePath;
+        const tagFile = path.normalize(pythonSettings.workspaceSymbols.tagFilePath);
         return this.generateTags(tagFile, { directory: vscode.workspace.rootPath });
     }
 
@@ -42,7 +43,10 @@ export class Generator implements vscode.Disposable {
             outputFile = path.basename(outputFile);
         }
         outputFile = outputFile.indexOf(' ') > 0 ? `"${outputFile}"` : outputFile;
-
+        const outputDir = path.dirname(outputFile);
+        if (!fs.existsSync(outputDir)){
+            fs.mkdirSync(outputDir);
+        }
         args.push(`-o ${outputFile}`, '.');
         this.output.appendLine('-'.repeat(10) + 'Generating Tags' + '-'.repeat(10));
         this.output.appendLine(`${cmd} ${args.join(' ')}`);

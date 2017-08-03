@@ -89,6 +89,11 @@ export class LocalDebugClient extends DebugClient {
                 newEnvVars['PYTHONIOENCODING'] = 'UTF-8';
                 process.env['PYTHONIOENCODING'] = 'UTF-8';
             }
+            if (!environmentVariables.hasOwnProperty('PYTHONUNBUFFERED')) {
+                environmentVariables['PYTHONUNBUFFERED'] = '1';
+                newEnvVars['PYTHONUNBUFFERED'] = '1';
+                process.env['PYTHONUNBUFFERED'] = '1';
+            }
             let ptVSToolsFilePath = this.getPTVSToolsFilePath();
             let launcherArgs = this.buildLauncherArguments();
 

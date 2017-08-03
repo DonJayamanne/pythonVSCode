@@ -2,10 +2,12 @@
 
 import * as vscode from 'vscode';
 import * as proxy from './jediProxy';
+import * as telemetryHelper from '../common/telemetry';
 import * as telemetryContracts from '../common/telemetryContracts';
 import { extractSignatureAndDocumentation } from './jediHelpers';
 import { EOL } from 'os';
 import { PythonSettings } from '../common/configSettings';
+import { SnippetString } from 'vscode';
 
 const pythonSettings = PythonSettings.getInstance();
 
@@ -25,7 +27,7 @@ export class PythonCompletionItemProvider implements vscode.CompletionItemProvid
                 completionItem.detail = sigAndDocs[0].split(/\r?\n/).join('');
                 if (pythonSettings.autoComplete.addBrackets === true &&
                     (item.kind === vscode.SymbolKind.Function || item.kind === vscode.SymbolKind.Method)) {
-                    completionItem.insertText = item.text + '({{}})';
+                    completionItem.insertText = new SnippetString(item.text).appendText("(").appendTabstop().appendText(")");
                 }
 
                 // ensure the built in memebers are at the bottom
@@ -64,8 +66,12 @@ export class PythonCompletionItemProvider implements vscode.CompletionItemProvid
             source: source
         };
 
+        const timer = new telemetryHelper.Delays();
         return this.jediProxyHandler.sendCommand(cmd, token).then(data => {
-            return PythonCompletionItemProvider.parseData(data);
+            timer.stop();
+            telemetryHelper.sendTelemetryEvent(telemetryContracts.IDE.Completion, {}, timer.toMeasures());
+            const completions = PythonCompletionItemProvider.parseData(data);
+            return completions;
         });
     }
 }

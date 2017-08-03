@@ -1,7 +1,13 @@
 const tmp = require('tmp');
 
 export function isNotInstalledError(error: Error): boolean {
-    return typeof (error) === 'object' && error !== null && ((<any>error).code === 'ENOENT' || (<any>error).code === 127);
+    const isError = typeof (error) === 'object' && error !== null;
+    const errorObj = <any>error;
+    if (!isError) {
+        return false;
+    }
+    const isModuleNoInstalledError = errorObj.code === 1 && error.message.indexOf('No module named') >= 0;
+    return errorObj.code === 'ENOENT' || errorObj.code === 127 || isModuleNoInstalledError;
 }
 
 export interface Deferred<T> {
@@ -29,7 +35,7 @@ class DeferredImpl<T> implements Deferred<T> {
         this._resolve.apply(this.scope ? this.scope : this, arguments);
         this._resolved = true;
     }
-    reject(reason?: any){
+    reject(reason?: any) {
         this._reject.apply(this.scope ? this.scope : this, arguments);
         this._rejected = true;
     }

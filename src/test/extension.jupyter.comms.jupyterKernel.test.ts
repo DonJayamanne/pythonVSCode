@@ -3,7 +3,7 @@
 // Please refer to their documentation on https://mochajs.org/ for help.
 //
 // Place this right on top
-import { initialize, IS_TRAVIS, PYTHON_PATH, TEST_TIMEOUT } from './initialize';
+import { initialize, IS_TRAVIS, TEST_TIMEOUT, setPythonExecutable } from './initialize';
 // The module 'assert' provides assertion methods from node
 import * as assert from 'assert';
 
@@ -18,6 +18,7 @@ import * as settings from '../client/common/configSettings';
 import * as vscode from 'vscode';
 
 let pythonSettings = settings.PythonSettings.getInstance();
+const disposable = setPythonExecutable(pythonSettings);
 
 export class MockOutputChannel implements vscode.OutputChannel {
     constructor(name: string) {
@@ -67,32 +68,32 @@ export class MockOutputChannel implements vscode.OutputChannel {
 suite('Jupyter Kernel', () => {
     suiteSetup(done => {
         initialize().then(() => {
-            if (IS_TRAVIS) {
-                pythonSettings.pythonPath = PYTHON_PATH;
-            }
             done();
         });
-        setup(() => {
-            process.env['PYTHON_DONJAYAMANNE_TEST'] = '0';
-            process.env['DEBUG_DJAYAMANNE_IPYTHON'] = '1';
-            disposables = [];
-            output = new MockOutputChannel('Jupyter');
-            disposables.push(output);
-            jupyter = new JupyterClientAdapter(output, __dirname);
-            disposables.push(jupyter);
+    });
+    setup(() => {
+        process.env['PYTHON_DONJAYAMANNE_TEST'] = '0';
+        process.env['DEBUG_DJAYAMANNE_IPYTHON'] = '1';
+        disposables = [];
+        output = new MockOutputChannel('Jupyter');
+        disposables.push(output);
+        jupyter = new JupyterClientAdapter(output, __dirname);
+        disposables.push(jupyter);
+    });
+    teardown(() => {
+        process.env['PYTHON_DONJAYAMANNE_TEST'] = '1';
+        process.env['DEBUG_DJAYAMANNE_IPYTHON'] = '0';
+        output.dispose();
+        jupyter.dispose();
+        disposables.forEach(d => {
+            try {
+                d.dispose();
+            } catch (error) {
+            }
         });
-        teardown(() => {
-            process.env['PYTHON_DONJAYAMANNE_TEST'] = '1';
-            process.env['DEBUG_DJAYAMANNE_IPYTHON'] = '0';
-            output.dispose();
-            jupyter.dispose();
-            disposables.forEach(d => {
-                try {
-                    d.dispose();
-                } catch (error) {
-                }
-            });
-        });
+    });
+    suiteTeardown(() => {
+        disposable.dispose();
     });
 
     let output: MockOutputChannel;
@@ -375,6 +376,7 @@ suite('Jupyter Kernel', () => {
                 output.push(data);
             }, reason => {
                 assert.fail(reason, null, 'Code execution failed in jupyter', '');
+                done();
             }, () => {
                 assert.equal(output.some(d => d.stream === 'pyout' && d.type === 'text' && d.data['text/plain'] === '3'), true, 'pyout not found in output');
                 assert.equal(output.some(d => d.stream === 'status' && d.type === 'text' && d.data === 'ok'), true, 'status not found in output');
@@ -384,6 +386,7 @@ suite('Jupyter Kernel', () => {
             });
         }).catch(reason => {
             assert.fail(reason, undefined, 'Failed to interrupt Kernel', '');
+            done();
         });
     });
 });

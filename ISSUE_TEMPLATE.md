@@ -12,13 +12,6 @@ OS and version:
 -  
 -  
 
-## Settings  
-Your launch.json (if dealing with debugger issues):  
-```json
-```   
-Your settings.json:   
-```json
-```   
 ## Logs
 Output from ```Python``` output panel  
 ```

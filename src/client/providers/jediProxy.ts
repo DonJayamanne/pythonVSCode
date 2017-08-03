@@ -340,7 +340,7 @@ function spawnProcess(dir: string) {
                         break;
                     }
                     case CommandType.Hover: {
-                        var defs = <any[]>response['results'];
+                        let defs = <any[]>response['results'];
                         var defResult: IHoverResult = {
                             requestId: cmd.id,
                             items: defs.map(def => {
@@ -358,7 +358,7 @@ function spawnProcess(dir: string) {
                         break;
                     }
                     case CommandType.Symbols: {
-                        var defs = <any[]>response['results'];
+                        let defs = <any[]>response['results'];
                         defs = Array.isArray(defs) ? defs : [];
                         var defResults: ISymbolResult = {
                             requestId: cmd.id,
@@ -441,7 +441,7 @@ function sendCommand<T extends ICommandResult>(cmd: ICommand<T>): Promise<T> {
     }
     var executionCmd = <IExecutionCommand<T>>cmd;
     var payload = createPayload(executionCmd);
-    executionCmd.deferred = createDeferred<ICommandResult>();
+    executionCmd.deferred = createDeferred<T>();
     // if (typeof executionCmd.telemetryEvent === 'string') {
     //     executionCmd.delays = new telemetryHelper.Delays();
     // }
@@ -666,8 +666,6 @@ export interface IHoverItem {
 
 export class JediProxyHandler<R extends ICommandResult> {
     private jediProxy: JediProxy;
-    private lastToken: vscode.CancellationToken;
-    private lastCommandId: number;
     private cancellationTokenSource: vscode.CancellationTokenSource;
 
     public get JediProxy(): JediProxy {
@@ -680,7 +678,6 @@ export class JediProxyHandler<R extends ICommandResult> {
 
     public sendCommand(cmd: ICommand<R>, token?: vscode.CancellationToken): Promise<R> {
         var executionCmd = <IExecutionCommand<R>>cmd;
-        const def = createDeferred<R>();
         executionCmd.id = executionCmd.id || this.jediProxy.getNextCommandId();
 
         if (this.cancellationTokenSource) {
@@ -692,23 +689,23 @@ export class JediProxyHandler<R extends ICommandResult> {
 
         this.cancellationTokenSource = new vscode.CancellationTokenSource();
         executionCmd.token = this.cancellationTokenSource.token;
-        this.lastToken = token;
-        this.lastCommandId = executionCmd.id;
 
-        this.jediProxy.sendCommand<R>(executionCmd).then(data => {
-            if (this.lastToken.isCancellationRequested || !data || data.requestId !== this.lastCommandId) {
-                def.resolve();
-            }
-            if (data) {
-                def.resolve(data);
-            }
-            else {
-                def.resolve();
-            }
-        }).catch(reason => {
-            console.error(reason);
-            def.resolve();
-        });
-        return def.promise;
+        return this.jediProxy.sendCommand<R>(executionCmd)
+            .catch(reason => {
+                console.error(reason);
+                return undefined;
+            });
+    }
+
+    public sendCommandNonCancellableCommand(cmd: ICommand<R>, token?: vscode.CancellationToken): Promise<R> {
+        var executionCmd = <IExecutionCommand<R>>cmd;
+        executionCmd.id = executionCmd.id || this.jediProxy.getNextCommandId();
+        executionCmd.token = token;
+
+        return this.jediProxy.sendCommand<R>(executionCmd)
+            .catch(reason => {
+                console.error(reason);
+                return undefined;
+            });
     }
 }

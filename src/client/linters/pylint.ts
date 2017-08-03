@@ -2,35 +2,12 @@
 
 import * as baseLinter from './baseLinter';
 import { OutputChannel } from 'vscode';
-import { Product } from '../common/installer';
+import { Product, ProductExecutableAndArgs } from '../common/installer';
 import { TextDocument, CancellationToken } from 'vscode';
 
 export class Linter extends baseLinter.BaseLinter {
     constructor(outputChannel: OutputChannel, workspaceRootPath?: string) {
         super('pylint', Product.pylint, outputChannel, workspaceRootPath);
-    }
-
-    private parseMessagesSeverity(category: string): baseLinter.LintMessageSeverity {
-        if (this.pythonSettings.linting.pylintCategorySeverity[category]) {
-            let severityName = this.pythonSettings.linting.pylintCategorySeverity[category];
-            switch (severityName) {
-                case 'Error':
-                    return baseLinter.LintMessageSeverity.Error;
-                case 'Hint':
-                    return baseLinter.LintMessageSeverity.Hint;
-                case 'Information':
-                    return baseLinter.LintMessageSeverity.Information;
-                case 'Warning':
-                    return baseLinter.LintMessageSeverity.Warning;
-                default: {
-                    if (baseLinter.LintMessageSeverity[severityName]) {
-                        return <baseLinter.LintMessageSeverity><any>baseLinter.LintMessageSeverity[severityName];
-                    }
-                }
-            }
-        }
-
-        return baseLinter.LintMessageSeverity.Information;
     }
 
     public isEnabled(): Boolean {
@@ -43,10 +20,16 @@ export class Linter extends baseLinter.BaseLinter {
 
         let pylintPath = this.pythonSettings.linting.pylintPath;
         let pylintArgs = Array.isArray(this.pythonSettings.linting.pylintArgs) ? this.pythonSettings.linting.pylintArgs : [];
+
+        if (pylintArgs.length === 0 && ProductExecutableAndArgs.has(Product.pylint) && pylintPath === 'pylint') {
+            pylintPath = ProductExecutableAndArgs.get(Product.pylint).executable;
+            pylintArgs = ProductExecutableAndArgs.get(Product.pylint).args;
+        }
+
         return new Promise<baseLinter.ILintMessage[]>((resolve, reject) => {
             this.run(pylintPath, pylintArgs.concat(['--msg-template=\'{line},{column},{category},{msg_id}:{msg}\'', '--reports=n', '--output-format=text', document.uri.fsPath]), document, this.workspaceRootPath, cancellation).then(messages => {
                 messages.forEach(msg => {
-                    msg.severity = this.parseMessagesSeverity(msg.type);
+                    msg.severity = this.parseMessagesSeverity(msg.type, this.pythonSettings.linting.pylintCategorySeverity);
                 });
 
                 resolve(messages);

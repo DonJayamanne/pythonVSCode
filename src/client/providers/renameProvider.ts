@@ -46,7 +46,7 @@ export class PythonRenameProvider implements vscode.RenameProvider {
         }).catch(reason => {
             vscode.window.showErrorMessage(reason);
             this.outputChannel.appendLine(reason);
-            return;
+            return Promise.reject(reason);
         });
     }
 }

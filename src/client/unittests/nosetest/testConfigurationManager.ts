@@ -41,10 +41,10 @@ export class ConfigurationManager extends TestConfigurationManager {
                 }
             });
         }).then(() => {
-            return installer.isProductInstalled(Product.nosetest);
+            return installer.isInstalled(Product.nosetest);
         }).then(installed => {
             if (!installed) {
-                return installer.installProduct(Product.nosetest);
+                return installer.install(Product.nosetest);
             }
         }).then(() => {
             const pythonConfig = vscode.workspace.getConfiguration('python');

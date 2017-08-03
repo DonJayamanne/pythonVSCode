@@ -1,8 +1,7 @@
 "use strict";
 
-import {DebugSession, OutputEvent} from "vscode-debugadapter";
+import {DebugSession} from "vscode-debugadapter";
 import {IPythonProcess, IDebugServer} from "../Common/Contracts";
-import * as net from "net";
 import {EventEmitter} from "events";
 import {Deferred, createDeferred} from '../../common/helpers';
 
@@ -14,7 +13,7 @@ export abstract class BaseDebugServer extends EventEmitter {
     public get IsRunning(): boolean {
         return this.isRunning;
     }
-    protected debugClientConnected: Deferred<Boolean>;
+    protected debugClientConnected: Deferred<boolean>;
     public get DebugClientConnected(): Promise<boolean> {
         return this.debugClientConnected.promise;
     }
@@ -22,7 +21,7 @@ export abstract class BaseDebugServer extends EventEmitter {
         super();
         this.debugSession = debugSession;
         this.pythonProcess = pythonProcess;
-        this.debugClientConnected = createDeferred<Boolean>();
+        this.debugClientConnected = createDeferred<boolean>();
     }
 
     public abstract Start(): Promise<IDebugServer>;

@@ -5,7 +5,7 @@ import * as baseLinter from './baseLinter';
 import { ILintMessage } from './baseLinter';
 import { OutputChannel } from 'vscode';
 import { execPythonFile, IS_WINDOWS } from './../common/utils';
-import { Product } from '../common/installer';
+import { Product, ProductExecutableAndArgs } from '../common/installer';
 import { TextDocument, CancellationToken } from 'vscode';
 
 export class Linter extends baseLinter.BaseLinter {
@@ -23,6 +23,12 @@ export class Linter extends baseLinter.BaseLinter {
 
         let pydocstylePath = this.pythonSettings.linting.pydocstylePath;
         let pydocstyleArgs = Array.isArray(this.pythonSettings.linting.pydocstyleArgs) ? this.pythonSettings.linting.pydocstyleArgs : [];
+
+        if (pydocstyleArgs.length === 0 && ProductExecutableAndArgs.has(Product.pydocstyle) && pydocstylePath.toLocaleLowerCase() === 'pydocstyle') {
+            pydocstylePath = ProductExecutableAndArgs.get(Product.pydocstyle).executable;
+            pydocstyleArgs = ProductExecutableAndArgs.get(Product.pydocstyle).args;
+        }
+
         return new Promise<baseLinter.ILintMessage[]>(resolve => {
             this.run(pydocstylePath, pydocstyleArgs.concat([document.uri.fsPath]), document, null, cancellation).then(messages => {
                 // All messages in pep8 are treated as warnings for now

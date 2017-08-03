@@ -29,14 +29,12 @@ function getSearchPaths(): Promise<string[]> {
         const lookupParentDirectories = [process.env['PROGRAMFILES'], process.env['PROGRAMFILES(X86)'],
             localAppData, appData,
         process.env['SystemDrive']];
+        lookupParentDirectories.push(path.join(process.env['SystemDrive'], 'Python'));
         if (appData) {
             lookupParentDirectories.push(path.join(localAppData, 'Programs'));
         }
         if (localAppData) {
             lookupParentDirectories.push(path.join(appData, 'Programs'));
-        }
-        if (settings.PythonSettings.getInstance().venvPath) {
-            lookupParentDirectories.push(settings.PythonSettings.getInstance().venvPath);
         }
         const dirPromises = lookupParentDirectories.map(rootDir => {
             if (!rootDir) {
@@ -68,8 +66,7 @@ function getSearchPaths(): Promise<string[]> {
             return validPathsCollection.reduce((previousValue, currentValue) => previousValue.concat(currentValue), []);
         });
     } else {
-        let paths = ['/usr/local/bin', '/usr/bin', '/bin', '/usr/sbin', '/sbin', '/usr/local/sbin', '/Envs', '/.virtualenvs', '/.pyenv',
-            '/.pyenv/versions'];
+        let paths = ['/usr/local/bin', '/usr/bin', '/bin', '/usr/sbin', '/sbin', '/usr/local/sbin'];
         paths.forEach(p => {
             paths.push(untildify('~' + p));
         });
@@ -78,11 +75,22 @@ function getSearchPaths(): Promise<string[]> {
             paths.push(path.join(process.env['HOME'], 'anaconda', 'bin'));
             paths.push(path.join(process.env['HOME'], 'python', 'bin'));
         }
-        if (settings.PythonSettings.getInstance().venvPath) {
-            paths.push(settings.PythonSettings.getInstance().venvPath);
-        }
         return Promise.resolve(paths);
     }
+}
+function getSearchVenvs(): Promise<string[]> {
+    let paths = [];
+    if (!utils.IS_WINDOWS) {
+        const defaultPaths = ['/Envs', '/.virtualenvs', '/.pyenv', '/.pyenv/versions'];
+        defaultPaths.forEach(p => {
+            paths.push(untildify('~' + p));
+        });
+    }
+    const venvPath = settings.PythonSettings.getInstance().venvPath;
+    if (venvPath) {
+        paths.push(untildify(venvPath));
+    }
+    return Promise.resolve(paths);
 }
 
 export function activateSetInterpreterProvider(): vscode.Disposable {
@@ -103,7 +111,7 @@ function lookForInterpretersInPath(pathToCheck: string): Promise<string[]> {
         });
     });
 }
-function lookForInterpretersInVirtualEnvs(pathToCheck: string): Promise<PythonPathSuggestion[]> {
+function lookForInterpretersInVenvs(pathToCheck: string): Promise<PythonPathSuggestion[]> {
     return new Promise<PythonPathSuggestion[]>(resolve => {
         // Now look for Interpreters in this directory
         fs.readdir(pathToCheck, (err, subDirs) => {
@@ -144,13 +152,39 @@ function suggestionsFromKnownPaths(): Promise<PythonPathSuggestion[]> {
                 return lookForInterpretersInPath(validatedPath);
             });
         });
-        return Promise.all<string[]>(promises).then(listOfInterpreters => {
+        const currentPythonInterpreter = utils.execPythonFile("python", ["-c", "import sys;print(sys.executable)"], __dirname)
+            .then(stdout => {
+                if (stdout.length === 0) {
+                    return [] as string[];
+                }
+                let lines = stdout.split(/\r?\n/g).filter(line => line.length > 0);
+                return utils.validatePath(lines[0]).then(p=> [p]);
+            }).catch(() => {
+                return [] as string[];
+            });
+
+        return Promise.all<string[]>(promises.concat(currentPythonInterpreter)).then(listOfInterpreters => {
             const suggestions: PythonPathSuggestion[] = [];
             const interpreters = listOfInterpreters.reduce((previous, current) => previous.concat(current), []);
             interpreters.filter(interpreter => interpreter.length > 0).map(interpreter => {
                 suggestions.push({
                     label: path.basename(interpreter), path: interpreter, type: ''
                 });
+            });
+            return suggestions;
+        });
+    });
+}
+function suggestionsFromKnownVenvs(): Promise<PythonPathSuggestion[]> {
+    return getSearchVenvs().then(paths => {
+        const promises = paths.map(p => {
+            return lookForInterpretersInVenvs(p);
+        });
+
+        return Promise.all<PythonPathSuggestion[]>(promises).then(listOfInterpreters => {
+            let suggestions: PythonPathSuggestion[] = [];
+            listOfInterpreters.forEach(s => {
+                suggestions.push(...s);
             });
             return suggestions;
         });
@@ -205,15 +239,10 @@ function suggestPythonPaths(): Promise<PythonPathQuickPickItem[]> {
     // For now we only interrogate conda for suggestions.
     const condaSuggestions = suggestionsFromConda();
     const knownPathSuggestions = suggestionsFromKnownPaths();
-    const workspaceVirtualEnvSuggestions = lookForInterpretersInVirtualEnvs(vscode.workspace.rootPath);
+    const knownVenvSuggestions = suggestionsFromKnownVenvs();
+    const workspaceVirtualEnvSuggestions = lookForInterpretersInVenvs(vscode.workspace.rootPath);
 
-    const suggestionPromises = [condaSuggestions, knownPathSuggestions, workspaceVirtualEnvSuggestions];
-
-    if (settings.PythonSettings.getInstance().venvPath) {
-        suggestionPromises.push(lookForInterpretersInVirtualEnvs(settings.PythonSettings.getInstance().venvPath));
-    }
-
-    // Here we could also look for virtualenvs/default install locations...
+    const suggestionPromises = [condaSuggestions, knownPathSuggestions, knownVenvSuggestions, workspaceVirtualEnvSuggestions];
 
     return Promise.all<PythonPathSuggestion[]>(suggestionPromises).then(suggestions => {
         const quickPicks: PythonPathQuickPickItem[] = [];
