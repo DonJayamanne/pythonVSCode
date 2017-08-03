@@ -103,7 +103,7 @@ vspd.DONT_DEBUG.append(os.path.normcase(__file__))
 class AttachAlreadyEnabledError(Exception):
     """`ptvsd.enable_attach` has already been called in this process."""
 
-def enable_attach(secret, address, certfile = None, keyfile = None, redirect_output = True):
+def enable_attach(secret, address = ('0.0.0.0', DEFAULT_PORT), certfile = None, keyfile = None, redirect_output = True):
     """Enables Python Tools for Visual Studio to attach to this process remotely
     to debug Python code.
 
@@ -175,11 +175,6 @@ def enable_attach(secret, address, certfile = None, keyfile = None, redirect_out
 
     server = socket.socket(proto=socket.IPPROTO_TCP)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    if address is None:
-        if register_options is not None:
-            address = ('0.0.0.0', 0)
-        else:
-            address = ('0.0.0.0', DEFAULT_PORT)
     server.bind(address)
     server.listen(1)
     global _attach_port
@@ -317,22 +312,27 @@ def enable_attach(secret, address, certfile = None, keyfile = None, redirect_out
 
 
 # `set_trace` should pause debug execution and attach the debugger UI to the debugger engine
-def set_trace(options=None):
+def set_trace():
     # Enable on-demand UI attach to the debugger.
-    enable_attach_ui(options)
+    enable_attach_ui()
     # Trigger the debugger ui to attach, if one exists
     debugger_ui_attach()
     wait_for_attach()
     break_into_debugger()
 
 
-def enable_attach_ui(options):
-    global _attach_enabled, _attach_port, _ui_attach_enabled, _ui_attach_options
+# Options could have: `debugOptions`, `localRoot` & `remoteRoot` & `id`.
+def enable_attach_ui():
+    global _attach_enabled, _ui_attach_options, _ui_attach_enabled
     if not _attach_enabled:
         enable_attach(None, ('0.0.0.0', 0))
-    _ui_attach_options = options if options is not None else _ui_attach_options
     if not _ui_attach_enabled:
         _ui_attach_enabled = debugger_ui_enable_attach()
+
+
+def set_attach_ui_options(options):
+    global _ui_attach_options
+    _ui_attach_options = options
 
 
 def debugger_ui_attach():
@@ -340,7 +340,7 @@ def debugger_ui_attach():
         return
     global _attach_port
     attach_info = {"domain": "debug", "type": "python", "command": "attach", "port": _attach_port}
-    return debugger_ui_request(attach_info)
+    debugger_ui_request(attach_info)
 
 
 def debugger_ui_enable_attach():

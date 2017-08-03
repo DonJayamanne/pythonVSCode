@@ -17,6 +17,6 @@
 __author__ = "Microsoft Corporation <ptvshelp@microsoft.com>"
 __version__ = "3.0.0.0"
 
-__all__ = ['enable_attach', 'enable_attach_ui', 'wait_for_attach', 'break_into_debugger', 'set_trace', 'is_attached', 'AttachAlreadyEnabledError']
+__all__ = ['enable_attach', 'enable_attach_ui', 'wait_for_attach', 'break_into_debugger', 'set_attach_ui_options', 'set_trace', 'is_attached', 'AttachAlreadyEnabledError']
 
-from ptvsd.attach_server import enable_attach, enable_attach_ui, wait_for_attach, break_into_debugger, set_trace, is_attached, AttachAlreadyEnabledError
+from ptvsd.attach_server import enable_attach, enable_attach_ui, wait_for_attach, break_into_debugger, set_attach_ui_options, set_trace, is_attached, AttachAlreadyEnabledError
