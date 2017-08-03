@@ -175,11 +175,6 @@ def enable_attach(secret, address = ('0.0.0.0', DEFAULT_PORT), certfile = None, 
 
     server = socket.socket(proto=socket.IPPROTO_TCP)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    if address is None:
-        if register_options is not None:
-            address = ('0.0.0.0', 0)
-        else:
-            address = ('0.0.0.0', DEFAULT_PORT)
     server.bind(address)
     server.listen(1)
     global _attach_port
