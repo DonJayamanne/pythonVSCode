@@ -983,7 +983,7 @@
 						"host": "localhost"
 					}
 				]
-			],
+			},
 			"configurationAttributes": {
 				"launch": {
 					"required": [
