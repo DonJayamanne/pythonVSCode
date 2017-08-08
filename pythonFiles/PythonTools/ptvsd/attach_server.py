@@ -317,8 +317,11 @@ def set_trace():
     enable_attach_ui()
     # Trigger the debugger ui to attach, if one exists
     debugger_ui_attach()
-    wait_for_attach()
-    break_into_debugger()
+    wait_for_attach(30)
+    if vspd.DETACHED:
+        sys.stderr.write('Debugger timed out (30 seconds) waiting for attach!\n')
+    else:
+        break_into_debugger()
 
 
 # Options could have: `debugOptions`, `localRoot` & `remoteRoot` & `id`.
