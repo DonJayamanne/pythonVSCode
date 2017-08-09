@@ -518,9 +518,20 @@ function onConfigChanged() {
         getPathFromPythonCommand(["-m", "site", "--user-site"]),
     ];
 
-    const pythonPath: string = process.env['PYTHONPATH'];
-    if (typeof pythonPath === 'string' && pythonPath.length > 0) {
-        filePaths.push(Promise.resolve(pythonPath.trim()));
+    let PYTHONPATH: string = process.env['PYTHONPATH'];
+    if (typeof PYTHONPATH !== 'string') {
+        PYTHONPATH = '';
+    }
+    let customEnvironmentVars = getCustomEnvVars();
+    if (customEnvironmentVars && customEnvironmentVars['PYTHONPATH']) {
+        let PYTHONPATHFromEnvFile = customEnvironmentVars['PYTHONPATH'] as string;
+        if (!path.isAbsolute(PYTHONPATHFromEnvFile) && typeof vscode.workspace.rootPath === 'string') {
+            PYTHONPATHFromEnvFile = path.resolve(vscode.workspace.rootPath, PYTHONPATHFromEnvFile);
+        }
+        PYTHONPATH += (PYTHONPATH.length > 0 ? + path.delimiter : '') + PYTHONPATHFromEnvFile;
+    }
+    if (typeof PYTHONPATH === 'string' && PYTHONPATH.length > 0) {
+        filePaths.push(Promise.resolve(PYTHONPATH.trim()));
     }
     Promise.all<string>(filePaths).then(paths => {
         // Last item return a path, we need only the folder
