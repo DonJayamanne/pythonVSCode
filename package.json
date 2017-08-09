@@ -982,8 +982,8 @@
 						"secret": "my_secret",
 						"host": "localhost"
 					}
-				}
-			],
+				]
+			},
 			"configurationAttributes": {
 				"launch": {
 					"required": [
