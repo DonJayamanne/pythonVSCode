@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import * as path from 'path';
 
 export function parseEnvFile(envFile: string): any {
     const buffer = fs.readFileSync(envFile, 'utf8');
@@ -18,6 +19,19 @@ export function parseEnvFile(envFile: string): any {
 
 export function mergeEnvVariables(newVariables: { [key: string]: string }, mergeWith: any = process.env): any {
     for (let setting in mergeWith) {
+        if (setting === 'PYTHONPATH') {
+            let PYTHONPATH: string = newVariables['PYTHONPATH'];
+            if (typeof PYTHONPATH !== 'string') {
+                PYTHONPATH = '';
+            }
+            if (mergeWith['PYTHONPATH']) {
+                PYTHONPATH += (PYTHONPATH.length > 0 ? + path.delimiter : '') + mergeWith['PYTHONPATH'];
+            }
+            if (PYTHONPATH.length > 0) {
+                newVariables[setting] = PYTHONPATH;
+            }
+            continue;
+        }
         if (!newVariables[setting]) {
             newVariables[setting] = mergeWith[setting];
         }
