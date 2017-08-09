@@ -71,25 +71,6 @@
 	],
 	"main": "./out/client/extension",
 	"contributes": {
-		"languages": [{
-			"id": "testOutput",
-			"aliases": [
-				"vscode-output-colorizer",
-				"testOutput"
-			],
-			"extensions": [
-				".log"
-			],
-			"configuration": "./syntaxes/test.configuration.json",
-			"mimetypes": [
-				"text/x-code-output"
-			]
-		}],
-		"grammars": [{
-			"language": "testOutput",
-			"scopeName": "testOutput.log",
-			"path": "./syntaxes/test.tmLanguage"
-		}],
 		"snippets": [{
 			"language": "python",
 			"path": "./snippets/python.json"
