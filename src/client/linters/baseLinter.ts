@@ -73,9 +73,10 @@ export abstract class BaseLinter {
         let linterPath:string = linterSettings[`${this.Id}Path`];
         let linterArgs:string[] = Array.isArray(linterSettings[`${this.Id}Args`]) ? linterSettings[`${this.Id}Args`] : [];
 
-        if (linterArgs.length === 0 && ProductExecutableAndArgs.has(Product[this.Id]) && linterPath === this.Id) {
-            linterPath = ProductExecutableAndArgs.get(Product[this.Id]).executable;
-            linterArgs = ProductExecutableAndArgs.get(Product[this.Id]).args;
+        // if linterPath is like ':flake8' call linter as `python -m flake8 [args...]` instead of `flake8 [args...]`
+        if (linterPath[0] == ':') {
+            linterArgs = (['-m', linterPath.substring(1)]);
+            linterPath = this.pythonSettings.pythonPath;
         }
 
         linterArgs = linterArgs.concat(this.getExtraLinterArgs(document));

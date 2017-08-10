@@ -1134,33 +1134,33 @@
 				},
 				"python.linting.prospectorPath": {
 					"type": "string",
-					"default": "prospector",
-					"description": "Path to Prospector, you can use a custom version of prospector by modifying this setting to include the full path."
+					"default": ":prospector",
+					"description": "Module or Path to Prospector. You can use a custom version of prospector by modifying this setting to include the path to the command (e.g `${workspaceRoot}/bin/prospector`), or you can indicate a Python module to run with `python -m module` by specifying `:module`."
 				},
 				"python.linting.pylintPath": {
 					"type": "string",
-					"default": "pylint",
-					"description": "Path to Pylint, you can use a custom version of pylint by modifying this setting to include the full path."
+					"default": ":pylint",
+					"description": "Module or Path to Pylint. You can use a custom version of pylint by modifying this setting to include the path to the command (e.g `${workspaceRoot}/bin/pylint`), or you can indicate a Python module to run with `python -m module` by specifying `:module`."
 				},
 				"python.linting.pep8Path": {
 					"type": "string",
-					"default": "pep8",
-					"description": "Path to pep8, you can use a custom version of pep8 by modifying this setting to include the full path."
+					"default": ":pep8",
+					"description": "Module or Path to pep8. You can use a custom version of pep8 by modifying this setting to include the path to the command (e.g `${workspaceRoot}/bin/pep8`), or you can indicate a Python module to run with `python -m module` by specifying `:module`."
 				},
 				"python.linting.flake8Path": {
 					"type": "string",
-					"default": "flake8",
-					"description": "Path to flake8, you can use a custom version of flake8 by modifying this setting to include the full path."
+					"default": ":flake8",
+					"description": "Module or Path to flake8. You can use a custom version of flake8 by modifying this setting to include the path to the command (e.g `${workspaceRoot}/bin/flake8`), or you can indicate a Python module to run with `python -m module` by specifying `:module`."
 				},
 				"python.linting.pydocstylePath": {
 					"type": "string",
-					"default": "pydocstyle",
-					"description": "Path to pydocstyle, you can use a custom version of pydocstyle by modifying this setting to include the full path."
+					"default": ":pydocstyle",
+					"description": "Module or Path to pydocstyle. You can use a custom version of pydocstyle by modifying this setting to include the path to the command (e.g `${workspaceRoot}/bin/pydocstyle`), or you can indicate a Python module to run with `python -m module` by specifying `:module`."
 				},
 				"python.linting.mypyPath": {
 					"type": "string",
-					"default": "mypy",
-					"description": "Path to mypy, you can use a custom version of mypy by modifying this setting to include the full path."
+					"default": ":mypy",
+					"description": "Module or Path to mypy. You can use a custom version of mypy by modifying this setting to include the path to the command (e.g `${workspaceRoot}/bin/mypy`), or you can indicate a Python module to run with `python -m module` by specifying `:module`."
 				},
 				"python.linting.prospectorArgs": {
 					"type": "array",
@@ -1400,8 +1400,8 @@
 				},
 				"python.linting.pylamaPath": {
 					"type": "string",
-					"default": "pylama",
-					"description": "Path to pylama, you can use a custom version of pylama by modifying this setting to include the full path."
+					"default": ":pylama",
+					"description": "Module or Path to pylama. You can use a custom version of pylama by modifying this setting to include the path to the command (e.g `${workspaceRoot}/bin/pylama`), or you can indicate a Python module to run with `python -m module` by specifying `:module`."
 				},
 				"python.linting.pylamaArgs": {
 					"type": "array",

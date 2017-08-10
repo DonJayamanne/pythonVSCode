@@ -245,6 +245,51 @@ suite('Linting', () => {
             testLinterMessages(linter, ch, fileToLint, pydocstyleMessagseToBeReturned).then(done, done);
         });
     }
+
+    function getLinterActualPathAndParams(pylintPath:string): Thenable<{linterPath:string, linterArgs:string[]}> {
+        let cancelToken = new vscode.CancellationTokenSource();
+        let ch = new MockOutputChannel('Lint');
+        let origPath = pythonSettings.linting.pylintPath;
+        return new Promise<{linterPath:string, linterArgs:string[]}>((resolve, reject) => {
+            class TestLinter extends pyLint.Linter {
+
+                public getExtraLinterArgs(document: vscode.TextDocument): string[] {
+                    return ['--testparam', document.uri.fsPath];
+                }
+
+                protected run(command, args, document, cwd, cancellation, regEx='') {
+                    resolve({linterPath: command, linterArgs: args})
+                    return Promise.resolve([]);
+                }
+            }
+            let linter = new TestLinter(ch, pythoFilesPath);
+
+            vscode.workspace.openTextDocument(fileToLint).then(document => {
+                pythonSettings.linting.pylintPath = pylintPath;
+                linter.runLinter(document, cancelToken.token).then(result => {
+                    pythonSettings.linting.pylintPath = origPath;
+                }).catch(err => {
+                    pythonSettings.linting.pylintPath = origPath;
+                    reject(err);
+                });
+            });
+        });
+    }
+
+    test('Linter arguments as command', done => {
+        getLinterActualPathAndParams('/bin/pylint').then(({linterPath, linterArgs}) => {
+            assert.equal(linterPath, '/bin/pylint');
+            assert.deepEqual(linterArgs, ['--testparam', fileToLint]);
+        }).then(done, done)
+    })
+
+    test('Linter arguments as module', done => {
+        getLinterActualPathAndParams(':fakepylint.__main__').then(({linterPath, linterArgs}) => {
+            assert.equal(linterPath, pythonSettings.pythonPath);
+            assert.deepEqual(linterArgs, ['-m', 'fakepylint.__main__', '--testparam', fileToLint]);
+        }).then(done, done)
+    })
+
     // Version dependenant, will be enabled once we have fixed this
     // TODO: Check version of python running and accordingly change the values
     if (!IS_TRAVIS) {
