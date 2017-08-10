@@ -3,7 +3,7 @@
 import * as baseLinter from './baseLinter';
 import { OutputChannel } from 'vscode';
 import { execPythonFile } from './../common/utils';
-import { Product, ProductExecutableAndArgs } from '../common/installer';
+import { Product } from '../common/installer';
 import { TextDocument, CancellationToken } from 'vscode';
 
 interface IProspectorResponse {
@@ -28,25 +28,15 @@ export class Linter extends baseLinter.BaseLinter {
         super('prospector', Product.prospector, outputChannel, workspaceRootPath);
     }
 
-    public isEnabled(): Boolean {
-        return this.pythonSettings.linting.prospectorEnabled;
+    public getExtraLinterArgs(document: TextDocument): string[] {
+        return ['--absolute-paths', '--output-format=json', document.uri.fsPath];
     }
+
     public runLinter(document: TextDocument, cancellation: CancellationToken): Promise<baseLinter.ILintMessage[]> {
-        if (!this.pythonSettings.linting.prospectorEnabled) {
-            return Promise.resolve([]);
-        }
-
-        let prospectorPath = this.pythonSettings.linting.prospectorPath;
+        let [linterPath, linterArgs] = this.getLinterPathAndArgs(document);
         let outputChannel = this.outputChannel;
-        let prospectorArgs = Array.isArray(this.pythonSettings.linting.prospectorArgs) ? this.pythonSettings.linting.prospectorArgs : [];
-        
-        if (prospectorArgs.length === 0 && ProductExecutableAndArgs.has(Product.prospector) && prospectorPath.toLocaleLowerCase() === 'prospector'){
-            prospectorPath = ProductExecutableAndArgs.get(Product.prospector).executable;
-            prospectorArgs = ProductExecutableAndArgs.get(Product.prospector).args;
-        }
-
         return new Promise<baseLinter.ILintMessage[]>((resolve, reject) => {
-            execPythonFile(prospectorPath, prospectorArgs.concat(['--absolute-paths', '--output-format=json', document.uri.fsPath]), this.workspaceRootPath, false, null, cancellation).then(data => {
+            execPythonFile(linterPath, linterArgs, this.workspaceRootPath, false, null, cancellation).then(data => {
                 let parsedData: IProspectorResponse;
                 try {
                     parsedData = JSON.parse(data);
@@ -73,7 +63,7 @@ export class Linter extends baseLinter.BaseLinter {
 
                 resolve(diagnostics);
             }).catch(error => {
-                this.handleError(this.Id, prospectorPath, error);
+                this.handleError(this.Id, linterPath, error);
                 resolve([]);
             });
         });
