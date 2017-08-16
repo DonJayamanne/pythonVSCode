@@ -354,7 +354,7 @@ def debugger_ui_enable_attach():
 
 
 def debugger_ui_request(info):
-    req = Request('http://localhost:' + str(DEBUGGER_UI_PORT),
+    req = Request('http://127.0.0.1:' + str(DEBUGGER_UI_PORT),
         data=json.dumps(info).encode('utf8'),
         headers={'Content-Type': 'application/json', 'Accept': 'application/json'})
     try:
