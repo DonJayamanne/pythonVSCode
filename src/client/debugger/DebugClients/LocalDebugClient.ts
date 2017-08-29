@@ -39,10 +39,10 @@ export class LocalDebugClient extends DebugClient {
         if (this.pyProc) {
             try { this.pyProc.send('EXIT'); }
             catch (ex) { }
-            try { this.pyProc.stdin.write('EXIT'); }
-            catch (ex) { }
-            try { this.pyProc.disconnect(); }
-            catch (ex) { }
+            try {
+                this.pyProc.stdin.once('error', () => {});
+                this.pyProc.stdin.write('EXIT');
+            } catch (ex) { }
             this.pyProc = null;
         }
     }

@@ -39,7 +39,6 @@ import socket
 import select
 import time
 import struct
-import imp
 import traceback
 import random
 import os
@@ -553,6 +552,7 @@ class BasicReplBackend(ReplBackend):
     """Basic back end which executes all Python code in-proc"""
     def __init__(self, mod_name='__main__'):
         import threading
+        import imp
         ReplBackend.__init__(self)
         if mod_name is not None:
             if sys.platform == 'cli':
