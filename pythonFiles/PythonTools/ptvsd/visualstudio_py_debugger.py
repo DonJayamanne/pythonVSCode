@@ -2361,7 +2361,7 @@ def attach_process_from_socket(sock, debug_options, report = False, block = Fals
     global debugger_thread_id
     debugger_thread_id = _start_new_thread(DebuggerLoop(conn).loop, ())
 
-    for mod_name, mod_value in sys.modules.items():
+    for mod_value in list(sys.modules.values()):
         try:
             filename = getattr(mod_value, '__file__', None)
             if filename is not None:
