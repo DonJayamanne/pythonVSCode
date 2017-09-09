@@ -59,6 +59,7 @@
 		"onCommand:python.runCurrentTestFile",
 		"onCommand:python.runFailedTests",
 		"onCommand:python.execSelectionInTerminal",
+		"onCommand:python.execInPythonTerminal",
 		"onCommand:python.execSelectionInDjangoShell",
 		"onCommand:jupyter.runSelectionLine",
 		"onCommand:jupyter.execCurrentCell",
@@ -166,6 +167,11 @@
 				"category": "Python"
 			},
 			{
+				"command": "python.execInPythonTerminal",
+				"title": "Run Python File in Python Terminal",
+				"category": "Python"
+			},
+			{
 				"command": "python.execSelectionInDjangoShell",
 				"title": "Run Selection/Line in Django Shell",
 				"category": "Python"
@@ -231,6 +237,11 @@
 					"when": "editorHasSelection && editorLangId == python"
 				},
 				{
+					"command": "python.execInPythonTerminal",
+					"group": "Python",
+					"when": "editorLangId == python"
+				},
+				{
 					"command": "python.execSelectionInDjangoShell",
 					"group": "Python",
 					"when": "editorHasSelection && editorLangId == python && python.isDjangoProject"
@@ -259,6 +270,11 @@
 				{
 					"when": "resourceLangId == python",
 					"command": "python.execInTerminal",
+					"group": "Python"
+				},
+				{
+					"when": "resourceLangId == python",
+					"command": "python.execInPythonTerminal",
 					"group": "Python"
 				}
 			]

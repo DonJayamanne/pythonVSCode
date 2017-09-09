@@ -10,6 +10,7 @@ import { IS_WINDOWS } from '../common/utils';
 export function activateExecInTerminalProvider(): vscode.Disposable[] {
     const disposables: vscode.Disposable[] = [];
     disposables.push(vscode.commands.registerCommand(Commands.Exec_In_Terminal, execInTerminal));
+    disposables.push(vscode.commands.registerCommand(Commands.Exec_In_Python_Terminal, execInPythonTerminal));
     disposables.push(vscode.commands.registerCommand(Commands.Exec_Selection_In_Terminal, execSelectionInTerminal));
     disposables.push(vscode.commands.registerCommand(Commands.Exec_Selection_In_Django_Shell, execSelectionInDjangoShell));
     disposables.push(vscode.window.onDidCloseTerminal((closedTermina: vscode.Terminal) => {
@@ -143,6 +144,78 @@ function execSelectionInTerminal() {
     }
     else {
         terminal.sendText(unix_code);
+    }
+    terminal.show();
+}
+
+function execInPythonTerminal(fileUri?: vscode.Uri) {
+    const terminalShellSettings = vscode.workspace.getConfiguration('terminal.integrated.shell');
+    const IS_POWERSHELL = /powershell/.test(terminalShellSettings.get<string>('windows'));
+
+    let currentPythonPath = settings.PythonSettings.getInstance().pythonPath;
+    if (currentPythonPath.indexOf(' ') > 0) {
+        currentPythonPath = `"${currentPythonPath}"`;
+    }
+
+    const activeEditor = vscode.window.activeTextEditor;
+    if (!activeEditor) {
+        return;
+    }
+
+    let filePath: string;
+
+    if (fileUri === undefined || fileUri === null || typeof fileUri.fsPath !== 'string') {
+        const activeEditor = vscode.window.activeTextEditor;
+        if (activeEditor !== undefined) {
+            if (!activeEditor.document.isUntitled) {
+                if (activeEditor.document.languageId === PythonLanguage.language) {
+                    filePath = activeEditor.document.fileName;
+                } else {
+                    vscode.window.showErrorMessage('The active file is not a Python source file');
+                    return;
+                }
+            } else {
+                vscode.window.showErrorMessage('The active file needs to be saved before it can be run');
+                return;
+            }
+        } else {
+            vscode.window.showErrorMessage('No open file to run in terminal');
+            return;
+        }
+    } else {
+        filePath = fileUri.fsPath;
+    }
+
+    if (filePath.indexOf(' ') > 0) {
+        filePath = `"${filePath}"`;
+    }
+
+
+    const launchArgs = settings.PythonSettings.getInstance().terminal.launchArgs;
+    const launchArgsString = launchArgs.length > 0 ? " ".concat(launchArgs.join(" ")) : "";
+    const command = `${currentPythonPath}${launchArgsString}`;
+    if (!terminal) {
+        terminal = vscode.window.createTerminal(`Python`);
+        if (IS_WINDOWS) {
+            const commandWin = command.replace(/\\/g, "/");
+            if (IS_POWERSHELL) {
+                terminal.sendText(`& ${commandWin}`);
+            }
+            else {
+                terminal.sendText(commandWin);
+            }
+        }
+        else {
+            terminal.sendText(command);
+        }
+    }
+    const code = `exec(compile(open('${filePath}', 'rb').read(), '${filePath}', 'exec'), globals())`
+    if (IS_WINDOWS) {
+        const codeWin = code.replace(/\\/g, "/");
+        terminal.sendText(codeWin);
+    }
+    else {
+        terminal.sendText(code);
     }
     terminal.show();
 }

@@ -5,6 +5,7 @@ export namespace Commands {
     export const Set_Interpreter = 'python.setInterpreter';
     export const Exec_In_Terminal = 'python.execInTerminal';
     export const Exec_Selection_In_Terminal = 'python.execSelectionInTerminal';
+    export const Exec_In_Python_Terminal = 'python.execInPythonTerminal';
     export const Exec_Selection_In_Django_Shell = 'python.execSelectionInDjangoShell';
     export const Tests_View_UI = 'python.viewTestUI';
     export const Tests_Picker_UI = 'python.selectTestToRun';
