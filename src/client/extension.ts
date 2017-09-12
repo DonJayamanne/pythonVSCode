@@ -8,7 +8,6 @@ import { PythonReferenceProvider } from './providers/referenceProvider';
 import { PythonRenameProvider } from './providers/renameProvider';
 import { PythonFormattingEditProvider } from './providers/formatProvider';
 import * as sortImports from './sortImports';
-import * as autoImport from './autoImport';
 import { LintProvider } from './providers/lintProvider';
 import { PythonSymbolProvider } from './providers/symbolProvider';
 import { PythonSignatureProvider } from './providers/signatureProvider';
@@ -59,7 +58,6 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     sortImports.activate(context, formatOutChannel);
-    autoImport.activate(context, formatOutChannel);
     context.subscriptions.push(activateSetInterpreterProvider());
     context.subscriptions.push(...activateExecInTerminalProvider());
     context.subscriptions.push(activateUpdateSparkLibraryProvider());
