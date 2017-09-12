@@ -166,6 +166,7 @@ export class Installer implements vscode.Disposable {
 
         const installOption = 'Install ' + productName;
         const disableOption = 'Disable ' + productTypeName;
+        const disableOptionGlobally = `Disable ${productTypeName} globally`;
         const alternateFormatter = product === Product.autopep8 ? 'yapf' : 'autopep8';
         const useOtherFormatter = `Use '${alternateFormatter}' formatter`;
         const options = [];
@@ -174,21 +175,23 @@ export class Installer implements vscode.Disposable {
             options.push(...[installOption, useOtherFormatter]);
         }
         if (SettingToDisableProduct.has(product)) {
-            options.push(disableOption);
+            options.push(...[disableOption, disableOptionGlobally]);
         }
         return vscode.window.showErrorMessage(`${productTypeName} ${productName} is not installed`, ...options).then(item => {
             switch (item) {
                 case installOption: {
                     return this.install(product);
                 }
+                case disableOptionGlobally:
                 case disableOption: {
+                    const global = item === disableOptionGlobally;
                     if (Linters.indexOf(product) >= 0) {
-                        return disableLinter(product);
+                        return disableLinter(product, global);
                     }
                     else {
                         const pythonConfig = vscode.workspace.getConfiguration('python');
                         const settingToDisable = SettingToDisableProduct.get(product);
-                        return pythonConfig.update(settingToDisable, false);
+                        return pythonConfig.update(settingToDisable, false, global);
                     }
                 }
                 case useOtherFormatter: {
@@ -261,11 +264,11 @@ export class Installer implements vscode.Disposable {
     }
 }
 
-export function disableLinter(product: Product) {
+export function disableLinter(product: Product, global?: boolean) {
     const pythonConfig = vscode.workspace.getConfiguration('python');
     const settingToDisable = SettingToDisableProduct.get(product);
     if (vscode.workspace.rootPath) {
-        return pythonConfig.update(settingToDisable, false);
+        return pythonConfig.update(settingToDisable, false, global);
     }
     else {
         return pythonConfig.update('linting.enabledWithoutWorkspace', false, true);
