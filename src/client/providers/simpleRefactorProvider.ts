@@ -4,10 +4,13 @@ import * as vscode from 'vscode';
 import { RefactorProxy } from '../refactor/proxy';
 import { getTextEditsFromPatch } from '../common/editor';
 import { PythonSettings, IPythonSettings } from '../common/configSettings';
+import { Installer, Product } from '../common/installer';
 
 interface RenameResponse {
     results: [{ diff: string }];
 }
+
+let installer: Installer;
 
 export function activateSimplePythonRefactorProvider(context: vscode.ExtensionContext, outputChannel: vscode.OutputChannel) {
     let disposable = vscode.commands.registerCommand('python.refactorExtractVariable', () => {
@@ -25,6 +28,8 @@ export function activateSimplePythonRefactorProvider(context: vscode.ExtensionCo
             outputChannel).catch(() => { });
     });
     context.subscriptions.push(disposable);
+    installer = new Installer(outputChannel);
+    context.subscriptions.push(installer);
 }
 
 // Exported for unit testing
@@ -121,6 +126,10 @@ function extractName(extensionDir: string, textEditor: vscode.TextEditor, range:
             });
         }
     }).catch(error => {
+        if (error === 'Not installed') {
+            installer.promptToInstall(Product.rope);
+            return Promise.reject('');
+        }
         let errorMessage = error + '';
         if (typeof error === 'string') {
             errorMessage = error;

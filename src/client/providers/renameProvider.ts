@@ -5,6 +5,7 @@ import { RefactorProxy } from '../refactor/proxy';
 import { getWorkspaceEditsFromPatch } from '../common/editor';
 import * as path from 'path';
 import { PythonSettings } from '../common/configSettings';
+import { Installer, Product } from '../common/installer';
 
 const pythonSettings = PythonSettings.getInstance();
 const EXTENSION_DIR = path.join(__dirname, '..', '..', '..');
@@ -13,7 +14,9 @@ interface RenameResponse {
 }
 
 export class PythonRenameProvider implements vscode.RenameProvider {
+    private installer: Installer;
     constructor(private outputChannel: vscode.OutputChannel) {
+        this.installer = new Installer(outputChannel);
     }
     public provideRenameEdits(document: vscode.TextDocument, position: vscode.Position, newName: string, token: vscode.CancellationToken): Thenable<vscode.WorkspaceEdit> {
         return vscode.workspace.saveAll(false).then(() => {
@@ -44,8 +47,14 @@ export class PythonRenameProvider implements vscode.RenameProvider {
             const workspaceEdit = getWorkspaceEditsFromPatch(response.results.map(fileChanges => fileChanges.diff));
             return workspaceEdit;
         }).catch(reason => {
-            vscode.window.showErrorMessage(reason);
-            this.outputChannel.appendLine(reason);
+            if (reason === 'Not installed') {
+                this.installer.promptToInstall(Product.rope);
+                return Promise.reject('');
+            }
+            else {
+                vscode.window.showErrorMessage(reason);
+                this.outputChannel.appendLine(reason);
+            }
             return Promise.reject(reason);
         });
     }

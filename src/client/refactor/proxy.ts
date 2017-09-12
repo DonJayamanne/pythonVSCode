@@ -136,7 +136,7 @@ export class RefactorProxy extends vscode.Disposable {
         // Possible there was an exception in parsing the data returned
         // So append the data then parse it
         let dataStr = this._previousStdErrData = this._previousStdErrData + data + '';
-        let errorResponse: { message: string, traceback: string }[];
+        let errorResponse: { message: string, traceback: string, type: string }[];
         try {
             errorResponse = dataStr.split(/\r?\n/g).filter(line => line.length > 0).map(resp => JSON.parse(resp));
             this._previousStdErrData = '';
@@ -146,7 +146,6 @@ export class RefactorProxy extends vscode.Disposable {
             // Possible we've only received part of the data, hence don't clear previousData
             return;
         }
-
         if (typeof errorResponse[0].message !== 'string' || errorResponse[0].message.length === 0) {
             errorResponse[0].message = errorResponse[0].traceback.split(/\r?\n/g).pop();
         }
@@ -156,6 +155,11 @@ export class RefactorProxy extends vscode.Disposable {
             this._commandReject(`Refactor failed. ${errorMessage}`);
         }
         else {
+            if (typeof errorResponse[0].type === 'string' && errorResponse[0].type === 'ModuleNotFoundError') {
+                this._initializeReject('Not installed');
+                return;
+            }
+
             this._initializeReject(`Refactor failed. ${errorMessage}`);
         }
     }

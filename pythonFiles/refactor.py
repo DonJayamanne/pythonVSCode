@@ -6,13 +6,18 @@ import io
 import sys
 import json
 import traceback
-import rope
 
-from rope.base import libutils
-from rope.refactor.rename import Rename
-from rope.refactor.extract import ExtractMethod, ExtractVariable
-import rope.base.project
-import rope.base.taskhandle
+try:
+    import rope
+    from rope.base import libutils
+    from rope.refactor.rename import Rename
+    from rope.refactor.extract import ExtractMethod, ExtractVariable
+    import rope.base.project
+    import rope.base.taskhandle
+except:
+    jsonMessage = {'error': True, 'message': 'Rope not installed', 'traceback': '', 'type': 'ModuleNotFoundError'}
+    sys.stderr.write(json.dumps(jsonMessage))
+    sys.stderr.flush()
 
 WORKSPACE_ROOT = sys.argv[1]
 ROPE_PROJECT_FOLDER = '.vscode/.ropeproject'

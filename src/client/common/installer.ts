@@ -18,7 +18,8 @@ export enum Product {
     autopep8,
     mypy,
     unittest,
-    ctags
+    ctags,
+    rope
 }
 
 const ProductInstallScripts = new Map<Product, string[]>();
@@ -33,6 +34,7 @@ ProductInstallScripts.set(Product.pydocstyle, ['-m', 'pip', 'install', 'pydocsty
 ProductInstallScripts.set(Product.pylint, ['-m', 'pip', 'install', 'pylint']);
 ProductInstallScripts.set(Product.pytest, ['-m', 'pip', 'install', '-U', 'pytest']);
 ProductInstallScripts.set(Product.yapf, ['-m', 'pip', 'install', 'yapf']);
+ProductInstallScripts.set(Product.rope, ['-m', 'pip', 'install', 'rope']);
 
 const ProductUninstallScripts = new Map<Product, string[]>();
 ProductUninstallScripts.set(Product.autopep8, ['-m', 'pip', 'uninstall', 'autopep8', '--yes']);
@@ -46,6 +48,7 @@ ProductUninstallScripts.set(Product.pydocstyle, ['-m', 'pip', 'uninstall', 'pydo
 ProductUninstallScripts.set(Product.pylint, ['-m', 'pip', 'uninstall', 'pylint', '--yes']);
 ProductUninstallScripts.set(Product.pytest, ['-m', 'pip', 'uninstall', 'pytest', '--yes']);
 ProductUninstallScripts.set(Product.yapf, ['-m', 'pip', 'uninstall', 'yapf', '--yes']);
+ProductUninstallScripts.set(Product.rope, ['-m', 'pip', 'uninstall', 'rope', '--yes']);
 
 export const ProductExecutableAndArgs = new Map<Product, { executable: string, args: string[] }>();
 ProductExecutableAndArgs.set(Product.mypy, { executable: 'python', args: ['-m', 'mypy'] });
@@ -98,6 +101,7 @@ ProductNames.set(Product.pydocstyle, 'pydocstyle');
 ProductNames.set(Product.pylint, 'pylint');
 ProductNames.set(Product.pytest, 'py.test');
 ProductNames.set(Product.yapf, 'yapf');
+ProductNames.set(Product.rope, 'rope');
 
 export const SettingToDisableProduct = new Map<Product, string>();
 SettingToDisableProduct.set(Product.flake8, 'linting.flake8Enabled');
@@ -110,7 +114,38 @@ SettingToDisableProduct.set(Product.pydocstyle, 'linting.pydocstyleEnabled');
 SettingToDisableProduct.set(Product.pylint, 'linting.pylintEnabled');
 SettingToDisableProduct.set(Product.pytest, 'unitTest.pyTestEnabled');
 
-export class Installer {
+enum ProductType {
+    Linter,
+    Formatter,
+    TestFramework,
+    RefactoringLibrary,
+    WorkspaceSymbols
+}
+
+const ProductTypeNames = new Map<ProductType, string>();
+ProductTypeNames.set(ProductType.Formatter, 'Formatter');
+ProductTypeNames.set(ProductType.Linter, 'Linter');
+ProductTypeNames.set(ProductType.RefactoringLibrary, 'Refactoring library');
+ProductTypeNames.set(ProductType.TestFramework, 'Test Framework');
+ProductTypeNames.set(ProductType.WorkspaceSymbols, 'Workspace Symbols');
+
+const ProductTypes = new Map<Product, ProductType>();
+ProductTypes.set(Product.flake8, ProductType.Linter);
+ProductTypes.set(Product.mypy, ProductType.Linter);
+ProductTypes.set(Product.pep8, ProductType.Linter);
+ProductTypes.set(Product.prospector, ProductType.Linter);
+ProductTypes.set(Product.pydocstyle, ProductType.Linter);
+ProductTypes.set(Product.pylama, ProductType.Linter);
+ProductTypes.set(Product.pylint, ProductType.Linter);
+ProductTypes.set(Product.ctags, ProductType.WorkspaceSymbols);
+ProductTypes.set(Product.nosetest, ProductType.TestFramework);
+ProductTypes.set(Product.pytest, ProductType.TestFramework);
+ProductTypes.set(Product.unittest, ProductType.TestFramework);
+ProductTypes.set(Product.autopep8, ProductType.Formatter);
+ProductTypes.set(Product.yapf, ProductType.Formatter);
+ProductTypes.set(Product.rope, ProductType.RefactoringLibrary);
+
+export class Installer implements vscode.Disposable {
     private static terminal: vscode.Terminal;
     private disposables: vscode.Disposable[] = [];
     constructor(private outputChannel: vscode.OutputChannel = null) {
@@ -125,21 +160,23 @@ export class Installer {
     }
 
     promptToInstall(product: Product): Thenable<any> {
-        let productType = Linters.indexOf(product) >= 0 ? 'Linter' : (Formatters.indexOf(product) >= 0 ? 'Formatter' : 'Test Framework');
+        const productType = ProductTypes.get(product);
+        const productTypeName = ProductTypeNames.get(productType);
         const productName = ProductNames.get(product);
 
         const installOption = 'Install ' + productName;
-        const disableOption = 'Disable this ' + productType;
+        const disableOption = 'Disable ' + productTypeName;
         const alternateFormatter = product === Product.autopep8 ? 'yapf' : 'autopep8';
         const useOtherFormatter = `Use '${alternateFormatter}' formatter`;
         const options = [];
-        if (Formatters.indexOf(product) === -1) {
-            options.push(...[installOption, disableOption]);
-        }
-        else {
+        options.push(installOption);
+        if (productType === ProductType.Formatter) {
             options.push(...[installOption, useOtherFormatter]);
         }
-        return vscode.window.showErrorMessage(`${productType} ${productName} is not installed`, ...options).then(item => {
+        if (SettingToDisableProduct.has(product)){
+            options.push(disableOption);
+        }
+        return vscode.window.showErrorMessage(`${productTypeName} ${productName} is not installed`, ...options).then(item => {
             switch (item) {
                 case installOption: {
                     return this.install(product);
