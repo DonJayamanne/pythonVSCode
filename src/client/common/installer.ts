@@ -173,7 +173,7 @@ export class Installer implements vscode.Disposable {
         if (productType === ProductType.Formatter) {
             options.push(...[installOption, useOtherFormatter]);
         }
-        if (SettingToDisableProduct.has(product)){
+        if (SettingToDisableProduct.has(product)) {
             options.push(disableOption);
         }
         return vscode.window.showErrorMessage(`${productTypeName} ${productName} is not installed`, ...options).then(item => {
@@ -252,7 +252,7 @@ export class Installer implements vscode.Disposable {
         }
     }
 
-    isInstalled(product: Product): Promise<boolean> {
+    isInstalled(product: Product): Promise<boolean | undefined> {
         return isProductInstalled(product);
     }
 
@@ -272,7 +272,10 @@ export function disableLinter(product: Product) {
     }
 }
 
-function isProductInstalled(product: Product): Promise<boolean> {
+function isProductInstalled(product: Product): Promise<boolean | undefined> {
+    if (!ProductExecutableAndArgs.has(product)) {
+        return;
+    }
     const prodExec = ProductExecutableAndArgs.get(product);
     return execPythonFile(prodExec.executable, prodExec.args.concat(['--version']), vscode.workspace.rootPath, false)
         .then(() => {
