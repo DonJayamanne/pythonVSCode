@@ -58,7 +58,7 @@ suite('Installer', () => {
             await installer.install(product);
         }
         const checkIsInstalledAgain = await installer.isInstalled(product);
-        assert.equal(checkIsInstalledAgain, true, `Product installation failed`);
+        assert.notEqual(checkIsInstalledAgain, false, `Product installation failed`);
     }
     EnumEx.getNamesAndValues<Product>(Product).forEach(prod => {
         test(`${prod.name} : Install`, async () => {
