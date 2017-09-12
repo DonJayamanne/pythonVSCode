@@ -12,6 +12,7 @@ import { EOL } from 'os';
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as settings from '../../client/common/configSettings';
+import { normalizeMarkedString } from '../textUtils';
 
 const pythonSettings = settings.PythonSettings.getInstance();
 const autoCompPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'autocomp');
@@ -54,7 +55,8 @@ suite('Hover Definition', () => {
             assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '30,4', 'Start position is incorrect');
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '30,11', 'End position is incorrect');
             assert.equal(def[0].contents.length, 1, 'Invalid content items');
-            assert.equal(def[0].contents[0], '```python' + EOL + 'def method1()' + EOL + '```' + EOL + 'This is method1', 'function signature incorrect');
+            const expectedContent = '```python' + EOL + 'def method1()' + EOL + '```' + EOL + 'This is method1';
+            assert.equal(normalizeMarkedString(def[0].contents[0]), expectedContent, 'function signature incorrect');
         }).then(done, done);
     });
 
@@ -73,7 +75,7 @@ suite('Hover Definition', () => {
             assert.equal(def.length, 1, 'Definition length is incorrect');
             assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '1,9', 'Start position is incorrect');
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '1,12', 'End position is incorrect');
-            assert.equal(def[0].contents[0], '```python' + EOL + 'def fun()' + EOL + '```' + EOL + 'This is fun', 'Invalid conents');
+            assert.equal(normalizeMarkedString(def[0].contents[0]), '```python' + EOL + 'def fun()' + EOL + '```' + EOL + 'This is fun', 'Invalid conents');
         }).then(done, done);
     });
 
@@ -92,7 +94,7 @@ suite('Hover Definition', () => {
             assert.equal(def.length, 1, 'Definition length is incorrect');
             assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '25,4', 'Start position is incorrect');
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '25,7', 'End position is incorrect');
-            assert.equal(def[0].contents[0], '```python' + EOL + 'def bar()' + EOL + '```' + EOL +
+            assert.equal(normalizeMarkedString(def[0].contents[0]), '```python' + EOL + 'def bar()' + EOL + '```' + EOL +
                 '说明 - keep this line, it works' + EOL + 'delete following line, it works' +
                 EOL + '如果存在需要等待审批或正在执行的任务，将不刷新页面', 'Invalid conents');
         }).then(done, done);
@@ -113,7 +115,7 @@ suite('Hover Definition', () => {
             assert.equal(def.length, 1, 'Definition length is incorrect');
             assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '1,5', 'Start position is incorrect');
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '1,16', 'End position is incorrect');
-            assert.equal(def[0].contents[0], '```python' + EOL +
+            assert.equal(normalizeMarkedString(def[0].contents[0]), '```python' + EOL +
                 'def showMessage()' + EOL +
                 '```' + EOL +
                 'Кюм ут жэмпэр пошжим льаборэж, коммюны янтэрэсщэт нам ед, декта игнота ныморэ жят эи. ' + EOL +
@@ -182,7 +184,7 @@ suite('Hover Definition', () => {
                 "Optionally, implement a getrandbits() method so that randrange()" + EOL +
                 "can cover arbitrarily large ranges.";
 
-            assert.equal(def[0].contents[0], documentation, 'Invalid conents');
+            assert.equal(normalizeMarkedString(def[0].contents[0]), documentation, 'Invalid conents');
         }).then(done, done);
     });
 
@@ -201,7 +203,7 @@ suite('Hover Definition', () => {
             assert.equal(def.length, 1, 'Definition length is incorrect');
             assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '12,5', 'Start position is incorrect');
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '12,12', 'End position is incorrect');
-            assert.equal(def[0].contents[0], '```python' + EOL +
+            assert.equal(normalizeMarkedString(def[0].contents[0]), '```python' + EOL +
                 'def randint(a, b)' + EOL +
                 '```' + EOL +
                 'Return random integer in range [a, b], including both end points.', 'Invalid conents');
@@ -223,7 +225,7 @@ suite('Hover Definition', () => {
             assert.equal(def.length, 1, 'Definition length is incorrect');
             assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '8,11', 'Start position is incorrect');
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '8,15', 'End position is incorrect');
-            assert.equal(def[0].contents[0], '```python' + EOL +
+            assert.equal(normalizeMarkedString(def[0].contents[0]), '```python' + EOL +
                 'def acos(x)' + EOL +
                 '```' + EOL +
                 'Return the arc cosine (measured in radians) of x.', 'Invalid conents');
@@ -245,7 +247,7 @@ suite('Hover Definition', () => {
             assert.equal(def.length, 1, 'Definition length is incorrect');
             assert.equal(`${def[0].range.start.line},${def[0].range.start.character}`, '14,9', 'Start position is incorrect');
             assert.equal(`${def[0].range.end.line},${def[0].range.end.character}`, '14,15', 'End position is incorrect');
-            assert.equal(def[0].contents[0], '```python' + EOL +
+            assert.equal(normalizeMarkedString(def[0].contents[0]), '```python' + EOL +
                 'class Thread(group=None, target=None, name=None, args=(), kwargs=None, verbose=None)' + EOL +
                 '```' + EOL +
                 'Thread(self, group=None, target=None, name=None,' + EOL +
@@ -271,14 +273,15 @@ suite('Hover Definition', () => {
         }).then(def => {
             assert.equal(def.length, 1, 'Definition length is incorrect');
             assert.equal(def[0].contents.length, 1, 'Only expected one result');
-            if (def[0].contents[0].toString().indexOf("```python") === -1) {
-                assert.fail(def[0].contents[0].toString(), "", "First line is incorrect", "compare");
+            const contents = normalizeMarkedString(def[0].contents[0]);
+            if (contents.indexOf("```python") === -1) {
+                assert.fail(contents, "", "First line is incorrect", "compare");
             }
-            if (def[0].contents[0].toString().indexOf("Random number generator base class used by bound module functions.") === -1) {
-                assert.fail(def[0].contents[0].toString(), "", "'Random number generator' message missing", "compare");
+            if (contents.indexOf("Random number generator base class used by bound module functions.") === -1) {
+                assert.fail(contents, "", "'Random number generator' message missing", "compare");
             }
-            if (def[0].contents[0].toString().indexOf("Class Random can also be subclassed if you want to use a different basic") === -1) {
-                assert.fail(def[0].contents[0].toString(), "", "'Class Random message' missing", "compare");
+            if (contents.indexOf("Class Random can also be subclassed if you want to use a different basic") === -1) {
+                assert.fail(contents, "", "'Class Random message' missing", "compare");
             }
         }).then(done, done);
     });
@@ -290,12 +293,13 @@ suite('Hover Definition', () => {
         const def = await vscode.commands.executeCommand<vscode.Hover[]>('vscode.executeHoverProvider', textDocument.uri, position);
         assert.equal(def.length, 1, 'Definition length is incorrect');
         assert.equal(def[0].contents.length, 1, 'Only expected one result');
-        if (def[0].contents[0].toString().indexOf("def capitalize") === -1) {
-            assert.fail(def[0].contents[0].toString(), "", "'def capitalize' is missing", "compare");
+        const contents = normalizeMarkedString(def[0].contents[0]);
+        if (contents.indexOf("def capitalize") === -1) {
+            assert.fail(contents, "", "'def capitalize' is missing", "compare");
         }
-        if (def[0].contents[0].toString().indexOf("Return a capitalized version of S") === -1 &&
-            def[0].contents[0].toString().indexOf("Return a copy of the string S with only its first character") === -1) {
-            assert.fail(def[0].contents[0].toString(), "", "'Return a capitalized version of S/Return a copy of the string S with only its first character' message missing", "compare");
+        if (contents.indexOf("Return a capitalized version of S") === -1 &&
+            contents.indexOf("Return a copy of the string S with only its first character") === -1) {
+            assert.fail(contents, "", "'Return a capitalized version of S/Return a copy of the string S with only its first character' message missing", "compare");
         }
     });
 });
