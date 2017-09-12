@@ -1,5 +1,5 @@
 // Place this right on top
-import { initialize, closeActiveWindows, IS_TRAVIS, setPythonExecutable } from './initialize';
+import { initialize, closeActiveWindows, IS_TRAVIS, setPythonExecutable, wait } from './../initialize';
 import * as assert from 'assert';
 
 // You can import and use all API from the \'vscode\' module
@@ -7,71 +7,22 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { TextLine, Position, Range } from 'vscode';
 import * as path from 'path';
-import * as settings from '../client/common/configSettings';
+import * as settings from '../../client/common/configSettings';
 import * as fs from 'fs-extra';
-import { extractMethod } from '../client/providers/simpleRefactorProvider';
-import { RefactorProxy } from '../client/refactor/proxy';
-import { getTextEditsFromPatch } from '../client/common/editor';
-import { MockOutputChannel } from './mockClasses';
+import { extractMethod } from '../../client/providers/simpleRefactorProvider';
+import { RefactorProxy } from '../../client/refactor/proxy';
+import { getTextEditsFromPatch } from '../../client/common/editor';
+import { MockOutputChannel } from './../mockClasses';
 
-let EXTENSION_DIR = path.join(__dirname, '..', '..');
+let EXTENSION_DIR = path.join(__dirname, '..', '..', '..');
 let pythonSettings = settings.PythonSettings.getInstance();
 const disposable = setPythonExecutable(pythonSettings);
 
-const refactorSourceFile = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'refactoring', 'standAlone', 'refactor.py');
-const refactorTargetFile = path.join(__dirname, '..', '..', 'out', 'test', 'pythonFiles', 'refactoring', 'standAlone', 'refactor.py');
+const refactorSourceFile = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'refactoring', 'standAlone', 'refactor.py');
+const refactorTargetFile = path.join(__dirname, '..', '..', '..', 'out', 'test', 'pythonFiles', 'refactoring', 'standAlone', 'refactor.py');
 
 interface RenameResponse {
     results: [{ diff: string }];
-}
-
-class MockTextDocument implements vscode.TextDocument {
-    uri: vscode.Uri;
-    fileName: string;
-    isUntitled: boolean;
-    languageId: string;
-    version: number;
-    isDirty: boolean;
-    offsets: [{ position: Position, offset: number }];
-    constructor(private sourceFile: string) {
-        this.lineCount = fs.readFileSync(this.sourceFile, 'utf8').split(/\r?\n/g).length;
-        this.offsets = [
-            { position: new vscode.Position(239, 30), offset: 8376 },
-            { position: new vscode.Position(239, 0), offset: 8346 },
-            { position: new vscode.Position(241, 35), offset: 8519 }
-        ];
-    }
-    save(): Thenable<boolean> {
-        return Promise.resolve(true);
-    }
-    lineCount: number;
-    lineAt(position: Position | number): TextLine {
-        let lineNumber: number = position as number;
-        if ((position as Position).line) {
-            lineNumber = (position as Position).line;
-        }
-        let line = fs.readFileSync(this.sourceFile, 'utf8').split(/\r?\n/g)[lineNumber];
-
-        return <TextLine>{ isEmptyOrWhitespace: line.trim().length > 0 };
-    }
-    offsetAt(position: Position): number {
-        return this.offsets.filter(item => item.position.isEqual(position))[0].offset;
-    }
-    positionAt(offset: number): Position {
-        return null;
-    }
-    getText(range?: Range): string {
-        return fs.readFileSync(this.sourceFile, 'utf8');
-    }
-    getWordRangeAtPosition(position: Position): Range {
-        return null;
-    }
-    validateRange(range: Range): Range {
-        return null;
-    }
-    validatePosition(position: Position): Position {
-        return null;
-    }
 }
 
 suite('Method Extraction', () => {
@@ -88,15 +39,14 @@ suite('Method Extraction', () => {
         vscode.commands.executeCommand = oldExecuteCommand;
         closeActiveWindows().then(() => done(), () => done());
     });
-    setup(done => {
+    setup(async () => {
         if (fs.existsSync(refactorTargetFile)) {
+            await wait(500);
             fs.unlinkSync(refactorTargetFile);
         }
         fs.copySync(refactorSourceFile, refactorTargetFile, { clobber: true });
-        closeActiveWindows().then(() => {
-            (<any>vscode).commands.executeCommand = (cmd) => Promise.resolve();
-            done();
-        }).catch(done);
+        await closeActiveWindows();
+        (<any>vscode).commands.executeCommand = (cmd) => Promise.resolve();
     });
     teardown(done => {
         vscode.commands.executeCommand = oldExecuteCommand;
@@ -106,12 +56,18 @@ suite('Method Extraction', () => {
     function testingMethodExtraction(shouldError: boolean, pythonSettings: settings.IPythonSettings, startPos: Position, endPos: Position) {
         let rangeOfTextToExtract = new vscode.Range(startPos, endPos);
         let proxy = new RefactorProxy(EXTENSION_DIR, pythonSettings, path.dirname(refactorTargetFile));
-        let mockTextDoc = new MockTextDocument(refactorTargetFile);
+        let expectedTextEdits: vscode.TextEdit[];
         let ignoreErrorHandling = false;
-
+        let mockTextDoc: vscode.TextDocument;
         const DIFF = `--- a/refactor.py\n+++ b/refactor.py\n@@ -237,9 +237,12 @@\n             try:\n                 self._process_request(self._input.readline())\n             except Exception as ex:\n-                message = ex.message + '  \\n' + traceback.format_exc()\n-                sys.stderr.write(str(len(message)) + ':' + message)\n-                sys.stderr.flush()\n+                self.myNewMethod(ex)\n+\n+    def myNewMethod(self, ex):\n+        message = ex.message + '  \\n' + traceback.format_exc()\n+        sys.stderr.write(str(len(message)) + ':' + message)\n+        sys.stderr.flush()\n \n if __name__ == '__main__':\n     RopeRefactoring().watch()\n`;
-        let expectedTextEdits = getTextEditsFromPatch(mockTextDoc.getText(), DIFF);
-        return proxy.extractMethod<RenameResponse>(mockTextDoc, 'myNewMethod', refactorTargetFile, rangeOfTextToExtract, options)
+        return new Promise<vscode.TextDocument>((resolve, reject) => {
+            vscode.workspace.openTextDocument(refactorTargetFile).then(textDocument => {
+                mockTextDoc = textDocument;
+                expectedTextEdits = getTextEditsFromPatch(textDocument.getText(), DIFF);
+                resolve();
+            }, error => reject(error))
+        })
+            .then(() => proxy.extractMethod<RenameResponse>(mockTextDoc, 'myNewMethod', refactorTargetFile, rangeOfTextToExtract, options))
             .then(response => {
                 if (shouldError) {
                     ignoreErrorHandling = true;

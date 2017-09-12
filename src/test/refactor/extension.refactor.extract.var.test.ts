@@ -1,5 +1,5 @@
 // Place this right on top
-import { initialize, closeActiveWindows, IS_TRAVIS, setPythonExecutable } from './initialize';
+import { initialize, closeActiveWindows, IS_TRAVIS, setPythonExecutable, wait } from './../initialize';
 /// <reference path="../../node_modules/@types/mocha/index.d.ts" />
 import * as assert from 'assert';
 
@@ -8,71 +8,22 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { TextLine, Position, Range } from 'vscode';
 import * as path from 'path';
-import * as settings from '../client/common/configSettings';
+import * as settings from '../../client/common/configSettings';
 import * as fs from 'fs-extra';
-import { extractVariable } from '../client/providers/simpleRefactorProvider';
-import { RefactorProxy } from '../client/refactor/proxy';
-import { getTextEditsFromPatch } from '../client/common/editor';
-import { MockOutputChannel } from './mockClasses';
+import { extractVariable } from '../../client/providers/simpleRefactorProvider';
+import { RefactorProxy } from '../../client/refactor/proxy';
+import { getTextEditsFromPatch } from '../../client/common/editor';
+import { MockOutputChannel } from './../mockClasses';
 
-let EXTENSION_DIR = path.join(__dirname, '..', '..');
+let EXTENSION_DIR = path.join(__dirname, '..', '..', '..');
 let pythonSettings = settings.PythonSettings.getInstance();
 const disposable = setPythonExecutable(pythonSettings);
 
-const refactorSourceFile = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'refactoring', 'standAlone', 'refactor.py');
-const refactorTargetFile = path.join(__dirname, '..', '..', 'out', 'test', 'pythonFiles', 'refactoring', 'standAlone', 'refactor.py');
+const refactorSourceFile = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'refactoring', 'standAlone', 'refactor.py');
+const refactorTargetFile = path.join(__dirname, '..', '..', '..', 'out', 'test', 'pythonFiles', 'refactoring', 'standAlone', 'refactor.py');
 
 interface RenameResponse {
     results: [{ diff: string }];
-}
-
-class MockTextDocument implements vscode.TextDocument {
-    uri: vscode.Uri;
-    fileName: string;
-    isUntitled: boolean;
-    languageId: string;
-    version: number;
-    isDirty: boolean;
-    offsets: [{ position: Position, offset: number }];
-    constructor(private sourceFile: string) {
-        this.lineCount = fs.readFileSync(this.sourceFile, 'utf8').split(/\r?\n/g).length;
-        this.offsets = [
-            { position: new vscode.Position(234, 20), offset: 8191 },
-            { position: new vscode.Position(234, 29), offset: 8200 },
-            { position: new vscode.Position(234, 38), offset: 8209 }
-        ];
-    }
-    save(): Thenable<boolean> {
-        return Promise.resolve(true);
-    }
-    lineCount: number;
-    lineAt(position: Position | number): TextLine {
-        let lineNumber: number = position as number;
-        if ((position as Position).line) {
-            lineNumber = (position as Position).line;
-        }
-        let line = fs.readFileSync(this.sourceFile, 'utf8').split(/\r?\n/g)[lineNumber];
-
-        return <TextLine>{ isEmptyOrWhitespace: line.trim().length > 0 };
-    }
-    offsetAt(position: Position): number {
-        return this.offsets.filter(item => item.position.isEqual(position))[0].offset;
-    }
-    positionAt(offset: number): Position {
-        return null;
-    }
-    getText(range?: Range): string {
-        return fs.readFileSync(this.sourceFile, 'utf8');
-    }
-    getWordRangeAtPosition(position: Position): Range {
-        return null;
-    }
-    validateRange(range: Range): Range {
-        return null;
-    }
-    validatePosition(position: Position): Position {
-        return null;
-    }
 }
 
 suite('Variable Extraction', () => {
@@ -88,15 +39,14 @@ suite('Variable Extraction', () => {
         vscode.commands.executeCommand = oldExecuteCommand;
         closeActiveWindows().then(() => done(), () => done());
     });
-    setup(done => {
+    setup(async () => {
         if (fs.existsSync(refactorTargetFile)) {
+            await wait(500);
             fs.unlinkSync(refactorTargetFile);
         }
         fs.copySync(refactorSourceFile, refactorTargetFile, { clobber: true });
-        closeActiveWindows().then(() => {
-            (<any>vscode).commands.executeCommand = (cmd) => Promise.resolve();
-            done();
-        }).catch(done);
+        await closeActiveWindows();
+        (<any>vscode).commands.executeCommand = (cmd) => Promise.resolve();
     });
     teardown(done => {
         vscode.commands.executeCommand = oldExecuteCommand;
@@ -106,13 +56,18 @@ suite('Variable Extraction', () => {
     function testingVariableExtraction(shouldError: boolean, pythonSettings: settings.IPythonSettings, startPos: Position, endPos: Position) {
         let rangeOfTextToExtract = new vscode.Range(startPos, endPos);
         let proxy = new RefactorProxy(EXTENSION_DIR, pythonSettings, path.dirname(refactorTargetFile));
-        let mockTextDoc = new MockTextDocument(refactorTargetFile);
+        let expectedTextEdits: vscode.TextEdit[];
         let ignoreErrorHandling = false;
-
+        let mockTextDoc: vscode.TextDocument;
         const DIFF = '--- a/refactor.py\n+++ b/refactor.py\n@@ -232,7 +232,8 @@\n         sys.stdout.flush()\n \n     def watch(self):\n-        self._write_response("STARTED")\n+        myNewVariable = "STARTED"\n+        self._write_response(myNewVariable)\n         while True:\n             try:\n                 self._process_request(self._input.readline())\n';
-        let expectedTextEdits = getTextEditsFromPatch(mockTextDoc.getText(), DIFF);
-
-        return proxy.extractVariable<RenameResponse>(mockTextDoc, 'myNewVariable', refactorTargetFile, rangeOfTextToExtract, options)
+        return new Promise<vscode.TextDocument>((resolve, reject) => {
+            vscode.workspace.openTextDocument(refactorTargetFile).then(textDocument => {
+                mockTextDoc = textDocument;
+                expectedTextEdits = getTextEditsFromPatch(textDocument.getText(), DIFF);
+                resolve();
+            }, error => reject(error))
+        })
+            .then(() => proxy.extractVariable<RenameResponse>(mockTextDoc, 'myNewVariable', refactorTargetFile, rangeOfTextToExtract, options))
             .then(response => {
                 if (shouldError) {
                     ignoreErrorHandling = true;

@@ -22,6 +22,12 @@ export function initialize(): Promise<any> {
     });
 }
 
+export async function wait(timeoutMilliseconds: number) {
+    return new Promise(resolve => {
+        setTimeout(resolve, timeoutMilliseconds);
+    });
+}
+
 export async function closeActiveWindows(): Promise<any> {
     // https://github.com/Microsoft/vscode/blob/master/extensions/vscode-api-tests/src/utils.ts
     return new Promise((c, e) => {
@@ -66,6 +72,7 @@ function getPythonPath(): string {
     const pythonPaths = ['/home/travis/virtualenv/python3.5.2/bin/python',
         '/Users/travis/.pyenv/versions/3.5.1/envs/MYVERSION/bin/python',
         '/Users/donjayamanne/Projects/PythonEnvs/p361/bin/python',
+        'C:/Development/PythonEnvs/p27/scripts/python.exe',
         '/Users/donjayamanne/Projects/PythonEnvs/p27/bin/python'];
     for (let counter = 0; counter < pythonPaths.length; counter++) {
         if (fs.existsSync(pythonPaths[counter])) {
