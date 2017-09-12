@@ -1314,7 +1314,8 @@ class Thread(object):
         assert self._is_blocked
         assert self.id != thread.get_ident()    # only someone else should unblock us
 
-        self._block_lock.release()
+        if self._block_lock.locked():
+            self._block_lock.release()
 
     def schedule_work(self, work):
         self.unblock_work = work
