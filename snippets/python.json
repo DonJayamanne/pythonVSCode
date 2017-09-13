@@ -228,6 +228,11 @@
         ],
         "description": "Code snippet for a async with statement"
     },
+    "ipdb": {
+        "prefix": "ipdb",
+        "body": "import ipdb; ipdb.set_trace()",
+        "description": "Code snippet for ipdb debug"
+    },
     "pdb": {
         "prefix": "pdb",
         "body": "import pdb; pdb.set_trace()",
