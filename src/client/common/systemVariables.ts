@@ -95,7 +95,7 @@ export abstract class AbstractSystemVariables implements ISystemVariables {
             if (Types.isString(newValue)) {
                 return newValue;
             } else {
-                return match && match.indexOf('env.') > 0 ? '' : match;
+                return match && (match.indexOf('env.') > 0 || match.indexOf('env:') > 0) ? '' : match;
             }
         });
     }
@@ -140,7 +140,7 @@ export class SystemVariables extends AbstractSystemVariables {
         this._workspaceRoot = typeof vscode.workspace.rootPath === 'string' ? vscode.workspace.rootPath : __dirname;;
         this._workspaceRootFolderName = Path.basename(this._workspaceRoot);
         Object.keys(process.env).forEach(key => {
-            this[`env.${key}`] = process.env[key];
+            this[`env:${key}`] = this[`env.${key}`] = process.env[key];
         });
     }
 
