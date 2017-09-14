@@ -31,60 +31,60 @@ For further information and details continue through to the [documentation](http
 
 ## Feature Details
 * IDE Features
- + Auto indenting
- + Code navigation (Go to, Find all references)
- + Code definition (Peek and hover definition, View Signature)
- + Rename refactoring
- + Sorting Import statements (use "Python: Sort Imports" command)
+  + Auto indenting
+  + Code navigation (Go to, Find all references)
+  + Code definition (Peek and hover definition, View Signature)
+  + Rename refactoring
+  + Sorting Import statements (use "Python: Sort Imports" command)
 * [Intellisense and Autocomplete](https://github.com/DonJayamanne/pythonVSCode/wiki/Autocomplete-Intellisense) with support for PEP-0484
- + Ability to include custom module paths (e.g. include paths for libraries like Google App Engine, etc.)
- + Use the `setting python.autoComplete.extraPaths = []`
- + For instance getting autocomplete/intellisense for Google App Engine, add the following to your settings file:
+  + Ability to include custom module paths (e.g. include paths for libraries like Google App Engine, etc.)
+  + Use the `setting python.autoComplete.extraPaths = []`
+  + For instance getting autocomplete/intellisense for Google App Engine, add the following to your settings file:
 ```json
 "python.autoComplete.extraPaths": [
     "C:/Program Files (x86)/Google/google_appengine",
     "C:/Program Files (x86)/Google/google_appengine/lib" ]
 ```
 * [Scientific tools (Jupyter/IPython)](https://marketplace.visualstudio.com/items?itemName=donjayamanne.python)
- + This functionality has been moved into a separate extension [Jupyter](https://marketplace.visualstudio.com/items?itemName=donjayamanne.jupyter)
+  + This functionality has been moved into a separate extension [Jupyter](https://marketplace.visualstudio.com/items?itemName=donjayamanne.jupyter)
 * [Code formatting](https://github.com/DonJayamanne/pythonVSCode/wiki/Formatting)
- + Auto formatting of code upon saving changes (default to 'Off')
- + Use either yapf or autopep8 for code formatting (defaults to autopep8)
+  + Auto formatting of code upon saving changes (default to 'Off')
+  + Use either yapf or autopep8 for code formatting (defaults to autopep8)
 * [Linting](https://github.com/DonJayamanne/pythonVSCode/wiki/Linting)
- + It can be turned off (default is to be turned on and use pylint)
- + Multiple linters supported (along with support for configuration files for each linter)
- + Supported linters include pylint, pep8, flake8, pydocstyle, prospector
- + Paths to each of the linters can be optionally configured
- + Custom plugins such as pylint plugin for Django can be easily used by modifying the settings as follows:
+  + It can be turned off (default is to be turned on and use pylint)
+  + Multiple linters supported (along with support for configuration files for each linter)
+  + Supported linters include pylint, pep8, flake8, pydocstyle, prospector
+  + Paths to each of the linters can be optionally configured
+  + Custom plugins such as pylint plugin for Django can be easily used by modifying the settings as follows:
 ```json
 "python.linting.pylintArgs": ["--load-plugins", "pylint_django"]
 ``` 
 * [Debugging](https://github.com/DonJayamanne/pythonVSCode/wiki/Debugging)
- + Watch window
- + Evaluate Expressions
- + Step through code (Step in, Step out, Continue)
- + Add/remove break points
- + Local variables and arguments
- + Multiple Threads and Web Applications (such as Flask, Django, with template debugging)
- + Expanding values (viewing children, properties, etc)
- + Conditional break points
- + Remote debugging (over SSH)
- + Google App Engine
- + Debugging in the integrated or external terminal window
- * Debugging as sudo
+  + Watch window
+  + Evaluate Expressions
+  + Step through code (Step in, Step out, Continue)
+  + Add/remove break points
+  + Local variables and arguments
+  + Multiple Threads and Web Applications (such as Flask, Django, with template debugging)
+  + Expanding values (viewing children, properties, etc)
+  + Conditional break points
+  + Remote debugging (over SSH)
+  + Google App Engine
+  + Debugging in the integrated or external terminal window
+  + Debugging as sudo
 * [Unit Testing](https://github.com/DonJayamanne/pythonVSCode/wiki/UnitTests)
- + Support for unittests, nosetests and pytest
- + Test results are displayed in the "Python" output window
- + Run failed tests, individual tests
- + Debugging unittests
+  + Support for unittests, nosetests and pytest
+  + Test results are displayed in the "Python" output window
+  + Run failed tests, individual tests
+  + Debugging unittests
 * Snippets
 * Miscellaneous
- + Running a file or selected text in python terminal
+  + Running a file or selected text in python terminal
 * Refactoring
- + [Rename Refactorings](https://github.com/DonJayamanne/pythonVSCode/wiki/Refactoring:-Rename)
- + [Extract Variable Refactorings](https://github.com/DonJayamanne/pythonVSCode/wiki/Refactoring:-Extract-Variable)
- + [Extract Method Refactorings](https://github.com/DonJayamanne/pythonVSCode/wiki/Refactoring:-Extract-Method)
- + [Sort Imports](https://github.com/DonJayamanne/pythonVSCode/wiki/Refactoring:-Sort-Imports)
+  + [Rename Refactorings](https://github.com/DonJayamanne/pythonVSCode/wiki/Refactoring:-Rename)
+  + [Extract Variable Refactorings](https://github.com/DonJayamanne/pythonVSCode/wiki/Refactoring:-Extract-Variable)
+  + [Extract Method Refactorings](https://github.com/DonJayamanne/pythonVSCode/wiki/Refactoring:-Extract-Method)
+  + [Sort Imports](https://github.com/DonJayamanne/pythonVSCode/wiki/Refactoring:-Sort-Imports)
 
 ![Generate Features](https://raw.githubusercontent.com/DonJayamanne/pythonVSCodeDocs/master/images/general.gif)
 
@@ -110,7 +110,7 @@ For further information and details continue through to the [documentation](http
 * Update isort to the latest version [#1134](https://github.com/DonJayamanne/pythonVSCode/issues/1134), [#1135](https://github.com/DonJayamanne/pythonVSCode/pull/1135)  
 * Fix issue causing intellisense and similar functionality to stop working [#1072](https://github.com/DonJayamanne/pythonVSCode/issues/1072), [#1118](https://github.com/DonJayamanne/pythonVSCode/pull/1118), [#1089](https://github.com/DonJayamanne/pythonVSCode/issues/1089)  
 * Bunch of unit tests and code cleanup  
-
+* Resolve issue where navigation to decorated function goes to decorator [#742](https://github.com/DonJayamanne/pythonVSCode/issues/742)  
 
 ## Source
 
