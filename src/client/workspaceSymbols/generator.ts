@@ -19,7 +19,7 @@ export class Generator implements vscode.Disposable {
         this.disposables.forEach(d => d.dispose());
     }
 
-    private buildCmdArgsg(): string[] {
+    private buildCmdArgs(): string[] {
         const optionsFile = this.optionsFile.indexOf(' ') > 0 ? `"${this.optionsFile}"` : this.optionsFile;
         const exclusions = pythonSettings.workspaceSymbols.exclusionPatterns;
         const excludes = exclusions.length === 0 ? [] : exclusions.map(pattern => `--exclude=${pattern}`);
@@ -34,7 +34,7 @@ export class Generator implements vscode.Disposable {
 
     private generateTags(outputFile: string, source: { directory?: string, file?: string }): Promise<any> {
         const cmd = pythonSettings.workspaceSymbols.ctagsPath;
-        const args = this.buildCmdArgsg();
+        const args = this.buildCmdArgs();
         if (source.file && source.file.length > 0) {
             source.directory = path.dirname(source.file);
         }
