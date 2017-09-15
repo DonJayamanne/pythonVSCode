@@ -6,6 +6,7 @@
 // Add options for execPythonFile
 import * as path from 'path';
 import * as fs from 'fs';
+import * as os from 'os';
 import * as child_process from 'child_process';
 import * as settings from './configSettings';
 import { CancellationToken, TextDocument, Range } from 'vscode';
@@ -13,6 +14,7 @@ import { isNotInstalledError } from './helpers';
 import { mergeEnvVariables, parseEnvFile } from './envFileParser';
 
 export const IS_WINDOWS = /^win/.test(process.platform);
+export const Is_64Bit = os.arch() === 'x64';
 export const PATH_VARIABLE_NAME = IS_WINDOWS ? 'Path' : 'PATH';
 
 const PathValidity: Map<string, boolean> = new Map<string, boolean>();
@@ -95,7 +97,6 @@ export function getPathFromPythonCommand(args: string[]): Promise<string> {
         return "";
     });
 }
-
 export function execPythonFile(file: string, args: string[], cwd: string, includeErrorAsResponse: boolean = false, stdOut: (line: string) => void = null, token?: CancellationToken): Promise<string> {
     const execAsModule = file.toUpperCase() === 'PYTHON' && args.length > 0 && args[0] === '-m';
 
