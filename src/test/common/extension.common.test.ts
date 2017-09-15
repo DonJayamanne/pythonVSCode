@@ -4,15 +4,15 @@
 //
 
 // Place this right on top
-import { initialize } from './initialize';
+import { initialize } from './../initialize';
 // The module 'assert' provides assertion methods from node
 import * as assert from 'assert';
 
 // You can import and use all API from the 'vscode' module
 // as well as import your extension to test it
-import { execPythonFile } from '../client/common/utils';
+import { execPythonFile } from '../../client/common/utils';
 import { EOL } from 'os';
-import { createDeferred } from '../client/common/helpers';
+import { createDeferred } from '../../client/common/helpers';
 import * as vscode from 'vscode';
 
 // Defines a Mocha test suite to group tests of similar kind together
@@ -68,7 +68,7 @@ suite('ChildProc', () => {
         const cancellation = new vscode.CancellationTokenSource();
         execPythonFile('python', ['-c', 'import sys\nprint(1)\nsys.__stdout__.flush()\nimport time\ntime.sleep(5)\nprint(2)'], __dirname, false, handleOutput, cancellation.token).then(() => {
             def.reject('Should not have completed');
-        }).catch(()=>{
+        }).catch(() => {
             def.resolve();
         });
 

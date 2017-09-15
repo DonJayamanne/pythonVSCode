@@ -4,17 +4,17 @@
 //
 
 // Place this right on top
-import { initialize } from './initialize';
+import { initialize } from './../initialize';
 // The module 'assert' provides assertion methods from node
 import * as assert from 'assert';
 
 // You can import and use all API from the 'vscode' module
 // as well as import your extension to test it
-import { SocketStream } from '../client/common/comms/SocketStream';
-import { SocketServer } from '../client/common/comms/socketServer';
-import { SocketCallbackHandler } from '../client/common/comms/socketCallbackHandler';
-import { createDeferred, Deferred } from '../client/common/helpers';
-import { IdDispenser } from '../client/common/idDispenser';
+import { SocketStream } from '../../client/common/comms/SocketStream';
+import { SocketServer } from '../../client/common/comms/socketServer';
+import { SocketCallbackHandler } from '../../client/common/comms/socketCallbackHandler';
+import { createDeferred, Deferred } from '../../client/common/helpers';
+import { IdDispenser } from '../../client/common/idDispenser';
 
 import * as net from 'net';
 

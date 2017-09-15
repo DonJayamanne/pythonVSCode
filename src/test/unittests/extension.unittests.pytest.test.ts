@@ -1,10 +1,10 @@
-/// <reference path='../../node_modules/@types/mocha/index.d.ts'/>
+/// <reference path='../../../node_modules/@types/mocha/index.d.ts'/>
 //
 // Note: This example test is leveraging the Mocha test framework.
 // Please refer to their documentation on https://mochajs.org/ for help.
 //
 // Place this right on top
-import { initialize, setPythonExecutable } from './initialize';
+import { initialize, setPythonExecutable } from './../initialize';
 
 // The module \'assert\' provides assertion methods from node
 import * as assert from 'assert';
@@ -12,21 +12,21 @@ import * as assert from 'assert';
 // You can import and use all API from the \'vscode\' module
 // as well as import your extension to test it
 import * as vscode from 'vscode';
-import { TestsToRun, TestFile, TestFunction, TestSuite } from '../client/unittests/common/contracts';
-import * as pytest from '../client/unittests/pytest/main';
-import { TestResultDisplay } from '../client/unittests/display/main';
+import { TestsToRun, TestFile, TestFunction, TestSuite } from '../../client/unittests/common/contracts';
+import * as pytest from '../../client/unittests/pytest/main';
+import { TestResultDisplay } from '../../client/unittests/display/main';
 
 
 import * as path from 'path';
-import * as configSettings from '../client/common/configSettings';
-import { MockOutputChannel } from './mockClasses';
+import * as configSettings from '../../client/common/configSettings';
+import { MockOutputChannel } from './../mockClasses';
 
 let pythonSettings = configSettings.PythonSettings.getInstance();
 const disposable = setPythonExecutable(pythonSettings);
 
-const UNITTEST_TEST_FILES_PATH = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'standard');
-const UNITTEST_SINGLE_TEST_FILE_PATH = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'single');
-const UNITTEST_TEST_FILES_PATH_WITH_CONFIGS = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'unitestsWithConfigs');
+const UNITTEST_TEST_FILES_PATH = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'standard');
+const UNITTEST_SINGLE_TEST_FILE_PATH = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'single');
+const UNITTEST_TEST_FILES_PATH_WITH_CONFIGS = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'unitestsWithConfigs');
 
 suite('Unit Tests (PyTest)', () => {
     suiteSetup(done => {

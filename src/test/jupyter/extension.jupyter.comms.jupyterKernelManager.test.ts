@@ -3,15 +3,15 @@
 // Please refer to their documentation on https://mochajs.org/ for help.
 //
 // Place this right on top
-import { initialize, IS_TRAVIS, TEST_TIMEOUT, setPythonExecutable } from './initialize';
+import { initialize, IS_TRAVIS, TEST_TIMEOUT, setPythonExecutable } from './../initialize';
 // The module 'assert' provides assertion methods from node
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 // You can import and use all API from the 'vscode' module
 // as well as import your extension to test it
-import { JupyterClientAdapter } from '../client/jupyter/jupyter_client/main';
-import { KernelManagerImpl } from '../client/jupyter/kernel-manager';
-import * as settings from '../client/common/configSettings';
+import { JupyterClientAdapter } from '../../client/jupyter/jupyter_client/main';
+import { KernelManagerImpl } from '../../client/jupyter/kernel-manager';
+import * as settings from '../../client/common/configSettings';
 
 let pythonSettings = settings.PythonSettings.getInstance();
 const disposable = setPythonExecutable(pythonSettings);
