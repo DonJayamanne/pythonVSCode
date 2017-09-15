@@ -42,11 +42,11 @@ export class Generator implements vscode.Disposable {
         if (path.dirname(outputFile) === source.directory) {
             outputFile = path.basename(outputFile);
         }
-        outputFile = outputFile.indexOf(' ') > 0 ? `"${outputFile}"` : outputFile;
         const outputDir = path.dirname(outputFile);
         if (!fs.existsSync(outputDir)){
             fs.mkdirSync(outputDir);
         }
+        outputFile = outputFile.indexOf(' ') > 0 ? `"${outputFile}"` : outputFile;
         args.push(`-o ${outputFile}`, '.');
         this.output.appendLine('-'.repeat(10) + 'Generating Tags' + '-'.repeat(10));
         this.output.appendLine(`${cmd} ${args.join(' ')}`);
