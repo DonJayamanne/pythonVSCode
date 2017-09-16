@@ -144,7 +144,7 @@ class JediCompletion(object):
             except Exception:
                 sig["docstring"] = ''
                 sig["raw_docstring"] = ''
-                
+
             sig["name"] = signature.name
             sig["paramindex"] = signature.index
             sig["bracketstart"].append(signature.index)
@@ -199,7 +199,7 @@ class JediCompletion(object):
             }
             _completion['description'] = ''
             _completion['raw_docstring'] = ''
-            
+
             # we pass 'text' here only for fuzzy matcher
             if value:
                 _completion['snippet'] = '%s=${1:%s}$0' % (name, value)
@@ -244,7 +244,7 @@ class JediCompletion(object):
                     'description': description,
                     'raw_docstring': rawDocstring,
                     'rightLabel': self._additional_info(completion)
-                }                
+                }
             except Exception:
                 continue
 
@@ -255,8 +255,8 @@ class JediCompletion(object):
                     if len(c['description']) == 0 and len(c['raw_docstring']) == 0:
                         c['description'] = _completion['description']
                         c['raw_docstring'] = _completion['description']
-                    
-            
+
+
             if any([c['text'].split('=')[0] == _completion['text']
                     for c in _completions]):
                 # ignore function arguments we already have
@@ -354,7 +354,7 @@ class JediCompletion(object):
         except Exception as e:
             return {
                 'start_line': definition.line - 1,
-                'start_column': definition.column, 
+                'start_column': definition.column,
                 'end_line': definition.line - 1,
                 'end_column': definition.column
             }
@@ -432,7 +432,7 @@ class JediCompletion(object):
                     definition = self._top_definition(definition)
                 definitionRange = {
                     'start_line': 0,
-                    'start_column': 0, 
+                    'start_column': 0,
                     'end_line': 0,
                     'end_column': 0
                 }
@@ -448,7 +448,7 @@ class JediCompletion(object):
                     container = parent.name if parent.type != 'module' else ''
                 except Exception:
                     container = ''
-                
+
                 try:
                     docstring = definition.docstring()
                     rawdocstring = definition.docstring(raw=True)
@@ -495,7 +495,7 @@ class JediCompletion(object):
                         container = parent.name if parent.type != 'module' else ''
                     except Exception:
                         container = ''
-                
+
                     try:
                         docstring = definition.docstring()
                         rawdocstring = definition.docstring(raw=True)
@@ -545,7 +545,7 @@ class JediCompletion(object):
                 'type': self._get_definition_type(definition),
                 'text': definition.name,
                 'description': description,
-                'docstring': description, 
+                'docstring': description,
                 'signature': signature
             }
             _definitions.append(_definition)
@@ -562,6 +562,29 @@ class JediCompletion(object):
                 'column': usage.column,
             })
         return json.dumps({'id': identifier, 'results': _usages})
+
+    def _serialize_autodocstring(self, source, line, column, identifier=None):
+        """Serialize response to be read from VSCode.
+
+        Args:
+            source: string source code
+            identifier: Unique completion identifier to pass back to VSCode.
+            position: Position in the document line, column tuple
+
+        Returns:
+            Serialized string to send to VSCode.
+        """
+        import pydocstring
+
+        position = len("".join(source.splitlines(True)[:line]))
+
+        completion = {
+            'label': 'Docstring',
+            'type': 'docstring',
+            'raw_type': 'docstring',
+            'text': pydocstring.generate_docstring(source, position) + '"""'
+        }
+        return json.dumps({'id': identifier, 'results': [completion]})
 
     def _deserialize(self, request):
         """Deserialize request from VSCode.
@@ -637,7 +660,7 @@ class JediCompletion(object):
         script = jedi.api.Script(
             source=request.get('source', None), line=request['line'] + 1,
             column=request['column'], path=request.get('path', ''))
-        
+
         if lookup == 'definitions':
             defs = []
             try:
@@ -682,6 +705,11 @@ class JediCompletion(object):
         elif lookup == 'methods':
           return self._serialize_methods(script, request['id'],
                                       request.get('prefix', ''))
+        elif lookup == 'docstring':
+            return self._serialize_autodocstring(source=request.get('source', None),
+                                                 line=request['line'],
+                                                 column=request['column'],
+                                                 identifier=request['id'])
         else:
             return self._serialize_completions(script, request['id'],
                                             request.get('prefix', ''))
@@ -695,7 +723,7 @@ class JediCompletion(object):
             try:
                 rq = self._input.readline()
                 if len(rq) == 0:
-                    # Reached EOF - indication our parent process is gone. 
+                    # Reached EOF - indication our parent process is gone.
                     sys.stderr.write('Received EOF from the standard input,exiting' + '\n')
                     sys.stderr.flush()
                     return

@@ -86,6 +86,7 @@ pythonVSCodeSymbolMappings.set('complex', vscode.SymbolKind.Number);
 pythonVSCodeSymbolMappings.set('string', vscode.SymbolKind.String);
 pythonVSCodeSymbolMappings.set('unicode', vscode.SymbolKind.String);
 pythonVSCodeSymbolMappings.set('list', vscode.SymbolKind.Array);
+pythonVSCodeSymbolMappings.set('docstring', vscode.SymbolKind.String);
 
 function getMappedVSCodeType(pythonType: string): vscode.CompletionItemKind {
     if (pythonVSCodeTypeMappings.has(pythonType)) {
@@ -111,7 +112,8 @@ export enum CommandType {
     Hover,
     Usages,
     Definitions,
-    Symbols
+    Symbols,
+    Docstring
 }
 
 var commandNames = new Map<CommandType, string>();
@@ -121,6 +123,7 @@ commandNames.set(CommandType.Definitions, "definitions");
 commandNames.set(CommandType.Hover, "tooltip");
 commandNames.set(CommandType.Usages, "usages");
 commandNames.set(CommandType.Symbols, "names");
+commandNames.set(CommandType.Docstring, "docstring");
 
 export class JediProxy extends vscode.Disposable {
     public constructor(context: vscode.ExtensionContext) {
@@ -293,6 +296,7 @@ function spawnProcess(dir: string) {
                 }
 
                 switch (cmd.command) {
+                    case CommandType.Docstring: // Fall through to completions
                     case CommandType.Completions: {
                         let results = <IAutoCompleteItem[]>response['results'];
                         results = Array.isArray(results) ? results : [];
@@ -650,6 +654,7 @@ export interface IAutoCompleteItem {
     description: string;
     raw_docstring: string;
     rightLabel: string;
+    label: string;
 }
 interface IDefinitionRange {
     startLine: number;

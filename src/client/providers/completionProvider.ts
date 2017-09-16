@@ -21,16 +21,19 @@ export class PythonCompletionItemProvider implements vscode.CompletionItemProvid
         if (data && data.items.length > 0) {
             return data.items.map(item => {
                 const sigAndDocs = extractSignatureAndDocumentation(item);
-                let completionItem = new vscode.CompletionItem(item.text);
-                completionItem.kind = item.type;
+                let label = item.label ? item.label : item.text;
+                let completionItem = new vscode.CompletionItem(label, item.type);
                 completionItem.documentation = sigAndDocs[1].length === 0 ? item.description : sigAndDocs[1];
                 completionItem.detail = sigAndDocs[0].split(/\r?\n/).join('');
                 if (pythonSettings.autoComplete.addBrackets === true &&
                     (item.kind === vscode.SymbolKind.Function || item.kind === vscode.SymbolKind.Method)) {
                     completionItem.insertText = new SnippetString(item.text).appendText("(").appendTabstop().appendText(")");
                 }
+                if (item.label === "Docstring"){
+                    completionItem.insertText = item.text;
+                }
 
-                // ensure the built in memebers are at the bottom
+                // ensure the built in members are at the bottom
                 completionItem.sortText = (completionItem.label.startsWith('__') ? 'z' : (completionItem.label.startsWith('_') ? 'y' : '__')) + completionItem.label;
                 return completionItem;
             });
@@ -50,14 +53,12 @@ export class PythonCompletionItemProvider implements vscode.CompletionItemProvid
         if (lineText.trim().startsWith('#')) {
             return Promise.resolve([]);
         }
-        // If starts with a """ (possible doc string), then return
-        if (lineText.trim().startsWith('"""')) {
-            return Promise.resolve([]);
-        }
-        const type = proxy.CommandType.Completions;
+
+        const type = this.getCommandType(lineText);
         const columnIndex = position.character;
 
         const source = document.getText();
+        const chpos = document.getText(new vscode.Range(new vscode.Position(0, 0), position)).length
         const cmd: proxy.ICommand<proxy.ICommandResult> = {
             command: type,
             fileName: filename,
@@ -65,7 +66,6 @@ export class PythonCompletionItemProvider implements vscode.CompletionItemProvid
             lineIndex: position.line,
             source: source
         };
-
         const timer = new telemetryHelper.Delays();
         return this.jediProxyHandler.sendCommand(cmd, token).then(data => {
             timer.stop();
@@ -73,5 +73,13 @@ export class PythonCompletionItemProvider implements vscode.CompletionItemProvid
             const completions = PythonCompletionItemProvider.parseData(data);
             return completions;
         });
+    }
+
+    private getCommandType(lineText): proxy.CommandType {
+        // If starts with a """ (possible doc string), provide docstring completion instead of jedi
+        if (lineText.trim().startsWith('"""')) {
+            return proxy.CommandType.Docstring;
+        }
+        return proxy.CommandType.Completions;
     }
 }
