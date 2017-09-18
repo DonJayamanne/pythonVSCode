@@ -208,7 +208,7 @@ function translateToPathSuggestion(item: PythonInterpreter): PythonPathSuggestio
         path: item.path,
         name: displayName,
         type: item.companyDisplayName
-    }
+    };
 }
 
 function getSuggestedPythonInterpreters(): Promise<PythonPathSuggestion[]> {
@@ -218,10 +218,10 @@ function getSuggestedPythonInterpreters(): Promise<PythonPathSuggestion[]> {
         lookForInterpretersInVenvs(vscode.workspace.rootPath)
     ];
     if (utils.IS_WINDOWS) {
-        suggestionPromises.push(getSuggestionsFromWindowsRegistry())
+        suggestionPromises.push(getSuggestionsFromWindowsRegistry());
     }
     else {
-        suggestionPromises.push(suggestionsFromConda())
+        suggestionPromises.push(suggestionsFromConda());
         suggestionPromises.push(suggestionsFromKnownPaths());
     }
 
