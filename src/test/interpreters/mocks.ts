@@ -1,3 +1,4 @@
+import { IVirtualEnvironment } from '../../client/interpreter/virtualEnvs/contracts';
 import { IPythonInterpreterProvider, PythonPathSuggestion } from "../../client/interpreter/index";
 import { IRegistry, Hive, Architecture } from "../../client/common/registry";
 
@@ -38,5 +39,13 @@ export class MockRegistry implements IRegistry {
         });
 
         return items ? Promise.resolve(items.value) : Promise.resolve();
+    }
+}
+
+export class MockVirtualEnv implements IVirtualEnvironment {
+    constructor(private isDetected: boolean, public name: string) {
+    }
+    detect(pythonPath: string): Promise<boolean> {
+        return Promise.resolve(this.isDetected);
     }
 }
