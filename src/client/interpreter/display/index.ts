@@ -39,7 +39,7 @@ export class InterpreterDisplay implements Disposable {
             toolTipSuffix = `${EOL}${interpreter.type}`;
         }
         else {
-            const interpreterExists = await utils.validatePath(pythonPath);
+            const interpreterExists = await utils.fsExistsAsync(pythonPath);
             const defaultDisplayName = `${path.basename(pythonPath)} [Environment]`;
             const displayName = await this.getInterpreterDisplayName(pythonPath, defaultDisplayName);
             this.statusBar.text = `${displayName}${dislayNameSuffix}`;;

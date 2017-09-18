@@ -105,12 +105,12 @@ function lookForInterpretersInVenvs(pathToCheck: string): Promise<PythonPathSugg
 function suggestionsFromKnownPaths(): Promise<PythonPathSuggestion[]> {
     return getSearchPaths().then(paths => {
         const promises = paths.map(p => {
-            return utils.validatePath(p).then(validatedPath => {
-                if (validatedPath.length === 0) {
+            return utils.fsExistsAsync(p).then(exists => {
+                if (!exists) {
                     return Promise.resolve<string[]>([]);
                 }
 
-                return lookForInterpretersInPath(validatedPath);
+                return lookForInterpretersInPath(p);
             });
         });
         const currentPythonInterpreter = utils.execPythonFile("python", ["-c", "import sys;print(sys.executable)"], __dirname)
@@ -119,7 +119,7 @@ function suggestionsFromKnownPaths(): Promise<PythonPathSuggestion[]> {
                     return [] as string[];
                 }
                 let lines = stdout.split(/\r?\n/g).filter(line => line.length > 0);
-                return utils.validatePath(lines[0]).then(p => [p]);
+                return utils.fsExistsAsync(lines[0]).then(exists => exists ? [lines[0]] : []);
             }).catch(() => {
                 return [] as string[];
             });
