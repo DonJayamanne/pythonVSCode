@@ -14,8 +14,9 @@ export * from './contracts';
 import { Is_64Bit } from '../common/utils';
 
 // where to find the Python binary within a conda env
-const CONDA_RELATIVE_PY_PATH = utils.IS_WINDOWS ? ['python'] : ['bin', 'python'];
+const CONDA_RELATIVE_PY_PATH = utils.IS_WINDOWS ? ['python.exe'] : ['bin', 'python'];
 const CHECK_PYTHON_INTERPRETER_REGEXP = utils.IS_WINDOWS ? /^python(\d+(.\d+)?)?\.exe$/ : /^python(\d+(.\d+)?)?$/;
+const AnacondaCompanyName = 'Continuum Analytics, Inc.';
 
 export interface IPythonInterpreterProvider {
     getPythonInterpreters(): Promise<PythonPathSuggestion[]>;
@@ -160,14 +161,21 @@ function suggestionsFromConda(): Promise<PythonPathSuggestion[]> {
 
                 // envs reported as e.g.: /Users/bob/miniconda3/envs/someEnv
                 const envs = <string[]>info['envs'];
+                let environment = '';
+                // "sys.version": "3.6.1 |Anaconda 4.4.0 (64-bit)| (default, May 11 2017, 13:25:24) [MSC v.1900 64 bit (AMD64)]",
+                const version = <string>info['sys.version'] || '';
+                const versionParts = version.split('|').map(item => item.trim());
+                if (version && version.length > 0 && versionParts.length > 1 && versionParts[1].indexOf('conda') >= 0) {
+                    environment = `${versionParts[1]} `;
+                }
 
                 // The root of the conda environment is itself a Python interpreter
                 envs.push(info["default_prefix"]);
 
                 const suggestions = envs.map(env => ({
-                    name: path.basename(env),  // e.g. someEnv, miniconda3
+                    name: `${environment}(${path.basename(env)})`,  // e.g. someEnv, miniconda3
                     path: path.join(env, ...CONDA_RELATIVE_PY_PATH),
-                    type: 'conda',
+                    type: AnacondaCompanyName,
                 }));
                 resolve(suggestions);
             } catch (e) {
@@ -213,20 +221,29 @@ function translateToPathSuggestion(item: PythonInterpreter): PythonPathSuggestio
 
 function getSuggestedPythonInterpreters(): Promise<PythonPathSuggestion[]> {
     // For now we only interrogate conda for suggestions.
-    const suggestionPromises: Promise<PythonPathSuggestion[]>[] = [
-        suggestionsFromKnownVenvs(),
-        lookForInterpretersInVenvs(vscode.workspace.rootPath)
-    ];
+    const suggestionPromises: Promise<PythonPathSuggestion[]>[] = [];
     if (utils.IS_WINDOWS) {
         suggestionPromises.push(getSuggestionsFromWindowsRegistry());
     }
     else {
-        suggestionPromises.push(suggestionsFromConda());
         suggestionPromises.push(suggestionsFromKnownPaths());
     }
+    suggestionPromises.push(...[
+        suggestionsFromKnownVenvs(),
+        lookForInterpretersInVenvs(vscode.workspace.rootPath),
+        suggestionsFromConda()
+    ]);
 
     return Promise.all<PythonPathSuggestion[]>(suggestionPromises)
         .then(suggestions => {
-            return _.flatten(suggestions).map(fixPath);
+            return _.flatten(suggestions)
+                .map(fixPath)
+                // Remove duplicates
+                .reduce<PythonPathSuggestion[]>((prev, current) => {
+                    if (!prev.find(item => item.path.toUpperCase() === current.path.toUpperCase())) {
+                        prev.push(current);
+                    }
+                    return prev;
+                }, []);
         });
 }
