@@ -1,8 +1,7 @@
 'use strict';
-import { StatusBarItem, StatusBarAlignment, window, Disposable } from 'vscode';
+import { StatusBarItem, Disposable } from 'vscode';
 import { PythonSettings } from '../../common/configSettings';
 import * as path from 'path';
-import * as fs from 'fs';
 import { EOL } from 'os';
 import { PythonPathSuggestion } from '../contracts';
 import { IPythonInterpreterProvider } from '../interpreters';
@@ -41,8 +40,8 @@ export class InterpreterDisplay implements Disposable {
             this.statusBar.text = await this.getInterpreterDisplayName(pythonPath, defaultDisplayName);
 
             if (!interpreterExists && this.statusBar.text === defaultDisplayName && interpreters.length > 0) {
-                this.statusBar.color = 'yellow'
-                this.statusBar.text = '$(alert) Select Python Environment'
+                this.statusBar.color = 'yellow';
+                this.statusBar.text = '$(alert) Select Python Environment';
             }
             else {
                 const defaultDisplayName = `${path.basename(pythonPath)} [Environment]`;

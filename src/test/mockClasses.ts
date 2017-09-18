@@ -23,3 +23,21 @@ export class MockOutputChannel implements vscode.OutputChannel {
     }
     dispose() { }
 }
+
+export class MockStatusBarItem implements vscode.StatusBarItem {
+    public alignment: vscode.StatusBarAlignment;
+    public priority: number;
+    public text: string;
+    public tooltip: string;
+    public color: string;
+    public command: string;
+    show(): void {
+
+    }
+    hide(): void {
+
+    }
+    dispose(): void {
+
+    }
+}

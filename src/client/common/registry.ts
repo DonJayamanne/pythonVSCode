@@ -15,7 +15,7 @@ export enum Hive {
 
 export interface IRegistry {
     getKeys(key: string, hive: Hive, arch?: Architecture): Promise<string[]>;
-    getValue(key: string, hive: Hive, arch?: Architecture, name?: string): Promise<string>;
+    getValue(key: string, hive: Hive, arch?: Architecture, name?: string): Promise<string | void>;
 }
 
 export class RegistryImplementation implements IRegistry {
@@ -62,9 +62,9 @@ function getRegistryKeys(options: Registry.Options): Promise<string[]> {
 function translateArchitecture(arch: Architecture) {
     switch (arch) {
         case Architecture.x86:
-            return RegistryArchitectures.x86
+            return RegistryArchitectures.x86;
         case Architecture.x64:
-            return RegistryArchitectures.x64
+            return RegistryArchitectures.x64;
         default:
             return;
     }
@@ -72,9 +72,9 @@ function translateArchitecture(arch: Architecture) {
 function translateHive(hive: Hive) {
     switch (hive) {
         case Hive.HKCU:
-            return Registry.HKCU
+            return Registry.HKCU;
         case Hive.HKLM:
-            return Registry.HKLM
+            return Registry.HKLM;
         default:
             return;
     }

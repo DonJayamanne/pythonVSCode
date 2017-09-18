@@ -1,15 +1,12 @@
 import { Architecture, getArchitectureDislayName, Hive, IRegistry } from '../common/registry';
-import { Is_64Bit } from '../common/utils';
 import { PythonInterpreter } from './contracts';
-import * as Registry from 'winreg';
 import * as path from 'path';
 import * as _ from 'lodash';
-import * as os from 'os';
 
-const DEFAULT_PYTHOH_EXECUTABLE = 'python.exe';
-const COMPANIES_TO_IGNORE = ['PYLAUNCHER'];
+const DefaultPythonExecutable = 'python.exe';
+const CompaniesToIgnore = ['PYLAUNCHER'];
 const PythonCoreCompanyDisplayName = "Python Software Foundation";
-const PythonCoreComany = "PythonCore";
+const PythonCoreComany = "PYTHONCORE";
 
 type CompanyInterpreter = {
     companyKey: string,
@@ -18,7 +15,7 @@ type CompanyInterpreter = {
 };
 
 export class WindowsPythonInterpreters {
-    constructor(private registry: IRegistry) {
+    constructor(private registry: IRegistry, private is64Bit: boolean) {
 
     }
     public getInterpreters() {
@@ -26,13 +23,13 @@ export class WindowsPythonInterpreters {
     }
     private async getInterpretersFromRegistry() {
         // https://github.com/python/peps/blob/master/pep-0514.txt#L357
-        const hkcuArch = Is_64Bit ? undefined : Architecture.x86;
+        const hkcuArch = this.is64Bit ? undefined : Architecture.x86;
         const promises: Promise<CompanyInterpreter[]>[] = [
             this.getCompanies(Hive.HKCU, hkcuArch),
             this.getCompanies(Hive.HKLM, Architecture.x86)
         ];
         // https://github.com/Microsoft/PTVS/blob/ebfc4ca8bab234d453f15ee426af3b208f3c143c/Python/Product/Cookiecutter/Shared/Interpreters/PythonRegistrySearch.cs#L44
-        if (Is_64Bit) {
+        if (this.is64Bit) {
             promises.push(this.getCompanies(Hive.HKLM, Architecture.x64));
         }
 
@@ -56,14 +53,14 @@ export class WindowsPythonInterpreters {
     private async getCompanies(hive: Hive, arch?: Architecture): Promise<CompanyInterpreter[]> {
         return this.registry.getKeys(`\\Software\\Python`, hive, arch)
             .then(companyKeys => companyKeys
-                .filter(companyKey => COMPANIES_TO_IGNORE.indexOf(path.basename(companyKey).toUpperCase()) === -1)
+                .filter(companyKey => CompaniesToIgnore.indexOf(path.basename(companyKey).toUpperCase()) === -1)
                 .map(companyKey => {
                     return { companyKey, hive, arch };
                 }));
     }
     private async getInterpretersForCompany(companyKey: string, hive: Hive, arch?: Architecture) {
-        const tagKeyss = await this.registry.getKeys(companyKey, hive, arch);
-        return Promise.all(tagKeyss.map(tagKey => this.getInreterpreterDetailsForCompany(tagKey, companyKey, hive, arch)));
+        const tagKeys = await this.registry.getKeys(companyKey, hive, arch);
+        return Promise.all(tagKeys.map(tagKey => this.getInreterpreterDetailsForCompany(tagKey, companyKey, hive, arch)));
     }
     private getInreterpreterDetailsForCompany(tagKey: string, companyKey: string, hive: Hive, arch?: Architecture): Promise<PythonInterpreter> {
         const key = `${tagKey}\\InstallPath`;
@@ -71,7 +68,7 @@ export class WindowsPythonInterpreters {
             .then(installPath => {
                 // Install path is mandatory
                 if (!installPath) {
-                    return null;
+                    return Promise.resolve([, , , ,]);
                 }
 
                 // Check if 'ExecutablePath' exists
@@ -86,7 +83,11 @@ export class WindowsPythonInterpreters {
                 ]);
             })
             .then(([installPath, executablePath, displayName, version, companyDisplayName]) => {
-                executablePath = executablePath && executablePath.length > 0 ? executablePath : path.join(installPath, DEFAULT_PYTHOH_EXECUTABLE);
+                if (installPath === undefined) {
+                    return;
+                }
+
+                executablePath = executablePath && executablePath.length > 0 ? executablePath : path.join(installPath, DefaultPythonExecutable);
 
                 return {
                     architecture: arch,

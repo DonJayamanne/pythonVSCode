@@ -5,14 +5,13 @@ import * as fs from "fs";
 import * as vscode from "vscode";
 import * as settings from "./../common/configSettings";
 import * as utils from "../common/utils";
-import { createDeferred } from '../common/helpers';
 import * as untildify from 'untildify';
-import { activate } from '../interpreter';
 import { WindowsPythonInterpreters } from './winRegistryInterpreters';
 import { PythonInterpreter, PythonPathSuggestion } from './contracts';
-import { Architecture, getArchitectureDislayName, RegistryImplementation } from '../common/registry';
+import { getArchitectureDislayName, RegistryImplementation } from '../common/registry';
 import * as _ from 'lodash';
 export * from './contracts';
+import { Is_64Bit } from '../common/utils';
 
 // where to find the Python binary within a conda env
 const CONDA_RELATIVE_PY_PATH = utils.IS_WINDOWS ? ['python'] : ['bin', 'python'];
@@ -195,7 +194,7 @@ function getSuggestionsFromWindowsRegistry() {
     if (!utils.IS_WINDOWS) {
         return Promise.resolve([]);
     }
-    return new WindowsPythonInterpreters(new RegistryImplementation()).getInterpreters()
+    return new WindowsPythonInterpreters(new RegistryImplementation(), Is_64Bit).getInterpreters()
         .then(interpreters => interpreters.map(translateToPathSuggestion));
 }
 function translateToPathSuggestion(item: PythonInterpreter): PythonPathSuggestion {
