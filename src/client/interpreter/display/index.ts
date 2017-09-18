@@ -6,11 +6,12 @@ import { EOL } from 'os';
 import { PythonPathSuggestion } from '../contracts';
 import { IPythonInterpreterProvider } from '../interpreters';
 import * as utils from "../../common/utils";
+import { VirtualEnvironmentManager } from '../virtualEnvs/index';
 
 const settings = PythonSettings.getInstance();
 export class InterpreterDisplay implements Disposable {
     private interpreters: PythonPathSuggestion[];
-    constructor(private statusBar: StatusBarItem, private interpreterProvoder: IPythonInterpreterProvider) {
+    constructor(private statusBar: StatusBarItem, private interpreterProvoder: IPythonInterpreterProvider, private virtualEnvMgr: VirtualEnvironmentManager) {
         this.statusBar.command = 'python.setInterpreter';
     }
     public dispose() {
@@ -28,27 +29,28 @@ export class InterpreterDisplay implements Disposable {
         const fullPath = (utils.IS_WINDOWS ? pythonPath.replace(/\//g, "\\") : pythonPath).toUpperCase();
         const interpreters = await this.getInterpreters();
         const interpreter = interpreters.find(i => i.path.toUpperCase() === fullPath);
+        const virtualEnvName = await this.getVirtualEnvironmentName();
+        const dislayNameSuffix = virtualEnvName.length > 0 ? ` (${virtualEnvName})` : '';
+
         this.statusBar.color = '';
-        let type = '';
+        let toolTipSuffix = '';
         if (interpreter) {
-            this.statusBar.text = interpreter.name;
-            type = `${EOL}${interpreter.type}`;
+            this.statusBar.text = `${interpreter.name}${dislayNameSuffix}`;
+            toolTipSuffix = `${EOL}${interpreter.type}`;
         }
         else {
             const interpreterExists = await utils.validatePath(pythonPath);
             const defaultDisplayName = `${path.basename(pythonPath)} [Environment]`;
-            this.statusBar.text = await this.getInterpreterDisplayName(pythonPath, defaultDisplayName);
+            const displayName = await this.getInterpreterDisplayName(pythonPath, defaultDisplayName);
+            this.statusBar.text = `${displayName}${dislayNameSuffix}`;;
 
-            if (!interpreterExists && this.statusBar.text === defaultDisplayName && interpreters.length > 0) {
+            if (!interpreterExists && displayName === defaultDisplayName && interpreters.length > 0) {
                 this.statusBar.color = 'yellow';
                 this.statusBar.text = '$(alert) Select Python Environment';
             }
-            else {
-                this.statusBar.text = await this.getInterpreterDisplayName(pythonPath, defaultDisplayName);
-            }
         }
         this.statusBar.show();
-        this.statusBar.tooltip = `${settings.pythonPath}${type}`;
+        this.statusBar.tooltip = `${settings.pythonPath}${toolTipSuffix}`;
     }
     private async  getInterpreterDisplayName(pythonPath: string, defaultValue: string) {
         return utils.execPythonFile(pythonPath, ['--version'], __dirname, true)
@@ -57,6 +59,11 @@ export class InterpreterDisplay implements Disposable {
                 return version.length > 0 ? version : defaultValue;
             })
             .catch(() => defaultValue);
+    }
+    private async getVirtualEnvironmentName() {
+        return this.virtualEnvMgr
+            .detect(settings.pythonPath)
+            .then(env => env ? env.name : '');
     }
 }
 

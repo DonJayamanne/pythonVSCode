@@ -1,18 +1,21 @@
-
 'use strict';
-import { ExtensionContext, Disposable, window, StatusBarAlignment } from 'vscode';
+import { VirtualEnv } from './virtualEnvs/virtualEnv';
+import { VEnv } from './virtualEnvs/venv';
+import { Disposable, window, StatusBarAlignment } from 'vscode';
 import { PythonSettings } from '../common/configSettings';
 import { InterpreterDisplay } from './display';
 import { PythonInterpreterProvider } from './interpreters';
+import { VirtualEnvironmentManager } from './virtualEnvs/index';
 export * from './contracts';
 export * from './interpreters';
 
 const settings = PythonSettings.getInstance();
 let display: InterpreterDisplay;
 export function activate(): Disposable {
+    const virtualEnvMgr = new VirtualEnvironmentManager([new VEnv(), new VirtualEnv()]);
     const statusBar = window.createStatusBarItem(StatusBarAlignment.Left);
     const interpreterProvider = new PythonInterpreterProvider();
-    display = new InterpreterDisplay(statusBar, interpreterProvider);
+    display = new InterpreterDisplay(statusBar, interpreterProvider, virtualEnvMgr);
     settings.addListener('change', onConfigChanged);
     display.refresh();
 

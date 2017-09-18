@@ -1,4 +1,4 @@
-import { Architecture } from '../common/registry'
+import { Architecture } from '../common/registry';
 export interface PythonInterpreter {
     path: string;
     companyDisplayName?: string;
