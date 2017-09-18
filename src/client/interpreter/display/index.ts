@@ -44,7 +44,6 @@ export class InterpreterDisplay implements Disposable {
                 this.statusBar.text = '$(alert) Select Python Environment';
             }
             else {
-                const defaultDisplayName = `${path.basename(pythonPath)} [Environment]`;
                 this.statusBar.text = await this.getInterpreterDisplayName(pythonPath, defaultDisplayName);
             }
         }
