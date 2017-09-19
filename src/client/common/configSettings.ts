@@ -104,6 +104,7 @@ export interface IFormattingSettings {
     yapfArgs: string[];
     formatOnSave: boolean;
     outputWindow: string;
+    docstringFormat: string;
 }
 export interface IAutoCompeteSettings {
     addBrackets: boolean;
@@ -231,14 +232,17 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         }
         // Support for travis
         this.formatting = this.formatting ? this.formatting : {
-            autopep8Args: [], autopep8Path: 'autopep8',
+            autopep8Args: [],
+            autopep8Path: 'autopep8',
             outputWindow: 'python',
             provider: 'autopep8',
             yapfArgs: [], yapfPath: 'yapf',
-            formatOnSave: false
+            formatOnSave: false,
+            docstringFormat: 'google'
         };
         this.formatting.autopep8Path = getAbsolutePath(systemVariables.resolveAny(this.formatting.autopep8Path), workspaceRoot);
         this.formatting.yapfPath = getAbsolutePath(systemVariables.resolveAny(this.formatting.yapfPath), workspaceRoot);
+        this.formatting.docstringFormat = this.formatting.docstringFormat ? this.formatting.docstringFormat : 'google';
 
         let autoCompleteSettings = systemVariables.resolveAny(pythonSettings.get<IAutoCompeteSettings>('autoComplete'));
         if (this.autoComplete) {

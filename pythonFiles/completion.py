@@ -563,7 +563,7 @@ class JediCompletion(object):
             })
         return json.dumps({'id': identifier, 'results': _usages})
 
-    def _serialize_autodocstring(self, source, line, column, identifier=None):
+    def _serialize_autodocstring(self, source, line, column, formatter, identifier=None):
         """Serialize response to be read from VSCode.
 
         Args:
@@ -574,17 +574,20 @@ class JediCompletion(object):
         Returns:
             Serialized string to send to VSCode.
         """
-        import pydocstring
+        try:
+            import pydocstring
 
-        position = len("".join(source.splitlines(True)[:line]))
+            position = len("".join(source.splitlines(True)[:line]))
 
-        completion = {
-            'label': 'Docstring',
-            'type': 'docstring',
-            'raw_type': 'docstring',
-            'text': pydocstring.generate_docstring(source, position) + '"""'
-        }
-        return json.dumps({'id': identifier, 'results': [completion]})
+            completion = {
+                'label': 'Docstring',
+                'type': 'docstring',
+                'raw_type': 'docstring',
+                'text': pydocstring.generate_docstring(source, position) + '"""'
+            }
+            return json.dumps({'id': identifier, 'results': [completion]})
+        except ImportError:
+            return json.dumps({'id': identifier, 'results': []})
 
     def _deserialize(self, request):
         """Deserialize request from VSCode.
@@ -709,6 +712,7 @@ class JediCompletion(object):
             return self._serialize_autodocstring(source=request.get('source', None),
                                                  line=request['line'],
                                                  column=request['column'],
+                                                 formatter=request['settings']['formatter'],
                                                  identifier=request['id'])
         else:
             return self._serialize_completions(script, request['id'],

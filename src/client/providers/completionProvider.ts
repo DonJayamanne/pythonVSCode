@@ -56,6 +56,7 @@ export class PythonCompletionItemProvider implements vscode.CompletionItemProvid
 
         const type = this.getCommandType(lineText);
         const columnIndex = position.character;
+        const settings = this.getSettings(type);
 
         const source = document.getText();
         const chpos = document.getText(new vscode.Range(new vscode.Position(0, 0), position)).length
@@ -64,7 +65,8 @@ export class PythonCompletionItemProvider implements vscode.CompletionItemProvid
             fileName: filename,
             columnIndex: columnIndex,
             lineIndex: position.line,
-            source: source
+            source: source,
+            settings: settings
         };
         const timer = new telemetryHelper.Delays();
         return this.jediProxyHandler.sendCommand(cmd, token).then(data => {
@@ -81,5 +83,14 @@ export class PythonCompletionItemProvider implements vscode.CompletionItemProvid
             return proxy.CommandType.Docstring;
         }
         return proxy.CommandType.Completions;
+    }
+
+    private getSettings(type: proxy.CommandType): any {
+        if (type === proxy.CommandType.Docstring){
+            return {
+                formatter: pythonSettings.formatting.docstringFormat
+            };
+        }
+        return {};
     }
 }

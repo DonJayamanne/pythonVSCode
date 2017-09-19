@@ -478,7 +478,8 @@ function createPayload<T extends ICommandResult>(cmd: IExecutionCommand<T>): any
         source: cmd.source,
         line: cmd.lineIndex,
         column: cmd.columnIndex,
-        config: getConfig()
+        config: getConfig(),
+        settings: cmd.settings
     };
 
     if (cmd.command === CommandType.Symbols) {
@@ -589,6 +590,7 @@ export interface ICommand<T extends ICommandResult> {
     fileName: string;
     lineIndex: number;
     columnIndex: number;
+    settings?: any;
 }
 
 interface IExecutionCommand<T extends ICommandResult> extends ICommand<T> {
