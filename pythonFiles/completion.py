@@ -583,7 +583,8 @@ class JediCompletion(object):
                 'label': 'Docstring',
                 'type': 'docstring',
                 'raw_type': 'docstring',
-                'text': pydocstring.generate_docstring(source, position) + '"""'
+                'text': pydocstring.generate_docstring(source, position,
+                                                       formatter=formatter) + '"""'
             }
             return json.dumps({'id': identifier, 'results': [completion]})
         except ImportError:

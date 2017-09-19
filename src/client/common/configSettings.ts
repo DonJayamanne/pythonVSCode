@@ -242,7 +242,6 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         };
         this.formatting.autopep8Path = getAbsolutePath(systemVariables.resolveAny(this.formatting.autopep8Path), workspaceRoot);
         this.formatting.yapfPath = getAbsolutePath(systemVariables.resolveAny(this.formatting.yapfPath), workspaceRoot);
-        this.formatting.docstringFormat = this.formatting.docstringFormat ? this.formatting.docstringFormat : 'google';
 
         let autoCompleteSettings = systemVariables.resolveAny(pythonSettings.get<IAutoCompeteSettings>('autoComplete'));
         if (this.autoComplete) {
