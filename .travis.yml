@@ -1,6 +1,11 @@
 language: python
 sudo: required
+dist: trusty
 
+addons:
+  apt:
+    packages:
+      - libsecret-1-dev
 matrix:
     include:
         # # Use the built in venv for linux builds
