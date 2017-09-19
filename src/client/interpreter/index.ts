@@ -4,10 +4,9 @@ import { VEnv } from './virtualEnvs/venv';
 import { Disposable, window, StatusBarAlignment } from 'vscode';
 import { PythonSettings } from '../common/configSettings';
 import { InterpreterDisplay } from './display';
-import { PythonInterpreterProvider } from './interpreters';
+import { PythonInterpreterProvider } from './sources';
 import { VirtualEnvironmentManager } from './virtualEnvs/index';
-export * from './contracts';
-export * from './interpreters';
+export * from './sources';
 
 const settings = PythonSettings.getInstance();
 let display: InterpreterDisplay;

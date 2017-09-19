@@ -70,9 +70,9 @@ suite('Interpreters', () => {
     test('Must get display name from a list of interpreters', async () => {
         const statusBar = new MockStatusBarItem();
         const interpreters = [
-            { name: 'One', path: 'c:/path1/one.exe', type: 'One 1' },
-            { name: 'Two', path: pythonSettings.pythonPath, type: 'Two 2' },
-            { name: 'Three', path: 'c:/path3/three.exe', type: 'Three 3' },
+            { displayName: 'One', path: 'c:/path1/one.exe', type: 'One 1' },
+            { displayName: 'Two', path: pythonSettings.pythonPath, type: 'Two 2' },
+            { displayName: 'Three', path: 'c:/path3/three.exe', type: 'Three 3' },
         ];
         const provider = new MockProvider(interpreters);
         const display = new InterpreterDisplay(statusBar, provider, new VirtualEnvironmentManager([]));
@@ -82,26 +82,26 @@ suite('Interpreters', () => {
 
         assert.equal(statusBar.text, '$(alert) Select Python Environment', 'Incorrect display name');
     });
-    test('Must suffix tooltip with the type of interpreter', async () => {
+    test('Must suffix tooltip with the companyDisplayName of interpreter', async () => {
         const statusBar = new MockStatusBarItem();
         const interpreters = [
-            { name: 'One', path: 'c:/path1/one.exe', type: 'One 1' },
-            { name: 'Two', path: pythonSettings.pythonPath, type: 'Two 2' },
-            { name: 'Three', path: 'c:/path3/three.exe', type: 'Three 3' },
+            { displayName: 'One', path: 'c:/path1/one.exe', companyDisplayName: 'One 1' },
+            { displayName: 'Two', path: pythonSettings.pythonPath, companyDisplayName: 'Two 2' },
+            { displayName: 'Three', path: 'c:/path3/three.exe', companyDisplayName: 'Three 3' },
         ];
         const provider = new MockProvider(interpreters);
         const display = new InterpreterDisplay(statusBar, provider, new VirtualEnvironmentManager([]));
         await display.refresh();
 
-        assert.equal(statusBar.text, interpreters[1].name, 'Incorrect display name');
-        assert.equal(statusBar.tooltip, `${pythonSettings.pythonPath}${EOL}${interpreters[1].type}`, 'Incorrect tooltip');
+        assert.equal(statusBar.text, interpreters[1].displayName, 'Incorrect display name');
+        assert.equal(statusBar.tooltip, `${pythonSettings.pythonPath}${EOL}${interpreters[1].companyDisplayName}`, 'Incorrect tooltip');
     });
     test('Will update status prompting user to select an interpreter', async () => {
         const statusBar = new MockStatusBarItem();
         const interpreters = [
-            { name: 'One', path: 'c:/path1/one.exe', type: 'One 1' },
-            { name: 'Two', path: 'c:/asdf', type: 'Two 2' },
-            { name: 'Three', path: 'c:/path3/three.exe', type: 'Three 3' },
+            { displayName: 'One', path: 'c:/path1/one.exe', companyDisplayName: 'One 1' },
+            { displayName: 'Two', path: 'c:/asdf', companyDisplayName: 'Two 2' },
+            { displayName: 'Three', path: 'c:/path3/three.exe', companyDisplayName: 'Three 3' },
         ];
         const provider = new MockProvider(interpreters);
         const display = new InterpreterDisplay(statusBar, provider, new VirtualEnvironmentManager([]));

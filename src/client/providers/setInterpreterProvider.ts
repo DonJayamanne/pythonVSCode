@@ -1,13 +1,9 @@
 "use strict";
-import * as child_process from 'child_process';
 import * as path from "path";
-import * as fs from "fs";
 import * as vscode from "vscode";
 import * as settings from "./../common/configSettings";
 import * as utils from "../common/utils";
-import { createDeferred } from '../common/helpers';
-import * as untildify from 'untildify';
-import { activate, PythonPathSuggestion, PythonInterpreterProvider } from '../interpreter';
+import { activate, PythonInterpreter, PythonInterpreterProvider } from '../interpreter';
 
 
 interface PythonPathQuickPickItem extends vscode.QuickPickItem {
@@ -21,14 +17,14 @@ export function activateSetInterpreterProvider(): vscode.Disposable[] {
     ];
 }
 
-function suggestionToQuickPickItem(suggestion: PythonPathSuggestion): PythonPathQuickPickItem {
+function suggestionToQuickPickItem(suggestion: PythonInterpreter): PythonPathQuickPickItem {
     let detail = suggestion.path;
     if (suggestion.path.startsWith(vscode.workspace.rootPath)) {
         detail = `.${path.sep}` + path.relative(vscode.workspace.rootPath, suggestion.path);
     }
     return {
-        label: suggestion.name,
-        description: suggestion.type,
+        label: suggestion.displayName,
+        description: suggestion.companyDisplayName,
         detail: detail,
         path: suggestion.path
     };
@@ -58,9 +54,9 @@ function presentQuickPickOfSuggestedPythonPaths() {
         placeHolder: `current: ${currentPythonPath}`
     };
 
-    new PythonInterpreterProvider().getPythonInterpreters().then(interpreters => {
+    new PythonInterpreterProvider().getInterpreters().then(interpreters => {
         const suggestions = interpreters
-            .sort((a, b) => a.name > b.name ? 1 : -1)
+            .sort((a, b) => a.displayName > b.displayName ? 1 : -1)
             .map(suggestionToQuickPickItem);
 
         vscode.window.showQuickPick(suggestions, quickPickOptions).then(

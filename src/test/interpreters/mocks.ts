@@ -1,11 +1,11 @@
 import { IVirtualEnvironment } from '../../client/interpreter/virtualEnvs/contracts';
-import { IPythonInterpreterProvider, PythonPathSuggestion } from "../../client/interpreter/index";
+import { IInterpreterProvider, PythonInterpreter } from "../../client/interpreter/index";
 import { IRegistry, Hive, Architecture } from "../../client/common/registry";
 
-export class MockProvider implements IPythonInterpreterProvider {
-    constructor(private suggestions: PythonPathSuggestion[]) {
+export class MockProvider implements IInterpreterProvider {
+    constructor(private suggestions: PythonInterpreter[]) {
     }
-    getPythonInterpreters(): Promise<PythonPathSuggestion[]> {
+    getInterpreters(): Promise<PythonInterpreter[]> {
         return Promise.resolve(this.suggestions);
     }
 }

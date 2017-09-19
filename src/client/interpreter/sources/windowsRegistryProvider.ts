@@ -1,7 +1,8 @@
-import { Architecture, getArchitectureDislayName, Hive, IRegistry } from '../common/registry';
-import { PythonInterpreter } from './contracts';
+import { Architecture, Hive, IRegistry } from '../../common/registry';
+import { IInterpreterProvider } from './contracts';
 import * as path from 'path';
 import * as _ from 'lodash';
+import { PythonInterpreter } from '../index';
 
 const DefaultPythonExecutable = 'python.exe';
 const CompaniesToIgnore = ['PYLAUNCHER'];
@@ -14,12 +15,12 @@ type CompanyInterpreter = {
     arch?: Architecture
 };
 
-export class WindowsPythonInterpreters {
+export class WindowsRegistryProvider implements IInterpreterProvider {
     constructor(private registry: IRegistry, private is64Bit: boolean) {
 
     }
     public getInterpreters() {
-        return this.getInterpretersFromRegistry()
+        return this.getInterpretersFromRegistry();
     }
     private async getInterpretersFromRegistry() {
         // https://github.com/python/peps/blob/master/pep-0514.txt#L357

@@ -40,6 +40,17 @@ export function fsExistsAsync(filePath: string): Promise<boolean> {
         });
     });
 }
+export function fsReaddirAsync(root: string): Promise<string[]> {
+    return new Promise<string[]>(resolve => {
+        // Now look for Interpreters in this directory
+        fs.readdir(root, (err, subDirs) => {
+            if (err) {
+                return resolve([]);
+            }
+            resolve(subDirs.map(subDir => path.join(root, subDir)));
+        });
+    });
+}
 
 let pythonInterpretterDirectory: string = null;
 let previouslyIdentifiedPythonPath: string = null;
@@ -389,4 +400,10 @@ export function getWindowsLineEndingCount(document: TextDocument, offset: Number
         count += cr ? cr.length : 0;
     }
     return count;
+}
+
+export function arePathsSame(path1: string, path2: string) {
+    path1 = IS_WINDOWS ? path1.replace(/\//g, "\\") : path1;
+    path2 = IS_WINDOWS ? path2.replace(/\//g, "\\") : path2;
+    return path1.toUpperCase() === path2.toUpperCase();
 }

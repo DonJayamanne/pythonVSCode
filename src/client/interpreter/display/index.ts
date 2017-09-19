@@ -3,15 +3,14 @@ import { StatusBarItem, Disposable } from 'vscode';
 import { PythonSettings } from '../../common/configSettings';
 import * as path from 'path';
 import { EOL } from 'os';
-import { PythonPathSuggestion } from '../contracts';
-import { IPythonInterpreterProvider } from '../interpreters';
+import { IInterpreterProvider, PythonInterpreter } from '../index';
 import * as utils from "../../common/utils";
 import { VirtualEnvironmentManager } from '../virtualEnvs/index';
 
 const settings = PythonSettings.getInstance();
 export class InterpreterDisplay implements Disposable {
-    private interpreters: PythonPathSuggestion[];
-    constructor(private statusBar: StatusBarItem, private interpreterProvoder: IPythonInterpreterProvider, private virtualEnvMgr: VirtualEnvironmentManager) {
+    private interpreters: PythonInterpreter[];
+    constructor(private statusBar: StatusBarItem, private interpreterProvoder: IInterpreterProvider, private virtualEnvMgr: VirtualEnvironmentManager) {
         this.statusBar.command = 'python.setInterpreter';
     }
     public dispose() {
@@ -23,20 +22,19 @@ export class InterpreterDisplay implements Disposable {
         if (Array.isArray(this.interpreters) && this.interpreters.length > 0) {
             return this.interpreters;
         }
-        return this.interpreters = await this.interpreterProvoder.getPythonInterpreters();
+        return this.interpreters = await this.interpreterProvoder.getInterpreters();
     }
     private async updateDisplay(pythonPath: string) {
-        const fullPath = (utils.IS_WINDOWS ? pythonPath.replace(/\//g, "\\") : pythonPath).toUpperCase();
         const interpreters = await this.getInterpreters();
-        const interpreter = interpreters.find(i => i.path.toUpperCase() === fullPath);
+        const interpreter = interpreters.find(i => utils.arePathsSame(i.path, pythonPath));
         const virtualEnvName = await this.getVirtualEnvironmentName();
         const dislayNameSuffix = virtualEnvName.length > 0 ? ` (${virtualEnvName})` : '';
 
         this.statusBar.color = '';
         let toolTipSuffix = '';
         if (interpreter) {
-            this.statusBar.text = `${interpreter.name}${dislayNameSuffix}`;
-            toolTipSuffix = `${EOL}${interpreter.type}`;
+            this.statusBar.text = `${interpreter.displayName}${dislayNameSuffix}`;
+            toolTipSuffix = `${EOL}${interpreter.companyDisplayName}`;
         }
         else {
             const interpreterExists = await utils.fsExistsAsync(pythonPath);

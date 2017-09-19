@@ -2,7 +2,7 @@ import { initialize, setPythonExecutable } from '../initialize';
 import * as assert from 'assert';
 
 import * as settings from '../../client/common/configSettings';
-import { WindowsPythonInterpreters } from '../../client/interpreter/winRegistryInterpreters';
+import { WindowsRegistryProvider } from '../../client/interpreter/sources/windowsRegistryProvider';
 import { MockRegistry } from './mocks';
 import { Architecture, Hive } from '../../client/common/registry';
 
@@ -26,14 +26,14 @@ suite('Interpreters from Windows Registry', () => {
 
     test('Must return an empty list (x86)', async () => {
         const registry = new MockRegistry([], []);
-        const winRegistry = new WindowsPythonInterpreters(registry, false);
+        const winRegistry = new WindowsRegistryProvider(registry, false);
 
         const interpreters = await winRegistry.getInterpreters();
         assert.equal(interpreters.length, 0, 'Incorrect number of entries');
     });
     test('Must return an empty list (x64)', async () => {
         const registry = new MockRegistry([], []);
-        const winRegistry = new WindowsPythonInterpreters(registry, true);
+        const winRegistry = new WindowsRegistryProvider(registry, true);
 
         const interpreters = await winRegistry.getInterpreters();
         assert.equal(interpreters.length, 0, 'Incorrect number of entries');
@@ -51,7 +51,7 @@ suite('Interpreters from Windows Registry', () => {
             { key: '\\Software\\Python\\Company One\\Tag1', hive: Hive.HKCU, arch: Architecture.x86, value: 'DisplayName.Tag1', name: 'DisplayName' },
         ];
         const registry = new MockRegistry(registryKeys, registryValues);
-        const winRegistry = new WindowsPythonInterpreters(registry, false);
+        const winRegistry = new WindowsRegistryProvider(registry, false);
 
         const interpreters = await winRegistry.getInterpreters();
 
@@ -71,7 +71,7 @@ suite('Interpreters from Windows Registry', () => {
             { key: '\\Software\\Python\\PythonCore\\Tag1\\InstallPath', hive: Hive.HKCU, arch: Architecture.x86, value: 'c:/temp/Install Path Tag1' }
         ];
         const registry = new MockRegistry(registryKeys, registryValues);
-        const winRegistry = new WindowsPythonInterpreters(registry, false);
+        const winRegistry = new WindowsRegistryProvider(registry, false);
 
         const interpreters = await winRegistry.getInterpreters();
 
@@ -91,7 +91,7 @@ suite('Interpreters from Windows Registry', () => {
             { key: '\\Software\\Python\\PyLauncher\\Tag1\\InstallPath', hive: Hive.HKCU, arch: Architecture.x86, value: 'c:/temp/Install Path Tag1' }
         ];
         const registry = new MockRegistry(registryKeys, registryValues);
-        const winRegistry = new WindowsPythonInterpreters(registry, false);
+        const winRegistry = new WindowsRegistryProvider(registry, false);
 
         const interpreters = await winRegistry.getInterpreters();
 
@@ -106,7 +106,7 @@ suite('Interpreters from Windows Registry', () => {
             { key: '\\Software\\Python\\Company One\\Tag1\\InstallPath', hive: Hive.HKCU, arch: Architecture.x86, value: 'c:/temp/Install Path Tag1' }
         ];
         const registry = new MockRegistry(registryKeys, registryValues);
-        const winRegistry = new WindowsPythonInterpreters(registry, false);
+        const winRegistry = new WindowsRegistryProvider(registry, false);
 
         const interpreters = await winRegistry.getInterpreters();
 
@@ -148,7 +148,7 @@ suite('Interpreters from Windows Registry', () => {
             { key: '\\Software\\Python\\Company A\\Another Tag\\InstallPath', hive: Hive.HKLM, arch: Architecture.x86, value: 'Install Path Another Tag' }
         ];
         const registry = new MockRegistry(registryKeys, registryValues);
-        const winRegistry = new WindowsPythonInterpreters(registry, false);
+        const winRegistry = new WindowsRegistryProvider(registry, false);
 
         const interpreters = await winRegistry.getInterpreters();
 
@@ -206,7 +206,7 @@ suite('Interpreters from Windows Registry', () => {
             { key: '\\Software\\Python\\Company A\\Another Tag\\InstallPath', hive: Hive.HKLM, arch: Architecture.x86, value: 'Install Path Another Tag' }
         ];
         const registry = new MockRegistry(registryKeys, registryValues);
-        const winRegistry = new WindowsPythonInterpreters(registry, false);
+        const winRegistry = new WindowsRegistryProvider(registry, false);
 
         const interpreters = await winRegistry.getInterpreters();
 
