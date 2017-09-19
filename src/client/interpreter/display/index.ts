@@ -38,7 +38,9 @@ export class InterpreterDisplay implements Disposable {
         let toolTipSuffix = '';
         if (interpreter) {
             this.statusBar.text = `${interpreter.displayName}${dislayNameSuffix}`;
-            toolTipSuffix = `${EOL}${interpreter.companyDisplayName}`;
+            if (interpreter.companyDisplayName) {
+                toolTipSuffix = `${EOL}${interpreter.companyDisplayName}`;
+            }
         }
         else {
             const interpreterExists = await utils.fsExistsAsync(pythonPath);
@@ -67,13 +69,14 @@ export class InterpreterDisplay implements Disposable {
             .detect(pythonPath)
             .then(env => env ? env.name : '');
     }
-    private getFullyQualifiedPathToInterpreter(pythonPath:string) {
+    private getFullyQualifiedPathToInterpreter(pythonPath: string) {
         return new Promise<string>(resolve => {
             child_process.execFile(pythonPath, ["-c", "import sys;print(sys.executable)"], (_, stdout) => {
+                console.error(stdout);
                 resolve(getFirstNonEmptyLineFromMultilineString(stdout));
             });
         })
-        .then(value => value.length === 0 ? pythonPath : value);
+            .then(value => value.length === 0 ? pythonPath : value);
     }
 }
 
