@@ -28,7 +28,6 @@ export class InterpreterDisplay implements Disposable {
         return this.interpreters = await this.interpreterProvoder.getInterpreters();
     }
     private async updateDisplay(pythonPath: string) {
-        console.log(pythonPath);
         const interpreters = await this.getInterpreters();
         const interpreter = interpreters.find(i => utils.arePathsSame(i.path, pythonPath));
         const virtualEnvName = await this.getVirtualEnvironmentName(pythonPath);
