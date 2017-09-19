@@ -2,7 +2,7 @@
 import * as path from "path";
 import { IInterpreterProvider } from './contracts';
 import { fsExistsAsync, execPythonFile, IS_WINDOWS } from "../../common/utils";
-import { PythonPathSuggestion } from '../index';
+import { PythonInterpreter } from '../index';
 import { lookForInterpretersInDirectory, getFirstNonEmptyLineFromMultilineString } from './helpers';
 import * as child_process from 'child_process';
 import * as _ from 'lodash';
@@ -14,20 +14,20 @@ export class KnownPathsProvider implements IInterpreterProvider {
         return this.suggestionsFromKnownPaths();
     }
 
-    private suggestionsFromKnownPaths(): Promise<PythonPathSuggestion[]> {
+    private suggestionsFromKnownPaths() {
         const promises = this.knownSearchPaths.map(dir => this.getInterpretersInDirectory(dir));
         const currentPythonInterpreter = this.getCurrentInterpreter().then(interpreter => [interpreter]);
         const defaultPythonInterpreter = this.getDefaultInterpreter().then(interpreter => [interpreter]);
         return Promise.all<string[]>(promises.concat(currentPythonInterpreter, defaultPythonInterpreter))
             .then(listOfInterpreters => _.flatten(listOfInterpreters))
             .then(interpreters => interpreters.filter(item => item.length > 0))
-            .then(interpreters => {
-                return interpreters.map(interpreter => {
-                    return {
-                        name: path.basename(interpreter), path: interpreter, type: ''
-                    } as PythonPathSuggestion;
-                });
-            });
+            .then(interpreters => interpreters.map(interpreter => this.getInterpreterDetails(interpreter)));
+    }
+    private getInterpreterDetails(interpreter: string): PythonInterpreter {
+        return {
+            displayName: path.basename(interpreter),
+            path: interpreter
+        };
     }
     private getInterpretersInDirectory(dir: string) {
         return fsExistsAsync(dir)

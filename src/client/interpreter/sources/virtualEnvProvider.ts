@@ -3,7 +3,7 @@ import * as path from "path";
 import * as vscode from 'vscode';
 import { IInterpreterProvider } from './contracts';
 import { IS_WINDOWS, fsReaddirAsync } from "../../common/utils";
-import { PythonPathSuggestion } from '../index';
+import { PythonInterpreter } from '../index';
 import * as untildify from 'untildify';
 import { lookForInterpretersInDirectory } from './helpers';
 import * as settings from "./../../common/configSettings";
@@ -15,13 +15,13 @@ export class VirtualEnvProvider implements IInterpreterProvider {
         return this.suggestionsFromKnownVenvs();
     }
 
-    private suggestionsFromKnownVenvs(): Promise<PythonPathSuggestion[]> {
+    private suggestionsFromKnownVenvs() {
         const promises = this.knownSearchPaths.map(dir => this.lookForInterpretersInVenvs(dir));
 
         return Promise.all(promises)
             .then(listOfInterpreters => _.flatten(listOfInterpreters));
     }
-    private lookForInterpretersInVenvs(pathToCheck: string): Promise<PythonPathSuggestion[]> {
+    private lookForInterpretersInVenvs(pathToCheck: string) {
         return fsReaddirAsync(pathToCheck)
             .then(subDirs => {
                 const promises = subDirs.map(subDir => {
@@ -33,12 +33,11 @@ export class VirtualEnvProvider implements IInterpreterProvider {
             .then(pathsWithInterpreters => _.flatten(pathsWithInterpreters))
             .then(interpreters => interpreters.map(interpreter => this.getVirtualEnvDetails(interpreter)));
     }
-    private getVirtualEnvDetails(interpreter: string): PythonPathSuggestion {
+    private getVirtualEnvDetails(interpreter: string): PythonInterpreter {
         let venvName = this.getVirtualEnvironmentRootDirectory(interpreter);
         return {
-            name: `${venvName} - ${path.basename(interpreter)}`,
-            path: interpreter,
-            type: ''
+            displayName: `${venvName} - ${path.basename(interpreter)}`,
+            path: interpreter
         };
     }
     private getVirtualEnvironmentRootDirectory(interpreter: string) {
