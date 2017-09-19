@@ -1,6 +1,8 @@
-import { VirtualEnvironmentManager } from '../../client/interpreter/virtualEnvs';
 import { initialize, setPythonExecutable } from '../initialize';
+
+import { VirtualEnvironmentManager } from '../../client/interpreter/virtualEnvs';
 import * as assert from 'assert';
+import * as child_process from 'child_process';
 
 import * as settings from '../../client/common/configSettings';
 import { MockStatusBarItem } from '../mockClasses';
@@ -9,6 +11,7 @@ import { MockProvider, MockVirtualEnv } from './mocks';
 import * as path from 'path';
 import { EOL } from 'os';
 import * as utils from '../../client/common/utils';
+import { getFirstNonEmptyLineFromMultilineString } from '../../client/interpreter/sources/helpers';
 
 let pythonSettings = settings.PythonSettings.getInstance();
 const originalPythonPath = pythonSettings.pythonPath;
@@ -83,10 +86,16 @@ suite('Interpreters', () => {
         assert.equal(statusBar.text, '$(alert) Select Python Environment', 'Incorrect display name');
     });
     test('Must suffix tooltip with the companyDisplayName of interpreter', async () => {
+        const pythonPath = await new Promise<string>(resolve => {
+            child_process.execFile(pythonSettings.pythonPath, ["-c", "import sys;print(sys.executable)"], (_, stdout) => {
+                resolve(getFirstNonEmptyLineFromMultilineString(stdout));
+            });
+        }).then(value => value.length === 0 ? pythonSettings.pythonPath : value);
+
         const statusBar = new MockStatusBarItem();
         const interpreters = [
             { displayName: 'One', path: 'c:/path1/one.exe', companyDisplayName: 'One 1' },
-            { displayName: 'Two', path: pythonSettings.pythonPath, companyDisplayName: 'Two 2' },
+            { displayName: 'Two', path: pythonPath, companyDisplayName: 'Two 2' },
             { displayName: 'Three', path: 'c:/path3/three.exe', companyDisplayName: 'Three 3' },
         ];
         const provider = new MockProvider(interpreters);
@@ -94,7 +103,7 @@ suite('Interpreters', () => {
         await display.refresh();
 
         assert.equal(statusBar.text, interpreters[1].displayName, 'Incorrect display name');
-        assert.equal(statusBar.tooltip, `${pythonSettings.pythonPath}${EOL}${interpreters[1].companyDisplayName}`, 'Incorrect tooltip');
+        assert.equal(statusBar.tooltip, `${pythonPath}${EOL}${interpreters[1].companyDisplayName}`, 'Incorrect tooltip');
     });
     test('Will update status prompting user to select an interpreter', async () => {
         const statusBar = new MockStatusBarItem();

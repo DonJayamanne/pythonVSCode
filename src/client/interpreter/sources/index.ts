@@ -17,13 +17,13 @@ export class PythonInterpreterProvider implements IInterpreterProvider {
         if (IS_WINDOWS) {
             this.providers.push(new WindowsRegistryProvider(new RegistryImplementation(), Is_64Bit));
         }
-        else {
+        this.providers.push(...[
+            new CondaEnvProvider(),
+            new VirtualEnvProvider(getKnownSearchPathsForVirtualEnvs())
+        ]);
+        if (!IS_WINDOWS) {
             this.providers.push(new KnownPathsProvider(getKnownSearchPathsForInterpreters()));
         }
-        this.providers.push(...[
-            new VirtualEnvProvider(getKnownSearchPathsForVirtualEnvs()),
-            new CondaEnvProvider()
-        ]);
     }
     public getInterpreters() {
         const promises = this.providers.map(provider => provider.getInterpreters());

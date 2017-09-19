@@ -1,6 +1,5 @@
 import { PythonInterpreter } from "../index";
 import { IS_WINDOWS, fsReaddirAsync } from "../../common/utils";
-import * as fs from 'fs';
 import * as path from 'path';
 import { getArchitectureDislayName } from "../../common/registry";
 

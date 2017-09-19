@@ -94,7 +94,7 @@ suite('Interpreters from Conda Environments', () => {
 
         const path1 = path.join(info.default_prefix, IS_WINDOWS ? 'python.exe' : 'bin/python');
         assert.equal(interpreters[0].path, path1, 'Incorrect path for first env');
-        assert.equal(interpreters[0].displayName, 'Anaconda (temp)', 'Incorrect display name for first env');
+        assert.equal(interpreters[0].displayName, 'Anaconda', 'Incorrect display name for first env');
         assert.equal(interpreters[0].companyDisplayName, 'Continuum Analytics, Inc.', 'Incorrect company display name for first env');
     });
 });

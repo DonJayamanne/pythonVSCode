@@ -4,8 +4,10 @@ import { PythonSettings } from '../../common/configSettings';
 import * as path from 'path';
 import { EOL } from 'os';
 import { IInterpreterProvider, PythonInterpreter } from '../index';
-import * as utils from "../../common/utils";
+import * as utils from '../../common/utils';
 import { VirtualEnvironmentManager } from '../virtualEnvs/index';
+import { getFirstNonEmptyLineFromMultilineString } from '../sources/helpers';
+import * as child_process from 'child_process';
 
 const settings = PythonSettings.getInstance();
 export class InterpreterDisplay implements Disposable {
@@ -16,7 +18,8 @@ export class InterpreterDisplay implements Disposable {
     public dispose() {
     }
     public async refresh() {
-        await this.updateDisplay(settings.pythonPath);
+        const pythonPath = await this.getFullyQualifiedPathToInterpreter(settings.pythonPath);
+        await this.updateDisplay(pythonPath);
     }
     private async getInterpreters() {
         if (Array.isArray(this.interpreters) && this.interpreters.length > 0) {
@@ -25,9 +28,10 @@ export class InterpreterDisplay implements Disposable {
         return this.interpreters = await this.interpreterProvoder.getInterpreters();
     }
     private async updateDisplay(pythonPath: string) {
+        console.log(pythonPath);
         const interpreters = await this.getInterpreters();
         const interpreter = interpreters.find(i => utils.arePathsSame(i.path, pythonPath));
-        const virtualEnvName = await this.getVirtualEnvironmentName();
+        const virtualEnvName = await this.getVirtualEnvironmentName(pythonPath);
         const dislayNameSuffix = virtualEnvName.length > 0 ? ` (${virtualEnvName})` : '';
 
         this.statusBar.color = '';
@@ -48,7 +52,7 @@ export class InterpreterDisplay implements Disposable {
             }
         }
         this.statusBar.show();
-        this.statusBar.tooltip = `${settings.pythonPath}${toolTipSuffix}`;
+        this.statusBar.tooltip = `${pythonPath}${toolTipSuffix}`;
     }
     private async  getInterpreterDisplayName(pythonPath: string, defaultValue: string) {
         return utils.execPythonFile(pythonPath, ['--version'], __dirname, true)
@@ -58,10 +62,18 @@ export class InterpreterDisplay implements Disposable {
             })
             .catch(() => defaultValue);
     }
-    private async getVirtualEnvironmentName() {
+    private async getVirtualEnvironmentName(pythonPath: string) {
         return this.virtualEnvMgr
-            .detect(settings.pythonPath)
+            .detect(pythonPath)
             .then(env => env ? env.name : '');
+    }
+    private getFullyQualifiedPathToInterpreter(pythonPath:string) {
+        return new Promise<string>(resolve => {
+            child_process.execFile(pythonPath, ["-c", "import sys;print(sys.executable)"], (_, stdout) => {
+                resolve(getFirstNonEmptyLineFromMultilineString(stdout));
+            });
+        })
+        .then(value => value.length === 0 ? pythonPath : value);
     }
 }
 

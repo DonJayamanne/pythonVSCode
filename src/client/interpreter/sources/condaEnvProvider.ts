@@ -54,7 +54,13 @@ export class CondaEnvProvider implements IInterpreterProvider {
 
         return envs.map(env => {
             const interpreter: PythonInterpreter = { path: path.join(env, ...CONDA_RELATIVE_PY_PATH) };
-            interpreter.displayName = `${displayName} (${path.basename(env)})`;  // e.g. someEnv, miniconda3
+            if (env === info.default_prefix) {
+                interpreter.displayName = displayName;
+            }
+            else {
+                // This is an environment, hence suffix with env name
+                interpreter.displayName = `${displayName} (${path.basename(env)})`;  // e.g. someEnv, miniconda3                
+            }
             interpreter.companyDisplayName = AnacondaCompanyName;
             return interpreter;
         });

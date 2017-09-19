@@ -45,7 +45,6 @@ export class KnownPathsProvider implements IInterpreterProvider {
             });
         });
     }
-
 }
 
 export function getKnownSearchPathsForInterpreters(): string[] {

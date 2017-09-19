@@ -59,6 +59,8 @@ let customEnvVariables: any = null;
 // If config settings change then clear env variables that we have cached
 // Remember, the path to the python interpreter can change, hence we need to re-set the paths
 settings.PythonSettings.getInstance().on('change', function () {
+    pythonInterpretterDirectory = null;
+    previouslyIdentifiedPythonPath = null;
     customEnvVariables = null;
 });
 
