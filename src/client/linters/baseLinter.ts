@@ -2,7 +2,7 @@
 import { execPythonFile } from './../common/utils';
 import * as settings from './../common/configSettings';
 import { OutputChannel } from 'vscode';
-import { Installer, Product } from '../common/installer';
+import { Installer, Product, ProductExecutableAndArgs } from '../common/installer';
 import * as vscode from 'vscode';
 import { ErrorHandler } from './errorHandlers/main';
 
@@ -62,8 +62,41 @@ export abstract class BaseLinter {
         this.pythonSettings = settings.PythonSettings.getInstance();
         this._errorHandler = new ErrorHandler(this.Id, product, new Installer(), this.outputChannel);
     }
-    public abstract isEnabled(): Boolean;
-    public abstract runLinter(document: vscode.TextDocument, cancellation: vscode.CancellationToken): Promise<ILintMessage[]>;
+    public abstract getExtraLinterArgs(document: vscode.TextDocument): string[];
+
+    public isEnabled(): Boolean {
+        return this.pythonSettings.linting[`${this.Id}Enabled`];
+    }
+
+    public getLinterPathAndArgs(document: vscode.TextDocument): [string, string[]] {
+        let linterSettings = this.pythonSettings.linting;
+        let linterPath:string = linterSettings[`${this.Id}Path`];
+        let linterArgs:string[] = Array.isArray(linterSettings[`${this.Id}Args`]) ? linterSettings[`${this.Id}Args`] : [];
+
+        // if linterPath is like ':flake8' call linter as `python -m flake8 [args...]` instead of `flake8 [args...]`
+        if (linterPath[0] == ':') {
+            linterArgs = (['-m', linterPath.substring(1)]);
+            linterPath = this.pythonSettings.pythonPath;
+        }
+
+        linterArgs = linterArgs.concat(this.getExtraLinterArgs(document));
+        return [linterPath, linterArgs];
+    }
+
+    public runLinter(document: vscode.TextDocument, cancellation: vscode.CancellationToken): Promise<ILintMessage[]> {
+        let [linterPath, linterArgs] = this.getLinterPathAndArgs(document);
+        return new Promise<ILintMessage[]>((resolve, reject) => {
+            this.run(linterPath, linterArgs, document, this.workspaceRootPath, cancellation).then(messages => {
+                messages.forEach(msg => {
+                    msg.severity = this.parseMessagesSeverity(msg.type, this.pythonSettings.linting[`${this.Id}CategorySeverity`]);
+                    msg.code = msg.type;
+                });
+
+                resolve(messages);
+            }, reject);
+        });
+    }
+
 
     protected parseMessagesSeverity(error: string, categorySeverity: any): LintMessageSeverity {
         if (categorySeverity[error]) {
