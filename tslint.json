@@ -22,6 +22,7 @@
         "no-parameter-properties": false,
         "no-reserved-keywords": false,
         "newline-before-return": false,
-        "export-name": false
+        "export-name": false,
+        "align": false
     }
 }

@@ -8,12 +8,8 @@
 const gulp = require('gulp');
 const filter = require('gulp-filter');
 const es = require('event-stream');
-const gulptslint = require('gulp-tslint');
-const gulpeslint = require('gulp-eslint');
 const tsfmt = require('typescript-formatter');
 const tslint = require('tslint');
-const path = require('path');
-const fs = require('fs');
 
 /**
  * Hygiene works by creating cascading subsets of all our files and
@@ -31,20 +27,18 @@ const all = [
 
 const eolFilter = [
     '**',
-    '!ThirdPartyNotices.txt',
-    '!LICENSE.txt',
-    '!extensions/**/out/**',
-    '!test/smoke/out/**',
+    '!.editorconfig',
+    '!.eslintrc',
+    '!.gitignore',
+    '!.gitmodules',
+    '!.jshintignore',
+    '!.jshintrc',
+    '!.npmrc',
+    '!.vscodeignore',
+    '!LICENSE',
+    '!webpack.config.js',
     '!**/node_modules/**',
-    '!**/fixtures/**',
-    '!**/*.{svg,exe,png,bmp,scpt,bat,cmd,cur,ttf,woff,eot}',
-    '!build/{lib,tslintRules}/**/*.js',
-    '!build/monaco/**',
-    '!build/win32/**',
-    '!build/**/*.sh',
-    '!build/tfs/**/*.js',
-    '!**/Dockerfile',
-    '!build/**/*',
+    '!**/*.{svg,exe,png,bmp,scpt,bat,cmd,cur,ttf,woff,eot,txt,md,json,yml}',
     '!out/**/*',
     '!images/**/*',
     '!docs/**/*',
@@ -53,130 +47,29 @@ const eolFilter = [
     '!resources/**/*',
     '!snippets/**/*',
     '!syntaxes/**/*',
-    '!typings/**/*',
+    '!**/typings/**/*',
 ];
 
 const indentationFilter = [
-    '**',
-    '!ThirdPartyNotices.txt',
-    '!**/*.md',
-    '!**/*.ps1',
-    '!**/*.template',
-    '!**/*.yml',
-    '!**/lib/**',
-    '!extensions/**/*.d.ts',
-    '!src/typings/**/*.d.ts',
-    '!src/vs/*/**/*.d.ts',
-    '!**/*.d.ts.recipe',
-    '!test/assert.js',
-    '!**/package.json',
-    '!**/npm-shrinkwrap.json',
-    '!**/octicons/**',
-    '!**/vs/base/common/marked/raw.marked.js',
-    '!**/vs/base/common/winjs.base.raw.js',
-    '!**/vs/base/node/terminateProcess.sh',
-    '!**/vs/nls.js',
-    '!**/vs/css.js',
-    '!**/vs/loader.js',
-    '!extensions/**/snippets/**',
-    '!extensions/**/syntaxes/**',
-    '!extensions/**/themes/**',
-    '!extensions/**/colorize-fixtures/**',
-    '!extensions/vscode-api-tests/testWorkspace/**',
-    '!build/**/*',
-    '!out/**/*',
-    '!images/**/*',
-    '!docs/**/*',
-    '!.vscode/**/*',
-    '!pythonFiles/**/*',
-    '!resources/**/*',
-    '!snippets/**/*',
-    '!syntaxes/**/*',
-    '!typings/**/*',
-];
-
-const copyrightFilter = [
-    '**',
-    '!**/*.desktop',
-    '!**/*.json',
-    '!**/*.html',
-    '!**/*.template',
-    '!**/*.md',
-    '!**/*.bat',
-    '!**/*.cmd',
-    '!**/*.xml',
-    '!**/*.sh',
-    '!**/*.txt',
-    '!**/*.xpm',
-    '!**/*.opts',
-    '!**/*.disabled',
-    '!build/**/*.init',
-    '!resources/win32/bin/code.js',
-    '!extensions/markdown/media/tomorrow.css',
-    '!extensions/html/server/src/modes/typescript/*',
-    '!build/**/*',
-    '!out/**/*',
-    '!images/**/*',
-    '!docs/**/*',
-    '!.vscode/**/*',
-    '!pythonFiles/**/*',
-    '!resources/**/*',
-    '!snippets/**/*',
-    '!syntaxes/**/*',
-    '!typings/**/*',
-];
-
-const eslintFilter = [
-    'src/**/*.js',
-    'build/gulpfile.*.js',
-    '!src/vs/loader.js',
-    '!src/vs/css.js',
-    '!src/vs/nls.js',
-    '!src/vs/css.build.js',
-    '!src/vs/nls.build.js',
-    '!src/**/winjs.base.raw.js',
-    '!src/**/raw.marked.js',
-    '!**/test/**',
-    '!build/**/*',
-    '!out/**/*',
-    '!images/**/*',
-    '!docs/**/*',
-    '!.vscode/**/*',
-    '!pythonFiles/**',
-    '!resources/**',
-    '!snippets/**',
-    '!syntaxes/**',
-    '!typings/**',
+    'src/**/*.ts',
+    '!**/typings/**/*',
 ];
 
 const tslintFilter = [
     'src/**/*.ts',
     'test/**/*.ts',
-    'extensions/**/*.ts',
-    '!**/fixtures/**',
-    '!**/typings/**',
+    '!webpack.config.js',
     '!**/node_modules/**',
-    '!extensions/typescript/test/colorize-fixtures/**',
-    '!extensions/vscode-api-tests/testWorkspace/**',
-    '!extensions/**/*.test.ts',
-    '!build/**',
-    '!out/**',
-    '!images/**',
-    '!docs/**',
-    '!.vscode/**',
-    '!pythonFiles/**',
-    '!resources/**',
-    '!snippets/**',
-    '!syntaxes/**',
-    '!typings/**',
+    '!out/**/*',
+    '!images/**/*',
+    '!docs/**/*',
+    '!.vscode/**/*',
+    '!pythonFiles/**/*',
+    '!resources/**/*',
+    '!snippets/**/*',
+    '!syntaxes/**/*',
+    '!**/typings/**/*',
 ];
-
-const copyrightHeader = [
-    '/*---------------------------------------------------------------------------------------------',
-    ' *  Copyright (c) Microsoft Corporation. All rights reserved.',
-    ' *  Licensed under the MIT License. See License.txt in the project root for license information.',
-    ' *--------------------------------------------------------------------------------------------*/'
-].join('\n');
 
 function reportFailures(failures) {
     failures.forEach(failure => {
@@ -185,34 +78,11 @@ function reportFailures(failures) {
         const line = position.lineAndCharacter ? position.lineAndCharacter.line : position.line;
         const character = position.lineAndCharacter ? position.lineAndCharacter.character : position.character;
 
-        console.error(`${name}:${line + 1}:${character + 1}:${failure.failure}`);
+        // Output in format similar to tslint for the linter to pickup
+        console.error(`ERROR: (${failure.ruleName}) ${name}[${line + 1}, ${character + 1}]: ${failure.failure}`);
+        // console.error(`${name}:${line + 1}:${character + 1}:${failure.failure}`);
     });
 }
-
-gulp.task('eslint', () => {
-    return gulp.src(all, {
-            base: '.'
-        })
-        .pipe(filter(eslintFilter))
-        .pipe(gulpeslint('.eslintrc'))
-        .pipe(gulpeslint.formatEach('compact'))
-        .pipe(gulpeslint.failAfterError());
-});
-
-gulp.task('tslint', () => {
-    const options = {
-        summarizeFailureOutput: true
-    };
-
-    return gulp.src(all, {
-            base: '.'
-        })
-        .pipe(filter(tslintFilter))
-        .pipe(gulptslint({
-            rulesDirectory: 'build/lib/tslint'
-        }))
-        .pipe(gulptslint.report(reportFailures, options));
-});
 
 const hygiene = exports.hygiene = (some, options) => {
     options = options || {};
@@ -234,23 +104,13 @@ const hygiene = exports.hygiene = (some, options) => {
                 if (/^\s*$/.test(line)) {
                     // empty or whitespace lines are OK
                 } else if (/^[\t]*[^\s]/.test(line)) {
-                    // good indent
+                    console.error(file.relative + '(' + (i + 1) + ',1): Bad whitespace indentation');
+                    errorCount++;
                 } else if (/^[\t]* \*/.test(line)) {
-                    // block comment using an extra space
-                } else {
                     console.error(file.relative + '(' + (i + 1) + ',1): Bad whitespace indentation');
                     errorCount++;
                 }
             });
-
-        this.emit('data', file);
-    });
-
-    const copyrights = es.through(function (file) {
-        if (file.contents.toString('utf8').indexOf(copyrightHeader) !== 0) {
-            console.error(file.relative + ': Missing or bad copyright statement');
-            errorCount++;
-        }
 
         this.emit('data', file);
     });
@@ -278,8 +138,7 @@ const hygiene = exports.hygiene = (some, options) => {
     const tsl = es.through(function (file) {
         const configuration = tslint.Configuration.findConfiguration(null, '.');
         const options = {
-            formatter: 'json',
-            // rulesDirectory: ['node_modules/tslint-microsoft-contrib', 'node_modules/tslint-eslint-rules']
+            formatter: 'json'
         };
         const contents = file.contents.toString('utf8');
         const linter = new tslint.Linter(options);
@@ -303,9 +162,9 @@ const hygiene = exports.hygiene = (some, options) => {
         })
         .pipe(filter(f => !f.stat.isDirectory()))
         .pipe(filter(eolFilter))
-        .pipe(options.skipEOL ? es.through() : eol)
-        .pipe(filter(indentationFilter));
-    // .pipe(indentation)
+        .pipe(options.skipEOL ? es.through() : eol);
+    // .pipe(filter(indentationFilter))
+    // .pipe(indentation);
     // .pipe(filter(copyrightFilter))
     // .pipe(copyrights);
 
@@ -314,16 +173,10 @@ const hygiene = exports.hygiene = (some, options) => {
         // .pipe(formatting)
         .pipe(tsl);
 
-    // const javascript = result
-    //     .pipe(filter(eslintFilter))
-    //     .pipe(gulpeslint('.eslintrc'))
-    //     .pipe(gulpeslint.formatEach('compact'))
-    //     .pipe(gulpeslint.failAfterError());
-
-    return es.merge(typescript)
+    return typescript
         .pipe(es.through(null, function () {
             if (errorCount > 0) {
-                this.emit('error', 'Hygiene failed with ' + errorCount + ' errors. Check \'build/gulpfile.hygiene.js\'.');
+                this.emit('error', 'Hygiene failed with ' + errorCount + ' errors. Check \'gulpfile.js\'.');
             } else {
                 this.emit('end');
             }

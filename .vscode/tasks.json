@@ -1,53 +1,51 @@
-// // Available variables which can be used inside of strings.
-// // ${workspaceRoot}: the root folder of the team
-// // ${file}: the current opened file
-// // ${fileBasename}: the current opened file's basename
-// // ${fileDirname}: the current opened file's dirname
-// // ${fileExtname}: the current opened file's extension
-// // ${cwd}: the current working directory of the spawned process
+// Available variables which can be used inside of strings.
+// ${workspaceRoot}: the root folder of the team
+// ${file}: the current opened file
+// ${fileBasename}: the current opened file's basename
+// ${fileDirname}: the current opened file's dirname
+// ${fileExtname}: the current opened file's extension
+// ${cwd}: the current working directory of the spawned process
 
-// // A task runner that calls a custom npm script that compiles the extension.
-// {
-// 	"version": "0.1.0",
-
-// 	// we want to run npm
-// 	"command": "npm",
-
-// 	// the command is a shell script
-// 	"isShellCommand": true,
-
-// 	// show the output window only if unrecognized errors occur.
-// 	"showOutput": "silent",
-
-// 	// we run the custom script "compile" as defined in package.json
-// 	"args": ["run", "compile", "--loglevel", "silent"],
-
-// 	// The tsc compiler is started in watching mode
-// 	"isWatching": true,
-
-// 	// use the standard tsc in watch mode problem matcher to find compile problems in the output.
-// 	"problemMatcher": "$tsc-watch"
-// }
+// A task runner that calls a custom npm script that compiles the extension.
 {
-    "version": "0.1.0",
+    "version": "2.0.0",
+    "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+    },
     "tasks": [{
-            "isShellCommand": true,
-            "args": [
-                "run", "compile", "--loglevel", "silent"
-            ],
+            "label": "compile",
+            "type": "npm",
+            "script": "compile",
+            "group": "build",
             "isBackground": true,
-            "command": "npm",
-            "taskName": "build",
-            "showOutput": "silent",
-            "isBuildCommand": true,
             "problemMatcher": [
-                "$tsc-watch"
+                "$tsc",
+                {
+                    "base": "$tslint5",
+                    "fileLocation": "relative"
+                }
             ]
         },
         {
-            "command": "npm",
+            "type": "npm",
             "script": "lint",
-            "taskName": "lint",
+            "problemMatcher": {
+                "base": "$tslint5",
+                "fileLocation": "relative"
+            }
+        },
+        {
+            "type": "npm",
+            "script": "watch",
+            "isBackground": true,
+            "problemMatcher": "$tsc-watch"
+        },
+        {
+            "type": "gulp",
+            "task": "hygiene",
             "problemMatcher": {
                 "base": "$tslint5",
                 "fileLocation": "relative"
