@@ -74,6 +74,15 @@ suite('Unit Tests (nosetest)', () => {
         }).then(done).catch(done);
     });
 
+    test('Check that nameToRun in testSuits has class name after : (single test file)', done => {
+        pythonSettings.unitTest.nosetestArgs = [
+        ];
+        testManager = new nose.TestManager(UNITTEST_SINGLE_TEST_FILE_PATH, outChannel);
+        testManager.discoverTests(true, true).then(tests => {
+            assert.equal(tests.testSuits.every(t => t.testSuite.name === t.testSuite.nameToRun.split(":")[1]), true, 'Suite name does not match class name');
+        }).then(done).catch(done);
+    });
+
     test('Discover Tests (pattern = test_)', done => {
         pythonSettings.unitTest.nosetestArgs = [
 
