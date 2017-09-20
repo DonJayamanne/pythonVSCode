@@ -1,8 +1,8 @@
 "use strict";
 import * as child_process from 'child_process';
 import * as path from "path";
-import { IInterpreterProvider, PythonInterpreter } from './contracts';
-import { IS_WINDOWS } from "../../common/utils";
+import { IInterpreterProvider, PythonInterpreter } from '../contracts';
+import { IS_WINDOWS } from "../../../common/utils";
 
 // where to find the Python binary within a conda env
 const CONDA_RELATIVE_PY_PATH = IS_WINDOWS ? ['python.exe'] : ['bin', 'python'];

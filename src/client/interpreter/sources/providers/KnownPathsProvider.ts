@@ -1,13 +1,13 @@
 "use strict";
 import * as path from "path";
-import { IInterpreterProvider } from './contracts';
-import { fsExistsAsync, IS_WINDOWS } from "../../common/utils";
+import { IInterpreterProvider } from '../contracts';
+import { fsExistsAsync, IS_WINDOWS } from "../../../common/utils";
 import { PythonInterpreter } from '../index';
-import { lookForInterpretersInDirectory, getFirstNonEmptyLineFromMultilineString } from './helpers';
+import { lookForInterpretersInDirectory, getFirstNonEmptyLineFromMultilineString } from '../helpers';
 import * as child_process from 'child_process';
 import * as _ from 'lodash';
 import * as untildify from 'untildify';
-import { PythonSettings } from '../../common/configSettings';
+import { PythonSettings } from '../../../common/configSettings';
 
 const settings = PythonSettings.getInstance();
 

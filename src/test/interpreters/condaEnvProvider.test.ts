@@ -2,7 +2,7 @@ import { initialize, setPythonExecutable } from '../initialize';
 import * as assert from 'assert';
 import * as path from 'path';
 import { IS_WINDOWS } from '../../client/common/utils';
-import { CondaEnvProvider } from '../../client/interpreter/sources/condaEnvProvider';
+import { CondaEnvProvider } from '../../client/interpreter/sources/providers/condaEnvProvider';
 import * as settings from '../../client/common/configSettings';
 
 let pythonSettings = settings.PythonSettings.getInstance();

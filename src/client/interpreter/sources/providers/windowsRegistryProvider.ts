@@ -1,5 +1,5 @@
-import { Architecture, Hive, IRegistry } from '../../common/registry';
-import { IInterpreterProvider } from './contracts';
+import { Architecture, Hive, IRegistry } from '../../../common/registry';
+import { IInterpreterProvider } from '../contracts';
 import * as path from 'path';
 import * as _ from 'lodash';
 import { PythonInterpreter } from '../index';

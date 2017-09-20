@@ -4,11 +4,11 @@ import { fixInterpreterPath, fixInterpreterDisplayName } from './helpers';
 import { IInterpreterProvider } from './contracts';
 import { IS_WINDOWS, Is_64Bit, arePathsSame } from '../../common/utils';
 import { RegistryImplementation } from '../../common/registry';
-import { CondaEnvProvider } from './condaEnvProvider';
+import { CondaEnvProvider } from './providers/condaEnvProvider';
 import { PythonInterpreter } from '../index';
-import { VirtualEnvProvider, getKnownSearchPathsForVirtualEnvs } from './virtualEnvProvider';
-import { KnownPathsProvider, getKnownSearchPathsForInterpreters } from './KnownPathsProvider';
-import { WindowsRegistryProvider } from './windowsRegistryProvider';
+import { VirtualEnvProvider, getKnownSearchPathsForVirtualEnvs } from './providers/virtualEnvProvider';
+import { KnownPathsProvider, getKnownSearchPathsForInterpreters } from './providers/KnownPathsProvider';
+import { WindowsRegistryProvider } from './providers/windowsRegistryProvider';
 export * from './contracts';
 
 export class PythonInterpreterProvider implements IInterpreterProvider {

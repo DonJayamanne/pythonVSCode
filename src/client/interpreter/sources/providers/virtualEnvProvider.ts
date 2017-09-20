@@ -1,12 +1,12 @@
 "use strict";
 import * as path from "path";
 import * as vscode from 'vscode';
-import { IInterpreterProvider } from './contracts';
-import { IS_WINDOWS, fsReaddirAsync } from "../../common/utils";
+import { IInterpreterProvider } from '../contracts';
+import { IS_WINDOWS, fsReaddirAsync } from "../../../common/utils";
 import { PythonInterpreter } from '../index';
 import * as untildify from 'untildify';
-import { lookForInterpretersInDirectory } from './helpers';
-import * as settings from "./../../common/configSettings";
+import { lookForInterpretersInDirectory } from '../helpers';
+import * as settings from "./../../../common/configSettings";
 import * as _ from 'lodash';
 
 export class VirtualEnvProvider implements IInterpreterProvider {
