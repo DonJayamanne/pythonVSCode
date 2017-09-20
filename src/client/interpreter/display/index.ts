@@ -71,7 +71,6 @@ export class InterpreterDisplay implements Disposable {
     private getFullyQualifiedPathToInterpreter(pythonPath: string) {
         return new Promise<string>(resolve => {
             child_process.execFile(pythonPath, ["-c", "import sys;print(sys.executable)"], (_, stdout) => {
-                console.error(stdout);
                 resolve(getFirstNonEmptyLineFromMultilineString(stdout));
             });
         })
