@@ -79,6 +79,9 @@ suite('Unit Tests (nosetest)', () => {
         ];
         testManager = new nose.TestManager(UNITTEST_SINGLE_TEST_FILE_PATH, outChannel);
         testManager.discoverTests(true, true).then(tests => {
+            assert.equal(tests.testFiles.length, 2, 'Incorrect number of test files');
+            assert.equal(tests.testFunctions.length, 6, 'Incorrect number of test functions');
+            assert.equal(tests.testSuits.length, 2, 'Incorrect number of test suites');
             assert.equal(tests.testSuits.every(t => t.testSuite.name === t.testSuite.nameToRun.split(":")[1]), true, 'Suite name does not match class name');
         }).then(done).catch(done);
     });
