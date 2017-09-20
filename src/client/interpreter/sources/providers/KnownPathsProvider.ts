@@ -21,8 +21,8 @@ export class KnownPathsProvider implements IInterpreterProvider {
         const promises = this.knownSearchPaths.map(dir => this.getInterpretersInDirectory(dir));
         const currentPythonInterpreter = this.getInterpreter(settings.pythonPath).then(interpreter => [interpreter]);
         const defaultPythonInterpreter = this.getInterpreter('python').then(interpreter => [interpreter]);
-        const python3 = this.getInterpreter('python3').then(interpreter => interpreter.indexOf('/anaconda') > 0 ? [] : [interpreter]);
-        const python2 = this.getInterpreter('python2').then(interpreter => interpreter.indexOf('/anaconda') > 0 ? [] : [interpreter]);
+        const python3 = this.getInterpreter('python3').then(interpreter => [interpreter]);
+        const python2 = this.getInterpreter('python2').then(interpreter => [interpreter]);
         return Promise.all<string[]>(promises.concat(currentPythonInterpreter, defaultPythonInterpreter, python3, python2))
             .then(listOfInterpreters => _.flatten(listOfInterpreters))
             .then(interpreters => interpreters.filter(item => item.length > 0))

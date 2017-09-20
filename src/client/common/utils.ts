@@ -409,3 +409,16 @@ export function arePathsSame(path1: string, path2: string) {
     path2 = IS_WINDOWS ? path2.replace(/\//g, "\\") : path2;
     return path1.toUpperCase() === path2.toUpperCase();
 }
+
+export function areBasePathsSame(path1: string, path2: string) {
+    path1 = IS_WINDOWS ? path1.replace(/\//g, "\\") : path1;
+    path2 = IS_WINDOWS ? path2.replace(/\//g, "\\") : path2;
+    return path.dirname(path1).toUpperCase() === path.dirname(path2).toUpperCase();
+}
+export function getInterpreterDisplayName(pythonPath: string) {
+    return execPythonFile(pythonPath, ['--version'], __dirname, true)
+        .then(version => {
+            version = version.split(/\r?\n/g).map(line => line.trim()).filter(line => line.length > 0).join('');
+            return version;
+        });
+}

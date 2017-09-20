@@ -4,6 +4,9 @@ import * as vscode from "vscode";
 import * as settings from "./../common/configSettings";
 import * as utils from "../common/utils";
 import { activate, PythonInterpreter, PythonInterpreterProvider } from '../interpreter';
+import { VirtualEnvironmentManager } from "../interpreter/virtualEnvs/index";
+import { VEnv } from "../interpreter/virtualEnvs/venv";
+import { VirtualEnv } from "../interpreter/virtualEnvs/virtualEnv";
 
 
 interface PythonPathQuickPickItem extends vscode.QuickPickItem {
@@ -53,8 +56,8 @@ function presentQuickPickOfSuggestedPythonPaths() {
         matchOnDescription: true,
         placeHolder: `current: ${currentPythonPath}`
     };
-
-    new PythonInterpreterProvider().getInterpreters().then(interpreters => {
+    const virtualEnvMgr = new VirtualEnvironmentManager([new VEnv(), new VirtualEnv()]);
+    new PythonInterpreterProvider(virtualEnvMgr).getInterpreters().then(interpreters => {
         const suggestions = interpreters
             .sort((a, b) => a.displayName > b.displayName ? 1 : -1)
             .map(suggestionToQuickPickItem);

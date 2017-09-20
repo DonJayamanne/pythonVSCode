@@ -1,16 +1,17 @@
 "use strict";
-import * as path from "path";
+import { VirtualEnvironmentManager } from '../../virtualEnvs';
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { IInterpreterProvider } from '../contracts';
-import { IS_WINDOWS, fsReaddirAsync } from "../../../common/utils";
+import { IS_WINDOWS, fsReaddirAsync, getInterpreterDisplayName } from "../../../common/utils";
 import { PythonInterpreter } from '../index';
 import * as untildify from 'untildify';
 import { lookForInterpretersInDirectory } from '../helpers';
-import * as settings from "./../../../common/configSettings";
+import * as settings from './../../../common/configSettings';
 import * as _ from 'lodash';
 
 export class VirtualEnvProvider implements IInterpreterProvider {
-    public constructor(private knownSearchPaths: string[]) { }
+    public constructor(private knownSearchPaths: string[], private virtualEnvMgr: VirtualEnvironmentManager) { }
     public getInterpreters() {
         return this.suggestionsFromKnownVenvs();
     }
@@ -31,14 +32,19 @@ export class VirtualEnvProvider implements IInterpreterProvider {
                 return Promise.all(promises);
             })
             .then(pathsWithInterpreters => _.flatten(pathsWithInterpreters))
-            .then(interpreters => interpreters.map(interpreter => this.getVirtualEnvDetails(interpreter)));
+            .then(interpreters => Promise.all(interpreters.map(interpreter => this.getVirtualEnvDetails(interpreter))));
     }
-    private getVirtualEnvDetails(interpreter: string): PythonInterpreter {
-        let venvName = this.getVirtualEnvironmentRootDirectory(interpreter);
-        return {
-            displayName: `${venvName} - ${path.basename(interpreter)}`,
-            path: interpreter
-        };
+    private async getVirtualEnvDetails(interpreter: string): Promise<PythonInterpreter> {
+        const displayName = getInterpreterDisplayName(interpreter).catch(() => path.basename(interpreter));
+        const virtualEnv = this.virtualEnvMgr.detect(interpreter);
+        return Promise.all([displayName, virtualEnv])
+            .then(([displayName, virtualEnv]) => {
+                const virtualEnvSuffix = virtualEnv ? virtualEnv.name : this.getVirtualEnvironmentRootDirectory(interpreter);
+                return {
+                    displayName: `${displayName} (${virtualEnvSuffix})`.trim(),
+                    path: interpreter
+                };
+            });
     }
     private getVirtualEnvironmentRootDirectory(interpreter: string) {
         return path.basename(path.dirname(path.dirname(interpreter)));

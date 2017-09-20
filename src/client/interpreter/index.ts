@@ -13,7 +13,7 @@ let display: InterpreterDisplay;
 export function activate(): Disposable {
     const virtualEnvMgr = new VirtualEnvironmentManager([new VEnv(), new VirtualEnv()]);
     const statusBar = window.createStatusBarItem(StatusBarAlignment.Left);
-    const interpreterProvider = new PythonInterpreterProvider();
+    const interpreterProvider = new PythonInterpreterProvider(virtualEnvMgr);
     display = new InterpreterDisplay(statusBar, interpreterProvider, virtualEnvMgr);
     settings.addListener('change', onConfigChanged);
     display.refresh();
