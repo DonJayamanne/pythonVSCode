@@ -104,6 +104,7 @@ export interface IFormattingSettings {
     yapfArgs: string[];
     formatOnSave: boolean;
     outputWindow: string;
+    indentNewlineInParams: boolean;
 }
 export interface IAutoCompeteSettings {
     addBrackets: boolean;
@@ -235,7 +236,8 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
             outputWindow: 'python',
             provider: 'autopep8',
             yapfArgs: [], yapfPath: 'yapf',
-            formatOnSave: false
+            formatOnSave: false,
+            indentNewlineInParams: false
         };
         this.formatting.autopep8Path = getAbsolutePath(systemVariables.resolveAny(this.formatting.autopep8Path), workspaceRoot);
         this.formatting.yapfPath = getAbsolutePath(systemVariables.resolveAny(this.formatting.yapfPath), workspaceRoot);
