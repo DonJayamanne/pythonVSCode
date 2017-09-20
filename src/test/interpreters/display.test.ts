@@ -17,7 +17,7 @@ let pythonSettings = settings.PythonSettings.getInstance();
 const originalPythonPath = pythonSettings.pythonPath;
 let disposable = setPythonExecutable(pythonSettings);
 
-suite('Interpreters', () => {
+suite('Interpreters Display', () => {
     suiteSetup(done => {
         initialize()
             .then(() => done())
