@@ -71,16 +71,44 @@
 	],
 	"main": "./out/client/extension",
 	"contributes": {
-		"snippets": [{
-			"language": "python",
-			"path": "./snippets/python.json"
-		}],
-		"keybindings": [{
-			"command": "jupyter.runSelectionLine",
-			"key": "ctrl+alt+enter",
-			"when": "editorFocus && !replaceActive && !searchViewletVisible && !findWidgetVisible"
-		}],
-		"commands": [{
+		"languages": [
+			{
+				"id": "testOutput",
+				"aliases": [
+					"vscode-output-colorizer",
+					"testOutput"
+				],
+				"extensions": [
+					".log"
+				],
+				"configuration": "./syntaxes/test.configuration.json",
+				"mimetypes": [
+					"text/x-code-output"
+				]
+			}
+		],
+		"grammars": [
+			{
+				"language": "testOutput",
+				"scopeName": "testOutput.log",
+				"path": "./syntaxes/test.tmLanguage"
+			}
+		],
+		"snippets": [
+			{
+				"language": "python",
+				"path": "./snippets/python.json"
+			}
+		],
+		"keybindings": [
+			{
+				"command": "jupyter.runSelectionLine",
+				"key": "ctrl+alt+enter",
+				"when": "editorFocus && !replaceActive && !searchViewletVisible && !findWidgetVisible"
+			}
+		],
+		"commands": [
+			{
 				"command": "python.sortImports",
 				"title": "Sort Imports",
 				"category": "Python Refactor"
@@ -207,7 +235,8 @@
 			}
 		],
 		"menus": {
-			"editor/context": [{
+			"editor/context": [
+				{
 					"command": "python.refactorExtractVariable",
 					"title": "Refactor: Extract Variable",
 					"group": "Refactor",
@@ -246,7 +275,8 @@
 					"group": "Python"
 				}
 			],
-			"explorer/context": [{
+			"explorer/context": [
+				{
 					"when": "resourceLangId == python",
 					"command": "python.runtests",
 					"group": "Python"
@@ -263,218 +293,656 @@
 				}
 			]
 		},
-		"debuggers": [{
-			"type": "python",
-			"label": "Python",
-			"languages": [
-				"python"
-			],
-			"startSessionCommand": "python.python-debug.startSession",
-			"enableBreakpointsFor": {
-				"languageIds": [
-					"python",
-					"html"
-				]
+		"debuggers": [
+			{
+				"type": "pydev",
+				"label": "Pydev Debug",
+				"program": "./out/pydev/pythonDebug.js",
+				"runtime": "node",
+				"variables": {
+					"AskForProgramName": "extension.pydev-debug.getProgramName"
+				},
+				"configurationSnippets": [
+					{
+						"label": "Pydev Debug: Launch",
+						"description": "A new configuration for launching a pydev debug program",
+						"body": {
+							"type": "pydev",
+							"request": "launch",
+							"name": "pydev test",
+							"program": "$${{file}}",
+							"stopOnEntry": true,
+							"debugServer": 4711,
+							"trace": true
+						}
+					}
+				],
+				"configurationAttributes": {
+					"launch": {
+						"required": [
+							"program"
+						],
+						"properties": {
+							"program": {
+								"type": "string",
+								"description": "Absolute path to a text file.",
+								"default": "${workspaceRoot}/${command:AskForProgramName}"
+							},
+							"stopOnEntry": {
+								"type": "boolean",
+								"description": "Automatically stop after launch.",
+								"default": true
+							},
+							"trace": {
+								"type": "boolean",
+								"description": "Enable logging of the Debug Adapter Protocol.",
+								"default": true
+							}
+						}
+					}
+				},
+				"initialConfigurations": "extension.pydev-debug.provideInitialConfigurations"
 			},
-			"aiKey": "fce7a3d5-4665-4404-b786-31a6306749a6",
-			"program": "./out/client/debugger/Main.js",
-			"runtime": "node",
-			"configurationSnippets": [{
-					"label": "%python.snippet.launch.standard.label%",
-					"description": "%python.snippet.launch.standard.description%",
-					"body": {
+			{
+				"type": "python",
+				"label": "Python",
+				"languages": [
+					"python"
+				],
+				"startSessionCommand": "python.python-debug.startSession",
+				"enableBreakpointsFor": {
+					"languageIds": [
+						"python",
+						"html"
+					]
+				},
+				"aiKey": "fce7a3d5-4665-4404-b786-31a6306749a6",
+				"program": "./out/client/debugger/Main.js",
+				"runtime": "node",
+				"configurationSnippets": [
+					{
+						"label": "%python.snippet.launch.standard.label%",
+						"description": "%python.snippet.launch.standard.description%",
+						"body": {
+							"name": "Python",
+							"type": "python",
+							"request": "launch",
+							"stopOnEntry": true,
+							"pythonPath": "^\"\\${config:python.pythonPath}\"",
+							"program": "^\"\\${file}\"",
+							"cwd": "^\"\\${workspaceRoot}\"",
+							"env": {},
+							"envFile": "^\"\\${workspaceRoot}/.env\"",
+							"debugOptions": [
+								"WaitOnAbnormalExit",
+								"WaitOnNormalExit",
+								"RedirectOutput"
+							]
+						}
+					},
+					{
+						"label": "%python.snippet.launch.pyspark.label%",
+						"description": "%python.snippet.launch.pyspark.description%",
+						"body": {
+							"name": "PySpark",
+							"type": "python",
+							"request": "launch",
+							"stopOnEntry": true,
+							"osx": {
+								"pythonPath": "^\"\\${env:SPARK_HOME}/bin/spark-submit\""
+							},
+							"windows": {
+								"pythonPath": "^\"\\${env:SPARK_HOME}/bin/spark-submit.cmd\""
+							},
+							"linux": {
+								"pythonPath": "^\"\\${env:SPARK_HOME}/bin/spark-submit\""
+							},
+							"program": "^\"\\${file}\"",
+							"cwd": "^\"\\${workspaceRoot}\"",
+							"env": {},
+							"envFile": "^\"\\${workspaceRoot}/.env\"",
+							"debugOptions": [
+								"WaitOnAbnormalExit",
+								"WaitOnNormalExit",
+								"RedirectOutput"
+							]
+						}
+					},
+					{
+						"label": "%python.snippet.launch.module.label%",
+						"description": "%python.snippet.launch.module.description%",
+						"body": {
+							"name": "Python Module",
+							"type": "python",
+							"request": "launch",
+							"stopOnEntry": true,
+							"pythonPath": "^\"\\${config:python.pythonPath}\"",
+							"module": "module.name",
+							"cwd": "^\"\\${workspaceRoot}\"",
+							"env": {},
+							"envFile": "^\"\\${workspaceRoot}/.env\"",
+							"debugOptions": [
+								"WaitOnAbnormalExit",
+								"WaitOnNormalExit",
+								"RedirectOutput"
+							]
+						}
+					},
+					{
+						"label": "%python.snippet.launch.terminal.label%",
+						"description": "%python.snippet.launch.terminal.description%",
+						"body": {
+							"name": "Integrated Terminal/Console",
+							"type": "python",
+							"request": "launch",
+							"stopOnEntry": true,
+							"pythonPath": "^\"\\${config:python.pythonPath}\"",
+							"program": "^\"\\${file}\"",
+							"cwd": "",
+							"console": "integratedTerminal",
+							"env": {},
+							"envFile": "^\"\\${workspaceRoot}/.env\"",
+							"debugOptions": [
+								"WaitOnAbnormalExit",
+								"WaitOnNormalExit"
+							]
+						}
+					},
+					{
+						"label": "%python.snippet.launch.externalTerminal.label%",
+						"description": "%python.snippet.launch.externalTerminal.description%",
+						"body": {
+							"name": "External Terminal/Console",
+							"type": "python",
+							"request": "launch",
+							"stopOnEntry": true,
+							"pythonPath": "^\"\\${config:python.pythonPath}\"",
+							"program": "^\"\\${file}\"",
+							"cwd": "",
+							"console": "externalTerminal",
+							"env": {},
+							"envFile": "^\"\\${workspaceRoot}/.env\"",
+							"debugOptions": [
+								"WaitOnAbnormalExit",
+								"WaitOnNormalExit"
+							]
+						}
+					},
+					{
+						"label": "%python.snippet.launch.django.label%",
+						"description": "%python.snippet.launch.django.description%",
+						"body": {
+							"name": "Django",
+							"type": "python",
+							"request": "launch",
+							"stopOnEntry": true,
+							"pythonPath": "^\"\\${config:python.pythonPath}\"",
+							"program": "^\"\\${workspaceRoot}/manage.py\"",
+							"cwd": "^\"\\${workspaceRoot}\"",
+							"args": [
+								"runserver",
+								"--noreload"
+							],
+							"env": {},
+							"envFile": "^\"\\${workspaceRoot}/.env\"",
+							"debugOptions": [
+								"WaitOnAbnormalExit",
+								"WaitOnNormalExit",
+								"RedirectOutput",
+								"DjangoDebugging"
+							]
+						}
+					},
+					{
+						"label": "%python.snippet.launch.flask.label%",
+						"description": "%python.snippet.launch.flask.description%",
+						"body": {
+							"name": "Flask",
+							"type": "python",
+							"request": "launch",
+							"stopOnEntry": false,
+							"pythonPath": "^\"\\${config:python.pythonPath}\"",
+							"program": "fully qualified path fo 'flask' executable. Generally located along with python interpreter",
+							"cwd": "^\"\\${workspaceRoot}\"",
+							"env": {
+								"FLASK_APP": "^\"\\${workspaceRoot}/quickstart/app.py\""
+							},
+							"args": [
+								"run",
+								"--no-debugger",
+								"--no-reload"
+							],
+							"envFile": "^\"\\${workspaceRoot}/.env\"",
+							"debugOptions": [
+								"WaitOnAbnormalExit",
+								"WaitOnNormalExit",
+								"RedirectOutput"
+							]
+						}
+					},
+					{
+						"label": "%python.snippet.launch.flaskOld.label%",
+						"description": "%python.snippet.launch.flaskOld.description%",
+						"body": {
+							"name": "Flask (old)",
+							"type": "python",
+							"request": "launch",
+							"stopOnEntry": false,
+							"pythonPath": "^\"\\${config:python.pythonPath}\"",
+							"program": "^\"\\${workspaceRoot}/run.py\"",
+							"cwd": "^\"\\${workspaceRoot}\"",
+							"args": [],
+							"env": {},
+							"envFile": "^\"\\${workspaceRoot}/.env\"",
+							"debugOptions": [
+								"WaitOnAbnormalExit",
+								"WaitOnNormalExit",
+								"RedirectOutput"
+							]
+						}
+					},
+					{
+						"label": "%python.snippet.launch.pyramid.label%",
+						"description": "%python.snippet.launch.pyramid.description%",
+						"body": {
+							"name": "Pyramid",
+							"type": "python",
+							"request": "launch",
+							"stopOnEntry": true,
+							"pythonPath": "^\"\\${config:python.pythonPath}\"",
+							"cwd": "^\"\\${workspaceRoot}\"",
+							"env": {},
+							"envFile": "^\"\\${workspaceRoot}/.env\"",
+							"args": [
+								"^\"\\${workspaceRoot}/development.ini\""
+							],
+							"debugOptions": [
+								"WaitOnAbnormalExit",
+								"WaitOnNormalExit",
+								"RedirectOutput",
+								"Pyramid"
+							]
+						}
+					},
+					{
+						"label": "%python.snippet.launch.watson.label%",
+						"description": "%python.snippet.launch.watson.description%",
+						"body": {
+							"name": "Watson",
+							"type": "python",
+							"request": "launch",
+							"stopOnEntry": true,
+							"pythonPath": "^\"\\${config:python.pythonPath}\"",
+							"program": "^\"\\${workspaceRoot}/console.py\"",
+							"cwd": "^\"\\${workspaceRoot}\"",
+							"args": [
+								"dev",
+								"runserver",
+								"--noreload=True"
+							],
+							"env": {},
+							"envFile": "^\"\\${workspaceRoot}/.env\"",
+							"debugOptions": [
+								"WaitOnAbnormalExit",
+								"WaitOnNormalExit",
+								"RedirectOutput"
+							]
+						}
+					},
+					{
+						"label": "%python.snippet.launch.scrapy.label%",
+						"description": "%python.snippet.launch.scrapy.description%",
+						"body": {
+							"name": "Scrapy",
+							"type": "python",
+							"request": "launch",
+							"stopOnEntry": true,
+							"pythonPath": "^\"\\${config:python.pythonPath}\"",
+							"program": "~/.virtualenvs/scrapy/bin/scrapy",
+							"cwd": "^\"\\${workspaceRoot}\"",
+							"args": [
+								"crawl",
+								"specs",
+								"-o",
+								"bikes.json"
+							],
+							"console": "integratedTerminal",
+							"env": {},
+							"envFile": "^\"\\${workspaceRoot}/.env\"",
+							"debugOptions": [
+								"WaitOnAbnormalExit",
+								"WaitOnNormalExit"
+							]
+						}
+					},
+					{
+						"label": "%python.snippet.launch.attach.label%",
+						"description": "%python.snippet.launch.attach.description%",
+						"body": {
+							"name": "Attach (Remote Debug)",
+							"type": "python",
+							"request": "attach",
+							"localRoot": "^\"\\${workspaceRoot}\"",
+							"remoteRoot": "^\"\\${workspaceRoot}\"",
+							"port": 3000,
+							"secret": "my_secret",
+							"host": "localhost"
+						}
+					}
+				],
+				"configurationAttributes": {
+					"launch": {
+						"required": [
+							"program"
+						],
+						"properties": {
+							"module": {
+								"type": "string",
+								"description": "Name of the module to be debugged.",
+								"default": ""
+							},
+							"program": {
+								"type": "string",
+								"description": "Absolute path to the program.",
+								"default": "${file}"
+							},
+							"pythonPath": {
+								"type": "string",
+								"description": "Path (fully qualified) to python executable. Defaults to the value in settings.json",
+								"default": "${config:python.pythonPath}"
+							},
+							"args": {
+								"type": "array",
+								"description": "Command line arguments passed to the program",
+								"default": [],
+								"items": {
+									"type": "string"
+								}
+							},
+							"stopOnEntry": {
+								"type": "boolean",
+								"description": "Automatically stop after launch.",
+								"default": true
+							},
+							"externalConsole": {
+								"type": "boolean",
+								"description": "Deprecated: use 'console' attribute instead.",
+								"default": false
+							},
+							"console": {
+								"enum": [
+									"none",
+									"integratedTerminal",
+									"externalTerminal"
+								],
+								"description": "Where to launch the debug target: internal console, integrated terminal, or external terminal.",
+								"default": "none"
+							},
+							"cwd": {
+								"type": "string",
+								"description": "Absolute path to the working directory of the program being debugged. Default is the root directory of the file (leave empty).",
+								"default": ""
+							},
+							"debugOptions": {
+								"type": "array",
+								"description": "Advanced options, view read me for further details.",
+								"items": {
+									"type": "string",
+									"enum": [
+										"WaitOnAbnormalExit",
+										"WaitOnNormalExit",
+										"RedirectOutput",
+										"DebugStdLib",
+										"BreakOnSystemExitZero",
+										"DjangoDebugging",
+										"Sudo",
+										"IgnoreDjangoTemplateWarnings",
+										"Pyramid"
+									]
+								},
+								"default": [
+									"WaitOnAbnormalExit",
+									"WaitOnNormalExit",
+									"RedirectOutput"
+								]
+							},
+							"exceptionHandling": {
+								"description": "List of exception types and how they are handled during debugging (ignore, always break or break only if unhandled).",
+								"properties": {
+									"ignore": {
+										"type": "array",
+										"description": "Never break into these exceptions, e.g. 'copy.Error'",
+										"default": [],
+										"items": {
+											"type": "string"
+										}
+									},
+									"always": {
+										"type": "array",
+										"description": "Always break into these exceptions, e.g. 'copy.Error'",
+										"default": [],
+										"items": {
+											"type": "string"
+										}
+									},
+									"unhandled": {
+										"type": "array",
+										"description": "Break into these exceptions if they aren't handled, e.g. 'copy.Error'",
+										"default": [],
+										"items": {
+											"type": "string"
+										}
+									}
+								}
+							},
+							"env": {
+								"type": "object",
+								"description": "Environment variables defined as a key value pair. Property ends up being the Environment Variable and the value of the property ends up being the value of the Env Variable.",
+								"default": {}
+							},
+							"envFile": {
+								"type": "string",
+								"description": "Absolute path to a file containing environment variable definitions.",
+								"default": ""
+							}
+						}
+					},
+					"attach": {
+						"required": [
+							"localRoot",
+							"remoteRoot"
+						],
+						"properties": {
+							"localRoot": {
+								"type": "string",
+								"description": "Local source root that corrresponds to the 'remoteRoot'.",
+								"default": "${workspaceRoot}"
+							},
+							"remoteRoot": {
+								"type": "string",
+								"description": "The source root of the remote host.",
+								"default": ""
+							},
+							"port": {
+								"type": "number",
+								"description": "Debug port to attach",
+								"default": 0
+							},
+							"host": {
+								"type": "string",
+								"description": "IP Address of the of remote server (default is localhost or use 127.0.0.1).",
+								"default": "localhost"
+							},
+							"secret": {
+								"type": "string",
+								"description": "Secret used to authenticate for remote debugging.",
+								"default": ""
+							}
+						}
+					}
+				},
+				"initialConfigurations": [
+					{
 						"name": "Python",
 						"type": "python",
 						"request": "launch",
 						"stopOnEntry": true,
-						"pythonPath": "^\"\\${config:python.pythonPath}\"",
-						"program": "^\"\\${file}\"",
-						"cwd": "^\"\\${workspaceRoot}\"",
+						"pythonPath": "${config:python.pythonPath}",
+						"program": "${file}",
+						"cwd": "${workspaceRoot}",
 						"env": {},
-						"envFile": "^\"\\${workspaceRoot}/.env\"",
+						"envFile": "${workspaceRoot}/.env",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
 							"WaitOnNormalExit",
 							"RedirectOutput"
 						]
-					}
-				},
-				{
-					"label": "%python.snippet.launch.pyspark.label%",
-					"description": "%python.snippet.launch.pyspark.description%",
-					"body": {
+					},
+					{
 						"name": "PySpark",
 						"type": "python",
 						"request": "launch",
 						"stopOnEntry": true,
 						"osx": {
-							"pythonPath": "^\"\\${env:SPARK_HOME}/bin/spark-submit\""
+							"pythonPath": "${env:SPARK_HOME}/bin/spark-submit"
 						},
 						"windows": {
-							"pythonPath": "^\"\\${env:SPARK_HOME}/bin/spark-submit.cmd\""
+							"pythonPath": "${env:SPARK_HOME}/bin/spark-submit.cmd"
 						},
 						"linux": {
-							"pythonPath": "^\"\\${env:SPARK_HOME}/bin/spark-submit\""
+							"pythonPath": "${env:SPARK_HOME}/bin/spark-submit"
 						},
-						"program": "^\"\\${file}\"",
-						"cwd": "^\"\\${workspaceRoot}\"",
+						"program": "${file}",
+						"cwd": "${workspaceRoot}",
 						"env": {},
-						"envFile": "^\"\\${workspaceRoot}/.env\"",
+						"envFile": "${workspaceRoot}/.env",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
 							"WaitOnNormalExit",
 							"RedirectOutput"
 						]
-					}
-				},
-				{
-					"label": "%python.snippet.launch.module.label%",
-					"description": "%python.snippet.launch.module.description%",
-					"body": {
+					},
+					{
 						"name": "Python Module",
 						"type": "python",
 						"request": "launch",
 						"stopOnEntry": true,
-						"pythonPath": "^\"\\${config:python.pythonPath}\"",
+						"pythonPath": "${config:python.pythonPath}",
 						"module": "module.name",
-						"cwd": "^\"\\${workspaceRoot}\"",
+						"cwd": "${workspaceRoot}",
 						"env": {},
-						"envFile": "^\"\\${workspaceRoot}/.env\"",
+						"envFile": "${workspaceRoot}/.env",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
 							"WaitOnNormalExit",
 							"RedirectOutput"
 						]
-					}
-				},
-				{
-					"label": "%python.snippet.launch.terminal.label%",
-					"description": "%python.snippet.launch.terminal.description%",
-					"body": {
+					},
+					{
 						"name": "Integrated Terminal/Console",
 						"type": "python",
 						"request": "launch",
 						"stopOnEntry": true,
-						"pythonPath": "^\"\\${config:python.pythonPath}\"",
-						"program": "^\"\\${file}\"",
+						"pythonPath": "${config:python.pythonPath}",
+						"program": "${file}",
 						"cwd": "",
 						"console": "integratedTerminal",
 						"env": {},
-						"envFile": "^\"\\${workspaceRoot}/.env\"",
+						"envFile": "${workspaceRoot}/.env",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
 							"WaitOnNormalExit"
 						]
-					}
-				},
-				{
-					"label": "%python.snippet.launch.externalTerminal.label%",
-					"description": "%python.snippet.launch.externalTerminal.description%",
-					"body": {
+					},
+					{
 						"name": "External Terminal/Console",
 						"type": "python",
 						"request": "launch",
 						"stopOnEntry": true,
-						"pythonPath": "^\"\\${config:python.pythonPath}\"",
-						"program": "^\"\\${file}\"",
+						"pythonPath": "${config:python.pythonPath}",
+						"program": "${file}",
 						"cwd": "",
 						"console": "externalTerminal",
 						"env": {},
-						"envFile": "^\"\\${workspaceRoot}/.env\"",
+						"envFile": "${workspaceRoot}/.env",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
 							"WaitOnNormalExit"
 						]
-					}
-				},
-				{
-					"label": "%python.snippet.launch.django.label%",
-					"description": "%python.snippet.launch.django.description%",
-					"body": {
+					},
+					{
 						"name": "Django",
 						"type": "python",
 						"request": "launch",
 						"stopOnEntry": true,
-						"pythonPath": "^\"\\${config:python.pythonPath}\"",
-						"program": "^\"\\${workspaceRoot}/manage.py\"",
-						"cwd": "^\"\\${workspaceRoot}\"",
+						"pythonPath": "${config:python.pythonPath}",
+						"program": "${workspaceRoot}/manage.py",
+						"cwd": "${workspaceRoot}",
 						"args": [
 							"runserver",
 							"--noreload",
 							"--nothreading"
 						],
 						"env": {},
-						"envFile": "^\"\\${workspaceRoot}/.env\"",
+						"envFile": "${workspaceRoot}/.env",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
 							"WaitOnNormalExit",
 							"RedirectOutput",
 							"DjangoDebugging"
 						]
-					}
-				},
-				{
-					"label": "%python.snippet.launch.flask.label%",
-					"description": "%python.snippet.launch.flask.description%",
-					"body": {
+					},
+					{
 						"name": "Flask",
 						"type": "python",
 						"request": "launch",
 						"stopOnEntry": false,
-						"pythonPath": "^\"\\${config:python.pythonPath}\"",
+						"pythonPath": "${config:python.pythonPath}",
 						"program": "fully qualified path fo 'flask' executable. Generally located along with python interpreter",
-						"cwd": "^\"\\${workspaceRoot}\"",
+						"cwd": "${workspaceRoot}",
 						"env": {
-							"FLASK_APP": "^\"\\${workspaceRoot}/quickstart/app.py\""
+							"FLASK_APP": "${workspaceRoot}/quickstart/app.py"
 						},
 						"args": [
 							"run",
 							"--no-debugger",
 							"--no-reload"
 						],
-						"envFile": "^\"\\${workspaceRoot}/.env\"",
+						"envFile": "${workspaceRoot}/.env",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
 							"WaitOnNormalExit",
 							"RedirectOutput"
 						]
-					}
-				},
-				{
-					"label": "%python.snippet.launch.flaskOld.label%",
-					"description": "%python.snippet.launch.flaskOld.description%",
-					"body": {
+					},
+					{
 						"name": "Flask (old)",
 						"type": "python",
 						"request": "launch",
 						"stopOnEntry": false,
-						"pythonPath": "^\"\\${config:python.pythonPath}\"",
-						"program": "^\"\\${workspaceRoot}/run.py\"",
-						"cwd": "^\"\\${workspaceRoot}\"",
+						"pythonPath": "${config:python.pythonPath}",
+						"program": "${workspaceRoot}/run.py",
+						"cwd": "${workspaceRoot}",
 						"args": [],
 						"env": {},
-						"envFile": "^\"\\${workspaceRoot}/.env\"",
+						"envFile": "${workspaceRoot}/.env",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
 							"WaitOnNormalExit",
 							"RedirectOutput"
 						]
-					}
-				},
-				{
-					"label": "%python.snippet.launch.pyramid.label%",
-					"description": "%python.snippet.launch.pyramid.description%",
-					"body": {
+					},
+					{
 						"name": "Pyramid",
 						"type": "python",
 						"request": "launch",
 						"stopOnEntry": true,
-						"pythonPath": "^\"\\${config:python.pythonPath}\"",
-						"cwd": "^\"\\${workspaceRoot}\"",
+						"pythonPath": "${config:python.pythonPath}",
+						"cwd": "${workspaceRoot}",
 						"env": {},
-						"envFile": "^\"\\${workspaceRoot}/.env\"",
+						"envFile": "${workspaceRoot}/.env",
 						"args": [
-							"^\"\\${workspaceRoot}/development.ini\""
+							"${workspaceRoot}/development.ini"
 						],
 						"debugOptions": [
 							"WaitOnAbnormalExit",
@@ -482,74 +950,40 @@
 							"RedirectOutput",
 							"Pyramid"
 						]
-					}
-				},
-				{
-					"label": "%python.snippet.launch.watson.label%",
-					"description": "%python.snippet.launch.watson.description%",
-					"body": {
+					},
+					{
 						"name": "Watson",
 						"type": "python",
 						"request": "launch",
 						"stopOnEntry": true,
-						"pythonPath": "^\"\\${config:python.pythonPath}\"",
-						"program": "^\"\\${workspaceRoot}/console.py\"",
-						"cwd": "^\"\\${workspaceRoot}\"",
+						"pythonPath": "${config:python.pythonPath}",
+						"program": "${workspaceRoot}/console.py",
+						"cwd": "${workspaceRoot}",
 						"args": [
 							"dev",
 							"runserver",
 							"--noreload=True"
 						],
 						"env": {},
-						"envFile": "^\"\\${workspaceRoot}/.env\"",
+						"envFile": "${workspaceRoot}/.env",
 						"debugOptions": [
 							"WaitOnAbnormalExit",
 							"WaitOnNormalExit",
 							"RedirectOutput"
 						]
-					}
-				},
-				{
-					"label": "%python.snippet.launch.scrapy.label%",
-					"description": "%python.snippet.launch.scrapy.description%",
-					"body": {
-						"name": "Scrapy",
-						"type": "python",
-						"request": "launch",
-						"stopOnEntry": true,
-						"pythonPath": "^\"\\${config:python.pythonPath}\"",
-						"program": "~/.virtualenvs/scrapy/bin/scrapy",
-						"cwd": "^\"\\${workspaceRoot}\"",
-						"args": [
-							"crawl",
-							"specs",
-							"-o",
-							"bikes.json"
-						],
-						"console": "integratedTerminal",
-						"env": {},
-						"envFile": "^\"\\${workspaceRoot}/.env\"",
-						"debugOptions": [
-							"WaitOnAbnormalExit",
-							"WaitOnNormalExit"
-						]
-					}
-				},
-				{
-					"label": "%python.snippet.launch.attach.label%",
-					"description": "%python.snippet.launch.attach.description%",
-					"body": {
+					},
+					{
 						"name": "Attach (Remote Debug)",
 						"type": "python",
 						"request": "attach",
-						"localRoot": "^\"\\${workspaceRoot}\"",
-						"remoteRoot": "^\"\\${workspaceRoot}\"",
+						"localRoot": "${workspaceRoot}",
+						"remoteRoot": "${workspaceRoot}",
 						"port": 3000,
 						"secret": "my_secret",
 						"host": "localhost"
 					}
-				}
-			],
+				]
+			},
 			"configurationAttributes": {
 				"launch": {
 					"required": [

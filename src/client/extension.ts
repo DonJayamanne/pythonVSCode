@@ -147,6 +147,17 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(hepProvider);
 
     context.subscriptions.push(activateSingleFileDebug());
+
+    context.subscriptions.push(vscode.commands.registerCommand('extension.pydev-debug.getProgramName', config => {
+        return vscode.window.showInputBox({
+            placeHolder: "Please enter the name of a markdown file in the workspace folder",
+            value: "readme.md"
+        });
+    }));
+
+    context.subscriptions.push(vscode.commands.registerCommand('extension.pydev-debug.provideInitialConfigurations', () => {
+        return [].join('\n');
+    }));
 }
 
 class PythonExt implements vscode.Disposable {
@@ -184,4 +195,4 @@ class ContextKey {
         this.lastValue = value;
         vscode.commands.executeCommand('setContext', this.name, this.lastValue);
     }
-} 
+}
