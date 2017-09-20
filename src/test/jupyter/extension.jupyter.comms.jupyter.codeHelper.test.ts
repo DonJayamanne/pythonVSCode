@@ -3,19 +3,19 @@
 // Please refer to their documentation on https://mochajs.org/ for help.
 //
 // Place this right on top
-import { initialize, IS_TRAVIS, closeActiveWindows, setPythonExecutable } from './initialize';
+import { initialize, IS_TRAVIS, closeActiveWindows, setPythonExecutable } from './../initialize';
 // The module 'assert' provides assertion methods from node
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import * as settings from '../client/common/configSettings';
+import * as settings from '../../client/common/configSettings';
 import * as path from 'path';
-import { CodeHelper } from '../client/jupyter/common/codeHelper';
-import { JupyterCodeLensProvider } from '../client/jupyter/editorIntegration/codeLensProvider';
+import { CodeHelper } from '../../client/jupyter/common/codeHelper';
+import { JupyterCodeLensProvider } from '../../client/jupyter/editorIntegration/codeLensProvider';
 
 let pythonSettings = settings.PythonSettings.getInstance();
 let disposable = setPythonExecutable(pythonSettings);
 
-const FILE_WITH_CELLS = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'jupyter', 'cells.py');
+const FILE_WITH_CELLS = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'jupyter', 'cells.py');
 
 suite('Jupyter Code Helper', () => {
     suiteSetup(done => {

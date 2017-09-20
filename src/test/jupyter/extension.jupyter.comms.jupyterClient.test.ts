@@ -3,14 +3,14 @@
 // Please refer to their documentation on https://mochajs.org/ for help.
 //
 // Place this right on top
-import { initialize, IS_TRAVIS, TEST_TIMEOUT, setPythonExecutable } from './initialize';
+import { initialize, IS_TRAVIS, TEST_TIMEOUT, setPythonExecutable } from './../initialize';
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import { JupyterClientAdapter } from '../client/jupyter/jupyter_client/main';
-import { KernelRestartedError, KernelShutdownError } from '../client/jupyter/common/errors';
-import { createDeferred } from '../client/common/helpers';
-import { KernelspecMetadata } from '../client/jupyter/contracts';
-import * as settings from '../client/common/configSettings';
+import { JupyterClientAdapter } from '../../client/jupyter/jupyter_client/main';
+import { KernelRestartedError, KernelShutdownError } from '../../client/jupyter/common/errors';
+import { createDeferred } from '../../client/common/helpers';
+import { KernelspecMetadata } from '../../client/jupyter/contracts';
+import * as settings from '../../client/common/configSettings';
 
 let pythonSettings = settings.PythonSettings.getInstance();
 let disposable = setPythonExecutable(pythonSettings);

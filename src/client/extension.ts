@@ -58,7 +58,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     sortImports.activate(context, formatOutChannel);
-    context.subscriptions.push(activateSetInterpreterProvider());
+    context.subscriptions.push(...activateSetInterpreterProvider());
     context.subscriptions.push(...activateExecInTerminalProvider());
     context.subscriptions.push(activateUpdateSparkLibraryProvider());
     activateSimplePythonRefactorProvider(context, formatOutChannel);
