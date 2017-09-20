@@ -1,16 +1,17 @@
 "use strict";
 import * as path from 'path';
+import * as _ from 'lodash';
 import { IInterpreterProvider } from '../contracts';
 import { getInterpreterDisplayName } from '../../../common/utils';
 import { getFirstNonEmptyLineFromMultilineString } from '../helpers';
 import * as child_process from 'child_process';
-import * as _ from 'lodash';
+import { VirtualEnvironmentManager } from '../../virtualEnvs';
 import { PythonSettings } from '../../../common/configSettings';
 
 const settings = PythonSettings.getInstance();
 
 export class CurrentPathProvider implements IInterpreterProvider {
-    public constructor() { }
+    public constructor(private virtualEnvMgr: VirtualEnvironmentManager) { }
     public getInterpreters() {
         return this.suggestionsFromKnownPaths();
     }
@@ -26,8 +27,11 @@ export class CurrentPathProvider implements IInterpreterProvider {
             .then(interpreters => Promise.all(interpreters.map(interpreter => this.getInterpreterDetails(interpreter))));
     }
     private getInterpreterDetails(interpreter: string) {
-        return getInterpreterDisplayName(interpreter).catch(() => path.basename(interpreter))
-            .then(displayName => {
+        const virtualEnv = this.virtualEnvMgr.detect(interpreter);
+        const displayName = getInterpreterDisplayName(interpreter).catch(() => path.basename(interpreter));
+        return Promise.all([displayName, virtualEnv])
+            .then(([displayName, virtualEnv]) => {
+                displayName += virtualEnv ? ` (${virtualEnv.name})` : '';
                 return {
                     displayName,
                     path: interpreter
