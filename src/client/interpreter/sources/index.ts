@@ -8,6 +8,7 @@ import { CondaEnvProvider } from './providers/condaEnvProvider';
 import { PythonInterpreter } from '../index';
 import { VirtualEnvProvider, getKnownSearchPathsForVirtualEnvs } from './providers/virtualEnvProvider';
 import { KnownPathsProvider, getKnownSearchPathsForInterpreters } from './providers/KnownPathsProvider';
+import { CurrentPathProvider } from './providers/CurrentPathProvider';
 import { WindowsRegistryProvider } from './providers/windowsRegistryProvider';
 import { VirtualEnvironmentManager } from '../virtualEnvs';
 export * from './contracts';
@@ -29,6 +30,9 @@ export class PythonInterpreterProvider implements IInterpreterProvider {
             // in one of the above lists
             this.providers.push(new KnownPathsProvider(getKnownSearchPathsForInterpreters()));
         }
+        // This must be last, it is possible we have paths returned here that are already returned 
+        // in one of the above lists
+        this.providers.push(new CurrentPathProvider());
     }
     public getInterpreters() {
         if (this.interpreters.length > 0) {
