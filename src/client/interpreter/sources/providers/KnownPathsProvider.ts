@@ -2,7 +2,6 @@
 import * as path from 'path';
 import { IInterpreterProvider } from '../contracts';
 import { fsExistsAsync, getInterpreterDisplayName, IS_WINDOWS } from '../../../common/utils';
-import { PythonInterpreter } from '../index';
 import { lookForInterpretersInDirectory } from '../helpers';
 import * as _ from 'lodash';
 import * as untildify from 'untildify';
