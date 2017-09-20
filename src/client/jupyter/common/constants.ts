@@ -1,5 +1,5 @@
 
-export const PythonLanguage = { language: 'python', scheme: 'file' };
+export const PythonLanguage = { language: 'python' };
 
 export namespace Commands {
     export namespace Jupyter {

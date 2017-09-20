@@ -32,15 +32,15 @@ import { getPathFromPythonCommand } from './common/utils';
 import { JupyterProvider } from './jupyter/provider';
 import { activateGoToObjectDefinitionProvider } from './providers/objectDefinitionProvider';
 
-const PYTHON: vscode.DocumentFilter = { language: 'python', scheme: 'file' };
+const PYTHON: vscode.DocumentFilter = { language: 'python' };
 let unitTestOutChannel: vscode.OutputChannel;
 let formatOutChannel: vscode.OutputChannel;
 let lintingOutChannel: vscode.OutputChannel;
 let jupMain: jup.Jupyter;
 export function activate(context: vscode.ExtensionContext) {
-    let pythonSettings = settings.PythonSettings.getInstance();
-    let pythonExt = new PythonExt();
-    const hasPySparkInCompletionPath = pythonSettings.autoComplete.extraPaths.some(p => p.toLowerCase().indexOf('spark') >= 0);
+    const pythonSettings = settings.PythonSettings.getInstance();
+    const pythonExt = new PythonExt();
+    context.subscriptions.push(pythonExt);
     // telemetryHelper.sendTelemetryEvent(telemetryContracts.EVENT_LOAD, {
     //     CodeComplete_Has_ExtraPaths: pythonSettings.autoComplete.extraPaths.length > 0 ? 'true' : 'false',
     //     Format_Has_Custom_Python_Path: pythonSettings.pythonPath.length !== 'python'.length ? 'true' : 'false',
@@ -149,42 +149,39 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(activateSingleFileDebug());
 }
 
-// this method is called when your extension is deactivated
-export function deactivate() {
-}
-class PythonExt {
+class PythonExt implements vscode.Disposable {
 
-    private _isDjangoProject: ContextKey;
+    private isDjangoProject: ContextKey;
 
     constructor() {
-        this._isDjangoProject = new ContextKey('python.isDjangoProject');
-        this._ensureState();
+        this.isDjangoProject = new ContextKey('python.isDjangoProject');
+        this.ensureState();
     }
-
-    private _ensureState(): void {
+    public dispose() {
+        this.isDjangoProject = null;
+    }
+    private ensureState(): void {
         // context: python.isDjangoProject
         if (typeof vscode.workspace.rootPath === 'string') {
-            this._isDjangoProject.set(fs.existsSync(vscode.workspace.rootPath.concat("/manage.py")));
+            this.isDjangoProject.set(fs.existsSync(vscode.workspace.rootPath.concat("/manage.py")));
         }
         else {
-            this._isDjangoProject.set(false);
+            this.isDjangoProject.set(false);
         }
     }
 }
 
 class ContextKey {
-    private _name: string;
-    private _lastValue: boolean;
+    private lastValue: boolean;
 
-    constructor(name: string) {
-        this._name = name;
+    constructor(private name: string) {
     }
 
     public set(value: boolean): void {
-        if (this._lastValue === value) {
+        if (this.lastValue === value) {
             return;
         }
-        this._lastValue = value;
-        vscode.commands.executeCommand('setContext', this._name, this._lastValue);
+        this.lastValue = value;
+        vscode.commands.executeCommand('setContext', this.name, this.lastValue);
     }
 } 
