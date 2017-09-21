@@ -20,12 +20,12 @@ export class SetInterpreterProvider implements vscode.Disposable {
 
     private suggestionToQuickPickItem(suggestion: PythonInterpreter): PythonPathQuickPickItem {
         let detail = suggestion.path;
-        if (suggestion.path.startsWith(vscode.workspace.rootPath)) {
-            detail = `.${path.sep}` + path.relative(vscode.workspace.rootPath, suggestion.path);
+        if (vscode.workspace.rootPath && suggestion.path.startsWith(vscode.workspace.rootPath)) {
+            detail = `.${path.sep}` + path.relative(vscode.workspace.rootPath!, suggestion.path);
         }
         return {
-            label: suggestion.displayName,
-            description: suggestion.companyDisplayName,
+            label: suggestion.displayName!,
+            description: suggestion.companyDisplayName || '',
             detail: detail,
             path: suggestion.path
         };
@@ -33,7 +33,7 @@ export class SetInterpreterProvider implements vscode.Disposable {
     private presentQuickPick() {
         this.getSuggestions().then(suggestions => {
             let currentPythonPath = settings.PythonSettings.getInstance().pythonPath;
-            if (currentPythonPath.startsWith(vscode.workspace.rootPath)) {
+            if (vscode.workspace.rootPath && currentPythonPath.startsWith(vscode.workspace.rootPath)) {
                 currentPythonPath = `.${path.sep}` + path.relative(vscode.workspace.rootPath, currentPythonPath);
             }
             const quickPickOptions: vscode.QuickPickOptions = {
@@ -52,7 +52,7 @@ export class SetInterpreterProvider implements vscode.Disposable {
 
     private getSuggestions() {
         return this.interpreterManager.getInterpreters()
-            .then(interpreters => interpreters.sort((a, b) => a.displayName > b.displayName ? 1 : -1))
+            .then(interpreters => interpreters.sort((a, b) => a.displayName! > b.displayName! ? 1 : -1))
             .then(interpreters => interpreters.map(this.suggestionToQuickPickItem));
     }
 

@@ -80,7 +80,7 @@ export function discoverTests(rootDirectory: string, args: string[], token: Canc
 
     return execPythonFile(pythonSettings.unitTest.nosetestPath, args.concat(['--collect-only', '-vvv']), rootDirectory, true)
         .then(data => {
-            outChannel.appendLine(data);            
+            outChannel.appendLine(data);
             processOutput(data);
 
             // Exclude tests that don't have any functions or test suites
@@ -144,7 +144,7 @@ function parseNoseTestModuleCollectionResult(rootDirectory: string, lines: strin
                 time: 0, functionsFailed: 0, functionsPassed: 0
             };
 
-            let cls = testFile.suites.find(suite => suite.name === clsName);
+            const cls = testFile.suites.find(suite => suite.name === clsName)!;
             cls.functions.push(fn);
             return;
         }

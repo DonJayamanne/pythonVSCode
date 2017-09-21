@@ -25,7 +25,7 @@ export class ConfigurationManager extends TestConfigurationManager {
         });
     }
     public configure(rootDir: string): Promise<any> {
-        const args = [];
+        const args: string[] = [];
         const configFileOptionLabel = 'Use existing config file';
         let installer = new Installer(this.outputChannel);
         return ConfigurationManager.configFilesExist(rootDir).then(configFiles => {

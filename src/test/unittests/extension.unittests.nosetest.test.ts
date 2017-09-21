@@ -10,28 +10,34 @@ import { TestsToRun } from '../../client/unittests/common/contracts';
 import { TestResultDisplay } from '../../client/unittests/display/main';
 import { MockOutputChannel } from './../mockClasses';
 
-let pythonSettings = configSettings.PythonSettings.getInstance();
+const pythonSettings = configSettings.PythonSettings.getInstance();
 const disposable = setPythonExecutable(pythonSettings);
-
 const UNITTEST_TEST_FILES_PATH = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'standard');
 const UNITTEST_SINGLE_TEST_FILE_PATH = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'single');
-const UNITTEST_TEST_ID_FILE_PATH = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'standard', '.noseids');
-
+const filesToDelete = [path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'standard', '.noseids'),
+path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'cwd', 'src', '.noseids')];
+const unitTestTestFilesCwdPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'cwd', 'src');
+const originalArgs = pythonSettings.unitTest.nosetestArgs;
 
 suite('Unit Tests (nosetest)', () => {
     suiteSetup(async () => {
-        if (fs.existsSync(UNITTEST_TEST_ID_FILE_PATH)) {
-            fs.unlinkSync(UNITTEST_TEST_ID_FILE_PATH);
-        }
+        filesToDelete.forEach(file => {
+            if (fs.existsSync(file)) {
+                fs.unlinkSync(file);
+            }
+        });
         await initialize();
     });
     suiteTeardown(() => {
         disposable.dispose();
-        if (fs.existsSync(UNITTEST_TEST_ID_FILE_PATH)) {
-            fs.unlinkSync(UNITTEST_TEST_ID_FILE_PATH);
-        }
+        filesToDelete.forEach(file => {
+            if (fs.existsSync(file)) {
+                fs.unlinkSync(file);
+            }
+        });
     });
     setup(() => {
+        pythonSettings.unitTest.nosetestArgs = originalArgs;
         outChannel = new MockOutputChannel('Python Test Log');
         testResultDisplay = new TestResultDisplay(outChannel);
     });
@@ -40,8 +46,8 @@ suite('Unit Tests (nosetest)', () => {
         testManager.dispose();
         testResultDisplay.dispose();
     });
-    function createTestManager() {
-        testManager = new nose.TestManager(rootDirectory, outChannel);
+    function createTestManager(rootDir: string = rootDirectory) {
+        testManager = new nose.TestManager(rootDir, outChannel);
     }
     const rootDirectory = UNITTEST_TEST_FILES_PATH;
     let testManager: nose.TestManager;
@@ -150,5 +156,16 @@ suite('Unit Tests (nosetest)', () => {
         assert.equal(results.summary.failures, 1, 'Failures');
         assert.equal(results.summary.passed, 0, 'Passed');
         assert.equal(results.summary.skipped, 0, 'skipped');
+    });
+
+    test('Setting cwd should return tests', async () => {
+        pythonSettings.unitTest.nosetestArgs = ['tests'];
+        createTestManager(unitTestTestFilesCwdPath);
+
+        const tests = await testManager.discoverTests(true, true);
+        assert.equal(tests.testFiles.length, 1, 'Incorrect number of test files');
+        assert.equal(tests.testFolders.length, 1, 'Incorrect number of test folders');
+        assert.equal(tests.testFunctions.length, 1, 'Incorrect number of test functions');
+        assert.equal(tests.testSuits.length, 1, 'Incorrect number of test suites');
     });
 });
