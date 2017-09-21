@@ -175,10 +175,10 @@ suite('Unit Tests (nosetest)', () => {
         testManager.discoverTests(true, true).then(tests => {
             const testSuite: TestsToRun = { testFile: [], testFolder: [], testFunction: [], testSuite: [tests.testSuits[0].testSuite] };
             return testManager.runTest(testSuite).then(tests => {
-                assert.equal(tests.summary.errors, 1, 'Errors');
-                assert.equal(tests.summary.failures, 0, 'Failures');
-                assert.equal(tests.summary.passed, 0, 'Passed');
-                assert.equal(tests.summary.skipped, 0, 'skipped');
+                assert.equal(tests.summary.errors, 0, 'Errors');
+                assert.equal(tests.summary.failures, 1, 'Failures');
+                assert.equal(tests.summary.passed, 1, 'Passed');
+                assert.equal(tests.summary.skipped, 1, 'skipped');
             });
         }).then(done).catch(done);
     });
