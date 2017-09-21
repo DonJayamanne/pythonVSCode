@@ -33,7 +33,7 @@ suite('Configuration Settings', () => {
                 if (settingValue) {
                     settingValue = systemVariables.resolve(settingValue);
                 }
-                assert.deepEqual(settingValue, pythonSettings[key], `Setting ${key} not the same`);
+                assert.deepEqual(settingValue, (pythonSettings as any)[key], `Setting ${key} not the same`);
             });
 
             done();
