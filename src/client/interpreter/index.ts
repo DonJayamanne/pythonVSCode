@@ -14,7 +14,7 @@ const settings = PythonSettings.getInstance();
 
 export class InterpreterManager implements Disposable {
     private disposables: Disposable[] = [];
-    private display: InterpreterDisplay;
+    private display: InterpreterDisplay | null | undefined;
     private interpreterProvider: PythonInterpreterProvider;
     constructor() {
         const virtualEnvMgr = new VirtualEnvironmentManager([new VEnv(), new VirtualEnv()]);
@@ -35,7 +35,7 @@ export class InterpreterManager implements Disposable {
             return;
         }
         const interpreters = await this.interpreterProvider.getInterpreters();
-        const rootPath = workspace.rootPath.toUpperCase();
+        const rootPath = workspace.rootPath!.toUpperCase();
         const interpretersInWorkspace = interpreters.filter(interpreter => interpreter.path.toUpperCase().startsWith(rootPath));
         if (interpretersInWorkspace.length !== 1) {
             return;
@@ -45,7 +45,7 @@ export class InterpreterManager implements Disposable {
         // In windows the interpreter is under scripts/python.exe on linux it is under bin/python
         // Meaning the sub directory must be either scripts, bin or other (but only one level deep)
         const pythonPath = interpretersInWorkspace[0].path;
-        const relativePath = path.dirname(pythonPath).substring(workspace.rootPath.length);
+        const relativePath = path.dirname(pythonPath).substring(workspace.rootPath!.length);
         if (relativePath.split(path.sep).filter(l => l.length > 0).length === 2) {
             this.setPythonPath(pythonPath);
         }
@@ -53,8 +53,8 @@ export class InterpreterManager implements Disposable {
 
     public setPythonPath(pythonPath: string) {
         pythonPath = IS_WINDOWS ? pythonPath.replace(/\\/g, "/") : pythonPath;
-        if (pythonPath.startsWith(workspace.rootPath)) {
-            pythonPath = path.join('${workspaceRoot}', path.relative(workspace.rootPath, pythonPath));
+        if (pythonPath.startsWith(workspace.rootPath!)) {
+            pythonPath = path.join('${workspaceRoot}', path.relative(workspace.rootPath!, pythonPath));
         }
         const pythonConfig = workspace.getConfiguration('python');
         pythonConfig.update('pythonPath', pythonPath).then(() => {

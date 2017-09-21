@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-         "module": "commonjs",
+        "module": "commonjs",
         "target": "es6",
         "outDir": "out",
         "lib": [
@@ -8,6 +8,8 @@
         ],
         "sourceMap": true,
         "rootDir": "src"
+        // TODO: better code
+        // , "strict": true
     },
     "exclude": [
         "node_modules",

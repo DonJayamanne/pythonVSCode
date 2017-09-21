@@ -1,8 +1,9 @@
 "use strict";
 import * as child_process from 'child_process';
-import * as path from "path";
+import * as path from 'path';
 import { IInterpreterProvider, PythonInterpreter } from '../contracts';
-import { IS_WINDOWS } from "../../../common/utils";
+import { IS_WINDOWS, fsExistsAsync } from "../../../common/utils";
+import { VersionUtils } from "../../../common/versionUtils";
 
 // where to find the Python binary within a conda env
 const CONDA_RELATIVE_PY_PATH = IS_WINDOWS ? ['python.exe'] : ['bin', 'python'];
@@ -15,32 +16,62 @@ type CondaInfo = {
     default_prefix: string;
 }
 export class CondaEnvProvider implements IInterpreterProvider {
+    constructor(private registryLookupForConda?: IInterpreterProvider) {
+    }
     public getInterpreters() {
-        return this.suggestionsFromConda();
+        return this.getSuggestionsFromConda();
     }
-    private suggestionsFromConda(): Promise<PythonInterpreter[]> {
-        return new Promise((resolve, reject) => {
-            // interrogate conda (if it's on the path) to find all environments
-            child_process.execFile('conda', ['info', '--json'], (_, stdout) => {
-                if (stdout.length === 0) {
-                    return resolve([]);
-                }
 
-                try {
-                    const info = JSON.parse(stdout);
-                    resolve(this.parseCondaInfo(info));
-                } catch (e) {
-                    // Failed because either:
-                    //   1. conda is not installed
-                    //   2. `conda info --json` has changed signature
-                    //   3. output of `conda info --json` has changed in structure
-                    // In all cases, we can't offer conda pythonPath suggestions.
-                    return resolve([]);
-                }
+    private getSuggestionsFromConda(): Promise<PythonInterpreter[]> {
+        return this.getCondaFile()
+            .then(condaFile => {
+                return new Promise<PythonInterpreter[]>((resolve, reject) => {
+                    // interrogate conda (if it's on the path) to find all environments
+                    child_process.execFile(condaFile, ['info', '--json'], (_, stdout) => {
+                        if (stdout.length === 0) {
+                            return resolve([]);
+                        }
+
+                        try {
+                            const info = JSON.parse(stdout);
+                            resolve(this.parseCondaInfo(info));
+                        } catch (e) {
+                            // Failed because either:
+                            //   1. conda is not installed
+                            //   2. `conda info --json` has changed signature
+                            //   3. output of `conda info --json` has changed in structure
+                            // In all cases, we can't offer conda pythonPath suggestions.
+                            return resolve([]);
+                        }
+                    });
+                });
             });
-        });
     }
-
+    public getCondaFile() {
+        if (this.registryLookupForConda) {
+            return this.registryLookupForConda.getInterpreters()
+                .then(interpreters => interpreters.filter(this.isCondaEnvironment))
+                .then(condaInterpreters => this.getLatestVersion(condaInterpreters))
+                .then(condaInterpreter => {
+                    return condaInterpreter ? path.join(path.dirname(condaInterpreter.path), 'Scripts', 'conda.exe') : 'conda';
+                })
+                .then(condaPath => {
+                    return fsExistsAsync(condaPath).then(exists => exists ? condaPath : 'conda');
+                });
+        }
+        return Promise.resolve('conda');
+    }
+    public isCondaEnvironment(interpreter: PythonInterpreter) {
+        return (interpreter.displayName || '').toUpperCase().indexOf('ANACONDA') >= 0 ||
+            (interpreter.companyDisplayName || '').toUpperCase().indexOf('CONTINUUM') >= 0;
+    }
+    public getLatestVersion(interpreters: PythonInterpreter[]) {
+        const sortedInterpreters = interpreters.filter(interpreter => interpreter.version && interpreter.version.length > 0);
+        sortedInterpreters.sort((a, b) => VersionUtils.compareVersion(a.version!, b.version!));
+        if (sortedInterpreters.length > 0) {
+            return sortedInterpreters[sortedInterpreters.length - 1];
+        }
+    }
     public async parseCondaInfo(info: CondaInfo) {
         // "sys.version": "3.6.1 |Anaconda 4.4.0 (64-bit)| (default, May 11 2017, 13:25:24) [MSC v.1900 64 bit (AMD64)]",
         const displayName = this.getDisplayNameFromVersionInfo(info['sys.version']);

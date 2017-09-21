@@ -63,39 +63,49 @@ export class WindowsRegistryProvider implements IInterpreterProvider {
         const tagKeys = await this.registry.getKeys(companyKey, hive, arch);
         return Promise.all(tagKeys.map(tagKey => this.getInreterpreterDetailsForCompany(tagKey, companyKey, hive, arch)));
     }
-    private getInreterpreterDetailsForCompany(tagKey: string, companyKey: string, hive: Hive, arch?: Architecture): Promise<PythonInterpreter> {
+    private getInreterpreterDetailsForCompany(tagKey: string, companyKey: string, hive: Hive, arch?: Architecture): Promise<PythonInterpreter | undefined | null> {
         const key = `${tagKey}\\InstallPath`;
+        type InterpreterInformation = null | undefined | {
+            installPath: string,
+            executablePath?: string,
+            displayName?: string,
+            version?: string,
+            companyDisplayName?: string
+        };
         return this.registry.getValue(key, hive, arch)
             .then(installPath => {
                 // Install path is mandatory
                 if (!installPath) {
-                    return Promise.resolve([, , , ,]);
+                    return Promise.resolve(null);
                 }
-
                 // Check if 'ExecutablePath' exists
                 // Remember Python 2.7 doesn't have 'ExecutablePath' (there could be others)
                 // Treat all other values as optional
                 return Promise.all([
                     Promise.resolve(installPath),
                     this.registry.getValue(key, hive, arch, 'ExecutablePath'),
-                    this.getInterpreterDisplayName(tagKey, companyKey, hive, arch),
-                    this.registry.getValue(tagKey, hive, arch, 'Version'),
-                    this.getCompanyDisplayName(companyKey, hive, arch)
-                ]);
+                    this.getInterpreterDisplayName(tagKey, companyKey, hive, arch)!,
+                    this.registry.getValue(tagKey, hive, arch, 'Version')!,
+                    this.getCompanyDisplayName(companyKey, hive, arch)!
+                ])
+                    .then(([installPath, executablePath, displayName, version, companyDisplayName]) => {
+                        return { installPath, executablePath, displayName, version, companyDisplayName } as InterpreterInformation;
+                    });
             })
-            .then(([installPath, executablePath, displayName, version, companyDisplayName]) => {
-                if (installPath === undefined) {
+            .then((interpreterInfo?: InterpreterInformation) => {
+                if (!interpreterInfo) {
                     return;
                 }
 
-                executablePath = executablePath && executablePath.length > 0 ? executablePath : path.join(installPath, DefaultPythonExecutable);
-
+                const executablePath = interpreterInfo.executablePath && interpreterInfo.executablePath.length > 0 ? interpreterInfo.executablePath : path.join(interpreterInfo.installPath, DefaultPythonExecutable);
+                const displayName = interpreterInfo.displayName;
+                const version = interpreterInfo.version ? path.basename(interpreterInfo.version) : path.basename(tagKey);
                 return {
                     architecture: arch,
                     displayName,
                     path: executablePath,
-                    version: version ? path.basename(version) : path.basename(tagKey),
-                    companyDisplayName
+                    version,
+                    companyDisplayName: interpreterInfo.companyDisplayName
                 } as PythonInterpreter;
             })
             .catch(error => {

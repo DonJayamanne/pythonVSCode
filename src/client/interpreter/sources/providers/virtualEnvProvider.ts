@@ -1,14 +1,14 @@
 "use strict";
 import * as _ from 'lodash';
 import * as path from 'path';
-import * as untildify from 'untildify';
+import * as settings from './../../../common/configSettings';
 import { VirtualEnvironmentManager } from '../../virtualEnvs';
 import { IInterpreterProvider } from '../contracts';
 import { IS_WINDOWS, fsReaddirAsync, getInterpreterDisplayName } from "../../../common/utils";
 import { PythonInterpreter } from '../index';
 import { lookForInterpretersInDirectory } from '../helpers';
-import * as settings from './../../../common/configSettings';
 import { workspace } from 'vscode';
+const untildify = require('untildify');
 
 export class VirtualEnvProvider implements IInterpreterProvider {
     public constructor(private knownSearchPaths: string[], private virtualEnvMgr: VirtualEnvironmentManager) { }
@@ -56,7 +56,7 @@ export class VirtualEnvProvider implements IInterpreterProvider {
 }
 
 export function getKnownSearchPathsForVirtualEnvs(): string[] {
-    let paths = [];
+    const paths: string[] = [];
     if (!IS_WINDOWS) {
         const defaultPaths = ['/Envs', '/.virtualenvs', '/.pyenv', '/.pyenv/versions'];
         defaultPaths.forEach(p => {

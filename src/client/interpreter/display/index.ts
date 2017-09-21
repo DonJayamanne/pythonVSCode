@@ -3,7 +3,7 @@ import { StatusBarItem, Disposable } from 'vscode';
 import { PythonSettings } from '../../common/configSettings';
 import * as path from 'path';
 import { EOL } from 'os';
-import { IInterpreterProvider, PythonInterpreter } from '../index';
+import { IInterpreterProvider } from '../index';
 import * as utils from '../../common/utils';
 import { VirtualEnvironmentManager } from '../virtualEnvs/index';
 import { getFirstNonEmptyLineFromMultilineString } from '../sources/helpers';
@@ -30,7 +30,7 @@ export class InterpreterDisplay implements Disposable {
         this.statusBar.color = '';
         this.statusBar.tooltip = pythonPath;
         if (interpreter) {
-            this.statusBar.text = interpreter.displayName;
+            this.statusBar.text = interpreter.displayName!;
             if (interpreter.companyDisplayName) {
                 const toolTipSuffix = `${EOL}${interpreter.companyDisplayName}`;
                 this.statusBar.tooltip += toolTipSuffix;

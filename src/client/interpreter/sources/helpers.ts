@@ -14,7 +14,7 @@ export function fixInterpreterDisplayName(item: PythonInterpreter) {
     if (!item.displayName) {
         const arch = getArchitectureDislayName(item.architecture);
         const version = item.version || '';
-        item.displayName = ['Python', version, arch].filter(item => item.length > 0).join(' ');
+        item.displayName = ['Python', version, arch].filter(item => item.length > 0).join(' ').trim();
     }
     return item;
 }

@@ -15,7 +15,7 @@ export enum Hive {
 
 export interface IRegistry {
     getKeys(key: string, hive: Hive, arch?: Architecture): Promise<string[]>;
-    getValue(key: string, hive: Hive, arch?: Architecture, name?: string): Promise<string | void>;
+    getValue(key: string, hive: Hive, arch?: Architecture, name?: string): Promise<string | undefined | null>;
 }
 
 export class RegistryImplementation implements IRegistry {
@@ -27,7 +27,7 @@ export class RegistryImplementation implements IRegistry {
     }
 }
 
-export function getArchitectureDislayName(arch: Architecture) {
+export function getArchitectureDislayName(arch?: Architecture) {
     switch (arch) {
         case Architecture.x64:
             return '64-bit';
@@ -42,7 +42,7 @@ function getRegistryValue(options: Registry.Options, name: string = '') {
     return new Promise<string | undefined | null>((resolve, reject) => {
         new Registry(options).get(name, (error, result) => {
             if (error) {
-                return resolve();
+                return resolve(undefined);
             }
             resolve(result.value);
         });
@@ -59,7 +59,7 @@ function getRegistryKeys(options: Registry.Options): Promise<string[]> {
         });
     });
 }
-function translateArchitecture(arch: Architecture) {
+function translateArchitecture(arch?: Architecture): RegistryArchitectures | null | undefined {
     switch (arch) {
         case Architecture.x86:
             return RegistryArchitectures.x86;
@@ -69,7 +69,7 @@ function translateArchitecture(arch: Architecture) {
             return;
     }
 }
-function translateHive(hive: Hive) {
+function translateHive(hive: Hive): string | null | undefined {
     switch (hive) {
         case Hive.HKCU:
             return Registry.HKCU;
