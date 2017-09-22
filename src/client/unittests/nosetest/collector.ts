@@ -117,8 +117,9 @@ function parseNoseTestModuleCollectionResult(rootDirectory: string, lines: strin
 
         if (line.startsWith('nose.selector: DEBUG: wantClass <class \'')) {
             let name = extractBetweenDelimiters(line, 'nose.selector: DEBUG: wantClass <class \'', '\'>? True');
+            const clsName = path.extname(name).substring(1);
             const testSuite: TestSuite = {
-                name: path.extname(name).substring(1), nameToRun: fileName + `:${name}`,
+                name: clsName, nameToRun: fileName + `:${clsName}`,
                 functions: [], suites: [], xmlName: name, time: 0, isUnitTest: false,
                 isInstance: false, functionsFailed: 0, functionsPassed: 0
             };

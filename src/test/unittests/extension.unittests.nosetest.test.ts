@@ -64,6 +64,16 @@ suite('Unit Tests (nosetest)', () => {
         assert.equal(tests.testFiles.some(t => t.name === path.join('tests', 'test_one.py') && t.nameToRun === t.name), true, 'Test File not found');
     });
 
+    test('Check that nameToRun in testSuits has class name after : (single test file)', async () => {
+        pythonSettings.unitTest.nosetestArgs = [];
+        testManager = new nose.TestManager(UNITTEST_SINGLE_TEST_FILE_PATH, outChannel);
+        const tests = await testManager.discoverTests(true, true);
+        assert.equal(tests.testFiles.length, 2, 'Incorrect number of test files');
+        assert.equal(tests.testFunctions.length, 6, 'Incorrect number of test functions');
+        assert.equal(tests.testSuits.length, 2, 'Incorrect number of test suites');
+        assert.equal(tests.testSuits.every(t => t.testSuite.name === t.testSuite.nameToRun.split(":")[1]), true, 'Suite name does not match class name');
+    });
+
     test('Discover Tests (pattern = test_)', async () => {
         pythonSettings.unitTest.nosetestArgs = [];
         createTestManager();
@@ -140,10 +150,10 @@ suite('Unit Tests (nosetest)', () => {
         const tests = await testManager.discoverTests(true, true);
         const testSuite: TestsToRun = { testFile: [], testFolder: [], testFunction: [], testSuite: [tests.testSuits[0].testSuite] };
         const results = await testManager.runTest(testSuite);
-        assert.equal(results.summary.errors, 1, 'Errors');
-        assert.equal(results.summary.failures, 0, 'Failures');
-        assert.equal(results.summary.passed, 0, 'Passed');
-        assert.equal(results.summary.skipped, 0, 'skipped');
+        assert.equal(results.summary.errors, 0, 'Errors');
+        assert.equal(results.summary.failures, 1, 'Failures');
+        assert.equal(results.summary.passed, 1, 'Passed');
+        assert.equal(results.summary.skipped, 1, 'skipped');
     });
 
     test('Run Specific Test Function', async () => {
