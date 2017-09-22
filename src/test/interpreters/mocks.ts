@@ -24,7 +24,7 @@ export class MockRegistry implements IRegistry {
 
         return items ? Promise.resolve(items.values) : Promise.resolve([]);
     }
-    getValue(key: string, hive: Hive, arch?: Architecture, name?: string): Promise<string | void> {
+    getValue(key: string, hive: Hive, arch?: Architecture, name?: string): Promise<string | undefined | null> {
         const items = this.values.find(item => {
             if (item.key !== key || item.hive !== hive) {
                 return false;
@@ -38,7 +38,7 @@ export class MockRegistry implements IRegistry {
             return true;
         });
 
-        return items ? Promise.resolve(items.value) : Promise.resolve();
+        return items ? Promise.resolve(items.value) : Promise.resolve(null);
     }
 }
 

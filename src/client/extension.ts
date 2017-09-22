@@ -15,7 +15,7 @@ import * as settings from './common/configSettings';
 import * as telemetryHelper from './common/telemetry';
 import * as telemetryContracts from './common/telemetryContracts';
 import { activateSimplePythonRefactorProvider } from './providers/simpleRefactorProvider';
-import { activateSetInterpreterProvider } from './providers/setInterpreterProvider';
+import { SetInterpreterProvider } from './providers/setInterpreterProvider';
 import { activateExecInTerminalProvider } from './providers/execInTerminalProvider';
 import { Commands } from './common/constants';
 import * as tests from './unittests/main';
@@ -31,13 +31,14 @@ import { activateSingleFileDebug } from './singleFileDebug';
 import { getPathFromPythonCommand } from './common/utils';
 import { JupyterProvider } from './jupyter/provider';
 import { activateGoToObjectDefinitionProvider } from './providers/objectDefinitionProvider';
+import { InterpreterManager } from './interpreter';
 
 const PYTHON: vscode.DocumentFilter = { language: 'python' };
 let unitTestOutChannel: vscode.OutputChannel;
 let formatOutChannel: vscode.OutputChannel;
 let lintingOutChannel: vscode.OutputChannel;
 let jupMain: jup.Jupyter;
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
     const pythonSettings = settings.PythonSettings.getInstance();
     const pythonExt = new PythonExt();
     context.subscriptions.push(pythonExt);
@@ -58,7 +59,10 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     sortImports.activate(context, formatOutChannel);
-    context.subscriptions.push(...activateSetInterpreterProvider());
+    const interpreterManager = new InterpreterManager();
+    await interpreterManager.autoSetInterpreter();
+    context.subscriptions.push(interpreterManager);
+    context.subscriptions.push(new SetInterpreterProvider(interpreterManager));
     context.subscriptions.push(...activateExecInTerminalProvider());
     context.subscriptions.push(activateUpdateSparkLibraryProvider());
     activateSimplePythonRefactorProvider(context, formatOutChannel);

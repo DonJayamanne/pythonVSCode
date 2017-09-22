@@ -145,7 +145,7 @@ function parseNoseTestModuleCollectionResult(rootDirectory: string, lines: strin
                 time: 0, functionsFailed: 0, functionsPassed: 0
             };
 
-            let cls = testFile.suites.find(suite => suite.name === clsName);
+            const cls = testFile.suites.find(suite => suite.name === clsName)!;
             cls.functions.push(fn);
             return;
         }

@@ -19,12 +19,15 @@ export class PythonInterpreterProvider implements IInterpreterProvider {
     constructor(private virtualEnvMgr: VirtualEnvironmentManager) {
         // The order of the providers is important
         if (IS_WINDOWS) {
-            this.providers.push(new WindowsRegistryProvider(new RegistryImplementation(), Is_64Bit));
+            const windowsRegistryProvider = new WindowsRegistryProvider(new RegistryImplementation(), Is_64Bit);
+            this.providers.push(windowsRegistryProvider);
+            this.providers.push(new CondaEnvProvider(windowsRegistryProvider));
         }
-        this.providers.push(...[
-            new CondaEnvProvider(),
-            new VirtualEnvProvider(getKnownSearchPathsForVirtualEnvs(), this.virtualEnvMgr)
-        ]);
+        else {
+            this.providers.push(new CondaEnvProvider());
+        }
+        this.providers.push(new VirtualEnvProvider(getKnownSearchPathsForVirtualEnvs(), this.virtualEnvMgr));
+
         if (!IS_WINDOWS) {
             // This must be last, it is possible we have paths returned here that are already returned 
             // in one of the above lists

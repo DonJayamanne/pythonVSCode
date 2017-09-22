@@ -1,14 +1,14 @@
 "use strict";
-import { VirtualEnvironmentManager } from '../../virtualEnvs';
+import * as _ from 'lodash';
 import * as path from 'path';
-import * as vscode from 'vscode';
+import * as settings from './../../../common/configSettings';
+import { VirtualEnvironmentManager } from '../../virtualEnvs';
 import { IInterpreterProvider } from '../contracts';
 import { IS_WINDOWS, fsReaddirAsync, getInterpreterDisplayName } from "../../../common/utils";
 import { PythonInterpreter } from '../index';
-import * as untildify from 'untildify';
 import { lookForInterpretersInDirectory } from '../helpers';
-import * as settings from './../../../common/configSettings';
-import * as _ from 'lodash';
+import { workspace } from 'vscode';
+const untildify = require('untildify');
 
 export class VirtualEnvProvider implements IInterpreterProvider {
     public constructor(private knownSearchPaths: string[], private virtualEnvMgr: VirtualEnvironmentManager) { }
@@ -17,22 +17,26 @@ export class VirtualEnvProvider implements IInterpreterProvider {
     }
 
     private suggestionsFromKnownVenvs() {
-        const promises = this.knownSearchPaths.map(dir => this.lookForInterpretersInVenvs(dir));
-
-        return Promise.all(promises)
+        return Promise.all(this.knownSearchPaths.map(dir => this.lookForInterpretersInVenvs(dir)))
             .then(listOfInterpreters => _.flatten(listOfInterpreters));
     }
     private lookForInterpretersInVenvs(pathToCheck: string) {
         return fsReaddirAsync(pathToCheck)
-            .then(subDirs => {
-                const promises = subDirs.map(subDir => {
-                    const interpreterFolder = IS_WINDOWS ? path.join(subDir, 'scripts') : path.join(subDir, 'bin');
-                    return lookForInterpretersInDirectory(interpreterFolder);
-                });
-                return Promise.all(promises);
-            })
+            .then(subDirs => Promise.all(this.getProspectiveDirectoriesForLookup(subDirs)))
+            .then(dirs => dirs.filter(dir => dir.length > 0))
+            .then(dirs => Promise.all(dirs.map(dir => lookForInterpretersInDirectory(dir))))
             .then(pathsWithInterpreters => _.flatten(pathsWithInterpreters))
             .then(interpreters => Promise.all(interpreters.map(interpreter => this.getVirtualEnvDetails(interpreter))));
+    }
+    private getProspectiveDirectoriesForLookup(subDirs: string[]) {
+        const dirToLookFor = IS_WINDOWS ? 'SCRIPTS' : 'BIN';
+        return subDirs.map(subDir => fsReaddirAsync(subDir).then(dirs => {
+            const scriptOrBinDirs = dirs.filter(dir => {
+                const folderName = path.basename(dir);
+                return folderName.toUpperCase() === dirToLookFor;
+            });
+            return scriptOrBinDirs.length === 1 ? scriptOrBinDirs[0] : '';
+        }));
     }
     private async getVirtualEnvDetails(interpreter: string): Promise<PythonInterpreter> {
         const displayName = getInterpreterDisplayName(interpreter).catch(() => path.basename(interpreter));
@@ -52,7 +56,7 @@ export class VirtualEnvProvider implements IInterpreterProvider {
 }
 
 export function getKnownSearchPathsForVirtualEnvs(): string[] {
-    let paths = [];
+    const paths: string[] = [];
     if (!IS_WINDOWS) {
         const defaultPaths = ['/Envs', '/.virtualenvs', '/.pyenv', '/.pyenv/versions'];
         defaultPaths.forEach(p => {
@@ -63,8 +67,8 @@ export function getKnownSearchPathsForVirtualEnvs(): string[] {
     if (venvPath) {
         paths.push(untildify(venvPath));
     }
-    if (vscode.workspace && vscode.workspace.rootPath) {
-        paths.push(vscode.workspace.rootPath);
+    if (workspace.rootPath) {
+        paths.push(workspace.rootPath);
     }
     return paths;
 }

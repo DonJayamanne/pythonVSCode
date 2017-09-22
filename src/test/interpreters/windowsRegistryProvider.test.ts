@@ -183,7 +183,7 @@ suite('Interpreters from Windows Registry', () => {
                 { key: '\\Software\\Python', hive: Hive.HKLM, arch: Architecture.x86, values: ['A'] },
                 { key: '\\Software\\Python\\Company A', hive: Hive.HKLM, arch: Architecture.x86, values: ['Another Tag'] }
             ];
-            const registryValues = [
+            const registryValues: { key: string, hive: Hive, arch?: Architecture, value: string, name?: string }[] = [
                 { key: '\\Software\\Python\\Company One', hive: Hive.HKCU, arch: Architecture.x86, value: 'Display Name for Company One', name: 'DisplayName' },
                 { key: '\\Software\\Python\\Company One\\Tag1\\InstallPath', hive: Hive.HKCU, arch: Architecture.x86, value: 'Install Path Tag1' },
                 { key: '\\Software\\Python\\Company One\\Tag1\\InstallPath', hive: Hive.HKCU, arch: Architecture.x86, value: 'Executable.Tag1', name: 'ExecutablePath' },
@@ -200,7 +200,7 @@ suite('Interpreters from Windows Registry', () => {
                 { key: '\\Software\\Python\\Company Two\\Tag B\\InstallPath', hive: Hive.HKCU, arch: Architecture.x86, value: 'DisplayName.Tag B', name: 'DisplayName' },
                 { key: '\\Software\\Python\\Company Two\\Tag C\\InstallPath', hive: Hive.HKCU, arch: Architecture.x86, value: 'Install Path Tag C' },
 
-                { key: '\\Software\\Python\\Company Five\\Five !\\InstallPath', hive: Hive.HKCU, arch: Architecture.x86, value: undefined },
+                { key: '\\Software\\Python\\Company Five\\Five !\\InstallPath', hive: Hive.HKCU, arch: Architecture.x86, value: <any>undefined },
 
                 { key: '\\Software\\Python\\Company Three\\Tag !\\InstallPath', hive: Hive.HKCU, arch: Architecture.x86, value: 'Install Path Tag !' },
 

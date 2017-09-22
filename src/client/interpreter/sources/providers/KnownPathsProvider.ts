@@ -1,11 +1,10 @@
 "use strict";
 import * as path from 'path';
+import * as _ from 'lodash';
 import { IInterpreterProvider } from '../contracts';
 import { fsExistsAsync, getInterpreterDisplayName, IS_WINDOWS } from '../../../common/utils';
-import { PythonInterpreter } from '../index';
 import { lookForInterpretersInDirectory } from '../helpers';
-import * as _ from 'lodash';
-import * as untildify from 'untildify';
+const untildify = require('untildify');
 
 export class KnownPathsProvider implements IInterpreterProvider {
     public constructor(private knownSearchPaths: string[]) { }

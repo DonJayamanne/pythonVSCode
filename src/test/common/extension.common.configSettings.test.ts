@@ -30,10 +30,10 @@ suite('Configuration Settings', () => {
                 if (settingValue === 'Not a config') {
                     return;
                 }
-                if (typeof settingValue === 'object' && settingValue !== null) {
+                if (settingValue) {
                     settingValue = systemVariables.resolve(settingValue);
                 }
-                assert.deepEqual(settingValue, pythonSettings[key], `Setting ${key} not the same`);
+                assert.deepEqual(settingValue, (pythonSettings as any)[key], `Setting ${key} not the same`);
             });
 
             done();
