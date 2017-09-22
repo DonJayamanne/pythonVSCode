@@ -1,7 +1,8 @@
-import { Architecture, Hive, IRegistry } from '../../../common/registry';
-import { IInterpreterProvider } from '../contracts';
 import * as path from 'path';
 import * as _ from 'lodash';
+import * as fs from 'fs-extra';
+import { Architecture, Hive, IRegistry } from '../../../common/registry';
+import { IInterpreterProvider } from '../contracts';
 import { PythonInterpreter } from '../index';
 
 const DefaultPythonExecutable = 'python.exe';
@@ -108,6 +109,7 @@ export class WindowsRegistryProvider implements IInterpreterProvider {
                     companyDisplayName: interpreterInfo.companyDisplayName
                 } as PythonInterpreter;
             })
+            .then(interpreter => interpreter ? fs.pathExists(interpreter.path).then(exists => exists ? interpreter : null) : null)
             .catch(error => {
                 console.error(`Failed to retrieve interpreter details for company ${companyKey},tag: ${tagKey}, hive: ${hive}, arch: ${arch}`);
                 console.error(error);

@@ -1,8 +1,9 @@
 "use strict";
 import * as child_process from 'child_process';
+import * as fs from 'fs-extra';
 import * as path from 'path';
 import { IInterpreterProvider, PythonInterpreter } from '../contracts';
-import { IS_WINDOWS, fsExistsAsync } from "../../../common/utils";
+import { IS_WINDOWS } from "../../../common/utils";
 import { VersionUtils } from "../../../common/versionUtils";
 
 // where to find the Python binary within a conda env
@@ -11,9 +12,9 @@ const AnacondaCompanyName = 'Continuum Analytics, Inc.';
 const AnacondaDisplayName = 'Anaconda';
 
 type CondaInfo = {
-    envs: string[];
-    "sys.version": string;
-    default_prefix: string;
+    envs?: string[];
+    "sys.version"?: string;
+    default_prefix?: string;
 }
 export class CondaEnvProvider implements IInterpreterProvider {
     constructor(private registryLookupForConda?: IInterpreterProvider) {
@@ -53,10 +54,10 @@ export class CondaEnvProvider implements IInterpreterProvider {
                 .then(interpreters => interpreters.filter(this.isCondaEnvironment))
                 .then(condaInterpreters => this.getLatestVersion(condaInterpreters))
                 .then(condaInterpreter => {
-                    return condaInterpreter ? path.join(path.dirname(condaInterpreter.path), 'Scripts', 'conda.exe') : 'conda';
+                    return condaInterpreter ? path.join(path.dirname(condaInterpreter.path), 'conda.exe') : 'conda';
                 })
                 .then(condaPath => {
-                    return fsExistsAsync(condaPath).then(exists => exists ? condaPath : 'conda');
+                    return fs.pathExists(condaPath).then(exists => exists ? condaPath : 'conda');
                 });
         }
         return Promise.resolve('conda');
@@ -74,27 +75,31 @@ export class CondaEnvProvider implements IInterpreterProvider {
     }
     public async parseCondaInfo(info: CondaInfo) {
         // "sys.version": "3.6.1 |Anaconda 4.4.0 (64-bit)| (default, May 11 2017, 13:25:24) [MSC v.1900 64 bit (AMD64)]",
-        const displayName = this.getDisplayNameFromVersionInfo(info['sys.version']);
+        const displayName = this.getDisplayNameFromVersionInfo(info['sys.version'] || '');
 
         // The root of the conda environment is itself a Python interpreter
         // envs reported as e.g.: /Users/bob/miniconda3/envs/someEnv
-        const envs = info.envs || [];
+        const envs = Array.isArray(info.envs) ? info.envs : [];
         if (info.default_prefix && info.default_prefix.length > 0) {
             envs.push(info.default_prefix);
         }
 
-        return envs.map(env => {
-            const interpreter: PythonInterpreter = { path: path.join(env, ...CONDA_RELATIVE_PY_PATH) };
-            if (env === info.default_prefix) {
-                interpreter.displayName = displayName;
-            }
-            else {
-                // This is an environment, hence suffix with env name
-                interpreter.displayName = `${displayName} (${path.basename(env)})`;  // e.g. someEnv, miniconda3                
-            }
-            interpreter.companyDisplayName = AnacondaCompanyName;
-            return interpreter;
-        });
+        const promises = envs
+            .map(env => {
+                // If it is an environment, hence suffix with env name
+                const interpreterDisplayName = env === info.default_prefix ? displayName : `${displayName} (${path.basename(env)})`;
+                const interpreter: PythonInterpreter = {
+                    path: path.join(env, ...CONDA_RELATIVE_PY_PATH),
+                    displayName: interpreterDisplayName,
+                    companyDisplayName: AnacondaCompanyName
+                };
+                return interpreter;
+            })
+            .map(env => fs.pathExists(env.path).then(exists => exists ? env : null));
+
+        return Promise.all(promises)
+            .then(interpreters => interpreters.filter(interpreter => interpreter !== null && interpreter !== undefined))
+            .then(interpreters => interpreters.map(interpreter => interpreter!));
     }
     private getDisplayNameFromVersionInfo(versionInfo: string = '') {
         if (!versionInfo) {
