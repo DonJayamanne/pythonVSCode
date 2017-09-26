@@ -72,10 +72,15 @@ suite('Interpreters Display', () => {
         assert.equal(statusBar.text, defaultDisplayName, 'Incorrect display name');
     });
     test('Must get display name from a list of interpreters', async () => {
+        const pythonPath = await new Promise<string>(resolve => {
+            child_process.execFile(pythonSettings.pythonPath, ["-c", "import sys;print(sys.executable)"], (_, stdout) => {
+                resolve(getFirstNonEmptyLineFromMultilineString(stdout));
+            });
+        }).then(value => value.length === 0 ? pythonSettings.pythonPath : value);
         const statusBar = new MockStatusBarItem();
         const interpreters = [
             { displayName: 'One', path: 'c:/path1/one.exe', type: 'One 1' },
-            { displayName: 'Two', path: pythonSettings.pythonPath, type: 'Two 2' },
+            { displayName: 'Two', path: pythonPath, type: 'Two 2' },
             { displayName: 'Three', path: 'c:/path3/three.exe', type: 'Three 3' },
         ];
         const provider = new MockProvider(interpreters);

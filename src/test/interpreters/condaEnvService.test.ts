@@ -105,8 +105,14 @@ suite('Interpreters from Conda Environments', () => {
         const interpreters = await condaProvider.parseCondaInfo(info);
 
         assert.equal(interpreters.length, 2, 'Incorrect number of entries');
-        assert.equal(path.dirname(interpreters[0].path), info.envs[0], 'Incorrect path for first env');
-        assert.equal(path.dirname(interpreters[1].path), info.envs[4], 'Incorrect path for second env');
+        // Go up one dir for linux (cuz exe is under a sub directory named 'bin')
+        let path0 = path.dirname(interpreters[0].path);
+        path0 = IS_WINDOWS ? path0 : path.dirname(path0);
+        assert.equal(path0, info.envs[0], 'Incorrect path for first env');
+        // Go up one dir for linux (cuz exe is under a sub directory named 'bin')
+        let path1 = path.dirname(interpreters[1].path);
+        path1 = IS_WINDOWS ? path1 : path.dirname(path1);
+        assert.equal(path1, info.envs[4], 'Incorrect path for second env');
     });
     test('Must detect conda environments from a list', async () => {
         const registryInterpreters: PythonInterpreter[] = [
