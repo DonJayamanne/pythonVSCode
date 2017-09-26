@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import { EOL } from 'os';
 import { initialize } from '../initialize';
+import { IS_WINDOWS } from '../../client/common/utils';
 import { MockInterpreterVersionProvider } from './mocks';
 import { CondaEnvFileProvider } from '../../client/interpreter/locators/services/condaEnvFileService';
 import { AnacondaDisplayName, AnacondaCompanyName, CONDA_RELATIVE_PY_PATH, } from '../../client/interpreter/locators/services/conda';
@@ -33,19 +34,21 @@ suite('Interpreters from Conda Environments Text File', () => {
     });
     test('Must return filter files in the list and return valid items', async () => {
         const interpreterPaths = [
+            path.join(environmentsPath, 'conda', 'envs', 'numpy'),
             path.join(environmentsPath, 'path1'),
             path.join('Invalid and non existent'),
             path.join(environmentsPath, 'path2'),
-            path.join(environmentsPath, 'conda', 'envs', 'numpy'),
             path.join('Another Invalid and non existent')
         ];
         await updateEnvWithInterpreters(interpreterPaths);
         const displayNameProvider = new MockInterpreterVersionProvider('Mock Name');
         const condaFileProvider = new CondaEnvFileProvider(environmentsFilePath, displayNameProvider);
         const interpreters = await condaFileProvider.getInterpreters();
-        assert.equal(interpreters.length, 3, 'Incorrect number of entries');
-        assert.equal(interpreters[0].displayName, `${AnacondaDisplayName} Mock Name (path1)`, 'Incorrect display name');
-        assert.equal(interpreters[1].companyDisplayName, AnacondaCompanyName, 'Incorrect display name');
-        assert.equal(interpreters[1].path, path.join(interpreterPaths[2], ...CONDA_RELATIVE_PY_PATH), 'Incorrect company display name');
+        // This is because conda environments will be under 'bin/python' however the folders path1 and path2 do not have such files
+        const numberOfEnvs = IS_WINDOWS ? 3 : 1;
+        assert.equal(interpreters.length, numberOfEnvs, 'Incorrect number of entries');
+        assert.equal(interpreters[0].displayName, `${AnacondaDisplayName} Mock Name (numpy)`, 'Incorrect display name');
+        assert.equal(interpreters[0].companyDisplayName, AnacondaCompanyName, 'Incorrect display name');
+        assert.equal(interpreters[0].path, path.join(interpreterPaths[0], ...CONDA_RELATIVE_PY_PATH), 'Incorrect company display name');
     });
 });
