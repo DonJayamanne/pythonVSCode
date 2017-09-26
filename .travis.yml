@@ -12,17 +12,17 @@ matrix:
         - os: linux
           sudo: required
           python: 2.7
-        - os: linux
-          sudo: required
-          python: 3.5
+        # - os: linux
+        #   sudo: required
+        #   python: 3.5
+        # # # Use generic language for osx
+        # - os: osx
+        #   language: generic
+        #   env: PYTHON=2.7.10
         # # Use generic language for osx
-        - os: osx
-          language: generic
-          env: PYTHON=2.7.10
-        # Use generic language for osx
-        - os: osx
-          language: generic
-          env: PYTHON=3.5.1
+        # - os: osx
+        #   language: generic
+        #   env: PYTHON=3.5.1
 # Perform the manual steps on osx to install python3 and activate venv
 before_install: |
   if [ $TRAVIS_OS_NAME == "linux" ]; then
