@@ -49,7 +49,7 @@ export class CondaEnvFileService implements IInterpreterLocatorService {
             if (index > 0) {
                 return index;
             }
-            return content.indexOf(`:: ${AnacondaCompanyName}`);
+            return content.indexOf(`:: ${companyName}`);
         }, -1);
 
         return startOfCompanyName > 0 ? content.substring(0, startOfCompanyName).trim() : content;
