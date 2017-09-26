@@ -74,13 +74,13 @@ export class WindowsRegistryService implements IInterpreterLocatorService {
         };
         return this.registry.getValue(key, hive, arch)
             .then(installPath => {
-                // Install path is mandatory
+                // Install path is mandatory.
                 if (!installPath) {
                     return Promise.resolve(null);
                 }
-                // Check if 'ExecutablePath' exists
-                // Remember Python 2.7 doesn't have 'ExecutablePath' (there could be others)
-                // Treat all other values as optional
+                // Check if 'ExecutablePath' exists.
+                // Remember Python 2.7 doesn't have 'ExecutablePath' (there could be others).
+                // Treat all other values as optional.
                 return Promise.all([
                     Promise.resolve(installPath),
                     this.registry.getValue(key, hive, arch, 'ExecutablePath'),

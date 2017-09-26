@@ -22,7 +22,7 @@ export class CondaEnvService implements IInterpreterLocatorService {
         return this.getCondaFile()
             .then(condaFile => {
                 return new Promise<PythonInterpreter[]>((resolve, reject) => {
-                    // interrogate conda (if it's on the path) to find all environments
+                    // interrogate conda (if it's on the path) to find all environments.
                     child_process.execFile(condaFile, ['info', '--json'], (_, stdout) => {
                         if (stdout.length === 0) {
                             return resolve([]);
@@ -33,9 +33,9 @@ export class CondaEnvService implements IInterpreterLocatorService {
                             resolve(this.parseCondaInfo(info));
                         } catch (e) {
                             // Failed because either:
-                            //   1. conda is not installed
-                            //   2. `conda info --json` has changed signature
-                            //   3. output of `conda info --json` has changed in structure
+                            //   1. conda is not installed.
+                            //   2. `conda info --json` has changed signature.
+                            //   3. output of `conda info --json` has changed in structure.
                             // In all cases, we can't offer conda pythonPath suggestions.
                             return resolve([]);
                         }
@@ -69,11 +69,11 @@ export class CondaEnvService implements IInterpreterLocatorService {
         }
     }
     public async parseCondaInfo(info: CondaInfo) {
-        // "sys.version": "3.6.1 |Anaconda 4.4.0 (64-bit)| (default, May 11 2017, 13:25:24) [MSC v.1900 64 bit (AMD64)]",
+        // "sys.version": "3.6.1 |Anaconda 4.4.0 (64-bit)| (default, May 11 2017, 13:25:24) [MSC v.1900 64 bit (AMD64)]".
         const displayName = this.getDisplayNameFromVersionInfo(info['sys.version'] || '');
 
         // The root of the conda environment is itself a Python interpreter
-        // envs reported as e.g.: /Users/bob/miniconda3/envs/someEnv
+        // envs reported as e.g.: /Users/bob/miniconda3/envs/someEnv.
         const envs = Array.isArray(info.envs) ? info.envs : [];
         if (info.default_prefix && info.default_prefix.length > 0) {
             envs.push(info.default_prefix);
@@ -81,7 +81,7 @@ export class CondaEnvService implements IInterpreterLocatorService {
 
         const promises = envs
             .map(env => {
-                // If it is an environment, hence suffix with env name
+                // If it is an environment, hence suffix with env name.
                 const interpreterDisplayName = env === info.default_prefix ? displayName : `${displayName} (${path.basename(env)})`;
                 const interpreter: PythonInterpreter = {
                     path: path.join(env, ...CONDA_RELATIVE_PY_PATH),

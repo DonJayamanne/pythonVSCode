@@ -42,9 +42,9 @@ export class InterpreterManager implements Disposable {
             return;
         }
 
-        // Ensure this new environment is at the same level as the current workspace
-        // In windows the interpreter is under scripts/python.exe on linux it is under bin/python
-        // Meaning the sub directory must be either scripts, bin or other (but only one level deep)
+        // Ensure this new environment is at the same level as the current workspace.
+        // In windows the interpreter is under scripts/python.exe on linux it is under bin/python.
+        // Meaning the sub directory must be either scripts, bin or other (but only one level deep).
         const pythonPath = interpretersInWorkspace[0].path;
         const relativePath = path.dirname(pythonPath).substring(workspace.rootPath!.length);
         if (relativePath.split(path.sep).filter(l => l.length > 0).length === 2) {

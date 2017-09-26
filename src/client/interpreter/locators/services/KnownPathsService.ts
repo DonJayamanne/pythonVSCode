@@ -44,7 +44,7 @@ export function getKnownSearchPathsForInterpreters(): string[] {
         paths.forEach(p => {
             paths.push(untildify('~' + p));
         });
-        // Add support for paths such as /Users/xxx/anaconda/bin
+        // Add support for paths such as /Users/xxx/anaconda/bin.
         if (process.env['HOME']) {
             paths.push(path.join(process.env['HOME'], 'anaconda', 'bin'));
             paths.push(path.join(process.env['HOME'], 'python', 'bin'));

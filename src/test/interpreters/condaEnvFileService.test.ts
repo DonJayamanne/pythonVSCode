@@ -6,7 +6,12 @@ import { initialize } from '../initialize';
 import { IS_WINDOWS } from '../../client/common/utils';
 import { MockInterpreterVersionProvider } from './mocks';
 import { CondaEnvFileService } from '../../client/interpreter/locators/services/condaEnvFileService';
-import { AnacondaDisplayName, AnacondaCompanyName, CONDA_RELATIVE_PY_PATH, } from '../../client/interpreter/locators/services/conda';
+import {
+    AnacondaCompanyName,
+    AnacondaCompanyNames,
+    AnacondaDisplayName,
+    CONDA_RELATIVE_PY_PATH,
+} from '../../client/interpreter/locators/services/conda';
 
 const environmentsPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'environments');
 const environmentsFilePath = path.join(environmentsPath, 'environments.txt');
@@ -50,5 +55,21 @@ suite('Interpreters from Conda Environments Text File', () => {
         assert.equal(interpreters[0].displayName, `${AnacondaDisplayName} Mock Name (numpy)`, 'Incorrect display name');
         assert.equal(interpreters[0].companyDisplayName, AnacondaCompanyName, 'Incorrect display name');
         assert.equal(interpreters[0].path, path.join(interpreterPaths[0], ...CONDA_RELATIVE_PY_PATH), 'Incorrect company display name');
+    });
+    test('Must strip company name from version info', async () => {
+        const interpreterPaths = [
+            path.join(environmentsPath, 'conda', 'envs', 'numpy')
+        ];
+        await updateEnvWithInterpreters(interpreterPaths);
+
+        AnacondaCompanyNames.forEach(async companyDisplayName => {
+            const displayNameProvider = new MockInterpreterVersionProvider(`Mock Version  :: ${companyDisplayName}`);
+            const condaFileProvider = new CondaEnvFileService(environmentsFilePath, displayNameProvider);
+            const interpreters = await condaFileProvider.getInterpreters();
+            // This is because conda environments will be under 'bin/python' however the folders path1 and path2 do not have such files
+            const numberOfEnvs = IS_WINDOWS ? 3 : 1;
+            assert.equal(interpreters.length, numberOfEnvs, 'Incorrect number of entries');
+            assert.equal(interpreters[0].displayName, `${AnacondaDisplayName} Mock Version (numpy)`, 'Incorrect display name');
+        });
     });
 });
