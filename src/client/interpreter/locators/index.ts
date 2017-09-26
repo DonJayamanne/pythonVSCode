@@ -5,13 +5,13 @@ import { IInterpreterLocatorService, PythonInterpreter } from '../contracts';
 import { InterpreterVersionService } from '../interpreterVersion';
 import { IS_WINDOWS, Is_64Bit, arePathsSame, areBasePathsSame } from '../../common/utils';
 import { RegistryImplementation } from '../../common/registry';
-import { CondaEnvProvider } from './services/condaEnvService';
-import { VirtualEnvProvider, getKnownSearchPathsForVirtualEnvs } from './services/virtualEnvService';
-import { KnownPathsProvider, getKnownSearchPathsForInterpreters } from './services/KnownPathsService';
-import { CurrentPathProvider } from './services/currentPathService';
-import { WindowsRegistryProvider } from './services/windowsRegistryService';
+import { CondaEnvService } from './services/condaEnvService';
+import { VirtualEnvService, getKnownSearchPathsForVirtualEnvs } from './services/virtualEnvService';
+import { KnownPathsService, getKnownSearchPathsForInterpreters } from './services/KnownPathsService';
+import { CurrentPathService } from './services/currentPathService';
+import { WindowsRegistryService } from './services/windowsRegistryService';
 import { VirtualEnvironmentManager } from '../virtualEnvs';
-import { CondaEnvFileProvider, getEnvironmentsFile as getCondaEnvFile } from './services/condaEnvFileService';
+import { CondaEnvFileService, getEnvironmentsFile as getCondaEnvFile } from './services/condaEnvFileService';
 
 export class PythonInterpreterLocatorService implements IInterpreterLocatorService {
     private interpreters: PythonInterpreter[] = [];
@@ -20,25 +20,25 @@ export class PythonInterpreterLocatorService implements IInterpreterLocatorServi
         const versionService = new InterpreterVersionService();
         // The order of the services is important
         if (IS_WINDOWS) {
-            const windowsRegistryProvider = new WindowsRegistryProvider(new RegistryImplementation(), Is_64Bit);
+            const windowsRegistryProvider = new WindowsRegistryService(new RegistryImplementation(), Is_64Bit);
             this.locators.push(windowsRegistryProvider);
-            this.locators.push(new CondaEnvProvider(windowsRegistryProvider));
+            this.locators.push(new CondaEnvService(windowsRegistryProvider));
         }
         else {
-            this.locators.push(new CondaEnvProvider());
+            this.locators.push(new CondaEnvService());
         }
         // Supplements the above list of conda environments
-        this.locators.push(new CondaEnvFileProvider(getCondaEnvFile(), versionService));
-        this.locators.push(new VirtualEnvProvider(getKnownSearchPathsForVirtualEnvs(), this.virtualEnvMgr, versionService));
+        this.locators.push(new CondaEnvFileService(getCondaEnvFile(), versionService));
+        this.locators.push(new VirtualEnvService(getKnownSearchPathsForVirtualEnvs(), this.virtualEnvMgr, versionService));
 
         if (!IS_WINDOWS) {
             // This must be last, it is possible we have paths returned here that are already returned 
             // in one of the above lists
-            this.locators.push(new KnownPathsProvider(getKnownSearchPathsForInterpreters(), versionService));
+            this.locators.push(new KnownPathsService(getKnownSearchPathsForInterpreters(), versionService));
         }
         // This must be last, it is possible we have paths returned here that are already returned 
         // in one of the above lists
-        this.locators.push(new CurrentPathProvider(this.virtualEnvMgr, versionService));
+        this.locators.push(new CurrentPathService(this.virtualEnvMgr, versionService));
     }
     public getInterpreters() {
         if (this.interpreters.length > 0) {

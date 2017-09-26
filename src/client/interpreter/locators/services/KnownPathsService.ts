@@ -7,7 +7,7 @@ import { fsExistsAsync, IS_WINDOWS } from '../../../common/utils';
 import { lookForInterpretersInDirectory } from '../helpers';
 const untildify = require('untildify');
 
-export class KnownPathsProvider implements IInterpreterLocatorService {
+export class KnownPathsService implements IInterpreterLocatorService {
     public constructor(private knownSearchPaths: string[],
         private versionProvider: IInterpreterVersionService) { }
     public getInterpreters() {

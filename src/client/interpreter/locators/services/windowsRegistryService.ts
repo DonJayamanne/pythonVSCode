@@ -15,7 +15,7 @@ type CompanyInterpreter = {
     arch?: Architecture
 };
 
-export class WindowsRegistryProvider implements IInterpreterLocatorService {
+export class WindowsRegistryService implements IInterpreterLocatorService {
     constructor(private registry: IRegistry, private is64Bit: boolean) {
 
     }

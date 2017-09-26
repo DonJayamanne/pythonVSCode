@@ -13,7 +13,7 @@ import { AnacondaDisplayName, AnacondaCompanyName, CONDA_RELATIVE_PY_PATH } from
  * @class CondaEnvFileProvider
  * @implements {IInterpreterLocatorService}
  */
-export class CondaEnvFileProvider implements IInterpreterLocatorService {
+export class CondaEnvFileService implements IInterpreterLocatorService {
     constructor(private condaEnvironmentFile: string,
         private versionService: IInterpreterVersionService) {
     }

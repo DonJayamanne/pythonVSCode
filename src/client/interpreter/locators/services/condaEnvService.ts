@@ -11,7 +11,7 @@ type CondaInfo = {
     "sys.version"?: string;
     default_prefix?: string;
 }
-export class CondaEnvProvider implements IInterpreterLocatorService {
+export class CondaEnvService implements IInterpreterLocatorService {
     constructor(private registryLookupForConda?: IInterpreterLocatorService) {
     }
     public getInterpreters() {

@@ -5,7 +5,7 @@ import { EOL } from 'os';
 import { initialize } from '../initialize';
 import { IS_WINDOWS } from '../../client/common/utils';
 import { MockInterpreterVersionProvider } from './mocks';
-import { CondaEnvFileProvider } from '../../client/interpreter/locators/services/condaEnvFileService';
+import { CondaEnvFileService } from '../../client/interpreter/locators/services/condaEnvFileService';
 import { AnacondaDisplayName, AnacondaCompanyName, CONDA_RELATIVE_PY_PATH, } from '../../client/interpreter/locators/services/conda';
 
 const environmentsPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'environments');
@@ -28,7 +28,7 @@ suite('Interpreters from Conda Environments Text File', () => {
     test('Must return an empty list for an empty file', async () => {
         await updateEnvWithInterpreters([]);
         const displayNameProvider = new MockInterpreterVersionProvider('Mock Name');
-        const condaFileProvider = new CondaEnvFileProvider(environmentsFilePath, displayNameProvider);
+        const condaFileProvider = new CondaEnvFileService(environmentsFilePath, displayNameProvider);
         const interpreters = await condaFileProvider.getInterpreters();
         assert.equal(interpreters.length, 0, 'Incorrect number of entries');
     });
@@ -42,7 +42,7 @@ suite('Interpreters from Conda Environments Text File', () => {
         ];
         await updateEnvWithInterpreters(interpreterPaths);
         const displayNameProvider = new MockInterpreterVersionProvider('Mock Name');
-        const condaFileProvider = new CondaEnvFileProvider(environmentsFilePath, displayNameProvider);
+        const condaFileProvider = new CondaEnvFileService(environmentsFilePath, displayNameProvider);
         const interpreters = await condaFileProvider.getInterpreters();
         // This is because conda environments will be under 'bin/python' however the folders path1 and path2 do not have such files
         const numberOfEnvs = IS_WINDOWS ? 3 : 1;

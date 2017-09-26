@@ -10,7 +10,7 @@ import { lookForInterpretersInDirectory } from '../helpers';
 import { workspace } from 'vscode';
 const untildify = require('untildify');
 
-export class VirtualEnvProvider implements IInterpreterLocatorService {
+export class VirtualEnvService implements IInterpreterLocatorService {
     public constructor(private knownSearchPaths: string[],
         private virtualEnvMgr: VirtualEnvironmentManager,
         private versionProvider: IInterpreterVersionService) { }

@@ -10,7 +10,7 @@ import { PythonSettings } from '../../../common/configSettings';
 
 const settings = PythonSettings.getInstance();
 
-export class CurrentPathProvider implements IInterpreterLocatorService {
+export class CurrentPathService implements IInterpreterLocatorService {
     public constructor(private virtualEnvMgr: VirtualEnvironmentManager,
         private versionProvider: IInterpreterVersionService) { }
     public getInterpreters() {
