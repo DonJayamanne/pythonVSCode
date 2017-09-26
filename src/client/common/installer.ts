@@ -173,7 +173,7 @@ export class Installer implements vscode.Disposable {
             else {
                 console.warn(message);
             }
-            return Promise.resolve();
+            return;
         }
 
         const installOption = 'Install ' + productName;
