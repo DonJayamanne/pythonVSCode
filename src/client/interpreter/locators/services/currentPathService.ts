@@ -1,17 +1,18 @@
 "use strict";
-import * as path from 'path';
 import * as _ from 'lodash';
-import { IInterpreterProvider } from '../contracts';
-import { getInterpreterDisplayName } from '../../../common/utils';
-import { getFirstNonEmptyLineFromMultilineString } from '../helpers';
+import * as path from 'path';
 import * as child_process from 'child_process';
+import { IInterpreterLocatorService } from '../../contracts';
+import { IInterpreterVersionService } from '../../interpreterVersion';
+import { getFirstNonEmptyLineFromMultilineString } from '../../helpers';
 import { VirtualEnvironmentManager } from '../../virtualEnvs';
 import { PythonSettings } from '../../../common/configSettings';
 
 const settings = PythonSettings.getInstance();
 
-export class CurrentPathProvider implements IInterpreterProvider {
-    public constructor(private virtualEnvMgr: VirtualEnvironmentManager) { }
+export class CurrentPathProvider implements IInterpreterLocatorService {
+    public constructor(private virtualEnvMgr: VirtualEnvironmentManager,
+        private versionProvider: IInterpreterVersionService) { }
     public getInterpreters() {
         return this.suggestionsFromKnownPaths();
     }
@@ -28,7 +29,7 @@ export class CurrentPathProvider implements IInterpreterProvider {
     }
     private getInterpreterDetails(interpreter: string) {
         const virtualEnv = this.virtualEnvMgr.detect(interpreter);
-        const displayName = getInterpreterDisplayName(interpreter).catch(() => path.basename(interpreter));
+        const displayName = this.versionProvider.getVersion(interpreter, path.basename(interpreter));
         return Promise.all([displayName, virtualEnv])
             .then(([displayName, virtualEnv]) => {
                 displayName += virtualEnv ? ` (${virtualEnv.name})` : '';

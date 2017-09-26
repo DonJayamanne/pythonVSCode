@@ -1,4 +1,4 @@
-import { PythonInterpreter } from "../index";
+import { PythonInterpreter } from "../contracts";
 import { IS_WINDOWS, fsReaddirAsync } from "../../common/utils";
 import * as path from 'path';
 import { getArchitectureDislayName } from "../../common/registry";
@@ -24,12 +24,4 @@ export function fixInterpreterPath(item: PythonInterpreter) {
     // Also ensure paths have back slashes instead of forward
     item.path = IS_WINDOWS ? item.path.replace(/\//g, "\\") : item.path;
     return item;
-}
-
-export function getFirstNonEmptyLineFromMultilineString(stdout: string) {
-    if (stdout.length === 0) {
-        return '';
-    }
-    const lines = stdout.split(/\r?\n/g).filter(line => line.trim().length > 0);
-    return lines.length > 0 ? lines[0] : '';
 }

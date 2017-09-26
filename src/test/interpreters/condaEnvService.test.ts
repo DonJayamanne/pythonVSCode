@@ -3,9 +3,9 @@ import * as path from 'path';
 import * as settings from '../../client/common/configSettings';
 import { initialize, setPythonExecutable } from '../initialize';
 import { IS_WINDOWS } from '../../client/common/utils';
-import { CondaEnvProvider } from '../../client/interpreter/sources/providers/condaEnvProvider';
+import { CondaEnvProvider } from '../../client/interpreter/locators/services/condaEnvService';
 import { MockProvider } from './mocks';
-import { PythonInterpreter } from '../../client/interpreter';
+import { PythonInterpreter } from '../../client/interpreter/contracts';
 
 const pythonSettings = settings.PythonSettings.getInstance();
 const originalPythonPath = pythonSettings.pythonPath;

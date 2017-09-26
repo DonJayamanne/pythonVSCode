@@ -2,22 +2,17 @@
 import * as child_process from 'child_process';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { IInterpreterProvider, PythonInterpreter } from '../contracts';
-import { IS_WINDOWS } from "../../../common/utils";
+import { IInterpreterLocatorService, PythonInterpreter } from '../../contracts';
 import { VersionUtils } from "../../../common/versionUtils";
-
-// where to find the Python binary within a conda env
-const CONDA_RELATIVE_PY_PATH = IS_WINDOWS ? ['python.exe'] : ['bin', 'python'];
-const AnacondaCompanyName = 'Continuum Analytics, Inc.';
-const AnacondaDisplayName = 'Anaconda';
+import { AnacondaCompanyName, AnacondaDisplayName, CONDA_RELATIVE_PY_PATH } from './conda';
 
 type CondaInfo = {
     envs?: string[];
     "sys.version"?: string;
     default_prefix?: string;
 }
-export class CondaEnvProvider implements IInterpreterProvider {
-    constructor(private registryLookupForConda?: IInterpreterProvider) {
+export class CondaEnvProvider implements IInterpreterLocatorService {
+    constructor(private registryLookupForConda?: IInterpreterLocatorService) {
     }
     public getInterpreters() {
         return this.getSuggestionsFromConda();

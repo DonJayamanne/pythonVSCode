@@ -1,26 +1,27 @@
 'use strict';
+import { InterpreterVersionService } from './interpreterVersion';
 import { VirtualEnv } from './virtualEnvs/virtualEnv';
 import { VEnv } from './virtualEnvs/venv';
 import { Disposable, window, StatusBarAlignment, workspace } from 'vscode';
 import { PythonSettings } from '../common/configSettings';
 import { InterpreterDisplay } from './display';
-import { PythonInterpreterProvider } from './sources';
+import { PythonInterpreterLocatorService } from './locators';
 import { VirtualEnvironmentManager } from './virtualEnvs/index';
 import { IS_WINDOWS } from '../common/utils';
 import * as path from 'path';
-export * from './sources';
 
 const settings = PythonSettings.getInstance();
 
 export class InterpreterManager implements Disposable {
     private disposables: Disposable[] = [];
     private display: InterpreterDisplay | null | undefined;
-    private interpreterProvider: PythonInterpreterProvider;
+    private interpreterProvider: PythonInterpreterLocatorService;
     constructor() {
         const virtualEnvMgr = new VirtualEnvironmentManager([new VEnv(), new VirtualEnv()]);
         const statusBar = window.createStatusBarItem(StatusBarAlignment.Left);
-        this.interpreterProvider = new PythonInterpreterProvider(virtualEnvMgr);
-        this.display = new InterpreterDisplay(statusBar, this.interpreterProvider, virtualEnvMgr);
+        this.interpreterProvider = new PythonInterpreterLocatorService(virtualEnvMgr);
+        const versionService = new InterpreterVersionService();
+        this.display = new InterpreterDisplay(statusBar, this.interpreterProvider, virtualEnvMgr, versionService);
         settings.addListener('change', this.onConfigChanged.bind(this));
         this.display.refresh();
 

@@ -3,7 +3,7 @@ import * as assert from 'assert';
 import * as path from 'path';
 import * as settings from '../../client/common/configSettings';
 import { IS_WINDOWS } from '../../client/debugger/Common/Utils';
-import { WindowsRegistryProvider } from '../../client/interpreter/sources/providers/windowsRegistryProvider';
+import { WindowsRegistryProvider } from '../../client/interpreter/locators/services/windowsRegistryService';
 import { MockRegistry } from './mocks';
 import { Architecture, Hive } from '../../client/common/registry';
 

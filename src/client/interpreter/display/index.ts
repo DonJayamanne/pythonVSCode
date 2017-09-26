@@ -1,17 +1,21 @@
 'use strict';
+import * as path from 'path';
+import * as utils from '../../common/utils';
+import * as child_process from 'child_process';
 import { StatusBarItem, Disposable } from 'vscode';
 import { PythonSettings } from '../../common/configSettings';
-import * as path from 'path';
 import { EOL } from 'os';
-import { IInterpreterProvider } from '../index';
-import * as utils from '../../common/utils';
+import { IInterpreterLocatorService } from '../contracts';
+import { IInterpreterVersionService } from '../interpreterVersion';
 import { VirtualEnvironmentManager } from '../virtualEnvs/index';
-import { getFirstNonEmptyLineFromMultilineString } from '../sources/helpers';
-import * as child_process from 'child_process';
+import { getFirstNonEmptyLineFromMultilineString } from '../helpers';
 
 const settings = PythonSettings.getInstance();
 export class InterpreterDisplay implements Disposable {
-    constructor(private statusBar: StatusBarItem, private interpreterProvoder: IInterpreterProvider, private virtualEnvMgr: VirtualEnvironmentManager) {
+    constructor(private statusBar: StatusBarItem,
+        private interpreterLocator: IInterpreterLocatorService,
+        private virtualEnvMgr: VirtualEnvironmentManager,
+        private versionProvider: IInterpreterVersionService) {
         this.statusBar.command = 'python.setInterpreter';
     }
     public dispose() {
@@ -21,7 +25,7 @@ export class InterpreterDisplay implements Disposable {
         await this.updateDisplay(pythonPath);
     }
     private getInterpreters() {
-        return this.interpreterProvoder.getInterpreters();
+        return this.interpreterLocator.getInterpreters();
     }
     private async updateDisplay(pythonPath: string) {
         const interpreters = await this.getInterpreters();
@@ -39,7 +43,7 @@ export class InterpreterDisplay implements Disposable {
         else {
             const defaultDisplayName = `${path.basename(pythonPath)} [Environment]`;
             const interpreterExists = utils.fsExistsAsync(pythonPath);
-            const displayName = utils.getInterpreterDisplayName(pythonPath).catch(() => defaultDisplayName);
+            const displayName = this.versionProvider.getVersion(pythonPath, defaultDisplayName);
             const virtualEnvName = this.getVirtualEnvironmentName(pythonPath);
             await Promise.all([interpreterExists, displayName, virtualEnvName])
                 .then(([interpreterExists, displayName, virtualEnvName]) => {

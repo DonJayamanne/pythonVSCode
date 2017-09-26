@@ -2,8 +2,7 @@ import * as path from 'path';
 import * as _ from 'lodash';
 import * as fs from 'fs-extra';
 import { Architecture, Hive, IRegistry } from '../../../common/registry';
-import { IInterpreterProvider } from '../contracts';
-import { PythonInterpreter } from '../index';
+import { IInterpreterLocatorService, PythonInterpreter } from '../../contracts';
 
 const DefaultPythonExecutable = 'python.exe';
 const CompaniesToIgnore = ['PYLAUNCHER'];
@@ -16,7 +15,7 @@ type CompanyInterpreter = {
     arch?: Architecture
 };
 
-export class WindowsRegistryProvider implements IInterpreterProvider {
+export class WindowsRegistryProvider implements IInterpreterLocatorService {
     constructor(private registry: IRegistry, private is64Bit: boolean) {
 
     }
