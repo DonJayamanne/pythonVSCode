@@ -98,7 +98,7 @@ export class LintProvider extends vscode.Disposable {
                 return;
             }
             // Exclude files opened by vscode when showing a diff view
-            if (e.uri.scheme === 'git') {
+            if (e.uri.scheme === 'git' || e.uri.scheme === 'showModifications') {
                 return;
             }
             this.lintDocument(e, 100);
