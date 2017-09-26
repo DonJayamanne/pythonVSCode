@@ -5,6 +5,14 @@ import { IInterpreterVersionService } from '../../interpreterVersion';
 import { IInterpreterLocatorService, PythonInterpreter } from '../../contracts';
 import { AnacondaDisplayName, AnacondaCompanyName, CONDA_RELATIVE_PY_PATH } from './conda';
 
+/**
+ * The command 'conda info --envs' doesn't seem to return all environments
+ * Environments created using the command 'conda create --p python=x.x' are not returned by the above command
+ * However all these environments seem to be listed in the environments.txt file (confirmed on windows and linux)
+ * @export
+ * @class CondaEnvFileProvider
+ * @implements {IInterpreterLocatorService}
+ */
 export class CondaEnvFileProvider implements IInterpreterLocatorService {
     constructor(private condaEnvironmentFile: string,
         private versionService: IInterpreterVersionService) {
@@ -56,6 +64,6 @@ export class CondaEnvFileProvider implements IInterpreterLocatorService {
 }
 
 export function getEnvironmentsFile() {
-    const profileDir = process.env['USERPROFILE'];
-    return profileDir ? path.join(profileDir, '.conda', 'environments.txt') : '';
+    const homeDir = process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE;
+    return homeDir ? path.join(homeDir, '.conda', 'environments.txt') : '';
 }
