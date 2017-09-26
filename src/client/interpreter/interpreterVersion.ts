@@ -10,3 +10,4 @@ export class InterpreterVersionService implements IInterpreterVersionService {
             .catch(() => defaultValue);
     }
 }
+
