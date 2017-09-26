@@ -31,7 +31,7 @@ suite('Method Extraction', () => {
     const options: vscode.TextEditorOptions = { cursorStyle: vscode.TextEditorCursorStyle.Line, insertSpaces: true, lineNumbers: vscode.TextEditorLineNumbersStyle.Off, tabSize: 4 };
 
     suiteSetup(done => {
-        fs.copySync(refactorSourceFile, refactorTargetFile, { clobber: true });
+        fs.copySync(refactorSourceFile, refactorTargetFile, { overwrite: true });
         initialize().then(() => done(), () => done());
     });
     suiteTeardown(done => {
@@ -44,7 +44,7 @@ suite('Method Extraction', () => {
             await wait(500);
             fs.unlinkSync(refactorTargetFile);
         }
-        fs.copySync(refactorSourceFile, refactorTargetFile, { clobber: true });
+        fs.copySync(refactorSourceFile, refactorTargetFile, { overwrite: true });
         await closeActiveWindows();
         (<any>vscode).commands.executeCommand = (cmd) => Promise.resolve();
     });
