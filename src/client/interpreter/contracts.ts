@@ -1,7 +1,6 @@
-import { PythonInterpreter } from "../index";
-import { Architecture } from "../../common/registry";
+import { Architecture } from "../common/registry";
 
-export interface IInterpreterProvider {
+export interface IInterpreterLocatorService {
     getInterpreters(): Promise<PythonInterpreter[]>;
 }
 export interface PythonInterpreter {

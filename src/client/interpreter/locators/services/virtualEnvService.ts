@@ -3,15 +3,17 @@ import * as _ from 'lodash';
 import * as path from 'path';
 import * as settings from './../../../common/configSettings';
 import { VirtualEnvironmentManager } from '../../virtualEnvs';
-import { IInterpreterProvider } from '../contracts';
-import { IS_WINDOWS, fsReaddirAsync, getInterpreterDisplayName } from "../../../common/utils";
-import { PythonInterpreter } from '../index';
+import { IInterpreterLocatorService, PythonInterpreter } from '../../contracts';
+import { IInterpreterVersionService } from '../../interpreterVersion';
+import { IS_WINDOWS, fsReaddirAsync } from "../../../common/utils";
 import { lookForInterpretersInDirectory } from '../helpers';
 import { workspace } from 'vscode';
 const untildify = require('untildify');
 
-export class VirtualEnvProvider implements IInterpreterProvider {
-    public constructor(private knownSearchPaths: string[], private virtualEnvMgr: VirtualEnvironmentManager) { }
+export class VirtualEnvService implements IInterpreterLocatorService {
+    public constructor(private knownSearchPaths: string[],
+        private virtualEnvMgr: VirtualEnvironmentManager,
+        private versionProvider: IInterpreterVersionService) { }
     public getInterpreters() {
         return this.suggestionsFromKnownVenvs();
     }
@@ -39,7 +41,7 @@ export class VirtualEnvProvider implements IInterpreterProvider {
         }));
     }
     private async getVirtualEnvDetails(interpreter: string): Promise<PythonInterpreter> {
-        const displayName = getInterpreterDisplayName(interpreter).catch(() => path.basename(interpreter));
+        const displayName = this.versionProvider.getVersion(interpreter, path.basename(interpreter));
         const virtualEnv = this.virtualEnvMgr.detect(interpreter);
         return Promise.all([displayName, virtualEnv])
             .then(([displayName, virtualEnv]) => {

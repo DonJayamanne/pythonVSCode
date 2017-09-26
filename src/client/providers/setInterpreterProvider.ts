@@ -2,7 +2,8 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as settings from './../common/configSettings';
-import { PythonInterpreter, InterpreterManager } from '../interpreter';
+import { InterpreterManager } from '../interpreter';
+import { PythonInterpreter } from '../interpreter/contracts';
 
 
 interface PythonPathQuickPickItem extends vscode.QuickPickItem {

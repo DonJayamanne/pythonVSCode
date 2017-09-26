@@ -1,13 +1,15 @@
 "use strict";
 import * as path from 'path';
 import * as _ from 'lodash';
-import { IInterpreterProvider } from '../contracts';
-import { fsExistsAsync, getInterpreterDisplayName, IS_WINDOWS } from '../../../common/utils';
+import { IInterpreterLocatorService } from '../../contracts';
+import { IInterpreterVersionService } from '../../interpreterVersion';
+import { fsExistsAsync, IS_WINDOWS } from '../../../common/utils';
 import { lookForInterpretersInDirectory } from '../helpers';
 const untildify = require('untildify');
 
-export class KnownPathsProvider implements IInterpreterProvider {
-    public constructor(private knownSearchPaths: string[]) { }
+export class KnownPathsService implements IInterpreterLocatorService {
+    public constructor(private knownSearchPaths: string[],
+        private versionProvider: IInterpreterVersionService) { }
     public getInterpreters() {
         return this.suggestionsFromKnownPaths();
     }
@@ -20,7 +22,7 @@ export class KnownPathsProvider implements IInterpreterProvider {
             .then(interpreters => Promise.all(interpreters.map(interpreter => this.getInterpreterDetails(interpreter))));
     }
     private getInterpreterDetails(interpreter: string) {
-        return getInterpreterDisplayName(interpreter).catch(() => path.basename(interpreter))
+        return this.versionProvider.getVersion(interpreter, path.basename(interpreter))
             .then(displayName => {
                 return {
                     displayName,
@@ -42,7 +44,7 @@ export function getKnownSearchPathsForInterpreters(): string[] {
         paths.forEach(p => {
             paths.push(untildify('~' + p));
         });
-        // Add support for paths such as /Users/xxx/anaconda/bin
+        // Add support for paths such as /Users/xxx/anaconda/bin.
         if (process.env['HOME']) {
             paths.push(path.join(process.env['HOME'], 'anaconda', 'bin'));
             paths.push(path.join(process.env['HOME'], 'python', 'bin'));

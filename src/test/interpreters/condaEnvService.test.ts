@@ -3,9 +3,10 @@ import * as path from 'path';
 import * as settings from '../../client/common/configSettings';
 import { initialize, setPythonExecutable } from '../initialize';
 import { IS_WINDOWS } from '../../client/common/utils';
-import { CondaEnvProvider } from '../../client/interpreter/sources/providers/condaEnvProvider';
+import { CondaEnvService } from '../../client/interpreter/locators/services/condaEnvService';
+import { AnacondaCompanyName } from '../../client/interpreter/locators/services/conda';
 import { MockProvider } from './mocks';
-import { PythonInterpreter } from '../../client/interpreter';
+import { PythonInterpreter } from '../../client/interpreter/contracts';
 
 const pythonSettings = settings.PythonSettings.getInstance();
 const originalPythonPath = pythonSettings.pythonPath;
@@ -26,12 +27,12 @@ suite('Interpreters from Conda Environments', () => {
     });
 
     test('Must return an empty list for empty json', async () => {
-        const condaProvider = new CondaEnvProvider();
+        const condaProvider = new CondaEnvService();
         const interpreters = await condaProvider.parseCondaInfo({} as any)
         assert.equal(interpreters.length, 0, 'Incorrect number of entries');
     });
     test('Must extract display name from version info', async () => {
-        const condaProvider = new CondaEnvProvider();
+        const condaProvider = new CondaEnvService();
         const info = {
             envs: [path.join(environmentsPath, 'conda', 'envs', 'numpy'),
             path.join(environmentsPath, 'conda', 'envs', 'scipy')],
@@ -44,15 +45,15 @@ suite('Interpreters from Conda Environments', () => {
         const path1 = path.join(info.envs[0], IS_WINDOWS ? 'python.exe' : 'bin/python');
         assert.equal(interpreters[0].path, path1, 'Incorrect path for first env');
         assert.equal(interpreters[0].displayName, 'Anaconda 4.4.0 (64-bit) (numpy)', 'Incorrect display name for first env');
-        assert.equal(interpreters[0].companyDisplayName, 'Continuum Analytics, Inc.', 'Incorrect company display name for first env');
+        assert.equal(interpreters[0].companyDisplayName, AnacondaCompanyName, 'Incorrect company display name for first env');
 
         const path2 = path.join(info.envs[1], IS_WINDOWS ? 'python.exe' : 'bin/python');
         assert.equal(interpreters[1].path, path2, 'Incorrect path for first env');
         assert.equal(interpreters[1].displayName, 'Anaconda 4.4.0 (64-bit) (scipy)', 'Incorrect display name for first env');
-        assert.equal(interpreters[1].companyDisplayName, 'Continuum Analytics, Inc.', 'Incorrect company display name for first env');
+        assert.equal(interpreters[1].companyDisplayName, AnacondaCompanyName, 'Incorrect company display name for first env');
     });
     test('Must use the default display name if sys.version is invalid', async () => {
-        const condaProvider = new CondaEnvProvider();
+        const condaProvider = new CondaEnvService();
         const info = {
             envs: [path.join(environmentsPath, 'conda', 'envs', 'numpy')],
             default_prefix: '',
@@ -64,10 +65,10 @@ suite('Interpreters from Conda Environments', () => {
         const path1 = path.join(info.envs[0], IS_WINDOWS ? 'python.exe' : 'bin/python');
         assert.equal(interpreters[0].path, path1, 'Incorrect path for first env');
         assert.equal(interpreters[0].displayName, 'Anaconda (numpy)', 'Incorrect display name for first env');
-        assert.equal(interpreters[0].companyDisplayName, 'Continuum Analytics, Inc.', 'Incorrect company display name for first env');
+        assert.equal(interpreters[0].companyDisplayName, AnacondaCompanyName, 'Incorrect company display name for first env');
     });
     test('Must use the default display name if sys.version is empty', async () => {
-        const condaProvider = new CondaEnvProvider();
+        const condaProvider = new CondaEnvService();
         const info = {
             envs: [path.join(environmentsPath, 'conda', 'envs', 'numpy')],
         };
@@ -77,10 +78,10 @@ suite('Interpreters from Conda Environments', () => {
         const path1 = path.join(info.envs[0], IS_WINDOWS ? 'python.exe' : 'bin/python');
         assert.equal(interpreters[0].path, path1, 'Incorrect path for first env');
         assert.equal(interpreters[0].displayName, 'Anaconda (numpy)', 'Incorrect display name for first env');
-        assert.equal(interpreters[0].companyDisplayName, 'Continuum Analytics, Inc.', 'Incorrect company display name for first env');
+        assert.equal(interpreters[0].companyDisplayName, AnacondaCompanyName, 'Incorrect company display name for first env');
     });
     test('Must include the default_prefix into the list of interpreters', async () => {
-        const condaProvider = new CondaEnvProvider();
+        const condaProvider = new CondaEnvService();
         const info = {
             default_prefix: path.join(environmentsPath, 'conda', 'envs', 'numpy'),
         };
@@ -90,10 +91,10 @@ suite('Interpreters from Conda Environments', () => {
         const path1 = path.join(info.default_prefix, IS_WINDOWS ? 'python.exe' : 'bin/python');
         assert.equal(interpreters[0].path, path1, 'Incorrect path for first env');
         assert.equal(interpreters[0].displayName, 'Anaconda', 'Incorrect display name for first env');
-        assert.equal(interpreters[0].companyDisplayName, 'Continuum Analytics, Inc.', 'Incorrect company display name for first env');
+        assert.equal(interpreters[0].companyDisplayName, AnacondaCompanyName, 'Incorrect company display name for first env');
     });
     test('Must exclude interpreters that do not exist on disc', async () => {
-        const condaProvider = new CondaEnvProvider();
+        const condaProvider = new CondaEnvService();
         const info = {
             envs: [path.join(environmentsPath, 'conda', 'envs', 'numpy'),
             path.join(environmentsPath, 'path0', 'one.exe'),
@@ -105,8 +106,14 @@ suite('Interpreters from Conda Environments', () => {
         const interpreters = await condaProvider.parseCondaInfo(info);
 
         assert.equal(interpreters.length, 2, 'Incorrect number of entries');
-        assert.equal(path.dirname(interpreters[0].path), info.envs[0], 'Incorrect path for first env');
-        assert.equal(path.dirname(interpreters[1].path), info.envs[4], 'Incorrect path for second env');
+        // Go up one dir for linux (cuz exe is under a sub directory named 'bin')
+        let path0 = path.dirname(interpreters[0].path);
+        path0 = IS_WINDOWS ? path0 : path.dirname(path0);
+        assert.equal(path0, info.envs[0], 'Incorrect path for first env');
+        // Go up one dir for linux (cuz exe is under a sub directory named 'bin')
+        let path1 = path.dirname(interpreters[1].path);
+        path1 = IS_WINDOWS ? path1 : path.dirname(path1);
+        assert.equal(path1, info.envs[4], 'Incorrect path for second env');
     });
     test('Must detect conda environments from a list', async () => {
         const registryInterpreters: PythonInterpreter[] = [
@@ -119,7 +126,7 @@ suite('Interpreters from Conda Environments', () => {
             { displayName: 'xnaconda', path: path.join(environmentsPath, 'path2', 'one.exe'), companyDisplayName: 'Continuum Analytics, Inc.' },
         ];
         const mockRegistryProvider = new MockProvider(registryInterpreters);
-        const condaProvider = new CondaEnvProvider(mockRegistryProvider);
+        const condaProvider = new CondaEnvService(mockRegistryProvider);
 
         assert.equal(condaProvider.isCondaEnvironment(registryInterpreters[0]), false, '1. Identified environment incorrectly');
         assert.equal(condaProvider.isCondaEnvironment(registryInterpreters[1]), false, '2. Identified environment incorrectly');
@@ -140,7 +147,7 @@ suite('Interpreters from Conda Environments', () => {
             { displayName: 'Seven', path: path.join(environmentsPath, 'conda', 'envs', 'numpy'), companyDisplayName: 'Continuum Analytics, Inc.' },
         ];
         const mockRegistryProvider = new MockProvider(registryInterpreters);
-        const condaProvider = new CondaEnvProvider(mockRegistryProvider);
+        const condaProvider = new CondaEnvService(mockRegistryProvider);
 
         assert.equal(condaProvider.getLatestVersion(registryInterpreters)!.displayName, 'Two', 'Failed to identify latest version');
     });
@@ -155,7 +162,7 @@ suite('Interpreters from Conda Environments', () => {
             { displayName: 'Seven', path: path.join(environmentsPath, 'conda', 'envs', 'numpy'), companyDisplayName: 'Continuum Analytics, Inc.' },
         ];
         const mockRegistryProvider = new MockProvider(registryInterpreters);
-        const condaProvider = new CondaEnvProvider(mockRegistryProvider);
+        const condaProvider = new CondaEnvService(mockRegistryProvider);
 
         assert.equal(condaProvider.getLatestVersion(registryInterpreters)!.displayName, 'Two', 'Failed to identify latest version');
     });
@@ -168,7 +175,7 @@ suite('Interpreters from Conda Environments', () => {
             { displayName: 'Seven', path: path.join(environmentsPath, 'conda', 'envs', 'numpy'), companyDisplayName: 'Continuum Analytics, Inc.' },
         ];
         const mockRegistryProvider = new MockProvider(registryInterpreters);
-        const condaProvider = new CondaEnvProvider(mockRegistryProvider);
+        const condaProvider = new CondaEnvService(mockRegistryProvider);
 
         const condaExe = await condaProvider.getCondaFile();
         assert.equal(condaExe, path.join(path.dirname(condaPythonExePath), 'conda.exe'), 'Failed to identify conda.exe');

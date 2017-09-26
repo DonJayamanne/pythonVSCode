@@ -2,8 +2,7 @@ import * as path from 'path';
 import * as _ from 'lodash';
 import * as fs from 'fs-extra';
 import { Architecture, Hive, IRegistry } from '../../../common/registry';
-import { IInterpreterProvider } from '../contracts';
-import { PythonInterpreter } from '../index';
+import { IInterpreterLocatorService, PythonInterpreter } from '../../contracts';
 
 const DefaultPythonExecutable = 'python.exe';
 const CompaniesToIgnore = ['PYLAUNCHER'];
@@ -16,7 +15,7 @@ type CompanyInterpreter = {
     arch?: Architecture
 };
 
-export class WindowsRegistryProvider implements IInterpreterProvider {
+export class WindowsRegistryService implements IInterpreterLocatorService {
     constructor(private registry: IRegistry, private is64Bit: boolean) {
 
     }
@@ -75,13 +74,13 @@ export class WindowsRegistryProvider implements IInterpreterProvider {
         };
         return this.registry.getValue(key, hive, arch)
             .then(installPath => {
-                // Install path is mandatory
+                // Install path is mandatory.
                 if (!installPath) {
                     return Promise.resolve(null);
                 }
-                // Check if 'ExecutablePath' exists
-                // Remember Python 2.7 doesn't have 'ExecutablePath' (there could be others)
-                // Treat all other values as optional
+                // Check if 'ExecutablePath' exists.
+                // Remember Python 2.7 doesn't have 'ExecutablePath' (there could be others).
+                // Treat all other values as optional.
                 return Promise.all([
                     Promise.resolve(installPath),
                     this.registry.getValue(key, hive, arch, 'ExecutablePath'),

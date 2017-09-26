@@ -1,8 +1,9 @@
+import { IInterpreterVersionService } from '../../client/interpreter/interpreterVersion';
 import { IVirtualEnvironment } from '../../client/interpreter/virtualEnvs/contracts';
-import { IInterpreterProvider, PythonInterpreter } from "../../client/interpreter/index";
+import { IInterpreterLocatorService, PythonInterpreter } from "../../client/interpreter/contracts";
 import { IRegistry, Hive, Architecture } from "../../client/common/registry";
 
-export class MockProvider implements IInterpreterProvider {
+export class MockProvider implements IInterpreterLocatorService {
     constructor(private suggestions: PythonInterpreter[]) {
     }
     getInterpreters(): Promise<PythonInterpreter[]> {
@@ -47,5 +48,12 @@ export class MockVirtualEnv implements IVirtualEnvironment {
     }
     detect(pythonPath: string): Promise<boolean> {
         return Promise.resolve(this.isDetected);
+    }
+}
+
+export class MockInterpreterVersionProvider implements IInterpreterVersionService {
+    constructor(private displayName: string, private useDefaultDisplayName: boolean = false) { }
+    getVersion(pythonPath: string, defaultDisplayName: string): Promise<string> {
+        return this.useDefaultDisplayName ? Promise.resolve(defaultDisplayName) : Promise.resolve(this.displayName);
     }
 }
