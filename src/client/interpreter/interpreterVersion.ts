@@ -8,6 +8,6 @@ export interface IInterpreterVersionService {
 export class InterpreterVersionService implements IInterpreterVersionService {
     getVersion(pythonPath: string, defaultValue: string): Promise<string> {
         return getInterpreterDisplayName(pythonPath)
-            .catch(() => path.basename(defaultValue));
+            .catch(() => defaultValue);
     }
 }
