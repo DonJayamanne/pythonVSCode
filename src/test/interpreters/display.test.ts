@@ -68,6 +68,8 @@ suite('Interpreters Display', () => {
     test('Must get display name from a list of interpreters', async () => {
         const pythonPath = await new Promise<string>(resolve => {
             child_process.execFile(pythonSettings.pythonPath, ["-c", "import sys;print(sys.executable)"], (_, stdout) => {
+                console.log(stdout);
+                console.log('Pythong Printer');
                 resolve(getFirstNonEmptyLineFromMultilineString(stdout));
             });
         }).then(value => value.length === 0 ? pythonSettings.pythonPath : value);
