@@ -82,14 +82,14 @@ suite('Unit Tests (unittest)', () => {
 
     test('Run Tests', async () => {
         pythonSettings.unitTest.unittestArgs = [
-            '-s=./tests',
-            '-p=*test*.py'
+            '-v', '-s','./tests',
+            '-p','test_unittest*.py'
         ];
         createTestManager();
         const results = await testManager.runTest();
         assert.equal(results.summary.errors, 1, 'Errors');
-        assert.equal(results.summary.failures, 5, 'Failures');
-        assert.equal(results.summary.passed, 4, 'Passed');
+        assert.equal(results.summary.failures, 4, 'Failures');
+        assert.equal(results.summary.passed, 3, 'Passed');
         assert.equal(results.summary.skipped, 1, 'skipped');
     });
 
@@ -112,18 +112,18 @@ suite('Unit Tests (unittest)', () => {
     test('Run Failed Tests', async () => {
         pythonSettings.unitTest.unittestArgs = [
             '-s=./tests',
-            '-p=*test*.py'
+            '-p=test_unittest*.py'
         ];
         createTestManager();
         let results = await testManager.runTest();
         assert.equal(results.summary.errors, 1, 'Errors');
-        assert.equal(results.summary.failures, 5, 'Failures');
-        assert.equal(results.summary.passed, 4, 'Passed');
+        assert.equal(results.summary.failures, 4, 'Failures');
+        assert.equal(results.summary.passed, 3, 'Passed');
         assert.equal(results.summary.skipped, 1, 'skipped');
 
         results = await testManager.runTest(true);
         assert.equal(results.summary.errors, 1, 'Failed Errors');
-        assert.equal(results.summary.failures, 5, 'Failed Failures');
+        assert.equal(results.summary.failures, 4, 'Failed Failures');
         assert.equal(results.summary.passed, 0, 'Failed Passed');
         assert.equal(results.summary.skipped, 0, 'Failed skipped');
     });
