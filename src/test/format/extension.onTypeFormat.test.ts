@@ -4,7 +4,7 @@
 
 
 // Place this right on top
-import { initialize, closeActiveWindows, setPythonExecutable } from './initialize';
+import { initialize, closeActiveWindows, setPythonExecutable } from '../initialize';
 // The module 'assert' provides assertion methods from node
 import * as assert from 'assert';
 
@@ -12,14 +12,14 @@ import * as assert from 'assert';
 // as well as import your extension to test it
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as settings from '../client/common/configSettings';
+import * as settings from '../../client/common/configSettings';
 import * as fs from 'fs-extra';
-import { BlockFormatProviders } from '../client/typeFormatters/blockFormatProvider';
-let pythonSettings = settings.PythonSettings.getInstance();
+import { BlockFormatProviders } from '../../client/typeFormatters/blockFormatProvider';
+const pythonSettings = settings.PythonSettings.getInstance();
 let disposable: vscode.Disposable;
 
-let srcPythoFilesPath = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'typeFormatFiles');
-let outPythoFilesPath = path.join(__dirname, 'pythonFiles', 'typeFormatFiles');
+const srcPythoFilesPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'typeFormatFiles');
+const outPythoFilesPath = path.join(__dirname, 'pythonFiles', 'typeFormatFiles');
 
 const tryBlock2OutFilePath = path.join(outPythoFilesPath, 'tryBlocks2.py');
 const tryBlock4OutFilePath = path.join(outPythoFilesPath, 'tryBlocks4.py');
