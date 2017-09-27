@@ -1463,7 +1463,31 @@
           "description": "Code executed when the kernel starts. Such as the default of '%matplotlib inline'. Individual lines can be placed in separate items of the array."
         }
       }
-    }
+    },
+    "languages": [
+      {
+        "id": "pip-requirements",
+        "aliases": [
+          "pip requirements",
+          "requirements.txt"
+        ],
+        "filenames": [
+          "requirements.txt"
+        ],
+        "filenamePatterns": [
+          "*-requirements.txt",
+          "requirements-*.txt"
+        ],
+        "configuration": "./languages/pip-requirements.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "pip-requirements",
+        "scopeName": "source.pip-requirements",
+        "path": "./syntaxes/pip-requirements.tmLanguage.json"
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "tsc -p ./ && webpack",
