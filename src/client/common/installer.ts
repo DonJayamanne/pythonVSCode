@@ -178,7 +178,7 @@ export class Installer implements vscode.Disposable {
 
         const installOption = 'Install ' + productName;
         const disableOption = 'Disable ' + productTypeName;
-        const dontShowAgain = `Don't show this again`;
+        const dontShowAgain = `Don't show this prompt again`;
         const alternateFormatter = product === Product.autopep8 ? 'yapf' : 'autopep8';
         const useOtherFormatter = `Use '${alternateFormatter}' formatter`;
         const options = [];
