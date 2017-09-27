@@ -1,23 +1,20 @@
-// Place this right on top
-import { initialize, closeActiveWindows, IS_TRAVIS, setPythonExecutable, wait } from './../initialize';
 import * as assert from 'assert';
 
 // You can import and use all API from the \'vscode\' module
 // as well as import your extension to test it
 import * as vscode from 'vscode';
-import { TextLine, Position, Range } from 'vscode';
 import * as path from 'path';
 import * as settings from '../../client/common/configSettings';
 import * as fs from 'fs-extra';
+import { initialize, closeActiveWindows, IS_TRAVIS, wait } from './../initialize';
+import { Position } from 'vscode';
 import { extractMethod } from '../../client/providers/simpleRefactorProvider';
 import { RefactorProxy } from '../../client/refactor/proxy';
 import { getTextEditsFromPatch } from '../../client/common/editor';
 import { MockOutputChannel } from './../mockClasses';
 
-let EXTENSION_DIR = path.join(__dirname, '..', '..', '..');
-let pythonSettings = settings.PythonSettings.getInstance();
-const disposable = setPythonExecutable(pythonSettings);
-
+const EXTENSION_DIR = path.join(__dirname, '..', '..', '..');
+const pythonSettings = settings.PythonSettings.getInstance();
 const refactorSourceFile = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'refactoring', 'standAlone', 'refactor.py');
 const refactorTargetFile = path.join(__dirname, '..', '..', '..', 'out', 'test', 'pythonFiles', 'refactoring', 'standAlone', 'refactor.py');
 
@@ -30,14 +27,13 @@ suite('Method Extraction', () => {
     const oldExecuteCommand = vscode.commands.executeCommand;
     const options: vscode.TextEditorOptions = { cursorStyle: vscode.TextEditorCursorStyle.Line, insertSpaces: true, lineNumbers: vscode.TextEditorLineNumbersStyle.Off, tabSize: 4 };
 
-    suiteSetup(done => {
+    suiteSetup(() => {
         fs.copySync(refactorSourceFile, refactorTargetFile, { overwrite: true });
-        initialize().then(() => done(), () => done());
+        return initialize();
     });
-    suiteTeardown(done => {
-        disposable.dispose();
+    suiteTeardown(() => {
         vscode.commands.executeCommand = oldExecuteCommand;
-        closeActiveWindows().then(() => done(), () => done());
+        return closeActiveWindows();
     });
     setup(async () => {
         if (fs.existsSync(refactorTargetFile)) {
@@ -48,9 +44,9 @@ suite('Method Extraction', () => {
         await closeActiveWindows();
         (<any>vscode).commands.executeCommand = (cmd) => Promise.resolve();
     });
-    teardown(done => {
+    teardown(() => {
         vscode.commands.executeCommand = oldExecuteCommand;
-        closeActiveWindows().then(() => done(), () => done());
+        return closeActiveWindows();
     });
 
     function testingMethodExtraction(shouldError: boolean, pythonSettings: settings.IPythonSettings, startPos: Position, endPos: Position) {

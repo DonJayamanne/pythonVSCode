@@ -1,17 +1,15 @@
-// Place this right on top
-import { initialize, setPythonExecutable } from './../initialize';
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as configSettings from '../../client/common/configSettings';
 import * as nose from '../../client/unittests/nosetest/main';
+import { initialize } from './../initialize';
 import { TestsToRun } from '../../client/unittests/common/contracts';
 import { TestResultDisplay } from '../../client/unittests/display/main';
 import { MockOutputChannel } from './../mockClasses';
 
 const pythonSettings = configSettings.PythonSettings.getInstance();
-const disposable = setPythonExecutable(pythonSettings);
 const UNITTEST_TEST_FILES_PATH = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'standard');
 const UNITTEST_SINGLE_TEST_FILE_PATH = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'single');
 const filesToDelete = [path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'standard', '.noseids'),
@@ -29,7 +27,6 @@ suite('Unit Tests (nosetest)', () => {
         await initialize();
     });
     suiteTeardown(() => {
-        disposable.dispose();
         filesToDelete.forEach(file => {
             if (fs.existsSync(file)) {
                 fs.unlinkSync(file);

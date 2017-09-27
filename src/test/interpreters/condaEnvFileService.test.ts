@@ -17,11 +17,7 @@ const environmentsPath = path.join(__dirname, '..', '..', '..', 'src', 'test', '
 const environmentsFilePath = path.join(environmentsPath, 'environments.txt');
 
 suite('Interpreters from Conda Environments Text File', () => {
-    suiteSetup(done => {
-        initialize()
-            .then(() => done())
-            .catch(() => done());
-    });
+    suiteSetup(() => initialize());
     suiteTeardown(async () => {
         // Clear the file so we don't get unwanted changes prompting for a checkin of this file
         await updateEnvWithInterpreters([]);

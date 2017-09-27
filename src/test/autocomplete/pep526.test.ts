@@ -3,8 +3,6 @@
 // Please refer to their documentation on https://mochajs.org/ for help.
 
 
-// Place this right on top
-import { initialize, closeActiveWindows, setPythonExecutable } from '../initialize';
 // The module 'assert' provides assertion methods from node
 import * as assert from 'assert';
 // You can import and use all API from the 'vscode' module
@@ -13,30 +11,21 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as settings from '../../client/common/configSettings';
 import { execPythonFile } from '../../client/common/utils';
-import { createDeferred } from '../../client/common/helpers';
+import { initialize, closeActiveWindows } from '../initialize';
 
-let pythonSettings = settings.PythonSettings.getInstance();
-let disposable: vscode.Disposable;
-
-let autoCompPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'autocomp');
+const pythonSettings = settings.PythonSettings.getInstance();
+const autoCompPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'autocomp');
 const filePep526 = path.join(autoCompPath, 'pep526.py');
 
 suite('Autocomplete PEP 526', () => {
-    const isPython3Deferred = createDeferred<boolean>();
-    const isPython3 = isPython3Deferred.promise;
+    let isPython3: Promise<boolean>;
     suiteSetup(async () => {
-        disposable = setPythonExecutable(pythonSettings);
         await initialize();
-        let version = await execPythonFile(pythonSettings.pythonPath, ['--version'], __dirname, true);
-        isPython3Deferred.resolve(version.indexOf('3.') >= 0);
+        const version = await execPythonFile(pythonSettings.pythonPath, ['--version'], __dirname, true);
+        isPython3 = Promise.resolve(version.indexOf('3.') >= 0);
     });
-    suiteTeardown(done => {
-        disposable.dispose();
-        closeActiveWindows().then(() => done(), () => done());
-    });
-    teardown(done => {
-        closeActiveWindows().then(() => done(), () => done());
-    });
+    suiteTeardown(() => closeActiveWindows());
+    teardown(() => closeActiveWindows());
 
     test('variable (abc:str)', async () => {
         if (!await isPython3) {

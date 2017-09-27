@@ -3,22 +3,20 @@
 // Please refer to their documentation on https://mochajs.org/ for help.
 
 
-// Place this right on top
-import { initialize, IS_TRAVIS, closeActiveWindows, setPythonExecutable } from '../initialize';
 // The module 'assert' provides assertion methods from node
 import * as assert from 'assert';
 
 // You can import and use all API from the 'vscode' module
 // as well as import your extension to test it
 import * as vscode from 'vscode';
-import { PythonImportSortProvider } from '../../client/providers/importSortProvider';
 import * as path from 'path';
 import * as settings from '../../client/common/configSettings';
 import * as fs from 'fs';
 import { EOL } from 'os';
+import { PythonImportSortProvider } from '../../client/providers/importSortProvider';
+import { initialize, IS_TRAVIS, closeActiveWindows } from '../initialize';
 
 const pythonSettings = settings.PythonSettings.getInstance();
-const disposable = setPythonExecutable(pythonSettings);
 
 const sortingPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'sorting');
 const fileToFormatWithoutConfig = path.join(sortingPath, 'noconfig', 'before.py');
@@ -30,22 +28,19 @@ const originalFileToFormatWithConfig1 = path.join(sortingPath, 'withconfig', 'or
 const extensionDir = path.join(__dirname, '..', '..', '..');
 
 suite('Sorting', () => {
-    suiteSetup(done => {
-        initialize().then(() => done(), () => done());
-    });
-    suiteTeardown(done => {
-        disposable.dispose();
+    suiteSetup(() => initialize());
+    suiteTeardown(() => {
         fs.writeFileSync(fileToFormatWithConfig, fs.readFileSync(originalFileToFormatWithConfig));
         fs.writeFileSync(fileToFormatWithConfig1, fs.readFileSync(originalFileToFormatWithConfig1));
         fs.writeFileSync(fileToFormatWithoutConfig, fs.readFileSync(originalFileToFormatWithoutConfig));
-        closeActiveWindows().then(() => done(), () => done());
+        return closeActiveWindows();
     });
-    setup(done => {
+    setup(() => {
         pythonSettings.sortImports.args = [];
         fs.writeFileSync(fileToFormatWithConfig, fs.readFileSync(originalFileToFormatWithConfig));
         fs.writeFileSync(fileToFormatWithoutConfig, fs.readFileSync(originalFileToFormatWithoutConfig));
         fs.writeFileSync(fileToFormatWithConfig1, fs.readFileSync(originalFileToFormatWithConfig1));
-        closeActiveWindows().then(() => done(), () => done());
+        return closeActiveWindows();
     });
 
     test('Without Config', done => {

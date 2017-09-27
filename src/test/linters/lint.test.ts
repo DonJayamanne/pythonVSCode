@@ -1,8 +1,6 @@
 //
 // Note: This example test is leveraging the Mocha test framework.
 // Please refer to their documentation on https://mochajs.org/ for help.
-// Place this right on top
-import { initialize, IS_TRAVIS, PYTHON_PATH, closeActiveWindows, setPythonExecutable } from '../initialize';
 // The module \'assert\' provides assertion methods from node
 import * as assert from 'assert';
 
@@ -18,14 +16,14 @@ import * as pydocstyle from '../../client/linters/pydocstyle';
 import * as path from 'path';
 import * as settings from '../../client/common/configSettings';
 import * as fs from 'fs-extra';
+import { initialize, IS_TRAVIS, closeActiveWindows } from '../initialize';
 import { execPythonFile } from '../../client/common/utils';
 import { createDeferred } from '../../client/common/helpers';
-import { Product, disableLinter, SettingToDisableProduct, Linters } from '../../client/common/installer';
+import { Product, SettingToDisableProduct, Linters } from '../../client/common/installer';
 import { EnumEx } from '../../client/common/enumUtils';
 import { MockOutputChannel } from '../mockClasses';
-let pythonSettings = settings.PythonSettings.getInstance();
-let disposable = setPythonExecutable(pythonSettings);
 
+const pythonSettings = settings.PythonSettings.getInstance();
 const pythoFilesPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'linting');
 const flake8ConfigPath = path.join(pythoFilesPath, 'flake8config');
 const pep8ConfigPath = path.join(pythoFilesPath, 'pep8config');
@@ -126,14 +124,11 @@ let fiteredPydocstyleMessagseToBeReturned: baseLinter.ILintMessage[] = [
 suite('Linting', () => {
     const isPython3Deferred = createDeferred<boolean>();
     const isPython3 = isPython3Deferred.promise;
-    suiteSetup(done => {
+    suiteSetup(async () => {
         pylintFileToLintLines = fs.readFileSync(fileToLint).toString('utf-8').split(/\r?\n/g);
-        pythonSettings.pythonPath = PYTHON_PATH;
-        initialize().then(() => {
-            return execPythonFile(pythonSettings.pythonPath, ['--version'], __dirname, true);
-        }).then(version => {
-            isPython3Deferred.resolve(version.indexOf('3.') >= 0);
-        }).then(done, done);
+        await initialize();
+        const version = await execPythonFile(pythonSettings.pythonPath, ['--version'], __dirname, true);
+        isPython3Deferred.resolve(version.indexOf('3.') >= 0);
     });
     setup(() => {
         pythonSettings.linting.lintOnSave = false;
@@ -145,13 +140,8 @@ suite('Linting', () => {
         pythonSettings.linting.prospectorEnabled = true;
         pythonSettings.linting.pydocstyleEnabled = true;
     });
-    suiteTeardown(done => {
-        if (disposable) { disposable.dispose() };
-        closeActiveWindows().then(() => done(), () => done());
-    });
-    teardown(done => {
-        closeActiveWindows().then(() => done(), () => done());
-    });
+    suiteTeardown(() => closeActiveWindows());
+    teardown(() => closeActiveWindows());
 
     function testEnablingDisablingOfLinter(linter: baseLinter.BaseLinter, propertyName: string) {
         pythonSettings.linting[propertyName] = true;

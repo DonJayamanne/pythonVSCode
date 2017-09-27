@@ -1,28 +1,20 @@
-// Place this right on top
-import { initialize, setPythonExecutable } from './../initialize';
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as configSettings from '../../client/common/configSettings';
 import * as unittest from '../../client/unittests/unittest/main';
+import { initialize } from './../initialize';
 import { TestsToRun } from '../../client/unittests/common/contracts';
 import { TestResultDisplay } from '../../client/unittests/display/main';
 import { MockOutputChannel } from './../mockClasses';
 
 const pythonSettings = configSettings.PythonSettings.getInstance();
-const disposable = setPythonExecutable(pythonSettings);
-
 const UNITTEST_TEST_FILES_PATH = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'standard');
 const UNITTEST_SINGLE_TEST_FILE_PATH = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'single');
 const unitTestTestFilesCwdPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'cwd', 'src');
 
 suite('Unit Tests (unittest)', () => {
-    suiteSetup(async () => {
-        await initialize();
-    });
-    suiteTeardown(() => {
-        disposable.dispose();
-    });
+    suiteSetup(() => initialize());
     setup(() => {
         outChannel = new MockOutputChannel('Python Test Log');
         testResultDisplay = new TestResultDisplay(outChannel);
@@ -82,8 +74,8 @@ suite('Unit Tests (unittest)', () => {
 
     test('Run Tests', async () => {
         pythonSettings.unitTest.unittestArgs = [
-            '-v', '-s','./tests',
-            '-p','test_unittest*.py'
+            '-v', '-s', './tests',
+            '-p', 'test_unittest*.py'
         ];
         createTestManager();
         const results = await testManager.runTest();
