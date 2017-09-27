@@ -176,7 +176,7 @@ suite('Unit Tests (unittest)', () => {
     test('Setting cwd should return tests', async () => {
         pythonSettings.unitTest.unittestArgs = [
             '-s=./tests',
-            '-p=test_unittest*.py'
+            '-p=test_*.py'
         ];
         createTestManager(unitTestTestFilesCwdPath);
 
