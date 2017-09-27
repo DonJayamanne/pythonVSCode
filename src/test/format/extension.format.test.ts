@@ -23,7 +23,7 @@ const disposable = setPythonExecutable(pythonSettings);
 
 const ch = vscode.window.createOutputChannel('Tests');
 const pythoFilesPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'formatting');
-const originalUnformattedFile = path.join(pythoFilesPath, '..', 'fileToFormat.py');
+const originalUnformattedFile = path.join(pythoFilesPath, 'fileToFormat.py');
 
 const autoPep8FileToFormat = path.join(pythoFilesPath, 'autoPep8FileToFormat.py');
 const autoPep8FileToAutoFormat = path.join(pythoFilesPath, 'autoPep8FileToAutoFormat.py');
@@ -34,23 +34,25 @@ let formattedYapf = '';
 let formattedAutoPep8 = '';
 
 suite('Formatting', () => {
-    suiteSetup(done => {
-        initialize().then(() => {
-            [autoPep8FileToFormat, autoPep8FileToAutoFormat, yapfFileToFormat, yapfFileToAutoFormat].forEach(file => {
-                if (fs.existsSync(file)) { fs.unlinkSync(file); }
-                fs.copySync(originalUnformattedFile, file);
-            });
-
-            fs.ensureDirSync(path.dirname(autoPep8FileToFormat));
-            let yapf = execPythonFile('yapf', [originalUnformattedFile], pythoFilesPath, false);
-            let autoPep8 = execPythonFile('autopep8', [originalUnformattedFile], pythoFilesPath, false);
-            return Promise.all<string>([yapf, autoPep8]).then(formattedResults => {
-                formattedYapf = formattedResults[0];
-                formattedAutoPep8 = formattedResults[1];
-            }).then(() => { });
-        }).then(done).catch(done);
+    suiteSetup(async () => {
+        await initialize();
+        [autoPep8FileToFormat, autoPep8FileToAutoFormat, yapfFileToFormat, yapfFileToAutoFormat].forEach(file => {
+            fs.copySync(originalUnformattedFile, file, { overwrite: true });
+        });
+        fs.ensureDirSync(path.dirname(autoPep8FileToFormat));
+        const yapf = execPythonFile('yapf', [originalUnformattedFile], pythoFilesPath, false);
+        const autoPep8 = execPythonFile('autopep8', [originalUnformattedFile], pythoFilesPath, false);
+        await Promise.all<string>([yapf, autoPep8]).then(formattedResults => {
+            formattedYapf = formattedResults[0];
+            formattedAutoPep8 = formattedResults[1];
+        }).then(() => { });
     });
     suiteTeardown(done => {
+        [autoPep8FileToFormat, autoPep8FileToAutoFormat, yapfFileToFormat, yapfFileToAutoFormat].forEach(file => {
+            if (fs.existsSync(file)){
+                fs.unlinkSync(file);
+            }
+        });        
         disposable.dispose();
         closeActiveWindows().then(() => done(), () => done());
     });
