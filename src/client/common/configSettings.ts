@@ -168,7 +168,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         this.devOptions = Array.isArray(this.devOptions) ? this.devOptions : [];
         let lintingSettings = systemVariables.resolveAny(pythonSettings.get<ILintingSettings>('linting'))!;
         this.disablePromptForFeatures = pythonSettings.get<string[]>('disablePromptForFeatures')!;
-        this.disablePromptForFeatures = Array.isArray(this.disablePromptForFeatures) ? this.disablePromptForFeatures : [];;
+        this.disablePromptForFeatures = Array.isArray(this.disablePromptForFeatures) ? this.disablePromptForFeatures : [];
         if (this.linting) {
             Object.assign<ILintingSettings, ILintingSettings>(this.linting, lintingSettings);
         }

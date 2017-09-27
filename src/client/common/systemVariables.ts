@@ -137,7 +137,7 @@ export class SystemVariables extends AbstractSystemVariables {
 
     constructor() {
         super();
-        this._workspaceRoot = typeof vscode.workspace.rootPath === 'string' ? vscode.workspace.rootPath : __dirname;;
+        this._workspaceRoot = typeof vscode.workspace.rootPath === 'string' ? vscode.workspace.rootPath : __dirname;
         this._workspaceRootFolderName = Path.basename(this._workspaceRoot);
         Object.keys(process.env).forEach(key => {
             this[`env:${key}`] = this[`env.${key}`] = process.env[key];
