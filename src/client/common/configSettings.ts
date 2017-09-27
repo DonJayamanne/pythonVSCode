@@ -23,6 +23,7 @@ export interface IPythonSettings {
     sortImports: ISortImportSettings;
     workspaceSymbols: IWorkspaceSymbolSettings;
     envFile: string;
+    disablePromptForFeatures: string[];
 }
 export interface ISortImportSettings {
     path: string;
@@ -166,6 +167,8 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         this.devOptions = systemVariables.resolveAny(pythonSettings.get<any[]>('devOptions'))!;
         this.devOptions = Array.isArray(this.devOptions) ? this.devOptions : [];
         let lintingSettings = systemVariables.resolveAny(pythonSettings.get<ILintingSettings>('linting'))!;
+        this.disablePromptForFeatures = pythonSettings.get<string[]>('disablePromptForFeatures')!;
+        this.disablePromptForFeatures = Array.isArray(this.disablePromptForFeatures) ? this.disablePromptForFeatures : [];
         if (this.linting) {
             Object.assign<ILintingSettings, ILintingSettings>(this.linting, lintingSettings);
         }
@@ -353,6 +356,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
     }
     public jediPath: string;
     public envFile: string;
+    public disablePromptForFeatures: string[];
     public venvPath: string;
     public devOptions: string[];
     public linting: ILintingSettings;
