@@ -15,6 +15,7 @@ import * as fs from 'fs';
 import { LinterErrors } from '../common/constants';
 const Minimatch = require("minimatch").Minimatch;
 
+const uriSchemesToIgnore = ['git', 'showModifications'];
 const lintSeverityToVSSeverity = new Map<linter.LintMessageSeverity, vscode.DiagnosticSeverity>();
 lintSeverityToVSSeverity.set(linter.LintMessageSeverity.Error, vscode.DiagnosticSeverity.Error);
 lintSeverityToVSSeverity.set(linter.LintMessageSeverity.Hint, vscode.DiagnosticSeverity.Hint);
@@ -94,11 +95,11 @@ export class LintProvider extends vscode.Disposable {
             if (e.languageId !== 'python' || !this.settings.linting.enabled) {
                 return;
             }
-            if (!e.uri.path || (path.basename(e.uri.path) === e.uri.path && !fs.existsSync(e.uri.path))) {
+            // Exclude files opened by vscode when showing a diff view
+            if (uriSchemesToIgnore.indexOf(e.uri.scheme) >= 0) {
                 return;
             }
-            // Exclude files opened by vscode when showing a diff view
-            if (e.uri.scheme === 'git' || e.uri.scheme === 'showModifications') {
+            if (!e.uri.path || (path.basename(e.uri.path) === e.uri.path && !fs.existsSync(e.uri.path))) {
                 return;
             }
             this.lintDocument(e, 100);
