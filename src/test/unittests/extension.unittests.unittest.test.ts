@@ -131,7 +131,7 @@ suite('Unit Tests (unittest)', () => {
     test('Run Specific Test File', async () => {
         pythonSettings.unitTest.unittestArgs = [
             '-s=./tests',
-            '-p=*test*.py'
+            '-p=test_unittest*.py'
         ];
         createTestManager();
         const tests = await testManager.discoverTests(true, true);
@@ -146,7 +146,7 @@ suite('Unit Tests (unittest)', () => {
     test('Run Specific Test Suite', async () => {
         pythonSettings.unitTest.unittestArgs = [
             '-s=./tests',
-            '-p=*test*.py'
+            '-p=test_unittest*.py'
         ];
         createTestManager();
         const tests = await testManager.discoverTests(true, true);
@@ -161,7 +161,7 @@ suite('Unit Tests (unittest)', () => {
     test('Run Specific Test Function', async () => {
         pythonSettings.unitTest.unittestArgs = [
             '-s=./tests',
-            '-p=*test*.py'
+            '-p=test_unittest*.py'
         ];
         createTestManager();
         const tests = await testManager.discoverTests(true, true);
@@ -176,7 +176,7 @@ suite('Unit Tests (unittest)', () => {
     test('Setting cwd should return tests', async () => {
         pythonSettings.unitTest.unittestArgs = [
             '-s=./tests',
-            '-p=test*.py'
+            '-p=test_unittest*.py'
         ];
         createTestManager(unitTestTestFilesCwdPath);
 
