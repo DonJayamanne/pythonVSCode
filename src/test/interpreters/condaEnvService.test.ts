@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import * as path from 'path';
 import * as settings from '../../client/common/configSettings';
-import { initialize, setPythonExecutable } from '../initialize';
+import { initialize } from '../initialize';
 import { IS_WINDOWS } from '../../client/common/utils';
 import { CondaEnvService } from '../../client/interpreter/locators/services/condaEnvService';
 import { AnacondaCompanyName } from '../../client/interpreter/locators/services/conda';
@@ -9,18 +9,13 @@ import { MockProvider } from './mocks';
 import { PythonInterpreter } from '../../client/interpreter/contracts';
 
 const pythonSettings = settings.PythonSettings.getInstance();
-const originalPythonPath = pythonSettings.pythonPath;
-const disposable = setPythonExecutable(pythonSettings);
 const environmentsPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'environments');
+let originalPythonPath;
 
 suite('Interpreters from Conda Environments', () => {
-    suiteSetup(done => {
-        initialize()
-            .then(() => done())
-            .catch(() => done());
-    });
-    suiteTeardown(() => {
-        disposable.dispose();
+    suiteSetup(() => {
+        originalPythonPath = pythonSettings.pythonPath;
+        return initialize();
     });
     teardown(() => {
         pythonSettings.pythonPath = originalPythonPath;

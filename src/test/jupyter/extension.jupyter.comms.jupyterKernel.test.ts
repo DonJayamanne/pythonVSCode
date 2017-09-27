@@ -2,23 +2,18 @@
 // Note: This example test is leveraging the Mocha test framework.
 // Please refer to their documentation on https://mochajs.org/ for help.
 //
-// Place this right on top
-import { initialize, IS_TRAVIS, TEST_TIMEOUT, setPythonExecutable } from './../initialize';
 // The module 'assert' provides assertion methods from node
 import * as assert from 'assert';
 
 // You can import and use all API from the 'vscode' module
 // as well as import your extension to test it
+import { initialize, TEST_TIMEOUT } from './../initialize';
 import { JupyterClientAdapter } from '../../client/jupyter/jupyter_client/main';
 import { KernelShutdownError } from '../../client/jupyter/common/errors';
 import { createDeferred } from '../../client/common/helpers';
 import { JupyterClientKernel } from '../../client/jupyter/jupyter_client-Kernel';
 import { KernelspecMetadata } from '../../client/jupyter/contracts';
-import * as settings from '../../client/common/configSettings';
 import * as vscode from 'vscode';
-
-let pythonSettings = settings.PythonSettings.getInstance();
-const disposable = setPythonExecutable(pythonSettings);
 
 export class MockOutputChannel implements vscode.OutputChannel {
     constructor(name: string) {
@@ -66,11 +61,7 @@ export class MockOutputChannel implements vscode.OutputChannel {
 }
 
 suite('Jupyter Kernel', () => {
-    suiteSetup(done => {
-        initialize().then(() => {
-            done();
-        });
-    });
+    suiteSetup(() => initialize());
     setup(() => {
         process.env['PYTHON_DONJAYAMANNE_TEST'] = '0';
         process.env['DEBUG_DJAYAMANNE_IPYTHON'] = '1';
@@ -91,9 +82,6 @@ suite('Jupyter Kernel', () => {
             } catch (error) {
             }
         });
-    });
-    suiteTeardown(() => {
-        disposable.dispose();
     });
 
     let output: MockOutputChannel;

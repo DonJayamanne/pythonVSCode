@@ -1,10 +1,9 @@
-import { initialize, setPythonExecutable } from '../initialize';
-
 import * as assert from 'assert';
 import * as child_process from 'child_process';
 import * as settings from '../../client/common/configSettings';
 import * as path from 'path';
 import * as utils from '../../client/common/utils';
+import { initialize } from '../initialize';
 import { MockStatusBarItem } from '../mockClasses';
 import { MockInterpreterVersionProvider } from './mocks';
 import { InterpreterDisplay } from '../../client/interpreter/display';
@@ -14,17 +13,12 @@ import { VirtualEnvironmentManager } from '../../client/interpreter/virtualEnvs'
 import { getFirstNonEmptyLineFromMultilineString } from '../../client/interpreter/helpers';
 
 let pythonSettings = settings.PythonSettings.getInstance();
-const originalPythonPath = pythonSettings.pythonPath;
-let disposable = setPythonExecutable(pythonSettings);
+let originalPythonPath;
 
 suite('Interpreters Display', () => {
-    suiteSetup(done => {
-        initialize()
-            .then(() => done())
-            .catch(() => done());
-    });
-    suiteTeardown(() => {
-        disposable.dispose();
+    suiteSetup(() => {
+        originalPythonPath = pythonSettings.pythonPath;
+        return initialize();
     });
     teardown(() => {
         pythonSettings.pythonPath = originalPythonPath;
