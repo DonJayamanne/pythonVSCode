@@ -21,9 +21,9 @@ matrix:
         - os: linux
           sudo: required
           python: 2.7
-        # - os: linux
-        #   sudo: required
-        #   python: 3.5
+        - os: linux
+          sudo: required
+          python: 3.6
         # # # Use generic language for osx
         # - os: osx
         #   language: generic
