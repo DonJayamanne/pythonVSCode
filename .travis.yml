@@ -52,6 +52,7 @@ before_install: |
 install:
 # we have this here so we can see where python is installed and hardcode in our tests
 # else when running npm test, the python version picked is completely different :(
+  - sudo apt-get install python-dev
   - python --version 
   - python -c 'import sys;print(sys.executable)'
   - pip install -r requirements.txt
