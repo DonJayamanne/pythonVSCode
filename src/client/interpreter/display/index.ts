@@ -48,7 +48,7 @@ export class InterpreterDisplay implements Disposable {
             await Promise.all([interpreterExists, displayName, virtualEnvName])
                 .then(([interpreterExists, displayName, virtualEnvName]) => {
                     const dislayNameSuffix = virtualEnvName.length > 0 ? ` (${virtualEnvName})` : '';
-                    this.statusBar.text = `${displayName}${dislayNameSuffix}`;;
+                    this.statusBar.text = `${displayName}${dislayNameSuffix}`;
 
                     if (!interpreterExists && displayName === defaultDisplayName && interpreters.length > 0) {
                         this.statusBar.color = 'yellow';

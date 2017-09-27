@@ -956,6 +956,25 @@
             "type": "string"
           }
         },
+        "python.disablePromptForFeatures": {
+          "type": "array",
+          "default": [],
+          "description": "Do not display a prompt to install these features",
+          "items": {
+            "type": "string",
+            "default": "pylint",
+            "description": "Feature",
+            "enum": [
+              "flake8",
+              "mypy",
+              "pep8",
+              "pylama",
+              "prospector",
+              "pydocstyle",
+              "pylint"
+            ]
+          }
+        },
         "python.linting.enabled": {
           "type": "boolean",
           "default": true,

@@ -185,7 +185,7 @@ function handleError(source: string, errorMessage: string) {
     logger.error(source + ' jediProxy', `Error (${source}) ${errorMessage}`);
 }
 
-let spawnRetryAttempts = 0;;
+let spawnRetryAttempts = 0;
 function spawnProcess(dir: string) {
     try {
         let environmentVariables = { 'PYTHONUNBUFFERED': '1' };
