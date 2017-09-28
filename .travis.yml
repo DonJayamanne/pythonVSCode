@@ -24,14 +24,14 @@ matrix:
         - os: linux
           sudo: required
           python: 3.6
+        # # # Use generic language for osx
+        # - os: osx
+        #   language: generic
+        #   env: PYTHON=2.7.10
         # # Use generic language for osx
-        - os: osx
-          language: generic
-          env: PYTHON=2.7.10
-        # Use generic language for osx
-        - os: osx
-          language: generic
-          env: PYTHON=3.6.1
+        # - os: osx
+        #   language: generic
+        #   env: PYTHON=3.6.1
 # Perform the manual steps on osx to install python3 and activate venv
 before_install: |
   if [ $TRAVIS_OS_NAME == "linux" ]; then
@@ -62,6 +62,7 @@ before_install: |
 install:
 # we have this here so we can see where python is installed and hardcode in our tests
 # else when running npm test, the python version picked is completely different :(
+# python-dev is to ensure jupyter installs properly
   - sudo apt-get install python-dev
   - python --version 
   - python -c 'import sys;print(sys.executable)'
