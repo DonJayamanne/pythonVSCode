@@ -134,6 +134,10 @@ suite('Unit Tests (unittest)', () => {
         console.log(tests.testFiles[0].nameToRun);
         const results = await testManager.runTest(testFile);
         console.log(outChannel.output);
+        console.log('tests');
+        console.log(tests);
+        console.log('Results');
+        console.log(results);
         console.log('Identify failed tests');
         const failed = tests.testFunctions.filter(f => f.testFunction.status === TestStatus.Error || f.testFunction.status === TestStatus.Fail);
         failed.forEach(f => {
@@ -169,11 +173,16 @@ suite('Unit Tests (unittest)', () => {
         console.log(tests.testSuits[0].testSuite.name);
         const results = await testManager.runTest(testSuite);
         console.log(outChannel.output);
+        console.log('tests');
+        console.log(tests);
+        console.log('Results');
         console.log(results);
         console.log('Identify failed tests');
         const failed = tests.testFunctions.filter(f => f.testFunction.status === TestStatus.Error || f.testFunction.status === TestStatus.Fail);
         failed.forEach(f => {
             console.log('start error function');
+            console.log(`Failed = ${f.testFunction.status === TestStatus.Fail}`);
+            console.log(`Error = ${f.testFunction.status === TestStatus.Error}`);
             console.log(`Message = ${f.testFunction.message}`);
             console.log(`Name = ${f.testFunction.name}`);
             console.log(`NameToRun = ${f.testFunction.nameToRun}`);
