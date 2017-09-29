@@ -1,59 +1,10 @@
-//
-// Note: This example test is leveraging the Mocha test framework.
-// Please refer to their documentation on https://mochajs.org/ for help.
-//
 import * as assert from 'assert';
-import * as vscode from 'vscode';
-import { initialize, TEST_TIMEOUT } from './../initialize';
+import { MockOutputChannel } from './mocks';
+import { initialize } from './../initialize';
 import { JupyterClientAdapter } from '../../client/jupyter/jupyter_client/main';
 import { KernelRestartedError, KernelShutdownError } from '../../client/jupyter/common/errors';
 import { createDeferred } from '../../client/common/helpers';
 import { KernelspecMetadata } from '../../client/jupyter/contracts';
-
-export class MockOutputChannel implements vscode.OutputChannel {
-    constructor(name: string) {
-        this.name = name;
-        this.output = '';
-        this.timeOut = setTimeout(() => {
-            console.log(this.output);
-            this.writeToConsole = true;
-            this.timeOut = null;
-        }, TEST_TIMEOUT - 1000);
-    }
-    private timeOut: number;
-    name: string;
-    output: string;
-    isShown: boolean;
-    private writeToConsole: boolean;
-    append(value: string) {
-        this.output += value;
-        if (this.writeToConsole) {
-            console.log(value);
-        }
-    }
-    appendLine(value: string) {
-        this.append(value); this.append('\n');
-        if (this.writeToConsole) {
-            console.log(value);
-            console.log('\n');
-        }
-    }
-    clear() { }
-    show(preservceFocus?: boolean): void;
-    show(column?: vscode.ViewColumn, preserveFocus?: boolean): void;
-    show(x?: any, y?: any): void {
-        this.isShown = true;
-    }
-    hide() {
-        this.isShown = false;
-    }
-    dispose() {
-        if (this.timeOut) {
-            clearTimeout(this.timeOut);
-            this.timeOut = null;
-        }
-    }
-}
 
 suite('JupyterClient', () => {
     suiteSetup(() => initialize());

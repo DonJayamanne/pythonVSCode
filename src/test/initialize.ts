@@ -83,7 +83,6 @@ function getPythonPath(): string {
 }
 
 const PYTHON_PATH = getPythonPath();
-console.log(PYTHON_PATH);
 
 // Ability to use custom python environments for testing
 export function initializePython() {
