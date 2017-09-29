@@ -30,7 +30,7 @@ suite('Unit Tests (unittest)', () => {
     const rootDirectory = UNITTEST_TEST_FILES_PATH;
     let testManager: unittest.TestManager;
     let testResultDisplay: TestResultDisplay;
-    let outChannel: vscode.OutputChannel;
+    let outChannel: MockOutputChannel;
 
     test('Discover Tests (single test file)', async () => {
         pythonSettings.unitTest.unittestArgs = [
@@ -129,6 +129,7 @@ suite('Unit Tests (unittest)', () => {
         const tests = await testManager.discoverTests(true, true);
         const testFile: TestsToRun = { testFile: [tests.testFiles[0]], testFolder: [], testFunction: [], testSuite: [] };
         const results = await testManager.runTest(testFile);
+        console.log(outChannel.output);
         assert.equal(results.summary.errors, 0, 'Errors');
         assert.equal(results.summary.failures, 1, 'Failures');
         assert.equal(results.summary.passed, 1, 'Passed');
@@ -144,6 +145,7 @@ suite('Unit Tests (unittest)', () => {
         const tests = await testManager.discoverTests(true, true);
         const testSuite: TestsToRun = { testFile: [], testFolder: [], testFunction: [], testSuite: [tests.testSuits[0].testSuite] };
         const results = await testManager.runTest(testSuite);
+        console.log(outChannel.output);
         assert.equal(results.summary.errors, 0, 'Errors');
         assert.equal(results.summary.failures, 1, 'Failures');
         assert.equal(results.summary.passed, 1, 'Passed');
