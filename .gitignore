@@ -4,3 +4,4 @@ node_modules
 *.pyc
 .vscode/.ropeproject/**
 src/test/.vscode/**
+testFiles/**/.cache/v/cache/lastfailed
