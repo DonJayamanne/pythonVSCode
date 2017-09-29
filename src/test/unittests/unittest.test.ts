@@ -1,10 +1,9 @@
 import * as assert from 'assert';
-import * as vscode from 'vscode';
 import * as path from 'path';
 import * as configSettings from '../../client/common/configSettings';
 import * as unittest from '../../client/unittests/unittest/main';
 import { initialize } from './../initialize';
-import { TestsToRun, TestStatus } from '../../client/unittests/common/contracts';
+import { TestsToRun } from '../../client/unittests/common/contracts';
 import { TestResultDisplay } from '../../client/unittests/display/main';
 import { MockOutputChannel } from './../mockClasses';
 
@@ -121,81 +120,37 @@ suite('Unit Tests (unittest)', () => {
     });
 
     test('Run Specific Test File', async () => {
-        console.log('Start');
         pythonSettings.unitTest.unittestArgs = [
             '-s=./tests',
             '-p=test_unittest*.py'
         ];
         createTestManager();
         const tests = await testManager.discoverTests(true, true);
+
         const testFile: TestsToRun = { testFile: [tests.testFiles[0]], testFolder: [], testFunction: [], testSuite: [] };
-        console.log(tests.testFiles[0].fullPath);
-        console.log(tests.testFiles[0].name);
-        console.log(tests.testFiles[0].nameToRun);
         const results = await testManager.runTest(testFile);
-        console.log(outChannel.output);
-        console.log('tests');
-        console.log(tests);
-        console.log('Results');
-        console.log(results);
-        console.log('Identify failed tests');
-        const failed = tests.testFunctions.filter(f => f.testFunction.status === TestStatus.Error || f.testFunction.status === TestStatus.Fail);
-        failed.forEach(f => {
-            console.log('start error function');
-            console.log(`Message = ${f.testFunction.message}`);
-            console.log(`Name = ${f.testFunction.name}`);
-            console.log(`NameToRun = ${f.testFunction.nameToRun}`);
-            console.log(`Traceback = ${f.testFunction.traceback}`);
-            if (f.parentTestFile) {
-                console.log(`Message = ${f.parentTestFile.fullPath}`);
-            }
-        });
 
         assert.equal(results.summary.errors, 0, 'Errors');
         assert.equal(results.summary.failures, 1, 'Failures');
         assert.equal(results.summary.passed, 1, 'Passed');
         assert.equal(results.summary.skipped, 1, 'skipped');
-        console.log('End');
     });
 
     test('Run Specific Test Suite', async () => {
-        console.log('Start');
         pythonSettings.unitTest.unittestArgs = [
             '-s=./tests',
             '-p=test_unittest*.py'
         ];
         createTestManager();
         const tests = await testManager.discoverTests(true, true);
+
         const testSuite: TestsToRun = { testFile: [], testFolder: [], testFunction: [], testSuite: [tests.testSuits[0].testSuite] };
-        console.log(tests.testSuits[0].testSuite.name);
-        console.log(tests.testSuits[0].testSuite.name);
-        console.log(tests.testSuits[0].testSuite.name);
-        console.log(tests.testSuits[0].testSuite.name);
         const results = await testManager.runTest(testSuite);
-        console.log(outChannel.output);
-        console.log('tests');
-        console.log(tests);
-        console.log('Results');
-        console.log(results);
-        console.log('Identify failed tests');
-        const failed = tests.testFunctions.filter(f => f.testFunction.status === TestStatus.Error || f.testFunction.status === TestStatus.Fail);
-        failed.forEach(f => {
-            console.log('start error function');
-            console.log(`Failed = ${f.testFunction.status === TestStatus.Fail}`);
-            console.log(`Error = ${f.testFunction.status === TestStatus.Error}`);
-            console.log(`Message = ${f.testFunction.message}`);
-            console.log(`Name = ${f.testFunction.name}`);
-            console.log(`NameToRun = ${f.testFunction.nameToRun}`);
-            console.log(`Traceback = ${f.testFunction.traceback}`);
-            if (f.parentTestFile) {
-                console.log(`Message = ${f.parentTestFile.fullPath}`);
-            }
-        });
+
         assert.equal(results.summary.errors, 0, 'Errors');
         assert.equal(results.summary.failures, 1, 'Failures');
         assert.equal(results.summary.passed, 1, 'Passed');
         assert.equal(results.summary.skipped, 1, 'skipped');
-        console.log('End');
     });
 
     test('Run Specific Test Function', async () => {
