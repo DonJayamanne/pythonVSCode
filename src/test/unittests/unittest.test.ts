@@ -8,9 +8,11 @@ import { TestResultDisplay } from '../../client/unittests/display/main';
 import { MockOutputChannel } from './../mockClasses';
 
 const pythonSettings = configSettings.PythonSettings.getInstance();
-const UNITTEST_TEST_FILES_PATH = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'standard');
-const UNITTEST_SINGLE_TEST_FILE_PATH = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'single');
-const unitTestTestFilesCwdPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'cwd', 'src');
+const testFilesPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles');
+const UNITTEST_TEST_FILES_PATH = path.join(testFilesPath, 'standard');
+const UNITTEST_SINGLE_TEST_FILE_PATH = path.join(testFilesPath, 'single');
+const unitTestTestFilesCwdPath = path.join(testFilesPath, 'cwd', 'src');
+const unitTestSpecificTestFilesPath = path.join(testFilesPath, 'specificTest');
 
 suite('Unit Tests (unittest)', () => {
     suiteSetup(() => initialize());
@@ -124,15 +126,16 @@ suite('Unit Tests (unittest)', () => {
             '-s=./tests',
             '-p=test_unittest*.py'
         ];
-        createTestManager();
+        createTestManager(unitTestSpecificTestFilesPath);
         const tests = await testManager.discoverTests(true, true);
 
-        const testFile: TestsToRun = { testFile: [tests.testFiles[0]], testFolder: [], testFunction: [], testSuite: [] };
+        const testFileToTest = tests.testFiles.find(f => f.name === 'test_unittest_one.py');
+        const testFile: TestsToRun = { testFile: [testFileToTest], testFolder: [], testFunction: [], testSuite: [] };
         const results = await testManager.runTest(testFile);
 
         assert.equal(results.summary.errors, 0, 'Errors');
         assert.equal(results.summary.failures, 1, 'Failures');
-        assert.equal(results.summary.passed, 1, 'Passed');
+        assert.equal(results.summary.passed, 2, 'Passed');
         assert.equal(results.summary.skipped, 1, 'skipped');
     });
 
@@ -141,15 +144,16 @@ suite('Unit Tests (unittest)', () => {
             '-s=./tests',
             '-p=test_unittest*.py'
         ];
-        createTestManager();
+        createTestManager(unitTestSpecificTestFilesPath);
         const tests = await testManager.discoverTests(true, true);
 
-        const testSuite: TestsToRun = { testFile: [], testFolder: [], testFunction: [], testSuite: [tests.testSuits[0].testSuite] };
+        const testSuiteToTest = tests.testSuits.find(s => s.testSuite.name === 'Test_test_one_1')!.testSuite;
+        const testSuite: TestsToRun = { testFile: [], testFolder: [], testFunction: [], testSuite: [testSuiteToTest] };
         const results = await testManager.runTest(testSuite);
 
         assert.equal(results.summary.errors, 0, 'Errors');
         assert.equal(results.summary.failures, 1, 'Failures');
-        assert.equal(results.summary.passed, 1, 'Passed');
+        assert.equal(results.summary.passed, 2, 'Passed');
         assert.equal(results.summary.skipped, 1, 'skipped');
     });
 
