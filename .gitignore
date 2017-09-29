@@ -5,3 +5,4 @@ node_modules
 .vscode/.ropeproject/**
 src/test/.vscode/**
 **/testFiles/**/.cache/**
+*.noseids
