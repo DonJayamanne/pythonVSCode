@@ -58,7 +58,11 @@ export class InterpreterManager implements Disposable {
             pythonPath = path.join('${workspaceRoot}', path.relative(workspace.rootPath!, pythonPath));
         }
         const pythonConfig = workspace.getConfiguration('python');
-        pythonConfig.update('pythonPath', pythonPath).then(() => {
+        let global = null;
+        if (typeof workspace.rootPath !== 'string') {
+            global = true;
+        }
+        pythonConfig.update('pythonPath', pythonPath, global).then(() => {
             //Done
         }, reason => {
             window.showErrorMessage(`Failed to set 'pythonPath'. Error: ${reason.message}`);
