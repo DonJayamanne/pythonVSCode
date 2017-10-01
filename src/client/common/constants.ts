@@ -4,6 +4,7 @@ export const PythonLanguage = { language: 'python' };
 export namespace Commands {
     export const Set_Interpreter = 'python.setInterpreter';
     export const Exec_In_Terminal = 'python.execInTerminal';
+    export const Import_Into_Terminal = 'python.importIntoTerminal';
     export const Exec_Selection_In_Terminal = 'python.execSelectionInTerminal';
     export const Exec_Selection_In_Django_Shell = 'python.execSelectionInDjangoShell';
     export const Tests_View_UI = 'python.viewTestUI';
