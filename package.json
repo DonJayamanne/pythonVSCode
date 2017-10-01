@@ -47,6 +47,7 @@
     "onLanguage:python",
     "onCommand:python.python-debug.startSession",
     "onCommand:python.execInTerminal",
+    "onCommand:python.importIntoTerminal",
     "onCommand:python.sortImports",
     "onCommand:python.runtests",
     "onCommand:python.debugtests",
@@ -113,6 +114,11 @@
       {
         "command": "python.execInTerminal",
         "title": "Run Python File in Terminal",
+        "category": "Python"
+      },
+      {
+        "command": "python.importIntoTerminal",
+        "title": "Import Python File into the Terminal",
         "category": "Python"
       },
       {
@@ -248,6 +254,11 @@
         },
         {
           "when": "resourceLangId == python",
+          "command": "python.importIntoTerminal",
+          "group": "Python"
+        },
+        {
+          "when": "resourceLangId == python",
           "command": "python.runCurrentTestFile",
           "group": "Python"
         }
@@ -266,6 +277,11 @@
         {
           "when": "resourceLangId == python",
           "command": "python.execInTerminal",
+          "group": "Python"
+        },
+        {
+          "when": "resourceLangId == python",
+          "command": "python.importIntoTerminal",
           "group": "Python"
         }
       ]
