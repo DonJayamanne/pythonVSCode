@@ -1,6 +1,4 @@
 language: python
-sudo: required
-dist: trusty
 
 addons:
   apt:
@@ -15,6 +13,7 @@ addons:
       - libx11-dev
       - libxkbfile-dev    
       - libsecret-1-dev
+      - python-dev
 matrix:
     include:
         # # Use the built in venv for linux builds
@@ -32,7 +31,8 @@ matrix:
         # - os: osx
         #   language: generic
         #   env: PYTHON=3.6.1
-# Perform the manual steps on osx to install python3 and activate venv
+# Perform the manual steps on osx to install python 2.7.1 and 3.6.1 and set it as the global interpreter.
+# This way when the node unit tests will pick the right version of python (from global)
 before_install: |
   if [ $TRAVIS_OS_NAME == "linux" ]; then
     export CXX="g++-4.9" CC="gcc-4.9" DISPLAY=:99.0;
@@ -46,26 +46,10 @@ before_install: |
   nvm use 7.2.1
   npm config set python `which python`
   if [ "$TRAVIS_OS_NAME" == "osx" ]; then
-    brew update; 
-    brew install openssl readline 
-    brew outdated pyenv || brew upgrade pyenv 
-    brew install pyenv-virtualenv
-    brew install pyenv-virtualenvwrapper
-    pyenv install $PYTHON 
-    pyenv virtualenv $PYTHON MYVERSION
-    source ~/.pyenv/versions/MYVERSION/bin/activate
+    pyenv install $PYTHON
     pyenv global $PYTHON
-    python --version 
-    python -c 'import sys;print(sys.version)' 
-    python -c 'import sys;print(sys.executable)' 
   fi
 install:
-# we have this here so we can see where python is installed and hardcode in our tests
-# else when running npm test, the python version picked is completely different :(
-# python-dev is to ensure jupyter installs properly
-  - sudo apt-get install python-dev
-  - python --version 
-  - python -c 'import sys;print(sys.executable)'
   - pip install -r requirements.txt
   - npm install
   - npm run vscode:prepublish
