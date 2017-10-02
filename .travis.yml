@@ -1,4 +1,5 @@
 language: python
+cache: pip
 
 addons:
   apt:
@@ -18,10 +19,8 @@ matrix:
     include:
         # # Use the built in venv for linux builds
         - os: linux
-          sudo: required
           python: 2.7
         - os: linux
-          sudo: required
           python: 3.6
         # # # Use generic language for osx
         # - os: osx
