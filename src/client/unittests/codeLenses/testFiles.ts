@@ -77,7 +77,7 @@ function getCodeLenses(document: vscode.TextDocument, token: vscode.Cancellation
                         symbol.location.range.end.character + 1));
 
                 return getCodeLens(documentUri.fsPath, allFuncsAndSuites,
-                    range, symbol.name, symbol.kind);
+                    range, symbol.name, symbol.kind, symbol.containerName);
             }).reduce((previous, current) => previous.concat(current), []).filter(codeLens => codeLens !== null);
         }, reason => {
             if (token.isCancellationRequested) {
@@ -88,12 +88,12 @@ function getCodeLenses(document: vscode.TextDocument, token: vscode.Cancellation
 }
 
 function getCodeLens(fileName: string, allFuncsAndSuites: FunctionsAndSuites,
-    range: vscode.Range, symbolName: string, symbolKind: vscode.SymbolKind): vscode.CodeLens[] {
+    range: vscode.Range, symbolName: string, symbolKind: vscode.SymbolKind, symbolContainer: string): vscode.CodeLens[] {
 
     switch (symbolKind) {
         case vscode.SymbolKind.Function:
         case vscode.SymbolKind.Method: {
-            return getFunctionCodeLens(fileName, allFuncsAndSuites, symbolName, range);
+            return getFunctionCodeLens(fileName, allFuncsAndSuites, symbolName, range, symbolContainer);
         }
         case vscode.SymbolKind.Class: {
             const cls = allFuncsAndSuites.suites.find(cls => cls.name === symbolName);
@@ -154,9 +154,24 @@ function getTestStatusIcons(fns: TestFunction[]): string {
     return statuses.join(' ');
 }
 function getFunctionCodeLens(filePath: string, functionsAndSuites: FunctionsAndSuites,
-    symbolName: string, range: vscode.Range): vscode.CodeLens[] {
+    symbolName: string, range: vscode.Range, symbolContainer: string): vscode.CodeLens[] {
 
-    const fn = functionsAndSuites.functions.find(fn => fn.name === symbolName);
+    let fn: TestFunction;
+    if (symbolContainer.length === 0) {
+        fn = functionsAndSuites.functions.find(fn => fn.name === symbolName);
+    }
+    else {
+        // Assume single levels for now
+        functionsAndSuites.suites
+            .filter(s => s.name === symbolContainer)
+            .forEach(s => {
+                const f = s.functions.find(item => item.name === symbolName);
+                if (f) {
+                    fn = f;
+                }
+            });
+    }
+
     if (fn) {
         return [
             new CodeLens(range, {

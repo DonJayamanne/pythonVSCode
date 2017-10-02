@@ -25,7 +25,7 @@ export function mergeEnvVariables(newVariables: { [key: string]: string }, merge
                 PYTHONPATH = '';
             }
             if (mergeWith['PYTHONPATH']) {
-                PYTHONPATH += (PYTHONPATH.length > 0 ? + path.delimiter : '') + mergeWith['PYTHONPATH'];
+                PYTHONPATH += (PYTHONPATH.length > 0 ? path.delimiter : '') + mergeWith['PYTHONPATH'];
             }
             if (PYTHONPATH.length > 0) {
                 newVariables[setting] = PYTHONPATH;

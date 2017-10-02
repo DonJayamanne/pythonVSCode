@@ -1,24 +1,31 @@
 'use strict';
 import * as vscode from 'vscode';
-import { TestsToRun, TestStatus, TestFunction, FlattenedTestFunction, CANCELLATION_REASON } from './common/contracts';
 import * as nosetests from './nosetest/main';
 import * as pytest from './pytest/main';
 import * as unittest from './unittest/main';
+import * as constants from '../common/constants';
+import {
+    CANCELLATION_REASON,
+    FlattenedTestFunction,
+    TestFile,
+    TestFunction,
+    TestStatus,
+    TestsToRun,
+} from './common/contracts';
 import { resolveValueAsTestToRun, getDiscoveredTests } from './common/testUtils';
 import { BaseTestManager } from './common/baseTestManager';
 import { PythonSettings } from '../common/configSettings';
 import { TestResultDisplay } from './display/main';
 import { TestDisplay } from './display/picker';
-import * as constants from '../common/constants';
 import { activateCodeLenses } from './codeLenses/main';
 import { displayTestFrameworkError } from './configuration';
 import { PythonSymbolProvider } from '../providers/symbolProvider';
 
 const settings = PythonSettings.getInstance();
-let testManager: BaseTestManager;
-let pyTestManager: pytest.TestManager;
-let unittestManager: unittest.TestManager;
-let nosetestManager: nosetests.TestManager;
+let testManager: BaseTestManager | undefined | null;
+let pyTestManager: pytest.TestManager | undefined | null;
+let unittestManager: unittest.TestManager | undefined | null;
+let nosetestManager: nosetests.TestManager | undefined | null;
 let testResultDisplay: TestResultDisplay;
 let testDisplay: TestDisplay;
 let outChannel: vscode.OutputChannel;
@@ -43,6 +50,10 @@ export function activate(context: vscode.ExtensionContext, outputChannel: vscode
     context.subscriptions.push(vscode.workspace.onDidSaveTextDocument(onDocumentSaved));
 }
 
+function getTestWorkingDirectory() {
+    return settings.unitTest.cwd && settings.unitTest.cwd.length > 0 ? settings.unitTest.cwd : vscode.workspace.rootPath!;
+}
+
 let timeoutId: number;
 async function onDocumentSaved(doc: vscode.TextDocument): Promise<void> {
     let testManager = getTestRunner();
@@ -54,7 +65,7 @@ async function onDocumentSaved(doc: vscode.TextDocument): Promise<void> {
     if (!tests || !Array.isArray(tests.testFiles) || tests.testFiles.length === 0) {
         return;
     }
-    if (tests.testFiles.findIndex(f => f.fullPath === doc.uri.fsPath) === -1) {
+    if (tests.testFiles.findIndex((f: TestFile) => f.fullPath === doc.uri.fsPath) === -1) {
         return;
     }
 
@@ -107,7 +118,7 @@ function displayUI() {
     }
 
     testDisplay = testDisplay ? testDisplay : new TestDisplay();
-    testDisplay.displayTestUI(vscode.workspace.rootPath);
+    testDisplay.displayTestUI(getTestWorkingDirectory());
 }
 function displayPickerUI(file: string, testFunctions: TestFunction[], debug?: boolean) {
     let testManager = getTestRunner();
@@ -116,7 +127,7 @@ function displayPickerUI(file: string, testFunctions: TestFunction[], debug?: bo
     }
 
     testDisplay = testDisplay ? testDisplay : new TestDisplay();
-    testDisplay.displayFunctionTestPickerUI(vscode.workspace.rootPath, file, testFunctions, debug);
+    testDisplay.displayFunctionTestPickerUI(getTestWorkingDirectory(), file, testFunctions, debug);
 }
 function selectAndRunTestMethod(debug?: boolean) {
     let testManager = getTestRunner();
@@ -126,7 +137,7 @@ function selectAndRunTestMethod(debug?: boolean) {
     testManager.discoverTests(true, true).then(() => {
         const tests = getDiscoveredTests();
         testDisplay = testDisplay ? testDisplay : new TestDisplay();
-        testDisplay.selectTestFunction(vscode.workspace.rootPath, tests).then(testFn => {
+        testDisplay.selectTestFunction(getTestWorkingDirectory(), tests).then(testFn => {
             runTestsImpl(testFn, debug);
         }).catch(() => { });
     });
@@ -139,7 +150,7 @@ function selectAndRunTestFile() {
     testManager.discoverTests(true, true).then(() => {
         const tests = getDiscoveredTests();
         testDisplay = testDisplay ? testDisplay : new TestDisplay();
-        testDisplay.selectTestFile(vscode.workspace.rootPath, tests).then(testFile => {
+        testDisplay.selectTestFile(getTestWorkingDirectory(), tests).then(testFile => {
             runTestsImpl({ testFile: [testFile] });
         }).catch(() => { });
     });
@@ -218,7 +229,7 @@ function onConfigChanged() {
     }
 }
 function getTestRunner() {
-    const rootDirectory = vscode.workspace.rootPath;
+    const rootDirectory = getTestWorkingDirectory();
     if (settings.unitTest.nosetestsEnabled) {
         return nosetestManager = nosetestManager ? nosetestManager : new nosetests.TestManager(rootDirectory, outChannel);
     }
@@ -271,7 +282,7 @@ function isFlattenedTestFunction(arg: any): arg is FlattenedTestFunction {
     return arg && arg.testFunction && typeof arg.xmlClassName === 'string' &&
         arg.parentTestFile && typeof arg.testFunction.name === 'string';
 }
-function identifyTestType(rootDirectory: string, arg?: vscode.Uri | TestsToRun | boolean | FlattenedTestFunction): TestsToRun | boolean {
+function identifyTestType(rootDirectory: string, arg?: vscode.Uri | TestsToRun | boolean | FlattenedTestFunction): TestsToRun | boolean | null | undefined {
     if (typeof arg === 'boolean') {
         return arg === true;
     }
@@ -293,11 +304,11 @@ function runTestsImpl(arg?: vscode.Uri | TestsToRun | boolean | FlattenedTestFun
     }
 
     // lastRanTests = testsToRun;
-    let runInfo = identifyTestType(vscode.workspace.rootPath, arg);
+    const runInfo = identifyTestType(getTestWorkingDirectory(), arg);
 
     testResultDisplay = testResultDisplay ? testResultDisplay : new TestResultDisplay(outChannel, onDidChange);
 
-    let ret = typeof runInfo === 'boolean' ? testManager.runTest(runInfo, debug) : testManager.runTest(runInfo, debug);
+    const ret = typeof runInfo === 'boolean' ? testManager.runTest(runInfo, debug) : testManager.runTest(runInfo as TestsToRun, debug);
     let runPromise = ret.catch(reason => {
         if (reason !== CANCELLATION_REASON) {
             outChannel.appendLine('Error: ' + reason);

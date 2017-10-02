@@ -1,7 +1,7 @@
 # Python
 
 An extension with rich support for the [Python language](https://www.python.org/) (_including Python 3.6_), with features including the following and more:   
-* Linting ([Prospector](https://pypi.io/project/prospector/), [Pylint](https://pypi.io/project/pylint/), [pycodestyle](https://pypi.io/project/pycodestyle/)/Pep8, [Flake8](https://pypi.io/project/flake8/), [pylama](https://github.com/klen/pylama), [pydocstyle](https://pypi.io/project/pydocstyle/) with config files and plugins)
+* Linting ([Prospector](https://pypi.io/project/prospector/), [Pylint](https://pypi.io/project/pylint/), [pycodestyle/pep257/pep8](https://pypi.io/project/pycodestyle/), [Flake8](https://pypi.io/project/flake8/), [pylama](https://github.com/klen/pylama), [pydocstyle](https://pypi.io/project/pydocstyle/), [mypy](http://mypy-lang.org/) with config files and plugins)  
 * Intellisense (autocompletion with support for PEP-0484 and PEP 526)
 * Auto indenting
 * Code formatting ([autopep8](https://pypi.io/project/autopep8/), [yapf](https://pypi.io/project/yapf/), with config files)

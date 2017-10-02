@@ -80,7 +80,7 @@ export function discoverTests(rootDirectory: string, args: string[], token: Canc
 
     return execPythonFile(pythonSettings.unitTest.nosetestPath, args.concat(['--collect-only', '-vvv']), rootDirectory, true)
         .then(data => {
-            outChannel.appendLine(data);            
+            outChannel.appendLine(data);
             processOutput(data);
 
             // Exclude tests that don't have any functions or test suites
@@ -117,8 +117,9 @@ function parseNoseTestModuleCollectionResult(rootDirectory: string, lines: strin
 
         if (line.startsWith('nose.selector: DEBUG: wantClass <class \'')) {
             let name = extractBetweenDelimiters(line, 'nose.selector: DEBUG: wantClass <class \'', '\'>? True');
+            const clsName = path.extname(name).substring(1);
             const testSuite: TestSuite = {
-                name: path.extname(name).substring(1), nameToRun: fileName + `:${name}`,
+                name: clsName, nameToRun: fileName + `:${clsName}`,
                 functions: [], suites: [], xmlName: name, time: 0, isUnitTest: false,
                 isInstance: false, functionsFailed: 0, functionsPassed: 0
             };
@@ -144,7 +145,7 @@ function parseNoseTestModuleCollectionResult(rootDirectory: string, lines: strin
                 time: 0, functionsFailed: 0, functionsPassed: 0
             };
 
-            let cls = testFile.suites.find(suite => suite.name === clsName);
+            const cls = testFile.suites.find(suite => suite.name === clsName)!;
             cls.functions.push(fn);
             return;
         }

@@ -1,11 +1,11 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import { SystemVariables } from './systemVariables';
-import { EventEmitter } from 'events';
 import * as path from 'path';
 import * as child_process from 'child_process';
-import * as untildify from 'untildify';
+import { SystemVariables } from './systemVariables';
+import { EventEmitter } from 'events';
+const untildify = require('untildify');
 
 export const IS_WINDOWS = /^win/.test(process.platform);
 
@@ -23,6 +23,7 @@ export interface IPythonSettings {
     sortImports: ISortImportSettings;
     workspaceSymbols: IWorkspaceSymbolSettings;
     envFile: string;
+    disablePromptForFeatures: string[];
 }
 export interface ISortImportSettings {
     path: string;
@@ -41,6 +42,7 @@ export interface IUnitTestSettings {
     unittestEnabled: boolean;
     unittestArgs: string[];
     outputWindow: string;
+    cwd?: string;
 }
 export interface IPylintCategorySeverity {
     convention: vscode.DiagnosticSeverity;
@@ -151,27 +153,29 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         const systemVariables: SystemVariables = new SystemVariables();
         const workspaceRoot = (IS_TEST_EXECUTION || typeof vscode.workspace.rootPath !== 'string') ? __dirname : vscode.workspace.rootPath;
         let pythonSettings = vscode.workspace.getConfiguration('python');
-        this.pythonPath = systemVariables.resolveAny(pythonSettings.get<string>('pythonPath'));
+        this.pythonPath = systemVariables.resolveAny(pythonSettings.get<string>('pythonPath'))!;
         this.pythonPath = getAbsolutePath(this.pythonPath, IS_TEST_EXECUTION ? __dirname : workspaceRoot);
-        this.venvPath = systemVariables.resolveAny(pythonSettings.get<string>('venvPath'));
-        this.jediPath = systemVariables.resolveAny(pythonSettings.get<string>('jediPath'));
+        this.venvPath = systemVariables.resolveAny(pythonSettings.get<string>('venvPath'))!;
+        this.jediPath = systemVariables.resolveAny(pythonSettings.get<string>('jediPath'))!;
         if (typeof this.jediPath === 'string' && this.jediPath.length > 0) {
             this.jediPath = getAbsolutePath(systemVariables.resolveAny(this.jediPath), IS_TEST_EXECUTION ? __dirname : workspaceRoot);
         }
         else {
             this.jediPath = '';
         }
-        this.envFile = systemVariables.resolveAny(pythonSettings.get<string>('envFile'));
-        this.devOptions = systemVariables.resolveAny(pythonSettings.get<any[]>('devOptions'));
+        this.envFile = systemVariables.resolveAny(pythonSettings.get<string>('envFile'))!;
+        this.devOptions = systemVariables.resolveAny(pythonSettings.get<any[]>('devOptions'))!;
         this.devOptions = Array.isArray(this.devOptions) ? this.devOptions : [];
-        let lintingSettings = systemVariables.resolveAny(pythonSettings.get<ILintingSettings>('linting'));
+        let lintingSettings = systemVariables.resolveAny(pythonSettings.get<ILintingSettings>('linting'))!;
+        this.disablePromptForFeatures = pythonSettings.get<string[]>('disablePromptForFeatures')!;
+        this.disablePromptForFeatures = Array.isArray(this.disablePromptForFeatures) ? this.disablePromptForFeatures : [];
         if (this.linting) {
             Object.assign<ILintingSettings, ILintingSettings>(this.linting, lintingSettings);
         }
         else {
             this.linting = lintingSettings;
         }
-        let sortImportSettings = systemVariables.resolveAny(pythonSettings.get<ISortImportSettings>('sortImports'));
+        let sortImportSettings = systemVariables.resolveAny(pythonSettings.get<ISortImportSettings>('sortImports'))!;
         if (this.sortImports) {
             Object.assign<ISortImportSettings, ISortImportSettings>(this.sortImports, sortImportSettings);
         }
@@ -222,7 +226,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         this.linting.pydocstylePath = getAbsolutePath(systemVariables.resolveAny(this.linting.pydocstylePath), workspaceRoot);
         this.linting.mypyPath = getAbsolutePath(systemVariables.resolveAny(this.linting.mypyPath), workspaceRoot);
 
-        let formattingSettings = systemVariables.resolveAny(pythonSettings.get<IFormattingSettings>('formatting'));
+        let formattingSettings = systemVariables.resolveAny(pythonSettings.get<IFormattingSettings>('formatting'))!;
         if (this.formatting) {
             Object.assign<IFormattingSettings, IFormattingSettings>(this.formatting, formattingSettings);
         }
@@ -240,7 +244,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         this.formatting.autopep8Path = getAbsolutePath(systemVariables.resolveAny(this.formatting.autopep8Path), workspaceRoot);
         this.formatting.yapfPath = getAbsolutePath(systemVariables.resolveAny(this.formatting.yapfPath), workspaceRoot);
 
-        let autoCompleteSettings = systemVariables.resolveAny(pythonSettings.get<IAutoCompeteSettings>('autoComplete'));
+        let autoCompleteSettings = systemVariables.resolveAny(pythonSettings.get<IAutoCompeteSettings>('autoComplete'))!;
         if (this.autoComplete) {
             Object.assign<IAutoCompeteSettings, IAutoCompeteSettings>(this.autoComplete, autoCompleteSettings);
         }
@@ -254,7 +258,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
             preloadModules: []
         };
 
-        let workspaceSymbolsSettings = systemVariables.resolveAny(pythonSettings.get<IWorkspaceSymbolSettings>('workspaceSymbols'));
+        let workspaceSymbolsSettings = systemVariables.resolveAny(pythonSettings.get<IWorkspaceSymbolSettings>('workspaceSymbols'))!;
         if (this.workspaceSymbols) {
             Object.assign<IWorkspaceSymbolSettings, IWorkspaceSymbolSettings>(this.workspaceSymbols, workspaceSymbolsSettings);
         }
@@ -272,14 +276,19 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         };
         this.workspaceSymbols.tagFilePath = getAbsolutePath(systemVariables.resolveAny(this.workspaceSymbols.tagFilePath), workspaceRoot);
 
-        let unitTestSettings = systemVariables.resolveAny(pythonSettings.get<IUnitTestSettings>('unitTest'));
+        let unitTestSettings = systemVariables.resolveAny(pythonSettings.get<IUnitTestSettings>('unitTest'))!;
         if (this.unitTest) {
             Object.assign<IUnitTestSettings, IUnitTestSettings>(this.unitTest, unitTestSettings);
         }
         else {
             this.unitTest = unitTestSettings;
             if (IS_TEST_EXECUTION && !this.unitTest) {
-                this.unitTest = { nosetestArgs: [], pyTestArgs: [], unittestArgs: [] } as IUnitTestSettings;
+                this.unitTest = {
+                    nosetestArgs: [], pyTestArgs: [], unittestArgs: [],
+                    promptToConfigure: true, debugPort: 3000,
+                    nosetestsEnabled: false, pyTestEnabled: false, unittestEnabled: false,
+                    nosetestPath: 'nosetests', pyTestPath: 'py.test', outputWindow: 'Python Test Log'
+                } as IUnitTestSettings;
             }
         }
 
@@ -294,13 +303,16 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         };
         this.unitTest.pyTestPath = getAbsolutePath(systemVariables.resolveAny(this.unitTest.pyTestPath), workspaceRoot);
         this.unitTest.nosetestPath = getAbsolutePath(systemVariables.resolveAny(this.unitTest.nosetestPath), workspaceRoot);
+        if (this.unitTest.cwd) {
+            this.unitTest.cwd = getAbsolutePath(systemVariables.resolveAny(this.unitTest.cwd), workspaceRoot);
+        }
 
         // Resolve any variables found in the test arguments
         this.unitTest.nosetestArgs = this.unitTest.nosetestArgs.map(arg => systemVariables.resolveAny(arg));
         this.unitTest.pyTestArgs = this.unitTest.pyTestArgs.map(arg => systemVariables.resolveAny(arg));
         this.unitTest.unittestArgs = this.unitTest.unittestArgs.map(arg => systemVariables.resolveAny(arg));
 
-        let terminalSettings = systemVariables.resolveAny(pythonSettings.get<ITerminalSettings>('terminal'));
+        let terminalSettings = systemVariables.resolveAny(pythonSettings.get<ITerminalSettings>('terminal'))!;
         if (this.terminal) {
             Object.assign<ITerminalSettings, ITerminalSettings>(this.terminal, terminalSettings);
         }
@@ -316,7 +328,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
             launchArgs: []
         };
 
-        this.jupyter = pythonSettings.get<JupyterSettings>('jupyter');
+        this.jupyter = pythonSettings.get<JupyterSettings>('jupyter')!;
         // Support for travis
         this.jupyter = this.jupyter ? this.jupyter : {
             appendResults: true, defaultKernel: '', startupCode: []
@@ -344,6 +356,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
     }
     public jediPath: string;
     public envFile: string;
+    public disablePromptForFeatures: string[];
     public venvPath: string;
     public devOptions: string[];
     public linting: ILintingSettings;
@@ -405,7 +418,7 @@ function getPythonExecutable(pythonPath: string): string {
     return pythonPath;
 }
 
-function isValidPythonPath(pythonPath): boolean {
+function isValidPythonPath(pythonPath: string): boolean {
     try {
         let output = child_process.execFileSync(pythonPath, ['-c', 'print(1234)'], { encoding: 'utf8' });
         return output.startsWith('1234');

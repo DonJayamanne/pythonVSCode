@@ -64,8 +64,6 @@ export function highlightCode(docstring: string): string {
     docstring = docstring.replace(/(.+\r?\n)[-=]+\r?\n/g, '## $1' + EOL);
     // Directives: '.. directive::' -> '**directive**'
     docstring = docstring.replace(/\.\. (.*)::/g, '**$1**');
-    // Field lists: ':field:' -> '**field**'
-    docstring = docstring.replace(/:(.+?):/g, '**$1** ');
     // Pattern of 'var : description'
     let paramLinePattern = '[\\*\\w_]+ ?:[^:\r\n]+';
     // Add new line after and before param line
@@ -92,8 +90,10 @@ export function highlightCode(docstring: string): string {
         }
         if (!inCodeBlock) {
             lines[i] = line.replace(/^ {4,8}/, '');
+            // Field lists: ':field:' -> '**field**'
+            lines[i] = lines[i].replace(/:(.+?):/g, '**$1** ');
         } else {
-            if (codeIndentation != 0) {
+            if (codeIndentation !== 0) {
                 lines[i] = line.substring(codeIndentation);
             }
         }

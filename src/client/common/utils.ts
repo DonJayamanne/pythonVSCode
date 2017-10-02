@@ -6,6 +6,7 @@
 // Add options for execPythonFile
 import * as path from 'path';
 import * as fs from 'fs';
+import * as os from 'os';
 import * as child_process from 'child_process';
 import * as settings from './configSettings';
 import { CancellationToken, TextDocument, Range } from 'vscode';
@@ -13,6 +14,7 @@ import { isNotInstalledError } from './helpers';
 import { mergeEnvVariables, parseEnvFile } from './envFileParser';
 
 export const IS_WINDOWS = /^win/.test(process.platform);
+export const Is_64Bit = os.arch() === 'x64';
 export const PATH_VARIABLE_NAME = IS_WINDOWS ? 'Path' : 'PATH';
 
 const PathValidity: Map<string, boolean> = new Map<string, boolean>();
@@ -38,6 +40,17 @@ export function fsExistsAsync(filePath: string): Promise<boolean> {
         });
     });
 }
+export function fsReaddirAsync(root: string): Promise<string[]> {
+    return new Promise<string[]>(resolve => {
+        // Now look for Interpreters in this directory
+        fs.readdir(root, (err, subDirs) => {
+            if (err) {
+                return resolve([]);
+            }
+            resolve(subDirs.map(subDir => path.join(root, subDir)));
+        });
+    });
+}
 
 let pythonInterpretterDirectory: string = null;
 let previouslyIdentifiedPythonPath: string = null;
@@ -46,6 +59,8 @@ let customEnvVariables: any = null;
 // If config settings change then clear env variables that we have cached
 // Remember, the path to the python interpreter can change, hence we need to re-set the paths
 settings.PythonSettings.getInstance().on('change', function () {
+    pythonInterpretterDirectory = null;
+    previouslyIdentifiedPythonPath = null;
     customEnvVariables = null;
 });
 
@@ -95,7 +110,6 @@ export function getPathFromPythonCommand(args: string[]): Promise<string> {
         return "";
     });
 }
-
 export function execPythonFile(file: string, args: string[], cwd: string, includeErrorAsResponse: boolean = false, stdOut: (line: string) => void = null, token?: CancellationToken): Promise<string> {
     const execAsModule = file.toUpperCase() === 'PYTHON' && args.length > 0 && args[0] === '-m';
 
@@ -388,4 +402,23 @@ export function getWindowsLineEndingCount(document: TextDocument, offset: Number
         count += cr ? cr.length : 0;
     }
     return count;
+}
+
+export function arePathsSame(path1: string, path2: string) {
+    path1 = IS_WINDOWS ? path1.replace(/\//g, "\\") : path1;
+    path2 = IS_WINDOWS ? path2.replace(/\//g, "\\") : path2;
+    return path1.toUpperCase() === path2.toUpperCase();
+}
+
+export function areBasePathsSame(path1: string, path2: string) {
+    path1 = IS_WINDOWS ? path1.replace(/\//g, "\\") : path1;
+    path2 = IS_WINDOWS ? path2.replace(/\//g, "\\") : path2;
+    return path.dirname(path1).toUpperCase() === path.dirname(path2).toUpperCase();
+}
+export function getInterpreterDisplayName(pythonPath: string) {
+    return execPythonFile(pythonPath, ['--version'], __dirname, true)
+        .then(version => {
+            version = version.split(/\r?\n/g).map(line => line.trim()).filter(line => line.length > 0).join('');
+            return version;
+        });
 }

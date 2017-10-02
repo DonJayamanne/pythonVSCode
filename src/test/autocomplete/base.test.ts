@@ -55,9 +55,7 @@ suite('Autocomplete', () => {
             const position = new vscode.Position(3, 10);
             return vscode.commands.executeCommand<vscode.CompletionList>('vscode.executeCompletionItemProvider', textDocument.uri, position);
         }).then(list => {
-            assert.notEqual(list.items.filter(item => item.label === 'api_version').length, 0, 'api_version not found');
-            assert.notEqual(list.items.filter(item => item.label === 'argv').length, 0, 'argv not found');
-            assert.notEqual(list.items.filter(item => item.label === 'prefix').length, 0, 'prefix not found');
+            assert.equal(list.items.filter(item => item.label === 'api_version').length, 1, 'api_version not found');
         }).then(done, done);
     });
 
@@ -67,7 +65,7 @@ suite('Autocomplete', () => {
         await vscode.window.showTextDocument(textDocument);
         const position = new vscode.Position(1, 4);
         const list = await vscode.commands.executeCommand<vscode.CompletionList>('vscode.executeCompletionItemProvider', textDocument.uri, position);
-        assert.notEqual(list.items.filter(item => item.label === 'fstat').length, 0, 'fstat not found');
+        assert.equal(list.items.filter(item => item.label === 'fstat').length, 1, 'fstat not found');
     });
 
     // https://github.com/DonJayamanne/pythonVSCode/issues/898
@@ -76,9 +74,10 @@ suite('Autocomplete', () => {
         await vscode.window.showTextDocument(textDocument);
         const position = new vscode.Position(5, 27);
         const list = await vscode.commands.executeCommand<vscode.CompletionList>('vscode.executeCompletionItemProvider', textDocument.uri, position);
-        // assert.equal(list.items.filter(item => item.label === 'capitalize').length, 0, 'capitalize not found (known not to work, Jedi issue)');
-        // assert.notEqual(list.items.filter(item => item.label === 'upper').length, 0, 'upper not found');
-        // assert.notEqual(list.items.filter(item => item.label === 'lower').length, 0, 'lower not found');
+        // These are not known to work, jedi issue
+        // assert.equal(list.items.filter(item => item.label === 'capitalize').length, 1, 'capitalize not found (known not to work, Jedi issue)');
+        // assert.notEqual(list.items.filter(item => item.label === 'upper').length, 1, 'upper not found');
+        // assert.notEqual(list.items.filter(item => item.label === 'lower').length, 1, 'lower not found');
     });
 
     // https://github.com/DonJayamanne/pythonVSCode/issues/265
