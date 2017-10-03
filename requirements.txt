@@ -9,5 +9,5 @@ jupyter
 ipython
 nose
 pytest
-#fabric
+fabric
 numba

@@ -1,3 +1,4 @@
+import { initializePython } from './initialize';
 //
 // PLEASE DO NOT MODIFY / DELETE UNLESS YOU KNOW WHAT YOU ARE DOING
 //
@@ -19,5 +20,7 @@ testRunner.configure({
     useColors: true, // colored output from test results
     timeout: 25000
 });
+
+initializePython();
 
 module.exports = testRunner;

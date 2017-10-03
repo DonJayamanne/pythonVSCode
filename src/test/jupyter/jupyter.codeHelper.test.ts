@@ -1,38 +1,19 @@
-//
-// Note: This example test is leveraging the Mocha test framework.
-// Please refer to their documentation on https://mochajs.org/ for help.
-//
-// Place this right on top
-import { initialize, IS_TRAVIS, closeActiveWindows, setPythonExecutable } from './../initialize';
-// The module 'assert' provides assertion methods from node
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import * as settings from '../../client/common/configSettings';
 import * as path from 'path';
+import { initialize, closeActiveWindows } from './../initialize';
 import { CodeHelper } from '../../client/jupyter/common/codeHelper';
 import { JupyterCodeLensProvider } from '../../client/jupyter/editorIntegration/codeLensProvider';
-
-let pythonSettings = settings.PythonSettings.getInstance();
-let disposable = setPythonExecutable(pythonSettings);
 
 const FILE_WITH_CELLS = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'jupyter', 'cells.py');
 
 suite('Jupyter Code Helper', () => {
-    suiteSetup(done => {
-        initialize().then(() => {
-            done();
-        });
-    });
+    suiteSetup(() => initialize());
 
+    setup(() => closeActiveWindows());
+    teardown(() => closeActiveWindows());
     const codeLensProvider = new JupyterCodeLensProvider();
     const codeHelper = new CodeHelper(codeLensProvider);
-    setup(done => {
-        closeActiveWindows().then(() => done()).catch(() => done());
-    });
-    teardown(done => {
-        disposable.dispose();
-        closeActiveWindows().then(() => done()).catch(() => done());
-    });
 
     test('Get Line (without any selection)', done => {
         let textDocument: vscode.TextDocument;
