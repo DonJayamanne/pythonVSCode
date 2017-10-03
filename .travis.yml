@@ -49,7 +49,7 @@ before_install: |
     pyenv global $PYTHON
   fi
 install:
-  - pip install -r requirements.txt
+  - pip install --upgrade -r requirements.txt
   - npm install
   - npm run vscode:prepublish
   
