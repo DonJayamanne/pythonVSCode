@@ -2,8 +2,6 @@
 // Please refer to their documentation on https://mochajs.org/ for help.
 
 
-// Place this right on top
-import { initialize, PYTHON_PATH, closeActiveWindows, setPythonExecutable } from '../initialize';
 // The module 'assert' provides assertion methods from node
 import * as assert from 'assert';
 import { EOL } from 'os';
@@ -12,12 +10,11 @@ import { EOL } from 'os';
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as settings from '../../client/common/configSettings';
+import { initialize, closeActiveWindows } from '../initialize';
 import { execPythonFile } from '../../client/common/utils';
-import { createDeferred } from '../../client/common/helpers';
 
-let pythonSettings = settings.PythonSettings.getInstance();
-let disposable: vscode.Disposable;
-let autoCompPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'autocomp');
+const pythonSettings = settings.PythonSettings.getInstance();
+const autoCompPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'autocomp');
 const fileOne = path.join(autoCompPath, 'one.py');
 const fileImport = path.join(autoCompPath, 'imp.py');
 const fileDoc = path.join(autoCompPath, 'doc.py');
@@ -27,21 +24,15 @@ const fileEncoding = path.join(autoCompPath, 'four.py');
 const fileEncodingUsed = path.join(autoCompPath, 'five.py');
 
 suite('Autocomplete', () => {
-    const isPython3Deferred = createDeferred<boolean>();
-    const isPython3 = isPython3Deferred.promise;
+    let isPython3: Promise<boolean>;
     suiteSetup(async () => {
-        disposable = setPythonExecutable(pythonSettings);
         await initialize();
         let version = await execPythonFile(pythonSettings.pythonPath, ['--version'], __dirname, true);
-        isPython3Deferred.resolve(version.indexOf('3.') >= 0);
+        isPython3 = Promise.resolve(version.indexOf('3.') >= 0);
     });
 
-    suiteTeardown(done => {
-        closeActiveWindows().then(done, done);
-    });
-    teardown(done => {
-        closeActiveWindows().then(done, done);
-    });
+    suiteTeardown(() => closeActiveWindows());
+    teardown(() => closeActiveWindows());
 
     test('For "sys."', done => {
         let textEditor: vscode.TextEditor;

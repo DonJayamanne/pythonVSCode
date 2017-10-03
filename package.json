@@ -118,7 +118,7 @@
       },
       {
         "command": "python.setInterpreter",
-        "title": "Select Workspace Interpreter",
+        "title": "Select Interpreter",
         "category": "Python"
       },
       {

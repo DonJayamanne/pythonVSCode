@@ -3,60 +3,57 @@
 // Please refer to their documentation on https://mochajs.org/ for help.
 
 
-// Place this right on top
-import { initialize, IS_TRAVIS, closeActiveWindows, setPythonExecutable } from './initialize';
 // The module 'assert' provides assertion methods from node
 import * as assert from 'assert';
 
 // You can import and use all API from the 'vscode' module
 // as well as import your extension to test it
 import * as vscode from 'vscode';
-import { AutoPep8Formatter } from '../client/formatters/autoPep8Formatter';
-import { YapfFormatter } from '../client/formatters/yapfFormatter';
 import * as path from 'path';
-import * as settings from '../client/common/configSettings';
+import * as settings from '../../client/common/configSettings';
 import * as fs from 'fs-extra';
-import { execPythonFile } from '../client/common/utils';
+import { AutoPep8Formatter } from '../../client/formatters/autoPep8Formatter';
+import { initialize, IS_TRAVIS, closeActiveWindows } from '../initialize';
+import { YapfFormatter } from '../../client/formatters/yapfFormatter';
+import { execPythonFile } from '../../client/common/utils';
 
-let pythonSettings = settings.PythonSettings.getInstance();
-let disposable = setPythonExecutable(pythonSettings);
+const pythonSettings = settings.PythonSettings.getInstance();
 
-let ch = vscode.window.createOutputChannel('Tests');
-let pythoFilesPath = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'formatting');
+const ch = vscode.window.createOutputChannel('Tests');
+const pythoFilesPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'formatting');
 const originalUnformattedFile = path.join(pythoFilesPath, 'fileToFormat.py');
 
-const autoPep8FileToFormat = path.join(__dirname, 'pythonFiles', 'formatting', 'autoPep8FileToFormat.py');
-const autoPep8FileToAutoFormat = path.join(__dirname, 'pythonFiles', 'formatting', 'autoPep8FileToAutoFormat.py');
-const yapfFileToFormat = path.join(__dirname, 'pythonFiles', 'formatting', 'yapfFileToFormat.py');
-const yapfFileToAutoFormat = path.join(__dirname, 'pythonFiles', 'formatting', 'yapfFileToAutoFormat.py');
+const autoPep8FileToFormat = path.join(pythoFilesPath, 'autoPep8FileToFormat.py');
+const autoPep8FileToAutoFormat = path.join(pythoFilesPath, 'autoPep8FileToAutoFormat.py');
+const yapfFileToFormat = path.join(pythoFilesPath, 'yapfFileToFormat.py');
+const yapfFileToAutoFormat = path.join(pythoFilesPath, 'yapfFileToAutoFormat.py');
 
 let formattedYapf = '';
 let formattedAutoPep8 = '';
 
 suite('Formatting', () => {
-    suiteSetup(done => {
-        initialize().then(() => {
-            [autoPep8FileToFormat, autoPep8FileToAutoFormat, yapfFileToFormat, yapfFileToAutoFormat].forEach(file => {
-                if (fs.existsSync(file)) { fs.unlinkSync(file); }
-                fs.copySync(originalUnformattedFile, file);
-            });
-
-            fs.ensureDirSync(path.dirname(autoPep8FileToFormat));
-            let yapf = execPythonFile('yapf', [originalUnformattedFile], pythoFilesPath, false);
-            let autoPep8 = execPythonFile('autopep8', [originalUnformattedFile], pythoFilesPath, false);
-            return Promise.all<string>([yapf, autoPep8]).then(formattedResults => {
-                formattedYapf = formattedResults[0];
-                formattedAutoPep8 = formattedResults[1];
-            }).then(() => { });
-        }).then(done).catch(done);
+    suiteSetup(async () => {
+        await initialize();
+        [autoPep8FileToFormat, autoPep8FileToAutoFormat, yapfFileToFormat, yapfFileToAutoFormat].forEach(file => {
+            fs.copySync(originalUnformattedFile, file, { overwrite: true });
+        });
+        fs.ensureDirSync(path.dirname(autoPep8FileToFormat));
+        const yapf = execPythonFile('yapf', [originalUnformattedFile], pythoFilesPath, false);
+        const autoPep8 = execPythonFile('autopep8', [originalUnformattedFile], pythoFilesPath, false);
+        await Promise.all<string>([yapf, autoPep8]).then(formattedResults => {
+            formattedYapf = formattedResults[0];
+            formattedAutoPep8 = formattedResults[1];
+        }).then(() => { });
     });
-    suiteTeardown(done => {
-        disposable.dispose();
-        closeActiveWindows().then(() => done(), () => done());
+    suiteTeardown(() => {
+        [autoPep8FileToFormat, autoPep8FileToAutoFormat, yapfFileToFormat, yapfFileToAutoFormat].forEach(file => {
+            if (fs.existsSync(file)) {
+                fs.unlinkSync(file);
+            }
+        });
+        return closeActiveWindows();
     });
-    teardown(done => {
-        closeActiveWindows().then(() => done(), () => done());
-    });
+    teardown(() => closeActiveWindows());
 
     function testFormatting(formatter: AutoPep8Formatter | YapfFormatter, formattedContents: string, fileToFormat: string): PromiseLike<void> {
         let textEditor: vscode.TextEditor;

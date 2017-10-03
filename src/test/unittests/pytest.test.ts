@@ -1,29 +1,21 @@
-// Place this right on top
-import { initialize, setPythonExecutable } from './../initialize';
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import * as pytest from '../../client/unittests/pytest/main';
 import * as path from 'path';
 import * as configSettings from '../../client/common/configSettings';
-import { TestsToRun, TestFile, TestFunction, TestSuite } from '../../client/unittests/common/contracts';
+import { initialize } from './../initialize';
+import { TestsToRun, TestFile } from '../../client/unittests/common/contracts';
 import { TestResultDisplay } from '../../client/unittests/display/main';
 import { MockOutputChannel } from './../mockClasses';
 
 const pythonSettings = configSettings.PythonSettings.getInstance();
-const disposable = setPythonExecutable(pythonSettings);
-
 const UNITTEST_TEST_FILES_PATH = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'standard');
 const UNITTEST_SINGLE_TEST_FILE_PATH = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'single');
 const UNITTEST_TEST_FILES_PATH_WITH_CONFIGS = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'unitestsWithConfigs');
 const unitTestTestFilesCwdPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'cwd', 'src');
 
 suite('Unit Tests (PyTest)', () => {
-    suiteSetup(async () => {
-        await initialize();
-    });
-    suiteTeardown(() => {
-        disposable.dispose();
-    });
+    suiteSetup(() => initialize());
     setup(() => {
         rootDirectory = UNITTEST_TEST_FILES_PATH;
         outChannel = new MockOutputChannel('Python Test Log');
