@@ -30,7 +30,7 @@ export class ShebangCodeLensProvider implements vscode.CodeLensProvider {
         
         const cmd : vscode.Command = { 
             command: 'python.setShebangInterpreter', 
-            title: 'Set interpreter to shebang'
+            title: 'Set as interpreter'
         }
 
         const codeLenses = [(new CodeLens(shebangRange, cmd))];
