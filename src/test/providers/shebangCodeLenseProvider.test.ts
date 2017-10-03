@@ -10,10 +10,15 @@ const fileShebang = path.join(autoCompPath, 'shebang.py');
 const filePlain = path.join(autoCompPath, 'plain.py');
 
 var settings = vscode.workspace.getConfiguration("python");
+const origPythonPath = settings.get("pythonPath");
 
 suite("Shebang detection", () => {
     suiteSetup(async () => {
         await initialize();
+    });
+
+    suiteTeardown(() => {
+        vscode.workspace.getConfiguration("python").update("pythonPath", origPythonPath);
     });
 
     teardown(() => closeActiveWindows());
