@@ -6,3 +6,5 @@ node_modules
 src/test/.vscode/**
 **/testFiles/**/.cache/**
 *.noseids
+.vscode-test
+__pycache__
