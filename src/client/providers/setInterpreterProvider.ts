@@ -4,6 +4,7 @@ import * as vscode from 'vscode';
 import * as settings from './../common/configSettings';
 import { InterpreterManager } from '../interpreter';
 import { PythonInterpreter } from '../interpreter/contracts';
+import { ShebangCodeLensProvider } from './shebangCodeLensProvider';
 
 
 interface PythonPathQuickPickItem extends vscode.QuickPickItem {
@@ -14,6 +15,7 @@ export class SetInterpreterProvider implements vscode.Disposable {
     private disposables: vscode.Disposable[] = [];
     constructor(private interpreterManager: InterpreterManager) {
         this.disposables.push(vscode.commands.registerCommand("python.setInterpreter", this.setInterpreter.bind(this)));
+        this.disposables.push(vscode.commands.registerCommand("python.setShebangInterpreter", this.setShebangInterpreter.bind(this)));
     }
     public dispose() {
         this.disposables.forEach(disposable => disposable.dispose());
@@ -59,5 +61,12 @@ export class SetInterpreterProvider implements vscode.Disposable {
 
     private setInterpreter() {
         this.presentQuickPick();
+    }
+
+    private setShebangInterpreter() {
+        const shebang = ShebangCodeLensProvider.detectShebang(vscode.window.activeTextEditor.document);
+        if (shebang) {
+            this.interpreterManager.setPythonPath(shebang);
+        }
     }
 }
