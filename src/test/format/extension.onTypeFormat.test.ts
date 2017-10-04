@@ -3,8 +3,6 @@
 // Please refer to their documentation on https://mochajs.org/ for help.
 
 
-// Place this right on top
-import { initialize, closeActiveWindows, setPythonExecutable } from './initialize';
 // The module 'assert' provides assertion methods from node
 import * as assert from 'assert';
 
@@ -12,14 +10,12 @@ import * as assert from 'assert';
 // as well as import your extension to test it
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as settings from '../client/common/configSettings';
 import * as fs from 'fs-extra';
-import { BlockFormatProviders } from '../client/typeFormatters/blockFormatProvider';
-let pythonSettings = settings.PythonSettings.getInstance();
-let disposable: vscode.Disposable;
+import { initialize, closeActiveWindows } from '../initialize';
+import { BlockFormatProviders } from '../../client/typeFormatters/blockFormatProvider';
 
-let srcPythoFilesPath = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'typeFormatFiles');
-let outPythoFilesPath = path.join(__dirname, 'pythonFiles', 'typeFormatFiles');
+const srcPythoFilesPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'typeFormatFiles');
+const outPythoFilesPath = path.join(__dirname, 'pythonFiles', 'typeFormatFiles');
 
 const tryBlock2OutFilePath = path.join(outPythoFilesPath, 'tryBlocks2.py');
 const tryBlock4OutFilePath = path.join(outPythoFilesPath, 'tryBlocks4.py');
@@ -58,25 +54,18 @@ function testFormatting(fileToFormat: string, position: vscode.Position, expecte
 
 
 suite('Else block with if in first line of file', () => {
-    suiteSetup(done => {
-        disposable = setPythonExecutable(pythonSettings);
-        initialize().then(() => {
-            fs.ensureDirSync(path.dirname(outPythoFilesPath));
+    suiteSetup(async () => {
+        await initialize();
+        fs.ensureDirSync(path.dirname(outPythoFilesPath));
 
-            ['elseBlocksFirstLine2.py', 'elseBlocksFirstLine4.py', 'elseBlocksFirstLineTab.py'].forEach(file => {
-                const targetFile = path.join(outPythoFilesPath, file);
-                if (fs.existsSync(targetFile)) { fs.unlinkSync(targetFile); }
-                fs.copySync(path.join(srcPythoFilesPath, file), targetFile);
-            });
-        }).then(done).catch(done);
+        ['elseBlocksFirstLine2.py', 'elseBlocksFirstLine4.py', 'elseBlocksFirstLineTab.py'].forEach(file => {
+            const targetFile = path.join(outPythoFilesPath, file);
+            if (fs.existsSync(targetFile)) { fs.unlinkSync(targetFile); }
+            fs.copySync(path.join(srcPythoFilesPath, file), targetFile);
+        });
     });
-    suiteTeardown(done => {
-        disposable.dispose();
-        closeActiveWindows().then(() => done(), () => done());
-    });
-    teardown(done => {
-        closeActiveWindows().then(() => done(), () => done());
-    });
+    suiteTeardown(() => closeActiveWindows());
+    teardown(() => closeActiveWindows());
 
     interface TestCase {
         title: string;
@@ -127,25 +116,18 @@ suite('Else block with if in first line of file', () => {
 });
 
 suite('Try blocks with indentation of 2 spaces', () => {
-    suiteSetup(done => {
-        disposable = setPythonExecutable(pythonSettings);
-        initialize().then(() => {
-            fs.ensureDirSync(path.dirname(outPythoFilesPath));
+    suiteSetup(async () => {
+        await initialize();
+        fs.ensureDirSync(path.dirname(outPythoFilesPath));
 
-            ['tryBlocks2.py'].forEach(file => {
-                const targetFile = path.join(outPythoFilesPath, file);
-                if (fs.existsSync(targetFile)) { fs.unlinkSync(targetFile); }
-                fs.copySync(path.join(srcPythoFilesPath, file), targetFile);
-            });
-        }).then(done).catch(done);
+        ['tryBlocks2.py'].forEach(file => {
+            const targetFile = path.join(outPythoFilesPath, file);
+            if (fs.existsSync(targetFile)) { fs.unlinkSync(targetFile); }
+            fs.copySync(path.join(srcPythoFilesPath, file), targetFile);
+        });
     });
-    suiteTeardown(done => {
-        disposable.dispose();
-        closeActiveWindows().then(() => done(), () => done());
-    });
-    teardown(done => {
-        closeActiveWindows().then(() => done(), () => done());
-    });
+    suiteTeardown(() => closeActiveWindows());
+    teardown(() => closeActiveWindows());
 
     interface TestCase {
         title: string;
@@ -235,25 +217,18 @@ suite('Try blocks with indentation of 2 spaces', () => {
 });
 
 suite('Try blocks with indentation of 4 spaces', () => {
-    suiteSetup(done => {
-        disposable = setPythonExecutable(pythonSettings);
-        initialize().then(() => {
-            fs.ensureDirSync(path.dirname(outPythoFilesPath));
+    suiteSetup(async () => {
+        await initialize();
+        fs.ensureDirSync(path.dirname(outPythoFilesPath));
 
-            ['tryBlocks4.py'].forEach(file => {
-                const targetFile = path.join(outPythoFilesPath, file);
-                if (fs.existsSync(targetFile)) { fs.unlinkSync(targetFile); }
-                fs.copySync(path.join(srcPythoFilesPath, file), targetFile);
-            });
-        }).then(done).catch(done);
+        ['tryBlocks4.py'].forEach(file => {
+            const targetFile = path.join(outPythoFilesPath, file);
+            if (fs.existsSync(targetFile)) { fs.unlinkSync(targetFile); }
+            fs.copySync(path.join(srcPythoFilesPath, file), targetFile);
+        });
     });
-    suiteTeardown(done => {
-        disposable.dispose();
-        closeActiveWindows().then(() => done(), () => done());
-    });
-    teardown(done => {
-        closeActiveWindows().then(() => done(), () => done());
-    });
+    suiteTeardown(() => closeActiveWindows());
+    teardown(() => closeActiveWindows());
 
     interface TestCase {
         title: string;
@@ -343,25 +318,18 @@ suite('Try blocks with indentation of 4 spaces', () => {
 });
 
 suite('Try blocks with indentation of Tab', () => {
-    suiteSetup(done => {
-        disposable = setPythonExecutable(pythonSettings);
-        initialize().then(() => {
-            fs.ensureDirSync(path.dirname(outPythoFilesPath));
+    suiteSetup(async () => {
+        await initialize();
+        fs.ensureDirSync(path.dirname(outPythoFilesPath));
 
-            ['tryBlocksTab.py'].forEach(file => {
-                const targetFile = path.join(outPythoFilesPath, file);
-                if (fs.existsSync(targetFile)) { fs.unlinkSync(targetFile); }
-                fs.copySync(path.join(srcPythoFilesPath, file), targetFile);
-            });
-        }).then(done).catch(done);
+        ['tryBlocksTab.py'].forEach(file => {
+            const targetFile = path.join(outPythoFilesPath, file);
+            if (fs.existsSync(targetFile)) { fs.unlinkSync(targetFile); }
+            fs.copySync(path.join(srcPythoFilesPath, file), targetFile);
+        });
     });
-    suiteTeardown(done => {
-        disposable.dispose();
-        closeActiveWindows().then(() => done(), () => done());
-    });
-    teardown(done => {
-        closeActiveWindows().then(() => done(), () => done());
-    });
+    suiteTeardown(() => closeActiveWindows());
+    teardown(() => closeActiveWindows());
 
     interface TestCase {
         title: string;
@@ -442,25 +410,18 @@ suite('Try blocks with indentation of Tab', () => {
 });
 
 suite('Else blocks with indentation of 2 spaces', () => {
-    suiteSetup(done => {
-        disposable = setPythonExecutable(pythonSettings);
-        initialize().then(() => {
-            fs.ensureDirSync(path.dirname(outPythoFilesPath));
+    suiteSetup(async () => {
+        await initialize();
+        fs.ensureDirSync(path.dirname(outPythoFilesPath));
 
-            ['elseBlocks2.py'].forEach(file => {
-                const targetFile = path.join(outPythoFilesPath, file);
-                if (fs.existsSync(targetFile)) { fs.unlinkSync(targetFile); }
-                fs.copySync(path.join(srcPythoFilesPath, file), targetFile);
-            });
-        }).then(done).catch(done);
+        ['elseBlocks2.py'].forEach(file => {
+            const targetFile = path.join(outPythoFilesPath, file);
+            if (fs.existsSync(targetFile)) { fs.unlinkSync(targetFile); }
+            fs.copySync(path.join(srcPythoFilesPath, file), targetFile);
+        });
     });
-    suiteTeardown(done => {
-        disposable.dispose();
-        closeActiveWindows().then(() => done(), () => done());
-    });
-    teardown(done => {
-        closeActiveWindows().then(() => done(), () => done());
-    });
+    suiteTeardown(() => closeActiveWindows());
+    teardown(() => closeActiveWindows());
 
     interface TestCase {
         title: string;
@@ -580,25 +541,18 @@ suite('Else blocks with indentation of 2 spaces', () => {
 });
 
 suite('Else blocks with indentation of 4 spaces', () => {
-    suiteSetup(done => {
-        disposable = setPythonExecutable(pythonSettings);
-        initialize().then(() => {
-            fs.ensureDirSync(path.dirname(outPythoFilesPath));
+    suiteSetup(async () => {
+        await initialize();
+        fs.ensureDirSync(path.dirname(outPythoFilesPath));
 
-            ['elseBlocks4.py'].forEach(file => {
-                const targetFile = path.join(outPythoFilesPath, file);
-                if (fs.existsSync(targetFile)) { fs.unlinkSync(targetFile); }
-                fs.copySync(path.join(srcPythoFilesPath, file), targetFile);
-            });
-        }).then(done).catch(done);
+        ['elseBlocks4.py'].forEach(file => {
+            const targetFile = path.join(outPythoFilesPath, file);
+            if (fs.existsSync(targetFile)) { fs.unlinkSync(targetFile); }
+            fs.copySync(path.join(srcPythoFilesPath, file), targetFile);
+        });
     });
-    suiteTeardown(done => {
-        disposable.dispose();
-        closeActiveWindows().then(() => done(), () => done());
-    });
-    teardown(done => {
-        closeActiveWindows().then(() => done(), () => done());
-    });
+    suiteTeardown(() => closeActiveWindows());
+    teardown(() => closeActiveWindows());
 
     interface TestCase {
         title: string;
@@ -712,25 +666,18 @@ suite('Else blocks with indentation of 4 spaces', () => {
 });
 
 suite('Else blocks with indentation of Tab', () => {
-    suiteSetup(done => {
-        disposable = setPythonExecutable(pythonSettings);
-        initialize().then(() => {
-            fs.ensureDirSync(path.dirname(outPythoFilesPath));
+    suiteSetup(async () => {
+        await initialize();
+        fs.ensureDirSync(path.dirname(outPythoFilesPath));
 
-            ['elseBlocksTab.py'].forEach(file => {
-                const targetFile = path.join(outPythoFilesPath, file);
-                if (fs.existsSync(targetFile)) { fs.unlinkSync(targetFile); }
-                fs.copySync(path.join(srcPythoFilesPath, file), targetFile);
-            });
-        }).then(done).catch(done);
+        ['elseBlocksTab.py'].forEach(file => {
+            const targetFile = path.join(outPythoFilesPath, file);
+            if (fs.existsSync(targetFile)) { fs.unlinkSync(targetFile); }
+            fs.copySync(path.join(srcPythoFilesPath, file), targetFile);
+        });
     });
-    suiteTeardown(done => {
-        disposable.dispose();
-        closeActiveWindows().then(() => done(), () => done());
-    });
-    teardown(done => {
-        closeActiveWindows().then(() => done(), () => done());
-    });
+    suiteTeardown(() => closeActiveWindows());
+    teardown(() => closeActiveWindows());
 
     interface TestCase {
         title: string;

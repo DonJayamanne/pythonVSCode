@@ -7,6 +7,7 @@ import { PythonDefinitionProvider } from './providers/definitionProvider';
 import { PythonReferenceProvider } from './providers/referenceProvider';
 import { PythonRenameProvider } from './providers/renameProvider';
 import { PythonFormattingEditProvider } from './providers/formatProvider';
+import { ShebangCodeLensProvider } from './providers/shebangCodeLensProvider'
 import * as sortImports from './sortImports';
 import { LintProvider } from './providers/lintProvider';
 import { PythonSymbolProvider } from './providers/symbolProvider';
@@ -105,6 +106,7 @@ export async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.languages.registerHoverProvider(PYTHON, new PythonHoverProvider(context, jediProx)));
     context.subscriptions.push(vscode.languages.registerReferenceProvider(PYTHON, new PythonReferenceProvider(context, jediProx)));
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider(PYTHON, new PythonCompletionItemProvider(context, jediProx), '.'));
+    context.subscriptions.push(vscode.languages.registerCodeLensProvider(PYTHON, new ShebangCodeLensProvider()))
 
     const symbolProvider = new PythonSymbolProvider(context, jediProx);
     context.subscriptions.push(vscode.languages.registerDocumentSymbolProvider(PYTHON, symbolProvider));

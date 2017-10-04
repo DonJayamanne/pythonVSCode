@@ -3,48 +3,44 @@
 // Please refer to their documentation on https://mochajs.org/ for help.
 
 
-// Place this right on top
-import { initialize, IS_TRAVIS, closeActiveWindows, setPythonExecutable } from './initialize';
 // The module 'assert' provides assertion methods from node
 import * as assert from 'assert';
 
 // You can import and use all API from the 'vscode' module
 // as well as import your extension to test it
 import * as vscode from 'vscode';
-import { PythonImportSortProvider } from '../client/providers/importSortProvider';
 import * as path from 'path';
-import * as settings from '../client/common/configSettings';
+import * as settings from '../../client/common/configSettings';
 import * as fs from 'fs';
 import { EOL } from 'os';
+import { PythonImportSortProvider } from '../../client/providers/importSortProvider';
+import { initialize, IS_TRAVIS, closeActiveWindows } from '../initialize';
 
 const pythonSettings = settings.PythonSettings.getInstance();
-const disposable = setPythonExecutable(pythonSettings);
 
-const fileToFormatWithoutConfig = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'sorting', 'noconfig', 'before.py');
-const originalFileToFormatWithoutConfig = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'sorting', 'noconfig', 'original.py');
-const fileToFormatWithConfig = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'sorting', 'withconfig', 'before.py');
-const originalFileToFormatWithConfig = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'sorting', 'withconfig', 'original.py');
-const fileToFormatWithConfig1 = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'sorting', 'withconfig', 'before.1.py');
-const originalFileToFormatWithConfig1 = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'sorting', 'withconfig', 'original.1.py');
-const extensionDir = path.join(__dirname, '..', '..');
+const sortingPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'sorting');
+const fileToFormatWithoutConfig = path.join(sortingPath, 'noconfig', 'before.py');
+const originalFileToFormatWithoutConfig = path.join(sortingPath, 'noconfig', 'original.py');
+const fileToFormatWithConfig = path.join(sortingPath, 'withconfig', 'before.py');
+const originalFileToFormatWithConfig = path.join(sortingPath, 'withconfig', 'original.py');
+const fileToFormatWithConfig1 = path.join(sortingPath, 'withconfig', 'before.1.py');
+const originalFileToFormatWithConfig1 = path.join(sortingPath, 'withconfig', 'original.1.py');
+const extensionDir = path.join(__dirname, '..', '..', '..');
 
 suite('Sorting', () => {
-    suiteSetup(done => {
-        initialize().then(() => done(), () => done());
-    });
-    suiteTeardown(done => {
-        disposable.dispose();
+    suiteSetup(() => initialize());
+    suiteTeardown(() => {
         fs.writeFileSync(fileToFormatWithConfig, fs.readFileSync(originalFileToFormatWithConfig));
         fs.writeFileSync(fileToFormatWithConfig1, fs.readFileSync(originalFileToFormatWithConfig1));
         fs.writeFileSync(fileToFormatWithoutConfig, fs.readFileSync(originalFileToFormatWithoutConfig));
-        closeActiveWindows().then(() => done(), () => done());
+        return closeActiveWindows();
     });
-    setup(done => {
+    setup(() => {
         pythonSettings.sortImports.args = [];
         fs.writeFileSync(fileToFormatWithConfig, fs.readFileSync(originalFileToFormatWithConfig));
         fs.writeFileSync(fileToFormatWithoutConfig, fs.readFileSync(originalFileToFormatWithoutConfig));
         fs.writeFileSync(fileToFormatWithConfig1, fs.readFileSync(originalFileToFormatWithConfig1));
-        closeActiveWindows().then(() => done(), () => done());
+        return closeActiveWindows();
     });
 
     test('Without Config', done => {
@@ -122,7 +118,7 @@ suite('Sorting', () => {
         test('With Changes and Config in Args', done => {
             let textEditor: vscode.TextEditor;
             let textDocument: vscode.TextDocument;
-            pythonSettings.sortImports.args = ['-sp', path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'sorting', 'withconfig')];
+            pythonSettings.sortImports.args = ['-sp', path.join(sortingPath, 'withconfig')];
             vscode.workspace.openTextDocument(fileToFormatWithConfig).then(document => {
                 textDocument = document;
                 return vscode.window.showTextDocument(textDocument);
@@ -136,11 +132,11 @@ suite('Sorting', () => {
                 const sorter = new PythonImportSortProvider();
                 return sorter.sortImports(extensionDir, textDocument);
             }).then(edits => {
-                const newValue = `from third_party import lib1${EOL}from third_party import lib2${EOL}from third_party import lib3${EOL}from third_party import lib4${EOL}from third_party import lib5${EOL}from third_party import lib6${EOL}from third_party import lib7${EOL}from third_party import lib8${EOL}from third_party import lib9${EOL}`;
+                const newValue = `from third_party import lib2${EOL}from third_party import lib3${EOL}from third_party import lib4${EOL}from third_party import lib5${EOL}from third_party import lib6${EOL}from third_party import lib7${EOL}from third_party import lib8${EOL}from third_party import lib9${EOL}`;
                 assert.equal(edits.length, 1, 'Incorrect number of edits');
                 assert.equal(edits[0].newText, newValue, 'New Value is not the same');
                 assert.equal(`${edits[0].range.start.line},${edits[0].range.start.character}`, '1,0', 'Start position is not the same');
-                assert.equal(`${edits[0].range.end.line},${edits[0].range.end.character}`, '2,0', 'End position is not the same');
+                assert.equal(`${edits[0].range.end.line},${edits[0].range.end.character}`, '4,0', 'End position is not the same');
             }).then(done, done);
         });
     }
@@ -148,7 +144,7 @@ suite('Sorting', () => {
         let textEditor: vscode.TextEditor;
         let textDocument: vscode.TextDocument;
         let originalContent = '';
-        pythonSettings.sortImports.args = ['-sp', path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'sorting', 'withconfig')];
+        pythonSettings.sortImports.args = ['-sp', path.join(sortingPath, 'withconfig')];
         vscode.workspace.openTextDocument(fileToFormatWithConfig).then(document => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);

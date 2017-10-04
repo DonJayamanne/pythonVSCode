@@ -51,6 +51,7 @@
     "onCommand:python.runtests",
     "onCommand:python.debugtests",
     "onCommand:python.setInterpreter",
+    "onCommand:python.setShebangInterpreter",
     "onCommand:python.viewTestUI",
     "onCommand:python.viewTestOutput",
     "onCommand:python.selectAndRunTestMethod",
@@ -117,7 +118,7 @@
       },
       {
         "command": "python.setInterpreter",
-        "title": "Select Workspace Interpreter",
+        "title": "Select Interpreter",
         "category": "Python"
       },
       {

@@ -1,28 +1,21 @@
-// Place this right on top
-import { initialize, setPythonExecutable } from './../initialize';
 import * as assert from 'assert';
-import * as vscode from 'vscode';
 import * as path from 'path';
 import * as configSettings from '../../client/common/configSettings';
 import * as unittest from '../../client/unittests/unittest/main';
+import { initialize } from './../initialize';
 import { TestsToRun } from '../../client/unittests/common/contracts';
 import { TestResultDisplay } from '../../client/unittests/display/main';
 import { MockOutputChannel } from './../mockClasses';
 
 const pythonSettings = configSettings.PythonSettings.getInstance();
-const disposable = setPythonExecutable(pythonSettings);
-
-const UNITTEST_TEST_FILES_PATH = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'standard');
-const UNITTEST_SINGLE_TEST_FILE_PATH = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'single');
-const unitTestTestFilesCwdPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'cwd', 'src');
+const testFilesPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles');
+const UNITTEST_TEST_FILES_PATH = path.join(testFilesPath, 'standard');
+const UNITTEST_SINGLE_TEST_FILE_PATH = path.join(testFilesPath, 'single');
+const unitTestTestFilesCwdPath = path.join(testFilesPath, 'cwd', 'src');
+const unitTestSpecificTestFilesPath = path.join(testFilesPath, 'specificTest');
 
 suite('Unit Tests (unittest)', () => {
-    suiteSetup(async () => {
-        await initialize();
-    });
-    suiteTeardown(() => {
-        disposable.dispose();
-    });
+    suiteSetup(() => initialize());
     setup(() => {
         outChannel = new MockOutputChannel('Python Test Log');
         testResultDisplay = new TestResultDisplay(outChannel);
@@ -38,7 +31,7 @@ suite('Unit Tests (unittest)', () => {
     const rootDirectory = UNITTEST_TEST_FILES_PATH;
     let testManager: unittest.TestManager;
     let testResultDisplay: TestResultDisplay;
-    let outChannel: vscode.OutputChannel;
+    let outChannel: MockOutputChannel;
 
     test('Discover Tests (single test file)', async () => {
         pythonSettings.unitTest.unittestArgs = [
@@ -82,8 +75,8 @@ suite('Unit Tests (unittest)', () => {
 
     test('Run Tests', async () => {
         pythonSettings.unitTest.unittestArgs = [
-            '-v', '-s','./tests',
-            '-p','test_unittest*.py'
+            '-v', '-s', './tests',
+            '-p', 'test_unittest*.py'
         ];
         createTestManager();
         const results = await testManager.runTest();
@@ -131,37 +124,43 @@ suite('Unit Tests (unittest)', () => {
     test('Run Specific Test File', async () => {
         pythonSettings.unitTest.unittestArgs = [
             '-s=./tests',
-            '-p=*test*.py'
+            '-p=test_unittest*.py'
         ];
-        createTestManager();
+        createTestManager(unitTestSpecificTestFilesPath);
         const tests = await testManager.discoverTests(true, true);
-        const testFile: TestsToRun = { testFile: [tests.testFiles[0]], testFolder: [], testFunction: [], testSuite: [] };
+
+        const testFileToTest = tests.testFiles.find(f => f.name === 'test_unittest_one.py');
+        const testFile: TestsToRun = { testFile: [testFileToTest], testFolder: [], testFunction: [], testSuite: [] };
         const results = await testManager.runTest(testFile);
+
         assert.equal(results.summary.errors, 0, 'Errors');
         assert.equal(results.summary.failures, 1, 'Failures');
-        assert.equal(results.summary.passed, 1, 'Passed');
+        assert.equal(results.summary.passed, 2, 'Passed');
         assert.equal(results.summary.skipped, 1, 'skipped');
     });
 
     test('Run Specific Test Suite', async () => {
         pythonSettings.unitTest.unittestArgs = [
             '-s=./tests',
-            '-p=*test*.py'
+            '-p=test_unittest*.py'
         ];
-        createTestManager();
+        createTestManager(unitTestSpecificTestFilesPath);
         const tests = await testManager.discoverTests(true, true);
-        const testSuite: TestsToRun = { testFile: [], testFolder: [], testFunction: [], testSuite: [tests.testSuits[0].testSuite] };
+
+        const testSuiteToTest = tests.testSuits.find(s => s.testSuite.name === 'Test_test_one_1')!.testSuite;
+        const testSuite: TestsToRun = { testFile: [], testFolder: [], testFunction: [], testSuite: [testSuiteToTest] };
         const results = await testManager.runTest(testSuite);
+
         assert.equal(results.summary.errors, 0, 'Errors');
         assert.equal(results.summary.failures, 1, 'Failures');
-        assert.equal(results.summary.passed, 1, 'Passed');
+        assert.equal(results.summary.passed, 2, 'Passed');
         assert.equal(results.summary.skipped, 1, 'skipped');
     });
 
     test('Run Specific Test Function', async () => {
         pythonSettings.unitTest.unittestArgs = [
             '-s=./tests',
-            '-p=*test*.py'
+            '-p=test_unittest*.py'
         ];
         createTestManager();
         const tests = await testManager.discoverTests(true, true);
@@ -176,7 +175,7 @@ suite('Unit Tests (unittest)', () => {
     test('Setting cwd should return tests', async () => {
         pythonSettings.unitTest.unittestArgs = [
             '-s=./tests',
-            '-p=test*.py'
+            '-p=test_*.py'
         ];
         createTestManager(unitTestTestFilesCwdPath);
 

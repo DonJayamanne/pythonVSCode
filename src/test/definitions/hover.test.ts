@@ -2,8 +2,6 @@
 // Please refer to their documentation on https://mochajs.org/ for help.
 
 
-// Place this right on top
-import { initialize, PYTHON_PATH, closeActiveWindows } from '../initialize';
 // The module 'assert' provides assertion methods from node
 import * as assert from 'assert';
 import { EOL } from 'os';
@@ -11,10 +9,9 @@ import { EOL } from 'os';
 // as well as import your extension to test it
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as settings from '../../client/common/configSettings';
+import { initialize, closeActiveWindows } from '../initialize';
 import { normalizeMarkedString } from '../textUtils';
 
-const pythonSettings = settings.PythonSettings.getInstance();
 const autoCompPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'autocomp');
 const hoverPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'hover');
 const fileOne = path.join(autoCompPath, 'one.py');
@@ -25,19 +22,9 @@ const fileHover = path.join(autoCompPath, 'hoverTest.py');
 const fileStringFormat = path.join(hoverPath, 'stringFormat.py');
 
 suite('Hover Definition', () => {
-    suiteSetup(done => {
-        initialize().then(() => {
-            pythonSettings.pythonPath = PYTHON_PATH;
-            done();
-        }, done);
-    });
-
-    suiteTeardown(done => {
-        closeActiveWindows().then(done, done);
-    });
-    teardown(done => {
-        closeActiveWindows().then(done, done);
-    });
+    suiteSetup(() => initialize());
+    suiteTeardown(() => closeActiveWindows());
+    teardown(() => closeActiveWindows());
 
     test('Method', done => {
         let textEditor: vscode.TextEditor;
