@@ -17,8 +17,8 @@ suite("Shebang detection", () => {
         await initialize();
     });
 
-    suiteTeardown(() => {
-        vscode.workspace.getConfiguration("python").update("pythonPath", origPythonPath);
+    suiteTeardown(async () => {
+        await vscode.workspace.getConfiguration("python").update("pythonPath", origPythonPath);
     });
 
     teardown(() => closeActiveWindows());
@@ -26,54 +26,44 @@ suite("Shebang detection", () => {
         settings = vscode.workspace.getConfiguration("python");
     });
 
-    test("Shebang available, CodeLens showing", done => {
-        settings.update("pythonPath", "python");
+    test("Shebang available, CodeLens showing", async () => {
+        await settings.update("pythonPath", "python");
+        const editor = await openFile(fileShebang);
+        const codeLenses = await setupCodeLens(editor);
 
-        openFile(fileShebang).then(editor => {
-            let document = editor.document;
-            let codeLensProvider = new ShebangCodeLensProvider();
-            
-            codeLensProvider.provideCodeLenses(document, null).then(lenses => {
-                assert.equal(lenses.length, 1, "No CodeLens available");
-                let codeLens = lenses[0];
+        assert.equal(codeLenses.length, 1, "No CodeLens available");
+        let codeLens = codeLenses[0];
+        assert(codeLens.range.isSingleLine, 'Invalid CodeLens Range');
+        assert.equal(codeLens.command.command, 'python.setShebangInterpreter');
 
-                assert(codeLens.range.isSingleLine, 'Invalid CodeLens Range');
-                assert.equal(codeLens.command.command, 'python.setShebangInterpreter');
-            });
-        }).then(done, done);
     });
 
-    test("Shebang available, CodeLens hiding", done => {
-        settings.update("pythonPath", "/usr/bin/test");
+    test("Shebang available, CodeLens hiding", async () => {
+        await settings.update("pythonPath", "/usr/bin/test");
+        const editor = await openFile(fileShebang);
+        const codeLenses = await setupCodeLens(editor);
+        assert(!codeLenses, "CodeLens available although interpreters are equal");
 
-        openFile(fileShebang).then(editor => {
-            let document = editor.document;
-            let codeLensProvider = new ShebangCodeLensProvider();
-            
-            codeLensProvider.provideCodeLenses(document, null).then(lenses => {
-                assert(!lenses, "CodeLens available although interpreters are equal");
-            });
-        }).then(done, done);
     });
 
-    test("Shebang missing, CodeLens hiding", done => {
-        openFile(filePlain).then(editor => {
-            let document = editor.document;
-            let codeLensProvider = new ShebangCodeLensProvider();
+    test("Shebang missing, CodeLens hiding", async () => {
+        const editor = await openFile(filePlain);
+        const codeLenses = await setupCodeLens(editor);
+        assert(!codeLenses, "CodeLens available although no shebang");
 
-            codeLensProvider.provideCodeLenses(document, null).then(lenses => {
-                assert(!lenses, "CodeLens available although no shebang");
-            });
-        }).then(done, done);
     });
 
-    function openFile(fileName) {
-        return vscode.workspace.openTextDocument(fileName).then(document => {
-            const textDocument = document;
-            return vscode.window.showTextDocument(textDocument);
-        }).then(editor => {
-            assert(vscode.window.activeTextEditor, 'No active editor');
-            return editor;
-        });
+    async function openFile(fileName: string) {
+        const document = await vscode.workspace.openTextDocument(fileName);
+        const editor = await vscode.window.showTextDocument(document);
+        assert(vscode.window.activeTextEditor, 'No active editor');
+        return editor;
+    }
+
+    async function setupCodeLens(editor: vscode.TextEditor) {
+        const document = editor.document;
+        const codeLensProvider = new ShebangCodeLensProvider();
+        const codeLenses = await codeLensProvider.provideCodeLenses(document, null);
+        return codeLenses;
     }
 });
