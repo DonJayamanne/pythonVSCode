@@ -1518,9 +1518,6 @@
     "lint": "tslint src/**/*.ts -t verbose",
     "validate": "npm ls"
   },
-  "xpre-commit": [
-    "precommit"
-  ],
   "dependencies": {
     "anser": "^1.1.0",
     "copy-paste": "^1.3.0",
@@ -1569,9 +1566,9 @@
     "event-stream": "^3.3.4",
     "gulp": "^3.9.1",
     "gulp-filter": "^5.0.1",
+    "husky": "^0.14.3",
     "ignore-loader": "^0.1.1",
     "mocha": "^2.3.3",
-    "precommit-hook": "^3.0.0",
     "retyped-diff-match-patch-tsd-ambient": "^1.0.0-0",
     "sinon": "^2.3.6",
     "ts-loader": "^0.8.2",
