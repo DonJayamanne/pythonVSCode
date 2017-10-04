@@ -17,3 +17,4 @@ requirements.txt
 vsc-extension-quickstart.md
 .travis.yml
 webpack.config.js
+.vscode-test/**
