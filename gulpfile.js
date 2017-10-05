@@ -11,6 +11,7 @@ const es = require('event-stream');
 const tsfmt = require('typescript-formatter');
 const tslint = require('tslint');
 const relative = require('relative');
+const ts = require('gulp-typescript');
 
 /**
  * Hygiene works by creating cascading subsets of all our files and
@@ -155,6 +156,35 @@ const hygiene = exports.hygiene = (some, options) => {
         this.emit('data', file);
     });
 
+    const tsFiles = [];
+    const tscFilesTracker = es.through(function (file) {
+        tsFiles.push(file.path.replace(/\\/g, '/'));
+        tsFiles.push(file.path);
+        this.emit('data', file);
+    });
+
+    const tsc = function () {
+        function customReporter() {
+            return {
+                error: function (error) {
+                    const fullFilename = error.fullFilename || '';
+                    const relativeFilename = error.relativeFilename || '';
+                    if (tsFiles.findIndex(file => fullFilename === file || relativeFilename === file) === -1) {
+                        return;
+                    }
+                    errorCount += 1;
+                    console.error(error.message);
+                },
+                finish: function () {
+                    // forget the summary
+                }
+            };
+        }
+        const tsProject = ts.createProject('tsconfig.json', { strict: true });
+        const reporter = customReporter();
+        return tsProject(reporter);
+    }
+
     const result = gulp.src(some || all, {
         base: '.'
     })
@@ -167,7 +197,9 @@ const hygiene = exports.hygiene = (some, options) => {
     const typescript = result
         .pipe(filter(tslintFilter))
         .pipe(formatting)
-        .pipe(tsl);
+        .pipe(tsl)
+        .pipe(tscFilesTracker)
+        .pipe(tsc());
 
     return typescript
         .pipe(es.through(null, function () {

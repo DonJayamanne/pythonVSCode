@@ -5,7 +5,6 @@
 // ${fileDirname}: the current opened file's dirname
 // ${fileExtname}: the current opened file's extension
 // ${cwd}: the current working directory of the spawned process
-
 // A task runner that calls a custom npm script that compiles the extension.
 {
     "version": "2.0.0",
@@ -15,7 +14,8 @@
         "focus": false,
         "panel": "shared"
     },
-    "tasks": [{
+    "tasks": [
+        {
             "label": "compile",
             "type": "npm",
             "script": "compile",
@@ -46,10 +46,13 @@
         {
             "type": "gulp",
             "task": "hygiene",
-            "problemMatcher": {
-                "base": "$tslint5",
-                "fileLocation": "relative"
-            }
+            "problemMatcher": [
+                "$tsc",
+                {
+                    "base": "$tslint5",
+                    "fileLocation": "relative"
+                }
+            ]
         }
     ]
 }
