@@ -80,7 +80,6 @@ function reportFailures(failures) {
 
         // Output in format similar to tslint for the linter to pickup
         console.error(`ERROR: (${failure.ruleName}) ${name}[${line + 1}, ${character + 1}]: ${failure.failure}`);
-        // console.error(`${name}:${line + 1}:${character + 1}:${failure.failure}`);
     });
 }
 
@@ -103,10 +102,9 @@ const hygiene = exports.hygiene = (some, options) => {
             .forEach((line, i) => {
                 if (/^\s*$/.test(line)) {
                     // empty or whitespace lines are OK
-                } else if (/^[\t]*[^\s]/.test(line)) {
-                    console.error(file.relative + '(' + (i + 1) + ',1): Bad whitespace indentation');
-                    errorCount++;
-                } else if (/^[\t]* \*/.test(line)) {
+                } else if (/^(\s\s\s\s)+.*/.test(line)) {
+                    // good indent
+                } else if (/^[\t]+.*/.test(line)) {
                     console.error(file.relative + '(' + (i + 1) + ',1): Bad whitespace indentation');
                     errorCount++;
                 }
@@ -122,8 +120,6 @@ const hygiene = exports.hygiene = (some, options) => {
             editorconfig: true
             // verbose: true
         }).then(result => {
-            console.error('Has Error');
-            console.error(result.error);
             if (result.error) {
                 console.error(result.message);
                 errorCount++;
@@ -158,19 +154,17 @@ const hygiene = exports.hygiene = (some, options) => {
     });
 
     const result = gulp.src(some || all, {
-            base: '.'
-        })
+        base: '.'
+    })
         .pipe(filter(f => !f.stat.isDirectory()))
         .pipe(filter(eolFilter))
-        .pipe(options.skipEOL ? es.through() : eol);
-    // .pipe(filter(indentationFilter))
-    // .pipe(indentation);
-    // .pipe(filter(copyrightFilter))
-    // .pipe(copyrights);
+        .pipe(options.skipEOL ? es.through() : eol)
+        .pipe(filter(indentationFilter))
+        .pipe(indentation);
 
     const typescript = result
         .pipe(filter(tslintFilter))
-        // .pipe(formatting)
+        .pipe(formatting)
         .pipe(tsl);
 
     return typescript

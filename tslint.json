@@ -23,6 +23,7 @@
         "no-reserved-keywords": false,
         "newline-before-return": false,
         "export-name": false,
-        "align": false
+        "align": false,
+        "linebreak-style": false
     }
 }
