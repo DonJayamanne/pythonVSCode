@@ -1511,7 +1511,8 @@
   },
   "scripts": {
     "vscode:prepublish": "tsc -p ./ && webpack",
-    "compile": "webpack && tsc -watch -p ./",
+    "compile": "tsc -watch -p ./",
+    "compileAll": "webpack && tsc -watch -p ./",
     "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "node ./node_modules/vscode/bin/test",
     "precommit": "node gulpfile.js",
