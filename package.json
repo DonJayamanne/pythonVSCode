@@ -45,6 +45,7 @@
   ],
   "activationEvents": [
     "onLanguage:python",
+    "onDebug:python",
     "onCommand:python.python-debug.startSession",
     "onCommand:python.execInTerminal",
     "onCommand:python.sortImports",
