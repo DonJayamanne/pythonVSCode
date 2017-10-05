@@ -1515,8 +1515,7 @@
     "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "node ./node_modules/vscode/bin/test",
     "precommit": "node gulpfile.js",
-    "lint": "tslint src/**/*.ts -t verbose",
-    "validate": "npm ls"
+    "lint": "tslint src/**/*.ts -t verbose"
   },
   "dependencies": {
     "anser": "^1.1.0",
