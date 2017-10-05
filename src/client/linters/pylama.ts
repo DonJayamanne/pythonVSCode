@@ -10,8 +10,8 @@ const REGEX = '(?<file>.py):(?<line>\\d+):(?<column>\\d+): \\[(?<type>\\w+)\\] (
 export class Linter extends baseLinter.BaseLinter {
     _columnOffset = 1;
 
-    constructor(outputChannel: OutputChannel, workspaceRootPath?: string) {
-        super('pylama', Product.pylama, outputChannel, workspaceRootPath);
+    constructor(outputChannel: OutputChannel) {
+        super('pylama', Product.pylama, outputChannel);
     }
 
     public isEnabled(): Boolean {
@@ -31,7 +31,7 @@ export class Linter extends baseLinter.BaseLinter {
         }
 
         return new Promise<baseLinter.ILintMessage[]>(resolve => {
-            this.run(pylamaPath, pylamaArgs.concat(['--format=parsable', document.uri.fsPath]), document, this.workspaceRootPath, cancellation, REGEX).then(messages => {
+            this.run(pylamaPath, pylamaArgs.concat(['--format=parsable', document.uri.fsPath]), document, this.getWorkspaceRootPath(document), cancellation, REGEX).then(messages => {
                 // All messages in pylama are treated as warnings for now
                 messages.forEach(msg => {
                     msg.severity = baseLinter.LintMessageSeverity.Information;

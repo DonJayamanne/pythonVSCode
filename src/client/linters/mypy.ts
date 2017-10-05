@@ -8,8 +8,8 @@ import { TextDocument, CancellationToken } from 'vscode';
 const REGEX = '(?<file>.py):(?<line>\\d+): (?<type>\\w+): (?<message>.*)\\r?(\\n|$)';
 
 export class Linter extends baseLinter.BaseLinter {
-    constructor(outputChannel: OutputChannel, workspaceRootPath?: string) {
-        super('mypy', Product.mypy, outputChannel, workspaceRootPath);
+    constructor(outputChannel: OutputChannel) {
+        super('mypy', Product.mypy, outputChannel);
     }
 
     public isEnabled(): Boolean {
@@ -29,7 +29,7 @@ export class Linter extends baseLinter.BaseLinter {
         }
 
         return new Promise<baseLinter.ILintMessage[]>((resolve, reject) => {
-            this.run(mypyPath, mypyArgs.concat([document.uri.fsPath]), document, this.workspaceRootPath, cancellation, REGEX).then(messages => {
+            this.run(mypyPath, mypyArgs.concat([document.uri.fsPath]), document, this.getWorkspaceRootPath(document), cancellation, REGEX).then(messages => {
                 messages.forEach(msg => {
                     msg.severity = this.parseMessagesSeverity(msg.type, this.pythonSettings.linting.mypyCategorySeverity);
                     msg.code = msg.type;

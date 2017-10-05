@@ -135,7 +135,9 @@ export class LintProvider extends vscode.Disposable {
 
     private onLintDocument(document: vscode.TextDocument): void {
         // Check if we need to lint this document
-        const relativeFileName = typeof vscode.workspace.rootPath === 'string' ? path.relative(vscode.workspace.rootPath, document.fileName) : document.fileName;
+        const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri);
+        const workspaceRootPath = (workspaceFolder && typeof workspaceFolder.uri.fsPath === 'string') ? workspaceFolder.uri.fsPath : undefined;
+        const relativeFileName = typeof workspaceRootPath === 'string' ? path.relative(workspaceRootPath, document.fileName) : document.fileName;
         if (this.ignoreMinmatches.some(matcher => matcher.match(document.fileName) || matcher.match(relativeFileName))) {
             return;
         }
@@ -154,7 +156,7 @@ export class LintProvider extends vscode.Disposable {
         this.pendingLintings.set(document.uri.fsPath, cancelToken);
         this.outputChannel.clear();
         let promises: Promise<linter.ILintMessage[]>[] = this.linters.map(linter => {
-            if (!vscode.workspace.rootPath && !this.settings.linting.enabledWithoutWorkspace) {
+            if (typeof workspaceRootPath !== 'string' && !this.settings.linting.enabledWithoutWorkspace) {
                 return Promise.resolve([]);
             }
             if (!linter.isEnabled()) {

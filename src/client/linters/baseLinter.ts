@@ -50,15 +50,15 @@ export function matchNamedRegEx(data, regex): IRegexGroup {
 export abstract class BaseLinter {
     public Id: string;
     protected pythonSettings: settings.IPythonSettings;
-    private _workspaceRootPath: string;
     protected _columnOffset = 0;
     private _errorHandler: ErrorHandler;
-    protected get workspaceRootPath(): string {
-        return typeof this._workspaceRootPath === 'string' ? this._workspaceRootPath : vscode.workspace.rootPath;
+    protected getWorkspaceRootPath(document: vscode.TextDocument): string {
+        const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri);
+        const workspaceRootPath = (workspaceFolder && typeof workspaceFolder.uri.fsPath === 'string') ? workspaceFolder.uri.fsPath : undefined;
+        return typeof workspaceRootPath === 'string' ? workspaceRootPath : __dirname;
     }
-    constructor(id: string, public product: Product, protected outputChannel: OutputChannel, workspaceRootPath: string) {
+    constructor(id: string, public product: Product, protected outputChannel: OutputChannel) {
         this.Id = id;
-        this._workspaceRootPath = workspaceRootPath;
         this.pythonSettings = settings.PythonSettings.getInstance();
         this._errorHandler = new ErrorHandler(this.Id, product, new Installer(), this.outputChannel);
     }

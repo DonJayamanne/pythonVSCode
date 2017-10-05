@@ -8,8 +8,8 @@ import { TextDocument, CancellationToken } from 'vscode';
 export class Linter extends baseLinter.BaseLinter {
     _columnOffset = 1;
     
-    constructor(outputChannel: OutputChannel, workspaceRootPath?: string) {
-        super('pep8', Product.pep8, outputChannel, workspaceRootPath);
+    constructor(outputChannel: OutputChannel) {
+        super('pep8', Product.pep8, outputChannel);
     }
 
     public isEnabled(): Boolean {
@@ -29,7 +29,7 @@ export class Linter extends baseLinter.BaseLinter {
         }
 
         return new Promise<baseLinter.ILintMessage[]>(resolve => {
-            this.run(pep8Path, pep8Args.concat(['--format=%(row)d,%(col)d,%(code).1s,%(code)s:%(text)s', document.uri.fsPath]), document, this.workspaceRootPath, cancellation).then(messages => {
+            this.run(pep8Path, pep8Args.concat(['--format=%(row)d,%(col)d,%(code).1s,%(code)s:%(text)s', document.uri.fsPath]), document, this.getWorkspaceRootPath(document), cancellation).then(messages => {
                 messages.forEach(msg => {
                     msg.severity = this.parseMessagesSeverity(msg.type, this.pythonSettings.linting.pep8CategorySeverity);
                 });

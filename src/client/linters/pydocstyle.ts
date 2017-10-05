@@ -9,8 +9,8 @@ import { Product, ProductExecutableAndArgs } from '../common/installer';
 import { TextDocument, CancellationToken } from 'vscode';
 
 export class Linter extends baseLinter.BaseLinter {
-    constructor(outputChannel: OutputChannel, workspaceRootPath?: string) {
-        super('pydocstyle', Product.pydocstyle, outputChannel, workspaceRootPath);
+    constructor(outputChannel: OutputChannel) {
+        super('pydocstyle', Product.pydocstyle, outputChannel);
     }
 
     public isEnabled(): Boolean {
@@ -45,7 +45,7 @@ export class Linter extends baseLinter.BaseLinter {
         let outputChannel = this.outputChannel;
 
         return new Promise<ILintMessage[]>((resolve, reject) => {
-            execPythonFile(commandLine, args, this.workspaceRootPath, true, null, cancellation).then(data => {
+            execPythonFile(commandLine, args, this.getWorkspaceRootPath(document), true, null, cancellation).then(data => {
                 outputChannel.append('#'.repeat(10) + 'Linting Output - ' + this.Id + '#'.repeat(10) + '\n');
                 outputChannel.append(data);
                 let outputLines = data.split(/\r?\n/g);
