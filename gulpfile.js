@@ -10,6 +10,7 @@ const filter = require('gulp-filter');
 const es = require('event-stream');
 const tsfmt = require('typescript-formatter');
 const tslint = require('tslint');
+const relative = require('relative');
 
 /**
  * Hygiene works by creating cascading subsets of all our files and
@@ -79,7 +80,7 @@ function reportFailures(failures) {
         const character = position.lineAndCharacter ? position.lineAndCharacter.character : position.character;
 
         // Output in format similar to tslint for the linter to pickup
-        console.error(`ERROR: (${failure.ruleName}) ${name}[${line + 1}, ${character + 1}]: ${failure.failure}`);
+        console.error(`ERROR: (${failure.ruleName}) ${relative(__dirname, name)}[${line + 1}, ${character + 1}]: ${failure.failure}`);
     });
 }
 
@@ -137,7 +138,8 @@ const hygiene = exports.hygiene = (some, options) => {
             formatter: 'json'
         };
         const contents = file.contents.toString('utf8');
-        const linter = new tslint.Linter(options);
+        const program = require('tslint').Linter.createProgram("./tsconfig.json");
+        const linter = new tslint.Linter(options, program);
         linter.lint(file.relative, contents, configuration.results);
         const result = linter.getResult();
         if (result.failureCount > 0 || result.errorCount > 0) {
