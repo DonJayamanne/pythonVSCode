@@ -51,7 +51,7 @@ export class ShebangCodeLensProvider implements vscode.CodeLensProvider {
         if (pythonPath.indexOf('/env ') >= 0 && !IS_WINDOWS) {
             // In case we have pythonPath as '/usr/bin/env python'            
             return new Promise<string>(resolve => {
-                const command = child_process.exec(`${pythonPath} -c 'import sys;print(sys.executable)'`]);
+                const command = child_process.exec(`${pythonPath} -c 'import sys;print(sys.executable)'`);
                 let result = '';
                 command.stdout.on('data', (data) => {
                     result += data.toString();
