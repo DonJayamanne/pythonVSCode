@@ -148,7 +148,10 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
     }
     public static getInstance(resource?: Uri): PythonSettings {
         const workspaceFolder = resource ? vscode.workspace.getWorkspaceFolder(resource) : undefined;
-        const workspaceFolderUri = workspaceFolder ? workspaceFolder.uri : undefined;
+        let workspaceFolderUri: Uri = workspaceFolder ? workspaceFolder.uri : undefined;
+        if (!workspaceFolderUri && Array.isArray(vscode.workspace.workspaceFolders) && vscode.workspace.workspaceFolders.length > 0) {
+            workspaceFolderUri = vscode.workspace.workspaceFolders[0].uri;
+        }
         const workspaceFolderKey = workspaceFolderUri ? workspaceFolderUri.fsPath : '';
         if (!PythonSettings.pythonSettings.has(workspaceFolderKey)) {
             const settings = new PythonSettings(workspaceFolderUri);

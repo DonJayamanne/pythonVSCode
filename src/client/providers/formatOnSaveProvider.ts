@@ -7,15 +7,13 @@ import { BaseFormatter } from "./../formatters/baseFormatter";
 import { YapfFormatter } from "./../formatters/yapfFormatter";
 import { AutoPep8Formatter } from "./../formatters/autoPep8Formatter";
 import { DummyFormatter } from "./../formatters/dummyFormatter";
-import * as settings from "./../common/configSettings";
+import { PythonSettings } from "./../common/configSettings";
 
-export function activateFormatOnSaveProvider(languageFilter: vscode.DocumentFilter, settings: settings.IPythonSettings, outputChannel: vscode.OutputChannel): vscode.Disposable {
-    let formatters = new Map<string, BaseFormatter>();
-    let pythonSettings = settings;
-
-    let yapfFormatter = new YapfFormatter(outputChannel, settings);
-    let autoPep8 = new AutoPep8Formatter(outputChannel, settings);
-    const dummyFormatter = new DummyFormatter(outputChannel, settings);
+export function activateFormatOnSaveProvider(languageFilter: vscode.DocumentFilter, outputChannel: vscode.OutputChannel): vscode.Disposable {
+    const formatters = new Map<string, BaseFormatter>();
+    const yapfFormatter = new YapfFormatter(outputChannel);
+    const autoPep8 = new AutoPep8Formatter(outputChannel);
+    const dummyFormatter = new DummyFormatter(outputChannel);
 
     formatters.set(yapfFormatter.Id, yapfFormatter);
     formatters.set(autoPep8.Id, autoPep8);
@@ -26,11 +24,12 @@ export function activateFormatOnSaveProvider(languageFilter: vscode.DocumentFilt
         if (document.languageId !== languageFilter.language) {
             return;
         }
-        let textEditor = vscode.window.activeTextEditor;
-        let editorConfig = vscode.workspace.getConfiguration('editor');
+        const textEditor = vscode.window.activeTextEditor;
+        const editorConfig = vscode.workspace.getConfiguration('editor');
         const globalEditorFormatOnSave = editorConfig && editorConfig.has('formatOnSave') && editorConfig.get('formatOnSave') === true;
-        if ((pythonSettings.formatting.formatOnSave || globalEditorFormatOnSave) && textEditor.document === document) {
-            let formatter = formatters.get(pythonSettings.formatting.provider);
+        const settings = PythonSettings.getInstance(document.uri);
+        if ((settings.formatting.formatOnSave || globalEditorFormatOnSave) && textEditor.document === document) {
+            const formatter = formatters.get(settings.formatting.provider);
             e.waitUntil(formatter.formatDocument(document, null, null));
         }
     }, null, null);

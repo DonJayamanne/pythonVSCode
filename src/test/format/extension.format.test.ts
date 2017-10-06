@@ -78,11 +78,11 @@ suite('Formatting', () => {
         });
     }
     test('AutoPep8', done => {
-        testFormatting(new AutoPep8Formatter(ch, pythonSettings), formattedAutoPep8, autoPep8FileToFormat).then(done, done);
+        testFormatting(new AutoPep8Formatter(ch), formattedAutoPep8, autoPep8FileToFormat).then(done, done);
     });
 
     test('Yapf', done => {
-        testFormatting(new YapfFormatter(ch, pythonSettings), formattedYapf, yapfFileToFormat).then(done, done);
+        testFormatting(new YapfFormatter(ch), formattedYapf, yapfFileToFormat).then(done, done);
     });
 
     function testAutoFormatting(formatter: string, formattedContents: string, fileToFormat: string): PromiseLike<void> {
