@@ -22,6 +22,7 @@ const pythonSettings = settings.PythonSettings.getInstance();
 
 const ch = vscode.window.createOutputChannel('Tests');
 const pythoFilesPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'formatting');
+const workspaceRootPath = path.join(__dirname, '..', '..', '..', 'src', 'test');
 const originalUnformattedFile = path.join(pythoFilesPath, 'fileToFormat.py');
 
 const autoPep8FileToFormat = path.join(pythoFilesPath, 'autoPep8FileToFormat.py');
@@ -39,9 +40,8 @@ suite('Formatting', () => {
             fs.copySync(originalUnformattedFile, file, { overwrite: true });
         });
         fs.ensureDirSync(path.dirname(autoPep8FileToFormat));
-        const workspaceRoot = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(originalUnformattedFile)).uri.fsPath;
-        const yapf = execPythonFile('yapf', [originalUnformattedFile], workspaceRoot, false);
-        const autoPep8 = execPythonFile('autopep8', [originalUnformattedFile], workspaceRoot, false);
+        const yapf = execPythonFile('yapf', [originalUnformattedFile], workspaceRootPath, false);
+        const autoPep8 = execPythonFile('autopep8', [originalUnformattedFile], workspaceRootPath, false);
         await Promise.all<string>([yapf, autoPep8]).then(formattedResults => {
             formattedYapf = formattedResults[0];
             formattedAutoPep8 = formattedResults[1];
