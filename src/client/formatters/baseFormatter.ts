@@ -2,15 +2,16 @@
 
 import * as vscode from 'vscode';
 import * as fs from 'fs';
-import { execPythonFile } from './../common/utils';
+import * as path from 'path';
 import * as settings from './../common/configSettings';
+import { execPythonFile } from './../common/utils';
 import { getTextEditsFromPatch, getTempFileWithDocumentContents } from './../common/editor';
 import { isNotInstalledError } from '../common/helpers';
 import { Installer, Product } from '../common/installer';
 
 export abstract class BaseFormatter {
     private installer: Installer;
-    constructor(public Id: string, private product: Product, protected outputChannel: vscode.OutputChannel, protected pythonSettings: settings.IPythonSettings, protected workspaceRootPath?: string) {
+    constructor(public Id: string, private product: Product, protected outputChannel: vscode.OutputChannel, protected pythonSettings: settings.IPythonSettings) {
         this.installer = new Installer();
     }
 
@@ -18,7 +19,11 @@ export abstract class BaseFormatter {
 
     protected provideDocumentFormattingEdits(document: vscode.TextDocument, options: vscode.FormattingOptions, token: vscode.CancellationToken, command: string, args: string[], cwd: string = null): Thenable<vscode.TextEdit[]> {
         this.outputChannel.clear();
-        cwd = typeof cwd === 'string' && cwd.length > 0 ? cwd : (this.workspaceRootPath ? this.workspaceRootPath : vscode.workspace.rootPath);
+        if (typeof cwd !== 'string' || cwd.length === 0) {
+            const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri);
+            const workspaceRootPath = (workspaceFolder && typeof workspaceFolder.uri.fsPath === 'string') ? workspaceFolder.uri.fsPath : path.dirname(document.uri.fsPath);
+            cwd = workspaceRootPath;
+        }
 
         // autopep8 and yapf have the ability to read from the process input stream and return the formatted code out of the output stream
         // However they don't support returning the diff of the formatted text when reading data from the input stream

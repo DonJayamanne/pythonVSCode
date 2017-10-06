@@ -7,8 +7,8 @@ import { Product } from '../common/installer';
 import * as path from 'path';
 
 export class YapfFormatter extends BaseFormatter {
-    constructor(outputChannel: vscode.OutputChannel, pythonSettings: settings.IPythonSettings, workspaceRootPath?: string) {
-        super('yapf', Product.yapf, outputChannel, pythonSettings, workspaceRootPath);
+    constructor(outputChannel: vscode.OutputChannel, pythonSettings: settings.IPythonSettings) {
+        super('yapf', Product.yapf, outputChannel, pythonSettings);
     }
 
     public formatDocument(document: vscode.TextDocument, options: vscode.FormattingOptions, token: vscode.CancellationToken, range?: vscode.Range): Thenable<vscode.TextEdit[]> {

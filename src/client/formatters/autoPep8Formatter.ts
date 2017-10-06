@@ -6,8 +6,8 @@ import * as settings from '../common/configSettings';
 import { Product } from '../common/installer';
 
 export class AutoPep8Formatter extends BaseFormatter {
-    constructor(outputChannel: vscode.OutputChannel, pythonSettings: settings.IPythonSettings, workspaceRootPath?: string) {
-        super('autopep8', Product.autopep8, outputChannel, pythonSettings, workspaceRootPath);
+    constructor(outputChannel: vscode.OutputChannel, pythonSettings: settings.IPythonSettings) {
+        super('autopep8', Product.autopep8, outputChannel, pythonSettings);
     }
 
     public formatDocument(document: vscode.TextDocument, options: vscode.FormattingOptions, token: vscode.CancellationToken, range?: vscode.Range): Thenable<vscode.TextEdit[]> {

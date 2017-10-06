@@ -12,6 +12,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as settings from '../../client/common/configSettings';
 import * as fs from 'fs-extra';
+import { EOL } from 'os';
 import { AutoPep8Formatter } from '../../client/formatters/autoPep8Formatter';
 import { initialize, IS_TRAVIS, closeActiveWindows } from '../initialize';
 import { YapfFormatter } from '../../client/formatters/yapfFormatter';
@@ -38,8 +39,9 @@ suite('Formatting', () => {
             fs.copySync(originalUnformattedFile, file, { overwrite: true });
         });
         fs.ensureDirSync(path.dirname(autoPep8FileToFormat));
-        const yapf = execPythonFile('yapf', [originalUnformattedFile], pythoFilesPath, false);
-        const autoPep8 = execPythonFile('autopep8', [originalUnformattedFile], pythoFilesPath, false);
+        const workspaceRoot = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(originalUnformattedFile)).uri.fsPath;
+        const yapf = execPythonFile('yapf', [originalUnformattedFile], workspaceRoot, false);
+        const autoPep8 = execPythonFile('autopep8', [originalUnformattedFile], workspaceRoot, false);
         await Promise.all<string>([yapf, autoPep8]).then(formattedResults => {
             formattedYapf = formattedResults[0];
             formattedAutoPep8 = formattedResults[1];
@@ -76,11 +78,11 @@ suite('Formatting', () => {
         });
     }
     test('AutoPep8', done => {
-        testFormatting(new AutoPep8Formatter(ch, pythonSettings, pythoFilesPath), formattedAutoPep8, autoPep8FileToFormat).then(done, done);
+        testFormatting(new AutoPep8Formatter(ch, pythonSettings), formattedAutoPep8, autoPep8FileToFormat).then(done, done);
     });
 
     test('Yapf', done => {
-        testFormatting(new YapfFormatter(ch, pythonSettings, pythoFilesPath), formattedYapf, yapfFileToFormat).then(done, done);
+        testFormatting(new YapfFormatter(ch, pythonSettings), formattedYapf, yapfFileToFormat).then(done, done);
     });
 
     function testAutoFormatting(formatter: string, formattedContents: string, fileToFormat: string): PromiseLike<void> {
@@ -104,17 +106,18 @@ suite('Formatting', () => {
                 }, 5000);
             });
         }).then(() => {
-            assert.equal(textDocument.getText(), formattedContents, 'Formatted contents are not the same');
+            const text = textDocument.getText();
+            assert.equal(text === formattedContents, true, 'Formatted contents are not the same');
         });
     }
     test('AutoPep8 autoformat on save', done => {
-        testAutoFormatting('autopep8', '#\n' + formattedAutoPep8, autoPep8FileToAutoFormat).then(done, done);
+        testAutoFormatting('autopep8', `#${EOL}` + formattedAutoPep8, autoPep8FileToAutoFormat).then(done, done);
     });
 
     // For some reason doesn't ever work on travis
     if (!IS_TRAVIS) {
         test('Yapf autoformat on save', done => {
-            testAutoFormatting('yapf', '#\n' + formattedYapf, yapfFileToAutoFormat).then(done, done);
+            testAutoFormatting('yapf', `#${EOL}` + formattedYapf, yapfFileToAutoFormat).then(done, done);
         });
     }
 });

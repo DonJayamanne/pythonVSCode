@@ -6,8 +6,8 @@ import * as settings from './../common/configSettings';
 import { Product } from '../common/installer';
 
 export class DummyFormatter extends BaseFormatter {
-    constructor(outputChannel: vscode.OutputChannel, pythonSettings: settings.IPythonSettings, workspaceRootPath?: string) {
-        super('none', Product.yapf, outputChannel, pythonSettings, workspaceRootPath);
+    constructor(outputChannel: vscode.OutputChannel, pythonSettings: settings.IPythonSettings) {
+        super('none', Product.yapf, outputChannel, pythonSettings);
     }
 
     public formatDocument(document: vscode.TextDocument, options: vscode.FormattingOptions, token: vscode.CancellationToken, range?: vscode.Range): Thenable<vscode.TextEdit[]> {
