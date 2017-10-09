@@ -28,11 +28,11 @@ import { WorkspaceSymbols } from './workspaceSymbols/main';
 import { BlockFormatProviders } from './typeFormatters/blockFormatProvider';
 import * as os from 'os';
 import * as fs from 'fs';
-import { activateSingleFileDebug } from './singleFileDebug';
 import { getPathFromPythonCommand } from './common/utils';
 import { JupyterProvider } from './jupyter/provider';
 import { activateGoToObjectDefinitionProvider } from './providers/objectDefinitionProvider';
 import { InterpreterManager } from './interpreter';
+import { SimpleConfigurationProvider } from './debugger';
 
 const PYTHON: vscode.DocumentFilter = { language: 'python' };
 let unitTestOutChannel: vscode.OutputChannel;
@@ -152,7 +152,7 @@ export async function activate(context: vscode.ExtensionContext) {
     const hepProvider = new HelpProvider();
     context.subscriptions.push(hepProvider);
 
-    context.subscriptions.push(activateSingleFileDebug());
+    context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('python', new SimpleConfigurationProvider()));
 }
 
 class PythonExt implements vscode.Disposable {
