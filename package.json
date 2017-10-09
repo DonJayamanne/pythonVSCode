@@ -44,6 +44,7 @@
     "Other"
   ],
   "activationEvents": [
+    "onDebug",
     "onLanguage:python",
     "onCommand:python.python-debug.startSession",
     "onCommand:python.execInTerminal",
