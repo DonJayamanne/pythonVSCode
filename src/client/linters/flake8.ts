@@ -12,10 +12,7 @@ export class Linter extends baseLinter.BaseLinter {
         super('flake8', Product.flake8, outputChannel);
     }
 
-    public isEnabled(): Boolean {
-        return this.pythonSettings.linting.flake8Enabled;
-    }
-    public runLinter(document: TextDocument, cancellation: CancellationToken): Promise<baseLinter.ILintMessage[]> {
+    protected runLinter(document: TextDocument, cancellation: CancellationToken): Promise<baseLinter.ILintMessage[]> {
         if (!this.pythonSettings.linting.flake8Enabled) {
             return Promise.resolve([]);
         }

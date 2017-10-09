@@ -1,6 +1,6 @@
 'use strict';
+import { IPythonSettings, PythonSettings } from '../common/configSettings';
 import { execPythonFile } from './../common/utils';
-import * as settings from './../common/configSettings';
 import { OutputChannel, Uri } from 'vscode';
 import { Installer, Product } from '../common/installer';
 import * as vscode from 'vscode';
@@ -49,9 +49,12 @@ export function matchNamedRegEx(data, regex): IRegexGroup {
 
 export abstract class BaseLinter {
     public Id: string;
-    protected pythonSettings: settings.IPythonSettings;
     protected _columnOffset = 0;
     private _errorHandler: ErrorHandler;
+    private _pythonSettings: IPythonSettings;
+    protected get pythonSettings(): IPythonSettings {
+        return this._pythonSettings;
+    }
     protected getWorkspaceRootPath(document: vscode.TextDocument): string {
         const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri);
         const workspaceRootPath = (workspaceFolder && typeof workspaceFolder.uri.fsPath === 'string') ? workspaceFolder.uri.fsPath : undefined;
@@ -59,12 +62,13 @@ export abstract class BaseLinter {
     }
     constructor(id: string, public product: Product, protected outputChannel: OutputChannel) {
         this.Id = id;
-        this.pythonSettings = settings.PythonSettings.getInstance();
         this._errorHandler = new ErrorHandler(this.Id, product, new Installer(), this.outputChannel);
     }
-    public abstract isEnabled(): Boolean;
-    public abstract runLinter(document: vscode.TextDocument, cancellation: vscode.CancellationToken): Promise<ILintMessage[]>;
-
+    public lint(document: vscode.TextDocument, cancellation: vscode.CancellationToken): Promise<ILintMessage[]> {
+        this._pythonSettings = PythonSettings.getInstance(document.uri);
+        return this.runLinter(document, cancellation);
+    }
+    protected abstract runLinter(document: vscode.TextDocument, cancellation: vscode.CancellationToken): Promise<ILintMessage[]>;
     protected parseMessagesSeverity(error: string, categorySeverity: any): LintMessageSeverity {
         if (categorySeverity[error]) {
             let severityName = categorySeverity[error];
