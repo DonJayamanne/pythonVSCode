@@ -127,7 +127,7 @@ function extractName(extensionDir: string, textEditor: vscode.TextEditor, range:
         }
     }).catch(error => {
         if (error === 'Not installed') {
-            installer.promptToInstall(Product.rope);
+            installer.promptToInstall(Product.rope, textEditor.document.uri);
             return Promise.reject('');
         }
         let errorMessage = error + '';

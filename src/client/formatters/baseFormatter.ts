@@ -61,14 +61,14 @@ export abstract class BaseFormatter {
             }
             return getTextEditsFromPatch(document.getText(), data[1]);
         }).catch(error => {
-            this.handleError(this.Id, command, error);
+            this.handleError(this.Id, command, error, document.uri);
             return [];
         });
         vscode.window.setStatusBarMessage(`Formatting with ${this.Id}`, promise);
         return promise;
     }
 
-    protected handleError(expectedFileName: string, fileName: string, error: Error) {
+    protected handleError(expectedFileName: string, fileName: string, error: Error, resource?: Uri) {
         let customError = `Formatting with ${this.Id} failed.`;
 
         if (isNotInstalledError(error)) {
@@ -84,7 +84,7 @@ export abstract class BaseFormatter {
             }
             else {
                 customError += `\nYou could either install the '${this.Id}' formatter, turn it off or use another formatter.`;
-                this.installer.promptToInstall(this.product);
+                this.installer.promptToInstall(this.product, resource);
             }
         }
 

@@ -39,8 +39,8 @@ export class Linter extends baseLinter.BaseLinter {
         let prospectorPath = this.pythonSettings.linting.prospectorPath;
         let outputChannel = this.outputChannel;
         let prospectorArgs = Array.isArray(this.pythonSettings.linting.prospectorArgs) ? this.pythonSettings.linting.prospectorArgs : [];
-        
-        if (prospectorArgs.length === 0 && ProductExecutableAndArgs.has(Product.prospector) && prospectorPath.toLocaleLowerCase() === 'prospector'){
+
+        if (prospectorArgs.length === 0 && ProductExecutableAndArgs.has(Product.prospector) && prospectorPath.toLocaleLowerCase() === 'prospector') {
             prospectorPath = ProductExecutableAndArgs.get(Product.prospector).executable;
             prospectorArgs = ProductExecutableAndArgs.get(Product.prospector).args;
         }
@@ -73,7 +73,7 @@ export class Linter extends baseLinter.BaseLinter {
 
                 resolve(diagnostics);
             }).catch(error => {
-                this.handleError(this.Id, prospectorPath, error);
+                this.handleError(this.Id, prospectorPath, error, document.uri);
                 resolve([]);
             });
         });

@@ -48,7 +48,7 @@ export class PythonRenameProvider implements vscode.RenameProvider {
             return workspaceEdit;
         }).catch(reason => {
             if (reason === 'Not installed') {
-                this.installer.promptToInstall(Product.rope);
+                this.installer.promptToInstall(Product.rope, document.uri);
                 return Promise.reject('');
             }
             else {

@@ -1,5 +1,5 @@
 'use strict';
-import { OutputChannel } from 'vscode';
+import { OutputChannel, Uri } from 'vscode';
 import { Installer, Product } from '../../common/installer';
 import { InvalidArgumentsErrorHandler } from './invalidArgs';
 import { StandardErrorHandler } from './standard';
@@ -15,7 +15,7 @@ export class ErrorHandler {
         ];
     }
 
-    public handleError(expectedFileName: string, fileName: string, error: Error) {
+    public handleError(expectedFileName: string, fileName: string, error: Error, resource?: Uri) {
         this._errorHandlers.some(handler => handler.handleError(expectedFileName, fileName, error));
     }
 }

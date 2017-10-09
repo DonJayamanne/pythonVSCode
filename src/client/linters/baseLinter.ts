@@ -1,7 +1,7 @@
 'use strict';
 import { execPythonFile } from './../common/utils';
 import * as settings from './../common/configSettings';
-import { OutputChannel } from 'vscode';
+import { OutputChannel, Uri } from 'vscode';
 import { Installer, Product } from '../common/installer';
 import * as vscode from 'vscode';
 import { ErrorHandler } from './errorHandlers/main';
@@ -135,12 +135,12 @@ export abstract class BaseLinter {
             let outputLines = data.split(/\r?\n/g);
             return this.parseLines(outputLines, regEx);
         }).catch(error => {
-            this.handleError(this.Id, command, error);
+            this.handleError(this.Id, command, error, document.uri);
             return [];
         });
     }
 
-    protected handleError(expectedFileName: string, fileName: string, error: Error) {
-        this._errorHandler.handleError(expectedFileName, fileName, error);
+    protected handleError(expectedFileName: string, fileName: string, error: Error, resource?: Uri) {
+        this._errorHandler.handleError(expectedFileName, fileName, error, resource);
     }
 }
