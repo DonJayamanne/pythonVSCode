@@ -119,7 +119,7 @@ suite('Method Extraction', () => {
             textEditor = editor;
             return;
         }).then(() => {
-            return extractMethod(EXTENSION_DIR, textEditor, rangeOfTextToExtract, ch, path.dirname(refactorTargetFile), pythonSettings).then(() => {
+            return extractMethod(EXTENSION_DIR, textEditor, rangeOfTextToExtract, ch).then(() => {
                 if (shouldError) {
                     ignoreErrorHandling = true;
                     assert.fail('No error', 'Error', 'Extraction should fail with an error', '');

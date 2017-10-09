@@ -17,7 +17,7 @@ export class RefactorProxy extends vscode.Disposable {
     private _commandResolve: (value?: any | PromiseLike<any>) => void;
     private _commandReject: (reason?: any) => void;
     private _initializeReject: (reason?: any) => void;
-    constructor(extensionDir: string, private pythonSettings: IPythonSettings, private workspaceRoot: string = vscode.workspace.rootPath) {
+    constructor(extensionDir: string, private pythonSettings: IPythonSettings, private workspaceRoot: string) {
         super(() => { });
         this._extensionDir = extensionDir;
     }
