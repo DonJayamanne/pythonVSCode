@@ -10,10 +10,7 @@ export class Linter extends baseLinter.BaseLinter {
         super('pylint', Product.pylint, outputChannel);
     }
 
-    public isEnabled(): Boolean {
-        return this.pythonSettings.linting.pylintEnabled;
-    }
-    public runLinter(document: TextDocument, cancellation: CancellationToken): Promise<baseLinter.ILintMessage[]> {
+    protected runLinter(document: TextDocument, cancellation: CancellationToken): Promise<baseLinter.ILintMessage[]> {
         if (!this.pythonSettings.linting.pylintEnabled) {
             return Promise.resolve([]);
         }

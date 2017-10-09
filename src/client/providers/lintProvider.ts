@@ -10,7 +10,7 @@ import * as pylama from './../linters/pylama';
 import * as flake8 from './../linters/flake8';
 import * as pydocstyle from './../linters/pydocstyle';
 import * as mypy from './../linters/mypy';
-import * as settings from '../common/configSettings';
+import { PythonSettings } from '../common/configSettings';
 import * as fs from 'fs';
 import { LinterErrors } from '../common/constants';
 const Minimatch = require("minimatch").Minimatch;
@@ -37,36 +37,22 @@ interface DocumentHasJupyterCodeCells {
     (doc: vscode.TextDocument, token: vscode.CancellationToken): Promise<Boolean>;
 }
 export class LintProvider extends vscode.Disposable {
-    private settings: settings.IPythonSettings;
     private diagnosticCollection: vscode.DiagnosticCollection;
     private linters: linter.BaseLinter[] = [];
     private pendingLintings = new Map<string, vscode.CancellationTokenSource>();
     private outputChannel: vscode.OutputChannel;
     private context: vscode.ExtensionContext;
     private disposables: vscode.Disposable[];
-    private ignoreMinmatches: { match: (fname: string) => boolean }[];
     public constructor(context: vscode.ExtensionContext, outputChannel: vscode.OutputChannel,
         public documentHasJupyterCodeCells: DocumentHasJupyterCodeCells) {
         super(() => { });
         this.outputChannel = outputChannel;
         this.context = context;
-        this.settings = settings.PythonSettings.getInstance();
         this.disposables = [];
-        this.ignoreMinmatches = [];
         this.initialize();
-
-        this.disposables.push(vscode.workspace.onDidChangeConfiguration(this.onConfigChanged.bind(this)));
     }
     dispose() {
         this.disposables.forEach(d => d.dispose());
-    }
-    private onConfigChanged() {
-        this.initializeGlobs();
-    }
-    private initializeGlobs() {
-        this.ignoreMinmatches = settings.PythonSettings.getInstance().linting.ignorePatterns.map(pattern => {
-            return new Minimatch(pattern);
-        });
     }
     private isDocumentOpen(uri: vscode.Uri): boolean {
         return vscode.window.visibleTextEditors.some(editor => editor.document && editor.document.uri.fsPath === uri.fsPath);
@@ -84,7 +70,8 @@ export class LintProvider extends vscode.Disposable {
         this.linters.push(new mypy.Linter(this.outputChannel));
 
         let disposable = vscode.workspace.onDidSaveTextDocument((e) => {
-            if (e.languageId !== 'python' || !this.settings.linting.enabled || !this.settings.linting.lintOnSave) {
+            const settings = PythonSettings.getInstance(e.uri);
+            if (e.languageId !== 'python' || !settings.linting.enabled || !settings.linting.lintOnSave) {
                 return;
             }
             this.lintDocument(e, 100);
@@ -92,7 +79,8 @@ export class LintProvider extends vscode.Disposable {
         this.context.subscriptions.push(disposable);
 
         vscode.workspace.onDidOpenTextDocument((e) => {
-            if (e.languageId !== 'python' || !this.settings.linting.enabled) {
+            const settings = PythonSettings.getInstance(e.uri);
+            if (e.languageId !== 'python' || !settings.linting.enabled) {
                 return;
             }
             // Exclude files opened by vscode when showing a diff view
@@ -116,7 +104,6 @@ export class LintProvider extends vscode.Disposable {
             }
         });
         this.context.subscriptions.push(disposable);
-        this.initializeGlobs();
     }
 
     private lastTimeout: number;
@@ -138,7 +125,12 @@ export class LintProvider extends vscode.Disposable {
         const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri);
         const workspaceRootPath = (workspaceFolder && typeof workspaceFolder.uri.fsPath === 'string') ? workspaceFolder.uri.fsPath : undefined;
         const relativeFileName = typeof workspaceRootPath === 'string' ? path.relative(workspaceRootPath, document.fileName) : document.fileName;
-        if (this.ignoreMinmatches.some(matcher => matcher.match(document.fileName) || matcher.match(relativeFileName))) {
+        const settings = PythonSettings.getInstance(document.uri);
+        const ignoreMinmatches = settings.linting.ignorePatterns.map(pattern => {
+            return new Minimatch(pattern);
+        });
+
+        if (ignoreMinmatches.some(matcher => matcher.match(document.fileName) || matcher.match(relativeFileName))) {
             return;
         }
         if (this.pendingLintings.has(document.uri.fsPath)) {
@@ -156,14 +148,10 @@ export class LintProvider extends vscode.Disposable {
         this.pendingLintings.set(document.uri.fsPath, cancelToken);
         this.outputChannel.clear();
         let promises: Promise<linter.ILintMessage[]>[] = this.linters.map(linter => {
-            if (typeof workspaceRootPath !== 'string' && !this.settings.linting.enabledWithoutWorkspace) {
+            if (typeof workspaceRootPath !== 'string' && !settings.linting.enabledWithoutWorkspace) {
                 return Promise.resolve([]);
             }
-            if (!linter.isEnabled()) {
-                return Promise.resolve([]);
-            }
-            // turn off telemetry for linters (at least for now)
-            return linter.runLinter(document, cancelToken.token);
+            return linter.lint(document, cancelToken.token);
         });
         this.documentHasJupyterCodeCells(document, cancelToken.token).then(hasJupyterCodeCells => {
             // linters will resolve asynchronously - keep a track of all 
@@ -189,7 +177,7 @@ export class LintProvider extends vscode.Disposable {
                     });
 
                     // Limit the number of messages to the max value
-                    diagnostics = diagnostics.filter((value, index) => index <= this.settings.linting.maxNumberOfProblems);
+                    diagnostics = diagnostics.filter((value, index) => index <= settings.linting.maxNumberOfProblems);
 
                     if (!this.isDocumentOpen(document.uri)) {
                         diagnostics = [];

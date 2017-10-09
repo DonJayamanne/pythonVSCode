@@ -13,10 +13,7 @@ export class Linter extends baseLinter.BaseLinter {
         super('pydocstyle', Product.pydocstyle, outputChannel);
     }
 
-    public isEnabled(): Boolean {
-        return this.pythonSettings.linting.pydocstyleEnabled;
-    }
-    public runLinter(document: TextDocument, cancellation: CancellationToken): Promise<baseLinter.ILintMessage[]> {
+    protected runLinter(document: TextDocument, cancellation: CancellationToken): Promise<baseLinter.ILintMessage[]> {
         if (!this.pythonSettings.linting.pydocstyleEnabled) {
             return Promise.resolve([]);
         }

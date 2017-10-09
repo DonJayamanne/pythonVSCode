@@ -141,14 +141,31 @@ suite('Linting', () => {
         pythonSettings.linting.pydocstyleEnabled = true;
     });
     suiteTeardown(() => closeActiveWindows());
-    teardown(() => closeActiveWindows());
+    teardown(() => {
+        closeActiveWindows();
+        pythonSettings.linting.lintOnSave = false;
+        pythonSettings.linting.lintOnTextChange = false;
+        pythonSettings.linting.enabled = true;
+        pythonSettings.linting.pylintEnabled = true;
+        pythonSettings.linting.flake8Enabled = true;
+        pythonSettings.linting.pep8Enabled = true;
+        pythonSettings.linting.prospectorEnabled = true;
+        pythonSettings.linting.pydocstyleEnabled = true;
+    });
 
-    function testEnablingDisablingOfLinter(linter: baseLinter.BaseLinter, propertyName: string) {
+    async function testEnablingDisablingOfLinter(linter: baseLinter.BaseLinter, propertyName: string) {
         pythonSettings.linting[propertyName] = true;
-        assert.equal(true, linter.isEnabled());
 
-        pythonSettings.linting[propertyName] = false;
-        assert.equal(false, linter.isEnabled());
+        let cancelToken = new vscode.CancellationTokenSource();
+        disableAllButThisLinter(linter.product);
+        const document = await vscode.workspace.openTextDocument(fileToLint);
+        const editor = await vscode.window.showTextDocument(document);
+        try {
+            const messages = await linter.lint(editor.document, cancelToken.token);
+            assert.equal(messages.length, 0, 'Errors returned even when linter is disabled');
+        } catch (error) {
+            assert.fail(error, null, 'Linter error');
+        }
     }
     test('Enable and Disable Pylint', () => {
         let ch = new MockOutputChannel('Lint');
@@ -187,7 +204,7 @@ suite('Linting', () => {
         return vscode.workspace.openTextDocument(pythonFile)
             .then(document => vscode.window.showTextDocument(document))
             .then(editor => {
-                return linter.runLinter(editor.document, cancelToken.token);
+                return linter.lint(editor.document, cancelToken.token);
             })
             .then(messages => {
                 // Different versions of python return different errors,
