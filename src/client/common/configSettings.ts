@@ -160,8 +160,8 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         return PythonSettings.pythonSettings.get(workspaceFolderKey);
     }
     private initializeSettings() {
-        const systemVariables: SystemVariables = new SystemVariables();
         const workspaceRoot = (IS_TEST_EXECUTION || !this.workspaceRoot) ? __dirname : this.workspaceRoot.fsPath;
+        const systemVariables: SystemVariables = new SystemVariables(this.workspaceRoot ? this.workspaceRoot.fsPath : undefined);
         const pythonSettings = vscode.workspace.getConfiguration('python', this.workspaceRoot);
         this.pythonPath = systemVariables.resolveAny(pythonSettings.get<string>('pythonPath'))!;
         this.pythonPath = getAbsolutePath(this.pythonPath, IS_TEST_EXECUTION ? __dirname : workspaceRoot);
