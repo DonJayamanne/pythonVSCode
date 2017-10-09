@@ -320,7 +320,7 @@ export class Installer implements vscode.Disposable {
 }
 
 function getCwdForInstallScript(resource?: Uri) {
-    const workspaceFolder = workspace.getWorkspaceFolder(resource);
+    const workspaceFolder = resource ? workspace.getWorkspaceFolder(resource) : undefined;
     if (workspaceFolder) {
         return workspaceFolder.uri.fsPath;
     }
