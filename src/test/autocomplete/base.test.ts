@@ -114,7 +114,7 @@ suite('Autocomplete', () => {
         const position = new vscode.Position(10, 9);
         const list = await vscode.commands.executeCommand<vscode.CompletionList>('vscode.executeCompletionItemProvider', textDocument.uri, position);
         assert.notEqual(list.items.filter(item => item.label === 'sleep').length, 0, 'sleep not found');
-        assert.notEqual(list.items.filter(item => item.documentation.startsWith("Delay execution for a given number of seconds.  The argument may be")).length, 0, 'Documentation incorrect');
+        assert.notEqual(list.items.filter(item => item.documentation.toString().startsWith("Delay execution for a given number of seconds.  The argument may be")).length, 0, 'Documentation incorrect');
     });
 
     test('For custom class', done => {
