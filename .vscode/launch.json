@@ -30,7 +30,9 @@
 			],
 			"stopOnEntry": false,
 			"sourceMaps": true,
-			"outDir": "${workspaceRoot}/out",
+			"outFiles": [
+				"${workspaceRoot}/out/**/*.js"
+			],
 			"preLaunchTask": "npm"
 		},
 		{
@@ -43,7 +45,9 @@
 				"--server=4711"
 			],
 			"sourceMaps": true,
-			"outDir": "${workspaceRoot}/out/client",
+			"outFiles": [
+				"${workspaceRoot}/out/client/**/*.js"
+			],
 			"cwd": "${workspaceRoot}"
 		},
 		{
@@ -58,7 +62,6 @@
 			],
 			"stopOnEntry": false,
 			"sourceMaps": true,
-			"xxoutDir": "${workspaceRoot}/out/test",
 			"outFiles": [
 				"${workspaceRoot}/out/**/*.js"
 			],

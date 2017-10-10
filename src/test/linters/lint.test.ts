@@ -141,34 +141,51 @@ suite('Linting', () => {
         pythonSettings.linting.pydocstyleEnabled = true;
     });
     suiteTeardown(() => closeActiveWindows());
-    teardown(() => closeActiveWindows());
+    teardown(() => {
+        closeActiveWindows();
+        pythonSettings.linting.lintOnSave = false;
+        pythonSettings.linting.lintOnTextChange = false;
+        pythonSettings.linting.enabled = true;
+        pythonSettings.linting.pylintEnabled = true;
+        pythonSettings.linting.flake8Enabled = true;
+        pythonSettings.linting.pep8Enabled = true;
+        pythonSettings.linting.prospectorEnabled = true;
+        pythonSettings.linting.pydocstyleEnabled = true;
+    });
 
-    function testEnablingDisablingOfLinter(linter: baseLinter.BaseLinter, propertyName: string) {
+    async function testEnablingDisablingOfLinter(linter: baseLinter.BaseLinter, propertyName: string) {
         pythonSettings.linting[propertyName] = true;
-        assert.equal(true, linter.isEnabled());
 
-        pythonSettings.linting[propertyName] = false;
-        assert.equal(false, linter.isEnabled());
+        let cancelToken = new vscode.CancellationTokenSource();
+        disableAllButThisLinter(linter.product);
+        const document = await vscode.workspace.openTextDocument(fileToLint);
+        const editor = await vscode.window.showTextDocument(document);
+        try {
+            const messages = await linter.lint(editor.document, cancelToken.token);
+            assert.equal(messages.length, 0, 'Errors returned even when linter is disabled');
+        } catch (error) {
+            assert.fail(error, null, 'Linter error');
+        }
     }
     test('Enable and Disable Pylint', () => {
         let ch = new MockOutputChannel('Lint');
-        testEnablingDisablingOfLinter(new pyLint.Linter(ch, pythoFilesPath), 'pylintEnabled');
+        testEnablingDisablingOfLinter(new pyLint.Linter(ch), 'pylintEnabled');
     });
     test('Enable and Disable Pep8', () => {
         let ch = new MockOutputChannel('Lint');
-        testEnablingDisablingOfLinter(new pep8.Linter(ch, pythoFilesPath), 'pep8Enabled');
+        testEnablingDisablingOfLinter(new pep8.Linter(ch), 'pep8Enabled');
     });
     test('Enable and Disable Flake8', () => {
         let ch = new MockOutputChannel('Lint');
-        testEnablingDisablingOfLinter(new flake8.Linter(ch, pythoFilesPath), 'flake8Enabled');
+        testEnablingDisablingOfLinter(new flake8.Linter(ch), 'flake8Enabled');
     });
     test('Enable and Disable Prospector', () => {
         let ch = new MockOutputChannel('Lint');
-        testEnablingDisablingOfLinter(new prospector.Linter(ch, pythoFilesPath), 'prospectorEnabled');
+        testEnablingDisablingOfLinter(new prospector.Linter(ch), 'prospectorEnabled');
     });
     test('Enable and Disable Pydocstyle', () => {
         let ch = new MockOutputChannel('Lint');
-        testEnablingDisablingOfLinter(new pydocstyle.Linter(ch, pythoFilesPath), 'pydocstyleEnabled');
+        testEnablingDisablingOfLinter(new pydocstyle.Linter(ch), 'pydocstyleEnabled');
     });
 
     function disableAllButThisLinter(linterToEnable: Product) {
@@ -187,7 +204,7 @@ suite('Linting', () => {
         return vscode.workspace.openTextDocument(pythonFile)
             .then(document => vscode.window.showTextDocument(document))
             .then(editor => {
-                return linter.runLinter(editor.document, cancelToken.token);
+                return linter.lint(editor.document, cancelToken.token);
             })
             .then(messages => {
                 // Different versions of python return different errors,
@@ -215,23 +232,23 @@ suite('Linting', () => {
     }
     test('PyLint', done => {
         let ch = new MockOutputChannel('Lint');
-        let linter = new pyLint.Linter(ch, pythoFilesPath);
+        let linter = new pyLint.Linter(ch);
         testLinterMessages(linter, ch, fileToLint, pylintMessagesToBeReturned).then(done, done);
     });
     test('Flake8', done => {
         let ch = new MockOutputChannel('Lint');
-        let linter = new flake8.Linter(ch, pythoFilesPath);
+        let linter = new flake8.Linter(ch);
         testLinterMessages(linter, ch, fileToLint, flake8MessagesToBeReturned).then(done, done);
     });
     test('Pep8', done => {
         let ch = new MockOutputChannel('Lint');
-        let linter = new pep8.Linter(ch, pythoFilesPath);
+        let linter = new pep8.Linter(ch);
         testLinterMessages(linter, ch, fileToLint, pep8MessagesToBeReturned).then(done, done);
     });
     if (!isPython3) {
         test('Pydocstyle', done => {
             let ch = new MockOutputChannel('Lint');
-            let linter = new pydocstyle.Linter(ch, pythoFilesPath);
+            let linter = new pydocstyle.Linter(ch);
             testLinterMessages(linter, ch, fileToLint, pydocstyleMessagseToBeReturned).then(done, done);
         });
     }
@@ -242,26 +259,26 @@ suite('Linting', () => {
             const messagesToBeReturned = value ? filteredPylint3MessagesToBeReturned : filteredPylintMessagesToBeReturned;
             test('PyLint with config in root', done => {
                 let ch = new MockOutputChannel('Lint');
-                let linter = new pyLint.Linter(ch, pylintConfigPath);
+                let linter = new pyLint.Linter(ch);
                 testLinterMessages(linter, ch, path.join(pylintConfigPath, 'file.py'), messagesToBeReturned).then(done, done);
             });
         });
     }
     test('Flake8 with config in root', done => {
         let ch = new MockOutputChannel('Lint');
-        let linter = new flake8.Linter(ch, flake8ConfigPath);
+        let linter = new flake8.Linter(ch);
         testLinterMessages(linter, ch, path.join(flake8ConfigPath, 'file.py'), filteredFlake8MessagesToBeReturned).then(done, done);
     });
     test('Pep8 with config in root', done => {
         let ch = new MockOutputChannel('Lint');
-        let linter = new pep8.Linter(ch, pep8ConfigPath);
+        let linter = new pep8.Linter(ch);
         testLinterMessages(linter, ch, path.join(pep8ConfigPath, 'file.py'), filteredPep88MessagesToBeReturned).then(done, done);
     });
     isPython3.then(value => {
         const messagesToBeReturned = value ? [] : fiteredPydocstyleMessagseToBeReturned;
         test('Pydocstyle with config in root', done => {
             let ch = new MockOutputChannel('Lint');
-            let linter = new pydocstyle.Linter(ch, pydocstyleConfigPath27);
+            let linter = new pydocstyle.Linter(ch);
             testLinterMessages(linter, ch, path.join(pydocstyleConfigPath27, 'file.py'), messagesToBeReturned).then(done, done);
         });
     });

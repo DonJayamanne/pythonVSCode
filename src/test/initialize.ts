@@ -71,7 +71,7 @@ function getPythonPath(): string {
     const pythonPaths = ['/home/travis/virtualenv/python3.5.2/bin/python',
         '/xUsers/travis/.pyenv/versions/3.5.1/envs/MYVERSION/bin/python',
         '/xUsers/donjayamanne/Projects/PythonEnvs/p361/bin/python',
-        'C:/Users/dojayama/nine/python.exe',
+        'cC:/Users/dojayama/nine/python.exe',
         'C:/Development/PythonEnvs/p27/scripts/python.exe',
         '/Users/donjayamanne/Projects/PythonEnvs/p27/bin/python'];
     for (let counter = 0; counter < pythonPaths.length; counter++) {

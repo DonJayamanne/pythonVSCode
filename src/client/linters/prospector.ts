@@ -24,14 +24,11 @@ interface IProspectorLocation {
 }
 
 export class Linter extends baseLinter.BaseLinter {
-    constructor(outputChannel: OutputChannel, workspaceRootPath?: string) {
-        super('prospector', Product.prospector, outputChannel, workspaceRootPath);
+    constructor(outputChannel: OutputChannel) {
+        super('prospector', Product.prospector, outputChannel);
     }
 
-    public isEnabled(): Boolean {
-        return this.pythonSettings.linting.prospectorEnabled;
-    }
-    public runLinter(document: TextDocument, cancellation: CancellationToken): Promise<baseLinter.ILintMessage[]> {
+    protected runLinter(document: TextDocument, cancellation: CancellationToken): Promise<baseLinter.ILintMessage[]> {
         if (!this.pythonSettings.linting.prospectorEnabled) {
             return Promise.resolve([]);
         }
@@ -46,7 +43,7 @@ export class Linter extends baseLinter.BaseLinter {
         }
 
         return new Promise<baseLinter.ILintMessage[]>((resolve, reject) => {
-            execPythonFile(prospectorPath, prospectorArgs.concat(['--absolute-paths', '--output-format=json', document.uri.fsPath]), this.workspaceRootPath, false, null, cancellation).then(data => {
+            execPythonFile(prospectorPath, prospectorArgs.concat(['--absolute-paths', '--output-format=json', document.uri.fsPath]), this.getWorkspaceRootPath(document), false, null, cancellation).then(data => {
                 let parsedData: IProspectorResponse;
                 try {
                     parsedData = JSON.parse(data);

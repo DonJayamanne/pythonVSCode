@@ -23,7 +23,7 @@
     "theme": "dark"
   },
   "engines": {
-    "vscode": "^1.9.0"
+    "vscode": "^1.15.0"
   },
   "recommendations": [
     "donjayamanne.jupyter"
@@ -922,32 +922,38 @@
         "python.promptToInstallJupyter": {
           "type": "boolean",
           "default": true,
-          "description": "Display prompt to install Jupyter Extension."
+          "description": "Display prompt to install Jupyter Extension.",
+          "scope": "resource"
         },
         "python.pythonPath": {
           "type": "string",
           "default": "python",
-          "description": "Path to Python, you can use a custom version of Python by modifying this setting to include the full path."
+          "description": "Path to Python, you can use a custom version of Python by modifying this setting to include the full path.",
+          "scope": "resource"
         },
         "python.venvPath": {
           "type": "string",
           "default": "",
-          "description": "Path to folder with a list of Virtual Environments (e.g. ~/.pyenv, ~/Envs, ~/.virtualenvs)."
+          "description": "Path to folder with a list of Virtual Environments (e.g. ~/.pyenv, ~/Envs, ~/.virtualenvs).",
+          "scope": "resource"
         },
         "python.envFile": {
           "type": "string",
           "description": "Absolute path to a file containing environment variable definitions.",
-          "default": "${workspaceRoot}/.env"
+          "default": "${workspaceRoot}/.env",
+          "scope": "resource"
         },
         "python.jediPath": {
           "type": "string",
           "default": "",
-          "description": "Path to directory containing the Jedi library (this path will contain the 'Jedi' sub directory)."
+          "description": "Path to directory containing the Jedi library (this path will contain the 'Jedi' sub directory).",
+          "scope": "resource"
         },
         "python.sortImports.path": {
           "type": "string",
           "description": "Path to isort script, default using inner version",
-          "default": ""
+          "default": "",
+          "scope": "resource"
         },
         "python.sortImports.args": {
           "type": "array",
@@ -955,7 +961,8 @@
           "default": [],
           "items": {
             "type": "string"
-          }
+          },
+          "scope": "resource"
         },
         "python.disablePromptForFeatures": {
           "type": "array",
@@ -974,62 +981,74 @@
               "pydocstyle",
               "pylint"
             ]
-          }
+          },
+          "scope": "resource"
         },
         "python.linting.enabled": {
           "type": "boolean",
           "default": true,
-          "description": "Whether to lint Python files."
+          "description": "Whether to lint Python files.",
+          "scope": "resource"
         },
         "python.linting.enabledWithoutWorkspace": {
           "type": "boolean",
           "default": true,
-          "description": "Whether to lint Python files when no workspace is opened."
+          "description": "Whether to lint Python files when no workspace is opened.",
+          "scope": "resource"
         },
         "python.linting.prospectorEnabled": {
           "type": "boolean",
           "default": false,
-          "description": "Whether to lint Python files using prospector."
+          "description": "Whether to lint Python files using prospector.",
+          "scope": "resource"
         },
         "python.linting.pylintEnabled": {
           "type": "boolean",
           "default": true,
-          "description": "Whether to lint Python files using pylint."
+          "description": "Whether to lint Python files using pylint.",
+          "scope": "resource"
         },
         "python.linting.pep8Enabled": {
           "type": "boolean",
           "default": false,
-          "description": "Whether to lint Python files using pep8"
+          "description": "Whether to lint Python files using pep8",
+          "scope": "resource"
         },
         "python.linting.flake8Enabled": {
           "type": "boolean",
           "default": false,
-          "description": "Whether to lint Python files using flake8"
+          "description": "Whether to lint Python files using flake8",
+          "scope": "resource"
         },
         "python.linting.pydocstyleEnabled": {
           "type": "boolean",
           "default": false,
-          "description": "Whether to lint Python files using pydocstyle"
+          "description": "Whether to lint Python files using pydocstyle",
+          "scope": "resource"
         },
         "python.linting.mypyEnabled": {
           "type": "boolean",
           "default": false,
-          "description": "Whether to lint Python files using mypy."
+          "description": "Whether to lint Python files using mypy.",
+          "scope": "resource"
         },
         "python.linting.lintOnTextChange": {
           "type": "boolean",
           "default": true,
-          "description": "Whether to lint Python files when modified."
+          "description": "Whether to lint Python files when modified.",
+          "scope": "resource"
         },
         "python.linting.lintOnSave": {
           "type": "boolean",
           "default": true,
-          "description": "Whether to lint Python files when saved."
+          "description": "Whether to lint Python files when saved.",
+          "scope": "resource"
         },
         "python.linting.maxNumberOfProblems": {
           "type": "number",
           "default": 100,
-          "description": "Controls the maximum number of problems produced by the server."
+          "description": "Controls the maximum number of problems produced by the server.",
+          "scope": "resource"
         },
         "python.linting.pylintCategorySeverity.convention": {
           "type": "string",
@@ -1040,7 +1059,8 @@
             "Error",
             "Information",
             "Warning"
-          ]
+          ],
+          "scope": "resource"
         },
         "python.linting.pylintCategorySeverity.refactor": {
           "type": "string",
@@ -1051,7 +1071,8 @@
             "Error",
             "Information",
             "Warning"
-          ]
+          ],
+          "scope": "resource"
         },
         "python.linting.pylintCategorySeverity.warning": {
           "type": "string",
@@ -1062,7 +1083,8 @@
             "Error",
             "Information",
             "Warning"
-          ]
+          ],
+          "scope": "resource"
         },
         "python.linting.pylintCategorySeverity.error": {
           "type": "string",
@@ -1073,7 +1095,8 @@
             "Error",
             "Information",
             "Warning"
-          ]
+          ],
+          "scope": "resource"
         },
         "python.linting.pylintCategorySeverity.fatal": {
           "type": "string",
@@ -1084,7 +1107,8 @@
             "Error",
             "Information",
             "Warning"
-          ]
+          ],
+          "scope": "resource"
         },
         "python.linting.pep8CategorySeverity.W": {
           "type": "string",
@@ -1095,7 +1119,8 @@
             "Error",
             "Information",
             "Warning"
-          ]
+          ],
+          "scope": "resource"
         },
         "python.linting.pep8CategorySeverity.E": {
           "type": "string",
@@ -1106,7 +1131,8 @@
             "Error",
             "Information",
             "Warning"
-          ]
+          ],
+          "scope": "resource"
         },
         "python.linting.flake8CategorySeverity.F": {
           "type": "string",
@@ -1117,7 +1143,8 @@
             "Error",
             "Information",
             "Warning"
-          ]
+          ],
+          "scope": "resource"
         },
         "python.linting.flake8CategorySeverity.E": {
           "type": "string",
@@ -1128,7 +1155,8 @@
             "Error",
             "Information",
             "Warning"
-          ]
+          ],
+          "scope": "resource"
         },
         "python.linting.flake8CategorySeverity.W": {
           "type": "string",
@@ -1139,7 +1167,8 @@
             "Error",
             "Information",
             "Warning"
-          ]
+          ],
+          "scope": "resource"
         },
         "python.linting.mypyCategorySeverity.error": {
           "type": "string",
@@ -1150,7 +1179,8 @@
             "Error",
             "Information",
             "Warning"
-          ]
+          ],
+          "scope": "resource"
         },
         "python.linting.mypyCategorySeverity.note": {
           "type": "string",
@@ -1161,37 +1191,44 @@
             "Error",
             "Information",
             "Warning"
-          ]
+          ],
+          "scope": "resource"
         },
         "python.linting.prospectorPath": {
           "type": "string",
           "default": "prospector",
-          "description": "Path to Prospector, you can use a custom version of prospector by modifying this setting to include the full path."
+          "description": "Path to Prospector, you can use a custom version of prospector by modifying this setting to include the full path.",
+          "scope": "resource"
         },
         "python.linting.pylintPath": {
           "type": "string",
           "default": "pylint",
-          "description": "Path to Pylint, you can use a custom version of pylint by modifying this setting to include the full path."
+          "description": "Path to Pylint, you can use a custom version of pylint by modifying this setting to include the full path.",
+          "scope": "resource"
         },
         "python.linting.pep8Path": {
           "type": "string",
           "default": "pep8",
-          "description": "Path to pep8, you can use a custom version of pep8 by modifying this setting to include the full path."
+          "description": "Path to pep8, you can use a custom version of pep8 by modifying this setting to include the full path.",
+          "scope": "resource"
         },
         "python.linting.flake8Path": {
           "type": "string",
           "default": "flake8",
-          "description": "Path to flake8, you can use a custom version of flake8 by modifying this setting to include the full path."
+          "description": "Path to flake8, you can use a custom version of flake8 by modifying this setting to include the full path.",
+          "scope": "resource"
         },
         "python.linting.pydocstylePath": {
           "type": "string",
           "default": "pydocstyle",
-          "description": "Path to pydocstyle, you can use a custom version of pydocstyle by modifying this setting to include the full path."
+          "description": "Path to pydocstyle, you can use a custom version of pydocstyle by modifying this setting to include the full path.",
+          "scope": "resource"
         },
         "python.linting.mypyPath": {
           "type": "string",
           "default": "mypy",
-          "description": "Path to mypy, you can use a custom version of mypy by modifying this setting to include the full path."
+          "description": "Path to mypy, you can use a custom version of mypy by modifying this setting to include the full path.",
+          "scope": "resource"
         },
         "python.linting.prospectorArgs": {
           "type": "array",
@@ -1199,7 +1236,8 @@
           "default": [],
           "items": {
             "type": "string"
-          }
+          },
+          "scope": "resource"
         },
         "python.linting.pylintArgs": {
           "type": "array",
@@ -1207,7 +1245,8 @@
           "default": [],
           "items": {
             "type": "string"
-          }
+          },
+          "scope": "resource"
         },
         "python.linting.pep8Args": {
           "type": "array",
@@ -1215,7 +1254,8 @@
           "default": [],
           "items": {
             "type": "string"
-          }
+          },
+          "scope": "resource"
         },
         "python.linting.flake8Args": {
           "type": "array",
@@ -1223,7 +1263,8 @@
           "default": [],
           "items": {
             "type": "string"
-          }
+          },
+          "scope": "resource"
         },
         "python.linting.pydocstyleArgs": {
           "type": "array",
@@ -1231,7 +1272,8 @@
           "default": [],
           "items": {
             "type": "string"
-          }
+          },
+          "scope": "resource"
         },
         "python.linting.mypyArgs": {
           "type": "array",
@@ -1242,12 +1284,14 @@
           ],
           "items": {
             "type": "string"
-          }
+          },
+          "scope": "resource"
         },
         "python.linting.outputWindow": {
           "type": "string",
           "default": "Python",
-          "description": "The output window name for the linting messages, defaults to Python output window."
+          "description": "The output window name for the linting messages, defaults to Python output window.",
+          "scope": "resource"
         },
         "python.formatting.provider": {
           "type": "string",
@@ -1257,17 +1301,20 @@
             "autopep8",
             "yapf",
             "none"
-          ]
+          ],
+          "scope": "resource"
         },
         "python.formatting.autopep8Path": {
           "type": "string",
           "default": "autopep8",
-          "description": "Path to autopep8, you can use a custom version of autopep8 by modifying this setting to include the full path."
+          "description": "Path to autopep8, you can use a custom version of autopep8 by modifying this setting to include the full path.",
+          "scope": "resource"
         },
         "python.formatting.yapfPath": {
           "type": "string",
           "default": "yapf",
-          "description": "Path to yapf, you can use a custom version of yapf by modifying this setting to include the full path."
+          "description": "Path to yapf, you can use a custom version of yapf by modifying this setting to include the full path.",
+          "scope": "resource"
         },
         "python.formatting.autopep8Args": {
           "type": "array",
@@ -1275,7 +1322,8 @@
           "default": [],
           "items": {
             "type": "string"
-          }
+          },
+          "scope": "resource"
         },
         "python.formatting.yapfArgs": {
           "type": "array",
@@ -1283,17 +1331,20 @@
           "default": [],
           "items": {
             "type": "string"
-          }
+          },
+          "scope": "resource"
         },
         "python.formatting.formatOnSave": {
           "type": "boolean",
           "default": false,
-          "description": "Format the document upon saving."
+          "description": "Format the document upon saving.",
+          "scope": "resource"
         },
         "python.formatting.outputWindow": {
           "type": "string",
           "default": "Python",
-          "description": "The output window name for the formatting messages, defaults to Python output window."
+          "description": "The output window name for the formatting messages, defaults to Python output window.",
+          "scope": "resource"
         },
         "python.autoComplete.preloadModules": {
           "type": "array",
@@ -1301,42 +1352,50 @@
             "type": "string"
           },
           "default": [],
-          "description": "Comma delimited list of modules preloaded to speed up Auto Complete (e.g. add Numpy, Pandas, etc, items slow to load when autocompleting)."
+          "description": "Comma delimited list of modules preloaded to speed up Auto Complete (e.g. add Numpy, Pandas, etc, items slow to load when autocompleting).",
+          "scope": "resource"
         },
         "python.autoComplete.extraPaths": {
           "type": "array",
           "default": [],
-          "description": "List of paths to libraries and the like that need to be imported by auto complete engine. E.g. when using Google App SDK, the paths are not in system path, hence need to be added into this list."
+          "description": "List of paths to libraries and the like that need to be imported by auto complete engine. E.g. when using Google App SDK, the paths are not in system path, hence need to be added into this list.",
+          "scope": "resource"
         },
         "python.autoComplete.addBrackets": {
           "type": "boolean",
           "default": false,
-          "description": "Automatically add brackets for functions."
+          "description": "Automatically add brackets for functions.",
+          "scope": "resource"
         },
         "python.workspaceSymbols.tagFilePath": {
           "type": "string",
           "default": "${workspaceRoot}/.vscode/tags",
-          "description": "Fully qualified path to tag file (exuberant ctag file), used to provide workspace symbols."
+          "description": "Fully qualified path to tag file (exuberant ctag file), used to provide workspace symbols.",
+          "scope": "resource"
         },
         "python.workspaceSymbols.enabled": {
           "type": "boolean",
           "default": true,
-          "description": "Set to 'false' to disable Workspace Symbol provider using ctags."
+          "description": "Set to 'false' to disable Workspace Symbol provider using ctags.",
+          "scope": "resource"
         },
         "python.workspaceSymbols.rebuildOnStart": {
           "type": "boolean",
           "default": true,
-          "description": "Whether to re-build the tags file on start (defaults to true)."
+          "description": "Whether to re-build the tags file on start (defaults to true).",
+          "scope": "resource"
         },
         "python.workspaceSymbols.rebuildOnFileSave": {
           "type": "boolean",
           "default": true,
-          "description": "Whether to re-build the tags file on when changes made to python files are saved."
+          "description": "Whether to re-build the tags file on when changes made to python files are saved.",
+          "scope": "resource"
         },
         "python.workspaceSymbols.ctagsPath": {
           "type": "string",
           "default": "ctags",
-          "description": "Fully qualilified path to the ctags executable (else leave as ctags, assuming it is in current path)."
+          "description": "Fully qualilified path to the ctags executable (else leave as ctags, assuming it is in current path).",
+          "scope": "resource"
         },
         "python.workspaceSymbols.exclusionPatterns": {
           "type": "array",
@@ -1346,42 +1405,50 @@
           "items": {
             "type": "string"
           },
-          "description": "Pattern used to exclude files and folders from ctags See http://ctags.sourceforge.net/ctags.html."
+          "description": "Pattern used to exclude files and folders from ctags See http://ctags.sourceforge.net/ctags.html.",
+          "scope": "resource"
         },
         "python.unitTest.promptToConfigure": {
           "type": "boolean",
           "default": true,
-          "description": "Where to prompt to configure a test framework if potential tests directories are discovered."
+          "description": "Where to prompt to configure a test framework if potential tests directories are discovered.",
+          "scope": "resource"
         },
         "python.unitTest.debugPort": {
           "type": "number",
           "default": 3000,
-          "description": "Port number used for debugging of unittests."
+          "description": "Port number used for debugging of unittests.",
+          "scope": "resource"
         },
         "python.unitTest.cwd": {
           "type": "string",
           "default": null,
-          "description": "Optional working directory for unit tests."
+          "description": "Optional working directory for unit tests.",
+          "scope": "resource"
         },
         "python.unitTest.nosetestsEnabled": {
           "type": "boolean",
           "default": false,
-          "description": "Whether to enable or disable unit testing using nosetests."
+          "description": "Whether to enable or disable unit testing using nosetests.",
+          "scope": "resource"
         },
         "python.unitTest.nosetestPath": {
           "type": "string",
           "default": "nosetests",
-          "description": "Path to nosetests, you can use a custom version of nosetests by modifying this setting to include the full path."
+          "description": "Path to nosetests, you can use a custom version of nosetests by modifying this setting to include the full path.",
+          "scope": "resource"
         },
         "python.unitTest.pyTestEnabled": {
           "type": "boolean",
           "default": false,
-          "description": "Whether to enable or disable unit testing using pytest."
+          "description": "Whether to enable or disable unit testing using pytest.",
+          "scope": "resource"
         },
         "python.unitTest.pyTestPath": {
           "type": "string",
           "default": "py.test",
-          "description": "Path to pytest (py.test), you can use a custom version of pytest by modifying this setting to include the full path."
+          "description": "Path to pytest (py.test), you can use a custom version of pytest by modifying this setting to include the full path.",
+          "scope": "resource"
         },
         "python.unitTest.nosetestArgs": {
           "type": "array",
@@ -1389,7 +1456,8 @@
           "default": [],
           "items": {
             "type": "string"
-          }
+          },
+          "scope": "resource"
         },
         "python.unitTest.pyTestArgs": {
           "type": "array",
@@ -1397,12 +1465,14 @@
           "default": [],
           "items": {
             "type": "string"
-          }
+          },
+          "scope": "resource"
         },
         "python.unitTest.unittestEnabled": {
           "type": "boolean",
           "default": false,
-          "description": "Whether to enable or disable unit testing using unittest."
+          "description": "Whether to enable or disable unit testing using unittest.",
+          "scope": "resource"
         },
         "python.unitTest.unittestArgs": {
           "type": "array",
@@ -1416,7 +1486,8 @@
           ],
           "items": {
             "type": "string"
-          }
+          },
+          "scope": "resource"
         },
         "python.linting.ignorePatterns": {
           "type": "array",
@@ -1427,17 +1498,20 @@
           ],
           "items": {
             "type": "string"
-          }
+          },
+          "scope": "resource"
         },
         "python.linting.pylamaEnabled": {
           "type": "boolean",
           "default": false,
-          "description": "Whether to lint Python files using pylama."
+          "description": "Whether to lint Python files using pylama.",
+          "scope": "resource"
         },
         "python.linting.pylamaPath": {
           "type": "string",
           "default": "pylama",
-          "description": "Path to pylama, you can use a custom version of pylama by modifying this setting to include the full path."
+          "description": "Path to pylama, you can use a custom version of pylama by modifying this setting to include the full path.",
+          "scope": "resource"
         },
         "python.linting.pylamaArgs": {
           "type": "array",
@@ -1445,32 +1519,38 @@
           "default": [],
           "items": {
             "type": "string"
-          }
+          },
+          "scope": "resource"
         },
         "python.unitTest.outputWindow": {
           "type": "string",
           "default": "Python Test Log",
-          "description": "The output window name for the unit test messages, defaults to Python output window."
+          "description": "The output window name for the unit test messages, defaults to Python output window.",
+          "scope": "resource"
         },
         "python.terminal.executeInFileDir": {
           "type": "boolean",
           "default": false,
-          "description": "When executing a file in the terminal, whether to use execute in the file's directory, instead of the current open folder."
+          "description": "When executing a file in the terminal, whether to use execute in the file's directory, instead of the current open folder.",
+          "scope": "resource"
         },
         "python.terminal.launchArgs": {
           "type": "array",
           "default": [],
-          "description": "Python launch arguments to use when executing a file in the terminal."
+          "description": "Python launch arguments to use when executing a file in the terminal.",
+          "scope": "resource"
         },
         "python.jupyter.appendResults": {
           "type": "boolean",
           "default": true,
-          "description": "Whether to appen the results to results window, else clear and display."
+          "description": "Whether to appen the results to results window, else clear and display.",
+          "scope": "resource"
         },
         "python.jupyter.defaultKernel": {
           "type": "string",
           "default": "",
-          "description": "Default kernel to be used. By default the first available kernel is used."
+          "description": "Default kernel to be used. By default the first available kernel is used.",
+          "scope": "resource"
         },
         "python.jupyter.startupCode": {
           "type": "array",
@@ -1480,7 +1560,8 @@
           "default": [
             "%matplotlib inline"
           ],
-          "description": "Code executed when the kernel starts. Such as the default of '%matplotlib inline'. Individual lines can be placed in separate items of the array."
+          "description": "Code executed when the kernel starts. Such as the default of '%matplotlib inline'. Individual lines can be placed in separate items of the array.",
+          "scope": "resource"
         }
       }
     },
@@ -1538,11 +1619,12 @@
     "untildify": "^3.0.2",
     "vscode-debugadapter": "^1.0.1",
     "vscode-debugprotocol": "^1.0.1",
-    "vscode-extension-telemetry": "0.0.5",
-    "vscode-languageclient": "^1.1.0",
-    "vscode-languageserver": "^1.1.0",
+    "vscode-extension-telemetry": "^0.0.5",
+    "vscode-languageclient": "^3.1.0",
+    "vscode-languageserver": "^3.1.0",
     "winreg": "^1.2.4",
-    "xml2js": "^0.4.17"
+    "xml2js": "^0.4.17",
+    "vscode": "^1.0.3"
   },
   "devDependencies": {
     "@types/fs-extra": "^4.0.2",
@@ -1561,13 +1643,12 @@
     "babel-loader": "^6.2.5",
     "babel-preset-es2015": "^6.14.0",
     "ignore-loader": "^0.1.1",
-    "mocha": "^2.3.3",
+    "mocha": "^3.2.0",
     "retyped-diff-match-patch-tsd-ambient": "^1.0.0-0",
     "sinon": "^2.3.6",
     "ts-loader": "^0.8.2",
     "tslint": "^3.15.1",
     "typescript": "^2.3.2",
-    "vscode": "^1.0.3",
     "webpack": "^1.13.2"
   }
 }

@@ -3,6 +3,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as child_process from 'child_process';
+import { Uri } from 'vscode';
 import { SystemVariables } from './systemVariables';
 import { EventEmitter } from 'events';
 const untildify = require('untildify');
@@ -133,26 +134,35 @@ export interface JupyterSettings {
 const IS_TEST_EXECUTION = process.env['PYTHON_DONJAYAMANNE_TEST'] === '1';
 
 export class PythonSettings extends EventEmitter implements IPythonSettings {
-    private static pythonSettings: PythonSettings = new PythonSettings();
+    private static pythonSettings: Map<string, PythonSettings> = new Map<string, PythonSettings>();
+    private workspaceRoot?: vscode.Uri;
     private disposables: vscode.Disposable[] = [];
-    constructor() {
+    constructor(workspaceFolder?: Uri) {
         super();
-        if (PythonSettings.pythonSettings) {
-            throw new Error('Singleton class, Use getInstance method');
-        }
+        this.workspaceRoot = workspaceFolder ? workspaceFolder : vscode.Uri.file(__dirname);
         this.disposables.push(vscode.workspace.onDidChangeConfiguration(() => {
             this.initializeSettings();
         }));
 
         this.initializeSettings();
     }
-    public static getInstance(): PythonSettings {
-        return PythonSettings.pythonSettings;
+    public static getInstance(resource?: Uri): PythonSettings {
+        const workspaceFolder = resource ? vscode.workspace.getWorkspaceFolder(resource) : undefined;
+        let workspaceFolderUri: Uri = workspaceFolder ? workspaceFolder.uri : undefined;
+        if (!workspaceFolderUri && Array.isArray(vscode.workspace.workspaceFolders) && vscode.workspace.workspaceFolders.length > 0) {
+            workspaceFolderUri = vscode.workspace.workspaceFolders[0].uri;
+        }
+        const workspaceFolderKey = workspaceFolderUri ? workspaceFolderUri.fsPath : '';
+        if (!PythonSettings.pythonSettings.has(workspaceFolderKey)) {
+            const settings = new PythonSettings(workspaceFolderUri);
+            PythonSettings.pythonSettings.set(workspaceFolderKey, settings);
+        }
+        return PythonSettings.pythonSettings.get(workspaceFolderKey);
     }
     private initializeSettings() {
         const systemVariables: SystemVariables = new SystemVariables();
-        const workspaceRoot = (IS_TEST_EXECUTION || typeof vscode.workspace.rootPath !== 'string') ? __dirname : vscode.workspace.rootPath;
-        let pythonSettings = vscode.workspace.getConfiguration('python');
+        const workspaceRoot = (IS_TEST_EXECUTION || !this.workspaceRoot) ? __dirname : this.workspaceRoot.fsPath;
+        const pythonSettings = vscode.workspace.getConfiguration('python', this.workspaceRoot);
         this.pythonPath = systemVariables.resolveAny(pythonSettings.get<string>('pythonPath'))!;
         this.pythonPath = getAbsolutePath(this.pythonPath, IS_TEST_EXECUTION ? __dirname : workspaceRoot);
         this.venvPath = systemVariables.resolveAny(pythonSettings.get<string>('venvPath'))!;

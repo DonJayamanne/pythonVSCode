@@ -67,7 +67,7 @@ export async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(...activateExecInTerminalProvider());
     context.subscriptions.push(activateUpdateSparkLibraryProvider());
     activateSimplePythonRefactorProvider(context, formatOutChannel);
-    context.subscriptions.push(activateFormatOnSaveProvider(PYTHON, settings.PythonSettings.getInstance(), formatOutChannel));
+    context.subscriptions.push(activateFormatOnSaveProvider(PYTHON, formatOutChannel));
     context.subscriptions.push(activateGoToObjectDefinitionProvider(context));
 
     context.subscriptions.push(vscode.commands.registerCommand(Commands.Start_REPL, () => {
@@ -114,7 +114,7 @@ export async function activate(context: vscode.ExtensionContext) {
         context.subscriptions.push(vscode.languages.registerSignatureHelpProvider(PYTHON, new PythonSignatureProvider(context, jediProx), '(', ','));
     }
     if (pythonSettings.formatting.provider !== 'none') {
-        const formatProvider = new PythonFormattingEditProvider(context, formatOutChannel, pythonSettings);
+        const formatProvider = new PythonFormattingEditProvider(context, formatOutChannel);
         context.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider(PYTHON, formatProvider));
         context.subscriptions.push(vscode.languages.registerDocumentRangeFormattingEditProvider(PYTHON, formatProvider));
     }

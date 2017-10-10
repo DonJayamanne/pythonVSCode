@@ -2,23 +2,43 @@
 
 import * as vscode from 'vscode';
 import * as fs from 'fs';
-import { execPythonFile } from './../common/utils';
+import * as path from 'path';
 import * as settings from './../common/configSettings';
+import { Uri } from 'vscode';
+import { execPythonFile } from './../common/utils';
 import { getTextEditsFromPatch, getTempFileWithDocumentContents } from './../common/editor';
 import { isNotInstalledError } from '../common/helpers';
 import { Installer, Product } from '../common/installer';
 
+
 export abstract class BaseFormatter {
     private installer: Installer;
-    constructor(public Id: string, private product: Product, protected outputChannel: vscode.OutputChannel, protected pythonSettings: settings.IPythonSettings, protected workspaceRootPath?: string) {
+    constructor(public Id: string, private product: Product, protected outputChannel: vscode.OutputChannel) {
         this.installer = new Installer();
     }
 
     public abstract formatDocument(document: vscode.TextDocument, options: vscode.FormattingOptions, token: vscode.CancellationToken, range?: vscode.Range): Thenable<vscode.TextEdit[]>;
-
+    protected getDocumentPath(document: vscode.TextDocument, fallbackPath: string) {
+        if (path.basename(document.uri.fsPath) === document.uri.fsPath) {
+            return fallbackPath;
+        }
+        return path.dirname(document.fileName);
+    }
+    protected getWorkspaceUri(document: vscode.TextDocument) {
+        const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri);
+        if (workspaceFolder) {
+            return workspaceFolder.uri;
+        }
+        if (Array.isArray(vscode.workspace.workspaceFolders) && vscode.workspace.workspaceFolders.length > 0) {
+            return vscode.workspace.workspaceFolders[0].uri;
+        }
+        return vscode.Uri.file(__dirname);
+    }
     protected provideDocumentFormattingEdits(document: vscode.TextDocument, options: vscode.FormattingOptions, token: vscode.CancellationToken, command: string, args: string[], cwd: string = null): Thenable<vscode.TextEdit[]> {
         this.outputChannel.clear();
-        cwd = typeof cwd === 'string' && cwd.length > 0 ? cwd : (this.workspaceRootPath ? this.workspaceRootPath : vscode.workspace.rootPath);
+        if (typeof cwd !== 'string' || cwd.length === 0) {
+            cwd = this.getWorkspaceUri(document).fsPath;
+        }
 
         // autopep8 and yapf have the ability to read from the process input stream and return the formatted code out of the output stream
         // However they don't support returning the diff of the formatted text when reading data from the input stream
