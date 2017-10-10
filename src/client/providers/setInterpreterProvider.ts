@@ -63,8 +63,8 @@ export class SetInterpreterProvider implements vscode.Disposable {
         this.presentQuickPick();
     }
 
-    private setShebangInterpreter() {
-        const shebang = ShebangCodeLensProvider.detectShebang(vscode.window.activeTextEditor.document);
+    private async setShebangInterpreter() {
+        const shebang = await ShebangCodeLensProvider.detectShebang(vscode.window.activeTextEditor.document);
         if (shebang) {
             this.interpreterManager.setPythonPath(shebang);
         }
