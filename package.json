@@ -23,7 +23,11 @@
     "theme": "dark"
   },
   "engines": {
+<<<<<<< HEAD
     "vscode": "^1.15.0"
+=======
+    "vscode": "^1.17.0"
+>>>>>>> master
   },
   "recommendations": [
     "donjayamanne.jupyter"
@@ -44,8 +48,8 @@
     "Other"
   ],
   "activationEvents": [
+    "onDebug",
     "onLanguage:python",
-    "onCommand:python.python-debug.startSession",
     "onCommand:python.execInTerminal",
     "onCommand:python.sortImports",
     "onCommand:python.runtests",
@@ -278,7 +282,6 @@
         "languages": [
           "python"
         ],
-        "startSessionCommand": "python.python-debug.startSession",
         "enableBreakpointsFor": {
           "languageIds": [
             "python",

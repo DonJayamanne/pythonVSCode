@@ -117,7 +117,7 @@ export function execPythonFile(file: string, args: string[], cwd: string, includ
     // Cuz python interpreter is always a file and we can and will always run it using child_process.execFile()
     if (file === settings.PythonSettings.getInstance().pythonPath) {
         if (stdOut) {
-            return spawnFileInternal(file, args, { cwd }, includeErrorAsResponse, stdOut, token);
+            return spawnFileInternal(file, args, { cwd, env: customEnvVariables }, includeErrorAsResponse, stdOut, token);
         }
         if (execAsModule) {
             return getFullyQualifiedPythonInterpreterPath()
@@ -252,6 +252,8 @@ function execFileInternal(file: string, args: string[], options: child_process.E
 }
 function spawnFileInternal(file: string, args: string[], options: child_process.ExecFileOptions, includeErrorAsResponse: boolean, stdOut: (line: string) => void, token?: CancellationToken): Promise<string> {
     return new Promise<string>((resolve, reject) => {
+        options.env = options.env || {};
+        options.env['PYTHONIOENCODING'] = 'UTF-8';
         let proc = child_process.spawn(file, args, options);
         let error = '';
         let exited = false;

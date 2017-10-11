@@ -44,7 +44,18 @@ suite('ChildProc', () => {
         }).then(done).catch(done);
     });
 
-    test('Stream Stdout with Threads', done => {
+    test('Stream Stdout (Unicode)', async () => {
+        const output: string[] = [];
+        function handleOutput(data: string) {
+            output.push(data);
+        }
+        await execPythonFile('python', ['-c', `print('öä')`], __dirname, false, handleOutput)
+        assert.equal(output.length, 1, 'Ouput length incorrect');
+        assert.equal(output[0], 'öä' + EOL, 'Ouput value incorrect');
+    });
+
+    test('Stream Stdout with Threads', function (done) {
+        this.timeout(6000);
         const output: string[] = [];
         function handleOutput(data: string) {
             output.push(data);
