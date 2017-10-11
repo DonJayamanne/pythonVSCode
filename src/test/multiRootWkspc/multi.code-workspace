@@ -1,0 +1,22 @@
+{
+	"folders": [
+		{
+			"path": "workspace1"
+		},
+		{
+			"path": "parent\\child"
+		},
+		{
+			"path": "disableLinters"
+		}
+	],
+	"settings": {
+		"python.linting.flake8Enabled": false,
+		"python.linting.mypyEnabled": true,
+		"python.linting.pydocstyleEnabled": true,
+		"python.linting.pylamaEnabled": true,
+		"python.linting.pylintEnabled": true,
+		"python.linting.pep8Enabled": true,
+		"python.linting.prospectorEnabled": true
+	}
+}

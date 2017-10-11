@@ -90,7 +90,7 @@ export abstract class BaseTestManager {
                 return tests;
             }).catch(reason => {
                 if (isNotInstalledError(reason) && !quietMode) {
-                    this.installer.promptToInstall(this.product);
+                    this.installer.promptToInstall(this.product, vscode.Uri.file(this.rootDirectory));
                 }
 
                 this.tests = null;

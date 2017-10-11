@@ -99,7 +99,7 @@ export class Linter extends baseLinter.BaseLinter {
                 });
                 resolve(diagnostics);
             }, error => {
-                this.handleError(this.Id, commandLine, error);
+                this.handleError(this.Id, commandLine, error, document.uri);
                 resolve([]);
             });
         });

@@ -117,7 +117,7 @@ suite('Variable Extraction', () => {
             textEditor = editor;
             return;
         }).then(() => {
-            return extractVariable(EXTENSION_DIR, textEditor, rangeOfTextToExtract, ch, path.dirname(refactorTargetFile), pythonSettings).then(() => {
+            return extractVariable(EXTENSION_DIR, textEditor, rangeOfTextToExtract, ch).then(() => {
                 if (shouldError) {
                     ignoreErrorHandling = true;
                     assert.fail('No error', 'Error', 'Extraction should fail with an error', '');

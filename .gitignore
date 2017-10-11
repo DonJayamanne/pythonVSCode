@@ -8,3 +8,4 @@ src/test/.vscode/**
 *.noseids
 .vscode-test
 __pycache__
+npm-debug.log

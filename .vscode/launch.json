@@ -68,6 +68,23 @@
 			"preLaunchTask": "npm"
 		},
 		{
+			"name": "Launch Multiroot Tests",
+			"type": "extensionHost",
+			"request": "launch",
+			"runtimeExecutable": "${execPath}",
+			"args": [
+				"${workspaceRoot}/src/test/multiRootWkspc/multi.code-workspace",
+				"--extensionDevelopmentPath=${workspaceRoot}",
+				"--extensionTestsPath=${workspaceRoot}/out/test"
+			],
+			"stopOnEntry": false,
+			"sourceMaps": true,
+			"outFiles": [
+				"${workspaceRoot}/out/**/*.js"
+			],
+			"preLaunchTask": "npm"
+		},
+		{
 			"name": "Python",
 			"type": "python",
 			"request": "launch",
