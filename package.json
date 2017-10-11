@@ -23,11 +23,7 @@
     "theme": "dark"
   },
   "engines": {
-<<<<<<< HEAD
-    "vscode": "^1.15.0"
-=======
     "vscode": "^1.17.0"
->>>>>>> master
   },
   "recommendations": [
     "donjayamanne.jupyter"
