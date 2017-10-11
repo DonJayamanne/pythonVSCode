@@ -129,7 +129,14 @@ export function runTest(testManager: BaseTestManager, rootDirectory: string, tes
 
                 launchDef.promise
                     .then(() => {
-                        return vscode.commands.executeCommand('vscode.startDebug', {
+                        if (!Array.isArray(vscode.workspace.workspaceFolders) || vscode.workspace.workspaceFolders.length === 0) {
+                            throw new Error('Please open a workspace');
+                        }
+                        let workspaceFolder = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(rootDirectory));
+                        if (!workspaceFolder) {
+                            workspaceFolder = vscode.workspace.workspaceFolders[0];
+                        }
+                        return vscode.debug.startDebugging(workspaceFolder, {
                             "name": "Debug Unit Test",
                             "type": "python",
                             "request": "attach",
