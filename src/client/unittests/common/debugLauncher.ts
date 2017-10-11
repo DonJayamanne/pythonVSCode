@@ -11,7 +11,7 @@ export function launchDebugger(rootDirectory: string, testArgs: string[], token?
     let outputChannelShown = false;
     execPythonFile(pythonSettings.pythonPath, testArgs, rootDirectory, true, (data: string) => {
         if (data.startsWith('READY' + os.EOL)) {
-            // debug socket server has started
+            // debug socket server has started.
             launchDef.resolve();
             data = data.substring(('READY' + os.EOL).length);
         }
