@@ -6,11 +6,8 @@ import { updateResults } from '../common/testUtils';
 import { updateResultsFromXmlLogFile, PassCalculationFormulae } from '../common/xUnitParser';
 import { run } from '../common/runner';
 import { PythonSettings } from '../../common/configSettings';
-import * as vscode from 'vscode';
-import { execPythonFile } from './../../common/utils';
-import { createDeferred } from './../../common/helpers';
-import * as os from 'os';
 import * as path from 'path';
+import { launchDebugger } from '../common/debugLauncher';
 
 const pythonSettings = PythonSettings.getInstance();
 const WITH_XUNIT = '--with-xunit';
@@ -65,65 +62,10 @@ export function runTest(rootDirectory: string, tests: Tests, args: string[], tes
 
     return promiseToGetXmlLogFile.then(() => {
         if (debug === true) {
-            const def = createDeferred<any>();
-            const launchDef = createDeferred<any>();
             const testLauncherFile = path.join(__dirname, '..', '..', '..', '..', 'pythonFiles', 'PythonTools', 'testlauncher.py');
-
-            // start the debug adapter only once we have started the debug process
-            // pytestlauncherargs
             const nosetestlauncherargs = [rootDirectory, 'my_secret', pythonSettings.unitTest.debugPort.toString(), 'nose'];
-            let outputChannelShown = false;
-            execPythonFile(pythonSettings.pythonPath, [testLauncherFile].concat(nosetestlauncherargs).concat(noseTestArgs.concat(testPaths)), rootDirectory, true, (data: string) => {
-                if (data.startsWith('READY' + os.EOL)) {
-                    // debug socket server has started
-                    launchDef.resolve();
-                    data = data.substring(('READY' + os.EOL).length);
-                }
-
-                if (!outputChannelShown) {
-                    outputChannelShown = true;
-                    outChannel.show();
-                }
-                outChannel.append(data);
-            }, token).catch(reason => {
-                if (!def.rejected && !def.resolved) {
-                    def.reject(reason);
-                }
-            }).then(() => {
-                if (!def.rejected && !def.resolved) {
-                    def.resolve();
-                }
-            }).catch(reason => {
-                if (!def.rejected && !def.resolved) {
-                    def.reject(reason);
-                }
-            });
-
-            launchDef.promise.then(() => {
-                if (!Array.isArray(vscode.workspace.workspaceFolders) || vscode.workspace.workspaceFolders.length === 0) {
-                    throw new Error('Please open a workspace');
-                }
-                let workspaceFolder = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(rootDirectory));
-                if (!workspaceFolder) {
-                    workspaceFolder = vscode.workspace.workspaceFolders[0];
-                }
-                return vscode.debug.startDebugging(workspaceFolder, {
-                    "name": "Debug Unit Test",
-                    "type": "python",
-                    "request": "attach",
-                    "localRoot": rootDirectory,
-                    "remoteRoot": rootDirectory,
-                    "port": pythonSettings.unitTest.debugPort,
-                    "secret": "my_secret",
-                    "host": "localhost"
-                });
-            }).catch(reason => {
-                if (!def.rejected && !def.resolved) {
-                    def.reject(reason);
-                }
-            });
-
-            return def.promise;
+            const args = [testLauncherFile].concat(nosetestlauncherargs).concat(noseTestArgs.concat(testPaths));
+            return launchDebugger(rootDirectory, args, token, outChannel);
         }
         else {
             return run(pythonSettings.unitTest.nosetestPath, noseTestArgs.concat(testPaths), rootDirectory, token, outChannel);
