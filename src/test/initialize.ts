@@ -89,3 +89,7 @@ export function initializePython() {
     const pythonConfig = vscode.workspace.getConfiguration('python');
     pythonConfig.update('pythonPath', PYTHON_PATH);
 }
+
+export function isMultitrootTest() {
+    return Array.isArray(vscode.workspace.workspaceFolders) && vscode.workspace.workspaceFolders.length > 0;
+}

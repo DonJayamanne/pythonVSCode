@@ -1,4 +1,4 @@
-import { initializePython } from './initialize';
+import { initializePython, isMultitrootTest } from './initialize';
 //
 // PLEASE DO NOT MODIFY / DELETE UNLESS YOU KNOW WHAT YOU ARE DOING
 //
@@ -11,14 +11,15 @@ import { initializePython } from './initialize';
 // to report the results back to the caller. When the tests are finished, return
 // a possible error to the callback or null if none.
 
-let testRunner = require('vscode/lib/testrunner');
-
+const testRunner = require('vscode/lib/testrunner');
+const grep = isMultitrootTest() ? 'Multiroot' : undefined;
 // You can directly control Mocha options by uncommenting the following lines
 // See https://github.com/mochajs/mocha/wiki/Using-mocha-programmatically#set-options for more info
 testRunner.configure({
     ui: 'tdd', 		// the TDD UI is being used in extension.test.ts (suite, test, etc.)
     useColors: true, // colored output from test results
-    timeout: 25000
+    timeout: 25000,
+    grep
 });
 
 initializePython();
