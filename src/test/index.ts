@@ -12,14 +12,16 @@ import { initializePython, isMultitrootTest } from './initialize';
 // a possible error to the callback or null if none.
 
 const testRunner = require('vscode/lib/testrunner');
-const grep = isMultitrootTest() ? 'Multiroot' : undefined;
+const invert = isMultitrootTest() ? undefined : 'invert';
+
 // You can directly control Mocha options by uncommenting the following lines
 // See https://github.com/mochajs/mocha/wiki/Using-mocha-programmatically#set-options for more info
 testRunner.configure({
     ui: 'tdd', 		// the TDD UI is being used in extension.test.ts (suite, test, etc.)
     useColors: true, // colored output from test results
     timeout: 25000,
-    grep
+    grep : 'Multiroot',
+    invert
 });
 
 initializePython();

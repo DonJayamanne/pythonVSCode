@@ -91,5 +91,5 @@ export function initializePython() {
 }
 
 export function isMultitrootTest() {
-    return Array.isArray(vscode.workspace.workspaceFolders) && vscode.workspace.workspaceFolders.length > 0;
+    return Array.isArray(vscode.workspace.workspaceFolders) && vscode.workspace.workspaceFolders.length > 1;
 }
