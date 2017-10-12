@@ -1593,7 +1593,9 @@
     "vscode:prepublish": "tsc -p ./ && webpack",
     "compile": "webpack && tsc -watch -p ./",
     "postinstall": "node ./node_modules/vscode/bin/install",
-    "test": "node ./node_modules/vscode/bin/test && node ./out/test/multiRootTest.js"
+    "test": "node ./node_modules/vscode/bin/test && node ./out/test/multiRootTest.js",
+    "precommit": "node gulpfile.js",
+    "lint": "tslint src/**/*.ts -t verbose"
   },
   "dependencies": {
     "anser": "^1.1.0",
@@ -1641,13 +1643,23 @@
     "babel-core": "^6.14.0",
     "babel-loader": "^6.2.5",
     "babel-preset-es2015": "^6.14.0",
+    "event-stream": "^3.3.4",
+    "gulp": "^3.9.1",
+    "gulp-filter": "^5.0.1",
+    "gulp-typescript": "^3.2.2",
+    "husky": "^0.14.3",
     "ignore-loader": "^0.1.1",
-    "mocha": "^3.2.0",
     "retyped-diff-match-patch-tsd-ambient": "^1.0.0-0",
     "sinon": "^2.3.6",
-    "ts-loader": "^0.8.2",
-    "tslint": "^3.15.1",
-    "typescript": "^2.3.2",
+    "mocha": "^2.3.3",
+    "relative": "^3.0.2",
+    "ts-loader": "^2.3.4",
+    "tslint": "^5.7.0",
+    "tslint-eslint-rules": "^4.1.1",
+    "tslint-microsoft-contrib": "^5.0.1",
+    "typescript": "^2.5.2",
+    "typescript-formatter": "^6.0.0",
+    "vscode": "^1.1.5",
     "webpack": "^1.13.2"
   }
 }

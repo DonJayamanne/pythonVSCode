@@ -82,7 +82,7 @@
 			"outFiles": [
 				"${workspaceRoot}/out/**/*.js"
 			],
-			"preLaunchTask": "npm"
+			"preLaunchTask": "compile"
 		},
 		{
 			"name": "Python",
