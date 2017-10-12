@@ -3,9 +3,9 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import * as child_process from 'child_process';
 import { IS_WINDOWS } from '../../client/common/configSettings';
+import { rootWorkspaceUri, updateSetting } from '../common';
 import { ShebangCodeLensProvider } from '../../client/providers/shebangCodeLensProvider';
-
-import { initialize, IS_TRAVIS, closeActiveWindows } from '../initialize';
+import { closeActiveWindows, initialize, initializeTest, IS_MULTI_ROOT_TEST } from '../initialize';
 import { getFirstNonEmptyLineFromMultilineString } from '../../client/interpreter/helpers';
 
 const autoCompPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'shebang');
@@ -14,19 +14,17 @@ const fileShebangEnv = path.join(autoCompPath, 'shebangEnv.py');
 const fileShebangInvalid = path.join(autoCompPath, 'shebangInvalid.py');
 const filePlain = path.join(autoCompPath, 'plain.py');
 
-var settings = vscode.workspace.getConfiguration('python');
-const origPythonPath = settings.get('pythonPath');
-
 suite('Shebang detection', () => {
     suiteSetup(() => initialize());
-    suiteTeardown(() => vscode.workspace.getConfiguration('python').update('pythonPath', origPythonPath));
-    teardown(async () => {
+    suiteTeardown(async () => {
+        await initialize();
         await closeActiveWindows();
-        await vscode.workspace.getConfiguration('python').update('pythonPath', origPythonPath);
     });
+    setup(() => initializeTest());
 
     test('Shebang available, CodeLens showing', async () => {
-        await settings.update('pythonPath', 'someUnknownInterpreter');
+        const configTarget = IS_MULTI_ROOT_TEST ? vscode.ConfigurationTarget.WorkspaceFolder : vscode.ConfigurationTarget.Workspace;
+        await updateSetting('pythonPath', 'someUnknownInterpreter', rootWorkspaceUri, configTarget);
         const editor = await openFile(fileShebang);
         const codeLenses = await setupCodeLens(editor);
 
@@ -34,12 +32,12 @@ suite('Shebang detection', () => {
         let codeLens = codeLenses[0];
         assert(codeLens.range.isSingleLine, 'Invalid CodeLens Range');
         assert.equal(codeLens.command.command, 'python.setShebangInterpreter');
-
     });
 
     test('Shebang available, CodeLens hiding', async () => {
         const pythonPath = await getFullyQualifiedPathToInterpreter('python');
-        await settings.update('pythonPath', pythonPath);
+        const configTarget = IS_MULTI_ROOT_TEST ? vscode.ConfigurationTarget.WorkspaceFolder : vscode.ConfigurationTarget.Workspace;
+        await updateSetting('pythonPath', pythonPath, rootWorkspaceUri, configTarget);
         const editor = await openFile(fileShebang);
         const codeLenses = await setupCodeLens(editor);
         assert.equal(codeLenses.length, 0, 'CodeLens available although interpreters are equal');
@@ -48,7 +46,8 @@ suite('Shebang detection', () => {
 
     test('Shebang not available (invalid shebang)', async () => {
         const pythonPath = await getFullyQualifiedPathToInterpreter('python');
-        await settings.update('pythonPath', pythonPath);
+        const configTarget = IS_MULTI_ROOT_TEST ? vscode.ConfigurationTarget.WorkspaceFolder : vscode.ConfigurationTarget.Workspace;
+        await updateSetting('pythonPath', pythonPath, rootWorkspaceUri, configTarget);
         const editor = await openFile(fileShebangInvalid);
         const codeLenses = await setupCodeLens(editor);
         assert.equal(codeLenses.length, 0, 'CodeLens available although shebang is invalid');
@@ -56,7 +55,8 @@ suite('Shebang detection', () => {
 
     if (!IS_WINDOWS) {
         test('Shebang available, CodeLens showing with env', async () => {
-            await settings.update('pythonPath', 'p1');
+            const configTarget = IS_MULTI_ROOT_TEST ? vscode.ConfigurationTarget.WorkspaceFolder : vscode.ConfigurationTarget.Workspace;
+            await updateSetting('pythonPath', 'p1', rootWorkspaceUri, configTarget);
             const editor = await openFile(fileShebangEnv);
             const codeLenses = await setupCodeLens(editor);
 
@@ -69,7 +69,8 @@ suite('Shebang detection', () => {
 
         test('Shebang available, CodeLens hiding with env', async () => {
             const pythonPath = await getFullyQualifiedPathToInterpreter('python');
-            await settings.update('pythonPath', pythonPath);
+            const configTarget = IS_MULTI_ROOT_TEST ? vscode.ConfigurationTarget.WorkspaceFolder : vscode.ConfigurationTarget.Workspace;
+            await updateSetting('pythonPath', pythonPath, rootWorkspaceUri, configTarget);
             const editor = await openFile(fileShebangEnv);
             const codeLenses = await setupCodeLens(editor);
             assert.equal(codeLenses.length, 0, 'CodeLens available although interpreters are equal');

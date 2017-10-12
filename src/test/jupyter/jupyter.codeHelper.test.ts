@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { initialize, closeActiveWindows } from './../initialize';
+import { initialize, closeActiveWindows, initializeTest } from './../initialize';
 import { CodeHelper } from '../../client/jupyter/common/codeHelper';
 import { JupyterCodeLensProvider } from '../../client/jupyter/editorIntegration/codeLensProvider';
 
@@ -9,8 +9,7 @@ const FILE_WITH_CELLS = path.join(__dirname, '..', '..', '..', 'src', 'test', 'p
 
 suite('Jupyter Code Helper', () => {
     suiteSetup(() => initialize());
-
-    setup(() => closeActiveWindows());
+    setup(() => initializeTest());
     teardown(() => closeActiveWindows());
     const codeLensProvider = new JupyterCodeLensProvider();
     const codeHelper = new CodeHelper(codeLensProvider);

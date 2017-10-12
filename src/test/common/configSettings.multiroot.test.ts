@@ -1,16 +1,17 @@
 import * as assert from 'assert';
 import * as path from 'path';
 import { ConfigurationTarget, Uri, workspace } from 'vscode';
-import { initialize, closeActiveWindows } from '../initialize';
+import { initialize, closeActiveWindows, initializeTest } from '../initialize';
 import { PythonSettings } from '../../client/common/configSettings';
 
-const multirootPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'multiRootWkspc');
+const multirootPath = path.join(__dirname, '..', '..', '..', 'src', 'testMultiRootWkspc');
 
 suite('Multiroot Config Settings', () => {
     suiteSetup(async () => {
         await initialize();
         await resetSettings();
     });
+    setup(() => initializeTest());
     suiteTeardown(() => closeActiveWindows());
     teardown(async () => {
         await resetSettings();

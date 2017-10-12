@@ -1,11 +1,4 @@
-//
-// Note: This example test is leveraging the Mocha test framework.
-// Please refer to their documentation on https://mochajs.org/ for help.
-// The module \'assert\' provides assertion methods from node
 import * as assert from 'assert';
-
-// You can import and use all API from the \'vscode\' module
-// as well as import your extension to test it
 import * as vscode from 'vscode';
 import * as baseLinter from '../../client/linters/baseLinter';
 import * as pyLint from '../../client/linters/pylint';
@@ -14,16 +7,16 @@ import * as flake8 from '../../client/linters/flake8';
 import * as prospector from '../../client/linters/prospector';
 import * as pydocstyle from '../../client/linters/pydocstyle';
 import * as path from 'path';
-import * as settings from '../../client/common/configSettings';
 import * as fs from 'fs-extra';
-import { initialize, IS_TRAVIS, closeActiveWindows } from '../initialize';
+import { rootWorkspaceUri, updateSetting, PythonSettingKeys } from '../common';
+import { PythonSettings } from '../../client/common/configSettings';
+import { initialize, IS_TRAVIS, closeActiveWindows, IS_MULTI_ROOT_TEST, initializeTest } from '../initialize';
 import { execPythonFile } from '../../client/common/utils';
 import { createDeferred } from '../../client/common/helpers';
 import { Product, SettingToDisableProduct, Linters } from '../../client/common/installer';
 import { EnumEx } from '../../client/common/enumUtils';
 import { MockOutputChannel } from '../mockClasses';
 
-const pythonSettings = settings.PythonSettings.getInstance();
 const pythoFilesPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'linting');
 const flake8ConfigPath = path.join(pythoFilesPath, 'flake8config');
 const pep8ConfigPath = path.join(pythoFilesPath, 'pep8config');
@@ -127,35 +120,30 @@ suite('Linting', () => {
     suiteSetup(async () => {
         pylintFileToLintLines = fs.readFileSync(fileToLint).toString('utf-8').split(/\r?\n/g);
         await initialize();
-        const version = await execPythonFile(pythonSettings.pythonPath, ['--version'], __dirname, true);
+        const version = await execPythonFile(PythonSettings.getInstance().pythonPath, ['--version'], __dirname, true);
         isPython3Deferred.resolve(version.indexOf('3.') >= 0);
     });
-    setup(() => {
-        pythonSettings.linting.lintOnSave = false;
-        pythonSettings.linting.lintOnTextChange = false;
-        pythonSettings.linting.enabled = true;
-        pythonSettings.linting.pylintEnabled = true;
-        pythonSettings.linting.flake8Enabled = true;
-        pythonSettings.linting.pep8Enabled = true;
-        pythonSettings.linting.prospectorEnabled = true;
-        pythonSettings.linting.pydocstyleEnabled = true;
+    setup(async () => {
+        await initializeTest();
+        await resetSettings();
     });
     suiteTeardown(() => closeActiveWindows());
-    teardown(() => {
-        closeActiveWindows();
-        pythonSettings.linting.lintOnSave = false;
-        pythonSettings.linting.lintOnTextChange = false;
-        pythonSettings.linting.enabled = true;
-        pythonSettings.linting.pylintEnabled = true;
-        pythonSettings.linting.flake8Enabled = true;
-        pythonSettings.linting.pep8Enabled = true;
-        pythonSettings.linting.prospectorEnabled = true;
-        pythonSettings.linting.pydocstyleEnabled = true;
+    teardown(async () => {
+        await closeActiveWindows();
+        await resetSettings();
     });
-
-    async function testEnablingDisablingOfLinter(linter: baseLinter.BaseLinter, propertyName: string) {
-        pythonSettings.linting[propertyName] = true;
-
+    async function resetSettings() {
+        await updateSetting('linting.lintOnSave', false, rootWorkspaceUri, vscode.ConfigurationTarget.Workspace);
+        await updateSetting('linting.lintOnTextChange', false, rootWorkspaceUri, vscode.ConfigurationTarget.Workspace);
+        await updateSetting('linting.enabled', true, rootWorkspaceUri, vscode.ConfigurationTarget.Workspace);
+        await updateSetting('linting.pylintEnabled', true, rootWorkspaceUri, vscode.ConfigurationTarget.Workspace);
+        await updateSetting('linting.flake8Enabled', true, rootWorkspaceUri, vscode.ConfigurationTarget.Workspace);
+        await updateSetting('linting.pep8Enabled', true, rootWorkspaceUri, vscode.ConfigurationTarget.Workspace);
+        await updateSetting('linting.prospectorEnabled', true, rootWorkspaceUri, vscode.ConfigurationTarget.Workspace);
+        await updateSetting('linting.pydocstyleEnabled', true, rootWorkspaceUri, vscode.ConfigurationTarget.Workspace);
+    }
+    async function testEnablingDisablingOfLinter(linter: baseLinter.BaseLinter, setting: PythonSettingKeys) {
+        updateSetting(setting, true, rootWorkspaceUri, IS_MULTI_ROOT_TEST ? vscode.ConfigurationTarget.Workspace : vscode.ConfigurationTarget.WorkspaceFolder)
         let cancelToken = new vscode.CancellationTokenSource();
         disableAllButThisLinter(linter.product);
         const document = await vscode.workspace.openTextDocument(fileToLint);
@@ -169,39 +157,40 @@ suite('Linting', () => {
     }
     test('Enable and Disable Pylint', () => {
         let ch = new MockOutputChannel('Lint');
-        testEnablingDisablingOfLinter(new pyLint.Linter(ch), 'pylintEnabled');
+        testEnablingDisablingOfLinter(new pyLint.Linter(ch), 'linting.pylintEnabled');
     });
     test('Enable and Disable Pep8', () => {
         let ch = new MockOutputChannel('Lint');
-        testEnablingDisablingOfLinter(new pep8.Linter(ch), 'pep8Enabled');
+        testEnablingDisablingOfLinter(new pep8.Linter(ch), 'linting.pep8Enabled');
     });
     test('Enable and Disable Flake8', () => {
         let ch = new MockOutputChannel('Lint');
-        testEnablingDisablingOfLinter(new flake8.Linter(ch), 'flake8Enabled');
+        testEnablingDisablingOfLinter(new flake8.Linter(ch), 'linting.flake8Enabled');
     });
     test('Enable and Disable Prospector', () => {
         let ch = new MockOutputChannel('Lint');
-        testEnablingDisablingOfLinter(new prospector.Linter(ch), 'prospectorEnabled');
+        testEnablingDisablingOfLinter(new prospector.Linter(ch), 'linting.prospectorEnabled');
     });
     test('Enable and Disable Pydocstyle', () => {
         let ch = new MockOutputChannel('Lint');
-        testEnablingDisablingOfLinter(new pydocstyle.Linter(ch), 'pydocstyleEnabled');
+        testEnablingDisablingOfLinter(new pydocstyle.Linter(ch), 'linting.pydocstyleEnabled');
     });
 
-    function disableAllButThisLinter(linterToEnable: Product) {
-        EnumEx.getNamesAndValues(Product).map(linter => {
+    async function disableAllButThisLinter(linterToEnable: Product) {
+        const promises = EnumEx.getNamesAndValues(Product).map(async linter => {
             if (Linters.indexOf(linter.value) === -1) {
                 return;
             }
-            var setting = path.extname(SettingToDisableProduct.get(linter.value)).substring(1);
-            pythonSettings.linting[setting] = linterToEnable === linter.value;
+            var setting = SettingToDisableProduct.get(linter.value);
+            return updateSetting(setting as any, true, rootWorkspaceUri, IS_MULTI_ROOT_TEST ? vscode.ConfigurationTarget.Workspace : vscode.ConfigurationTarget.WorkspaceFolder);
         });
+        await Promise.all(promises);
     }
     function testLinterMessages(linter: baseLinter.BaseLinter, outputChannel: MockOutputChannel, pythonFile: string, messagesToBeReceived: baseLinter.ILintMessage[]): Thenable<any> {
 
         let cancelToken = new vscode.CancellationTokenSource();
-        disableAllButThisLinter(linter.product);
-        return vscode.workspace.openTextDocument(pythonFile)
+        return disableAllButThisLinter(linter.product)
+            .then(() => vscode.workspace.openTextDocument(pythonFile))
             .then(document => vscode.window.showTextDocument(document))
             .then(editor => {
                 return linter.lint(editor.document, cancelToken.token);

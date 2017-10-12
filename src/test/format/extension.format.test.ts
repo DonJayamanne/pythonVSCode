@@ -14,7 +14,7 @@ import * as settings from '../../client/common/configSettings';
 import * as fs from 'fs-extra';
 import { EOL } from 'os';
 import { AutoPep8Formatter } from '../../client/formatters/autoPep8Formatter';
-import { initialize, IS_TRAVIS, closeActiveWindows } from '../initialize';
+import { initialize, IS_TRAVIS, closeActiveWindows, initializeTest } from '../initialize';
 import { YapfFormatter } from '../../client/formatters/yapfFormatter';
 import { execPythonFile } from '../../client/common/utils';
 
@@ -47,6 +47,7 @@ suite('Formatting', () => {
             formattedAutoPep8 = formattedResults[1];
         }).then(() => { });
     });
+    setup(() => initializeTest());
     suiteTeardown(() => {
         [autoPep8FileToFormat, autoPep8FileToAutoFormat, yapfFileToFormat, yapfFileToAutoFormat].forEach(file => {
             if (fs.existsSync(file)) {

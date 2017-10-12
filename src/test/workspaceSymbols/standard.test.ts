@@ -1,11 +1,11 @@
 import * as assert from 'assert';
 import * as path from 'path';
 import { CancellationTokenSource, ConfigurationTarget, Uri } from 'vscode';
-import { initialize, closeActiveWindows } from '../initialize';
+import { closeActiveWindows, initialize, initializeTest } from '../initialize';
 import { Generator } from '../../client/workspaceSymbols/generator';
 import { MockOutputChannel } from '../mockClasses';
 import { WorkspaceSymbolProvider } from '../../client/workspaceSymbols/provider';
-import { enableDisableWorkspaceSymbols } from './common';
+import { updateSetting } from './../common';
 import { PythonSettings } from '../../client/common/configSettings';
 
 const symbolFilesPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'symbolFiles');
@@ -13,17 +13,17 @@ const symbolFilesPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 's
 suite('Workspace Symbols', () => {
     suiteSetup(() => initialize());
     suiteTeardown(() => closeActiveWindows());
-    setup(() => PythonSettings.dispose());
+    setup(() => initializeTest());
     teardown(async () => {
         await closeActiveWindows();
-        await enableDisableWorkspaceSymbols(Uri.file(path.join(symbolFilesPath, 'file.py')), false, ConfigurationTarget.Workspace);
+        await updateSetting('workspaceSymbols.enabled', false, Uri.file(path.join(symbolFilesPath, 'file.py')), ConfigurationTarget.Workspace);
     });
 
     test(`symbols should be returned when enabeld and vice versa`, async () => {
         const workspaceUri = Uri.file(path.join(symbolFilesPath, 'file.py'));
         const outputChannel = new MockOutputChannel('Output');
 
-        await enableDisableWorkspaceSymbols(workspaceUri, false, ConfigurationTarget.Workspace);
+        await updateSetting('workspaceSymbols.enabled', false, workspaceUri, ConfigurationTarget.Workspace);
 
         let generator = new Generator(workspaceUri, outputChannel);
         let provider = new WorkspaceSymbolProvider([generator], outputChannel);
@@ -31,7 +31,7 @@ suite('Workspace Symbols', () => {
         assert.equal(symbols.length, 0, 'Symbols returned even when workspace symbols are turned off');
         generator.dispose();
 
-        await enableDisableWorkspaceSymbols(workspaceUri, true, ConfigurationTarget.Workspace);
+        await updateSetting('workspaceSymbols.enabled', true, workspaceUri, ConfigurationTarget.Workspace);
 
         generator = new Generator(workspaceUri, outputChannel);
         provider = new WorkspaceSymbolProvider([generator], outputChannel);
@@ -42,7 +42,7 @@ suite('Workspace Symbols', () => {
         const workspaceUri = Uri.file(path.join(symbolFilesPath, 'file.py'));
         const outputChannel = new MockOutputChannel('Output');
 
-        await enableDisableWorkspaceSymbols(workspaceUri, true, ConfigurationTarget.Workspace);
+        await updateSetting('workspaceSymbols.enabled', true, workspaceUri, ConfigurationTarget.Workspace);
 
         const generators = [new Generator(workspaceUri, outputChannel)];
         const provider = new WorkspaceSymbolProvider(generators, outputChannel);

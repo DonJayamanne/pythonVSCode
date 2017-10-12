@@ -1,9 +1,8 @@
+import { PythonSettings } from '../../client/common/configSettings';
 import * as assert from 'assert';
 import * as child_process from 'child_process';
-import * as settings from '../../client/common/configSettings';
 import * as path from 'path';
-import * as utils from '../../client/common/utils';
-import { initialize } from '../initialize';
+import { closeActiveWindows, initialize, initializeTest } from '../initialize';
 import { MockStatusBarItem } from '../mockClasses';
 import { MockInterpreterVersionProvider } from './mocks';
 import { InterpreterDisplay } from '../../client/interpreter/display';
@@ -11,17 +10,15 @@ import { MockProvider, MockVirtualEnv } from './mocks';
 import { EOL } from 'os';
 import { VirtualEnvironmentManager } from '../../client/interpreter/virtualEnvs';
 import { getFirstNonEmptyLineFromMultilineString } from '../../client/interpreter/helpers';
-
-let pythonSettings = settings.PythonSettings.getInstance();
-let originalPythonPath;
+import { rootWorkspaceUri, updateSetting } from '../common';
+import { ConfigurationTarget } from 'vscode';
 
 suite('Interpreters Display', () => {
-    suiteSetup(() => {
-        originalPythonPath = pythonSettings.pythonPath;
-        return initialize();
-    });
-    teardown(() => {
-        pythonSettings.pythonPath = originalPythonPath;
+    suiteSetup(() => initialize());
+    setup(() => initializeTest());
+    teardown(async () => {
+        await initialize();
+        await closeActiveWindows();
     });
 
     test('Must have command name', () => {
@@ -59,7 +56,8 @@ suite('Interpreters Display', () => {
         const displayNameProvider = new MockInterpreterVersionProvider(displayName, true);
         const display = new InterpreterDisplay(statusBar, provider, new VirtualEnvironmentManager([]), displayNameProvider);
         // Change interpreter to an invalid value
-        const pythonPath = pythonSettings.pythonPath = 'c:/some/unknonw/Python Interpreter.exe';
+        const pythonPath = 'c:/some/unknonw/Python Interpreter.exe';
+        await updateSetting('pythonPath', pythonPath, rootWorkspaceUri, ConfigurationTarget.Workspace);
         await display.refresh();
 
         const defaultDisplayName = `${path.basename(pythonPath)} [Environment]`;
@@ -67,10 +65,10 @@ suite('Interpreters Display', () => {
     });
     test('Must get display name from a list of interpreters', async () => {
         const pythonPath = await new Promise<string>(resolve => {
-            child_process.execFile(pythonSettings.pythonPath, ["-c", "import sys;print(sys.executable)"], (_, stdout) => {
+            child_process.execFile(PythonSettings.getInstance().pythonPath, ["-c", "import sys;print(sys.executable)"], (_, stdout) => {
                 resolve(getFirstNonEmptyLineFromMultilineString(stdout));
             });
-        }).then(value => value.length === 0 ? pythonSettings.pythonPath : value);
+        }).then(value => value.length === 0 ? PythonSettings.getInstance().pythonPath : value);
         const statusBar = new MockStatusBarItem();
         const interpreters = [
             { displayName: 'One', path: 'c:/path1/one.exe', type: 'One 1' },
@@ -87,10 +85,10 @@ suite('Interpreters Display', () => {
     });
     test('Must suffix tooltip with the companyDisplayName of interpreter', async () => {
         const pythonPath = await new Promise<string>(resolve => {
-            child_process.execFile(pythonSettings.pythonPath, ["-c", "import sys;print(sys.executable)"], (_, stdout) => {
+            child_process.execFile(PythonSettings.getInstance().pythonPath, ["-c", "import sys;print(sys.executable)"], (_, stdout) => {
                 resolve(getFirstNonEmptyLineFromMultilineString(stdout));
             });
-        }).then(value => value.length === 0 ? pythonSettings.pythonPath : value);
+        }).then(value => value.length === 0 ? PythonSettings.getInstance().pythonPath : value);
 
         const statusBar = new MockStatusBarItem();
         const interpreters = [
@@ -117,19 +115,10 @@ suite('Interpreters Display', () => {
         const displayNameProvider = new MockInterpreterVersionProvider('', true);
         const display = new InterpreterDisplay(statusBar, provider, new VirtualEnvironmentManager([]), displayNameProvider);
         // Change interpreter to an invalid value
-        pythonSettings.pythonPath = 'c:/some/unknonw/Python Interpreter.exe';
+        const pythonPath = 'c:/some/unknonw/Python Interpreter.exe';
+        await updateSetting('pythonPath', pythonPath, rootWorkspaceUri, ConfigurationTarget.Workspace);
         await display.refresh();
 
         assert.equal(statusBar.text, '$(alert) Select Python Environment', 'Incorrect display name');
     });
 });
-
-async function getInterpreterDisplayName(pythonPath: string, defaultValue: string) {
-    return utils.execPythonFile(pythonPath, ['--version'], __dirname, true)
-        .then(version => {
-            version = version.split(/\r?\n/g).map(line => line.trim()).filter(line => line.length > 0).join('');
-            return version.length > 0 ? version : defaultValue;
-        })
-        .catch(() => defaultValue);
-}
-

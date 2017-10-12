@@ -14,7 +14,7 @@ import * as settings from '../../client/common/configSettings';
 import * as fs from 'fs';
 import { EOL } from 'os';
 import { PythonImportSortProvider } from '../../client/providers/importSortProvider';
-import { initialize, IS_TRAVIS, closeActiveWindows } from '../initialize';
+import { initialize, IS_TRAVIS, closeActiveWindows, initializeTest } from '../initialize';
 
 const pythonSettings = settings.PythonSettings.getInstance();
 
@@ -29,6 +29,7 @@ const extensionDir = path.join(__dirname, '..', '..', '..');
 
 suite('Sorting', () => {
     suiteSetup(() => initialize());
+    setup(() => initializeTest());
     suiteTeardown(() => {
         fs.writeFileSync(fileToFormatWithConfig, fs.readFileSync(originalFileToFormatWithConfig));
         fs.writeFileSync(fileToFormatWithConfig1, fs.readFileSync(originalFileToFormatWithConfig1));

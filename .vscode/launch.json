@@ -73,7 +73,7 @@
 			"request": "launch",
 			"runtimeExecutable": "${execPath}",
 			"args": [
-				"${workspaceRoot}/src/test/multiRootWkspc/multi.code-workspace",
+				"${workspaceRoot}/src/testMultiRootWkspc/multi.code-workspace",
 				"--extensionDevelopmentPath=${workspaceRoot}",
 				"--extensionTestsPath=${workspaceRoot}/out/test"
 			],

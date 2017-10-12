@@ -11,7 +11,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as settings from '../../client/common/configSettings';
 import { execPythonFile } from '../../client/common/utils';
-import { initialize, closeActiveWindows } from '../initialize';
+import { initialize, closeActiveWindows, initializeTest } from '../initialize';
 
 const pythonSettings = settings.PythonSettings.getInstance();
 const autoCompPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'autocomp');
@@ -24,6 +24,7 @@ suite('Autocomplete PEP 526', () => {
         const version = await execPythonFile(pythonSettings.pythonPath, ['--version'], __dirname, true);
         isPython3 = Promise.resolve(version.indexOf('3.') >= 0);
     });
+    setup(() => initializeTest());
     suiteTeardown(() => closeActiveWindows());
     teardown(() => closeActiveWindows());
 

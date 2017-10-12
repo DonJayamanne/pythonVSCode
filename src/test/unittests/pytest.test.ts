@@ -3,10 +3,11 @@ import * as vscode from 'vscode';
 import * as pytest from '../../client/unittests/pytest/main';
 import * as path from 'path';
 import * as configSettings from '../../client/common/configSettings';
-import { initialize } from './../initialize';
+import { initialize, initializeTest, IS_MULTI_ROOT_TEST } from './../initialize';
 import { TestsToRun, TestFile } from '../../client/unittests/common/contracts';
 import { TestResultDisplay } from '../../client/unittests/display/main';
 import { MockOutputChannel } from './../mockClasses';
+import { rootWorkspaceUri, updateSetting } from '../common';
 
 const pythonSettings = configSettings.PythonSettings.getInstance();
 const UNITTEST_TEST_FILES_PATH = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'standard');
@@ -15,16 +16,22 @@ const UNITTEST_TEST_FILES_PATH_WITH_CONFIGS = path.join(__dirname, '..', '..', '
 const unitTestTestFilesCwdPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'cwd', 'src');
 
 suite('Unit Tests (PyTest)', () => {
-    suiteSetup(() => initialize());
+    const configTarget = IS_MULTI_ROOT_TEST ? vscode.ConfigurationTarget.WorkspaceFolder : vscode.ConfigurationTarget.Workspace;
+    suiteSetup(async () => {
+        await initialize();
+        await updateSetting('unitTest.pyTestArgs', [], rootWorkspaceUri, configTarget);
+    });
     setup(() => {
         rootDirectory = UNITTEST_TEST_FILES_PATH;
         outChannel = new MockOutputChannel('Python Test Log');
         testResultDisplay = new TestResultDisplay(outChannel);
+        return initializeTest();
     });
     teardown(() => {
         outChannel.dispose();
         testManager.dispose();
         testResultDisplay.dispose();
+        return updateSetting('unitTest.pyTestArgs', [], rootWorkspaceUri, configTarget);
     });
     function createTestManager(rootDir: string = rootDirectory) {
         testManager = new pytest.TestManager(rootDir, outChannel);
@@ -35,8 +42,6 @@ suite('Unit Tests (PyTest)', () => {
     let outChannel: vscode.OutputChannel;
 
     test('Discover Tests (single test file)', async () => {
-        pythonSettings.unitTest.nosetestArgs = [
-        ];
         testManager = new pytest.TestManager(UNITTEST_SINGLE_TEST_FILE_PATH, outChannel);
         const tests = await testManager.discoverTests(true, true);
         assert.equal(tests.testFiles.length, 2, 'Incorrect number of test files');
@@ -47,9 +52,7 @@ suite('Unit Tests (PyTest)', () => {
     });
 
     test('Discover Tests (pattern = test_)', async () => {
-        pythonSettings.unitTest.pyTestArgs = [
-            '-k=test_'
-        ];
+        await updateSetting('unitTest.pyTestArgs', ['-k=test_'], rootWorkspaceUri, configTarget);
         createTestManager();
         const tests = await testManager.discoverTests(true, true);
         assert.equal(tests.testFiles.length, 6, 'Incorrect number of test files');
@@ -64,9 +67,7 @@ suite('Unit Tests (PyTest)', () => {
     });
 
     test('Discover Tests (pattern = _test)', async () => {
-        pythonSettings.unitTest.pyTestArgs = [
-            '-k=_test.py'
-        ];
+        await updateSetting('unitTest.pyTestArgs', ['-k=_test.py'], rootWorkspaceUri, configTarget);
         createTestManager();
         const tests = await testManager.discoverTests(true, true);
         assert.equal(tests.testFiles.length, 1, 'Incorrect number of test files');
@@ -89,9 +90,7 @@ suite('Unit Tests (PyTest)', () => {
     });
 
     test('Run Tests', async () => {
-        pythonSettings.unitTest.pyTestArgs = [
-            '-k=test_'
-        ];
+        await updateSetting('unitTest.pyTestArgs', ['-k=test_'], rootWorkspaceUri, configTarget);
         createTestManager();
         const results = await testManager.runTest();
         assert.equal(results.summary.errors, 0, 'Errors');
@@ -101,11 +100,9 @@ suite('Unit Tests (PyTest)', () => {
     });
 
     test('Run Failed Tests', async () => {
-        pythonSettings.unitTest.pyTestArgs = [
-            '-k=test_'
-        ];
+        await updateSetting('unitTest.pyTestArgs', ['-k=test_'], rootWorkspaceUri, configTarget);
         createTestManager();
-        let results = await testManager.runTest()
+        let results = await testManager.runTest();
         assert.equal(results.summary.errors, 0, 'Errors');
         assert.equal(results.summary.failures, 9, 'Failures');
         assert.equal(results.summary.passed, 17, 'Passed');
@@ -119,9 +116,7 @@ suite('Unit Tests (PyTest)', () => {
     });
 
     test('Run Specific Test File', async () => {
-        pythonSettings.unitTest.pyTestArgs = [
-            '-k=test_'
-        ];
+        await updateSetting('unitTest.pyTestArgs', ['-k=test_'], rootWorkspaceUri, configTarget);
         createTestManager();
         await testManager.discoverTests(true, true);
         const testFile: TestFile = {
@@ -142,13 +137,11 @@ suite('Unit Tests (PyTest)', () => {
     });
 
     test('Run Specific Test Suite', async () => {
-        pythonSettings.unitTest.pyTestArgs = [
-            '-k=test_'
-        ];
+        await updateSetting('unitTest.pyTestArgs', ['-k=test_'], rootWorkspaceUri, configTarget);
         createTestManager();
         const tests = await testManager.discoverTests(true, true);
         const testSuite: TestsToRun = { testFile: [], testFolder: [], testFunction: [], testSuite: [tests.testSuits[0].testSuite] };
-        const results = await testManager.runTest(testSuite)
+        const results = await testManager.runTest(testSuite);
         assert.equal(results.summary.errors, 0, 'Errors');
         assert.equal(results.summary.failures, 1, 'Failures');
         assert.equal(results.summary.passed, 1, 'Passed');
@@ -156,9 +149,7 @@ suite('Unit Tests (PyTest)', () => {
     });
 
     test('Run Specific Test Function', async () => {
-        pythonSettings.unitTest.pyTestArgs = [
-            '-k=test_'
-        ];
+        await updateSetting('unitTest.pyTestArgs', ['-k=test_'], rootWorkspaceUri, configTarget);
         createTestManager();
         const tests = await testManager.discoverTests(true, true);
         const testFn: TestsToRun = { testFile: [], testFolder: [], testFunction: [tests.testFunctions[0].testFunction], testSuite: [] };
@@ -171,10 +162,7 @@ suite('Unit Tests (PyTest)', () => {
 
 
     test('Setting cwd should return tests', async () => {
-        pythonSettings.unitTest.unittestArgs = [
-            '-s=./tests',
-            '-p=test*.py'
-        ];
+        await updateSetting('unitTest.pyTestArgs', ['-s=./tests', '-p=test*.py'], rootWorkspaceUri, configTarget);
         createTestManager(unitTestTestFilesCwdPath);
 
         const tests = await testManager.discoverTests(true, true);

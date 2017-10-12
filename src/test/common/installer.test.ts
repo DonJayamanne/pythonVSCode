@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { closeActiveWindows, IS_TRAVIS } from './../initialize';
+import { closeActiveWindows, IS_TRAVIS, initializeTest } from './../initialize';
 import { MockOutputChannel } from './../mockClasses';
 import { Installer, Product } from '../../client/common/installer';
 import { EnumEx } from '../../client/common/enumUtils';
@@ -15,6 +15,7 @@ suite('Installer', () => {
         outputChannel = new MockOutputChannel('Installer');
         installer = new Installer(outputChannel);
     });
+    setup(() => initializeTest());
     suiteTeardown(() => closeActiveWindows());
     teardown(() => closeActiveWindows());
 

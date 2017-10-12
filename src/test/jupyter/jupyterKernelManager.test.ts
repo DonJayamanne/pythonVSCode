@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { MockOutputChannel } from './mocks';
-import { initialize } from './../initialize';
+import { initialize, initializeTest } from './../initialize';
 import { JupyterClientAdapter } from '../../client/jupyter/jupyter_client/main';
 import { KernelManagerImpl } from '../../client/jupyter/kernel-manager';
 
@@ -17,6 +17,7 @@ suite('Kernel Manager', () => {
         disposables.push(jupyter);
         // Hack hack hack hack hack :)
         cmds.registerCommand = function () { };
+        return initializeTest();
     });
     teardown(() => {
         process.env['PYTHON_DONJAYAMANNE_TEST'] = '1';
