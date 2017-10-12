@@ -16,6 +16,5 @@
 	"python.formatting.formatOnSave": false,
 	"python.unitTest.promptToConfigure": false,
 	"python.workspaceSymbols.enabled": false,
-	"python.pythonPath": "/Users/donjayamanne/Projects/PythonEnvs/p27/bin/python",
 	"python.formatting.provider": "yapf"
 }
