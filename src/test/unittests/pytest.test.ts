@@ -162,7 +162,7 @@ suite('Unit Tests (PyTest)', () => {
 
 
     test('Setting cwd should return tests', async () => {
-        await updateSetting('unitTest.pyTestArgs', ['-s=./tests', '-p=test*.py'], rootWorkspaceUri, configTarget);
+        await updateSetting('unitTest.pyTestArgs', ['-k=test_'], rootWorkspaceUri, configTarget);
         createTestManager(unitTestTestFilesCwdPath);
 
         const tests = await testManager.discoverTests(true, true);
