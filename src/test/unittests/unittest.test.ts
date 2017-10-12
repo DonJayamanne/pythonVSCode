@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import * as path from 'path';
-import * as configSettings from '../../client/common/configSettings';
+import * as fs from 'fs-extra';
 import * as unittest from '../../client/unittests/unittest/main';
 import { initialize, initializeTest, IS_MULTI_ROOT_TEST } from './../initialize';
 import { TestsToRun } from '../../client/unittests/common/contracts';
@@ -28,10 +28,11 @@ suite('Unit Tests (unittest)', () => {
         await initialize();
         await updateSetting('unitTest.unittestArgs', defaultUnitTestArgs, rootWorkspaceUri, configTarget);
     });
-    setup(() => {
+    setup(async () => {
         outChannel = new MockOutputChannel('Python Test Log');
         testResultDisplay = new TestResultDisplay(outChannel);
-        return initializeTest();
+        await fs.remove(path.join(UNITTEST_TEST_FILES_PATH, '.cache')).catch(() => undefined);
+        await initializeTest();
     });
     teardown(() => {
         outChannel.dispose();
