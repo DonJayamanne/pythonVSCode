@@ -56,7 +56,7 @@ suite('Interpreters Display', () => {
         const displayNameProvider = new MockInterpreterVersionProvider(displayName, true);
         const display = new InterpreterDisplay(statusBar, provider, new VirtualEnvironmentManager([]), displayNameProvider);
         // Change interpreter to an invalid value
-        const pythonPath = 'c:/some/unknonw/Python Interpreter.exe';
+        const pythonPath = 'UnknownInterpreter';
         await updateSetting('pythonPath', pythonPath, rootWorkspaceUri, ConfigurationTarget.Workspace);
         await display.refresh();
 
@@ -115,7 +115,7 @@ suite('Interpreters Display', () => {
         const displayNameProvider = new MockInterpreterVersionProvider('', true);
         const display = new InterpreterDisplay(statusBar, provider, new VirtualEnvironmentManager([]), displayNameProvider);
         // Change interpreter to an invalid value
-        const pythonPath = 'c:/some/unknonw/Python Interpreter.exe';
+        const pythonPath = 'UnknownInterpreter';
         await updateSetting('pythonPath', pythonPath, rootWorkspaceUri, ConfigurationTarget.Workspace);
         await display.refresh();
 
