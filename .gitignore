@@ -4,7 +4,9 @@ node_modules
 *.pyc
 .vscode/.ropeproject/**
 src/test/.vscode/**
+**/.vscode/tags
 **/testFiles/**/.cache/**
 *.noseids
 .vscode-test
 __pycache__
+npm-debug.log

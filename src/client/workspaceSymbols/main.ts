@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { Generator } from './generator';
-import { Product, Installer } from '../common/installer';
+import { Installer, InstallerResponse, Product } from '../common/installer';
 import { PythonSettings } from '../common/configSettings';
 import { fsExistsAsync } from '../common/utils';
 import { isNotInstalledError } from '../common/helpers';
@@ -52,11 +52,6 @@ export class WorkspaceSymbols implements vscode.Disposable {
     dispose() {
         this.disposables.forEach(d => d.dispose());
     }
-    disableDocumentLanguageProvider(): Thenable<any> {
-        const pythonConfig = vscode.workspace.getConfiguration('python');
-        return pythonConfig.update('python.workspaceSymbols.enabled', false);
-
-    }
     buildWorkspaceSymbols(rebuild: boolean = true, token?: vscode.CancellationToken): Promise<any> {
         if (!pythonSettings.workspaceSymbols.enabled || (token && token.isCancellationRequested)) {
             return Promise.resolve([]);
@@ -81,23 +76,15 @@ export class WorkspaceSymbols implements vscode.Disposable {
                 if (!token || token.isCancellationRequested) {
                     return;
                 }
-                return new Promise<any>((resolve, reject) => {
-                    vscode.window.showErrorMessage('CTags needs to be installed to get support for Python workspace symbols',
-                        'Install', `Don't ask again`).then(item => {
-                            switch (item) {
-                                case 'Install': {
-                                    this.installer.install(Product.ctags).then(() => {
-                                        return this.buildWorkspaceSymbols(rebuild, token);
-                                    }).catch(reason => reject(reason));
-                                    break;
-                                }
-                                case `Don't ask again`: {
-                                    this.disableDocumentLanguageProvider().then(() => resolve(), reason => reject(reason));
-                                    break;
-                                }
-                            }
-                        });
-                });
+                return this.installer.promptToInstall(Product.ctags)
+                    .then(result => {
+                        if (!token || token.isCancellationRequested) {
+                            return;
+                        }
+                        if (result === InstallerResponse.Installed) {
+                            return this.buildWorkspaceSymbols(rebuild, token);
+                        }
+                    });
             });
         });
     }

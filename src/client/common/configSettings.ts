@@ -146,6 +146,12 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
 
         this.initializeSettings();
     }
+    public static dispose() {
+        if (!IS_TEST_EXECUTION) {
+            throw new Error('Dispose can only be called from unit tests');
+        }
+        PythonSettings.pythonSettings.clear();
+    }
     public static getInstance(resource?: Uri): PythonSettings {
         const workspaceFolder = resource ? vscode.workspace.getWorkspaceFolder(resource) : undefined;
         let workspaceFolderUri: Uri = workspaceFolder ? workspaceFolder.uri : undefined;
@@ -160,15 +166,15 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         return PythonSettings.pythonSettings.get(workspaceFolderKey);
     }
     private initializeSettings() {
-        const systemVariables: SystemVariables = new SystemVariables();
-        const workspaceRoot = (IS_TEST_EXECUTION || !this.workspaceRoot) ? __dirname : this.workspaceRoot.fsPath;
+        const workspaceRoot = this.workspaceRoot.fsPath;
+        const systemVariables: SystemVariables = new SystemVariables(this.workspaceRoot ? this.workspaceRoot.fsPath : undefined);
         const pythonSettings = vscode.workspace.getConfiguration('python', this.workspaceRoot);
         this.pythonPath = systemVariables.resolveAny(pythonSettings.get<string>('pythonPath'))!;
-        this.pythonPath = getAbsolutePath(this.pythonPath, IS_TEST_EXECUTION ? __dirname : workspaceRoot);
+        this.pythonPath = getAbsolutePath(this.pythonPath, workspaceRoot);
         this.venvPath = systemVariables.resolveAny(pythonSettings.get<string>('venvPath'))!;
         this.jediPath = systemVariables.resolveAny(pythonSettings.get<string>('jediPath'))!;
         if (typeof this.jediPath === 'string' && this.jediPath.length > 0) {
-            this.jediPath = getAbsolutePath(systemVariables.resolveAny(this.jediPath), IS_TEST_EXECUTION ? __dirname : workspaceRoot);
+            this.jediPath = getAbsolutePath(systemVariables.resolveAny(this.jediPath), workspaceRoot);
         }
         else {
             this.jediPath = '';

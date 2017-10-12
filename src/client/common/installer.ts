@@ -1,9 +1,10 @@
+import { error } from './logger';
 import * as vscode from 'vscode';
 import * as settings from './configSettings';
 import * as os from 'os';
+import { commands, ConfigurationTarget, Disposable, OutputChannel, Terminal, Uri, window, workspace } from 'vscode';
 import { isNotInstalledError } from './helpers';
 import { execPythonFile, getFullyQualifiedPythonInterpreterPath } from './utils';
-import { Documentation } from './constants';
 
 export enum Product {
     pytest,
@@ -111,6 +112,9 @@ SettingToDisableProduct.set(Product.pydocstyle, 'linting.pydocstyleEnabled');
 SettingToDisableProduct.set(Product.pylint, 'linting.pylintEnabled');
 SettingToDisableProduct.set(Product.pytest, 'unitTest.pyTestEnabled');
 
+const ProductInstallationPrompt = new Map<Product, string>();
+ProductInstallationPrompt.set(Product.ctags, 'Install CTags to enable Python workspace symbols');
+
 enum ProductType {
     Linter,
     Formatter,
@@ -142,6 +146,11 @@ ProductTypes.set(Product.autopep8, ProductType.Formatter);
 ProductTypes.set(Product.yapf, ProductType.Formatter);
 ProductTypes.set(Product.rope, ProductType.RefactoringLibrary);
 
+export enum InstallerResponse {
+    Installed,
+    Disabled,
+    Ignore
+}
 export class Installer implements vscode.Disposable {
     private static terminal: vscode.Terminal | undefined | null;
     private disposables: vscode.Disposable[] = [];
@@ -155,12 +164,14 @@ export class Installer implements vscode.Disposable {
     public dispose() {
         this.disposables.forEach(d => d.dispose());
     }
-    public shouldDisplayPrompt(product: Product) {
+    private shouldDisplayPrompt(product: Product) {
         const productName = ProductNames.get(product)!;
-        return settings.PythonSettings.getInstance().disablePromptForFeatures.indexOf(productName) === -1;
+        const pythonConfig = workspace.getConfiguration('python');
+        const disablePromptForFeatures = pythonConfig.get('disablePromptForFeatures', [] as string[]);
+        return disablePromptForFeatures.indexOf(productName) === -1;
     }
 
-    async promptToInstall(product: Product) {
+    public async promptToInstall(product: Product, resource?: Uri): Promise<InstallerResponse> {
         const productType = ProductTypes.get(product)!;
         const productTypeName = ProductTypeNames.get(productType);
         const productName = ProductNames.get(product)!;
@@ -173,10 +184,10 @@ export class Installer implements vscode.Disposable {
             else {
                 console.warn(message);
             }
-            return;
+            return InstallerResponse.Ignore;
         }
 
-        const installOption = 'Install ' + productName;
+        const installOption = ProductInstallationPrompt.has(product) ? ProductInstallationPrompt.get(product) : 'Install ' + productName;
         const disableOption = 'Disable ' + productTypeName;
         const dontShowAgain = `Don't show this prompt again`;
         const alternateFormatter = product === Product.autopep8 ? 'yapf' : 'autopep8';
@@ -189,46 +200,53 @@ export class Installer implements vscode.Disposable {
         if (SettingToDisableProduct.has(product)) {
             options.push(...[disableOption, dontShowAgain]);
         }
-        return vscode.window.showErrorMessage(`${productTypeName} ${productName} is not installed`, ...options).then(item => {
-            switch (item) {
-                case installOption: {
-                    return this.install(product);
+        const item = await window.showErrorMessage(`${productTypeName} ${productName} is not installed`, ...options);
+        switch (item) {
+            case installOption: {
+                return this.install(product, resource);
+            }
+            case disableOption: {
+                if (Linters.indexOf(product) >= 0) {
+                    return this.disableLinter(product, resource).then(() => InstallerResponse.Disabled);
                 }
-                case disableOption: {
-                    if (Linters.indexOf(product) >= 0) {
-                        return disableLinter(product);
-                    }
-                    else {
-                        const pythonConfig = vscode.workspace.getConfiguration('python');
-                        const settingToDisable = SettingToDisableProduct.get(product)!;
-                        return pythonConfig.update(settingToDisable, false);
-                    }
-                }
-                case useOtherFormatter: {
-                    const pythonConfig = vscode.workspace.getConfiguration('python');
-                    return pythonConfig.update('formatting.provider', alternateFormatter);
-                }
-                case dontShowAgain: {
-                    const pythonConfig = vscode.workspace.getConfiguration('python');
-                    const features = pythonConfig.get('disablePromptForFeatures', [] as string[]);
-                    features.push(productName);
-                    return pythonConfig.update('disablePromptForFeatures', features, true);
-                }
-                case 'Help': {
-                    return Promise.resolve();
+                else {
+                    const settingToDisable = SettingToDisableProduct.get(product)!;
+                    return this.updateSetting(settingToDisable, false, resource).then(() => InstallerResponse.Disabled);
                 }
             }
-        });
+            case useOtherFormatter: {
+                return this.updateSetting('formatting.provider', alternateFormatter, resource)
+                    .then(() => InstallerResponse.Installed);
+            }
+            case dontShowAgain: {
+                const pythonConfig = workspace.getConfiguration('python');
+                const features = pythonConfig.get('disablePromptForFeatures', [] as string[]);
+                features.push(productName);
+                return pythonConfig.update('disablePromptForFeatures', features, true).then(() => InstallerResponse.Ignore);
+            }
+            default: {
+                throw new Error('Invalid selection');
+            }
+        }
     }
-
-    install(product: Product): Promise<any> {
+    public async install(product: Product, resource?: Uri): Promise<InstallerResponse> {
         if (!this.outputChannel && !Installer.terminal) {
-            Installer.terminal = vscode.window.createTerminal('Python Installer');
+            Installer.terminal = window.createTerminal('Python Installer');
         }
 
-        if (product === Product.ctags && os.platform() === 'win32') {
-            vscode.commands.executeCommand('python.displayHelp', Documentation.Workspace.InstallOnWindows);
-            return Promise.resolve();
+        if (product === Product.ctags && settings.IS_WINDOWS) {
+            if (this.outputChannel) {
+                this.outputChannel.appendLine('Install Universal Ctags Win32 to enable support for Workspace Symbols');
+                this.outputChannel.appendLine('Download the CTags binary from the Universal CTags site.');
+                this.outputChannel.appendLine('Option 1: Extract ctags.exe from the downloaded zip to any folder within your PATH so that Visual Studio Code can run it.');
+                this.outputChannel.appendLine('Option 2: Extract to any folder and add the path to this folder to the command setting.');
+                this.outputChannel.appendLine('Option 3: Extract to any folder and define that path in the python.workspaceSymbols.ctagsPath setting of your user settings file (settings.json).');
+                this.outputChannel.show();
+            }
+            else {
+                window.showInformationMessage('Install Universal Ctags and set it in your path or define the path in your python.workspaceSymbols.ctagsPath settings');
+            }
+            return InstallerResponse.Ignore;
         }
 
         let installArgs = ProductInstallScripts.get(product)!;
@@ -241,19 +259,19 @@ export class Installer implements vscode.Disposable {
                 installArgs.splice(2, 0, '--proxy');
             }
         }
+        let installationPromise: Promise<any>;
         if (this.outputChannel && installArgs[0] === '-m') {
             // Errors are just displayed to the user
             this.outputChannel.show();
-            return execPythonFile(settings.PythonSettings.getInstance().pythonPath, installArgs, vscode.workspace.rootPath!, true, (data) => {
-                this.outputChannel!.append(data);
-            });
+            installationPromise = execPythonFile(settings.PythonSettings.getInstance(resource).pythonPath,
+                installArgs, getCwdForInstallScript(resource), true, (data) => { this.outputChannel!.append(data); });
         }
         else {
             // When using terminal get the fully qualitified path
             // Cuz people may launch vs code from terminal when they have activated the appropriate virtual env
             // Problem is terminal doesn't use the currently activated virtual env
             // Must have something to do with the process being launched in the terminal
-            return getFullyQualifiedPythonInterpreterPath()
+            installationPromise = getFullyQualifiedPythonInterpreterPath()
                 .then(pythonPath => {
                     let installScript = installArgs.join(' ');
 
@@ -269,42 +287,68 @@ export class Installer implements vscode.Disposable {
                     Installer.terminal!.show(false);
                 });
         }
+
+        return installationPromise
+            .then(() => this.isInstalled(product))
+            .then(isInstalled => isInstalled ? InstallerResponse.Installed : InstallerResponse.Ignore);
     }
 
-    isInstalled(product: Product): Promise<boolean | undefined> {
-        return isProductInstalled(product);
+    public isInstalled(product: Product, resource?: Uri): Promise<boolean | undefined> {
+        return isProductInstalled(product, resource);
     }
 
-    uninstall(product: Product): Promise<any> {
-        return uninstallproduct(product);
+    public uninstall(product: Product, resource?: Uri): Promise<any> {
+        return uninstallproduct(product, resource);
+    }
+    public disableLinter(product: Product, resource: Uri) {
+        if (resource && !workspace.getWorkspaceFolder(resource)) {
+            const settingToDisable = SettingToDisableProduct.get(product)!;
+            const pythonConfig = workspace.getConfiguration('python', resource);
+            return pythonConfig.update(settingToDisable, false, ConfigurationTarget.Workspace);
+        }
+        else {
+            const pythonConfig = workspace.getConfiguration('python');
+            return pythonConfig.update('linting.enabledWithoutWorkspace', false, true);
+        }
+    }
+    private updateSetting(setting: string, value: any, resource?: Uri) {
+        if (resource && !workspace.getWorkspaceFolder(resource)) {
+            const pythonConfig = workspace.getConfiguration('python', resource);
+            return pythonConfig.update(setting, value, ConfigurationTarget.Workspace);
+        }
+        else {
+            const pythonConfig = workspace.getConfiguration('python');
+            return pythonConfig.update(setting, value, true);
+        }
     }
 }
 
-export function disableLinter(product: Product, global?: boolean) {
-    const pythonConfig = vscode.workspace.getConfiguration('python');
-    const settingToDisable = SettingToDisableProduct.get(product)!;
-    if (vscode.workspace.rootPath) {
-        return pythonConfig.update(settingToDisable, false, global);
+function getCwdForInstallScript(resource?: Uri) {
+    const workspaceFolder = resource ? workspace.getWorkspaceFolder(resource) : undefined;
+    if (workspaceFolder) {
+        return workspaceFolder.uri.fsPath;
     }
-    else {
-        return pythonConfig.update('linting.enabledWithoutWorkspace', false, true);
+    if (Array.isArray(workspace.workspaceFolders) && workspace.workspaceFolders.length > 0) {
+        return workspace.workspaceFolders[0].uri.fsPath;
     }
+    return __dirname;
 }
 
-async function isProductInstalled(product: Product): Promise<boolean | undefined> {
+async function isProductInstalled(product: Product, resource?: Uri): Promise<boolean | undefined> {
     if (!ProductExecutableAndArgs.has(product)) {
         return;
     }
     const prodExec = ProductExecutableAndArgs.get(product)!;
-    return execPythonFile(prodExec.executable, prodExec.args.concat(['--version']), vscode.workspace.rootPath!, false)
-        .then(() => {
-            return true;
-        }).catch(reason => {
-            return !isNotInstalledError(reason);
-        });
+    const cwd = getCwdForInstallScript(resource);
+    return execPythonFile(prodExec.executable, prodExec.args.concat(['--version']), cwd, false)
+        .then(() => true)
+        .catch(reason => !isNotInstalledError(reason));
 }
 
-function uninstallproduct(product: Product): Promise<any> {
+function uninstallproduct(product: Product, resource?: Uri): Promise<any> {
+    if (!ProductUninstallScripts.has(product)) {
+        return Promise.resolve();
+    }
     const uninstallArgs = ProductUninstallScripts.get(product)!;
-    return execPythonFile('python', uninstallArgs, vscode.workspace.rootPath!, false);
+    return execPythonFile('python', uninstallArgs, getCwdForInstallScript(resource), false);
 }
