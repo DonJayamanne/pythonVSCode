@@ -4,17 +4,17 @@
 //
 
 //First thing to be executed
-process.env['PYTHON_DONJAYAMANNE_TEST'] = "1";
+process.env['PYTHON_DONJAYAMANNE_TEST'] = '1';
 
 // The module 'assert' provides assertion methods from node
-import * as assert from "assert";
+import * as assert from 'assert';
 import * as fs from 'fs';
 
 // You can import and use all API from the 'vscode' module
 // as well as import your extension to test it
-import * as vscode from "vscode";
-import * as path from "path";
-let dummyPythonFile = path.join(__dirname, "..", "..", "src", "test", "pythonFiles", "dummy.py");
+import * as vscode from 'vscode';
+import * as path from 'path';
+let dummyPythonFile = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'dummy.py');
 
 let configSettings: any = undefined;
 export async function initialize(): Promise<any> {
@@ -98,8 +98,11 @@ export const TEST_TIMEOUT = 25000;
 export const IS_MULTI_ROOT_TEST = isMultitrootTest();
 
 // Ability to use custom python environments for testing
-export function initializePython() {
+export async function initializePython() {
     const pythonConfig = vscode.workspace.getConfiguration('python');
-    pythonConfig.update('pythonPath', PYTHON_PATH);
+    const value = pythonConfig.inspect('pythonPath');
+    if (value && value.workspaceValue !== PYTHON_PATH) {
+        return await pythonConfig.update('pythonPath', PYTHON_PATH, vscode.ConfigurationTarget.Workspace);
+    }
 }
 
