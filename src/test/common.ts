@@ -2,8 +2,8 @@ import * as path from 'path';
 import { ConfigurationTarget, Uri, workspace } from 'vscode';
 import { PythonSettings } from '../client/common/configSettings';
 
-export const fileInNonRootWorkspace = path.join(__dirname, '..', '..', 'src', 'test', 'symbolFiles');
-export const rootWorkspaceUri = workspace.getWorkspaceFolder(Uri.file(fileInNonRootWorkspace)).uri;
+const fileInNonRootWorkspace = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'dummy.py');
+export const rootWorkspaceUri = getWorkspaceRoot();
 
 export type PythonSettingKeys = 'workspaceSymbols.enabled' | 'pythonPath' |
     'linting.lintOnSave' | 'linting.lintOnTextChange' |
@@ -17,4 +17,12 @@ export async function updateSetting(setting: PythonSettingKeys, value: any, reso
     let settings = workspace.getConfiguration('python', resource);
     await settings.update(setting, value, configTarget);
     PythonSettings.dispose();
+}
+
+function getWorkspaceRoot() {
+    if (!Array.isArray(workspace.workspaceFolders) || workspace.workspaceFolders.length === 0) {
+        return Uri.file(path.join(__dirname, '..', '..', 'src', 'test'));
+    }
+
+    return workspace.getWorkspaceFolder(Uri.file(fileInNonRootWorkspace)).uri;
 }
