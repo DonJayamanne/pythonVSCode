@@ -4,6 +4,12 @@
 			"path": "workspace1"
 		},
 		{
+			"path": "workspace2"
+		},
+		{
+			"path": "workspace3"
+		},
+		{
 			"path": "parent\\child"
 		},
 		{

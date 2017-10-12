@@ -161,5 +161,21 @@ suite('Multiroot Config Settings', () => {
         assert.equal(cfg.linting.pylintEnabled, false, 'Pylint should not be enabled in workspace');
     });
 
+    test('${workspaceRoot} variable in settings should be replaced with the right value', async () => {
+        const workspace2Uri = Uri.file(path.join(multirootPath, 'workspace2'));
+        let fileToOpen = path.join(workspace2Uri.fsPath, 'file.py');
 
+        let document = await workspace.openTextDocument(fileToOpen);
+        let cfg = PythonSettings.getInstance(document.uri);
+        assert.equal(path.dirname(cfg.workspaceSymbols.ctagsPath), workspace2Uri.fsPath, 'ctags file for workspace2 is incorrect');
+        PythonSettings.dispose();
+
+        const workspace3Uri = Uri.file(path.join(multirootPath, 'workspace2'));
+        fileToOpen = path.join(workspace3Uri.fsPath, 'file.py');
+
+        document = await workspace.openTextDocument(fileToOpen);
+        cfg = PythonSettings.getInstance(document.uri);
+        assert.equal(path.dirname(cfg.workspaceSymbols.ctagsPath), workspace3Uri.fsPath, 'ctags file for workspace3 is incorrect');
+        PythonSettings.dispose();
+    });
 });
