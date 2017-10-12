@@ -40,7 +40,7 @@ class Foo(object):
         # pylint: disable=no-member
         # no error
         print (self.bla)
-        if (self.blop):
+        if self.blop:
             # pylint: enable=no-member
             # error
             print (self.blip)
