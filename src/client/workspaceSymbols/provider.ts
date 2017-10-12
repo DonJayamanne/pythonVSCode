@@ -1,18 +1,16 @@
 import * as vscode from 'vscode';
 import * as _ from 'lodash';
 import { Generator } from './generator';
-import { PythonSettings } from '../common/configSettings';
 import { parseTags } from './parser';
 import { fsExistsAsync } from '../common/utils';
 import { Commands } from '../common/constants';
-const pythonSettings = PythonSettings.getInstance();
 
 export class WorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider {
     public constructor(private tagGenerators: Generator[], private outputChannel: vscode.OutputChannel) {
     }
 
     async provideWorkspaceSymbols(query: string, token: vscode.CancellationToken): Promise<vscode.SymbolInformation[]> {
-        if (!pythonSettings.workspaceSymbols.enabled || this.tagGenerators.length === 0) {
+        if (this.tagGenerators.length === 0) {
             return [];
         }
         const generatorsWithTagFiles = await Promise.all(this.tagGenerators.map(generator => fsExistsAsync(generator.tagFilePath)));
@@ -26,7 +24,7 @@ export class WorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider {
         }));
 
         const promises = generators
-            .filter(generator => generator !== undefined)
+            .filter(generator => generator !== undefined && generator.enabled)
             .map(async generator => {
                 // load tags
                 const items = await parseTags(generator.workspaceFolder.fsPath, generator.tagFilePath, query, token);

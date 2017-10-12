@@ -1,13 +1,11 @@
 import * as vscode from 'vscode';
 import { Generator } from './generator';
 import { Installer, InstallerResponse, Product } from '../common/installer';
-import { PythonSettings } from '../common/configSettings';
 import { fsExistsAsync } from '../common/utils';
 import { isNotInstalledError } from '../common/helpers';
 import { PythonLanguage, Commands } from '../common/constants';
 import { WorkspaceSymbolProvider } from './provider';
 
-const pythonSettings = PythonSettings.getInstance();
 const MAX_NUMBER_OF_ATTEMPTS_TO_INSTALL_AND_BUILD = 2;
 
 export class WorkspaceSymbols implements vscode.Disposable {
@@ -64,7 +62,7 @@ export class WorkspaceSymbols implements vscode.Disposable {
         this.disposables.forEach(d => d.dispose());
     }
     async buildWorkspaceSymbols(rebuild: boolean = true, token?: vscode.CancellationToken): Promise<any> {
-        if (!pythonSettings.workspaceSymbols.enabled || (token && token.isCancellationRequested)) {
+        if (token && token.isCancellationRequested) {
             return Promise.resolve([]);
         }
         if (this.generators.length === 0) {
@@ -73,7 +71,10 @@ export class WorkspaceSymbols implements vscode.Disposable {
 
         let promptPromise: Promise<InstallerResponse>;
         let promptResponse: InstallerResponse;
-        this.generators.map(async generator => {
+        return this.generators.map(async generator => {
+            if (!generator.enabled) {
+                return;
+            }
             const exists = await fsExistsAsync(generator.tagFilePath);
             // if file doesn't exist, then run the ctag generator
             // Or check if required to rebuild

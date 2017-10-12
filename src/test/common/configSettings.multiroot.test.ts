@@ -14,7 +14,7 @@ suite('Multiroot Config Settings', () => {
     suiteTeardown(() => closeActiveWindows());
     teardown(async () => {
         await resetSettings();
-        // await closeActiveWindows();
+        await closeActiveWindows();
     });
 
     async function resetSettings() {

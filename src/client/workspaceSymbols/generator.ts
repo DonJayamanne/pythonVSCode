@@ -11,6 +11,9 @@ export class Generator implements vscode.Disposable {
     public get tagFilePath(): string {
         return this.pythonSettings.workspaceSymbols.tagFilePath;
     }
+    public get enabled(): boolean {
+        return this.pythonSettings.workspaceSymbols.enabled;
+    }
     constructor(public readonly workspaceFolder: vscode.Uri, private output: vscode.OutputChannel) {
         this.disposables = [];
         this.optionsFile = path.join(__dirname, '..', '..', '..', 'resources', 'ctagOptions');
