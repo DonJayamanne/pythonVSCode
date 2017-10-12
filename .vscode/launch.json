@@ -31,7 +31,7 @@
 			"stopOnEntry": false,
 			"sourceMaps": true,
 			"outDir": "${workspaceRoot}/out",
-			"preLaunchTask": "npm"
+			"preLaunchTask": "compile"
 		},
 		{
 			"name": "Launch Extension as debugServer", // https://code.visualstudio.com/docs/extensions/example-debuggers
@@ -62,7 +62,7 @@
 			"outFiles": [
 				"${workspaceRoot}/out/**/*.js"
 			],
-			"preLaunchTask": "npm"
+			"preLaunchTask": "compile"
 		},
 		{
 			"name": "Python",
