@@ -3,16 +3,10 @@
 // Please refer to their documentation on https://mochajs.org/ for help.
 //
 
-//First thing to be executed
-process.env['PYTHON_DONJAYAMANNE_TEST'] = '1';
-//DEBUGGER
-console.log('start initialize');
-// The module 'assert' provides assertion methods from node
-import * as assert from 'assert';
-import * as fs from 'fs';
-
 // You can import and use all API from the 'vscode' module
 // as well as import your extension to test it
+import * as assert from 'assert';
+import * as fs from 'fs';
 import * as vscode from 'vscode';
 import * as path from 'path';
 let dummyPythonFile = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'dummy.py');
@@ -31,6 +25,7 @@ export async function initialize(): Promise<any> {
     });
 }
 export async function initializeTest(): Promise<any> {
+    await initializePython();
     await closeActiveWindows();
     if (!configSettings) {
         configSettings = await require('../client/common/configSettings');
@@ -99,8 +94,6 @@ export const IS_MULTI_ROOT_TEST = isMultitrootTest();
 
 // Ability to use custom python environments for testing
 export async function initializePython() {
-    //DEBUGGER
-    console.log('initializePythonPath');
     const pythonConfig = vscode.workspace.getConfiguration('python');
     const value = pythonConfig.inspect('pythonPath');
     if (value && value.workspaceValue !== PYTHON_PATH) {

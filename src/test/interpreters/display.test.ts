@@ -57,7 +57,7 @@ suite('Interpreters Display', () => {
         const display = new InterpreterDisplay(statusBar, provider, new VirtualEnvironmentManager([]), displayNameProvider);
         // Change interpreter to an invalid value
         const pythonPath = 'UnknownInterpreter';
-        PythonSettings.getInstance().pythonPath = pythonPath;
+        await updateSetting('pythonPath', pythonPath, rootWorkspaceUri, ConfigurationTarget.Workspace);
         await display.refresh();
 
         const defaultDisplayName = `${path.basename(pythonPath)} [Environment]`;
@@ -116,7 +116,7 @@ suite('Interpreters Display', () => {
         const display = new InterpreterDisplay(statusBar, provider, new VirtualEnvironmentManager([]), displayNameProvider);
         // Change interpreter to an invalid value
         const pythonPath = 'UnknownInterpreter';
-        PythonSettings.getInstance().pythonPath = pythonPath;
+        await updateSetting('pythonPath', pythonPath, rootWorkspaceUri, ConfigurationTarget.Workspace);
         await display.refresh();
 
         assert.equal(statusBar.text, '$(alert) Select Python Environment', 'Incorrect display name');
