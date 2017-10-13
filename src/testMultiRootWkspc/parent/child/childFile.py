@@ -10,4 +10,4 @@ class Child2Class(object):
 
     def meth1OfChild(self, arg):
         """this issues a message"""
-        print self
+        print (self)

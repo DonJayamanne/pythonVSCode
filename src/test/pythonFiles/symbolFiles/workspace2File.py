@@ -10,4 +10,4 @@ class Workspace2Class(object):
 
     def meth1OfWorkspace2(self, arg):
         """this issues a message"""
-        print self
+        print (self)

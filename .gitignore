@@ -2,9 +2,7 @@
 out
 node_modules
 *.pyc
-.vscode/.ropeproject/**
-src/test/.vscode/**
-**/.vscode/tags
+**/.vscode/.ropeproject/**
 **/testFiles/**/.cache/**
 *.noseids
 .vscode-test

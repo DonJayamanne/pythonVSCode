@@ -23,6 +23,7 @@
 		"python.linting.pylamaEnabled": true,
 		"python.linting.pylintEnabled": false,
 		"python.linting.pep8Enabled": true,
-		"python.linting.prospectorEnabled": true
+		"python.linting.prospectorEnabled": true,
+		"python.workspaceSymbols.enabled": true
 	}
 }
