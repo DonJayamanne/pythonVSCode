@@ -21,7 +21,7 @@ testRunner.configure({
     useColors: true, // colored output from test results
     timeout: 25000,
     grep: 'Multiroot',
-    invert
+    invert: 'invert'
 });
 
 initializePython();
