@@ -30,7 +30,6 @@ export async function initialize(): Promise<any> {
     });
 }
 export async function initializeTest(): Promise<any> {
-    await initializePython();
     await closeActiveWindows();
     if (!configSettings) {
         configSettings = await require('../client/common/configSettings');
