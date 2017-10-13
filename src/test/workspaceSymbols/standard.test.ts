@@ -19,12 +19,12 @@ suite('Workspace Symbols', () => {
         await updateSetting('workspaceSymbols.enabled', false, Uri.file(path.join(symbolFilesPath, 'file.py')), ConfigurationTarget.Workspace);
     });
 
-    test(`symbols should be returned when enabeld and vice versa`, async () => {
+    test(`symbols should be returned when enabled and vice versa`, async () => {
         const workspaceUri = Uri.file(path.join(symbolFilesPath, 'file.py'));
         const outputChannel = new MockOutputChannel('Output');
 
         await updateSetting('workspaceSymbols.enabled', false, workspaceUri, ConfigurationTarget.Workspace);
-
+        
         let generator = new Generator(workspaceUri, outputChannel);
         let provider = new WorkspaceSymbolProvider([generator], outputChannel);
         let symbols = await provider.provideWorkspaceSymbols('', new CancellationTokenSource().token);

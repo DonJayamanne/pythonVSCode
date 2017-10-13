@@ -15,6 +15,13 @@ export type PythonSettingKeys = 'workspaceSymbols.enabled' | 'pythonPath' |
 
 export async function updateSetting(setting: PythonSettingKeys, value: any, resource: Uri, configTarget: ConfigurationTarget) {
     let settings = workspace.getConfiguration('python', resource);
+    const currentValue = settings.inspect(setting);
+    if ((configTarget === ConfigurationTarget.Global && currentValue && currentValue.globalValue === value) ||
+        (configTarget === ConfigurationTarget.Workspace && currentValue && currentValue.workspaceValue === value) ||
+        (configTarget === ConfigurationTarget.WorkspaceFolder && currentValue && currentValue.workspaceFolderValue === value)) {
+        PythonSettings.dispose();
+        return;
+    }
     await settings.update(setting, value, configTarget);
     PythonSettings.dispose();
 }
