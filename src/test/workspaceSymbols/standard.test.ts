@@ -25,7 +25,7 @@ suite('Workspace Symbols', () => {
 
         // The workspace will be in the output test folder
         // So lets modify the settings so it sees the source test folder
-        const settings = PythonSettings.getInstance(workspaceUri);
+        let settings = PythonSettings.getInstance(workspaceUri);
         settings.workspaceSymbols.tagFilePath = path.join(workspaceUri.fsPath, '.vscode', 'tags')
 
         let generator = new Generator(workspaceUri, outputChannel);
@@ -36,6 +36,11 @@ suite('Workspace Symbols', () => {
 
         await enableDisableWorkspaceSymbols(workspaceUri, true, ConfigurationTarget.Workspace);
 
+        // The workspace will be in the output test folder
+        // So lets modify the settings so it sees the source test folder
+        settings = PythonSettings.getInstance(workspaceUri);
+        settings.workspaceSymbols.tagFilePath = path.join(workspaceUri.fsPath, '.vscode', 'tags')
+
         generator = new Generator(workspaceUri, outputChannel);
         provider = new WorkspaceSymbolProvider([generator], outputChannel);
         symbols = await provider.provideWorkspaceSymbols('', new CancellationTokenSource().token);
@@ -44,6 +49,11 @@ suite('Workspace Symbols', () => {
     test(`symbols should be filtered correctly`, async () => {
         const outputChannel = new MockOutputChannel('Output');
         await enableDisableWorkspaceSymbols(workspaceUri, true, ConfigurationTarget.Workspace);
+
+        // The workspace will be in the output test folder
+        // So lets modify the settings so it sees the source test folder
+        const settings = PythonSettings.getInstance(workspaceUri);
+        settings.workspaceSymbols.tagFilePath = path.join(workspaceUri.fsPath, '.vscode', 'tags')
 
         const generators = [new Generator(workspaceUri, outputChannel)];
         const provider = new WorkspaceSymbolProvider(generators, outputChannel);
