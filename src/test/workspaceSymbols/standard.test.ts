@@ -8,7 +8,7 @@ import { WorkspaceSymbolProvider } from '../../client/workspaceSymbols/provider'
 import { updateSetting } from './../common';
 import { PythonSettings } from '../../client/common/configSettings';
 
-const symbolFilesPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'symbolFiles');
+const workspaceUri = Uri.file(path.join(__dirname, '..', '..', '..', 'src', 'test'));
 
 suite('Workspace Symbols', () => {
     suiteSetup(() => initialize());
@@ -16,15 +16,18 @@ suite('Workspace Symbols', () => {
     setup(() => initializeTest());
     teardown(async () => {
         await closeActiveWindows();
-        await updateSetting('workspaceSymbols.enabled', false, Uri.file(path.join(symbolFilesPath, 'file.py')), ConfigurationTarget.Workspace);
+        await updateSetting('workspaceSymbols.enabled', false, workspaceUri, ConfigurationTarget.Workspace);
     });
 
-    test(`symbols should be returned when enabled and vice versa`, async () => {
-        const workspaceUri = Uri.file(path.join(symbolFilesPath, 'file.py'));
+    test(`symbols should be returned when enabeld and vice versa`, async () => {
         const outputChannel = new MockOutputChannel('Output');
-
         await updateSetting('workspaceSymbols.enabled', false, workspaceUri, ConfigurationTarget.Workspace);
-        
+
+        // The workspace will be in the output test folder
+        // So lets modify the settings so it sees the source test folder
+        let settings = PythonSettings.getInstance(workspaceUri);
+        settings.workspaceSymbols.tagFilePath = path.join(workspaceUri.fsPath, '.vscode', 'tags')
+
         let generator = new Generator(workspaceUri, outputChannel);
         let provider = new WorkspaceSymbolProvider([generator], outputChannel);
         let symbols = await provider.provideWorkspaceSymbols('', new CancellationTokenSource().token);
@@ -33,16 +36,25 @@ suite('Workspace Symbols', () => {
 
         await updateSetting('workspaceSymbols.enabled', true, workspaceUri, ConfigurationTarget.Workspace);
 
+        // The workspace will be in the output test folder
+        // So lets modify the settings so it sees the source test folder
+        settings = PythonSettings.getInstance(workspaceUri);
+        settings.workspaceSymbols.tagFilePath = path.join(workspaceUri.fsPath, '.vscode', 'tags')
+
         generator = new Generator(workspaceUri, outputChannel);
         provider = new WorkspaceSymbolProvider([generator], outputChannel);
         symbols = await provider.provideWorkspaceSymbols('', new CancellationTokenSource().token);
         assert.notEqual(symbols.length, 0, 'Symbols should be returned when workspace symbols are turned on');
     });
     test(`symbols should be filtered correctly`, async () => {
-        const workspaceUri = Uri.file(path.join(symbolFilesPath, 'file.py'));
         const outputChannel = new MockOutputChannel('Output');
 
         await updateSetting('workspaceSymbols.enabled', true, workspaceUri, ConfigurationTarget.Workspace);
+
+        // The workspace will be in the output test folder
+        // So lets modify the settings so it sees the source test folder
+        const settings = PythonSettings.getInstance(workspaceUri);
+        settings.workspaceSymbols.tagFilePath = path.join(workspaceUri.fsPath, '.vscode', 'tags')
 
         const generators = [new Generator(workspaceUri, outputChannel)];
         const provider = new WorkspaceSymbolProvider(generators, outputChannel);

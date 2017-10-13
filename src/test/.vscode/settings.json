@@ -1,0 +1,12 @@
+{
+    "python.pythonPath": "python",
+    "python.linting.pylintEnabled": true,
+    "python.linting.flake8Enabled": true,
+    "python.workspaceSymbols.enabled": true,
+    "python.unitTest.nosetestArgs": [],
+    "python.unitTest.pyTestArgs": [],
+    "python.unitTest.unittestArgs": [
+        "-s=./tests",
+        "-p=test_*.py"
+    ]
+}
