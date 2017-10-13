@@ -28,18 +28,13 @@ export async function initialize(): Promise<any> {
     });
 }
 export async function initializeTest(): Promise<any> {
-    console.log('1');
     await initializePython();
-    console.log('2');
     await closeActiveWindows();
-    console.log('3');
     if (!configSettings) {
         configSettings = await require('../client/common/configSettings');
     }
-    console.log('4');
     // Dispose any cached python settings (used only in test env)
     configSettings.PythonSettings.dispose();
-    console.log('5');
 }
 
 export async function wait(timeoutMilliseconds: number) {
