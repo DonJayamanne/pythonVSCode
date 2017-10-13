@@ -4,14 +4,12 @@
 import { createTemporaryFile } from '../../common/helpers';
 import { TestsToRun, Tests } from '../common/contracts';
 import { updateResults } from '../common/testUtils';
-import { CancellationToken, OutputChannel } from 'vscode';
+import { CancellationToken, OutputChannel, Uri } from 'vscode';
 import { updateResultsFromXmlLogFile, PassCalculationFormulae } from '../common/xUnitParser';
 import { run } from '../common/runner';
 import { PythonSettings } from '../../common/configSettings';
 import * as path from 'path';
 import { launchDebugger } from '../common/debugLauncher';
-
-const pythonSettings = PythonSettings.getInstance();
 
 export function runTest(rootDirectory: string, tests: Tests, args: string[], testsToRun?: TestsToRun, token?: CancellationToken, outChannel?: OutputChannel, debug?: boolean): Promise<Tests> {
     let testPaths = [];
@@ -39,6 +37,7 @@ export function runTest(rootDirectory: string, tests: Tests, args: string[], tes
             args = args.filter(arg => arg.trim().startsWith('-'));
         }
         const testArgs = testPaths.concat(args, [`--junitxml=${xmlLogFile}`]);
+        const pythonSettings = PythonSettings.getInstance(Uri.file(rootDirectory));
         if (debug) {
             const testLauncherFile = path.join(__dirname, '..', '..', '..', '..', 'pythonFiles', 'PythonTools', 'testlauncher.py');
             const pytestlauncherargs = [rootDirectory, 'my_secret', pythonSettings.unitTest.debugPort.toString(), 'pytest'];

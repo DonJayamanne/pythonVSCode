@@ -14,14 +14,13 @@ import {
 } from './common/contracts';
 import { resolveValueAsTestToRun, getDiscoveredTests } from './common/testUtils';
 import { BaseTestManager } from './common/baseTestManager';
-import { PythonSettings } from '../common/configSettings';
+import { PythonSettings, IUnitTestSettings } from '../common/configSettings';
 import { TestResultDisplay } from './display/main';
 import { TestDisplay } from './display/picker';
 import { activateCodeLenses } from './codeLenses/main';
 import { displayTestFrameworkError } from './configuration';
 import { PythonSymbolProvider } from '../providers/symbolProvider';
 
-const settings = PythonSettings.getInstance();
 let testManager: BaseTestManager | undefined | null;
 let pyTestManager: pytest.TestManager | undefined | null;
 let unittestManager: unittest.TestManager | undefined | null;
@@ -32,6 +31,9 @@ let outChannel: vscode.OutputChannel;
 let onDidChange: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
 
 export function activate(context: vscode.ExtensionContext, outputChannel: vscode.OutputChannel, symboldProvider: PythonSymbolProvider) {
+    // TODO: Add multi workspace support
+    const settings = PythonSettings.getInstance();
+    uniTestSettingsString = JSON.stringify(settings.unitTest);
     context.subscriptions.push({ dispose: dispose });
     outChannel = outputChannel;
     let disposables = registerCommands();
@@ -51,6 +53,8 @@ export function activate(context: vscode.ExtensionContext, outputChannel: vscode
 }
 
 function getTestWorkingDirectory() {
+    // TODO: Add multi workspace support
+    const settings = PythonSettings.getInstance();
     return settings.unitTest.cwd && settings.unitTest.cwd.length > 0 ? settings.unitTest.cwd : vscode.workspace.rootPath!;
 }
 
@@ -184,9 +188,11 @@ function displayStopUI(message: string) {
     testDisplay = testDisplay ? testDisplay : new TestDisplay();
     testDisplay.displayStopTestUI(message);
 }
-let uniTestSettingsString = JSON.stringify(settings.unitTest);
+let uniTestSettingsString: string;
 
 function onConfigChanged() {
+    // TODO: Add multi workspace support
+    const settings = PythonSettings.getInstance();
     // Possible that a test framework has been enabled or some settings have changed
     // Meaning we need to re-load the discovered tests (as something could have changed)
     const newSettings = JSON.stringify(settings.unitTest);
@@ -230,6 +236,7 @@ function onConfigChanged() {
 }
 function getTestRunner() {
     const rootDirectory = getTestWorkingDirectory();
+    const settings = PythonSettings.getInstance(vscode.Uri.file(rootDirectory));
     if (settings.unitTest.nosetestsEnabled) {
         return nosetestManager = nosetestManager ? nosetestManager : new nosetests.TestManager(rootDirectory, outChannel);
     }

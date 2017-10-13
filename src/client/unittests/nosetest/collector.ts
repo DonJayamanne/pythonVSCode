@@ -6,9 +6,8 @@ import * as os from 'os';
 import { extractBetweenDelimiters, convertFileToPackage, flattenTestFiles } from '../common/testUtils';
 import { CancellationToken } from 'vscode';
 import { PythonSettings } from '../../common/configSettings';
-import { OutputChannel } from 'vscode';
+import { OutputChannel, Uri } from 'vscode';
 
-const pythonSettings = PythonSettings.getInstance();
 const NOSE_WANT_FILE_PREFIX = 'nose.selector: DEBUG: wantFile ';
 const NOSE_WANT_FILE_SUFFIX = '.py? True';
 const NOSE_WANT_FILE_SUFFIX_WITHOUT_EXT = '? True';
@@ -78,7 +77,7 @@ export function discoverTests(rootDirectory: string, args: string[], token: Canc
         });
     }
 
-    return execPythonFile(pythonSettings.unitTest.nosetestPath, args.concat(['--collect-only', '-vvv']), rootDirectory, true)
+    return execPythonFile(PythonSettings.getInstance(Uri.file(rootDirectory)).unitTest.nosetestPath, args.concat(['--collect-only', '-vvv']), rootDirectory, true)
         .then(data => {
             outChannel.appendLine(data);
             processOutput(data);

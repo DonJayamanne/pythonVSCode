@@ -9,8 +9,6 @@ import * as unittest from './unittest/testConfigurationManager';
 import { getSubDirectories } from '../common/utils';
 import * as path from 'path';
 
-const settings = PythonSettings.getInstance();
-
 function promptToEnableAndConfigureTestFramework(outputChannel: vscode.OutputChannel, messageToDisplay: string = 'Select a test framework/tool to enable', enableOnly: boolean = false): Thenable<any> {
     const items = [{
         label: 'unittest',
@@ -76,8 +74,9 @@ function promptToEnableAndConfigureTestFramework(outputChannel: vscode.OutputCha
         // Cuz we don't want the test engine (in main.ts file - tests get discovered when config changes are detected) 
         // to start discovering tests when tests haven't been configured properly
         function enableTest(): Thenable<any> {
+            // TODO: Enable multi workspace root support
             const pythonConfig = vscode.workspace.getConfiguration('python');
-            if (settings.unitTest.promptToConfigure) {
+            if (pythonConfig.get('unitTest.promptToConfigure')) {
                 return configMgr.enable();
             }
             return pythonConfig.update('unitTest.promptToConfigure', undefined).then(() => {
@@ -94,6 +93,8 @@ function promptToEnableAndConfigureTestFramework(outputChannel: vscode.OutputCha
     });
 }
 export function displayTestFrameworkError(outputChannel: vscode.OutputChannel): Thenable<any> {
+    // TODO: Enable multi workspace root support
+    const settings = PythonSettings.getInstance();
     let enabledCount = settings.unitTest.pyTestEnabled ? 1 : 0;
     enabledCount += settings.unitTest.nosetestsEnabled ? 1 : 0;
     enabledCount += settings.unitTest.unittestEnabled ? 1 : 0;
@@ -111,6 +112,7 @@ export function displayTestFrameworkError(outputChannel: vscode.OutputChannel): 
     }
 }
 export function displayPromptToEnableTests(rootDir: string, outputChannel: vscode.OutputChannel): Thenable<any> {
+    const settings = PythonSettings.getInstance(vscode.Uri.file(rootDir));
     if (settings.unitTest.pyTestEnabled ||
         settings.unitTest.nosetestsEnabled ||
         settings.unitTest.unittestEnabled) {
