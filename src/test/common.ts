@@ -25,6 +25,9 @@ function getWorkspaceRoot() {
     if (!Array.isArray(workspace.workspaceFolders) || workspace.workspaceFolders.length === 0) {
         return Uri.file(path.join(__dirname, '..', '..', 'src', 'test'));
     }
+    if (workspace.workspaceFolders.length === 1) {
+        return workspace.workspaceFolders[0].uri;
+    }
     console.log('other');
     try {
         return workspace.getWorkspaceFolder(Uri.file(fileInNonRootWorkspace)).uri;
