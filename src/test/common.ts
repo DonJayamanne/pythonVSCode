@@ -20,9 +20,16 @@ export async function updateSetting(setting: PythonSettingKeys, value: any, reso
 }
 
 function getWorkspaceRoot() {
+    //DEBUGGER
+    console.log('start');
     if (!Array.isArray(workspace.workspaceFolders) || workspace.workspaceFolders.length === 0) {
         return Uri.file(path.join(__dirname, '..', '..', 'src', 'test'));
     }
-
-    return workspace.getWorkspaceFolder(Uri.file(fileInNonRootWorkspace)).uri;
+    console.log('other');
+    try {
+        return workspace.getWorkspaceFolder(Uri.file(fileInNonRootWorkspace)).uri;
+    }
+    catch (ex) {
+        console.error('kaboom');
+    }
 }

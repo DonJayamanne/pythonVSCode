@@ -5,7 +5,8 @@
 
 //First thing to be executed
 process.env['PYTHON_DONJAYAMANNE_TEST'] = '1';
-
+//DEBUGGER
+console.log('start initialize');
 // The module 'assert' provides assertion methods from node
 import * as assert from 'assert';
 import * as fs from 'fs';
@@ -98,6 +99,8 @@ export const IS_MULTI_ROOT_TEST = isMultitrootTest();
 
 // Ability to use custom python environments for testing
 export async function initializePython() {
+    //DEBUGGER
+    console.log('initializePythonPath');
     const pythonConfig = vscode.workspace.getConfiguration('python');
     const value = pythonConfig.inspect('pythonPath');
     if (value && value.workspaceValue !== PYTHON_PATH) {

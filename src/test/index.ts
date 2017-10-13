@@ -11,6 +11,9 @@ import { initializePython, IS_MULTI_ROOT_TEST } from './initialize';
 // to report the results back to the caller. When the tests are finished, return
 // a possible error to the callback or null if none.
 
+//DEBUGGER
+console.log('index.ts');
+
 const testRunner = require('vscode/lib/testrunner');
 const invert = IS_MULTI_ROOT_TEST ? undefined : 'invert';
 
@@ -23,7 +26,5 @@ testRunner.configure({
     grep: 'Multiroot',
     invert: 'invert'
 });
-
-initializePython();
 
 module.exports = testRunner;
