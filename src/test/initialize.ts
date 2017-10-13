@@ -11,6 +11,9 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 let dummyPythonFile = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'dummy.py');
 
+//First thing to be executed
+process.env['PYTHON_DONJAYAMANNE_TEST'] = '1';
+
 let configSettings: any = undefined;
 export async function initialize(): Promise<any> {
     await initializePython();
