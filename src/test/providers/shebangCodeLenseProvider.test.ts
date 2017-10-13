@@ -37,7 +37,7 @@ suite('Shebang detection', () => {
 
     test('Code lens will not appear when sheban python and python in settings are the same', async () => {
         PythonSettings.dispose();
-        const pythonPath = await getFullyQualifiedPathToInterpreter(PythonSettings.getInstance().pythonPath);
+        const pythonPath = await getFullyQualifiedPathToInterpreter('python');
         const editor = await openFile(fileShebang);
         PythonSettings.getInstance(editor.document.uri).pythonPath = pythonPath;
         const codeLenses = await setupCodeLens(editor);
