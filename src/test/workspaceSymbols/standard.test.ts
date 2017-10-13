@@ -8,7 +8,7 @@ import { WorkspaceSymbolProvider } from '../../client/workspaceSymbols/provider'
 import { enableDisableWorkspaceSymbols } from './common';
 import { PythonSettings } from '../../client/common/configSettings';
 
-const symbolFilesPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'symbolFiles');
+const workspaceUri = Uri.file(path.join(__dirname, '..', '..', '..', 'src', 'test'));
 
 suite('Workspace Symbols', () => {
     suiteSetup(() => initialize());
@@ -20,16 +20,13 @@ suite('Workspace Symbols', () => {
     });
 
     test(`symbols should be returned when enabeld and vice versa`, async () => {
-        const workspaceUri = Uri.file(path.join(symbolFilesPath, 'file.py'));
         const outputChannel = new MockOutputChannel('Output');
-
         await enableDisableWorkspaceSymbols(workspaceUri, false, ConfigurationTarget.Workspace);
 
-        // The workspace will be 
+        // The workspace will be in the output test folder
+        // So lets modify the settings so it sees the source test folder
         const settings = PythonSettings.getInstance(workspaceUri);
-        console.log('Test');
-        console.log(workspaceUri.fsPath);
-        console.log(settings.workspaceSymbols.tagFilePath);
+        settings.workspaceSymbols.tagFilePath = path.join(workspaceUri.fsPath, '.vscode', 'tags')
 
         let generator = new Generator(workspaceUri, outputChannel);
         let provider = new WorkspaceSymbolProvider([generator], outputChannel);
@@ -45,9 +42,7 @@ suite('Workspace Symbols', () => {
         assert.notEqual(symbols.length, 0, 'Symbols should be returned when workspace symbols are turned on');
     });
     test(`symbols should be filtered correctly`, async () => {
-        const workspaceUri = Uri.file(path.join(symbolFilesPath, 'file.py'));
         const outputChannel = new MockOutputChannel('Output');
-
         await enableDisableWorkspaceSymbols(workspaceUri, true, ConfigurationTarget.Workspace);
 
         const generators = [new Generator(workspaceUri, outputChannel)];
