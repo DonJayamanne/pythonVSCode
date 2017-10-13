@@ -12,8 +12,9 @@ import * as path from 'path';
 import * as settings from '../../client/common/configSettings';
 import { initialize, closeActiveWindows, initializeTest } from '../initialize';
 import { execPythonFile } from '../../client/common/utils';
+import { PythonSettings } from '../../client/common/configSettings';
+import { rootWorkspaceUri } from '../common';
 
-const pythonSettings = settings.PythonSettings.getInstance();
 const autoCompPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'autocomp');
 const fileOne = path.join(autoCompPath, 'one.py');
 const fileImport = path.join(autoCompPath, 'imp.py');
@@ -27,7 +28,7 @@ suite('Autocomplete', () => {
     let isPython3: Promise<boolean>;
     suiteSetup(async () => {
         await initialize();
-        let version = await execPythonFile(pythonSettings.pythonPath, ['--version'], __dirname, true);
+        let version = await execPythonFile(PythonSettings.getInstance(rootWorkspaceUri).pythonPath, ['--version'], __dirname, true);
         isPython3 = Promise.resolve(version.indexOf('3.') >= 0);
     });
     setup(() => initializeTest());

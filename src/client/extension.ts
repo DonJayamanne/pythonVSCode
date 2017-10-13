@@ -1,6 +1,7 @@
 'use strict';
 
 import * as vscode from 'vscode';
+import { JediFactory } from './languageServices/jediProxyFactory';
 import { PythonCompletionItemProvider } from './providers/completionProvider';
 import { PythonHoverProvider } from './providers/hoverProvider';
 import { PythonDefinitionProvider } from './providers/definitionProvider';
@@ -68,7 +69,8 @@ export async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(activateUpdateSparkLibraryProvider());
     activateSimplePythonRefactorProvider(context, formatOutChannel);
     context.subscriptions.push(activateFormatOnSaveProvider(PYTHON, formatOutChannel));
-    context.subscriptions.push(activateGoToObjectDefinitionProvider(context));
+    const jediFactory = new JediFactory(context.asAbsolutePath('.'));
+    context.subscriptions.push(...activateGoToObjectDefinitionProvider(jediFactory));
 
     context.subscriptions.push(vscode.commands.registerCommand(Commands.Start_REPL, () => {
         getPathFromPythonCommand(["-c", "import sys;print(sys.executable)"]).catch(() => {
@@ -99,19 +101,19 @@ export async function activate(context: vscode.ExtensionContext) {
         ]
     });
 
+    context.subscriptions.push(jediFactory);
     context.subscriptions.push(vscode.languages.registerRenameProvider(PYTHON, new PythonRenameProvider(formatOutChannel)));
-    const definitionProvider = new PythonDefinitionProvider(context);
-    const jediProx = definitionProvider.JediProxy;
+    const definitionProvider = new PythonDefinitionProvider(jediFactory);
     context.subscriptions.push(vscode.languages.registerDefinitionProvider(PYTHON, definitionProvider));
-    context.subscriptions.push(vscode.languages.registerHoverProvider(PYTHON, new PythonHoverProvider(context, jediProx)));
-    context.subscriptions.push(vscode.languages.registerReferenceProvider(PYTHON, new PythonReferenceProvider(context, jediProx)));
-    context.subscriptions.push(vscode.languages.registerCompletionItemProvider(PYTHON, new PythonCompletionItemProvider(context, jediProx), '.'));
+    context.subscriptions.push(vscode.languages.registerHoverProvider(PYTHON, new PythonHoverProvider(jediFactory)));
+    context.subscriptions.push(vscode.languages.registerReferenceProvider(PYTHON, new PythonReferenceProvider(jediFactory)));
+    context.subscriptions.push(vscode.languages.registerCompletionItemProvider(PYTHON, new PythonCompletionItemProvider(jediFactory), '.'));
     context.subscriptions.push(vscode.languages.registerCodeLensProvider(PYTHON, new ShebangCodeLensProvider()))
 
-    const symbolProvider = new PythonSymbolProvider(context, jediProx);
+    const symbolProvider = new PythonSymbolProvider(jediFactory);
     context.subscriptions.push(vscode.languages.registerDocumentSymbolProvider(PYTHON, symbolProvider));
     if (pythonSettings.devOptions.indexOf('DISABLE_SIGNATURE') === -1) {
-        context.subscriptions.push(vscode.languages.registerSignatureHelpProvider(PYTHON, new PythonSignatureProvider(context, jediProx), '(', ','));
+        context.subscriptions.push(vscode.languages.registerSignatureHelpProvider(PYTHON, new PythonSignatureProvider(jediFactory), '(', ','));
     }
     if (pythonSettings.formatting.provider !== 'none') {
         const formatProvider = new PythonFormattingEditProvider(context, formatOutChannel);
