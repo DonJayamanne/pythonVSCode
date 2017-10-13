@@ -10,7 +10,8 @@ export type PythonSettingKeys = 'workspaceSymbols.enabled' | 'pythonPath' |
     'linting.enabled' | 'linting.pylintEnabled' |
     'linting.flake8Enabled' | 'linting.pep8Enabled' |
     'linting.prospectorEnabled' | 'linting.pydocstyleEnabled' |
-    'unitTest.nosetestArgs' | 'unitTest.pyTestArgs' | 'unitTest.unittestArgs';
+    'unitTest.nosetestArgs' | 'unitTest.pyTestArgs' | 'unitTest.unittestArgs' |
+    'formatting.formatOnSave' | 'formatting.provider' | 'sortImports.args';
 
 
 export async function updateSetting(setting: PythonSettingKeys, value: any, resource: Uri, configTarget: ConfigurationTarget) {

@@ -9,7 +9,6 @@ import { TestResultDisplay } from '../../client/unittests/display/main';
 import { MockOutputChannel } from './../mockClasses';
 import { rootWorkspaceUri, updateSetting } from '../common';
 
-const pythonSettings = configSettings.PythonSettings.getInstance();
 const UNITTEST_TEST_FILES_PATH = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'standard');
 const UNITTEST_SINGLE_TEST_FILE_PATH = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'single');
 const UNITTEST_TEST_FILES_PATH_WITH_CONFIGS = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'unitestsWithConfigs');
@@ -78,7 +77,7 @@ suite('Unit Tests (PyTest)', () => {
 
 
     test('Discover Tests (with config)', async () => {
-        pythonSettings.unitTest.pyTestArgs = [];
+        await updateSetting('unitTest.pyTestArgs', [], rootWorkspaceUri, configTarget);
         rootDirectory = UNITTEST_TEST_FILES_PATH_WITH_CONFIGS;
         createTestManager();
         const tests = await testManager.discoverTests(true, true);
