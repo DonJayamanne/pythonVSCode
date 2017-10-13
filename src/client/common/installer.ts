@@ -1,3 +1,4 @@
+import { error } from './logger';
 import * as vscode from 'vscode';
 import * as settings from './configSettings';
 import * as os from 'os';
@@ -222,6 +223,9 @@ export class Installer implements vscode.Disposable {
                 const features = pythonConfig.get('disablePromptForFeatures', [] as string[]);
                 features.push(productName);
                 return pythonConfig.update('disablePromptForFeatures', features, true).then(() => InstallerResponse.Ignore);
+            }
+            default: {
+                throw new Error('Invalid selection');
             }
         }
     }

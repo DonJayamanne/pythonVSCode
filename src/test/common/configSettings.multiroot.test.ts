@@ -109,16 +109,15 @@ suite('Multiroot Config Settings', () => {
 
     test('Enabling/Disabling Pylint in root and workspace should be reflected in config settings', async () => {
         const workspaceUri = Uri.file(path.join(multirootPath, 'workspace1'));
-        const workspaceFolder = Uri.file(path.join(multirootPath, 'workspace1'));
 
-        await testLinterSetting(workspaceFolder, ConfigurationTarget.WorkspaceFolder, 'pylintEnabled', false);
+        await testLinterSetting(workspaceUri, ConfigurationTarget.WorkspaceFolder, 'pylintEnabled', false);
         await testLinterSetting(workspaceUri, ConfigurationTarget.Workspace, 'pylintEnabled', true);
 
         let cfgSetting = PythonSettings.getInstance(workspaceUri);
         assert.equal(cfgSetting.linting.pylintEnabled, false, 'Workspace folder pylint setting is true when it should not be');
         PythonSettings.dispose();
 
-        await testLinterSetting(workspaceFolder, ConfigurationTarget.WorkspaceFolder, 'pylintEnabled', true);
+        await testLinterSetting(workspaceUri, ConfigurationTarget.WorkspaceFolder, 'pylintEnabled', true);
         await testLinterSetting(workspaceUri, ConfigurationTarget.Workspace, 'pylintEnabled', false);
 
         cfgSetting = PythonSettings.getInstance(workspaceUri);

@@ -55,7 +55,7 @@ export class TestDisplay {
                 testFunctions.some(testFunc => testFunc.nameToRun === fn.testFunction.nameToRun);
         });
 
-        window.showQuickPick(buildItemsForFunctions(rootDirectory, flattenedFunctions),
+        window.showQuickPick(buildItemsForFunctions(rootDirectory, flattenedFunctions, undefined, undefined, debug),
             { matchOnDescription: true, matchOnDetail: true }).then(testItem => {
                 return onItemSelected(testItem, debug);
             });
@@ -72,7 +72,8 @@ enum Type {
     RunMethod = 6,
     ViewTestOutput = 7,
     Null = 8,
-    SelectAndRunMethod = 9
+    SelectAndRunMethod = 9,
+    DebugMethod = 10
 }
 const statusIconMapping = new Map<TestStatus, string>();
 statusIconMapping.set(TestStatus.Pass, constants.Octicons.Test_Pass);
@@ -130,7 +131,7 @@ statusSortPrefix[TestStatus.Fail] = '2';
 statusSortPrefix[TestStatus.Skipped] = '3';
 statusSortPrefix[TestStatus.Pass] = '4';
 
-function buildItemsForFunctions(rootDirectory: string, tests: FlattenedTestFunction[], sortBasedOnResults: boolean = false, displayStatusIcons: boolean = false): TestItem[] {
+function buildItemsForFunctions(rootDirectory: string, tests: FlattenedTestFunction[], sortBasedOnResults: boolean = false, displayStatusIcons: boolean = false, debug: boolean = false): TestItem[] {
     let functionItems: TestItem[] = [];
     tests.forEach(fn => {
         let icon = '';
@@ -142,7 +143,7 @@ function buildItemsForFunctions(rootDirectory: string, tests: FlattenedTestFunct
             description: '',
             detail: path.relative(rootDirectory, fn.parentTestFile.fullPath),
             label: icon + fn.testFunction.name,
-            type: Type.RunMethod,
+            type: debug === true ? Type.DebugMethod : Type.RunMethod,
             fn: fn
         });
     });
@@ -217,6 +218,12 @@ function onItemSelected(selection: TestItem, debug?: boolean) {
         case Type.RunMethod: {
             cmd = constants.Commands.Tests_Run;
             args.push(selection.fn);
+            break;
+        }
+        case Type.DebugMethod: {
+            cmd = constants.Commands.Tests_Debug;
+            args.push(selection.fn);
+            args.push(true);
             break;
         }
     }
