@@ -16,7 +16,7 @@ suite('Workspace Symbols', () => {
     setup(() => PythonSettings.dispose());
     teardown(async () => {
         await closeActiveWindows();
-        await enableDisableWorkspaceSymbols(Uri.file(path.join(symbolFilesPath, 'file.py')), false, ConfigurationTarget.Workspace);
+        await enableDisableWorkspaceSymbols(workspaceUri, false, ConfigurationTarget.Workspace);
     });
 
     test(`symbols should be returned when enabeld and vice versa`, async () => {
