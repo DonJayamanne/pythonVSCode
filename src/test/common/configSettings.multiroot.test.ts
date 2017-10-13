@@ -14,7 +14,7 @@ suite('Multiroot Config Settings', () => {
     suiteTeardown(() => closeActiveWindows());
     teardown(async () => {
         await resetSettings();
-        // await closeActiveWindows();
+        await closeActiveWindows();
     });
 
     async function resetSettings() {
@@ -166,15 +166,17 @@ suite('Multiroot Config Settings', () => {
 
         let document = await workspace.openTextDocument(fileToOpen);
         let cfg = PythonSettings.getInstance(document.uri);
-        assert.equal(path.dirname(cfg.workspaceSymbols.ctagsPath), workspace2Uri.fsPath, 'ctags file for workspace2 is incorrect');
+        assert.equal(path.dirname(cfg.workspaceSymbols.tagFilePath), workspace2Uri.fsPath, 'ctags file path for workspace2 is incorrect');
+        assert.equal(path.basename(cfg.workspaceSymbols.tagFilePath), 'workspace2.tags.file', 'ctags file name for workspace2 is incorrect');
         PythonSettings.dispose();
 
-        const workspace3Uri = Uri.file(path.join(multirootPath, 'workspace2'));
+        const workspace3Uri = Uri.file(path.join(multirootPath, 'workspace3'));
         fileToOpen = path.join(workspace3Uri.fsPath, 'file.py');
 
         document = await workspace.openTextDocument(fileToOpen);
         cfg = PythonSettings.getInstance(document.uri);
-        assert.equal(path.dirname(cfg.workspaceSymbols.ctagsPath), workspace3Uri.fsPath, 'ctags file for workspace3 is incorrect');
+        assert.equal(path.dirname(cfg.workspaceSymbols.tagFilePath), workspace3Uri.fsPath, 'ctags file path for workspace3 is incorrect');
+        assert.equal(path.basename(cfg.workspaceSymbols.tagFilePath), 'workspace3.tags.file', 'ctags file name for workspace3 is incorrect');
         PythonSettings.dispose();
     });
 });
