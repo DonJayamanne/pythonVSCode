@@ -25,6 +25,12 @@ suite('Workspace Symbols', () => {
 
         await enableDisableWorkspaceSymbols(workspaceUri, false, ConfigurationTarget.Workspace);
 
+        // The workspace will be 
+        const settings = PythonSettings.getInstance(workspaceUri);
+        console.log('Test');
+        console.log(workspaceUri.fsPath);
+        console.log(settings.workspaceSymbols.tagFilePath);
+
         let generator = new Generator(workspaceUri, outputChannel);
         let provider = new WorkspaceSymbolProvider([generator], outputChannel);
         let symbols = await provider.provideWorkspaceSymbols('', new CancellationTokenSource().token);
