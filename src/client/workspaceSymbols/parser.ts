@@ -103,7 +103,6 @@ Object.keys(newValuesAndKeys).forEach(key => {
 export function parseTags(workspaceFolder: string, tagFile: string, query: string, token: vscode.CancellationToken, maxItems: number = 200): Promise<Tag[]> {
     return fsExistsAsync(tagFile).then(exists => {
         if (!exists) {
-            console.log('parseTags.fsExistsAsync - not found');
             return null;
         }
 
@@ -138,26 +137,20 @@ export function parseTags(workspaceFolder: string, tagFile: string, query: strin
     });
 }
 function parseTagsLine(workspaceFolder: string, line: string, searchPattern: string): Tag {
-    console.log('parseTagsLine');
-    console.log(`line = ${line}`);
     if (IsFileRegEx.test(line)) {
-        console.log(`not a file`);
         return;
     }
     let match = matchNamedRegEx(line, LINE_REGEX);
     if (!match) {
-        console.log(`not a match`);
         return;
     }
     if (!fuzzy.test(searchPattern, match.name)) {
-        console.log(`not a fuzzy match`);
         return;
     }
     let file = match.file;
     if (!path.isAbsolute(file)) {
         file = path.resolve(workspaceFolder, '.vscode', file);
     }
-    console.log('Symbols found');
 
     const symbolKind = CTagKinMapping.has(match.type) ? CTagKinMapping.get(match.type) : vscode.SymbolKind.Null;
     const tag: Tag = {

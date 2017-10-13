@@ -20,8 +20,6 @@ export class WorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider {
 
         const generators = await Promise.all(this.tagGenerators.map(async generator => {
             const tagFileExists = await fsExistsAsync(generator.tagFilePath);
-            console.log(`tagFileExists ${tagFileExists}`);
-            console.log(`tagFileExists ${generator.tagFilePath}`);
             return tagFileExists ? generator : undefined;
         }));
 
@@ -29,12 +27,8 @@ export class WorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider {
             .filter(generator => generator !== undefined && generator.enabled)
             .map(async generator => {
                 // load tags
-                console.log('parsing tags');
-                console.log(`map ${generator.workspaceFolder.fsPath}`);
-                console.log(`map ${generator.tagFilePath}`);
                 const items = await parseTags(generator.workspaceFolder.fsPath, generator.tagFilePath, query, token);
                 if (!Array.isArray(items)) {
-                    console.log('Empty Array');
                     return [];
                 }
                 return items.map(item => new vscode.SymbolInformation(
