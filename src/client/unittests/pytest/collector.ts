@@ -8,8 +8,6 @@ import * as path from 'path';
 import { PythonSettings } from '../../common/configSettings';
 import { OutputChannel } from 'vscode';
 
-const pythonSettings = PythonSettings.getInstance();
-
 const argsToExcludeForDiscovery = ['-x', '--exitfirst',
     '--fixtures-per-test', '--pdb', '--runxfail',
     '--lf', '--last-failed', '--ff', '--failed-first',
@@ -85,7 +83,7 @@ export function discoverTests(rootDirectory: string, args: string[], token: vsco
         });
     }
 
-    return execPythonFile(pythonSettings.unitTest.pyTestPath, args.concat(['--collect-only']), rootDirectory, false, null, token)
+    return execPythonFile(PythonSettings.getInstance(vscode.Uri.file(rootDirectory)).unitTest.pyTestPath, args.concat(['--collect-only']), rootDirectory, false, null, token)
         .then(data => {
             outChannel.appendLine(data);
             processOutput(data);

@@ -4,6 +4,7 @@ import * as vscode from 'vscode';
 import { resetTestResults, displayTestErrorMessage, storeDiscoveredTests } from './testUtils';
 import { Installer, Product } from '../../common/installer';
 import { isNotInstalledError } from '../../common/helpers';
+import { IPythonSettings, PythonSettings } from '../../common/configSettings';
 
 export abstract class BaseTestManager {
     private tests: Tests;
@@ -25,9 +26,11 @@ export abstract class BaseTestManager {
             this.cancellationTokenSource.cancel();
         }
     }
+    protected readonly settings: IPythonSettings;
     constructor(private testProvider: string, private product: Product, protected rootDirectory: string, protected outputChannel: vscode.OutputChannel) {
         this._status = TestStatus.Unknown;
         this.installer = new Installer();
+        this.settings = PythonSettings.getInstance(vscode.Uri.file(this.rootDirectory));
     }
     public reset() {
         this._status = TestStatus.Unknown;

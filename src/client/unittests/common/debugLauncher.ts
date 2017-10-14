@@ -4,8 +4,8 @@ import { PythonSettings } from '../../common/configSettings';
 import { execPythonFile } from './../../common/utils';
 import { createDeferred } from './../../common/helpers';
 
-const pythonSettings = PythonSettings.getInstance();
 export function launchDebugger(rootDirectory: string, testArgs: string[], token?: CancellationToken, outChannel?: OutputChannel) {
+    const pythonSettings = PythonSettings.getInstance(rootDirectory ? Uri.file(rootDirectory) : undefined);
     const def = createDeferred<any>();
     const launchDef = createDeferred<any>();
     let outputChannelShown = false;

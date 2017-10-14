@@ -5,13 +5,11 @@ import * as path from 'path';
 import { TestsToRun, Tests, TestStatus } from '../common/contracts';
 import { updateResults } from '../common/testUtils';
 import { BaseTestManager } from '../common/baseTestManager';
-import { CancellationToken, OutputChannel } from 'vscode';
+import { CancellationToken, OutputChannel, Uri } from 'vscode';
 import { run } from '../common/runner';
 import { Server } from './socketServer';
 import { PythonSettings } from '../../common/configSettings';
 import { launchDebugger } from '../common/debugLauncher';
-
-const settings = PythonSettings.getInstance();
 interface TestStatusMap {
     status: TestStatus;
     summaryProperty: string;
@@ -96,7 +94,7 @@ export function runTest(testManager: BaseTestManager, rootDirectory: string, tes
                 return launchDebugger(rootDirectory, [testLauncherFile].concat(testArgs), token, outChannel);
             }
             else {
-                return run(settings.pythonPath, [testLauncherFile].concat(testArgs), rootDirectory, token, outChannel);
+                return run(PythonSettings.getInstance(Uri.file(rootDirectory)).pythonPath, [testLauncherFile].concat(testArgs), rootDirectory, token, outChannel);
             }
         }
 

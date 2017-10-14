@@ -33,7 +33,7 @@ function execInTerminal(fileUri?: vscode.Uri) {
     const terminalShellSettings = vscode.workspace.getConfiguration('terminal.integrated.shell');
     const IS_POWERSHELL = /powershell/.test(terminalShellSettings.get<string>('windows'));
 
-    let pythonSettings = settings.PythonSettings.getInstance();
+    let pythonSettings = settings.PythonSettings.getInstance(fileUri);
     let filePath: string;
 
     let currentPythonPath = pythonSettings.pythonPath;

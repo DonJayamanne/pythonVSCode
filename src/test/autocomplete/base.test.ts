@@ -10,7 +10,7 @@ import { EOL } from 'os';
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as settings from '../../client/common/configSettings';
-import { initialize, closeActiveWindows } from '../initialize';
+import { initialize, closeActiveWindows, initializeTest } from '../initialize';
 import { execPythonFile } from '../../client/common/utils';
 
 const pythonSettings = settings.PythonSettings.getInstance();
@@ -30,7 +30,7 @@ suite('Autocomplete', () => {
         let version = await execPythonFile(pythonSettings.pythonPath, ['--version'], __dirname, true);
         isPython3 = Promise.resolve(version.indexOf('3.') >= 0);
     });
-
+    setup(() => initializeTest());
     suiteTeardown(() => closeActiveWindows());
     teardown(() => closeActiveWindows());
 

@@ -15,7 +15,7 @@ export class ShebangCodeLensProvider implements vscode.CodeLensProvider {
 
     private async createShebangCodeLens(document: TextDocument) {
         const shebang = await ShebangCodeLensProvider.detectShebang(document);
-        if (!shebang || shebang === settings.PythonSettings.getInstance().pythonPath) {
+        if (!shebang || shebang === settings.PythonSettings.getInstance(document.uri).pythonPath) {
             return [];
         }
 

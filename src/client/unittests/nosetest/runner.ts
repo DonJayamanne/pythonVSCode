@@ -1,6 +1,6 @@
 'use strict';
 import { createTemporaryFile } from '../../common/helpers';
-import { OutputChannel, CancellationToken } from 'vscode';
+import { OutputChannel, CancellationToken, Uri } from 'vscode';
 import { TestsToRun, Tests } from '../common/contracts';
 import { updateResults } from '../common/testUtils';
 import { updateResultsFromXmlLogFile, PassCalculationFormulae } from '../common/xUnitParser';
@@ -9,7 +9,6 @@ import { PythonSettings } from '../../common/configSettings';
 import * as path from 'path';
 import { launchDebugger } from '../common/debugLauncher';
 
-const pythonSettings = PythonSettings.getInstance();
 const WITH_XUNIT = '--with-xunit';
 const XUNIT_FILE = '--xunit-file';
 
@@ -61,6 +60,7 @@ export function runTest(rootDirectory: string, tests: Tests, args: string[], tes
     }
 
     return promiseToGetXmlLogFile.then(() => {
+        const pythonSettings = PythonSettings.getInstance(Uri.file(rootDirectory));
         if (debug === true) {
             const testLauncherFile = path.join(__dirname, '..', '..', '..', '..', 'pythonFiles', 'PythonTools', 'testlauncher.py');
             const nosetestlauncherargs = [rootDirectory, 'my_secret', pythonSettings.unitTest.debugPort.toString(), 'nose'];

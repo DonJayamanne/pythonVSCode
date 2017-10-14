@@ -1,3 +1,4 @@
+import { updateSetting } from '../common';
 
 // Note: This example test is leveraging the Mocha test framework.
 // Please refer to their documentation on https://mochajs.org/ for help.
@@ -14,9 +15,7 @@ import * as settings from '../../client/common/configSettings';
 import * as fs from 'fs';
 import { EOL } from 'os';
 import { PythonImportSortProvider } from '../../client/providers/importSortProvider';
-import { initialize, IS_TRAVIS, closeActiveWindows } from '../initialize';
-
-const pythonSettings = settings.PythonSettings.getInstance();
+import { initialize, IS_TRAVIS, closeActiveWindows, initializeTest } from '../initialize';
 
 const sortingPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'sorting');
 const fileToFormatWithoutConfig = path.join(sortingPath, 'noconfig', 'before.py');
@@ -29,18 +28,20 @@ const extensionDir = path.join(__dirname, '..', '..', '..');
 
 suite('Sorting', () => {
     suiteSetup(() => initialize());
-    suiteTeardown(() => {
+    setup(() => initializeTest());
+    suiteTeardown(async () => {
         fs.writeFileSync(fileToFormatWithConfig, fs.readFileSync(originalFileToFormatWithConfig));
         fs.writeFileSync(fileToFormatWithConfig1, fs.readFileSync(originalFileToFormatWithConfig1));
         fs.writeFileSync(fileToFormatWithoutConfig, fs.readFileSync(originalFileToFormatWithoutConfig));
-        return closeActiveWindows();
+        await updateSetting('sortImports.args', [], vscode.Uri.file(sortingPath), vscode.ConfigurationTarget.Workspace);
+        await closeActiveWindows();
     });
-    setup(() => {
-        pythonSettings.sortImports.args = [];
+    setup(async () => {
         fs.writeFileSync(fileToFormatWithConfig, fs.readFileSync(originalFileToFormatWithConfig));
         fs.writeFileSync(fileToFormatWithoutConfig, fs.readFileSync(originalFileToFormatWithoutConfig));
         fs.writeFileSync(fileToFormatWithConfig1, fs.readFileSync(originalFileToFormatWithConfig1));
-        return closeActiveWindows();
+        await updateSetting('sortImports.args', [], vscode.Uri.file(sortingPath), vscode.ConfigurationTarget.Workspace);
+        await closeActiveWindows();
     });
 
     test('Without Config', done => {
@@ -118,8 +119,36 @@ suite('Sorting', () => {
         test('With Changes and Config in Args', done => {
             let textEditor: vscode.TextEditor;
             let textDocument: vscode.TextDocument;
-            pythonSettings.sortImports.args = ['-sp', path.join(sortingPath, 'withconfig')];
-            vscode.workspace.openTextDocument(fileToFormatWithConfig).then(document => {
+            updateSetting('sortImports.args', ['-sp', path.join(sortingPath, 'withconfig')], vscode.Uri.file(sortingPath), vscode.ConfigurationTarget.Workspace)
+                .then(() => vscode.workspace.openTextDocument(fileToFormatWithConfig))
+                .then(document => {
+                    textDocument = document;
+                    return vscode.window.showTextDocument(textDocument);
+                }).then(editor => {
+                    assert(vscode.window.activeTextEditor, 'No active editor');
+                    textEditor = editor;
+                    return editor.edit(editor => {
+                        editor.insert(new vscode.Position(0, 0), 'from third_party import lib0' + EOL);
+                    });
+                }).then(() => {
+                    const sorter = new PythonImportSortProvider();
+                    return sorter.sortImports(extensionDir, textDocument);
+                }).then(edits => {
+                    const newValue = `from third_party import lib2${EOL}from third_party import lib3${EOL}from third_party import lib4${EOL}from third_party import lib5${EOL}from third_party import lib6${EOL}from third_party import lib7${EOL}from third_party import lib8${EOL}from third_party import lib9${EOL}`;
+                    assert.equal(edits.length, 1, 'Incorrect number of edits');
+                    assert.equal(edits[0].newText, newValue, 'New Value is not the same');
+                    assert.equal(`${edits[0].range.start.line},${edits[0].range.start.character}`, '1,0', 'Start position is not the same');
+                    assert.equal(`${edits[0].range.end.line},${edits[0].range.end.character}`, '4,0', 'End position is not the same');
+                }).then(done, done);
+        });
+    }
+    test('With Changes and Config in Args (via Command)', done => {
+        let textEditor: vscode.TextEditor;
+        let textDocument: vscode.TextDocument;
+        let originalContent = '';
+        updateSetting('sortImports.args', ['-sp', path.join(sortingPath, 'withconfig')], vscode.Uri.file(sortingPath), vscode.ConfigurationTarget.Workspace)
+            .then(() => vscode.workspace.openTextDocument(fileToFormatWithConfig))
+            .then(document => {
                 textDocument = document;
                 return vscode.window.showTextDocument(textDocument);
             }).then(editor => {
@@ -129,36 +158,10 @@ suite('Sorting', () => {
                     editor.insert(new vscode.Position(0, 0), 'from third_party import lib0' + EOL);
                 });
             }).then(() => {
-                const sorter = new PythonImportSortProvider();
-                return sorter.sortImports(extensionDir, textDocument);
+                originalContent = textDocument.getText();
+                return vscode.commands.executeCommand('python.sortImports');
             }).then(edits => {
-                const newValue = `from third_party import lib2${EOL}from third_party import lib3${EOL}from third_party import lib4${EOL}from third_party import lib5${EOL}from third_party import lib6${EOL}from third_party import lib7${EOL}from third_party import lib8${EOL}from third_party import lib9${EOL}`;
-                assert.equal(edits.length, 1, 'Incorrect number of edits');
-                assert.equal(edits[0].newText, newValue, 'New Value is not the same');
-                assert.equal(`${edits[0].range.start.line},${edits[0].range.start.character}`, '1,0', 'Start position is not the same');
-                assert.equal(`${edits[0].range.end.line},${edits[0].range.end.character}`, '4,0', 'End position is not the same');
+                assert.notEqual(originalContent, textDocument.getText(), 'Contents have not changed');
             }).then(done, done);
-        });
-    }
-    test('With Changes and Config in Args (via Command)', done => {
-        let textEditor: vscode.TextEditor;
-        let textDocument: vscode.TextDocument;
-        let originalContent = '';
-        pythonSettings.sortImports.args = ['-sp', path.join(sortingPath, 'withconfig')];
-        vscode.workspace.openTextDocument(fileToFormatWithConfig).then(document => {
-            textDocument = document;
-            return vscode.window.showTextDocument(textDocument);
-        }).then(editor => {
-            assert(vscode.window.activeTextEditor, 'No active editor');
-            textEditor = editor;
-            return editor.edit(editor => {
-                editor.insert(new vscode.Position(0, 0), 'from third_party import lib0' + EOL);
-            });
-        }).then(() => {
-            originalContent = textDocument.getText();
-            return vscode.commands.executeCommand('python.sortImports');
-        }).then(edits => {
-            assert.notEqual(originalContent, textDocument.getText(), 'Contents have not changed');
-        }).then(done, done);
     });
 });

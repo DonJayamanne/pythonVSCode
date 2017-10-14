@@ -1,26 +1,18 @@
 import * as assert from 'assert';
 import * as path from 'path';
-import * as settings from '../../client/common/configSettings';
-import { initialize } from '../initialize';
+import { PythonSettings } from '../../client/common/configSettings';
+import { initialize, initializeTest } from '../initialize';
 import { IS_WINDOWS } from '../../client/common/utils';
 import { CondaEnvService } from '../../client/interpreter/locators/services/condaEnvService';
 import { AnacondaCompanyName } from '../../client/interpreter/locators/services/conda';
 import { MockProvider } from './mocks';
 import { PythonInterpreter } from '../../client/interpreter/contracts';
 
-const pythonSettings = settings.PythonSettings.getInstance();
 const environmentsPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'environments');
-let originalPythonPath;
 
 suite('Interpreters from Conda Environments', () => {
-    suiteSetup(() => {
-        originalPythonPath = pythonSettings.pythonPath;
-        return initialize();
-    });
-    teardown(() => {
-        pythonSettings.pythonPath = originalPythonPath;
-    });
-
+    suiteSetup(() => initialize());
+    setup(() => initializeTest());
     test('Must return an empty list for empty json', async () => {
         const condaProvider = new CondaEnvService();
         const interpreters = await condaProvider.parseCondaInfo({} as any)
@@ -113,7 +105,7 @@ suite('Interpreters from Conda Environments', () => {
     test('Must detect conda environments from a list', async () => {
         const registryInterpreters: PythonInterpreter[] = [
             { displayName: 'One', path: 'c:/path1/one.exe', companyDisplayName: 'One 1' },
-            { displayName: 'Two', path: pythonSettings.pythonPath, companyDisplayName: 'Two 2' },
+            { displayName: 'Two', path: PythonSettings.getInstance().pythonPath, companyDisplayName: 'Two 2' },
             { displayName: 'Three', path: path.join(environmentsPath, 'path1', 'one.exe'), companyDisplayName: 'Three 3' },
             { displayName: 'Anaconda', path: path.join(environmentsPath, 'path2', 'one.exe'), companyDisplayName: 'Three 3' },
             { displayName: 'xAnaconda', path: path.join(environmentsPath, 'path2', 'one.exe'), companyDisplayName: 'Three 3' },
@@ -134,7 +126,7 @@ suite('Interpreters from Conda Environments', () => {
     test('Correctly identifies latest version when major version is different', async () => {
         const registryInterpreters: PythonInterpreter[] = [
             { displayName: 'One', path: path.join(environmentsPath, 'path1', 'one.exe'), companyDisplayName: 'One 1', version: '1' },
-            { displayName: 'Two', path: pythonSettings.pythonPath, companyDisplayName: 'Two 2', version: '3.1.3' },
+            { displayName: 'Two', path: PythonSettings.getInstance().pythonPath, companyDisplayName: 'Two 2', version: '3.1.3' },
             { displayName: 'Three', path: path.join(environmentsPath, 'path2', 'one.exe'), companyDisplayName: 'Three 3', version: '2.10.1' },
             { displayName: 'Four', path: path.join(environmentsPath, 'conda', 'envs', 'scipy'), companyDisplayName: 'Three 3', version: <any>null },
             { displayName: 'Five', path: path.join(environmentsPath, 'conda', 'envs', 'numpy'), companyDisplayName: 'Three 3', version: <any>undefined },
@@ -149,7 +141,7 @@ suite('Interpreters from Conda Environments', () => {
     test('Correctly identifies latest version when major version is same', async () => {
         const registryInterpreters: PythonInterpreter[] = [
             { displayName: 'One', path: path.join(environmentsPath, 'path1', 'one.exe'), companyDisplayName: 'One 1', version: '1' },
-            { displayName: 'Two', path: pythonSettings.pythonPath, companyDisplayName: 'Two 2', version: '2.11.3' },
+            { displayName: 'Two', path: PythonSettings.getInstance().pythonPath, companyDisplayName: 'Two 2', version: '2.11.3' },
             { displayName: 'Three', path: path.join(environmentsPath, 'path2', 'one.exe'), companyDisplayName: 'Three 3', version: '2.10.1' },
             { displayName: 'Four', path: path.join(environmentsPath, 'conda', 'envs', 'scipy'), companyDisplayName: 'Three 3', version: <any>null },
             { displayName: 'Five', path: path.join(environmentsPath, 'conda', 'envs', 'numpy'), companyDisplayName: 'Three 3', version: <any>undefined },

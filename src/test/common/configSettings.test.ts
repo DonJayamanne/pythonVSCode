@@ -14,17 +14,17 @@ import { initialize, IS_TRAVIS } from './../initialize';
 import { PythonSettings } from '../../client/common/configSettings';
 import { SystemVariables } from '../../client/common/systemVariables';
 
-const pythonSettings = PythonSettings.getInstance();
 const workspaceRoot = path.join(__dirname, '..', '..', '..', 'src', 'test');
 
 // Defines a Mocha test suite to group tests of similar kind together
 suite('Configuration Settings', () => {
     setup(() => initialize());
-    
+
     if (!IS_TRAVIS) {
         test('Check Values', done => {
             const systemVariables: SystemVariables = new SystemVariables(workspaceRoot);
             const pythonConfig = vscode.workspace.getConfiguration('python');
+            const pythonSettings = PythonSettings.getInstance(vscode.Uri.file(workspaceRoot));
             Object.keys(pythonSettings).forEach(key => {
                 let settingValue = pythonConfig.get(key, 'Not a config');
                 if (settingValue === 'Not a config') {

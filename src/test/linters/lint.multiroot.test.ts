@@ -3,18 +3,16 @@ import * as path from 'path';
 import * as baseLinter from '../../client/linters/baseLinter';
 import * as pyLint from '../../client/linters/pylint';
 import * as flake8 from '../../client/linters/flake8';
-import { PythonSettings } from '../../client/common/configSettings';
 import { CancellationTokenSource, ConfigurationTarget, Uri, window, workspace } from 'vscode';
-import { initialize, closeActiveWindows } from '../initialize';
+import { closeActiveWindows, initialize, initializeTest } from '../initialize';
 import { MockOutputChannel } from '../mockClasses';
+import { PythonSettings } from '../../client/common/configSettings';
 
-const multirootPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'multiRootWkspc');
+const multirootPath = path.join(__dirname, '..', '..', '..', 'src', 'testMultiRootWkspc');
 
 suite('Multiroot Linting', () => {
-    suiteSetup(async () => {
-        await initialize();
-        PythonSettings.dispose();
-    });
+    suiteSetup(() => initialize());
+    setup(() => initializeTest());
     suiteTeardown(() => closeActiveWindows());
     teardown(async () => {
         await closeActiveWindows();

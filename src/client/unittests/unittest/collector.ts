@@ -7,8 +7,6 @@ import * as path from 'path';
 import { PythonSettings } from '../../common/configSettings';
 import { OutputChannel } from 'vscode';
 
-const pythonSettings = PythonSettings.getInstance();
-
 export function discoverTests(rootDirectory: string, args: string[], token: vscode.CancellationToken, ignoreCache: boolean, outChannel: OutputChannel): Promise<Tests> {
     let startDirectory = '.';
     let pattern = 'test*.py';
@@ -73,7 +71,7 @@ for suite in suites._tests:
         });
     }
     args = [];
-    return execPythonFile(pythonSettings.pythonPath, args.concat(['-c', pythonScript]), rootDirectory, true, null, token)
+    return execPythonFile(PythonSettings.getInstance(vscode.Uri.file(rootDirectory)).pythonPath, args.concat(['-c', pythonScript]), rootDirectory, true, null, token)
         .then(data => {
             outChannel.appendLine(data);
             processOutput(data);

@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { MockOutputChannel } from './mocks';
-import { initialize } from './../initialize';
+import { initialize, initializeTest } from './../initialize';
 import { JupyterClientAdapter } from '../../client/jupyter/jupyter_client/main';
 import { KernelShutdownError } from '../../client/jupyter/common/errors';
 import { createDeferred } from '../../client/common/helpers';
@@ -17,6 +17,7 @@ suite('Jupyter Kernel', () => {
         disposables.push(output);
         jupyter = new JupyterClientAdapter(output, __dirname);
         disposables.push(jupyter);
+        return initializeTest();
     });
     teardown(() => {
         process.env['PYTHON_DONJAYAMANNE_TEST'] = '1';
