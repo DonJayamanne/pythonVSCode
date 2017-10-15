@@ -67,17 +67,28 @@ function execInTerminal(fileUri?: vscode.Uri) {
         filePath = `"${filePath}"`;
     }
 
+    let pushed_cwd = false;
+
     terminal = terminal ? terminal : vscode.window.createTerminal(`Python`);
     if (pythonSettings.terminal && pythonSettings.terminal.executeInFileDir) {
         const fileDirPath = path.dirname(filePath);
         if (fileDirPath !== vscode.workspace.rootPath && fileDirPath.substring(1) !== vscode.workspace.rootPath) {
-            terminal.sendText(`cd "${fileDirPath}"`);
+            if (IS_WINDOWS) {
+                terminal.sendText(`pushd "${fileDirPath}"`);
+                pushed_cwd = true;
+            } else {
+                terminal.sendText(`cd "${fileDirPath}"`);
+            }
         }
     }
     const launchArgs = settings.PythonSettings.getInstance().terminal.launchArgs;
     const launchArgsString = launchArgs.length > 0 ? " ".concat(launchArgs.join(" ")) : "";
     const command = `${currentPythonPath}${launchArgsString} ${filePath}`;
     if (IS_WINDOWS) {
+        const pythonPath = pythonSettings.terminal.executeWithPythonPathEnvVariable;
+        if (pythonPath) {
+            terminal.sendText(`SET PYTHONPATH=${pythonPath}`);
+        }
         const commandWin = command.replace(/\\/g, "/");
         if (IS_POWERSHELL) {
             terminal.sendText(`& ${commandWin}`);
@@ -89,6 +100,11 @@ function execInTerminal(fileUri?: vscode.Uri) {
     else {
         terminal.sendText(command);
     }
+
+    if (pushed_cwd) {
+        terminal.sendText('popd');
+    }
+
     terminal.show();
 }
 
