@@ -186,38 +186,32 @@ suite('Linting', () => {
         });
         await Promise.all(promises);
     }
-    function testLinterMessages(linter: baseLinter.BaseLinter, outputChannel: MockOutputChannel, pythonFile: string, messagesToBeReceived: baseLinter.ILintMessage[]): Thenable<any> {
+    async function testLinterMessages(linter: baseLinter.BaseLinter, outputChannel: MockOutputChannel, pythonFile: string, messagesToBeReceived: baseLinter.ILintMessage[]): Thenable<any> {
 
         let cancelToken = new vscode.CancellationTokenSource();
-        return disableAllButThisLinter(linter.product)
-            .then(() => vscode.workspace.openTextDocument(pythonFile))
-            .then(document => vscode.window.showTextDocument(document))
-            .then(editor => {
-                return linter.lint(editor.document, cancelToken.token);
-            })
-            .then(messages => {
-                // Different versions of python return different errors,
-                if (messagesToBeReceived.length === 0) {
-                    assert.equal(messages.length, 0, 'No errors in linter, Output - ' + outputChannel.output);
-                }
-                else {
-                    if (outputChannel.output.indexOf('ENOENT') === -1) {
-                        // Pylint for Python Version 2.7 could return 80 linter messages, where as in 3.5 it might only return 1
-                        // Looks like pylint stops linting as soon as it comes across any ERRORS
-                        assert.notEqual(messages.length, 0, 'No errors in linter, Output - ' + outputChannel.output);
-                    }
-                    else {
-                        assert.ok('Linter not installed', 'Linter not installed');
-                    }
-                }
-                // messagesToBeReceived.forEach(msg => {
-                //     let similarMessages = messages.filter(m => m.code === msg.code && m.column === msg.column &&
-                //         m.line === msg.line && m.message === msg.message && m.severity === msg.severity);
-                //     assert.equal(true, similarMessages.length > 0, 'Error not found, ' + JSON.stringify(msg) + '\n, Output - ' + outputChannel.output);
-                // });
-            }, error => {
-                assert.fail(error, null, 'Linter error, Output - ' + outputChannel.output, '');
-            });
+        await disableAllButThisLinter(linter.product);
+        const document = await vscode.workspace.openTextDocument(pythonFile);
+        const editor = await vscode.window.showTextDocument(document);
+        const messages = await linter.lint(editor.document, cancelToken.token);
+        // Different versions of python return different errors,
+        if (messagesToBeReceived.length === 0) {
+            assert.equal(messages.length, 0, 'No errors in linter, Output - ' + outputChannel.output);
+        }
+        else {
+            if (outputChannel.output.indexOf('ENOENT') === -1) {
+                // Pylint for Python Version 2.7 could return 80 linter messages, where as in 3.5 it might only return 1
+                // Looks like pylint stops linting as soon as it comes across any ERRORS
+                assert.notEqual(messages.length, 0, 'No errors in linter, Output - ' + outputChannel.output);
+            }
+            else {
+                assert.ok('Linter not installed', 'Linter not installed');
+            }
+        }
+        // messagesToBeReceived.forEach(msg => {
+        //     let similarMessages = messages.filter(m => m.code === msg.code && m.column === msg.column &&
+        //         m.line === msg.line && m.message === msg.message && m.severity === msg.severity);
+        //     assert.equal(true, similarMessages.length > 0, 'Error not found, ' + JSON.stringify(msg) + '\n, Output - ' + outputChannel.output);
+        // });
     }
     test('PyLint', done => {
         let ch = new MockOutputChannel('Lint');
