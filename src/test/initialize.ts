@@ -15,17 +15,21 @@ let dummyPythonFile = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFil
 process.env['PYTHON_DONJAYAMANNE_TEST'] = '1';
 
 let configSettings: any = undefined;
+let extensionActivated: boolean = false;
 export async function initialize(): Promise<any> {
     await initializePython();
+    // Opening a python file activates the extension.
+    await vscode.workspace.openTextDocument(dummyPythonFile);
+    if (!extensionActivated) {
+        const ext = require('../client/extension');
+        await ext.activated;
+        extensionActivated = true;
+    }
     if (!configSettings) {
         configSettings = await require('../client/common/configSettings');
     }
-    // Dispose any cached python settings (used only in test env)
+    // Dispose any cached python settings (used only in test env).
     configSettings.PythonSettings.dispose();
-    // Opening a python file activates the extension
-    return await new Promise<any>((resolve, reject) => {
-        vscode.workspace.openTextDocument(dummyPythonFile).then(() => resolve(), reject);
-    });
 }
 export async function initializeTest(): Promise<any> {
     await initializePython();

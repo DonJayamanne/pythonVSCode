@@ -674,13 +674,14 @@ export interface IHoverItem {
 }
 
 export class JediProxyHandler<R extends ICommandResult> implements vscode.Disposable {
-    private cancellationTokenSource: vscode.CancellationTokenSource;
+    private commandCancellationTokenSources: Map<CommandType, vscode.CancellationTokenSource>;
 
     public get JediProxy(): JediProxy {
         return this.jediProxy;
     }
 
     public constructor(private jediProxy: JediProxy = null) {
+        this.commandCancellationTokenSources = new Map<CommandType, vscode.CancellationTokenSource>();
     }
     public dispose() {
         this.jediProxy.dispose();
@@ -689,15 +690,14 @@ export class JediProxyHandler<R extends ICommandResult> implements vscode.Dispos
         var executionCmd = <IExecutionCommand<R>>cmd;
         executionCmd.id = executionCmd.id || this.jediProxy.getNextCommandId();
 
-        if (this.cancellationTokenSource) {
-            try {
-                this.cancellationTokenSource.cancel();
-            }
-            catch (ex) { }
+        if (this.commandCancellationTokenSources.has(cmd.command)) {
+            const cancellation = this.commandCancellationTokenSources.get(cmd.command);
+            cancellation.cancel();
         }
 
-        this.cancellationTokenSource = new vscode.CancellationTokenSource();
-        executionCmd.token = this.cancellationTokenSource.token;
+        const cancellation = new vscode.CancellationTokenSource();
+        this.commandCancellationTokenSources.set(cmd.command, cancellation);
+        executionCmd.token = cancellation.token;
 
         return this.jediProxy.sendCommand<R>(executionCmd)
             .catch(reason => {
