@@ -7,20 +7,24 @@
 process.env['PYTHON_DONJAYAMANNE_TEST'] = "1";
 
 // The module 'assert' provides assertion methods from node
-import * as assert from "assert";
+import * as assert from 'assert';
 import * as fs from 'fs';
 
 // You can import and use all API from the 'vscode' module
 // as well as import your extension to test it
-import * as vscode from "vscode";
-import * as path from "path";
+import * as vscode from 'vscode';
+import * as path from 'path';
 let dummyPythonFile = path.join(__dirname, "..", "..", "src", "test", "pythonFiles", "dummy.py");
 
-export function initialize(): Promise<any> {
+let extensionActivated: boolean = false;
+export async function initialize(): Promise<any> {
     // Opening a python file activates the extension
-    return new Promise<any>((resolve, reject) => {
-        vscode.workspace.openTextDocument(dummyPythonFile).then(() => resolve(), reject);
-    });
+    await vscode.workspace.openTextDocument(dummyPythonFile);
+    if (!extensionActivated) {
+        const ext = require('../client/extension');
+        await ext.activated;
+        extensionActivated = true;
+    }
 }
 
 export async function wait(timeoutMilliseconds: number) {
