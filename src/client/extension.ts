@@ -1,6 +1,7 @@
 'use strict';
 
 import * as vscode from 'vscode';
+import { createDeferred } from './common/helpers';
 import { PythonCompletionItemProvider } from './providers/completionProvider';
 import { PythonHoverProvider } from './providers/hoverProvider';
 import { PythonDefinitionProvider } from './providers/definitionProvider';
@@ -39,6 +40,8 @@ let unitTestOutChannel: vscode.OutputChannel;
 let formatOutChannel: vscode.OutputChannel;
 let lintingOutChannel: vscode.OutputChannel;
 let jupMain: jup.Jupyter;
+const activationDeferred = createDeferred<void>();
+export const activated = activationDeferred.promise;
 export async function activate(context: vscode.ExtensionContext) {
     const pythonSettings = settings.PythonSettings.getInstance();
     const pythonExt = new PythonExt();
@@ -153,6 +156,7 @@ export async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(hepProvider);
 
     context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('python', new SimpleConfigurationProvider()));
+    activationDeferred.resolve();
 }
 
 class PythonExt implements vscode.Disposable {
