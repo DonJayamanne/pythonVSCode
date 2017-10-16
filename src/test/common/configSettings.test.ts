@@ -13,6 +13,7 @@ import * as path from 'path';
 import { initialize, IS_TRAVIS } from './../initialize';
 import { PythonSettings } from '../../client/common/configSettings';
 import { SystemVariables } from '../../client/common/systemVariables';
+import { rootWorkspaceUri } from '../common';
 
 const workspaceRoot = path.join(__dirname, '..', '..', '..', 'src', 'test');
 
