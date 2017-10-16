@@ -20,14 +20,20 @@
 		}
 	],
 	"settings": {
-		"python.linting.flake8Enabled": false,
+		"python.linting.flake8Enabled": true,
 		"python.linting.mypyEnabled": true,
 		"python.linting.pydocstyleEnabled": true,
 		"python.linting.pylamaEnabled": true,
-		"python.linting.pylintEnabled": false,
+		"python.linting.pylintEnabled": true,
 		"python.linting.pep8Enabled": true,
 		"python.linting.prospectorEnabled": true,
-		"python.workspaceSymbols.enabled": true,
+		"python.workspaceSymbols.enabled": false,
+		"python.formatting.formatOnSave": false,
+		"python.formatting.provider": "yapf",
+		"python.sortImports.args": [],
+		"python.linting.lintOnSave": false,
+		"python.linting.lintOnTextChange": false,
+		"python.linting.enabled": true,
 		"python.pythonPath": "python"
 	}
 }

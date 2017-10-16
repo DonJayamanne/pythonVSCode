@@ -10,7 +10,7 @@ import * as assert from 'assert';
 // as well as import your extension to test it
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { initialize, IS_TRAVIS } from './../initialize';
+import { initialize, IS_MULTI_ROOT_TEST, IS_TRAVIS } from './../initialize';
 import { PythonSettings } from '../../client/common/configSettings';
 import { SystemVariables } from '../../client/common/systemVariables';
 import { rootWorkspaceUri } from '../common';
@@ -21,7 +21,7 @@ const workspaceRoot = path.join(__dirname, '..', '..', '..', 'src', 'test');
 suite('Configuration Settings', () => {
     setup(() => initialize());
 
-    if (!IS_TRAVIS) {
+    if (!IS_MULTI_ROOT_TEST) {
         test('Check Values', done => {
             const systemVariables: SystemVariables = new SystemVariables(workspaceRoot);
             const pythonConfig = vscode.workspace.getConfiguration('python');

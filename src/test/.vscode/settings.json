@@ -1,12 +1,23 @@
 {
-    "python.pythonPath": "python",
     "python.linting.pylintEnabled": true,
     "python.linting.flake8Enabled": true,
-    "python.workspaceSymbols.enabled": true,
+    "python.workspaceSymbols.enabled": false,
     "python.unitTest.nosetestArgs": [],
     "python.unitTest.pyTestArgs": [],
     "python.unitTest.unittestArgs": [
         "-s=./tests",
         "-p=test_*.py"
-    ]
+    ],
+    "python.pythonPath": "python",
+    "python.formatting.formatOnSave": false,
+    "python.sortImports.args": [],
+    "python.linting.lintOnSave": false,
+    "python.linting.lintOnTextChange": false,
+    "python.linting.enabled": true,
+    "python.linting.pep8Enabled": true,
+    "python.linting.prospectorEnabled": true,
+    "python.linting.pydocstyleEnabled": true,
+    "python.linting.pylamaEnabled": true,
+    "python.linting.mypyEnabled": true,
+    "python.formatting.provider": "yapf"
 }
