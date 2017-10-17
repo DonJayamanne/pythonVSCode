@@ -3,9 +3,8 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { PythonSettings } from '../../client/common/configSettings';
-import { EnumEx } from '../../client/common/enumUtils';
 import { createDeferred } from '../../client/common/helpers';
-import { Linters, Product, SettingToDisableProduct } from '../../client/common/installer';
+import { SettingToDisableProduct } from '../../client/common/installer';
 import { execPythonFile } from '../../client/common/utils';
 import * as baseLinter from '../../client/linters/baseLinter';
 import * as flake8 from '../../client/linters/flake8';
@@ -130,20 +129,32 @@ suite('Linting', () => {
         await resetSettings();
     });
     async function resetSettings() {
+        // Don't run these updates in parallel, as they are updating the same file.
         await updateSetting('linting.enabled', true, rootWorkspaceUri, vscode.ConfigurationTarget.Workspace);
         if (IS_MULTI_ROOT_TEST) {
             await updateSetting('linting.enabled', true, rootWorkspaceUri, vscode.ConfigurationTarget.WorkspaceFolder);
         }
-        const settings: PythonSettingKeys[] = ['linting.lintOnSave', 'linting.lintOnTextChange', 'linting.pylintEnabled', 'linting.flake8Enabled',
-            'linting.pep8Enabled', 'linting.prospectorEnabled', 'linting.pydocstyleEnabled', 'linting.mypyEnabled', 'linting.pylamaEnabled'];
+        await updateSetting('linting.lintOnSave', false, rootWorkspaceUri, vscode.ConfigurationTarget.Workspace);
+        await updateSetting('linting.lintOnTextChange', false, rootWorkspaceUri, vscode.ConfigurationTarget.Workspace);
+        await updateSetting('linting.pylintEnabled', false, rootWorkspaceUri, vscode.ConfigurationTarget.Workspace);
+        await updateSetting('linting.flake8Enabled', false, rootWorkspaceUri, vscode.ConfigurationTarget.Workspace);
+        await updateSetting('linting.pep8Enabled', false, rootWorkspaceUri, vscode.ConfigurationTarget.Workspace);
+        await updateSetting('linting.prospectorEnabled', false, rootWorkspaceUri, vscode.ConfigurationTarget.Workspace);
+        await updateSetting('linting.mypyEnabled', false, rootWorkspaceUri, vscode.ConfigurationTarget.Workspace);
+        await updateSetting('linting.pydocstyleEnabled', false, rootWorkspaceUri, vscode.ConfigurationTarget.Workspace);
+        await updateSetting('linting.pylamaEnabled', false, rootWorkspaceUri, vscode.ConfigurationTarget.Workspace);
 
-        // tslint:disable-next-line:promise-function-async
-        await Promise.all(settings.map(setting => updateSetting(setting, false, rootWorkspaceUri, vscode.ConfigurationTarget.Workspace)));
         if (IS_MULTI_ROOT_TEST) {
-            // tslint:disable-next-line:promise-function-async
-            await Promise.all(settings.map(setting => updateSetting(setting, false, rootWorkspaceUri, vscode.ConfigurationTarget.WorkspaceFolder)));
+            await updateSetting('linting.lintOnSave', false, rootWorkspaceUri, vscode.ConfigurationTarget.WorkspaceFolder);
+            await updateSetting('linting.lintOnTextChange', false, rootWorkspaceUri, vscode.ConfigurationTarget.WorkspaceFolder);
+            await updateSetting('linting.pylintEnabled', false, rootWorkspaceUri, vscode.ConfigurationTarget.WorkspaceFolder);
+            await updateSetting('linting.flake8Enabled', false, rootWorkspaceUri, vscode.ConfigurationTarget.WorkspaceFolder);
+            await updateSetting('linting.pep8Enabled', false, rootWorkspaceUri, vscode.ConfigurationTarget.WorkspaceFolder);
+            await updateSetting('linting.prospectorEnabled', false, rootWorkspaceUri, vscode.ConfigurationTarget.WorkspaceFolder);
+            await updateSetting('linting.mypyEnabled', false, rootWorkspaceUri, vscode.ConfigurationTarget.WorkspaceFolder);
+            await updateSetting('linting.pydocstyleEnabled', false, rootWorkspaceUri, vscode.ConfigurationTarget.WorkspaceFolder);
+            await updateSetting('linting.pylamaEnabled', false, rootWorkspaceUri, vscode.ConfigurationTarget.WorkspaceFolder);
         }
-        PythonSettings.dispose();
     }
     async function testEnablingDisablingOfLinter(linter: baseLinter.BaseLinter, setting: PythonSettingKeys, enabled: boolean) {
         await updateSetting(setting, enabled, rootWorkspaceUri, IS_MULTI_ROOT_TEST ? vscode.ConfigurationTarget.WorkspaceFolder : vscode.ConfigurationTarget.Workspace);
@@ -201,21 +212,12 @@ suite('Linting', () => {
         await testEnablingDisablingOfLinter(new pydocstyle.Linter(ch), 'linting.pydocstyleEnabled', true);
     });
 
-    async function disableAllButThisLinter(linterToEnable: Product) {
-        const promises = EnumEx.getNamesAndValues(Product).map(async linter => {
-            if (Linters.indexOf(linter.value) === -1) {
-                return;
-            }
-            const setting = SettingToDisableProduct.get(linter.value);
-            // tslint:disable-next-line:no-any prefer-type-cast
-            return updateSetting(setting as any, true, rootWorkspaceUri, IS_MULTI_ROOT_TEST ? vscode.ConfigurationTarget.WorkspaceFolder : vscode.ConfigurationTarget.Workspace);
-        });
-        await Promise.all(promises);
-    }
     // tslint:disable-next-line:no-any
     async function testLinterMessages(linter: baseLinter.BaseLinter, outputChannel: MockOutputChannel, pythonFile: string, messagesToBeReceived: baseLinter.ILintMessage[]): Promise<any> {
         const cancelToken = new vscode.CancellationTokenSource();
-        await disableAllButThisLinter(linter.product);
+        const settingToEnable = SettingToDisableProduct.get(linter.product);
+        // tslint:disable-next-line:no-any prefer-type-cast
+        await updateSetting(settingToEnable as any, true, rootWorkspaceUri, IS_MULTI_ROOT_TEST ? vscode.ConfigurationTarget.WorkspaceFolder : vscode.ConfigurationTarget.Workspace);
         // tslint:disable-next-line:await-promise
         const document = await vscode.workspace.openTextDocument(pythonFile);
         // tslint:disable-next-line:await-promise
