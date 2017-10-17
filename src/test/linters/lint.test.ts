@@ -156,7 +156,7 @@ suite('Linting', () => {
             await updateSetting('linting.pylamaEnabled', false, rootWorkspaceUri, vscode.ConfigurationTarget.WorkspaceFolder);
         }
     }
-    async function testEnablingDisablingOfLinter(linter: baseLinter.BaseLinter, setting: PythonSettingKeys, enabled: boolean) {
+    async function testEnablingDisablingOfLinter(linter: baseLinter.BaseLinter, setting: PythonSettingKeys, enabled: boolean, output: MockOutputChannel) {
         await updateSetting(setting, enabled, rootWorkspaceUri, IS_MULTI_ROOT_TEST ? vscode.ConfigurationTarget.WorkspaceFolder : vscode.ConfigurationTarget.Workspace);
         // tslint:disable-next-line:await-promise
         const document = await vscode.workspace.openTextDocument(fileToLint);
@@ -165,51 +165,51 @@ suite('Linting', () => {
         const cancelToken = new vscode.CancellationTokenSource();
         const messages = await linter.lint(editor.document, cancelToken.token);
         if (enabled) {
-            assert.notEqual(messages.length, 0, 'No linter errors when linter is enabled');
+            assert.notEqual(messages.length, 0, `No linter errors when linter is enabled, Output - ${output.output}`);
         }
         else {
-            assert.equal(messages.length, 0, 'Errors returned when linter is disabled');
+            assert.equal(messages.length, 0, `Errors returned when linter is disabled, Output - ${output.output}`);
         }
     }
     test('Disable Pylint and test linter', async () => {
         const ch = new MockOutputChannel('Lint');
-        await testEnablingDisablingOfLinter(new pyLint.Linter(ch), 'linting.pylintEnabled', false);
+        await testEnablingDisablingOfLinter(new pyLint.Linter(ch), 'linting.pylintEnabled', false, ch);
     });
     test('Enable Pylint and test linter', async () => {
         const ch = new MockOutputChannel('Lint');
-        await testEnablingDisablingOfLinter(new pyLint.Linter(ch), 'linting.pylintEnabled', true);
+        await testEnablingDisablingOfLinter(new pyLint.Linter(ch), 'linting.pylintEnabled', true, ch);
     });
     test('Disable Pep8 and test linter', async () => {
         const ch = new MockOutputChannel('Lint');
-        await testEnablingDisablingOfLinter(new pep8.Linter(ch), 'linting.pep8Enabled', false);
+        await testEnablingDisablingOfLinter(new pep8.Linter(ch), 'linting.pep8Enabled', false, ch);
     });
     test('Enable Pep8 and test linter', async () => {
         const ch = new MockOutputChannel('Lint');
-        await testEnablingDisablingOfLinter(new pep8.Linter(ch), 'linting.pep8Enabled', true);
+        await testEnablingDisablingOfLinter(new pep8.Linter(ch), 'linting.pep8Enabled', true, ch);
     });
     test('Disable Flake8 and test linter', async () => {
         const ch = new MockOutputChannel('Lint');
-        await testEnablingDisablingOfLinter(new flake8.Linter(ch), 'linting.flake8Enabled', false);
+        await testEnablingDisablingOfLinter(new flake8.Linter(ch), 'linting.flake8Enabled', false, ch);
     });
     test('Enable Flake8 and test linter', async () => {
         const ch = new MockOutputChannel('Lint');
-        await testEnablingDisablingOfLinter(new flake8.Linter(ch), 'linting.flake8Enabled', true);
+        await testEnablingDisablingOfLinter(new flake8.Linter(ch), 'linting.flake8Enabled', true, ch);
     });
     test('Disable Prospector and test linter', async () => {
         const ch = new MockOutputChannel('Lint');
-        await testEnablingDisablingOfLinter(new prospector.Linter(ch), 'linting.prospectorEnabled', false);
+        await testEnablingDisablingOfLinter(new prospector.Linter(ch), 'linting.prospectorEnabled', false, ch);
     });
     test('Enable Prospector and test linter', async () => {
         const ch = new MockOutputChannel('Lint');
-        await testEnablingDisablingOfLinter(new prospector.Linter(ch), 'linting.prospectorEnabled', true);
+        await testEnablingDisablingOfLinter(new prospector.Linter(ch), 'linting.prospectorEnabled', true, ch);
     });
     test('Disable Pydocstyle and test linter', async () => {
         const ch = new MockOutputChannel('Lint');
-        await testEnablingDisablingOfLinter(new pydocstyle.Linter(ch), 'linting.pydocstyleEnabled', false);
+        await testEnablingDisablingOfLinter(new pydocstyle.Linter(ch), 'linting.pydocstyleEnabled', false, ch);
     });
     test('Enable Pydocstyle and test linter', async () => {
         const ch = new MockOutputChannel('Lint');
-        await testEnablingDisablingOfLinter(new pydocstyle.Linter(ch), 'linting.pydocstyleEnabled', true);
+        await testEnablingDisablingOfLinter(new pydocstyle.Linter(ch), 'linting.pydocstyleEnabled', true, ch);
     });
 
     // tslint:disable-next-line:no-any
@@ -231,9 +231,6 @@ suite('Linting', () => {
                 // Pylint for Python Version 2.7 could return 80 linter messages, where as in 3.5 it might only return 1.
                 // Looks like pylint stops linting as soon as it comes across any ERRORS.
                 assert.notEqual(messages.length, 0, `No errors in linter, Output - ${outputChannel.output}`);
-            }
-            else {
-                assert.ok('Linter not installed', 'Linter not installed');
             }
         }
     }
