@@ -118,8 +118,10 @@ const hygiene = exports.hygiene = (some, options) => {
     const formatting = es.map(function (file, cb) {
         tsfmt.processString(file.path, file.contents.toString('utf8'), {
             verify: true,
-            tsfmt: true,
-            editorconfig: true
+            tsconfig: true,
+            tslint: true,
+            editorconfig: true,
+            tsfmt: true
             // verbose: true
         }).then(result => {
             if (result.error) {
