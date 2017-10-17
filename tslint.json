@@ -24,6 +24,13 @@
         "newline-before-return": false,
         "export-name": false,
         "align": false,
-        "linebreak-style": false
+        "linebreak-style": false,
+        "strict-boolean-expressions": [
+            true,
+            "allow-null-union",
+            "allow-undefined-union",
+            "allow-string",
+            "allow-number"
+        ]
     }
 }

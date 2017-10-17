@@ -8,21 +8,21 @@ export const rootWorkspaceUri = getWorkspaceRoot();
 export type PythonSettingKeys = 'workspaceSymbols.enabled' | 'pythonPath' |
     'linting.lintOnSave' | 'linting.lintOnTextChange' |
     'linting.enabled' | 'linting.pylintEnabled' |
-    'linting.flake8Enabled' | 'linting.pep8Enabled' |
-    'linting.prospectorEnabled' | 'linting.pydocstyleEnabled' |
+    'linting.flake8Enabled' | 'linting.pep8Enabled' | 'linting.pylamaEnabled' |
+    'linting.prospectorEnabled' | 'linting.pydocstyleEnabled' | 'linting.mypyEnabled' |
     'unitTest.nosetestArgs' | 'unitTest.pyTestArgs' | 'unitTest.unittestArgs' |
     'formatting.formatOnSave' | 'formatting.provider' | 'sortImports.args';
 
-
-export async function updateSetting(setting: PythonSettingKeys, value: any, resource: Uri, configTarget: ConfigurationTarget) {
-    let settings = workspace.getConfiguration('python', resource);
+export async function updateSetting(setting: PythonSettingKeys, value: {}, resource: Uri, configTarget: ConfigurationTarget) {
+    const settings = workspace.getConfiguration('python', resource);
     const currentValue = settings.inspect(setting);
-    if ((configTarget === ConfigurationTarget.Global && currentValue && currentValue.globalValue === value) ||
-        (configTarget === ConfigurationTarget.Workspace && currentValue && currentValue.workspaceValue === value) ||
-        (configTarget === ConfigurationTarget.WorkspaceFolder && currentValue && currentValue.workspaceFolderValue === value)) {
+    if (currentValue !== undefined && ((configTarget === ConfigurationTarget.Global && currentValue.globalValue === value) ||
+        (configTarget === ConfigurationTarget.Workspace && currentValue.workspaceValue === value) ||
+        (configTarget === ConfigurationTarget.WorkspaceFolder && currentValue.workspaceFolderValue === value))) {
         PythonSettings.dispose();
         return;
     }
+    // tslint:disable-next-line:await-promise
     await settings.update(setting, value, configTarget);
     PythonSettings.dispose();
 }
@@ -34,5 +34,6 @@ function getWorkspaceRoot() {
     if (workspace.workspaceFolders.length === 1) {
         return workspace.workspaceFolders[0].uri;
     }
-    return workspace.getWorkspaceFolder(Uri.file(fileInNonRootWorkspace)).uri;
+    const workspaceFolder = workspace.getWorkspaceFolder(Uri.file(fileInNonRootWorkspace));
+    return workspaceFolder ? workspaceFolder.uri : workspace.workspaceFolders[0].uri;
 }
