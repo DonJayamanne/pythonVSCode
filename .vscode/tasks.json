@@ -53,6 +53,18 @@
                     "fileLocation": "relative"
                 }
             ]
+        },
+        {
+            "label": "lint-staged",
+            "type": "npm",
+            "script": "lint-staged",
+            "problemMatcher": [
+                "$tsc",
+                {
+                    "base": "$tslint5",
+                    "fileLocation": "relative"
+                }
+            ]
         }
     ]
 }

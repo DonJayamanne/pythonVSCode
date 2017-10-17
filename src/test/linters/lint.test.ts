@@ -158,9 +158,7 @@ suite('Linting', () => {
     }
     async function testEnablingDisablingOfLinter(linter: baseLinter.BaseLinter, setting: PythonSettingKeys, enabled: boolean, output: MockOutputChannel) {
         await updateSetting(setting, enabled, rootWorkspaceUri, IS_MULTI_ROOT_TEST ? vscode.ConfigurationTarget.WorkspaceFolder : vscode.ConfigurationTarget.Workspace);
-        // tslint:disable-next-line:await-promise
         const document = await vscode.workspace.openTextDocument(fileToLint);
-        // tslint:disable-next-line:await-promise
         const editor = await vscode.window.showTextDocument(document);
         const cancelToken = new vscode.CancellationTokenSource();
         const messages = await linter.lint(editor.document, cancelToken.token);
@@ -214,9 +212,7 @@ suite('Linting', () => {
         const settingToEnable = SettingToDisableProduct.get(linter.product);
         // tslint:disable-next-line:no-any prefer-type-cast
         await updateSetting(settingToEnable as any, true, rootWorkspaceUri, IS_MULTI_ROOT_TEST ? vscode.ConfigurationTarget.WorkspaceFolder : vscode.ConfigurationTarget.Workspace);
-        // tslint:disable-next-line:await-promise
         const document = await vscode.workspace.openTextDocument(pythonFile);
-        // tslint:disable-next-line:await-promise
         const editor = await vscode.window.showTextDocument(document);
         const messages = await linter.lint(editor.document, cancelToken.token);
         if (messagesToBeReceived.length === 0) {
