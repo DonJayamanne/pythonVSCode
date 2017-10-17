@@ -199,10 +199,6 @@ suite('Linting', () => {
         const ch = new MockOutputChannel('Lint');
         await testEnablingDisablingOfLinter(new prospector.Linter(ch), 'linting.prospectorEnabled', false, ch);
     });
-    test('Enable Prospector and test linter', async () => {
-        const ch = new MockOutputChannel('Lint');
-        await testEnablingDisablingOfLinter(new prospector.Linter(ch), 'linting.prospectorEnabled', true, ch);
-    });
     test('Disable Pydocstyle and test linter', async () => {
         const ch = new MockOutputChannel('Lint');
         await testEnablingDisablingOfLinter(new pydocstyle.Linter(ch), 'linting.pydocstyleEnabled', false, ch);
