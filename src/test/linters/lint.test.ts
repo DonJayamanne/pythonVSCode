@@ -186,7 +186,7 @@ suite('Linting', () => {
         });
         await Promise.all(promises);
     }
-    async function testLinterMessages(linter: baseLinter.BaseLinter, outputChannel: MockOutputChannel, pythonFile: string, messagesToBeReceived: baseLinter.ILintMessage[]): Thenable<any> {
+    async function testLinterMessages(linter: baseLinter.BaseLinter, outputChannel: MockOutputChannel, pythonFile: string, messagesToBeReceived: baseLinter.ILintMessage[]): Promise<any> {
 
         let cancelToken = new vscode.CancellationTokenSource();
         await disableAllButThisLinter(linter.product);
