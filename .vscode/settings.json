@@ -5,7 +5,9 @@
 		"**/*.pyc": true,
 		"**/__pycache__": true,
 		"node_modules": true,
-		".vscode-test":true
+		".vscode-test": true,
+		"**/.mypy_cache/**": true,
+		"**/.ropeproject/**": true
 	},
 	"search.exclude": {
 		"out": true // set this to false to include "out" folder in search results
