@@ -32,6 +32,10 @@
             "allow-string",
             "allow-number"
         ],
-        "await-promise": [true, "Thenable"]
+        "await-promise": [
+            true,
+            "Thenable"
+        ],
+        "completed-docs": false
     }
 }

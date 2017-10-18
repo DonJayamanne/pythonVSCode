@@ -112,10 +112,10 @@ suite('Multiroot Config Settings', () => {
         const workspaceUri = Uri.file(path.join(multirootPath, 'workspace1'));
         await enableDisableLinterSetting(workspaceUri, ConfigurationTarget.WorkspaceFolder, 'pylintEnabled', undefined);
         await enableDisableLinterSetting(workspaceUri, ConfigurationTarget.Workspace, 'pylintEnabled', true);
-        let settings = PythonSettings.getInstance(workspaceUri);
-        assert.equal(settings.linting.pylintEnabled, true, 'Pylint not enabled when it should be');
         // tslint:disable-next-line:no-string-based-set-timeout
         await new Promise(resolve => setTimeout(resolve, 2000));
+        let settings = PythonSettings.getInstance(workspaceUri);
+        assert.equal(settings.linting.pylintEnabled, true, 'Pylint not enabled when it should be');
 
         await enableDisableLinterSetting(workspaceUri, ConfigurationTarget.Workspace, 'pylintEnabled', false);
         // tslint:disable-next-line:no-string-based-set-timeout

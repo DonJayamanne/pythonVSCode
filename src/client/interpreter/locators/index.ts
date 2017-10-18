@@ -1,17 +1,18 @@
-"use strict";
+'use strict';
 import * as _ from 'lodash';
-import { fixInterpreterPath, fixInterpreterDisplayName } from './helpers';
+import { Uri } from 'vscode';
+import { RegistryImplementation } from '../../common/registry';
+import { areBasePathsSame, arePathsSame, Is_64Bit, IS_WINDOWS } from '../../common/utils';
 import { IInterpreterLocatorService, PythonInterpreter } from '../contracts';
 import { InterpreterVersionService } from '../interpreterVersion';
-import { IS_WINDOWS, Is_64Bit, arePathsSame, areBasePathsSame } from '../../common/utils';
-import { RegistryImplementation } from '../../common/registry';
-import { CondaEnvService } from './services/condaEnvService';
-import { VirtualEnvService, getKnownSearchPathsForVirtualEnvs } from './services/virtualEnvService';
-import { KnownPathsService, getKnownSearchPathsForInterpreters } from './services/KnownPathsService';
-import { CurrentPathService } from './services/currentPathService';
-import { WindowsRegistryService } from './services/windowsRegistryService';
 import { VirtualEnvironmentManager } from '../virtualEnvs';
+import { fixInterpreterDisplayName, fixInterpreterPath } from './helpers';
 import { CondaEnvFileService, getEnvironmentsFile as getCondaEnvFile } from './services/condaEnvFileService';
+import { CondaEnvService } from './services/condaEnvService';
+import { CurrentPathService } from './services/currentPathService';
+import { getKnownSearchPathsForInterpreters, KnownPathsService } from './services/KnownPathsService';
+import { getKnownSearchPathsForVirtualEnvs, VirtualEnvService } from './services/virtualEnvService';
+import { WindowsRegistryService } from './services/windowsRegistryService';
 
 export class PythonInterpreterLocatorService implements IInterpreterLocatorService {
     private interpreters: PythonInterpreter[] = [];
@@ -32,20 +33,21 @@ export class PythonInterpreterLocatorService implements IInterpreterLocatorServi
         this.locators.push(new VirtualEnvService(getKnownSearchPathsForVirtualEnvs(), this.virtualEnvMgr, versionService));
 
         if (!IS_WINDOWS) {
-            // This must be last, it is possible we have paths returned here that are already returned 
+            // This must be last, it is possible we have paths returned here that are already returned
             // in one of the above lists.
             this.locators.push(new KnownPathsService(getKnownSearchPathsForInterpreters(), versionService));
         }
-        // This must be last, it is possible we have paths returned here that are already returned 
+        // This must be last, it is possible we have paths returned here that are already returned
         // in one of the above lists.
         this.locators.push(new CurrentPathService(this.virtualEnvMgr, versionService));
     }
-    public async getInterpreters() {
+    public async getInterpreters(resource?: Uri) {
         if (this.interpreters.length > 0) {
             return this.interpreters;
         }
-        const promises = this.locators.map(provider => provider.getInterpreters());
+        const promises = this.locators.map(provider => provider.getInterpreters(resource));
         return Promise.all(promises)
+            // tslint:disable-next-line:underscore-consistent-invocation
             .then(interpreters => _.flatten(interpreters))
             .then(items => items.map(fixInterpreterDisplayName))
             .then(items => items.map(fixInterpreterPath))

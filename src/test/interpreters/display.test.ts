@@ -1,21 +1,29 @@
-import { PythonSettings } from '../../client/common/configSettings';
 import * as assert from 'assert';
 import * as child_process from 'child_process';
+import { EOL } from 'os';
 import * as path from 'path';
-import { closeActiveWindows, initialize, initializeTest } from '../initialize';
+import { ConfigurationTarget } from 'vscode';
+import { PythonSettings } from '../../client/common/configSettings';
+import { InterpreterDisplay } from '../../client/interpreter/display';
+import { getFirstNonEmptyLineFromMultilineString } from '../../client/interpreter/helpers';
+import { VirtualEnvironmentManager } from '../../client/interpreter/virtualEnvs';
+import { rootWorkspaceUri, updateSetting } from '../common';
+import { closeActiveWindows, initialize, initializeTest, IS_MULTI_ROOT_TEST } from '../initialize';
 import { MockStatusBarItem } from '../mockClasses';
 import { MockInterpreterVersionProvider } from './mocks';
-import { InterpreterDisplay } from '../../client/interpreter/display';
 import { MockProvider, MockVirtualEnv } from './mocks';
-import { EOL } from 'os';
-import { VirtualEnvironmentManager } from '../../client/interpreter/virtualEnvs';
-import { getFirstNonEmptyLineFromMultilineString } from '../../client/interpreter/helpers';
-import { rootWorkspaceUri, updateSetting } from '../common';
-import { ConfigurationTarget } from 'vscode';
 
+// tslint:disable-next-line:max-func-body-length
 suite('Interpreters Display', () => {
-    suiteSetup(() => initialize());
-    setup(() => initializeTest());
+    // tslint:disable-next-line:no-function-expression
+    suiteSetup(function () {
+        if (IS_MULTI_ROOT_TEST) {
+            // tslint:disable-next-line:no-invalid-this
+            this.skip();
+        }
+        return initialize();
+    });
+    setup(initializeTest);
     teardown(async () => {
         await initialize();
         await closeActiveWindows();
@@ -24,6 +32,7 @@ suite('Interpreters Display', () => {
     test('Must have command name', () => {
         const statusBar = new MockStatusBarItem();
         const displayNameProvider = new MockInterpreterVersionProvider('');
+        // tslint:disable-next-line:no-unused-expression
         new InterpreterDisplay(statusBar, new MockProvider([]), new VirtualEnvironmentManager([]), displayNameProvider);
         assert.equal(statusBar.command, 'python.setInterpreter', 'Incorrect command name');
     });
@@ -49,7 +58,7 @@ suite('Interpreters Display', () => {
         await display.refresh();
         assert.equal(statusBar.text, `${displayName} (${env2.name})`, 'Incorrect display name');
     });
-    test(`Must display default 'Display name' for unknown interpreter`, async () => {
+    test('Must display default \'Display name\' for unknown interpreter', async () => {
         const statusBar = new MockStatusBarItem();
         const provider = new MockProvider([]);
         const displayName = 'Mock Display Name';
@@ -65,7 +74,7 @@ suite('Interpreters Display', () => {
     });
     test('Must get display name from a list of interpreters', async () => {
         const pythonPath = await new Promise<string>(resolve => {
-            child_process.execFile(PythonSettings.getInstance().pythonPath, ["-c", "import sys;print(sys.executable)"], (_, stdout) => {
+            child_process.execFile(PythonSettings.getInstance().pythonPath, ['-c', 'import sys;print(sys.executable)'], (_, stdout) => {
                 resolve(getFirstNonEmptyLineFromMultilineString(stdout));
             });
         }).then(value => value.length === 0 ? PythonSettings.getInstance().pythonPath : value);
@@ -73,7 +82,7 @@ suite('Interpreters Display', () => {
         const interpreters = [
             { displayName: 'One', path: 'c:/path1/one.exe', type: 'One 1' },
             { displayName: 'Two', path: pythonPath, type: 'Two 2' },
-            { displayName: 'Three', path: 'c:/path3/three.exe', type: 'Three 3' },
+            { displayName: 'Three', path: 'c:/path3/three.exe', type: 'Three 3' }
         ];
         const provider = new MockProvider(interpreters);
         const displayName = 'Mock Display Name';
@@ -85,7 +94,7 @@ suite('Interpreters Display', () => {
     });
     test('Must suffix tooltip with the companyDisplayName of interpreter', async () => {
         const pythonPath = await new Promise<string>(resolve => {
-            child_process.execFile(PythonSettings.getInstance().pythonPath, ["-c", "import sys;print(sys.executable)"], (_, stdout) => {
+            child_process.execFile(PythonSettings.getInstance().pythonPath, ['-c', 'import sys;print(sys.executable)'], (_, stdout) => {
                 resolve(getFirstNonEmptyLineFromMultilineString(stdout));
             });
         }).then(value => value.length === 0 ? PythonSettings.getInstance().pythonPath : value);
@@ -94,7 +103,7 @@ suite('Interpreters Display', () => {
         const interpreters = [
             { displayName: 'One', path: 'c:/path1/one.exe', companyDisplayName: 'One 1' },
             { displayName: 'Two', path: pythonPath, companyDisplayName: 'Two 2' },
-            { displayName: 'Three', path: 'c:/path3/three.exe', companyDisplayName: 'Three 3' },
+            { displayName: 'Three', path: 'c:/path3/three.exe', companyDisplayName: 'Three 3' }
         ];
         const provider = new MockProvider(interpreters);
         const displayNameProvider = new MockInterpreterVersionProvider('');
@@ -109,7 +118,7 @@ suite('Interpreters Display', () => {
         const interpreters = [
             { displayName: 'One', path: 'c:/path1/one.exe', companyDisplayName: 'One 1' },
             { displayName: 'Two', path: 'c:/asdf', companyDisplayName: 'Two 2' },
-            { displayName: 'Three', path: 'c:/path3/three.exe', companyDisplayName: 'Three 3' },
+            { displayName: 'Three', path: 'c:/path3/three.exe', companyDisplayName: 'Three 3' }
         ];
         const provider = new MockProvider(interpreters);
         const displayNameProvider = new MockInterpreterVersionProvider('', true);

@@ -66,6 +66,7 @@ export async function activate(context: vscode.ExtensionContext) {
     sortImports.activate(context, formatOutChannel);
     const interpreterManager = new InterpreterManager();
     await interpreterManager.autoSetInterpreter();
+    await interpreterManager.refresh();
     context.subscriptions.push(interpreterManager);
     context.subscriptions.push(new SetInterpreterProvider(interpreterManager));
     context.subscriptions.push(...activateExecInTerminalProvider());
