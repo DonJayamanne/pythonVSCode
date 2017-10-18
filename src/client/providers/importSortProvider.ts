@@ -14,7 +14,7 @@ export class PythonImportSortProvider {
         }
         // isort does have the ability to read from the process input stream and return the formatted code out of the output stream.
         // However they don't support returning the diff of the formatted text when reading data from the input stream.
-        // Yes getting text formatted that way avoids having to create a temporary file, however the diffing will have.
+        // Yes getting text formatted that way avoids having to create a temporary file, however the diffing will have
         // to be done here in node (extension), i.e. extension cpu, i.e. less responsive solution.
         const importScript = path.join(extensionDir, 'pythonFiles', 'sortImports.py');
         const tmpFileCreated = document.isDirty;
@@ -27,15 +27,13 @@ export class PythonImportSortProvider {
         if (typeof isort === 'string' && isort.length > 0) {
             if (isort.indexOf(' ') > 0) {
                 isortCmd = `"${isort}" "${filePath}" --diff ${args}`;
-            }
-            else {
+            } else {
                 isortCmd = `${isort} "${filePath}" --diff ${args}`;
             }
         } else {
             if (pythonPath.indexOf(' ') > 0) {
                 isortCmd = `"${pythonPath}" "${importScript}" "${filePath}" --diff ${args}`;
-            }
-            else {
+            } else {
                 isortCmd = `${pythonPath} "${importScript}" "${filePath}" --diff ${args}`;
             }
         }
@@ -47,8 +45,7 @@ export class PythonImportSortProvider {
                 }
                 if (error || (stderr && stderr.length > 0)) {
                     reject(error ? error : stderr);
-                }
-                else {
+                } else {
                     resolve(getTextEditsFromPatch(document.getText(), stdout));
                 }
             });

@@ -46,8 +46,7 @@ export class InterpreterDisplay implements Disposable {
                 const toolTipSuffix = `${EOL}${interpreter.companyDisplayName}`;
                 this.statusBar.tooltip += toolTipSuffix;
             }
-        }
-        else {
+        } else {
             const defaultDisplayName = `${path.basename(pythonPath)} [Environment]`;
             await Promise.all([
                 utils.fsExistsAsync(pythonPath),

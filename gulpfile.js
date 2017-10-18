@@ -103,9 +103,9 @@ const hygiene = exports.hygiene = (some, options) => {
             .split(/\r\n|\r|\n/)
             .forEach((line, i) => {
                 if (/^\s*$/.test(line)) {
-                    // empty or whitespace lines are OK.
+                    // Empty or whitespace lines are OK.
                 } else if (/^(\s\s\s\s)+.*/.test(line)) {
-                    // good indent.
+                    // Good indent.
                 } else if (/^[\t]+.*/.test(line)) {
                     console.error(file.relative + '(' + (i + 1) + ',1): Bad whitespace indentation');
                     errorCount++;
