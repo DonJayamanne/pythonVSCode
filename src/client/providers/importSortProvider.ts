@@ -27,15 +27,13 @@ export class PythonImportSortProvider {
         if (typeof isort === 'string' && isort.length > 0) {
             if (isort.indexOf(' ') > 0) {
                 isortCmd = `"${isort}" "${filePath}" --diff ${args}`;
-            }
-            else {
+            } else {
                 isortCmd = `${isort} "${filePath}" --diff ${args}`;
             }
         } else {
             if (pythonPath.indexOf(' ') > 0) {
                 isortCmd = `"${pythonPath}" "${importScript}" "${filePath}" --diff ${args}`;
-            }
-            else {
+            } else {
                 isortCmd = `${pythonPath} "${importScript}" "${filePath}" --diff ${args}`;
             }
         }
@@ -47,8 +45,7 @@ export class PythonImportSortProvider {
                 }
                 if (error || (stderr && stderr.length > 0)) {
                     reject(error ? error : stderr);
-                }
-                else {
+                } else {
                     resolve(getTextEditsFromPatch(document.getText(), stdout));
                 }
             });
