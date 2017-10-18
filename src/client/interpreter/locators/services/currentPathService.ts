@@ -12,11 +12,11 @@ import { VirtualEnvironmentManager } from '../../virtualEnvs';
 export class CurrentPathService implements IInterpreterLocatorService {
     public constructor(private virtualEnvMgr: VirtualEnvironmentManager,
         private versionProvider: IInterpreterVersionService) { }
-    public getInterpreters(resource?: Uri) {
+    public async getInterpreters(resource?: Uri) {
         return this.suggestionsFromKnownPaths();
     }
 
-    private suggestionsFromKnownPaths(resource?: Uri) {
+    private async suggestionsFromKnownPaths(resource?: Uri) {
         const currentPythonInterpreter = this.getInterpreter(PythonSettings.getInstance(resource).pythonPath, '').then(interpreter => [interpreter]);
         const python = this.getInterpreter('python', '').then(interpreter => [interpreter]);
         const python2 = this.getInterpreter('python2', '').then(interpreter => [interpreter]);
@@ -25,6 +25,7 @@ export class CurrentPathService implements IInterpreterLocatorService {
             // tslint:disable-next-line:underscore-consistent-invocation
             .then(listOfInterpreters => _.flatten(listOfInterpreters))
             .then(interpreters => interpreters.filter(item => item.length > 0))
+            // tslint:disable-next-line:promise-function-async
             .then(interpreters => Promise.all(interpreters.map(interpreter => this.getInterpreterDetails(interpreter))));
     }
     private async getInterpreterDetails(interpreter: string) {
@@ -42,7 +43,8 @@ export class CurrentPathService implements IInterpreterLocatorService {
     }
     private async getInterpreter(pythonPath: string, defaultValue: string) {
         return new Promise<string>(resolve => {
-            child_process.execFile(pythonPath, ['-c', 'import sys;print(sys.executable)'], (_, stdout) => {
+            // tslint:disable-next-line:variable-name
+            child_process.execFile(pythonPath, ['-c', 'import sys;print(sys.executable)'], (_err, stdout) => {
                 resolve(getFirstNonEmptyLineFromMultilineString(stdout));
             });
         })
