@@ -8,3 +8,4 @@ node_modules
 .vscode-test
 __pycache__
 npm-debug.log
+**/.mypy_cache/**

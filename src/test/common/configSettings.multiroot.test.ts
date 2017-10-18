@@ -1,18 +1,19 @@
 import * as assert from 'assert';
 import * as path from 'path';
 import { ConfigurationTarget, Uri, workspace } from 'vscode';
-import { initialize, closeActiveWindows, initializeTest } from '../initialize';
 import { PythonSettings } from '../../client/common/configSettings';
+import { closeActiveWindows, initialize, initializeTest } from '../initialize';
 
 const multirootPath = path.join(__dirname, '..', '..', '..', 'src', 'testMultiRootWkspc');
 
+// tslint:disable-next-line:max-func-body-length
 suite('Multiroot Config Settings', () => {
     suiteSetup(async () => {
         await initialize();
         await resetSettings();
     });
-    setup(() => initializeTest());
-    suiteTeardown(() => closeActiveWindows());
+    setup(initializeTest);
+    suiteTeardown(closeActiveWindows);
     teardown(async () => {
         await resetSettings();
         await closeActiveWindows();
@@ -20,28 +21,25 @@ suite('Multiroot Config Settings', () => {
 
     async function resetSettings() {
         const workspaceUri = Uri.file(path.join(multirootPath, 'workspace1'));
-        let settings = workspace.getConfiguration('python', workspaceUri);
-        let value = settings.inspect('pythonPath');
-        if (value.workspaceValue && value.workspaceValue !== 'python') {
-            await settings.update('pythonPath', undefined, ConfigurationTarget.Workspace);
-        }
-        if (value.workspaceFolderValue && value.workspaceFolderValue !== 'python') {
+        const settings = workspace.getConfiguration('python', workspaceUri);
+        const value = settings.inspect('pythonPath');
+        if (value && typeof value.workspaceFolderValue === 'string') {
             await settings.update('pythonPath', undefined, ConfigurationTarget.WorkspaceFolder);
         }
         PythonSettings.dispose();
     }
-    async function enableDisableSetting(resource: Uri, configTarget: ConfigurationTarget, setting: string, value: boolean) {
-        let settings = workspace.getConfiguration('python.linting', resource);
-        await settings.update(setting, value, configTarget);
-        settings = workspace.getConfiguration('python.linting', resource);
-        return settings.get<boolean>(setting);
-    }
 
-    async function testLinterSetting(resource: Uri, configTarget: ConfigurationTarget, setting: string, value: boolean) {
-        const valueInSetting = await enableDisableSetting(resource, configTarget, setting, value);
+    async function enableDisableLinterSetting(resource: Uri, configTarget: ConfigurationTarget, setting: string, enabled: boolean | undefined): Promise<void> {
+        const settings = workspace.getConfiguration('python.linting', resource);
+        const cfgValue = settings.inspect<boolean>(setting);
+        if (configTarget === ConfigurationTarget.Workspace && cfgValue && cfgValue.workspaceValue === enabled) {
+            return;
+        }
+        if (configTarget === ConfigurationTarget.WorkspaceFolder && cfgValue && cfgValue.workspaceFolderValue === enabled) {
+            return;
+        }
+        await settings.update(setting, enabled, configTarget);
         PythonSettings.dispose();
-        const cfgSetting = PythonSettings.getInstance(resource);
-        assert.equal(valueInSetting, cfgSetting.linting[setting], `Both settings ${setting} should be ${value} for ${resource.fsPath}`);
     }
 
     test('Workspace folder should inherit Python Path from workspace root', async () => {
@@ -49,25 +47,31 @@ suite('Multiroot Config Settings', () => {
         let settings = workspace.getConfiguration('python', workspaceUri);
         const pythonPath = `x${new Date().getTime()}`;
         await settings.update('pythonPath', pythonPath, ConfigurationTarget.Workspace);
-
+        const value = settings.inspect('pythonPath');
+        if (value && typeof value.workspaceFolderValue === 'string') {
+            await settings.update('pythonPath', undefined, ConfigurationTarget.WorkspaceFolder);
+        }
+        // tslint:disable-next-line:no-string-based-set-timeout
+        await new Promise(resolve => setTimeout(resolve, 2000));
         settings = workspace.getConfiguration('python', workspaceUri);
-        assert.equal(settings.get('pythonPath'), pythonPath, 'Python path not set in workspace root');
-
+        PythonSettings.dispose();
         const cfgSetting = PythonSettings.getInstance(workspaceUri);
         assert.equal(cfgSetting.pythonPath, pythonPath, 'Python Path not inherited from workspace');
     });
 
     test('Workspace folder should not inherit Python Path from workspace root', async () => {
         const workspaceUri = Uri.file(path.join(multirootPath, 'workspace1'));
-        let settings = workspace.getConfiguration('python', workspaceUri);
+        const settings = workspace.getConfiguration('python', workspaceUri);
         const pythonPath = `x${new Date().getTime()}`;
         await settings.update('pythonPath', pythonPath, ConfigurationTarget.Workspace);
-        await settings.update('pythonPath', 'privatePythonPath', ConfigurationTarget.WorkspaceFolder);
+        const privatePythonPath = `x${new Date().getTime()}`;
+        await settings.update('pythonPath', privatePythonPath, ConfigurationTarget.WorkspaceFolder);
+        // tslint:disable-next-line:no-string-based-set-timeout
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
         const cfgSetting = PythonSettings.getInstance(workspaceUri);
-        assert.equal(cfgSetting.pythonPath, 'privatePythonPath', 'Python Path for workspace folder is incorrect');
+        assert.equal(cfgSetting.pythonPath, privatePythonPath, 'Python Path for workspace folder is incorrect');
     });
-
 
     test('Workspace folder should inherit Python Path from workspace root when opening a document', async () => {
         const workspaceUri = Uri.file(path.join(multirootPath, 'workspace1'));
@@ -76,6 +80,11 @@ suite('Multiroot Config Settings', () => {
         const settings = workspace.getConfiguration('python', workspaceUri);
         const pythonPath = `x${new Date().getTime()}`;
         await settings.update('pythonPath', pythonPath, ConfigurationTarget.Workspace);
+        // Update workspace folder to something else so it gets refreshed.
+        await settings.update('pythonPath', `x${new Date().getTime()}`, ConfigurationTarget.WorkspaceFolder);
+        await settings.update('pythonPath', undefined, ConfigurationTarget.WorkspaceFolder);
+        // tslint:disable-next-line:no-string-based-set-timeout
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
         const document = await workspace.openTextDocument(fileToOpen);
         const cfg = PythonSettings.getInstance(document.uri);
@@ -89,37 +98,48 @@ suite('Multiroot Config Settings', () => {
         const settings = workspace.getConfiguration('python', workspaceUri);
         const pythonPath = `x${new Date().getTime()}`;
         await settings.update('pythonPath', pythonPath, ConfigurationTarget.Workspace);
-        await settings.update('pythonPath', 'privatePythonPath', ConfigurationTarget.WorkspaceFolder);
+        const privatePythonPath = `x${new Date().getTime()}`;
+        await settings.update('pythonPath', privatePythonPath, ConfigurationTarget.WorkspaceFolder);
+        // tslint:disable-next-line:no-string-based-set-timeout
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
         const document = await workspace.openTextDocument(fileToOpen);
         const cfg = PythonSettings.getInstance(document.uri);
-        assert.equal(cfg.pythonPath, 'privatePythonPath', 'Python Path for workspace folder is incorrect');
+        assert.equal(cfg.pythonPath, privatePythonPath, 'Python Path for workspace folder is incorrect');
     });
 
     test('Enabling/Disabling Pylint in root should be reflected in config settings', async () => {
         const workspaceUri = Uri.file(path.join(multirootPath, 'workspace1'));
-        await testLinterSetting(workspaceUri, ConfigurationTarget.Workspace, 'pylintEnabled', true);
-        await testLinterSetting(workspaceUri, ConfigurationTarget.Workspace, 'pylintEnabled', false);
-    });
+        await enableDisableLinterSetting(workspaceUri, ConfigurationTarget.WorkspaceFolder, 'pylintEnabled', undefined);
+        await enableDisableLinterSetting(workspaceUri, ConfigurationTarget.Workspace, 'pylintEnabled', true);
+        let settings = PythonSettings.getInstance(workspaceUri);
+        assert.equal(settings.linting.pylintEnabled, true, 'Pylint not enabled when it should be');
+        // tslint:disable-next-line:no-string-based-set-timeout
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
-    test('Enabling/Disabling Pylint in root should be reflected in config settings', async () => {
-        const workspaceUri = Uri.file(path.join(multirootPath, 'workspace1'));
-        await testLinterSetting(workspaceUri, ConfigurationTarget.Workspace, 'pylintEnabled', true);
-        await testLinterSetting(workspaceUri, ConfigurationTarget.Workspace, 'pylintEnabled', false);
+        await enableDisableLinterSetting(workspaceUri, ConfigurationTarget.Workspace, 'pylintEnabled', false);
+        // tslint:disable-next-line:no-string-based-set-timeout
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        settings = PythonSettings.getInstance(workspaceUri);
+        assert.equal(settings.linting.pylintEnabled, false, 'Pylint enabled when it should not be');
     });
 
     test('Enabling/Disabling Pylint in root and workspace should be reflected in config settings', async () => {
         const workspaceUri = Uri.file(path.join(multirootPath, 'workspace1'));
 
-        await testLinterSetting(workspaceUri, ConfigurationTarget.WorkspaceFolder, 'pylintEnabled', false);
-        await testLinterSetting(workspaceUri, ConfigurationTarget.Workspace, 'pylintEnabled', true);
+        await enableDisableLinterSetting(workspaceUri, ConfigurationTarget.WorkspaceFolder, 'pylintEnabled', false);
+        await enableDisableLinterSetting(workspaceUri, ConfigurationTarget.Workspace, 'pylintEnabled', true);
+        // tslint:disable-next-line:no-string-based-set-timeout
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
         let cfgSetting = PythonSettings.getInstance(workspaceUri);
         assert.equal(cfgSetting.linting.pylintEnabled, false, 'Workspace folder pylint setting is true when it should not be');
         PythonSettings.dispose();
 
-        await testLinterSetting(workspaceUri, ConfigurationTarget.WorkspaceFolder, 'pylintEnabled', true);
-        await testLinterSetting(workspaceUri, ConfigurationTarget.Workspace, 'pylintEnabled', false);
+        await enableDisableLinterSetting(workspaceUri, ConfigurationTarget.WorkspaceFolder, 'pylintEnabled', true);
+        await enableDisableLinterSetting(workspaceUri, ConfigurationTarget.Workspace, 'pylintEnabled', false);
+        // tslint:disable-next-line:no-string-based-set-timeout
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
         cfgSetting = PythonSettings.getInstance(workspaceUri);
         assert.equal(cfgSetting.linting.pylintEnabled, true, 'Workspace folder pylint setting is false when it should not be');
@@ -129,15 +149,19 @@ suite('Multiroot Config Settings', () => {
         const workspaceUri = Uri.file(path.join(multirootPath, 'workspace1'));
         const fileToOpen = path.join(multirootPath, 'workspace1', 'file.py');
 
-        await testLinterSetting(workspaceUri, ConfigurationTarget.Workspace, 'pylintEnabled', false);
-        await testLinterSetting(workspaceUri, ConfigurationTarget.WorkspaceFolder, 'pylintEnabled', true);
+        await enableDisableLinterSetting(workspaceUri, ConfigurationTarget.Workspace, 'pylintEnabled', false);
+        await enableDisableLinterSetting(workspaceUri, ConfigurationTarget.WorkspaceFolder, 'pylintEnabled', true);
+        // tslint:disable-next-line:no-string-based-set-timeout
+        await new Promise(resolve => setTimeout(resolve, 2000));
         let document = await workspace.openTextDocument(fileToOpen);
         let cfg = PythonSettings.getInstance(document.uri);
         assert.equal(cfg.linting.pylintEnabled, true, 'Pylint should be enabled in workspace');
         PythonSettings.dispose();
 
-        await testLinterSetting(workspaceUri, ConfigurationTarget.Workspace, 'pylintEnabled', true);
-        await testLinterSetting(workspaceUri, ConfigurationTarget.WorkspaceFolder, 'pylintEnabled', false);
+        await enableDisableLinterSetting(workspaceUri, ConfigurationTarget.Workspace, 'pylintEnabled', true);
+        await enableDisableLinterSetting(workspaceUri, ConfigurationTarget.WorkspaceFolder, 'pylintEnabled', false);
+        // tslint:disable-next-line:no-string-based-set-timeout
+        await new Promise(resolve => setTimeout(resolve, 2000));
         document = await workspace.openTextDocument(fileToOpen);
         cfg = PythonSettings.getInstance(document.uri);
         assert.equal(cfg.linting.pylintEnabled, false, 'Pylint should not be enabled in workspace');
@@ -147,20 +171,25 @@ suite('Multiroot Config Settings', () => {
         const workspaceUri = Uri.file(path.join(multirootPath, 'workspace1'));
         const fileToOpen = path.join(multirootPath, 'workspace1', 'file.py');
 
-        await testLinterSetting(workspaceUri, ConfigurationTarget.Workspace, 'pylintEnabled', false);
-        await testLinterSetting(workspaceUri, ConfigurationTarget.WorkspaceFolder, 'pylintEnabled', true);
+        await enableDisableLinterSetting(workspaceUri, ConfigurationTarget.Workspace, 'pylintEnabled', false);
+        await enableDisableLinterSetting(workspaceUri, ConfigurationTarget.WorkspaceFolder, 'pylintEnabled', true);
+        // tslint:disable-next-line:no-string-based-set-timeout
+        await new Promise(resolve => setTimeout(resolve, 2000));
         let document = await workspace.openTextDocument(fileToOpen);
         let cfg = PythonSettings.getInstance(document.uri);
         assert.equal(cfg.linting.pylintEnabled, true, 'Pylint should be enabled in workspace');
         PythonSettings.dispose();
 
-        await testLinterSetting(workspaceUri, ConfigurationTarget.Workspace, 'pylintEnabled', true);
-        await testLinterSetting(workspaceUri, ConfigurationTarget.WorkspaceFolder, 'pylintEnabled', false);
+        await enableDisableLinterSetting(workspaceUri, ConfigurationTarget.Workspace, 'pylintEnabled', true);
+        await enableDisableLinterSetting(workspaceUri, ConfigurationTarget.WorkspaceFolder, 'pylintEnabled', false);
+        // tslint:disable-next-line:no-string-based-set-timeout
+        await new Promise(resolve => setTimeout(resolve, 2000));
         document = await workspace.openTextDocument(fileToOpen);
         cfg = PythonSettings.getInstance(document.uri);
         assert.equal(cfg.linting.pylintEnabled, false, 'Pylint should not be enabled in workspace');
     });
 
+    // tslint:disable-next-line:no-invalid-template-strings
     test('${workspaceRoot} variable in settings should be replaced with the right value', async () => {
         const workspace2Uri = Uri.file(path.join(multirootPath, 'workspace2'));
         let fileToOpen = path.join(workspace2Uri.fsPath, 'file.py');

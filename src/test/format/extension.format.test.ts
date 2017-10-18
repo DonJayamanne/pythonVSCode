@@ -15,7 +15,7 @@ import * as fs from 'fs-extra';
 import { EOL } from 'os';
 import { PythonSettings } from '../../client/common/configSettings';
 import { AutoPep8Formatter } from '../../client/formatters/autoPep8Formatter';
-import { initialize, IS_TRAVIS, closeActiveWindows, initializeTest } from '../initialize';
+import { closeActiveWindows, initialize, initializeTest, IS_MULTI_ROOT_TEST, IS_TRAVIS } from '../initialize';
 import { YapfFormatter } from '../../client/formatters/yapfFormatter';
 import { execPythonFile } from '../../client/common/utils';
 
@@ -28,6 +28,8 @@ const autoPep8FileToFormat = path.join(pythoFilesPath, 'autoPep8FileToFormat.py'
 const autoPep8FileToAutoFormat = path.join(pythoFilesPath, 'autoPep8FileToAutoFormat.py');
 const yapfFileToFormat = path.join(pythoFilesPath, 'yapfFileToFormat.py');
 const yapfFileToAutoFormat = path.join(pythoFilesPath, 'yapfFileToAutoFormat.py');
+
+const configUpdateTarget = IS_MULTI_ROOT_TEST ? vscode.ConfigurationTarget.WorkspaceFolder : vscode.ConfigurationTarget.Workspace;
 
 let formattedYapf = '';
 let formattedAutoPep8 = '';
@@ -46,17 +48,14 @@ suite('Formatting', () => {
             formattedAutoPep8 = formattedResults[1];
         }).then(() => { });
     });
-    setup(async () => {
-        await initializeTest();
-        updateSetting('formatting.formatOnSave', false, vscode.Uri.file(pythoFilesPath), vscode.ConfigurationTarget.Workspace)
-    });
+    setup(() => initializeTest());
     suiteTeardown(async () => {
         [autoPep8FileToFormat, autoPep8FileToAutoFormat, yapfFileToFormat, yapfFileToAutoFormat].forEach(file => {
             if (fs.existsSync(file)) {
                 fs.unlinkSync(file);
             }
         });
-        await updateSetting('formatting.formatOnSave', false, vscode.Uri.file(pythoFilesPath), vscode.ConfigurationTarget.Workspace)
+        await updateSetting('formatting.formatOnSave', false, vscode.Uri.file(pythoFilesPath), configUpdateTarget)
         await closeActiveWindows();
     });
     teardown(() => closeActiveWindows());
@@ -90,8 +89,8 @@ suite('Formatting', () => {
     });
 
     async function testAutoFormatting(formatter: string, formattedContents: string, fileToFormat: string): Promise<void> {
-        await updateSetting('formatting.formatOnSave', true, vscode.Uri.file(fileToFormat), vscode.ConfigurationTarget.Workspace);
-        await updateSetting('formatting.provider', formatter, vscode.Uri.file(fileToFormat), vscode.ConfigurationTarget.Workspace);
+        await updateSetting('formatting.formatOnSave', true, vscode.Uri.file(fileToFormat), configUpdateTarget);
+        await updateSetting('formatting.provider', formatter, vscode.Uri.file(fileToFormat), configUpdateTarget);
         const textDocument = await vscode.workspace.openTextDocument(fileToFormat);
         const editor = await vscode.window.showTextDocument(textDocument);
         assert(vscode.window.activeTextEditor, 'No active editor');
@@ -104,7 +103,7 @@ suite('Formatting', () => {
                 resolve();
             }, 5000);
         });
-        const text = textDocument.getText();        
+        const text = textDocument.getText();
         assert.equal(text === formattedContents, true, 'Formatted contents are not the same');
     }
     test('AutoPep8 autoformat on save', done => {

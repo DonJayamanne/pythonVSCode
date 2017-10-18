@@ -18,12 +18,20 @@
         "typedef": false,
         "no-string-throw": true,
         "missing-jsdoc": false,
-        "one-line": false,
+        "one-line": [true, "check-catch", "check-finally", "check-else"],
         "no-parameter-properties": false,
         "no-reserved-keywords": false,
         "newline-before-return": false,
         "export-name": false,
         "align": false,
-        "linebreak-style": false
+        "linebreak-style": false,
+        "strict-boolean-expressions": [
+            true,
+            "allow-null-union",
+            "allow-undefined-union",
+            "allow-string",
+            "allow-number"
+        ],
+        "await-promise": [true, "Thenable"]
     }
 }

@@ -1,27 +1,22 @@
 import { initializePython, IS_MULTI_ROOT_TEST } from './initialize';
-//
-// PLEASE DO NOT MODIFY / DELETE UNLESS YOU KNOW WHAT YOU ARE DOING
-//
-// This file is providing the test runner to use when running extension tests.
-// By default the test runner in use is Mocha based.
-//
-// You can provide your own test runner if you want to override it by exporting
-// a function run(testRoot: string, clb: (error:Error) => void) that the extension
-// host can call to run the tests. The test runner is expected to use console.log
-// to report the results back to the caller. When the tests are finished, return
-// a possible error to the callback or null if none.
-
 const testRunner = require('vscode/lib/testrunner');
-const invert = IS_MULTI_ROOT_TEST ? undefined : 'invert';
 
-// You can directly control Mocha options by uncommenting the following lines
-// See https://github.com/mochajs/mocha/wiki/Using-mocha-programmatically#set-options for more info
-testRunner.configure({
-    ui: 'tdd', 		// the TDD UI is being used in extension.test.ts (suite, test, etc.)
-    useColors: true, // colored output from test results
+const singleWorkspaceTestConfig = {
+    ui: 'tdd',
+    useColors: true,
     timeout: 25000,
     grep: 'Multiroot',
-    invert
-});
+    invert: 'invert'
+};
+const multiWorkspaceTestConfig = {
+    ui: 'tdd',
+    useColors: true,
+    timeout: 25000,
+    grep: 'Jupyter',
+    invert: 'invert'
+};
 
+// You can directly control Mocha options by uncommenting the following lines.
+// See https://github.com/mochajs/mocha/wiki/Using-mocha-programmatically#set-options for more info.
+testRunner.configure(IS_MULTI_ROOT_TEST ? multiWorkspaceTestConfig : singleWorkspaceTestConfig);
 module.exports = testRunner;

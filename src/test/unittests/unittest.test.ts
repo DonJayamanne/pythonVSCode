@@ -1,13 +1,13 @@
 import * as assert from 'assert';
-import * as path from 'path';
 import * as fs from 'fs-extra';
-import * as unittest from '../../client/unittests/unittest/main';
-import { initialize, initializeTest, IS_MULTI_ROOT_TEST } from './../initialize';
+import * as path from 'path';
+import { ConfigurationTarget } from 'vscode';
 import { TestsToRun } from '../../client/unittests/common/contracts';
 import { TestResultDisplay } from '../../client/unittests/display/main';
-import { MockOutputChannel } from './../mockClasses';
-import { ConfigurationTarget } from 'vscode';
+import * as unittest from '../../client/unittests/unittest/main';
 import { rootWorkspaceUri, updateSetting } from '../common';
+import { initialize, initializeTest, IS_MULTI_ROOT_TEST } from './../initialize';
+import { MockOutputChannel } from './../mockClasses';
 
 const testFilesPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles');
 const UNITTEST_TEST_FILES_PATH = path.join(testFilesPath, 'standard');
@@ -15,14 +15,19 @@ const UNITTEST_SINGLE_TEST_FILE_PATH = path.join(testFilesPath, 'single');
 const unitTestTestFilesCwdPath = path.join(testFilesPath, 'cwd', 'src');
 const unitTestSpecificTestFilesPath = path.join(testFilesPath, 'specificTest');
 const defaultUnitTestArgs = [
-    "-v",
-    "-s",
-    ".",
-    "-p",
-    "*test*.py"
+    '-v',
+    '-s',
+    '.',
+    '-p',
+    '*test*.py'
 ];
 
+// tslint:disable-next-line:max-func-body-length
 suite('Unit Tests (unittest)', () => {
+    let testManager: unittest.TestManager;
+    let testResultDisplay: TestResultDisplay;
+    let outChannel: MockOutputChannel;
+    const rootDirectory = UNITTEST_TEST_FILES_PATH;
     const configTarget = IS_MULTI_ROOT_TEST ? ConfigurationTarget.WorkspaceFolder : ConfigurationTarget.Workspace;
     suiteSetup(async () => {
         await initialize();
@@ -31,7 +36,10 @@ suite('Unit Tests (unittest)', () => {
     setup(async () => {
         outChannel = new MockOutputChannel('Python Test Log');
         testResultDisplay = new TestResultDisplay(outChannel);
-        await fs.remove(path.join(UNITTEST_TEST_FILES_PATH, '.cache')).catch(() => undefined);
+        const cachePath = path.join(UNITTEST_TEST_FILES_PATH, '.cache');
+        if (await fs.pathExists(cachePath)) {
+            await fs.remove(cachePath);
+        }
         await initializeTest();
     });
     teardown(() => {
@@ -42,10 +50,6 @@ suite('Unit Tests (unittest)', () => {
     function createTestManager(rootDir: string = rootDirectory) {
         testManager = new unittest.TestManager(rootDir, outChannel);
     }
-    const rootDirectory = UNITTEST_TEST_FILES_PATH;
-    let testManager: unittest.TestManager;
-    let testResultDisplay: TestResultDisplay;
-    let outChannel: MockOutputChannel;
 
     test('Discover Tests (single test file)', async () => {
         await updateSetting('unitTest.unittestArgs', ['-s=./tests', '-p=test_*.py'], rootWorkspaceUri, configTarget);
@@ -88,22 +92,6 @@ suite('Unit Tests (unittest)', () => {
         assert.equal(results.summary.skipped, 1, 'skipped');
     });
 
-    // test('Fail Fast', done => {
-    //     pythonSettings.unitTest.unittestArgs = [
-    //         '-s=./tests',
-    //         '-p=*test*.py',
-    //         '--failfast'
-    //     ];
-    //     createTestManager();
-    //     testManager.runTest().then(results => {
-    //         assert.equal(results.summary.errors, 1, 'Errors');
-    //         assert.equal(results.summary.failures, 5, 'Failures');
-    //         assert.equal(results.summary.passed, 4, 'Passed');
-    //         assert.equal(results.summary.skipped, 1, 'skipped');
-    //         done();
-    //     }).catch(done);
-    // });
-
     test('Run Failed Tests', async () => {
         await updateSetting('unitTest.unittestArgs', ['-s=./tests', '-p=test_unittest*.py'], rootWorkspaceUri, configTarget);
         createTestManager();
@@ -125,7 +113,8 @@ suite('Unit Tests (unittest)', () => {
         createTestManager(unitTestSpecificTestFilesPath);
         const tests = await testManager.discoverTests(true, true);
 
-        const testFileToTest = tests.testFiles.find(f => f.name === 'test_unittest_one.py');
+        // tslint:disable-next-line:no-non-null-assertion
+        const testFileToTest = tests.testFiles.find(f => f.name === 'test_unittest_one.py')!;
         const testFile: TestsToRun = { testFile: [testFileToTest], testFolder: [], testFunction: [], testSuite: [] };
         const results = await testManager.runTest(testFile);
 
@@ -140,6 +129,7 @@ suite('Unit Tests (unittest)', () => {
         createTestManager(unitTestSpecificTestFilesPath);
         const tests = await testManager.discoverTests(true, true);
 
+        // tslint:disable-next-line:no-non-null-assertion
         const testSuiteToTest = tests.testSuits.find(s => s.testSuite.name === 'Test_test_one_1')!.testSuite;
         const testSuite: TestsToRun = { testFile: [], testFolder: [], testFunction: [], testSuite: [testSuiteToTest] };
         const results = await testManager.runTest(testSuite);
@@ -172,4 +162,4 @@ suite('Unit Tests (unittest)', () => {
         assert.equal(tests.testFunctions.length, 1, 'Incorrect number of test functions');
         assert.equal(tests.testSuits.length, 1, 'Incorrect number of test suites');
     });
-}); 
+});

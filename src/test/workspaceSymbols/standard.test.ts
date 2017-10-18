@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import * as path from 'path';
 import { CancellationTokenSource, ConfigurationTarget, Uri } from 'vscode';
-import { closeActiveWindows, initialize, initializeTest } from '../initialize';
+import { closeActiveWindows, initialize, initializeTest, IS_MULTI_ROOT_TEST } from '../initialize';
 import { Generator } from '../../client/workspaceSymbols/generator';
 import { MockOutputChannel } from '../mockClasses';
 import { WorkspaceSymbolProvider } from '../../client/workspaceSymbols/provider';
@@ -9,6 +9,7 @@ import { updateSetting } from './../common';
 import { PythonSettings } from '../../client/common/configSettings';
 
 const workspaceUri = Uri.file(path.join(__dirname, '..', '..', '..', 'src', 'test'));
+const configUpdateTarget = IS_MULTI_ROOT_TEST ? ConfigurationTarget.WorkspaceFolder : ConfigurationTarget.Workspace;
 
 suite('Workspace Symbols', () => {
     suiteSetup(() => initialize());
@@ -16,12 +17,12 @@ suite('Workspace Symbols', () => {
     setup(() => initializeTest());
     teardown(async () => {
         await closeActiveWindows();
-        await updateSetting('workspaceSymbols.enabled', false, workspaceUri, ConfigurationTarget.Workspace);
+        await updateSetting('workspaceSymbols.enabled', false, workspaceUri, configUpdateTarget);
     });
 
     test(`symbols should be returned when enabeld and vice versa`, async () => {
         const outputChannel = new MockOutputChannel('Output');
-        await updateSetting('workspaceSymbols.enabled', false, workspaceUri, ConfigurationTarget.Workspace);
+        await updateSetting('workspaceSymbols.enabled', false, workspaceUri, configUpdateTarget);
 
         // The workspace will be in the output test folder
         // So lets modify the settings so it sees the source test folder
@@ -34,7 +35,7 @@ suite('Workspace Symbols', () => {
         assert.equal(symbols.length, 0, 'Symbols returned even when workspace symbols are turned off');
         generator.dispose();
 
-        await updateSetting('workspaceSymbols.enabled', true, workspaceUri, ConfigurationTarget.Workspace);
+        await updateSetting('workspaceSymbols.enabled', true, workspaceUri, configUpdateTarget);
 
         // The workspace will be in the output test folder
         // So lets modify the settings so it sees the source test folder
@@ -49,7 +50,7 @@ suite('Workspace Symbols', () => {
     test(`symbols should be filtered correctly`, async () => {
         const outputChannel = new MockOutputChannel('Output');
 
-        await updateSetting('workspaceSymbols.enabled', true, workspaceUri, ConfigurationTarget.Workspace);
+        await updateSetting('workspaceSymbols.enabled', true, workspaceUri, configUpdateTarget);
 
         // The workspace will be in the output test folder
         // So lets modify the settings so it sees the source test folder

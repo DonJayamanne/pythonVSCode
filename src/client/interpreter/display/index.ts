@@ -1,16 +1,16 @@
 'use strict';
-import * as path from 'path';
-import * as utils from '../../common/utils';
 import * as child_process from 'child_process';
-import { StatusBarItem, Disposable } from 'vscode';
-import { PythonSettings } from '../../common/configSettings';
 import { EOL } from 'os';
+import * as path from 'path';
+import { Disposable, StatusBarItem } from 'vscode';
+import { PythonSettings } from '../../common/configSettings';
+import * as utils from '../../common/utils';
 import { IInterpreterLocatorService } from '../contracts';
+import { getFirstNonEmptyLineFromMultilineString } from '../helpers';
 import { IInterpreterVersionService } from '../interpreterVersion';
 import { VirtualEnvironmentManager } from '../virtualEnvs/index';
-import { getFirstNonEmptyLineFromMultilineString } from '../helpers';
 
-const settings = PythonSettings.getInstance();
+// tslint:disable-next-line:completed-docs
 export class InterpreterDisplay implements Disposable {
     constructor(private statusBar: StatusBarItem,
         private interpreterLocator: IInterpreterLocatorService,
@@ -19,12 +19,13 @@ export class InterpreterDisplay implements Disposable {
         this.statusBar.command = 'python.setInterpreter';
     }
     public dispose() {
+        //
     }
     public async refresh() {
-        const pythonPath = await this.getFullyQualifiedPathToInterpreter(settings.pythonPath);
+        const pythonPath = await this.getFullyQualifiedPathToInterpreter(PythonSettings.getInstance().pythonPath);
         await this.updateDisplay(pythonPath);
     }
-    private getInterpreters() {
+    private async getInterpreters() {
         return this.interpreterLocator.getInterpreters();
     }
     private async updateDisplay(pythonPath: string) {
@@ -34,6 +35,7 @@ export class InterpreterDisplay implements Disposable {
         this.statusBar.color = '';
         this.statusBar.tooltip = pythonPath;
         if (interpreter) {
+            // tslint:disable-next-line:no-non-null-assertion
             this.statusBar.text = interpreter.displayName!;
             if (interpreter.companyDisplayName) {
                 const toolTipSuffix = `${EOL}${interpreter.companyDisplayName}`;
@@ -42,10 +44,11 @@ export class InterpreterDisplay implements Disposable {
         }
         else {
             const defaultDisplayName = `${path.basename(pythonPath)} [Environment]`;
-            const interpreterExists = utils.fsExistsAsync(pythonPath);
-            const displayName = this.versionProvider.getVersion(pythonPath, defaultDisplayName);
-            const virtualEnvName = this.getVirtualEnvironmentName(pythonPath);
-            await Promise.all([interpreterExists, displayName, virtualEnvName])
+            await Promise.all([
+                utils.fsExistsAsync(pythonPath),
+                this.versionProvider.getVersion(pythonPath, defaultDisplayName),
+                this.getVirtualEnvironmentName(pythonPath)
+            ])
                 .then(([interpreterExists, displayName, virtualEnvName]) => {
                     const dislayNameSuffix = virtualEnvName.length > 0 ? ` (${virtualEnvName})` : '';
                     this.statusBar.text = `${displayName}${dislayNameSuffix}`;
@@ -63,13 +66,12 @@ export class InterpreterDisplay implements Disposable {
             .detect(pythonPath)
             .then(env => env ? env.name : '');
     }
-    private getFullyQualifiedPathToInterpreter(pythonPath: string) {
+    private async getFullyQualifiedPathToInterpreter(pythonPath: string) {
         return new Promise<string>(resolve => {
-            child_process.execFile(pythonPath, ["-c", "import sys;print(sys.executable)"], (_, stdout) => {
+            child_process.execFile(pythonPath, ['-c', 'import sys;print(sys.executable)'], (_, stdout) => {
                 resolve(getFirstNonEmptyLineFromMultilineString(stdout));
             });
         })
             .then(value => value.length === 0 ? pythonPath : value);
     }
 }
-
