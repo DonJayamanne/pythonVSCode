@@ -36,8 +36,9 @@ export class SetInterpreterProvider implements Disposable {
             return configs[0];
         }
 
-        // Ok we have multiple interpreters, get the user to pick a folder
-        const workspaceFolder = await window.showWorkspaceFolderPick({ placeHolder: 'Select a workspace' });
+        // Ok we have multiple interpreters, get the user to pick a folder.
+        // tslint:disable-next-line:no-any prefer-type-cast
+        const workspaceFolder = await (window as any).showWorkspaceFolderPick({ placeHolder: 'Select a workspace' });
         return workspaceFolder ? { folderUri: workspaceFolder.uri, configTarget: ConfigurationTarget.WorkspaceFolder } : undefined;
     }
     private async suggestionToQuickPickItem(suggestion: PythonInterpreter, workspaceUri?: Uri): Promise<PythonPathQuickPickItem> {
