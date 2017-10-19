@@ -5,15 +5,15 @@ const singleWorkspaceTestConfig = {
     ui: 'tdd',
     useColors: true,
     timeout: 25000,
-    grep: 'Multiroot',
-    invert: 'invert'
+    grep: 'Unit Tests',
+    // invert: 'invert'
 };
 const multiWorkspaceTestConfig = {
     ui: 'tdd',
     useColors: true,
     timeout: 25000,
-    grep: 'Jupyter',
-    invert: 'invert'
+    grep: 'Unit Tests',
+    // invert: 'invert'
 };
 
 // You can directly control Mocha options by uncommenting the following lines.

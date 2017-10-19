@@ -1,6 +1,7 @@
 import * as path from 'path';
 import { ConfigurationTarget, Uri, workspace } from 'vscode';
 import { PythonSettings } from '../client/common/configSettings';
+import { IS_MULTI_ROOT_TEST } from './initialize';
 
 const fileInNonRootWorkspace = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'dummy.py');
 export const rootWorkspaceUri = getWorkspaceRoot();
@@ -24,6 +25,9 @@ export async function updateSetting(setting: PythonSettingKeys, value: {}, resou
     }
     // tslint:disable-next-line:await-promise
     await settings.update(setting, value, configTarget);
+    if (configTarget === ConfigurationTarget.Workspace && IS_MULTI_ROOT_TEST) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+    }
     PythonSettings.dispose();
 }
 
