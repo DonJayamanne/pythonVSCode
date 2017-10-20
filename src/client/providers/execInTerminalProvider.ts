@@ -140,7 +140,6 @@ function execSelectionInTerminal() {
     if (code.length === 0) {
         return;
     }
-    code = removeBlankLines(code);
     const launchArgs = settings.PythonSettings.getInstance().terminal.launchArgs;
     const launchArgsString = launchArgs.length > 0 ? " ".concat(launchArgs.join(" ")) : "";
     const command = `${currentPythonPath}${launchArgsString}`;
