@@ -8,7 +8,7 @@ import { InterpreterDisplay } from '../../client/interpreter/display';
 import { getFirstNonEmptyLineFromMultilineString } from '../../client/interpreter/helpers';
 import { VirtualEnvironmentManager } from '../../client/interpreter/virtualEnvs';
 import { rootWorkspaceUri, updateSetting } from '../common';
-import { closeActiveWindows, initialize, initializePython, initializeTest } from '../initialize';
+import { closeActiveWindows, initialize, initializePython, initializeTest, IS_MULTI_ROOT_TEST } from '../initialize';
 import { MockStatusBarItem } from '../mockClasses';
 import { MockInterpreterVersionProvider } from './mocks';
 import { MockProvider, MockVirtualEnv } from './mocks';
@@ -19,10 +19,11 @@ const fileToOpen = path.join(workspace3Uri.fsPath, 'file.py');
 
 // tslint:disable-next-line:max-func-body-length
 suite('Multiroot Interpreters Display', () => {
-    // tslint:disable-next-line:no-function-expression
     suiteSetup(function () {
-        // tslint:disable-next-line:no-invalid-this
-        this.skip();
+        if (!IS_MULTI_ROOT_TEST) {
+            // tslint:disable-next-line:no-invalid-this
+            this.skip();
+        }
         return initialize();
     });
     setup(initializeTest);

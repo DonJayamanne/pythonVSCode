@@ -107,4 +107,3 @@ export async function initializePython() {
         return await pythonConfig.update('pythonPath', PYTHON_PATH, vscode.ConfigurationTarget.Workspace);
     }
 }
-

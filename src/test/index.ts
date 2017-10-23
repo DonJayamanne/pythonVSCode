@@ -4,9 +4,7 @@ const testRunner = require('vscode/lib/testrunner');
 const singleWorkspaceTestConfig = {
     ui: 'tdd',
     useColors: true,
-    timeout: 25000,
-    grep: 'Multiroot',
-    invert: 'invert'
+    timeout: 25000
 };
 const multiWorkspaceTestConfig = {
     ui: 'tdd',

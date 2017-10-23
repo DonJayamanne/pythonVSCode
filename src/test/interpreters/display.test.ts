@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import * as child_process from 'child_process';
 import { EOL } from 'os';
 import * as path from 'path';
-import { ConfigurationTarget, Uri } from 'vscode';
+import { ConfigurationTarget, Uri, window, workspace } from 'vscode';
 import { PythonSettings } from '../../client/common/configSettings';
 import { InterpreterDisplay } from '../../client/interpreter/display';
 import { getFirstNonEmptyLineFromMultilineString } from '../../client/interpreter/helpers';
@@ -13,22 +13,29 @@ import { MockStatusBarItem } from '../mockClasses';
 import { MockInterpreterVersionProvider } from './mocks';
 import { MockProvider, MockVirtualEnv } from './mocks';
 
-const fileInNonRootWorkspace = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'dummy.py');
+const fileInNonRootWorkspace = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'dummy.py');
 
 // tslint:disable-next-line:max-func-body-length
 suite('Interpreters Display', () => {
-    // tslint:disable-next-line:no-function-expression
-    suiteSetup(function () {
+    const configTarget = IS_MULTI_ROOT_TEST ? ConfigurationTarget.WorkspaceFolder : ConfigurationTarget.Workspace;
+    suiteSetup(initialize);
+    setup(async () => {
+        await initializeTest();
         if (IS_MULTI_ROOT_TEST) {
-            // tslint:disable-next-line:no-invalid-this
-            this.skip();
+            await initializeMultiRoot();
         }
-        return initialize();
     });
-    setup(initializeTest);
     teardown(async () => {
         await initialize();
         await closeActiveWindows();
+        if (IS_MULTI_ROOT_TEST) {
+            const settings = workspace.getConfiguration('python', Uri.file(fileInNonRootWorkspace));
+            const value = settings.inspect('pythonPath');
+            if (value && value.workspaceFolderValue) {
+                await settings.update('pythonPath', undefined, ConfigurationTarget.WorkspaceFolder);
+                PythonSettings.dispose();
+            }
+        }
     });
 
     test('Must have command name', () => {
@@ -68,7 +75,7 @@ suite('Interpreters Display', () => {
         const display = new InterpreterDisplay(statusBar, provider, new VirtualEnvironmentManager([]), displayNameProvider);
         // Change interpreter to an invalid value
         const pythonPath = 'UnknownInterpreter';
-        await updateSetting('pythonPath', pythonPath, rootWorkspaceUri, ConfigurationTarget.Workspace);
+        await updateSetting('pythonPath', pythonPath, rootWorkspaceUri, configTarget);
         await display.refresh();
 
         const defaultDisplayName = `${path.basename(pythonPath)} [Environment]`;
@@ -127,9 +134,17 @@ suite('Interpreters Display', () => {
         const display = new InterpreterDisplay(statusBar, provider, new VirtualEnvironmentManager([]), displayNameProvider);
         // Change interpreter to an invalid value
         const pythonPath = 'UnknownInterpreter';
-        await updateSetting('pythonPath', pythonPath, rootWorkspaceUri, ConfigurationTarget.Workspace);
+        await updateSetting('pythonPath', pythonPath, rootWorkspaceUri, configTarget);
         await display.refresh();
 
         assert.equal(statusBar.text, '$(alert) Select Python Environment', 'Incorrect display name');
     });
+    async function initializeMultiRoot() {
+        // For multiroot environments, we need a file open to determine the best interpreter that needs to be displayed
+        await openDummyFile();
+    }
+    async function openDummyFile() {
+        const document = await workspace.openTextDocument(fileInNonRootWorkspace);
+        await window.showTextDocument(document);
+    }
 });

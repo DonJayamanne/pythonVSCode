@@ -10,7 +10,7 @@ import { initialize, initializeTest } from '../initialize';
 import { MockProvider } from './mocks';
 
 const environmentsPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'environments');
-const fileInNonRootWorkspace = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'dummy.py');
+const fileInNonRootWorkspace = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'dummy.py');
 
 // tslint:disable-next-line:max-func-body-length
 suite('Interpreters from Conda Environments', () => {

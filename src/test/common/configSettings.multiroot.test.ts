@@ -2,15 +2,18 @@ import * as assert from 'assert';
 import * as path from 'path';
 import { ConfigurationTarget, Uri, workspace } from 'vscode';
 import { PythonSettings } from '../../client/common/configSettings';
-import { closeActiveWindows, initialize, initializeTest } from '../initialize';
+import { closeActiveWindows, initialize, initializeTest, IS_MULTI_ROOT_TEST } from '../initialize';
 
 const multirootPath = path.join(__dirname, '..', '..', '..', 'src', 'testMultiRootWkspc');
 
 // tslint:disable-next-line:max-func-body-length
 suite('Multiroot Config Settings', () => {
-    suiteSetup(async () => {
-        await initialize();
-        await resetSettings();
+    suiteSetup(function () {
+        if (!IS_MULTI_ROOT_TEST) {
+            // tslint:disable-next-line:no-invalid-this
+            this.skip();
+        }
+        return initialize().then(resetSettings);
     });
     setup(initializeTest);
     suiteTeardown(closeActiveWindows);

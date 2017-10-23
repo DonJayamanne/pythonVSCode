@@ -1,25 +1,31 @@
 import * as assert from 'assert';
 import * as path from 'path';
 import { CancellationTokenSource, ConfigurationTarget, Uri } from 'vscode';
-import { closeActiveWindows, initialize, initializeTest } from '../initialize';
 import { Generator } from '../../client/workspaceSymbols/generator';
-import { MockOutputChannel } from '../mockClasses';
 import { WorkspaceSymbolProvider } from '../../client/workspaceSymbols/provider';
+import { closeActiveWindows, initialize, initializeTest, IS_MULTI_ROOT_TEST } from '../initialize';
+import { MockOutputChannel } from '../mockClasses';
 import { updateSetting } from './../common';
 
 const multirootPath = path.join(__dirname, '..', '..', '..', 'src', 'testMultiRootWkspc');
 
 suite('Multiroot Workspace Symbols', () => {
-    suiteSetup(() => initialize());
-    setup(() => initializeTest());
-    suiteTeardown(() => closeActiveWindows());
+    suiteSetup(function () {
+        if (!IS_MULTI_ROOT_TEST) {
+            // tslint:disable-next-line:no-invalid-this
+            this.skip();
+        }
+        return initialize();
+    });
+    setup(initializeTest);
+    suiteTeardown(closeActiveWindows);
     teardown(async () => {
         await closeActiveWindows();
         await updateSetting('workspaceSymbols.enabled', false, Uri.file(path.join(multirootPath, 'parent', 'child')), ConfigurationTarget.WorkspaceFolder);
         await updateSetting('workspaceSymbols.enabled', false, Uri.file(path.join(multirootPath, 'workspace2')), ConfigurationTarget.WorkspaceFolder);
     });
 
-    test(`symbols should be returned when enabeld and vice versa`, async () => {
+    test('symbols should be returned when enabeld and vice versa', async () => {
         const childWorkspaceUri = Uri.file(path.join(multirootPath, 'parent', 'child'));
         const outputChannel = new MockOutputChannel('Output');
 
@@ -38,7 +44,7 @@ suite('Multiroot Workspace Symbols', () => {
         symbols = await provider.provideWorkspaceSymbols('', new CancellationTokenSource().token);
         assert.notEqual(symbols.length, 0, 'Symbols should be returned when workspace symbols are turned on');
     });
-    test(`symbols should be filtered correctly`, async () => {
+    test('symbols should be filtered correctly', async () => {
         const childWorkspaceUri = Uri.file(path.join(multirootPath, 'parent', 'child'));
         const workspace2Uri = Uri.file(path.join(multirootPath, 'workspace2'));
         const outputChannel = new MockOutputChannel('Output');
