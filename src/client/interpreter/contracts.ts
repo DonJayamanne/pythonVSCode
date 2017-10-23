@@ -1,7 +1,7 @@
-import { ConfigurationTarget, Uri } from 'vscode';
+import { ConfigurationTarget, Disposable, Uri } from 'vscode';
 import { Architecture } from '../common/registry';
 
-export interface IInterpreterLocatorService {
+export interface IInterpreterLocatorService extends Disposable {
     getInterpreters(resource?: Uri): Promise<PythonInterpreter[]>;
 }
 

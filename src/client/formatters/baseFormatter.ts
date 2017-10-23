@@ -50,7 +50,7 @@ export abstract class BaseFormatter {
             if (token && token.isCancellationRequested) {
                 return [filePath, ''];
             }
-            return Promise.all<string>([Promise.resolve(filePath), execPythonFile(command, args.concat([filePath]), cwd)]);
+            return Promise.all<string>([Promise.resolve(filePath), execPythonFile(document.uri, command, args.concat([filePath]), cwd)]);
         }).then(data => {
             // Delete the temporary file created
             if (tmpFileCreated) {

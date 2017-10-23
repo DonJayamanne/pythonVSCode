@@ -1,10 +1,10 @@
 'use strict';
 import * as _ from 'lodash';
-import { Uri } from 'vscode';
+import { Disposable, Uri, workspace } from 'vscode';
 import { RegistryImplementation } from '../../common/registry';
 import { areBasePathsSame, arePathsSame, Is_64Bit, IS_WINDOWS } from '../../common/utils';
 import { IInterpreterLocatorService, PythonInterpreter } from '../contracts';
-import { InterpreterVersionService } from '../interpreterVersion';
+import { IInterpreterVersionService, InterpreterVersionService } from '../interpreterVersion';
 import { VirtualEnvironmentManager } from '../virtualEnvs';
 import { fixInterpreterDisplayName, fixInterpreterPath } from './helpers';
 import { CondaEnvFileService, getEnvironmentsFile as getCondaEnvFile } from './services/condaEnvFileService';
@@ -15,49 +15,76 @@ import { getKnownSearchPathsForVirtualEnvs, VirtualEnvService } from './services
 import { WindowsRegistryService } from './services/windowsRegistryService';
 
 export class PythonInterpreterLocatorService implements IInterpreterLocatorService {
-    private interpreters: PythonInterpreter[] = [];
-    private locators: IInterpreterLocatorService[] = [];
+    private interpretersPerResource: Map<string, PythonInterpreter[]>;
+    private disposables: Disposable[] = [];
     constructor(private virtualEnvMgr: VirtualEnvironmentManager) {
-        const versionService = new InterpreterVersionService();
-        // The order of the services is important.
-        if (IS_WINDOWS) {
-            const windowsRegistryProvider = new WindowsRegistryService(new RegistryImplementation(), Is_64Bit);
-            this.locators.push(windowsRegistryProvider);
-            this.locators.push(new CondaEnvService(windowsRegistryProvider));
-        }
-        else {
-            this.locators.push(new CondaEnvService());
-        }
-        // Supplements the above list of conda environments.
-        this.locators.push(new CondaEnvFileService(getCondaEnvFile(), versionService));
-        this.locators.push(new VirtualEnvService(getKnownSearchPathsForVirtualEnvs(), this.virtualEnvMgr, versionService));
-
-        if (!IS_WINDOWS) {
-            // This must be last, it is possible we have paths returned here that are already returned
-            // in one of the above lists.
-            this.locators.push(new KnownPathsService(getKnownSearchPathsForInterpreters(), versionService));
-        }
-        // This must be last, it is possible we have paths returned here that are already returned
-        // in one of the above lists.
-        this.locators.push(new CurrentPathService(this.virtualEnvMgr, versionService));
+        this.interpretersPerResource = new Map<string, PythonInterpreter[]>();
+        this.disposables.push(workspace.onDidChangeConfiguration(this.onConfigChanged, this));
     }
     public async getInterpreters(resource?: Uri) {
-        if (this.interpreters.length > 0) {
-            return this.interpreters;
+        const resourceKey = this.getResourceKey(resource);
+        if (!this.interpretersPerResource.has(resourceKey)) {
+            const interpreters = await this.getInterpretersPerResource(resource);
+            this.interpretersPerResource.set(resourceKey, interpreters);
         }
-        const promises = this.locators.map(provider => provider.getInterpreters(resource));
-        return Promise.all(promises)
-            // tslint:disable-next-line:underscore-consistent-invocation
-            .then(interpreters => _.flatten(interpreters))
-            .then(items => items.map(fixInterpreterDisplayName))
-            .then(items => items.map(fixInterpreterPath))
-            .then(items => items.reduce<PythonInterpreter[]>((accumulator, current) => {
+
+        // tslint:disable-next-line:no-non-null-assertion
+        return this.interpretersPerResource.get(resourceKey)!;
+    }
+    public dispose() {
+        this.disposables.forEach(disposable => disposable.dispose());
+    }
+    private onConfigChanged() {
+        this.interpretersPerResource.clear();
+    }
+    private getResourceKey(resource?: Uri) {
+        if (!resource) {
+            return '';
+        }
+        const workspaceFolder = workspace.getWorkspaceFolder(resource);
+        return workspaceFolder ? workspaceFolder.uri.fsPath : '';
+    }
+    private async getInterpretersPerResource(resource?: Uri) {
+        const locators = this.getLocators(resource);
+        const promises = locators.map(provider => provider.getInterpreters(resource));
+        const listOfInterpreters = await Promise.all(promises);
+
+        // tslint:disable-next-line:underscore-consistent-invocation
+        return _.flatten(listOfInterpreters)
+            .map(fixInterpreterDisplayName)
+            .map(fixInterpreterPath)
+            .reduce<PythonInterpreter[]>((accumulator, current) => {
                 if (accumulator.findIndex(item => arePathsSame(item.path, current.path)) === -1 &&
                     accumulator.findIndex(item => areBasePathsSame(item.path, current.path)) === -1) {
                     accumulator.push(current);
                 }
                 return accumulator;
-            }, []))
-            .then(interpreters => this.interpreters = interpreters);
+            }, []);
+    }
+    private getLocators(resource?: Uri) {
+        const locators: IInterpreterLocatorService[] = [];
+        const versionService = new InterpreterVersionService();
+        // The order of the services is important.
+        if (IS_WINDOWS) {
+            const windowsRegistryProvider = new WindowsRegistryService(new RegistryImplementation(), Is_64Bit);
+            locators.push(windowsRegistryProvider);
+            locators.push(new CondaEnvService(windowsRegistryProvider));
+        } else {
+            locators.push(new CondaEnvService());
+        }
+        // Supplements the above list of conda environments.
+        locators.push(new CondaEnvFileService(getCondaEnvFile(), versionService));
+        locators.push(new VirtualEnvService(getKnownSearchPathsForVirtualEnvs(resource), this.virtualEnvMgr, versionService));
+
+        if (!IS_WINDOWS) {
+            // This must be last, it is possible we have paths returned here that are already returned
+            // in one of the above lists.
+            locators.push(new KnownPathsService(getKnownSearchPathsForInterpreters(), versionService));
+        }
+        // This must be last, it is possible we have paths returned here that are already returned
+        // in one of the above lists.
+        locators.push(new CurrentPathService(this.virtualEnvMgr, versionService));
+
+        return locators;
     }
 }

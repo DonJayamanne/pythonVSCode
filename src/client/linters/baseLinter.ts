@@ -131,7 +131,7 @@ export abstract class BaseLinter {
         this.outputChannel.append(data);
     }
     protected run(command: string, args: string[], document: vscode.TextDocument, cwd: string, cancellation: vscode.CancellationToken, regEx: string = REGEX): Promise<ILintMessage[]> {
-        return execPythonFile(command, args, cwd, true, null, cancellation).then(data => {
+        return execPythonFile(document.uri, command, args, cwd, true, null, cancellation).then(data => {
             if (!data) {
                 data = '';
             }

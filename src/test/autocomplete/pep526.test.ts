@@ -22,7 +22,7 @@ suite('Autocomplete PEP 526', () => {
     let isPython3: Promise<boolean>;
     suiteSetup(async () => {
         await initialize();
-        const version = await execPythonFile(PythonSettings.getInstance(rootWorkspaceUri).pythonPath, ['--version'], __dirname, true);
+        const version = await execPythonFile(rootWorkspaceUri, PythonSettings.getInstance(rootWorkspaceUri).pythonPath, ['--version'], __dirname, true);
         isPython3 = Promise.resolve(version.indexOf('3.') >= 0);
     });
     setup(() => initializeTest());

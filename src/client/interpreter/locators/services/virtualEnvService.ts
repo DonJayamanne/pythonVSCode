@@ -18,7 +18,8 @@ export class VirtualEnvService implements IInterpreterLocatorService {
     public async getInterpreters(resource?: Uri) {
         return this.suggestionsFromKnownVenvs();
     }
-
+    // tslint:disable-next-line:no-empty
+    public dispose() { }
     private async suggestionsFromKnownVenvs() {
         return Promise.all(this.knownSearchPaths.map(dir => this.lookForInterpretersInVenvs(dir)))
             // tslint:disable-next-line:underscore-consistent-invocation
@@ -61,7 +62,7 @@ export class VirtualEnvService implements IInterpreterLocatorService {
     }
 }
 
-export function getKnownSearchPathsForVirtualEnvs(): string[] {
+export function getKnownSearchPathsForVirtualEnvs(resource?: Uri): string[] {
     const paths: string[] = [];
     if (!IS_WINDOWS) {
         const defaultPaths = ['/Envs', '/.virtualenvs', '/.pyenv', '/.pyenv/versions'];
@@ -69,7 +70,7 @@ export function getKnownSearchPathsForVirtualEnvs(): string[] {
             paths.push(untildify(`~${p}`));
         });
     }
-    const venvPath = settings.PythonSettings.getInstance().venvPath;
+    const venvPath = settings.PythonSettings.getInstance(resource).venvPath;
     if (venvPath) {
         paths.push(untildify(venvPath));
     }

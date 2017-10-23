@@ -77,7 +77,7 @@ export function discoverTests(rootDirectory: string, args: string[], token: Canc
         });
     }
 
-    return execPythonFile(PythonSettings.getInstance(Uri.file(rootDirectory)).unitTest.nosetestPath, args.concat(['--collect-only', '-vvv']), rootDirectory, true)
+    return execPythonFile(rootDirectory, PythonSettings.getInstance(Uri.file(rootDirectory)).unitTest.nosetestPath, args.concat(['--collect-only', '-vvv']), rootDirectory, true)
         .then(data => {
             outChannel.appendLine(data);
             processOutput(data);

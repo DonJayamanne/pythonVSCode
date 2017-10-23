@@ -28,7 +28,7 @@ suite('Autocomplete', () => {
     let isPython3: Promise<boolean>;
     suiteSetup(async () => {
         await initialize();
-        let version = await execPythonFile(PythonSettings.getInstance(rootWorkspaceUri).pythonPath, ['--version'], __dirname, true);
+        const version = await execPythonFile(rootWorkspaceUri, PythonSettings.getInstance(rootWorkspaceUri).pythonPath, ['--version'], __dirname, true);
         isPython3 = Promise.resolve(version.indexOf('3.') >= 0);
     });
     setup(() => initializeTest());

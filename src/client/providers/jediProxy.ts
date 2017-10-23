@@ -6,7 +6,7 @@ import * as path from 'path';
 import * as settings from './../common/configSettings';
 import * as logger from './../common/logger';
 import * as telemetryHelper from '../common/telemetry';
-import { execPythonFile, validatePath } from "../common/utils";
+import { execPythonFile, getCustomEnvVarsSync, validatePath } from '../common/utils';
 import { createDeferred, Deferred } from '../common/helpers';
 import { getCustomEnvVars } from '../common/utils';
 import { mergeEnvVariables } from '../common/envFileParser';
@@ -189,7 +189,7 @@ export class JediProxy implements vscode.Disposable {
     private spawnProcess(dir: string) {
         try {
             let environmentVariables = { 'PYTHONUNBUFFERED': '1' };
-            let customEnvironmentVars = getCustomEnvVars();
+            let customEnvironmentVars = getCustomEnvVarsSync(vscode.Uri.file(dir));
             if (customEnvironmentVars) {
                 environmentVariables = mergeEnvVariables(environmentVariables, customEnvironmentVars);
             }
@@ -488,7 +488,7 @@ export class JediProxy implements vscode.Disposable {
     private lastKnownPythonPath: string = null;
     private additionalAutoCopletePaths: string[] = [];
     private getPathFromPythonCommand(args: string[]): Promise<string> {
-        return execPythonFile(this.pythonSettings.pythonPath, args, this.workspacePath).then(stdout => {
+        return execPythonFile(this.workspacePath, this.pythonSettings.pythonPath, args, this.workspacePath).then(stdout => {
             if (stdout.length === 0) {
                 return "";
             }
@@ -520,7 +520,7 @@ export class JediProxy implements vscode.Disposable {
         if (typeof PYTHONPATH !== 'string') {
             PYTHONPATH = '';
         }
-        let customEnvironmentVars = getCustomEnvVars();
+        let customEnvironmentVars = getCustomEnvVarsSync(vscode.Uri.file(this.pythonProcessCWD));
         if (customEnvironmentVars && customEnvironmentVars['PYTHONPATH']) {
             let PYTHONPATHFromEnvFile = customEnvironmentVars['PYTHONPATH'] as string;
             if (!path.isAbsolute(PYTHONPATHFromEnvFile) && this.workspacePath === 'string') {

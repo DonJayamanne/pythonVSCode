@@ -43,7 +43,7 @@ export class Linter extends baseLinter.BaseLinter {
         }
 
         return new Promise<baseLinter.ILintMessage[]>((resolve, reject) => {
-            execPythonFile(prospectorPath, prospectorArgs.concat(['--absolute-paths', '--output-format=json', document.uri.fsPath]), this.getWorkspaceRootPath(document), false, null, cancellation).then(data => {
+            execPythonFile(document.uri, prospectorPath, prospectorArgs.concat(['--absolute-paths', '--output-format=json', document.uri.fsPath]), this.getWorkspaceRootPath(document), false, null, cancellation).then(data => {
                 let parsedData: IProspectorResponse;
                 try {
                     parsedData = JSON.parse(data);

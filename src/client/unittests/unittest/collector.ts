@@ -71,7 +71,7 @@ for suite in suites._tests:
         });
     }
     args = [];
-    return execPythonFile(PythonSettings.getInstance(vscode.Uri.file(rootDirectory)).pythonPath, args.concat(['-c', pythonScript]), rootDirectory, true, null, token)
+    return execPythonFile(rootDirectory, PythonSettings.getInstance(vscode.Uri.file(rootDirectory)).pythonPath, args.concat(['-c', pythonScript]), rootDirectory, true, null, token)
         .then(data => {
             outChannel.appendLine(data);
             processOutput(data);

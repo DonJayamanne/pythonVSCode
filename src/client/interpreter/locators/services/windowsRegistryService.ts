@@ -28,6 +28,8 @@ export class WindowsRegistryService implements IInterpreterLocatorService {
     public getInterpreters(_resource?: Uri) {
         return this.getInterpretersFromRegistry();
     }
+    // tslint:disable-next-line:no-empty
+    public dispose() { }
     private async getInterpretersFromRegistry() {
         // https://github.com/python/peps/blob/master/pep-0514.txt#L357
         const hkcuArch = this.is64Bit ? undefined : Architecture.x86;

@@ -30,11 +30,11 @@ import { WorkspaceSymbols } from './workspaceSymbols/main';
 import { BlockFormatProviders } from './typeFormatters/blockFormatProvider';
 import * as os from 'os';
 import * as fs from 'fs';
-import { getPathFromPythonCommand } from './common/utils';
 import { JupyterProvider } from './jupyter/provider';
 import { activateGoToObjectDefinitionProvider } from './providers/objectDefinitionProvider';
 import { InterpreterManager } from './interpreter';
 import { SimpleConfigurationProvider } from './debugger';
+import { ReplProvider } from './providers/replProvider';
 
 const PYTHON: vscode.DocumentFilter = { language: 'python' };
 let unitTestOutChannel: vscode.OutputChannel;
@@ -76,15 +76,7 @@ export async function activate(context: vscode.ExtensionContext) {
     const jediFactory = new JediFactory(context.asAbsolutePath('.'));
     context.subscriptions.push(...activateGoToObjectDefinitionProvider(jediFactory));
 
-    context.subscriptions.push(vscode.commands.registerCommand(Commands.Start_REPL, () => {
-        getPathFromPythonCommand(["-c", "import sys;print(sys.executable)"]).catch(() => {
-            return pythonSettings.pythonPath;
-        }).then(pythonExecutablePath => {
-            let term = vscode.window.createTerminal('Python', pythonExecutablePath);
-            term.show();
-            context.subscriptions.push(term);
-        });
-    }));
+    context.subscriptions.push(new ReplProvider());
 
     // Enable indentAction
     vscode.languages.setLanguageConfiguration(PYTHON.language, {

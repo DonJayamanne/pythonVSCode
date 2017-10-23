@@ -25,9 +25,6 @@ export async function updateSetting(setting: PythonSettingKeys, value: {}, resou
     }
     // tslint:disable-next-line:await-promise
     await settings.update(setting, value, configTarget);
-    if (configTarget === ConfigurationTarget.Workspace && IS_MULTI_ROOT_TEST) {
-        await new Promise(resolve => setTimeout(resolve, 2000));
-    }
     PythonSettings.dispose();
 }
 

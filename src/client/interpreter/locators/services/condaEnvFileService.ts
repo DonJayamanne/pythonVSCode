@@ -14,7 +14,8 @@ export class CondaEnvFileService implements IInterpreterLocatorService {
     public async getInterpreters(_?: Uri) {
         return this.getSuggestionsFromConda();
     }
-
+    // tslint:disable-next-line:no-empty
+    public dispose() { }
     private async getSuggestionsFromConda(): Promise<PythonInterpreter[]> {
         return fs.pathExists(this.condaEnvironmentFile)
             .then(exists => exists ? this.getEnvironmentsFromFile(this.condaEnvironmentFile) : Promise.resolve([]));

@@ -41,8 +41,8 @@ suite('Formatting', () => {
             fs.copySync(originalUnformattedFile, file, { overwrite: true });
         });
         fs.ensureDirSync(path.dirname(autoPep8FileToFormat));
-        const yapf = execPythonFile('yapf', [originalUnformattedFile], workspaceRootPath, false);
-        const autoPep8 = execPythonFile('autopep8', [originalUnformattedFile], workspaceRootPath, false);
+        const yapf = execPythonFile(workspaceRootPath, 'yapf', [originalUnformattedFile], workspaceRootPath, false);
+        const autoPep8 = execPythonFile(workspaceRootPath, 'autopep8', [originalUnformattedFile], workspaceRootPath, false);
         await Promise.all<string>([yapf, autoPep8]).then(formattedResults => {
             formattedYapf = formattedResults[0];
             formattedAutoPep8 = formattedResults[1];

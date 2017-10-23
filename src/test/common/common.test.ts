@@ -18,13 +18,13 @@ import { createDeferred } from '../../client/common/helpers';
 suite('ChildProc', () => {
     setup(() => initialize());
     test('Standard Response', done => {
-        execPythonFile('python', ['-c', 'print(1)'], __dirname, false).then(data => {
+        execPythonFile(undefined, 'python', ['-c', 'print(1)'], __dirname, false).then(data => {
             assert.ok(data === '1' + EOL);
         }).then(done).catch(done);
     });
     test('Error Response', done => {
         const def = createDeferred<any>();
-        execPythonFile('python', ['-c', 'print(1'], __dirname, false).then(() => {
+        execPythonFile(undefined, 'python', ['-c', 'print(1'], __dirname, false).then(() => {
             def.reject('Should have failed');
         }).catch(() => {
             def.resolve();
@@ -38,7 +38,7 @@ suite('ChildProc', () => {
         function handleOutput(data: string) {
             output.push(data);
         }
-        execPythonFile('python', ['-c', 'print(1)'], __dirname, false, handleOutput).then(() => {
+        execPythonFile(undefined, 'python', ['-c', 'print(1)'], __dirname, false, handleOutput).then(() => {
             assert.equal(output.length, 1, 'Ouput length incorrect');
             assert.equal(output[0], '1' + EOL, 'Ouput value incorrect');
         }).then(done).catch(done);
@@ -49,7 +49,7 @@ suite('ChildProc', () => {
         function handleOutput(data: string) {
             output.push(data);
         }
-        await execPythonFile('python', ['-c', `print('öä')`], __dirname, false, handleOutput)
+        await execPythonFile(undefined, 'python', ['-c', `print('öä')`], __dirname, false, handleOutput)
         assert.equal(output.length, 1, 'Ouput length incorrect');
         assert.equal(output[0], 'öä' + EOL, 'Ouput value incorrect');
     });
@@ -60,7 +60,7 @@ suite('ChildProc', () => {
         function handleOutput(data: string) {
             output.push(data);
         }
-        execPythonFile('python', ['-c', 'import sys\nprint(1)\nsys.__stdout__.flush()\nimport time\ntime.sleep(5)\nprint(2)'], __dirname, false, handleOutput).then(() => {
+        execPythonFile(undefined, 'python', ['-c', 'import sys\nprint(1)\nsys.__stdout__.flush()\nimport time\ntime.sleep(5)\nprint(2)'], __dirname, false, handleOutput).then(() => {
             assert.equal(output.length, 2, 'Ouput length incorrect');
             assert.equal(output[0], '1' + EOL, 'First Ouput value incorrect');
             assert.equal(output[1], '2' + EOL, 'Second Ouput value incorrect');
@@ -74,7 +74,7 @@ suite('ChildProc', () => {
             output.push(data);
         }
         const cancellation = new vscode.CancellationTokenSource();
-        execPythonFile('python', ['-c', 'import sys\nprint(1)\nsys.__stdout__.flush()\nimport time\ntime.sleep(5)\nprint(2)'], __dirname, false, handleOutput, cancellation.token).then(() => {
+        execPythonFile(undefined, 'python', ['-c', 'import sys\nprint(1)\nsys.__stdout__.flush()\nimport time\ntime.sleep(5)\nprint(2)'], __dirname, false, handleOutput, cancellation.token).then(() => {
             def.reject('Should not have completed');
         }).catch(() => {
             def.resolve();

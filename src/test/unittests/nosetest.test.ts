@@ -121,64 +121,64 @@ suite('Unit Tests (nosetest)', () => {
         assert.equal(results.summary.skipped, 2, 'skipped');
     });
 
-    test('Run Failed Tests', async () => {
-        await updateSetting('unitTest.nosetestArgs', ['-m', 'test'], rootWorkspaceUri, configTarget);
-        createTestManager();
-        let results = await testManager.runTest();
-        assert.equal(results.summary.errors, 1, 'Errors');
-        assert.equal(results.summary.failures, 7, 'Failures');
-        assert.equal(results.summary.passed, 6, 'Passed');
-        assert.equal(results.summary.skipped, 2, 'skipped');
+    // test('Run Failed Tests', async () => {
+    //     await updateSetting('unitTest.nosetestArgs', ['-m', 'test'], rootWorkspaceUri, configTarget);
+    //     createTestManager();
+    //     let results = await testManager.runTest();
+    //     assert.equal(results.summary.errors, 1, 'Errors');
+    //     assert.equal(results.summary.failures, 7, 'Failures');
+    //     assert.equal(results.summary.passed, 6, 'Passed');
+    //     assert.equal(results.summary.skipped, 2, 'skipped');
 
-        results = await testManager.runTest(true);
-        assert.equal(results.summary.errors, 1, 'Errors again');
-        assert.equal(results.summary.failures, 7, 'Failures again');
-        assert.equal(results.summary.passed, 0, 'Passed again');
-        assert.equal(results.summary.skipped, 0, 'skipped again');
-    });
+    //     results = await testManager.runTest(true);
+    //     assert.equal(results.summary.errors, 1, 'Errors again');
+    //     assert.equal(results.summary.failures, 7, 'Failures again');
+    //     assert.equal(results.summary.passed, 0, 'Passed again');
+    //     assert.equal(results.summary.skipped, 0, 'skipped again');
+    // });
 
-    test('Run Specific Test File', async () => {
-        await updateSetting('unitTest.nosetestArgs', ['-m', 'test'], rootWorkspaceUri, configTarget);
-        createTestManager();
-        const tests = await testManager.discoverTests(true, true);
-        const testFileToRun = tests.testFiles.find(t => t.fullPath.endsWith('test_root.py'));
-        assert.ok(testFileToRun, 'Test file not found');
-        // tslint:disable-next-line:no-non-null-assertion
-        const testFile: TestsToRun = { testFile: [testFileToRun!], testFolder: [], testFunction: [], testSuite: [] };
-        const results = await testManager.runTest(testFile);
-        assert.equal(results.summary.errors, 0, 'Errors');
-        assert.equal(results.summary.failures, 1, 'Failures');
-        assert.equal(results.summary.passed, 1, 'Passed');
-        assert.equal(results.summary.skipped, 1, 'skipped');
-    });
+    // test('Run Specific Test File', async () => {
+    //     await updateSetting('unitTest.nosetestArgs', ['-m', 'test'], rootWorkspaceUri, configTarget);
+    //     createTestManager();
+    //     const tests = await testManager.discoverTests(true, true);
+    //     const testFileToRun = tests.testFiles.find(t => t.fullPath.endsWith('test_root.py'));
+    //     assert.ok(testFileToRun, 'Test file not found');
+    //     // tslint:disable-next-line:no-non-null-assertion
+    //     const testFile: TestsToRun = { testFile: [testFileToRun!], testFolder: [], testFunction: [], testSuite: [] };
+    //     const results = await testManager.runTest(testFile);
+    //     assert.equal(results.summary.errors, 0, 'Errors');
+    //     assert.equal(results.summary.failures, 1, 'Failures');
+    //     assert.equal(results.summary.passed, 1, 'Passed');
+    //     assert.equal(results.summary.skipped, 1, 'skipped');
+    // });
 
-    test('Run Specific Test Suite', async () => {
-        await updateSetting('unitTest.nosetestArgs', ['-m', 'test'], rootWorkspaceUri, configTarget);
-        createTestManager();
-        const tests = await testManager.discoverTests(true, true);
-        const testSuiteToRun = tests.testSuits.find(s => s.xmlClassName === 'test_root.Test_Root_test1');
-        assert.ok(testSuiteToRun, 'Test suite not found');
-        // tslint:disable-next-line:no-non-null-assertion
-        const testSuite: TestsToRun = { testFile: [], testFolder: [], testFunction: [], testSuite: [testSuiteToRun!.testSuite] };
-        const results = await testManager.runTest(testSuite);
-        assert.equal(results.summary.errors, 0, 'Errors');
-        assert.equal(results.summary.failures, 1, 'Failures');
-        assert.equal(results.summary.passed, 1, 'Passed');
-        assert.equal(results.summary.skipped, 1, 'skipped');
-    });
+    // test('Run Specific Test Suite', async () => {
+    //     await updateSetting('unitTest.nosetestArgs', ['-m', 'test'], rootWorkspaceUri, configTarget);
+    //     createTestManager();
+    //     const tests = await testManager.discoverTests(true, true);
+    //     const testSuiteToRun = tests.testSuits.find(s => s.xmlClassName === 'test_root.Test_Root_test1');
+    //     assert.ok(testSuiteToRun, 'Test suite not found');
+    //     // tslint:disable-next-line:no-non-null-assertion
+    //     const testSuite: TestsToRun = { testFile: [], testFolder: [], testFunction: [], testSuite: [testSuiteToRun!.testSuite] };
+    //     const results = await testManager.runTest(testSuite);
+    //     assert.equal(results.summary.errors, 0, 'Errors');
+    //     assert.equal(results.summary.failures, 1, 'Failures');
+    //     assert.equal(results.summary.passed, 1, 'Passed');
+    //     assert.equal(results.summary.skipped, 1, 'skipped');
+    // });
 
-    test('Run Specific Test Function', async () => {
-        await updateSetting('unitTest.nosetestArgs', ['-m', 'test'], rootWorkspaceUri, configTarget);
-        createTestManager();
-        const tests = await testManager.discoverTests(true, true);
-        const testFnToRun = tests.testFunctions.find(f => f.xmlClassName === 'test_root.Test_Root_test1');
-        assert.ok(testFnToRun, 'Test function not found');
-        // tslint:disable-next-line:no-non-null-assertion
-        const testFn: TestsToRun = { testFile: [], testFolder: [], testFunction: [testFnToRun!.testFunction], testSuite: [] };
-        const results = await testManager.runTest(testFn);
-        assert.equal(results.summary.errors, 0, 'Errors');
-        assert.equal(results.summary.failures, 1, 'Failures');
-        assert.equal(results.summary.passed, 0, 'Passed');
-        assert.equal(results.summary.skipped, 0, 'skipped');
-    });
+    // test('Run Specific Test Function', async () => {
+    //     await updateSetting('unitTest.nosetestArgs', ['-m', 'test'], rootWorkspaceUri, configTarget);
+    //     createTestManager();
+    //     const tests = await testManager.discoverTests(true, true);
+    //     const testFnToRun = tests.testFunctions.find(f => f.xmlClassName === 'test_root.Test_Root_test1');
+    //     assert.ok(testFnToRun, 'Test function not found');
+    //     // tslint:disable-next-line:no-non-null-assertion
+    //     const testFn: TestsToRun = { testFile: [], testFolder: [], testFunction: [testFnToRun!.testFunction], testSuite: [] };
+    //     const results = await testManager.runTest(testFn);
+    //     assert.equal(results.summary.errors, 0, 'Errors');
+    //     assert.equal(results.summary.failures, 1, 'Failures');
+    //     assert.equal(results.summary.passed, 0, 'Passed');
+    //     assert.equal(results.summary.skipped, 0, 'skipped');
+    // });
 });

@@ -12,8 +12,6 @@ import { VirtualEnvironmentManager } from './virtualEnvs/index';
 import { VEnv } from './virtualEnvs/venv';
 import { VirtualEnv } from './virtualEnvs/virtualEnv';
 
-const settings = PythonSettings.getInstance();
-
 export class InterpreterManager implements Disposable {
     private disposables: Disposable[] = [];
     private display: InterpreterDisplay | null | undefined;
@@ -24,7 +22,7 @@ export class InterpreterManager implements Disposable {
         this.interpreterProvider = new PythonInterpreterLocatorService(virtualEnvMgr);
         const versionService = new InterpreterVersionService();
         this.display = new InterpreterDisplay(statusBar, this.interpreterProvider, virtualEnvMgr, versionService);
-        settings.addListener('change', () => this.onConfigChanged());
+        PythonSettings.getInstance().addListener('change', () => this.onConfigChanged());
 
         this.disposables.push(statusBar);
         this.disposables.push(this.display);
@@ -78,8 +76,7 @@ export class InterpreterManager implements Disposable {
                 return await this.setPythonPathInSingleWorkspace(pythonPath);
             }
             await this.setPythonPathInWorkspace(pythonPath, workspacePythonPath.configTarget, workspacePythonPath.folderUri);
-        }
-        catch (reason) {
+        } catch (reason) {
             // tslint:disable-next-line:no-unsafe-any prefer-type-cast
             const message = reason && typeof reason.message === 'string' ? reason.message as string : '';
             window.showErrorMessage(`Failed to set 'pythonPath'. Error: ${message}`);
@@ -90,6 +87,7 @@ export class InterpreterManager implements Disposable {
         // tslint:disable-next-line:prefer-type-cast
         this.disposables.forEach(disposable => disposable.dispose() as void);
         this.display = null;
+        this.interpreterProvider.dispose();
     }
     private async setPythonPathInUserSettings(pythonPath) {
         const pythonConfig = workspace.getConfiguration('python');

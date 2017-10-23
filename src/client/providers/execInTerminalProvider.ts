@@ -74,7 +74,7 @@ function execInTerminal(fileUri?: vscode.Uri) {
             terminal.sendText(`cd "${fileDirPath}"`);
         }
     }
-    const launchArgs = settings.PythonSettings.getInstance().terminal.launchArgs;
+    const launchArgs = settings.PythonSettings.getInstance(fileUri).terminal.launchArgs;
     const launchArgsString = launchArgs.length > 0 ? " ".concat(launchArgs.join(" ")) : "";
     const command = `${currentPythonPath}${launchArgsString} ${filePath}`;
     if (IS_WINDOWS) {
@@ -93,17 +93,17 @@ function execInTerminal(fileUri?: vscode.Uri) {
 }
 
 function execSelectionInTerminal() {
-    const terminalShellSettings = vscode.workspace.getConfiguration('terminal.integrated.shell');
-    const IS_POWERSHELL = /powershell/.test(terminalShellSettings.get<string>('windows'));
-
-    let currentPythonPath = settings.PythonSettings.getInstance().pythonPath;
-    if (currentPythonPath.indexOf(' ') > 0) {
-        currentPythonPath = `"${currentPythonPath}"`;
-    }
-
     const activeEditor = vscode.window.activeTextEditor;
     if (!activeEditor) {
         return;
+    }
+
+    const terminalShellSettings = vscode.workspace.getConfiguration('terminal.integrated.shell');
+    const IS_POWERSHELL = /powershell/.test(terminalShellSettings.get<string>('windows'));
+
+    let currentPythonPath = settings.PythonSettings.getInstance(activeEditor.document.uri).pythonPath;
+    if (currentPythonPath.indexOf(' ') > 0) {
+        currentPythonPath = `"${currentPythonPath}"`;
     }
 
     const selection = vscode.window.activeTextEditor.selection;
@@ -119,7 +119,7 @@ function execSelectionInTerminal() {
         return;
     }
     code = removeBlankLines(code);
-    const launchArgs = settings.PythonSettings.getInstance().terminal.launchArgs;
+    const launchArgs = settings.PythonSettings.getInstance(activeEditor.document.uri).terminal.launchArgs;
     const launchArgsString = launchArgs.length > 0 ? " ".concat(launchArgs.join(" ")) : "";
     const command = `${currentPythonPath}${launchArgsString}`;
     if (!terminal) {
@@ -148,17 +148,17 @@ function execSelectionInTerminal() {
 }
 
 function execSelectionInDjangoShell() {
-    const terminalShellSettings = vscode.workspace.getConfiguration('terminal.integrated.shell');
-    const IS_POWERSHELL = /powershell/.test(terminalShellSettings.get<string>('windows'));
-
-    let currentPythonPath = settings.PythonSettings.getInstance().pythonPath;
-    if (currentPythonPath.indexOf(' ') > 0) {
-        currentPythonPath = `"${currentPythonPath}"`;
-    }
-
     const activeEditor = vscode.window.activeTextEditor;
     if (!activeEditor) {
         return;
+    }
+
+    const terminalShellSettings = vscode.workspace.getConfiguration('terminal.integrated.shell');
+    const IS_POWERSHELL = /powershell/.test(terminalShellSettings.get<string>('windows'));
+
+    let currentPythonPath = settings.PythonSettings.getInstance(activeEditor.document.uri).pythonPath;
+    if (currentPythonPath.indexOf(' ') > 0) {
+        currentPythonPath = `"${currentPythonPath}"`;
     }
 
     const workspaceRoot = vscode.workspace.rootPath;
@@ -175,7 +175,7 @@ function execSelectionInDjangoShell() {
     if (code.length === 0) {
         return;
     }
-    const launchArgs = settings.PythonSettings.getInstance().terminal.launchArgs;
+    const launchArgs = settings.PythonSettings.getInstance(activeEditor.document.uri).terminal.launchArgs;
     const launchArgsString = launchArgs.length > 0 ? " ".concat(launchArgs.join(" ")) : "";
     const command = `${currentPythonPath}${launchArgsString} ${djangoShellCmd}`;
     if (!terminal) {

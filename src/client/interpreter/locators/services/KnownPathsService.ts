@@ -16,7 +16,8 @@ export class KnownPathsService implements IInterpreterLocatorService {
     public getInterpreters(_?: Uri) {
         return this.suggestionsFromKnownPaths();
     }
-
+    // tslint:disable-next-line:no-empty
+    public dispose() { }
     private suggestionsFromKnownPaths() {
         const promises = this.knownSearchPaths.map(dir => this.getInterpretersInDirectory(dir));
         return Promise.all<string[]>(promises)

@@ -15,7 +15,8 @@ export class CurrentPathService implements IInterpreterLocatorService {
     public async getInterpreters(resource?: Uri) {
         return this.suggestionsFromKnownPaths();
     }
-
+    // tslint:disable-next-line:no-empty
+    public dispose() { }
     private async suggestionsFromKnownPaths(resource?: Uri) {
         const currentPythonInterpreter = this.getInterpreter(PythonSettings.getInstance(resource).pythonPath, '').then(interpreter => [interpreter]);
         const python = this.getInterpreter('python', '').then(interpreter => [interpreter]);

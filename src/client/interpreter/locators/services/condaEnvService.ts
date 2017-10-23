@@ -18,7 +18,8 @@ export class CondaEnvService implements IInterpreterLocatorService {
     public getInterpreters(resource?: Uri) {
         return this.getSuggestionsFromConda();
     }
-
+    // tslint:disable-next-line:no-empty
+    public dispose() { }
     public getCondaFile() {
         if (this.registryLookupForConda) {
             return this.registryLookupForConda.getInterpreters()

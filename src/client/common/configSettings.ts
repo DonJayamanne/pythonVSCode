@@ -5,7 +5,9 @@ import { EventEmitter } from 'events';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { Uri } from 'vscode';
+import { InterpreterInfoCache } from './interpreterInfoCache';
 import { SystemVariables } from './systemVariables';
+
 // tslint:disable-next-line:no-require-imports no-var-requires
 const untildify = require('untildify');
 
@@ -197,10 +199,12 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         // tslint:disable-next-line:no-unsafe-any
         this.disposables.forEach(disposable => disposable.dispose());
         this.disposables = [];
+        InterpreterInfoCache.clear();
     }
 
     // tslint:disable-next-line:cyclomatic-complexity max-func-body-length
     private initializeSettings() {
+        InterpreterInfoCache.clear();
         const workspaceRoot = this.workspaceRoot.fsPath;
         const systemVariables: SystemVariables = new SystemVariables(this.workspaceRoot ? this.workspaceRoot.fsPath : undefined);
         const pythonSettings = vscode.workspace.getConfiguration('python', this.workspaceRoot);
@@ -213,8 +217,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         this.jediPath = systemVariables.resolveAny(pythonSettings.get<string>('jediPath'))!;
         if (typeof this.jediPath === 'string' && this.jediPath.length > 0) {
             this.jediPath = getAbsolutePath(systemVariables.resolveAny(this.jediPath), workspaceRoot);
-        }
-        else {
+        } else {
             this.jediPath = '';
         }
         // tslint:disable-next-line:no-backbone-get-set-outside-model no-non-null-assertion
@@ -230,16 +233,14 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         this.disablePromptForFeatures = Array.isArray(this.disablePromptForFeatures) ? this.disablePromptForFeatures : [];
         if (this.linting) {
             Object.assign<ILintingSettings, ILintingSettings>(this.linting, lintingSettings);
-        }
-        else {
+        } else {
             this.linting = lintingSettings;
         }
         // tslint:disable-next-line:no-backbone-get-set-outside-model no-non-null-assertion
         const sortImportSettings = systemVariables.resolveAny(pythonSettings.get<ISortImportSettings>('sortImports'))!;
         if (this.sortImports) {
             Object.assign<ISortImportSettings, ISortImportSettings>(this.sortImports, sortImportSettings);
-        }
-        else {
+        } else {
             this.sortImports = sortImportSettings;
         }
         // Support for travis.
@@ -290,8 +291,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         const formattingSettings = systemVariables.resolveAny(pythonSettings.get<IFormattingSettings>('formatting'))!;
         if (this.formatting) {
             Object.assign<IFormattingSettings, IFormattingSettings>(this.formatting, formattingSettings);
-        }
-        else {
+        } else {
             this.formatting = formattingSettings;
         }
         // Support for travis.
@@ -309,8 +309,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         const autoCompleteSettings = systemVariables.resolveAny(pythonSettings.get<IAutoCompeteSettings>('autoComplete'))!;
         if (this.autoComplete) {
             Object.assign<IAutoCompeteSettings, IAutoCompeteSettings>(this.autoComplete, autoCompleteSettings);
-        }
-        else {
+        } else {
             this.autoComplete = autoCompleteSettings;
         }
         // Support for travis.
@@ -324,8 +323,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         const workspaceSymbolsSettings = systemVariables.resolveAny(pythonSettings.get<IWorkspaceSymbolSettings>('workspaceSymbols'))!;
         if (this.workspaceSymbols) {
             Object.assign<IWorkspaceSymbolSettings, IWorkspaceSymbolSettings>(this.workspaceSymbols, workspaceSymbolsSettings);
-        }
-        else {
+        } else {
             this.workspaceSymbols = workspaceSymbolsSettings;
         }
         // Support for travis.
@@ -343,8 +341,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         const unitTestSettings = systemVariables.resolveAny(pythonSettings.get<IUnitTestSettings>('unitTest'))!;
         if (this.unitTest) {
             Object.assign<IUnitTestSettings, IUnitTestSettings>(this.unitTest, unitTestSettings);
-        }
-        else {
+        } else {
             this.unitTest = unitTestSettings;
             if (IS_TEST_EXECUTION && !this.unitTest) {
                 // tslint:disable-next-line:prefer-type-cast
@@ -381,8 +378,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         const terminalSettings = systemVariables.resolveAny(pythonSettings.get<ITerminalSettings>('terminal'))!;
         if (this.terminal) {
             Object.assign<ITerminalSettings, ITerminalSettings>(this.terminal, terminalSettings);
-        }
-        else {
+        } else {
             this.terminal = terminalSettings;
             if (IS_TEST_EXECUTION && !this.terminal) {
                 // tslint:disable-next-line:prefer-type-cast
@@ -402,7 +398,9 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
             appendResults: true, defaultKernel: '', startupCode: []
         };
 
-        this.emit('change');
+        // If workspace config changes, then we could have a cascading effect of on change events.
+        // Lets defer the change notification.
+        setTimeout(() => this.emit('change'), 1);
     }
 
     public get pythonPath(): string {
@@ -416,8 +414,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         // E.g. virtual directory name.
         try {
             this._pythonPath = getPythonExecutable(value);
-        }
-        catch (ex) {
+        } catch (ex) {
             this._pythonPath = value;
         }
     }
@@ -461,8 +458,7 @@ function getPythonExecutable(pythonPath: string): string {
             if (isValidPythonPath(path.join(pythonPath, 'scripts', executableName))) {
                 return path.join(pythonPath, 'scripts', executableName);
             }
-        }
-        else {
+        } else {
             if (isValidPythonPath(path.join(pythonPath, executableName))) {
                 return path.join(pythonPath, executableName);
             }
@@ -479,8 +475,7 @@ function isValidPythonPath(pythonPath: string): boolean {
     try {
         const output = child_process.execFileSync(pythonPath, ['-c', 'print(1234)'], { encoding: 'utf8' });
         return output.startsWith('1234');
-    }
-    catch (ex) {
+    } catch (ex) {
         return false;
     }
 }

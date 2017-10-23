@@ -26,8 +26,6 @@ suite('Sorting', () => {
         fs.writeFileSync(fileToFormatWithConfig1, fs.readFileSync(originalFileToFormatWithConfig1));
         fs.writeFileSync(fileToFormatWithoutConfig, fs.readFileSync(originalFileToFormatWithoutConfig));
         await updateSetting('sortImports.args', [], Uri.file(sortingPath), configTarget);
-        // tslint:disable-next-line:no-string-based-set-timeout
-        await new Promise(resolve => setTimeout(resolve, 2000));
         await closeActiveWindows();
     });
     setup(async () => {
@@ -35,8 +33,6 @@ suite('Sorting', () => {
         fs.writeFileSync(fileToFormatWithoutConfig, fs.readFileSync(originalFileToFormatWithoutConfig));
         fs.writeFileSync(fileToFormatWithConfig1, fs.readFileSync(originalFileToFormatWithConfig1));
         await updateSetting('sortImports.args', [], Uri.file(sortingPath), configTarget);
-        // tslint:disable-next-line:no-string-based-set-timeout
-        await new Promise(resolve => setTimeout(resolve, 2000));
         await closeActiveWindows();
     });
 
@@ -78,8 +74,6 @@ suite('Sorting', () => {
 
     test('With Changes and Config in Args', async () => {
         await updateSetting('sortImports.args', ['-sp', path.join(sortingPath, 'withconfig')], Uri.file(sortingPath), ConfigurationTarget.Workspace);
-        // tslint:disable-next-line:no-string-based-set-timeout
-        await new Promise(resolve => setTimeout(resolve, 2000));
         const textDocument = await workspace.openTextDocument(fileToFormatWithConfig);
         const editor = await window.showTextDocument(textDocument);
         await editor.edit(builder => {
@@ -91,8 +85,6 @@ suite('Sorting', () => {
     });
     test('With Changes and Config in Args (via Command)', async () => {
         await updateSetting('sortImports.args', ['-sp', path.join(sortingPath, 'withconfig')], Uri.file(sortingPath), configTarget);
-        // tslint:disable-next-line:no-string-based-set-timeout
-        await new Promise(resolve => setTimeout(resolve, 2000));
         const textDocument = await workspace.openTextDocument(fileToFormatWithConfig);
         const editor = await window.showTextDocument(textDocument);
         await editor.edit(builder => {

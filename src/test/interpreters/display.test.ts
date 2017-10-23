@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import * as child_process from 'child_process';
 import { EOL } from 'os';
 import * as path from 'path';
-import { ConfigurationTarget } from 'vscode';
+import { ConfigurationTarget, Uri } from 'vscode';
 import { PythonSettings } from '../../client/common/configSettings';
 import { InterpreterDisplay } from '../../client/interpreter/display';
 import { getFirstNonEmptyLineFromMultilineString } from '../../client/interpreter/helpers';
@@ -12,6 +12,8 @@ import { closeActiveWindows, initialize, initializeTest, IS_MULTI_ROOT_TEST } fr
 import { MockStatusBarItem } from '../mockClasses';
 import { MockInterpreterVersionProvider } from './mocks';
 import { MockProvider, MockVirtualEnv } from './mocks';
+
+const fileInNonRootWorkspace = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'dummy.py');
 
 // tslint:disable-next-line:max-func-body-length
 suite('Interpreters Display', () => {
@@ -74,10 +76,10 @@ suite('Interpreters Display', () => {
     });
     test('Must get display name from a list of interpreters', async () => {
         const pythonPath = await new Promise<string>(resolve => {
-            child_process.execFile(PythonSettings.getInstance().pythonPath, ['-c', 'import sys;print(sys.executable)'], (_, stdout) => {
+            child_process.execFile(PythonSettings.getInstance(Uri.file(fileInNonRootWorkspace)).pythonPath, ['-c', 'import sys;print(sys.executable)'], (_, stdout) => {
                 resolve(getFirstNonEmptyLineFromMultilineString(stdout));
             });
-        }).then(value => value.length === 0 ? PythonSettings.getInstance().pythonPath : value);
+        }).then(value => value.length === 0 ? PythonSettings.getInstance(Uri.file(fileInNonRootWorkspace)).pythonPath : value);
         const statusBar = new MockStatusBarItem();
         const interpreters = [
             { displayName: 'One', path: 'c:/path1/one.exe', type: 'One 1' },
@@ -94,10 +96,10 @@ suite('Interpreters Display', () => {
     });
     test('Must suffix tooltip with the companyDisplayName of interpreter', async () => {
         const pythonPath = await new Promise<string>(resolve => {
-            child_process.execFile(PythonSettings.getInstance().pythonPath, ['-c', 'import sys;print(sys.executable)'], (_, stdout) => {
+            child_process.execFile(PythonSettings.getInstance(Uri.file(fileInNonRootWorkspace)).pythonPath, ['-c', 'import sys;print(sys.executable)'], (_, stdout) => {
                 resolve(getFirstNonEmptyLineFromMultilineString(stdout));
             });
-        }).then(value => value.length === 0 ? PythonSettings.getInstance().pythonPath : value);
+        }).then(value => value.length === 0 ? PythonSettings.getInstance(Uri.file(fileInNonRootWorkspace)).pythonPath : value);
 
         const statusBar = new MockStatusBarItem();
         const interpreters = [
