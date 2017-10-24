@@ -1,25 +1,7 @@
 // A launch configuration that compiles the extension and then opens it inside a new window
 {
 	"version": "0.1.0",
-	"configurations": [{
-			"name": "CompletionServer.ppy",
-			"type": "python",
-			"request": "launch",
-			"stopOnEntry": true,
-			"pythonPath": "python",
-			"program": "${workspaceRoot}/pythonFiles/completionServer.py",
-			"cwd": "${workspaceRoot}",
-			"env": {},
-			"args": [
-				"123"
-			],
-			"envFile": "${workspaceRoot}/.env",
-			"debugOptions": [
-				"WaitOnAbnormalExit",
-				"WaitOnNormalExit",
-				"RedirectOutput"
-			]
-		},
+	"configurations": [
 		{
 			"name": "Launch Extension",
 			"type": "extensionHost",
@@ -83,28 +65,15 @@
 				"${workspaceRoot}/out/**/*.js"
 			],
 			"preLaunchTask": "compile"
-		},
-		{
-			"name": "Python",
-			"type": "python",
-			"request": "launch",
-			"stopOnEntry": true,
-			"pythonPath": "python",
-			"program": "${file}",
-			"console": "integratedTerminal",
-			"args": [],
-			"debugOptions": [
-				"WaitOnAbnormalExit",
-				"WaitOnNormalExit",
-				"RedirectOutput"
-			],
-			"cwd": "${workspaceRoot}"
 		}
 	],
-	"compounds": [{
-		"name": "Extension + Debugger",
-		"configurations": [
-			"Launch Extension", "Launch Extension as debugServer"
-		]
-	}]
+	"compounds": [
+		{
+			"name": "Extension + Debugger",
+			"configurations": [
+				"Launch Extension",
+				"Launch Extension as debugServer"
+			]
+		}
+	]
 }
