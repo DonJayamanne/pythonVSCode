@@ -15,14 +15,14 @@ suite('JupyterClient', () => {
         await initialize();
     });
     setup(() => {
-        process.env['PYTHON_DONJAYAMANNE_TEST'] = '0';
+        process.env['VSC_PYTHON_CI_TEST'] = '0';
         process.env['DEBUG_DJAYAMANNE_IPYTHON'] = '1';
         output = new MockOutputChannel('Jupyter');
         jupyter = new JupyterClientAdapter(output, __dirname);
         return initializeTest();
     });
     teardown(() => {
-        process.env['PYTHON_DONJAYAMANNE_TEST'] = '1';
+        process.env['VSC_PYTHON_CI_TEST'] = '1';
         process.env['DEBUG_DJAYAMANNE_IPYTHON'] = '0';
         output.dispose();
         jupyter.dispose();
@@ -32,7 +32,7 @@ suite('JupyterClient', () => {
     let jupyter: JupyterClientAdapter;
 
     test('Ping (Process and Socket)', done => {
-        jupyter.start({ 'PYTHON_DONJAYAMANNE_TEST': '1', 'DEBUG_DJAYAMANNE_IPYTHON': '1' }).then(() => {
+        jupyter.start({ 'VSC_PYTHON_CI_TEST': '1', 'DEBUG_DJAYAMANNE_IPYTHON': '1' }).then(() => {
             done();
         }).catch(reason => {
             assert.fail(reason, undefined, 'Starting Jupyter failed', '');
@@ -88,7 +88,7 @@ suite('JupyterClient', () => {
     });
     test('Start Kernel (without start)', done => {
         jupyter.getAllKernelSpecs().then(kernelSpecs => {
-            process.env['PYTHON_DONJAYAMANNE_TEST'] = '0';
+            process.env['VSC_PYTHON_CI_TEST'] = '0';
 
             // Ok we got the kernelspecs, now create another new jupyter client
             // and tell it to start a specific kernel
@@ -104,7 +104,7 @@ suite('JupyterClient', () => {
                 done();
             });
 
-            process.env['PYTHON_DONJAYAMANNE_TEST'] = '1';
+            process.env['VSC_PYTHON_CI_TEST'] = '1';
 
         }).catch(reason => {
             assert.fail(reason, undefined, 'Failed to retrieve kernelspecs', '');
@@ -414,7 +414,7 @@ suite('JupyterClient', () => {
             assert.fail(reason, undefined, 'Failed to retrieve kernelspecs', '');
             done();
         });
-        process.env['PYTHON_DONJAYAMANNE_TEST'] = '1';
+        process.env['VSC_PYTHON_CI_TEST'] = '1';
     });
     test('Execute multiple blocks of Code', done => {
         jupyter.start().then(() => {

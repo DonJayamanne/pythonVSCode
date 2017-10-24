@@ -137,7 +137,7 @@ export interface JupyterSettings {
 }
 
 // tslint:disable-next-line:no-string-literal
-const IS_TEST_EXECUTION = process.env['PYTHON_DONJAYAMANNE_TEST'] === '1';
+const IS_TEST_EXECUTION = process.env['VSC_PYTHON_CI_TEST'] === '1';
 
 // tslint:disable-next-line:completed-docs
 export class PythonSettings extends EventEmitter implements IPythonSettings {

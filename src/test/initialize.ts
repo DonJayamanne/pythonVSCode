@@ -7,7 +7,7 @@ const dummyPythonFile = path.join(__dirname, '..', '..', 'src', 'test', 'pythonF
 
 //First thing to be executed
 // tslint:disable-next-line:no-string-literal
-process.env['PYTHON_DONJAYAMANNE_TEST'] = '1';
+process.env['VSC_PYTHON_CI_TEST'] = '1';
 
 // tslint:disable-next-line:no-any
 let configSettings: any;
