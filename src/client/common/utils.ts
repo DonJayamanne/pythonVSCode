@@ -425,7 +425,7 @@ export function areBasePathsSame(path1: string, path2: string) {
 }
 export async function getInterpreterDisplayName(pythonPath: string) {
     return await new Promise<string>((resolve, reject) => {
-        child_process.execFile(pythonPath, ['--version'], (stdErr, stdout) => {
+        child_process.execFile(pythonPath, ['--version'], (error, stdout, stdErr) => {
             const out = (typeof stdErr === 'string' ? stdErr : '') + os.EOL + (typeof stdout === 'string' ? stdout : '');
             const lines = out.split(/\r?\n/g).map(line => line.trim()).filter(line => line.length > 0);
             resolve(lines.length > 0 ? lines[0] : '');

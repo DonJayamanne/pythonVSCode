@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import { EOL } from 'os';
 import * as vscode from 'vscode';
 import { createDeferred } from '../../client/common/helpers';
-import { execPythonFile } from '../../client/common/utils';
+import { execPythonFile, getInterpreterDisplayName } from '../../client/common/utils';
 import { initialize } from './../initialize';
 
 // Defines a Mocha test suite to group tests of similar kind together
@@ -80,5 +80,11 @@ suite('ChildProc', () => {
         }, 1000);
 
         def.promise.then(done).catch(done);
+    });
+
+    test('Get Python display name', async () => {
+        const displayName = await getInterpreterDisplayName('python');
+        assert.equal(typeof displayName, 'string', 'Display name not returned');
+        assert.notEqual(displayName.length, 0, 'Display name cannot be empty');
     });
 });

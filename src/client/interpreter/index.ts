@@ -23,7 +23,7 @@ export class InterpreterManager implements Disposable {
         const versionService = new InterpreterVersionService();
         this.display = new InterpreterDisplay(statusBar, this.interpreterProvider, virtualEnvMgr, versionService);
         PythonSettings.getInstance().addListener('change', () => this.onConfigChanged());
-
+        this.disposables.push(window.onDidChangeActiveTextEditor(() => this.refresh()));
         this.disposables.push(statusBar);
         this.disposables.push(this.display);
     }
