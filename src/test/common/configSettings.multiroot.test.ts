@@ -22,6 +22,7 @@ suite('Multiroot Config Settings', () => {
     teardown(async () => {
         await closeActiveWindows();
         await clearPythonPathInWorkspaceFolder(Uri.file(path.join(multirootPath, 'workspace1')));
+        await initializeTest();
     });
 
     async function enableDisableLinterSetting(resource: Uri, configTarget: ConfigurationTarget, setting: string, enabled: boolean | undefined): Promise<void> {

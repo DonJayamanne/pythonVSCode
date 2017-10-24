@@ -110,6 +110,8 @@ export const IS_MULTI_ROOT_TEST = isMultitrootTest();
 
 // Ability to use custom python environments for testing
 export async function initializePython() {
+    await clearPythonPathInWorkspaceFolder(dummyPythonFile);
+
     const pythonConfig = vscode.workspace.getConfiguration('python');
     const value = pythonConfig.inspect('pythonPath');
     if (value && value.workspaceValue !== PYTHON_PATH) {
@@ -122,6 +124,4 @@ export async function initializePython() {
         // tslint:disable-next-line:no-unsafe-any
         configSettings.PythonSettings.dispose();
     }
-
-    await clearPythonPathInWorkspaceFolder(dummyPythonFile);
 }

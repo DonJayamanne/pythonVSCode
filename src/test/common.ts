@@ -40,7 +40,7 @@ function getWorkspaceRoot() {
 }
 
 // tslint:disable-next-line:no-any
-export function retryAsync(wrapped: any, retryCount: number = 2) {
+export function retryAsync(wrapped: Function, retryCount: number = 2) {
     // tslint:disable-next-line:no-any
     return async (...args: any[]) => {
         return new Promise((resolve, reject) => {
@@ -49,7 +49,8 @@ export function retryAsync(wrapped: any, retryCount: number = 2) {
 
             const makeCall = () => {
                 // tslint:disable-next-line:no-unsafe-any no-any
-                wrapped.apply(...args)
+                // tslint:disable-next-line:no-invalid-this
+                wrapped.call(this, ...args)
                     // tslint:disable-next-line:no-unsafe-any no-any
                     .then(resolve, (reason: any) => {
                         reasons.push(reason);
@@ -78,6 +79,9 @@ async function clearPythonPathInWorkspaceFolderImpl(resource: string | Uri) {
         await settings.update('pythonPath', undefined, ConfigurationTarget.WorkspaceFolder);
         PythonSettings.dispose();
     }
+    const settings2 = workspace.getConfiguration('python', resourceUri);
+    const value2 = settings.inspect<string>('pythonPath');
+    const y = '';
 }
 
 export const clearPythonPathInWorkspaceFolder = async (resource: string | Uri) => retryAsync(clearPythonPathInWorkspaceFolderImpl)(resource);
