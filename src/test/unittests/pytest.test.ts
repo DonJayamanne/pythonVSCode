@@ -1,46 +1,48 @@
 import * as assert from 'assert';
-import * as vscode from 'vscode';
-import * as pytest from '../../client/unittests/pytest/main';
 import * as path from 'path';
-import * as configSettings from '../../client/common/configSettings';
-import { initialize, initializeTest, IS_MULTI_ROOT_TEST } from './../initialize';
-import { TestsToRun, TestFile } from '../../client/unittests/common/contracts';
+import * as vscode from 'vscode';
+import { TestFile, TestsToRun } from '../../client/unittests/common/contracts';
 import { TestResultDisplay } from '../../client/unittests/display/main';
-import { MockOutputChannel } from './../mockClasses';
+import * as pytest from '../../client/unittests/pytest/main';
 import { rootWorkspaceUri, updateSetting } from '../common';
+import { initialize, initializeTest, IS_MULTI_ROOT_TEST } from './../initialize';
+import { MockOutputChannel } from './../mockClasses';
 
 const UNITTEST_TEST_FILES_PATH = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'standard');
 const UNITTEST_SINGLE_TEST_FILE_PATH = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'single');
 const UNITTEST_TEST_FILES_PATH_WITH_CONFIGS = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'unitestsWithConfigs');
 const unitTestTestFilesCwdPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'cwd', 'src');
 
+// tslint:disable-next-line:max-func-body-length
 suite('Unit Tests (PyTest)', () => {
+    let rootDirectory = UNITTEST_TEST_FILES_PATH;
+    let testManager: pytest.TestManager;
+    let testResultDisplay: TestResultDisplay;
+    let outChannel: vscode.OutputChannel;
     const configTarget = IS_MULTI_ROOT_TEST ? vscode.ConfigurationTarget.WorkspaceFolder : vscode.ConfigurationTarget.Workspace;
     suiteSetup(async () => {
         await initialize();
         await updateSetting('unitTest.pyTestArgs', [], rootWorkspaceUri, configTarget);
     });
-    setup(() => {
+    setup(async () => {
         rootDirectory = UNITTEST_TEST_FILES_PATH;
         outChannel = new MockOutputChannel('Python Test Log');
         testResultDisplay = new TestResultDisplay(outChannel);
-        return initializeTest();
+        await initializeTest();
     });
-    teardown(() => {
+    teardown(async () => {
         outChannel.dispose();
         testManager.dispose();
         testResultDisplay.dispose();
-        return updateSetting('unitTest.pyTestArgs', [], rootWorkspaceUri, configTarget);
+        await updateSetting('unitTest.pyTestArgs', [], rootWorkspaceUri, configTarget);
     });
     function createTestManager(rootDir: string = rootDirectory) {
         testManager = new pytest.TestManager(rootDir, outChannel);
     }
-    let rootDirectory = UNITTEST_TEST_FILES_PATH;
-    let testManager: pytest.TestManager;
-    let testResultDisplay: TestResultDisplay;
-    let outChannel: vscode.OutputChannel;
 
-    test('Discover Tests (single test file)', async () => {
+    test('Discover Tests (single test file)', async function () {
+        // tslint:disable-next-line:no-invalid-this
+        this.retries(3);
         testManager = new pytest.TestManager(UNITTEST_SINGLE_TEST_FILE_PATH, outChannel);
         const tests = await testManager.discoverTests(true, true);
         assert.equal(tests.testFiles.length, 2, 'Incorrect number of test files');
@@ -50,7 +52,9 @@ suite('Unit Tests (PyTest)', () => {
         assert.equal(tests.testFiles.some(t => t.name === 'test_root.py' && t.nameToRun === t.name), true, 'Test File not found');
     });
 
-    test('Discover Tests (pattern = test_)', async () => {
+    test('Discover Tests (pattern = test_)', async function () {
+        // tslint:disable-next-line:no-invalid-this
+        this.retries(3);
         await updateSetting('unitTest.pyTestArgs', ['-k=test_'], rootWorkspaceUri, configTarget);
         createTestManager();
         const tests = await testManager.discoverTests(true, true);
@@ -65,7 +69,9 @@ suite('Unit Tests (PyTest)', () => {
         assert.equal(tests.testFiles.some(t => t.name === 'test_root.py' && t.nameToRun === t.name), true, 'Test File not found');
     });
 
-    test('Discover Tests (pattern = _test)', async () => {
+    test('Discover Tests (pattern = _test)', async function () {
+        // tslint:disable-next-line:no-invalid-this
+        this.retries(3);
         await updateSetting('unitTest.pyTestArgs', ['-k=_test.py'], rootWorkspaceUri, configTarget);
         createTestManager();
         const tests = await testManager.discoverTests(true, true);
@@ -75,8 +81,9 @@ suite('Unit Tests (PyTest)', () => {
         assert.equal(tests.testFiles.some(t => t.name === 'tests/unittest_three_test.py' && t.nameToRun === t.name), true, 'Test File not found');
     });
 
-
-    test('Discover Tests (with config)', async () => {
+    test('Discover Tests (with config)', async function () {
+        // tslint:disable-next-line:no-invalid-this
+        this.retries(3);
         await updateSetting('unitTest.pyTestArgs', [], rootWorkspaceUri, configTarget);
         rootDirectory = UNITTEST_TEST_FILES_PATH_WITH_CONFIGS;
         createTestManager();
@@ -88,7 +95,9 @@ suite('Unit Tests (PyTest)', () => {
         assert.equal(tests.testFiles.some(t => t.name === 'other/test_pytest.py' && t.nameToRun === t.name), true, 'Test File not found');
     });
 
-    test('Run Tests', async () => {
+    test('Run Tests', async function () {
+        // tslint:disable-next-line:no-invalid-this
+        this.retries(3);
         await updateSetting('unitTest.pyTestArgs', ['-k=test_'], rootWorkspaceUri, configTarget);
         createTestManager();
         const results = await testManager.runTest();
@@ -98,7 +107,9 @@ suite('Unit Tests (PyTest)', () => {
         assert.equal(results.summary.skipped, 3, 'skipped');
     });
 
-    test('Run Failed Tests', async () => {
+    test('Run Failed Tests', async function () {
+        // tslint:disable-next-line:no-invalid-this
+        this.retries(3);
         await updateSetting('unitTest.pyTestArgs', ['-k=test_'], rootWorkspaceUri, configTarget);
         createTestManager();
         let results = await testManager.runTest();
@@ -114,7 +125,9 @@ suite('Unit Tests (PyTest)', () => {
         assert.equal(results.summary.skipped, 0, 'Failed skipped');
     });
 
-    test('Run Specific Test File', async () => {
+    test('Run Specific Test File', async function () {
+        // tslint:disable-next-line:no-invalid-this
+        this.retries(3);
         await updateSetting('unitTest.pyTestArgs', ['-k=test_'], rootWorkspaceUri, configTarget);
         createTestManager();
         await testManager.discoverTests(true, true);
@@ -135,7 +148,9 @@ suite('Unit Tests (PyTest)', () => {
         assert.equal(results.summary.skipped, 0, 'skipped');
     });
 
-    test('Run Specific Test Suite', async () => {
+    test('Run Specific Test Suite', async function () {
+        // tslint:disable-next-line:no-invalid-this
+        this.retries(3);
         await updateSetting('unitTest.pyTestArgs', ['-k=test_'], rootWorkspaceUri, configTarget);
         createTestManager();
         const tests = await testManager.discoverTests(true, true);
@@ -147,7 +162,9 @@ suite('Unit Tests (PyTest)', () => {
         assert.equal(results.summary.skipped, 1, 'skipped');
     });
 
-    test('Run Specific Test Function', async () => {
+    test('Run Specific Test Function', async function () {
+        // tslint:disable-next-line:no-invalid-this
+        this.retries(3);
         await updateSetting('unitTest.pyTestArgs', ['-k=test_'], rootWorkspaceUri, configTarget);
         createTestManager();
         const tests = await testManager.discoverTests(true, true);
@@ -159,8 +176,9 @@ suite('Unit Tests (PyTest)', () => {
         assert.equal(results.summary.skipped, 0, 'skipped');
     });
 
-
-    test('Setting cwd should return tests', async () => {
+    test('Setting cwd should return tests', async function () {
+        // tslint:disable-next-line:no-invalid-this
+        this.retries(3);
         await updateSetting('unitTest.pyTestArgs', ['-k=test_'], rootWorkspaceUri, configTarget);
         createTestManager(unitTestTestFilesCwdPath);
 
