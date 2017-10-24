@@ -2,47 +2,43 @@ import * as assert from 'assert';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { clearPythonPathInWorkspaceFolder } from './common';
+import { PythonSettings } from '../client/common/configSettings';
+import { activated } from '../client/extension';
+import { clearPythonPathInWorkspaceFolder, setPythonPathInWorkspaceRoot } from './common';
+
 const dummyPythonFile = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'dummy.py');
 
-//First thing to be executed
+//First thing to be executed.
 // tslint:disable-next-line:no-string-literal
 process.env['VSC_PYTHON_CI_TEST'] = '1';
 
-// tslint:disable-next-line:no-any
-let configSettings: any;
-let extensionActivated: boolean = false;
+const PYTHON_PATH = getPythonPath();
+// tslint:disable-next-line:no-string-literal prefer-template
+export const IS_TRAVIS = (process.env['TRAVIS'] + '') === 'true';
+export const TEST_TIMEOUT = 25000;
+export const IS_MULTI_ROOT_TEST = isMultitrootTest();
+
+// Ability to use custom python environments for testing
+export async function initializePython() {
+    await clearPythonPathInWorkspaceFolder(dummyPythonFile);
+    await setPythonPathInWorkspaceRoot(PYTHON_PATH);
+}
+
 // tslint:disable-next-line:no-any
 export async function initialize(): Promise<any> {
     await initializePython();
     // Opening a python file activates the extension.
     await vscode.workspace.openTextDocument(dummyPythonFile);
-    if (!extensionActivated) {
-        // tslint:disable-next-line:no-require-imports
-        const ext = require('../client/extension');
-        // tslint:disable-next-line:no-unsafe-any
-        await ext.activated;
-        extensionActivated = true;
-    }
-    if (!configSettings) {
-        // tslint:disable-next-line:no-require-imports
-        configSettings = await require('../client/common/configSettings');
-    }
+    await activated;
     // Dispose any cached python settings (used only in test env).
-    // tslint:disable-next-line:no-unsafe-any)
-    configSettings.PythonSettings.dispose();
+    PythonSettings.dispose();
 }
 // tslint:disable-next-line:no-any
 export async function initializeTest(): Promise<any> {
     await initializePython();
     await closeActiveWindows();
-    if (!configSettings) {
-        // tslint:disable-next-line:no-require-imports no-unsafe-any
-        configSettings = await require('../client/common/configSettings');
-    }
-    // Dispose any cached python settings (used only in test env)
-    // tslint:disable-next-line:no-unsafe-any
-    configSettings.PythonSettings.dispose();
+    // Dispose any cached python settings (used only in test env).
+    PythonSettings.dispose();
 }
 
 export async function wait(timeoutMilliseconds: number) {
@@ -100,28 +96,4 @@ function getPythonPath(): string {
 
 function isMultitrootTest() {
     return Array.isArray(vscode.workspace.workspaceFolders) && vscode.workspace.workspaceFolders.length > 1;
-}
-
-const PYTHON_PATH = getPythonPath();
-// tslint:disable-next-line:no-string-literal prefer-template
-export const IS_TRAVIS = (process.env['TRAVIS'] + '') === 'true';
-export const TEST_TIMEOUT = 25000;
-export const IS_MULTI_ROOT_TEST = isMultitrootTest();
-
-// Ability to use custom python environments for testing
-export async function initializePython() {
-    await clearPythonPathInWorkspaceFolder(dummyPythonFile);
-
-    const pythonConfig = vscode.workspace.getConfiguration('python');
-    const value = pythonConfig.inspect('pythonPath');
-    if (value && value.workspaceValue !== PYTHON_PATH) {
-        await pythonConfig.update('pythonPath', PYTHON_PATH, vscode.ConfigurationTarget.Workspace);
-        if (!configSettings) {
-            // tslint:disable-next-line:no-require-imports no-unsafe-any
-            configSettings = await require('../client/common/configSettings');
-        }
-        // Dispose any cached python settings (used only in test env)
-        // tslint:disable-next-line:no-unsafe-any
-        configSettings.PythonSettings.dispose();
-    }
 }

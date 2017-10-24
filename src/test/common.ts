@@ -69,20 +69,19 @@ export function retryAsync(wrapped: Function, retryCount: number = 2) {
     };
 }
 
-async function clearPythonPathInWorkspaceFolderImpl(resource: string | Uri) {
-    if (!IS_MULTI_ROOT_TEST) {
+async function setPythonPathInWorkspace(resource: string | Uri | undefined, config: ConfigurationTarget, pythonPath?: string) {
+    if (config === ConfigurationTarget.WorkspaceFolder && !IS_MULTI_ROOT_TEST) {
         return;
     }
     const resourceUri = typeof resource === 'string' ? Uri.file(resource) : resource;
     const settings = workspace.getConfiguration('python', resourceUri);
     const value = settings.inspect<string>('pythonPath');
-    if (value && typeof value.workspaceFolderValue === 'string') {
-        await settings.update('pythonPath', undefined, ConfigurationTarget.WorkspaceFolder);
+    const prop: 'workspaceFolderValue' | 'workspaceValue' = config === ConfigurationTarget.Workspace ? 'workspaceValue' : 'workspaceFolderValue';
+    if (value && value[prop] !== pythonPath) {
+        await settings.update('pythonPath', pythonPath, config);
         PythonSettings.dispose();
     }
-    const settings2 = workspace.getConfiguration('python', resourceUri);
-    const value2 = settings.inspect<string>('pythonPath');
-    const y = '';
 }
 
-export const clearPythonPathInWorkspaceFolder = async (resource: string | Uri) => retryAsync(clearPythonPathInWorkspaceFolderImpl)(resource);
+export const clearPythonPathInWorkspaceFolder = async (resource: string | Uri) => retryAsync(setPythonPathInWorkspace)(resource, ConfigurationTarget.WorkspaceFolder);
+export const setPythonPathInWorkspaceRoot = async (pythonPath: string) => retryAsync(setPythonPathInWorkspace)(undefined, ConfigurationTarget.Workspace, pythonPath);
