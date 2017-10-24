@@ -26,9 +26,9 @@ suite('Multiroot Interpreters Display', () => {
     setup(initializeTest);
     suiteTeardown(initializePython);
     teardown(async () => {
+        await clearPythonPathInWorkspaceFolder(fileToOpen);
         await initialize();
         await closeActiveWindows();
-        await clearPythonPathInWorkspaceFolder(fileToOpen);
     });
 
     test('Must get display name from workspace folder interpreter and not from interpreter in workspace', async () => {

@@ -14,8 +14,8 @@ suite('Multiroot Config Settings', () => {
             // tslint:disable-next-line:no-invalid-this
             this.skip();
         }
-        await initialize();
         await clearPythonPathInWorkspaceFolder(Uri.file(path.join(multirootPath, 'workspace1')));
+        await initialize();
     });
     setup(initializeTest);
     suiteTeardown(closeActiveWindows);

@@ -26,9 +26,9 @@ suite('Interpreters Display', () => {
         }
     });
     teardown(async () => {
+        await clearPythonPathInWorkspaceFolder(fileInNonRootWorkspace);
         await initialize();
         await closeActiveWindows();
-        await clearPythonPathInWorkspaceFolder(fileInNonRootWorkspace);
     });
     test('Must have command name', () => {
         const statusBar = new MockStatusBarItem();
