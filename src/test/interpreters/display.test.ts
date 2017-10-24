@@ -28,16 +28,26 @@ suite('Interpreters Display', () => {
     teardown(async () => {
         await initialize();
         await closeActiveWindows();
-        if (IS_MULTI_ROOT_TEST) {
-            const settings = workspace.getConfiguration('python', Uri.file(fileInNonRootWorkspace));
-            const value = settings.inspect('pythonPath');
-            if (value && value.workspaceFolderValue) {
-                await settings.update('pythonPath', undefined, ConfigurationTarget.WorkspaceFolder);
-                PythonSettings.dispose();
-            }
-        }
+        await restoreWorkspaceFolderPythonPath();
     });
-
+    async function restoreWorkspaceFolderPythonPath() {
+        if (!IS_MULTI_ROOT_TEST) {
+            return;
+        }
+        // Sometimes this bloc of code fails on travis (retry at least once).
+        for (let i = 0; i < 2; i += 1) {
+            try {
+                const settings = workspace.getConfiguration('python', Uri.file(fileInNonRootWorkspace));
+                const value = settings.inspect<string>('pythonPath');
+                if (value && typeof value.workspaceFolderValue === 'string') {
+                    await settings.update('pythonPath', undefined, ConfigurationTarget.WorkspaceFolder);
+                    PythonSettings.dispose();
+                }
+                return;
+                // tslint:disable-next-line:no-empty
+            } catch (ex) { }
+        }
+    }
     test('Must have command name', () => {
         const statusBar = new MockStatusBarItem();
         const displayNameProvider = new MockInterpreterVersionProvider('');
