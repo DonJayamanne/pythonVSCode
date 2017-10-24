@@ -57,8 +57,9 @@ export function retryAsync(wrapped: Function, retryCount: number = 2) {
                         if (reasons.length >= retryCount) {
                             reject(reasons);
                         } else {
+                            // If failed once, lets wait for some time before trying again.
                             // tslint:disable-next-line:no-string-based-set-timeout
-                            setTimeout(makeCall, 1);
+                            setTimeout(makeCall, 500);
                         }
                     });
             };
