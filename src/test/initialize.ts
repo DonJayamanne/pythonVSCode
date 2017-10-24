@@ -114,6 +114,13 @@ export async function initializePython() {
     const value = pythonConfig.inspect('pythonPath');
     if (value && value.workspaceValue !== PYTHON_PATH) {
         await pythonConfig.update('pythonPath', PYTHON_PATH, vscode.ConfigurationTarget.Workspace);
+        if (!configSettings) {
+            // tslint:disable-next-line:no-require-imports no-unsafe-any
+            configSettings = await require('../client/common/configSettings');
+        }
+        // Dispose any cached python settings (used only in test env)
+        // tslint:disable-next-line:no-unsafe-any
+        configSettings.PythonSettings.dispose();
     }
 
     await clearPythonPathInWorkspaceFolder(dummyPythonFile);
