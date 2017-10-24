@@ -1,17 +1,14 @@
 import * as assert from 'assert';
-import * as child_process from 'child_process';
-import { EOL } from 'os';
 import * as path from 'path';
 import { ConfigurationTarget, Uri, window, workspace } from 'vscode';
 import { PythonSettings } from '../../client/common/configSettings';
 import { InterpreterDisplay } from '../../client/interpreter/display';
-import { getFirstNonEmptyLineFromMultilineString } from '../../client/interpreter/helpers';
 import { VirtualEnvironmentManager } from '../../client/interpreter/virtualEnvs';
-import { rootWorkspaceUri, updateSetting } from '../common';
+import { clearPythonPathInWorkspaceFolder } from '../common';
 import { closeActiveWindows, initialize, initializePython, initializeTest, IS_MULTI_ROOT_TEST } from '../initialize';
 import { MockStatusBarItem } from '../mockClasses';
 import { MockInterpreterVersionProvider } from './mocks';
-import { MockProvider, MockVirtualEnv } from './mocks';
+import { MockProvider } from './mocks';
 
 const multirootPath = path.join(__dirname, '..', '..', '..', 'src', 'testMultiRootWkspc');
 const workspace3Uri = Uri.file(path.join(multirootPath, 'workspace3'));
@@ -19,24 +16,19 @@ const fileToOpen = path.join(workspace3Uri.fsPath, 'file.py');
 
 // tslint:disable-next-line:max-func-body-length
 suite('Multiroot Interpreters Display', () => {
-    suiteSetup(function () {
+    suiteSetup(async function () {
         if (!IS_MULTI_ROOT_TEST) {
             // tslint:disable-next-line:no-invalid-this
             this.skip();
         }
-        return initialize();
+        await initialize();
     });
     setup(initializeTest);
     suiteTeardown(initializePython);
     teardown(async () => {
         await initialize();
         await closeActiveWindows();
-        const settings = workspace.getConfiguration('python', Uri.file(fileToOpen));
-        const value = settings.inspect('pythonPath');
-        if (value && value.workspaceFolderValue) {
-            await settings.update('pythonPath', undefined, ConfigurationTarget.WorkspaceFolder);
-            PythonSettings.dispose();
-        }
+        await clearPythonPathInWorkspaceFolder(fileToOpen);
     });
 
     test('Must get display name from workspace folder interpreter and not from interpreter in workspace', async () => {
@@ -46,7 +38,7 @@ suite('Multiroot Interpreters Display', () => {
         PythonSettings.dispose();
 
         const document = await workspace.openTextDocument(fileToOpen);
-        const editor = await window.showTextDocument(document);
+        await window.showTextDocument(document);
 
         const statusBar = new MockStatusBarItem();
         const provider = new MockProvider([]);

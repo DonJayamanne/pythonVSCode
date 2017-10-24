@@ -38,3 +38,46 @@ function getWorkspaceRoot() {
     const workspaceFolder = workspace.getWorkspaceFolder(Uri.file(fileInNonRootWorkspace));
     return workspaceFolder ? workspaceFolder.uri : workspace.workspaceFolders[0].uri;
 }
+
+// tslint:disable-next-line:no-any
+export function retryAsync(wrapped: any, retryCount: number = 2) {
+    // tslint:disable-next-line:no-any
+    return async (...args: any[]) => {
+        return new Promise((resolve, reject) => {
+            // tslint:disable-next-line:no-any
+            const reasons: any[] = [];
+
+            const makeCall = () => {
+                // tslint:disable-next-line:no-unsafe-any no-any
+                wrapped.apply(...args)
+                    // tslint:disable-next-line:no-unsafe-any no-any
+                    .then(resolve, (reason: any) => {
+                        reasons.push(reason);
+                        if (reasons.length >= retryCount) {
+                            reject(reasons);
+                        } else {
+                            // tslint:disable-next-line:no-string-based-set-timeout
+                            setTimeout(makeCall, 1);
+                        }
+                    });
+            };
+
+            makeCall();
+        });
+    };
+}
+
+async function clearPythonPathInWorkspaceFolderImpl(resource: string | Uri) {
+    if (!IS_MULTI_ROOT_TEST) {
+        return;
+    }
+    const resourceUri = typeof resource === 'string' ? Uri.file(resource) : resource;
+    const settings = workspace.getConfiguration('python', resourceUri);
+    const value = settings.inspect<string>('pythonPath');
+    if (value && typeof value.workspaceFolderValue === 'string') {
+        await settings.update('pythonPath', undefined, ConfigurationTarget.WorkspaceFolder);
+        PythonSettings.dispose();
+    }
+}
+
+export const clearPythonPathInWorkspaceFolder = async (resource: string | Uri) => retryAsync(clearPythonPathInWorkspaceFolderImpl)(resource);

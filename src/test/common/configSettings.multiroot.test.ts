@@ -2,35 +2,27 @@ import * as assert from 'assert';
 import * as path from 'path';
 import { ConfigurationTarget, Uri, workspace } from 'vscode';
 import { PythonSettings } from '../../client/common/configSettings';
+import { clearPythonPathInWorkspaceFolder } from '../common';
 import { closeActiveWindows, initialize, initializeTest, IS_MULTI_ROOT_TEST } from '../initialize';
 
 const multirootPath = path.join(__dirname, '..', '..', '..', 'src', 'testMultiRootWkspc');
 
 // tslint:disable-next-line:max-func-body-length
 suite('Multiroot Config Settings', () => {
-    suiteSetup(function () {
+    suiteSetup(async function () {
         if (!IS_MULTI_ROOT_TEST) {
             // tslint:disable-next-line:no-invalid-this
             this.skip();
         }
-        return initialize().then(resetSettings);
+        await initialize();
+        await clearPythonPathInWorkspaceFolder(Uri.file(path.join(multirootPath, 'workspace1')));
     });
     setup(initializeTest);
     suiteTeardown(closeActiveWindows);
     teardown(async () => {
-        await resetSettings();
         await closeActiveWindows();
+        await clearPythonPathInWorkspaceFolder(Uri.file(path.join(multirootPath, 'workspace1')));
     });
-
-    async function resetSettings() {
-        const workspaceUri = Uri.file(path.join(multirootPath, 'workspace1'));
-        const settings = workspace.getConfiguration('python', workspaceUri);
-        const value = settings.inspect('pythonPath');
-        if (value && typeof value.workspaceFolderValue === 'string') {
-            await settings.update('pythonPath', undefined, ConfigurationTarget.WorkspaceFolder);
-        }
-        PythonSettings.dispose();
-    }
 
     async function enableDisableLinterSetting(resource: Uri, configTarget: ConfigurationTarget, setting: string, enabled: boolean | undefined): Promise<void> {
         const settings = workspace.getConfiguration('python.linting', resource);
