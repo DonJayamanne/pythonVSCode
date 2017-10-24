@@ -35,6 +35,7 @@ import { activateGoToObjectDefinitionProvider } from './providers/objectDefiniti
 import { InterpreterManager } from './interpreter';
 import { SimpleConfigurationProvider } from './debugger';
 import { ReplProvider } from './providers/replProvider';
+import { workspace } from 'vscode';
 
 const PYTHON: vscode.DocumentFilter = { language: 'python' };
 let unitTestOutChannel: vscode.OutputChannel;
@@ -47,11 +48,7 @@ export async function activate(context: vscode.ExtensionContext) {
     const pythonSettings = settings.PythonSettings.getInstance();
     const pythonExt = new PythonExt();
     context.subscriptions.push(pythonExt);
-    // telemetryHelper.sendTelemetryEvent(telemetryContracts.EVENT_LOAD, {
-    //     CodeComplete_Has_ExtraPaths: pythonSettings.autoComplete.extraPaths.length > 0 ? 'true' : 'false',
-    //     Format_Has_Custom_Python_Path: pythonSettings.pythonPath.length !== 'python'.length ? 'true' : 'false',
-    //     Has_PySpark_Path: hasPySparkInCompletionPath ? 'true' : 'false'
-    // });
+    sendStartupTelemetry();
     lintingOutChannel = vscode.window.createOutputChannel(pythonSettings.linting.outputWindow);
     formatOutChannel = lintingOutChannel;
     if (pythonSettings.linting.outputWindow !== pythonSettings.formatting.outputWindow) {
@@ -189,4 +186,8 @@ class ContextKey {
         this.lastValue = value;
         vscode.commands.executeCommand('setContext', this.name, this.lastValue);
     }
-} 
+}
+
+function sendStartupTelemetry() {
+    telemetryHelper.sendTelemetryEvent(telemetryContracts.EVENT_LOAD);
+}
