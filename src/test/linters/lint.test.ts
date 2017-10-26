@@ -116,7 +116,7 @@ suite('Linting', () => {
     suiteSetup(async () => {
         pylintFileToLintLines = fs.readFileSync(fileToLint).toString('utf-8').split(/\r?\n/g);
         await initialize();
-        const version = await execPythonFile(PythonSettings.getInstance().pythonPath, ['--version'], __dirname, true);
+        const version = await execPythonFile(fileToLint, PythonSettings.getInstance(vscode.Uri.file(fileToLint)).pythonPath, ['--version'], __dirname, true);
         isPython3Deferred.resolve(version.indexOf('3.') >= 0);
     });
     setup(async () => {

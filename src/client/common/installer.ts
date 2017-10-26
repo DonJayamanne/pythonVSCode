@@ -263,7 +263,7 @@ export class Installer implements vscode.Disposable {
         if (this.outputChannel && installArgs[0] === '-m') {
             // Errors are just displayed to the user
             this.outputChannel.show();
-            installationPromise = execPythonFile(settings.PythonSettings.getInstance(resource).pythonPath,
+            installationPromise = execPythonFile(resource, settings.PythonSettings.getInstance(resource).pythonPath,
                 installArgs, getCwdForInstallScript(resource), true, (data) => { this.outputChannel!.append(data); });
         }
         else {
@@ -271,7 +271,7 @@ export class Installer implements vscode.Disposable {
             // Cuz people may launch vs code from terminal when they have activated the appropriate virtual env
             // Problem is terminal doesn't use the currently activated virtual env
             // Must have something to do with the process being launched in the terminal
-            installationPromise = getFullyQualifiedPythonInterpreterPath()
+            installationPromise = getFullyQualifiedPythonInterpreterPath(resource)
                 .then(pythonPath => {
                     let installScript = installArgs.join(' ');
 
@@ -340,7 +340,7 @@ async function isProductInstalled(product: Product, resource?: Uri): Promise<boo
     }
     const prodExec = ProductExecutableAndArgs.get(product)!;
     const cwd = getCwdForInstallScript(resource);
-    return execPythonFile(prodExec.executable, prodExec.args.concat(['--version']), cwd, false)
+    return execPythonFile(resource, prodExec.executable, prodExec.args.concat(['--version']), cwd, false)
         .then(() => true)
         .catch(reason => !isNotInstalledError(reason));
 }
@@ -350,5 +350,5 @@ function uninstallproduct(product: Product, resource?: Uri): Promise<any> {
         return Promise.resolve();
     }
     const uninstallArgs = ProductUninstallScripts.get(product)!;
-    return execPythonFile('python', uninstallArgs, getCwdForInstallScript(resource), false);
+    return execPythonFile(resource, 'python', uninstallArgs, getCwdForInstallScript(resource), false);
 }

@@ -6,7 +6,7 @@ import { Disposable, StatusBarItem } from 'vscode';
 import { PythonSettings } from '../../common/configSettings';
 import * as utils from '../../common/utils';
 import { IInterpreterLocatorService } from '../contracts';
-import { getFirstNonEmptyLineFromMultilineString } from '../helpers';
+import { getActiveWorkspaceUri, getFirstNonEmptyLineFromMultilineString } from '../helpers';
 import { IInterpreterVersionService } from '../interpreterVersion';
 import { VirtualEnvironmentManager } from '../virtualEnvs/index';
 
@@ -16,13 +16,18 @@ export class InterpreterDisplay implements Disposable {
         private interpreterLocator: IInterpreterLocatorService,
         private virtualEnvMgr: VirtualEnvironmentManager,
         private versionProvider: IInterpreterVersionService) {
+
         this.statusBar.command = 'python.setInterpreter';
     }
     public dispose() {
         //
     }
     public async refresh() {
-        const pythonPath = await this.getFullyQualifiedPathToInterpreter(PythonSettings.getInstance().pythonPath);
+        const wkspc = getActiveWorkspaceUri();
+        if (!wkspc) {
+            return;
+        }
+        const pythonPath = await this.getFullyQualifiedPathToInterpreter(PythonSettings.getInstance(wkspc.folderUri).pythonPath);
         await this.updateDisplay(pythonPath);
     }
     private async getInterpreters() {
@@ -41,8 +46,7 @@ export class InterpreterDisplay implements Disposable {
                 const toolTipSuffix = `${EOL}${interpreter.companyDisplayName}`;
                 this.statusBar.tooltip += toolTipSuffix;
             }
-        }
-        else {
+        } else {
             const defaultDisplayName = `${path.basename(pythonPath)} [Environment]`;
             await Promise.all([
                 utils.fsExistsAsync(pythonPath),
@@ -72,6 +76,7 @@ export class InterpreterDisplay implements Disposable {
                 resolve(getFirstNonEmptyLineFromMultilineString(stdout));
             });
         })
-            .then(value => value.length === 0 ? pythonPath : value);
+            .then(value => value.length === 0 ? pythonPath : value)
+            .catch(() => pythonPath);
     }
 }

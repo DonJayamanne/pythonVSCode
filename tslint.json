@@ -18,7 +18,12 @@
         "typedef": false,
         "no-string-throw": true,
         "missing-jsdoc": false,
-        "one-line": [true, "check-catch", "check-finally", "check-else"],
+        "one-line": [
+            true,
+            "check-catch",
+            "check-finally",
+            "check-else"
+        ],
         "no-parameter-properties": false,
         "no-reserved-keywords": false,
         "newline-before-return": false,
@@ -32,6 +37,10 @@
             "allow-string",
             "allow-number"
         ],
-        "await-promise": [true, "Thenable"]
+        "await-promise": [
+            true,
+            "Thenable"
+        ],
+        "completed-docs": false
     }
 }

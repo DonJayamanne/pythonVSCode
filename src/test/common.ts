@@ -1,6 +1,7 @@
 import * as path from 'path';
 import { ConfigurationTarget, Uri, workspace } from 'vscode';
 import { PythonSettings } from '../client/common/configSettings';
+import { IS_MULTI_ROOT_TEST } from './initialize';
 
 const fileInNonRootWorkspace = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'dummy.py');
 export const rootWorkspaceUri = getWorkspaceRoot();
@@ -37,3 +38,50 @@ function getWorkspaceRoot() {
     const workspaceFolder = workspace.getWorkspaceFolder(Uri.file(fileInNonRootWorkspace));
     return workspaceFolder ? workspaceFolder.uri : workspace.workspaceFolders[0].uri;
 }
+
+// tslint:disable-next-line:no-any
+export function retryAsync(wrapped: Function, retryCount: number = 2) {
+    // tslint:disable-next-line:no-any
+    return async (...args: any[]) => {
+        return new Promise((resolve, reject) => {
+            // tslint:disable-next-line:no-any
+            const reasons: any[] = [];
+
+            const makeCall = () => {
+                // tslint:disable-next-line:no-unsafe-any no-any
+                // tslint:disable-next-line:no-invalid-this
+                wrapped.call(this, ...args)
+                    // tslint:disable-next-line:no-unsafe-any no-any
+                    .then(resolve, (reason: any) => {
+                        reasons.push(reason);
+                        if (reasons.length >= retryCount) {
+                            reject(reasons);
+                        } else {
+                            // If failed once, lets wait for some time before trying again.
+                            // tslint:disable-next-line:no-string-based-set-timeout
+                            setTimeout(makeCall, 500);
+                        }
+                    });
+            };
+
+            makeCall();
+        });
+    };
+}
+
+async function setPythonPathInWorkspace(resource: string | Uri | undefined, config: ConfigurationTarget, pythonPath?: string) {
+    if (config === ConfigurationTarget.WorkspaceFolder && !IS_MULTI_ROOT_TEST) {
+        return;
+    }
+    const resourceUri = typeof resource === 'string' ? Uri.file(resource) : resource;
+    const settings = workspace.getConfiguration('python', resourceUri);
+    const value = settings.inspect<string>('pythonPath');
+    const prop: 'workspaceFolderValue' | 'workspaceValue' = config === ConfigurationTarget.Workspace ? 'workspaceValue' : 'workspaceFolderValue';
+    if (value && value[prop] !== pythonPath) {
+        await settings.update('pythonPath', pythonPath, config);
+        PythonSettings.dispose();
+    }
+}
+
+export const clearPythonPathInWorkspaceFolder = async (resource: string | Uri) => retryAsync(setPythonPathInWorkspace)(resource, ConfigurationTarget.WorkspaceFolder);
+export const setPythonPathInWorkspaceRoot = async (pythonPath: string) => retryAsync(setPythonPathInWorkspace)(undefined, ConfigurationTarget.Workspace, pythonPath);

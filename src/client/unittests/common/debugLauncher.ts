@@ -9,7 +9,7 @@ export function launchDebugger(rootDirectory: string, testArgs: string[], token?
     const def = createDeferred<any>();
     const launchDef = createDeferred<any>();
     let outputChannelShown = false;
-    execPythonFile(pythonSettings.pythonPath, testArgs, rootDirectory, true, (data: string) => {
+    execPythonFile(rootDirectory, pythonSettings.pythonPath, testArgs, rootDirectory, true, (data: string) => {
         if (data.startsWith('READY' + os.EOL)) {
             // debug socket server has started.
             launchDef.resolve();

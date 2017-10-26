@@ -83,7 +83,7 @@ export function discoverTests(rootDirectory: string, args: string[], token: vsco
         });
     }
 
-    return execPythonFile(PythonSettings.getInstance(vscode.Uri.file(rootDirectory)).unitTest.pyTestPath, args.concat(['--collect-only']), rootDirectory, false, null, token)
+    return execPythonFile(rootDirectory, PythonSettings.getInstance(vscode.Uri.file(rootDirectory)).unitTest.pyTestPath, args.concat(['--collect-only']), rootDirectory, false, null, token)
         .then(data => {
             outChannel.appendLine(data);
             processOutput(data);

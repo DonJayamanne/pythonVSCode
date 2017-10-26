@@ -30,11 +30,12 @@ import { WorkspaceSymbols } from './workspaceSymbols/main';
 import { BlockFormatProviders } from './typeFormatters/blockFormatProvider';
 import * as os from 'os';
 import * as fs from 'fs';
-import { getPathFromPythonCommand } from './common/utils';
 import { JupyterProvider } from './jupyter/provider';
 import { activateGoToObjectDefinitionProvider } from './providers/objectDefinitionProvider';
 import { InterpreterManager } from './interpreter';
 import { SimpleConfigurationProvider } from './debugger';
+import { ReplProvider } from './providers/replProvider';
+import { workspace } from 'vscode';
 
 const PYTHON: vscode.DocumentFilter = { language: 'python' };
 let unitTestOutChannel: vscode.OutputChannel;
@@ -47,11 +48,7 @@ export async function activate(context: vscode.ExtensionContext) {
     const pythonSettings = settings.PythonSettings.getInstance();
     const pythonExt = new PythonExt();
     context.subscriptions.push(pythonExt);
-    // telemetryHelper.sendTelemetryEvent(telemetryContracts.EVENT_LOAD, {
-    //     CodeComplete_Has_ExtraPaths: pythonSettings.autoComplete.extraPaths.length > 0 ? 'true' : 'false',
-    //     Format_Has_Custom_Python_Path: pythonSettings.pythonPath.length !== 'python'.length ? 'true' : 'false',
-    //     Has_PySpark_Path: hasPySparkInCompletionPath ? 'true' : 'false'
-    // });
+    sendStartupTelemetry();
     lintingOutChannel = vscode.window.createOutputChannel(pythonSettings.linting.outputWindow);
     formatOutChannel = lintingOutChannel;
     if (pythonSettings.linting.outputWindow !== pythonSettings.formatting.outputWindow) {
@@ -66,6 +63,7 @@ export async function activate(context: vscode.ExtensionContext) {
     sortImports.activate(context, formatOutChannel);
     const interpreterManager = new InterpreterManager();
     await interpreterManager.autoSetInterpreter();
+    await interpreterManager.refresh();
     context.subscriptions.push(interpreterManager);
     context.subscriptions.push(new SetInterpreterProvider(interpreterManager));
     context.subscriptions.push(...activateExecInTerminalProvider());
@@ -75,15 +73,7 @@ export async function activate(context: vscode.ExtensionContext) {
     const jediFactory = new JediFactory(context.asAbsolutePath('.'));
     context.subscriptions.push(...activateGoToObjectDefinitionProvider(jediFactory));
 
-    context.subscriptions.push(vscode.commands.registerCommand(Commands.Start_REPL, () => {
-        getPathFromPythonCommand(["-c", "import sys;print(sys.executable)"]).catch(() => {
-            return pythonSettings.pythonPath;
-        }).then(pythonExecutablePath => {
-            let term = vscode.window.createTerminal('Python', pythonExecutablePath);
-            term.show();
-            context.subscriptions.push(term);
-        });
-    }));
+    context.subscriptions.push(new ReplProvider());
 
     // Enable indentAction
     vscode.languages.setLanguageConfiguration(PYTHON.language, {
@@ -196,4 +186,8 @@ class ContextKey {
         this.lastValue = value;
         vscode.commands.executeCommand('setContext', this.name, this.lastValue);
     }
-} 
+}
+
+function sendStartupTelemetry() {
+    telemetryHelper.sendTelemetryEvent(telemetryContracts.EVENT_LOAD);
+}

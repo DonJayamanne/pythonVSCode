@@ -42,7 +42,7 @@ export class Linter extends baseLinter.BaseLinter {
         let outputChannel = this.outputChannel;
 
         return new Promise<ILintMessage[]>((resolve, reject) => {
-            execPythonFile(commandLine, args, this.getWorkspaceRootPath(document), true, null, cancellation).then(data => {
+            execPythonFile(document.uri, commandLine, args, this.getWorkspaceRootPath(document), true, null, cancellation).then(data => {
                 outputChannel.append('#'.repeat(10) + 'Linting Output - ' + this.Id + '#'.repeat(10) + '\n');
                 outputChannel.append(data);
                 let outputLines = data.split(/\r?\n/g);
