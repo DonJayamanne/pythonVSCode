@@ -1626,13 +1626,13 @@
     "vscode-languageserver": "^3.1.0",
     "winreg": "^1.2.4",
     "xml2js": "^0.4.17",
-    "vscode": "^1.0.3"
+    "vscode": "^1.1.5"
   },
   "devDependencies": {
     "@types/fs-extra": "^4.0.2",
     "@types/jquery": "^1.10.31",
     "@types/lodash": "^4.14.74",
-    "@types/mocha": "^2.2.32",
+    "@types/mocha": "^2.2.43",
     "@types/node": "^6.0.40",
     "@types/rx": "^2.5.33",
     "@types/semver": "^5.4.0",
@@ -1660,7 +1660,6 @@
     "tslint-microsoft-contrib": "^5.0.1",
     "typescript": "^2.5.2",
     "typescript-formatter": "^6.0.0",
-    "vscode": "^1.1.5",
     "webpack": "^1.13.2"
   }
 }

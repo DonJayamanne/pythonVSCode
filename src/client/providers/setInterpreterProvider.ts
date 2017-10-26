@@ -59,8 +59,8 @@ export class SetInterpreterProvider implements Disposable {
         const resourceUri = targetConfig ? targetConfig.folderUri : undefined;
         const suggestions = await this.getSuggestions(resourceUri);
         let currentPythonPath = settings.PythonSettings.getInstance().pythonPath;
-        if (workspace.rootPath && currentPythonPath.startsWith(workspace.rootPath)) {
-            currentPythonPath = `.${path.sep}${path.relative(workspace.rootPath, currentPythonPath)}`;
+        if (targetConfig.folderUri && currentPythonPath.startsWith(targetConfig.folderUri.fsPath)) {
+            currentPythonPath = `.${path.sep}${path.relative(targetConfig.folderUri.fsPath, currentPythonPath)}`;
         }
         const quickPickOptions: QuickPickOptions = {
             matchOnDetail: true,

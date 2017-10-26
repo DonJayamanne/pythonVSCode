@@ -8,7 +8,9 @@ import { closeActiveWindows, initialize, initializeTest, IS_MULTI_ROOT_TEST } fr
 const multirootPath = path.join(__dirname, '..', '..', '..', 'src', 'testMultiRootWkspc');
 
 // tslint:disable-next-line:max-func-body-length
-suite('Multiroot Config Settings', () => {
+suite('Multiroot Config Settings', function () {
+    // tslint:disable-next-line:no-invalid-this
+    this.retries(3);
     suiteSetup(async function () {
         if (!IS_MULTI_ROOT_TEST) {
             // tslint:disable-next-line:no-invalid-this

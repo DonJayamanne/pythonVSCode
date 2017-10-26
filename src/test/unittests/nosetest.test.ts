@@ -17,7 +17,9 @@ const filesToDelete = [
 ];
 
 // tslint:disable-next-line:max-func-body-length
-suite('Unit Tests (nosetest)', () => {
+suite('Unit Tests (nosetest)', function () {
+    // tslint:disable-next-line:no-invalid-this
+    this.retries(3);
     const configTarget = IS_MULTI_ROOT_TEST ? vscode.ConfigurationTarget.WorkspaceFolder : vscode.ConfigurationTarget.Workspace;
     const rootDirectory = UNITTEST_TEST_FILES_PATH;
     let testManager: nose.TestManager;
@@ -54,9 +56,7 @@ suite('Unit Tests (nosetest)', () => {
         testManager = new nose.TestManager(rootDir, outChannel);
     }
 
-    test('Discover Tests (single test file)', async function () {
-        // tslint:disable-next-line:no-invalid-this
-        this.retries(3);
+    test('Discover Tests (single test file)', async () => {
         createTestManager(UNITTEST_SINGLE_TEST_FILE_PATH);
         const tests = await testManager.discoverTests(true, true);
         assert.equal(tests.testFiles.length, 2, 'Incorrect number of test files');
@@ -65,9 +65,7 @@ suite('Unit Tests (nosetest)', () => {
         assert.equal(tests.testFiles.some(t => t.name === path.join('tests', 'test_one.py') && t.nameToRun === t.name), true, 'Test File not found');
     });
 
-    test('Check that nameToRun in testSuits has class name after : (single test file)', async function () {
-        // tslint:disable-next-line:no-invalid-this
-        this.retries(3);
+    test('Check that nameToRun in testSuits has class name after : (single test file)', async () => {
         createTestManager(UNITTEST_SINGLE_TEST_FILE_PATH);
         const tests = await testManager.discoverTests(true, true);
         assert.equal(tests.testFiles.length, 2, 'Incorrect number of test files');
@@ -80,9 +78,7 @@ suite('Unit Tests (nosetest)', () => {
         const found = tests.testFiles.some(t => t.name === testFile && t.nameToRun === t.name);
         assert.equal(found, true, `Test File not found '${testFile}'`);
     }
-    test('Discover Tests (-m=test)', async function () {
-        // tslint:disable-next-line:no-invalid-this
-        this.retries(3);
+    test('Discover Tests (-m=test)', async () => {
         await updateSetting('unitTest.nosetestArgs', ['-m', 'test'], rootWorkspaceUri, configTarget);
         createTestManager();
         const tests = await testManager.discoverTests(true, true);
@@ -96,9 +92,7 @@ suite('Unit Tests (nosetest)', () => {
         lookForTestFile(tests, 'test_root.py');
     });
 
-    test('Discover Tests (-w=specific -m=tst)', async function () {
-        // tslint:disable-next-line:no-invalid-this
-        this.retries(3);
+    test('Discover Tests (-w=specific -m=tst)', async () => {
         await updateSetting('unitTest.nosetestArgs', ['-w', 'specific', '-m', 'tst'], rootWorkspaceUri, configTarget);
         createTestManager();
         const tests = await testManager.discoverTests(true, true);
@@ -109,9 +103,7 @@ suite('Unit Tests (nosetest)', () => {
         lookForTestFile(tests, path.join('specific', 'tst_unittest_two.py'));
     });
 
-    test('Discover Tests (-m=test_)', async function () {
-        // tslint:disable-next-line:no-invalid-this
-        this.retries(3);
+    test('Discover Tests (-m=test_)', async () => {
         await updateSetting('unitTest.nosetestArgs', ['-m', 'test_'], rootWorkspaceUri, configTarget);
         createTestManager();
         const tests = await testManager.discoverTests(true, true);
@@ -121,9 +113,7 @@ suite('Unit Tests (nosetest)', () => {
         lookForTestFile(tests, 'test_root.py');
     });
 
-    test('Run Tests', async function () {
-        // tslint:disable-next-line:no-invalid-this
-        this.retries(3);
+    test('Run Tests', async () => {
         await updateSetting('unitTest.nosetestArgs', ['-m', 'test'], rootWorkspaceUri, configTarget);
         createTestManager();
         const results = await testManager.runTest();
@@ -133,9 +123,7 @@ suite('Unit Tests (nosetest)', () => {
         assert.equal(results.summary.skipped, 2, 'skipped');
     });
 
-    test('Run Failed Tests', async function () {
-        // tslint:disable-next-line:no-invalid-this
-        this.retries(3);
+    test('Run Failed Tests', async () => {
         await updateSetting('unitTest.nosetestArgs', ['-m', 'test'], rootWorkspaceUri, configTarget);
         createTestManager();
         let results = await testManager.runTest();
@@ -151,9 +139,7 @@ suite('Unit Tests (nosetest)', () => {
         assert.equal(results.summary.skipped, 0, 'skipped again');
     });
 
-    test('Run Specific Test File', async function () {
-        // tslint:disable-next-line:no-invalid-this
-        this.retries(3);
+    test('Run Specific Test File', async () => {
         await updateSetting('unitTest.nosetestArgs', ['-m', 'test'], rootWorkspaceUri, configTarget);
         createTestManager();
         const tests = await testManager.discoverTests(true, true);
@@ -168,9 +154,7 @@ suite('Unit Tests (nosetest)', () => {
         assert.equal(results.summary.skipped, 1, 'skipped');
     });
 
-    test('Run Specific Test Suite', async function () {
-        // tslint:disable-next-line:no-invalid-this
-        this.retries(3);
+    test('Run Specific Test Suite', async () => {
         await updateSetting('unitTest.nosetestArgs', ['-m', 'test'], rootWorkspaceUri, configTarget);
         createTestManager();
         const tests = await testManager.discoverTests(true, true);
@@ -185,9 +169,7 @@ suite('Unit Tests (nosetest)', () => {
         assert.equal(results.summary.skipped, 1, 'skipped');
     });
 
-    test('Run Specific Test Function', async function () {
-        // tslint:disable-next-line:no-invalid-this
-        this.retries(3);
+    test('Run Specific Test Function', async () => {
         await updateSetting('unitTest.nosetestArgs', ['-m', 'test'], rootWorkspaceUri, configTarget);
         createTestManager();
         const tests = await testManager.discoverTests(true, true);

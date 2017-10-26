@@ -46,8 +46,6 @@ const activationDeferred = createDeferred<void>();
 export const activated = activationDeferred.promise;
 export async function activate(context: vscode.ExtensionContext) {
     const pythonSettings = settings.PythonSettings.getInstance();
-    const pythonExt = new PythonExt();
-    context.subscriptions.push(pythonExt);
     sendStartupTelemetry();
     lintingOutChannel = vscode.window.createOutputChannel(pythonSettings.linting.outputWindow);
     formatOutChannel = lintingOutChannel;
@@ -149,43 +147,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('python', new SimpleConfigurationProvider()));
     activationDeferred.resolve();
-}
-
-class PythonExt implements vscode.Disposable {
-
-    private isDjangoProject: ContextKey;
-
-    constructor() {
-        this.isDjangoProject = new ContextKey('python.isDjangoProject');
-        this.ensureState();
-    }
-    public dispose() {
-        this.isDjangoProject = null;
-    }
-    private ensureState(): void {
-        // context: python.isDjangoProject
-        if (typeof vscode.workspace.rootPath === 'string') {
-            this.isDjangoProject.set(fs.existsSync(vscode.workspace.rootPath.concat("/manage.py")));
-        }
-        else {
-            this.isDjangoProject.set(false);
-        }
-    }
-}
-
-class ContextKey {
-    private lastValue: boolean;
-
-    constructor(private name: string) {
-    }
-
-    public set(value: boolean): void {
-        if (this.lastValue === value) {
-            return;
-        }
-        this.lastValue = value;
-        vscode.commands.executeCommand('setContext', this.name, this.lastValue);
-    }
 }
 
 function sendStartupTelemetry() {
