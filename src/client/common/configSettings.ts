@@ -399,7 +399,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         };
 
         // If workspace config changes, then we could have a cascading effect of on change events.
-        // Lets defer the change notification.
+        // Let's defer the change notification.
         setTimeout(() => this.emit('change'), 1);
     }
 
