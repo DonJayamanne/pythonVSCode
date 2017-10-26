@@ -34,7 +34,7 @@ export class InterpreterInfoCache {
         InterpreterInfoCache.setCacheData('customEnvVariables', resource, envVars);
     }
     // tslint:disable-next-line:no-any function-name
-    private static setCacheData(property: keyof InterpreterCache, resource?: Uri, value?: string | any) {
+    private static setCacheData(property: keyof InterpreterCache, resource?: Uri, value?: any) {
         const cacheKey = InterpreterInfoCache.getCacheKey(resource) || '';
         // tslint:disable-next-line:prefer-type-cast
         const data = cache.has(cacheKey) ? cache.get(cacheKey) : {} as InterpreterCache;
