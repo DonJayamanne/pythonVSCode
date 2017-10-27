@@ -5,8 +5,8 @@ import { TestManager as NoseTestManager } from '../nosetest/main';
 import { TestManager as PyTestTestManager } from '../pytest/main';
 import { TestManager as UnitTestTestManager } from '../unittest/main';
 import { BaseTestManager } from './baseTestManager';
-import { ITestManagerService, ITestManagerServiceFactory, IWorkspaceTestManagerService, UnitTestProduct } from './contracts';
 import { TestManagerService } from './testManagerService';
+import { ITestManagerService, ITestManagerServiceFactory, IWorkspaceTestManagerService, UnitTestProduct } from './types';
 
 type TestManagerInstanceInfo = { instance?: BaseTestManager, create(rootDirectory: string): BaseTestManager };
 
@@ -21,17 +21,37 @@ export class WorkspaceTestManagerService implements IWorkspaceTestManagerService
     public dispose() {
         this.workspaceTestManagers.forEach(info => info.dispose());
     }
-    public getTestManager(wkspace: Uri): BaseTestManager | undefined {
+    public getTestManager(resource: Uri): BaseTestManager | undefined {
+        const wkspace = this.getWorkspace(resource);
         this.ensureTestManagerService(wkspace);
         return this.workspaceTestManagers.get(wkspace.fsPath).getTestManager();
     }
-    public getTestWorkingDirectory(wkspace: Uri) {
+    public getTestWorkingDirectory(resource: Uri) {
+        const wkspace = this.getWorkspace(resource);
         this.ensureTestManagerService(wkspace);
         return this.workspaceTestManagers.get(wkspace.fsPath).getTestWorkingDirectory();
     }
-    public getPreferredTestManager(wkspace: Uri): UnitTestProduct {
+    public getPreferredTestManager(resource: Uri): UnitTestProduct {
+        const wkspace = this.getWorkspace(resource);
         this.ensureTestManagerService(wkspace);
         return this.workspaceTestManagers.get(wkspace.fsPath).getPreferredTestManager();
+    }
+    private getWorkspace(resource: Uri): Uri {
+        if (!Array.isArray(workspace.workspaceFolders) || workspace.workspaceFolders.length === 0) {
+            const noWkspaceMessage = 'Please open a workspace';
+            this.outChannel.appendLine(noWkspaceMessage);
+            throw new Error(noWkspaceMessage);
+        }
+        if (!resource || workspace.workspaceFolders.length === 1) {
+            return workspace.workspaceFolders[0].uri;
+        }
+        const workspaceFolder = workspace.getWorkspaceFolder(resource);
+        if (workspaceFolder) {
+            return workspaceFolder.uri;
+        }
+        const message = `Resource '${resource.fsPath}' does not belong to any workspace`;
+        this.outChannel.appendLine(message);
+        throw new Error(message);
     }
     private ensureTestManagerService(wkspace: Uri) {
         if (!this.workspaceTestManagers.has(wkspace.fsPath)) {

@@ -2,8 +2,9 @@
 import * as vscode from 'vscode';
 import * as constants from '../../common/constants';
 import { createDeferred, isNotInstalledError } from '../../common/helpers';
-import { CANCELLATION_REASON, Tests } from '../common/contracts';
+import { CANCELLATION_REASON } from '../common/constants';
 import { displayTestErrorMessage } from '../common/testUtils';
+import { Tests } from '../common/types';
 
 export class TestResultDisplay {
     private statusBar: vscode.StatusBarItem;

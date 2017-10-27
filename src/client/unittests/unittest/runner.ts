@@ -1,14 +1,11 @@
-/// <reference path="../../../../typings/globals/xml2js/index.d.ts" />
-
 'use strict';
 import * as path from 'path';
 import { CancellationToken, OutputChannel, Uri } from 'vscode';
 import { PythonSettings } from '../../common/configSettings';
 import { BaseTestManager } from '../common/baseTestManager';
-import { Tests, TestStatus, TestsToRun } from '../common/contracts';
 import { launchDebugger } from '../common/debugLauncher';
 import { run } from '../common/runner';
-import { updateResults } from '../common/testUtils';
+import { ITestResultsService, Tests, TestStatus, TestsToRun } from '../common/types';
 import { Server } from './socketServer';
 type TestStatusMap = {
     status: TestStatus;
@@ -33,7 +30,7 @@ interface ITestData {
 }
 
 // tslint:disable-next-line:max-func-body-length
-export function runTest(testManager: BaseTestManager, rootDirectory: string, tests: Tests, args: string[], testsToRun?: TestsToRun, token?: CancellationToken, outChannel?: OutputChannel, debug?: boolean): Promise<Tests> {
+export function runTest(testManager: BaseTestManager, testResultsService: ITestResultsService, rootDirectory: string, tests: Tests, args: string[], testsToRun?: TestsToRun, token?: CancellationToken, outChannel?: OutputChannel, debug?: boolean): Promise<Tests> {
     tests.summary.errors = 0;
     tests.summary.failures = 0;
     tests.summary.passed = 0;
@@ -132,7 +129,7 @@ export function runTest(testManager: BaseTestManager, rootDirectory: string, tes
         }
         return promise;
     }).then(() => {
-        updateResults(tests);
+        testResultsService.updateResults(tests);
         return tests;
     }).catch(reason => {
         return Promise.reject(reason);

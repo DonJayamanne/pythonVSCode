@@ -1,23 +1,22 @@
 import * as path from 'path';
-import { QuickPickItem, window } from 'vscode';
+import { QuickPickItem, Uri, window } from 'vscode';
 import * as vscode from 'vscode';
 import * as constants from '../../common/constants';
-import { FlattenedTestFunction, TestFile, TestFunction, Tests, TestStatus } from '../common/contracts';
-import { ITestCollectionStorageService } from '../common/testUtils';
+import { FlattenedTestFunction, ITestCollectionStorageService, TestFile, TestFunction, Tests, TestStatus, TestsToRun } from '../common/types';
 
 export class TestDisplay {
     constructor(private testCollectionStorage: ITestCollectionStorageService) { }
-    public displayStopTestUI(message: string) {
+    public displayStopTestUI(workspace: Uri, message: string) {
         window.showQuickPick([message]).then(item => {
             if (item === message) {
-                vscode.commands.executeCommand(constants.Commands.Tests_Stop);
+                vscode.commands.executeCommand(constants.Commands.Tests_Stop, workspace);
             }
         });
     }
-    public displayTestUI(rootDirectory: string) {
-        const wkspace = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(rootDirectory)).uri;
+    public displayTestUI(wkspace: Uri) {
         const tests = this.testCollectionStorage.getTests(wkspace);
-        window.showQuickPick(buildItems(rootDirectory, tests), { matchOnDescription: true, matchOnDetail: true }).then(onItemSelected);
+        window.showQuickPick(buildItems(tests), { matchOnDescription: true, matchOnDetail: true })
+            .then(item => onItemSelected(wkspace, item, false));
     }
     public selectTestFunction(rootDirectory: string, tests: Tests): Promise<FlattenedTestFunction> {
         return new Promise<FlattenedTestFunction>((resolve, reject) => {
@@ -41,13 +40,13 @@ export class TestDisplay {
                 }, reject);
         });
     }
-    public displayFunctionTestPickerUI(rootDirectory: string, fileName: string, testFunctions: TestFunction[], debug?: boolean) {
-        const wkspace = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(rootDirectory)).uri;
+    public displayFunctionTestPickerUI(wkspace: Uri, rootDirectory: string, file: Uri, testFunctions: TestFunction[], debug?: boolean) {
         const tests = this.testCollectionStorage.getTests(wkspace);
         if (!tests) {
             return;
         }
-        const testFile = tests.testFiles.find(file => file.name === fileName || file.fullPath === fileName);
+        const fileName = file.fsPath;
+        const testFile = tests.testFiles.find(item => item.name === fileName || item.fullPath === fileName);
         if (!testFile) {
             return;
         }
@@ -58,7 +57,7 @@ export class TestDisplay {
 
         window.showQuickPick(buildItemsForFunctions(rootDirectory, flattenedFunctions, undefined, undefined, debug),
             { matchOnDescription: true, matchOnDetail: true }).then(testItem => {
-                return onItemSelected(testItem, debug);
+                return onItemSelected(wkspace, testItem, debug);
             });
     }
 }
@@ -112,7 +111,7 @@ function getSummary(tests?: Tests) {
     }
     return statusText.join(', ').trim();
 }
-function buildItems(rootDirectory: string, tests?: Tests): TestItem[] {
+function buildItems(tests?: Tests): TestItem[] {
     const items: TestItem[] = [];
     items.push({ description: '', label: 'Run All Unit Tests', type: Type.RunAll });
     items.push({ description: '', label: 'Discover Unit Tests', type: Type.ReDiscover });
@@ -188,12 +187,13 @@ function buildItemsForTestFiles(rootDirectory: string, testFiles: TestFile[]): T
     });
     return fileItems;
 }
-function onItemSelected(selection: TestItem, debug?: boolean) {
+function onItemSelected(wkspace: Uri, selection: TestItem, debug?: boolean) {
     if (!selection || typeof selection.type !== 'number') {
         return;
     }
     let cmd = '';
-    const args = [];
+    // tslint:disable-next-line:no-any
+    const args: any[] = [wkspace];
     switch (selection.type) {
         case Type.Null: {
             return;
@@ -220,12 +220,14 @@ function onItemSelected(selection: TestItem, debug?: boolean) {
         }
         case Type.RunMethod: {
             cmd = constants.Commands.Tests_Run;
-            args.push(selection.fn);
+            // tslint:disable-next-line:prefer-type-cast
+            args.push({ testFunction: [selection.fn.testFunction] } as TestsToRun);
             break;
         }
         case Type.DebugMethod: {
             cmd = constants.Commands.Tests_Debug;
-            args.push(selection.fn);
+            // tslint:disable-next-line:prefer-type-cast
+            args.push({ testFunction: [selection.fn.testFunction] } as TestsToRun);
             args.push(true);
             break;
         }

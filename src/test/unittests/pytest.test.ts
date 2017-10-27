@@ -1,7 +1,10 @@
 import * as assert from 'assert';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { TestFile, TestsToRun } from '../../client/unittests/common/contracts';
+import { TestCollectionStorageService } from '../../client/unittests/common/storageService';
+import { TestResultsService } from '../../client/unittests/common/testResultsService';
+import { TestsHelper } from '../../client/unittests/common/testUtils';
+import { ITestCollectionStorageService, ITestResultsService, ITestsHelper, TestFile, TestsToRun } from '../../client/unittests/common/types';
 import { TestResultDisplay } from '../../client/unittests/display/main';
 import * as pytest from '../../client/unittests/pytest/main';
 import { rootWorkspaceUri, updateSetting } from '../common';
@@ -19,6 +22,9 @@ suite('Unit Tests (PyTest)', () => {
     let testManager: pytest.TestManager;
     let testResultDisplay: TestResultDisplay;
     let outChannel: vscode.OutputChannel;
+    let storageService: ITestCollectionStorageService;
+    let resultsService: ITestResultsService;
+    let testsHelper: ITestsHelper;
     const configTarget = IS_MULTI_ROOT_TEST ? vscode.ConfigurationTarget.WorkspaceFolder : vscode.ConfigurationTarget.Workspace;
     suiteSetup(async () => {
         await initialize();
@@ -37,11 +43,17 @@ suite('Unit Tests (PyTest)', () => {
         await updateSetting('unitTest.pyTestArgs', [], rootWorkspaceUri, configTarget);
     });
     function createTestManager(rootDir: string = rootDirectory) {
-        testManager = new pytest.TestManager(rootDir, outChannel);
+        storageService = new TestCollectionStorageService();
+        resultsService = new TestResultsService();
+        testsHelper = new TestsHelper();
+        testManager = new pytest.TestManager(rootDir, outChannel, storageService, resultsService, testsHelper);
     }
 
     test('Discover Tests (single test file)', async () => {
-        testManager = new pytest.TestManager(UNITTEST_SINGLE_TEST_FILE_PATH, outChannel);
+        storageService = new TestCollectionStorageService();
+        resultsService = new TestResultsService();
+        testsHelper = new TestsHelper();
+        testManager = new pytest.TestManager(UNITTEST_SINGLE_TEST_FILE_PATH, outChannel, storageService, resultsService, testsHelper);
         const tests = await testManager.discoverTests(true, true);
         assert.equal(tests.testFiles.length, 2, 'Incorrect number of test files');
         assert.equal(tests.testFunctions.length, 6, 'Incorrect number of test functions');
@@ -106,7 +118,7 @@ suite('Unit Tests (PyTest)', () => {
         assert.equal(results.summary.passed, 17, 'Passed');
         assert.equal(results.summary.skipped, 3, 'skipped');
 
-        results = await testManager.runTest(true);
+        results = await testManager.runTest(undefined, true);
         assert.equal(results.summary.errors, 0, 'Failed Errors');
         assert.equal(results.summary.failures, 9, 'Failed Failures');
         assert.equal(results.summary.passed, 0, 'Failed Passed');

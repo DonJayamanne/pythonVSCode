@@ -4,8 +4,8 @@ import * as path from 'path';
 import { CancellationToken } from 'vscode';
 import { OutputChannel, Uri } from 'vscode';
 import { PythonSettings } from '../../common/configSettings';
-import { TestFile, TestFunction, Tests, TestSuite } from '../common/contracts';
-import { convertFileToPackage, extractBetweenDelimiters, flattenTestFiles } from '../common/testUtils';
+import { convertFileToPackage, extractBetweenDelimiters } from '../common/testUtils';
+import { ITestsHelper, TestFile, TestFunction, Tests, TestSuite } from '../common/types';
 import { execPythonFile } from './../../common/utils';
 
 const NOSE_WANT_FILE_PREFIX = 'nose.selector: DEBUG: wantFile ';
@@ -20,7 +20,7 @@ const argsToExcludeForDiscovery = ['-v', '--verbose',
     '--failed', '--process-restartworker', '--with-xunit'];
 const settingsInArgsToExcludeForDiscovery = ['--verbosity'];
 
-export function discoverTests(rootDirectory: string, args: string[], token: CancellationToken, ignoreCache: boolean, outChannel: OutputChannel): Promise<Tests> {
+export function discoverTests(rootDirectory: string, args: string[], token: CancellationToken, ignoreCache: boolean, outChannel: OutputChannel, testsHelper: ITestsHelper): Promise<Tests> {
     let logOutputLines: string[] = [''];
     let testFiles: TestFile[] = [];
 
@@ -83,7 +83,7 @@ export function discoverTests(rootDirectory: string, args: string[], token: Canc
 
             // Exclude tests that don't have any functions or test suites
             testFiles = testFiles.filter(testFile => testFile.suites.length > 0 || testFile.functions.length > 0);
-            return flattenTestFiles(testFiles);
+            return testsHelper.flattenTestFiles(testFiles);
         });
 }
 

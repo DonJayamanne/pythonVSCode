@@ -9,6 +9,6 @@ testRunner.configure({
     useColors: true,
     timeout: 25000,
     retries: 3,
-    grep: 'Python Path Settings Updater'
+    grep: 'Unit Tests'
 });
 module.exports = testRunner;

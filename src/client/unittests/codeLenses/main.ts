@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as constants from '../../common/constants';
 import { PythonSymbolProvider } from '../../providers/symbolProvider';
-import { ITestCollectionStorageService } from '../common/testUtils';
+import { ITestCollectionStorageService } from '../common/types';
 import { TestFileCodeLensProvider } from './testFiles';
 
 export function activateCodeLenses(onDidChange: vscode.EventEmitter<void>,

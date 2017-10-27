@@ -3,13 +3,12 @@ import * as path from 'path';
 import { CancellationToken, OutputChannel, Uri } from 'vscode';
 import { PythonSettings } from '../../common/configSettings';
 import { createTemporaryFile } from '../../common/helpers';
-import { Tests, TestsToRun } from '../common/contracts';
 import { launchDebugger } from '../common/debugLauncher';
 import { run } from '../common/runner';
-import { updateResults } from '../common/testUtils';
+import { ITestResultsService, Tests, TestsToRun } from '../common/types';
 import { PassCalculationFormulae, updateResultsFromXmlLogFile } from '../common/xUnitParser';
 
-export function runTest(rootDirectory: string, tests: Tests, args: string[], testsToRun?: TestsToRun, token?: CancellationToken, outChannel?: OutputChannel, debug?: boolean): Promise<Tests> {
+export function runTest(testResultsService: ITestResultsService, rootDirectory: string, tests: Tests, args: string[], testsToRun?: TestsToRun, token?: CancellationToken, outChannel?: OutputChannel, debug?: boolean): Promise<Tests> {
     let testPaths = [];
     if (testsToRun && testsToRun.testFolder) {
         testPaths = testPaths.concat(testsToRun.testFolder.map(f => f.nameToRun));
@@ -45,7 +44,7 @@ export function runTest(rootDirectory: string, tests: Tests, args: string[], tes
             return run(pythonSettings.unitTest.pyTestPath, testArgs, rootDirectory, token, outChannel);
         }
     }).then(() => {
-        return updateResultsFromLogFiles(tests, xmlLogFile);
+        return updateResultsFromLogFiles(tests, xmlLogFile, testResultsService);
     }).then(result => {
         xmlLogFileCleanup();
         return result;
@@ -55,9 +54,9 @@ export function runTest(rootDirectory: string, tests: Tests, args: string[], tes
     });
 }
 
-export function updateResultsFromLogFiles(tests: Tests, outputXmlFile: string): Promise<Tests> {
+export function updateResultsFromLogFiles(tests: Tests, outputXmlFile: string, testResultsService: ITestResultsService): Promise<Tests> {
     return updateResultsFromXmlLogFile(tests, outputXmlFile, PassCalculationFormulae.pytest).then(() => {
-        updateResults(tests);
+        testResultsService.updateResults(tests);
         return tests;
     });
 }

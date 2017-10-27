@@ -1,10 +1,10 @@
 'use strict';
 
 import { CancellationToken, CancellationTokenSource, CodeLens, CodeLensProvider, Event, EventEmitter, Position, Range, SymbolInformation, SymbolKind, TextDocument, workspace } from 'vscode';
+import { Uri } from 'vscode';
 import * as constants from '../../common/constants';
 import { PythonSymbolProvider } from '../../providers/symbolProvider';
-import { TestFile, TestFunction, TestStatus, TestsToRun, TestSuite } from '../common/contracts';
-import { ITestCollectionStorageService } from '../common/testUtils';
+import { ITestCollectionStorageService, TestFile, TestFunction, TestStatus, TestsToRun, TestSuite } from '../common/types';
 
 type CodeLensData = {
     symbolKind: SymbolKind;
@@ -84,7 +84,7 @@ export class TestFileCodeLensProvider implements CodeLensProvider {
                         new Position(symbol.location.range.end.line,
                             symbol.location.range.end.character + 1));
 
-                    return this.getCodeLens(document.uri.fsPath, allFuncsAndSuites,
+                    return this.getCodeLens(document.uri, allFuncsAndSuites,
                         range, symbol.name, symbol.kind, symbol.containerName);
                 }).reduce((previous, current) => previous.concat(current), []).filter(codeLens => codeLens !== null);
             }, reason => {
@@ -95,13 +95,13 @@ export class TestFileCodeLensProvider implements CodeLensProvider {
             });
     }
 
-    private getCodeLens(fileName: string, allFuncsAndSuites: FunctionsAndSuites,
+    private getCodeLens(file: Uri, allFuncsAndSuites: FunctionsAndSuites,
         range: Range, symbolName: string, symbolKind: SymbolKind, symbolContainer: string): CodeLens[] {
 
         switch (symbolKind) {
             case SymbolKind.Function:
             case SymbolKind.Method: {
-                return getFunctionCodeLens(fileName, allFuncsAndSuites, symbolName, range, symbolContainer);
+                return getFunctionCodeLens(file, allFuncsAndSuites, symbolName, range, symbolContainer);
             }
             case SymbolKind.Class: {
                 const cls = allFuncsAndSuites.suites.find(item => item.name === symbolName);
@@ -112,12 +112,12 @@ export class TestFileCodeLensProvider implements CodeLensProvider {
                     new CodeLens(range, {
                         title: getTestStatusIcon(cls.status) + constants.Text.CodeLensRunUnitTest,
                         command: constants.Commands.Tests_Run,
-                        arguments: [<TestsToRun>{ testSuite: [cls] }]
+                        arguments: [file, <TestsToRun>{ testSuite: [cls] }]
                     }),
                     new CodeLens(range, {
                         title: getTestStatusIcon(cls.status) + constants.Text.CodeLensDebugUnitTest,
                         command: constants.Commands.Tests_Debug,
-                        arguments: [<TestsToRun>{ testSuite: [cls] }]
+                        arguments: [file, <TestsToRun>{ testSuite: [cls] }]
                     })
                 ];
             }
@@ -163,7 +163,7 @@ function getTestStatusIcons(fns: TestFunction[]): string {
 
     return statuses.join(' ');
 }
-function getFunctionCodeLens(filePath: string, functionsAndSuites: FunctionsAndSuites,
+function getFunctionCodeLens(file: Uri, functionsAndSuites: FunctionsAndSuites,
     symbolName: string, range: Range, symbolContainer: string): CodeLens[] {
 
     let fn: TestFunction | undefined;
@@ -186,12 +186,12 @@ function getFunctionCodeLens(filePath: string, functionsAndSuites: FunctionsAndS
             new CodeLens(range, {
                 title: getTestStatusIcon(fn.status) + constants.Text.CodeLensRunUnitTest,
                 command: constants.Commands.Tests_Run,
-                arguments: [<TestsToRun>{ testFunction: [fn] }]
+                arguments: [file, <TestsToRun>{ testFunction: [fn] }]
             }),
             new CodeLens(range, {
                 title: getTestStatusIcon(fn.status) + constants.Text.CodeLensDebugUnitTest,
                 command: constants.Commands.Tests_Debug,
-                arguments: [<TestsToRun>{ testFunction: [fn] }]
+                arguments: [file, <TestsToRun>{ testFunction: [fn] }]
             })
         ];
     }
@@ -207,12 +207,12 @@ function getFunctionCodeLens(filePath: string, functionsAndSuites: FunctionsAndS
             new CodeLens(range, {
                 title: constants.Text.CodeLensRunUnitTest,
                 command: constants.Commands.Tests_Run,
-                arguments: [<TestsToRun>{ testFunction: functions }]
+                arguments: [file, <TestsToRun>{ testFunction: functions }]
             }),
             new CodeLens(range, {
                 title: constants.Text.CodeLensDebugUnitTest,
                 command: constants.Commands.Tests_Debug,
-                arguments: [<TestsToRun>{ testFunction: functions }]
+                arguments: [file, <TestsToRun>{ testFunction: functions }]
             })
         ];
     }
@@ -222,12 +222,12 @@ function getFunctionCodeLens(filePath: string, functionsAndSuites: FunctionsAndS
         new CodeLens(range, {
             title: `${getTestStatusIcons(functions)}${constants.Text.CodeLensRunUnitTest} (Multiple)`,
             command: constants.Commands.Tests_Picker_UI,
-            arguments: [filePath, functions]
+            arguments: [file, functions]
         }),
         new CodeLens(range, {
             title: `${getTestStatusIcons(functions)}${constants.Text.CodeLensDebugUnitTest} (Multiple)`,
             command: constants.Commands.Tests_Picker_UI_Debug,
-            arguments: [filePath, functions]
+            arguments: [file, functions]
         })
     ];
 }

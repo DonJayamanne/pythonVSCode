@@ -1,21 +1,21 @@
 'use strict';
 import * as path from 'path';
-import { OutputChannel, Uri } from 'vscode';
 import * as vscode from 'vscode';
+import { OutputChannel, Uri } from 'vscode';
 import { PythonSettings } from '../common/configSettings';
 import { Installer, Product } from '../common/installer';
 import { getSubDirectories } from '../common/utils';
 import { TestConfigSettingsService } from './common/configSettingService';
-import { UnitTestProduct } from './common/contracts';
 import { TestConfigurationManager } from './common/testConfigurationManager';
 import { selectTestWorkspace } from './common/testUtils';
+import { UnitTestProduct } from './common/types';
 import { ConfigurationManager } from './nosetest/testConfigurationManager';
 import * as nose from './nosetest/testConfigurationManager';
 import * as pytest from './pytest/testConfigurationManager';
 import * as unittest from './unittest/testConfigurationManager';
 
 // tslint:disable-next-line:no-any
-async function promptToEnableAndConfigureTestFramework(outputChannel: vscode.OutputChannel, messageToDisplay: string = 'Select a test framework/tool to enable', enableOnly: boolean = false): Thenable<any> {
+async function promptToEnableAndConfigureTestFramework(outputChannel: vscode.OutputChannel, messageToDisplay: string = 'Select a test framework/tool to enable', enableOnly: boolean = false) {
     const wkspace = await selectTestWorkspace();
     if (!wkspace) {
         return;

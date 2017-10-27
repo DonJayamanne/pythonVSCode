@@ -2,7 +2,10 @@ import * as assert from 'assert';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { Tests, TestsToRun } from '../../client/unittests/common/contracts';
+import { TestCollectionStorageService } from '../../client/unittests/common/storageService';
+import { TestResultsService } from '../../client/unittests/common/testResultsService';
+import { TestsHelper } from '../../client/unittests/common/testUtils';
+import { ITestCollectionStorageService, ITestResultsService, ITestsHelper, Tests, TestsToRun } from '../../client/unittests/common/types';
 import { TestResultDisplay } from '../../client/unittests/display/main';
 import * as nose from '../../client/unittests/nosetest/main';
 import { rootWorkspaceUri, updateSetting } from '../common';
@@ -23,6 +26,10 @@ suite('Unit Tests (nosetest)', () => {
     let testManager: nose.TestManager;
     let testResultDisplay: TestResultDisplay;
     let outChannel: vscode.OutputChannel;
+    let storageService: ITestCollectionStorageService;
+    let resultsService: ITestResultsService;
+    let testsHelper: ITestsHelper;
+
     suiteSetup(async () => {
         filesToDelete.forEach(file => {
             if (fs.existsSync(file)) {
@@ -51,7 +58,10 @@ suite('Unit Tests (nosetest)', () => {
         await updateSetting('unitTest.nosetestArgs', [], rootWorkspaceUri, configTarget);
     });
     function createTestManager(rootDir: string = rootDirectory) {
-        testManager = new nose.TestManager(rootDir, outChannel);
+        storageService = new TestCollectionStorageService();
+        resultsService = new TestResultsService();
+        testsHelper = new TestsHelper();
+        testManager = new nose.TestManager(rootDir, outChannel, storageService, resultsService, testsHelper);
     }
 
     test('Discover Tests (single test file)', async () => {
@@ -130,7 +140,7 @@ suite('Unit Tests (nosetest)', () => {
         assert.equal(results.summary.passed, 6, 'Passed');
         assert.equal(results.summary.skipped, 2, 'skipped');
 
-        results = await testManager.runTest(true);
+        results = await testManager.runTest(undefined, true);
         assert.equal(results.summary.errors, 1, 'Errors again');
         assert.equal(results.summary.failures, 7, 'Failures again');
         assert.equal(results.summary.passed, 0, 'Passed again');
