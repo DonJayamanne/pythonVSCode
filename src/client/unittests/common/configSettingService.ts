@@ -1,6 +1,6 @@
 import { ConfigurationTarget, Uri, workspace, WorkspaceConfiguration } from 'vscode';
 import { Product } from '../../common/installer';
-import { ITestConfigSettingsService, UnitTestProduct } from './contracts';
+import { ITestConfigSettingsService, UnitTestProduct } from './types';
 
 export class TestConfigSettingsService implements ITestConfigSettingsService {
     private static getTestArgSetting(product: UnitTestProduct) {
@@ -55,12 +55,12 @@ export class TestConfigSettingsService implements ITestConfigSettingsService {
         return TestConfigSettingsService.updateSetting(testDirectory, setting, args);
     }
 
-    public enable(testDirectory: string | Uri, product: UnitTestProduct): Promise<void> {
+    public async enable(testDirectory: string | Uri, product: UnitTestProduct): Promise<void> {
         const setting = TestConfigSettingsService.getTestEnablingSetting(product);
         return TestConfigSettingsService.updateSetting(testDirectory, setting, true);
     }
 
-    public disable(testDirectory: string | Uri, product: UnitTestProduct): Promise<void> {
+    public async disable(testDirectory: string | Uri, product: UnitTestProduct): Promise<void> {
         const setting = TestConfigSettingsService.getTestEnablingSetting(product);
         return TestConfigSettingsService.updateSetting(testDirectory, setting, false);
     }

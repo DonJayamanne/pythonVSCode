@@ -4,7 +4,7 @@ import { Uri } from 'vscode';
 import { createDeferred } from '../../common/helpers';
 import { Installer } from '../../common/installer';
 import { getSubDirectories } from '../../common/utils';
-import { ITestConfigSettingsService, UnitTestProduct } from './contracts';
+import { ITestConfigSettingsService, UnitTestProduct } from './types';
 
 export abstract class TestConfigurationManager {
     constructor(protected workspace: Uri,
@@ -14,11 +14,11 @@ export abstract class TestConfigurationManager {
         protected testConfigSettingsService: ITestConfigSettingsService) { }
     // tslint:disable-next-line:no-any
     public abstract configure(rootDir: string): Promise<any>;
-    public enable() {
+    public async enable() {
         return this.testConfigSettingsService.enable(this.workspace, this.product);
     }
     // tslint:disable-next-line:no-any
-    public disable(): Thenable<any> {
+    public async disable() {
         return this.testConfigSettingsService.enable(this.workspace, this.product);
     }
     protected selectTestDir(rootDir: string, subDirs: string[], customOptions: vscode.QuickPickItem[] = []): Promise<string> {
@@ -77,7 +77,7 @@ export abstract class TestConfigurationManager {
 
         return def.promise;
     }
-    protected getTestDirs(rootDir): Promise<string[]> {
+    protected getTestDirs(rootDir: string): Promise<string[]> {
         return getSubDirectories(rootDir).then(subDirs => {
             subDirs.sort();
 

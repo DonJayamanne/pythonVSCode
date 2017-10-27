@@ -3,8 +3,8 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { Uri } from 'vscode';
 import { Installer, Product } from '../../common/installer';
-import { ITestConfigSettingsService } from '../common/contracts';
 import { TestConfigurationManager } from '../common/testConfigurationManager';
+import { ITestConfigSettingsService } from '../common/types';
 
 export class ConfigurationManager extends TestConfigurationManager {
     constructor(workspace: Uri, outputChannel: vscode.OutputChannel,

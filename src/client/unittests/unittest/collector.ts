@@ -3,11 +3,10 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { OutputChannel } from 'vscode';
 import { PythonSettings } from '../../common/configSettings';
-import { TestFile, Tests, TestStatus } from '../common/contracts';
-import { flattenTestFiles } from '../common/testUtils';
+import { ITestsHelper, TestFile, TestFunction, Tests, TestStatus, TestSuite } from '../common/types';
 import { execPythonFile } from './../../common/utils';
 
-export function discoverTests(rootDirectory: string, args: string[], token: vscode.CancellationToken, ignoreCache: boolean, outChannel: OutputChannel): Promise<Tests> {
+export function discoverTests(rootDirectory: string, args: string[], token: vscode.CancellationToken, ignoreCache: boolean, outChannel: OutputChannel, testsHelper: ITestsHelper): Promise<Tests> {
     let startDirectory = '.';
     let pattern = 'test*.py';
     const indexOfStartDir = args.findIndex(arg => arg.indexOf('-s') === 0);
@@ -81,17 +80,17 @@ for suite in suites._tests:
             if (startDirectory.length > 1) {
                 testsDirectory = path.isAbsolute(startDirectory) ? startDirectory : path.resolve(rootDirectory, startDirectory);
             }
-            return parseTestIds(testsDirectory, testItems);
+            return parseTestIds(testsDirectory, testItems, testsHelper);
         });
 }
 
-function parseTestIds(rootDirectory: string, testIds: string[]): Tests {
+function parseTestIds(rootDirectory: string, testIds: string[], testsHelper: ITestsHelper): Tests {
     const testFiles: TestFile[] = [];
     testIds.forEach(testId => {
         addTestId(rootDirectory, testId, testFiles);
     });
 
-    return flattenTestFiles(testFiles);
+    return testsHelper.flattenTestFiles(testFiles);
 }
 
 function addTestId(rootDirectory: string, testId: string, testFiles: TestFile[]) {
@@ -112,8 +111,10 @@ function addTestId(rootDirectory: string, testId: string, testFiles: TestFile[])
         testFile = {
             name: path.basename(filePath),
             fullPath: filePath,
-            functions: [],
-            suites: [],
+            // tslint:disable-next-line:prefer-type-cast
+            functions: [] as TestFunction[],
+            // tslint:disable-next-line:prefer-type-cast
+            suites: [] as TestSuite[],
             nameToRun: `${className}.${functionName}`,
             xmlName: '',
             status: TestStatus.Idle,
@@ -128,8 +129,10 @@ function addTestId(rootDirectory: string, testId: string, testFiles: TestFile[])
     if (!testSuite) {
         testSuite = {
             name: className,
-            functions: [],
-            suites: [],
+            // tslint:disable-next-line:prefer-type-cast
+            functions: [] as TestFunction[],
+            // tslint:disable-next-line:prefer-type-cast
+            suites: [] as TestSuite[],
             isUnitTest: true,
             isInstance: false,
             nameToRun: classNameToRun,
@@ -140,7 +143,7 @@ function addTestId(rootDirectory: string, testId: string, testFiles: TestFile[])
         testFile.suites.push(testSuite);
     }
 
-    const testFunction = {
+    const testFunction: TestFunction = {
         name: functionName,
         nameToRun: testId,
         status: TestStatus.Idle,

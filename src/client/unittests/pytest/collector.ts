@@ -4,8 +4,8 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { OutputChannel } from 'vscode';
 import { PythonSettings } from '../../common/configSettings';
-import { TestFile, TestFunction, Tests, TestSuite } from '../common/contracts';
-import { convertFileToPackage, extractBetweenDelimiters, flattenTestFiles } from '../common/testUtils';
+import { convertFileToPackage, extractBetweenDelimiters } from '../common/testUtils';
+import { ITestsHelper, TestFile, TestFunction, Tests, TestSuite } from '../common/types';
 import { execPythonFile } from './../../common/utils';
 
 const argsToExcludeForDiscovery = ['-x', '--exitfirst',
@@ -16,7 +16,7 @@ const argsToExcludeForDiscovery = ['-x', '--exitfirst',
     '--disable-pytest-warnings', '-l', '--showlocals'];
 const settingsInArgsToExcludeForDiscovery = [];
 
-export function discoverTests(rootDirectory: string, args: string[], token: vscode.CancellationToken, ignoreCache: boolean, outChannel: OutputChannel): Promise<Tests> {
+export function discoverTests(rootDirectory: string, args: string[], token: vscode.CancellationToken, ignoreCache: boolean, outChannel: OutputChannel, testsHelper: ITestsHelper): Promise<Tests> {
     let logOutputLines: string[] = [''];
     const testFiles: TestFile[] = [];
     const parentNodes: { indent: number, item: TestFile | TestSuite }[] = [];
@@ -90,7 +90,7 @@ export function discoverTests(rootDirectory: string, args: string[], token: vsco
             if (token && token.isCancellationRequested) {
                 return Promise.reject<Tests>('cancelled');
             }
-            return flattenTestFiles(testFiles);
+            return testsHelper.flattenTestFiles(testFiles);
         });
 }
 

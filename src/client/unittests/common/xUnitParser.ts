@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as xml2js from 'xml2js';
-import { Tests, TestStatus } from './contracts';
+import { Tests, TestStatus } from './types';
 
 export enum PassCalculationFormulae {
     pytest,

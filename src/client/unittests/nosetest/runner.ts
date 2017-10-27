@@ -3,17 +3,16 @@ import * as path from 'path';
 import { CancellationToken, OutputChannel, Uri } from 'vscode';
 import { PythonSettings } from '../../common/configSettings';
 import { createTemporaryFile } from '../../common/helpers';
-import { Tests, TestsToRun } from '../common/contracts';
 import { launchDebugger } from '../common/debugLauncher';
 import { run } from '../common/runner';
-import { updateResults } from '../common/testUtils';
+import { ITestResultsService, Tests, TestsToRun } from '../common/types';
 import { PassCalculationFormulae, updateResultsFromXmlLogFile } from '../common/xUnitParser';
 
 const WITH_XUNIT = '--with-xunit';
 const XUNIT_FILE = '--xunit-file';
 
 // tslint:disable-next-line:no-any
-export function runTest(rootDirectory: string, tests: Tests, args: string[], testsToRun?: TestsToRun, token?: CancellationToken, outChannel?: OutputChannel, debug?: boolean): Promise<any> {
+export function runTest(testResultsService: ITestResultsService, rootDirectory: string, tests: Tests, args: string[], testsToRun?: TestsToRun, token?: CancellationToken, outChannel?: OutputChannel, debug?: boolean): Promise<any> {
     let testPaths = [];
     if (testsToRun && testsToRun.testFolder) {
         testPaths = testPaths.concat(testsToRun.testFolder.map(f => f.nameToRun));
@@ -70,7 +69,7 @@ export function runTest(rootDirectory: string, tests: Tests, args: string[], tes
             return run(pythonSettings.unitTest.nosetestPath, noseTestArgs.concat(testPaths), rootDirectory, token, outChannel);
         }
     }).then(() => {
-        return updateResultsFromLogFiles(tests, xmlLogFile);
+        return updateResultsFromLogFiles(tests, xmlLogFile, testResultsService);
     }).then(result => {
         xmlLogFileCleanup();
         return result;
@@ -81,9 +80,9 @@ export function runTest(rootDirectory: string, tests: Tests, args: string[], tes
 }
 
 // tslint:disable-next-line:no-any
-export function updateResultsFromLogFiles(tests: Tests, outputXmlFile: string): Promise<any> {
+export function updateResultsFromLogFiles(tests: Tests, outputXmlFile: string, testResultsService: ITestResultsService): Promise<any> {
     return updateResultsFromXmlLogFile(tests, outputXmlFile, PassCalculationFormulae.nosetests).then(() => {
-        updateResults(tests);
+        testResultsService.updateResults(tests);
         return tests;
     });
 }

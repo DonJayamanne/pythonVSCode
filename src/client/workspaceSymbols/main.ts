@@ -5,6 +5,7 @@ import { fsExistsAsync } from '../common/utils';
 import { isNotInstalledError } from '../common/helpers';
 import { PythonLanguage, Commands } from '../common/constants';
 import { WorkspaceSymbolProvider } from './provider';
+import { workspace } from 'vscode';
 
 const MAX_NUMBER_OF_ATTEMPTS_TO_INSTALL_AND_BUILD = 2;
 
@@ -101,7 +102,7 @@ export class WorkspaceSymbols implements vscode.Disposable {
                     continue;
                 }
                 else {
-                    promptPromise = this.installer.promptToInstall(Product.ctags);
+                    promptPromise = this.installer.promptToInstall(Product.ctags, workspace.workspaceFolders[0].uri);
                     promptResponse = await promptPromise;
                 }
                 if (promptResponse !== InstallerResponse.Installed || (!token || token.isCancellationRequested)) {

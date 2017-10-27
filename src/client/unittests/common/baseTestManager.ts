@@ -1,12 +1,15 @@
 // import {TestFolder, TestsToRun, Tests, TestFile, TestSuite, TestFunction, TestStatus, FlattenedTestFunction, FlattenedTestSuite, CANCELLATION_REASON} from './contracts';
 import * as vscode from 'vscode';
+import { Uri, workspace } from 'vscode';
 import { IPythonSettings, PythonSettings } from '../../common/configSettings';
 import { isNotInstalledError } from '../../common/helpers';
 import { Installer, Product } from '../../common/installer';
-import { CANCELLATION_REASON, Tests, TestStatus, TestsToRun } from './contracts';
-import { displayTestErrorMessage, ITestCollectionStorageService, resetTestResults } from './testUtils';
+import { CANCELLATION_REASON } from './constants';
+import { displayTestErrorMessage } from './testUtils';
+import { ITestCollectionStorageService, ITestResultsService, ITestsHelper, Tests, TestStatus, TestsToRun } from './types';
 
 export abstract class BaseTestManager {
+    public readonly workspace: Uri;
     protected readonly settings: IPythonSettings;
     private tests: Tests;
     // tslint:disable-next-line:variable-name
@@ -14,19 +17,19 @@ export abstract class BaseTestManager {
     private cancellationTokenSource: vscode.CancellationTokenSource;
     private installer: Installer;
     private discoverTestsPromise: Promise<Tests>;
-    constructor(private testProvider: string, private product: Product, protected rootDirectory: string, protected outputChannel: vscode.OutputChannel,
-        private testCollectionStorage: ITestCollectionStorageService) {
+    constructor(private testProvider: string, private product: Product, protected rootDirectory: string,
+        protected outputChannel: vscode.OutputChannel, private testCollectionStorage: ITestCollectionStorageService,
+        protected testResultsService: ITestResultsService, protected testsHelper: ITestsHelper) {
         this._status = TestStatus.Unknown;
         this.installer = new Installer();
-        this.settings = PythonSettings.getInstance(this.rootDirectory ? vscode.Uri.file(this.rootDirectory) : undefined);
+        this.settings = PythonSettings.getInstance(this.rootDirectory ? Uri.file(this.rootDirectory) : undefined);
+        this.workspace = workspace.getWorkspaceFolder(Uri.file(this.rootDirectory)).uri;
     }
-    protected get cancellationToken(): vscode.CancellationToken {
-        if (this.cancellationTokenSource) {
-            return this.cancellationTokenSource.token;
-        }
+    protected get cancellationToken(): vscode.CancellationToken | undefined {
+        return this.cancellationTokenSource ? this.cancellationTokenSource.token : undefined;
     }
-    // tslint:disable-next-line:no-empty
     public dispose() {
+        this.stop();
     }
     public get status(): TestStatus {
         return this._status;
@@ -49,9 +52,9 @@ export abstract class BaseTestManager {
             return;
         }
 
-        resetTestResults(this.tests);
+        this.testResultsService.resetResults(this.tests);
     }
-    public discoverTests(ignoreCache: boolean = false, quietMode: boolean = false): Promise<Tests> {
+    public async discoverTests(ignoreCache: boolean = false, quietMode: boolean = false): Promise<Tests> {
         if (this.discoverTestsPromise) {
             return this.discoverTestsPromise;
         }
@@ -91,7 +94,8 @@ export abstract class BaseTestManager {
                 return tests;
             }).catch(reason => {
                 if (isNotInstalledError(reason) && !quietMode) {
-                    this.installer.promptToInstall(this.product, this.rootDirectory ? vscode.Uri.file(this.rootDirectory) : undefined);
+                    // tslint:disable-next-line:no-floating-promises
+                    this.installer.promptToInstall(this.product, this.workspace);
                 }
 
                 this.tests = null;
@@ -111,13 +115,7 @@ export abstract class BaseTestManager {
                 return Promise.reject(reason);
             });
     }
-    public runTest(testsToRun?: TestsToRun, debug?: boolean): Promise<Tests>;
-    // tslint:disable-next-line:unified-signatures
-    public runTest(runFailedTests?: boolean, debug?: boolean): Promise<Tests>;
-    // tslint:disable-next-line:no-any
-    public runTest(args: any, debug?: boolean): Promise<Tests> {
-        let runFailedTests = false;
-        let testsToRun: TestsToRun = null;
+    public runTest(testsToRun?: TestsToRun, runFailedTests?: boolean, debug?: boolean): Promise<Tests> {
         const moreInfo = {
             Test_Provider: this.testProvider,
             Run_Failed_Tests: 'false',
@@ -126,13 +124,11 @@ export abstract class BaseTestManager {
             Run_Specific_Function: 'false'
         };
 
-        if (typeof args === 'boolean') {
-            runFailedTests = args === true;
+        if (runFailedTests === true) {
             // tslint:disable-next-line:prefer-template
             moreInfo.Run_Failed_Tests = runFailedTests + '';
         }
-        if (typeof args === 'object' && args !== null) {
-            testsToRun = args;
+        if (testsToRun && typeof testsToRun === 'object') {
             if (Array.isArray(testsToRun.testFile) && testsToRun.testFile.length > 0) {
                 moreInfo.Run_Specific_File = 'true';
             }

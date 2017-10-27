@@ -144,7 +144,7 @@ export abstract class BaseLinter {
         });
     }
 
-    protected handleError(expectedFileName: string, fileName: string, error: Error, resource?: Uri) {
+    protected handleError(expectedFileName: string, fileName: string, error: Error, resource: Uri) {
         this._errorHandler.handleError(expectedFileName, fileName, error, resource);
     }
 }

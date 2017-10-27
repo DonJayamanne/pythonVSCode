@@ -2,7 +2,10 @@ import * as assert from 'assert';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { ConfigurationTarget } from 'vscode';
-import { TestsToRun } from '../../client/unittests/common/contracts';
+import { TestCollectionStorageService } from '../../client/unittests/common/storageService';
+import { TestResultsService } from '../../client/unittests/common/testResultsService';
+import { TestsHelper } from '../../client/unittests/common/testUtils';
+import { ITestCollectionStorageService, ITestResultsService, ITestsHelper, TestsToRun } from '../../client/unittests/common/types';
 import { TestResultDisplay } from '../../client/unittests/display/main';
 import * as unittest from '../../client/unittests/unittest/main';
 import { rootWorkspaceUri, updateSetting } from '../common';
@@ -27,6 +30,9 @@ suite('Unit Tests (unittest)', () => {
     let testManager: unittest.TestManager;
     let testResultDisplay: TestResultDisplay;
     let outChannel: MockOutputChannel;
+    let storageService: ITestCollectionStorageService;
+    let resultsService: ITestResultsService;
+    let testsHelper: ITestsHelper;
     const rootDirectory = UNITTEST_TEST_FILES_PATH;
     const configTarget = IS_MULTI_ROOT_TEST ? ConfigurationTarget.WorkspaceFolder : ConfigurationTarget.Workspace;
     suiteSetup(async () => {
@@ -48,12 +54,18 @@ suite('Unit Tests (unittest)', () => {
         testResultDisplay.dispose();
     });
     function createTestManager(rootDir: string = rootDirectory) {
-        testManager = new unittest.TestManager(rootDir, outChannel);
+        storageService = new TestCollectionStorageService();
+        resultsService = new TestResultsService();
+        testsHelper = new TestsHelper();
+        testManager = new unittest.TestManager(rootDir, outChannel, storageService, resultsService, testsHelper);
     }
 
     test('Discover Tests (single test file)', async () => {
         await updateSetting('unitTest.unittestArgs', ['-s=./tests', '-p=test_*.py'], rootWorkspaceUri, configTarget);
-        testManager = new unittest.TestManager(UNITTEST_SINGLE_TEST_FILE_PATH, outChannel);
+        storageService = new TestCollectionStorageService();
+        resultsService = new TestResultsService();
+        testsHelper = new TestsHelper();
+        testManager = new unittest.TestManager(UNITTEST_SINGLE_TEST_FILE_PATH, outChannel, storageService, resultsService, testsHelper);
         const tests = await testManager.discoverTests(true, true);
         assert.equal(tests.testFiles.length, 1, 'Incorrect number of test files');
         assert.equal(tests.testFunctions.length, 3, 'Incorrect number of test functions');
@@ -101,7 +113,7 @@ suite('Unit Tests (unittest)', () => {
         assert.equal(results.summary.passed, 3, 'Passed');
         assert.equal(results.summary.skipped, 1, 'skipped');
 
-        results = await testManager.runTest(true);
+        results = await testManager.runTest(undefined, true);
         assert.equal(results.summary.errors, 1, 'Failed Errors');
         assert.equal(results.summary.failures, 4, 'Failed Failures');
         assert.equal(results.summary.passed, 0, 'Failed Passed');

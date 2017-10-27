@@ -2,8 +2,6 @@ import { Disposable, Uri } from 'vscode';
 import { Product } from '../../common/installer';
 import { BaseTestManager } from './baseTestManager';
 
-export const CANCELLATION_REASON = 'cancelled_user_request';
-
 export type TestFolder = TestResult & {
     name: string;
     testFiles: TestFile[];
@@ -116,11 +114,35 @@ export interface ITestManagerService extends Disposable {
     getTestWorkingDirectory(): string;
     getPreferredTestManager(): UnitTestProduct;
 }
+
 export interface ITestManagerServiceFactory {
     createTestManagerService(wkspace: Uri): ITestManagerService;
 }
+
 export interface IWorkspaceTestManagerService extends Disposable {
-    getTestManager(wkspace: Uri): BaseTestManager | undefined;
-    getTestWorkingDirectory(wkspace: Uri): string;
-    getPreferredTestManager(wkspace: Uri): UnitTestProduct;
+    getTestManager(resource: Uri): BaseTestManager | undefined;
+    getTestWorkingDirectory(resource: Uri): string;
+    getPreferredTestManager(resource: Uri): UnitTestProduct;
+}
+
+export interface ITestsHelper {
+    flattenTestFiles(testFiles: TestFile[]): Tests;
+    placeTestFilesIntoFolders(tests: Tests): void;
+}
+
+export interface ITestVisitor {
+    visitTestFunction(testFunction: TestFunction): void;
+    visitTestSuite(testSuite: TestSuite): void;
+    visitTestFile(testFile: TestFile): void;
+    visitTestFolder(testFile: TestFolder): void;
+}
+
+export interface ITestCollectionStorageService extends Disposable {
+    getTests(wkspace: Uri): Tests | undefined;
+    storeTests(wkspace: Uri, tests: Tests | null | undefined): void;
+}
+
+export interface ITestResultsService {
+    resetResults(tests: Tests): void;
+    updateResults(tests: Tests): void;
 }
