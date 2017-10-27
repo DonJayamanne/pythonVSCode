@@ -5,11 +5,11 @@ import { PythonSettings } from '../../client/common/configSettings';
 import { PythonPathUpdaterService } from '../../client/interpreter/configuration/pythonPathUpdaterService';
 import { PythonPathUpdaterServiceFactory } from '../../client/interpreter/configuration/pythonPathUpdaterServiceFactory';
 import { GlobalPythonPathUpdaterService } from '../../client/interpreter/configuration/services/globalUpdaterService';
+import { WorkspaceFolderPythonPathUpdaterService } from '../../client/interpreter/configuration/services/workspaceFolderUpdaterService';
 import { WorkspacePythonPathUpdaterService } from '../../client/interpreter/configuration/services/workspaceUpdaterService';
 import { WorkspacePythonPath } from '../../client/interpreter/contracts';
 import { clearPythonPathInWorkspaceFolder } from '../common';
 import { closeActiveWindows, initialize, initializeTest, IS_MULTI_ROOT_TEST } from '../initialize';
-import { WorkspaceFolderPythonPathUpdaterService } from '../../client/interpreter/configuration/services/workspaceFolderUpdaterService';
 
 const workspaceRoot = path.join(__dirname, '..', '..', '..', 'src', 'test');
 const multirootPath = path.join(__dirname, '..', '..', '..', 'src', 'testMultiRootWkspc');
