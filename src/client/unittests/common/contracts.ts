@@ -1,13 +1,18 @@
+import { Uri, Disposable } from 'vscode';
+import { Product } from '../../common/installer';
+import { BaseTestManager } from './baseTestManager';
+
 export const CANCELLATION_REASON = 'cancelled_user_request';
 
-export interface TestFolder extends TestResult {
+export type TestFolder = TestResult & {
     name: string;
     testFiles: TestFile[];
     nameToRun: string;
     status?: TestStatus;
     folders: TestFolder[];
-}
-export interface TestFile extends TestResult {
+};
+
+export type TestFile = TestResult & {
     name: string;
     fullPath: string;
     functions: TestFunction[];
@@ -16,8 +21,9 @@ export interface TestFile extends TestResult {
     xmlName: string;
     status?: TestStatus;
     errorsWhenDiscovering?: string;
-}
-export interface TestSuite extends TestResult {
+};
+
+export type TestSuite = TestResult & {
     name: string;
     functions: TestFunction[];
     suites: TestSuite[];
@@ -26,13 +32,15 @@ export interface TestSuite extends TestResult {
     nameToRun: string;
     xmlName: string;
     status?: TestStatus;
-}
-export interface TestFunction extends TestResult {
+};
+
+export type TestFunction = TestResult & {
     name: string;
     nameToRun: string;
     status?: TestStatus;
-}
-export interface TestResult extends Node {
+};
+
+export type TestResult = Node & {
     passed?: boolean;
     time: number;
     line?: number;
@@ -42,35 +50,40 @@ export interface TestResult extends Node {
     functionsFailed?: number;
     functionsDidNotRun?: number;
 }
-export interface Node {
+export type Node = {
     expanded?: Boolean;
-}
-export interface FlattenedTestFunction {
+};
+
+export type FlattenedTestFunction = {
     testFunction: TestFunction;
     parentTestSuite?: TestSuite;
     parentTestFile: TestFile;
     xmlClassName: string;
-}
-export interface FlattenedTestSuite {
+};
+
+export type FlattenedTestSuite = {
     testSuite: TestSuite;
     parentTestSuite?: TestSuite;
     parentTestFile: TestFile;
     xmlClassName: string;
-}
-export interface TestSummary {
+};
+
+export type TestSummary = {
     passed: number;
     failures: number;
     errors: number;
     skipped: number;
-}
-export interface Tests {
+};
+
+export type Tests = {
     summary: TestSummary;
     testFiles: TestFile[];
     testFunctions: FlattenedTestFunction[];
     testSuits: FlattenedTestSuite[];
     testFolders: TestFolder[];
     rootTestFolders: TestFolder[];
-}
+};
+
 export enum TestStatus {
     Unknown,
     Discovering,
@@ -81,9 +94,32 @@ export enum TestStatus {
     Skipped,
     Pass
 }
-export interface TestsToRun {
+
+export type TestsToRun = {
     testFolder?: TestFolder[];
     testFile?: TestFile[];
     testSuite?: TestSuite[];
     testFunction?: TestFunction[];
+};
+
+export type UnitTestProduct = Product.nosetest | Product.pytest | Product.unittest;
+
+export interface ITestConfigSettingsService {
+    updateTestArgs(testDirectory: string, product: UnitTestProduct, args: string[]): Promise<void>;
+    enable(testDirectory: string | Uri, product: UnitTestProduct): Promise<void>;
+    disable(testDirectory: string | Uri, product: UnitTestProduct): Promise<void>;
+}
+
+export interface ITestManagerService extends Disposable {
+    getTestManager(): BaseTestManager | undefined;
+    getTestWorkingDirectory(): string;
+    getPreferredTestManager(): UnitTestProduct;
+}
+export interface ITestManagerServiceFactory {
+    createTestManagerService(wkspace: Uri): ITestManagerService;
+}
+export interface IWorkspaceTestManagerService extends Disposable {
+    getTestManager(wkspace: Uri): BaseTestManager | undefined;
+    getTestWorkingDirectory(wkspace: Uri): string;
+    getPreferredTestManager(wkspace: Uri): UnitTestProduct;
 }

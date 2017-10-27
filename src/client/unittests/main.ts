@@ -12,7 +12,7 @@ import {
     TestStatus,
     TestsToRun,
 } from './common/contracts';
-import { resolveValueAsTestToRun, getDiscoveredTests } from './common/testUtils';
+import { parseTestName, getDiscoveredTests } from './common/testUtils';
 import { BaseTestManager } from './common/baseTestManager';
 import { PythonSettings, IUnitTestSettings } from '../common/configSettings';
 import { TestResultDisplay } from './display/main';
@@ -300,7 +300,7 @@ function identifyTestType(rootDirectory: string, arg?: vscode.Uri | TestsToRun |
         return <TestsToRun>{ testFunction: [arg.testFunction] };
     }
     if (isUri(arg)) {
-        return resolveValueAsTestToRun(arg.fsPath, rootDirectory);
+        return parseTestName(arg.fsPath, rootDirectory);
     }
     return null;
 }

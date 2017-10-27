@@ -1,13 +1,11 @@
+import * as path from 'path';
 import { QuickPickItem, window } from 'vscode';
 import * as vscode from 'vscode';
-import { Tests, TestFile, TestFunction, FlattenedTestFunction, TestStatus } from '../common/contracts';
-import { getDiscoveredTests } from '../common/testUtils';
 import * as constants from '../../common/constants';
-import * as path from 'path';
+import { FlattenedTestFunction, TestFile, TestFunction, Tests, TestStatus } from '../common/contracts';
+import { getDiscoveredTests } from '../common/testUtils';
 
 export class TestDisplay {
-    constructor() {
-    }
     public displayStopTestUI(message: string) {
         window.showQuickPick([message]).then(item => {
             if (item === message) {
@@ -16,7 +14,7 @@ export class TestDisplay {
         });
     }
     public displayTestUI(rootDirectory: string) {
-        const tests = getDiscoveredTests();
+        const tests = getDiscoveredTests(rootDirectory ? vscode.Uri.file(rootDirectory) : undefined);
         window.showQuickPick(buildItems(rootDirectory, tests), { matchOnDescription: true, matchOnDetail: true }).then(onItemSelected);
     }
     public selectTestFunction(rootDirectory: string, tests: Tests): Promise<FlattenedTestFunction> {
@@ -42,7 +40,7 @@ export class TestDisplay {
         });
     }
     public displayFunctionTestPickerUI(rootDirectory: string, fileName: string, testFunctions: TestFunction[], debug?: boolean) {
-        const tests = getDiscoveredTests();
+        const tests = getDiscoveredTests(rootDirectory ? vscode.Uri.file(rootDirectory) : undefined);
         if (!tests) {
             return;
         }
@@ -102,7 +100,7 @@ function getSummary(tests?: Tests) {
     }
     if (tests.summary.errors > 0) {
         const plural = tests.summary.errors === 1 ? '' : 's';
-        statusText.push(`${constants.Octicons.Test_Error} ${tests.summary.errors} Error` + plural);
+        statusText.push(`${constants.Octicons.Test_Error} ${tests.summary.errors} Error${plural}`);
     }
     if (tests.summary.skipped > 0) {
         statusText.push(`${constants.Octicons.Test_Skip} ${tests.summary.skipped} Skipped`);
@@ -115,7 +113,7 @@ function buildItems(rootDirectory: string, tests?: Tests): TestItem[] {
     items.push({ description: '', label: 'Discover Unit Tests', type: Type.ReDiscover });
     items.push({ description: '', label: 'Run Unit Test Method ...', type: Type.SelectAndRunMethod });
 
-    let summary = getSummary(tests);
+    const summary = getSummary(tests);
     items.push({ description: '', label: 'View Unit Test Output', type: Type.ViewTestOutput, detail: summary });
 
     if (tests && tests.summary.failures > 0) {
@@ -132,7 +130,7 @@ statusSortPrefix[TestStatus.Skipped] = '3';
 statusSortPrefix[TestStatus.Pass] = '4';
 
 function buildItemsForFunctions(rootDirectory: string, tests: FlattenedTestFunction[], sortBasedOnResults: boolean = false, displayStatusIcons: boolean = false, debug: boolean = false): TestItem[] {
-    let functionItems: TestItem[] = [];
+    const functionItems: TestItem[] = [];
     tests.forEach(fn => {
         let icon = '';
         if (displayStatusIcons && statusIconMapping.has(fn.testFunction.status)) {
@@ -165,15 +163,15 @@ function buildItemsForFunctions(rootDirectory: string, tests: FlattenedTestFunct
     return functionItems;
 }
 function buildItemsForTestFiles(rootDirectory: string, testFiles: TestFile[]): TestFileItem[] {
-    let fileItems: TestFileItem[] = testFiles.map(testFile => {
+    const fileItems: TestFileItem[] = testFiles.map(testFile => {
         return {
             description: '',
             detail: path.relative(rootDirectory, testFile.fullPath),
             type: Type.RunFile,
             label: path.basename(testFile.fullPath),
             testFile: testFile
-        }
-    })
+        };
+    });
     fileItems.sort((a, b) => {
         if (a.detail < b.detail) {
             return -1;
@@ -182,7 +180,7 @@ function buildItemsForTestFiles(rootDirectory: string, testFiles: TestFile[]): T
             return 1;
         }
         return 0;
-    })
+    });
     return fileItems;
 }
 function onItemSelected(selection: TestItem, debug?: boolean) {
@@ -190,7 +188,7 @@ function onItemSelected(selection: TestItem, debug?: boolean) {
         return;
     }
     let cmd = '';
-    let args = [];
+    const args = [];
     switch (selection.type) {
         case Type.Null: {
             return;
@@ -225,6 +223,9 @@ function onItemSelected(selection: TestItem, debug?: boolean) {
             args.push(selection.fn);
             args.push(true);
             break;
+        }
+        default: {
+            return;
         }
     }
 

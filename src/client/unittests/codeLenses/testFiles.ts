@@ -1,37 +1,37 @@
 'use strict';
 
-import * as vscode from 'vscode';
-import { CodeLensProvider, TextDocument, CancellationToken, CodeLens, SymbolInformation } from 'vscode';
-import { TestFile, TestsToRun, TestSuite, TestFunction, TestStatus } from '../common/contracts';
+import { CancellationToken, CancellationTokenSource, CodeLens, CodeLensProvider, Event, EventEmitter, Position, Range, SymbolInformation, SymbolKind, TextDocument } from 'vscode';
 import * as constants from '../../common/constants';
-import { getDiscoveredTests } from '../common/testUtils';
 import { PythonSymbolProvider } from '../../providers/symbolProvider';
+import { TestFile, TestFunction, TestStatus, TestsToRun, TestSuite } from '../common/contracts';
+import { getDiscoveredTests } from '../common/testUtils';
 
-interface CodeLensData {
-    symbolKind: vscode.SymbolKind;
+type CodeLensData = {
+    symbolKind: SymbolKind;
     symbolName: string;
     fileName: string;
-}
-interface FunctionsAndSuites {
+};
+type FunctionsAndSuites = {
     functions: TestFunction[];
     suites: TestSuite[];
-}
+};
 
 export class TestFileCodeLensProvider implements CodeLensProvider {
-    constructor(private _onDidChange: vscode.EventEmitter<void>, private symbolProvider: PythonSymbolProvider) {
+    // tslint:disable-next-line:variable-name
+    constructor(private _onDidChange: EventEmitter<void>, private symbolProvider: PythonSymbolProvider) {
     }
 
-    get onDidChangeCodeLenses(): vscode.Event<void> {
+    get onDidChangeCodeLenses(): Event<void> {
         return this._onDidChange.event;
     }
 
     public provideCodeLenses(document: TextDocument, token: CancellationToken): Thenable<CodeLens[]> {
-        let testItems = getDiscoveredTests();
+        const testItems = getDiscoveredTests(document.uri);
         if (!testItems || testItems.testFiles.length === 0 || testItems.testFunctions.length === 0) {
             return Promise.resolve([]);
         }
 
-        let cancelTokenSrc = new vscode.CancellationTokenSource();
+        const cancelTokenSrc = new CancellationTokenSource();
         token.onCancellationRequested(() => { cancelTokenSrc.cancel(); });
 
         // Strop trying to build the code lenses if unable to get a list of
@@ -45,35 +45,35 @@ export class TestFileCodeLensProvider implements CodeLensProvider {
         return getCodeLenses(document, token, this.symbolProvider);
     }
 
-    resolveCodeLens(codeLens: CodeLens, token: CancellationToken): CodeLens | Thenable<CodeLens> {
+    public resolveCodeLens(codeLens: CodeLens, token: CancellationToken): CodeLens | Thenable<CodeLens> {
         codeLens.command = { command: 'python.runtests', title: 'Test' };
         return Promise.resolve(codeLens);
     }
 }
 
-function getCodeLenses(document: vscode.TextDocument, token: vscode.CancellationToken, symbolProvider: PythonSymbolProvider): Thenable<CodeLens[]> {
+function getCodeLenses(document: TextDocument, token: CancellationToken, symbolProvider: PythonSymbolProvider): Thenable<CodeLens[]> {
     const documentUri = document.uri;
-    const tests = getDiscoveredTests();
+    const tests = getDiscoveredTests(document.uri);
     if (!tests) {
         return null;
     }
-    const file = tests.testFiles.find(file => file.fullPath === documentUri.fsPath);
+    const file = tests.testFiles.find(item => item.fullPath === documentUri.fsPath);
     if (!file) {
         return Promise.resolve([]);
     }
     const allFuncsAndSuites = getAllTestSuitesAndFunctionsPerFile(file);
 
     return symbolProvider.provideDocumentSymbolsForInternalUse(document, token)
-        .then((symbols: vscode.SymbolInformation[]) => {
+        .then((symbols: SymbolInformation[]) => {
             return symbols.filter(symbol => {
-                return symbol.kind === vscode.SymbolKind.Function ||
-                    symbol.kind === vscode.SymbolKind.Method ||
-                    symbol.kind === vscode.SymbolKind.Class;
+                return symbol.kind === SymbolKind.Function ||
+                    symbol.kind === SymbolKind.Method ||
+                    symbol.kind === SymbolKind.Class;
             }).map(symbol => {
                 // This is bloody crucial, if the start and end columns are the same
                 // then vscode goes bonkers when ever you edit a line (start scrolling magically)
-                const range = new vscode.Range(symbol.location.range.start,
-                    new vscode.Position(symbol.location.range.end.line,
+                const range = new Range(symbol.location.range.start,
+                    new Position(symbol.location.range.end.line,
                         symbol.location.range.end.character + 1));
 
                 return getCodeLens(documentUri.fsPath, allFuncsAndSuites,
@@ -88,15 +88,15 @@ function getCodeLenses(document: vscode.TextDocument, token: vscode.Cancellation
 }
 
 function getCodeLens(fileName: string, allFuncsAndSuites: FunctionsAndSuites,
-    range: vscode.Range, symbolName: string, symbolKind: vscode.SymbolKind, symbolContainer: string): vscode.CodeLens[] {
+    range: Range, symbolName: string, symbolKind: SymbolKind, symbolContainer: string): CodeLens[] {
 
     switch (symbolKind) {
-        case vscode.SymbolKind.Function:
-        case vscode.SymbolKind.Method: {
+        case SymbolKind.Function:
+        case SymbolKind.Method: {
             return getFunctionCodeLens(fileName, allFuncsAndSuites, symbolName, range, symbolContainer);
         }
-        case vscode.SymbolKind.Class: {
-            const cls = allFuncsAndSuites.suites.find(cls => cls.name === symbolName);
+        case SymbolKind.Class: {
+            const cls = allFuncsAndSuites.suites.find(item => item.name === symbolName);
             if (!cls) {
                 return null;
             }
@@ -113,9 +113,10 @@ function getCodeLens(fileName: string, allFuncsAndSuites: FunctionsAndSuites,
                 })
             ];
         }
+        default: {
+            return [];
+        }
     }
-
-    return null;
 }
 
 function getTestStatusIcon(status: TestStatus): string {
@@ -137,7 +138,7 @@ function getTestStatusIcon(status: TestStatus): string {
 }
 
 function getTestStatusIcons(fns: TestFunction[]): string {
-    let statuses: string[] = [];
+    const statuses: string[] = [];
     let count = fns.filter(fn => fn.status === TestStatus.Pass).length;
     if (count > 0) {
         statuses.push(`✔ ${count}`);
@@ -154,13 +155,12 @@ function getTestStatusIcons(fns: TestFunction[]): string {
     return statuses.join(' ');
 }
 function getFunctionCodeLens(filePath: string, functionsAndSuites: FunctionsAndSuites,
-    symbolName: string, range: vscode.Range, symbolContainer: string): vscode.CodeLens[] {
+    symbolName: string, range: Range, symbolContainer: string): CodeLens[] {
 
-    let fn: TestFunction;
+    let fn: TestFunction | undefined;
     if (symbolContainer.length === 0) {
-        fn = functionsAndSuites.functions.find(fn => fn.name === symbolName);
-    }
-    else {
+        fn = functionsAndSuites.functions.find(func => func.name === symbolName);
+    } else {
         // Assume single levels for now
         functionsAndSuites.suites
             .filter(s => s.name === symbolContainer)
@@ -189,7 +189,7 @@ function getFunctionCodeLens(filePath: string, functionsAndSuites: FunctionsAndS
 
     // Ok, possible we're dealing with parameterized unit tests
     // If we have [ in the name, then this is a parameterized function
-    let functions = functionsAndSuites.functions.filter(fn => fn.name.startsWith(symbolName + '[') && fn.name.endsWith(']'));
+    const functions = functionsAndSuites.functions.filter(func => func.name.startsWith(`${symbolName}[`) && func.name.endsWith(']'));
     if (functions.length === 0) {
         return null;
     }
@@ -211,12 +211,12 @@ function getFunctionCodeLens(filePath: string, functionsAndSuites: FunctionsAndS
     // Find all flattened functions
     return [
         new CodeLens(range, {
-            title: getTestStatusIcons(functions) + constants.Text.CodeLensRunUnitTest + ' (Multiple)',
+            title: `${getTestStatusIcons(functions)}${constants.Text.CodeLensRunUnitTest} (Multiple)`,
             command: constants.Commands.Tests_Picker_UI,
             arguments: [filePath, functions]
         }),
         new CodeLens(range, {
-            title: getTestStatusIcons(functions) + constants.Text.CodeLensDebugUnitTest + ' (Multiple)',
+            title: `${getTestStatusIcons(functions)}${constants.Text.CodeLensDebugUnitTest} (Multiple)`,
             command: constants.Commands.Tests_Picker_UI_Debug,
             arguments: [filePath, functions]
         })

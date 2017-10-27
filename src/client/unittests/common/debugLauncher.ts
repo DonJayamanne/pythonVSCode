@@ -1,19 +1,21 @@
 import * as os from 'os';
-import { CancellationToken, debug, OutputChannel, workspace, Uri } from 'vscode';
+import { CancellationToken, debug, OutputChannel, Uri, workspace } from 'vscode';
 import { PythonSettings } from '../../common/configSettings';
-import { execPythonFile } from './../../common/utils';
 import { createDeferred } from './../../common/helpers';
+import { execPythonFile } from './../../common/utils';
 
 export function launchDebugger(rootDirectory: string, testArgs: string[], token?: CancellationToken, outChannel?: OutputChannel) {
     const pythonSettings = PythonSettings.getInstance(rootDirectory ? Uri.file(rootDirectory) : undefined);
+    // tslint:disable-next-line:no-any
     const def = createDeferred<any>();
+    // tslint:disable-next-line:no-any
     const launchDef = createDeferred<any>();
     let outputChannelShown = false;
     execPythonFile(rootDirectory, pythonSettings.pythonPath, testArgs, rootDirectory, true, (data: string) => {
-        if (data.startsWith('READY' + os.EOL)) {
+        if (data.startsWith(`READY${os.EOL}`)) {
             // debug socket server has started.
             launchDef.resolve();
-            data = data.substring(('READY' + os.EOL).length);
+            data = data.substring((`READY${os.EOL}`).length);
         }
 
         if (!outputChannelShown) {
@@ -44,14 +46,14 @@ export function launchDebugger(rootDirectory: string, testArgs: string[], token?
             workspaceFolder = workspace.workspaceFolders[0];
         }
         return debug.startDebugging(workspaceFolder, {
-            "name": "Debug Unit Test",
-            "type": "python",
-            "request": "attach",
-            "localRoot": rootDirectory,
-            "remoteRoot": rootDirectory,
-            "port": pythonSettings.unitTest.debugPort,
-            "secret": "my_secret",
-            "host": "localhost"
+            name: 'Debug Unit Test',
+            type: 'python',
+            request: 'attach',
+            localRoot: rootDirectory,
+            remoteRoot: rootDirectory,
+            port: pythonSettings.unitTest.debugPort,
+            secret: 'my_secret',
+            host: 'localhost'
         });
     }).catch(reason => {
         if (!def.rejected && !def.resolved) {
