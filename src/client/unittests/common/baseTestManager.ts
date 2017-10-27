@@ -4,7 +4,7 @@ import { IPythonSettings, PythonSettings } from '../../common/configSettings';
 import { isNotInstalledError } from '../../common/helpers';
 import { Installer, Product } from '../../common/installer';
 import { CANCELLATION_REASON, Tests, TestStatus, TestsToRun } from './contracts';
-import { displayTestErrorMessage, resetTestResults, storeDiscoveredTests } from './testUtils';
+import { displayTestErrorMessage, ITestCollectionStorageService, resetTestResults } from './testUtils';
 
 export abstract class BaseTestManager {
     protected readonly settings: IPythonSettings;
@@ -14,7 +14,8 @@ export abstract class BaseTestManager {
     private cancellationTokenSource: vscode.CancellationTokenSource;
     private installer: Installer;
     private discoverTestsPromise: Promise<Tests>;
-    constructor(private testProvider: string, private product: Product, protected rootDirectory: string, protected outputChannel: vscode.OutputChannel) {
+    constructor(private testProvider: string, private product: Product, protected rootDirectory: string, protected outputChannel: vscode.OutputChannel,
+        private testCollectionStorage: ITestCollectionStorageService) {
         this._status = TestStatus.Unknown;
         this.installer = new Installer();
         this.settings = PythonSettings.getInstance(this.rootDirectory ? vscode.Uri.file(this.rootDirectory) : undefined);
@@ -83,7 +84,8 @@ export abstract class BaseTestManager {
                 if (haveErrorsInDiscovering && !quietMode) {
                     displayTestErrorMessage('There were some errors in disovering unit tests');
                 }
-                storeDiscoveredTests(tests, this.rootDirectory ? vscode.Uri.file(this.rootDirectory) : undefined);
+                const wkspace = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(this.rootDirectory)).uri;
+                this.testCollectionStorage.storeTests(wkspace, tests);
                 this.disposeCancellationToken();
 
                 return tests;
@@ -103,7 +105,8 @@ export abstract class BaseTestManager {
                     // tslint:disable-next-line:prefer-template
                     this.outputChannel.appendLine('' + reason);
                 }
-                storeDiscoveredTests(null, vscode.Uri.file(this.rootDirectory));
+                const wkspace = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(this.rootDirectory)).uri;
+                this.testCollectionStorage.storeTests(wkspace, null);
                 this.disposeCancellationToken();
                 return Promise.reject(reason);
             });

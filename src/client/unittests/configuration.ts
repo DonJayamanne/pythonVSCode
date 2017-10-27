@@ -14,6 +14,7 @@ import * as nose from './nosetest/testConfigurationManager';
 import * as pytest from './pytest/testConfigurationManager';
 import * as unittest from './unittest/testConfigurationManager';
 
+// tslint:disable-next-line:no-any
 async function promptToEnableAndConfigureTestFramework(outputChannel: vscode.OutputChannel, messageToDisplay: string = 'Select a test framework/tool to enable', enableOnly: boolean = false): Thenable<any> {
     const wkspace = await selectTestWorkspace();
     if (!wkspace) {

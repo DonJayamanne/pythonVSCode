@@ -2,23 +2,27 @@
 
 'use strict';
 import * as path from 'path';
-import { TestsToRun, Tests, TestStatus } from '../common/contracts';
-import { updateResults } from '../common/testUtils';
-import { BaseTestManager } from '../common/baseTestManager';
 import { CancellationToken, OutputChannel, Uri } from 'vscode';
-import { run } from '../common/runner';
-import { Server } from './socketServer';
 import { PythonSettings } from '../../common/configSettings';
+import { BaseTestManager } from '../common/baseTestManager';
+import { Tests, TestStatus, TestsToRun } from '../common/contracts';
 import { launchDebugger } from '../common/debugLauncher';
-interface TestStatusMap {
+import { run } from '../common/runner';
+import { updateResults } from '../common/testUtils';
+import { Server } from './socketServer';
+type TestStatusMap = {
     status: TestStatus;
     summaryProperty: string;
-}
+};
 
 const outcomeMapping = new Map<string, TestStatusMap>();
+// tslint:disable-next-line:no-backbone-get-set-outside-model
 outcomeMapping.set('passed', { status: TestStatus.Pass, summaryProperty: 'passed' });
+// tslint:disable-next-line:no-backbone-get-set-outside-model
 outcomeMapping.set('failed', { status: TestStatus.Fail, summaryProperty: 'failures' });
+// tslint:disable-next-line:no-backbone-get-set-outside-model
 outcomeMapping.set('error', { status: TestStatus.Error, summaryProperty: 'errors' });
+// tslint:disable-next-line:no-backbone-get-set-outside-model
 outcomeMapping.set('skipped', { status: TestStatus.Skipped, summaryProperty: 'skipped' });
 
 interface ITestData {
@@ -28,6 +32,7 @@ interface ITestData {
     traceback: string;
 }
 
+// tslint:disable-next-line:max-func-body-length
 export function runTest(testManager: BaseTestManager, rootDirectory: string, tests: Tests, args: string[], testsToRun?: TestsToRun, token?: CancellationToken, outChannel?: OutputChannel, debug?: boolean): Promise<Tests> {
     tests.summary.errors = 0;
     tests.summary.failures = 0;
@@ -37,12 +42,16 @@ export function runTest(testManager: BaseTestManager, rootDirectory: string, tes
     const testLauncherFile = path.join(__dirname, '..', '..', '..', '..', 'pythonFiles', 'PythonTools', 'visualstudio_py_testlauncher.py');
     const server = new Server();
     server.on('error', (message: string, ...data: string[]) => {
+        // tslint:disable-next-line:no-console
         console.log(`${message} ${data.join(' ')}`);
     });
+    // tslint:disable-next-line:no-empty
     server.on('log', (message: string, ...data: string[]) => {
     });
+    // tslint:disable-next-line:no-empty
     server.on('connect', (data) => {
     });
+    // tslint:disable-next-line:no-empty
     server.on('start', (data: { test: string }) => {
     });
     server.on('result', (data: ITestData) => {
@@ -57,31 +66,31 @@ export function runTest(testManager: BaseTestManager, rootDirectory: string, tes
             if (failFast && (statusDetails.summaryProperty === 'failures' || statusDetails.summaryProperty === 'errors')) {
                 testManager.stop();
             }
-        }
-        else {
+        } else {
             if (statusDetails) {
                 tests.summary[statusDetails.summaryProperty] += 1;
             }
         }
     });
+    // tslint:disable-next-line:no-empty
     server.on('socket.disconnected', (data) => {
     });
 
     return server.start().then(port => {
-        let testPaths: string[] = getIdsOfTestsToRun(tests, testsToRun);
-        for (let counter = 0; counter < testPaths.length; counter++) {
-            testPaths[counter] = '-t' + testPaths[counter].trim();
+        const testPaths: string[] = getIdsOfTestsToRun(tests, testsToRun);
+        for (let counter = 0; counter < testPaths.length; counter += 1) {
+            testPaths[counter] = `-t${testPaths[counter].trim()}`;
         }
         const startTestDiscoveryDirectory = getStartDirectory(args);
 
-        function runTest(testFile: string = '', testId: string = '') {
+        function runTestInternal(testFile: string = '', testId: string = '') {
             let testArgs = buildTestArgs(args);
             failFast = testArgs.indexOf('--uf') >= 0;
             testArgs = testArgs.filter(arg => arg !== '--uf');
 
             testArgs.push(`--result-port=${port}`);
             if (debug === true) {
-                testArgs.push(...[`--secret=my_secret`, `--port=3000`]);
+                testArgs.push(...['--secret=my_secret', '--port=3000']);
             }
             testArgs.push(`--us=${startTestDiscoveryDirectory}`);
             if (testId.length > 0) {
@@ -92,34 +101,33 @@ export function runTest(testManager: BaseTestManager, rootDirectory: string, tes
             }
             if (debug === true) {
                 return launchDebugger(rootDirectory, [testLauncherFile].concat(testArgs), token, outChannel);
-            }
-            else {
+            } else {
                 return run(PythonSettings.getInstance(Uri.file(rootDirectory)).pythonPath, [testLauncherFile].concat(testArgs), rootDirectory, token, outChannel);
             }
         }
 
         // Test everything
         if (testPaths.length === 0) {
-            return runTest();
+            return runTestInternal();
         }
 
         // Ok, the ptvs test runner can only work with one test at a time
         let promise = Promise.resolve<string>('');
         if (Array.isArray(testsToRun.testFile)) {
             testsToRun.testFile.forEach(testFile => {
-                promise = promise.then(() => runTest(testFile.fullPath, testFile.nameToRun));
+                promise = promise.then(() => runTestInternal(testFile.fullPath, testFile.nameToRun));
             });
         }
         if (Array.isArray(testsToRun.testSuite)) {
             testsToRun.testSuite.forEach(testSuite => {
                 const testFileName = tests.testSuits.find(t => t.testSuite === testSuite).parentTestFile.fullPath;
-                promise = promise.then(() => runTest(testFileName, testSuite.nameToRun));
+                promise = promise.then(() => runTestInternal(testFileName, testSuite.nameToRun));
             });
         }
         if (Array.isArray(testsToRun.testFunction)) {
             testsToRun.testFunction.forEach(testFn => {
                 const testFileName = tests.testFunctions.find(t => t.testFunction === testFn).parentTestFile.fullPath;
-                promise = promise.then(() => runTest(testFileName, testFn.nameToRun));
+                promise = promise.then(() => runTestInternal(testFileName, testFn.nameToRun));
             });
         }
         return promise;
@@ -139,8 +147,7 @@ function getStartDirectory(args: string[]): string {
         if ((startDir.trim() === '-s' || startDir.trim() === '--start-directory') && args.length >= indexOfStartDir) {
             // Assume the next items is the directory
             startDirectory = args[indexOfStartDir + 1];
-        }
-        else {
+        } else {
             const lenToStartFrom = startDir.startsWith('-s') ? '-s'.length : '--start-directory'.length;
             startDirectory = startDir.substring(lenToStartFrom).trim();
             if (startDirectory.startsWith('=')) {
@@ -159,8 +166,7 @@ function buildTestArgs(args: string[]): string[] {
         if ((patternValue.trim() === '-p' || patternValue.trim() === '--pattern') && args.length >= indexOfPattern) {
             // Assume the next items is the directory
             pattern = args[indexOfPattern + 1];
-        }
-        else {
+        } else {
             const lenToStartFrom = patternValue.startsWith('-p') ? '-p'.length : '--pattern'.length;
             pattern = patternValue.substring(lenToStartFrom).trim();
             if (pattern.startsWith('=')) {

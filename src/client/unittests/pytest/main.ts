@@ -1,21 +1,22 @@
 'use strict';
-import { TestsToRun, Tests } from '../common/contracts';
-import { runTest } from './runner';
 import * as vscode from 'vscode';
-import { discoverTests } from './collector';
-import { BaseTestManager } from '../common/baseTestManager';
 import { Product } from '../../common/installer';
+import { BaseTestManager } from '../common/baseTestManager';
+import { Tests, TestsToRun } from '../common/contracts';
+import { ITestCollectionStorageService } from '../common/testUtils';
+import { discoverTests } from './collector';
+import { runTest } from './runner';
 
 export class TestManager extends BaseTestManager {
-    constructor(rootDirectory: string, outputChannel: vscode.OutputChannel) {
-        super('pytest', Product.pytest, rootDirectory, outputChannel);
+    constructor(rootDirectory: string, outputChannel: vscode.OutputChannel, testCollectionStorage: ITestCollectionStorageService) {
+        super('pytest', Product.pytest, rootDirectory, outputChannel, testCollectionStorage);
     }
-    discoverTestsImpl(ignoreCache: boolean): Promise<Tests> {
-        let args = this.settings.unitTest.pyTestArgs.slice(0);
+    public discoverTestsImpl(ignoreCache: boolean): Promise<Tests> {
+        const args = this.settings.unitTest.pyTestArgs.slice(0);
         return discoverTests(this.rootDirectory, args, this.cancellationToken, ignoreCache, this.outputChannel);
     }
-    runTestImpl(tests: Tests, testsToRun?: TestsToRun, runFailedTests?: boolean, debug?: boolean): Promise<any> {
-        let args = this.settings.unitTest.pyTestArgs.slice(0);
+    public runTestImpl(tests: Tests, testsToRun?: TestsToRun, runFailedTests?: boolean, debug?: boolean): Promise<{}> {
+        const args = this.settings.unitTest.pyTestArgs.slice(0);
         if (runFailedTests === true && args.indexOf('--lf') === -1 && args.indexOf('--last-failed') === -1) {
             args.push('--last-failed');
         }

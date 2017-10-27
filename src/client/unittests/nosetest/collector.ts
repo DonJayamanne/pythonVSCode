@@ -1,12 +1,12 @@
 'use strict';
-import * as path from 'path';
-import { execPythonFile } from './../../common/utils';
-import { TestFile, TestSuite, TestFunction, Tests } from '../common/contracts';
 import * as os from 'os';
-import { extractBetweenDelimiters, convertFileToPackage, flattenTestFiles } from '../common/testUtils';
+import * as path from 'path';
 import { CancellationToken } from 'vscode';
-import { PythonSettings } from '../../common/configSettings';
 import { OutputChannel, Uri } from 'vscode';
+import { PythonSettings } from '../../common/configSettings';
+import { TestFile, TestFunction, Tests, TestSuite } from '../common/contracts';
+import { convertFileToPackage, extractBetweenDelimiters, flattenTestFiles } from '../common/testUtils';
+import { execPythonFile } from './../../common/utils';
 
 const NOSE_WANT_FILE_PREFIX = 'nose.selector: DEBUG: wantFile ';
 const NOSE_WANT_FILE_SUFFIX = '.py? True';
@@ -44,8 +44,7 @@ export function discoverTests(rootDirectory: string, args: string[], token: Canc
         //  and starts with nose.selector: DEBUG: want
         if (logOutputLines[lastLineIndex].endsWith('? True')) {
             logOutputLines.push('');
-        }
-        else {
+        } else {
             // We don't need this line
             logOutputLines[lastLineIndex] = '';
         }
@@ -115,10 +114,10 @@ function parseNoseTestModuleCollectionResult(rootDirectory: string, lines: strin
         }
 
         if (line.startsWith('nose.selector: DEBUG: wantClass <class \'')) {
-            let name = extractBetweenDelimiters(line, 'nose.selector: DEBUG: wantClass <class \'', '\'>? True');
+            const name = extractBetweenDelimiters(line, 'nose.selector: DEBUG: wantClass <class \'', '\'>? True');
             const clsName = path.extname(name).substring(1);
             const testSuite: TestSuite = {
-                name: clsName, nameToRun: fileName + `:${clsName}`,
+                name: clsName, nameToRun: `${fileName}:${clsName}`,
                 functions: [], suites: [], xmlName: name, time: 0, isUnitTest: false,
                 isInstance: false, functionsFailed: 0, functionsPassed: 0
             };
@@ -126,7 +125,7 @@ function parseNoseTestModuleCollectionResult(rootDirectory: string, lines: strin
             return;
         }
         if (line.startsWith('nose.selector: DEBUG: wantClass ')) {
-            let name = extractBetweenDelimiters(line, 'nose.selector: DEBUG: wantClass ', '? True');
+            const name = extractBetweenDelimiters(line, 'nose.selector: DEBUG: wantClass ', '? True');
             const testSuite: TestSuite = {
                 name: path.extname(name).substring(1), nameToRun: `${fileName}:.${name}`,
                 functions: [], suites: [], xmlName: name, time: 0, isUnitTest: false,
@@ -144,6 +143,7 @@ function parseNoseTestModuleCollectionResult(rootDirectory: string, lines: strin
                 time: 0, functionsFailed: 0, functionsPassed: 0
             };
 
+            // tslint:disable-next-line:no-non-null-assertion
             const cls = testFile.suites.find(suite => suite.name === clsName)!;
             cls.functions.push(fn);
             return;

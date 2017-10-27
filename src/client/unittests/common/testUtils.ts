@@ -1,25 +1,22 @@
-import { ITestVisitor } from './testUtils';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { Uri, workspace } from 'vscode';
 import * as constants from '../../common/constants';
-import { FlattenedTestFunction, FlattenedTestSuite, TestFile, TestFolder, Tests, TestStatus, TestsToRun, TestSuite, TestFunction } from './contracts';
+import { FlattenedTestFunction, FlattenedTestSuite, TestFile, TestFolder, TestFunction, Tests, TestStatus, TestsToRun, TestSuite } from './contracts';
+import { ITestVisitor } from './testUtils';
 
 export interface ITestCollectionStorageService {
     getTests(wkspace: Uri): Tests | undefined;
-    storeTests(wkspace: Uri, tests: Tests): void;
+    storeTests(wkspace: Uri, tests: Tests | null | undefined): void;
 }
 
 export class TestCollectionStorageService implements ITestCollectionStorageService {
-    private testsIndexedByWorkspaceUri: Map<string, Tests>;
-    constructor() {
-        this.testsIndexedByWorkspaceUri = new Map<string, Tests>();
-    }
+    private testsIndexedByWorkspaceUri = new Map<string, Tests | null | undefined>();
     public getTests(wkspace: Uri): Tests | undefined {
         const workspaceFolder = getWorkspaceFolderPath(wkspace) || '';
         return this.testsIndexedByWorkspaceUri.has(workspaceFolder) ? this.testsIndexedByWorkspaceUri.get(workspaceFolder) : undefined;
     }
-    public storeTests(wkspace: Uri, tests: Tests): void {
+    public storeTests(wkspace: Uri, tests: Tests | null | undefined): void {
         const workspaceFolder = getWorkspaceFolderPath(wkspace) || '';
         this.testsIndexedByWorkspaceUri.set(workspaceFolder, tests);
     }
@@ -53,11 +50,12 @@ export function displayTestErrorMessage(message: string) {
 
 }
 
-export function parseTestName(name: string, rootDirectory: string): TestsToRun {
+export function parseTestName(name: string, rootDirectory: string, testCollectionStorage: ITestCollectionStorageService): TestsToRun {
     // TODO: We need a better way to match (currently we have raw name, name, xmlname, etc = which one do we.
     // use to identify a file given the full file name, similary for a folder and function
     // Perhaps something like a parser or methods like TestFunction.fromString()... something)
-    const tests = getDiscoveredTests();
+    const workspaceUri = workspace.getWorkspaceFolder(Uri.file(rootDirectory)).uri;
+    const tests = testCollectionStorage.getTests(workspaceUri);
     if (!tests) { return null; }
     const absolutePath = path.isAbsolute(name) ? name : path.resolve(rootDirectory, name);
     const testFolders = tests.testFolders.filter(folder => folder.nameToRun === name || folder.name === name || folder.name === absolutePath);
@@ -231,7 +229,6 @@ export function updateResults(tests: Tests) {
 
 export interface ITestsHelper {
     flattenTestFiles(testFiles: TestFile[]): Tests;
-    flattenTestSuites(flattenedFns: FlattenedTestFunction[], flattenedSuites: FlattenedTestSuite[], testFile: TestFile, testSuite: TestSuite): void;
     placeTestFilesIntoFolders(tests: Tests): void;
 }
 
@@ -243,28 +240,54 @@ export interface ITestVisitor {
 
 export class TestFlatteningVisitor implements ITestVisitor {
     // tslint:disable-next-line:variable-name
-    private _testFunctions: TestFunction[] = [];
+    private _flattedTestFunctions = new Map<string, FlattenedTestFunction>();
     // tslint:disable-next-line:variable-name
-    private _testSuites: TestSuite[] = [];
-    // tslint:disable-next-line:variable-name
-    private _testFiles: TestFile[] = [];
-    public get testFunctions(): TestFunction[] {
-        return [...this._testFunctions];
+    private _flattenedTestSuites = new Map<string, FlattenedTestSuite>();
+    public get flattenedTestFunctions(): Readonly<FlattenedTestFunction[]> {
+        return [...this._flattedTestFunctions.values()];
     }
-    public get testSuites(): TestFunction[] {
-        return [...this._testSuites];
+    public get flattenedTestSuites(): Readonly<FlattenedTestSuite[]> {
+        return [...this._flattenedTestSuites.values()];
     }
-    public get testFiles(): TestFunction[] {
-        return [...this._testFiles];
-    }
-    public visitTestFunction(testFunction: TestFunction): void {
-        this._testFunctions.push(testFunction);
-    }
-    public visitTestSuite(testSuite: TestSuite): void {
-        this._testSuites.push(testSuite);
-    }
+    // tslint:disable-next-line:no-empty
+    public visitTestFunction(testFunction: TestFunction): void { }
+    // tslint:disable-next-line:no-empty
+    public visitTestSuite(testSuite: TestSuite): void { }
     public visitTestFile(testFile: TestFile): void {
-        this._testFiles.push(testFile);
+        // sample test_three (file name without extension and all / replaced with ., meaning this is the package)
+        const packageName = convertFileToPackage(testFile.name);
+
+        testFile.functions.forEach(fn => this.addTestFunction(fn, testFile, packageName));
+        testFile.suites.forEach(suite => this.visitTestSuiteOfAFile(suite, testFile));
+    }
+    private visitTestSuiteOfAFile(testSuite: TestSuite, parentTestFile: TestFile): void {
+        testSuite.functions.forEach(fn => this.visitTestFunctionOfASuite(fn, testSuite, parentTestFile));
+        testSuite.suites.forEach(suite => this.visitTestSuiteOfAFile(suite, parentTestFile));
+        this.addTestSuite(testSuite, parentTestFile);
+    }
+    private visitTestFunctionOfASuite(testFunction: TestFunction, parentTestSuite: TestSuite, parentTestFile: TestFile) {
+        const key = `Function:${testFunction.name},Suite:${parentTestSuite.name},SuiteXmlName:${parentTestSuite.xmlName},ParentFile:${parentTestFile.fullPath}`;
+        if (this._flattenedTestSuites.has(key)) {
+            return;
+        }
+        const flattenedFunction = { testFunction, xmlClassName: parentTestSuite.xmlName, parentTestFile, parentTestSuite };
+        this._flattedTestFunctions.set(key, flattenedFunction);
+    }
+    private addTestSuite(testSuite: TestSuite, parentTestFile: TestFile) {
+        const key = `Suite:${testSuite.name},SuiteXmlName:${testSuite.xmlName},ParentFile:${parentTestFile.fullPath}`;
+        if (this._flattenedTestSuites.has(key)) {
+            return;
+        }
+        const flattenedSuite = { parentTestFile, testSuite, xmlClassName: testSuite.xmlName };
+        this._flattenedTestSuites.set(key, flattenedSuite);
+    }
+    private addTestFunction(testFunction: TestFunction, parentTestFile: TestFile, parentTestPackage: string) {
+        const key = `Function:${testFunction.name},ParentFile:${parentTestFile.fullPath}`;
+        if (this._flattedTestFunctions.has(key)) {
+            return;
+        }
+        const flattendFunction = { testFunction, xmlClassName: parentTestPackage, parentTestFile };
+        this._flattedTestFunctions.set(key, flattendFunction);
     }
 }
 
@@ -323,25 +346,13 @@ export class TestFolderGenerationVisitor implements ITestVisitor {
 // tslint:disable-next-line:max-classes-per-file
 export class TestsHelper implements ITestsHelper {
     public flattenTestFiles(testFiles: TestFile[]): Tests {
-        const fns: FlattenedTestFunction[] = [];
-        const suites: FlattenedTestSuite[] = [];
-        testFiles.forEach(testFile => {
-            // sample test_three (file name without extension and all / replaced with ., meaning this is the package)
-            const packageName = convertFileToPackage(testFile.name);
-
-            testFile.functions.forEach(fn => {
-                fns.push({ testFunction: fn, xmlClassName: packageName, parentTestFile: testFile });
-            });
-
-            testFile.suites.forEach(suite => {
-                suites.push({ parentTestFile: testFile, testSuite: suite, xmlClassName: suite.xmlName });
-                this.flattenTestSuites(fns, suites, testFile, suite);
-            });
-        });
+        const flatteningVisitor = new TestFlatteningVisitor();
+        testFiles.forEach(testFile => flatteningVisitor.visitTestFile(testFile));
 
         const tests = <Tests>{
             testFiles: testFiles,
-            testFunctions: fns, testSuits: suites,
+            testFunctions: flatteningVisitor.flattenedTestFunctions,
+            testSuits: flatteningVisitor.flattenedTestSuites,
             testFolders: [],
             rootTestFolders: [],
             summary: { passed: 0, failures: 0, errors: 0, skipped: 0 }
@@ -350,17 +361,6 @@ export class TestsHelper implements ITestsHelper {
         this.placeTestFilesIntoFolders(tests);
 
         return tests;
-    }
-    public flattenTestSuites(flattenedFns: FlattenedTestFunction[], flattenedSuites: FlattenedTestSuite[], testFile: TestFile, testSuite: TestSuite) {
-        testSuite.functions.forEach(fn => {
-            flattenedFns.push({ testFunction: fn, xmlClassName: testSuite.xmlName, parentTestFile: testFile, parentTestSuite: testSuite });
-        });
-
-        // We may have child classes
-        testSuite.suites.forEach(suite => {
-            flattenedSuites.push({ parentTestFile: testFile, testSuite: suite, xmlClassName: suite.xmlName });
-            this.flattenTestSuites(flattenedFns, flattenedSuites, testFile, suite);
-        });
     }
     public placeTestFilesIntoFolders(tests: Tests): void {
         // First get all the unique folders

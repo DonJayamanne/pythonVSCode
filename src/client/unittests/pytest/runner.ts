@@ -1,15 +1,13 @@
-/// <reference path="../../../../typings/globals/xml2js/index.d.ts" />
-
 'use strict';
-import { createTemporaryFile } from '../../common/helpers';
-import { TestsToRun, Tests } from '../common/contracts';
-import { updateResults } from '../common/testUtils';
-import { CancellationToken, OutputChannel, Uri } from 'vscode';
-import { updateResultsFromXmlLogFile, PassCalculationFormulae } from '../common/xUnitParser';
-import { run } from '../common/runner';
-import { PythonSettings } from '../../common/configSettings';
 import * as path from 'path';
+import { CancellationToken, OutputChannel, Uri } from 'vscode';
+import { PythonSettings } from '../../common/configSettings';
+import { createTemporaryFile } from '../../common/helpers';
+import { Tests, TestsToRun } from '../common/contracts';
 import { launchDebugger } from '../common/debugLauncher';
+import { run } from '../common/runner';
+import { updateResults } from '../common/testUtils';
+import { PassCalculationFormulae, updateResultsFromXmlLogFile } from '../common/xUnitParser';
 
 export function runTest(rootDirectory: string, tests: Tests, args: string[], testsToRun?: TestsToRun, token?: CancellationToken, outChannel?: OutputChannel, debug?: boolean): Promise<Tests> {
     let testPaths = [];
@@ -41,10 +39,9 @@ export function runTest(rootDirectory: string, tests: Tests, args: string[], tes
         if (debug) {
             const testLauncherFile = path.join(__dirname, '..', '..', '..', '..', 'pythonFiles', 'PythonTools', 'testlauncher.py');
             const pytestlauncherargs = [rootDirectory, 'my_secret', pythonSettings.unitTest.debugPort.toString(), 'pytest'];
-            const args = [testLauncherFile].concat(pytestlauncherargs).concat(testArgs);
-            return launchDebugger(rootDirectory, args, token, outChannel);
-        }
-        else {
+            const debuggerArgs = [testLauncherFile].concat(pytestlauncherargs).concat(testArgs);
+            return launchDebugger(rootDirectory, debuggerArgs, token, outChannel);
+        } else {
             return run(pythonSettings.unitTest.pyTestPath, testArgs, rootDirectory, token, outChannel);
         }
     }).then(() => {

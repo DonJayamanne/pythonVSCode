@@ -1,23 +1,25 @@
 'use strict';
-import { PythonSettings } from '../../common/configSettings';
 import { OutputChannel } from 'vscode';
-import { TestsToRun, Tests } from '../common/contracts';
 import * as vscode from 'vscode';
-import { discoverTests } from './collector';
-import { BaseTestManager } from '../common/baseTestManager';
-import { runTest } from './runner';
+import { PythonSettings } from '../../common/configSettings';
 import { Product } from '../../common/installer';
+import { BaseTestManager } from '../common/baseTestManager';
+import { Tests, TestsToRun } from '../common/contracts';
+import { ITestCollectionStorageService } from '../common/testUtils';
+import { discoverTests } from './collector';
+import { runTest } from './runner';
 
 export class TestManager extends BaseTestManager {
-    constructor(rootDirectory: string, outputChannel: vscode.OutputChannel) {
-        super('nosetest', Product.nosetest, rootDirectory, outputChannel);
+    constructor(rootDirectory: string, outputChannel: vscode.OutputChannel, testCollectionStorage: ITestCollectionStorageService) {
+        super('nosetest', Product.nosetest, rootDirectory, outputChannel, testCollectionStorage);
     }
-    discoverTestsImpl(ignoreCache: boolean): Promise<Tests> {
-        let args = this.settings.unitTest.nosetestArgs.slice(0);
+    public discoverTestsImpl(ignoreCache: boolean): Promise<Tests> {
+        const args = this.settings.unitTest.nosetestArgs.slice(0);
         return discoverTests(this.rootDirectory, args, this.cancellationToken, ignoreCache, this.outputChannel);
     }
-    runTestImpl(tests: Tests, testsToRun?: TestsToRun, runFailedTests?: boolean, debug?: boolean): Promise<any> {
-        let args = this.settings.unitTest.nosetestArgs.slice(0);
+    // tslint:disable-next-line:no-any
+    public runTestImpl(tests: Tests, testsToRun?: TestsToRun, runFailedTests?: boolean, debug?: boolean): Promise<any> {
+        const args = this.settings.unitTest.nosetestArgs.slice(0);
         if (runFailedTests === true && args.indexOf('--failed') === -1) {
             args.push('--failed');
         }

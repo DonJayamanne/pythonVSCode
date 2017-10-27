@@ -1,17 +1,18 @@
 'use strict';
-import { createTemporaryFile } from '../../common/helpers';
-import { OutputChannel, CancellationToken, Uri } from 'vscode';
-import { TestsToRun, Tests } from '../common/contracts';
-import { updateResults } from '../common/testUtils';
-import { updateResultsFromXmlLogFile, PassCalculationFormulae } from '../common/xUnitParser';
-import { run } from '../common/runner';
-import { PythonSettings } from '../../common/configSettings';
 import * as path from 'path';
+import { CancellationToken, OutputChannel, Uri } from 'vscode';
+import { PythonSettings } from '../../common/configSettings';
+import { createTemporaryFile } from '../../common/helpers';
+import { Tests, TestsToRun } from '../common/contracts';
 import { launchDebugger } from '../common/debugLauncher';
+import { run } from '../common/runner';
+import { updateResults } from '../common/testUtils';
+import { PassCalculationFormulae, updateResultsFromXmlLogFile } from '../common/xUnitParser';
 
 const WITH_XUNIT = '--with-xunit';
 const XUNIT_FILE = '--xunit-file';
 
+// tslint:disable-next-line:no-any
 export function runTest(rootDirectory: string, tests: Tests, args: string[], testsToRun?: TestsToRun, token?: CancellationToken, outChannel?: OutputChannel, debug?: boolean): Promise<any> {
     let testPaths = [];
     if (testsToRun && testsToRun.testFolder) {
@@ -28,6 +29,7 @@ export function runTest(rootDirectory: string, tests: Tests, args: string[], tes
     }
 
     let xmlLogFile = '';
+    // tslint:disable-next-line:no-empty
     let xmlLogFileCleanup: Function = () => { };
 
     // Check if '--with-xunit' is in args list
@@ -37,7 +39,7 @@ export function runTest(rootDirectory: string, tests: Tests, args: string[], tes
     }
 
     // Check if '--xunit-file' exists, if not generate random xml file
-    let indexOfXUnitFile = noseTestArgs.findIndex(value => value.indexOf(XUNIT_FILE) === 0);
+    const indexOfXUnitFile = noseTestArgs.findIndex(value => value.indexOf(XUNIT_FILE) === 0);
     let promiseToGetXmlLogFile: Promise<string>;
     if (indexOfXUnitFile === -1) {
         promiseToGetXmlLogFile = createTemporaryFile('.xml').then(xmlLogResult => {
@@ -47,12 +49,10 @@ export function runTest(rootDirectory: string, tests: Tests, args: string[], tes
             noseTestArgs.push(`${XUNIT_FILE}=${xmlLogFile}`);
             return xmlLogResult.filePath;
         });
-    }
-    else {
+    } else {
         if (noseTestArgs[indexOfXUnitFile].indexOf('=') === -1) {
             xmlLogFile = noseTestArgs[indexOfXUnitFile + 1];
-        }
-        else {
+        } else {
             xmlLogFile = noseTestArgs[indexOfXUnitFile].substring(noseTestArgs[indexOfXUnitFile].indexOf('=') + 1).trim();
         }
 
@@ -64,10 +64,9 @@ export function runTest(rootDirectory: string, tests: Tests, args: string[], tes
         if (debug === true) {
             const testLauncherFile = path.join(__dirname, '..', '..', '..', '..', 'pythonFiles', 'PythonTools', 'testlauncher.py');
             const nosetestlauncherargs = [rootDirectory, 'my_secret', pythonSettings.unitTest.debugPort.toString(), 'nose'];
-            const args = [testLauncherFile].concat(nosetestlauncherargs).concat(noseTestArgs.concat(testPaths));
-            return launchDebugger(rootDirectory, args, token, outChannel);
-        }
-        else {
+            const debuggerArgs = [testLauncherFile].concat(nosetestlauncherargs).concat(noseTestArgs.concat(testPaths));
+            return launchDebugger(rootDirectory, debuggerArgs, token, outChannel);
+        } else {
             return run(pythonSettings.unitTest.nosetestPath, noseTestArgs.concat(testPaths), rootDirectory, token, outChannel);
         }
     }).then(() => {
@@ -81,6 +80,7 @@ export function runTest(rootDirectory: string, tests: Tests, args: string[], tes
     });
 }
 
+// tslint:disable-next-line:no-any
 export function updateResultsFromLogFiles(tests: Tests, outputXmlFile: string): Promise<any> {
     return updateResultsFromXmlLogFile(tests, outputXmlFile, PassCalculationFormulae.nosetests).then(() => {
         updateResults(tests);

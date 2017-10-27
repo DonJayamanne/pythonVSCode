@@ -1,11 +1,11 @@
 'use strict';
-import { execPythonFile } from './../../common/utils';
+import * as path from 'path';
+import * as vscode from 'vscode';
+import { OutputChannel } from 'vscode';
+import { PythonSettings } from '../../common/configSettings';
 import { TestFile, Tests, TestStatus } from '../common/contracts';
 import { flattenTestFiles } from '../common/testUtils';
-import * as vscode from 'vscode';
-import * as path from 'path';
-import { PythonSettings } from '../../common/configSettings';
-import { OutputChannel } from 'vscode';
+import { execPythonFile } from './../../common/utils';
 
 export function discoverTests(rootDirectory: string, args: string[], token: vscode.CancellationToken, ignoreCache: boolean, outChannel: OutputChannel): Promise<Tests> {
     let startDirectory = '.';
@@ -16,8 +16,7 @@ export function discoverTests(rootDirectory: string, args: string[], token: vsco
         if (startDir.trim() === '-s' && args.length >= indexOfStartDir) {
             // Assume the next items is the directory
             startDirectory = args[indexOfStartDir + 1];
-        }
-        else {
+        } else {
             startDirectory = startDir.substring(2).trim();
             if (startDirectory.startsWith('=') || startDirectory.startsWith(' ')) {
                 startDirectory = startDirectory.substring(1);
@@ -30,8 +29,7 @@ export function discoverTests(rootDirectory: string, args: string[], token: vsco
         if (patternValue.trim() === '-p' && args.length >= indexOfPattern) {
             // Assume the next items is the directory
             pattern = args[indexOfPattern + 1];
-        }
-        else {
+        } else {
             pattern = patternValue.substring(2).trim();
             if (pattern.startsWith('=')) {
                 pattern = pattern.substring(1);
@@ -51,7 +49,7 @@ for suite in suites._tests:
             pass`;
 
     let startedCollecting = false;
-    let testItems: string[] = [];
+    const testItems: string[] = [];
     function processOutput(output: string) {
         output.split(/\r?\n/g).forEach((line, index, lines) => {
             if (token && token.isCancellationRequested) {
@@ -104,7 +102,7 @@ function addTestId(rootDirectory: string, testId: string, testFiles: TestFile[])
     }
 
     const paths = testIdParts.slice(0, testIdParts.length - 2);
-    const filePath = path.join(rootDirectory, ...paths) + '.py';
+    const filePath = `${path.join(rootDirectory, ...paths)}.py`;
     const functionName = testIdParts.pop();
     const className = testIdParts.pop();
 

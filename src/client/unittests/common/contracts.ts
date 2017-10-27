@@ -1,4 +1,4 @@
-import { Uri, Disposable } from 'vscode';
+import { Disposable, Uri } from 'vscode';
 import { Product } from '../../common/installer';
 import { BaseTestManager } from './baseTestManager';
 
@@ -49,7 +49,8 @@ export type TestResult = Node & {
     functionsPassed?: number;
     functionsFailed?: number;
     functionsDidNotRun?: number;
-}
+};
+
 export type Node = {
     expanded?: Boolean;
 };

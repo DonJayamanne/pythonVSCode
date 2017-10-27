@@ -1,9 +1,10 @@
 'use strict';
 import * as vscode from 'vscode';
-import * as nosetests from './nosetest/main';
-import * as pytest from './pytest/main';
-import * as unittest from './unittest/main';
+import { IUnitTestSettings, PythonSettings } from '../common/configSettings';
 import * as constants from '../common/constants';
+import { PythonSymbolProvider } from '../providers/symbolProvider';
+import { activateCodeLenses } from './codeLenses/main';
+import { BaseTestManager } from './common/baseTestManager';
 import {
     CANCELLATION_REASON,
     FlattenedTestFunction,
@@ -12,14 +13,13 @@ import {
     TestStatus,
     TestsToRun,
 } from './common/contracts';
-import { parseTestName, getDiscoveredTests } from './common/testUtils';
-import { BaseTestManager } from './common/baseTestManager';
-import { PythonSettings, IUnitTestSettings } from '../common/configSettings';
+import { getDiscoveredTests, parseTestName } from './common/testUtils';
+import { displayTestFrameworkError } from './configuration';
 import { TestResultDisplay } from './display/main';
 import { TestDisplay } from './display/picker';
-import { activateCodeLenses } from './codeLenses/main';
-import { displayTestFrameworkError } from './configuration';
-import { PythonSymbolProvider } from '../providers/symbolProvider';
+import * as nosetests from './nosetest/main';
+import * as pytest from './pytest/main';
+import * as unittest from './unittest/main';
 
 let testManager: BaseTestManager | undefined | null;
 let pyTestManager: pytest.TestManager | undefined | null;
@@ -28,7 +28,7 @@ let nosetestManager: nosetests.TestManager | undefined | null;
 let testResultDisplay: TestResultDisplay;
 let testDisplay: TestDisplay;
 let outChannel: vscode.OutputChannel;
-let onDidChange: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
+const onDidChange: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
 
 export function activate(context: vscode.ExtensionContext, outputChannel: vscode.OutputChannel, symboldProvider: PythonSymbolProvider) {
     // TODO: Add multi workspace support
@@ -36,7 +36,7 @@ export function activate(context: vscode.ExtensionContext, outputChannel: vscode
     uniTestSettingsString = JSON.stringify(settings.unitTest);
     context.subscriptions.push({ dispose: dispose });
     outChannel = outputChannel;
-    let disposables = registerCommands();
+    const disposables = registerCommands();
     context.subscriptions.push(...disposables);
 
     if (settings.unitTest.nosetestsEnabled || settings.unitTest.pyTestEnabled || settings.unitTest.unittestEnabled) {

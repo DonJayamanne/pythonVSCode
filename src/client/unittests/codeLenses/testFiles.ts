@@ -1,10 +1,10 @@
 'use strict';
 
-import { CancellationToken, CancellationTokenSource, CodeLens, CodeLensProvider, Event, EventEmitter, Position, Range, SymbolInformation, SymbolKind, TextDocument } from 'vscode';
+import { CancellationToken, CancellationTokenSource, CodeLens, CodeLensProvider, Event, EventEmitter, Position, Range, SymbolInformation, SymbolKind, TextDocument, workspace } from 'vscode';
 import * as constants from '../../common/constants';
 import { PythonSymbolProvider } from '../../providers/symbolProvider';
 import { TestFile, TestFunction, TestStatus, TestsToRun, TestSuite } from '../common/contracts';
-import { getDiscoveredTests } from '../common/testUtils';
+import { ITestCollectionStorageService } from '../common/testUtils';
 
 type CodeLensData = {
     symbolKind: SymbolKind;
@@ -18,17 +18,23 @@ type FunctionsAndSuites = {
 
 export class TestFileCodeLensProvider implements CodeLensProvider {
     // tslint:disable-next-line:variable-name
-    constructor(private _onDidChange: EventEmitter<void>, private symbolProvider: PythonSymbolProvider) {
+    constructor(private _onDidChange: EventEmitter<void>,
+        private symbolProvider: PythonSymbolProvider,
+        private testCollectionStorage: ITestCollectionStorageService) {
     }
 
     get onDidChangeCodeLenses(): Event<void> {
         return this._onDidChange.event;
     }
 
-    public provideCodeLenses(document: TextDocument, token: CancellationToken): Thenable<CodeLens[]> {
-        const testItems = getDiscoveredTests(document.uri);
+    public async provideCodeLenses(document: TextDocument, token: CancellationToken) {
+        const wkspace = workspace.getWorkspaceFolder(document.uri);
+        if (!wkspace) {
+            return [];
+        }
+        const testItems = this.testCollectionStorage.getTests(wkspace.uri);
         if (!testItems || testItems.testFiles.length === 0 || testItems.testFunctions.length === 0) {
-            return Promise.resolve([]);
+            return [];
         }
 
         const cancelTokenSrc = new CancellationTokenSource();
@@ -42,79 +48,82 @@ export class TestFileCodeLensProvider implements CodeLensProvider {
             }
         }, constants.Delays.MaxUnitTestCodeLensDelay);
 
-        return getCodeLenses(document, token, this.symbolProvider);
+        return this.getCodeLenses(document, token, this.symbolProvider);
     }
 
     public resolveCodeLens(codeLens: CodeLens, token: CancellationToken): CodeLens | Thenable<CodeLens> {
         codeLens.command = { command: 'python.runtests', title: 'Test' };
         return Promise.resolve(codeLens);
     }
-}
 
-function getCodeLenses(document: TextDocument, token: CancellationToken, symbolProvider: PythonSymbolProvider): Thenable<CodeLens[]> {
-    const documentUri = document.uri;
-    const tests = getDiscoveredTests(document.uri);
-    if (!tests) {
-        return null;
+    private getCodeLenses(document: TextDocument, token: CancellationToken, symbolProvider: PythonSymbolProvider): Thenable<CodeLens[]> {
+        const wkspace = workspace.getWorkspaceFolder(document.uri);
+        if (!wkspace) {
+            return null;
+        }
+        const tests = this.testCollectionStorage.getTests(wkspace.uri);
+        if (!tests) {
+            return null;
+        }
+        const file = tests.testFiles.find(item => item.fullPath === document.uri.fsPath);
+        if (!file) {
+            return Promise.resolve([]);
+        }
+        const allFuncsAndSuites = getAllTestSuitesAndFunctionsPerFile(file);
+
+        return symbolProvider.provideDocumentSymbolsForInternalUse(document, token)
+            .then((symbols: SymbolInformation[]) => {
+                return symbols.filter(symbol => {
+                    return symbol.kind === SymbolKind.Function ||
+                        symbol.kind === SymbolKind.Method ||
+                        symbol.kind === SymbolKind.Class;
+                }).map(symbol => {
+                    // This is bloody crucial, if the start and end columns are the same
+                    // then vscode goes bonkers when ever you edit a line (start scrolling magically)
+                    const range = new Range(symbol.location.range.start,
+                        new Position(symbol.location.range.end.line,
+                            symbol.location.range.end.character + 1));
+
+                    return this.getCodeLens(document.uri.fsPath, allFuncsAndSuites,
+                        range, symbol.name, symbol.kind, symbol.containerName);
+                }).reduce((previous, current) => previous.concat(current), []).filter(codeLens => codeLens !== null);
+            }, reason => {
+                if (token.isCancellationRequested) {
+                    return [];
+                }
+                return Promise.reject(reason);
+            });
     }
-    const file = tests.testFiles.find(item => item.fullPath === documentUri.fsPath);
-    if (!file) {
-        return Promise.resolve([]);
-    }
-    const allFuncsAndSuites = getAllTestSuitesAndFunctionsPerFile(file);
 
-    return symbolProvider.provideDocumentSymbolsForInternalUse(document, token)
-        .then((symbols: SymbolInformation[]) => {
-            return symbols.filter(symbol => {
-                return symbol.kind === SymbolKind.Function ||
-                    symbol.kind === SymbolKind.Method ||
-                    symbol.kind === SymbolKind.Class;
-            }).map(symbol => {
-                // This is bloody crucial, if the start and end columns are the same
-                // then vscode goes bonkers when ever you edit a line (start scrolling magically)
-                const range = new Range(symbol.location.range.start,
-                    new Position(symbol.location.range.end.line,
-                        symbol.location.range.end.character + 1));
+    private getCodeLens(fileName: string, allFuncsAndSuites: FunctionsAndSuites,
+        range: Range, symbolName: string, symbolKind: SymbolKind, symbolContainer: string): CodeLens[] {
 
-                return getCodeLens(documentUri.fsPath, allFuncsAndSuites,
-                    range, symbol.name, symbol.kind, symbol.containerName);
-            }).reduce((previous, current) => previous.concat(current), []).filter(codeLens => codeLens !== null);
-        }, reason => {
-            if (token.isCancellationRequested) {
+        switch (symbolKind) {
+            case SymbolKind.Function:
+            case SymbolKind.Method: {
+                return getFunctionCodeLens(fileName, allFuncsAndSuites, symbolName, range, symbolContainer);
+            }
+            case SymbolKind.Class: {
+                const cls = allFuncsAndSuites.suites.find(item => item.name === symbolName);
+                if (!cls) {
+                    return null;
+                }
+                return [
+                    new CodeLens(range, {
+                        title: getTestStatusIcon(cls.status) + constants.Text.CodeLensRunUnitTest,
+                        command: constants.Commands.Tests_Run,
+                        arguments: [<TestsToRun>{ testSuite: [cls] }]
+                    }),
+                    new CodeLens(range, {
+                        title: getTestStatusIcon(cls.status) + constants.Text.CodeLensDebugUnitTest,
+                        command: constants.Commands.Tests_Debug,
+                        arguments: [<TestsToRun>{ testSuite: [cls] }]
+                    })
+                ];
+            }
+            default: {
                 return [];
             }
-            return Promise.reject(reason);
-        });
-}
-
-function getCodeLens(fileName: string, allFuncsAndSuites: FunctionsAndSuites,
-    range: Range, symbolName: string, symbolKind: SymbolKind, symbolContainer: string): CodeLens[] {
-
-    switch (symbolKind) {
-        case SymbolKind.Function:
-        case SymbolKind.Method: {
-            return getFunctionCodeLens(fileName, allFuncsAndSuites, symbolName, range, symbolContainer);
-        }
-        case SymbolKind.Class: {
-            const cls = allFuncsAndSuites.suites.find(item => item.name === symbolName);
-            if (!cls) {
-                return null;
-            }
-            return [
-                new CodeLens(range, {
-                    title: getTestStatusIcon(cls.status) + constants.Text.CodeLensRunUnitTest,
-                    command: constants.Commands.Tests_Run,
-                    arguments: [<TestsToRun>{ testSuite: [cls] }]
-                }),
-                new CodeLens(range, {
-                    title: getTestStatusIcon(cls.status) + constants.Text.CodeLensDebugUnitTest,
-                    command: constants.Commands.Tests_Debug,
-                    arguments: [<TestsToRun>{ testSuite: [cls] }]
-                })
-            ];
-        }
-        default: {
-            return [];
         }
     }
 }

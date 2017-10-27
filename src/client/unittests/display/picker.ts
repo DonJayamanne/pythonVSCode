@@ -3,9 +3,10 @@ import { QuickPickItem, window } from 'vscode';
 import * as vscode from 'vscode';
 import * as constants from '../../common/constants';
 import { FlattenedTestFunction, TestFile, TestFunction, Tests, TestStatus } from '../common/contracts';
-import { getDiscoveredTests } from '../common/testUtils';
+import { ITestCollectionStorageService } from '../common/testUtils';
 
 export class TestDisplay {
+    constructor(private testCollectionStorage: ITestCollectionStorageService) { }
     public displayStopTestUI(message: string) {
         window.showQuickPick([message]).then(item => {
             if (item === message) {
@@ -14,7 +15,8 @@ export class TestDisplay {
         });
     }
     public displayTestUI(rootDirectory: string) {
-        const tests = getDiscoveredTests(rootDirectory ? vscode.Uri.file(rootDirectory) : undefined);
+        const wkspace = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(rootDirectory)).uri;
+        const tests = this.testCollectionStorage.getTests(wkspace);
         window.showQuickPick(buildItems(rootDirectory, tests), { matchOnDescription: true, matchOnDetail: true }).then(onItemSelected);
     }
     public selectTestFunction(rootDirectory: string, tests: Tests): Promise<FlattenedTestFunction> {
@@ -40,7 +42,8 @@ export class TestDisplay {
         });
     }
     public displayFunctionTestPickerUI(rootDirectory: string, fileName: string, testFunctions: TestFunction[], debug?: boolean) {
-        const tests = getDiscoveredTests(rootDirectory ? vscode.Uri.file(rootDirectory) : undefined);
+        const wkspace = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(rootDirectory)).uri;
+        const tests = this.testCollectionStorage.getTests(wkspace);
         if (!tests) {
             return;
         }
@@ -79,14 +82,16 @@ statusIconMapping.set(TestStatus.Fail, constants.Octicons.Test_Fail);
 statusIconMapping.set(TestStatus.Error, constants.Octicons.Test_Error);
 statusIconMapping.set(TestStatus.Skipped, constants.Octicons.Test_Skip);
 
-interface TestItem extends QuickPickItem {
+type TestItem = QuickPickItem & {
     type: Type;
     fn?: FlattenedTestFunction;
-}
-interface TestFileItem extends QuickPickItem {
+};
+
+type TestFileItem = QuickPickItem & {
     type: Type;
     testFile?: TestFile;
-}
+};
+
 function getSummary(tests?: Tests) {
     if (!tests || !tests.summary) {
         return '';
