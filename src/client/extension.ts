@@ -1,41 +1,41 @@
 'use strict';
 
+import * as fs from 'fs';
+import * as os from 'os';
+import { workspace } from 'vscode';
 import * as vscode from 'vscode';
-import { JediFactory } from './languageServices/jediProxyFactory';
-import { createDeferred } from './common/helpers';
-import { PythonCompletionItemProvider } from './providers/completionProvider';
-import { PythonHoverProvider } from './providers/hoverProvider';
-import { PythonDefinitionProvider } from './providers/definitionProvider';
-import { PythonReferenceProvider } from './providers/referenceProvider';
-import { PythonRenameProvider } from './providers/renameProvider';
-import { PythonFormattingEditProvider } from './providers/formatProvider';
-import { ShebangCodeLensProvider } from './providers/shebangCodeLensProvider'
-import * as sortImports from './sortImports';
-import { LintProvider } from './providers/lintProvider';
-import { PythonSymbolProvider } from './providers/symbolProvider';
-import { PythonSignatureProvider } from './providers/signatureProvider';
 import * as settings from './common/configSettings';
+import { Commands } from './common/constants';
+import { createDeferred } from './common/helpers';
 import * as telemetryHelper from './common/telemetry';
 import * as telemetryContracts from './common/telemetryContracts';
-import { activateSimplePythonRefactorProvider } from './providers/simpleRefactorProvider';
-import { SetInterpreterProvider } from './providers/setInterpreterProvider';
-import { activateExecInTerminalProvider } from './providers/execInTerminalProvider';
-import { Commands } from './common/constants';
-import * as tests from './unittests/main';
-import * as jup from './jupyter/main';
-import { HelpProvider } from './helpProvider';
-import { activateUpdateSparkLibraryProvider } from './providers/updateSparkLibraryProvider';
-import { activateFormatOnSaveProvider } from './providers/formatOnSaveProvider';
-import { WorkspaceSymbols } from './workspaceSymbols/main';
-import { BlockFormatProviders } from './typeFormatters/blockFormatProvider';
-import * as os from 'os';
-import * as fs from 'fs';
-import { JupyterProvider } from './jupyter/provider';
-import { activateGoToObjectDefinitionProvider } from './providers/objectDefinitionProvider';
-import { InterpreterManager } from './interpreter';
 import { SimpleConfigurationProvider } from './debugger';
+import { HelpProvider } from './helpProvider';
+import { InterpreterManager } from './interpreter';
+import { SetInterpreterProvider } from './interpreter/configuration/setInterpreterProvider';
+import { ShebangCodeLensProvider } from './interpreter/display/shebangCodeLensProvider';
+import * as jup from './jupyter/main';
+import { JupyterProvider } from './jupyter/provider';
+import { JediFactory } from './languageServices/jediProxyFactory';
+import { PythonCompletionItemProvider } from './providers/completionProvider';
+import { PythonDefinitionProvider } from './providers/definitionProvider';
+import { activateExecInTerminalProvider } from './providers/execInTerminalProvider';
+import { activateFormatOnSaveProvider } from './providers/formatOnSaveProvider';
+import { PythonFormattingEditProvider } from './providers/formatProvider';
+import { PythonHoverProvider } from './providers/hoverProvider';
+import { LintProvider } from './providers/lintProvider';
+import { activateGoToObjectDefinitionProvider } from './providers/objectDefinitionProvider';
+import { PythonReferenceProvider } from './providers/referenceProvider';
+import { PythonRenameProvider } from './providers/renameProvider';
 import { ReplProvider } from './providers/replProvider';
-import { workspace } from 'vscode';
+import { PythonSignatureProvider } from './providers/signatureProvider';
+import { activateSimplePythonRefactorProvider } from './providers/simpleRefactorProvider';
+import { PythonSymbolProvider } from './providers/symbolProvider';
+import { activateUpdateSparkLibraryProvider } from './providers/updateSparkLibraryProvider';
+import * as sortImports from './sortImports';
+import { BlockFormatProviders } from './typeFormatters/blockFormatProvider';
+import * as tests from './unittests/main';
+import { WorkspaceSymbols } from './workspaceSymbols/main';
 
 const PYTHON: vscode.DocumentFilter = { language: 'python' };
 let unitTestOutChannel: vscode.OutputChannel;
@@ -44,6 +44,7 @@ let lintingOutChannel: vscode.OutputChannel;
 let jupMain: jup.Jupyter;
 const activationDeferred = createDeferred<void>();
 export const activated = activationDeferred.promise;
+// tslint:disable-next-line:max-func-body-length
 export async function activate(context: vscode.ExtensionContext) {
     const pythonSettings = settings.PythonSettings.getInstance();
     sendStartupTelemetry();
@@ -83,11 +84,11 @@ export async function activate(context: vscode.ExtensionContext) {
             {
                 beforeText: /^ *#.*$/,
                 afterText: /.+$/,
-                action: { indentAction: vscode.IndentAction.None, appendText: '# ' },
+                action: { indentAction: vscode.IndentAction.None, appendText: '# ' }
             },
             {
                 beforeText: /^\s+(continue|break|return)\b.*$/,
-                action: { indentAction: vscode.IndentAction.Outdent },
+                action: { indentAction: vscode.IndentAction.Outdent }
             }
         ]
     });
@@ -99,7 +100,7 @@ export async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.languages.registerHoverProvider(PYTHON, new PythonHoverProvider(jediFactory)));
     context.subscriptions.push(vscode.languages.registerReferenceProvider(PYTHON, new PythonReferenceProvider(jediFactory)));
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider(PYTHON, new PythonCompletionItemProvider(jediFactory), '.'));
-    context.subscriptions.push(vscode.languages.registerCodeLensProvider(PYTHON, new ShebangCodeLensProvider()))
+    context.subscriptions.push(vscode.languages.registerCodeLensProvider(PYTHON, new ShebangCodeLensProvider()));
 
     const symbolProvider = new PythonSymbolProvider(jediFactory);
     context.subscriptions.push(vscode.languages.registerDocumentSymbolProvider(PYTHON, symbolProvider));
@@ -113,7 +114,7 @@ export async function activate(context: vscode.ExtensionContext) {
     }
 
     const jupyterExtInstalled = vscode.extensions.getExtension('donjayamanne.jupyter');
-    let linterProvider = new LintProvider(context, lintingOutChannel, (a, b) => Promise.resolve(false));
+    const linterProvider = new LintProvider(context, lintingOutChannel, (a, b) => Promise.resolve(false));
     context.subscriptions.push();
     if (jupyterExtInstalled) {
         if (jupyterExtInstalled.isActive) {
@@ -125,8 +126,7 @@ export async function activate(context: vscode.ExtensionContext) {
             jupyterExtInstalled.exports.registerLanguageProvider(PYTHON.language, new JupyterProvider());
             linterProvider.documentHasJupyterCodeCells = jupyterExtInstalled.exports.hasCodeCells;
         });
-    }
-    else {
+    } else {
         jupMain = new jup.Jupyter(lintingOutChannel);
         const documentHasJupyterCodeCells = jupMain.hasCodeCells.bind(jupMain);
         jupMain.activate();

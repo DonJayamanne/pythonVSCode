@@ -1,13 +1,13 @@
 import * as assert from 'assert';
+import * as child_process from 'child_process';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import * as child_process from 'child_process';
-import { IS_WINDOWS, PythonSettings } from '../../client/common/configSettings';
-import { rootWorkspaceUri, updateSetting } from '../common';
-import { ShebangCodeLensProvider } from '../../client/providers/shebangCodeLensProvider';
-import { closeActiveWindows, initialize, initializeTest, IS_MULTI_ROOT_TEST } from '../initialize';
-import { getFirstNonEmptyLineFromMultilineString } from '../../client/interpreter/helpers';
 import { ConfigurationTarget } from 'vscode';
+import { IS_WINDOWS, PythonSettings } from '../../client/common/configSettings';
+import { ShebangCodeLensProvider } from '../../client/interpreter/display/shebangCodeLensProvider';
+import { getFirstNonEmptyLineFromMultilineString } from '../../client/interpreter/helpers';
+import { rootWorkspaceUri, updateSetting } from '../common';
+import { closeActiveWindows, initialize, initializeTest, IS_MULTI_ROOT_TEST } from '../initialize';
 
 const autoCompPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'shebang');
 const fileShebang = path.join(autoCompPath, 'shebang.py');
@@ -16,12 +16,12 @@ const fileShebangInvalid = path.join(autoCompPath, 'shebangInvalid.py');
 const filePlain = path.join(autoCompPath, 'plain.py');
 
 suite('Shebang detection', () => {
-    suiteSetup(() => initialize());
+    suiteSetup(initialize);
     suiteTeardown(async () => {
         await initialize();
         await closeActiveWindows();
     });
-    setup(() => initializeTest());
+    setup(initializeTest);
 
     test('A code lens will appear when sheban python and python in settings are different', async () => {
         const pythonPath = 'someUnknownInterpreter';
@@ -30,7 +30,7 @@ suite('Shebang detection', () => {
         const codeLenses = await setupCodeLens(editor);
 
         assert.equal(codeLenses.length, 1, 'No CodeLens available');
-        let codeLens = codeLenses[0];
+        const codeLens = codeLenses[0];
         assert(codeLens.range.isSingleLine, 'Invalid CodeLens Range');
         assert.equal(codeLens.command.command, 'python.setShebangInterpreter');
     });
@@ -58,7 +58,7 @@ suite('Shebang detection', () => {
             const codeLenses = await setupCodeLens(editor);
 
             assert.equal(codeLenses.length, 1, 'No CodeLens available');
-            let codeLens = codeLenses[0];
+            const codeLens = codeLenses[0];
             assert(codeLens.range.isSingleLine, 'Invalid CodeLens Range');
             assert.equal(codeLens.command.command, 'python.setShebangInterpreter');
 
@@ -96,7 +96,6 @@ suite('Shebang detection', () => {
     async function setupCodeLens(editor: vscode.TextEditor) {
         const document = editor.document;
         const codeLensProvider = new ShebangCodeLensProvider();
-        const codeLenses = await codeLensProvider.provideCodeLenses(document, null);
-        return codeLenses;
+        return await codeLensProvider.provideCodeLenses(document, null);
     }
 });
