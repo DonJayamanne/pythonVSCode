@@ -8,6 +8,7 @@ testRunner.configure({
     ui: 'tdd',
     useColors: true,
     timeout: 25000,
-    retries: 3
+    retries: 3,
+    grep: 'Python Path Settings Updater'
 });
 module.exports = testRunner;
