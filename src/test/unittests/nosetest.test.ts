@@ -17,9 +17,7 @@ const filesToDelete = [
 ];
 
 // tslint:disable-next-line:max-func-body-length
-suite('Unit Tests (nosetest)', function () {
-    // tslint:disable-next-line:no-invalid-this
-    this.retries(3);
+suite('Unit Tests (nosetest)', () => {
     const configTarget = IS_MULTI_ROOT_TEST ? vscode.ConfigurationTarget.WorkspaceFolder : vscode.ConfigurationTarget.Workspace;
     const rootDirectory = UNITTEST_TEST_FILES_PATH;
     let testManager: nose.TestManager;

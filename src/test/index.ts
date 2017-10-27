@@ -7,6 +7,7 @@ process.env['VSC_PYTHON_CI_TEST'] = '1';
 testRunner.configure({
     ui: 'tdd',
     useColors: true,
-    timeout: 25000
+    timeout: 25000,
+    retries: 3
 });
 module.exports = testRunner;

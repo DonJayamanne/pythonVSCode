@@ -23,9 +23,7 @@ const defaultUnitTestArgs = [
 ];
 
 // tslint:disable-next-line:max-func-body-length
-suite('Unit Tests (unittest)', function () {
-    // tslint:disable-next-line:no-invalid-this
-    this.retries(3);
+suite('Unit Tests (unittest)', () => {
     let testManager: unittest.TestManager;
     let testResultDisplay: TestResultDisplay;
     let outChannel: MockOutputChannel;

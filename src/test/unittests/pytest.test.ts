@@ -14,9 +14,7 @@ const UNITTEST_TEST_FILES_PATH_WITH_CONFIGS = path.join(__dirname, '..', '..', '
 const unitTestTestFilesCwdPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'cwd', 'src');
 
 // tslint:disable-next-line:max-func-body-length
-suite('Unit Tests (PyTest)', function () {
-    // tslint:disable-next-line:no-invalid-this
-    this.retries(3);
+suite('Unit Tests (PyTest)', () => {
     let rootDirectory = UNITTEST_TEST_FILES_PATH;
     let testManager: pytest.TestManager;
     let testResultDisplay: TestResultDisplay;
