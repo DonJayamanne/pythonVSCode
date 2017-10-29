@@ -165,7 +165,7 @@ function handleResponse(file: string, includeErrorAsResponse: boolean, error: Er
 
     // pylint:
     //      In the case of pylint we have some messages (such as config file not found and using default etc...) being returned in stderr
-    //      These error messages are useless when using pylint   
+    //      These error messages are useless when using pylint
     if (includeErrorAsResponse && (stdout.length > 0 || stderr.length > 0)) {
         return Promise.resolve(stdout + '\n' + stderr);
     }
@@ -189,7 +189,7 @@ function handlePythonModuleResponse(includeErrorAsResponse: boolean, error: Erro
 
     // pylint:
     //      In the case of pylint we have some messages (such as config file not found and using default etc...) being returned in stderr
-    //      These error messages are useless when using pylint   
+    //      These error messages are useless when using pylint
     if (includeErrorAsResponse && (stdout.length > 0 || stderr.length > 0)) {
         return Promise.resolve(stdout + '\n' + stderr);
     }

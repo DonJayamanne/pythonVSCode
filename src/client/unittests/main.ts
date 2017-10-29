@@ -95,7 +95,7 @@ function registerCommands(): vscode.Disposable[] {
         // Ignore the exceptions returned.
         // This command will be invoked else where in the extension.
         // tslint:disable-next-line:no-empty
-        discoverTests(resource, true).catch(() => { });
+        discoverTests(resource, true, true).catch(() => { });
     }));
     disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Run_Failed, () => runTestsImpl(undefined, undefined, true)));
     // tslint:disable-next-line:no-unnecessary-callback-wrapper
@@ -146,7 +146,7 @@ async function selectAndRunTestMethod(debug?: boolean) {
         return;
     }
     try {
-        await testManager.discoverTests(true, true);
+        await testManager.discoverTests(true, true, true);
     } catch (ex) {
         return;
     }
@@ -166,7 +166,7 @@ async function selectAndRunTestFile() {
         return;
     }
     try {
-        await testManager.discoverTests(true, true);
+        await testManager.discoverTests(true, true, true);
     } catch (ex) {
         return;
     }
@@ -189,7 +189,7 @@ async function runCurrentTestFile() {
         return;
     }
     try {
-        await testManager.discoverTests(true, true);
+        await testManager.discoverTests(true, true, true);
     } catch (ex) {
         return;
     }
@@ -271,7 +271,7 @@ async function stopTests(resource: Uri) {
         testManager.stop();
     }
 }
-async function discoverTests(resource?: Uri, ignoreCache?: boolean) {
+async function discoverTests(resource?: Uri, ignoreCache?: boolean, userInitiated?: boolean) {
     const testManager = await getTestManager(true, resource);
     if (!testManager) {
         return;
@@ -279,7 +279,7 @@ async function discoverTests(resource?: Uri, ignoreCache?: boolean) {
 
     if (testManager && (testManager.status !== TestStatus.Discovering && testManager.status !== TestStatus.Running)) {
         testResultDisplay = testResultDisplay ? testResultDisplay : new TestResultDisplay(outChannel, onDidChange);
-        const discoveryPromise = testManager.discoverTests(ignoreCache);
+        const discoveryPromise = testManager.discoverTests(ignoreCache, false, userInitiated);
         testResultDisplay.displayDiscoverStatus(discoveryPromise);
         await discoveryPromise;
     }

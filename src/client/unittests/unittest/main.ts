@@ -17,7 +17,7 @@ export class TestManager extends BaseTestManager {
     }
     public discoverTestsImpl(ignoreCache: boolean): Promise<Tests> {
         const args = this.settings.unitTest.unittestArgs.slice(0);
-        return discoverTests(this.rootDirectory, args, this.cancellationToken, ignoreCache, this.outputChannel, this.testsHelper);
+        return discoverTests(this.rootDirectory, args, this.testDiscoveryCancellationToken, ignoreCache, this.outputChannel, this.testsHelper);
     }
     public runTestImpl(tests: Tests, testsToRun?: TestsToRun, runFailedTests?: boolean, debug?: boolean): Promise<{}> {
         const args = this.settings.unitTest.unittestArgs.slice(0);
@@ -27,6 +27,6 @@ export class TestManager extends BaseTestManager {
                 return fn.testFunction.status === TestStatus.Error || fn.testFunction.status === TestStatus.Fail;
             }).map(fn => fn.testFunction);
         }
-        return runTest(this, this.testResultsService, this.rootDirectory, tests, args, testsToRun, this.cancellationToken, this.outputChannel, debug);
+        return runTest(this, this.testResultsService, this.rootDirectory, tests, args, testsToRun, this.testRunnerCancellationToken, this.outputChannel, debug);
     }
 }
