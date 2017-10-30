@@ -14,7 +14,7 @@ export class TestManager extends BaseTestManager {
     }
     discoverTestsImpl(ignoreCache: boolean): Promise<Tests> {
         let args = this.settings.unitTest.nosetestArgs.slice(0);
-        return discoverTests(this.rootDirectory, args, this.cancellationToken, ignoreCache, this.outputChannel);
+        return discoverTests(this.rootDirectory, args, this.testDiscoveryCancellationToken, ignoreCache, this.outputChannel);
     }
     runTestImpl(tests: Tests, testsToRun?: TestsToRun, runFailedTests?: boolean, debug?: boolean): Promise<any> {
         let args = this.settings.unitTest.nosetestArgs.slice(0);
@@ -24,6 +24,6 @@ export class TestManager extends BaseTestManager {
         if (!runFailedTests && args.indexOf('--with-id') === -1) {
             args.push('--with-id');
         }
-        return runTest(this.rootDirectory, tests, args, testsToRun, this.cancellationToken, this.outputChannel, debug);
+        return runTest(this.rootDirectory, tests, args, testsToRun, this.testRunnerCancellationToken, this.outputChannel, debug);
     }
 }

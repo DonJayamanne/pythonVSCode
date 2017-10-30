@@ -81,7 +81,8 @@ export function runTest(testManager: BaseTestManager, rootDirectory: string, tes
 
             testArgs.push(`--result-port=${port}`);
             if (debug === true) {
-                testArgs.push(...[`--secret=my_secret`, `--port=3000`]);
+                const debugPort = settings.unitTest.debugPort;
+                testArgs.push(...[`--secret=my_secret`, `--port=${debugPort}`]);
             }
             testArgs.push(`--us=${startTestDiscoveryDirectory}`);
             if (testId.length > 0) {

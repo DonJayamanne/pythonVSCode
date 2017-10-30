@@ -42,7 +42,7 @@ export function activate(context: vscode.ExtensionContext, outputChannel: vscode
     if (settings.unitTest.nosetestsEnabled || settings.unitTest.pyTestEnabled || settings.unitTest.unittestEnabled) {
         // Ignore the exceptions returned
         // This function is invoked via a command which will be invoked else where in the extension
-        discoverTests(true).catch(() => {
+        discoverTests(true, false).catch(() => {
             // Ignore the errors
         });
     }
@@ -65,7 +65,7 @@ async function onDocumentSaved(doc: vscode.TextDocument): Promise<void> {
         return;
     }
 
-    let tests = await testManager.discoverTests(false, true);
+    let tests = await testManager.discoverTests(false, true, false);
     if (!tests || !Array.isArray(tests.testFiles) || tests.testFiles.length === 0) {
         return;
     }
@@ -76,7 +76,7 @@ async function onDocumentSaved(doc: vscode.TextDocument): Promise<void> {
     if (timeoutId) {
         clearTimeout(timeoutId);
     }
-    timeoutId = setTimeout(() => { discoverTests(true); }, 1000);
+    timeoutId = setTimeout(() => { discoverTests(true, false); }, 1000);
 }
 
 function dispose() {
@@ -95,7 +95,7 @@ function registerCommands(): vscode.Disposable[] {
     disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Discover, () => {
         // Ignore the exceptions returned
         // This command will be invoked else where in the extension
-        discoverTests(true).catch(() => { return null; });
+        discoverTests(true, true).catch(() => { return null; });
     }));
     disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Run_Failed, () => runTestsImpl(true)));
     disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Run, (testId) => runTestsImpl(testId)));
@@ -138,7 +138,7 @@ function selectAndRunTestMethod(debug?: boolean) {
     if (!testManager) {
         return displayTestFrameworkError(outChannel);
     }
-    testManager.discoverTests(true, true).then(() => {
+    testManager.discoverTests(true, true, true).then(() => {
         const tests = getDiscoveredTests();
         testDisplay = testDisplay ? testDisplay : new TestDisplay();
         testDisplay.selectTestFunction(getTestWorkingDirectory(), tests).then(testFn => {
@@ -151,7 +151,7 @@ function selectAndRunTestFile() {
     if (!testManager) {
         return displayTestFrameworkError(outChannel);
     }
-    testManager.discoverTests(true, true).then(() => {
+    testManager.discoverTests(true, true, true).then(() => {
         const tests = getDiscoveredTests();
         testDisplay = testDisplay ? testDisplay : new TestDisplay();
         testDisplay.selectTestFile(getTestWorkingDirectory(), tests).then(testFile => {
@@ -168,7 +168,7 @@ function runCurrentTestFile() {
     if (!testManager) {
         return displayTestFrameworkError(outChannel);
     }
-    testManager.discoverTests(true, true).then(() => {
+    testManager.discoverTests(true, true, true).then(() => {
         const tests = getDiscoveredTests();
         const testFiles = tests.testFiles.filter(testFile => {
             return testFile.fullPath === currentFilePath;
@@ -231,7 +231,7 @@ function onConfigChanged() {
 
     // No need to display errors
     if (settings.unitTest.nosetestsEnabled || settings.unitTest.pyTestEnabled || settings.unitTest.unittestEnabled) {
-        discoverTests(true);
+        discoverTests(true, false);
     }
 }
 function getTestRunner() {
@@ -255,7 +255,7 @@ function stopTests() {
         testManager.stop();
     }
 }
-function discoverTests(ignoreCache?: boolean) {
+function discoverTests(ignoreCache?: boolean, isUserInitiated?: boolean) {
     let testManager = getTestRunner();
     if (!testManager) {
         displayTestFrameworkError(outChannel);
@@ -264,7 +264,7 @@ function discoverTests(ignoreCache?: boolean) {
 
     if (testManager && (testManager.status !== TestStatus.Discovering && testManager.status !== TestStatus.Running)) {
         testResultDisplay = testResultDisplay ? testResultDisplay : new TestResultDisplay(outChannel, onDidChange);
-        return testResultDisplay.DisplayDiscoverStatus(testManager.discoverTests(ignoreCache));
+        return testResultDisplay.DisplayDiscoverStatus(testManager.discoverTests(ignoreCache, false, isUserInitiated));
     }
     else {
         return Promise.resolve(null);

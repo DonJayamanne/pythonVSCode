@@ -12,13 +12,13 @@ export class TestManager extends BaseTestManager {
     }
     discoverTestsImpl(ignoreCache: boolean): Promise<Tests> {
         let args = this.settings.unitTest.pyTestArgs.slice(0);
-        return discoverTests(this.rootDirectory, args, this.cancellationToken, ignoreCache, this.outputChannel);
+        return discoverTests(this.rootDirectory, args, this.testDiscoveryCancellationToken, ignoreCache, this.outputChannel);
     }
     runTestImpl(tests: Tests, testsToRun?: TestsToRun, runFailedTests?: boolean, debug?: boolean): Promise<any> {
         let args = this.settings.unitTest.pyTestArgs.slice(0);
         if (runFailedTests === true && args.indexOf('--lf') === -1 && args.indexOf('--last-failed') === -1) {
             args.push('--last-failed');
         }
-        return runTest(this.rootDirectory, tests, args, testsToRun, this.cancellationToken, this.outputChannel, debug);
+        return runTest(this.rootDirectory, tests, args, testsToRun, this.testRunnerCancellationToken, this.outputChannel, debug);
     }
 }
