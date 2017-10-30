@@ -69,10 +69,10 @@ export abstract class BaseTestManager {
             }
             this.testDiscoveryCancellationTokenSource = null;
         } else {
-            if (this.testDiscoveryCancellationTokenSource) {
-                this.testDiscoveryCancellationTokenSource.dispose();
+            if (this.testRunnerCancellationTokenSource) {
+                this.testRunnerCancellationTokenSource.dispose();
             }
-            this.testDiscoveryCancellationTokenSource = null;
+            this.testRunnerCancellationTokenSource = null;
         }
     }
     private discoverTestsPromise: Promise<Tests>;
