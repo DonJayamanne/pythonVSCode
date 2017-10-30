@@ -8,13 +8,18 @@ import { CANCELLATION_REASON } from './constants';
 import { displayTestErrorMessage } from './testUtils';
 import { ITestCollectionStorageService, ITestResultsService, ITestsHelper, Tests, TestStatus, TestsToRun } from './types';
 
+enum CancellationTokenType {
+    testDicovery,
+    testRunner
+}
+
 export abstract class BaseTestManager {
     public readonly workspace: Uri;
     protected readonly settings: IPythonSettings;
     private tests: Tests;
     // tslint:disable-next-line:variable-name
     private _status: TestStatus = TestStatus.Unknown;
-    private discoveryCancellationTokenSource: vscode.CancellationTokenSource;
+    private testDiscoveryCancellationTokenSource: vscode.CancellationTokenSource;
     private testRunnerCancellationTokenSource: vscode.CancellationTokenSource;
     private installer: Installer;
     private discoverTestsPromise: Promise<Tests>;
@@ -27,7 +32,7 @@ export abstract class BaseTestManager {
         this.workspace = workspace.getWorkspaceFolder(Uri.file(this.rootDirectory)).uri;
     }
     protected get testDiscoveryCancellationToken(): vscode.CancellationToken | undefined {
-        return this.discoveryCancellationTokenSource ? this.discoveryCancellationTokenSource.token : undefined;
+        return this.testDiscoveryCancellationTokenSource ? this.testDiscoveryCancellationTokenSource.token : undefined;
     }
     protected get testRunnerCancellationToken(): vscode.CancellationToken | undefined {
         return this.testRunnerCancellationTokenSource ? this.testRunnerCancellationTokenSource.token : undefined;
@@ -43,8 +48,8 @@ export abstract class BaseTestManager {
         return settings.unitTest.cwd && settings.unitTest.cwd.length > 0 ? settings.unitTest.cwd : this.rootDirectory;
     }
     public stop() {
-        if (this.discoveryCancellationTokenSource) {
-            this.discoveryCancellationTokenSource.cancel();
+        if (this.testDiscoveryCancellationTokenSource) {
+            this.testDiscoveryCancellationTokenSource.cancel();
         }
         if (this.testRunnerCancellationTokenSource) {
             this.testRunnerCancellationTokenSource.cancel();
@@ -78,7 +83,7 @@ export abstract class BaseTestManager {
             this.stop();
         }
 
-        this.createCancellationTokens();
+        this.createCancellationToken(CancellationTokenType.testDicovery);
         return this.discoverTestsPromise = this.discoverTestsImpl(ignoreCache)
             .then(tests => {
                 this.tests = tests;
@@ -102,7 +107,7 @@ export abstract class BaseTestManager {
                 }
                 const wkspace = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(this.rootDirectory)).uri;
                 this.testCollectionStorage.storeTests(wkspace, tests);
-                this.disposeCancellationTokens();
+                this.disposeCancellationToken(CancellationTokenType.testDicovery);
 
                 return tests;
             }).catch(reason => {
@@ -124,7 +129,7 @@ export abstract class BaseTestManager {
                 }
                 const wkspace = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(this.rootDirectory)).uri;
                 this.testCollectionStorage.storeTests(wkspace, null);
-                this.disposeCancellationTokens();
+                this.disposeCancellationToken(CancellationTokenType.testDicovery);
                 return Promise.reject(reason);
             });
     }
@@ -158,7 +163,6 @@ export abstract class BaseTestManager {
 
         this._status = TestStatus.Running;
         this.stop();
-        this.createCancellationTokens(true);
 
         // If running failed tests, then don't clear the previously build UnitTests
         // If we do so, then we end up re-discovering the unit tests and clearing previously cached list of failed tests
@@ -166,7 +170,7 @@ export abstract class BaseTestManager {
         const clearDiscoveredTestCache = runFailedTests || moreInfo.Run_Specific_File || moreInfo.Run_Specific_Class || moreInfo.Run_Specific_Function ? false : true;
         return this.discoverTests(clearDiscoveredTestCache, true, true)
             .catch(reason => {
-                if (this.testRunnerCancellationToken && this.testRunnerCancellationToken.isCancellationRequested) {
+                if (this.testDiscoveryCancellationToken && this.testDiscoveryCancellationToken.isCancellationRequested) {
                     return Promise.reject<Tests>(reason);
                 }
                 displayTestErrorMessage('Errors in discovering tests, continuing with tests');
@@ -176,10 +180,11 @@ export abstract class BaseTestManager {
                 };
             })
             .then(tests => {
+                this.createCancellationToken(CancellationTokenType.testRunner);
                 return this.runTestImpl(tests, testsToRun, runFailedTests, debug);
             }).then(() => {
                 this._status = TestStatus.Idle;
-                this.disposeCancellationTokens(true);
+                this.disposeCancellationToken(CancellationTokenType.testRunner);
                 return this.tests;
             }).catch(reason => {
                 if (this.testRunnerCancellationToken && this.testRunnerCancellationToken.isCancellationRequested) {
@@ -188,26 +193,28 @@ export abstract class BaseTestManager {
                 } else {
                     this._status = TestStatus.Error;
                 }
-                this.disposeCancellationTokens(true);
+                this.disposeCancellationToken(CancellationTokenType.testRunner);
                 return Promise.reject<Tests>(reason);
             });
     }
     // tslint:disable-next-line:no-any
     protected abstract runTestImpl(tests: Tests, testsToRun?: TestsToRun, runFailedTests?: boolean, debug?: boolean): Promise<any>;
     protected abstract discoverTestsImpl(ignoreCache: boolean, debug?: boolean): Promise<Tests>;
-    private createCancellationTokens(createTestRunnerToken: boolean = false) {
-        this.disposeCancellationTokens(createTestRunnerToken);
-        this.discoveryCancellationTokenSource = new vscode.CancellationTokenSource();
-        if (createTestRunnerToken) {
+    private createCancellationToken(tokenType: CancellationTokenType) {
+        this.disposeCancellationToken(tokenType);
+        if (tokenType === CancellationTokenType.testDicovery) {
+            this.testDiscoveryCancellationTokenSource = new vscode.CancellationTokenSource();
+        } else {
             this.testRunnerCancellationTokenSource = new vscode.CancellationTokenSource();
         }
     }
-    private disposeCancellationTokens(disposeTestRunnerToken: boolean = false) {
-        if (this.discoveryCancellationTokenSource) {
-            this.discoveryCancellationTokenSource.dispose();
-        }
-        this.discoveryCancellationTokenSource = null;
-        if (disposeTestRunnerToken) {
+    private disposeCancellationToken(tokenType: CancellationTokenType) {
+        if (tokenType === CancellationTokenType.testDicovery) {
+            if (this.testDiscoveryCancellationTokenSource) {
+                this.testDiscoveryCancellationTokenSource.dispose();
+            }
+            this.testDiscoveryCancellationTokenSource = null;
+        } else {
             if (this.testRunnerCancellationTokenSource) {
                 this.testRunnerCancellationTokenSource.dispose();
             }
