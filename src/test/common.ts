@@ -99,6 +99,12 @@ export async function deleteDirectory(dir: string) {
         await fs.remove(dir);
     }
 }
+export async function deleteFile(file: string) {
+    const exists = await fs.pathExists(file);
+    if (exists) {
+        await fs.remove(file);
+    }
+}
 
 const globalPythonPathSetting = workspace.getConfiguration('python').inspect('pythonPath').globalValue;
 export const clearPythonPathInWorkspaceFolder = async (resource: string | Uri) => retryAsync(setPythonPathInWorkspace)(resource, ConfigurationTarget.WorkspaceFolder);

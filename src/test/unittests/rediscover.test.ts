@@ -1,7 +1,7 @@
 import { assert } from 'chai';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { ConfigurationTarget, Position, Range, window, workspace } from 'vscode';
+import { ConfigurationTarget, Position, Range, Uri, window, workspace } from 'vscode';
 import { BaseTestManager } from '../../client/unittests/common/baseTestManager';
 import { CANCELLATION_REASON } from '../../client/unittests/common/constants';
 import { TestCollectionStorageService } from '../../client/unittests/common/storageService';
@@ -12,7 +12,7 @@ import { TestResultDisplay } from '../../client/unittests/display/main';
 import { TestManager as NosetestManager } from '../../client/unittests/nosetest/main';
 import { TestManager as PytestManager } from '../../client/unittests/pytest/main';
 import { TestManager as UnitTestManager } from '../../client/unittests/unittest/main';
-import { deleteDirectory, rootWorkspaceUri, updateSetting } from '../common';
+import { deleteDirectory, deleteFile, rootWorkspaceUri, updateSetting } from '../common';
 import { initialize, initializeTest, IS_MULTI_ROOT_TEST } from './../initialize';
 import { MockOutputChannel } from './../mockClasses';
 import { MockDebugLauncher } from './mocks';
@@ -78,7 +78,7 @@ suite('Unit Tests Discovery', () => {
         assert.equal(tests.testFiles.length, 2, 'Incorrect number of test files');
         assert.equal(tests.testSuits.length, 2, 'Incorrect number of test suites');
         assert.equal(tests.testFunctions.length, 2, 'Incorrect number of test functions');
-
+        await deleteFile(path.join(path.dirname(testFile), `${path.basename(testFile, '.py')}.pyc`));
         await fs.copy(testFileWithMoreTests, testFile, { overwrite: true });
         tests = await testManager.discoverTests(true, true);
         assert.equal(tests.testFunctions.length, 4, 'Incorrect number of updated test functions');
