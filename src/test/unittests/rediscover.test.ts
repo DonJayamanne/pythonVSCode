@@ -84,7 +84,6 @@ suite('Unit Tests Discovery', () => {
         assert.equal(tests.testFunctions.length, 4, 'Incorrect number of updated test functions');
     }
 
-
     test('Re-discover tests (unittest)', async () => {
         await updateSetting('unitTest.unittestArgs', ['-s=./tests', '-p=test_*.py'], rootWorkspaceUri, configTarget);
         createTestManagerDepedencies();
