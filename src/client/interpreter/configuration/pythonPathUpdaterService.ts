@@ -9,7 +9,6 @@ export class PythonPathUpdaterService {
         const pythonPathUpdater = this.getPythonUpdaterService(configTarget, wkspace);
 
         try {
-
             await pythonPathUpdater.updatePythonPath(path.normalize(pythonPath));
         } catch (reason) {
             // tslint:disable-next-line:no-unsafe-any prefer-type-cast
