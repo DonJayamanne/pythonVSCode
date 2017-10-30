@@ -4,9 +4,11 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { PythonSettings } from '../client/common/configSettings';
 import { activated } from '../client/extension';
-import { clearPythonPathInWorkspaceFolder, setPythonPathInWorkspaceRoot } from './common';
+import { clearPythonPathInWorkspaceFolder, resetGlobalPythonPathSetting, setPythonPathInWorkspaceRoot } from './common';
 
 const dummyPythonFile = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'dummy.py');
+const multirootPath = path.join(__dirname, '..', '..', 'src', 'testMultiRootWkspc');
+const workspace3Uri = vscode.Uri.file(path.join(multirootPath, 'workspace3'));
 
 //First thing to be executed.
 // tslint:disable-next-line:no-string-literal
@@ -20,7 +22,9 @@ export const IS_MULTI_ROOT_TEST = isMultitrootTest();
 
 // Ability to use custom python environments for testing
 export async function initializePython() {
+    await resetGlobalPythonPathSetting();
     await clearPythonPathInWorkspaceFolder(dummyPythonFile);
+    await clearPythonPathInWorkspaceFolder(workspace3Uri);
     await setPythonPathInWorkspaceRoot(PYTHON_PATH);
 }
 

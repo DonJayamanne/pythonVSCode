@@ -1,28 +1,29 @@
-import { error } from './logger';
-import * as vscode from 'vscode';
-import * as settings from './configSettings';
 import * as os from 'os';
+import * as vscode from 'vscode';
 import { commands, ConfigurationTarget, Disposable, OutputChannel, Terminal, Uri, window, workspace } from 'vscode';
+import * as settings from './configSettings';
 import { isNotInstalledError } from './helpers';
+import { error } from './logger';
 import { execPythonFile, getFullyQualifiedPythonInterpreterPath } from './utils';
 
 export enum Product {
-    pytest,
-    nosetest,
-    pylint,
-    flake8,
-    pep8,
-    pylama,
-    prospector,
-    pydocstyle,
-    yapf,
-    autopep8,
-    mypy,
-    unittest,
-    ctags,
-    rope
+    pytest = 1,
+    nosetest = 2,
+    pylint = 3,
+    flake8 = 4,
+    pep8 = 5,
+    pylama = 6,
+    prospector = 7,
+    pydocstyle = 8,
+    yapf = 9,
+    autopep8 = 10,
+    mypy = 11,
+    unittest = 12,
+    ctags = 13,
+    rope = 14
 }
 
+// tslint:disable-next-line:variable-name
 const ProductInstallScripts = new Map<Product, string[]>();
 ProductInstallScripts.set(Product.autopep8, ['-m', 'pip', 'install', 'autopep8']);
 ProductInstallScripts.set(Product.flake8, ['-m', 'pip', 'install', 'flake8']);
@@ -37,6 +38,7 @@ ProductInstallScripts.set(Product.pytest, ['-m', 'pip', 'install', '-U', 'pytest
 ProductInstallScripts.set(Product.yapf, ['-m', 'pip', 'install', 'yapf']);
 ProductInstallScripts.set(Product.rope, ['-m', 'pip', 'install', 'rope']);
 
+// tslint:disable-next-line:variable-name
 const ProductUninstallScripts = new Map<Product, string[]>();
 ProductUninstallScripts.set(Product.autopep8, ['-m', 'pip', 'uninstall', 'autopep8', '--yes']);
 ProductUninstallScripts.set(Product.flake8, ['-m', 'pip', 'uninstall', 'flake8', '--yes']);
@@ -51,6 +53,7 @@ ProductUninstallScripts.set(Product.pytest, ['-m', 'pip', 'uninstall', 'pytest',
 ProductUninstallScripts.set(Product.yapf, ['-m', 'pip', 'uninstall', 'yapf', '--yes']);
 ProductUninstallScripts.set(Product.rope, ['-m', 'pip', 'uninstall', 'rope', '--yes']);
 
+// tslint:disable-next-line:variable-name
 export const ProductExecutableAndArgs = new Map<Product, { executable: string, args: string[] }>();
 ProductExecutableAndArgs.set(Product.mypy, { executable: 'python', args: ['-m', 'mypy'] });
 ProductExecutableAndArgs.set(Product.nosetest, { executable: 'python', args: ['-m', 'nose'] });
@@ -77,6 +80,7 @@ switch (os.platform()) {
     }
 }
 
+// tslint:disable-next-line:variable-name
 export const Linters: Product[] = [
     Product.flake8,
     Product.pep8,
@@ -87,6 +91,7 @@ export const Linters: Product[] = [
     Product.pydocstyle
 ];
 
+// tslint:disable-next-line:variable-name
 const ProductNames = new Map<Product, string>();
 ProductNames.set(Product.autopep8, 'autopep8');
 ProductNames.set(Product.flake8, 'flake8');
@@ -101,6 +106,7 @@ ProductNames.set(Product.pytest, 'py.test');
 ProductNames.set(Product.yapf, 'yapf');
 ProductNames.set(Product.rope, 'rope');
 
+// tslint:disable-next-line:variable-name
 export const SettingToDisableProduct = new Map<Product, string>();
 SettingToDisableProduct.set(Product.flake8, 'linting.flake8Enabled');
 SettingToDisableProduct.set(Product.mypy, 'linting.mypyEnabled');
@@ -112,6 +118,7 @@ SettingToDisableProduct.set(Product.pydocstyle, 'linting.pydocstyleEnabled');
 SettingToDisableProduct.set(Product.pylint, 'linting.pylintEnabled');
 SettingToDisableProduct.set(Product.pytest, 'unitTest.pyTestEnabled');
 
+// tslint:disable-next-line:variable-name
 const ProductInstallationPrompt = new Map<Product, string>();
 ProductInstallationPrompt.set(Product.ctags, 'Install CTags to enable Python workspace symbols');
 
@@ -123,6 +130,7 @@ enum ProductType {
     WorkspaceSymbols
 }
 
+// tslint:disable-next-line:variable-name
 const ProductTypeNames = new Map<ProductType, string>();
 ProductTypeNames.set(ProductType.Formatter, 'Formatter');
 ProductTypeNames.set(ProductType.Linter, 'Linter');
@@ -130,6 +138,7 @@ ProductTypeNames.set(ProductType.RefactoringLibrary, 'Refactoring library');
 ProductTypeNames.set(ProductType.TestFramework, 'Test Framework');
 ProductTypeNames.set(ProductType.WorkspaceSymbols, 'Workspace Symbols');
 
+// tslint:disable-next-line:variable-name
 const ProductTypes = new Map<Product, ProductType>();
 ProductTypes.set(Product.flake8, ProductType.Linter);
 ProductTypes.set(Product.mypy, ProductType.Linter);
@@ -165,23 +174,26 @@ export class Installer implements vscode.Disposable {
         this.disposables.forEach(d => d.dispose());
     }
     private shouldDisplayPrompt(product: Product) {
+        // tslint:disable-next-line:no-non-null-assertion
         const productName = ProductNames.get(product)!;
         const pythonConfig = workspace.getConfiguration('python');
         const disablePromptForFeatures = pythonConfig.get('disablePromptForFeatures', [] as string[]);
         return disablePromptForFeatures.indexOf(productName) === -1;
     }
 
+    // tslint:disable-next-line:member-ordering
     public async promptToInstall(product: Product, resource?: Uri): Promise<InstallerResponse> {
+        // tslint:disable-next-line:no-non-null-assertion
         const productType = ProductTypes.get(product)!;
         const productTypeName = ProductTypeNames.get(productType);
+        // tslint:disable-next-line:no-non-null-assertion
         const productName = ProductNames.get(product)!;
 
         if (!this.shouldDisplayPrompt(product)) {
             const message = `${productTypeName} '${productName}' not installed.`;
             if (this.outputChannel) {
                 this.outputChannel.appendLine(message);
-            }
-            else {
+            } else {
                 console.warn(message);
             }
             return InstallerResponse.Ignore;
@@ -229,6 +241,7 @@ export class Installer implements vscode.Disposable {
             }
         }
     }
+    // tslint:disable-next-line:member-ordering
     public async install(product: Product, resource?: Uri): Promise<InstallerResponse> {
         if (!this.outputChannel && !Installer.terminal) {
             Installer.terminal = window.createTerminal('Python Installer');

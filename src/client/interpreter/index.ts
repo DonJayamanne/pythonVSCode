@@ -3,6 +3,8 @@ import * as path from 'path';
 import { ConfigurationTarget, Disposable, StatusBarAlignment, Uri, window, workspace } from 'vscode';
 import { PythonSettings } from '../common/configSettings';
 import { IS_WINDOWS } from '../common/utils';
+import { PythonPathUpdaterService } from './configuration/pythonPathUpdaterService';
+import { PythonPathUpdaterServiceFactory } from './configuration/pythonPathUpdaterServiceFactory';
 import { WorkspacePythonPath } from './contracts';
 import { InterpreterDisplay } from './display';
 import { getActiveWorkspaceUri } from './helpers';
@@ -16,12 +18,14 @@ export class InterpreterManager implements Disposable {
     private disposables: Disposable[] = [];
     private display: InterpreterDisplay | null | undefined;
     private interpreterProvider: PythonInterpreterLocatorService;
+    private pythonPathUpdaterService: PythonPathUpdaterService;
     constructor() {
         const virtualEnvMgr = new VirtualEnvironmentManager([new VEnv(), new VirtualEnv()]);
         const statusBar = window.createStatusBarItem(StatusBarAlignment.Left);
         this.interpreterProvider = new PythonInterpreterLocatorService(virtualEnvMgr);
         const versionService = new InterpreterVersionService();
         this.display = new InterpreterDisplay(statusBar, this.interpreterProvider, virtualEnvMgr, versionService);
+        this.pythonPathUpdaterService = new PythonPathUpdaterService(new PythonPathUpdaterServiceFactory());
         PythonSettings.getInstance().addListener('change', () => this.onConfigChanged());
         this.disposables.push(window.onDidChangeActiveTextEditor(() => this.refresh()));
         this.disposables.push(statusBar);
@@ -54,33 +58,7 @@ export class InterpreterManager implements Disposable {
         const pythonPath = interpretersInWorkspace[0].path;
         const relativePath = path.dirname(pythonPath).substring(activeWorkspace.folderUri.fsPath.length);
         if (relativePath.split(path.sep).filter(l => l.length > 0).length === 2) {
-            await this.setPythonPath(pythonPath, activeWorkspace);
-        }
-    }
-
-    /**
-     * Sets the python path in the settings.
-     * @param {string} pythonPath
-     * @param {WorkspacePythonPath} [workspacePythonPath] If this is not passed, then user setting will be updated
-     * @returns {Promise<void>}
-     * @memberof InterpreterManager
-     */
-    public async setPythonPath(pythonPath: string, workspacePythonPath?: WorkspacePythonPath): Promise<void> {
-        pythonPath = IS_WINDOWS ? pythonPath.replace(/\\/g, '/') : pythonPath;
-        const isMultiRootWorkspace = Array.isArray(workspace.workspaceFolders) && workspace.workspaceFolders.length > 1;
-        try {
-            if (!workspacePythonPath) {
-                return await this.setPythonPathInUserSettings(pythonPath);
-            }
-            if (!isMultiRootWorkspace) {
-                return await this.setPythonPathInSingleWorkspace(pythonPath);
-            }
-            await this.setPythonPathInWorkspace(pythonPath, workspacePythonPath.configTarget, workspacePythonPath.folderUri);
-        } catch (reason) {
-            // tslint:disable-next-line:no-unsafe-any prefer-type-cast
-            const message = reason && typeof reason.message === 'string' ? reason.message as string : '';
-            window.showErrorMessage(`Failed to set 'pythonPath'. Error: ${message}`);
-            console.error(reason);
+            await this.pythonPathUpdaterService.updatePythonPath(pythonPath, activeWorkspace.configTarget, activeWorkspace.folderUri);
         }
     }
     public dispose(): void {
@@ -89,35 +67,13 @@ export class InterpreterManager implements Disposable {
         this.display = null;
         this.interpreterProvider.dispose();
     }
-    private async setPythonPathInUserSettings(pythonPath) {
-        const pythonConfig = workspace.getConfiguration('python');
-        return pythonConfig.update('pythonPath', pythonPath, true);
-    }
-    private async setPythonPathInSingleWorkspace(pythonPath: string) {
-        const pythonConfig = workspace.getConfiguration('python');
-        // tslint:disable-next-line:no-non-null-assertion
-        const workspacePath = workspace.workspaceFolders![0].uri.fsPath;
-        if (pythonPath.toUpperCase().startsWith(workspacePath.toUpperCase())) {
-            // tslint:disable-next-line:no-invalid-template-strings
-            pythonPath = path.join('${workspaceRoot}', path.relative(workspacePath, pythonPath));
-        }
-        return pythonConfig.update('pythonPath', pythonPath, false);
-    }
-    private async setPythonPathInWorkspace(pythonPath, configTarget: ConfigurationTarget.Workspace | ConfigurationTarget.WorkspaceFolder, resource?: Uri) {
-        const pythonConfig = workspace.getConfiguration('python', resource);
-        if (configTarget === ConfigurationTarget.WorkspaceFolder && resource && pythonPath.toUpperCase().startsWith(resource.fsPath.toUpperCase())) {
-            // tslint:disable-next-line:no-invalid-template-strings
-            pythonPath = path.join('${workspaceRoot}', path.relative(resource.fsPath, pythonPath));
-        }
-        return pythonConfig.update('pythonPath', pythonPath, configTarget);
-    }
     private shouldAutoSetInterpreter() {
         const activeWorkspace = getActiveWorkspaceUri();
         if (!activeWorkspace) {
             return false;
         }
         const pythonConfig = workspace.getConfiguration('python');
-        const pythonPathInConfig = pythonConfig.get('pythonPath', 'python');
+        const pythonPathInConfig = pythonConfig.get<string>('pythonPath', 'python');
         return path.basename(pythonPathInConfig) === pythonPathInConfig;
     }
     private onConfigChanged() {

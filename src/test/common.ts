@@ -82,6 +82,16 @@ async function setPythonPathInWorkspace(resource: string | Uri | undefined, conf
         PythonSettings.dispose();
     }
 }
+async function restoreGlobalPythonPathSetting(): Promise<void> {
+    const pythonConfig = workspace.getConfiguration('python');
+    const currentGlobalPythonPathSetting = pythonConfig.inspect('pythonPath').globalValue;
+    if (globalPythonPathSetting !== currentGlobalPythonPathSetting) {
+        await pythonConfig.update('pythonPath', undefined, true);
+    }
+    PythonSettings.dispose();
+}
 
+const globalPythonPathSetting = workspace.getConfiguration('python').inspect('pythonPath').globalValue;
 export const clearPythonPathInWorkspaceFolder = async (resource: string | Uri) => retryAsync(setPythonPathInWorkspace)(resource, ConfigurationTarget.WorkspaceFolder);
 export const setPythonPathInWorkspaceRoot = async (pythonPath: string) => retryAsync(setPythonPathInWorkspace)(undefined, ConfigurationTarget.Workspace, pythonPath);
+export const resetGlobalPythonPathSetting = async () => retryAsync(restoreGlobalPythonPathSetting)();

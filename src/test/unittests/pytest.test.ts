@@ -40,9 +40,7 @@ suite('Unit Tests (PyTest)', () => {
         testManager = new pytest.TestManager(rootDir, outChannel);
     }
 
-    test('Discover Tests (single test file)', async function () {
-        // tslint:disable-next-line:no-invalid-this
-        this.retries(3);
+    test('Discover Tests (single test file)', async () => {
         testManager = new pytest.TestManager(UNITTEST_SINGLE_TEST_FILE_PATH, outChannel);
         const tests = await testManager.discoverTests(true, true);
         assert.equal(tests.testFiles.length, 2, 'Incorrect number of test files');
@@ -52,9 +50,7 @@ suite('Unit Tests (PyTest)', () => {
         assert.equal(tests.testFiles.some(t => t.name === 'test_root.py' && t.nameToRun === t.name), true, 'Test File not found');
     });
 
-    test('Discover Tests (pattern = test_)', async function () {
-        // tslint:disable-next-line:no-invalid-this
-        this.retries(3);
+    test('Discover Tests (pattern = test_)', async () => {
         await updateSetting('unitTest.pyTestArgs', ['-k=test_'], rootWorkspaceUri, configTarget);
         createTestManager();
         const tests = await testManager.discoverTests(true, true);
@@ -69,9 +65,7 @@ suite('Unit Tests (PyTest)', () => {
         assert.equal(tests.testFiles.some(t => t.name === 'test_root.py' && t.nameToRun === t.name), true, 'Test File not found');
     });
 
-    test('Discover Tests (pattern = _test)', async function () {
-        // tslint:disable-next-line:no-invalid-this
-        this.retries(3);
+    test('Discover Tests (pattern = _test)', async () => {
         await updateSetting('unitTest.pyTestArgs', ['-k=_test.py'], rootWorkspaceUri, configTarget);
         createTestManager();
         const tests = await testManager.discoverTests(true, true);
@@ -81,9 +75,7 @@ suite('Unit Tests (PyTest)', () => {
         assert.equal(tests.testFiles.some(t => t.name === 'tests/unittest_three_test.py' && t.nameToRun === t.name), true, 'Test File not found');
     });
 
-    test('Discover Tests (with config)', async function () {
-        // tslint:disable-next-line:no-invalid-this
-        this.retries(3);
+    test('Discover Tests (with config)', async () => {
         await updateSetting('unitTest.pyTestArgs', [], rootWorkspaceUri, configTarget);
         rootDirectory = UNITTEST_TEST_FILES_PATH_WITH_CONFIGS;
         createTestManager();
@@ -95,9 +87,7 @@ suite('Unit Tests (PyTest)', () => {
         assert.equal(tests.testFiles.some(t => t.name === 'other/test_pytest.py' && t.nameToRun === t.name), true, 'Test File not found');
     });
 
-    test('Run Tests', async function () {
-        // tslint:disable-next-line:no-invalid-this
-        this.retries(3);
+    test('Run Tests', async () => {
         await updateSetting('unitTest.pyTestArgs', ['-k=test_'], rootWorkspaceUri, configTarget);
         createTestManager();
         const results = await testManager.runTest();
@@ -107,9 +97,7 @@ suite('Unit Tests (PyTest)', () => {
         assert.equal(results.summary.skipped, 3, 'skipped');
     });
 
-    test('Run Failed Tests', async function () {
-        // tslint:disable-next-line:no-invalid-this
-        this.retries(3);
+    test('Run Failed Tests', async () => {
         await updateSetting('unitTest.pyTestArgs', ['-k=test_'], rootWorkspaceUri, configTarget);
         createTestManager();
         let results = await testManager.runTest();
@@ -125,9 +113,7 @@ suite('Unit Tests (PyTest)', () => {
         assert.equal(results.summary.skipped, 0, 'Failed skipped');
     });
 
-    test('Run Specific Test File', async function () {
-        // tslint:disable-next-line:no-invalid-this
-        this.retries(3);
+    test('Run Specific Test File', async () => {
         await updateSetting('unitTest.pyTestArgs', ['-k=test_'], rootWorkspaceUri, configTarget);
         createTestManager();
         await testManager.discoverTests(true, true);
@@ -148,9 +134,7 @@ suite('Unit Tests (PyTest)', () => {
         assert.equal(results.summary.skipped, 0, 'skipped');
     });
 
-    test('Run Specific Test Suite', async function () {
-        // tslint:disable-next-line:no-invalid-this
-        this.retries(3);
+    test('Run Specific Test Suite', async () => {
         await updateSetting('unitTest.pyTestArgs', ['-k=test_'], rootWorkspaceUri, configTarget);
         createTestManager();
         const tests = await testManager.discoverTests(true, true);
@@ -162,9 +146,7 @@ suite('Unit Tests (PyTest)', () => {
         assert.equal(results.summary.skipped, 1, 'skipped');
     });
 
-    test('Run Specific Test Function', async function () {
-        // tslint:disable-next-line:no-invalid-this
-        this.retries(3);
+    test('Run Specific Test Function', async () => {
         await updateSetting('unitTest.pyTestArgs', ['-k=test_'], rootWorkspaceUri, configTarget);
         createTestManager();
         const tests = await testManager.discoverTests(true, true);
@@ -176,9 +158,7 @@ suite('Unit Tests (PyTest)', () => {
         assert.equal(results.summary.skipped, 0, 'skipped');
     });
 
-    test('Setting cwd should return tests', async function () {
-        // tslint:disable-next-line:no-invalid-this
-        this.retries(3);
+    test('Setting cwd should return tests', async () => {
         await updateSetting('unitTest.pyTestArgs', ['-k=test_'], rootWorkspaceUri, configTarget);
         createTestManager(unitTestTestFilesCwdPath);
 
