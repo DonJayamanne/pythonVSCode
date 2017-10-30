@@ -53,6 +53,7 @@ suite('Unit Tests Discovery', () => {
     teardown(async () => {
         await resetSettings();
         await fs.copy(testFileWithFewTests, testFile, { overwrite: true });
+        await deleteFile(path.join(path.dirname(testFile), `${path.basename(testFile, '.py')}.pyc`));
         outChannel.dispose();
         if (testManager) {
             testManager.dispose();
