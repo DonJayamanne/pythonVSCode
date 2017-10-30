@@ -5,6 +5,11 @@ import { resetTestResults, displayTestErrorMessage, storeDiscoveredTests } from 
 import { Installer, Product } from '../../common/installer';
 import { isNotInstalledError } from '../../common/helpers';
 
+enum CancellationTokenType {
+    testDicovery,
+    testRunner
+}
+
 export abstract class BaseTestManager {
     private tests: Tests;
     private _status: TestStatus = TestStatus.Unknown;
@@ -49,19 +54,21 @@ export abstract class BaseTestManager {
 
         resetTestResults(this.tests);
     }
-    private createCancellationTokens(createTestRunnerToken: boolean = false) {
-        this.disposeCancellationTokens(createTestRunnerToken);
-        this.testDiscoveryCancellationTokenSource = new vscode.CancellationTokenSource();
-        if (createTestRunnerToken) {
+    private createCancellationToken(tokenType: CancellationTokenType) {
+        this.disposeCancellationToken(tokenType);
+        if (tokenType === CancellationTokenType.testDicovery) {
+            this.testDiscoveryCancellationTokenSource = new vscode.CancellationTokenSource();
+        } else {
             this.testRunnerCancellationTokenSource = new vscode.CancellationTokenSource();
         }
     }
-    private disposeCancellationTokens(disposeTestRunnerToken: boolean = false) {
-        if (this.testDiscoveryCancellationTokenSource) {
-            this.testDiscoveryCancellationTokenSource.dispose();
-        }
-        this.testDiscoveryCancellationTokenSource = null;
-        if (disposeTestRunnerToken) {
+    private disposeCancellationToken(tokenType: CancellationTokenType) {
+        if (tokenType === CancellationTokenType.testDicovery) {
+            if (this.testDiscoveryCancellationTokenSource) {
+                this.testDiscoveryCancellationTokenSource.dispose();
+            }
+            this.testDiscoveryCancellationTokenSource = null;
+        } else {
             if (this.testDiscoveryCancellationTokenSource) {
                 this.testDiscoveryCancellationTokenSource.dispose();
             }
@@ -82,7 +89,7 @@ export abstract class BaseTestManager {
         if (isUserInitiated) {
             this.stop();
         }
-        this.createCancellationTokens();
+        this.createCancellationToken(CancellationTokenType.testDicovery);
         return this.discoverTestsPromise = this.discoverTestsImpl(ignoreCache)
             .then(tests => {
                 this.tests = tests;
@@ -105,7 +112,7 @@ export abstract class BaseTestManager {
                     displayTestErrorMessage('There were some errors in disovering unit tests');
                 }
                 storeDiscoveredTests(tests);
-                this.disposeCancellationTokens();
+                this.disposeCancellationToken(CancellationTokenType.testDicovery);
 
                 return tests;
             }).catch(reason => {
@@ -125,7 +132,7 @@ export abstract class BaseTestManager {
                     this.outputChannel.appendLine('' + reason);
                 }
                 storeDiscoveredTests(null);
-                this.disposeCancellationTokens();
+                this.disposeCancellationToken(CancellationTokenType.testDicovery);
                 return Promise.reject(reason);
             });
     }
@@ -165,14 +172,14 @@ export abstract class BaseTestManager {
 
         this._status = TestStatus.Running;
         this.stop();
-        this.createCancellationTokens(true);
+        this.createCancellationToken(CancellationTokenType.testDicovery);
         // If running failed tests, then don't clear the previously build UnitTests
         // If we do so, then we end up re-discovering the unit tests and clearing previously cached list of failed tests
         // Similarly, if running a specific test or test file, don't clear the cache (possible tests have some state information retained)
         const clearDiscoveredTestCache = runFailedTests || moreInfo.Run_Specific_File || moreInfo.Run_Specific_Class || moreInfo.Run_Specific_Function ? false : true;
         return this.discoverTests(clearDiscoveredTestCache, true, true)
             .catch(reason => {
-                if (this.testRunnerCancellationToken && this.testRunnerCancellationToken.isCancellationRequested) {
+                if (this.testDiscoveryCancellationToken && this.testDiscoveryCancellationToken.isCancellationRequested) {
                     return Promise.reject<Tests>(reason);
                 }
                 displayTestErrorMessage('Errors in discovering tests, continuing with tests');
@@ -182,10 +189,11 @@ export abstract class BaseTestManager {
                 };
             })
             .then(tests => {
+                this.createCancellationToken(CancellationTokenType.testRunner);
                 return this.runTestImpl(tests, testsToRun, runFailedTests, debug);
             }).then(() => {
                 this._status = TestStatus.Idle;
-                this.disposeCancellationTokens(true);
+                this.disposeCancellationToken(CancellationTokenType.testRunner);
                 return this.tests;
             }).catch(reason => {
                 if (this.testRunnerCancellationToken && this.testRunnerCancellationToken.isCancellationRequested) {
@@ -195,7 +203,7 @@ export abstract class BaseTestManager {
                 else {
                     this._status = TestStatus.Error;
                 }
-                this.disposeCancellationTokens(true);
+                this.disposeCancellationToken(CancellationTokenType.testRunner);
                 return Promise.reject<Tests>(reason);
             });
     }
