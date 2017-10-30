@@ -1,4 +1,4 @@
-import { Disposable, Uri } from 'vscode';
+import { CancellationToken, Disposable, OutputChannel, Uri } from 'vscode';
 import { Product } from '../../common/installer';
 import { BaseTestManager } from './baseTestManager';
 
@@ -112,7 +112,7 @@ export interface ITestConfigSettingsService {
 export interface ITestManagerService extends Disposable {
     getTestManager(): BaseTestManager | undefined;
     getTestWorkingDirectory(): string;
-    getPreferredTestManager(): UnitTestProduct;
+    getPreferredTestManager(): UnitTestProduct | undefined;
 }
 
 export interface ITestManagerServiceFactory {
@@ -122,7 +122,7 @@ export interface ITestManagerServiceFactory {
 export interface IWorkspaceTestManagerService extends Disposable {
     getTestManager(resource: Uri): BaseTestManager | undefined;
     getTestWorkingDirectory(resource: Uri): string;
-    getPreferredTestManager(resource: Uri): UnitTestProduct;
+    getPreferredTestManager(resource: Uri): UnitTestProduct | undefined;
 }
 
 export interface ITestsHelper {
@@ -145,4 +145,8 @@ export interface ITestCollectionStorageService extends Disposable {
 export interface ITestResultsService {
     resetResults(tests: Tests): void;
     updateResults(tests: Tests): void;
+}
+
+export interface ITestDebugLauncher {
+    launchDebugger(rootDirectory: string, testArgs: string[], token?: CancellationToken, outChannel?: OutputChannel): Promise<Tests>;
 }

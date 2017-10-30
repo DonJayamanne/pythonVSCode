@@ -3,9 +3,8 @@ import * as path from 'path';
 import { CancellationToken, OutputChannel, Uri } from 'vscode';
 import { PythonSettings } from '../../common/configSettings';
 import { BaseTestManager } from '../common/baseTestManager';
-import { launchDebugger } from '../common/debugLauncher';
 import { run } from '../common/runner';
-import { ITestResultsService, Tests, TestStatus, TestsToRun } from '../common/types';
+import { ITestDebugLauncher, ITestResultsService, Tests, TestStatus, TestsToRun } from '../common/types';
 import { Server } from './socketServer';
 type TestStatusMap = {
     status: TestStatus;
@@ -30,7 +29,7 @@ interface ITestData {
 }
 
 // tslint:disable-next-line:max-func-body-length
-export function runTest(testManager: BaseTestManager, testResultsService: ITestResultsService, rootDirectory: string, tests: Tests, args: string[], testsToRun?: TestsToRun, token?: CancellationToken, outChannel?: OutputChannel, debug?: boolean): Promise<Tests> {
+export function runTest(testManager: BaseTestManager, testResultsService: ITestResultsService, debugLauncher: ITestDebugLauncher, rootDirectory: string, tests: Tests, args: string[], testsToRun?: TestsToRun, token?: CancellationToken, outChannel?: OutputChannel, debug?: boolean): Promise<Tests> {
     tests.summary.errors = 0;
     tests.summary.failures = 0;
     tests.summary.passed = 0;
@@ -98,8 +97,10 @@ export function runTest(testManager: BaseTestManager, testResultsService: ITestR
                 testArgs.push(`--testFile=${testFile}`);
             }
             if (debug === true) {
-                return launchDebugger(rootDirectory, [testLauncherFile].concat(testArgs), token, outChannel);
+                // tslint:disable-next-line:prefer-type-cast no-any
+                return debugLauncher.launchDebugger(rootDirectory, [testLauncherFile].concat(testArgs), token, outChannel);
             } else {
+                // tslint:disable-next-line:prefer-type-cast no-any
                 return run(PythonSettings.getInstance(Uri.file(rootDirectory)).pythonPath, [testLauncherFile].concat(testArgs), rootDirectory, token, outChannel);
             }
         }
@@ -113,22 +114,26 @@ export function runTest(testManager: BaseTestManager, testResultsService: ITestR
         let promise = Promise.resolve<string>('');
         if (Array.isArray(testsToRun.testFile)) {
             testsToRun.testFile.forEach(testFile => {
-                promise = promise.then(() => runTestInternal(testFile.fullPath, testFile.nameToRun));
+                // tslint:disable-next-line:prefer-type-cast no-any
+                promise = promise.then(() => runTestInternal(testFile.fullPath, testFile.nameToRun) as Promise<any>);
             });
         }
         if (Array.isArray(testsToRun.testSuite)) {
             testsToRun.testSuite.forEach(testSuite => {
                 const testFileName = tests.testSuits.find(t => t.testSuite === testSuite).parentTestFile.fullPath;
-                promise = promise.then(() => runTestInternal(testFileName, testSuite.nameToRun));
+                // tslint:disable-next-line:prefer-type-cast no-any
+                promise = promise.then(() => runTestInternal(testFileName, testSuite.nameToRun) as Promise<any>);
             });
         }
         if (Array.isArray(testsToRun.testFunction)) {
             testsToRun.testFunction.forEach(testFn => {
                 const testFileName = tests.testFunctions.find(t => t.testFunction === testFn).parentTestFile.fullPath;
-                promise = promise.then(() => runTestInternal(testFileName, testFn.nameToRun));
+                // tslint:disable-next-line:prefer-type-cast no-any
+                promise = promise.then(() => runTestInternal(testFileName, testFn.nameToRun) as Promise<any>);
             });
         }
-        return promise;
+        // tslint:disable-next-line:prefer-type-cast no-any
+        return promise as Promise<any>;
     }).then(() => {
         testResultsService.updateResults(tests);
         return tests;

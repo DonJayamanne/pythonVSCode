@@ -1,12 +1,13 @@
 'use strict';
-import * as vscode from 'vscode';
 import { Uri, window, workspace } from 'vscode';
+import * as vscode from 'vscode';
 import { IUnitTestSettings, PythonSettings } from '../common/configSettings';
 import * as constants from '../common/constants';
 import { PythonSymbolProvider } from '../providers/symbolProvider';
 import { activateCodeLenses } from './codeLenses/main';
 import { BaseTestManager } from './common/baseTestManager';
 import { CANCELLATION_REASON } from './common/constants';
+import { DebugLauncher } from './common/debugLauncher';
 import { TestCollectionStorageService } from './common/storageService';
 import { TestManagerServiceFactory } from './common/testManagerServiceFactory';
 import { TestResultsService } from './common/testResultsService';
@@ -36,7 +37,8 @@ export function activate(context: vscode.ExtensionContext, outputChannel: vscode
     testCollectionStorage = new TestCollectionStorageService();
     const testResultsService = new TestResultsService();
     const testsHelper = new TestsHelper();
-    const testManagerServiceFactory = new TestManagerServiceFactory(outChannel, testCollectionStorage, testResultsService, testsHelper);
+    const debugLauncher = new DebugLauncher();
+    const testManagerServiceFactory = new TestManagerServiceFactory(outChannel, testCollectionStorage, testResultsService, testsHelper, debugLauncher);
     workspaceTestManagerService = new WorkspaceTestManagerService(outChannel, testManagerServiceFactory);
 
     context.subscriptions.push(autoResetTests());
@@ -47,7 +49,7 @@ export function activate(context: vscode.ExtensionContext, outputChannel: vscode
 }
 
 async function getTestManager(displayTestNotConfiguredMessage: boolean, resource?: Uri): Promise<BaseTestManager | undefined | void> {
-    let wkspace: Uri;
+    let wkspace: Uri | undefined;
     if (resource) {
         const wkspaceFolder = workspace.getWorkspaceFolder(resource);
         wkspace = wkspaceFolder ? wkspaceFolder.uri : undefined;
@@ -181,7 +183,7 @@ async function selectAndRunTestFile() {
     await runTestsImpl(testManager.workspace, { testFile: [selectedFile] } as TestsToRun);
 }
 async function runCurrentTestFile() {
-    if (!vscode.window.activeTextEditor) {
+    if (!window.activeTextEditor) {
         return;
     }
     const testManager = await getTestManager(true, window.activeTextEditor.document.uri);

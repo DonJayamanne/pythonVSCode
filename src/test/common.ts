@@ -1,3 +1,4 @@
+import * as fs from 'fs-extra';
 import * as path from 'path';
 import { ConfigurationTarget, Uri, workspace } from 'vscode';
 import { PythonSettings } from '../client/common/configSettings';
@@ -12,7 +13,8 @@ export type PythonSettingKeys = 'workspaceSymbols.enabled' | 'pythonPath' |
     'linting.flake8Enabled' | 'linting.pep8Enabled' | 'linting.pylamaEnabled' |
     'linting.prospectorEnabled' | 'linting.pydocstyleEnabled' | 'linting.mypyEnabled' |
     'unitTest.nosetestArgs' | 'unitTest.pyTestArgs' | 'unitTest.unittestArgs' |
-    'formatting.formatOnSave' | 'formatting.provider' | 'sortImports.args';
+    'formatting.formatOnSave' | 'formatting.provider' | 'sortImports.args' |
+    'unitTest.nosetestsEnabled' | 'unitTest.pyTestEnabled' | 'unitTest.unittestEnabled';
 
 export async function updateSetting(setting: PythonSettingKeys, value: {}, resource: Uri, configTarget: ConfigurationTarget) {
     const settings = workspace.getConfiguration('python', resource);
@@ -89,6 +91,13 @@ async function restoreGlobalPythonPathSetting(): Promise<void> {
         await pythonConfig.update('pythonPath', undefined, true);
     }
     PythonSettings.dispose();
+}
+
+export async function deleteDirectory(dir: string) {
+    const exists = await fs.pathExists(dir);
+    if (exists) {
+        await fs.remove(dir);
+    }
 }
 
 const globalPythonPathSetting = workspace.getConfiguration('python').inspect('pythonPath').globalValue;

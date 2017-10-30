@@ -10,6 +10,7 @@ import * as pytest from '../../client/unittests/pytest/main';
 import { rootWorkspaceUri, updateSetting } from '../common';
 import { initialize, initializeTest, IS_MULTI_ROOT_TEST } from './../initialize';
 import { MockOutputChannel } from './../mockClasses';
+import { MockDebugLauncher } from './mocks';
 
 const UNITTEST_TEST_FILES_PATH = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'standard');
 const UNITTEST_SINGLE_TEST_FILE_PATH = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'single');
@@ -46,14 +47,14 @@ suite('Unit Tests (PyTest)', () => {
         storageService = new TestCollectionStorageService();
         resultsService = new TestResultsService();
         testsHelper = new TestsHelper();
-        testManager = new pytest.TestManager(rootDir, outChannel, storageService, resultsService, testsHelper);
+        testManager = new pytest.TestManager(rootDir, outChannel, storageService, resultsService, testsHelper, new MockDebugLauncher());
     }
 
     test('Discover Tests (single test file)', async () => {
         storageService = new TestCollectionStorageService();
         resultsService = new TestResultsService();
         testsHelper = new TestsHelper();
-        testManager = new pytest.TestManager(UNITTEST_SINGLE_TEST_FILE_PATH, outChannel, storageService, resultsService, testsHelper);
+        testManager = new pytest.TestManager(UNITTEST_SINGLE_TEST_FILE_PATH, outChannel, storageService, resultsService, testsHelper, new MockDebugLauncher());
         const tests = await testManager.discoverTests(true, true);
         assert.equal(tests.testFiles.length, 2, 'Incorrect number of test files');
         assert.equal(tests.testFunctions.length, 6, 'Incorrect number of test functions');

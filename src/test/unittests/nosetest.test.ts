@@ -11,6 +11,7 @@ import * as nose from '../../client/unittests/nosetest/main';
 import { rootWorkspaceUri, updateSetting } from '../common';
 import { initialize, initializeTest, IS_MULTI_ROOT_TEST } from './../initialize';
 import { MockOutputChannel } from './../mockClasses';
+import { MockDebugLauncher } from './mocks';
 
 const UNITTEST_TEST_FILES_PATH = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'noseFiles');
 const UNITTEST_SINGLE_TEST_FILE_PATH = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles', 'single');
@@ -39,7 +40,8 @@ suite('Unit Tests (nosetest)', () => {
         await updateSetting('unitTest.nosetestArgs', [], rootWorkspaceUri, configTarget);
         await initialize();
     });
-    suiteTeardown(() => {
+    suiteTeardown(async () => {
+        await updateSetting('unitTest.nosetestArgs', [], rootWorkspaceUri, configTarget);
         filesToDelete.forEach(file => {
             if (fs.existsSync(file)) {
                 fs.unlinkSync(file);
@@ -61,7 +63,7 @@ suite('Unit Tests (nosetest)', () => {
         storageService = new TestCollectionStorageService();
         resultsService = new TestResultsService();
         testsHelper = new TestsHelper();
-        testManager = new nose.TestManager(rootDir, outChannel, storageService, resultsService, testsHelper);
+        testManager = new nose.TestManager(rootDir, outChannel, storageService, resultsService, testsHelper, new MockDebugLauncher());
     }
 
     test('Discover Tests (single test file)', async () => {

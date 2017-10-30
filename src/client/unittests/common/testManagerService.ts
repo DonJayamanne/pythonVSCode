@@ -5,22 +5,23 @@ import { TestManager as NoseTestManager } from '../nosetest/main';
 import { TestManager as PyTestTestManager } from '../pytest/main';
 import { TestManager as UnitTestTestManager } from '../unittest/main';
 import { BaseTestManager } from './baseTestManager';
-import { ITestCollectionStorageService, ITestManagerService, ITestResultsService, ITestsHelper, UnitTestProduct } from './types';
+import { ITestCollectionStorageService, ITestDebugLauncher, ITestManagerService, ITestResultsService, ITestsHelper, UnitTestProduct } from './types';
 
 type TestManagerInstanceInfo = { instance?: BaseTestManager, create(rootDirectory: string): BaseTestManager };
 
 export class TestManagerService implements ITestManagerService {
     private testManagers = new Map<Product, TestManagerInstanceInfo>();
     constructor(private wkspace: Uri, private outChannel: OutputChannel,
-        testCollectionStorage: ITestCollectionStorageService, testResultsService: ITestResultsService, testsHelper: ITestsHelper) {
+        testCollectionStorage: ITestCollectionStorageService, testResultsService: ITestResultsService,
+        testsHelper: ITestsHelper, debugLauncher: ITestDebugLauncher) {
         this.testManagers.set(Product.nosetest, {
-            create: (rootDirectory: string) => new NoseTestManager(rootDirectory, this.outChannel, testCollectionStorage, testResultsService, testsHelper)
+            create: (rootDirectory: string) => new NoseTestManager(rootDirectory, this.outChannel, testCollectionStorage, testResultsService, testsHelper, debugLauncher)
         });
         this.testManagers.set(Product.pytest, {
-            create: (rootDirectory: string) => new PyTestTestManager(rootDirectory, this.outChannel, testCollectionStorage, testResultsService, testsHelper)
+            create: (rootDirectory: string) => new PyTestTestManager(rootDirectory, this.outChannel, testCollectionStorage, testResultsService, testsHelper, debugLauncher)
         });
         this.testManagers.set(Product.unittest, {
-            create: (rootDirectory: string) => new UnitTestTestManager(rootDirectory, this.outChannel, testCollectionStorage, testResultsService, testsHelper)
+            create: (rootDirectory: string) => new UnitTestTestManager(rootDirectory, this.outChannel, testCollectionStorage, testResultsService, testsHelper, debugLauncher)
         });
     }
     public dispose() {
@@ -36,7 +37,8 @@ export class TestManagerService implements ITestManagerService {
             return;
         }
 
-        const info = this.testManagers.get(preferredTestManager);
+        // tslint:disable-next-line:no-non-null-assertion
+        const info = this.testManagers.get(preferredTestManager)!;
         if (!info.instance) {
             const testDirectory = this.getTestWorkingDirectory();
             info.instance = info.create(testDirectory);

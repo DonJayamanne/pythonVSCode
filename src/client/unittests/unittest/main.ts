@@ -3,13 +3,13 @@ import * as vscode from 'vscode';
 import { PythonSettings } from '../../common/configSettings';
 import { Product } from '../../common/installer';
 import { BaseTestManager } from '../common/baseTestManager';
-import { ITestCollectionStorageService, ITestResultsService, ITestsHelper, Tests, TestStatus, TestsToRun } from '../common/types';
+import { ITestCollectionStorageService, ITestDebugLauncher, ITestResultsService, ITestsHelper, Tests, TestStatus, TestsToRun } from '../common/types';
 import { discoverTests } from './collector';
 import { runTest } from './runner';
 export class TestManager extends BaseTestManager {
     constructor(rootDirectory: string, outputChannel: vscode.OutputChannel,
         testCollectionStorage: ITestCollectionStorageService,
-        testResultsService: ITestResultsService, testsHelper: ITestsHelper) {
+        testResultsService: ITestResultsService, testsHelper: ITestsHelper, private debugLauncher: ITestDebugLauncher) {
         super('unitest', Product.unittest, rootDirectory, outputChannel, testCollectionStorage, testResultsService, testsHelper);
     }
     // tslint:disable-next-line:no-empty
@@ -27,6 +27,6 @@ export class TestManager extends BaseTestManager {
                 return fn.testFunction.status === TestStatus.Error || fn.testFunction.status === TestStatus.Fail;
             }).map(fn => fn.testFunction);
         }
-        return runTest(this, this.testResultsService, this.rootDirectory, tests, args, testsToRun, this.testRunnerCancellationToken, this.outputChannel, debug);
+        return runTest(this, this.testResultsService, this.debugLauncher, this.rootDirectory, tests, args, testsToRun, this.testRunnerCancellationToken, this.outputChannel, debug);
     }
 }

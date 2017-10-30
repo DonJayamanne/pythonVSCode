@@ -3,12 +3,11 @@ import * as path from 'path';
 import { CancellationToken, OutputChannel, Uri } from 'vscode';
 import { PythonSettings } from '../../common/configSettings';
 import { createTemporaryFile } from '../../common/helpers';
-import { launchDebugger } from '../common/debugLauncher';
 import { run } from '../common/runner';
-import { ITestResultsService, Tests, TestsToRun } from '../common/types';
+import { ITestDebugLauncher, ITestResultsService, Tests, TestsToRun } from '../common/types';
 import { PassCalculationFormulae, updateResultsFromXmlLogFile } from '../common/xUnitParser';
 
-export function runTest(testResultsService: ITestResultsService, rootDirectory: string, tests: Tests, args: string[], testsToRun?: TestsToRun, token?: CancellationToken, outChannel?: OutputChannel, debug?: boolean): Promise<Tests> {
+export function runTest(testResultsService: ITestResultsService, debugLauncher: ITestDebugLauncher, rootDirectory: string, tests: Tests, args: string[], testsToRun?: TestsToRun, token?: CancellationToken, outChannel?: OutputChannel, debug?: boolean): Promise<Tests> {
     let testPaths = [];
     if (testsToRun && testsToRun.testFolder) {
         testPaths = testPaths.concat(testsToRun.testFolder.map(f => f.nameToRun));
@@ -39,9 +38,11 @@ export function runTest(testResultsService: ITestResultsService, rootDirectory: 
             const testLauncherFile = path.join(__dirname, '..', '..', '..', '..', 'pythonFiles', 'PythonTools', 'testlauncher.py');
             const pytestlauncherargs = [rootDirectory, 'my_secret', pythonSettings.unitTest.debugPort.toString(), 'pytest'];
             const debuggerArgs = [testLauncherFile].concat(pytestlauncherargs).concat(testArgs);
-            return launchDebugger(rootDirectory, debuggerArgs, token, outChannel);
+            // tslint:disable-next-line:prefer-type-cast no-any
+            return debugLauncher.launchDebugger(rootDirectory, debuggerArgs, token, outChannel) as Promise<any>;
         } else {
-            return run(pythonSettings.unitTest.pyTestPath, testArgs, rootDirectory, token, outChannel);
+            // tslint:disable-next-line:prefer-type-cast no-any
+            return run(pythonSettings.unitTest.pyTestPath, testArgs, rootDirectory, token, outChannel) as Promise<any>;
         }
     }).then(() => {
         return updateResultsFromLogFiles(tests, xmlLogFile, testResultsService);

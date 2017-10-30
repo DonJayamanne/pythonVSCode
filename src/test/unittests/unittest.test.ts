@@ -11,6 +11,7 @@ import * as unittest from '../../client/unittests/unittest/main';
 import { rootWorkspaceUri, updateSetting } from '../common';
 import { initialize, initializeTest, IS_MULTI_ROOT_TEST } from './../initialize';
 import { MockOutputChannel } from './../mockClasses';
+import { MockDebugLauncher } from './mocks';
 
 const testFilesPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'testFiles');
 const UNITTEST_TEST_FILES_PATH = path.join(testFilesPath, 'standard');
@@ -48,16 +49,17 @@ suite('Unit Tests (unittest)', () => {
         }
         await initializeTest();
     });
-    teardown(() => {
+    teardown(async () => {
         outChannel.dispose();
         testManager.dispose();
         testResultDisplay.dispose();
+        await updateSetting('unitTest.unittestArgs', defaultUnitTestArgs, rootWorkspaceUri, configTarget);
     });
     function createTestManager(rootDir: string = rootDirectory) {
         storageService = new TestCollectionStorageService();
         resultsService = new TestResultsService();
         testsHelper = new TestsHelper();
-        testManager = new unittest.TestManager(rootDir, outChannel, storageService, resultsService, testsHelper);
+        testManager = new unittest.TestManager(rootDir, outChannel, storageService, resultsService, testsHelper, new MockDebugLauncher());
     }
 
     test('Discover Tests (single test file)', async () => {
@@ -65,7 +67,7 @@ suite('Unit Tests (unittest)', () => {
         storageService = new TestCollectionStorageService();
         resultsService = new TestResultsService();
         testsHelper = new TestsHelper();
-        testManager = new unittest.TestManager(UNITTEST_SINGLE_TEST_FILE_PATH, outChannel, storageService, resultsService, testsHelper);
+        testManager = new unittest.TestManager(UNITTEST_SINGLE_TEST_FILE_PATH, outChannel, storageService, resultsService, testsHelper, new MockDebugLauncher());
         const tests = await testManager.discoverTests(true, true);
         assert.equal(tests.testFiles.length, 1, 'Incorrect number of test files');
         assert.equal(tests.testFunctions.length, 3, 'Incorrect number of test functions');

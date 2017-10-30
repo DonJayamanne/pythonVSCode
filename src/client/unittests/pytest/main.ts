@@ -2,14 +2,14 @@
 import * as vscode from 'vscode';
 import { Product } from '../../common/installer';
 import { BaseTestManager } from '../common/baseTestManager';
-import { ITestCollectionStorageService, ITestResultsService, ITestsHelper, Tests, TestsToRun } from '../common/types';
+import { ITestCollectionStorageService, ITestDebugLauncher, ITestResultsService, ITestsHelper, Tests, TestsToRun } from '../common/types';
 import { discoverTests } from './collector';
 import { runTest } from './runner';
 
 export class TestManager extends BaseTestManager {
     constructor(rootDirectory: string, outputChannel: vscode.OutputChannel,
         testCollectionStorage: ITestCollectionStorageService,
-        testResultsService: ITestResultsService, testsHelper: ITestsHelper) {
+        testResultsService: ITestResultsService, testsHelper: ITestsHelper, private debugLauncher: ITestDebugLauncher) {
         super('pytest', Product.pytest, rootDirectory, outputChannel, testCollectionStorage, testResultsService, testsHelper);
     }
     public discoverTestsImpl(ignoreCache: boolean): Promise<Tests> {
@@ -21,6 +21,6 @@ export class TestManager extends BaseTestManager {
         if (runFailedTests === true && args.indexOf('--lf') === -1 && args.indexOf('--last-failed') === -1) {
             args.push('--last-failed');
         }
-        return runTest(this.testResultsService, this.rootDirectory, tests, args, testsToRun, this.testRunnerCancellationToken, this.outputChannel, debug);
+        return runTest(this.testResultsService, this.debugLauncher, this.rootDirectory, tests, args, testsToRun, this.testRunnerCancellationToken, this.outputChannel, debug);
     }
 }
