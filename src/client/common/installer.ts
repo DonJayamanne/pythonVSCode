@@ -1,6 +1,6 @@
 import * as os from 'os';
 import * as vscode from 'vscode';
-import { ConfigurationTarget, Uri, window, workspace } from 'vscode';
+import { commands, ConfigurationTarget, Disposable, OutputChannel, Terminal, Uri, window, workspace } from 'vscode';
 import * as settings from './configSettings';
 import { isNotInstalledError } from './helpers';
 import { error } from './logger';
