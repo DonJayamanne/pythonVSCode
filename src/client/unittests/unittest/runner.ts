@@ -81,7 +81,7 @@ export function runTest(testManager: BaseTestManager, rootDirectory: string, tes
 
             testArgs.push(`--result-port=${port}`);
             if (debug === true) {
-                const debugPort = settings.unitTest.debugPort;
+                const debugPort = PythonSettings.getInstance(Uri.file(rootDirectory)).unitTest.debugPort;
                 testArgs.push(...[`--secret=my_secret`, `--port=${debugPort}`]);
             }
             testArgs.push(`--us=${startTestDiscoveryDirectory}`);
