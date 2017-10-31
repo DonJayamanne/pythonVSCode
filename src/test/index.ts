@@ -8,6 +8,8 @@ testRunner.configure({
     ui: 'tdd',
     useColors: true,
     timeout: 25000,
-    retries: 3
+    retries: 3,
+    grep: 'Jupyter',
+    invert: 'invert'
 });
 module.exports = testRunner;
