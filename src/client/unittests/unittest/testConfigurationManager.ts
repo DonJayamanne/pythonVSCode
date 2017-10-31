@@ -16,7 +16,7 @@ export class ConfigurationManager extends TestConfigurationManager {
         const testDir = await this.selectTestDir(wkspace.fsPath, subDirs);
         args.push('-s');
         if (typeof testDir === 'string' && testDir !== '.') {
-            args.push(`.${path.sep}${testDir}`);
+            args.push(`./${testDir}`);
         } else {
             args.push('.');
         }
