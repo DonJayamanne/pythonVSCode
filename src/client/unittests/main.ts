@@ -99,7 +99,7 @@ function registerCommands(): vscode.Disposable[] {
         // tslint:disable-next-line:no-empty
         discoverTests(resource, true, true).catch(() => { });
     }));
-    disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Run_Failed, () => runTestsImpl(undefined, undefined, true)));
+    disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Run_Failed, (resource: Uri) => runTestsImpl(resource, undefined, true)));
     // tslint:disable-next-line:no-unnecessary-callback-wrapper
     disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Run, (file: Uri, testToRun?: TestsToRun) => runTestsImpl(file, testToRun)));
     disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Debug, (file: Uri, testToRun: TestsToRun) => runTestsImpl(file, testToRun, false, true)));
@@ -114,8 +114,8 @@ function registerCommands(): vscode.Disposable[] {
     disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Ask_To_Stop_Discovery, () => displayStopUI('Stop discovering tests')));
     disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Ask_To_Stop_Test, () => displayStopUI('Stop running tests')));
     // tslint:disable-next-line:no-unnecessary-callback-wrapper
-    disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Select_And_Run_Method, () => selectAndRunTestMethod()));
-    disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Select_And_Debug_Method, () => selectAndRunTestMethod(true)));
+    disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Select_And_Run_Method, (resource: Uri) => selectAndRunTestMethod(resource)));
+    disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Select_And_Debug_Method, (resource: Uri) => selectAndRunTestMethod(resource, true)));
     // tslint:disable-next-line:no-unnecessary-callback-wrapper
     disposables.push(vscode.commands.registerCommand(constants.Commands.Tests_Select_And_Run_File, () => selectAndRunTestFile()));
     // tslint:disable-next-line:no-unnecessary-callback-wrapper
@@ -142,8 +142,8 @@ async function displayPickerUI(file: Uri, testFunctions: TestFunction[], debug?:
     testDisplay = testDisplay ? testDisplay : new TestDisplay(testCollectionStorage);
     testDisplay.displayFunctionTestPickerUI(testManager.workspace, testManager.workingDirectory, file, testFunctions, debug);
 }
-async function selectAndRunTestMethod(debug?: boolean) {
-    const testManager = await getTestManager(true);
+async function selectAndRunTestMethod(resource: Uri, debug?: boolean) {
+    const testManager = await getTestManager(true, resource);
     if (!testManager) {
         return;
     }
