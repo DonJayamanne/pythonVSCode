@@ -13,7 +13,7 @@ export abstract class TestConfigurationManager {
         protected installer: Installer,
         protected testConfigSettingsService: ITestConfigSettingsService) { }
     // tslint:disable-next-line:no-any
-    public abstract configure(rootDir: string): Promise<any>;
+    public abstract configure(wkspace: Uri): Promise<any>;
     public async enable() {
         return this.testConfigSettingsService.enable(this.workspace, this.product);
     }

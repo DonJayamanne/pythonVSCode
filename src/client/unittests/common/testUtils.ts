@@ -16,7 +16,7 @@ export async function selectTestWorkspace(): Promise<Uri | undefined> {
     } else {
         // tslint:disable-next-line:no-any prefer-type-cast
         const workspaceFolder = await (window as any).showWorkspaceFolderPick({ placeHolder: 'Select a workspace' });
-        return workspace ? workspaceFolder.uri : undefined;
+        return workspaceFolder ? workspaceFolder.uri : undefined;
     }
 }
 

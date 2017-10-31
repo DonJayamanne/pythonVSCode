@@ -10,10 +10,10 @@ export class ConfigurationManager extends TestConfigurationManager {
         super(workspace, Product.unittest, outputChannel, installer, testConfigSettingsService);
     }
     // tslint:disable-next-line:no-any
-    public async configure(rootDir: string) {
+    public async configure(wkspace: Uri) {
         const args = ['-v'];
-        const subDirs = await this.getTestDirs(rootDir);
-        const testDir = await this.selectTestDir(rootDir, subDirs);
+        const subDirs = await this.getTestDirs(wkspace.fsPath);
+        const testDir = await this.selectTestDir(wkspace.fsPath, subDirs);
         args.push('-s');
         if (typeof testDir === 'string' && testDir !== '.') {
             args.push(`.${path.sep}${testDir}`);
@@ -28,6 +28,6 @@ export class ConfigurationManager extends TestConfigurationManager {
         } else {
             args.push('test*.py');
         }
-        await this.testConfigSettingsService.updateTestArgs(rootDir, Product.unittest, args);
+        await this.testConfigSettingsService.updateTestArgs(wkspace.fsPath, Product.unittest, args);
     }
 }

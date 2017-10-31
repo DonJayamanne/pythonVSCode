@@ -21,17 +21,17 @@ export class ConfigurationManager extends TestConfigurationManager {
         return values.filter(exists => exists.length > 0);
     }
     // tslint:disable-next-line:no-any
-    public async configure(rootDir: string): Promise<any> {
+    public async configure(wkspace: Uri): Promise<any> {
         const args: string[] = [];
         const configFileOptionLabel = 'Use existing config file';
-        const configFiles = await ConfigurationManager.configFilesExist(rootDir);
+        const configFiles = await ConfigurationManager.configFilesExist(wkspace.fsPath);
         // If a config file exits, there's nothing to be configured.
         if (configFiles.length > 0) {
             return;
         }
 
-        const subDirs = await this.getTestDirs(rootDir);
-        const testDir = await this.selectTestDir(rootDir, subDirs);
+        const subDirs = await this.getTestDirs(wkspace.fsPath);
+        const testDir = await this.selectTestDir(wkspace.fsPath, subDirs);
         if (typeof testDir === 'string' && testDir !== configFileOptionLabel) {
             args.push(testDir);
         }
@@ -39,6 +39,6 @@ export class ConfigurationManager extends TestConfigurationManager {
         if (!installed) {
             await this.installer.install(Product.nosetest);
         }
-        await this.testConfigSettingsService.updateTestArgs(rootDir, Product.nosetest, args);
+        await this.testConfigSettingsService.updateTestArgs(wkspace.fsPath, Product.nosetest, args);
     }
 }

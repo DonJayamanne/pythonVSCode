@@ -15,11 +15,7 @@ import * as pytest from './pytest/testConfigurationManager';
 import * as unittest from './unittest/testConfigurationManager';
 
 // tslint:disable-next-line:no-any
-async function promptToEnableAndConfigureTestFramework(outputChannel: vscode.OutputChannel, messageToDisplay: string = 'Select a test framework/tool to enable', enableOnly: boolean = false) {
-    const wkspace = await selectTestWorkspace();
-    if (!wkspace) {
-        return;
-    }
+async function promptToEnableAndConfigureTestFramework(wkspace: Uri, outputChannel: vscode.OutputChannel, messageToDisplay: string = 'Select a test framework/tool to enable', enableOnly: boolean = false) {
     const selectedTestRunner = await selectTestRunner(messageToDisplay);
     if (typeof selectedTestRunner !== 'number') {
         return Promise.reject(null);
@@ -39,7 +35,7 @@ async function promptToEnableAndConfigureTestFramework(outputChannel: vscode.Out
         return configMgr.enable();
     }
 
-    return configMgr.configure(vscode.workspace.rootPath).then(() => {
+    return configMgr.configure(wkspace).then(() => {
         return enableTest(wkspace, configMgr);
     }).catch(reason => {
         return enableTest(wkspace, configMgr).then(() => Promise.reject(reason));
@@ -51,12 +47,12 @@ export function displayTestFrameworkError(wkspace: Uri, outputChannel: vscode.Ou
     enabledCount += settings.unitTest.nosetestsEnabled ? 1 : 0;
     enabledCount += settings.unitTest.unittestEnabled ? 1 : 0;
     if (enabledCount > 1) {
-        return promptToEnableAndConfigureTestFramework(outputChannel, 'Enable only one of the test frameworks (unittest, pytest or nosetest).', true);
+        return promptToEnableAndConfigureTestFramework(wkspace, outputChannel, 'Enable only one of the test frameworks (unittest, pytest or nosetest).', true);
     } else {
         const option = 'Enable and configure a Test Framework';
         return vscode.window.showInformationMessage('No test framework configured (unittest, pytest or nosetest)', option).then(item => {
             if (item === option) {
-                return promptToEnableAndConfigureTestFramework(outputChannel);
+                return promptToEnableAndConfigureTestFramework(wkspace, outputChannel);
             }
             return Promise.reject(null);
         });
@@ -87,7 +83,7 @@ export async function displayPromptToEnableTests(rootDir: string, outputChannel:
         return;
     }
     if (item === yes) {
-        await promptToEnableAndConfigureTestFramework(outputChannel);
+        await promptToEnableAndConfigureTestFramework(vscode.workspace.getWorkspaceFolder(vscode.Uri.file(rootDir)).uri, outputChannel);
     } else {
         const pythonConfig = vscode.workspace.getConfiguration('python');
         await pythonConfig.update('unitTest.promptToConfigure', false);
