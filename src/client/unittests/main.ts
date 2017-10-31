@@ -228,7 +228,7 @@ function autoResetTests() {
 }
 function onConfigChanged() {
     // If there's one workspace, then stop the tests and restart,
-    // Else let the user do this manually.
+    // else let the user do this manually.
     if (!Array.isArray(workspace.workspaceFolders) || workspace.workspaceFolders.length > 1) {
         return;
     }

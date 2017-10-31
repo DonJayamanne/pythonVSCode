@@ -6,7 +6,7 @@ export class TestResultsService implements ITestResultsService {
         const resultResetVisitor = new TestResultResetVisitor();
         tests.testFolders.forEach(f => resultResetVisitor.visitTestFolder(f));
         tests.testFunctions.forEach(fn => resultResetVisitor.visitTestFunction(fn.testFunction));
-        tests.testSuits.forEach(suite => resultResetVisitor.visitTestSuite(suite.testSuite));
+        tests.testSuites.forEach(suite => resultResetVisitor.visitTestSuite(suite.testSuite));
         tests.testFiles.forEach(testFile => resultResetVisitor.visitTestFile(testFile));
     }
     public updateResults(tests: Tests): void {

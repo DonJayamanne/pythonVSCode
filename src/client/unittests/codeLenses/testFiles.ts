@@ -36,7 +36,7 @@ export class TestFileCodeLensProvider implements CodeLensProvider {
         token.onCancellationRequested(() => { cancelTokenSrc.cancel(); });
 
         // Strop trying to build the code lenses if unable to get a list of
-        // symbols in this file afrer x time
+        // symbols in this file afrer x time.
         setTimeout(() => {
             if (!cancelTokenSrc.token.isCancellationRequested) {
                 cancelTokenSrc.cancel();
@@ -74,7 +74,7 @@ export class TestFileCodeLensProvider implements CodeLensProvider {
                         symbol.kind === SymbolKind.Class;
                 }).map(symbol => {
                     // This is bloody crucial, if the start and end columns are the same
-                    // then vscode goes bonkers when ever you edit a line (start scrolling magically)
+                    // then vscode goes bonkers when ever you edit a line (start scrolling magically).
                     const range = new Range(symbol.location.range.start,
                         new Position(symbol.location.range.end.line,
                             symbol.location.range.end.character + 1));
@@ -165,7 +165,7 @@ function getFunctionCodeLens(file: Uri, functionsAndSuites: FunctionsAndSuites,
     if (symbolContainer.length === 0) {
         fn = functionsAndSuites.functions.find(func => func.name === symbolName);
     } else {
-        // Assume single levels for now
+        // Assume single levels for now.
         functionsAndSuites.suites
             .filter(s => s.name === symbolContainer)
             .forEach(s => {
@@ -191,8 +191,8 @@ function getFunctionCodeLens(file: Uri, functionsAndSuites: FunctionsAndSuites,
         ];
     }
 
-    // Ok, possible we're dealing with parameterized unit tests
-    // If we have [ in the name, then this is a parameterized function
+    // Ok, possible we're dealing with parameterized unit tests.
+    // If we have [ in the name, then this is a parameterized function.
     const functions = functionsAndSuites.functions.filter(func => func.name.startsWith(`${symbolName}[`) && func.name.endsWith(']'));
     if (functions.length === 0) {
         return [];
@@ -212,7 +212,7 @@ function getFunctionCodeLens(file: Uri, functionsAndSuites: FunctionsAndSuites,
         ];
     }
 
-    // Find all flattened functions
+    // Find all flattened functions.
     return [
         new CodeLens(range, {
             title: `${getTestStatusIcons(functions)}${constants.Text.CodeLensRunUnitTest} (Multiple)`,

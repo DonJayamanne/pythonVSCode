@@ -120,7 +120,7 @@ export function runTest(testManager: BaseTestManager, testResultsService: ITestR
         }
         if (Array.isArray(testsToRun.testSuite)) {
             testsToRun.testSuite.forEach(testSuite => {
-                const testFileName = tests.testSuits.find(t => t.testSuite === testSuite).parentTestFile.fullPath;
+                const testFileName = tests.testSuites.find(t => t.testSuite === testSuite).parentTestFile.fullPath;
                 // tslint:disable-next-line:prefer-type-cast no-any
                 promise = promise.then(() => runTestInternal(testFileName, testSuite.nameToRun) as Promise<any>);
             });

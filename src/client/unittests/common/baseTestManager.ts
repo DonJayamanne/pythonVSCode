@@ -9,7 +9,7 @@ import { displayTestErrorMessage } from './testUtils';
 import { ITestCollectionStorageService, ITestResultsService, ITestsHelper, Tests, TestStatus, TestsToRun } from './types';
 
 enum CancellationTokenType {
-    testDicovery,
+    testDiscovery,
     testRunner
 }
 
@@ -83,7 +83,7 @@ export abstract class BaseTestManager {
             this.stop();
         }
 
-        this.createCancellationToken(CancellationTokenType.testDicovery);
+        this.createCancellationToken(CancellationTokenType.testDiscovery);
         return this.discoverTestsPromise = this.discoverTestsImpl(ignoreCache)
             .then(tests => {
                 this.tests = tests;
@@ -107,7 +107,7 @@ export abstract class BaseTestManager {
                 }
                 const wkspace = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(this.rootDirectory)).uri;
                 this.testCollectionStorage.storeTests(wkspace, tests);
-                this.disposeCancellationToken(CancellationTokenType.testDicovery);
+                this.disposeCancellationToken(CancellationTokenType.testDiscovery);
 
                 return tests;
             }).catch(reason => {
@@ -129,7 +129,7 @@ export abstract class BaseTestManager {
                 }
                 const wkspace = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(this.rootDirectory)).uri;
                 this.testCollectionStorage.storeTests(wkspace, null);
-                this.disposeCancellationToken(CancellationTokenType.testDicovery);
+                this.disposeCancellationToken(CancellationTokenType.testDiscovery);
                 return Promise.reject(reason);
             });
     }
@@ -174,7 +174,7 @@ export abstract class BaseTestManager {
                 }
                 displayTestErrorMessage('Errors in discovering tests, continuing with tests');
                 return <Tests>{
-                    rootTestFolders: [], testFiles: [], testFolders: [], testFunctions: [], testSuits: [],
+                    rootTestFolders: [], testFiles: [], testFolders: [], testFunctions: [], testSuites: [],
                     summary: { errors: 0, failures: 0, passed: 0, skipped: 0 }
                 };
             })
@@ -201,14 +201,14 @@ export abstract class BaseTestManager {
     protected abstract discoverTestsImpl(ignoreCache: boolean, debug?: boolean): Promise<Tests>;
     private createCancellationToken(tokenType: CancellationTokenType) {
         this.disposeCancellationToken(tokenType);
-        if (tokenType === CancellationTokenType.testDicovery) {
+        if (tokenType === CancellationTokenType.testDiscovery) {
             this.testDiscoveryCancellationTokenSource = new vscode.CancellationTokenSource();
         } else {
             this.testRunnerCancellationTokenSource = new vscode.CancellationTokenSource();
         }
     }
     private disposeCancellationToken(tokenType: CancellationTokenType) {
-        if (tokenType === CancellationTokenType.testDicovery) {
+        if (tokenType === CancellationTokenType.testDiscovery) {
             if (this.testDiscoveryCancellationTokenSource) {
                 this.testDiscoveryCancellationTokenSource.dispose();
             }

@@ -77,7 +77,7 @@ suite('Unit Tests Discovery', () => {
     async function discoverUnitTests() {
         let tests = await testManager.discoverTests(true, true);
         assert.equal(tests.testFiles.length, 2, 'Incorrect number of test files');
-        assert.equal(tests.testSuits.length, 2, 'Incorrect number of test suites');
+        assert.equal(tests.testSuites.length, 2, 'Incorrect number of test suites');
         assert.equal(tests.testFunctions.length, 2, 'Incorrect number of test functions');
         await deleteFile(path.join(path.dirname(testFile), `${path.basename(testFile, '.py')}.pyc`));
         await fs.copy(testFileWithMoreTests, testFile, { overwrite: true });

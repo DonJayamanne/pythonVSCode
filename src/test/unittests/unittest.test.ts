@@ -71,7 +71,7 @@ suite('Unit Tests (unittest)', () => {
         const tests = await testManager.discoverTests(true, true);
         assert.equal(tests.testFiles.length, 1, 'Incorrect number of test files');
         assert.equal(tests.testFunctions.length, 3, 'Incorrect number of test functions');
-        assert.equal(tests.testSuits.length, 1, 'Incorrect number of test suites');
+        assert.equal(tests.testSuites.length, 1, 'Incorrect number of test suites');
         assert.equal(tests.testFiles.some(t => t.name === 'test_one.py' && t.nameToRun === 'Test_test1.test_A'), true, 'Test File not found');
     });
 
@@ -81,7 +81,7 @@ suite('Unit Tests (unittest)', () => {
         const tests = await testManager.discoverTests(true, true);
         assert.equal(tests.testFiles.length, 2, 'Incorrect number of test files');
         assert.equal(tests.testFunctions.length, 9, 'Incorrect number of test functions');
-        assert.equal(tests.testSuits.length, 3, 'Incorrect number of test suites');
+        assert.equal(tests.testSuites.length, 3, 'Incorrect number of test suites');
         assert.equal(tests.testFiles.some(t => t.name === 'test_unittest_one.py' && t.nameToRun === 'Test_test1.test_A'), true, 'Test File not found');
         assert.equal(tests.testFiles.some(t => t.name === 'test_unittest_two.py' && t.nameToRun === 'Test_test2.test_A2'), true, 'Test File not found');
     });
@@ -92,7 +92,7 @@ suite('Unit Tests (unittest)', () => {
         const tests = await testManager.discoverTests(true, true);
         assert.equal(tests.testFiles.length, 1, 'Incorrect number of test files');
         assert.equal(tests.testFunctions.length, 2, 'Incorrect number of test functions');
-        assert.equal(tests.testSuits.length, 1, 'Incorrect number of test suites');
+        assert.equal(tests.testSuites.length, 1, 'Incorrect number of test suites');
         assert.equal(tests.testFiles.some(t => t.name === 'unittest_three_test.py' && t.nameToRun === 'Test_test3.test_A'), true, 'Test File not found');
     });
 
@@ -144,7 +144,7 @@ suite('Unit Tests (unittest)', () => {
         const tests = await testManager.discoverTests(true, true);
 
         // tslint:disable-next-line:no-non-null-assertion
-        const testSuiteToTest = tests.testSuits.find(s => s.testSuite.name === 'Test_test_one_1')!.testSuite;
+        const testSuiteToTest = tests.testSuites.find(s => s.testSuite.name === 'Test_test_one_1')!.testSuite;
         const testSuite: TestsToRun = { testFile: [], testFolder: [], testFunction: [], testSuite: [testSuiteToTest] };
         const results = await testManager.runTest(testSuite);
 
@@ -174,6 +174,6 @@ suite('Unit Tests (unittest)', () => {
         assert.equal(tests.testFiles.length, 1, 'Incorrect number of test files');
         assert.equal(tests.testFolders.length, 1, 'Incorrect number of test folders');
         assert.equal(tests.testFunctions.length, 1, 'Incorrect number of test functions');
-        assert.equal(tests.testSuits.length, 1, 'Incorrect number of test suites');
+        assert.equal(tests.testSuites.length, 1, 'Incorrect number of test suites');
     });
 });

@@ -47,7 +47,7 @@ export class TestsHelper implements ITestsHelper {
         const tests = <Tests>{
             testFiles: testFiles,
             testFunctions: flatteningVisitor.flattenedTestFunctions,
-            testSuits: flatteningVisitor.flattenedTestSuites,
+            testSuites: flatteningVisitor.flattenedTestSuites,
             testFolders: [],
             rootTestFolders: [],
             summary: { passed: 0, failures: 0, errors: 0, skipped: 0 }
@@ -98,8 +98,8 @@ export class TestsHelper implements ITestsHelper {
     }
     public parseTestName(name: string, rootDirectory: string, tests: Tests): TestsToRun {
         // TODO: We need a better way to match (currently we have raw name, name, xmlname, etc = which one do we.
-        // use to identify a file given the full file name, similary for a folder and function
-        // Perhaps something like a parser or methods like TestFunction.fromString()... something)
+        // Use to identify a file given the full file name, similarly for a folder and function.
+        // Perhaps something like a parser or methods like TestFunction.fromString()... something).
         if (!tests) { return null; }
         const absolutePath = path.isAbsolute(name) ? name : path.resolve(rootDirectory, name);
         const testFolders = tests.testFolders.filter(folder => folder.nameToRun === name || folder.name === name || folder.name === absolutePath);
@@ -111,7 +111,7 @@ export class TestsHelper implements ITestsHelper {
         const testFns = tests.testFunctions.filter(fn => fn.testFunction.nameToRun === name || fn.testFunction.name === name).map(fn => fn.testFunction);
         if (testFns.length > 0) { return { testFunction: testFns }; }
 
-        // Just return this as a test file
+        // Just return this as a test file.
         return <TestsToRun>{ testFile: [{ name: name, nameToRun: name, functions: [], suites: [], xmlName: name, fullPath: '', time: 0 }] };
     }
 }

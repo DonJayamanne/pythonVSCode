@@ -78,7 +78,7 @@ suite('Unit Tests Debugging', () => {
         const tests = await testManager.discoverTests(true, true);
         assert.equal(tests.testFiles.length, 2, 'Incorrect number of test files');
         assert.equal(tests.testFunctions.length, 2, 'Incorrect number of test functions');
-        assert.equal(tests.testSuits.length, 2, 'Incorrect number of test suites');
+        assert.equal(tests.testSuites.length, 2, 'Incorrect number of test suites');
 
         const testFunction = [tests.testFunctions[0].testFunction];
         testManager.runTest({ testFunction }, false, true);
@@ -111,7 +111,7 @@ suite('Unit Tests Debugging', () => {
         const tests = await testManager.discoverTests(true, true);
         assert.equal(tests.testFiles.length, 2, 'Incorrect number of test files');
         assert.equal(tests.testFunctions.length, 2, 'Incorrect number of test functions');
-        assert.equal(tests.testSuits.length, 2, 'Incorrect number of test suites');
+        assert.equal(tests.testSuites.length, 2, 'Incorrect number of test suites');
 
         const testFunction = [tests.testFunctions[0].testFunction];
         const runningPromise = testManager.runTest({ testFunction }, false, true);
@@ -148,7 +148,7 @@ suite('Unit Tests Debugging', () => {
         const tests = await testManager.discoverTests(true, true);
         assert.equal(tests.testFiles.length, 2, 'Incorrect number of test files');
         assert.equal(tests.testFunctions.length, 2, 'Incorrect number of test functions');
-        assert.equal(tests.testSuits.length, 2, 'Incorrect number of test suites');
+        assert.equal(tests.testSuites.length, 2, 'Incorrect number of test suites');
 
         const testFunction = [tests.testFunctions[0].testFunction];
         const runningPromise = testManager.runTest({ testFunction }, false, true);

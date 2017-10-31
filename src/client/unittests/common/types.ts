@@ -78,7 +78,7 @@ export type Tests = {
     summary: TestSummary;
     testFiles: TestFile[];
     testFunctions: FlattenedTestFunction[];
-    testSuits: FlattenedTestSuite[];
+    testSuites: FlattenedTestSuite[];
     testFolders: TestFolder[];
     rootTestFolders: TestFolder[];
 };
