@@ -1,7 +1,7 @@
 'use strict';
+import { IPythonSettings, PythonSettings } from '../common/configSettings';
 import { execPythonFile } from './../common/utils';
-import * as settings from './../common/configSettings';
-import { OutputChannel } from 'vscode';
+import { OutputChannel, Uri } from 'vscode';
 import { Installer, Product } from '../common/installer';
 import * as vscode from 'vscode';
 import { ErrorHandler } from './errorHandlers/main';
@@ -49,22 +49,26 @@ export function matchNamedRegEx(data, regex): IRegexGroup {
 
 export abstract class BaseLinter {
     public Id: string;
-    protected pythonSettings: settings.IPythonSettings;
-    private _workspaceRootPath: string;
     protected _columnOffset = 0;
     private _errorHandler: ErrorHandler;
-    protected get workspaceRootPath(): string {
-        return typeof this._workspaceRootPath === 'string' ? this._workspaceRootPath : vscode.workspace.rootPath;
+    private _pythonSettings: IPythonSettings;
+    protected get pythonSettings(): IPythonSettings {
+        return this._pythonSettings;
     }
-    constructor(id: string, public product: Product, protected outputChannel: OutputChannel, workspaceRootPath: string) {
+    protected getWorkspaceRootPath(document: vscode.TextDocument): string {
+        const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri);
+        const workspaceRootPath = (workspaceFolder && typeof workspaceFolder.uri.fsPath === 'string') ? workspaceFolder.uri.fsPath : undefined;
+        return typeof workspaceRootPath === 'string' ? workspaceRootPath : __dirname;
+    }
+    constructor(id: string, public product: Product, protected outputChannel: OutputChannel) {
         this.Id = id;
-        this._workspaceRootPath = workspaceRootPath;
-        this.pythonSettings = settings.PythonSettings.getInstance();
         this._errorHandler = new ErrorHandler(this.Id, product, new Installer(), this.outputChannel);
     }
-    public abstract isEnabled(): Boolean;
-    public abstract runLinter(document: vscode.TextDocument, cancellation: vscode.CancellationToken): Promise<ILintMessage[]>;
-
+    public lint(document: vscode.TextDocument, cancellation: vscode.CancellationToken): Promise<ILintMessage[]> {
+        this._pythonSettings = PythonSettings.getInstance(document.uri);
+        return this.runLinter(document, cancellation);
+    }
+    protected abstract runLinter(document: vscode.TextDocument, cancellation: vscode.CancellationToken): Promise<ILintMessage[]>;
     protected parseMessagesSeverity(error: string, categorySeverity: any): LintMessageSeverity {
         if (categorySeverity[error]) {
             let severityName = categorySeverity[error];
@@ -127,7 +131,7 @@ export abstract class BaseLinter {
         this.outputChannel.append(data);
     }
     protected run(command: string, args: string[], document: vscode.TextDocument, cwd: string, cancellation: vscode.CancellationToken, regEx: string = REGEX): Promise<ILintMessage[]> {
-        return execPythonFile(command, args, cwd, true, null, cancellation).then(data => {
+        return execPythonFile(document.uri, command, args, cwd, true, null, cancellation).then(data => {
             if (!data) {
                 data = '';
             }
@@ -135,12 +139,12 @@ export abstract class BaseLinter {
             let outputLines = data.split(/\r?\n/g);
             return this.parseLines(outputLines, regEx);
         }).catch(error => {
-            this.handleError(this.Id, command, error);
+            this.handleError(this.Id, command, error, document.uri);
             return [];
         });
     }
 
-    protected handleError(expectedFileName: string, fileName: string, error: Error) {
-        this._errorHandler.handleError(expectedFileName, fileName, error);
+    protected handleError(expectedFileName: string, fileName: string, error: Error, resource: Uri) {
+        this._errorHandler.handleError(expectedFileName, fileName, error, resource);
     }
 }

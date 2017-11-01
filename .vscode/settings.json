@@ -4,7 +4,10 @@
 		"out": true, // set this to true to hide the "out" folder with the compiled JS files
 		"**/*.pyc": true,
 		"**/__pycache__": true,
-		"node_modules": true
+		"node_modules": true,
+		".vscode-test": true,
+		"**/.mypy_cache/**": true,
+		"**/.ropeproject/**": true
 	},
 	"search.exclude": {
 		"out": true // set this to false to include "out" folder in search results

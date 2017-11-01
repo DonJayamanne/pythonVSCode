@@ -1,35 +1,51 @@
 // import {TestFolder, TestsToRun, Tests, TestFile, TestSuite, TestFunction, TestStatus, FlattenedTestFunction, FlattenedTestSuite, CANCELLATION_REASON} from './contracts';
-import { Tests, TestStatus, TestsToRun, CANCELLATION_REASON } from './contracts';
 import * as vscode from 'vscode';
-import { resetTestResults, displayTestErrorMessage, storeDiscoveredTests } from './testUtils';
-import { Installer, Product } from '../../common/installer';
+import { Uri, workspace } from 'vscode';
+import { IPythonSettings, PythonSettings } from '../../common/configSettings';
 import { isNotInstalledError } from '../../common/helpers';
+import { Installer, Product } from '../../common/installer';
+import { CANCELLATION_REASON } from './constants';
+import { displayTestErrorMessage } from './testUtils';
+import { ITestCollectionStorageService, ITestResultsService, ITestsHelper, Tests, TestStatus, TestsToRun } from './types';
 
 enum CancellationTokenType {
-    testDicovery,
+    testDiscovery,
     testRunner
 }
 
 export abstract class BaseTestManager {
+    public readonly workspace: Uri;
+    protected readonly settings: IPythonSettings;
     private tests: Tests;
+    // tslint:disable-next-line:variable-name
     private _status: TestStatus = TestStatus.Unknown;
     private testDiscoveryCancellationTokenSource: vscode.CancellationTokenSource;
     private testRunnerCancellationTokenSource: vscode.CancellationTokenSource;
     private installer: Installer;
-    protected get testDiscoveryCancellationToken(): vscode.CancellationToken {
-        if (this.testDiscoveryCancellationTokenSource) {
-            return this.testDiscoveryCancellationTokenSource.token;
-        }
+    private discoverTestsPromise: Promise<Tests>;
+    constructor(private testProvider: string, private product: Product, protected rootDirectory: string,
+        protected outputChannel: vscode.OutputChannel, private testCollectionStorage: ITestCollectionStorageService,
+        protected testResultsService: ITestResultsService, protected testsHelper: ITestsHelper) {
+        this._status = TestStatus.Unknown;
+        this.installer = new Installer();
+        this.settings = PythonSettings.getInstance(this.rootDirectory ? Uri.file(this.rootDirectory) : undefined);
+        this.workspace = workspace.getWorkspaceFolder(Uri.file(this.rootDirectory)).uri;
     }
-    protected get testRunnerCancellationToken(): vscode.CancellationToken {
-        if (this.testRunnerCancellationTokenSource) {
-            return this.testRunnerCancellationTokenSource.token;
-        }
+    protected get testDiscoveryCancellationToken(): vscode.CancellationToken | undefined {
+        return this.testDiscoveryCancellationTokenSource ? this.testDiscoveryCancellationTokenSource.token : undefined;
+    }
+    protected get testRunnerCancellationToken(): vscode.CancellationToken | undefined {
+        return this.testRunnerCancellationTokenSource ? this.testRunnerCancellationTokenSource.token : undefined;
     }
     public dispose() {
+        this.stop();
     }
     public get status(): TestStatus {
         return this._status;
+    }
+    public get workingDirectory(): string {
+        const settings = PythonSettings.getInstance(vscode.Uri.file(this.rootDirectory));
+        return settings.unitTest.cwd && settings.unitTest.cwd.length > 0 ? settings.unitTest.cwd : this.rootDirectory;
     }
     public stop() {
         if (this.testDiscoveryCancellationTokenSource) {
@@ -38,10 +54,6 @@ export abstract class BaseTestManager {
         if (this.testRunnerCancellationTokenSource) {
             this.testRunnerCancellationTokenSource.cancel();
         }
-    }
-    constructor(private testProvider: string, private product: Product, protected rootDirectory: string, protected outputChannel: vscode.OutputChannel) {
-        this._status = TestStatus.Unknown;
-        this.installer = new Installer();
     }
     public reset() {
         this._status = TestStatus.Unknown;
@@ -52,31 +64,9 @@ export abstract class BaseTestManager {
             return;
         }
 
-        resetTestResults(this.tests);
+        this.testResultsService.resetResults(this.tests);
     }
-    private createCancellationToken(tokenType: CancellationTokenType) {
-        this.disposeCancellationToken(tokenType);
-        if (tokenType === CancellationTokenType.testDicovery) {
-            this.testDiscoveryCancellationTokenSource = new vscode.CancellationTokenSource();
-        } else {
-            this.testRunnerCancellationTokenSource = new vscode.CancellationTokenSource();
-        }
-    }
-    private disposeCancellationToken(tokenType: CancellationTokenType) {
-        if (tokenType === CancellationTokenType.testDicovery) {
-            if (this.testDiscoveryCancellationTokenSource) {
-                this.testDiscoveryCancellationTokenSource.dispose();
-            }
-            this.testDiscoveryCancellationTokenSource = null;
-        } else {
-            if (this.testRunnerCancellationTokenSource) {
-                this.testRunnerCancellationTokenSource.dispose();
-            }
-            this.testRunnerCancellationTokenSource = null;
-        }
-    }
-    private discoverTestsPromise: Promise<Tests>;
-    discoverTests(ignoreCache: boolean = false, quietMode: boolean = false, isUserInitiated: boolean = true): Promise<Tests> {
+    public async discoverTests(ignoreCache: boolean = false, quietMode: boolean = false, userInitiated: boolean = false): Promise<Tests> {
         if (this.discoverTestsPromise) {
             return this.discoverTestsPromise;
         }
@@ -86,10 +76,14 @@ export abstract class BaseTestManager {
             return Promise.resolve(this.tests);
         }
         this._status = TestStatus.Discovering;
-        if (isUserInitiated) {
+
+        // If ignoreCache is true, its an indication of the fact that its a user invoked operation.
+        // Hence we can stop the debugger.
+        if (userInitiated) {
             this.stop();
         }
-        this.createCancellationToken(CancellationTokenType.testDicovery);
+
+        this.createCancellationToken(CancellationTokenType.testDiscovery);
         return this.discoverTestsPromise = this.discoverTestsImpl(ignoreCache)
             .then(tests => {
                 this.tests = tests;
@@ -111,13 +105,15 @@ export abstract class BaseTestManager {
                 if (haveErrorsInDiscovering && !quietMode) {
                     displayTestErrorMessage('There were some errors in disovering unit tests');
                 }
-                storeDiscoveredTests(tests);
-                this.disposeCancellationToken(CancellationTokenType.testDicovery);
+                const wkspace = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(this.rootDirectory)).uri;
+                this.testCollectionStorage.storeTests(wkspace, tests);
+                this.disposeCancellationToken(CancellationTokenType.testDiscovery);
 
                 return tests;
             }).catch(reason => {
                 if (isNotInstalledError(reason) && !quietMode) {
-                    this.installer.promptToInstall(this.product);
+                    // tslint:disable-next-line:no-floating-promises
+                    this.installer.promptToInstall(this.product, this.workspace);
                 }
 
                 this.tests = null;
@@ -125,24 +121,20 @@ export abstract class BaseTestManager {
                 if (this.testDiscoveryCancellationToken && this.testDiscoveryCancellationToken.isCancellationRequested) {
                     reason = CANCELLATION_REASON;
                     this._status = TestStatus.Idle;
-                }
-                else {
+                } else {
                     this._status = TestStatus.Error;
                     this.outputChannel.appendLine('Test Disovery failed: ');
+                    // tslint:disable-next-line:prefer-template
                     this.outputChannel.appendLine('' + reason);
                 }
-                storeDiscoveredTests(null);
-                this.disposeCancellationToken(CancellationTokenType.testDicovery);
+                const wkspace = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(this.rootDirectory)).uri;
+                this.testCollectionStorage.storeTests(wkspace, null);
+                this.disposeCancellationToken(CancellationTokenType.testDiscovery);
                 return Promise.reject(reason);
             });
     }
-    abstract discoverTestsImpl(ignoreCache: boolean, debug?: boolean): Promise<Tests>;
-    public runTest(testsToRun?: TestsToRun, debug?: boolean): Promise<Tests>;
-    public runTest(runFailedTests?: boolean, debug?: boolean): Promise<Tests>;
-    public runTest(args: any, debug?: boolean): Promise<Tests> {
-        let runFailedTests = false;
-        let testsToRun: TestsToRun = null;
-        let moreInfo = {
+    public runTest(testsToRun?: TestsToRun, runFailedTests?: boolean, debug?: boolean): Promise<Tests> {
+        const moreInfo = {
             Test_Provider: this.testProvider,
             Run_Failed_Tests: 'false',
             Run_Specific_File: 'false',
@@ -150,12 +142,11 @@ export abstract class BaseTestManager {
             Run_Specific_Function: 'false'
         };
 
-        if (typeof args === 'boolean') {
-            runFailedTests = args === true;
+        if (runFailedTests === true) {
+            // tslint:disable-next-line:prefer-template
             moreInfo.Run_Failed_Tests = runFailedTests + '';
         }
-        if (typeof args === 'object' && args !== null) {
-            testsToRun = args;
+        if (testsToRun && typeof testsToRun === 'object') {
             if (Array.isArray(testsToRun.testFile) && testsToRun.testFile.length > 0) {
                 moreInfo.Run_Specific_File = 'true';
             }
@@ -172,7 +163,6 @@ export abstract class BaseTestManager {
 
         this._status = TestStatus.Running;
         this.stop();
-        this.createCancellationToken(CancellationTokenType.testDicovery);
         // If running failed tests, then don't clear the previously build UnitTests
         // If we do so, then we end up re-discovering the unit tests and clearing previously cached list of failed tests
         // Similarly, if running a specific test or test file, don't clear the cache (possible tests have some state information retained)
@@ -184,7 +174,7 @@ export abstract class BaseTestManager {
                 }
                 displayTestErrorMessage('Errors in discovering tests, continuing with tests');
                 return <Tests>{
-                    rootTestFolders: [], testFiles: [], testFolders: [], testFunctions: [], testSuits: [],
+                    rootTestFolders: [], testFiles: [], testFolders: [], testFunctions: [], testSuites: [],
                     summary: { errors: 0, failures: 0, passed: 0, skipped: 0 }
                 };
             })
@@ -199,13 +189,35 @@ export abstract class BaseTestManager {
                 if (this.testRunnerCancellationToken && this.testRunnerCancellationToken.isCancellationRequested) {
                     reason = CANCELLATION_REASON;
                     this._status = TestStatus.Idle;
-                }
-                else {
+                } else {
                     this._status = TestStatus.Error;
                 }
                 this.disposeCancellationToken(CancellationTokenType.testRunner);
                 return Promise.reject<Tests>(reason);
             });
     }
-    abstract runTestImpl(tests: Tests, testsToRun?: TestsToRun, runFailedTests?: boolean, debug?: boolean): Promise<any>;
+    // tslint:disable-next-line:no-any
+    protected abstract runTestImpl(tests: Tests, testsToRun?: TestsToRun, runFailedTests?: boolean, debug?: boolean): Promise<any>;
+    protected abstract discoverTestsImpl(ignoreCache: boolean, debug?: boolean): Promise<Tests>;
+    private createCancellationToken(tokenType: CancellationTokenType) {
+        this.disposeCancellationToken(tokenType);
+        if (tokenType === CancellationTokenType.testDiscovery) {
+            this.testDiscoveryCancellationTokenSource = new vscode.CancellationTokenSource();
+        } else {
+            this.testRunnerCancellationTokenSource = new vscode.CancellationTokenSource();
+        }
+    }
+    private disposeCancellationToken(tokenType: CancellationTokenType) {
+        if (tokenType === CancellationTokenType.testDiscovery) {
+            if (this.testDiscoveryCancellationTokenSource) {
+                this.testDiscoveryCancellationTokenSource.dispose();
+            }
+            this.testDiscoveryCancellationTokenSource = null;
+        } else {
+            if (this.testRunnerCancellationTokenSource) {
+                this.testRunnerCancellationTokenSource.dispose();
+            }
+            this.testRunnerCancellationTokenSource = null;
+        }
+    }
 }

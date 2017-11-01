@@ -2,23 +2,43 @@
 
 import * as vscode from 'vscode';
 import * as fs from 'fs';
-import { execPythonFile } from './../common/utils';
+import * as path from 'path';
 import * as settings from './../common/configSettings';
+import { Uri } from 'vscode';
+import { execPythonFile } from './../common/utils';
 import { getTextEditsFromPatch, getTempFileWithDocumentContents } from './../common/editor';
 import { isNotInstalledError } from '../common/helpers';
 import { Installer, Product } from '../common/installer';
 
+
 export abstract class BaseFormatter {
     private installer: Installer;
-    constructor(public Id: string, private product: Product, protected outputChannel: vscode.OutputChannel, protected pythonSettings: settings.IPythonSettings, protected workspaceRootPath?: string) {
+    constructor(public Id: string, private product: Product, protected outputChannel: vscode.OutputChannel) {
         this.installer = new Installer();
     }
 
     public abstract formatDocument(document: vscode.TextDocument, options: vscode.FormattingOptions, token: vscode.CancellationToken, range?: vscode.Range): Thenable<vscode.TextEdit[]>;
-
+    protected getDocumentPath(document: vscode.TextDocument, fallbackPath: string) {
+        if (path.basename(document.uri.fsPath) === document.uri.fsPath) {
+            return fallbackPath;
+        }
+        return path.dirname(document.fileName);
+    }
+    protected getWorkspaceUri(document: vscode.TextDocument) {
+        const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri);
+        if (workspaceFolder) {
+            return workspaceFolder.uri;
+        }
+        if (Array.isArray(vscode.workspace.workspaceFolders) && vscode.workspace.workspaceFolders.length > 0) {
+            return vscode.workspace.workspaceFolders[0].uri;
+        }
+        return vscode.Uri.file(__dirname);
+    }
     protected provideDocumentFormattingEdits(document: vscode.TextDocument, options: vscode.FormattingOptions, token: vscode.CancellationToken, command: string, args: string[], cwd: string = null): Thenable<vscode.TextEdit[]> {
         this.outputChannel.clear();
-        cwd = typeof cwd === 'string' && cwd.length > 0 ? cwd : (this.workspaceRootPath ? this.workspaceRootPath : vscode.workspace.rootPath);
+        if (typeof cwd !== 'string' || cwd.length === 0) {
+            cwd = this.getWorkspaceUri(document).fsPath;
+        }
 
         // autopep8 and yapf have the ability to read from the process input stream and return the formatted code out of the output stream
         // However they don't support returning the diff of the formatted text when reading data from the input stream
@@ -30,7 +50,7 @@ export abstract class BaseFormatter {
             if (token && token.isCancellationRequested) {
                 return [filePath, ''];
             }
-            return Promise.all<string>([Promise.resolve(filePath), execPythonFile(command, args.concat([filePath]), cwd)]);
+            return Promise.all<string>([Promise.resolve(filePath), execPythonFile(document.uri, command, args.concat([filePath]), cwd)]);
         }).then(data => {
             // Delete the temporary file created
             if (tmpFileCreated) {
@@ -41,14 +61,14 @@ export abstract class BaseFormatter {
             }
             return getTextEditsFromPatch(document.getText(), data[1]);
         }).catch(error => {
-            this.handleError(this.Id, command, error);
+            this.handleError(this.Id, command, error, document.uri);
             return [];
         });
         vscode.window.setStatusBarMessage(`Formatting with ${this.Id}`, promise);
         return promise;
     }
 
-    protected handleError(expectedFileName: string, fileName: string, error: Error) {
+    protected handleError(expectedFileName: string, fileName: string, error: Error, resource?: Uri) {
         let customError = `Formatting with ${this.Id} failed.`;
 
         if (isNotInstalledError(error)) {
@@ -64,7 +84,7 @@ export abstract class BaseFormatter {
             }
             else {
                 customError += `\nYou could either install the '${this.Id}' formatter, turn it off or use another formatter.`;
-                this.installer.promptToInstall(this.product);
+                this.installer.promptToInstall(this.product, resource);
             }
         }
 

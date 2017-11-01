@@ -24,14 +24,11 @@ interface IProspectorLocation {
 }
 
 export class Linter extends baseLinter.BaseLinter {
-    constructor(outputChannel: OutputChannel, workspaceRootPath?: string) {
-        super('prospector', Product.prospector, outputChannel, workspaceRootPath);
+    constructor(outputChannel: OutputChannel) {
+        super('prospector', Product.prospector, outputChannel);
     }
 
-    public isEnabled(): Boolean {
-        return this.pythonSettings.linting.prospectorEnabled;
-    }
-    public runLinter(document: TextDocument, cancellation: CancellationToken): Promise<baseLinter.ILintMessage[]> {
+    protected runLinter(document: TextDocument, cancellation: CancellationToken): Promise<baseLinter.ILintMessage[]> {
         if (!this.pythonSettings.linting.prospectorEnabled) {
             return Promise.resolve([]);
         }
@@ -39,14 +36,14 @@ export class Linter extends baseLinter.BaseLinter {
         let prospectorPath = this.pythonSettings.linting.prospectorPath;
         let outputChannel = this.outputChannel;
         let prospectorArgs = Array.isArray(this.pythonSettings.linting.prospectorArgs) ? this.pythonSettings.linting.prospectorArgs : [];
-        
-        if (prospectorArgs.length === 0 && ProductExecutableAndArgs.has(Product.prospector) && prospectorPath.toLocaleLowerCase() === 'prospector'){
+
+        if (prospectorArgs.length === 0 && ProductExecutableAndArgs.has(Product.prospector) && prospectorPath.toLocaleLowerCase() === 'prospector') {
             prospectorPath = ProductExecutableAndArgs.get(Product.prospector).executable;
             prospectorArgs = ProductExecutableAndArgs.get(Product.prospector).args;
         }
 
         return new Promise<baseLinter.ILintMessage[]>((resolve, reject) => {
-            execPythonFile(prospectorPath, prospectorArgs.concat(['--absolute-paths', '--output-format=json', document.uri.fsPath]), this.workspaceRootPath, false, null, cancellation).then(data => {
+            execPythonFile(document.uri, prospectorPath, prospectorArgs.concat(['--absolute-paths', '--output-format=json', document.uri.fsPath]), this.getWorkspaceRootPath(document), false, null, cancellation).then(data => {
                 let parsedData: IProspectorResponse;
                 try {
                     parsedData = JSON.parse(data);
@@ -73,7 +70,7 @@ export class Linter extends baseLinter.BaseLinter {
 
                 resolve(diagnostics);
             }).catch(error => {
-                this.handleError(this.Id, prospectorPath, error);
+                this.handleError(this.Id, prospectorPath, error, document.uri);
                 resolve([]);
             });
         });
