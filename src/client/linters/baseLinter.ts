@@ -7,7 +7,7 @@ import * as vscode from 'vscode';
 import { ErrorHandler } from './errorHandlers/main';
 
 let NamedRegexp = null;
-const REGEX = '(?<line>\\d+),(?<column>\\d+),(?<type>\\w+),(?<code>\\w\\d+):(?<message>.*)\\r?(\\n|$)';
+const REGEX = '(?<line>\\d+),(?<column>\\d+),(?<type>\\w+),(?<code>[^:]+):(?<message>.*)\\r?(\\n|$)';
 
 export interface IRegexGroup {
     line: number;
