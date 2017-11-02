@@ -123,6 +123,7 @@ export interface IWorkspaceSymbolSettings {
 export interface ITerminalSettings {
     executeInFileDir: boolean;
     launchArgs: string[];
+    executeWithPythonPathEnvVariable: string;
 }
 export interface JupyterSettings {
     appendResults: boolean;
@@ -325,7 +326,8 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         // Support for travis
         this.terminal = this.terminal ? this.terminal : {
             executeInFileDir: true,
-            launchArgs: []
+            launchArgs: [],
+            executeWithPythonPathEnvVariable: ""
         };
 
         this.jupyter = pythonSettings.get<JupyterSettings>('jupyter')!;
