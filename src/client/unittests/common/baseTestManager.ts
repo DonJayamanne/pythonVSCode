@@ -109,7 +109,7 @@ export abstract class BaseTestManager {
                     }
                 });
                 if (haveErrorsInDiscovering && !quietMode) {
-                    displayTestErrorMessage('There were some errors in disovering unit tests');
+                    displayTestErrorMessage('There were some errors in discovering unit tests');
                 }
                 storeDiscoveredTests(tests);
                 this.disposeCancellationToken(CancellationTokenType.testDicovery);
