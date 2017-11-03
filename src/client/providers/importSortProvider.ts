@@ -5,9 +5,12 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { PythonSettings } from '../common/configSettings';
 import { getTempFileWithDocumentContents, getTextEditsFromPatch } from '../common/editor';
+import { captureTelemetry } from '../common/telemetry';
+import { FORMAT_SORT_IMPORTS } from '../common/telemetry/constants';
 
 // tslint:disable-next-line:completed-docs
 export class PythonImportSortProvider {
+    @captureTelemetry(FORMAT_SORT_IMPORTS)
     public async sortImports(extensionDir: string, document: vscode.TextDocument): Promise<vscode.TextEdit[]> {
         if (document.lineCount === 1) {
             return [];

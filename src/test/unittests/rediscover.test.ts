@@ -1,13 +1,13 @@
 import { assert } from 'chai';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { ConfigurationTarget, Position, Range, Uri, window, workspace } from 'vscode';
+import { ConfigurationTarget } from 'vscode';
 import { BaseTestManager } from '../../client/unittests/common/baseTestManager';
-import { CANCELLATION_REASON } from '../../client/unittests/common/constants';
+import { CommandSource } from '../../client/unittests/common/constants';
 import { TestCollectionStorageService } from '../../client/unittests/common/storageService';
 import { TestResultsService } from '../../client/unittests/common/testResultsService';
 import { TestsHelper } from '../../client/unittests/common/testUtils';
-import { ITestCollectionStorageService, ITestResultsService, ITestsHelper, TestsToRun } from '../../client/unittests/common/types';
+import { ITestCollectionStorageService, ITestResultsService, ITestsHelper } from '../../client/unittests/common/types';
 import { TestResultDisplay } from '../../client/unittests/display/main';
 import { TestManager as NosetestManager } from '../../client/unittests/nosetest/main';
 import { TestManager as PytestManager } from '../../client/unittests/pytest/main';
@@ -30,7 +30,7 @@ const defaultUnitTestArgs = [
 ];
 
 // tslint:disable-next-line:max-func-body-length
-suite('Unit Tests Discovery', () => {
+suite('Unit Tests re-discovery', () => {
     let testManager: BaseTestManager;
     let testResultDisplay: TestResultDisplay;
     let outChannel: MockOutputChannel;
@@ -75,13 +75,13 @@ suite('Unit Tests Discovery', () => {
     }
 
     async function discoverUnitTests() {
-        let tests = await testManager.discoverTests(true, true);
+        let tests = await testManager.discoverTests(CommandSource.ui, true, true);
         assert.equal(tests.testFiles.length, 2, 'Incorrect number of test files');
         assert.equal(tests.testSuites.length, 2, 'Incorrect number of test suites');
         assert.equal(tests.testFunctions.length, 2, 'Incorrect number of test functions');
         await deleteFile(path.join(path.dirname(testFile), `${path.basename(testFile, '.py')}.pyc`));
         await fs.copy(testFileWithMoreTests, testFile, { overwrite: true });
-        tests = await testManager.discoverTests(true, true);
+        tests = await testManager.discoverTests(CommandSource.ui, true, true);
         assert.equal(tests.testFunctions.length, 4, 'Incorrect number of updated test functions');
     }
 

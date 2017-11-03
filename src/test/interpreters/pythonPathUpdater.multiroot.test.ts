@@ -1,17 +1,13 @@
 import * as assert from 'assert';
 import * as path from 'path';
 import { ConfigurationTarget, Uri, workspace } from 'vscode';
-import { PythonSettings } from '../../client/common/configSettings';
 import { PythonPathUpdaterService } from '../../client/interpreter/configuration/pythonPathUpdaterService';
 import { PythonPathUpdaterServiceFactory } from '../../client/interpreter/configuration/pythonPathUpdaterServiceFactory';
-import { GlobalPythonPathUpdaterService } from '../../client/interpreter/configuration/services/globalUpdaterService';
 import { WorkspaceFolderPythonPathUpdaterService } from '../../client/interpreter/configuration/services/workspaceFolderUpdaterService';
 import { WorkspacePythonPathUpdaterService } from '../../client/interpreter/configuration/services/workspaceUpdaterService';
-import { WorkspacePythonPath } from '../../client/interpreter/contracts';
-import { clearPythonPathInWorkspaceFolder } from '../common';
+import { InterpreterVersionService } from '../../client/interpreter/interpreterVersion';
 import { closeActiveWindows, initialize, initializeTest, IS_MULTI_ROOT_TEST } from '../initialize';
 
-const workspaceRoot = path.join(__dirname, '..', '..', '..', 'src', 'test');
 const multirootPath = path.join(__dirname, '..', '..', '..', 'src', 'testMultiRootWkspc');
 const workspace3Uri = Uri.file(path.join(multirootPath, 'workspace3'));
 
@@ -55,9 +51,9 @@ suite('Multiroot Python Path Settings Updater', () => {
 
     test('Updating Workspace Python Path using the PythonPathUpdaterService should work', async () => {
         const workspaceUri = workspace3Uri;
-        const updaterService = new PythonPathUpdaterService(new PythonPathUpdaterServiceFactory());
+        const updaterService = new PythonPathUpdaterService(new PythonPathUpdaterServiceFactory(), new InterpreterVersionService());
         const pythonPath = `xWorkspacePythonPathFromUpdater${new Date().getMilliseconds()}`;
-        await updaterService.updatePythonPath(pythonPath, ConfigurationTarget.WorkspaceFolder, workspace.getWorkspaceFolder(workspaceUri).uri);
+        await updaterService.updatePythonPath(pythonPath, ConfigurationTarget.WorkspaceFolder, 'ui', workspace.getWorkspaceFolder(workspaceUri).uri);
         const folderValue = workspace.getConfiguration('python', workspace3Uri).inspect('pythonPath').workspaceFolderValue;
         assert.equal(folderValue, pythonPath, 'Workspace Python Path not updated');
     });

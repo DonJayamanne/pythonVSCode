@@ -1,15 +1,18 @@
-import * as vscode from 'vscode';
 import * as _ from 'lodash';
+import * as vscode from 'vscode';
+import { Commands } from '../common/constants';
+import { captureTelemetry } from '../common/telemetry';
+import { WORKSPACE_SYMBOLS_GO_TO } from '../common/telemetry/constants';
+import { fsExistsAsync } from '../common/utils';
 import { Generator } from './generator';
 import { parseTags } from './parser';
-import { fsExistsAsync } from '../common/utils';
-import { Commands } from '../common/constants';
 
 export class WorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider {
     public constructor(private tagGenerators: Generator[], private outputChannel: vscode.OutputChannel) {
     }
 
-    async provideWorkspaceSymbols(query: string, token: vscode.CancellationToken): Promise<vscode.SymbolInformation[]> {
+    @captureTelemetry(WORKSPACE_SYMBOLS_GO_TO)
+    public async provideWorkspaceSymbols(query: string, token: vscode.CancellationToken): Promise<vscode.SymbolInformation[]> {
         if (this.tagGenerators.length === 0) {
             return [];
         }

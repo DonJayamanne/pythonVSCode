@@ -3,8 +3,8 @@ import * as vscode from 'vscode';
 import { Uri, workspace } from 'vscode';
 import { window } from 'vscode';
 import * as constants from '../../common/constants';
+import { CommandSource } from './constants';
 import { TestFlatteningVisitor } from './testVisitors/flatteningVisitor';
-import { TestResultResetVisitor } from './testVisitors/resultResetVisitor';
 import { TestFile, TestFolder, Tests, TestsToRun } from './types';
 import { ITestsHelper } from './types';
 
@@ -23,7 +23,7 @@ export async function selectTestWorkspace(): Promise<Uri | undefined> {
 export function displayTestErrorMessage(message: string) {
     vscode.window.showErrorMessage(message, constants.Button_Text_Tests_View_Output).then(action => {
         if (action === constants.Button_Text_Tests_View_Output) {
-            vscode.commands.executeCommand(constants.Commands.Tests_ViewOutput);
+            vscode.commands.executeCommand(constants.Commands.Tests_ViewOutput, CommandSource.ui);
         }
     });
 

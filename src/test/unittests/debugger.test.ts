@@ -1,15 +1,14 @@
-import { assert, expect, should, use } from 'chai';
+import { assert, expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import * as fs from 'fs-extra';
 import * as path from 'path';
 import { ConfigurationTarget } from 'vscode';
 import { createDeferred } from '../../client/common/helpers';
 import { BaseTestManager } from '../../client/unittests/common/baseTestManager';
-import { CANCELLATION_REASON } from '../../client/unittests/common/constants';
+import { CANCELLATION_REASON, CommandSource } from '../../client/unittests/common/constants';
 import { TestCollectionStorageService } from '../../client/unittests/common/storageService';
 import { TestResultsService } from '../../client/unittests/common/testResultsService';
 import { TestsHelper } from '../../client/unittests/common/testUtils';
-import { ITestCollectionStorageService, ITestResultsService, ITestsHelper, TestsToRun } from '../../client/unittests/common/types';
+import { ITestCollectionStorageService, ITestResultsService, ITestsHelper } from '../../client/unittests/common/types';
 import { TestResultDisplay } from '../../client/unittests/display/main';
 import { TestManager as NosetestManager } from '../../client/unittests/nosetest/main';
 import { TestManager as PytestManager } from '../../client/unittests/pytest/main';
@@ -75,13 +74,14 @@ suite('Unit Tests Debugging', () => {
     }
 
     async function testStartingDebugger() {
-        const tests = await testManager.discoverTests(true, true);
+        const tests = await testManager.discoverTests(CommandSource.commandPalette, true, true);
         assert.equal(tests.testFiles.length, 2, 'Incorrect number of test files');
         assert.equal(tests.testFunctions.length, 2, 'Incorrect number of test functions');
         assert.equal(tests.testSuites.length, 2, 'Incorrect number of test suites');
 
         const testFunction = [tests.testFunctions[0].testFunction];
-        testManager.runTest({ testFunction }, false, true);
+        // tslint:disable-next-line:no-floating-promises
+        testManager.runTest(CommandSource.commandPalette, { testFunction }, false, true);
         const launched = await mockDebugLauncher.launched;
         assert.isTrue(launched, 'Debugger not launched');
     }
@@ -108,19 +108,20 @@ suite('Unit Tests Debugging', () => {
     });
 
     async function testStoppingDebugger() {
-        const tests = await testManager.discoverTests(true, true);
+        const tests = await testManager.discoverTests(CommandSource.commandPalette, true, true);
         assert.equal(tests.testFiles.length, 2, 'Incorrect number of test files');
         assert.equal(tests.testFunctions.length, 2, 'Incorrect number of test functions');
         assert.equal(tests.testSuites.length, 2, 'Incorrect number of test suites');
 
         const testFunction = [tests.testFunctions[0].testFunction];
-        const runningPromise = testManager.runTest({ testFunction }, false, true);
+        const runningPromise = testManager.runTest(CommandSource.commandPalette, { testFunction }, false, true);
         const launched = await mockDebugLauncher.launched;
         assert.isTrue(launched, 'Debugger not launched');
 
-        const discoveryPromise = testManager.discoverTests(true, true, true);
+        // tslint:disable-next-line:no-floating-promises
+        testManager.discoverTests(CommandSource.commandPalette, true, true, true);
 
-        expect(runningPromise).eventually.throws(CANCELLATION_REASON, 'Incorrect reason for ending the debugger');
+        await expect(runningPromise).to.be.rejectedWith(CANCELLATION_REASON, 'Incorrect reason for ending the debugger');
     }
 
     test('Debugger should stop when user invokes a test discovery (unittest)', async () => {
@@ -145,24 +146,28 @@ suite('Unit Tests Debugging', () => {
     });
 
     async function testDebuggerWhenRediscoveringTests() {
-        const tests = await testManager.discoverTests(true, true);
+        const tests = await testManager.discoverTests(CommandSource.commandPalette, true, true);
         assert.equal(tests.testFiles.length, 2, 'Incorrect number of test files');
         assert.equal(tests.testFunctions.length, 2, 'Incorrect number of test functions');
         assert.equal(tests.testSuites.length, 2, 'Incorrect number of test suites');
 
         const testFunction = [tests.testFunctions[0].testFunction];
-        const runningPromise = testManager.runTest({ testFunction }, false, true);
+        const runningPromise = testManager.runTest(CommandSource.commandPalette, { testFunction }, false, true);
         const launched = await mockDebugLauncher.launched;
         assert.isTrue(launched, 'Debugger not launched');
 
-        const discoveryPromise = testManager.discoverTests(false, true);
+        const discoveryPromise = testManager.discoverTests(CommandSource.commandPalette, false, true);
         const deferred = createDeferred<string>();
 
+        // tslint:disable-next-line:no-floating-promises
         discoveryPromise
+            // tslint:disable-next-line:no-unsafe-any
             .then(() => deferred.resolve(''))
+            // tslint:disable-next-line:no-unsafe-any
             .catch(ex => deferred.reject(ex));
 
         // This promise should never resolve nor reject.
+        // tslint:disable-next-line:no-floating-promises
         runningPromise
             .then(() => 'Debugger stopped when it shouldn\'t have')
             .catch(() => 'Debugger crashed when it shouldn\'t have')

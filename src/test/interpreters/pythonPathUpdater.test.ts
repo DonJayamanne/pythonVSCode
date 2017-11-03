@@ -1,14 +1,11 @@
 import * as assert from 'assert';
 import * as path from 'path';
 import { ConfigurationTarget, Uri, workspace } from 'vscode';
-import { PythonSettings } from '../../client/common/configSettings';
 import { PythonPathUpdaterService } from '../../client/interpreter/configuration/pythonPathUpdaterService';
 import { PythonPathUpdaterServiceFactory } from '../../client/interpreter/configuration/pythonPathUpdaterServiceFactory';
-import { GlobalPythonPathUpdaterService } from '../../client/interpreter/configuration/services/globalUpdaterService';
 import { WorkspacePythonPathUpdaterService } from '../../client/interpreter/configuration/services/workspaceUpdaterService';
-import { WorkspacePythonPath } from '../../client/interpreter/contracts';
-import { clearPythonPathInWorkspaceFolder } from '../common';
-import { closeActiveWindows, initialize, initializeTest, IS_MULTI_ROOT_TEST } from '../initialize';
+import { InterpreterVersionService } from '../../client/interpreter/interpreterVersion';
+import { closeActiveWindows, initialize, initializeTest } from '../initialize';
 
 const workspaceRoot = path.join(__dirname, '..', '..', '..', 'src', 'test');
 
@@ -72,9 +69,9 @@ suite('Python Path Settings Updater', () => {
 
     test('Updating Workspace Python Path using the PythonPathUpdaterService should work', async () => {
         const workspaceUri = Uri.file(workspaceRoot);
-        const updaterService = new PythonPathUpdaterService(new PythonPathUpdaterServiceFactory());
+        const updaterService = new PythonPathUpdaterService(new PythonPathUpdaterServiceFactory(), new InterpreterVersionService());
         const pythonPath = `xWorkspacePythonPathFromUpdater${new Date().getMilliseconds()}`;
-        await updaterService.updatePythonPath(pythonPath, ConfigurationTarget.Workspace, workspace.getWorkspaceFolder(workspaceUri).uri);
+        await updaterService.updatePythonPath(pythonPath, ConfigurationTarget.Workspace, 'ui', workspace.getWorkspaceFolder(workspaceUri).uri);
         const workspaceValue = workspace.getConfiguration('python').inspect('pythonPath').workspaceValue;
         assert.equal(workspaceValue, pythonPath, 'Workspace Python Path not updated');
     });

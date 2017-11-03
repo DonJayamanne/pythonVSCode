@@ -1,11 +1,9 @@
 'use strict';
 import * as path from 'path';
-import { ConfigurationTarget, Disposable, StatusBarAlignment, Uri, window, workspace } from 'vscode';
+import { Disposable, StatusBarAlignment, Uri, window, workspace } from 'vscode';
 import { PythonSettings } from '../common/configSettings';
-import { IS_WINDOWS } from '../common/utils';
 import { PythonPathUpdaterService } from './configuration/pythonPathUpdaterService';
 import { PythonPathUpdaterServiceFactory } from './configuration/pythonPathUpdaterServiceFactory';
-import { WorkspacePythonPath } from './contracts';
 import { InterpreterDisplay } from './display';
 import { getActiveWorkspaceUri } from './helpers';
 import { InterpreterVersionService } from './interpreterVersion';
@@ -25,7 +23,8 @@ export class InterpreterManager implements Disposable {
         this.interpreterProvider = new PythonInterpreterLocatorService(virtualEnvMgr);
         const versionService = new InterpreterVersionService();
         this.display = new InterpreterDisplay(statusBar, this.interpreterProvider, virtualEnvMgr, versionService);
-        this.pythonPathUpdaterService = new PythonPathUpdaterService(new PythonPathUpdaterServiceFactory());
+        const interpreterVersionService = new InterpreterVersionService();
+        this.pythonPathUpdaterService = new PythonPathUpdaterService(new PythonPathUpdaterServiceFactory(), interpreterVersionService);
         PythonSettings.getInstance().addListener('change', () => this.onConfigChanged());
         this.disposables.push(window.onDidChangeActiveTextEditor(() => this.refresh()));
         this.disposables.push(statusBar);
@@ -58,7 +57,7 @@ export class InterpreterManager implements Disposable {
         const pythonPath = interpretersInWorkspace[0].path;
         const relativePath = path.dirname(pythonPath).substring(activeWorkspace.folderUri.fsPath.length);
         if (relativePath.split(path.sep).filter(l => l.length > 0).length === 2) {
-            await this.pythonPathUpdaterService.updatePythonPath(pythonPath, activeWorkspace.configTarget, activeWorkspace.folderUri);
+            await this.pythonPathUpdaterService.updatePythonPath(pythonPath, activeWorkspace.configTarget, 'load', activeWorkspace.folderUri);
         }
     }
     public dispose(): void {

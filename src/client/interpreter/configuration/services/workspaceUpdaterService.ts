@@ -1,7 +1,5 @@
 import * as path from 'path';
-import { ConfigurationTarget, Uri, workspace } from 'vscode';
-import { InterpreterManager } from '../..';
-import { WorkspacePythonPath } from '../../contracts';
+import { Uri, workspace } from 'vscode';
 import { IPythonPathUpdaterService } from '../types';
 
 export class WorkspacePythonPathUpdaterService implements IPythonPathUpdaterService {

@@ -7,6 +7,8 @@ import { Disposable, workspace } from 'vscode';
 import * as settings from '../common/configSettings';
 import { Commands, PythonLanguage } from '../common/constants';
 import { ContextKey } from '../common/contextKey';
+import { sendTelemetryEvent } from '../common/telemetry';
+import { EXECUTION_CODE, EXECUTION_DJANGO } from '../common/telemetry/constants';
 import { IS_WINDOWS } from '../common/utils';
 
 let terminal: vscode.Terminal;
@@ -71,7 +73,6 @@ function execInTerminal(fileUri?: vscode.Uri) {
     if (filePath.indexOf(' ') > 0) {
         filePath = `"${filePath}"`;
     }
-
     terminal = terminal ? terminal : vscode.window.createTerminal('Python');
     if (pythonSettings.terminal && pythonSettings.terminal.executeInFileDir) {
         const fileDirPath = path.dirname(filePath);
@@ -94,6 +95,7 @@ function execInTerminal(fileUri?: vscode.Uri) {
         terminal.sendText(command);
     }
     terminal.show();
+    sendTelemetryEvent(EXECUTION_CODE, undefined, { scope: 'file' });
 }
 
 function execSelectionInTerminal() {
@@ -147,6 +149,7 @@ function execSelectionInTerminal() {
         terminal.sendText(unix_code);
     }
     terminal.show();
+    sendTelemetryEvent(EXECUTION_CODE, undefined, { scope: 'selection' });
 }
 
 function execSelectionInDjangoShell() {
@@ -203,6 +206,7 @@ function execSelectionInDjangoShell() {
         terminal.sendText(unix_code);
     }
     terminal.show();
+    sendTelemetryEvent(EXECUTION_DJANGO);
 }
 
 class DjangoContextInitializer implements vscode.Disposable {

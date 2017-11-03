@@ -1,10 +1,13 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import { RefactorProxy } from '../refactor/proxy';
-import { getTextEditsFromPatch } from '../common/editor';
 import { PythonSettings } from '../common/configSettings';
+import { getTextEditsFromPatch } from '../common/editor';
 import { Installer, Product } from '../common/installer';
+import { sendTelemetryWhenDone } from '../common/telemetry';
+import { REFACTOR_EXTRACT_FUNCTION, REFACTOR_EXTRACT_VAR } from '../common/telemetry/constants';
+import { StopWatch } from '../common/telemetry/stopWatch';
+import { RefactorProxy } from '../refactor/proxy';
 
 interface RenameResponse {
     results: [{ diff: string }];
@@ -14,18 +17,24 @@ let installer: Installer;
 
 export function activateSimplePythonRefactorProvider(context: vscode.ExtensionContext, outputChannel: vscode.OutputChannel) {
     let disposable = vscode.commands.registerCommand('python.refactorExtractVariable', () => {
-        extractVariable(context.extensionPath,
+        const stopWatch = new StopWatch();
+        const promise = extractVariable(context.extensionPath,
             vscode.window.activeTextEditor,
             vscode.window.activeTextEditor.selection,
+            // tslint:disable-next-line:no-empty
             outputChannel).catch(() => { });
+        sendTelemetryWhenDone(REFACTOR_EXTRACT_VAR, promise, stopWatch);
     });
     context.subscriptions.push(disposable);
 
     disposable = vscode.commands.registerCommand('python.refactorExtractMethod', () => {
-        extractMethod(context.extensionPath,
+        const stopWatch = new StopWatch();
+        const promise = extractMethod(context.extensionPath,
             vscode.window.activeTextEditor,
             vscode.window.activeTextEditor.selection,
+            // tslint:disable-next-line:no-empty
             outputChannel).catch(() => { });
+        sendTelemetryWhenDone(REFACTOR_EXTRACT_FUNCTION, promise, stopWatch);
     });
     context.subscriptions.push(disposable);
     installer = new Installer(outputChannel);
@@ -34,6 +43,7 @@ export function activateSimplePythonRefactorProvider(context: vscode.ExtensionCo
 
 // Exported for unit testing
 export function extractVariable(extensionDir: string, textEditor: vscode.TextEditor, range: vscode.Range,
+    // tslint:disable-next-line:no-any
     outputChannel: vscode.OutputChannel): Promise<any> {
 
     let workspaceFolder = vscode.workspace.getWorkspaceFolder(textEditor.document.uri);
@@ -44,9 +54,9 @@ export function extractVariable(extensionDir: string, textEditor: vscode.TextEdi
     const pythonSettings = PythonSettings.getInstance(workspaceFolder ? workspaceFolder.uri : undefined);
 
     return validateDocumentForRefactor(textEditor).then(() => {
-        let newName = 'newvariable' + new Date().getMilliseconds().toString();
-        let proxy = new RefactorProxy(extensionDir, pythonSettings, workspaceRoot);
-        let rename = proxy.extractVariable<RenameResponse>(textEditor.document, newName, textEditor.document.uri.fsPath, range, textEditor.options).then(response => {
+        const newName = `newvariable${new Date().getMilliseconds().toString()}`;
+        const proxy = new RefactorProxy(extensionDir, pythonSettings, workspaceRoot);
+        const rename = proxy.extractVariable<RenameResponse>(textEditor.document, newName, textEditor.document.uri.fsPath, range, textEditor.options).then(response => {
             return response.results[0].diff;
         });
 
@@ -56,6 +66,7 @@ export function extractVariable(extensionDir: string, textEditor: vscode.TextEdi
 
 // Exported for unit testing
 export function extractMethod(extensionDir: string, textEditor: vscode.TextEditor, range: vscode.Range,
+    // tslint:disable-next-line:no-any
     outputChannel: vscode.OutputChannel): Promise<any> {
 
     let workspaceFolder = vscode.workspace.getWorkspaceFolder(textEditor.document.uri);
@@ -66,9 +77,9 @@ export function extractMethod(extensionDir: string, textEditor: vscode.TextEdito
     const pythonSettings = PythonSettings.getInstance(workspaceFolder ? workspaceFolder.uri : undefined);
 
     return validateDocumentForRefactor(textEditor).then(() => {
-        let newName = 'newmethod' + new Date().getMilliseconds().toString();
-        let proxy = new RefactorProxy(extensionDir, pythonSettings, workspaceRoot);
-        let rename = proxy.extractMethod<RenameResponse>(textEditor.document, newName, textEditor.document.uri.fsPath, range, textEditor.options).then(response => {
+        const newName = `newmethod${new Date().getMilliseconds().toString()}`;
+        const proxy = new RefactorProxy(extensionDir, pythonSettings, workspaceRoot);
+        const rename = proxy.extractMethod<RenameResponse>(textEditor.document, newName, textEditor.document.uri.fsPath, range, textEditor.options).then(response => {
             return response.results[0].diff;
         });
 
@@ -76,17 +87,18 @@ export function extractMethod(extensionDir: string, textEditor: vscode.TextEdito
     });
 }
 
+// tslint:disable-next-line:no-any
 function validateDocumentForRefactor(textEditor: vscode.TextEditor): Promise<any> {
     if (!textEditor.document.isDirty) {
         return Promise.resolve();
     }
 
+    // tslint:disable-next-line:no-any
     return new Promise<any>((resolve, reject) => {
         vscode.window.showInformationMessage('Please save changes before refactoring', 'Save').then(item => {
             if (item === 'Save') {
                 textEditor.document.save().then(resolve, reject);
-            }
-            else {
+            } else {
                 return reject();
             }
         });
@@ -94,14 +106,14 @@ function validateDocumentForRefactor(textEditor: vscode.TextEditor): Promise<any
 }
 
 function extractName(extensionDir: string, textEditor: vscode.TextEditor, range: vscode.Range, newName: string,
+    // tslint:disable-next-line:no-any
     renameResponse: Promise<string>, outputChannel: vscode.OutputChannel): Promise<any> {
     let changeStartsAtLine = -1;
     return renameResponse.then(diff => {
         if (diff.length === 0) {
             return [];
         }
-        let edits = getTextEditsFromPatch(textEditor.document.getText(), diff);
-        return edits;
+        return getTextEditsFromPatch(textEditor.document.getText(), diff);
     }).then(edits => {
         return textEditor.edit(editBuilder => {
             edits.forEach(edit => {
@@ -115,8 +127,8 @@ function extractName(extensionDir: string, textEditor: vscode.TextEditor, range:
         if (done && changeStartsAtLine >= 0) {
             let newWordPosition: vscode.Position;
             for (let lineNumber = changeStartsAtLine; lineNumber < textEditor.document.lineCount; lineNumber++) {
-                let line = textEditor.document.lineAt(lineNumber);
-                let indexOfWord = line.text.indexOf(newName);
+                const line = textEditor.document.lineAt(lineNumber);
+                const indexOfWord = line.text.indexOf(newName);
                 if (indexOfWord >= 0) {
                     newWordPosition = new vscode.Position(line.range.start.line, indexOfWord);
                     break;

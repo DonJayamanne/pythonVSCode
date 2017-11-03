@@ -1,16 +1,19 @@
 'use strict';
+import { EDITOR_LOAD } from './common/telemetry/constants';
 
 import * as os from 'os';
 import * as vscode from 'vscode';
 import * as settings from './common/configSettings';
 import { Commands } from './common/constants';
 import { createDeferred } from './common/helpers';
-import * as telemetryHelper from './common/telemetry';
-import * as telemetryContracts from './common/telemetryContracts';
+import { sendTelemetryEvent } from './common/telemetry';
+import { StopWatch } from './common/telemetry/stopWatch';
 import { SimpleConfigurationProvider } from './debugger';
 import { InterpreterManager } from './interpreter';
 import { SetInterpreterProvider } from './interpreter/configuration/setInterpreterProvider';
 import { ShebangCodeLensProvider } from './interpreter/display/shebangCodeLensProvider';
+import { getCondaVersion } from './interpreter/helpers';
+import { InterpreterVersionService } from './interpreter/interpreterVersion';
 import * as jup from './jupyter/main';
 import { JupyterProvider } from './jupyter/provider';
 import { JediFactory } from './languageServices/jediProxyFactory';
@@ -44,7 +47,8 @@ export const activated = activationDeferred.promise;
 // tslint:disable-next-line:max-func-body-length
 export async function activate(context: vscode.ExtensionContext) {
     const pythonSettings = settings.PythonSettings.getInstance();
-    sendStartupTelemetry();
+    sendStartupTelemetry(activated);
+
     lintingOutChannel = vscode.window.createOutputChannel(pythonSettings.linting.outputWindow);
     formatOutChannel = lintingOutChannel;
     if (pythonSettings.linting.outputWindow !== pythonSettings.formatting.outputWindow) {
@@ -61,7 +65,8 @@ export async function activate(context: vscode.ExtensionContext) {
     await interpreterManager.autoSetInterpreter();
     await interpreterManager.refresh();
     context.subscriptions.push(interpreterManager);
-    context.subscriptions.push(new SetInterpreterProvider(interpreterManager));
+    const interpreterVersionService = new InterpreterVersionService();
+    context.subscriptions.push(new SetInterpreterProvider(interpreterManager, interpreterVersionService));
     context.subscriptions.push(...activateExecInTerminalProvider());
     context.subscriptions.push(activateUpdateSparkLibraryProvider());
     activateSimplePythonRefactorProvider(context, formatOutChannel);
@@ -143,6 +148,15 @@ export async function activate(context: vscode.ExtensionContext) {
     activationDeferred.resolve();
 }
 
-function sendStartupTelemetry() {
-    telemetryHelper.sendTelemetryEvent(telemetryContracts.EVENT_LOAD);
+async function sendStartupTelemetry(activatedPromise: Promise<void>) {
+    const stopWatch = new StopWatch();
+    activatedPromise.then(async () => {
+        const duration = stopWatch.elapsedTime;
+        let condaVersion: string | undefined;
+        try {
+            condaVersion = await getCondaVersion();
+            // tslint:disable-next-line:no-empty
+        } catch { }
+        sendTelemetryEvent(EDITOR_LOAD, duration, { condaVersion });
+    });
 }
