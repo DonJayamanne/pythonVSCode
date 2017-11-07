@@ -74,8 +74,15 @@ export function getKnownSearchPathsForVirtualEnvs(resource?: Uri): string[] {
     if (venvPath) {
         paths.push(untildify(venvPath));
     }
-    if (Array.isArray(workspace.workspaceFolders) && workspace.workspaceFolders.length === 0) {
-        paths.push(workspace.workspaceFolders[0].uri.fsPath);
+    if (Array.isArray(workspace.workspaceFolders) && workspace.workspaceFolders.length > 0) {
+        if (resource && workspace.workspaceFolders.length > 1) {
+            const wkspaceFolder = workspace.getWorkspaceFolder(resource);
+            if (wkspaceFolder) {
+                paths.push(wkspaceFolder.uri.fsPath);
+            }
+        } else {
+            paths.push(workspace.workspaceFolders[0].uri.fsPath);
+        }
     }
     return paths;
 }

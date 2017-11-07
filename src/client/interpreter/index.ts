@@ -1,6 +1,6 @@
 'use strict';
 import * as path from 'path';
-import { Disposable, StatusBarAlignment, Uri, window, workspace } from 'vscode';
+import { ConfigurationTarget, Disposable, StatusBarAlignment, Uri, window, workspace } from 'vscode';
 import { PythonSettings } from '../common/configSettings';
 import { PythonPathUpdaterService } from './configuration/pythonPathUpdaterService';
 import { PythonPathUpdaterServiceFactory } from './configuration/pythonPathUpdaterServiceFactory';
@@ -71,9 +71,15 @@ export class InterpreterManager implements Disposable {
         if (!activeWorkspace) {
             return false;
         }
-        const pythonConfig = workspace.getConfiguration('python');
-        const pythonPathInConfig = pythonConfig.get<string>('pythonPath', 'python');
-        return path.basename(pythonPathInConfig) === pythonPathInConfig;
+        const pythonConfig = workspace.getConfiguration('python', activeWorkspace.folderUri);
+        const pythonPathInConfig = pythonConfig.inspect<string>('pythonPath');
+        if (activeWorkspace.configTarget === ConfigurationTarget.Workspace){
+            return pythonPathInConfig.workspaceValue === undefined || pythonPathInConfig.workspaceValue === 'python';
+        }
+        if (activeWorkspace.configTarget === ConfigurationTarget.WorkspaceFolder){
+            return pythonPathInConfig.workspaceFolderValue === undefined || pythonPathInConfig.workspaceFolderValue === 'python';
+        }
+        return false;
     }
     private onConfigChanged() {
         if (this.display) {
