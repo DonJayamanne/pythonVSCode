@@ -3,19 +3,18 @@
   "displayName": "Python",
   "description": "Linting, Debugging (multi-threaded, remote), Intellisense, code formatting, refactoring, unit tests, snippets, Data Science (with Jupyter), PySpark and more.",
   "version": "0.7.0",
-  "publisher": "donjayamanne",
+  "publisher": "ms-python",
   "author": {
-    "name": "Don Jayamanne",
-    "email": "don.jayamanne@yahoo.com"
+    "name": "Microsoft Corporation"
   },
   "license": "MIT",
-  "homepage": "http://donjayamanne.github.io/pythonVSCode/",
+  "homepage": "https://github.com/Microsoft/vscode-python",
   "repository": {
     "type": "git",
-    "url": "https://github.com/DonJayamanne/pythonVSCode"
+    "url": "https://github.com/Microsoft/vscode-python"
   },
   "bugs": {
-    "url": "https://github.com/DonJayamanne/pythonVSCode/issues"
+    "url": "https://github.com/Microsoft/vscode-python/issues"
   },
   "icon": "icon.png",
   "galleryBanner": {
@@ -279,7 +278,7 @@
             "html"
           ]
         },
-        "aiKey": "fce7a3d5-4665-4404-b786-31a6306749a6",
+        "aiKey": "AIF-d9b70cd4-b9f9-4d70-929b-a071c400b217",
         "program": "./out/client/debugger/Main.js",
         "runtime": "node",
         "configurationSnippets": [
@@ -723,7 +722,7 @@
             ]
           },
           {
-            "name": "PySpark",
+            "name": "Python: PySpark",
             "type": "python",
             "request": "launch",
             "stopOnEntry": true,
@@ -747,7 +746,7 @@
             ]
           },
           {
-            "name": "Python Module",
+            "name": "Python: Module",
             "type": "python",
             "request": "launch",
             "stopOnEntry": true,
@@ -763,7 +762,7 @@
             ]
           },
           {
-            "name": "Integrated Terminal/Console",
+            "name": "Python: Terminal (integrated)",
             "type": "python",
             "request": "launch",
             "stopOnEntry": true,
@@ -779,7 +778,7 @@
             ]
           },
           {
-            "name": "External Terminal/Console",
+            "name": "Python: Terminal (external)",
             "type": "python",
             "request": "launch",
             "stopOnEntry": true,
@@ -795,7 +794,7 @@
             ]
           },
           {
-            "name": "Django",
+            "name": "Python: Django",
             "type": "python",
             "request": "launch",
             "stopOnEntry": true,
@@ -817,7 +816,7 @@
             ]
           },
           {
-            "name": "Flask",
+            "name": "Python: Flask (0.11.x or later)",
             "type": "python",
             "request": "launch",
             "stopOnEntry": false,
@@ -840,7 +839,7 @@
             ]
           },
           {
-            "name": "Flask (old)",
+            "name": "Python: Flask (0.10.x or earlier)",
             "type": "python",
             "request": "launch",
             "stopOnEntry": false,
@@ -857,7 +856,7 @@
             ]
           },
           {
-            "name": "Pyramid",
+            "name": "Python: Pyramid",
             "type": "python",
             "request": "launch",
             "stopOnEntry": true,
@@ -876,7 +875,7 @@
             ]
           },
           {
-            "name": "Watson",
+            "name": "Python: Watson",
             "type": "python",
             "request": "launch",
             "stopOnEntry": true,
@@ -897,7 +896,7 @@
             ]
           },
           {
-            "name": "Attach (Remote Debug)",
+            "name": "Python: Attach",
             "type": "python",
             "request": "attach",
             "localRoot": "${workspaceRoot}",

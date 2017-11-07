@@ -13,7 +13,7 @@ import { FEEDBACK } from '../telemetry/constants';
 import { captureTelemetry, sendTelemetryEvent } from '../telemetry/index';
 import { FeedbackCounters } from './counters';
 
-const FEEDBACK_URL = 'https://aka.ms/egv4z1';
+const FEEDBACK_URL = 'https://www.surveymonkey.com/r/293C9HY';
 
 export class FeedbackService implements Disposable {
     private counters?: FeedbackCounters;
@@ -81,7 +81,7 @@ export class FeedbackService implements Disposable {
     private showPrompt() {
         this.promptDisplayed = true;
 
-        const message = 'Would you tell us how likely you are to recommend the Python extension for VS Code to a friend or colleague?';
+        const message = 'Would you tell us how likely you are to recommend the Microsoft Python extension for VS Code to a friend or colleague?';
         const yesButton = 'Yes';
         const dontShowAgainButton = 'Don\'t Show Again';
         window.showInformationMessage(message, yesButton, dontShowAgainButton).then((value) => {
