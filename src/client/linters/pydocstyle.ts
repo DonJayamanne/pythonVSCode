@@ -9,14 +9,11 @@ import { Product, ProductExecutableAndArgs } from '../common/installer';
 import { TextDocument, CancellationToken } from 'vscode';
 
 export class Linter extends baseLinter.BaseLinter {
-    constructor(outputChannel: OutputChannel, workspaceRootPath?: string) {
-        super('pydocstyle', Product.pydocstyle, outputChannel, workspaceRootPath);
+    constructor(outputChannel: OutputChannel) {
+        super('pydocstyle', Product.pydocstyle, outputChannel);
     }
 
-    public isEnabled(): Boolean {
-        return this.pythonSettings.linting.pydocstyleEnabled;
-    }
-    public runLinter(document: TextDocument, cancellation: CancellationToken): Promise<baseLinter.ILintMessage[]> {
+    protected runLinter(document: TextDocument, cancellation: CancellationToken): Promise<baseLinter.ILintMessage[]> {
         if (!this.pythonSettings.linting.pydocstyleEnabled) {
             return Promise.resolve([]);
         }
@@ -45,7 +42,7 @@ export class Linter extends baseLinter.BaseLinter {
         let outputChannel = this.outputChannel;
 
         return new Promise<ILintMessage[]>((resolve, reject) => {
-            execPythonFile(commandLine, args, this.workspaceRootPath, true, null, cancellation).then(data => {
+            execPythonFile(document.uri, commandLine, args, this.getWorkspaceRootPath(document), true, null, cancellation).then(data => {
                 outputChannel.append('#'.repeat(10) + 'Linting Output - ' + this.Id + '#'.repeat(10) + '\n');
                 outputChannel.append(data);
                 let outputLines = data.split(/\r?\n/g);
@@ -102,7 +99,7 @@ export class Linter extends baseLinter.BaseLinter {
                 });
                 resolve(diagnostics);
             }, error => {
-                this.handleError(this.Id, commandLine, error);
+                this.handleError(this.Id, commandLine, error, document.uri);
                 resolve([]);
             });
         });

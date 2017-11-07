@@ -6,14 +6,11 @@ import { Product, ProductExecutableAndArgs } from '../common/installer';
 import { TextDocument, CancellationToken } from 'vscode';
 
 export class Linter extends baseLinter.BaseLinter {
-    constructor(outputChannel: OutputChannel, workspaceRootPath?: string) {
-        super('pylint', Product.pylint, outputChannel, workspaceRootPath);
+    constructor(outputChannel: OutputChannel) {
+        super('pylint', Product.pylint, outputChannel);
     }
 
-    public isEnabled(): Boolean {
-        return this.pythonSettings.linting.pylintEnabled;
-    }
-    public runLinter(document: TextDocument, cancellation: CancellationToken): Promise<baseLinter.ILintMessage[]> {
+    protected runLinter(document: TextDocument, cancellation: CancellationToken): Promise<baseLinter.ILintMessage[]> {
         if (!this.pythonSettings.linting.pylintEnabled) {
             return Promise.resolve([]);
         }
@@ -27,7 +24,7 @@ export class Linter extends baseLinter.BaseLinter {
         }
 
         return new Promise<baseLinter.ILintMessage[]>((resolve, reject) => {
-            this.run(pylintPath, pylintArgs.concat(['--msg-template=\'{line},{column},{category},{msg_id}:{msg}\'', '--reports=n', '--output-format=text', document.uri.fsPath]), document, this.workspaceRootPath, cancellation).then(messages => {
+            this.run(pylintPath, pylintArgs.concat(['--msg-template=\'{line},{column},{category},{msg_id}:{msg}\'', '--reports=n', '--output-format=text', document.uri.fsPath]), document, this.getWorkspaceRootPath(document), cancellation).then(messages => {
                 messages.forEach(msg => {
                     msg.severity = this.parseMessagesSeverity(msg.type, this.pythonSettings.linting.pylintCategorySeverity);
                 });

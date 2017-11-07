@@ -1,18 +1,13 @@
 'use strict';
 
 import * as vscode from 'vscode';
+import { JediFactory } from '../languageServices/jediProxyFactory';
+import { captureTelemetry } from '../telemetry';
+import { DEFINITION } from '../telemetry/constants';
 import * as proxy from './jediProxy';
-import * as telemetryContracts from "../common/telemetryContracts";
 
 export class PythonDefinitionProvider implements vscode.DefinitionProvider {
-    private jediProxyHandler: proxy.JediProxyHandler<proxy.IDefinitionResult>;
-    public get JediProxy(): proxy.JediProxy {
-        return this.jediProxyHandler.JediProxy;
-    }
-
-    public constructor(context: vscode.ExtensionContext) {
-        this.jediProxyHandler = new proxy.JediProxyHandler(context);
-    }
+    public constructor(private jediFactory: JediFactory) { }
     private static parseData(data: proxy.IDefinitionResult, possibleWord: string): vscode.Definition {
         if (data && Array.isArray(data.definitions) && data.definitions.length > 0) {
             const definitions = data.definitions.filter(d => d.text === possibleWord);
@@ -25,8 +20,9 @@ export class PythonDefinitionProvider implements vscode.DefinitionProvider {
         }
         return null;
     }
+    @captureTelemetry(DEFINITION)
     public provideDefinition(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): Thenable<vscode.Definition> {
-        var filename = document.fileName;
+        const filename = document.fileName;
         if (document.lineAt(position.line).text.match(/^\s*\/\//)) {
             return Promise.resolve(null);
         }
@@ -34,9 +30,9 @@ export class PythonDefinitionProvider implements vscode.DefinitionProvider {
             return Promise.resolve(null);
         }
 
-        var range = document.getWordRangeAtPosition(position);
-        var columnIndex = range.isEmpty ? position.character : range.end.character;
-        var cmd: proxy.ICommand<proxy.IDefinitionResult> = {
+        const range = document.getWordRangeAtPosition(position);
+        const columnIndex = range.isEmpty ? position.character : range.end.character;
+        const cmd: proxy.ICommand<proxy.IDefinitionResult> = {
             command: proxy.CommandType.Definitions,
             fileName: filename,
             columnIndex: columnIndex,
@@ -45,8 +41,8 @@ export class PythonDefinitionProvider implements vscode.DefinitionProvider {
         if (document.isDirty) {
             cmd.source = document.getText();
         }
-        let possibleWord = document.getText(range);
-        return this.jediProxyHandler.sendCommand(cmd, token).then(data => {
+        const possibleWord = document.getText(range);
+        return this.jediFactory.getJediProxyHandler<proxy.IDefinitionResult>(document.uri).sendCommand(cmd, token).then(data => {
             return PythonDefinitionProvider.parseData(data, possibleWord);
         });
     }

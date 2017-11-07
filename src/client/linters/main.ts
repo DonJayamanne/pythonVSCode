@@ -12,28 +12,28 @@ import * as pydocstyle from './../linters/pydocstyle';
 import * as mypy from './../linters/mypy';
 
 export class LinterFactor {
-    public static createLinter(product: Product, outputChannel: OutputChannel, workspaceRootPath: string = workspace.rootPath): BaseLinter {
+    public static createLinter(product: Product, outputChannel: OutputChannel): BaseLinter {
         switch (product) {
             case Product.flake8: {
-                return new flake8.Linter(outputChannel, workspaceRootPath);
+                return new flake8.Linter(outputChannel);
             }
             case Product.mypy: {
-                return new mypy.Linter(outputChannel, workspaceRootPath);
+                return new mypy.Linter(outputChannel);
             }
             case Product.pep8: {
-                return new pep8.Linter(outputChannel, workspaceRootPath);
+                return new pep8.Linter(outputChannel);
             }
             case Product.prospector: {
-                return new prospector.Linter(outputChannel, workspaceRootPath);
+                return new prospector.Linter(outputChannel);
             }
             case Product.pydocstyle: {
-                return new pydocstyle.Linter(outputChannel, workspaceRootPath);
+                return new pydocstyle.Linter(outputChannel);
             }
             case Product.pylama: {
-                return new pylama.Linter(outputChannel, workspaceRootPath);
+                return new pylama.Linter(outputChannel);
             }
             case Product.pylint: {
-                return new pylint.Linter(outputChannel, workspaceRootPath);
+                return new pylint.Linter(outputChannel);
             }
             default: {
                 throw new Error(`Invalid Linter '${Product[product]}''`);

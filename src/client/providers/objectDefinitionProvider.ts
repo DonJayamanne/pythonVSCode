@@ -1,19 +1,24 @@
 'use strict';
 
 import * as vscode from 'vscode';
+import { JediFactory } from '../languageServices/jediProxyFactory';
+import { captureTelemetry } from '../telemetry';
+import { GO_TO_OBJECT_DEFINITION } from '../telemetry/constants';
 import * as defProvider from './definitionProvider';
 
-export function activateGoToObjectDefinitionProvider(context: vscode.ExtensionContext): vscode.Disposable {
-    let def = new PythonObjectDefinitionProvider(context);
-    return vscode.commands.registerCommand("python.goToPythonObject", () => def.goToObjectDefinition());
+export function activateGoToObjectDefinitionProvider(jediFactory: JediFactory): vscode.Disposable[] {
+    const def = new PythonObjectDefinitionProvider(jediFactory);
+    const commandRegistration = vscode.commands.registerCommand("python.goToPythonObject", () => def.goToObjectDefinition());
+    return [def, commandRegistration] as vscode.Disposable[];
 }
 
 export class PythonObjectDefinitionProvider {
     private readonly _defProvider: defProvider.PythonDefinitionProvider;
-    public constructor(context: vscode.ExtensionContext) {
-        this._defProvider = new defProvider.PythonDefinitionProvider(context);
+    public constructor(jediFactory: JediFactory) {
+        this._defProvider = new defProvider.PythonDefinitionProvider(jediFactory);
     }
 
+    @captureTelemetry(GO_TO_OBJECT_DEFINITION)
     public async goToObjectDefinition() {
         let pathDef = await this.getObjectDefinition();
         if (typeof pathDef !== 'string' || pathDef.length === 0) {
