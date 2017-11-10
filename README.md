@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-# This repository is no longer maintained. I will continue my work on this extension on the corresponding [Microsoft fork](https://github.com/Microsoft/vscode-python).
-
-=======
 # Python extension for Visual Studio Code
 
 A [Visual Studio Code](https://code.visualstudio.com/) [extension](https://marketplace.visualstudio.com/VSCode) with rich support for the [Python language](https://www.python.org/) (_including Python 3.6_), with features including the following and more:
@@ -90,4 +86,3 @@ services. Read our
 learn more. This extension respects the `telemetry.enableTelemetry`
 setting which you can learn more about at
 https://code.visualstudio.com/docs/supporting/faq#_how-to-disable-telemetry-reporting.
->>>>>>> upstream/master
