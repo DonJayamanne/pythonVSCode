@@ -57,7 +57,7 @@ export class JupyterClientAdapter extends EventEmitter implements IJupyterClient
         this.startDef = createDeferred<any>();
         const pyFile = path.join(__dirname, '..', '..', '..', '..', 'pythonFiles', 'PythonTools', 'ipythonServer.py');
         const newEnv = {};
-        // const newEnv = {'DEBUG_DJAYAMANNE_IPYTHON':'1'};
+        // const newEnv = {'DEBUG_EXTENSION_IPYTHON':'1'};
         Object.assign(newEnv, envVariables);
         Object.assign(newEnv, process.env);
 
@@ -70,7 +70,7 @@ export class JupyterClientAdapter extends EventEmitter implements IJupyterClient
 
             let processStarted = false;
             let handshakeDone = false;
-            let isInTestRun = newEnv['PYTHON_DONJAYAMANNE_TEST'] === "1";
+            let isInTestRun = newEnv['VSC_PYTHON_CI_TEST'] === "1";
             const testDef = createDeferred<any>();
             const promiseToResolve = isInTestRun ? testDef.resolve.bind(testDef) : def.resolve.bind(def);
 

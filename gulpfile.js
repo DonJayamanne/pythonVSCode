@@ -43,7 +43,6 @@ const eolFilter = [
     '!**/*.{svg,exe,png,bmp,scpt,bat,cmd,cur,ttf,woff,eot,txt,md,json,yml}',
     '!out/**/*',
     '!images/**/*',
-    '!docs/**/*',
     '!.vscode/**/*',
     '!pythonFiles/**/*',
     '!resources/**/*',
@@ -64,7 +63,6 @@ const tslintFilter = [
     '!**/node_modules/**',
     '!out/**/*',
     '!images/**/*',
-    '!docs/**/*',
     '!.vscode/**/*',
     '!pythonFiles/**/*',
     '!resources/**/*',
@@ -80,7 +78,7 @@ function reportFailures(failures) {
         const line = position.lineAndCharacter ? position.lineAndCharacter.line : position.line;
         const character = position.lineAndCharacter ? position.lineAndCharacter.character : position.character;
 
-        // Output in format similar to tslint for the linter to pickup
+        // Output in format similar to tslint for the linter to pickup.
         console.error(`ERROR: (${failure.ruleName}) ${relative(__dirname, name)}[${line + 1}, ${character + 1}]: ${failure.failure}`);
     });
 }
@@ -103,9 +101,9 @@ const hygiene = exports.hygiene = (some, options) => {
             .split(/\r\n|\r|\n/)
             .forEach((line, i) => {
                 if (/^\s*$/.test(line)) {
-                    // empty or whitespace lines are OK
+                    // Empty or whitespace lines are OK.
                 } else if (/^(\s\s\s\s)+.*/.test(line)) {
-                    // good indent
+                    // Good indent.
                 } else if (/^[\t]+.*/.test(line)) {
                     console.error(file.relative + '(' + (i + 1) + ',1): Bad whitespace indentation');
                     errorCount++;
@@ -118,9 +116,10 @@ const hygiene = exports.hygiene = (some, options) => {
     const formatting = es.map(function (file, cb) {
         tsfmt.processString(file.path, file.contents.toString('utf8'), {
             verify: true,
-            tsfmt: true,
-            editorconfig: true
-            // verbose: true
+            tsconfig: true,
+            tslint: true,
+            editorconfig: true,
+            tsfmt: true
         }).then(result => {
             if (result.error) {
                 console.error(result.message);
@@ -176,7 +175,7 @@ const hygiene = exports.hygiene = (some, options) => {
                     console.error(error.message);
                 },
                 finish: function () {
-                    // forget the summary
+                    // forget the summary.
                 }
             };
         }
@@ -213,7 +212,7 @@ const hygiene = exports.hygiene = (some, options) => {
 
 gulp.task('hygiene', () => hygiene());
 
-// this allows us to run hygiene as a git pre-commit hook
+// this allows us to run hygiene as a git pre-commit hook.
 if (require.main === module) {
     const cp = require('child_process');
 

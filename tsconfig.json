@@ -7,8 +7,11 @@
             "es6"
         ],
         "sourceMap": true,
-        "rootDir": "src"
+        "rootDir": "src",
+        "experimentalDecorators": true
         // TODO: enable to ensure all code complies with strict coding standards
+        // , "noUnusedLocals": true
+        // , "noUnusedParameters": false
         // , "strict": true
     },
     "exclude": [
@@ -17,7 +20,6 @@
         "src/server/node_modules",
         "src/client/node_modules",
         "src/server/src/typings",
-        "src/client/src/typings",
-        "docs"
+        "src/client/src/typings"
     ]
 }

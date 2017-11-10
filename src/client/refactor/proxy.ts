@@ -1,12 +1,11 @@
 'use strict';
 
-import * as vscode from 'vscode';
-import * as path from 'path';
 import * as child_process from 'child_process';
+import * as path from 'path';
+import * as vscode from 'vscode';
 import { IPythonSettings } from '../common/configSettings';
-import { REFACTOR } from '../common/telemetryContracts';
-import { IS_WINDOWS, getCustomEnvVars, getWindowsLineEndingCount } from '../common/utils';
 import { mergeEnvVariables } from '../common/envFileParser';
+import { getCustomEnvVarsSync, getWindowsLineEndingCount, IS_WINDOWS } from '../common/utils';
 
 export class RefactorProxy extends vscode.Disposable {
     private _process: child_process.ChildProcess;
@@ -17,7 +16,7 @@ export class RefactorProxy extends vscode.Disposable {
     private _commandResolve: (value?: any | PromiseLike<any>) => void;
     private _commandReject: (reason?: any) => void;
     private _initializeReject: (reason?: any) => void;
-    constructor(extensionDir: string, private pythonSettings: IPythonSettings, private workspaceRoot: string = vscode.workspace.rootPath) {
+    constructor(extensionDir: string, private pythonSettings: IPythonSettings, private workspaceRoot: string) {
         super(() => { });
         this._extensionDir = extensionDir;
     }
@@ -57,7 +56,7 @@ export class RefactorProxy extends vscode.Disposable {
             "indent_size": options.tabSize
         };
 
-        return this.sendCommand<T>(JSON.stringify(command), REFACTOR.Rename);
+        return this.sendCommand<T>(JSON.stringify(command));
     }
     extractVariable<T>(document: vscode.TextDocument, name: string, filePath: string, range: vscode.Range, options?: vscode.TextEditorOptions): Promise<T> {
         if (!options) {
@@ -72,7 +71,7 @@ export class RefactorProxy extends vscode.Disposable {
             "name": name,
             "indent_size": options.tabSize
         };
-        return this.sendCommand<T>(JSON.stringify(command), REFACTOR.ExtractVariable);
+        return this.sendCommand<T>(JSON.stringify(command));
     }
     extractMethod<T>(document: vscode.TextDocument, name: string, filePath: string, range: vscode.Range, options?: vscode.TextEditorOptions): Promise<T> {
         if (!options) {
@@ -91,9 +90,9 @@ export class RefactorProxy extends vscode.Disposable {
             "name": name,
             "indent_size": options.tabSize
         };
-        return this.sendCommand<T>(JSON.stringify(command), REFACTOR.ExtractMethod);
+        return this.sendCommand<T>(JSON.stringify(command));
     }
-    private sendCommand<T>(command: string, telemetryEvent: string): Promise<T> {
+    private sendCommand<T>(command: string, telemetryEvent?: string): Promise<T> {
         return this.initialize(this.pythonSettings.pythonPath).then(() => {
             return new Promise<T>((resolve, reject) => {
                 this._commandResolve = resolve;
@@ -106,7 +105,7 @@ export class RefactorProxy extends vscode.Disposable {
         return new Promise<any>((resolve, reject) => {
             this._initializeReject = reject;
             let environmentVariables = { 'PYTHONUNBUFFERED': '1' };
-            let customEnvironmentVars = getCustomEnvVars();
+            let customEnvironmentVars = getCustomEnvVarsSync(vscode.Uri.file(this.workspaceRoot));
             if (customEnvironmentVars) {
                 environmentVariables = mergeEnvVariables(environmentVariables, customEnvironmentVars);
             }

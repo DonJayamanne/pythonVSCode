@@ -1,17 +1,16 @@
 'use strict';
 
 import * as vscode from 'vscode';
+import { JediFactory } from '../languageServices/jediProxyFactory';
+import { captureTelemetry } from '../telemetry';
+import { SYMBOL } from '../telemetry/constants';
 import * as proxy from './jediProxy';
 
 export class PythonSymbolProvider implements vscode.DocumentSymbolProvider {
-    private jediProxyHandler: proxy.JediProxyHandler<proxy.ISymbolResult>;
-
-    public constructor(context: vscode.ExtensionContext, jediProxy: proxy.JediProxy = null) {
-        this.jediProxyHandler = new proxy.JediProxyHandler(context, jediProxy);
-    }
+    public constructor(private jediFactory: JediFactory) { }
     private static parseData(document: vscode.TextDocument, data: proxy.ISymbolResult): vscode.SymbolInformation[] {
         if (data) {
-            let symbols = data.definitions.filter(sym => sym.fileName === document.fileName);
+            const symbols = data.definitions.filter(sym => sym.fileName === document.fileName);
             return symbols.map(sym => {
                 const symbol = sym.kind;
                 const range = new vscode.Range(
@@ -24,10 +23,11 @@ export class PythonSymbolProvider implements vscode.DocumentSymbolProvider {
         }
         return [];
     }
+    @captureTelemetry(SYMBOL)
     public provideDocumentSymbols(document: vscode.TextDocument, token: vscode.CancellationToken): Thenable<vscode.SymbolInformation[]> {
-        var filename = document.fileName;
+        const filename = document.fileName;
 
-        var cmd: proxy.ICommand<proxy.ISymbolResult> = {
+        const cmd: proxy.ICommand<proxy.ISymbolResult> = {
             command: proxy.CommandType.Symbols,
             fileName: filename,
             columnIndex: 0,
@@ -38,14 +38,14 @@ export class PythonSymbolProvider implements vscode.DocumentSymbolProvider {
             cmd.source = document.getText();
         }
 
-        return this.jediProxyHandler.sendCommand(cmd, token).then(data => {
+        return this.jediFactory.getJediProxyHandler<proxy.ISymbolResult>(document.uri).sendCommand(cmd, token).then(data => {
             return PythonSymbolProvider.parseData(document, data);
         });
     }
     public provideDocumentSymbolsForInternalUse(document: vscode.TextDocument, token: vscode.CancellationToken): Thenable<vscode.SymbolInformation[]> {
-        var filename = document.fileName;
+        const filename = document.fileName;
 
-        var cmd: proxy.ICommand<proxy.ISymbolResult> = {
+        const cmd: proxy.ICommand<proxy.ISymbolResult> = {
             command: proxy.CommandType.Symbols,
             fileName: filename,
             columnIndex: 0,
@@ -56,7 +56,7 @@ export class PythonSymbolProvider implements vscode.DocumentSymbolProvider {
             cmd.source = document.getText();
         }
 
-        return this.jediProxyHandler.sendCommandNonCancellableCommand(cmd, token).then(data => {
+        return this.jediFactory.getJediProxyHandler<proxy.ISymbolResult>(document.uri).sendCommandNonCancellableCommand(cmd, token).then(data => {
             return PythonSymbolProvider.parseData(document, data);
         });
     }

@@ -51,7 +51,7 @@ export class SimpleConfigurationProvider implements DebugConfigurationProvider {
             type: 'python',
             request: 'launch',
             stopOnEntry: true,
-            pythonPath: PythonSettings.getInstance().pythonPath,
+            pythonPath: PythonSettings.getInstance(workspaceFolder ? Uri.file(workspaceFolder) : undefined).pythonPath,
             program: defaultProgram,
             cwd: workspaceFolder,
             envFile,
