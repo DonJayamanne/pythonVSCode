@@ -42,6 +42,8 @@
             "Thenable",
             "PromiseLike"
         ],
-        "completed-docs": false
+        "completed-docs": false,
+        "no-void-expression": false,
+        "no-non-null-assertion": false
     }
 }
