@@ -42,6 +42,7 @@
             "Thenable",
             "PromiseLike"
         ],
-        "completed-docs": false
+        "completed-docs": false,
+        "no-unsafe-any": false
     }
 }
