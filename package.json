@@ -289,9 +289,9 @@
                             "stopOnEntry": true,
                             "pythonPath": "^\"\\${config:python.pythonPath}\"",
                             "program": "^\"\\${file}\"",
-                            "cwd": "^\"\\${workspaceRoot}\"",
+                            "cwd": "^\"\\${workspaceFolder}\"",
                             "env": {},
-                            "envFile": "^\"\\${workspaceRoot}/.env\"",
+                            "envFile": "^\"\\${workspaceFolder}/.env\"",
                             "debugOptions": [
                                 "RedirectOutput"
                             ]
@@ -315,9 +315,9 @@
                                 "pythonPath": "^\"\\${env:SPARK_HOME}/bin/spark-submit\""
                             },
                             "program": "^\"\\${file}\"",
-                            "cwd": "^\"\\${workspaceRoot}\"",
+                            "cwd": "^\"\\${workspaceFolder}\"",
                             "env": {},
-                            "envFile": "^\"\\${workspaceRoot}/.env\"",
+                            "envFile": "^\"\\${workspaceFolder}/.env\"",
                             "debugOptions": [
                                 "RedirectOutput"
                             ]
@@ -333,9 +333,9 @@
                             "stopOnEntry": true,
                             "pythonPath": "^\"\\${config:python.pythonPath}\"",
                             "module": "module.name",
-                            "cwd": "^\"\\${workspaceRoot}\"",
+                            "cwd": "^\"\\${workspaceFolder}\"",
                             "env": {},
-                            "envFile": "^\"\\${workspaceRoot}/.env\"",
+                            "envFile": "^\"\\${workspaceFolder}/.env\"",
                             "debugOptions": [
                                 "RedirectOutput"
                             ]
@@ -354,7 +354,7 @@
                             "cwd": "",
                             "console": "integratedTerminal",
                             "env": {},
-                            "envFile": "^\"\\${workspaceRoot}/.env\"",
+                            "envFile": "^\"\\${workspaceFolder}/.env\"",
                             "debugOptions": []
                         }
                     },
@@ -371,7 +371,7 @@
                             "cwd": "",
                             "console": "externalTerminal",
                             "env": {},
-                            "envFile": "^\"\\${workspaceRoot}/.env\"",
+                            "envFile": "^\"\\${workspaceFolder}/.env\"",
                             "debugOptions": []
                         }
                     },
@@ -384,15 +384,15 @@
                             "request": "launch",
                             "stopOnEntry": true,
                             "pythonPath": "^\"\\${config:python.pythonPath}\"",
-                            "program": "^\"\\${workspaceRoot}/manage.py\"",
-                            "cwd": "^\"\\${workspaceRoot}\"",
+                            "program": "^\"\\${workspaceFolder}/manage.py\"",
+                            "cwd": "^\"\\${workspaceFolder}\"",
                             "args": [
                                 "runserver",
                                 "--noreload",
                                 "--nothreading"
                             ],
                             "env": {},
-                            "envFile": "^\"\\${workspaceRoot}/.env\"",
+                            "envFile": "^\"\\${workspaceFolder}/.env\"",
                             "debugOptions": [
                                 "RedirectOutput",
                                 "DjangoDebugging"
@@ -409,16 +409,16 @@
                             "stopOnEntry": false,
                             "pythonPath": "^\"\\${config:python.pythonPath}\"",
                             "program": "fully qualified path fo 'flask' executable. Generally located along with python interpreter",
-                            "cwd": "^\"\\${workspaceRoot}\"",
+                            "cwd": "^\"\\${workspaceFolder}\"",
                             "env": {
-                                "FLASK_APP": "^\"\\${workspaceRoot}/quickstart/app.py\""
+                                "FLASK_APP": "^\"\\${workspaceFolder}/quickstart/app.py\""
                             },
                             "args": [
                                 "run",
                                 "--no-debugger",
                                 "--no-reload"
                             ],
-                            "envFile": "^\"\\${workspaceRoot}/.env\"",
+                            "envFile": "^\"\\${workspaceFolder}/.env\"",
                             "debugOptions": [
                                 "RedirectOutput"
                             ]
@@ -433,11 +433,11 @@
                             "request": "launch",
                             "stopOnEntry": false,
                             "pythonPath": "^\"\\${config:python.pythonPath}\"",
-                            "program": "^\"\\${workspaceRoot}/run.py\"",
-                            "cwd": "^\"\\${workspaceRoot}\"",
+                            "program": "^\"\\${workspaceFolder}/run.py\"",
+                            "cwd": "^\"\\${workspaceFolder}\"",
                             "args": [],
                             "env": {},
-                            "envFile": "^\"\\${workspaceRoot}/.env\"",
+                            "envFile": "^\"\\${workspaceFolder}/.env\"",
                             "debugOptions": [
                                 "RedirectOutput"
                             ]
@@ -452,11 +452,11 @@
                             "request": "launch",
                             "stopOnEntry": true,
                             "pythonPath": "^\"\\${config:python.pythonPath}\"",
-                            "cwd": "^\"\\${workspaceRoot}\"",
+                            "cwd": "^\"\\${workspaceFolder}\"",
                             "env": {},
-                            "envFile": "^\"\\${workspaceRoot}/.env\"",
+                            "envFile": "^\"\\${workspaceFolder}/.env\"",
                             "args": [
-                                "^\"\\${workspaceRoot}/development.ini\""
+                                "^\"\\${workspaceFolder}/development.ini\""
                             ],
                             "debugOptions": [
                                 "RedirectOutput",
@@ -473,15 +473,15 @@
                             "request": "launch",
                             "stopOnEntry": true,
                             "pythonPath": "^\"\\${config:python.pythonPath}\"",
-                            "program": "^\"\\${workspaceRoot}/console.py\"",
-                            "cwd": "^\"\\${workspaceRoot}\"",
+                            "program": "^\"\\${workspaceFolder}/console.py\"",
+                            "cwd": "^\"\\${workspaceFolder}\"",
                             "args": [
                                 "dev",
                                 "runserver",
                                 "--noreload=True"
                             ],
                             "env": {},
-                            "envFile": "^\"\\${workspaceRoot}/.env\"",
+                            "envFile": "^\"\\${workspaceFolder}/.env\"",
                             "debugOptions": [
                                 "RedirectOutput"
                             ]
@@ -497,7 +497,7 @@
                             "stopOnEntry": true,
                             "pythonPath": "^\"\\${config:python.pythonPath}\"",
                             "program": "~/.virtualenvs/scrapy/bin/scrapy",
-                            "cwd": "^\"\\${workspaceRoot}\"",
+                            "cwd": "^\"\\${workspaceFolder}\"",
                             "args": [
                                 "crawl",
                                 "specs",
@@ -506,7 +506,7 @@
                             ],
                             "console": "integratedTerminal",
                             "env": {},
-                            "envFile": "^\"\\${workspaceRoot}/.env\"",
+                            "envFile": "^\"\\${workspaceFolder}/.env\"",
                             "debugOptions": []
                         }
                     },
@@ -517,8 +517,8 @@
                             "name": "Attach (Remote Debug)",
                             "type": "python",
                             "request": "attach",
-                            "localRoot": "^\"\\${workspaceRoot}\"",
-                            "remoteRoot": "^\"\\${workspaceRoot}\"",
+                            "localRoot": "^\"\\${workspaceFolder}\"",
+                            "remoteRoot": "^\"\\${workspaceFolder}\"",
                             "port": 3000,
                             "secret": "my_secret",
                             "host": "localhost"
@@ -639,7 +639,7 @@
                             "localRoot": {
                                 "type": "string",
                                 "description": "Local source root that corrresponds to the 'remoteRoot'.",
-                                "default": "${workspaceRoot}"
+                                "default": "${workspaceFolder}"
                             },
                             "remoteRoot": {
                                 "type": "string",
@@ -672,9 +672,9 @@
                         "stopOnEntry": true,
                         "pythonPath": "${config:python.pythonPath}",
                         "program": "${file}",
-                        "cwd": "${workspaceRoot}",
+                        "cwd": "${workspaceFolder}",
                         "env": {},
-                        "envFile": "${workspaceRoot}/.env",
+                        "envFile": "${workspaceFolder}/.env",
                         "debugOptions": [
                             "RedirectOutput"
                         ]
@@ -683,8 +683,8 @@
                         "name": "Python: Attach",
                         "type": "python",
                         "request": "attach",
-                        "localRoot": "${workspaceRoot}",
-                        "remoteRoot": "${workspaceRoot}",
+                        "localRoot": "${workspaceFolder}",
+                        "remoteRoot": "${workspaceFolder}",
                         "port": 3000,
                         "secret": "my_secret",
                         "host": "localhost"
@@ -699,7 +699,7 @@
                         "cwd": "",
                         "console": "integratedTerminal",
                         "env": {},
-                        "envFile": "${workspaceRoot}/.env",
+                        "envFile": "${workspaceFolder}/.env",
                         "debugOptions": []
                     },
                     {
@@ -712,7 +712,7 @@
                         "cwd": "",
                         "console": "externalTerminal",
                         "env": {},
-                        "envFile": "${workspaceRoot}/.env",
+                        "envFile": "${workspaceFolder}/.env",
                         "debugOptions": []
                     },
                     {
@@ -721,15 +721,15 @@
                         "request": "launch",
                         "stopOnEntry": true,
                         "pythonPath": "${config:python.pythonPath}",
-                        "program": "${workspaceRoot}/manage.py",
-                        "cwd": "${workspaceRoot}",
+                        "program": "${workspaceFolder}/manage.py",
+                        "cwd": "${workspaceFolder}",
                         "args": [
                             "runserver",
                             "--noreload",
                             "--nothreading"
                         ],
                         "env": {},
-                        "envFile": "${workspaceRoot}/.env",
+                        "envFile": "${workspaceFolder}/.env",
                         "debugOptions": [
                             "RedirectOutput",
                             "DjangoDebugging"
@@ -742,16 +742,16 @@
                         "stopOnEntry": false,
                         "pythonPath": "${config:python.pythonPath}",
                         "program": "fully qualified path fo 'flask' executable. Generally located along with python interpreter",
-                        "cwd": "${workspaceRoot}",
+                        "cwd": "${workspaceFolder}",
                         "env": {
-                            "FLASK_APP": "${workspaceRoot}/quickstart/app.py"
+                            "FLASK_APP": "${workspaceFolder}/quickstart/app.py"
                         },
                         "args": [
                             "run",
                             "--no-debugger",
                             "--no-reload"
                         ],
-                        "envFile": "${workspaceRoot}/.env",
+                        "envFile": "${workspaceFolder}/.env",
                         "debugOptions": [
                             "RedirectOutput"
                         ]
@@ -762,11 +762,11 @@
                         "request": "launch",
                         "stopOnEntry": false,
                         "pythonPath": "${config:python.pythonPath}",
-                        "program": "${workspaceRoot}/run.py",
-                        "cwd": "${workspaceRoot}",
+                        "program": "${workspaceFolder}/run.py",
+                        "cwd": "${workspaceFolder}",
                         "args": [],
                         "env": {},
-                        "envFile": "${workspaceRoot}/.env",
+                        "envFile": "${workspaceFolder}/.env",
                         "debugOptions": [
                             "RedirectOutput"
                         ]
@@ -786,9 +786,9 @@
                             "pythonPath": "${env:SPARK_HOME}/bin/spark-submit"
                         },
                         "program": "${file}",
-                        "cwd": "${workspaceRoot}",
+                        "cwd": "${workspaceFolder}",
                         "env": {},
-                        "envFile": "${workspaceRoot}/.env",
+                        "envFile": "${workspaceFolder}/.env",
                         "debugOptions": [
                             "RedirectOutput"
                         ]
@@ -800,9 +800,9 @@
                         "stopOnEntry": true,
                         "pythonPath": "${config:python.pythonPath}",
                         "module": "module.name",
-                        "cwd": "${workspaceRoot}",
+                        "cwd": "${workspaceFolder}",
                         "env": {},
-                        "envFile": "${workspaceRoot}/.env",
+                        "envFile": "${workspaceFolder}/.env",
                         "debugOptions": [
                             "RedirectOutput"
                         ]
@@ -813,11 +813,11 @@
                         "request": "launch",
                         "stopOnEntry": true,
                         "pythonPath": "${config:python.pythonPath}",
-                        "cwd": "${workspaceRoot}",
+                        "cwd": "${workspaceFolder}",
                         "env": {},
-                        "envFile": "${workspaceRoot}/.env",
+                        "envFile": "${workspaceFolder}/.env",
                         "args": [
-                            "${workspaceRoot}/development.ini"
+                            "${workspaceFolder}/development.ini"
                         ],
                         "debugOptions": [
                             "RedirectOutput",
@@ -830,15 +830,15 @@
                         "request": "launch",
                         "stopOnEntry": true,
                         "pythonPath": "${config:python.pythonPath}",
-                        "program": "${workspaceRoot}/console.py",
-                        "cwd": "${workspaceRoot}",
+                        "program": "${workspaceFolder}/console.py",
+                        "cwd": "${workspaceFolder}",
                         "args": [
                             "dev",
                             "runserver",
                             "--noreload=True"
                         ],
                         "env": {},
-                        "envFile": "${workspaceRoot}/.env",
+                        "envFile": "${workspaceFolder}/.env",
                         "debugOptions": [
                             "RedirectOutput"
                         ]
@@ -871,7 +871,7 @@
                 "python.envFile": {
                     "type": "string",
                     "description": "Absolute path to a file containing environment variable definitions.",
-                    "default": "${workspaceRoot}/.env",
+                    "default": "${workspaceFolder}/.env",
                     "scope": "resource"
                 },
                 "python.jediPath": {
@@ -1300,7 +1300,7 @@
                 },
                 "python.workspaceSymbols.tagFilePath": {
                     "type": "string",
-                    "default": "${workspaceRoot}/.vscode/tags",
+                    "default": "${workspaceFolder}/.vscode/tags",
                     "description": "Fully qualified path to tag file (exuberant ctag file), used to provide workspace symbols.",
                     "scope": "resource"
                 },
