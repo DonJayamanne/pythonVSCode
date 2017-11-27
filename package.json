@@ -1530,12 +1530,20 @@
             {
                 "fileMatch": ".condarc",
                 "url": "./schemas/condarc.json"
+            },
+            {
+                "fileMatch": "environment.yml",
+                "url": "./schemas/conda-environment.json"
             }
         ],
         "yamlValidation": [
             {
                 "fileMatch": ".condarc",
                 "url": "./schemas/condarc.json"
+            },
+            {
+                "fileMatch": "environment.yml",
+                "url": "./schemas/conda-environment.json"
             }
         ]
     },
