@@ -1534,6 +1534,10 @@
             {
                 "fileMatch": "environment.yml",
                 "url": "./schemas/conda-environment.json"
+            },
+            {
+                "fileMatch": "meta.yaml",
+                "url": "./schemas/conda-meta.json"
             }
         ],
         "yamlValidation": [
@@ -1544,6 +1548,10 @@
             {
                 "fileMatch": "environment.yml",
                 "url": "./schemas/conda-environment.json"
+            },
+            {
+                "fileMatch": "meta.yaml",
+                "url": "./schemas/conda-meta.json"
             }
         ]
     },
