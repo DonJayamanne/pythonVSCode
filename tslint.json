@@ -53,7 +53,6 @@
         "function-name": false,
         "variable-name": false,
         "no-floating-promises": false,
-        "promise-function-async": false,
         "no-empty-interface": false
     }
 }
