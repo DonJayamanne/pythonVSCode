@@ -9,7 +9,7 @@ import { ErrorHandler } from './errorHandlers/main';
 
 // tslint:disable-next-line:variable-name
 let NamedRegexp = null;
-const REGEX = '(?<line>\\d+),(?<column>\\d+),(?<type>\\w+),(?<code>\\w\\d+):(?<message>.*)\\r?(\\n|$)';
+const REGEX = '(?<line>\\d+),(?<column>\\d+),(?<type>\\w+),(?<code>[^:]+):(?<message>.*)\\r?(\\n|$)';
 
 export interface IRegexGroup {
     line: number;
