@@ -11,7 +11,7 @@ import { ConfigurationTarget, Disposable, Uri, workspace } from 'vscode';
 import { IS_WINDOWS } from '../../../client/common/configSettings';
 import { PathUtils } from '../../../client/common/platform/pathUtils';
 import { registerTypes as processRegisterTypes } from '../../../client/common/process/serviceRegistry';
-import { IDiposableRegistry, IPathUtils } from '../../../client/common/types';
+import { IDisposableRegistry, IPathUtils } from '../../../client/common/types';
 import { IsWindows } from '../../../client/common/types';
 import { registerTypes as variablesRegisterTypes } from '../../../client/common/variables/serviceRegistry';
 import { IEnvironmentVariablesProvider } from '../../../client/common/variables/types';
@@ -41,7 +41,7 @@ suite('Multiroot Environment Variables Provider', () => {
     setup(() => {
         cont = new Container();
         serviceManager = new ServiceManager(cont);
-        serviceManager.addSingletonInstance<Disposable[]>(IDiposableRegistry, []);
+        serviceManager.addSingletonInstance<Disposable[]>(IDisposableRegistry, []);
         serviceManager.addSingletonInstance<boolean>(IsWindows, IS_WINDOWS);
         serviceManager.addSingleton<IPathUtils>(IPathUtils, PathUtils);
         processRegisterTypes(serviceManager);
