@@ -12,7 +12,7 @@ import { PythonSettings } from '../../../client/common/configSettings';
 import { PathUtils } from '../../../client/common/platform/pathUtils';
 import { registerTypes as processRegisterTypes } from '../../../client/common/process/serviceRegistry';
 import { IPythonExecutionFactory, StdErrError } from '../../../client/common/process/types';
-import { IDiposableRegistry, IPathUtils, IsWindows } from '../../../client/common/types';
+import { IDisposableRegistry, IPathUtils, IsWindows } from '../../../client/common/types';
 import { IS_WINDOWS } from '../../../client/common/utils';
 import { registerTypes as variablesRegisterTypes } from '../../../client/common/variables/serviceRegistry';
 import { ServiceManager } from '../../../client/ioc/serviceManager';
@@ -41,7 +41,7 @@ suite('PythonExecutableService', () => {
     setup(() => {
         cont = new Container();
         serviceManager = new ServiceManager(cont);
-        serviceManager.addSingletonInstance<Disposable[]>(IDiposableRegistry, []);
+        serviceManager.addSingletonInstance<Disposable[]>(IDisposableRegistry, []);
         serviceManager.addSingletonInstance<boolean>(IsWindows, IS_WINDOWS);
         serviceManager.addSingleton<IPathUtils>(IPathUtils, PathUtils);
         processRegisterTypes(serviceManager);
