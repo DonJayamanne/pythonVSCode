@@ -245,10 +245,10 @@ export class JediProxy implements vscode.Disposable {
         if (typeof this.pythonSettings.jediPath !== 'string' || this.pythonSettings.jediPath.length === 0) {
             if (Array.isArray(this.pythonSettings.devOptions) &&
                 this.pythonSettings.devOptions.some(item => item.toUpperCase().trim() === 'USERELEASEAUTOCOMP')) {
-                // Use standard version of jedi library.
+                // Use standard version of jedi.
                 args.push('std');
             } else {
-                // Use preview version of jedi library.
+                // Use preview version of jedi.
                 args.push('preview');
             }
         } else {
@@ -286,7 +286,7 @@ export class JediProxy implements vscode.Disposable {
             } else {
                 const data = output.out;
                 // Possible there was an exception in parsing the data returned,
-                // so append the data then parse it.
+                // so append the data and then parse it.
                 const dataStr = this.previousData = `${this.previousData}${data}`;
                 // tslint:disable-next-line:no-any
                 let responses: any[];
@@ -305,12 +305,6 @@ export class JediProxy implements vscode.Disposable {
                 }
 
                 responses.forEach((response) => {
-                    // What's this, can't remember,
-                    // Great example of poorly written code (this whole file is a mess).
-                    // I think this needs to be removed, because this is misspelt, it is argments, 'U' is missing,
-                    // And that case is handled further down
-                    // case CommandType.Arguments: {
-
                     const responseId = JediProxy.getProperty<number>(response, 'id');
                     const cmd = <IExecutionCommand<ICommandResult>>this.commands.get(responseId);
                     if (cmd === null) {
@@ -356,7 +350,7 @@ export class JediProxy implements vscode.Disposable {
                         default:
                             break;
                     }
-                    // Check if too many pending requets.
+                    // Check if too many pending requests.
                     this.checkQueueLength();
                 });
             }

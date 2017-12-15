@@ -18,9 +18,7 @@ export class InterpreterVersionService implements IInterpreterVersionService {
     public async getPipVersion(pythonPath: string): Promise<string> {
         const output = await this.processService.exec(pythonPath, ['-m', 'pip', '--version'], { mergeStdOutErr: true });
         if (output.stdout.length > 0) {
-            // Take the first available version number, see below example.
-            // pip 9.0.1 from /Users/donjayamanne/anaconda3/lib/python3.6/site-packages (python 3.6).
-            // Take the second part, see below example.
+            // Here's a sample output:
             // pip 9.0.1 from /Users/donjayamanne/anaconda3/lib/python3.6/site-packages (python 3.6).
             const re = new RegExp(PIP_VERSION_REGEX, 'g');
             const matches = re.exec(output.stdout);
