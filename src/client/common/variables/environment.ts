@@ -19,6 +19,9 @@ export class EnvironmentVariablesService implements IEnvironmentVariablesService
         if (!exists) {
             return undefined;
         }
+        if (fs.lstatSync(filePath).isDirectory()) {
+            return undefined;
+        }
         return new Promise<EnvironmentVariables | undefined>((resolve, reject) => {
             fs.readFile(filePath, 'utf8', (error, data) => {
                 if (error) {
