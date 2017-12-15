@@ -357,6 +357,9 @@ export async function getCustomEnvVars(resource?: Uri): Promise<{} | undefined |
     if (!exists) {
         return null;
     }
+    if (fs.lstatSync(envFile).isDirectory()) {
+        return null;
+    }
     try {
         const vars = parseEnvFile(envFile);
         if (vars && typeof vars === 'object' && Object.keys(vars).length > 0) {
@@ -374,6 +377,9 @@ export function getCustomEnvVarsSync(resource?: Uri): {} | undefined | null {
     }
     const exists = fsExtra.pathExistsSync(envFile);
     if (!exists) {
+        return null;
+    }
+    if (fs.lstatSync(envFile).isDirectory()) {
         return null;
     }
     try {
