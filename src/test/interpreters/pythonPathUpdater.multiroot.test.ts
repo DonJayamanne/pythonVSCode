@@ -30,11 +30,11 @@ suite('Multiroot Python Path Settings Updater', () => {
     suiteTeardown(async () => {
         await closeActiveWindows();
         await initializeTest();
-        ioc.dispose();
     });
     teardown(async () => {
         await closeActiveWindows();
         await initializeTest();
+        ioc.dispose();
     });
 
     function initializeDI() {
