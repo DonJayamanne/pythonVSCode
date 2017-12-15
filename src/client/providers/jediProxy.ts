@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
-'use strict';
 
 import * as child_process from 'child_process';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { Uri } from 'vscode';
 import { PythonSettings } from '../common/configSettings';
+import '../common/extensions';
 import { createDeferred, Deferred } from '../common/helpers';
 import { IPythonExecutionFactory } from '../common/process/types';
 import { getCustomEnvVarsSync, validatePath } from '../common/utils';
@@ -137,6 +137,7 @@ export class JediProxy implements vscode.Disposable {
     private lastKnownPythonPath: string;
     private additionalAutoCopletePaths: string[] = [];
     private workspacePath: string;
+    private initialized: Deferred<void>;
 
     public constructor(extensionRootDir: string, workspacePath: string, private serviceContainer: IServiceContainer) {
         this.workspacePath = workspacePath;
@@ -162,7 +163,8 @@ export class JediProxy implements vscode.Disposable {
         return result;
     }
 
-    public sendCommand<T extends ICommandResult>(cmd: ICommand<T>): Promise<T> {
+    public async sendCommand<T extends ICommandResult>(cmd: ICommand<T>): Promise<T> {
+        await this.initialized.promise;
         if (!this.proc) {
             return Promise.reject(new Error('Python proc not initialized'));
         }
@@ -192,7 +194,13 @@ export class JediProxy implements vscode.Disposable {
     // keep track of the directory so we can re-spawn the process.
     private initialize(dir: string) {
         this.pythonProcessCWD = dir;
-        this.spawnProcess(path.join(dir, 'pythonFiles'));
+        this.spawnProcess(path.join(dir, 'pythonFiles'))
+            .catch(ex => {
+                if (this.initialized) {
+                    this.initialized.reject(ex);
+                }
+                this.handleError('spawnProcess', ex);
+            });
     }
 
     // Check if settings changes.
@@ -231,6 +239,7 @@ export class JediProxy implements vscode.Disposable {
 
     // tslint:disable-next-line:max-func-body-length
     private async spawnProcess(cwd: string) {
+        this.initialized = createDeferred<void>();
         const pythonProcess = await this.serviceContainer.get<IPythonExecutionFactory>(IPythonExecutionFactory).create(Uri.file(this.workspacePath));
         const args = ['completion.py'];
         if (typeof this.pythonSettings.jediPath !== 'string' || this.pythonSettings.jediPath.length === 0) {
@@ -253,6 +262,7 @@ export class JediProxy implements vscode.Disposable {
         }
         const result = pythonProcess.execObservable(args, { cwd });
         this.proc = result.proc;
+        this.initialized.resolve();
         this.proc.on('end', (end) => {
             logger.error('spawnProcess.end', `End - ${end}`);
         });
@@ -261,7 +271,13 @@ export class JediProxy implements vscode.Disposable {
             this.spawnRetryAttempts += 1;
             if (this.spawnRetryAttempts < 10 && error && error.message &&
                 error.message.indexOf('This socket has been ended by the other party') >= 0) {
-                this.spawnProcess(cwd);
+                this.spawnProcess(cwd)
+                    .catch(ex => {
+                        if (this.initialized) {
+                            this.initialized.reject(ex);
+                        }
+                        this.handleError('spawnProcess', ex);
+                    });
             }
         });
         result.out.subscribe(output => {
