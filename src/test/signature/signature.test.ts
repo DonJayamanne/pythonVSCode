@@ -4,7 +4,6 @@
 import * as assert from 'assert';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { PythonSettings } from '../../client/common/configSettings';
 import { rootWorkspaceUri } from '../common';
 import { closeActiveWindows, initialize, initializeTest } from '../initialize';
 import { UnitTestIocContainer } from '../unittests/serviceRegistry';
