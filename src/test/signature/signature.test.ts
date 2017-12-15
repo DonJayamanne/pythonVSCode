@@ -1,14 +1,13 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
-'use strict';
 
 import * as assert from 'assert';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { PythonSettings } from '../../client/common/configSettings';
-import { execPythonFile } from '../../client/common/utils';
 import { rootWorkspaceUri } from '../common';
 import { closeActiveWindows, initialize, initializeTest } from '../initialize';
+import { UnitTestIocContainer } from '../unittests/serviceRegistry';
 
 const autoCompPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'signature');
 
@@ -23,15 +22,26 @@ class SignatureHelpResult {
 
 // tslint:disable-next-line:max-func-body-length
 suite('Signatures', () => {
-    let isPython3: Promise<boolean>;
+    let isPython3: boolean;
+    let ioc: UnitTestIocContainer;
     suiteSetup(async () => {
         await initialize();
-        const version = await execPythonFile(rootWorkspaceUri, PythonSettings.getInstance(rootWorkspaceUri).pythonPath, ['--version'], __dirname, true);
-        isPython3 = Promise.resolve(version.indexOf('3.') >= 0);
+        initializeDI();
+        const version = await ioc.getPythonVersion(rootWorkspaceUri);
+        isPython3 = version.indexOf('3.') >= 0;
     });
     setup(initializeTest);
     suiteTeardown(closeActiveWindows);
-    teardown(closeActiveWindows);
+    teardown(async () => {
+        await closeActiveWindows();
+        ioc.dispose();
+    });
+    function initializeDI() {
+        ioc = new UnitTestIocContainer();
+        ioc.registerCommonTypes();
+        ioc.registerVariableTypes();
+        ioc.registerProcessTypes();
+    }
 
     test('For ctor', async () => {
         const expected = [
@@ -76,8 +86,10 @@ suite('Signatures', () => {
         }
     });
 
-    test('For ellipsis', async () => {
-        if (!await isPython3) {
+    test('For ellipsis', async function () {
+        if (!isPython3) {
+            // tslint:disable-next-line:no-invalid-this
+            this.skip();
             return;
         }
         const expected = [
@@ -99,7 +111,7 @@ suite('Signatures', () => {
 
     test('For pow', async () => {
         let expected: SignatureHelpResult;
-        if (await isPython3) {
+        if (!isPython3) {
             expected = new SignatureHelpResult(0, 4, 1, 0, null);
         } else {
             expected = new SignatureHelpResult(0, 4, 1, 0, 'x');
