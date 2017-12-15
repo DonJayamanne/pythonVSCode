@@ -2,12 +2,7 @@ import * as assert from 'assert';
 import * as path from 'path';
 import { OutputChannel } from 'vscode';
 import * as vscode from 'vscode';
-import { PythonSettings } from '../../client/common/configSettings';
-import { STANDARD_OUTPUT_CHANNEL } from '../../client/common/constants';
-import { createDeferred } from '../../client/common/helpers';
 import { SettingToDisableProduct } from '../../client/common/installer/installer';
-import { IInstaller, ILogger, IOutputChannel, Product } from '../../client/common/types';
-import { execPythonFile } from '../../client/common/utils';
 import { IServiceContainer } from '../../client/ioc/types';
 import * as baseLinter from '../../client/linters/baseLinter';
 import { BaseLinter } from '../../client/linters/baseLinter';
@@ -117,12 +112,12 @@ const fiteredPydocstyleMessagseToBeReturned: baseLinter.ILintMessage[] = [
 // tslint:disable-next-line:max-func-body-length
 suite('Linting', () => {
     let ioc: UnitTestIocContainer;
-    const isPython3Deferred = createDeferred<boolean>();
-    const isPython3 = isPython3Deferred.promise;
+    let isPython3: boolean;
     suiteSetup(async () => {
         await initialize();
-        const version = await execPythonFile(fileToLint, PythonSettings.getInstance(vscode.Uri.file(fileToLint)).pythonPath, ['--version'], __dirname, true);
-        isPython3Deferred.resolve(version.indexOf('3.') >= 0);
+        initializeDI();
+        const version = await ioc.getPythonVersion(vscode.Uri.file(fileToLint));
+        isPython3 = version.indexOf('3.') >= 0;
     });
     setup(async () => {
         initializeDI();
@@ -283,26 +278,18 @@ suite('Linting', () => {
     test('Pydocstyle', async () => {
         await testLinterMessages(Product.pydocstyle, fileToLint, pydocstyleMessagseToBeReturned);
     });
-    isPython3
-        .then(value => {
-            const messagesToBeReturned = value ? filteredPylint3MessagesToBeReturned : filteredPylintMessagesToBeReturned;
-            test('PyLint with config in root', async () => {
-                await testLinterMessages(Product.pylint, path.join(pylintConfigPath, 'file.py'), messagesToBeReturned);
-            });
-        })
-        .catch(ex => console.error('Python Extension Tests: isPython3', ex));
+    test('PyLint with config in root', async () => {
+        const messagesToBeReturned = isPython3 ? filteredPylint3MessagesToBeReturned : filteredPylintMessagesToBeReturned;
+        await testLinterMessages(Product.pylint, path.join(pylintConfigPath, 'file.py'), messagesToBeReturned);
+    });
     test('Flake8 with config in root', async () => {
         await testLinterMessages(Product.flake8, path.join(flake8ConfigPath, 'file.py'), filteredFlake8MessagesToBeReturned);
     });
     test('Pep8 with config in root', async () => {
         await testLinterMessages(Product.pep8, path.join(pep8ConfigPath, 'file.py'), filteredPep88MessagesToBeReturned);
     });
-    isPython3
-        .then(value => {
-            const messagesToBeReturned = value ? [] : fiteredPydocstyleMessagseToBeReturned;
-            test('Pydocstyle with config in root', async () => {
-                await testLinterMessages(Product.pydocstyle, path.join(pydocstyleConfigPath27, 'file.py'), messagesToBeReturned);
-            });
-        })
-        .catch(ex => console.error('Python Extension Tests: isPython3', ex));
+    test('Pydocstyle with config in root', async () => {
+        const messagesToBeReturned = isPython3 ? [] : fiteredPydocstyleMessagseToBeReturned;
+        await testLinterMessages(Product.pydocstyle, path.join(pydocstyleConfigPath27, 'file.py'), messagesToBeReturned);
+    });
 });

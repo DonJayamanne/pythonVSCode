@@ -94,7 +94,6 @@ async function getPythonInterpreterDirectory(resource?: Uri): Promise<string> {
     });
 }
 export async function getFullyQualifiedPythonInterpreterPath(resource?: Uri): Promise<string> {
-    const pyDir = await getPythonInterpreterDirectory(resource);
     const cache = InterpreterInfoCache.get(resource);
     return cache.pythonInterpreterPath;
 }
@@ -291,15 +290,6 @@ function spawnFileInternal(file: string, args: string[], options: child_process.
 
     });
 }
-function execInternal(command: string, args: string[], options: child_process.ExecFileOptions, includeErrorAsResponse: boolean): Promise<string> {
-    return new Promise<string>((resolve, reject) => {
-        child_process.exec([command].concat(args).join(' '), options, (error, stdout, stderr) => {
-            handleResponse(command, includeErrorAsResponse, error, stdout, stderr)
-                .then(data => resolve(data))
-                .catch(err => reject(err));
-        });
-    });
-}
 
 export function formatErrorForLogging(error: Error | string): string {
     let message: string = '';
@@ -340,8 +330,8 @@ export function getSubDirectories(rootDir: string): Promise<string[]> {
                         subDirs.push(fullPath);
                     }
                 }
-                catch (ex) {
-                }
+                // tslint:disable-next-line:no-empty
+                catch (ex) { }
             });
             resolve(subDirs);
         });
@@ -421,14 +411,4 @@ export function arePathsSame(path1: string, path2: string) {
     } else {
         return path1 === path2;
     }
-}
-
-export async function getInterpreterVersion(pythonPath: string) {
-    return await new Promise<string>((resolve, reject) => {
-        child_process.execFile(pythonPath, ['--version'], (error, stdout, stdErr) => {
-            const out = (typeof stdErr === 'string' ? stdErr : '') + os.EOL + (typeof stdout === 'string' ? stdout : '');
-            const lines = out.split(/\r?\n/g).map(line => line.trim()).filter(line => line.length > 0);
-            resolve(lines.length > 0 ? lines[0] : '');
-        });
-    });
 }
