@@ -93,7 +93,7 @@ export async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(...activateExecInTerminalProvider());
     context.subscriptions.push(activateUpdateSparkLibraryProvider());
     activateSimplePythonRefactorProvider(context, standardOutputChannel, serviceContainer);
-    const jediFactory = new JediFactory(context.asAbsolutePath('.'));
+    const jediFactory = new JediFactory(context.asAbsolutePath('.'), serviceContainer);
     context.subscriptions.push(...activateGoToObjectDefinitionProvider(jediFactory));
 
     context.subscriptions.push(new ReplProvider());

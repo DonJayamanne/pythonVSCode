@@ -5,10 +5,12 @@
 import * as child_process from 'child_process';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { Uri } from 'vscode';
 import { PythonSettings } from '../common/configSettings';
-import { mergeEnvVariables } from '../common/envFileParser';
 import { createDeferred, Deferred } from '../common/helpers';
-import { execPythonFile, getCustomEnvVarsSync, validatePath } from '../common/utils';
+import { IPythonExecutionFactory } from '../common/process/types';
+import { getCustomEnvVarsSync, validatePath } from '../common/utils';
+import { IServiceContainer } from '../ioc/types';
 import * as logger from './../common/logger';
 
 const IS_WINDOWS = /^win/.test(process.platform);
@@ -136,7 +138,7 @@ export class JediProxy implements vscode.Disposable {
     private additionalAutoCopletePaths: string[] = [];
     private workspacePath: string;
 
-    public constructor(extensionRootDir: string, workspacePath: string) {
+    public constructor(extensionRootDir: string, workspacePath: string, private serviceContainer: IServiceContainer) {
         this.workspacePath = workspacePath;
         this.pythonSettings = PythonSettings.getInstance(vscode.Uri.file(workspacePath));
         this.lastKnownPythonInterpreter = this.pythonSettings.pythonPath;
@@ -228,45 +230,29 @@ export class JediProxy implements vscode.Disposable {
     }
 
     // tslint:disable-next-line:max-func-body-length
-    private spawnProcess(dir: string) {
-        try {
-            let environmentVariables: Object & { [key: string]: string } = { PYTHONUNBUFFERED: '1' };
-            const customEnvironmentVars = getCustomEnvVarsSync(vscode.Uri.file(dir));
-            if (customEnvironmentVars) {
-                environmentVariables = mergeEnvVariables(environmentVariables, customEnvironmentVars);
-            }
-            environmentVariables = mergeEnvVariables(environmentVariables);
-
-            const args = ['completion.py'];
-            if (typeof this.pythonSettings.jediPath !== 'string' || this.pythonSettings.jediPath.length === 0) {
-                if (Array.isArray(this.pythonSettings.devOptions) &&
-                    this.pythonSettings.devOptions.some(item => item.toUpperCase().trim() === 'USERELEASEAUTOCOMP')) {
-                    // Use standard version of jedi library.
-                    args.push('std');
-                } else {
-                    // Use preview version of jedi library.
-                    args.push('preview');
-                }
+    private async spawnProcess(cwd: string) {
+        const pythonProcess = await this.serviceContainer.get<IPythonExecutionFactory>(IPythonExecutionFactory).create(Uri.file(this.workspacePath));
+        const args = ['completion.py'];
+        if (typeof this.pythonSettings.jediPath !== 'string' || this.pythonSettings.jediPath.length === 0) {
+            if (Array.isArray(this.pythonSettings.devOptions) &&
+                this.pythonSettings.devOptions.some(item => item.toUpperCase().trim() === 'USERELEASEAUTOCOMP')) {
+                // Use standard version of jedi library.
+                args.push('std');
             } else {
-                args.push('custom');
-                args.push(this.pythonSettings.jediPath);
+                // Use preview version of jedi library.
+                args.push('preview');
             }
-            if (Array.isArray(this.pythonSettings.autoComplete.preloadModules) &&
-                this.pythonSettings.autoComplete.preloadModules.length > 0) {
-                const modules = this.pythonSettings.autoComplete.preloadModules.filter(m => m.trim().length > 0).join(',');
-                args.push(modules);
-            }
-            this.proc = child_process.spawn(this.pythonSettings.pythonPath, args, {
-                cwd: dir,
-                env: environmentVariables
-            });
-        } catch (ex) {
-            return this.handleError('spawnProcess', ex.message);
+        } else {
+            args.push('custom');
+            args.push(this.pythonSettings.jediPath);
         }
-        this.proc.stderr.setEncoding('utf8');
-        this.proc.stderr.on('data', (data: string) => {
-            this.handleError('stderr', data);
-        });
+        if (Array.isArray(this.pythonSettings.autoComplete.preloadModules) &&
+            this.pythonSettings.autoComplete.preloadModules.length > 0) {
+            const modules = this.pythonSettings.autoComplete.preloadModules.filter(m => m.trim().length > 0).join(',');
+            args.push(modules);
+        }
+        const result = pythonProcess.execObservable(args, { cwd });
+        this.proc = result.proc;
         this.proc.on('end', (end) => {
             logger.error('spawnProcess.end', `End - ${end}`);
         });
@@ -275,87 +261,92 @@ export class JediProxy implements vscode.Disposable {
             this.spawnRetryAttempts += 1;
             if (this.spawnRetryAttempts < 10 && error && error.message &&
                 error.message.indexOf('This socket has been ended by the other party') >= 0) {
-                this.spawnProcess(dir);
+                this.spawnProcess(cwd);
             }
         });
-        this.proc.stdout.setEncoding('utf8');
-        // tslint:disable-next-line:max-func-body-length
-        this.proc.stdout.on('data', (data: string) => {
-            // Possible there was an exception in parsing the data returned,
-            // so append the data then parse it.
-            const dataStr = this.previousData = `${this.previousData}${data}`;
-            // tslint:disable-next-line:no-any
-            let responses: any[];
-            try {
-                responses = dataStr.split(/\r?\n/g).filter(line => line.length > 0).map(resp => JSON.parse(resp));
-                this.previousData = '';
-            } catch (ex) {
-                // Possible we've only received part of the data, hence don't clear previousData.
-                // Don't log errors when we haven't received the entire response.
-                if (ex.message.indexOf('Unexpected end of input') === -1 &&
-                    ex.message.indexOf('Unexpected end of JSON input') === -1 &&
-                    ex.message.indexOf('Unexpected token') === -1) {
-                    this.handleError('stdout', ex.message);
+        result.out.subscribe(output => {
+            if (output.source === 'stderr') {
+                this.handleError('stderr', output.out);
+            } else {
+                const data = output.out;
+                // Possible there was an exception in parsing the data returned,
+                // so append the data then parse it.
+                const dataStr = this.previousData = `${this.previousData}${data}`;
+                // tslint:disable-next-line:no-any
+                let responses: any[];
+                try {
+                    responses = dataStr.split(/\r?\n/g).filter(line => line.length > 0).map(resp => JSON.parse(resp));
+                    this.previousData = '';
+                } catch (ex) {
+                    // Possible we've only received part of the data, hence don't clear previousData.
+                    // Don't log errors when we haven't received the entire response.
+                    if (ex.message.indexOf('Unexpected end of input') === -1 &&
+                        ex.message.indexOf('Unexpected end of JSON input') === -1 &&
+                        ex.message.indexOf('Unexpected token') === -1) {
+                        this.handleError('stdout', ex.message);
+                    }
+                    return;
                 }
-                return;
+
+                responses.forEach((response) => {
+                    // What's this, can't remember,
+                    // Great example of poorly written code (this whole file is a mess).
+                    // I think this needs to be removed, because this is misspelt, it is argments, 'U' is missing,
+                    // And that case is handled further down
+                    // case CommandType.Arguments: {
+
+                    const responseId = JediProxy.getProperty<number>(response, 'id');
+                    const cmd = <IExecutionCommand<ICommandResult>>this.commands.get(responseId);
+                    if (cmd === null) {
+                        return;
+                    }
+
+                    if (JediProxy.getProperty<object>(response, 'arguments')) {
+                        this.commandQueue.splice(this.commandQueue.indexOf(cmd.id), 1);
+                        return;
+                    }
+
+                    this.commands.delete(responseId);
+                    const index = this.commandQueue.indexOf(cmd.id);
+                    if (index) {
+                        this.commandQueue.splice(index, 1);
+                    }
+
+                    // Check if this command has expired.
+                    if (cmd.token.isCancellationRequested) {
+                        this.safeResolve(cmd, undefined);
+                        return;
+                    }
+
+                    switch (cmd.command) {
+                        case CommandType.Completions:
+                            this.onCompletion(cmd, response);
+                            break;
+                        case CommandType.Definitions:
+                            this.onDefinition(cmd, response);
+                            break;
+                        case CommandType.Hover:
+                            this.onHover(cmd, response);
+                            break;
+                        case CommandType.Symbols:
+                            this.onSymbols(cmd, response);
+                            break;
+                        case CommandType.Usages:
+                            this.onUsages(cmd, response);
+                            break;
+                        case CommandType.Arguments:
+                            this.onArguments(cmd, response);
+                            break;
+                        default:
+                            break;
+                    }
+                    // Check if too many pending requets.
+                    this.checkQueueLength();
+                });
             }
-
-            responses.forEach((response) => {
-                // What's this, can't remember,
-                // Great example of poorly written code (this whole file is a mess).
-                // I think this needs to be removed, because this is misspelt, it is argments, 'U' is missing,
-                // And that case is handled further down
-                // case CommandType.Arguments: {
-
-                const responseId = JediProxy.getProperty<number>(response, 'id');
-                const cmd = <IExecutionCommand<ICommandResult>>this.commands.get(responseId);
-                if (cmd === null) {
-                    return;
-                }
-
-                if (JediProxy.getProperty<object>(response, 'arguments')) {
-                    this.commandQueue.splice(this.commandQueue.indexOf(cmd.id), 1);
-                    return;
-                }
-
-                this.commands.delete(responseId);
-                const index = this.commandQueue.indexOf(cmd.id);
-                if (index) {
-                    this.commandQueue.splice(index, 1);
-                }
-
-                // Check if this command has expired.
-                if (cmd.token.isCancellationRequested) {
-                    this.safeResolve(cmd, undefined);
-                    return;
-                }
-
-                switch (cmd.command) {
-                    case CommandType.Completions:
-                        this.onCompletion(cmd, response);
-                        break;
-                    case CommandType.Definitions:
-                        this.onDefinition(cmd, response);
-                        break;
-                    case CommandType.Hover:
-                        this.onHover(cmd, response);
-                        break;
-                    case CommandType.Symbols:
-                        this.onSymbols(cmd, response);
-                        break;
-                    case CommandType.Usages:
-                        this.onUsages(cmd, response);
-                        break;
-                    case CommandType.Arguments:
-                        this.onArguments(cmd, response);
-                        break;
-                    default:
-                        break;
-                }
-                // Check if too many pending requets.
-                this.checkQueueLength();
-            });
-        });
+        },
+            error => this.handleError('subscription.error', `${error}`)
+        );
     }
 
     private onCompletion(command: IExecutionCommand<ICommandResult>, response: object): void {
@@ -484,7 +475,7 @@ export class JediProxy implements vscode.Disposable {
             items.forEach(id => {
                 if (this.commands.has(id)) {
                     const cmd1 = this.commands.get(id);
-                        try {
+                    try {
                         this.safeResolve(cmd1, undefined);
                         // tslint:disable-next-line:no-empty
                     } catch (ex) {
@@ -517,16 +508,18 @@ export class JediProxy implements vscode.Disposable {
         return payload;
     }
 
-    private getPathFromPythonCommand(args: string[]): Promise<string> {
-        return execPythonFile(this.workspacePath, this.pythonSettings.pythonPath, args, this.workspacePath).then(stdout => {
-            if (stdout.length === 0) {
+    private async getPathFromPythonCommand(args: string[]): Promise<string> {
+        try {
+            const pythonProcess = await this.serviceContainer.get<IPythonExecutionFactory>(IPythonExecutionFactory).create(Uri.file(this.workspacePath));
+            const result = await pythonProcess.exec(args, { cwd: this.workspacePath });
+            const lines = result.stdout.trim().splitLines();
+            if (lines.length === 0) {
                 return '';
             }
-            const lines = stdout.split(/\r?\n/g).filter(line => line.length > 0);
-            return validatePath(lines[0]);
-        }).catch(() => {
+            return await validatePath(lines[0]);
+        } catch  {
             return '';
-        });
+        }
     }
 
     private onConfigChanged() {
