@@ -110,7 +110,7 @@ suite('Signatures', () => {
 
     test('For pow', async () => {
         let expected: SignatureHelpResult;
-        if (!isPython3) {
+        if (isPython3) {
             expected = new SignatureHelpResult(0, 4, 1, 0, null);
         } else {
             expected = new SignatureHelpResult(0, 4, 1, 0, 'x');
