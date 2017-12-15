@@ -35,6 +35,7 @@ export interface ISortImportSettings {
 export interface IUnitTestSettings {
     promptToConfigure: boolean;
     debugPort: number;
+    debugHost?: string;
     nosetestsEnabled: boolean;
     nosetestPath: string;
     nosetestArgs: string[];
