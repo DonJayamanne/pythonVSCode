@@ -1,6 +1,7 @@
 import * as assert from 'assert';
+import * as fs from 'fs-extra';
 import * as path from 'path';
-import { OutputChannel } from 'vscode';
+import { OutputChannel, Uri } from 'vscode';
 import * as vscode from 'vscode';
 import { STANDARD_OUTPUT_CHANNEL } from '../../client/common/constants';
 import { Product, SettingToDisableProduct } from '../../client/common/installer/installer';
@@ -14,11 +15,12 @@ import * as prospector from '../../client/linters/prospector';
 import * as pydocstyle from '../../client/linters/pydocstyle';
 import * as pyLint from '../../client/linters/pylint';
 import { ILinterHelper } from '../../client/linters/types';
-import { PythonSettingKeys, rootWorkspaceUri, updateSetting } from '../common';
+import { deleteFile, PythonSettingKeys, rootWorkspaceUri, updateSetting } from '../common';
 import { closeActiveWindows, initialize, initializeTest, IS_MULTI_ROOT_TEST } from '../initialize';
 import { MockOutputChannel } from '../mockClasses';
 import { UnitTestIocContainer } from '../unittests/serviceRegistry';
 
+const workspaceUri = Uri.file(path.join(__dirname, '..', '..', '..', 'src', 'test'));
 const pythoFilesPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'linting');
 const flake8ConfigPath = path.join(pythoFilesPath, 'flake8config');
 const pep8ConfigPath = path.join(pythoFilesPath, 'pep8config');
@@ -89,38 +91,17 @@ const pydocstyleMessagseToBeReturned: baseLinter.ILintMessage[] = [
     { code: 'D400', severity: baseLinter.LintMessageSeverity.Information, message: 'First line should end with a period (not \'g\')', column: 4, line: 80, type: '', provider: 'pydocstyle' }
 ];
 
-const filteredPylintMessagesToBeReturned: baseLinter.ILintMessage[] = [
-    { line: 26, column: 14, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blop\' member', provider: '', type: '' },
-    { line: 36, column: 14, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blip\' member', provider: '', type: '' },
-    { line: 46, column: 18, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blip\' member', provider: '', type: '' },
-    { line: 61, column: 18, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blip\' member', provider: '', type: '' },
-    { line: 72, column: 18, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blip\' member', provider: '', type: '' },
-    { line: 75, column: 18, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blip\' member', provider: '', type: '' },
-    { line: 77, column: 14, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blip\' member', provider: '', type: '' },
-    { line: 83, column: 14, severity: baseLinter.LintMessageSeverity.Error, code: 'E1101', message: 'Instance of \'Foo\' has no \'blip\' member', provider: '', type: '' }
-];
-const filteredPylint3MessagesToBeReturned: baseLinter.ILintMessage[] = [
-];
 const filteredFlake8MessagesToBeReturned: baseLinter.ILintMessage[] = [
     { line: 87, column: 24, severity: baseLinter.LintMessageSeverity.Warning, code: 'W292', message: 'no newline at end of file', provider: '', type: '' }
 ];
 const filteredPep88MessagesToBeReturned: baseLinter.ILintMessage[] = [
     { line: 87, column: 24, severity: baseLinter.LintMessageSeverity.Warning, code: 'W292', message: 'no newline at end of file', provider: '', type: '' }
 ];
-const fiteredPydocstyleMessagseToBeReturned: baseLinter.ILintMessage[] = [
-    { code: 'D102', severity: baseLinter.LintMessageSeverity.Information, message: 'Missing docstring in public method', column: 4, line: 8, type: '', provider: 'pydocstyle' }
-];
 
 // tslint:disable-next-line:max-func-body-length
 suite('Linting', () => {
     let ioc: UnitTestIocContainer;
-    let isPython3: boolean;
-    suiteSetup(async () => {
-        await initialize();
-        initializeDI();
-        const version = await ioc.getPythonVersion(vscode.Uri.file(fileToLint));
-        isPython3 = version.indexOf('3.') >= 0;
-    });
+    suiteSetup(initialize);
     setup(async () => {
         initializeDI();
         await initializeTest();
@@ -131,6 +112,8 @@ suite('Linting', () => {
         ioc.dispose();
         await closeActiveWindows();
         await resetSettings();
+        await deleteFile(path.join(workspaceUri.fsPath, '.pylintrc'));
+        await deleteFile(path.join(workspaceUri.fsPath, '.pydocstyle'));
     });
 
     function initializeDI() {
@@ -281,8 +264,8 @@ suite('Linting', () => {
         await testLinterMessages(Product.pydocstyle, fileToLint, pydocstyleMessagseToBeReturned);
     });
     test('PyLint with config in root', async () => {
-        const messagesToBeReturned = isPython3 ? filteredPylint3MessagesToBeReturned : filteredPylintMessagesToBeReturned;
-        await testLinterMessages(Product.pylint, path.join(pylintConfigPath, 'file.py'), messagesToBeReturned);
+        await fs.copy(path.join(pylintConfigPath, '.pylintrc'), path.join(workspaceUri.fsPath, '.pylintrc'));
+        await testLinterMessages(Product.pylint, path.join(pylintConfigPath, 'file.py'), []);
     });
     test('Flake8 with config in root', async () => {
         await testLinterMessages(Product.flake8, path.join(flake8ConfigPath, 'file.py'), filteredFlake8MessagesToBeReturned);
@@ -291,7 +274,7 @@ suite('Linting', () => {
         await testLinterMessages(Product.pep8, path.join(pep8ConfigPath, 'file.py'), filteredPep88MessagesToBeReturned);
     });
     test('Pydocstyle with config in root', async () => {
-        const messagesToBeReturned = isPython3 ? [] : fiteredPydocstyleMessagseToBeReturned;
-        await testLinterMessages(Product.pydocstyle, path.join(pydocstyleConfigPath27, 'file.py'), messagesToBeReturned);
+        await fs.copy(path.join(pydocstyleConfigPath27, '.pydocstyle'), path.join(workspaceUri.fsPath, '.pydocstyle'));
+        await testLinterMessages(Product.pydocstyle, path.join(pydocstyleConfigPath27, 'file.py'), []);
     });
 });
