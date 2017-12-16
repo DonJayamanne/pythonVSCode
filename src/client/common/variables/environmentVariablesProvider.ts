@@ -6,7 +6,7 @@ import 'reflect-metadata';
 import { Disposable, FileSystemWatcher, Uri, workspace } from 'vscode';
 import { PythonSettings } from '../configSettings';
 import { NON_WINDOWS_PATH_VARIABLE_NAME, WINDOWS_PATH_VARIABLE_NAME } from '../platform/constants';
-import { IDisposableRegistry, IsWindows } from '../types';
+import { ICurrentProcess, IDisposableRegistry, IsWindows } from '../types';
 import { EnvironmentVariables, IEnvironmentVariablesProvider, IEnvironmentVariablesService } from './types';
 
 @injectable()
@@ -16,7 +16,8 @@ export class EnvironmentVariablesProvider implements IEnvironmentVariablesProvid
     private disposables: Disposable[] = [];
 
     constructor( @inject(IEnvironmentVariablesService) private envVarsService: IEnvironmentVariablesService,
-        @inject(IDisposableRegistry) disposableRegistry: Disposable[], @inject(IsWindows) private isWidows: boolean) {
+        @inject(IDisposableRegistry) disposableRegistry: Disposable[], @inject(IsWindows) private isWidows: boolean,
+        @inject(ICurrentProcess) private process: ICurrentProcess) {
         disposableRegistry.push(this);
     }
 
@@ -32,12 +33,12 @@ export class EnvironmentVariablesProvider implements IEnvironmentVariablesProvid
             const vars = await this.envVarsService.parseFile(settings.envFile);
             let mergedVars = await this.envVarsService.parseFile(settings.envFile);
             if (!mergedVars || Object.keys(mergedVars).length === 0) {
-                mergedVars = { ...process.env };
+                mergedVars = { ...this.process.env };
             }
-            this.envVarsService.mergeVariables(process.env, mergedVars!);
+            this.envVarsService.mergeVariables(this.process.env, mergedVars!);
             const pathVariable = this.isWidows ? WINDOWS_PATH_VARIABLE_NAME : NON_WINDOWS_PATH_VARIABLE_NAME;
-            this.envVarsService.appendPath(mergedVars!, process.env[pathVariable]);
-            this.envVarsService.appendPythonPath(mergedVars!, process.env.PYTHONPATH);
+            this.envVarsService.appendPath(mergedVars!, this.process.env[pathVariable]);
+            this.envVarsService.appendPythonPath(mergedVars!, this.process.env.PYTHONPATH);
             this.cache.set(settings.envFile, { vars, mergedWithProc: mergedVars! });
         }
         const data = this.cache.get(settings.envFile)!;

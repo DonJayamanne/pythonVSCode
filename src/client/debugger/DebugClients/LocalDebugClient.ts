@@ -5,6 +5,7 @@ import { DebugSession, OutputEvent } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { open } from '../../common/open';
 import { PathUtils } from '../../common/platform/pathUtils';
+import { CurrentProcess } from '../../common/process/currentProcess';
 import { IPathUtils } from '../../common/types';
 import { EnvironmentVariablesService } from '../../common/variables/environment';
 import { EnvironmentVariables, IEnvironmentVariablesService } from '../../common/variables/types';
@@ -93,7 +94,8 @@ export class LocalDebugClient extends DebugClient {
     // tslint:disable-next-line:max-func-body-length member-ordering no-any
     public async LaunchApplicationToDebug(dbgServer: IDebugServer, processErrored: (error: any) => void): Promise<any> {
         const pathUtils = new PathUtils(IS_WINDOWS);
-        const helper = new DebugClientHelper(new EnvironmentVariablesService(pathUtils), pathUtils);
+        const currentProcess = new CurrentProcess();
+        const helper = new DebugClientHelper(new EnvironmentVariablesService(pathUtils, currentProcess), pathUtils, currentProcess);
         const environmentVariables = await helper.getEnvironmentVariables(this.args);
         // tslint:disable-next-line:max-func-body-length cyclomatic-complexity no-any
         return new Promise<any>((resolve, reject) => {
