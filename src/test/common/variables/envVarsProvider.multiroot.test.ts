@@ -12,7 +12,6 @@ import { IsWindows } from '../../../client/common/types';
 import { EnvironmentVariablesService } from '../../../client/common/variables/environment';
 import { EnvironmentVariablesProvider } from '../../../client/common/variables/environmentVariablesProvider';
 import { EnvironmentVariables } from '../../../client/common/variables/types';
-import { IServiceManager } from '../../../client/ioc/types';
 import { clearPythonPathInWorkspaceFolder, updateSetting } from '../../common';
 import { closeActiveWindows, initialize, initializeTest, IS_MULTI_ROOT_TEST } from '../../initialize';
 import { MockProcess } from '../../mocks/process';
@@ -26,7 +25,6 @@ const workspace4PyFile = Uri.file(path.join(workspace4Path.fsPath, 'one.py'));
 
 // tslint:disable-next-line:max-func-body-length
 suite('Multiroot Environment Variables Provider', () => {
-    let serviceManager: IServiceManager;
     let ioc: UnitTestIocContainer;
     suiteSetup(async function () {
         if (!IS_MULTI_ROOT_TEST) {
@@ -42,7 +40,6 @@ suite('Multiroot Environment Variables Provider', () => {
         ioc.registerCommonTypes();
         ioc.registerVariableTypes();
         ioc.registerProcessTypes();
-        serviceManager = ioc.serviceManager;
         return initializeTest();
     });
     suiteTeardown(closeActiveWindows);
