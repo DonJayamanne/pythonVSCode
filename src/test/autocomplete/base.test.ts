@@ -1,21 +1,14 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-// Note: This example test is leveraging the Mocha test framework.
-// Please refer to their documentation on https://mochajs.org/ for help.
-
-// The module 'assert' provides assertion methods from node
+// tslint:disable:no-unused-variable
 import * as assert from 'assert';
 import { EOL } from 'os';
 import * as path from 'path';
-// You can import and use all API from the 'vscode' module
-// as well as import your extension to test it
 import * as vscode from 'vscode';
-import * as settings from '../../client/common/configSettings';
-import { PythonSettings } from '../../client/common/configSettings';
-import { execPythonFile } from '../../client/common/utils';
 import { rootWorkspaceUri } from '../common';
 import { closeActiveWindows, initialize, initializeTest } from '../initialize';
+import { UnitTestIocContainer } from '../unittests/serviceRegistry';
 
 const autoCompPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'autocomp');
 const fileOne = path.join(autoCompPath, 'one.py');
@@ -29,29 +22,38 @@ const fileSuppress = path.join(autoCompPath, 'suppress.py');
 
 // tslint:disable-next-line:max-func-body-length
 suite('Autocomplete', () => {
-    let isPython3: Promise<boolean>;
+    let isPython3: boolean;
+    let ioc: UnitTestIocContainer;
     suiteSetup(async () => {
         await initialize();
-        const version = await execPythonFile(rootWorkspaceUri, PythonSettings.getInstance(rootWorkspaceUri).pythonPath, ['--version'], __dirname, true);
-        isPython3 = Promise.resolve(version.indexOf('3.') >= 0);
+        initializeDI();
+        const version = await ioc.getPythonVersion(rootWorkspaceUri);
+        isPython3 = version.indexOf('3.') >= 0;
     });
     setup(initializeTest);
     suiteTeardown(closeActiveWindows);
-    teardown(closeActiveWindows);
+    teardown(async () => {
+        await closeActiveWindows();
+        ioc.dispose();
+    });
+    function initializeDI() {
+        ioc = new UnitTestIocContainer();
+        ioc.registerCommonTypes();
+        ioc.registerVariableTypes();
+        ioc.registerProcessTypes();
+    }
 
     test('For "sys."', done => {
-        let textEditor: vscode.TextEditor;
         let textDocument: vscode.TextDocument;
         vscode.workspace.openTextDocument(fileOne).then(document => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
             assert(vscode.window.activeTextEditor, 'No active editor');
-            textEditor = editor;
             const position = new vscode.Position(3, 10);
             return vscode.commands.executeCommand<vscode.CompletionList>('vscode.executeCompletionItemProvider', textDocument.uri, position);
         }).then(list => {
-            assert.equal(list.items.filter(item => item.label === 'api_version').length, 1, 'api_version not found');
+            assert.equal(list!.items.filter(item => item.label === 'api_version').length, 1, 'api_version not found');
         }).then(done, done);
     });
 
@@ -61,7 +63,7 @@ suite('Autocomplete', () => {
         await vscode.window.showTextDocument(textDocument);
         const position = new vscode.Position(1, 4);
         const list = await vscode.commands.executeCommand<vscode.CompletionList>('vscode.executeCompletionItemProvider', textDocument.uri, position);
-        assert.equal(list.items.filter(item => item.label === 'fstat').length, 1, 'fstat not found');
+        assert.equal(list!.items.filter(item => item.label === 'fstat').length, 1, 'fstat not found');
     });
 
     // https://github.com/DonJayamanne/pythonVSCode/issues/898
@@ -77,17 +79,19 @@ suite('Autocomplete', () => {
     });
 
     // https://github.com/DonJayamanne/pythonVSCode/issues/265
-    test('For "lambda"', async () => {
-        if (!await isPython3) {
+    test('For "lambda"', async function () {
+        if (!isPython3) {
+            // tslint:disable-next-line:no-invalid-this
+            this.skip();
             return;
         }
         const textDocument = await vscode.workspace.openTextDocument(fileLambda);
         await vscode.window.showTextDocument(textDocument);
         const position = new vscode.Position(1, 19);
         const list = await vscode.commands.executeCommand<vscode.CompletionList>('vscode.executeCompletionItemProvider', textDocument.uri, position);
-        assert.notEqual(list.items.filter(item => item.label === 'append').length, 0, 'append not found');
-        assert.notEqual(list.items.filter(item => item.label === 'clear').length, 0, 'clear not found');
-        assert.notEqual(list.items.filter(item => item.label === 'count').length, 0, 'cound not found');
+        assert.notEqual(list!.items.filter(item => item.label === 'append').length, 0, 'append not found');
+        assert.notEqual(list!.items.filter(item => item.label === 'clear').length, 0, 'clear not found');
+        assert.notEqual(list!.items.filter(item => item.label === 'count').length, 0, 'cound not found');
     });
 
     // https://github.com/DonJayamanne/pythonVSCode/issues/630
@@ -96,18 +100,18 @@ suite('Autocomplete', () => {
         await vscode.window.showTextDocument(textDocument);
         let position = new vscode.Position(3, 9);
         let list = await vscode.commands.executeCommand<vscode.CompletionList>('vscode.executeCompletionItemProvider', textDocument.uri, position);
-        assert.notEqual(list.items.filter(item => item.label === 'ABCMeta').length, 0, 'ABCMeta not found');
-        assert.notEqual(list.items.filter(item => item.label === 'abstractmethod').length, 0, 'abstractmethod not found');
+        assert.notEqual(list!.items.filter(item => item.label === 'ABCMeta').length, 0, 'ABCMeta not found');
+        assert.notEqual(list!.items.filter(item => item.label === 'abstractmethod').length, 0, 'abstractmethod not found');
 
         position = new vscode.Position(4, 9);
         list = await vscode.commands.executeCommand<vscode.CompletionList>('vscode.executeCompletionItemProvider', textDocument.uri, position);
-        assert.notEqual(list.items.filter(item => item.label === 'ABCMeta').length, 0, 'ABCMeta not found');
-        assert.notEqual(list.items.filter(item => item.label === 'abstractmethod').length, 0, 'abstractmethod not found');
+        assert.notEqual(list!.items.filter(item => item.label === 'ABCMeta').length, 0, 'ABCMeta not found');
+        assert.notEqual(list!.items.filter(item => item.label === 'abstractmethod').length, 0, 'abstractmethod not found');
 
         position = new vscode.Position(2, 30);
         list = await vscode.commands.executeCommand<vscode.CompletionList>('vscode.executeCompletionItemProvider', textDocument.uri, position);
-        assert.notEqual(list.items.filter(item => item.label === 'ABCMeta').length, 0, 'ABCMeta not found');
-        assert.notEqual(list.items.filter(item => item.label === 'abstractmethod').length, 0, 'abstractmethod not found');
+        assert.notEqual(list!.items.filter(item => item.label === 'ABCMeta').length, 0, 'ABCMeta not found');
+        assert.notEqual(list!.items.filter(item => item.label === 'abstractmethod').length, 0, 'abstractmethod not found');
     });
 
     // https://github.com/DonJayamanne/pythonVSCode/issues/727
@@ -119,42 +123,38 @@ suite('Autocomplete', () => {
         const position = new vscode.Position(10, 9);
         const list = await vscode.commands.executeCommand<vscode.CompletionList>('vscode.executeCompletionItemProvider', textDocument.uri, position);
 
-        const items = list.items.filter(item => item.label === 'sleep');
+        const items = list!.items.filter(item => item.label === 'sleep');
         assert.notEqual(items.length, 0, 'sleep not found');
 
         checkDocumentation(items[0], 'Delay execution for a given number of seconds.  The argument may be');
     });
 
     test('For custom class', done => {
-        let textEditor: vscode.TextEditor;
         let textDocument: vscode.TextDocument;
         vscode.workspace.openTextDocument(fileOne).then(document => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
             assert(vscode.window.activeTextEditor, 'No active editor');
-            textEditor = editor;
             const position = new vscode.Position(30, 4);
             return vscode.commands.executeCommand<vscode.CompletionList>('vscode.executeCompletionItemProvider', textDocument.uri, position);
         }).then(list => {
-            assert.notEqual(list.items.filter(item => item.label === 'method1').length, 0, 'method1 not found');
-            assert.notEqual(list.items.filter(item => item.label === 'method2').length, 0, 'method2 not found');
+            assert.notEqual(list!.items.filter(item => item.label === 'method1').length, 0, 'method1 not found');
+            assert.notEqual(list!.items.filter(item => item.label === 'method2').length, 0, 'method2 not found');
         }).then(done, done);
     });
 
     test('With Unicode Characters', done => {
-        let textEditor: vscode.TextEditor;
         let textDocument: vscode.TextDocument;
         vscode.workspace.openTextDocument(fileEncoding).then(document => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
             assert(vscode.window.activeTextEditor, 'No active editor');
-            textEditor = editor;
             const position = new vscode.Position(25, 4);
             return vscode.commands.executeCommand<vscode.CompletionList>('vscode.executeCompletionItemProvider', textDocument.uri, position);
         }).then(list => {
-            const items = list.items.filter(item => item.label === 'bar');
+            const items = list!.items.filter(item => item.label === 'bar');
             assert.equal(items.length, 1, 'bar not found');
 
             const expected = `说明 - keep this line, it works${EOL}delete following line, it works${EOL}如果存在需要等待审批或正在执行的任务，将不刷新页面`;
@@ -163,22 +163,20 @@ suite('Autocomplete', () => {
     });
 
     test('Across files With Unicode Characters', done => {
-        let textEditor: vscode.TextEditor;
         let textDocument: vscode.TextDocument;
         vscode.workspace.openTextDocument(fileEncodingUsed).then(document => {
             textDocument = document;
             return vscode.window.showTextDocument(textDocument);
         }).then(editor => {
             assert(vscode.window.activeTextEditor, 'No active editor');
-            textEditor = editor;
             const position = new vscode.Position(1, 5);
             return vscode.commands.executeCommand<vscode.CompletionList>('vscode.executeCompletionItemProvider', textDocument.uri, position);
         }).then(list => {
-            let items = list.items.filter(item => item.label === 'Foo');
+            let items = list!.items.filter(item => item.label === 'Foo');
             assert.equal(items.length, 1, 'Foo not found');
             checkDocumentation(items[0], '说明');
 
-            items = list.items.filter(item => item.label === 'showMessage');
+            items = list!.items.filter(item => item.label === 'showMessage');
             assert.equal(items.length, 1, 'showMessage not found');
 
             const expected = `Кюм ут жэмпэр пошжим льаборэж, коммюны янтэрэсщэт нам ед, декта игнота ныморэ жят эи. ${EOL}Шэа декам экшырки эи, эи зыд эррэм докэндё, векж факэтэ пэрчыквюэрёж ку.`;
@@ -207,7 +205,7 @@ suite('Autocomplete', () => {
         await vscode.window.showTextDocument(textDocument);
         for (let i = 0; i < positions.length; i += 1) {
             const list = await vscode.commands.executeCommand<vscode.CompletionList>('vscode.executeCompletionItemProvider', textDocument.uri, positions[i]);
-            const result = list.items.filter(item => item.label === 'abs').length;
+            const result = list!.items.filter(item => item.label === 'abs').length;
             assert.equal(result > 0, expected[i],
                 `Expected ${expected[i]} at position ${positions[i].line}:${positions[i].character} but got ${result}`);
         }
@@ -220,6 +218,6 @@ function checkDocumentation(item: vscode.CompletionItem, expectedContains: strin
     assert.notEqual(documentation, null, 'Documentation is not MarkdownString');
 
     const inDoc = documentation.value.indexOf(expectedContains) >= 0;
-    const inDetails = item.detail.indexOf(expectedContains) >= 0;
+    const inDetails = item.detail!.indexOf(expectedContains) >= 0;
     assert.equal(inDoc !== inDetails, true, 'Documentation incorrect');
 }

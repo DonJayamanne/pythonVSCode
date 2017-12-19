@@ -3,7 +3,7 @@
 
 import { Container } from 'inversify';
 import 'reflect-metadata';
-import { Disposable, Memento, OutputChannel } from 'vscode';
+import { Disposable, Memento, OutputChannel, Uri } from 'vscode';
 import { STANDARD_OUTPUT_CHANNEL } from '../client/common/constants';
 import { Logger } from '../client/common/logger';
 import { IS_64_BIT, IS_WINDOWS } from '../client/common/platform/constants';
@@ -17,6 +17,7 @@ import { registerTypes as commonRegisterTypes } from '../client/common/serviceRe
 import { GLOBAL_MEMENTO, ICurrentProcess, IDisposableRegistry, ILogger, IMemento, IOutputChannel, IPathUtils, Is64Bit, IsWindows, WORKSPACE_MEMENTO } from '../client/common/types';
 import { registerTypes as variableRegisterTypes } from '../client/common/variables/serviceRegistry';
 import { registerTypes as formattersRegisterTypes } from '../client/formatters/serviceRegistry';
+import { registerTypes as interpretersRegisterTypes } from '../client/interpreter/serviceRegistry';
 import { ServiceContainer } from '../client/ioc/container';
 import { ServiceManager } from '../client/ioc/serviceManager';
 import { IServiceContainer, IServiceManager } from '../client/ioc/types';
@@ -51,7 +52,11 @@ export class IocContainer {
         this.disposables.push(testOutputChannel);
         this.serviceManager.addSingletonInstance<OutputChannel>(IOutputChannel, testOutputChannel, TEST_OUTPUT_CHANNEL);
     }
-
+    public async getPythonVersion(resource?: string | Uri): Promise<string> {
+        const factory = this.serviceContainer.get<IPythonExecutionFactory>(IPythonExecutionFactory);
+        const resourceToUse = (typeof resource === 'string') ? Uri.file(resource as string) : (resource as Uri);
+        return factory.create(resourceToUse).then(pythonProc => pythonProc.getVersion());
+    }
     public dispose() {
         this.disposables.forEach(disposable => disposable.dispose());
     }
@@ -74,7 +79,9 @@ export class IocContainer {
     public registerFormatterTypes() {
         formattersRegisterTypes(this.serviceManager);
     }
-
+    public registerInterpreterTypes() {
+        interpretersRegisterTypes(this.serviceManager);
+    }
     public registerMockProcessTypes() {
         this.serviceManager.addSingleton<IBufferDecoder>(IBufferDecoder, BufferDecoder);
         this.serviceManager.addSingleton<IProcessService>(IOriginalProcessService, ProcessService);
