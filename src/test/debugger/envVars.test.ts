@@ -8,15 +8,13 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as path from 'path';
 import * as shortid from 'shortid';
 import { ICurrentProcess, IPathUtils } from '../../client/common/types';
-import { EnvironmentVariables, IEnvironmentVariablesService } from '../../client/common/variables/types';
+import { IEnvironmentVariablesService } from '../../client/common/variables/types';
 import { LaunchRequestArguments } from '../../client/debugger/Common/Contracts';
 import { DebugClientHelper } from '../../client/debugger/DebugClients/helper';
 import { closeActiveWindows, initialize, initializeTest } from '../initialize';
 import { UnitTestIocContainer } from '../unittests/serviceRegistry';
 
 use(chaiAsPromised);
-
-const debugFilesPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'debugging');
 
 suite('Resolving Environment Variables when Debugging', () => {
     let ioc: UnitTestIocContainer;
@@ -199,5 +197,4 @@ suite('Resolving Environment Variables when Debugging', () => {
         }
         await testAppendingOfPaths('none', expectedNumberOfVariables, false);
     });
-
 });
