@@ -30,7 +30,7 @@ export class DebugClientHelper {
             this.envParser.appendPythonPath(env, this.process.env.PYTHONPATH);
         }
 
-        if (args.console === 'none') {
+        if (typeof args.console !== 'string' || args.console === 'none') {
             // For debugging, when not using any terminal, then we need to provide all env variables.
             // As we're spawning the process, we need to ensure all env variables are passed.
             // Including those from the current process (i.e. everything, not just custom vars).
