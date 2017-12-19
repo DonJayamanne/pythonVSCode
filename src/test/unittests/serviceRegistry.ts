@@ -1,11 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
-import { MockUnitTestSocketServer } from './mocks';
-
-import 'reflect-metadata';
 import { Uri } from 'vscode';
 import { IPythonExecutionFactory } from '../../client/common/process/types';
 import { IServiceContainer } from '../../client/ioc/types';
@@ -29,6 +24,7 @@ import { TestManager as UnitTestTestManager } from '../../client/unittests/unitt
 import { TestDiscoveryService as UnitTestTestDiscoveryService } from '../../client/unittests/unittest/services/discoveryService';
 import { TestsParser as UnitTestTestsParser } from '../../client/unittests/unittest/services/parserService';
 import { IocContainer } from '../serviceRegistry';
+import { MockUnitTestSocketServer } from './mocks';
 
 export class UnitTestIocContainer extends IocContainer {
     constructor() {
