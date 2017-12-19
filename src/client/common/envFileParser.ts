@@ -1,6 +1,7 @@
 import * as fs from 'fs-extra';
 import 'reflect-metadata';
 import { PathUtils } from './platform/pathUtils';
+import { CurrentProcess } from './process/currentProcess';
 import { EnvironmentVariablesService } from './variables/environment';
 import { EnvironmentVariables } from './variables/types';
 export const IS_WINDOWS = /^win/.test(process.platform);
@@ -39,7 +40,7 @@ export function parseEnvFile(envFile: string, mergeWithProcessEnvVars: boolean =
  * @returns {EnvironmentVariables}
  */
 export function mergeEnvVariables(targetEnvVars: EnvironmentVariables, sourceEnvVars: EnvironmentVariables = process.env): EnvironmentVariables {
-    const service = new EnvironmentVariablesService(new PathUtils(IS_WINDOWS));
+    const service = new EnvironmentVariablesService(new PathUtils(IS_WINDOWS), new CurrentProcess());
     service.mergeVariables(sourceEnvVars, targetEnvVars);
     service.appendPythonPath(targetEnvVars, sourceEnvVars.PYTHONPATH);
     return targetEnvVars;
@@ -57,7 +58,7 @@ export function mergePythonPath(env: EnvironmentVariables, currentPythonPath: st
     if (typeof currentPythonPath !== 'string' || currentPythonPath.length === 0) {
         return env;
     }
-    const service = new EnvironmentVariablesService(new PathUtils(IS_WINDOWS));
+    const service = new EnvironmentVariablesService(new PathUtils(IS_WINDOWS), new CurrentProcess());
     service.appendPythonPath(env, currentPythonPath!);
     return env;
 }
