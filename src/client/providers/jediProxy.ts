@@ -291,7 +291,7 @@ export class JediProxy implements vscode.Disposable {
                 // tslint:disable-next-line:no-any
                 let responses: any[];
                 try {
-                    responses = dataStr.split(/\r?\n/g).filter(line => line.length > 0).map(resp => JSON.parse(resp));
+                    responses = dataStr.splitLines().map(resp => JSON.parse(resp));
                     this.previousData = '';
                 } catch (ex) {
                     // Possible we've only received part of the data, hence don't clear previousData.
