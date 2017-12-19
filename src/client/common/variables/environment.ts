@@ -5,13 +5,13 @@ import * as fs from 'fs-extra';
 import { inject, injectable } from 'inversify';
 import * as path from 'path';
 import 'reflect-metadata';
-import { ICurrentProcess, IPathUtils } from '../types';
+import { IPathUtils } from '../types';
 import { EnvironmentVariables, IEnvironmentVariablesService } from './types';
 
 @injectable()
 export class EnvironmentVariablesService implements IEnvironmentVariablesService {
     private readonly pathVariable: 'PATH' | 'Path';
-    constructor( @inject(IPathUtils) pathUtils: IPathUtils, @inject(ICurrentProcess) private process: ICurrentProcess) {
+    constructor( @inject(IPathUtils) pathUtils: IPathUtils) {
         this.pathVariable = pathUtils.getPathVariableName();
     }
     public async parseFile(filePath: string): Promise<EnvironmentVariables | undefined> {
@@ -19,7 +19,7 @@ export class EnvironmentVariablesService implements IEnvironmentVariablesService
         if (!exists) {
             return undefined;
         }
-        if (fs.lstatSync(filePath).isDirectory()) {
+        if (!fs.lstatSync(filePath).isFile()) {
             return undefined;
         }
         return new Promise<EnvironmentVariables | undefined>((resolve, reject) => {
@@ -27,13 +27,7 @@ export class EnvironmentVariablesService implements IEnvironmentVariablesService
                 if (error) {
                     return reject(error);
                 }
-                const vars = parseEnvironmentVariables(data)!;
-                if (!vars || Object.keys(vars).length === 0) {
-                    return resolve(undefined);
-                }
-                this.appendPythonPath(vars, this.process.env.PYTHONPATH);
-                this.appendPath(vars, this.process.env[this.pathVariable]);
-                resolve(vars);
+                resolve(parseEnvironmentVariables(data));
             });
         });
     }

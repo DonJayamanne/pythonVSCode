@@ -6,36 +6,24 @@ export class DebugClientHelper {
     constructor(private envParser: IEnvironmentVariablesService, private pathUtils: IPathUtils,
         private process: ICurrentProcess) { }
     public async getEnvironmentVariables(args: LaunchRequestArguments): Promise<EnvironmentVariables> {
-        // Check if we have custom environment variables in a file.
-        let envFileVars = await this.envParser.parseFile(args.envFile);
-        if (!envFileVars) {
-            envFileVars = {};
-        }
-
         const pathVariableName = this.pathUtils.getPathVariableName();
 
-        // Keep track of whether we have values for PATH and PYTHONPATH
-        const hasValuesForPATH = envFileVars[pathVariableName] !== undefined;
-        const hasValuesForPYTHONPATH = envFileVars.PYTHONPATH !== undefined;
-
-        // Check if we have custom environment variables as plain old json.
+        // Merge variables from both .env file and env json variables.
+        const envFileVars = await this.envParser.parseFile(args.envFile);
         const debugLaunchEnvVars = (args.env && Object.keys(args.env).length > 0) ? { ...args.env } as EnvironmentVariables : {};
-
-        // Merge the two sets of environment variables.
-        const env = { ...envFileVars };
+        const env = envFileVars ? { ...envFileVars! } : {};
         this.envParser.mergeVariables(debugLaunchEnvVars, env);
 
-        // Append the PYTHONPATH and PATH variables
+        // Append the PYTHONPATH and PATH variables.
         this.envParser.appendPath(env, debugLaunchEnvVars[pathVariableName]);
         this.envParser.appendPythonPath(env, debugLaunchEnvVars.PYTHONPATH);
 
-        if (env[pathVariableName] !== undefined && !hasValuesForPATH && this.process.env[pathVariableName] !== undefined) {
-            // We didn't have a value for PATH earlier and now we do.
+        if (typeof env[pathVariableName] === 'string' && env[pathVariableName].length > 0) {
             // Now merge this path with the current system path.
             // We need to do this to ensure the PATH variable always has the system PATHs as well.
             this.envParser.appendPath(env, this.process.env[pathVariableName]);
         }
-        if (env.PYTHONPATH !== undefined && !hasValuesForPYTHONPATH && this.process.env.PYTHONPATH !== undefined) {
+        if (typeof env.PYTHONPATH === 'string' && env.PYTHONPATH.length > 0) {
             // We didn't have a value for PATH earlier and now we do.
             // Now merge this path with the current system path.
             // We need to do this to ensure the PATH variable always has the system PATHs as well.
@@ -46,12 +34,12 @@ export class DebugClientHelper {
             // For debugging, when not using any terminal, then we need to provide all env variables.
             // As we're spawning the process, we need to ensure all env variables are passed.
             // Including those from the current process (i.e. everything, not just custom vars).
-            this.envParser.mergeVariables(this.process.env as EnvironmentVariables, env);
+            this.envParser.mergeVariables(this.process.env, env);
 
-            if (env[pathVariableName] === undefined && this.process.env[pathVariableName] !== undefined) {
+            if (env[pathVariableName] === undefined && typeof this.process.env[pathVariableName] === 'string') {
                 env[pathVariableName] = this.process.env[pathVariableName];
             }
-            if (env.PYTHONPATH === undefined && this.process.env.PYTHONPATH !== undefined) {
+            if (env.PYTHONPATH === undefined && typeof this.process.env.PYTHONPATH === 'string') {
                 env.PYTHONPATH = this.process.env.PYTHONPATH;
             }
         }
@@ -65,16 +53,4 @@ export class DebugClientHelper {
 
         return env;
     }
-    // private mergeProcessEnvironmentVariables(env: EnvironmentVariables) {
-    //     // If we didn't get any variables form the file, then the PATH variables wouldn't be appended.
-    //     if (Object.keys(env).length === 0) {
-    //         const pathVariableName = this.pathUtils.getPathVariableName();
-    //         this.envParser.appendPythonPath(env, this.process.env.PYTHONPATH);
-    //         this.envParser.appendPath(env, this.process.env[pathVariableName]);
-    //     }
-
-    //     // As we're spawning the process, we need to ensure all env variables are passed.
-    //     // Including those from the current process (i.e. everything, not just custom vars).
-    //     this.envParser.mergeVariables(this.process.env as EnvironmentVariables, env);
-    // }
 }

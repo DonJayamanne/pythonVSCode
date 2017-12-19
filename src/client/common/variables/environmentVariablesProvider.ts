@@ -11,7 +11,7 @@ import { EnvironmentVariables, IEnvironmentVariablesProvider, IEnvironmentVariab
 
 @injectable()
 export class EnvironmentVariablesProvider implements IEnvironmentVariablesProvider, Disposable {
-    private cache = new Map<string, { vars: EnvironmentVariables | undefined, mergedWithProc: EnvironmentVariables }>();
+    private cache = new Map<string, EnvironmentVariables>();
     private fileWatchers = new Map<string, FileSystemWatcher>();
     private disposables: Disposable[] = [];
 
@@ -26,23 +26,21 @@ export class EnvironmentVariablesProvider implements IEnvironmentVariablesProvid
             watcher.dispose();
         });
     }
-    public async getEnvironmentVariables(mergeWithProcEnvVariables: boolean, resource?: Uri): Promise<EnvironmentVariables | undefined> {
+    public async getEnvironmentVariables(resource?: Uri): Promise<EnvironmentVariables> {
         const settings = PythonSettings.getInstance(resource);
         if (!this.cache.has(settings.envFile)) {
             this.createFileWatcher(settings.envFile);
-            const vars = await this.envVarsService.parseFile(settings.envFile);
             let mergedVars = await this.envVarsService.parseFile(settings.envFile);
-            if (!mergedVars || Object.keys(mergedVars).length === 0) {
-                mergedVars = { ...this.process.env };
+            if (!mergedVars) {
+                mergedVars = {};
             }
             this.envVarsService.mergeVariables(this.process.env, mergedVars!);
             const pathVariable = this.isWidows ? WINDOWS_PATH_VARIABLE_NAME : NON_WINDOWS_PATH_VARIABLE_NAME;
             this.envVarsService.appendPath(mergedVars!, this.process.env[pathVariable]);
             this.envVarsService.appendPythonPath(mergedVars!, this.process.env.PYTHONPATH);
-            this.cache.set(settings.envFile, { vars, mergedWithProc: mergedVars! });
+            this.cache.set(settings.envFile, mergedVars);
         }
-        const data = this.cache.get(settings.envFile)!;
-        return mergeWithProcEnvVariables ? data.mergedWithProc : data.vars;
+        return this.cache.get(settings.envFile)!;
     }
     private createFileWatcher(envFile: string) {
         if (this.fileWatchers.has(envFile)) {

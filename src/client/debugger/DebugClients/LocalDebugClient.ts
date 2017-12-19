@@ -6,11 +6,8 @@ import { DebugProtocol } from 'vscode-debugprotocol';
 import { open } from '../../common/open';
 import { PathUtils } from '../../common/platform/pathUtils';
 import { CurrentProcess } from '../../common/process/currentProcess';
-import { IPathUtils } from '../../common/types';
 import { EnvironmentVariablesService } from '../../common/variables/environment';
-import { EnvironmentVariables, IEnvironmentVariablesService } from '../../common/variables/types';
 import { IDebugServer, IPythonProcess } from '../Common/Contracts';
-import { LaunchRequestArguments } from '../Common/Contracts';
 import { IS_WINDOWS } from '../Common/Utils';
 import { BaseDebugServer } from '../DebugServers/BaseDebugServer';
 import { LocalDebugServer } from '../DebugServers/LocalDebugServer';
@@ -95,7 +92,7 @@ export class LocalDebugClient extends DebugClient {
     public async LaunchApplicationToDebug(dbgServer: IDebugServer, processErrored: (error: any) => void): Promise<any> {
         const pathUtils = new PathUtils(IS_WINDOWS);
         const currentProcess = new CurrentProcess();
-        const helper = new DebugClientHelper(new EnvironmentVariablesService(pathUtils, currentProcess), pathUtils, currentProcess);
+        const helper = new DebugClientHelper(new EnvironmentVariablesService(pathUtils), pathUtils, currentProcess);
         const environmentVariables = await helper.getEnvironmentVariables(this.args);
         // tslint:disable-next-line:max-func-body-length cyclomatic-complexity no-any
         return new Promise<any>((resolve, reject) => {

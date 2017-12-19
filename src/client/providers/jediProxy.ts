@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 import * as child_process from 'child_process';
+import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { Uri } from 'vscode';
@@ -9,7 +10,7 @@ import { PythonSettings } from '../common/configSettings';
 import '../common/extensions';
 import { createDeferred, Deferred } from '../common/helpers';
 import { IPythonExecutionFactory } from '../common/process/types';
-import { getCustomEnvVarsSync, validatePath } from '../common/utils';
+import { IEnvironmentVariablesProvider } from '../common/variables/types';
 import { IServiceContainer } from '../ioc/types';
 import * as logger from './../common/logger';
 
@@ -526,60 +527,51 @@ export class JediProxy implements vscode.Disposable {
             if (lines.length === 0) {
                 return '';
             }
-            return await validatePath(lines[0]);
+            const exists = await fs.pathExists(lines[0]);
+            return exists ? lines[0] : '';
         } catch  {
             return '';
         }
     }
 
-    private onConfigChanged() {
+    private async onConfigChanged() {
         // We're only interested in changes to the python path.
         if (this.lastKnownPythonPath === this.pythonSettings.pythonPath) {
             return;
         }
 
         this.lastKnownPythonPath = this.pythonSettings.pythonPath;
-        const filePaths = [
+        const filePathPromises = [
             // Sysprefix.
-            this.getPathFromPythonCommand(['-c', 'import sys;print(sys.prefix)']),
+            this.getPathFromPythonCommand(['-c', 'import sys;print(sys.prefix)']).catch(() => ''),
             // exeucutable path.
-            this.getPathFromPythonCommand(['-c', 'import sys;print(sys.executable)']),
+            this.getPathFromPythonCommand(['-c', 'import sys;print(sys.executable)']).then(execPath => path.dirname(execPath)).catch(() => ''),
             // Python specific site packages.
-            this.getPathFromPythonCommand(['-c', 'from distutils.sysconfig import get_python_lib; print(get_python_lib())']),
+            // On windows we also need the libs path (second item will return c:\xxx\lib\site-packages).
+            // This is returned by "from distutils.sysconfig import get_python_lib; print(get_python_lib())".
+            this.getPathFromPythonCommand(['-c', 'from distutils.sysconfig import get_python_lib; print(get_python_lib())'])
+                .then(libPath => {
+                    // On windows we also need the libs path (second item will return c:\xxx\lib\site-packages).
+                    // This is returned by "from distutils.sysconfig import get_python_lib; print(get_python_lib())".
+                    return (IS_WINDOWS && libPath.length > 0) ? path.join(libPath, '..') : libPath;
+                })
+                .catch(() => ''),
             // Python global site packages, as a fallback in case user hasn't installed them in custom environment.
-            this.getPathFromPythonCommand(['-m', 'site', '--user-site'])
+            this.getPathFromPythonCommand(['-m', 'site', '--user-site']).catch(() => '')
         ];
 
-        let PYTHONPATH: string = JediProxy.getProperty<string>(process.env, 'PYTHONPATH');
-        if (typeof PYTHONPATH !== 'string') {
-            PYTHONPATH = '';
-        }
-        const customEnvironmentVars = getCustomEnvVarsSync(vscode.Uri.file(this.pythonProcessCWD));
-        if (customEnvironmentVars && JediProxy.getProperty<string>(customEnvironmentVars, 'PYTHONPATH')) {
-            let PYTHONPATHFromEnvFile = JediProxy.getProperty<string>(customEnvironmentVars, 'PYTHONPATH');
-            if (!path.isAbsolute(PYTHONPATHFromEnvFile) && this.workspacePath === 'string') {
-                PYTHONPATHFromEnvFile = path.resolve(this.workspacePath, PYTHONPATHFromEnvFile);
-            }
-            PYTHONPATH += `${(PYTHONPATH.length > 0 ? + path.delimiter : '')}${PYTHONPATHFromEnvFile}`;
-        }
-        if (typeof PYTHONPATH === 'string' && PYTHONPATH.length > 0) {
-            filePaths.push(Promise.resolve(PYTHONPATH.trim()));
-        }
-        Promise.all<string>(filePaths)
-            .then(paths => {
-                // Last item return a path, we need only the folder.
-                if (paths[1].length > 0) {
-                    paths[1] = path.dirname(paths[1]);
-                }
+        try {
+            const environmentVariablesProvider = this.serviceContainer.get<IEnvironmentVariablesProvider>(IEnvironmentVariablesProvider);
+            const pythonPaths = await environmentVariablesProvider.getEnvironmentVariables(Uri.file(this.workspacePath))
+                .then(customEnvironmentVars => customEnvironmentVars ? JediProxy.getProperty<string>(customEnvironmentVars, 'PYTHONPATH') : '')
+                .then(pythonPath => (typeof pythonPath === 'string' && pythonPath.trim().length > 0) ? pythonPath.trim() : '')
+                .then(pythonPath => pythonPath.split(path.delimiter).filter(item => item.trim().length > 0));
 
-                // On windows we also need the libs path (second item will return c:\xxx\lib\site-packages).
-                // This is returned by "from distutils.sysconfig import get_python_lib; print(get_python_lib())".
-                if (IS_WINDOWS && paths[2].length > 0) {
-                    paths.splice(3, 0, path.join(paths[2], '..'));
-                }
-                this.additionalAutoCopletePaths = paths.filter(p => p.length > 0);
-            })
-            .catch(ex => console.error('Python Extension: jediProxy.filePaths', ex));
+            const filePaths = await Promise.all(filePathPromises);
+            this.additionalAutoCopletePaths = filePaths.concat(pythonPaths).filter(p => p.length > 0);
+        } catch (ex) {
+            console.error('Python Extension: jediProxy.filePaths', ex);
+        }
     }
 
     private getConfig() {

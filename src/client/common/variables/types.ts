@@ -40,5 +40,5 @@ export interface ISystemVariables {
 export const IEnvironmentVariablesProvider = Symbol('IEnvironmentVariablesProvider');
 
 export interface IEnvironmentVariablesProvider {
-    getEnvironmentVariables(mergeWithProcEnvVariables: boolean, resource?: Uri): Promise<EnvironmentVariables | undefined>;
+    getEnvironmentVariables(resource?: Uri): Promise<EnvironmentVariables | undefined>;
 }
