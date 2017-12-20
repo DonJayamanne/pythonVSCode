@@ -7,6 +7,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { Uri } from 'vscode';
 import { PythonSettings } from '../common/configSettings';
+import { debounce, swallowExceptions } from '../common/decorators';
 import '../common/extensions';
 import { createDeferred, Deferred } from '../common/helpers';
 import { IPythonExecutionFactory } from '../common/process/types';
@@ -129,25 +130,24 @@ export class JediProxy implements vscode.Disposable {
     private proc: child_process.ChildProcess | null;
     private pythonSettings: PythonSettings;
     private cmdId: number = 0;
-    private pythonProcessCWD = '';
     private lastKnownPythonInterpreter: string;
     private previousData = '';
     private commands = new Map<number, IExecutionCommand<ICommandResult>>();
     private commandQueue: number[] = [];
     private spawnRetryAttempts = 0;
-    private lastKnownPythonPath: string;
-    private additionalAutoCopletePaths: string[] = [];
+    private additionalAutoCompletePaths: string[] = [];
     private workspacePath: string;
+    private languageServerStarted: Deferred<void>;
     private initialized: Deferred<void>;
-
-    public constructor(extensionRootDir: string, workspacePath: string, private serviceContainer: IServiceContainer) {
+    private environmentVariablesProvider: IEnvironmentVariablesProvider;
+    public constructor(private extensionRootDir: string, workspacePath: string, private serviceContainer: IServiceContainer) {
         this.workspacePath = workspacePath;
         this.pythonSettings = PythonSettings.getInstance(vscode.Uri.file(workspacePath));
         this.lastKnownPythonInterpreter = this.pythonSettings.pythonPath;
-        this.pythonSettings.on('change', this.onPythonSettingsChanged.bind(this));
-        vscode.workspace.onDidChangeConfiguration(this.onConfigChanged.bind(this));
-        this.onConfigChanged();
-        this.initialize(extensionRootDir);
+        this.pythonSettings.on('change', () => this.pythonSettingsChangeHandler());
+        this.initialized = createDeferred<void>();
+        // tslint:disable-next-line:no-empty
+        this.startLanguageServer().catch(() => { }).then(() => this.initialized.resolve());
     }
 
     private static getProperty<T>(o: object, name: string): T {
@@ -166,15 +166,13 @@ export class JediProxy implements vscode.Disposable {
 
     public async sendCommand<T extends ICommandResult>(cmd: ICommand<T>): Promise<T> {
         await this.initialized.promise;
+        await this.languageServerStarted.promise;
         if (!this.proc) {
             return Promise.reject(new Error('Python proc not initialized'));
         }
         const executionCmd = <IExecutionCommand<T>>cmd;
         const payload = this.createPayload(executionCmd);
         executionCmd.deferred = createDeferred<T>();
-        // if (typeof executionCmd.telemetryEvent === 'string') {
-        //     executionCmd.delays = new telemetryHelper.Delays();
-        // }
         try {
             this.proc.stdin.write(`${JSON.stringify(payload)}\n`);
             this.commands.set(executionCmd.id, executionCmd);
@@ -193,25 +191,43 @@ export class JediProxy implements vscode.Disposable {
     }
 
     // keep track of the directory so we can re-spawn the process.
-    private initialize(dir: string) {
-        this.pythonProcessCWD = dir;
-        this.spawnProcess(path.join(dir, 'pythonFiles'))
+    private initialize() {
+        this.spawnProcess(path.join(this.extensionRootDir, 'pythonFiles'))
             .catch(ex => {
-                if (this.initialized) {
-                    this.initialized.reject(ex);
+                if (this.languageServerStarted) {
+                    this.languageServerStarted.reject(ex);
                 }
                 this.handleError('spawnProcess', ex);
             });
     }
-
-    // Check if settings changes.
-    private onPythonSettingsChanged() {
+    @swallowExceptions('JediProxy')
+    private async pythonSettingsChangeHandler() {
         if (this.lastKnownPythonInterpreter === this.pythonSettings.pythonPath) {
             return;
         }
+        this.lastKnownPythonInterpreter = this.pythonSettings.pythonPath;
+        this.additionalAutoCompletePaths = await this.buildAutoCompletePaths();
+        this.restartLanguageServer();
+    }
+    @debounce(1500)
+    @swallowExceptions('JediProxy')
+    private async environmentVariablesChangeHandler() {
+        const newAutoComletePaths = await this.buildAutoCompletePaths();
+        if (this.additionalAutoCompletePaths.join(',') !== newAutoComletePaths.join(',')) {
+            this.additionalAutoCompletePaths = newAutoComletePaths;
+            this.restartLanguageServer();
+        }
+    }
+    @swallowExceptions('JediProxy')
+    private async startLanguageServer() {
+        const newAutoComletePaths = await this.buildAutoCompletePaths();
+        this.additionalAutoCompletePaths = newAutoComletePaths;
+        this.restartLanguageServer();
+    }
+    private restartLanguageServer() {
         this.killProcess();
         this.clearPendingRequests();
-        this.initialize(this.pythonProcessCWD);
+        this.initialize();
     }
 
     private clearPendingRequests() {
@@ -240,7 +256,10 @@ export class JediProxy implements vscode.Disposable {
 
     // tslint:disable-next-line:max-func-body-length
     private async spawnProcess(cwd: string) {
-        this.initialized = createDeferred<void>();
+        if (this.languageServerStarted && !this.languageServerStarted.completed) {
+            this.languageServerStarted.reject();
+        }
+        this.languageServerStarted = createDeferred<void>();
         const pythonProcess = await this.serviceContainer.get<IPythonExecutionFactory>(IPythonExecutionFactory).create(Uri.file(this.workspacePath));
         const args = ['completion.py'];
         if (typeof this.pythonSettings.jediPath !== 'string' || this.pythonSettings.jediPath.length === 0) {
@@ -263,7 +282,7 @@ export class JediProxy implements vscode.Disposable {
         }
         const result = pythonProcess.execObservable(args, { cwd });
         this.proc = result.proc;
-        this.initialized.resolve();
+        this.languageServerStarted.resolve();
         this.proc.on('end', (end) => {
             logger.error('spawnProcess.end', `End - ${end}`);
         });
@@ -274,8 +293,8 @@ export class JediProxy implements vscode.Disposable {
                 error.message.indexOf('This socket has been ended by the other party') >= 0) {
                 this.spawnProcess(cwd)
                     .catch(ex => {
-                        if (this.initialized) {
-                            this.initialized.reject(ex);
+                        if (this.languageServerStarted) {
+                            this.languageServerStarted.reject(ex);
                         }
                         this.handleError('spawnProcess', ex);
                     });
@@ -533,14 +552,7 @@ export class JediProxy implements vscode.Disposable {
             return '';
         }
     }
-
-    private async onConfigChanged() {
-        // We're only interested in changes to the python path.
-        if (this.lastKnownPythonPath === this.pythonSettings.pythonPath) {
-            return;
-        }
-
-        this.lastKnownPythonPath = this.pythonSettings.pythonPath;
+    private async buildAutoCompletePaths(): Promise<string[]> {
         const filePathPromises = [
             // Sysprefix.
             this.getPathFromPythonCommand(['-c', 'import sys;print(sys.prefix)']).catch(() => ''),
@@ -561,19 +573,27 @@ export class JediProxy implements vscode.Disposable {
         ];
 
         try {
-            const environmentVariablesProvider = this.serviceContainer.get<IEnvironmentVariablesProvider>(IEnvironmentVariablesProvider);
-            const pythonPaths = await environmentVariablesProvider.getEnvironmentVariables(Uri.file(this.workspacePath))
+            const pythonPaths = await this.getEnvironmentVariablesProvider().getEnvironmentVariables(Uri.file(this.workspacePath))
                 .then(customEnvironmentVars => customEnvironmentVars ? JediProxy.getProperty<string>(customEnvironmentVars, 'PYTHONPATH') : '')
                 .then(pythonPath => (typeof pythonPath === 'string' && pythonPath.trim().length > 0) ? pythonPath.trim() : '')
                 .then(pythonPath => pythonPath.split(path.delimiter).filter(item => item.trim().length > 0));
-
+            const resolvedPaths = pythonPaths
+                .filter(pythonPath => !path.isAbsolute(pythonPath))
+                .map(pythonPath => path.resolve(this.workspacePath, pythonPath));
             const filePaths = await Promise.all(filePathPromises);
-            this.additionalAutoCopletePaths = filePaths.concat(pythonPaths).filter(p => p.length > 0);
+            return filePaths.concat(...pythonPaths, ...resolvedPaths).filter(p => p.length > 0);
         } catch (ex) {
             console.error('Python Extension: jediProxy.filePaths', ex);
+            return [];
         }
     }
-
+    private getEnvironmentVariablesProvider() {
+        if (!this.environmentVariablesProvider) {
+            this.environmentVariablesProvider = this.serviceContainer.get<IEnvironmentVariablesProvider>(IEnvironmentVariablesProvider);
+            this.environmentVariablesProvider.onDidEnvironmentVariablesChange(this.environmentVariablesChangeHandler.bind(this));
+        }
+        return this.environmentVariablesProvider;
+    }
     private getConfig() {
         // Add support for paths relative to workspace.
         const extraPaths = this.pythonSettings.autoComplete.extraPaths.map(extraPath => {
@@ -591,7 +611,7 @@ export class JediProxy implements vscode.Disposable {
             extraPaths.unshift(this.workspacePath);
         }
 
-        const distinctExtraPaths = extraPaths.concat(this.additionalAutoCopletePaths)
+        const distinctExtraPaths = extraPaths.concat(this.additionalAutoCompletePaths)
             .filter(value => value.length > 0)
             .filter((value, index, self) => self.indexOf(value) === index);
 

@@ -7,8 +7,9 @@ import * as fs from 'fs-extra';
 import { EOL } from 'os';
 import * as path from 'path';
 import { ConfigurationTarget, Disposable, Uri, workspace } from 'vscode';
-import { IDisposableRegistry, IPathUtils } from '../../../client/common/types';
+import { createDeferred } from '../../../client/common/helpers';
 import { IsWindows } from '../../../client/common/types';
+import { IDisposableRegistry, IPathUtils } from '../../../client/common/types';
 import { EnvironmentVariablesService } from '../../../client/common/variables/environment';
 import { EnvironmentVariablesProvider } from '../../../client/common/variables/environmentVariablesProvider';
 import { EnvironmentVariables } from '../../../client/common/variables/types';
@@ -86,6 +87,9 @@ suite('Multiroot Environment Variables Provider', () => {
         // tslint:disable-next-line:no-invalid-template-strings
         await updateSetting('envFile', '${workspaceRoot}/.env', workspace4PyFile, ConfigurationTarget.WorkspaceFolder);
         const processVariables = { ...process.env };
+        if (processVariables.PYTHONPATH) {
+            delete processVariables.PYTHONPATH;
+        }
         const envProvider = getVariablesProvider(processVariables);
         const vars = await envProvider.getEnvironmentVariables(workspace4PyFile);
 
@@ -98,10 +102,13 @@ suite('Multiroot Environment Variables Provider', () => {
         });
     });
 
-    test('Variables fromm file should take precedence over variables in process', async () => {
+    test('Variables from file should take precedence over variables in process', async () => {
         // tslint:disable-next-line:no-invalid-template-strings
         await updateSetting('envFile', '${workspaceRoot}/.env', workspace4PyFile, ConfigurationTarget.WorkspaceFolder);
         const processVariables = { ...process.env };
+        if (processVariables.PYTHONPATH) {
+            delete processVariables.PYTHONPATH;
+        }
         processVariables.X1234PYEXTUNITTESTVAR = 'abcd';
         processVariables.ABCD = 'abcd';
         const envProvider = getVariablesProvider(processVariables);
@@ -342,5 +349,56 @@ suite('Multiroot Environment Variables Provider', () => {
 
         const varsAfterDeleting = await envProvider.getEnvironmentVariables(workspace4PyFile);
         expect(varsAfterDeleting).to.not.equal(undefined, 'Variables is undefiend after deleting');
+    });
+
+    test('Change event will be raised when when .env file is created, modified and deleted', async function () {
+        // tslint:disable-next-line:no-invalid-this
+        this.timeout(20000);
+        const env3 = path.join(workspace4Path.fsPath, '.env3');
+        const fileExists = await fs.pathExists(env3);
+        if (fileExists) {
+            await fs.remove(env3);
+        }
+        // tslint:disable-next-line:no-invalid-template-strings
+        await updateSetting('envFile', '${workspaceRoot}/.env3', workspace4PyFile, ConfigurationTarget.WorkspaceFolder);
+        const processVariables = { ...process.env };
+        if (processVariables.PYTHONPATH) {
+            delete processVariables.PYTHONPATH;
+        }
+        const envProvider = getVariablesProvider(processVariables);
+        let eventRaisedPromise = createDeferred<boolean>();
+        envProvider.onDidEnvironmentVariablesChange(() => eventRaisedPromise.resolve(true));
+        const vars = envProvider.getEnvironmentVariables(workspace4PyFile);
+        await expect(vars).to.eventually.not.equal(undefined, 'Variables is is undefiend');
+
+        // Create env3.
+        const contents = fs.readFileSync(path.join(workspace4Path.fsPath, '.env2'));
+        fs.writeFileSync(env3, contents);
+
+        // Wait for settings to get refreshed.
+        await new Promise(resolve => setTimeout(resolve, 5000));
+
+        let eventRaised = await eventRaisedPromise.promise;
+        expect(eventRaised).to.equal(true, 'Create notification not raised');
+
+        // Modify env3.
+        eventRaisedPromise = createDeferred<boolean>();
+        fs.writeFileSync(env3, `${contents}${EOL}X123456PYEXTUNITTESTVAR=123456`);
+
+        // Wait for settings to get refreshed.
+        await new Promise(resolve => setTimeout(resolve, 5000));
+
+        eventRaised = await eventRaisedPromise.promise;
+        expect(eventRaised).to.equal(true, 'Change notification not raised');
+
+        // Now remove env3.
+        eventRaisedPromise = createDeferred<boolean>();
+        await fs.remove(env3);
+
+        // Wait for settings to get refreshed.
+        await new Promise(resolve => setTimeout(resolve, 5000));
+
+        eventRaised = await eventRaisedPromise.promise;
+        expect(eventRaised).to.equal(true, 'Delete notification not raised');
     });
 });

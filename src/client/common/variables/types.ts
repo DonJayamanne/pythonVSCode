@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { Uri } from 'vscode';
+import { Event, Uri } from 'vscode';
 
 export type EnvironmentVariables = Object & {
     [key: string]: string;
@@ -38,5 +38,6 @@ export interface ISystemVariables {
 export const IEnvironmentVariablesProvider = Symbol('IEnvironmentVariablesProvider');
 
 export interface IEnvironmentVariablesProvider {
+    onDidEnvironmentVariablesChange: Event<Uri | undefined>;
     getEnvironmentVariables(resource?: Uri): Promise<EnvironmentVariables | undefined>;
 }
