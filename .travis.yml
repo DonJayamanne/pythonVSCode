@@ -22,14 +22,14 @@ matrix:
           python: 2.7
         - os: linux
           python: 3.6
+        # # # Use generic language for osx
+        # - os: osx
+        #   language: generic
+        #   env: PYTHON=2.7.10
         # # Use generic language for osx
-        - os: osx
-          language: generic
-          env: PYTHON=2.7.10
-        # Use generic language for osx
-        - os: osx
-          language: generic
-          env: PYTHON=3.6.1
+        # - os: osx
+        #   language: generic
+        #   env: PYTHON=3.6.1
 # Perform the manual steps on osx to install python 2.7.1 and 3.6.1 and set it as the global interpreter.
 # This way when the node unit tests will pick the right version of python (from global)
 before_install: |
@@ -58,4 +58,5 @@ install:
   - npm run vscode:prepublish
 
 script:
-  - npm test --silent
+  - npm run test:coverage -- --silent
+  - node_modules/.bin/coveralls < coverage/lcov.info;
