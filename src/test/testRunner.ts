@@ -52,6 +52,38 @@ let mocha = new Mocha(<any>{
 
 let coverageOptions: { coverageConfig: string } | undefined;
 
+export function configure(mochaOpts: MochaSetupOptions, coverageOpts?: { coverageConfig: string }): void {
+    mocha = new Mocha(mochaOpts);
+    coverageOptions = coverageOpts;
+}
+
+export function run(testsRoot: string, callback: TestCallback): void {
+    // Enable source map support.
+    require('source-map-support').install();
+
+    // Check whether code coverage is enabled.
+    const options = getCoverageOptions(testsRoot);
+    if (options && options.enabled) {
+        // Setup coverage pre-test, including post-test hook to report.
+        // tslint:disable-next-line:no-use-before-declare
+        const coverageRunner = new CoverageRunner(options, testsRoot, callback);
+        coverageRunner.setupCoverage();
+    }
+
+    // Run the tests.
+    glob('**/**.test.js', { cwd: testsRoot }, (error, files) => {
+        if (error) {
+            return callback(error);
+        }
+        try {
+            files.forEach(file => mocha.addFile(path.join(testsRoot, file)));
+            mocha.run((failures) => callback(undefined, failures));
+        } catch (error) {
+            return callback(error);
+        }
+    });
+}
+
 function getCoverageOptions(testsRoot: string): ITestRunnerOptions | undefined {
     if (!coverageOptions) {
         return undefined;
@@ -185,42 +217,9 @@ class CoverageRunner {
             }
         });
 
-        console.log((istanbul.Report as any).getReportList());
         const reporter = new istanbul.Reporter(undefined, reportingDir);
         const reportTypes = Array.isArray(this.options.reports) ? this.options.reports! : ['lcov'];
         reporter.addAll(reportTypes);
         reporter.write(remappedCollector, true, () => console.log(`reports written to ${reportingDir}`));
     }
-}
-
-export function configure(mochaOpts: MochaSetupOptions, coverageOpts?: { coverageConfig: string }): void {
-    mocha = new Mocha(mochaOpts);
-    coverageOptions = coverageOpts;
-}
-
-export function run(testsRoot: string, callback: TestCallback): void {
-    // Enable source map support.
-    require('source-map-support').install();
-
-    // Check whether code coverage is enabled.
-    const options = getCoverageOptions(testsRoot);
-    if (options && options.enabled) {
-        // Setup coverage pre-test, including post-test hook to report.
-        // tslint:disable-next-line:no-use-before-declare
-        const coverageRunner = new CoverageRunner(options, testsRoot, callback);
-        coverageRunner.setupCoverage();
-    }
-
-    // Run the tests.
-    glob('**/**.test.js', { cwd: testsRoot }, (error, files) => {
-        if (error) {
-            return callback(error);
-        }
-        try {
-            files.forEach(file => mocha.addFile(path.join(testsRoot, file)));
-            mocha.run((failures) => callback(undefined, failures));
-        } catch (error) {
-            return callback(error);
-        }
-    });
 }
