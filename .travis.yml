@@ -61,16 +61,16 @@ script:
   - npm run clean
   - npm run vscode:prepublish
   - vsce package
-  - npm run testSingleWorkspace --silent
+#   - npm run testSingleWorkspace --silent
   - npm run cover:enable
-  - npm run testMultiWorkspace --silent
+#   - npm run testMultiWorkspace --silent
 #   - node_modules/.bin/coveralls < coverage/lcov.info
 #   TODO: Compare current coverage results against previous values. If any decrease in percentage, then throw an error.
 #   I.e. fail the tests to force the developer to add more tests.
 
-after_success:
+after_success: |
   # deploy to azure
-  - if [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_BRANCH" == "master" ]; then
+    if [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_BRANCH" == "master" ]; then
         az storage blob upload --account-name $AZURE_BLOB_ACCOUNT_NAME --account-key $AZURE_BLOB_ACCOUNT_KEY --container $AZURE_BLOB_CONTAINER_NAME --file python*.vsix --blob ms-python.vsix
     else
         echo "Not uploading build for $TRAVIS_BRANCH";
