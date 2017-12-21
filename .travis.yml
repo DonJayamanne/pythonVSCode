@@ -66,12 +66,10 @@ script:
   - npm run testMultiWorkspace --silent
 #   - node_modules/.bin/coveralls < coverage/lcov.info
 
-deploy:
-    provider: script
-    script:
-        - azure telemetry --disable
-        - if [ "$AZURE_BLOB_UPLOAD_BUILD" == "true" ]; then
-          az storage blob upload --account-name $AZURE_BLOB_ACCOUNT_NAME --account-key $AZURE_BLOB_ACCOUNT_KEY --container $AZURE_BLOB_CONTAINER_NAME --file python*.vsix --blob ms-python.vsix
-          fi
-    on:
-        branch: YarnAndCodeCoverage
+after_success:
+  # deploy to azure
+  - if [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_BRANCH" == "master" ]; then
+        az storage blob upload --account-name $AZURE_BLOB_ACCOUNT_NAME --account-key $AZURE_BLOB_ACCOUNT_KEY --container $AZURE_BLOB_CONTAINER_NAME --file python*.vsix --blob ms-python.vsix
+    else
+        echo "Not uploading build for $TRAVIS_BRANCH";
+    fi
