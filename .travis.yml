@@ -51,12 +51,10 @@ before_install: |
     pyenv global $PYTHON
   fi
   export TRAVIS_PYTHON_PATH=`which python`
-  which python
 install:
   - pip install --upgrade -r requirements.txt
-  - yarn
+  - npm install
   - npm run vscode:prepublish
 
 script:
-  - npm run test:coverage -- --silent
-  - node_modules/.bin/coveralls < coverage/lcov.info;
+  - npm test --silent
