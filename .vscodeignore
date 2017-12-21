@@ -1,6 +1,7 @@
 .vscode/**
 typings/**
 out/test/**
+out/src/**
 out/pythonFiles/**
 out/testMultiRootWkspc/**
 test/**
