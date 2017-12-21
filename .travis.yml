@@ -74,4 +74,4 @@ deploy:
           az storage blob upload --account-name $AZURE_BLOB_ACCOUNT_NAME --account-key $AZURE_BLOB_ACCOUNT_KEY --container $AZURE_BLOB_CONTAINER_NAME --file python*.vsix --blob ms-python.vsix
           fi
     on:
-        branch: master
+        branch: YarnAndCodeCoverage
