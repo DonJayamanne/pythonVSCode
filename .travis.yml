@@ -22,14 +22,14 @@ matrix:
           python: 2.7
         - os: linux
           python: 3.6
-        # # # Use generic language for osx
-        # - os: osx
-        #   language: generic
-        #   env: PYTHON=2.7.10
         # # Use generic language for osx
-        # - os: osx
-        #   language: generic
-        #   env: PYTHON=3.6.1
+        - os: osx
+          language: generic
+          env: PYTHON=2.7.10
+        # Use generic language for osx
+        - os: osx
+          language: generic
+          env: PYTHON=3.6.1
 # Perform the manual steps on osx to install python 2.7.1 and 3.6.1 and set it as the global interpreter.
 # This way when the node unit tests will pick the right version of python (from global)
 before_install: |
@@ -44,15 +44,17 @@ before_install: |
   nvm install 8.9.1
   nvm use 8.9.1
   npm i -g npm@5.5.1
+  npm i -g yarn
   npm config set python `which python`
   if [ "$TRAVIS_OS_NAME" == "osx" ]; then
     pyenv install $PYTHON
     pyenv global $PYTHON
   fi
   export TRAVIS_PYTHON_PATH=`which python`
+  echo $TRAVIS_PYTHON_PATH
 install:
   - pip install --upgrade -r requirements.txt
-  - npm install
+  - yarn
   - npm run vscode:prepublish
 
 script:
