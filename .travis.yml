@@ -65,6 +65,8 @@ script:
   - npm run cover:enable
   - npm run testMultiWorkspace --silent
 #   - node_modules/.bin/coveralls < coverage/lcov.info
+#   TODO: Compare current coverage results against previous values. If any decrease in percentage, then throw an error.
+#   I.e. fail the tests to force the developer to add more tests.
 
 after_success:
   # deploy to azure
