@@ -60,8 +60,18 @@ install:
 script:
   - npm run clean
   - npm run vscode:prepublish
-  - vsce package -o ms-python.vsix
+  - vsce package
   - npm run testSingleWorkspace --silent
   - npm run cover:enable
   - npm run testMultiWorkspace --silent
 #   - node_modules/.bin/coveralls < coverage/lcov.info
+
+deploy:
+    provider: script
+    script:
+        - azure telemetry --disable
+        - if [ "$AZURE_BLOB_UPLOAD_BUILD" == "true" ]; then
+          az storage blob upload --account-name $AZURE_BLOB_ACCOUNT_NAME --account-key $AZURE_BLOB_ACCOUNT_KEY --container $AZURE_BLOB_CONTAINER_NAME --file python*.vsix --blob ms-python.vsix
+          fi
+    on:
+        branch: master
