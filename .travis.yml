@@ -45,6 +45,8 @@ before_install: |
   nvm use 8.9.1
   npm i -g npm@5.5.1
   npm i -g yarn
+  npm i -g vsce
+  npm install -g azure-cli
   npm config set python `which python`
   if [ "$TRAVIS_OS_NAME" == "osx" ]; then
     pyenv install $PYTHON
@@ -53,8 +55,13 @@ before_install: |
   export TRAVIS_PYTHON_PATH=`which python`
 install:
   - pip install --upgrade -r requirements.txt
-  - npm install
-  - npm run vscode:prepublish
+  - yarn
 
 script:
-  - npm test --silent
+  - npm run clean
+  - npm run vscode:prepublish
+  - vsce package -o ms-python.vsix
+  - npm run testSingleWorkspace --silent
+  - npm run cover:enable
+  - npm run testMultiWorkspace --silent
+#   - node_modules/.bin/coveralls < coverage/lcov.info
