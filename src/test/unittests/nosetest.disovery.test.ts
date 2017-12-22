@@ -12,6 +12,7 @@ import { ITestManagerFactory, Tests } from '../../client/unittests/common/types'
 import { rootWorkspaceUri, updateSetting } from '../common';
 import { MockProcessService } from '../mocks/proc';
 import { initialize, initializeTest, IS_MULTI_ROOT_TEST } from './../initialize';
+import { lookForTestFile } from './helper';
 import { UnitTestIocContainer } from './serviceRegistry';
 
 const PYTHON_FILES_PATH = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles');
@@ -85,12 +86,7 @@ suite('Unit Tests - nose - discovery with mocked process output', () => {
         assert.equal(tests.testFiles.length, 2, 'Incorrect number of test files');
         assert.equal(tests.testFunctions.length, 6, 'Incorrect number of test functions');
         assert.equal(tests.testSuites.length, 2, 'Incorrect number of test suites');
-        // Perform case insensitive search on windows.
-        if (IS_WINDOWS) {
-            assert.equal(tests.testFiles.some(t => t.name === path.join('tests', 'test_one.py') && t.nameToRun === t.name), true, 'Test File not found');
-        } else {
-            assert.equal(tests.testFiles.some(t => t.name.toUpperCase() === path.join('tests', 'test_one.py').toUpperCase() && t.nameToRun.toUpperCase() === t.name.toUpperCase()), true, 'Test File not found');
-        }
+        lookForTestFile(tests, path.join('tests', 'test_one.py'));
     });
 
     test('Check that nameToRun in testSuites has class name after : (single test file)', async () => {
@@ -103,17 +99,6 @@ suite('Unit Tests - nose - discovery with mocked process output', () => {
         assert.equal(tests.testSuites.length, 2, 'Incorrect number of test suites');
         assert.equal(tests.testSuites.every(t => t.testSuite.name === t.testSuite.nameToRun.split(':')[1]), true, 'Suite name does not match class name');
     });
-
-    function lookForTestFile(tests: Tests, testFile: string) {
-        let found: boolean;
-        // Perform case insensitive search on windows.
-        if (IS_WINDOWS) {
-            found = tests.testFiles.some(t => t.name.toUpperCase() === testFile.toUpperCase() && t.nameToRun.toUpperCase() === t.name.toUpperCase());
-        } else {
-            found = tests.testFiles.some(t => t.name === testFile && t.nameToRun === t.name);
-        }
-        assert.equal(found, true, `Test File not found '${testFile}'`);
-    }
     test('Discover Tests (-m=test)', async () => {
         injectTestDiscoveryOutput('three.output');
         await updateSetting('unitTest.nosetestArgs', ['-m', 'test'], rootWorkspaceUri, configTarget);
