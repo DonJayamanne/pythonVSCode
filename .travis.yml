@@ -47,6 +47,7 @@ before_install: |
   npm i -g yarn
   npm i -g vsce
   npm install -g azure-cli
+  azure telemetry --disable
   npm config set python `which python`
   if [ "$TRAVIS_OS_NAME" == "osx" ]; then
     pyenv install $PYTHON
