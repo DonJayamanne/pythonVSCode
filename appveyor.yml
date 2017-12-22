@@ -36,7 +36,6 @@ install:
   - python --version
   - python -m easy_install -U setuptools
   - "%PYTHON%/Scripts/pip.exe install --upgrade -r requirements.txt"
-  - azure telemetry --disable
 
 test_script:
   - node --version
