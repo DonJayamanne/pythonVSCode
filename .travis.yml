@@ -64,7 +64,8 @@ script:
   - npm run testSingleWorkspace --silent
   - npm run cover:enable
   - npm run testMultiWorkspace --silent
-  - node out/test/coverage.js;
+  - node cover:upload
+#   - node out/test/coverage.js;
 #   - node_modules/.bin/coveralls < coverage/lcov.info
 after_success: |
     if [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ $TRAVIS_BRANCH == "YarnAndCodeCoverage" ]; then
