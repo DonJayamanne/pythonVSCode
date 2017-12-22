@@ -5,7 +5,7 @@ environment:
     #   PYTHON_ARCH: "32"
     #   nodejs_version: "8.9.1"
 
-    - PYTHON: "C:\Python27-x64"
+    - PYTHON: "C:\\Python27-x64"
       PYTHON_VERSION: "2.7.14"
       PYTHON_ARCH: "64"
       nodejs_version: "8.9.1"
@@ -15,7 +15,7 @@ environment:
     #   PYTHON_ARCH: "32"
     #   nodejs_version: "8.9.1"
 
-    - PYTHON: "C:\Python36-x64"
+    - PYTHON: "C:\\Python36-x64"
       PYTHON_VERSION: "3.6.3"
       PYTHON_ARCH: "64"
       nodejs_version: "8.9.1"
