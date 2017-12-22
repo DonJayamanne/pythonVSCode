@@ -48,3 +48,5 @@ test_script:
   - npm run cover:enable
   - npm run testMultiWorkspace --silent
   - npm run cover:upload
+
+build: off
