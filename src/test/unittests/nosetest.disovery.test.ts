@@ -5,6 +5,7 @@ import * as assert from 'assert';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { IS_WINDOWS } from '../../client/common/platform/constants';
 import { IProcessService } from '../../client/common/process/types';
 import { CommandSource } from '../../client/unittests/common/constants';
 import { ITestManagerFactory, Tests } from '../../client/unittests/common/types';
@@ -84,7 +85,12 @@ suite('Unit Tests - nose - discovery with mocked process output', () => {
         assert.equal(tests.testFiles.length, 2, 'Incorrect number of test files');
         assert.equal(tests.testFunctions.length, 6, 'Incorrect number of test functions');
         assert.equal(tests.testSuites.length, 2, 'Incorrect number of test suites');
-        assert.equal(tests.testFiles.some(t => t.name === path.join('tests', 'test_one.py') && t.nameToRun === t.name), true, 'Test File not found');
+        // Perform case insensitive search on windows.
+        if (IS_WINDOWS) {
+            assert.equal(tests.testFiles.some(t => t.name === path.join('tests', 'test_one.py') && t.nameToRun === t.name), true, 'Test File not found');
+        } else {
+            assert.equal(tests.testFiles.some(t => t.name.toUpperCase() === path.join('tests', 'test_one.py').toUpperCase() && t.nameToRun.toUpperCase() === t.name.toUpperCase()), true, 'Test File not found');
+        }
     });
 
     test('Check that nameToRun in testSuites has class name after : (single test file)', async () => {
@@ -99,7 +105,13 @@ suite('Unit Tests - nose - discovery with mocked process output', () => {
     });
 
     function lookForTestFile(tests: Tests, testFile: string) {
-        const found = tests.testFiles.some(t => t.name === testFile && t.nameToRun === t.name);
+        let found: boolean;
+        // Perform case insensitive search on windows.
+        if (IS_WINDOWS) {
+            found = tests.testFiles.some(t => t.name.toUpperCase() === testFile.toUpperCase() && t.nameToRun.toUpperCase() === t.name.toUpperCase());
+        } else {
+            found = tests.testFiles.some(t => t.name === testFile && t.nameToRun === t.name);
+        }
         assert.equal(found, true, `Test File not found '${testFile}'`);
     }
     test('Discover Tests (-m=test)', async () => {
