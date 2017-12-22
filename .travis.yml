@@ -64,7 +64,7 @@ script:
   - npm run testSingleWorkspace --silent
   - npm run cover:enable
   - npm run testMultiWorkspace --silent
-  - node cover:upload
+  - npm run cover:upload
 #   - node out/test/coverage.js;
 #   - node_modules/.bin/coveralls < coverage/lcov.info
 after_success: |
