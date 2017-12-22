@@ -27,7 +27,7 @@ suite('Configuration Settings', () => {
                 }
                 // tslint:disable-next-line:no-any
                 const pythonSettingValue = (pythonSettings[key] as string);
-                if (key.endsWith('Path') && IS_WINDOWS) {
+                if ((key.endsWith('Path') || (key === 'envFile')) && IS_WINDOWS) {
                     assert.deepEqual(settingValue.toUpperCase(), pythonSettingValue.toUpperCase(), `Setting ${key} not the same`);
                 } else {
                     assert.deepEqual(settingValue, pythonSettingValue, `Setting ${key} not the same`);
