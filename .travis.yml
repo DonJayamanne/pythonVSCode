@@ -66,7 +66,7 @@ script:
   - npm run testMultiWorkspace --silent
   - npm run cover:upload
 after_success: |
-    if [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ $TRAVIS_BRANCH == "YarnAndCodeCoverage" ]; then
+    if [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ $TRAVIS_BRANCH == "master" ]; then
         azure storage file upload --account-name $AZURE_STORAGE_ACCOUNT --account-key $AZURE_STORAGE_ACCESS_KEY --share python --source python*.vsix --path ms-python.vsix --quiet;
     else
         echo "Not uploading build for $TRAVIS_BRANCH";
