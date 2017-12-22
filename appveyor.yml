@@ -40,7 +40,7 @@ install:
 test_script:
   - npm run clean
   - npm run vscode:prepublish
-  - vsce package
+#   - vsce package
   - npm run testSingleWorkspace --silent
 #   - npm run cover:enable
 #   - npm run testMultiWorkspace --silent
