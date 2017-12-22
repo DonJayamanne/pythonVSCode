@@ -67,9 +67,6 @@ script:
   - node out/test/coverage.js;
 #   - node_modules/.bin/coveralls < coverage/lcov.info
 after_success: |
-  # deploy to azure
-    echo $TRAVIS_PULL_REQUEST
-    echo $TRAVIS_BRANCH
     if [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ $TRAVIS_BRANCH == "YarnAndCodeCoverage" ]; then
         azure storage file upload --account-name $AZURE_STORAGE_ACCOUNT --account-key $AZURE_STORAGE_ACCESS_KEY --share python --source coverage.json --path coverage.json --quiet;
         azure storage file upload --account-name $AZURE_STORAGE_ACCOUNT --account-key $AZURE_STORAGE_ACCESS_KEY --share python --source python*.vsix --path ms-python.vsix --quiet;

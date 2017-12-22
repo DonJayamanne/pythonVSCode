@@ -90,7 +90,7 @@ async function compareCoverageReports(): Promise<void> {
 }
 
 compareCoverageReports()
-    .catch(error => {
-        console.error(error);
+    .catch((error: Error) => {
+        console.error(error.message);
         process.exit(1);
     });
