@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 import { IWorkspaceSymbolSettings, PythonSettings } from '../../client/common/configSettings';
 import { IS_WINDOWS } from '../../client/common/platform/constants';
 import { SystemVariables } from '../../client/common/variables/systemVariables';
-import { initialize, IS_MULTI_ROOT_TEST } from './../initialize';
+import { initialize } from './../initialize';
 
 const workspaceRoot = path.join(__dirname, '..', '..', '..', 'src', 'test');
 
