@@ -28,8 +28,8 @@ install:
   - ps: Install-Product node $env:nodejs_version
   - npm i -g npm@5.5.1
   - npm i -g yarn
-#   - npm i -g vsce
-#   - npm install -g azure-cli
+  - npm i -g vsce
+  - npm install -g azure-cli
   - yarn
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
   - pip install -U pip
@@ -40,10 +40,10 @@ install:
 test_script:
   - npm run clean
   - npm run vscode:prepublish
-#   - vsce package
+  - vsce package
   - npm run testSingleWorkspace --silent
-#   - npm run cover:enable
-#   - npm run testMultiWorkspace --silent
-#   - npm run cover:upload
+  - npm run cover:enable
+  - npm run testMultiWorkspace --silent
+  - npm run cover:upload
 
 build: off
