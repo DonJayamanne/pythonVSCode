@@ -58,30 +58,32 @@ export async function closeActiveWindows(): Promise<any> {
         if (vscode.window.visibleTextEditors.length === 0) {
             return resolve();
         }
+        let interval: NodeJS.Timer | undefined;
+        function done() {
+            if (interval) {
+                clearInterval(interval);
+                interval = undefined;
+                resolve();
+            }
+        }
 
-        // tslint:disable-next-line:no-suspicious-comment
-        // TODO: the visibleTextEditors variable doesn't seem to be
+        // The visibleTextEditors variable doesn't seem to be
         // up to date after a onDidChangeActiveTextEditor event, not
         // even using a setTimeout 0... so we MUST poll :(
-        const interval = setInterval(() => {
+        interval = setInterval(() => {
             if (vscode.window.visibleTextEditors.length > 0) {
                 return;
             }
-
-            clearInterval(interval);
-            resolve();
+            done();
         }, 10);
 
         setTimeout(() => {
             if (vscode.window.visibleTextEditors.length === 0) {
-                return resolve();
+                return done();
             }
             vscode.commands.executeCommand('workbench.action.closeAllEditors')
-                // tslint:disable-next-line:no-any
-                .then(() => null, (err: any) => {
-                    clearInterval(interval);
-                    resolve();
-                });
+                // tslint:disable-next-line:no-unnecessary-callback-wrapper
+                .then(() => done(), () => done());
         }, 50);
 
     });
