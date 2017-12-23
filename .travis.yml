@@ -58,16 +58,21 @@ install:
   - yarn
 
 script:
-  - npm run clean
   - npm run vscode:prepublish
-  - vsce package
   - npm run testSingleWorkspace --silent
   - npm run cover:enable
   - npm run testMultiWorkspace --silent
   - npm run cover:upload
-after_success: |
-    if [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ $TRAVIS_BRANCH == "master" ]; then
+deploy:
+  provider: script
+  script: |
+    npm run clean
+    npm run vscode:prepublish
+    vsce package
+    if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
         azure storage file upload --account-name $AZURE_STORAGE_ACCOUNT --account-key $AZURE_STORAGE_ACCESS_KEY --share python --source python*.vsix --path ms-python.vsix --quiet;
     else
         echo "Not uploading build for $TRAVIS_BRANCH";
     fi
+  on:
+    branch: YarnAndCodeCoverage
