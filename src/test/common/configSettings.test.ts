@@ -14,7 +14,8 @@ suite('Configuration Settings', () => {
 
     test('Check Values', done => {
         const systemVariables: SystemVariables = new SystemVariables(workspaceRoot);
-        const pythonConfig = vscode.workspace.getConfiguration('python');
+        // tslint:disable-next-line:no-any
+        const pythonConfig = vscode.workspace.getConfiguration('python', null as any as vscode.Uri);
         const pythonSettings = PythonSettings.getInstance(vscode.Uri.file(workspaceRoot));
         Object.keys(pythonSettings).forEach(key => {
             let settingValue = pythonConfig.get(key, 'Not a config');
