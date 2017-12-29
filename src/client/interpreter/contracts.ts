@@ -11,8 +11,8 @@ export const VIRTUAL_ENV_SERVICE = 'VirtualEnvService';
 
 export const IInterpreterVersionService = Symbol('IInterpreterVersionService');
 export interface IInterpreterVersionService {
-    getVersion(pythonPath: string, defaultValue: string): Promise<string>;
-    getPipVersion(pythonPath: string): Promise<string>;
+    getVersion(pythonPath: string, defaultValue: string, resoruce?: Uri): Promise<string>;
+    getPipVersion(pythonPath: string, resource?: Uri): Promise<string>;
 }
 
 export const ICondaEnvironmentFile = Symbol('ICondaEnvironmentFile');
@@ -28,9 +28,9 @@ export interface IInterpreterLocatorService extends Disposable {
 export const ICondaLocatorService = Symbol('ICondaLocatorService');
 
 export interface ICondaLocatorService {
-    getCondaFile(): Promise<string>;
-    isCondaAvailable(): Promise<boolean>;
-    getCondaVersion(): Promise<string | undefined>;
+    getCondaFile(resource?: Uri): Promise<string>;
+    isCondaAvailable(resource?: Uri): Promise<boolean>;
+    getCondaVersion(resource?: Uri): Promise<string | undefined>;
 }
 
 export enum InterpreterType {

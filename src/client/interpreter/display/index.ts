@@ -2,7 +2,7 @@ import { EOL } from 'os';
 import * as path from 'path';
 import { Disposable, StatusBarItem, Uri } from 'vscode';
 import { PythonSettings } from '../../common/configSettings';
-import { IProcessService } from '../../common/process/types';
+import { IProcessFactory } from '../../common/process/processFactory';
 import * as utils from '../../common/utils';
 import { IInterpreterLocatorService, IInterpreterVersionService } from '../contracts';
 import { getActiveWorkspaceUri } from '../helpers';
@@ -14,7 +14,7 @@ export class InterpreterDisplay implements Disposable {
         private interpreterLocator: IInterpreterLocatorService,
         private virtualEnvMgr: IVirtualEnvironmentManager,
         private versionProvider: IInterpreterVersionService,
-        private processService: IProcessService) {
+        private processFactory: IProcessFactory) {
 
         this.statusBar.command = 'python.setInterpreter';
     }
@@ -26,7 +26,7 @@ export class InterpreterDisplay implements Disposable {
         if (!wkspc) {
             return;
         }
-        const pythonPath = await this.getFullyQualifiedPathToInterpreter(PythonSettings.getInstance(wkspc.folderUri).pythonPath);
+        const pythonPath = await this.getFullyQualifiedPathToInterpreter(PythonSettings.getInstance(wkspc.folderUri).pythonPath, wkspc.folderUri);
         await this.updateDisplay(pythonPath, wkspc.folderUri);
     }
     private async getInterpreters(resource?: Uri) {
@@ -49,7 +49,7 @@ export class InterpreterDisplay implements Disposable {
             const defaultDisplayName = `${path.basename(pythonPath)} [Environment]`;
             await Promise.all([
                 utils.fsExistsAsync(pythonPath),
-                this.versionProvider.getVersion(pythonPath, defaultDisplayName),
+                this.versionProvider.getVersion(pythonPath, defaultDisplayName, resource),
                 this.getVirtualEnvironmentName(pythonPath)
             ])
                 .then(([interpreterExists, displayName, virtualEnvName]) => {
@@ -69,8 +69,9 @@ export class InterpreterDisplay implements Disposable {
             .detect(pythonPath)
             .then(env => env ? env.name : '');
     }
-    private async getFullyQualifiedPathToInterpreter(pythonPath: string) {
-        return this.processService.exec(pythonPath, ['-c', 'import sys;print(sys.executable)'])
+    private async getFullyQualifiedPathToInterpreter(pythonPath: string, resource?: Uri) {
+        const processService = this.processFactory.create(resource);
+        return processService.exec(pythonPath, ['-c', 'import sys;print(sys.executable)'])
             .then(output => output.stdout.trim())
             .then(value => value.length === 0 ? pythonPath : value)
             .catch(() => pythonPath);

@@ -6,7 +6,8 @@ import { Uri } from 'vscode';
 import { IServiceContainer } from '../../ioc/types';
 import { ExecutionInfo } from '../types';
 import { IEnvironmentVariablesProvider } from '../variables/types';
-import { ExecutionResult, IProcessService, IPythonExecutionFactory, IPythonToolExecutionService, ObservableExecutionResult, SpawnOptions } from './types';
+import { IProcessFactory } from './processFactory';
+import { ExecutionResult, IPythonExecutionFactory, IPythonToolExecutionService, ObservableExecutionResult, SpawnOptions } from './types';
 
 @injectable()
 export class PythonToolExecutionService implements IPythonToolExecutionService {
@@ -20,7 +21,7 @@ export class PythonToolExecutionService implements IPythonToolExecutionService {
             return pythonExecutionService.execModuleObservable(executionInfo.moduleName, executionInfo.args, options);
         } else {
             const env = await this.serviceContainer.get<IEnvironmentVariablesProvider>(IEnvironmentVariablesProvider).getEnvironmentVariables(resource);
-            const processService = this.serviceContainer.get<IProcessService>(IProcessService);
+            const processService = this.serviceContainer.get<IProcessFactory>(IProcessFactory).create(resource);
             return processService.execObservable(executionInfo.execPath!, executionInfo.args, { ...options, env });
         }
     }
@@ -33,7 +34,7 @@ export class PythonToolExecutionService implements IPythonToolExecutionService {
             return pythonExecutionService.execModule(executionInfo.moduleName!, executionInfo.args, options);
         } else {
             const env = await this.serviceContainer.get<IEnvironmentVariablesProvider>(IEnvironmentVariablesProvider).getEnvironmentVariables(resource);
-            const processService = this.serviceContainer.get<IProcessService>(IProcessService);
+            const processService = this.serviceContainer.get<IProcessFactory>(IProcessFactory).create(resource);
             return processService.exec(executionInfo.execPath!, executionInfo.args, { ...options, env });
         }
     }

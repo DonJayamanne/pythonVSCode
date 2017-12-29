@@ -36,7 +36,7 @@ export class CondaInstaller extends ModuleInstaller implements IModuleInstaller 
             return this.isCondaAvailable!;
         }
         const condaLocator = this.serviceContainer.get<ICondaLocatorService>(ICondaLocatorService);
-        const available = await condaLocator.isCondaAvailable();
+        const available = await condaLocator.isCondaAvailable(resource);
 
         if (!available) {
             return false;
@@ -47,7 +47,7 @@ export class CondaInstaller extends ModuleInstaller implements IModuleInstaller 
     }
     protected async getExecutionInfo(moduleName: string, resource?: Uri): Promise<ExecutionInfo> {
         const condaLocator = this.serviceContainer.get<ICondaLocatorService>(ICondaLocatorService);
-        const condaFile = await condaLocator.getCondaFile();
+        const condaFile = await condaLocator.getCondaFile(resource);
 
         const info = await this.getCurrentInterpreterInfo(resource);
         const args = ['install'];

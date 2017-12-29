@@ -17,16 +17,16 @@ export class CondaEnvFileService implements IInterpreterLocatorService {
     constructor( @inject(ICondaEnvironmentFile) private condaEnvironmentFile: string,
         @inject(IInterpreterVersionService) private versionService: IInterpreterVersionService) {
     }
-    public async getInterpreters(_?: Uri) {
-        return this.getSuggestionsFromConda();
+    public async getInterpreters(resource?: Uri) {
+        return this.getSuggestionsFromConda(resource);
     }
     // tslint:disable-next-line:no-empty
     public dispose() { }
-    private async getSuggestionsFromConda(): Promise<PythonInterpreter[]> {
+    private async getSuggestionsFromConda(resource?: Uri): Promise<PythonInterpreter[]> {
         return fs.pathExists(this.condaEnvironmentFile)
-            .then(exists => exists ? this.getEnvironmentsFromFile(this.condaEnvironmentFile) : Promise.resolve([]));
+            .then(exists => exists ? this.getEnvironmentsFromFile(this.condaEnvironmentFile, resource) : Promise.resolve([]));
     }
-    private async getEnvironmentsFromFile(envFile: string) {
+    private async getEnvironmentsFromFile(envFile: string, resource?: Uri) {
         return fs.readFile(envFile)
             .then(buffer => buffer.toString().split(/\r?\n/g))
             .then(lines => lines.map(line => line.trim()))
@@ -34,7 +34,7 @@ export class CondaEnvFileService implements IInterpreterLocatorService {
             .then(interpreterPaths => interpreterPaths.map(item => fs.pathExists(item).then(exists => exists ? item : '')))
             .then(promises => Promise.all(promises))
             .then(interpreterPaths => interpreterPaths.filter(item => item.length > 0))
-            .then(interpreterPaths => interpreterPaths.map(item => this.getInterpreterDetails(item)))
+            .then(interpreterPaths => interpreterPaths.map(item => this.getInterpreterDetails(item, resource)))
             .then(promises => Promise.all(promises))
             .catch((err) => {
                 console.error('Python Extension (getEnvironmentsFromFile.readFile):', err);
@@ -42,8 +42,8 @@ export class CondaEnvFileService implements IInterpreterLocatorService {
                 return [] as PythonInterpreter[];
             });
     }
-    private async getInterpreterDetails(interpreter: string) {
-        return this.versionService.getVersion(interpreter, path.basename(interpreter))
+    private async getInterpreterDetails(interpreter: string, resource?: Uri) {
+        return this.versionService.getVersion(interpreter, path.basename(interpreter), resource)
             .then(version => {
                 version = this.stripCompanyName(version);
                 const envName = this.getEnvironmentRootDirectory(interpreter);

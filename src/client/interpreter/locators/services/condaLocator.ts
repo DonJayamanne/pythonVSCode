@@ -1,7 +1,8 @@
 import * as fs from 'fs-extra';
 import { inject, injectable, named, optional } from 'inversify';
 import * as path from 'path';
-import { IProcessService } from '../../../common/process/types';
+import { Uri } from 'vscode';
+import { IProcessFactory } from '../../../common/process/processFactory';
 import { IsWindows } from '../../../common/types';
 import { VersionUtils } from '../../../common/versionUtils';
 import { ICondaLocatorService, IInterpreterLocatorService, PythonInterpreter, WINDOWS_REGISTRY_SERVICE } from '../../contracts';
@@ -18,16 +19,16 @@ export class CondaLocatorService implements ICondaLocatorService {
     private condaFile: string | undefined;
     private isAvailable: boolean | undefined;
     constructor( @inject(IsWindows) private isWindows: boolean,
-        @inject(IProcessService) private processService: IProcessService,
+        @inject(IProcessFactory) private processFactory: IProcessFactory,
         @inject(IInterpreterLocatorService) @named(WINDOWS_REGISTRY_SERVICE) @optional() private registryLookupForConda?: IInterpreterLocatorService) {
     }
     // tslint:disable-next-line:no-empty
     public dispose() { }
-    public async getCondaFile(): Promise<string> {
+    public async getCondaFile(resource?: Uri): Promise<string> {
         if (this.condaFile) {
             return this.condaFile!;
         }
-        const isAvailable = await this.isCondaInCurrentPath();
+        const isAvailable = await this.isCondaInCurrentPath(resource);
         if (isAvailable) {
             return 'conda';
         }
@@ -45,14 +46,14 @@ export class CondaLocatorService implements ICondaLocatorService {
         this.condaFile = await this.getCondaFileFromKnownLocations();
         return this.condaFile!;
     }
-    public async isCondaAvailable(): Promise<boolean> {
-        return this.getCondaVersion()
+    public async isCondaAvailable(resource?: Uri): Promise<boolean> {
+        return this.getCondaVersion(resource)
             .then(() => this.isAvailable = true)
             .catch(() => this.isAvailable = false);
     }
-    public async getCondaVersion(): Promise<string | undefined> {
-        return this.getCondaFile()
-            .then(condaFile => this.processService.exec(condaFile, ['--version'], {}))
+    public async getCondaVersion(resource?: Uri): Promise<string | undefined> {
+        return this.getCondaFile(resource)
+            .then(condaFile => this.processFactory.create(resource).exec(condaFile, ['--version'], {}))
             .then(result => result.stdout.trim())
             .catch(() => undefined);
     }
@@ -68,10 +69,14 @@ export class CondaLocatorService implements ICondaLocatorService {
             return sortedInterpreters[sortedInterpreters.length - 1];
         }
     }
-    public async isCondaInCurrentPath() {
-        return this.processService.exec('conda', ['--version'])
-            .then(output => output.stdout.length > 0)
-            .catch(() => false);
+    public async isCondaInCurrentPath(resource?: Uri) {
+        const processService = this.processFactory.create(resource);
+        try {
+            const result = await processService.exec('conda', ['--version'], {});
+            return result.stdout.length > 0;
+        } catch {
+            return false;
+        }
     }
     private async getCondaFileFromKnownLocations(): Promise<string> {
         const condaFiles = await Promise.all(KNOWN_CONDA_LOCATIONS

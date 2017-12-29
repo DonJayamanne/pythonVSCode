@@ -1,8 +1,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { Uri } from 'vscode';
 import { IPythonSettings, PythonSettings } from '../common/configSettings';
-import { IProcessService } from '../common/process/types';
+import { IProcessFactory } from '../common/process/processFactory';
 import { captureTelemetry } from '../telemetry';
 import { WORKSPACE_SYMBOLS_BUILD } from '../telemetry/constants';
 
@@ -17,7 +18,7 @@ export class Generator implements vscode.Disposable {
         return this.pythonSettings.workspaceSymbols.enabled;
     }
     constructor(public readonly workspaceFolder: vscode.Uri, private output: vscode.OutputChannel,
-        private processService: IProcessService) {
+        private processFactory: IProcessFactory) {
         this.disposables = [];
         this.optionsFile = path.join(__dirname, '..', '..', '..', 'resources', 'ctagOptions');
         this.pythonSettings = PythonSettings.getInstance(workspaceFolder);
@@ -62,7 +63,9 @@ export class Generator implements vscode.Disposable {
         this.output.appendLine(`${'-'.repeat(10)}Generating Tags${'-'.repeat(10)}`);
         this.output.appendLine(`${cmd} ${args.join(' ')}`);
         const promise = new Promise<void>((resolve, reject) => {
-            const result = this.processService.execObservable(cmd, args, { cwd: source.directory });
+            const resource = source.directory ? Uri.file(source.directory) : undefined;
+            const processService = this.processFactory.create(resource);
+            const result = processService.execObservable(cmd, args, { cwd: source.directory });
             let errorMsg = '';
             result.out.subscribe(output => {
                 if (output.source === 'stderr') {

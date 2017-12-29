@@ -17,23 +17,23 @@ export class VirtualEnvService implements IInterpreterLocatorService {
         @inject(IVirtualEnvironmentManager) private virtualEnvMgr: IVirtualEnvironmentManager,
         @inject(IInterpreterVersionService) private versionProvider: IInterpreterVersionService) { }
     public async getInterpreters(resource?: Uri) {
-        return this.suggestionsFromKnownVenvs();
+        return this.suggestionsFromKnownVenvs(resource);
     }
     // tslint:disable-next-line:no-empty
     public dispose() { }
-    private async suggestionsFromKnownVenvs() {
-        return Promise.all(this.knownSearchPaths.map(dir => this.lookForInterpretersInVenvs(dir)))
+    private async suggestionsFromKnownVenvs(resource?: Uri) {
+        return Promise.all(this.knownSearchPaths.map(dir => this.lookForInterpretersInVenvs(dir, resource)))
             // tslint:disable-next-line:underscore-consistent-invocation
             .then(listOfInterpreters => _.flatten(listOfInterpreters));
     }
-    private async lookForInterpretersInVenvs(pathToCheck: string) {
+    private async lookForInterpretersInVenvs(pathToCheck: string, resource?: Uri) {
         return fsReaddirAsync(pathToCheck)
             .then(subDirs => Promise.all(this.getProspectiveDirectoriesForLookup(subDirs)))
             .then(dirs => dirs.filter(dir => dir.length > 0))
             .then(dirs => Promise.all(dirs.map(lookForInterpretersInDirectory)))
             // tslint:disable-next-line:underscore-consistent-invocation
             .then(pathsWithInterpreters => _.flatten(pathsWithInterpreters))
-            .then(interpreters => Promise.all(interpreters.map(interpreter => this.getVirtualEnvDetails(interpreter))))
+            .then(interpreters => Promise.all(interpreters.map(interpreter => this.getVirtualEnvDetails(interpreter, resource))))
             .catch((err) => {
                 console.error('Python Extension (lookForInterpretersInVenvs):', err);
                 // Ignore exceptions.
@@ -57,9 +57,9 @@ export class VirtualEnvService implements IInterpreterLocatorService {
             }));
 
     }
-    private async getVirtualEnvDetails(interpreter: string): Promise<PythonInterpreter> {
+    private async getVirtualEnvDetails(interpreter: string, resource?: Uri): Promise<PythonInterpreter> {
         return Promise.all([
-            this.versionProvider.getVersion(interpreter, path.basename(interpreter)),
+            this.versionProvider.getVersion(interpreter, path.basename(interpreter), resource),
             this.virtualEnvMgr.detect(interpreter)
         ])
             .then(([displayName, virtualEnv]) => {

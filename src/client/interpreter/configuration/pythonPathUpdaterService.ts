@@ -24,15 +24,15 @@ export class PythonPathUpdaterService {
             console.error(reason);
         }
         // do not wait for this to complete
-        this.sendTelemetry(stopWatch.elapsedTime, failed, trigger, pythonPath)
+        this.sendTelemetry(stopWatch.elapsedTime, failed, trigger, pythonPath, wkspace)
             .catch(ex => console.error('Python Extension: sendTelemetry', ex));
     }
-    private async sendTelemetry(duration: number, failed: boolean, trigger: 'ui' | 'shebang' | 'load', pythonPath: string) {
+    private async sendTelemetry(duration: number, failed: boolean, trigger: 'ui' | 'shebang' | 'load', pythonPath: string, wkspace?: Uri) {
         const telemtryProperties: PythonInterpreterTelemetry = {
             failed, trigger
         };
         if (!failed) {
-            const pyVersionPromise = this.interpreterVersionService.getVersion(pythonPath, '')
+            const pyVersionPromise = this.interpreterVersionService.getVersion(pythonPath, '', wkspace)
                 .then(pyVersion => pyVersion.length === 0 ? undefined : pyVersion);
             const pipVersionPromise = this.interpreterVersionService.getPipVersion(pythonPath)
                 .then(value => value.length === 0 ? undefined : value)

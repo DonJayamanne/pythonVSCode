@@ -2,7 +2,7 @@ import * as fs from 'fs-extra';
 import { inject, injectable } from 'inversify';
 import * as path from 'path';
 import { Uri } from 'vscode';
-import { IProcessService } from '../../../common/process/types';
+import { IProcessFactory } from '../../../common/process/processFactory';
 import { VersionUtils } from '../../../common/versionUtils';
 import { ICondaLocatorService, IInterpreterLocatorService, IInterpreterVersionService, InterpreterType, PythonInterpreter } from '../../contracts';
 import { AnacondaCompanyName, AnacondaCompanyNames, CONDA_RELATIVE_PY_PATH, CondaInfo } from './conda';
@@ -13,10 +13,10 @@ export class CondaEnvService implements IInterpreterLocatorService {
     private readonly condaHelper = new CondaHelper();
     constructor( @inject(ICondaLocatorService) private condaLocator: ICondaLocatorService,
         @inject(IInterpreterVersionService) private versionService: IInterpreterVersionService,
-        @inject(IProcessService) private processService: IProcessService) {
+        @inject(IProcessFactory) private processFactory: IProcessFactory) {
     }
     public async getInterpreters(resource?: Uri) {
-        return this.getSuggestionsFromConda();
+        return this.getSuggestionsFromConda(resource);
     }
     // tslint:disable-next-line:no-empty
     public dispose() { }
@@ -32,7 +32,7 @@ export class CondaEnvService implements IInterpreterLocatorService {
             return sortedInterpreters[sortedInterpreters.length - 1];
         }
     }
-    public async parseCondaInfo(info: CondaInfo) {
+    public async parseCondaInfo(info: CondaInfo, resource?: Uri) {
         const condaDisplayName = this.condaHelper.getDisplayName(info);
 
         // The root of the conda environment is itself a Python interpreter
@@ -48,7 +48,7 @@ export class CondaEnvService implements IInterpreterLocatorService {
                 const pythonPath = path.join(env, ...CONDA_RELATIVE_PY_PATH);
 
                 const existsPromise = fs.pathExists(pythonPath);
-                const versionPromise = this.versionService.getVersion(pythonPath, envName);
+                const versionPromise = this.versionService.getVersion(pythonPath, envName, resource);
 
                 const [exists, version] = await Promise.all([existsPromise, versionPromise]);
                 if (!exists) {
@@ -98,18 +98,19 @@ export class CondaEnvService implements IInterpreterLocatorService {
             return content;
         }
     }
-    private async getSuggestionsFromConda(): Promise<PythonInterpreter[]> {
-        return this.condaLocator.getCondaFile()
-            .then(condaFile => this.processService.exec(condaFile, ['info', '--json']))
-            .then(output => output.stdout)
+    private async getSuggestionsFromConda(resource?: Uri): Promise<PythonInterpreter[]> {
+        return this.condaLocator.getCondaFile(resource)
+            .then(condaFile => this.processFactory.create(resource).exec(condaFile, ['info', '--json'], {}))
+            .then(result => result.stdout)
             .then(stdout => {
                 if (stdout.length === 0) {
                     return [];
                 }
 
                 try {
+                    // tslint:disable-next-line:prefer-type-cast
                     const info = JSON.parse(stdout) as CondaInfo;
-                    return this.parseCondaInfo(info);
+                    return this.parseCondaInfo(info, resource);
                 } catch {
                     // Failed because either:
                     //   1. conda is not installed.

@@ -14,21 +14,21 @@ export class KnownPathsService implements IInterpreterLocatorService {
     public constructor( @inject(IKnownSearchPathsForInterpreters) private knownSearchPaths: string[],
         @inject(IInterpreterVersionService) private versionProvider: IInterpreterVersionService) { }
     // tslint:disable-next-line:no-shadowed-variable
-    public getInterpreters(_?: Uri) {
-        return this.suggestionsFromKnownPaths();
+    public getInterpreters(resource?: Uri) {
+        return this.suggestionsFromKnownPaths(resource);
     }
     // tslint:disable-next-line:no-empty
     public dispose() { }
-    private suggestionsFromKnownPaths() {
+    private suggestionsFromKnownPaths(resource?: Uri) {
         const promises = this.knownSearchPaths.map(dir => this.getInterpretersInDirectory(dir));
         return Promise.all<string[]>(promises)
             // tslint:disable-next-line:underscore-consistent-invocation
             .then(listOfInterpreters => _.flatten(listOfInterpreters))
             .then(interpreters => interpreters.filter(item => item.length > 0))
-            .then(interpreters => Promise.all(interpreters.map(interpreter => this.getInterpreterDetails(interpreter))));
+            .then(interpreters => Promise.all(interpreters.map(interpreter => this.getInterpreterDetails(interpreter, resource))));
     }
-    private getInterpreterDetails(interpreter: string) {
-        return this.versionProvider.getVersion(interpreter, path.basename(interpreter))
+    private getInterpreterDetails(interpreter: string, resource?: Uri) {
+        return this.versionProvider.getVersion(interpreter, path.basename(interpreter), resource)
             .then(displayName => {
                 return {
                     displayName,

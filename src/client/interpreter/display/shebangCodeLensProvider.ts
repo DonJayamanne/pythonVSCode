@@ -1,13 +1,14 @@
 import * as vscode from 'vscode';
-import { CancellationToken, CodeLens, TextDocument } from 'vscode';
+import { CancellationToken, CodeLens, TextDocument, Uri } from 'vscode';
 import * as settings from '../../common/configSettings';
-import { IProcessService } from '../../common/process/types';
+import { IProcessFactory } from '../../common/process/processFactory';
 import { IS_WINDOWS } from '../../common/utils';
 
 export class ShebangCodeLensProvider implements vscode.CodeLensProvider {
     // tslint:disable-next-line:no-any
     public onDidChangeCodeLenses: vscode.Event<void> = vscode.workspace.onDidChangeConfiguration as any as vscode.Event<void>;
-    constructor(private processService: IProcessService) { }
+    constructor(private processFactory: IProcessFactory) { }
+    // tslint:disable-next-line:function-name
     public async detectShebang(document: TextDocument): Promise<string | undefined> {
         const firstLine = document.lineAt(0);
         if (firstLine.isEmptyOrWhitespace) {
@@ -19,14 +20,15 @@ export class ShebangCodeLensProvider implements vscode.CodeLensProvider {
         }
 
         const shebang = firstLine.text.substr(2).trim();
-        const pythonPath = await this.getFullyQualifiedPathToInterpreter(shebang);
+        const pythonPath = await this.getFullyQualifiedPathToInterpreter(shebang, document.uri);
         return typeof pythonPath === 'string' && pythonPath.length > 0 ? pythonPath : undefined;
     }
+
     public async provideCodeLenses(document: TextDocument, token: CancellationToken): Promise<CodeLens[]> {
         const codeLenses = await this.createShebangCodeLens(document);
         return Promise.resolve(codeLenses);
     }
-    private async getFullyQualifiedPathToInterpreter(pythonPath: string) {
+    private async getFullyQualifiedPathToInterpreter(pythonPath: string, resource: Uri) {
         let cmdFile = pythonPath;
         let args = ['-c', 'import sys;print(sys.executable)'];
         if (pythonPath.indexOf('bin/env ') >= 0 && !IS_WINDOWS) {
@@ -35,14 +37,14 @@ export class ShebangCodeLensProvider implements vscode.CodeLensProvider {
             cmdFile = parts.shift()!;
             args = parts.concat(args);
         }
-        return this.processService.exec(cmdFile, args)
+        return this.processFactory.create(resource).exec(cmdFile, args)
             .then(output => output.stdout.trim())
             .catch(() => '');
     }
     private async createShebangCodeLens(document: TextDocument) {
         const shebang = await this.detectShebang(document);
         const pythonPath = settings.PythonSettings.getInstance(document.uri).pythonPath;
-        const resolvedPythonPath = await this.getFullyQualifiedPathToInterpreter(pythonPath);
+        const resolvedPythonPath = await this.getFullyQualifiedPathToInterpreter(pythonPath, document.uri);
         if (!shebang || shebang === resolvedPythonPath) {
             return [];
         }
