@@ -2,6 +2,8 @@
 // Licensed under the MIT License.
 
 import { IServiceManager } from '../ioc/types';
+import { ConfigurationService } from './config/configurationService';
+import { IConfigurationService } from './config/types';
 import { CondaInstaller } from './installer/condaInstaller';
 import { Installer } from './installer/installer';
 import { PipInstaller } from './installer/pipInstaller';
@@ -20,6 +22,7 @@ import { ICurrentProcess, IInstaller, ILogger, IPathUtils, IPersistentStateFacto
 export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.addSingletonInstance<boolean>(IsWindows, IS_WINDOWS);
     serviceManager.addSingletonInstance<boolean>(Is64Bit, IS_64_BIT);
+    serviceManager.addSingleton<IConfigurationService>(IConfigurationService, ConfigurationService);
 
     serviceManager.addSingleton<IPersistentStateFactory>(IPersistentStateFactory, PersistentStateFactory);
     serviceManager.addSingleton<IInstaller>(IInstaller, Installer);

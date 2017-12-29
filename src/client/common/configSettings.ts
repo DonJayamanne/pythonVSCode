@@ -4,15 +4,22 @@ import * as child_process from 'child_process';
 import { EventEmitter } from 'events';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { Uri } from 'vscode';
+import { Event, Uri } from 'vscode';
 import { SystemVariables } from './variables/systemVariables';
 
 // tslint:disable-next-line:no-require-imports no-var-requires
 const untildify = require('untildify');
 
+export enum Container {
+    None = 0,
+    Wsl = 1
+}
+
 export const IS_WINDOWS = /^win/.test(process.platform);
 
 export interface IPythonSettings {
+    container: Container;
+    onChange: Event<Uri | undefined>;
     pythonPath: string;
     venvPath: string;
     jediPath: string;
@@ -146,18 +153,24 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
     public sortImports: ISortImportSettings;
     public workspaceSymbols: IWorkspaceSymbolSettings;
 
+    public container: Container;
     private workspaceRoot: vscode.Uri;
     private disposables: vscode.Disposable[] = [];
     // tslint:disable-next-line:variable-name
     private _pythonPath: string;
+    private changeEventEmitter: vscode.EventEmitter<Uri | undefined>;
     constructor(workspaceFolder?: Uri) {
         super();
+        this.changeEventEmitter = new vscode.EventEmitter();
         this.workspaceRoot = workspaceFolder ? workspaceFolder : vscode.Uri.file(__dirname);
         this.disposables.push(vscode.workspace.onDidChangeConfiguration(() => {
-            this.initializeSettings();
+            this.initializeSettings(true);
         }));
 
-        this.initializeSettings();
+        this.initializeSettings(false);
+    }
+    public get onChange(): Event<Uri | undefined> {
+        return this.changeEventEmitter.event;
     }
     // tslint:disable-next-line:function-name
     public static getInstance(resource?: Uri): PythonSettings {
@@ -190,10 +203,11 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
     }
 
     // tslint:disable-next-line:cyclomatic-complexity max-func-body-length
-    private initializeSettings() {
+    private initializeSettings(configSettingsChanged: boolean) {
         const workspaceRoot = this.workspaceRoot.fsPath;
         const systemVariables: SystemVariables = new SystemVariables(this.workspaceRoot ? this.workspaceRoot.fsPath : undefined);
         const pythonSettings = vscode.workspace.getConfiguration('python', this.workspaceRoot);
+        this.container = pythonSettings.get<Container>('container', Container.None);
         // tslint:disable-next-line:no-backbone-get-set-outside-model no-non-null-assertion
         this.pythonPath = systemVariables.resolveAny(pythonSettings.get<string>('pythonPath'))!;
         this.pythonPath = getAbsolutePath(this.pythonPath, workspaceRoot);
@@ -374,9 +388,14 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
             launchArgs: []
         };
 
-        // If workspace config changes, then we could have a cascading effect of on change events.
-        // Let's defer the change notification.
-        setTimeout(() => this.emit('change'), 1);
+        if (configSettingsChanged) {
+            // If workspace config changes, then we could have a cascading effect of on change events.
+            // Let's defer the change notification.
+            setTimeout(() => {
+                this.emit('change');
+                this.changeEventEmitter.fire(this.workspaceRoot);
+            }, 1);
+        }
     }
 
     public get pythonPath(): string {

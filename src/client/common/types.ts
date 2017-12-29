@@ -4,6 +4,8 @@
 
 import { Uri } from 'vscode';
 import { EnvironmentVariables } from './variables/types';
+export * from './config/types';
+
 export const IOutputChannel = Symbol('IOutputChannel');
 export const IDocumentSymbolProvider = Symbol('IDocumentSymbolProvider');
 export const IsWindows = Symbol('IS_WINDOWS');
