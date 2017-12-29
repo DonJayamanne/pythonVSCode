@@ -1,5 +1,5 @@
 import { Uri } from 'vscode';
-import { IPythonSettings, PythonSettings } from '../configSettings';
+import { IPythonSettings } from '../configSettings';
 
 export const IConfigurationService = Symbol('IConfigurationService');
 

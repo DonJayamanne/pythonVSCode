@@ -45,13 +45,11 @@ suite('Config Service', () => {
 
     test('Same instance of PythonSettings will be returned when workspace uri is provied', async () => {
         const workspaceUri = workspace.workspaceFolders![0].uri;
-        const pythonSettings = PythonSettings.getInstance(workspaceUri);
         const pythonSettingsFromService = ioc.serviceContainer.get<IConfigurationService>(IConfigurationService).getConfiguration(workspaceUri);
         assert.equal(pythonSettingsFromService === pythonSettingsFromService, true, 'Instance of PythonSettings returned are not the same');
     });
 
     test('Same instance of PythonSettings will be returned when a workspace uri is not provided', async () => {
-        const pythonSettings = PythonSettings.getInstance();
         const pythonSettingsFromService = ioc.serviceContainer.get<IConfigurationService>(IConfigurationService).getConfiguration();
         assert.equal(pythonSettingsFromService === pythonSettingsFromService, true, 'Instance of PythonSettings returned are not the same');
     });
