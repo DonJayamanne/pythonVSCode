@@ -30,9 +30,10 @@ export class ShebangCodeLensProvider implements vscode.CodeLensProvider {
         let cmdFile = pythonPath;
         let args = ['-c', 'import sys;print(sys.executable)'];
         if (pythonPath.indexOf('bin/env ') >= 0 && !IS_WINDOWS) {
-            // In case we have pythonPath as '/usr/bin/env python'
-            cmdFile = `${pythonPath} -c 'import sys;print(sys.executable)'`;
-            args = [];
+            // In case we have pythonPath as '/usr/bin/env python'.
+            const parts = pythonPath.split(' ').map(part => part.trim()).filter(part => part.length > 0);
+            cmdFile = parts.shift()!;
+            args = parts.concat(args);
         }
         return this.processService.exec(cmdFile, args)
             .then(output => output.stdout.trim())
