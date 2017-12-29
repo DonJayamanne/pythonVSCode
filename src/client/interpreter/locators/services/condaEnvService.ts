@@ -118,9 +118,6 @@ export class CondaEnvService implements IInterpreterLocatorService {
                     // In all cases, we can't offer conda pythonPath suggestions.
                     return [];
                 }
-            }).catch((err) => {
-                console.error('Python Extension (getSuggestionsFromConda):', err);
-                return [];
-            });
+            }).catch(() => []);
     }
 }
