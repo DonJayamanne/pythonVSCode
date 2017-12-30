@@ -13,7 +13,7 @@ export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.addSingleton<IBufferDecoder>(IBufferDecoder, BufferDecoder);
     serviceManager.addSingleton<IProcessService>(IProcessService, ProcessService, 'standard');
     serviceManager.addSingleton<IProcessService>(IProcessService, ProcessService, 'wsl');
-    serviceManager.addSingleton<IProcessServiceFactory>(IProcessService, ProcessServiceFactory);
+    serviceManager.addSingleton<IProcessServiceFactory>(IProcessServiceFactory, ProcessServiceFactory);
     serviceManager.addSingleton<IPythonExecutionFactory>(IPythonExecutionFactory, PythonExecutionFactory);
     serviceManager.addSingleton<IPythonToolExecutionService>(IPythonToolExecutionService, PythonToolExecutionService);
 }
