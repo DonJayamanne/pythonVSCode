@@ -92,6 +92,7 @@ contributors (if you would like to contribute a translation, see the
 * `ja`
 * `ru`
 * `zh-cn`
+* `zh-tw`
 
 ## Data/Telemetry
 
