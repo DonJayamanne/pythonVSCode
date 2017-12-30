@@ -6,7 +6,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { Uri } from 'vscode';
-import { PythonSettings } from '../common/configSettings';
+import { IPythonSettings, PythonSettings } from '../common/configSettings';
 import { debounce, swallowExceptions } from '../common/decorators';
 import '../common/extensions';
 import { createDeferred, Deferred } from '../common/helpers';
@@ -128,7 +128,7 @@ commandNames.set(CommandType.Symbols, 'names');
 
 export class JediProxy implements vscode.Disposable {
     private proc: ChildProcess | null;
-    private pythonSettings: PythonSettings;
+    private pythonSettings: IPythonSettings;
     private cmdId: number = 0;
     private lastKnownPythonInterpreter: string;
     private previousData = '';
@@ -144,7 +144,7 @@ export class JediProxy implements vscode.Disposable {
         this.workspacePath = workspacePath;
         this.pythonSettings = PythonSettings.getInstance(vscode.Uri.file(workspacePath));
         this.lastKnownPythonInterpreter = this.pythonSettings.pythonPath;
-        this.pythonSettings.on('change', () => this.pythonSettingsChangeHandler());
+        this.pythonSettings.onChange(() => this.pythonSettingsChangeHandler());
         this.initialized = createDeferred<void>();
         // tslint:disable-next-line:no-empty
         this.startLanguageServer().catch(() => { }).then(() => this.initialized.resolve());

@@ -12,7 +12,7 @@ export class ConfigSettingMonitor extends EventEmitter implements Disposable {
         super();
         this.initializeSettings();
         // tslint:disable-next-line:no-void-expression
-        PythonSettings.getInstance().on('change', () => this.onConfigChange());
+        PythonSettings.getInstance().onChange(() => this.onConfigChange());
     }
     public dispose() {
         if (this.timeout) {
@@ -78,8 +78,7 @@ export class ConfigSettingMonitor extends EventEmitter implements Disposable {
         }
     }
     private getWorkspaceKey() {
-        // tslint:disable-next-line:no-non-null-assertion
-        return workspace.workspaceFolders[0]!.uri.fsPath;
+        return workspace.workspaceFolders![0].uri.fsPath;
     }
     private getWorkspaceFolderKey(wkspaceFolder: Uri) {
         return `${ConfigurationTarget.WorkspaceFolder}:${wkspaceFolder.fsPath}`;

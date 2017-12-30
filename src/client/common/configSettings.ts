@@ -173,7 +173,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         return this.changeEventEmitter.event;
     }
     // tslint:disable-next-line:function-name
-    public static getInstance(resource?: Uri): PythonSettings {
+    public static getInstance(resource?: Uri): IPythonSettings {
         const workspaceFolder = resource ? vscode.workspace.getWorkspaceFolder(resource) : undefined;
         let workspaceFolderUri: Uri | undefined = workspaceFolder ? workspaceFolder.uri : undefined;
         if (!workspaceFolderUri && Array.isArray(vscode.workspace.workspaceFolders) && vscode.workspace.workspaceFolders.length > 0) {
