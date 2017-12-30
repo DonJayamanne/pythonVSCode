@@ -2,7 +2,7 @@ import * as fs from 'fs-extra';
 import { inject, injectable, named, optional } from 'inversify';
 import * as path from 'path';
 import { Uri } from 'vscode';
-import { IProcessFactory } from '../../../common/process/processFactory';
+import { IProcessServiceFactory } from '../../../common/process/processServiceFactory';
 import { IsWindows } from '../../../common/types';
 import { VersionUtils } from '../../../common/versionUtils';
 import { ICondaLocatorService, IInterpreterLocatorService, PythonInterpreter, WINDOWS_REGISTRY_SERVICE } from '../../contracts';
@@ -19,7 +19,7 @@ export class CondaLocatorService implements ICondaLocatorService {
     private condaFile: string | undefined;
     private isAvailable: boolean | undefined;
     constructor( @inject(IsWindows) private isWindows: boolean,
-        @inject(IProcessFactory) private processFactory: IProcessFactory,
+        @inject(IProcessServiceFactory) private processServiceFactory: IProcessServiceFactory,
         @inject(IInterpreterLocatorService) @named(WINDOWS_REGISTRY_SERVICE) @optional() private registryLookupForConda?: IInterpreterLocatorService) {
     }
     // tslint:disable-next-line:no-empty
@@ -53,7 +53,7 @@ export class CondaLocatorService implements ICondaLocatorService {
     }
     public async getCondaVersion(resource?: Uri): Promise<string | undefined> {
         return this.getCondaFile(resource)
-            .then(condaFile => this.processFactory.create(resource).exec(condaFile, ['--version'], {}))
+            .then(condaFile => this.processServiceFactory.create(resource).exec(condaFile, ['--version'], {}))
             .then(result => result.stdout.trim())
             .catch(() => undefined);
     }
@@ -70,7 +70,7 @@ export class CondaLocatorService implements ICondaLocatorService {
         }
     }
     public async isCondaInCurrentPath(resource?: Uri) {
-        const processService = this.processFactory.create(resource);
+        const processService = this.processServiceFactory.create(resource);
         try {
             const result = await processService.exec('conda', ['--version'], {});
             return result.stdout.length > 0;

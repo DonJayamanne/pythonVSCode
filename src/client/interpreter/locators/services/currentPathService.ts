@@ -3,7 +3,7 @@ import * as _ from 'lodash';
 import * as path from 'path';
 import { Uri } from 'vscode';
 import { PythonSettings } from '../../../common/configSettings';
-import { IProcessFactory } from '../../../common/process/processFactory';
+import { IProcessServiceFactory } from '../../../common/process/processServiceFactory';
 import { IInterpreterLocatorService, IInterpreterVersionService, InterpreterType } from '../../contracts';
 import { IVirtualEnvironmentManager } from '../../virtualEnvs/types';
 
@@ -11,7 +11,7 @@ import { IVirtualEnvironmentManager } from '../../virtualEnvs/types';
 export class CurrentPathService implements IInterpreterLocatorService {
     public constructor( @inject(IVirtualEnvironmentManager) private virtualEnvMgr: IVirtualEnvironmentManager,
         @inject(IInterpreterVersionService) private versionProvider: IInterpreterVersionService,
-        @inject(IProcessFactory) private processFactory: IProcessFactory) { }
+        @inject(IProcessServiceFactory) private processServiceFactory: IProcessServiceFactory) { }
     public async getInterpreters(resource?: Uri) {
         return this.suggestionsFromKnownPaths();
     }
@@ -44,7 +44,7 @@ export class CurrentPathService implements IInterpreterLocatorService {
             });
     }
     private async getInterpreter(pythonPath: string, defaultValue: string, resource?: Uri) {
-        const processService = this.processFactory.create(resource);
+        const processService = this.processServiceFactory.create(resource);
         return processService.exec(pythonPath, ['-c', 'import sys;print(sys.executable)'], {})
             .then(result => result.stdout.trim())
             .then(value => value.length === 0 ? defaultValue : value)

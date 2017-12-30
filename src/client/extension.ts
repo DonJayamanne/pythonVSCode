@@ -13,7 +13,7 @@ import * as settings from './common/configSettings';
 import { STANDARD_OUTPUT_CHANNEL } from './common/constants';
 import { FeatureDeprecationManager } from './common/featureDeprecationManager';
 import { createDeferred } from './common/helpers';
-import { IProcessFactory } from './common/process/processFactory';
+import { IProcessServiceFactory } from './common/process/processServiceFactory';
 import { registerTypes as processRegisterTypes } from './common/process/serviceRegistry';
 import { IProcessService, IPythonExecutionFactory } from './common/process/types';
 import { registerTypes as commonRegisterTypes } from './common/serviceRegistry';
@@ -92,13 +92,13 @@ export async function activate(context: vscode.ExtensionContext) {
     // This must be completed before we can continue.
     await interpreterManager.autoSetInterpreter();
 
-    const processFactory = serviceContainer.get<IProcessFactory>(IProcessFactory);
+    const processServiceFactory = serviceContainer.get<IProcessServiceFactory>(IProcessServiceFactory);
 
     interpreterManager.refresh()
         .catch(ex => console.error('Python Extension: interpreterManager.refresh', ex));
     context.subscriptions.push(interpreterManager);
     const interpreterVersionService = serviceContainer.get<IInterpreterVersionService>(IInterpreterVersionService);
-    context.subscriptions.push(new SetInterpreterProvider(interpreterManager, interpreterVersionService, processFactory));
+    context.subscriptions.push(new SetInterpreterProvider(interpreterManager, interpreterVersionService, processServiceFactory));
     context.subscriptions.push(...activateExecInTerminalProvider());
     context.subscriptions.push(activateUpdateSparkLibraryProvider());
     activateSimplePythonRefactorProvider(context, standardOutputChannel, serviceContainer);
@@ -134,7 +134,7 @@ export async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.languages.registerHoverProvider(PYTHON, new PythonHoverProvider(jediFactory)));
     context.subscriptions.push(vscode.languages.registerReferenceProvider(PYTHON, new PythonReferenceProvider(jediFactory)));
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider(PYTHON, new PythonCompletionItemProvider(jediFactory), '.'));
-    context.subscriptions.push(vscode.languages.registerCodeLensProvider(PYTHON, new ShebangCodeLensProvider(processFactory)));
+    context.subscriptions.push(vscode.languages.registerCodeLensProvider(PYTHON, new ShebangCodeLensProvider(processServiceFactory)));
 
     const symbolProvider = new PythonSymbolProvider(jediFactory);
     context.subscriptions.push(vscode.languages.registerDocumentSymbolProvider(PYTHON, symbolProvider));

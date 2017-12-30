@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { Uri } from 'vscode';
 import { IPythonSettings, PythonSettings } from '../common/configSettings';
-import { IProcessFactory } from '../common/process/processFactory';
+import { IProcessServiceFactory } from '../common/process/processServiceFactory';
 import { captureTelemetry } from '../telemetry';
 import { WORKSPACE_SYMBOLS_BUILD } from '../telemetry/constants';
 
@@ -18,7 +18,7 @@ export class Generator implements vscode.Disposable {
         return this.pythonSettings.workspaceSymbols.enabled;
     }
     constructor(public readonly workspaceFolder: vscode.Uri, private output: vscode.OutputChannel,
-        private processFactory: IProcessFactory) {
+        private processServiceFactory: IProcessServiceFactory) {
         this.disposables = [];
         this.optionsFile = path.join(__dirname, '..', '..', '..', 'resources', 'ctagOptions');
         this.pythonSettings = PythonSettings.getInstance(workspaceFolder);
@@ -64,7 +64,7 @@ export class Generator implements vscode.Disposable {
         this.output.appendLine(`${cmd} ${args.join(' ')}`);
         const promise = new Promise<void>((resolve, reject) => {
             const resource = source.directory ? Uri.file(source.directory) : undefined;
-            const processService = this.processFactory.create(resource);
+            const processService = this.processServiceFactory.create(resource);
             const result = processService.execObservable(cmd, args, { cwd: source.directory });
             let errorMsg = '';
             result.out.subscribe(output => {

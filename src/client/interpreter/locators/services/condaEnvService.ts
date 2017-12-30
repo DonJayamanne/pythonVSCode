@@ -2,7 +2,7 @@ import * as fs from 'fs-extra';
 import { inject, injectable } from 'inversify';
 import * as path from 'path';
 import { Uri } from 'vscode';
-import { IProcessFactory } from '../../../common/process/processFactory';
+import { IProcessServiceFactory } from '../../../common/process/processServiceFactory';
 import { VersionUtils } from '../../../common/versionUtils';
 import { ICondaLocatorService, IInterpreterLocatorService, IInterpreterVersionService, InterpreterType, PythonInterpreter } from '../../contracts';
 import { AnacondaCompanyName, AnacondaCompanyNames, CONDA_RELATIVE_PY_PATH, CondaInfo } from './conda';
@@ -13,7 +13,7 @@ export class CondaEnvService implements IInterpreterLocatorService {
     private readonly condaHelper = new CondaHelper();
     constructor( @inject(ICondaLocatorService) private condaLocator: ICondaLocatorService,
         @inject(IInterpreterVersionService) private versionService: IInterpreterVersionService,
-        @inject(IProcessFactory) private processFactory: IProcessFactory) {
+        @inject(IProcessServiceFactory) private processServiceFactory: IProcessServiceFactory) {
     }
     public async getInterpreters(resource?: Uri) {
         return this.getSuggestionsFromConda(resource);
@@ -100,7 +100,7 @@ export class CondaEnvService implements IInterpreterLocatorService {
     }
     private async getSuggestionsFromConda(resource?: Uri): Promise<PythonInterpreter[]> {
         return this.condaLocator.getCondaFile(resource)
-            .then(condaFile => this.processFactory.create(resource).exec(condaFile, ['info', '--json'], {}))
+            .then(condaFile => this.processServiceFactory.create(resource).exec(condaFile, ['info', '--json'], {}))
             .then(result => result.stdout)
             .then(stdout => {
                 if (stdout.length === 0) {

@@ -9,6 +9,7 @@ import { ShebangCodeLensProvider } from '../../client/interpreter/display/sheban
 import { getFirstNonEmptyLineFromMultilineString } from '../../client/interpreter/helpers';
 import { closeActiveWindows, initialize, initializeTest } from '../initialize';
 import { UnitTestIocContainer } from '../unittests/serviceRegistry';
+import { IProcessServiceFactory } from '../../client/common/process/processServiceFactory';
 
 const autoCompPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'shebang');
 const fileShebang = path.join(autoCompPath, 'shebang.py');
@@ -106,8 +107,8 @@ suite('Shebang detection', () => {
 
     async function setupCodeLens(editor: vscode.TextEditor) {
         const document = editor.document;
-        const processService = ioc.serviceContainer.get<IProcessService>(IProcessService);
-        const codeLensProvider = new ShebangCodeLensProvider(processService);
+        const processServiceFactory = ioc.serviceContainer.get<IProcessServiceFactory>(IProcessServiceFactory);
+        const codeLensProvider = new ShebangCodeLensProvider(processServiceFactory);
         return await codeLensProvider.provideCodeLenses(document, new CancellationTokenSource().token);
     }
 });

@@ -2,7 +2,7 @@ import * as path from 'path';
 import { commands, ConfigurationTarget, Disposable, QuickPickItem, QuickPickOptions, Uri, window, workspace } from 'vscode';
 import { InterpreterManager } from '../';
 import * as settings from '../../common/configSettings';
-import { IProcessFactory } from '../../common/process/processFactory';
+import { IProcessServiceFactory } from '../../common/process/processServiceFactory';
 import { IInterpreterVersionService, PythonInterpreter, WorkspacePythonPath } from '../contracts';
 import { ShebangCodeLensProvider } from '../display/shebangCodeLensProvider';
 import { PythonPathUpdaterService } from './pythonPathUpdaterService';
@@ -18,7 +18,7 @@ export class SetInterpreterProvider implements Disposable {
     private pythonPathUpdaterService: PythonPathUpdaterService;
     constructor(private interpreterManager: InterpreterManager,
         interpreterVersionService: IInterpreterVersionService,
-        private processFactory: IProcessFactory) {
+        private processServiceFactory: IProcessServiceFactory) {
         this.disposables.push(commands.registerCommand('python.setInterpreter', this.setInterpreter.bind(this)));
         this.disposables.push(commands.registerCommand('python.setShebangInterpreter', this.setShebangInterpreter.bind(this)));
         this.pythonPathUpdaterService = new PythonPathUpdaterService(new PythonPathUpdaterServiceFactory(), interpreterVersionService);
@@ -91,7 +91,7 @@ export class SetInterpreterProvider implements Disposable {
     }
 
     private async setShebangInterpreter(): Promise<void> {
-        const shebang = await new ShebangCodeLensProvider(this.processFactory).detectShebang(window.activeTextEditor!.document);
+        const shebang = await new ShebangCodeLensProvider(this.processServiceFactory).detectShebang(window.activeTextEditor!.document);
         if (!shebang) {
             return;
         }

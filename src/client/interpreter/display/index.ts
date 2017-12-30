@@ -2,7 +2,7 @@ import { EOL } from 'os';
 import * as path from 'path';
 import { Disposable, StatusBarItem, Uri } from 'vscode';
 import { PythonSettings } from '../../common/configSettings';
-import { IProcessFactory } from '../../common/process/processFactory';
+import { IProcessServiceFactory } from '../../common/process/processServiceFactory';
 import * as utils from '../../common/utils';
 import { IInterpreterLocatorService, IInterpreterVersionService } from '../contracts';
 import { getActiveWorkspaceUri } from '../helpers';
@@ -14,7 +14,7 @@ export class InterpreterDisplay implements Disposable {
         private interpreterLocator: IInterpreterLocatorService,
         private virtualEnvMgr: IVirtualEnvironmentManager,
         private versionProvider: IInterpreterVersionService,
-        private processFactory: IProcessFactory) {
+        private processServiceFactory: IProcessServiceFactory) {
 
         this.statusBar.command = 'python.setInterpreter';
     }
@@ -70,7 +70,7 @@ export class InterpreterDisplay implements Disposable {
             .then(env => env ? env.name : '');
     }
     private async getFullyQualifiedPathToInterpreter(pythonPath: string, resource?: Uri) {
-        const processService = this.processFactory.create(resource);
+        const processService = this.processServiceFactory.create(resource);
         return processService.exec(pythonPath, ['-c', 'import sys;print(sys.executable)'])
             .then(output => output.stdout.trim())
             .then(value => value.length === 0 ? pythonPath : value)

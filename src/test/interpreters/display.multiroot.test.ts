@@ -2,7 +2,6 @@ import * as assert from 'assert';
 import * as path from 'path';
 import { ConfigurationTarget, Uri, window, workspace } from 'vscode';
 import { PythonSettings } from '../../client/common/configSettings';
-import { IProcessService } from '../../client/common/process/types';
 import { InterpreterDisplay } from '../../client/interpreter/display';
 import { VirtualEnvironmentManager } from '../../client/interpreter/virtualEnvs';
 import { clearPythonPathInWorkspaceFolder } from '../common';
@@ -11,6 +10,7 @@ import { MockStatusBarItem } from '../mockClasses';
 import { UnitTestIocContainer } from '../unittests/serviceRegistry';
 import { MockInterpreterVersionProvider } from './mocks';
 import { MockProvider } from './mocks';
+import { IProcessServiceFactory } from '../../client/common/process/processServiceFactory';
 
 const multirootPath = path.join(__dirname, '..', '..', '..', 'src', 'testMultiRootWkspc');
 const workspace3Uri = Uri.file(path.join(multirootPath, 'workspace3'));
@@ -57,8 +57,8 @@ suite('Multiroot Interpreters Display', () => {
         const provider = new MockProvider([]);
         const displayName = `${path.basename(pythonPath)} [Environment]`;
         const displayNameProvider = new MockInterpreterVersionProvider(displayName);
-        const processService = ioc.serviceContainer.get<IProcessService>(IProcessService);
-        const display = new InterpreterDisplay(statusBar, provider, new VirtualEnvironmentManager([]), displayNameProvider, processService);
+        const processServiceFactory = ioc.serviceContainer.get<IProcessServiceFactory>(IProcessServiceFactory);
+        const display = new InterpreterDisplay(statusBar, provider, new VirtualEnvironmentManager([]), displayNameProvider, processServiceFactory);
         await display.refresh();
 
         assert.equal(statusBar.text, displayName, 'Incorrect display name');

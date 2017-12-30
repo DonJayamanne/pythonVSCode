@@ -1,13 +1,13 @@
 import * as vscode from 'vscode';
 import { CancellationToken, CodeLens, TextDocument, Uri } from 'vscode';
 import * as settings from '../../common/configSettings';
-import { IProcessFactory } from '../../common/process/processFactory';
+import { IProcessServiceFactory } from '../../common/process/processServiceFactory';
 import { IS_WINDOWS } from '../../common/utils';
 
 export class ShebangCodeLensProvider implements vscode.CodeLensProvider {
     // tslint:disable-next-line:no-any
     public onDidChangeCodeLenses: vscode.Event<void> = vscode.workspace.onDidChangeConfiguration as any as vscode.Event<void>;
-    constructor(private processFactory: IProcessFactory) { }
+    constructor(private processServiceFactory: IProcessServiceFactory) { }
     // tslint:disable-next-line:function-name
     public async detectShebang(document: TextDocument): Promise<string | undefined> {
         const firstLine = document.lineAt(0);
@@ -37,7 +37,7 @@ export class ShebangCodeLensProvider implements vscode.CodeLensProvider {
             cmdFile = parts.shift()!;
             args = parts.concat(args);
         }
-        return this.processFactory.create(resource).exec(cmdFile, args)
+        return this.processServiceFactory.create(resource).exec(cmdFile, args)
             .then(output => output.stdout.trim())
             .catch(() => '');
     }

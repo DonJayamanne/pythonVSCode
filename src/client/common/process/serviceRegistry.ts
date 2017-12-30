@@ -7,11 +7,13 @@ import { ProcessService } from './proc';
 import { PythonExecutionFactory } from './pythonExecutionFactory';
 import { PythonToolExecutionService } from './pythonToolService';
 import { IBufferDecoder, IProcessService, IPythonExecutionFactory, IPythonToolExecutionService } from './types';
+import { IProcessServiceFactory, ProcessServiceFactory } from './processServiceFactory';
 
 export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.addSingleton<IBufferDecoder>(IBufferDecoder, BufferDecoder);
     serviceManager.addSingleton<IProcessService>(IProcessService, ProcessService, 'standard');
     serviceManager.addSingleton<IProcessService>(IProcessService, ProcessService, 'wsl');
+    serviceManager.addSingleton<IProcessServiceFactory>(IProcessService, ProcessServiceFactory);
     serviceManager.addSingleton<IPythonExecutionFactory>(IPythonExecutionFactory, PythonExecutionFactory);
     serviceManager.addSingleton<IPythonToolExecutionService>(IPythonToolExecutionService, PythonToolExecutionService);
 }

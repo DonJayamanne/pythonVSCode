@@ -9,7 +9,7 @@ import { ILinterHelper } from '../../linters/types';
 import { ITestsHelper } from '../../unittests/common/types';
 import { PythonSettings } from '../configSettings';
 import { STANDARD_OUTPUT_CHANNEL } from '../constants';
-import { IProcessFactory } from '../process/processFactory';
+import { IProcessServiceFactory } from '../process/processServiceFactory';
 import { IPythonExecutionFactory } from '../process/types';
 import { ITerminalService } from '../terminal/types';
 import { IInstaller, ILogger, InstallerResponse, IOutputChannel, IsWindows, ModuleNamePurpose, Product } from '../types';
@@ -204,7 +204,7 @@ export class Installer implements IInstaller {
             const pythonProcess = await this.serviceContainer.get<IPythonExecutionFactory>(IPythonExecutionFactory).create(resource);
             return pythonProcess.isModuleInstalled(executableName);
         } else {
-            const process = this.serviceContainer.get<IProcessFactory>(IProcessFactory).create(resource);
+            const process = this.serviceContainer.get<IProcessServiceFactory>(IProcessServiceFactory).create(resource);
             const prospectorPath = PythonSettings.getInstance(resource).linting.prospectorPath;
             return process.exec(prospectorPath, ['--version'], { mergeStdOutErr: true })
                 .then(() => true)

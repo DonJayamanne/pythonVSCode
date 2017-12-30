@@ -7,14 +7,14 @@ import { Container } from '../configSettings';
 import { IConfigurationService } from '../types';
 import { IProcessService } from './types';
 
-export const IProcessFactory = Symbol('IProcessFactory');
+export const IProcessServiceFactory = Symbol('IProcessServiceFactory');
 
-export interface IProcessFactory {
+export interface IProcessServiceFactory {
     create(resource?: Uri): IProcessService;
 }
 
 @injectable()
-export class ProcessFactory implements IProcessFactory {
+export class ProcessServiceFactory implements IProcessServiceFactory {
     constructor( @inject(IConfigurationService) private configService: IConfigurationService,
         @inject(IProcessService) @named('standard') private procService: IProcessService,
         @inject(IProcessService) @named('wsl') private wslProcService: IProcessService) { }
