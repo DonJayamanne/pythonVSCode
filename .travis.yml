@@ -22,6 +22,7 @@ matrix:
           python: 2.7
         - os: linux
           python: 3.6
+          env: TRAVIS_ENABLE_COVERAGE=true
         # # # Use generic language for osx
         # - os: osx
         #   language: generic
@@ -74,5 +75,3 @@ deploy:
     else
         echo "Not uploading build for $TRAVIS_BRANCH";
     fi
-  on:
-    branch: YarnAndCodeCoverage

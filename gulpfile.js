@@ -66,7 +66,11 @@ gulp.task('hygiene-modified', ['compile'], () => run({ mode: 'changes' }));
 
 gulp.task('clean', ['output:clean', 'cover:clean'], () => { });
 
-gulp.task('cover:upload', () => gulp.src('./coverage/lcov.info').pipe(coveralls()));
+gulp.task('cover:upload', () => {
+    if (process.env.TRAVIS_ENABLE_COVERAGE === 'true' && process.env.TRAVIS_UPLOAD_COVERAGE === 'true') {
+        return gulp.src('./coverage/lcov.info').pipe(coveralls());
+    }
+});
 
 gulp.task('output:clean', () => del('coverage'));
 
