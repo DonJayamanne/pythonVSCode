@@ -500,8 +500,9 @@ export class PythonDebugger extends LoggingDebugSession {
                         return new StackFrame(frameId, frame.FunctionName);
                     }
                     else {
+                        const realFilePath = fs.realpathSync(fileName);
                         return new StackFrame(frameId, frame.FunctionName,
-                            new Source(path.basename(frame.FileName), fileName),
+                            new Source(path.basename(realFilePath), realFilePath),
                             this.convertDebuggerLineToClient(frame.LineNo - 1),
                             1);
                     }
