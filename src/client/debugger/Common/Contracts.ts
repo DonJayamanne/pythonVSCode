@@ -79,6 +79,7 @@ export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArgum
 }
 
 export interface AttachRequestArguments extends DebugProtocol.AttachRequestArguments {
+    type?: DebuggerType;
     /** An absolute path to local directory with source. */
     debugOptions?: string[];
     localRoot?: string;
