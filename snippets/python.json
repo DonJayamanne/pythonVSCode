@@ -230,12 +230,12 @@
     },
     "ipdb": {
         "prefix": "ipdb",
-        "body": "import ipdb; ipdb.set_trace()",
+        "body": "__import__('ipdb').set_trace()",
         "description": "Code snippet for ipdb debug"
     },
     "pdb": {
         "prefix": "pdb",
-        "body": "import pdb; pdb.set_trace()",
+        "body": "__import__('pdb').set_trace()",
         "description": "Code snippet for pdb debug"
     },
     "pudb": {
