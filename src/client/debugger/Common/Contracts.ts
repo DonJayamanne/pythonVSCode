@@ -61,6 +61,7 @@ export type DebuggerType = 'python' | 'pythonExperimental';
 export interface AdditionalLaunchDebugOptions {
     redirectOutput?: boolean;
     django?: boolean;
+    gevent?: boolean;
     jinja?: boolean;
     debugStdLib?: boolean;
     sudo?: boolean;
@@ -70,6 +71,7 @@ export interface AdditionalLaunchDebugOptions {
 export interface AdditionalAttachDebugOptions {
     redirectOutput?: boolean;
     django?: boolean;
+    gevent?: boolean;
     jinja?: boolean;
     debugStdLib?: boolean;
 }
