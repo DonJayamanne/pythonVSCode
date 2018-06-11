@@ -3,7 +3,7 @@
 
 import { inject, injectable } from 'inversify';
 import * as path from 'path';
-import { ExtensionContext, OutputChannel, Progress, ProgressLocation, window } from 'vscode';
+import { ExtensionContext, OutputChannel } from 'vscode';
 import { Disposable, LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient';
 import { IApplicationShell, ICommandManager } from '../common/application/types';
 import { isTestExecution, STANDARD_OUTPUT_CHANNEL } from '../common/constants';
@@ -46,9 +46,6 @@ export class AnalysisExtensionActivator implements IExtensionActivator {
     private languageClient: LanguageClient | undefined;
     private readonly context: ExtensionContext;
     private interpreterHash: string = '';
-    private statusBarMessage: Disposable;
-    private progress: Progress<{ message?: string; increment?: number }>;
-    private progressDeferred: Deferred<void>;
 
     constructor(@inject(IServiceContainer) private readonly services: IServiceContainer) {
         this.context = this.services.get<IExtensionContext>(IExtensionContext);
@@ -202,8 +199,13 @@ export class AnalysisExtensionActivator implements IExtensionActivator {
         properties['DatabasePath'] = path.join(context.extensionPath, analysisEngineFolder);
 
         const envProvider = this.services.get<IEnvironmentVariablesProvider>(IEnvironmentVariablesProvider);
-        const pythonPath = (await envProvider.getEnvironmentVariables()).PYTHONPATH;
+        let pythonPath = (await envProvider.getEnvironmentVariables()).PYTHONPATH;
         this.interpreterHash = interpreterData ? interpreterData.hash : '';
+
+        searchPaths = searchPaths.replace(/\\\\/g, '\\');
+        if (pythonPath) {
+            pythonPath = pythonPath.replace(/\\\\/g, '\\');
+        }
 
         // tslint:disable-next-line:no-string-literal
         properties['SearchPaths'] = `${searchPaths};${pythonPath ? pythonPath : ''}`;
@@ -232,31 +234,5 @@ export class AnalysisExtensionActivator implements IExtensionActivator {
                 testEnvironment: isTestExecution()
             }
         };
-    }
-
-    private connectNotificationHandlers(): void {
-        this.languageClient!.onNotification('python/setStatusBarMessage', (m: string) => {
-            if (this.statusBarMessage) {
-                this.statusBarMessage.dispose();
-            }
-            this.statusBarMessage = window.setStatusBarMessage(m);
-        });
-        this.languageClient!.onNotification('python/beginProgress', async args => {
-            this.progressDeferred = createDeferred<void>();
-            window.withProgress({
-                location: ProgressLocation.Window,
-                title: args.title
-            }, progress => {
-                this.progress = progress;
-                return this.progressDeferred.promise;
-            });
-        });
-        this.languageClient!.onNotification('python/reportProgress', (m: string) => {
-            if (!this.progress) {
-                return;
-            }
-            this.progress.report({ message: m });
-        });
-        this.languageClient!.onNotification('python/endProgress', _ => this.progressDeferred.resolve());
     }
 }
