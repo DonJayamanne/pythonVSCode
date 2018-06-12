@@ -202,13 +202,14 @@ export class AnalysisExtensionActivator implements IExtensionActivator {
         let pythonPath = (await envProvider.getEnvironmentVariables()).PYTHONPATH;
         this.interpreterHash = interpreterData ? interpreterData.hash : '';
 
-        searchPaths = searchPaths.replace(/\\\\/g, '\\');
-        if (pythonPath) {
-            pythonPath = pythonPath.replace(/\\\\/g, '\\');
-        }
+        // Make sure paths do not contain multiple slashes so file URIs
+        // in VS Code (Node.js) and in the language server (.NET) match.
+        // Note: for the language server paths separator is always ;
+        searchPaths = searchPaths.split(path.delimiter).map(p => path.normalize(p)).join(';');
+        pythonPath = pythonPath ? path.normalize(pythonPath) : '';
 
         // tslint:disable-next-line:no-string-literal
-        properties['SearchPaths'] = `${searchPaths};${pythonPath ? pythonPath : ''}`;
+        properties['SearchPaths'] = `${searchPaths};${pythonPath}`;
         const selector: string[] = [PYTHON];
 
         // Options to control the language client
