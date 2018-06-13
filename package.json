@@ -2,7 +2,7 @@
     "name": "python",
     "displayName": "Python",
     "description": "Linting, Debugging (multi-threaded, remote), Intellisense, code formatting, refactoring, unit tests, snippets, and more.",
-    "version": "2018.6.0-alpha",
+    "version": "2018.6.0-beta",
     "publisher": "ms-python",
     "author": {
         "name": "Microsoft Corporation"
@@ -1954,6 +1954,7 @@
         "chai-as-promised": "^7.1.1",
         "codecov": "^3.0.0",
         "colors": "^1.2.1",
+        "cross-spawn": "^6.0.5",
         "debounce": "^1.1.0",
         "decache": "^4.4.0",
         "del": "^3.0.0",
