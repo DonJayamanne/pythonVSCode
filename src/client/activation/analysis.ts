@@ -10,7 +10,7 @@ import { isTestExecution, STANDARD_OUTPUT_CHANNEL } from '../common/constants';
 import { createDeferred, Deferred } from '../common/helpers';
 import { IFileSystem, IPlatformService } from '../common/platform/types';
 import { StopWatch } from '../common/stopWatch';
-import { IConfigurationService, IExtensionContext, IOutputChannel } from '../common/types';
+import { IConfigurationService, IExtensionContext, ILogger, IOutputChannel } from '../common/types';
 import { IEnvironmentVariablesProvider } from '../common/variables/types';
 import { IInterpreterService } from '../interpreter/contracts';
 import { IServiceContainer } from '../ioc/types';
@@ -20,9 +20,11 @@ import {
     PYTHON_ANALYSIS_ENGINE_ERROR
 } from '../telemetry/constants';
 import { getTelemetryReporter } from '../telemetry/telemetry';
+import { IUnitTestManagementService } from '../unittests/types';
 import { AnalysisEngineDownloader } from './downloader';
 import { InterpreterDataService } from './interpreterDataService';
 import { PlatformData } from './platformData';
+import { SymbolProvider } from './symbolProvider';
 import { IExtensionActivator } from './types';
 
 const PYTHON = 'python';
@@ -75,6 +77,14 @@ export class AnalysisExtensionActivator implements IExtensionActivator {
             return false;
         }
         this.disposables.push(this.interpreterService.onDidChangeInterpreter(() => this.restartLanguageServer()));
+
+        this.startupCompleted.promise.then(() => {
+            const testManagementService = this.services.get<IUnitTestManagementService>(IUnitTestManagementService);
+            testManagementService.activate()
+                .then(() => testManagementService.activateCodeLenses(new SymbolProvider(this.languageClient!)))
+                .catch(ex => this.services.get<ILogger>(ILogger).logError('Failed to activate Unit Tests', ex));
+        }).ignoreErrors();
+
         return this.startLanguageServer(this.context, clientOptions);
     }
 
