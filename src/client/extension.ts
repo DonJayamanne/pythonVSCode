@@ -10,9 +10,11 @@ import { StopWatch } from './common/stopWatch';
 const stopWatch = new StopWatch();
 
 import { Container } from 'inversify';
-import { debug, Disposable, ExtensionContext, extensions, IndentAction, languages, Memento, OutputChannel, window } from 'vscode';
+import { CodeActionKind, debug, Disposable, ExtensionContext, extensions, IndentAction, languages, Memento, OutputChannel, window } from 'vscode';
 import { registerTypes as activationRegisterTypes } from './activation/serviceRegistry';
 import { IExtensionActivationService } from './activation/types';
+import { registerTypes as appRegisterTypes } from './application/serviceRegistry';
+import { IApplicationDiagnostics } from './application/types';
 import { IWorkspaceService } from './common/application/types';
 import { PythonSettings } from './common/configSettings';
 import { PYTHON, PYTHON_LANGUAGE, STANDARD_OUTPUT_CHANNEL } from './common/constants';
@@ -29,7 +31,8 @@ import { registerTypes as variableRegisterTypes } from './common/variables/servi
 import { AttachRequestArguments, LaunchRequestArguments } from './debugger/Common/Contracts';
 import { BaseConfigurationProvider } from './debugger/configProviders/baseProvider';
 import { registerTypes as debugConfigurationRegisterTypes } from './debugger/configProviders/serviceRegistry';
-import { IDebugConfigurationProvider } from './debugger/types';
+import { registerTypes as debuggerRegisterTypes } from './debugger/serviceRegistry';
+import { IDebugConfigurationProvider, IExperimentalDebuggerBanner } from './debugger/types';
 import { registerTypes as formattersRegisterTypes } from './formatters/serviceRegistry';
 import { IInterpreterSelector } from './interpreter/configuration/types';
 import { ICondaService, IInterpreterService, PythonInterpreter } from './interpreter/contracts';
@@ -67,6 +70,9 @@ export async function activate(context: ExtensionContext) {
     const serviceManager = new ServiceManager(cont);
     const serviceContainer = new ServiceContainer(cont);
     registerServices(context, serviceManager, serviceContainer);
+
+    const appDiagnostics = serviceContainer.get<IApplicationDiagnostics>(IApplicationDiagnostics);
+    await appDiagnostics.performPreStartupHealthCheck();
 
     const interpreterManager = serviceContainer.get<IInterpreterService>(IInterpreterService);
     // This must be completed before we can continue as language server needs the interpreter path.
@@ -144,12 +150,14 @@ export async function activate(context: ExtensionContext) {
     context.subscriptions.push(new ReplProvider(serviceContainer));
     context.subscriptions.push(new TerminalProvider(serviceContainer));
 
-    context.subscriptions.push(languages.registerCodeActionsProvider(PYTHON, new PythonCodeActionProvider()));
+    context.subscriptions.push(languages.registerCodeActionsProvider(PYTHON, new PythonCodeActionProvider(), { providedCodeActionKinds: [CodeActionKind.SourceOrganizeImports] }));
 
     type ConfigurationProvider = BaseConfigurationProvider<LaunchRequestArguments, AttachRequestArguments>;
     serviceContainer.getAll<ConfigurationProvider>(IDebugConfigurationProvider).forEach(debugConfig => {
         context.subscriptions.push(debug.registerDebugConfigurationProvider(debugConfig.debugType, debugConfig));
     });
+
+    serviceContainer.get<IExperimentalDebuggerBanner>(IExperimentalDebuggerBanner).initialize();
     activationDeferred.resolve();
 }
 
@@ -178,6 +186,8 @@ function registerServices(context: ExtensionContext, serviceManager: ServiceMana
     installerRegisterTypes(serviceManager);
     commonRegisterTerminalTypes(serviceManager);
     debugConfigurationRegisterTypes(serviceManager);
+    debuggerRegisterTypes(serviceManager);
+    appRegisterTypes(serviceManager);
 }
 
 async function sendStartupTelemetry(activatedPromise: Promise<void>, serviceContainer: IServiceContainer) {
