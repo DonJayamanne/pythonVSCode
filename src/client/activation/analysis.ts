@@ -190,7 +190,7 @@ export class AnalysisExtensionActivator implements IExtensionActivator {
             const interpreterDataService = new InterpreterDataService(this.context, this.services);
             interpreterData = await interpreterDataService.getInterpreterData();
         } catch (ex) {
-            this.appShell.showErrorMessage('Unable to determine path to the Python interpreter. IntelliSense will be limited.');
+            this.appShell.showWarningMessage('Unable to determine path to the Python interpreter. IntelliSense will be limited.');
         }
 
         this.interpreterHash = interpreterData ? interpreterData.hash : '';
@@ -245,6 +245,8 @@ export class AnalysisExtensionActivator implements IExtensionActivator {
                     trimDocumentationText: false,
                     maxDocumentationTextLength: 0
                 },
+                searchPaths,
+                typeshedPaths: settings.autoComplete.typeshedPaths,
                 asyncStartup: true,
                 excludeFiles: excludeFiles,
                 testEnvironment: isTestExecution()
