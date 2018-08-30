@@ -25,14 +25,14 @@ export class TelemetryEvent extends OutputEvent {
     }
 }
 
-export const DjangoApp = 'DJANGO';
 export const VALID_DEBUG_OPTIONS = [
     'WaitOnAbnormalExit',
     'WaitOnNormalExit',
     'RedirectOutput',
     'DebugStdLib',
     'BreakOnSystemExitZero',
-    'Django',
+    'DjangoDebugging',
+    'Django'
 ];
 
 export enum DebugFlags {
