@@ -333,17 +333,12 @@ export class PythonDebugger extends LoggingDebugSession {
         let isDjangoFile = false;
         if (this.launchArgs &&
             Array.isArray(this.launchArgs.debugOptions) &&
-            this.launchArgs.debugOptions.indexOf(DebugOptions.Django) >= 0) {
+            (this.launchArgs.debugOptions.indexOf(DebugOptions.Django) >= 0 || this.launchArgs.debugOptions.indexOf(DebugOptions.DjangoDebugging) >= 0)) {
             isDjangoFile = filePath.toUpperCase().endsWith(".HTML");
         }
-        if (this.attachArgs !== null &&
+        if (this.attachArgs &&
             Array.isArray(this.attachArgs.debugOptions) &&
-            this.attachArgs.debugOptions.indexOf(DebugOptions.DjangoDebugging) >= 0) {
-            isDjangoFile = filePath.toUpperCase().endsWith(".HTML");
-        }
-        if (this.attachArgs !== null &&
-            Array.isArray(this.attachArgs.debugOptions) &&
-            this.attachArgs.debugOptions.indexOf(DebugOptions.DjangoDebugging) >= 0) {
+            (this.attachArgs.debugOptions.indexOf(DebugOptions.Django) >= 0 || this.attachArgs.debugOptions.indexOf(DebugOptions.DjangoDebugging) >= 0)) {
             isDjangoFile = filePath.toUpperCase().endsWith(".HTML");
         }
 
