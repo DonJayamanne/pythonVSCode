@@ -1,0 +1,342 @@
+8:52:04 PM, 9/30/2018
+Started @ Sun Sep 30 2018 20:52:04 GMT-0700 (PDT)
+From Client:
+Content-Length: 324
+
+{"command":"initialize","arguments":{"clientID":"vscode","clientName":"Visual Studio Code - Insiders","adapterID":"python","pathFormat":"path","linesStartAt1":true,"columnsStartAt1":true,"supportsVariableType":true,"supportsVariablePaging":true,"supportsRunInTerminalRequest":true,"locale":"en-us"},"type":"request","seq":1}
+To Client:
+Content-Length: 653
+
+{"seq":1,"type":"response","request_seq":1,"command":"initialize","success":true,"body":{"supportsExceptionInfoRequest":true,"supportsConfigurationDoneRequest":true,"supportsConditionalBreakpoints":true,"supportsSetVariable":true,"supportsExceptionOptions":true,"supportsEvaluateForHovers":true,"supportsModulesRequest":true,"supportsValueFormattingOptions":true,"supportsHitConditionalBreakpoints":true,"supportsSetExpression":true,"supportsLogPoints":true,"supportTerminateDebuggee":true,"exceptionBreakpointFilters":[{"filter":"raised","label":"Raised Exceptions","default":false},{"filter":"uncaught","label":"Uncaught Exceptions","default":true}]}}
+From Client:
+Content-Length: 487
+
+{"command":"attach","arguments":{"name":"Python: Attach","type":"python","request":"attach","port":5678,"xhost":"10.0.0.224","host":"localhost","logToFile":true,"pathMappings":[{"localRoot":"/Users/donjayamanne/Desktop/Development/PythonStuff/vscodePythonTesting/dbg","remoteRoot":"/Users/donjayamanne/Desktop/Development/PythonStuff/vscodePythonTesting/dbg"}],"debugOptions":["RedirectOutput","UnixClient"],"__sessionId":"4e26e28c-d1dd-451a-9d92-94f30dbf6e7a"},"type":"request","seq":2}
+To Client:
+Content-Length: 487
+
+
+To Client:
+{"command":"attach","arguments":{"name":"Python: Attach","type":"python","request":"attach","port":5678,"xhost":"10.0.0.224","host":"localhost","logToFile":true,"pathMappings":[{"localRoot":"/Users/donjayamanne/Desktop/Development/PythonStuff/vscodePythonTesting/dbg","remoteRoot":"/Users/donjayamanne/Desktop/Development/PythonStuff/vscodePythonTesting/dbg"}],"debugOptions":["RedirectOutput","UnixClient"],"__sessionId":"4e26e28c-d1dd-451a-9d92-94f30dbf6e7a"},"type":"request","seq":2}
+To Client:
+Content-Length: 324
+
+
+To Client:
+{"command":"initialize","arguments":{"clientID":"vscode","clientName":"Visual Studio Code - Insiders","adapterID":"python","pathFormat":"path","linesStartAt1":true,"columnsStartAt1":true,"supportsVariableType":true,"supportsVariablePaging":true,"supportsRunInTerminalRequest":true,"locale":"en-us"},"type":"request","seq":1}
+To Client:
+Content-Length: 130
+
+{"type": "event", "seq": 0, "event": "output", "body": {"category": "telemetry", "output": "ptvsd", "data": {"version": "4.1.3"}}}Content-Length: 113
+
+
+To Client:
+{"type": "response", "seq": 1, "request_seq": 2, "success": true, "command": "attach", "message": "", "body": {}}
+To Client:
+Content-Length: 787
+
+{"type": "response", "seq": 2, "request_seq": 1, "success": true, "command": "initialize", "message": "", "body": {"supportsCompletionsRequest": true, "supportsConditionalBreakpoints": true, "supportsConfigurationDoneRequest": true, "supportsDebuggerProperties": true, "supportsEvaluateForHovers": true, "supportsExceptionInfoRequest": true, "supportsExceptionOptions": true, "supportsHitConditionalBreakpoints": true, "supportsLogPoints": true, "supportsModulesRequest": true, "supportsSetExpression": true, "supportsSetVariable": true, "supportsValueFormattingOptions": true, "supportTerminateDebuggee": true, "exceptionBreakpointFilters": [{"filter": "raised", "label": "Raised Exceptions", "default": false}, {"filter": "uncaught", "label": "Uncaught Exceptions", "default": true}]}}Content-Length: 63
+
+{"type": "event", "seq": 3, "event": "initialized", "body": {}}
+From Client:
+Content-Length: 261
+
+{"command":"setBreakpoints","arguments":{"source":{"name":"app.py","path":"/Users/donjayamanne/Desktop/Development/PythonStuff/vscodePythonTesting/dbg/app.py"},"lines":[5,9],"breakpoints":[{"line":5},{"line":9}],"sourceModified":false},"type":"request","seq":3}
+To Client:
+Content-Length: 216
+
+{"type": "response", "seq": 4, "request_seq": 3, "success": true, "command": "setBreakpoints", "message": "", "body": {"breakpoints": [{"id": 1, "verified": true, "line": 5}, {"id": 2, "verified": true, "line": 9}]}}
+From Client:
+Content-Length: 99
+
+{"command":"setExceptionBreakpoints","arguments":{"filters":["uncaught"]},"type":"request","seq":4}
+To Client:
+Content-Length: 130
+
+{"type": "response", "seq": 5, "request_seq": 4, "success": true, "command": "setExceptionBreakpoints", "message": "", "body": {}}
+From Client:
+Content-Length: 56
+
+{"command":"configurationDone","type":"request","seq":5}
+To Client:
+Content-Length: 124
+
+{"type": "response", "seq": 6, "request_seq": 5, "success": true, "command": "configurationDone", "message": "", "body": {}}
+To Client:
+Content-Length: 153
+
+
+To Client:
+{"type": "event", "seq": 7, "event": "process", "body": {"name": "manage.py", "systemProcessId": 99805, "isLocalProcess": true, "startMethod": "attach"}}
+From Client:
+Content-Length: 46
+
+{"command":"threads","type":"request","seq":6}
+To Client:
+Content-Length: 92
+
+{"type": "event", "seq": 8, "event": "thread", "body": {"reason": "started", "threadId": 1}}Content-Length: 158
+
+
+To Client:
+{"type": "response", "seq": 9, "request_seq": 6, "success": true, "command": "threads", "message": "", "body": {"threads": [{"id": 1, "name": "MainThread"}]}}
+From Client:
+Content-Length: 46
+
+{"command":"threads","type":"request","seq":7}
+To Client:
+Content-Length: 159
+
+{"type": "response", "seq": 10, "request_seq": 7, "success": true, "command": "threads", "message": "", "body": {"threads": [{"id": 1, "name": "MainThread"}]}}
+To Client:
+Content-Length: 124
+
+
+To Client:
+{"type": "event", "seq": 11, "event": "output", "body": {"category": "stdout", "output": "Performing system checks...\n\n"}}
+To Client:
+Content-Length: 142
+
+
+To Client:
+{"type": "event", "seq": 12, "event": "output", "body": {"category": "stdout", "output": "System check identified no issues (0 silenced).\n"}}
+To Client:
+Content-Length: 122
+
+{"type": "event", "seq": 13, "event": "output", "body": {"category": "stdout", "output": "October 01, 2018 - 03:52:06\n"}}
+To Client:
+Content-Length: 240
+
+{"type": "event", "seq": 14, "event": "output", "body": {"category": "stdout", "output": "Django version 2.1.1, using settings 'web_project.settings'\nStarting development server at http://0.0.0.0:8000/\nQuit the server with CONTROL-C.\n"}}
+To Client:
+Content-Length: 182
+
+{"type": "event", "seq": 15, "event": "output", "body": {"category": "stderr", "output": "Invalid HTTP_HOST header: '0.0.0.0:8000'. You may need to add '0.0.0.0' to ALLOWED_HOSTS."}}
+To Client:
+Content-Length: 95
+
+{"type": "event", "seq": 16, "event": "output", "body": {"category": "stderr", "output": "\n"}}
+To Client:
+Content-Length: 107
+
+
+To Client:
+{"type": "event", "seq": 17, "event": "output", "body": {"category": "stderr", "output": "Bad Request: /"}}
+To Client:
+Content-Length: 95
+
+
+To Client:
+{"type": "event", "seq": 18, "event": "output", "body": {"category": "stderr", "output": "\n"}}
+To Client:
+Content-Length: 165
+
+
+To Client:
+{"type": "event", "seq": 19, "event": "output", "body": {"category": "stderr", "output": "[01/Oct/2018 03:52:14] \u001b[31;1m\"GET / HTTP/1.1\" 400 63257\u001b[0m"}}
+To Client:
+Content-Length: 95
+
+
+To Client:
+{"type": "event", "seq": 20, "event": "output", "body": {"category": "stderr", "output": "\n"}}
+To Client:
+Content-Length: 182
+
+
+To Client:
+{"type": "event", "seq": 21, "event": "output", "body": {"category": "stderr", "output": "Invalid HTTP_HOST header: '0.0.0.0:8000'. You may need to add '0.0.0.0' to ALLOWED_HOSTS."}}
+To Client:
+Content-Length: 95
+
+
+To Client:
+{"type": "event", "seq": 22, "event": "output", "body": {"category": "stderr", "output": "\n"}}
+To Client:
+Content-Length: 118
+
+{"type": "event", "seq": 23, "event": "output", "body": {"category": "stderr", "output": "Bad Request: /favicon.ico"}}
+To Client:
+Content-Length: 95
+
+
+To Client:
+{"type": "event", "seq": 24, "event": "output", "body": {"category": "stderr", "output": "\n"}}
+To Client:
+Content-Length: 176
+
+
+To Client:
+{"type": "event", "seq": 25, "event": "output", "body": {"category": "stderr", "output": "[01/Oct/2018 03:52:15] \u001b[31;1m\"GET /favicon.ico HTTP/1.1\" 400 63333\u001b[0m"}}
+To Client:
+Content-Length: 95
+
+{"type": "event", "seq": 26, "event": "output", "body": {"category": "stderr", "output": "\n"}}
+To Client:
+Content-Length: 159
+
+
+To Client:
+{"type": "event", "seq": 27, "event": "output", "body": {"category": "stderr", "output": "[01/Oct/2018 03:52:22] \u001b[m\"GET / HTTP/1.1\" 200 674\u001b[0m"}}
+To Client:
+Content-Length: 95
+
+
+To Client:
+{"type": "event", "seq": 28, "event": "output", "body": {"category": "stderr", "output": "\n"}}
+To Client:
+Content-Length: 180
+
+{"type": "event", "seq": 29, "event": "output", "body": {"category": "stderr", "output": "[01/Oct/2018 03:52:22] \u001b[36m\"GET /static/hello/site.css HTTP/1.1\" 304 0\u001b[0m"}}
+To Client:
+Content-Length: 95
+
+{"type": "event", "seq": 30, "event": "output", "body": {"category": "stderr", "output": "\n"}}
+To Client:
+Content-Length: 167
+
+
+To Client:
+{"type": "event", "seq": 31, "event": "output", "body": {"category": "stderr", "output": "[01/Oct/2018 03:52:24] \u001b[m\"GET /contact/ HTTP/1.1\" 200 617\u001b[0m"}}
+To Client:
+Content-Length: 95
+
+
+To Client:
+{"type": "event", "seq": 32, "event": "output", "body": {"category": "stderr", "output": "\n"}}
+To Client:
+Content-Length: 167
+
+{"type": "event", "seq": 33, "event": "output", "body": {"category": "stderr", "output": "[01/Oct/2018 03:52:34] \u001b[m\"GET /contact/ HTTP/1.1\" 200 617\u001b[0m"}}
+To Client:
+Content-Length: 95
+
+
+To Client:
+{"type": "event", "seq": 34, "event": "output", "body": {"category": "stderr", "output": "\n"}}
+To Client:
+Content-Length: 165
+
+
+To Client:
+{"type": "event", "seq": 35, "event": "output", "body": {"category": "stderr", "output": "[01/Oct/2018 03:52:34] \u001b[m\"GET /about/ HTTP/1.1\" 200 610\u001b[0m"}}
+To Client:
+Content-Length: 95
+
+{"type": "event", "seq": 36, "event": "output", "body": {"category": "stderr", "output": "\n"}}
+To Client:
+Content-Length: 163
+
+{"type": "event", "seq": 37, "event": "output", "body": {"category": "stderr", "output": "[01/Oct/2018 03:52:35] \u001b[m\"GET /log/ HTTP/1.1\" 200 940\u001b[0m"}}
+To Client:
+Content-Length: 95
+
+
+To Client:
+{"type": "event", "seq": 38, "event": "output", "body": {"category": "stderr", "output": "\n"}}
+To Client:
+Content-Length: 166
+
+{"type": "event", "seq": 39, "event": "stopped", "body": {"reason": "exception", "threadId": 1, "text": "SystemExit", "description": "0", "preserveFocusHint": false}}
+From Client:
+Content-Length: 46
+
+{"command":"threads","type":"request","seq":8}
+To Client:
+Content-Length: 159
+
+
+To Client:
+{"type": "response", "seq": 40, "request_seq": 8, "success": true, "command": "threads", "message": "", "body": {"threads": [{"id": 1, "name": "MainThread"}]}}
+From Client:
+Content-Length: 103
+
+{"command":"stackTrace","arguments":{"threadId":1,"startFrame":0,"levels":20},"type":"request","seq":9}
+To Client:
+Content-Length: 348
+
+{"type": "event", "seq": 41, "event": "module", "body": {"reason": "new", "module": {"id": 1, "package": "django.core.management.commands", "path": "/Users/donjayamanne/.local/share/virtualenvs/pipEnvWorkspace-kFgAn__6/lib/python3.6/site-packages/django/core/management/commands/runserver.py", "name": "django.core.management.commands.runserver"}}}
+To Client:
+Content-Length: 311
+
+
+To Client:
+{"type": "event", "seq": 42, "event": "module", "body": {"reason": "new", "module": {"id": 2, "package": "django.core.management", "path": "/Users/donjayamanne/.local/share/virtualenvs/pipEnvWorkspace-kFgAn__6/lib/python3.6/site-packages/django/core/management/base.py", "name": "django.core.management.base"}}}
+To Client:
+Content-Length: 310
+
+
+To Client:
+{"type": "event", "seq": 43, "event": "module", "body": {"reason": "new", "module": {"id": 3, "package": "django.core.management", "path": "/Users/donjayamanne/.local/share/virtualenvs/pipEnvWorkspace-kFgAn__6/lib/python3.6/site-packages/django/core/management/__init__.py", "name": "django.core.management"}}}
+To Client:
+Content-Length: 211
+
+{"type": "event", "seq": 44, "event": "module", "body": {"reason": "new", "module": {"id": 4, "package": "", "path": "/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/runpy.py", "name": "runpy"}}}
+To Client:
+Content-Length: 2294
+
+
+To Client:
+{"type": "response", "seq": 45, "request_seq": 9, "success": true, "command": "stackTrace", "message": "", "body": {"stackFrames": [{"id": 1, "name": "inner_run", "source": {"path": "/Users/donjayamanne/.local/share/virtualenvs/pipEnvWorkspace-kFgAn__6/lib/python3.6/site-packages/django/core/management/commands/runserver.py", "sourceReference": 1}, "line": 157, "column": 1}, {"id": 2, "name": "run", "source": {"path": "/Users/donjayamanne/.local/share/virtualenvs/pipEnvWorkspace-kFgAn__6/lib/python3.6/site-packages/django/core/management/commands/runserver.py", "sourceReference": 1}, "line": 104, "column": 1}, {"id": 3, "name": "handle", "source": {"path": "/Users/donjayamanne/.local/share/virtualenvs/pipEnvWorkspace-kFgAn__6/lib/python3.6/site-packages/django/core/management/commands/runserver.py", "sourceReference": 1}, "line": 95, "column": 1}, {"id": 4, "name": "execute", "source": {"path": "/Users/donjayamanne/.local/share/virtualenvs/pipEnvWorkspace-kFgAn__6/lib/python3.6/site-packages/django/core/management/base.py", "sourceReference": 2}, "line": 353, "column": 1}, {"id": 5, "name": "execute", "source": {"path": "/Users/donjayamanne/.local/share/virtualenvs/pipEnvWorkspace-kFgAn__6/lib/python3.6/site-packages/django/core/management/commands/runserver.py", "sourceReference": 1}, "line": 60, "column": 1}, {"id": 6, "name": "run_from_argv", "source": {"path": "/Users/donjayamanne/.local/share/virtualenvs/pipEnvWorkspace-kFgAn__6/lib/python3.6/site-packages/django/core/management/base.py", "sourceReference": 2}, "line": 333, "column": 1}, {"id": 7, "name": "execute", "source": {"path": "/Users/donjayamanne/.local/share/virtualenvs/pipEnvWorkspace-kFgAn__6/lib/python3.6/site-packages/django/core/management/__init__.py", "sourceReference": 3}, "line": 375, "column": 1}, {"id": 8, "name": "execute_from_command_line", "source": {"path": "/Users/donjayamanne/.local/share/virtualenvs/pipEnvWorkspace-kFgAn__6/lib/python3.6/site-packages/django/core/management/__init__.py", "sourceReference": 3}, "line": 381, "column": 1}, {"id": 9, "name": "<module>", "source": {"path": "/Users/donjayamanne/Desktop/Development/PythonStuff/vscodePythonTesting/python-sample-vscode-django-tutorial/manage.py", "sourceReference": 4}, "line": 15, "column": 1}], "totalFrames": 9}}
+From Client:
+Content-Length: 263
+
+{"command":"source","arguments":{"sourceReference":1,"source":{"path":"/Users/donjayamanne/.local/share/virtualenvs/pipEnvWorkspace-kFgAn__6/lib/python3.6/site-packages/django/core/management/commands/runserver.py","sourceReference":1}},"type":"request","seq":10}
+To Client:
+Content-Length: 6635
+
+{"type": "response", "seq": 46, "request_seq": 10, "success": true, "command": "source", "message": "", "body": {"content": "import errno\nimport os\nimport re\nimport socket\nimport sys\nfrom datetime import datetime\n\nfrom django.conf import settings\nfrom django.core.management.base import BaseCommand, CommandError\nfrom django.core.servers.basehttp import (\n    WSGIServer, get_internal_wsgi_application, run,\n)\nfrom django.utils import autoreload\n\nnaiveip_re = re.compile(r\"\"\"^(?:\n(?P<addr>\n    (?P<ipv4>\\d{1,3}(?:\\.\\d{1,3}){3}) |         # IPv4 address\n    (?P<ipv6>\\[[a-fA-F0-9:]+\\]) |               # IPv6 address\n    (?P<fqdn>[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*) # FQDN\n):)?(?P<port>\\d+)$\"\"\", re.X)\n\n\nclass Command(BaseCommand):\n    help = \"Starts a lightweight Web server for development.\"\n\n    # Validation is called explicitly each time the server is reloaded.\n    requires_system_checks = False\n    stealth_options = ('shutdown_message',)\n\n    default_addr = '127.0.0.1'\n    default_addr_ipv6 = '::1'\n    default_port = '8000'\n    protocol = 'http'\n    server_cls = WSGIServer\n\n    def add_arguments(self, parser):\n        parser.add_argument(\n            'addrport', nargs='?',\n            help='Optional port number, or ipaddr:port'\n        )\n        parser.add_argument(\n            '--ipv6', '-6', action='store_true', dest='use_ipv6',\n            help='Tells Django to use an IPv6 address.',\n        )\n        parser.add_argument(\n            '--nothreading', action='store_false', dest='use_threading',\n            help='Tells Django to NOT use threading.',\n        )\n        parser.add_argument(\n            '--noreload', action='store_false', dest='use_reloader',\n            help='Tells Django to NOT use the auto-reloader.',\n        )\n\n    def execute(self, *args, **options):\n        if options['no_color']:\n            # We rely on the environment because it's currently the only\n            # way to reach WSGIRequestHandler. This seems an acceptable\n            # compromise considering `runserver` runs indefinitely.\n            os.environ[\"DJANGO_COLORS\"] = \"nocolor\"\n        super().execute(*args, **options)\n\n    def get_handler(self, *args, **options):\n        \"\"\"Return the default WSGI handler for the runner.\"\"\"\n        return get_internal_wsgi_application()\n\n    def handle(self, *args, **options):\n        if not settings.DEBUG and not settings.ALLOWED_HOSTS:\n            raise CommandError('You must set settings.ALLOWED_HOSTS if DEBUG is False.')\n\n        self.use_ipv6 = options['use_ipv6']\n        if self.use_ipv6 and not socket.has_ipv6:\n            raise CommandError('Your Python does not support IPv6.')\n        self._raw_ipv6 = False\n        if not options['addrport']:\n            self.addr = ''\n            self.port = self.default_port\n        else:\n            m = re.match(naiveip_re, options['addrport'])\n            if m is None:\n                raise CommandError('\"%s\" is not a valid port number '\n                                   'or address:port pair.' % options['addrport'])\n            self.addr, _ipv4, _ipv6, _fqdn, self.port = m.groups()\n            if not self.port.isdigit():\n                raise CommandError(\"%r is not a valid port number.\" % self.port)\n            if self.addr:\n                if _ipv6:\n                    self.addr = self.addr[1:-1]\n                    self.use_ipv6 = True\n                    self._raw_ipv6 = True\n                elif self.use_ipv6 and not _fqdn:\n                    raise CommandError('\"%s\" is not a valid IPv6 address.' % self.addr)\n        if not self.addr:\n            self.addr = self.default_addr_ipv6 if self.use_ipv6 else self.default_addr\n            self._raw_ipv6 = self.use_ipv6\n        self.run(**options)\n\n    def run(self, **options):\n        \"\"\"Run the server, using the autoreloader if needed.\"\"\"\n        use_reloader = options['use_reloader']\n\n        if use_reloader:\n            autoreload.main(self.inner_run, None, options)\n        else:\n            self.inner_run(None, **options)\n\n    def inner_run(self, *args, **options):\n        # If an exception was silenced in ManagementUtility.execute in order\n        # to be raised in the child process, raise it now.\n        autoreload.raise_last_exception()\n\n        threading = options['use_threading']\n        # 'shutdown_message' is a stealth option.\n        shutdown_message = options.get('shutdown_message', '')\n        quit_command = 'CTRL-BREAK' if sys.platform == 'win32' else 'CONTROL-C'\n\n        self.stdout.write(\"Performing system checks...\\n\\n\")\n        self.check(display_num_errors=True)\n        # Need to check migrations here, so can't use the\n        # requires_migrations_check attribute.\n        self.check_migrations()\n        now = datetime.now().strftime('%B %d, %Y - %X')\n        self.stdout.write(now)\n        self.stdout.write((\n            \"Django version %(version)s, using settings %(settings)r\\n\"\n            \"Starting development server at %(protocol)s://%(addr)s:%(port)s/\\n\"\n            \"Quit the server with %(quit_command)s.\\n\"\n        ) % {\n            \"version\": self.get_version(),\n            \"settings\": settings.SETTINGS_MODULE,\n            \"protocol\": self.protocol,\n            \"addr\": '[%s]' % self.addr if self._raw_ipv6 else self.addr,\n            \"port\": self.port,\n            \"quit_command\": quit_command,\n        })\n\n        try:\n            handler = self.get_handler(*args, **options)\n            run(self.addr, int(self.port), handler,\n                ipv6=self.use_ipv6, threading=threading, server_cls=self.server_cls)\n        except socket.error as e:\n            # Use helpful error messages instead of ugly tracebacks.\n            ERRORS = {\n                errno.EACCES: \"You don't have permission to access that port.\",\n                errno.EADDRINUSE: \"That port is already in use.\",\n                errno.EADDRNOTAVAIL: \"That IP address can't be assigned to.\",\n            }\n            try:\n                error_text = ERRORS[e.errno]\n            except KeyError:\n                error_text = e\n            self.stderr.write(\"Error: %s\" % error_text)\n            # Need to use an OS exit because sys.exit doesn't work in a thread\n            os._exit(1)\n        except KeyboardInterrupt:\n            if shutdown_message:\n                self.stdout.write(shutdown_message)\n            sys.exit(0)\n\n\n# Kept for backward compatibility\nBaseRunserverCommand = Command\n\n"}}
+From Client:
+Content-Length: 80
+
+{"command":"exceptionInfo","arguments":{"threadId":1},"type":"request","seq":11}
+To Client:
+Content-Length: 2261
+
+{"type": "response", "seq": 47, "request_seq": 11, "success": true, "command": "exceptionInfo", "message": "", "body": {"exceptionId": "SystemExit", "description": "0", "breakMode": "unhandled", "details": {"typeName": "SystemExit", "message": "0", "stackTrace": "  File \"/Users/donjayamanne/.local/share/virtualenvs/pipEnvWorkspace-kFgAn__6/lib/python3.6/site-packages/django/core/management/commands/runserver.py\", line 157, in inner_run\n    sys.exit(0)\n  File \"/Users/donjayamanne/.local/share/virtualenvs/pipEnvWorkspace-kFgAn__6/lib/python3.6/site-packages/django/core/management/commands/runserver.py\", line 104, in run\n    self.inner_run(None, **options)\n  File \"/Users/donjayamanne/.local/share/virtualenvs/pipEnvWorkspace-kFgAn__6/lib/python3.6/site-packages/django/core/management/commands/runserver.py\", line 95, in handle\n    self.run(**options)\n  File \"/Users/donjayamanne/.local/share/virtualenvs/pipEnvWorkspace-kFgAn__6/lib/python3.6/site-packages/django/core/management/base.py\", line 353, in execute\n    output = self.handle(*args, **options)\n  File \"/Users/donjayamanne/.local/share/virtualenvs/pipEnvWorkspace-kFgAn__6/lib/python3.6/site-packages/django/core/management/commands/runserver.py\", line 60, in execute\n    super().execute(*args, **options)\n  File \"/Users/donjayamanne/.local/share/virtualenvs/pipEnvWorkspace-kFgAn__6/lib/python3.6/site-packages/django/core/management/base.py\", line 333, in run_from_argv\n    pass\n  File \"/Users/donjayamanne/.local/share/virtualenvs/pipEnvWorkspace-kFgAn__6/lib/python3.6/site-packages/django/core/management/__init__.py\", line 375, in execute\n    self.fetch_command(subcommand).run_from_argv(self.argv)\n  File \"/Users/donjayamanne/.local/share/virtualenvs/pipEnvWorkspace-kFgAn__6/lib/python3.6/site-packages/django/core/management/__init__.py\", line 381, in execute_from_command_line\n    utility.execute()\n  File \"/Users/donjayamanne/Desktop/Development/PythonStuff/vscodePythonTesting/python-sample-vscode-django-tutorial/manage.py\", line 15, in <module>\n    execute_from_command_line(sys.argv)\n", "source": "/Users/donjayamanne/.local/share/virtualenvs/pipEnvWorkspace-kFgAn__6/lib/python3.6/site-packages/django/core/management/commands/runserver.py"}}}
+From Client:
+Content-Length: 72
+
+{"command":"scopes","arguments":{"frameId":1},"type":"request","seq":12}
+To Client:
+Content-Length: 190
+
+{"type": "response", "seq": 48, "request_seq": 12, "success": true, "command": "scopes", "message": "", "body": {"scopes": [{"name": "Locals", "expensive": false, "variablesReference": 1}]}}
+From Client:
+Content-Length: 111
+
+{"command":"evaluate","arguments":{"expression":"val","frameId":1,"context":"watch"},"type":"request","seq":13}
+To Client:
+Content-Length: 191
+
+{"type": "response", "seq": 49, "request_seq": 13, "success": true, "command": "evaluate", "message": "", "body": {"type": "NameError", "result": "NameError(\"name 'val' is not defined\",)"}}
+From Client:
+Content-Length: 86
+
+{"command":"variables","arguments":{"variablesReference":1},"type":"request","seq":14}
+To Client:
+Content-Length: 1677
+
+{"type": "response", "seq": 50, "request_seq": 14, "success": true, "command": "variables", "message": "", "body": {"variables": [{"name": "args", "type": "tuple", "value": "(None,)", "variablesReference": 4, "evaluateName": "args"}, {"name": "handler", "type": "StaticFilesHandler", "value": "<django.contrib.staticfiles.handlers.StaticFilesHandler object at 0x1101ec518>", "variablesReference": 5, "evaluateName": "handler"}, {"name": "now", "type": "str", "value": "'October 01, 2018 - 03:52:06'", "evaluateName": "now", "presentationHint": {"attributes": ["rawString"]}}, {"name": "options", "type": "dict", "value": "{'addrport': '0.0.0.0:8000', 'insecure_serving': False, 'no_color': False, 'pythonpath': None, 'settings': None, 'traceback': False, 'use_ipv6': False, 'use_reloader': False, 'use_static_handler': True, 'use_threading': False, 'verbosity': 1}", "variablesReference": 6, "evaluateName": "options"}, {"name": "quit_command", "type": "str", "value": "'CONTROL-C'", "evaluateName": "quit_command", "presentationHint": {"attributes": ["rawString"]}}, {"name": "self", "type": "Command", "value": "<django.contrib.staticfiles.management.commands.runserver.Command object at 0x103e79e80>", "variablesReference": 7, "evaluateName": "self"}, {"name": "shutdown_message", "type": "str", "value": "''", "evaluateName": "shutdown_message", "presentationHint": {"attributes": ["rawString"]}}, {"name": "threading", "type": "bool", "value": "False", "evaluateName": "threading"}, {"name": "__exception__", "type": "tuple", "value": "(<class 'SystemExit'>, SystemExit(0,), <traceback object at...11047ef08>)", "variablesReference": 3, "evaluateName": "__exception__"}]}}
+From Client:
+Content-Length: 80
+
+{"command":"disconnect","arguments":{"restart":false},"type":"request","seq":15}
+onResponseDisconnect
+To Client:
+Content-Length: 119
+
+{"type": "response", "seq": 51, "request_seq": 15, "success": true, "command": "disconnect", "message": "", "body": {}}
+check and shutdown
+shutdown
+Sending Terminated Event
+To Client:
+Content-Length: 45
+
+
+onEventTerminated
+To Client:
+{"seq":0,"type":"event","event":"terminated"}
+Shutting down debug session
+disposing
+check and shutdown

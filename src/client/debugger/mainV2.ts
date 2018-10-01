@@ -403,8 +403,11 @@ class DebugManager implements Disposable {
             logger.verbose('Socket End');
             this.shutdown().ignoreErrors();
         });
-        this.socket.on('error', () => {
-            logger.verbose('Socket Error');
+        this.socket.on('error', ex => {
+            logger.error('Socket Error');
+            logger.error(ex.message);
+            logger.error(ex.name);
+            logger.error(ex.stack);
             this.shutdown().ignoreErrors();
         });
         // Keep track of processid for killing it.

@@ -19,7 +19,8 @@ import {
     ISortImportSettings,
     ITerminalSettings,
     IUnitTestSettings,
-    IWorkspaceSymbolSettings
+    IWorkspaceSymbolSettings,
+    SshConfiguration
 } from './types';
 import { SystemVariables } from './variables/systemVariables';
 
@@ -51,6 +52,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
     public globalModuleInstallation = false;
     public analysis!: IAnalysisSettings;
     public autoUpdateLanguageServer: boolean = true;
+    public ssh: SshConfiguration = { rememberCredentials: 'userName+Password' };
 
     private workspaceRoot: Uri;
     private disposables: Disposable[] = [];

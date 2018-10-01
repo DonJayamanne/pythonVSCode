@@ -119,6 +119,11 @@ export interface ICurrentProcess {
     on(event: string | symbol, listener: Function): this;
 }
 
+export type RememberCredentials = 'never' | 'userName' | 'userName+Password';
+export type SshConfiguration = {
+    rememberCredentials: RememberCredentials;
+};
+
 export interface IPythonSettings {
     readonly pythonPath: string;
     readonly venvPath: string;
@@ -141,6 +146,7 @@ export interface IPythonSettings {
     readonly globalModuleInstallation: boolean;
     readonly analysis: IAnalysisSettings;
     readonly autoUpdateLanguageServer: boolean;
+    readonly ssh: SshConfiguration;
 }
 export interface ISortImportSettings {
     readonly path: string;
@@ -265,7 +271,8 @@ export interface IConfigurationService {
 export const ISocketServer = Symbol('ISocketServer');
 export interface ISocketServer extends Disposable {
     readonly client: Promise<Socket>;
-    Start(options?: { port?: number; host?: string }): Promise<number>;
+    onConnect(listener: (client: Socket) => void): void;
+    Start(options?: { port?: number; host?: string }, listener?: (client: Socket) => void): Promise<number>;
 }
 
 export const IExtensionContext = Symbol('ExtensionContext');

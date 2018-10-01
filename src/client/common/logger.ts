@@ -43,7 +43,14 @@ export function warn(title: string = '', message: any) {
 }
 
 export enum LogOptions {
-    Arguments, ReturnValue
+    Arguments = 1,
+    ReturnValue = 2
+}
+
+export enum LogOptionsImpl {
+    Arguments = 1,
+    ReturnValue = 2,
+    OnlyErrors = 4
 }
 
 // tslint:disable-next-line:no-any
@@ -74,7 +81,13 @@ function returnValueToLogString(returnValue: any): string {
     return returnValueMessage;
 }
 
+export function logError(message: string, options: LogOptions = LogOptions.Arguments | LogOptions.ReturnValue) {
+    return logImpl(message, options | LogOptionsImpl.OnlyErrors);
+}
 export function log(message: string, options: LogOptions = LogOptions.Arguments | LogOptions.ReturnValue) {
+    return logImpl(message, options as unknown as LogOptionsImpl);
+}
+function logImpl(message: string, options: LogOptionsImpl = LogOptions.Arguments | LogOptions.ReturnValue) {
     // tslint:disable-next-line:no-function-expression no-any
     return function (_: Object, __: string, descriptor: TypedPropertyDescriptor<any>) {
         const originalMethod = descriptor.value;
@@ -82,6 +95,9 @@ export function log(message: string, options: LogOptions = LogOptions.Arguments 
         descriptor.value = function (...args: any[]) {
             // tslint:disable-next-line:no-any
             function writeSuccess(returnValue?: any) {
+                if (options && LogOptionsImpl.OnlyErrors === LogOptionsImpl.OnlyErrors) {
+                    return;
+                }
                 writeToLog(returnValue);
             }
             function writeError(ex: Error) {

@@ -40,7 +40,7 @@ function registerDebuggerTypes(serviceManager: IServiceManager) {
     serviceManager.add<IProtocolParser>(IProtocolParser, ProtocolParser);
     serviceManager.addSingleton<IFileSystem>(IFileSystem, FileSystem);
     serviceManager.addSingleton<IPlatformService>(IPlatformService, PlatformService);
-    serviceManager.addSingleton<ISocketServer>(ISocketServer, SocketServer);
+    serviceManager.add<ISocketServer>(ISocketServer, SocketServer);
     serviceManager.addSingleton<IProtocolMessageWriter>(IProtocolMessageWriter, ProtocolMessageWriter);
     serviceManager.addSingleton<IBufferDecoder>(IBufferDecoder, BufferDecoder);
     serviceManager.addSingleton<IProcessServiceFactory>(IProcessServiceFactory, DebuggerProcessServiceFactory);

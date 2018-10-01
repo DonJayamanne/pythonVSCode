@@ -18,5 +18,5 @@
     "python.linting.mypyEnabled": false,
     "python.formatting.provider": "yapf",
     "python.linting.pylintUseMinimalCheckers": false,
-    "python.pythonPath": "python"
+    "python.pythonPath": "/Users/donjayamanne/anaconda3/envs/env-02/bin/python"
 }

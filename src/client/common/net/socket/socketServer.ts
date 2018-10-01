@@ -4,6 +4,7 @@ import * as net from 'net';
 import { createDeferred, Deferred } from '../../../../utils/async';
 import { noop } from '../../../../utils/misc';
 import { ISocketServer } from '../../types';
+import { HostPort } from '../types';
 
 @injectable()
 export class SocketServer extends EventEmitter implements ISocketServer {
@@ -28,7 +29,7 @@ export class SocketServer extends EventEmitter implements ISocketServer {
         this.socketServer = undefined;
     }
 
-    public Start(options: { port?: number; host?: string } = {}): Promise<number> {
+    public Start(options: Partial<HostPort> = {}): Promise<number> {
         const def = createDeferred<number>();
         this.socketServer = net.createServer(this.connectionListener.bind(this));
 
@@ -46,8 +47,11 @@ export class SocketServer extends EventEmitter implements ISocketServer {
 
         return def.promise;
     }
-
+    public onConnect(listener: (client: net.Socket) => void): void {
+        this.on('clientConnect', listener);
+    }
     private connectionListener(client: net.Socket) {
+        this.emit('clientConnect', client);
         if (!this.clientSocket.completed) {
             this.clientSocket.resolve(client);
         }
