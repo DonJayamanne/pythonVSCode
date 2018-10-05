@@ -328,7 +328,7 @@ def set_trace():
 def enable_attach_ui():
     global _attach_enabled, _ui_attach_options, _ui_attach_enabled
     if not _attach_enabled:
-        enable_attach(None, ('127.0.0.1', 0))
+        enable_attach(None, ('0.0.0.0', 0))
     if not _ui_attach_enabled:
         _ui_attach_enabled = debugger_ui_enable_attach()
 
