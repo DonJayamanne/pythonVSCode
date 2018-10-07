@@ -8,25 +8,22 @@
 import { injectable, unmanaged } from 'inversify';
 import * as path from 'path';
 import { CancellationToken, DebugConfiguration, DebugConfigurationProvider, Uri, WorkspaceFolder } from 'vscode';
-import { IDocumentManager, IWorkspaceService } from '../../common/application/types';
-import { PYTHON_LANGUAGE } from '../../common/constants';
-import { IConfigurationService } from '../../common/types';
-import { IServiceContainer } from '../../ioc/types';
-import { BaseAttachRequestArguments, BaseLaunchRequestArguments, DebuggerType } from '../Common/Contracts';
-
-export type PythonLaunchDebugConfiguration<T extends BaseLaunchRequestArguments> = DebugConfiguration & T;
-export type PythonAttachDebugConfiguration<T extends BaseAttachRequestArguments> = DebugConfiguration & T;
+import { IDocumentManager, IWorkspaceService } from '../../../common/application/types';
+import { PYTHON_LANGUAGE } from '../../../common/constants';
+import { IConfigurationService } from '../../../common/types';
+import { IServiceContainer } from '../../../ioc/types';
+import { AttachRequestArguments, BaseAttachRequestArguments, BaseLaunchRequestArguments, DebuggerType, LaunchRequestArguments } from '../../Common/Contracts';
 
 @injectable()
-export abstract class BaseConfigurationProvider<L extends BaseLaunchRequestArguments, A extends BaseAttachRequestArguments> implements DebugConfigurationProvider {
+export abstract class BaseConfigurationProvider implements DebugConfigurationProvider {
     constructor(@unmanaged() public debugType: DebuggerType, protected serviceContainer: IServiceContainer) { }
     public async resolveDebugConfiguration(folder: WorkspaceFolder | undefined, debugConfiguration: DebugConfiguration, token?: CancellationToken): Promise<DebugConfiguration> {
         const workspaceFolder = this.getWorkspaceFolder(folder);
 
         if (debugConfiguration.request === 'attach') {
-            await this.provideAttachDefaults(workspaceFolder, debugConfiguration as PythonAttachDebugConfiguration<A>);
+            await this.provideAttachDefaults(workspaceFolder, debugConfiguration as AttachRequestArguments);
         } else {
-            const config = debugConfiguration as PythonLaunchDebugConfiguration<L>;
+            const config = debugConfiguration as LaunchRequestArguments;
             const numberOfSettings = Object.keys(config);
 
             if ((config.noDebug === true && numberOfSettings.length === 1) || numberOfSettings.length === 0) {
@@ -48,7 +45,7 @@ export abstract class BaseConfigurationProvider<L extends BaseLaunchRequestArgum
         }
         return debugConfiguration;
     }
-    protected async provideAttachDefaults(workspaceFolder: Uri | undefined, debugConfiguration: PythonAttachDebugConfiguration<A>): Promise<void> {
+    protected async provideAttachDefaults(workspaceFolder: Uri | undefined, debugConfiguration: AttachRequestArguments): Promise<void> {
         if (!Array.isArray(debugConfiguration.debugOptions)) {
             debugConfiguration.debugOptions = [];
         }
@@ -56,7 +53,7 @@ export abstract class BaseConfigurationProvider<L extends BaseLaunchRequestArgum
             debugConfiguration.host = 'localhost';
         }
     }
-    protected async provideLaunchDefaults(workspaceFolder: Uri | undefined, debugConfiguration: PythonLaunchDebugConfiguration<L>): Promise<void> {
+    protected async provideLaunchDefaults(workspaceFolder: Uri | undefined, debugConfiguration: LaunchRequestArguments): Promise<void> {
         this.resolveAndUpdatePythonPath(workspaceFolder, debugConfiguration);
         if (typeof debugConfiguration.cwd !== 'string' && workspaceFolder) {
             debugConfiguration.cwd = workspaceFolder.fsPath;
@@ -105,7 +102,7 @@ export abstract class BaseConfigurationProvider<L extends BaseLaunchRequestArgum
             return editor.document.fileName;
         }
     }
-    private resolveAndUpdatePythonPath(workspaceFolder: Uri | undefined, debugConfiguration: PythonLaunchDebugConfiguration<L>): void {
+    private resolveAndUpdatePythonPath(workspaceFolder: Uri | undefined, debugConfiguration: LaunchRequestArguments): void {
         if (!debugConfiguration) {
             return;
         }

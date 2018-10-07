@@ -10,7 +10,7 @@ import * as path from 'path';
 import * as typeMoq from 'typemoq';
 import { IFileSystem } from '../../client/common/platform/types';
 import { ExecutionResult, IProcessService, IProcessServiceFactory } from '../../client/common/process/types';
-import { ExcutableValidator } from '../../client/debugger/executableValidator';
+import { ExcutableValidator } from '../../client/debugger/extension/executableValidator';
 import { IServiceContainer } from '../../client/ioc/types';
 
 suite('Debugger Executable Validator', () => {

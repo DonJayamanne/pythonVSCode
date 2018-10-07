@@ -4,10 +4,10 @@
 'use strict';
 
 import { inject, injectable } from 'inversify';
-import { IFileSystem } from '../common/platform/types';
-import { IProcessServiceFactory } from '../common/process/types';
-import { IServiceContainer } from '../ioc/types';
-import { IExcutableValidator } from './types';
+import { IFileSystem } from '../../common/platform/types';
+import { IProcessServiceFactory } from '../../common/process/types';
+import { IServiceContainer } from '../../ioc/types';
+import { IExcutableValidator } from '../types';
 
 @injectable()
 export class ExcutableValidator implements IExcutableValidator {

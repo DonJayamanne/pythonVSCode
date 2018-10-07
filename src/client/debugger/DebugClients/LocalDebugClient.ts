@@ -30,9 +30,8 @@ enum DebugServerStatus {
     NotRunning = 3
 }
 
-export class LocalDebugClient extends DebugClient<LaunchRequestArguments> {
+export abstract class LocalDebugClient extends DebugClient<LaunchRequestArguments> {
     protected pyProc: ChildProcess | undefined;
-    protected pythonProcess!: IPythonProcess;
     protected debugServer: BaseDebugServer | undefined;
     private get debugServerStatus(): DebugServerStatus {
         if (this.debugServer && this.debugServer!.IsRunning) {
@@ -141,31 +140,9 @@ export class LocalDebugClient extends DebugClient<LaunchRequestArguments> {
     }
 
     // tslint:disable-next-line:member-ordering
-    protected buildDebugArguments(cwd: string, debugPort: number): string[] {
-        const ptVSToolsFilePath = this.launcherScriptProvider.getLauncherFilePath();
-        const vsDebugOptions: string[] = [DebugOptions.RedirectOutput];
-        if (Array.isArray(this.args.debugOptions)) {
-            this.args.debugOptions.filter(opt => VALID_DEBUG_OPTIONS.indexOf(opt) >= 0)
-                .forEach(item => vsDebugOptions.push(item));
-        }
-        const djangoIndex = vsDebugOptions.indexOf(DebugOptions.Django);
-        // PTVSD expects the string `DjangoDebugging`
-        if (djangoIndex >= 0) {
-            vsDebugOptions[djangoIndex] = 'DjangoDebugging';
-        }
-        return [ptVSToolsFilePath, cwd, debugPort.toString(), '34806ad9-833a-4524-8cd6-18ca4aa74f14', vsDebugOptions.join(',')];
-    }
+    protected abstract buildDebugArguments(cwd: string, debugPort: number): string[];
     // tslint:disable-next-line:member-ordering
-    protected buildStandardArguments() {
-        const programArgs = Array.isArray(this.args.args) && this.args.args.length > 0 ? this.args.args : [];
-        if (typeof this.args.module === 'string' && this.args.module.length > 0) {
-            return ['-m', this.args.module, ...programArgs];
-        }
-        if (this.args.program && this.args.program.length > 0) {
-            return [this.args.program, ...programArgs];
-        }
-        return programArgs;
-    }
+    protected abstract buildStandardArguments();
     private launchExternalTerminal(sudo: boolean, cwd: string, pythonPath: string, args: string[], env: {}) {
         return new Promise((resolve, reject) => {
             if (this.canLaunchTerminal) {

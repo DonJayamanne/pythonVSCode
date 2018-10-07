@@ -15,14 +15,13 @@ import { ICurrentProcess, ISocketServer } from '../common/types';
 import { ServiceContainer } from '../ioc/container';
 import { ServiceManager } from '../ioc/serviceManager';
 import { IServiceContainer, IServiceManager } from '../ioc/types';
-import { DebuggerBanner } from './banner';
 import { DebugStreamProvider } from './Common/debugStreamProvider';
 import { DebuggerProcessServiceFactory } from './Common/processServiceFactory';
 import { ProtocolLogger } from './Common/protocolLogger';
 import { ProtocolParser } from './Common/protocolParser';
 import { ProtocolMessageWriter } from './Common/protocolWriter';
-import { ExcutableValidator } from './executableValidator';
-import { IDebuggerBanner, IDebugStreamProvider, IExcutableValidator, IProtocolLogger, IProtocolMessageWriter, IProtocolParser } from './types';
+import { ExcutableValidator } from './extension/executableValidator';
+import { IDebugStreamProvider, IExcutableValidator, IProtocolLogger, IProtocolMessageWriter, IProtocolParser } from './types';
 
 export function initializeIoc(): IServiceContainer {
     const cont = new Container();
@@ -45,8 +44,4 @@ function registerDebuggerTypes(serviceManager: IServiceManager) {
     serviceManager.addSingleton<IBufferDecoder>(IBufferDecoder, BufferDecoder);
     serviceManager.addSingleton<IProcessServiceFactory>(IProcessServiceFactory, DebuggerProcessServiceFactory);
     serviceManager.addSingleton<IExcutableValidator>(IExcutableValidator, ExcutableValidator);
-}
-
-export function registerTypes(serviceManager: IServiceManager) {
-    serviceManager.addSingleton<IDebuggerBanner>(IDebuggerBanner, DebuggerBanner);
 }

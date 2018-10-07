@@ -7,13 +7,14 @@ import { IServiceManager } from '../ioc/types';
 import { ApplicationEnvironment } from './application/applicationEnvironment';
 import { ApplicationShell } from './application/applicationShell';
 import { CommandManager } from './application/commandManager';
+import { DebugManager } from './application/debugManager';
 import { DebugService } from './application/debugService';
 import { DocumentManager } from './application/documentManager';
 import { Extensions } from './application/extensions';
 import { TerminalManager } from './application/terminalManager';
 import {
     IApplicationEnvironment, IApplicationShell, ICommandManager,
-    IDebugService, IDocumentManager, ITerminalManager, IWorkspaceService
+    IDebugManager, IDebugService, IDocumentManager, ITerminalManager, IWorkspaceService
 } from './application/types';
 import { WorkspaceService } from './application/workspace';
 import { ConfigurationService } from './configuration/service';
@@ -71,6 +72,7 @@ export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.addSingleton<IHttpClient>(IHttpClient, HttpClient);
     serviceManager.addSingleton<IEditorUtils>(IEditorUtils, EditorUtils);
     serviceManager.addSingleton<INugetService>(INugetService, NugetService);
+    serviceManager.addSingleton<IDebugManager>(IDebugManager, DebugManager);
 
     serviceManager.addSingleton<ITerminalHelper>(ITerminalHelper, TerminalHelper);
     serviceManager.addSingleton<ITerminalActivationCommandProvider>(

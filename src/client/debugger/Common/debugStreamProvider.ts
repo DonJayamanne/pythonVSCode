@@ -10,7 +10,7 @@ import { IDebugStreamProvider } from '../types';
 
 @injectable()
 export class DebugStreamProvider implements IDebugStreamProvider {
-    constructor( @inject(IServiceContainer) private readonly serviceContainer: IServiceContainer) { }
+    constructor(@inject(IServiceContainer) private readonly serviceContainer: IServiceContainer) { }
     public get useDebugSocketStream(): boolean {
         return this.getDebugPort() > 0;
     }

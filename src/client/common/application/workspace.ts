@@ -3,6 +3,7 @@
 
 import { injectable } from 'inversify';
 import * as vscode from 'vscode';
+// tslint:disable-next-line:no-duplicate-imports
 import { ConfigurationChangeEvent } from 'vscode';
 import { IWorkspaceService } from './types';
 

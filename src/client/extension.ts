@@ -17,6 +17,7 @@ import { IExtensionActivationService } from './activation/types';
 import { IExtensionApi } from './api';
 import { registerTypes as appRegisterTypes } from './application/serviceRegistry';
 import { IApplicationDiagnostics } from './application/types';
+import { DebugManager } from './common/application/debugManager';
 import { IWorkspaceService } from './common/application/types';
 import { isTestExecution, PYTHON, PYTHON_LANGUAGE, STANDARD_OUTPUT_CHANNEL } from './common/constants';
 import { registerTypes as installerRegisterTypes } from './common/installer/serviceRegistry';
@@ -31,9 +32,10 @@ import {
 } from './common/types';
 import { registerTypes as variableRegisterTypes } from './common/variables/serviceRegistry';
 import { AttachRequestArguments, LaunchRequestArguments } from './debugger/Common/Contracts';
-import { BaseConfigurationProvider } from './debugger/configProviders/baseProvider';
-import { registerTypes as debugConfigurationRegisterTypes } from './debugger/configProviders/serviceRegistry';
-import { registerTypes as debuggerRegisterTypes } from './debugger/serviceRegistry';
+import { BaseConfigurationProvider } from './debugger/extension/configProviders/baseProvider';
+import { CustomDebugSessionEventDispatcher } from './debugger/extension/hooks/customEventHandlerDispatcher';
+import { ICustomDebugSessionEventHandlers } from './debugger/extension/hooks/types';
+import { registerTypes as debuggerRegisterTypes } from './debugger/extension/serviceRegistry';
 import { IDebugConfigurationProvider, IDebuggerBanner } from './debugger/types';
 import { registerTypes as formattersRegisterTypes } from './formatters/serviceRegistry';
 import { IInterpreterSelector } from './interpreter/configuration/types';
@@ -157,7 +159,7 @@ export async function activate(context: ExtensionContext): Promise<IExtensionApi
 
     context.subscriptions.push(languages.registerCodeActionsProvider(PYTHON, new PythonCodeActionProvider(), { providedCodeActionKinds: [CodeActionKind.SourceOrganizeImports] }));
 
-    type ConfigurationProvider = BaseConfigurationProvider<LaunchRequestArguments, AttachRequestArguments>;
+    type ConfigurationProvider = BaseConfigurationProvider;
     serviceContainer.getAll<ConfigurationProvider>(IDebugConfigurationProvider).forEach(debugConfig => {
         context.subscriptions.push(debug.registerDebugConfigurationProvider(debugConfig.debugType, debugConfig));
     });
@@ -192,7 +194,6 @@ function registerServices(context: ExtensionContext, serviceManager: ServiceMana
     platformRegisterTypes(serviceManager);
     installerRegisterTypes(serviceManager);
     commonRegisterTerminalTypes(serviceManager);
-    debugConfigurationRegisterTypes(serviceManager);
     debuggerRegisterTypes(serviceManager);
     appRegisterTypes(serviceManager);
     providersRegisterTypes(serviceManager);
@@ -205,6 +206,11 @@ function initializeServices(context: ExtensionContext, serviceManager: ServiceMa
 
     const interpreterManager = serviceContainer.get<IInterpreterService>(IInterpreterService);
     interpreterManager.initialize();
+
+    const handlers = serviceManager.getAll<ICustomDebugSessionEventHandlers>(ICustomDebugSessionEventHandlers);
+    const disposables = serviceManager.get<IDisposableRegistry>(IDisposableRegistry);
+    const dispather = new CustomDebugSessionEventDispatcher(handlers, DebugManager.instance, disposables);
+    dispather.registerEventHandlers();
 }
 
 async function sendStartupTelemetry(activatedPromise: Promise<void>, serviceContainer: IServiceContainer) {
