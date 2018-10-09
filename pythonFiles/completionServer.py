@@ -28,7 +28,7 @@ except ImportError:
 # http://pydoc.net/Python/magni/1.4.0/magni.tests.ipynb_examples/
 # http://www.xavierdupre.fr/app/pyquickhelper/helpsphinx/_modules/pyquickhelper/ipythonhelper/notebook_runner.html
 
-import visualstudio_py_util as _vspu
+import ptvsd.visualstudio_py_util as _vspu
 
 to_bytes = _vspu.to_bytes
 read_bytes = _vspu.read_bytes
