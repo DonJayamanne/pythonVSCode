@@ -184,7 +184,8 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
 
         // Now assign our new array copy to state
         this.setState({
-            cellVMs: newCells
+            cellVMs: newCells,
+            skipNextScroll: true
         });
     }
 
@@ -201,7 +202,8 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
 
         // Now assign our new array copy to state
         this.setState({
-            cellVMs: newCells
+            cellVMs: newCells,
+            skipNextScroll: true
         });
     }
 
@@ -386,22 +388,24 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
         return Cell.concatMultilineString(cell.data.source);
     }
 
+    private updateOrAdd = (cell: ICell, allowAdd? : boolean) => {
+        const index = this.state.cellVMs.findIndex((c : ICellViewModel) => c.cell.id === cell.id);
+        if (index >= 0) {
+            // Update this cell
+            this.state.cellVMs[index].cell = cell;
+            this.forceUpdate();
+        } else if (allowAdd) {
+            // This is an entirely new cell (it may have started out as finished)
+            this.addCell(cell);
+        }
+    }
+
     // tslint:disable-next-line:no-any
     private finishCell = (payload?: any) => {
         if (payload) {
             const cell = payload as ICell;
             if (cell) {
-
-                // Find this cell in our current state
-                const index = this.state.cellVMs.findIndex((c : ICellViewModel) => c.cell.id === cell.id);
-                if (index >= 0) {
-                    // Update this cell
-                    this.state.cellVMs[index].cell = cell;
-                    this.forceUpdate();
-                } else {
-                    // This is an entirely new cell (it may have started out as finished)
-                    this.addCell(cell);
-                }
+                this.updateOrAdd(cell, true);
             }
         }
     }
@@ -411,14 +415,7 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
         if (payload) {
             const cell = payload as ICell;
             if (cell) {
-
-                // Find this cell in our current state
-                const index = this.state.cellVMs.findIndex((c : ICellViewModel) => c.cell.id === cell.id);
-                if (index >= 0) {
-                    // Update this cell
-                    this.state.cellVMs[index].cell = cell;
-                    this.forceUpdate();
-                }
+                this.updateOrAdd(cell, false);
             }
         }
     }
