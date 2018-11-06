@@ -6,7 +6,7 @@ import { inject, injectable } from 'inversify';
 import * as tk from 'tree-kill';
 import { URL } from 'url';
 
-import { ExecutionResult, IPythonExecutionFactory, ObservableExecutionResult, Output } from '../common/process/types';
+import { ExecutionResult, IPythonExecutionFactory, ObservableExecutionResult, Output, PythonVersionInfo } from '../common/process/types';
 import { ILogger } from '../common/types';
 import { createDeferred, Deferred } from '../common/utils/async';
 import { IJupyterExecution, INotebookProcess } from './types';
@@ -73,6 +73,18 @@ export class JupyterProcess implements INotebookProcess {
         const pythonService = await this.executionFactory.create({});
         const info = await pythonService.getInterpreterInformation();
         return info ? info.version : '3';
+    }
+
+    public async waitForPythonVersion() : Promise<PythonVersionInfo | undefined> {
+        const pythonService = await this.executionFactory.create({});
+        const info = await pythonService.getInterpreterInformation();
+        return info ? info.version_info : undefined;
+    }
+
+    public async waitForPythonPath() : Promise<string | undefined> {
+        const pythonService = await this.executionFactory.create({});
+        const info = await pythonService.getInterpreterInformation();
+        return info ? info.path : undefined;
     }
 
     // Returns the information necessary to talk to this instance

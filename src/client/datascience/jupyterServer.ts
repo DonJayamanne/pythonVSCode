@@ -4,7 +4,7 @@
 import '../common/extensions';
 
 import { nbformat } from '@jupyterlab/coreutils';
-import { Kernel, KernelMessage, ServerConnection, Session } from '@jupyterlab/services';
+import { Kernel, KernelMessage, ServerConnection, Session, SessionManager } from '@jupyterlab/services';
 import * as fs from 'fs-extra';
 import { inject, injectable } from 'inversify';
 import * as path from 'path';
@@ -51,19 +51,27 @@ export class JupyterServer implements INotebookServer {
             // Wait for connection information. We'll stick that into the options
             const connInfo = await this.process.waitForConnectionInformation();
 
+            // First connect to the sesssion manager and find a kernel that matches our
+            // python we're using
+            const serverSettings = ServerConnection.makeSettings(
+                {
+                    baseUrl: connInfo.baseUrl,
+                    token: connInfo.token,
+                    pageUrl: '',
+                    // A web socket is required to allow token authentication
+                    wsUrl: connInfo.baseUrl.replace('http', 'ws'),
+                    init: { cache: 'no-store', credentials: 'same-origin' }
+                });
+
+            // Ask Jupyter for its list of kernel specs.
+            const specId = await this.findKernelSpec(serverSettings);
+
             // Create our session options using this temporary notebook and our connection info
             const options: Session.IOptions = {
                 path: this.tempFile,
                 kernelName: 'python',
-                serverSettings: ServerConnection.makeSettings(
-                    {
-                        baseUrl: connInfo.baseUrl,
-                        token: connInfo.token,
-                        pageUrl: '',
-                        // A web socket is required to allow token authentication
-                        wsUrl: connInfo.baseUrl.replace('http', 'ws'),
-                        init: { cache: 'no-store', credentials: 'same-origin' }
-                    })
+                kernelId: specId,
+                serverSettings: serverSettings
             };
 
             // Start a new session
@@ -261,6 +269,43 @@ export class JupyterServer implements INotebookServer {
             return true;
         }
         return false;
+    }
+
+    private findKernelSpec = async (serverSettings: ServerConnection.ISettings) : Promise<string | undefined> => {
+        const manager = new SessionManager({ serverSettings: serverSettings });
+        await manager.refreshSpecs();
+
+        // Use the same version of python if we can find it
+        const pythonVersion = await this.process.waitForPythonVersion();
+        const pythonPath = await this.process.waitForPythonPath();
+        let specId;
+        const keys = Object.keys(manager.specs.kernelspecs);
+        for (let i = 0; i < keys.length; i += 1) {
+            const spec = manager.specs.kernelspecs[keys[i]];
+            if (spec.argv.length > 0 && spec.argv[0] === pythonPath) {
+                // Exact match. Use this one
+                specId = keys[i];
+                break;
+            }
+            if (spec.language.toLocaleLowerCase() === 'python') {
+                // Close match
+                specId = keys[i];
+
+                // See if the version is the same
+                if (pythonVersion) {
+                    const digits = spec.name.match(/\d+/g);
+                    if (digits.length > 0 && parseInt(digits[0], 10) === pythonVersion[0]) {
+                        // Exact match.
+                        break;
+                    }
+                }
+            }
+        }
+        // If still not set, at least pick the first one
+        if (!specId && keys.length > 0) {
+            specId = keys[0];
+        }
+        return specId;
     }
 
     private pruneCell(cell : ICell) : nbformat.IBaseCell {
