@@ -20,6 +20,7 @@ export interface IConnectionInfo {
 @injectable()
 export class JupyterProcess implements INotebookProcess {
     private static urlPattern = /http:\/\/localhost:[0-9]+\/\?token=[a-z0-9]+/g;
+    private static forbiddenPattern = /Forbidden/g;
     public isDisposed: boolean = false;
     private startPromise: Deferred<IConnectionInfo> | undefined;
     private startObservable: ObservableExecutionResult<string> | undefined;
@@ -123,6 +124,12 @@ export class JupyterProcess implements INotebookProcess {
         }
 
         // Do we need to worry about this not working? Timeout?
+
+        // Look for 'Forbidden' in the result
+        const forbiddenMatch = JupyterProcess.forbiddenPattern.exec(data);
+        if (forbiddenMatch && this.startPromise && !this.startPromise.resolved) {
+            this.startPromise.reject(new Error(data.toString('utf8')));
+        }
 
     }
 }

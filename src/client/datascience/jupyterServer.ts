@@ -26,6 +26,7 @@ import { CellState, ICell, IJupyterExecution, INotebookProcess, INotebookServer 
 export class JupyterServer implements INotebookServer {
     public isDisposed: boolean = false;
     private session: Session.ISession | undefined;
+    private sessionManager : SessionManager | undefined;
     private sessionStartTime: number | undefined;
     private tempFile: string | undefined;
     private onStatusChangedEvent : vscode.EventEmitter<boolean> = new vscode.EventEmitter<boolean>();
@@ -62,20 +63,20 @@ export class JupyterServer implements INotebookServer {
                     wsUrl: connInfo.baseUrl.replace('http', 'ws'),
                     init: { cache: 'no-store', credentials: 'same-origin' }
                 });
+            this.sessionManager = new SessionManager({ serverSettings: serverSettings });
 
             // Ask Jupyter for its list of kernel specs.
-            const specId = await this.findKernelSpec(serverSettings);
+            const kernelName = await this.findKernelName(this.sessionManager);
 
             // Create our session options using this temporary notebook and our connection info
             const options: Session.IOptions = {
                 path: this.tempFile,
-                kernelName: 'python',
-                kernelId: specId,
+                kernelName: kernelName,
                 serverSettings: serverSettings
             };
 
             // Start a new session
-            this.session = await Session.startNew(options);
+            this.session = await this.sessionManager.startNew(options);
 
             // Setup our start time. We reject anything that comes in before this time during execute
             this.sessionStartTime = Date.now();
@@ -94,9 +95,11 @@ export class JupyterServer implements INotebookServer {
 
     public shutdown = async () : Promise<void> => {
         if (this.session) {
-            await this.session.shutdown();
+            await this.sessionManager.shutdownAll();
             this.session.dispose();
+            this.sessionManager.dispose();
             this.session = undefined;
+            this.sessionManager = undefined;
         }
         if (this.process) {
             this.process.dispose();
@@ -271,41 +274,58 @@ export class JupyterServer implements INotebookServer {
         return false;
     }
 
-    private findKernelSpec = async (serverSettings: ServerConnection.ISettings) : Promise<string | undefined> => {
-        const manager = new SessionManager({ serverSettings: serverSettings });
+    private findKernelName = async (manager: SessionManager) : Promise<string> => {
+        // Ask the session manager to refresh its list of kernel specs. We're going to
+        // iterate through them finding the best match
         await manager.refreshSpecs();
 
-        // Use the same version of python if we can find it
+        // Extract our current python information that the user has picked.
+        // We'll match against this.
         const pythonVersion = await this.process.waitForPythonVersion();
         const pythonPath = await this.process.waitForPythonPath();
-        let specId;
+        let bestScore = 0;
+        let bestSpec;
+
+        // Enumerate all of the kernel specs, scoring each as follows
+        // - Path match = 10 Points. Very likely this is the right one
+        // - Language match = 1 point. Might be a match
+        // - Version match = 4, 2, 1 points for different version parts.
         const keys = Object.keys(manager.specs.kernelspecs);
         for (let i = 0; i < keys.length; i += 1) {
             const spec = manager.specs.kernelspecs[keys[i]];
+            let score = 0;
+
             if (spec.argv.length > 0 && spec.argv[0] === pythonPath) {
-                // Exact match. Use this one
-                specId = keys[i];
-                break;
+                // Path match
+                score += 10;
             }
             if (spec.language.toLocaleLowerCase() === 'python') {
-                // Close match
-                specId = keys[i];
+                // Language match
+                score += 1;
 
                 // See if the version is the same
                 if (pythonVersion) {
                     const digits = spec.name.match(/\d+/g);
                     if (digits.length > 0 && parseInt(digits[0], 10) === pythonVersion[0]) {
-                        // Exact match.
-                        break;
+                        // Major version match
+                        score += 4;
                     }
                 }
             }
+
+            // Update high score
+            if (score > bestScore) {
+                bestScore = score;
+                bestSpec = spec.name;
+            }
         }
+
         // If still not set, at least pick the first one
-        if (!specId && keys.length > 0) {
-            specId = keys[0];
+        if (!bestSpec && keys.length > 0) {
+            bestSpec = manager.specs.kernelspecs[keys[0]].name;
         }
-        return specId;
+
+        return bestSpec;
     }
 
     private pruneCell(cell : ICell) : nbformat.IBaseCell {
