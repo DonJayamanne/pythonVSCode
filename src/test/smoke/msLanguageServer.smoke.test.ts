@@ -13,7 +13,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { waitForCondition } from '../common';
 import { EXTENSION_ROOT_DIR_FOR_TESTS, IS_SMOKE_TEST, SMOKE_TEST_EXTENSIONS_DIR } from '../constants';
-import { noop } from '../core';
+import { noop, sleep } from '../core';
 import { closeActiveWindows, initialize, initializeTest } from '../initialize';
 
 const fileDefinitions = path.join(EXTENSION_ROOT_DIR_FOR_TESTS, 'src', 'testMultiRootWkspc', 'smokeTests', 'definitions.py');
@@ -79,15 +79,28 @@ suite('Smoke Test: Language Server', function () {
         // to fetch data for completion, hover.etc.
         await vscode.commands.executeCommand('vscode.executeCompletionItemProvider', textDocument.uri, new vscode.Position(0, 0));
         await waitForCondition(isLanguageServerDownloaded, 30_000, 'Language Server not downloaded');
+        // For for LS to get extracted.
+        await sleep(10_000);
         return textDocument;
     }
 
     test('Definitions', async () => {
         const startPosition = new vscode.Position(13, 6);
         const textDocument = await openFile(fileDefinitions);
-
-        const locations = await vscode.commands.executeCommand<vscode.Location[]>('vscode.executeDefinitionProvider', textDocument.uri, startPosition);
-        expect(locations).to.be.length.greaterThan(0, 'Wrong number of results');
-        expect(locations![0].uri.fsPath).to.contain(path.basename(fileDefinitions));
+        let tested = false;
+        for (let i = 0; i < 5; i += 1) {
+            const locations = await vscode.commands.executeCommand<vscode.Location[]>('vscode.executeDefinitionProvider', textDocument.uri, startPosition);
+            if (locations && locations.length > 0) {
+                expect(locations![0].uri.fsPath).to.contain(path.basename(fileDefinitions));
+                tested = true;
+                break;
+            } else {
+                // Wait for LS to start.
+                await sleep(5_000);
+            }
+        }
+        if (!tested) {
+            assert.fail('Failled to test definitions');
+        }
     });
 });
