@@ -62,7 +62,7 @@ jobs:
     - powershell: |
         New-Item -ItemType directory -Path "$(System.ArtifactsDirectory)/bin-artifacts"
 
-        $buildArtifactUri = "https://$(AzureStorageAccountName).blob.core.windows.net/$(AzureStorageContainerName)/$(Build.BuildNumber)/bin-artifacts.zip"
+        $buildArtifactUri = "https://$(azureStorageAcctName).blob.core.windows.net/$(azureStorageContainerName)/$(Build.BuildNumber)/bin-artifacts.zip"
         Write-Verbose "Downloading from $buildArtifactUri"
 
         $destination = "$(System.ArtifactsDirectory)/bin-artifacts/bin-artifacts.zip"
