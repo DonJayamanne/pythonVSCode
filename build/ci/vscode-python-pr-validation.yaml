@@ -16,6 +16,21 @@ jobs:
     AzureStorageAccountName: 'vscodepythonci'
     AzureStorageContainerName: 'vscode-python-ci'
 
+
+- template: templates/virtual_env_tests.yml
+  parameters:
+    name: 'VirtualEnv_Tests_Windows_py37'
+    PythonVersion: '3.7'
+    NodeVersion: '8.11.2'
+    NpmVersion: 'latest'
+    PoolName: 'Hosted VS2017'
+    UploadBinary: true
+    Platform: 'Windows'
+    AzureStorageAccountName: 'vscodepythonci'
+    AzureStorageContainerName: 'vscode-python-ci'
+    VirtualExecutableFolder: 'Scripts'
+
+
 - job: 'System_Test_macOS'
   dependsOn: 'PR_Validate_Windows_py37'
   pool:
