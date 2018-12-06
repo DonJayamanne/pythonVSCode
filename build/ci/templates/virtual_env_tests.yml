@@ -12,6 +12,7 @@ parameters:
   AzureStorageAccountName: 'vscodepythonci'
   AzureStorageContainerName: 'vscode-python-ci'
   EnvironmentExecutableFolder: 'bin'
+  DIRECTORY_FOR_VIRTUAL_ENVS: './envPaths.json'
 
 jobs:
 - job: ${{ parameters.name }}
@@ -33,6 +34,7 @@ jobs:
     azureStorageContainerName: ${{ parameters.AzureStorageContainerName }}
     plaform: ${{ parameters.Platform }}
     environmentExecutableFolder: ${{ parameters.EnvironmentExecutableFolder }}
+    DIRECTORY_FOR_VIRTUAL_ENVS: ${{ parameters.DIRECTORY_FOR_VIRTUAL_ENVS }}
 
   steps:
     - bash: echo REQUESTED VARIABLE VALUES
@@ -59,28 +61,34 @@ jobs:
       name: 'show_bld_vars'
 
 
-    - powershell: |
-        New-Item -ItemType directory -Path "$(System.ArtifactsDirectory)/bin-artifacts"
+    # - powershell: |
+    #     New-Item -ItemType directory -Path "$(System.ArtifactsDirectory)/bin-artifacts"
 
-        $buildArtifactUri = "https://$(azureStorageAcctName).blob.core.windows.net/$(azureStorageContainerName)/$(Build.BuildNumber)/bin-artifacts.zip"
-        Write-Verbose "Downloading from $buildArtifactUri"
+    #     $buildArtifactUri = "https://$(azureStorageAcctName).blob.core.windows.net/$(azureStorageContainerName)/$(Build.BuildNumber)/bin-artifacts.zip"
+    #     Write-Verbose "Downloading from $buildArtifactUri"
 
-        $destination = "$(System.ArtifactsDirectory)/bin-artifacts/bin-artifacts.zip"
-        Write-Verbose "Destination file: $destination"
+    #     $destination = "$(System.ArtifactsDirectory)/bin-artifacts/bin-artifacts.zip"
+    #     Write-Verbose "Destination file: $destination"
 
-        Invoke-WebRequest -Uri $buildArtifactUri -OutFile $destination -Verbose
+    #     Invoke-WebRequest -Uri $buildArtifactUri -OutFile $destination -Verbose
 
-      displayName: 'Download bin-artifacts from cloud-storage'
+    #   displayName: 'Download bin-artifacts from cloud-storage'
 
 
-    - task: ExtractFiles@1
-      displayName: 'Splat bin-artifacts'
+    # - task: ExtractFiles@1
+    #   displayName: 'Splat bin-artifacts'
+    #   inputs:
+    #     archiveFilePatterns: '$(System.ArtifactsDirectory)/bin-artifacts/bin-artifacts.zip'
+
+    #     destinationFolder: '$(Build.SourcesDirectory)'
+
+    #     cleanDestinationFolder: false
+
+
+    - task: UsePythonVersion@0
+      displayName: 'Use Python 3.7'
       inputs:
-        archiveFilePatterns: '$(System.ArtifactsDirectory)/bin-artifacts/bin-artifacts.zip'
-
-        destinationFolder: '$(Build.SourcesDirectory)'
-
-        cleanDestinationFolder: false
+        versionSpec: 3.7
 
 
     - bash: |
@@ -90,13 +98,13 @@ jobs:
        import os.path
        key = sys.argv[1]
 
-       if os.path.isfile('./envPaths.json'):
-           with open('envPaths.json', 'r') as read_file:
+       if os.path.isfile('$(DIRECTORY_FOR_VIRTUAL_ENVS)'):
+           with open('$(DIRECTORY_FOR_VIRTUAL_ENVS)', 'r') as read_file:
                data = json.load(read_file)
        else:
-           with open('envPaths.json', 'w+') as read_file:
+           with open('$(DIRECTORY_FOR_VIRTUAL_ENVS)', 'w+') as read_file:
                data = {}
-       with open('envPaths.json', 'w') as outfile:
+       with open('$(DIRECTORY_FOR_VIRTUAL_ENVS)', 'w') as outfile:
            data[key] = sys.executable
            json.dump(data, outfile, sort_keys=True, indent=4)" > addEnvPath.py
 
@@ -108,7 +116,7 @@ jobs:
 
        pipenv run python addEnvPath.py pipenv
 
-       cat envPaths.json
+       cat $(DIRECTORY_FOR_VIRTUAL_ENVS)
 
       displayName: 'Create pipenv environment'
 
@@ -118,7 +126,7 @@ jobs:
 
        .venv/$(environmentExecutableFolder)/python addEnvPath.py venv
 
-       cat envPaths.json
+       cat $(DIRECTORY_FOR_VIRTUAL_ENVS)
 
       displayName: 'Create venv environment'
 
@@ -130,7 +138,7 @@ jobs:
 
        .virtualenv/$(environmentExecutableFolder)/python addEnvPath.py virtualenv
 
-       cat envPaths.json
+       cat $(DIRECTORY_FOR_VIRTUAL_ENVS)
 
       displayName: 'Create virtualenv environment'
 
@@ -146,7 +154,7 @@ jobs:
 
        source deactivate
 
-       cat envPaths.json
+       cat $(DIRECTORY_FOR_VIRTUAL_ENVS)
 
       displayName: 'Save conda environment executable'
 
