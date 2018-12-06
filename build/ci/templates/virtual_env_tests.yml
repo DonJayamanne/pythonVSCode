@@ -16,6 +16,7 @@ parameters:
 
 jobs:
 - job: ${{ parameters.name }}
+  dependsOn: 'PR_Validate_Windows_py37'
   pool:
     name: ${{ parameters.PoolName }}
 
@@ -61,28 +62,28 @@ jobs:
       name: 'show_bld_vars'
 
 
-    # - powershell: |
-    #     New-Item -ItemType directory -Path "$(System.ArtifactsDirectory)/bin-artifacts"
+    - powershell: |
+        New-Item -ItemType directory -Path "$(System.ArtifactsDirectory)/bin-artifacts"
 
-    #     $buildArtifactUri = "https://$(azureStorageAcctName).blob.core.windows.net/$(azureStorageContainerName)/$(Build.BuildNumber)/bin-artifacts.zip"
-    #     Write-Verbose "Downloading from $buildArtifactUri"
+        $buildArtifactUri = "https://$(azureStorageAcctName).blob.core.windows.net/$(azureStorageContainerName)/$(Build.BuildNumber)/bin-artifacts.zip"
+        Write-Verbose "Downloading from $buildArtifactUri"
 
-    #     $destination = "$(System.ArtifactsDirectory)/bin-artifacts/bin-artifacts.zip"
-    #     Write-Verbose "Destination file: $destination"
+        $destination = "$(System.ArtifactsDirectory)/bin-artifacts/bin-artifacts.zip"
+        Write-Verbose "Destination file: $destination"
 
-    #     Invoke-WebRequest -Uri $buildArtifactUri -OutFile $destination -Verbose
+        Invoke-WebRequest -Uri $buildArtifactUri -OutFile $destination -Verbose
 
-    #   displayName: 'Download bin-artifacts from cloud-storage'
+      displayName: 'Download bin-artifacts from cloud-storage'
 
 
-    # - task: ExtractFiles@1
-    #   displayName: 'Splat bin-artifacts'
-    #   inputs:
-    #     archiveFilePatterns: '$(System.ArtifactsDirectory)/bin-artifacts/bin-artifacts.zip'
+    - task: ExtractFiles@1
+      displayName: 'Splat bin-artifacts'
+      inputs:
+        archiveFilePatterns: '$(System.ArtifactsDirectory)/bin-artifacts/bin-artifacts.zip'
 
-    #     destinationFolder: '$(Build.SourcesDirectory)'
+        destinationFolder: '$(Build.SourcesDirectory)'
 
-    #     cleanDestinationFolder: false
+        cleanDestinationFolder: false
 
 
     - task: UsePythonVersion@0
