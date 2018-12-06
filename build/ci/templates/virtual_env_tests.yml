@@ -1,9 +1,9 @@
 parameters:
-  name: 'Unit_Test_Run'
+  name: 'VirtualEnv_Tests_Windows_py37'
   PythonVersion: '3.7'
   NodeVersion: '8.11.2'
   NpmVersion: 'latest'
-  PoolName: 'Hosted Ubuntu 1604'
+  PoolName: 'Hosted VS2017'
   MOCHA_CI_REPORTER_ID: '$(Build.SourcesDirectory)/build/ci/mocha-vsts-reporter.js'
   MOCHA_CI_REPORTFILE: '$(Build.ArtifactStagingDirectory)/reports/junit-report.xml'
   MOCHA_REPORTER_JUNIT: true
@@ -11,7 +11,7 @@ parameters:
   UploadBinary: false
   AzureStorageAccountName: 'vscodepythonci'
   AzureStorageContainerName: 'vscode-python-ci'
-  EnvironmentExecutableFolder: 'bin'
+  EnvironmentExecutableFolder: 'Scripts'
   DIRECTORY_FOR_VIRTUAL_ENVS: './envPaths.json'
 
 jobs:
