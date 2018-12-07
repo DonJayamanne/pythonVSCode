@@ -29,7 +29,9 @@ jobs:
     AzureStorageAccountName: 'vscodepythonci'
     AzureStorageContainerName: 'vscode-python-ci'
     EnvironmentExecutableFolder: 'Scripts'
-    DIRECTORY_FOR_VIRTUAL_ENVS: './envPaths.json'
+    ENV_PATHS_LOCATION: './src/testVirtualEnv/envPaths.json'
+    TEST_FILES_SUFFIX: 'test-virtualenvs.ts'
+    TestSuiteName: 'testSingleWorkspace'
 
 
 - job: 'System_Test_macOS'

@@ -12,7 +12,9 @@ parameters:
   AzureStorageAccountName: 'vscodepythonci'
   AzureStorageContainerName: 'vscode-python-ci'
   EnvironmentExecutableFolder: 'Scripts'
-  DIRECTORY_FOR_VIRTUAL_ENVS: './envPaths.json'
+  ENV_PATHS_LOCATION: './src/testVirtualEnv/envPaths.json'
+  TEST_FILES_SUFFIX: 'test-virtualenvs.ts'
+  TestSuiteName: 'testSingleWorkspace'
 
 jobs:
 - job: ${{ parameters.name }}
@@ -35,7 +37,9 @@ jobs:
     azureStorageContainerName: ${{ parameters.AzureStorageContainerName }}
     plaform: ${{ parameters.Platform }}
     environmentExecutableFolder: ${{ parameters.EnvironmentExecutableFolder }}
-    DIRECTORY_FOR_VIRTUAL_ENVS: ${{ parameters.DIRECTORY_FOR_VIRTUAL_ENVS }}
+    ENV_PATHS_LOCATION: ${{ parameters.ENV_PATHS_LOCATION }}
+    TEST_FILES_SUFFIX: ${{ parameters.TEST_FILES_SUFFIX }}
+    TestSuiteName: ${{ parameters.TestSuiteName }}
 
   steps:
     - bash: echo REQUESTED VARIABLE VALUES
@@ -99,13 +103,13 @@ jobs:
        import os.path
        key = sys.argv[1]
 
-       if os.path.isfile('$(DIRECTORY_FOR_VIRTUAL_ENVS)'):
-           with open('$(DIRECTORY_FOR_VIRTUAL_ENVS)', 'r') as read_file:
+       if os.path.isfile('$(ENV_PATHS_LOCATION)'):
+           with open('$(ENV_PATHS_LOCATION)', 'r') as read_file:
                data = json.load(read_file)
        else:
-           with open('$(DIRECTORY_FOR_VIRTUAL_ENVS)', 'w+') as read_file:
+           with open('$(ENV_PATHS_LOCATION)', 'w+') as read_file:
                data = {}
-       with open('$(DIRECTORY_FOR_VIRTUAL_ENVS)', 'w') as outfile:
+       with open('$(ENV_PATHS_LOCATION)', 'w') as outfile:
            data[key] = sys.executable
            json.dump(data, outfile, sort_keys=True, indent=4)" > addEnvPath.py
 
@@ -117,7 +121,7 @@ jobs:
 
        pipenv run python addEnvPath.py pipenv
 
-       cat $(DIRECTORY_FOR_VIRTUAL_ENVS)
+       cat $(ENV_PATHS_LOCATION)
 
       displayName: 'Create pipenv environment'
 
@@ -127,7 +131,7 @@ jobs:
 
        .venv/$(environmentExecutableFolder)/python addEnvPath.py venv
 
-       cat $(DIRECTORY_FOR_VIRTUAL_ENVS)
+       cat $(ENV_PATHS_LOCATION)
 
       displayName: 'Create venv environment'
 
@@ -139,23 +143,94 @@ jobs:
 
        .virtualenv/$(environmentExecutableFolder)/python addEnvPath.py virtualenv
 
-       cat $(DIRECTORY_FOR_VIRTUAL_ENVS)
+       cat $(ENV_PATHS_LOCATION)
 
       displayName: 'Create virtualenv environment'
 
 
-    - task: CondaEnvironment@1
-      displayName: 'Create conda environment '
+    # - task: CondaEnvironment@1
+    #   displayName: 'Create conda environment '
+    #   inputs:
+    #     packageSpecs: 'python=3.7'
+
+
+    # - bash: |
+    #    python addEnvPath.py conda
+
+    #    source deactivate
+
+    #    cat $(ENV_PATHS_LOCATION)
+
+    #   displayName: 'Save conda environment executable'
+
+
+    - task: Npm@1
+      displayName: 'update npm'
       inputs:
-        packageSpecs: 'python=3.7'
+        command: custom
+
+        verbose: true
+
+        customCommand: 'install -g npm@$(NpmVersion)'
 
 
-    - bash: |
-       python addEnvPath.py conda
+    - bash: echo AVAILABLE DEPENDENCY VERSIONS
 
-       source deactivate
+        echo Node Version = `node -v`
 
-       cat $(DIRECTORY_FOR_VIRTUAL_ENVS)
+        echo NPM Version = `npm -v`
 
-      displayName: 'Save conda environment executable'
+        echo Python Version = `python --version`
+
+        echo CI_PYTHON_PATH = $CI_PYTHON_PATH
+
+        echo Reported Python Path = `python -c "import sys;print(sys.executable)"`
+
+      displayName: 'Show build dependency versions'
+      name: 'show_bld_deps_vers'
+
+
+    - task: Npm@1
+      displayName: 'npm ci'
+      inputs:
+        command: custom
+
+        verbose: true
+
+        customCommand: ci
+
+
+    - task: CmdLine@1
+      displayName: 'pip upgrade pip'
+      inputs:
+        filename: python
+
+        arguments: '-m pip install --upgrade pip'
+
+
+    - task: CmdLine@1
+      displayName: 'pip install requirements'
+      inputs:
+        filename: python
+
+        arguments: '-m pip install --upgrade -r ./build/test-requirements.txt'
+
+
+    - task: CmdLine@1
+      displayName: 'pip install ptvsd'
+      inputs:
+        filename: python
+
+        arguments: '-m pip --disable-pip-version-check install -t ./pythonFiles/lib/python --no-cache-dir --implementation py --no-deps --upgrade -r requirements.txt'
+
+
+    - task: Npm@1
+      displayName: 'run $(TestSuiteName)'
+      inputs:
+        command: custom
+
+        verbose: true
+
+        customCommand: 'run $(TestSuiteName)'
+
 
