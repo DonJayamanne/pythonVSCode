@@ -96,13 +96,13 @@ script:
         python3 -m pip install --upgrade -r tpn/requirements.txt;
         python3 tpn --npm package-lock.json --config tpn/distribution.toml /dev/null;
     fi
-  - if [[ $BUNDLE == "true"]]; then
+  - if [[ $BUNDLE == "true" ]]; then
         npm run clean;
         npm run package;
         npx gulp clean:cleanExceptTests;
         npm run testSmoke;
     fi
-  - if [[ $BUNDLE == "true"]]; then
+  - if [[ $BUNDLE == "true" ]]; then
         npm run clean;
         npm run package;
         npx gulp clean:cleanExceptTests;
