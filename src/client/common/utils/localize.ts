@@ -105,7 +105,7 @@ export namespace DataScience {
     export const sysInfoURILabel = localize('DataScience.sysInfoURILabel', 'Jupyter Server URI: ');
 }
 
-export namespace Debug {
+export namespace DebugConfigurationPrompts {
     export const selectConfigurationTitle = localize('debug.selectConfigurationTitle', 'Select a debug configuration');
     export const selectConfigurationPlaceholder = localize('debug.selectConfigurationPlaceholder', 'Debug Configuration');
     export const debugFileConfigurationLabel = localize('debug.debugFileConfigurationLabel', 'Python File');
