@@ -24,7 +24,7 @@ export class AzureBlobStoreNugetRepository implements INugetRepository {
     @traceDecorators.verbose('Listing Nuget Packages')
     protected async listPackages(azureBlobStorageAccount: string, azureBlobStorageContainer: string, packageName: string, azureCDNBlobStorageAccount: string) {
         // tslint:disable-next-line:no-require-imports
-        const az = await import('azure-storage') as typeof import('azure-storage');
+        const az = require('azure-storage') as typeof import('azure-storage');
         const blobStore = az.createBlobServiceAnonymous(azureBlobStorageAccount);
         const nugetService = this.serviceContainer.get<INugetService>(INugetService);
         return new Promise<NugetPackage[]>((resolve, reject) => {

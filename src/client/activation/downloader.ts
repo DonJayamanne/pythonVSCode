@@ -98,7 +98,8 @@ export class LanguageServerDownloader implements ILanguageServerDownloader {
         }, async (progress) => {
             const httpClient = this.serviceContainer.get<IHttpClient>(IHttpClient);
             const req = await httpClient.downloadFile(uri);
-            const requestProgress = await import('request-progress');
+            // tslint:disable-next-line:no-require-imports
+            const requestProgress = require('request-progress') as typeof import('request-progress');
             requestProgress(req)
                 .on('progress', (state) => {
                     // https://www.npmjs.com/package/request-progress

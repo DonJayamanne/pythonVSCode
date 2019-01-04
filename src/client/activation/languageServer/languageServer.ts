@@ -204,7 +204,8 @@ export class LanguageServerExtensionActivator implements IExtensionActivator {
             run: { command: dotNetCommand, args: [serverModule], options: commandOptions },
             debug: { command: dotNetCommand, args: [serverModule, '--debug'], options: commandOptions }
         };
-        const vscodeLanaguageClient = await import('vscode-languageclient');
+        // tslint:disable-next-line:no-require-imports
+        const vscodeLanaguageClient = require('vscode-languageclient') as typeof import('vscode-languageclient');
         return new vscodeLanaguageClient.LanguageClient(PYTHON, languageClientName, serverOptions, clientOptions);
     }
 
@@ -214,7 +215,8 @@ export class LanguageServerExtensionActivator implements IExtensionActivator {
             run: { command: serverModule, rgs: [], options: options },
             debug: { command: serverModule, args: ['--debug'], options }
         };
-        const vscodeLanaguageClient = await import('vscode-languageclient');
+        // tslint:disable-next-line:no-require-imports
+        const vscodeLanaguageClient = require('vscode-languageclient') as typeof import('vscode-languageclient');
         return new vscodeLanaguageClient.LanguageClient(PYTHON, languageClientName, serverOptions, clientOptions);
     }
 

@@ -51,7 +51,7 @@ export type PythonSettingKeys = 'workspaceSymbols.enabled' | 'pythonPath' |
 
 async function disposePythonSettings() {
     if (!IS_SMOKE_TEST) {
-        const configSettings = await import('../client/common/configSettings');
+        const configSettings = require('../client/common/configSettings') as typeof import('../client/common/configSettings');
         configSettings.PythonSettings.dispose();
     }
 }
@@ -236,8 +236,8 @@ export function getOSType(platform: string = process.platform): OSType {
  * @return `SemVer` version of the Python interpreter, or `undefined` if an error occurs.
  */
 export async function getPythonSemVer(procService?: IProcessService): Promise<SemVer | undefined> {
-    const decoder = await import('../client/common/process/decoder');
-    const proc = await import('../client/common/process/proc');
+    const decoder = require('../client/common/process/decoder') as typeof import('../client/common/process/decoder');
+    const proc = require('../client/common/process/proc') as typeof import('../client/common/process/proc');
 
     const pythonProcRunner = procService ? procService : new proc.ProcessService(new decoder.BufferDecoder());
     const pyVerArgs = ['-c', 'import sys;print("{0}.{1}.{2}".format(*sys.version_info[:3]))'];
