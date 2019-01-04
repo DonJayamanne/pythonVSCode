@@ -30,5 +30,5 @@ export interface IProductService {
 export const IProductPathService = Symbol('IProductPathService');
 export interface IProductPathService {
     getExecutableNameFromSettings(product: Product, resource?: Uri): string;
-    isExecutableAModule(product: Product, resource?: Uri): Boolean;
+    isExecutableAModule(product: Product, resource?: Uri): boolean;
 }

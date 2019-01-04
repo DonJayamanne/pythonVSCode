@@ -30,7 +30,7 @@ lintSeverityToVSSeverity.set(LintMessageSeverity.Warning, vscode.DiagnosticSever
 // tslint:disable-next-line:interface-name
 interface DocumentHasJupyterCodeCells {
     // tslint:disable-next-line:callable-types
-    (doc: vscode.TextDocument, token: vscode.CancellationToken): Promise<Boolean>;
+    (doc: vscode.TextDocument, token: vscode.CancellationToken): Promise<boolean>;
 }
 
 @injectable()

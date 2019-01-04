@@ -49,8 +49,8 @@ export type TestSuite = TestResult & {
     name: string;
     functions: TestFunction[];
     suites: TestSuite[];
-    isUnitTest: Boolean;
-    isInstance: Boolean;
+    isUnitTest: boolean;
+    isInstance: boolean;
     nameToRun: string;
     xmlName: string;
     status?: TestStatus;
@@ -74,7 +74,7 @@ export type TestResult = Node & {
 };
 
 export type Node = {
-    expanded?: Boolean;
+    expanded?: boolean;
 };
 
 export type FlattenedTestFunction = {

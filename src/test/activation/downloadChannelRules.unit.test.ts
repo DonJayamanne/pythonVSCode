@@ -30,12 +30,12 @@ suite('Language Server Download Channel Rules', () => {
         suite('Betal channel', () => {
             let serviceContainer: typeMoq.IMock<IServiceContainer>;
             let stateFactory: typeMoq.IMock<IPersistentStateFactory>;
-            let state: typeMoq.IMock<IPersistentState<Boolean>>;
+            let state: typeMoq.IMock<IPersistentState<boolean>>;
 
             setup(() => {
                 serviceContainer = typeMoq.Mock.ofType<IServiceContainer>();
                 stateFactory = typeMoq.Mock.ofType<IPersistentStateFactory>();
-                state = typeMoq.Mock.ofType<IPersistentState<Boolean>>();
+                state = typeMoq.Mock.ofType<IPersistentState<boolean>>();
                 stateFactory
                     .setup(s => s.createGlobalPersistentState(typeMoq.It.isAny(), typeMoq.It.isAny(), typeMoq.It.isAny()))
                     .returns(() => state.object)

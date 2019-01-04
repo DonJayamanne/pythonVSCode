@@ -106,7 +106,7 @@ export const IInterpreterHelper = Symbol('IInterpreterHelper');
 export interface IInterpreterHelper {
     getActiveWorkspaceUri(resource: Resource): WorkspacePythonPath | undefined;
     getInterpreterInformation(pythonPath: string): Promise<undefined | Partial<PythonInterpreter>>;
-    isMacDefaultPythonPath(pythonPath: string): Boolean;
+    isMacDefaultPythonPath(pythonPath: string): boolean;
     getInterpreterTypeDisplayName(interpreterType: InterpreterType): string | undefined;
     getBestInterpreter(interpreters?: PythonInterpreter[]): PythonInterpreter | undefined;
 }

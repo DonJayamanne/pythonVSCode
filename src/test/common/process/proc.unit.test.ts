@@ -30,7 +30,7 @@ suite('Process - Process Service', function () {
 
     function spawnProc() {
         const proc = spawn(PYTHON_PATH, ['-c', 'while(True): import time;time.sleep(0.5);print(1)']);
-        const exited = createDeferred<Boolean>();
+        const exited = createDeferred<boolean>();
         proc.on('exit', () => exited.resolve(true));
         procIdsToKill.push(proc.pid);
 
