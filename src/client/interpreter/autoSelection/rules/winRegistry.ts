@@ -30,4 +30,12 @@ export class WindowsRegistryInterpretersAutoSelectionRule extends BaseRuleServic
         const bestInterpreter = this.helper.getBestInterpreter(interpreters);
         return await this.setGlobalInterpreter(bestInterpreter, manager) ? NextAction.exit : NextAction.runNextRule;
     }
+    protected async onAutoSelectInterpreter2(resource: Resource, manager?: IInterpreterAutoSelectionService): Promise<NextAction> {
+        if (this.platform.osType !== OSType.Windows) {
+            return NextAction.runNextRule;
+        }
+        const interpreters = await this.winRegInterpreterLocator.getInterpreters(resource);
+        const bestInterpreter = this.helper.getBestInterpreter(interpreters);
+        return await this.setGlobalInterpreter(bestInterpreter, manager) ? NextAction.exit : NextAction.runNextRule;
+    }
 }

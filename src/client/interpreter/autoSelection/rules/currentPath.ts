@@ -25,4 +25,9 @@ export class CurrentPathInterpretersAutoSelectionRule extends BaseRuleService {
         const bestInterpreter = this.helper.getBestInterpreter(interpreters);
         return await this.setGlobalInterpreter(bestInterpreter, manager) ? NextAction.exit : NextAction.runNextRule;
     }
+    protected async onAutoSelectInterpreter2(resource: Resource, manager?: IInterpreterAutoSelectionService): Promise<NextAction> {
+        const interpreters = await this.currentPathInterpreterLocator.getInterpreters(resource);
+        const bestInterpreter = this.helper.getBestInterpreter(interpreters);
+        return await this.setGlobalInterpreter(bestInterpreter, manager) ? NextAction.exit : NextAction.runNextRule;
+    }
 }
