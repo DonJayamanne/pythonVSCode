@@ -6,7 +6,7 @@ codecov:
     - !travis-ci.org             # ignore this domain
     - !github.com                # ignore this domain
   notify:
-    require_ci_to_pass: yes
+    require_ci_to_pass: no
 
 coverage:
   precision: 0
