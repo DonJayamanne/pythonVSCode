@@ -1,3 +1,13 @@
+codecov:
+  ci:
+    - !travis                  # add my custom jenkins server
+    - !appveyor                # ignore CI builds by AppVeyor
+    - !donjayamann.visualstudio.com     # ignore this domain
+    - !travis-ci.org             # ignore this domain
+    - !github.com                # ignore this domain
+  notify:
+    require_ci_to_pass: yes
+
 coverage:
   precision: 0
   round: up
