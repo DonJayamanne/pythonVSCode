@@ -3,9 +3,22 @@
 
 // tslint:disable:no-any unified-signatures
 
-import { injectable } from 'inversify';
-import { Event, TextDocument, TextDocumentShowOptions, TextEditor, TextEditorOptionsChangeEvent, TextEditorSelectionChangeEvent, TextEditorViewColumnChangeEvent, Uri, ViewColumn, window, workspace, WorkspaceEdit } from 'vscode';
-import { IDocumentManager } from './types';
+import { injectable } from "inversify";
+import {
+    Event,
+    TextDocument,
+    TextDocumentShowOptions,
+    TextEditor,
+    TextEditorOptionsChangeEvent,
+    TextEditorSelectionChangeEvent,
+    TextEditorViewColumnChangeEvent,
+    Uri,
+    ViewColumn,
+    window,
+    workspace,
+    WorkspaceEdit
+} from "vscode";
+import { IDocumentManager } from "./types";
 
 @injectable()
 export class DocumentManager implements IDocumentManager {
@@ -24,13 +37,19 @@ export class DocumentManager implements IDocumentManager {
     public get onDidChangeVisibleTextEditors(): Event<TextEditor[]> {
         return window.onDidChangeVisibleTextEditors;
     }
-    public get onDidChangeTextEditorSelection(): Event<TextEditorSelectionChangeEvent> {
+    public get onDidChangeTextEditorSelection(): Event<
+        TextEditorSelectionChangeEvent
+    > {
         return window.onDidChangeTextEditorSelection;
     }
-    public get onDidChangeTextEditorOptions(): Event<TextEditorOptionsChangeEvent> {
+    public get onDidChangeTextEditorOptions(): Event<
+        TextEditorOptionsChangeEvent
+    > {
         return window.onDidChangeTextEditorOptions;
     }
-    public get onDidChangeTextEditorViewColumn(): Event<TextEditorViewColumnChangeEvent> {
+    public get onDidChangeTextEditorViewColumn(): Event<
+        TextEditorViewColumnChangeEvent
+    > {
         return window.onDidChangeTextEditorViewColumn;
     }
     public get onDidOpenTextDocument(): Event<TextDocument> {
@@ -42,15 +61,29 @@ export class DocumentManager implements IDocumentManager {
     public get onDidSaveTextDocument(): Event<TextDocument> {
         return workspace.onDidSaveTextDocument;
     }
-    public showTextDocument(document: TextDocument, column?: ViewColumn, preserveFocus?: boolean): Thenable<TextEditor>;
-    public showTextDocument(document: TextDocument | Uri, options?: TextDocumentShowOptions): Thenable<TextEditor>;
-    public showTextDocument(uri: any, options?: any, preserveFocus?: any): Thenable<TextEditor> {
+    public showTextDocument(
+        document: TextDocument,
+        column?: ViewColumn,
+        preserveFocus?: boolean
+    ): Thenable<TextEditor>;
+    public showTextDocument(
+        document: TextDocument | Uri,
+        options?: TextDocumentShowOptions
+    ): Thenable<TextEditor>;
+    public showTextDocument(
+        uri: any,
+        options?: any,
+        preserveFocus?: any
+    ): Thenable<TextEditor> {
         return window.showTextDocument(uri, options, preserveFocus);
     }
 
     public openTextDocument(uri: Uri): Thenable<TextDocument>;
     public openTextDocument(fileName: string): Thenable<TextDocument>;
-    public openTextDocument(options?: { language?: string; content?: string }): Thenable<TextDocument>;
+    public openTextDocument(options?: {
+        language?: string;
+        content?: string;
+    }): Thenable<TextDocument>;
     public openTextDocument(arg?: any): Thenable<TextDocument> {
         return workspace.openTextDocument(arg);
     }

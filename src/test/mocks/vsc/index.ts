@@ -1,35 +1,44 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-'use strict';
+"use strict";
 
 // tslint:disable:no-invalid-this no-require-imports no-var-requires no-any max-classes-per-file
 
-import { EventEmitter as NodeEventEmitter } from 'events';
-import * as vscode from 'vscode';
+import { EventEmitter as NodeEventEmitter } from "events";
+import * as vscode from "vscode";
 // export * from './range';
 // export * from './position';
 // export * from './selection';
-export * from './extHostedTypes';
+export * from "./extHostedTypes";
 
 export namespace vscMock {
     // This is one of the very few classes that we need in our unit tests.
     // It is constructed in a number of places, and this is required for verification.
     // Using mocked objects for verfications does not work in typemoq.
     export class Uri implements vscode.Uri {
-        private constructor(public readonly scheme: string, public readonly authority: string,
-            public readonly path: string, public readonly query: string,
-            public readonly fragment: string, public readonly fsPath) {
-
-        }
+        private constructor(
+            public readonly scheme: string,
+            public readonly authority: string,
+            public readonly path: string,
+            public readonly query: string,
+            public readonly fragment: string,
+            public readonly fsPath
+        ) {}
         public static file(path: string): Uri {
-            return new Uri('file', '', path, '', '', path);
+            return new Uri("file", "", path, "", "", path);
         }
         public static parse(value: string): Uri {
-            return new Uri('http', '', value, '', '', value);
+            return new Uri("http", "", value, "", "", value);
         }
-        public with(change: { scheme?: string; authority?: string; path?: string; query?: string; fragment?: string }): vscode.Uri {
-            throw new Error('Not implemented');
+        public with(change: {
+            scheme?: string;
+            authority?: string;
+            path?: string;
+            query?: string;
+            fragment?: string;
+        }): vscode.Uri {
+            throw new Error("Not implemented");
         }
         public toString(skipEncoding?: boolean): string {
             return this.fsPath;
@@ -40,8 +49,7 @@ export namespace vscMock {
     }
 
     export class Disposable {
-        constructor(private callOnDispose: Function) {
-        }
+        constructor(private callOnDispose: Function) {}
         public dispose(): any {
             if (this.callOnDispose) {
                 this.callOnDispose();
@@ -50,7 +58,6 @@ export namespace vscMock {
     }
 
     export class EventEmitter<T> implements vscode.EventEmitter<T> {
-
         public event: vscode.Event<T>;
         public emitter: NodeEventEmitter;
         constructor() {
@@ -58,23 +65,28 @@ export namespace vscMock {
             this.emitter = new NodeEventEmitter();
         }
         public fire(data?: T): void {
-            this.emitter.emit('evt', data);
+            this.emitter.emit("evt", data);
         }
         public dispose(): void {
             this.emitter.removeAllListeners();
         }
 
-        protected add = (listener: (e: T) => any, thisArgs?: any, disposables?: Disposable[]): Disposable => {
-            this.emitter.addListener('evt', listener);
-            return {
+        protected add = (
+            listener: (e: T) => any,
+            thisArgs?: any,
+            disposables?: Disposable[]
+        ): Disposable => {
+            this.emitter.addListener("evt", listener);
+            return ({
                 dispose: () => {
-                    this.emitter.removeListener('evt', listener);
+                    this.emitter.removeListener("evt", listener);
                 }
-            } as any as Disposable;
-        }
+            } as any) as Disposable;
+        };
     }
 
-    export class CancellationToken extends EventEmitter<any> implements vscode.CancellationToken {
+    export class CancellationToken extends EventEmitter<any>
+        implements vscode.CancellationToken {
         public isCancellationRequested!: boolean;
         public onCancellationRequested: vscode.Event<any>;
         constructor() {

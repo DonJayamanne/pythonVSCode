@@ -4,10 +4,7 @@
     "python.workspaceSymbols.enabled": false,
     "python.unitTest.nosetestArgs": [],
     "python.unitTest.pyTestArgs": [],
-    "python.unitTest.unittestArgs": [
-        "-s=./tests",
-        "-p=test_*.py"
-    ],
+    "python.unitTest.unittestArgs": ["-s=./tests", "-p=test_*.py"],
     "python.sortImports.args": [],
     "python.linting.lintOnSave": false,
     "python.linting.enabled": true,

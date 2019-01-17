@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
-'use strict';
+"use strict";
 import {
     Breakpoint,
     BreakpointsChangeEvent,
@@ -44,13 +44,16 @@ import {
     WorkspaceFolder,
     WorkspaceFolderPickOptions,
     WorkspaceFoldersChangeEvent
-} from 'vscode';
+} from "vscode";
 
 // tslint:disable:no-any unified-signatures
 
-export const IApplicationShell = Symbol('IApplicationShell');
+export const IApplicationShell = Symbol("IApplicationShell");
 export interface IApplicationShell {
-    showInformationMessage(message: string, ...items: string[]): Thenable<string | undefined>;
+    showInformationMessage(
+        message: string,
+        ...items: string[]
+    ): Thenable<string | undefined>;
 
     /**
      * Show an information message to users. Optionally provide an array of items which will be presented as
@@ -61,7 +64,11 @@ export interface IApplicationShell {
      * @param items A set of items that will be rendered as actions in the message.
      * @return A thenable that resolves to the selected item or `undefined` when being dismissed.
      */
-    showInformationMessage(message: string, options: MessageOptions, ...items: string[]): Thenable<string | undefined>;
+    showInformationMessage(
+        message: string,
+        options: MessageOptions,
+        ...items: string[]
+    ): Thenable<string | undefined>;
 
     /**
      * Show an information message.
@@ -72,7 +79,10 @@ export interface IApplicationShell {
      * @param items A set of items that will be rendered as actions in the message.
      * @return A thenable that resolves to the selected item or `undefined` when being dismissed.
      */
-    showInformationMessage<T extends MessageItem>(message: string, ...items: T[]): Thenable<T | undefined>;
+    showInformationMessage<T extends MessageItem>(
+        message: string,
+        ...items: T[]
+    ): Thenable<T | undefined>;
 
     /**
      * Show an information message.
@@ -84,7 +94,11 @@ export interface IApplicationShell {
      * @param items A set of items that will be rendered as actions in the message.
      * @return A thenable that resolves to the selected item or `undefined` when being dismissed.
      */
-    showInformationMessage<T extends MessageItem>(message: string, options: MessageOptions, ...items: T[]): Thenable<T | undefined>;
+    showInformationMessage<T extends MessageItem>(
+        message: string,
+        options: MessageOptions,
+        ...items: T[]
+    ): Thenable<T | undefined>;
 
     /**
      * Show a warning message.
@@ -95,30 +109,10 @@ export interface IApplicationShell {
      * @param items A set of items that will be rendered as actions in the message.
      * @return A thenable that resolves to the selected item or `undefined` when being dismissed.
      */
-    showWarningMessage(message: string, ...items: string[]): Thenable<string | undefined>;
-
-    /**
-     * Show a warning message.
-     *
-     * @see [showInformationMessage](#window.showInformationMessage)
-     *
-     * @param message The message to show.
-     * @param options Configures the behaviour of the message.
-     * @param items A set of items that will be rendered as actions in the message.
-     * @return A thenable that resolves to the selected item or `undefined` when being dismissed.
-     */
-    showWarningMessage(message: string, options: MessageOptions, ...items: string[]): Thenable<string | undefined>;
-
-    /**
-     * Show a warning message.
-     *
-     * @see [showInformationMessage](#window.showInformationMessage)
-     *
-     * @param message The message to show.
-     * @param items A set of items that will be rendered as actions in the message.
-     * @return A thenable that resolves to the selected item or `undefined` when being dismissed.
-     */
-    showWarningMessage<T extends MessageItem>(message: string, ...items: T[]): Thenable<T | undefined>;
+    showWarningMessage(
+        message: string,
+        ...items: string[]
+    ): Thenable<string | undefined>;
 
     /**
      * Show a warning message.
@@ -130,7 +124,41 @@ export interface IApplicationShell {
      * @param items A set of items that will be rendered as actions in the message.
      * @return A thenable that resolves to the selected item or `undefined` when being dismissed.
      */
-    showWarningMessage<T extends MessageItem>(message: string, options: MessageOptions, ...items: T[]): Thenable<T | undefined>;
+    showWarningMessage(
+        message: string,
+        options: MessageOptions,
+        ...items: string[]
+    ): Thenable<string | undefined>;
+
+    /**
+     * Show a warning message.
+     *
+     * @see [showInformationMessage](#window.showInformationMessage)
+     *
+     * @param message The message to show.
+     * @param items A set of items that will be rendered as actions in the message.
+     * @return A thenable that resolves to the selected item or `undefined` when being dismissed.
+     */
+    showWarningMessage<T extends MessageItem>(
+        message: string,
+        ...items: T[]
+    ): Thenable<T | undefined>;
+
+    /**
+     * Show a warning message.
+     *
+     * @see [showInformationMessage](#window.showInformationMessage)
+     *
+     * @param message The message to show.
+     * @param options Configures the behaviour of the message.
+     * @param items A set of items that will be rendered as actions in the message.
+     * @return A thenable that resolves to the selected item or `undefined` when being dismissed.
+     */
+    showWarningMessage<T extends MessageItem>(
+        message: string,
+        options: MessageOptions,
+        ...items: T[]
+    ): Thenable<T | undefined>;
 
     /**
      * Show an error message.
@@ -141,7 +169,10 @@ export interface IApplicationShell {
      * @param items A set of items that will be rendered as actions in the message.
      * @return A thenable that resolves to the selected item or `undefined` when being dismissed.
      */
-    showErrorMessage(message: string, ...items: string[]): Thenable<string | undefined>;
+    showErrorMessage(
+        message: string,
+        ...items: string[]
+    ): Thenable<string | undefined>;
 
     /**
      * Show an error message.
@@ -153,7 +184,11 @@ export interface IApplicationShell {
      * @param items A set of items that will be rendered as actions in the message.
      * @return A thenable that resolves to the selected item or `undefined` when being dismissed.
      */
-    showErrorMessage(message: string, options: MessageOptions, ...items: string[]): Thenable<string | undefined>;
+    showErrorMessage(
+        message: string,
+        options: MessageOptions,
+        ...items: string[]
+    ): Thenable<string | undefined>;
 
     /**
      * Show an error message.
@@ -164,7 +199,10 @@ export interface IApplicationShell {
      * @param items A set of items that will be rendered as actions in the message.
      * @return A thenable that resolves to the selected item or `undefined` when being dismissed.
      */
-    showErrorMessage<T extends MessageItem>(message: string, ...items: T[]): Thenable<T | undefined>;
+    showErrorMessage<T extends MessageItem>(
+        message: string,
+        ...items: T[]
+    ): Thenable<T | undefined>;
 
     /**
      * Show an error message.
@@ -176,7 +214,11 @@ export interface IApplicationShell {
      * @param items A set of items that will be rendered as actions in the message.
      * @return A thenable that resolves to the selected item or `undefined` when being dismissed.
      */
-    showErrorMessage<T extends MessageItem>(message: string, options: MessageOptions, ...items: T[]): Thenable<T | undefined>;
+    showErrorMessage<T extends MessageItem>(
+        message: string,
+        options: MessageOptions,
+        ...items: T[]
+    ): Thenable<T | undefined>;
 
     /**
      * Shows a selection list.
@@ -186,7 +228,11 @@ export interface IApplicationShell {
      * @param token A token that can be used to signal cancellation.
      * @return A promise that resolves to the selection or `undefined`.
      */
-    showQuickPick(items: string[] | Thenable<string[]>, options?: QuickPickOptions, token?: CancellationToken): Thenable<string | undefined>;
+    showQuickPick(
+        items: string[] | Thenable<string[]>,
+        options?: QuickPickOptions,
+        token?: CancellationToken
+    ): Thenable<string | undefined>;
 
     /**
      * Shows a selection list.
@@ -196,7 +242,11 @@ export interface IApplicationShell {
      * @param token A token that can be used to signal cancellation.
      * @return A promise that resolves to the selected item or `undefined`.
      */
-    showQuickPick<T extends QuickPickItem>(items: T[] | Thenable<T[]>, options?: QuickPickOptions, token?: CancellationToken): Thenable<T | undefined>;
+    showQuickPick<T extends QuickPickItem>(
+        items: T[] | Thenable<T[]>,
+        options?: QuickPickOptions,
+        token?: CancellationToken
+    ): Thenable<T | undefined>;
 
     /**
      * Shows a file open dialog to the user which allows to select a file
@@ -227,7 +277,10 @@ export interface IApplicationShell {
      * @param token A token that can be used to signal cancellation.
      * @return A promise that resolves to a string the user provided or to `undefined` in case of dismissal.
      */
-    showInputBox(options?: InputBoxOptions, token?: CancellationToken): Thenable<string | undefined>;
+    showInputBox(
+        options?: InputBoxOptions,
+        token?: CancellationToken
+    ): Thenable<string | undefined>;
 
     /**
      * Creates a [QuickPick](#QuickPick) to let the user pick an item from a list
@@ -297,7 +350,10 @@ export interface IApplicationShell {
      * @param priority The priority of the item. Higher values mean the item should be shown more to the left.
      * @return A new status bar item.
      */
-    createStatusBarItem(alignment?: StatusBarAlignment, priority?: number): StatusBarItem;
+    createStatusBarItem(
+        alignment?: StatusBarAlignment,
+        priority?: number
+    ): StatusBarItem;
     /**
      * Shows a selection list of [workspace folders](#workspace.workspaceFolders) to pick from.
      * Returns `undefined` if no folder is open.
@@ -305,7 +361,9 @@ export interface IApplicationShell {
      * @param options Configures the behavior of the workspace folder list.
      * @return A promise that resolves to the workspace folder or `undefined`.
      */
-    showWorkspaceFolderPick(options?: WorkspaceFolderPickOptions): Thenable<WorkspaceFolder | undefined>;
+    showWorkspaceFolderPick(
+        options?: WorkspaceFolderPickOptions
+    ): Thenable<WorkspaceFolder | undefined>;
 
     /**
      * Show progress in the editor. Progress is shown while running the given callback
@@ -326,13 +384,18 @@ export interface IApplicationShell {
      *
      * @return The thenable the task-callback returned.
      */
-    withProgress<R>(options: ProgressOptions, task: (progress: Progress<{ message?: string; increment?: number }>, token: CancellationToken) => Thenable<R>): Thenable<R>;
+    withProgress<R>(
+        options: ProgressOptions,
+        task: (
+            progress: Progress<{ message?: string; increment?: number }>,
+            token: CancellationToken
+        ) => Thenable<R>
+    ): Thenable<R>;
 }
 
-export const ICommandManager = Symbol('ICommandManager');
+export const ICommandManager = Symbol("ICommandManager");
 
 export interface ICommandManager {
-
     /**
      * Registers a command that can be invoked via a keyboard shortcut,
      * a menu item, an action, or directly.
@@ -345,7 +408,11 @@ export interface ICommandManager {
      * @param thisArg The `this` context used when invoking the handler function.
      * @return Disposable which unregisters this command on disposal.
      */
-    registerCommand(command: string, callback: (...args: any[]) => any, thisArg?: any): Disposable;
+    registerCommand(
+        command: string,
+        callback: (...args: any[]) => any,
+        thisArg?: any
+    ): Disposable;
 
     /**
      * Registers a text editor command that can be invoked via a keyboard shortcut,
@@ -361,7 +428,15 @@ export interface ICommandManager {
      * @param thisArg The `this` context used when invoking the handler function.
      * @return Disposable which unregisters this command on disposal.
      */
-    registerTextEditorCommand(command: string, callback: (textEditor: TextEditor, edit: TextEditorEdit, ...args: any[]) => void, thisArg?: any): Disposable;
+    registerTextEditorCommand(
+        command: string,
+        callback: (
+            textEditor: TextEditor,
+            edit: TextEditorEdit,
+            ...args: any[]
+        ) => void,
+        thisArg?: any
+    ): Disposable;
 
     /**
      * Executes the command denoted by the given command identifier.
@@ -389,7 +464,7 @@ export interface ICommandManager {
     getCommands(filterInternal?: boolean): Thenable<string[]>;
 }
 
-export const IDocumentManager = Symbol('IDocumentManager');
+export const IDocumentManager = Symbol("IDocumentManager");
 
 export interface IDocumentManager {
     /**
@@ -426,7 +501,9 @@ export interface IDocumentManager {
     /**
      * An [event](#Event) which fires when the selection in an editor has changed.
      */
-    readonly onDidChangeTextEditorSelection: Event<TextEditorSelectionChangeEvent>;
+    readonly onDidChangeTextEditorSelection: Event<
+        TextEditorSelectionChangeEvent
+    >;
 
     /**
      * An [event](#Event) which fires when the options of an editor have changed.
@@ -436,7 +513,9 @@ export interface IDocumentManager {
     /**
      * An [event](#Event) which fires when the view column of an editor has changed.
      */
-    readonly onDidChangeTextEditorViewColumn: Event<TextEditorViewColumnChangeEvent>;
+    readonly onDidChangeTextEditorViewColumn: Event<
+        TextEditorViewColumnChangeEvent
+    >;
 
     /**
      * An event that is emitted when a [text document](#TextDocument) is opened.
@@ -462,7 +541,11 @@ export interface IDocumentManager {
      * @param preserveFocus When `true` the editor will not take focus.
      * @return A promise that resolves to an [editor](#TextEditor).
      */
-    showTextDocument(document: TextDocument, column?: ViewColumn, preserveFocus?: boolean): Thenable<TextEditor>;
+    showTextDocument(
+        document: TextDocument,
+        column?: ViewColumn,
+        preserveFocus?: boolean
+    ): Thenable<TextEditor>;
 
     /**
      * Show the given document in a text editor. [Options](#TextDocumentShowOptions) can be provided
@@ -472,7 +555,10 @@ export interface IDocumentManager {
      * @param options [Editor options](#TextDocumentShowOptions) to configure the behavior of showing the [editor](#TextEditor).
      * @return A promise that resolves to an [editor](#TextEditor).
      */
-    showTextDocument(document: TextDocument, options?: TextDocumentShowOptions): Thenable<TextEditor>;
+    showTextDocument(
+        document: TextDocument,
+        options?: TextDocumentShowOptions
+    ): Thenable<TextEditor>;
 
     /**
      * A short-hand for `openTextDocument(uri).then(document => showTextDocument(document, options))`.
@@ -483,7 +569,10 @@ export interface IDocumentManager {
      * @param options [Editor options](#TextDocumentShowOptions) to configure the behavior of showing the [editor](#TextEditor).
      * @return A promise that resolves to an [editor](#TextEditor).
      */
-    showTextDocument(uri: Uri, options?: TextDocumentShowOptions): Thenable<TextEditor>;
+    showTextDocument(
+        uri: Uri,
+        options?: TextDocumentShowOptions
+    ): Thenable<TextEditor>;
     /**
      * Opens a document. Will return early if this document is already open. Otherwise
      * the document is loaded and the [didOpen](#workspace.onDidOpenTextDocument)-event fires.
@@ -520,7 +609,10 @@ export interface IDocumentManager {
      * @param options Options to control how the document will be created.
      * @return A promise that resolves to a [document](#TextDocument).
      */
-    openTextDocument(options?: { language?: string; content?: string }): Thenable<TextDocument>;
+    openTextDocument(options?: {
+        language?: string;
+        content?: string;
+    }): Thenable<TextDocument>;
     /**
      * Make changes to one or many resources as defined by the given
      * [workspace edit](#WorkspaceEdit).
@@ -535,7 +627,7 @@ export interface IDocumentManager {
     applyEdit(edit: WorkspaceEdit): Thenable<boolean>;
 }
 
-export const IWorkspaceService = Symbol('IWorkspaceService');
+export const IWorkspaceService = Symbol("IWorkspaceService");
 
 export interface IWorkspaceService {
     /**
@@ -599,7 +691,10 @@ export interface IWorkspaceService {
      * multiple workspace folders and `false` otherwise.
      * @return A path relative to the root or the input.
      */
-    asRelativePath(pathOrUri: string | Uri, includeWorkspaceFolder?: boolean): string;
+    asRelativePath(
+        pathOrUri: string | Uri,
+        includeWorkspaceFolder?: boolean
+    ): string;
 
     /**
      * Creates a file system watcher.
@@ -616,7 +711,12 @@ export interface IWorkspaceService {
      * @param ignoreDeleteEvents Ignore when files have been deleted.
      * @return A new file system watcher instance.
      */
-    createFileSystemWatcher(globPattern: GlobPattern, ignoreCreateEvents?: boolean, ignoreChangeEvents?: boolean, ignoreDeleteEvents?: boolean): FileSystemWatcher;
+    createFileSystemWatcher(
+        globPattern: GlobPattern,
+        ignoreCreateEvents?: boolean,
+        ignoreChangeEvents?: boolean,
+        ignoreDeleteEvents?: boolean
+    ): FileSystemWatcher;
 
     /**
      * Find files across all [workspace folders](#workspace.workspaceFolders) in the workspace.
@@ -632,7 +732,12 @@ export interface IWorkspaceService {
      * @return A thenable that resolves to an array of resource identifiers. Will return no results if no
      * [workspace folders](#workspace.workspaceFolders) are opened.
      */
-    findFiles(include: GlobPattern, exclude?: GlobPattern, maxResults?: number, token?: CancellationToken): Thenable<Uri[]>;
+    findFiles(
+        include: GlobPattern,
+        exclude?: GlobPattern,
+        maxResults?: number,
+        token?: CancellationToken
+    ): Thenable<Uri[]>;
 
     /**
      * Get a workspace configuration object.
@@ -650,7 +755,7 @@ export interface IWorkspaceService {
     getConfiguration(section?: string, resource?: Uri): WorkspaceConfiguration;
 }
 
-export const ITerminalManager = Symbol('ITerminalManager');
+export const ITerminalManager = Symbol("ITerminalManager");
 
 export interface ITerminalManager {
     /**
@@ -672,7 +777,7 @@ export interface ITerminalManager {
     createTerminal(options: TerminalOptions): Terminal;
 }
 
-export const IDebugService = Symbol('IDebugManager');
+export const IDebugService = Symbol("IDebugManager");
 
 export interface IDebugService {
     /**
@@ -707,7 +812,9 @@ export interface IDebugService {
     /**
      * An [event](#Event) which fires when a custom DAP event is received from the [debug session](#DebugSession).
      */
-    readonly onDidReceiveDebugSessionCustomEvent: Event<DebugSessionCustomEvent>;
+    readonly onDidReceiveDebugSessionCustomEvent: Event<
+        DebugSessionCustomEvent
+    >;
 
     /**
      * An [event](#Event) which fires when a [debug session](#DebugSession) has terminated.
@@ -727,7 +834,10 @@ export interface IDebugService {
      * @param provider The [debug configuration provider](#DebugConfigurationProvider) to register.
      * @return A [disposable](#Disposable) that unregisters this provider when being disposed.
      */
-    registerDebugConfigurationProvider(debugType: string, provider: DebugConfigurationProvider): Disposable;
+    registerDebugConfigurationProvider(
+        debugType: string,
+        provider: DebugConfigurationProvider
+    ): Disposable;
 
     /**
      * Start debugging by using either a named launch or named compound configuration,
@@ -739,7 +849,10 @@ export interface IDebugService {
      * @param nameOrConfiguration Either the name of a debug or compound configuration or a [DebugConfiguration](#DebugConfiguration) object.
      * @return A thenable that resolves when debugging could be successfully started.
      */
-    startDebugging(folder: WorkspaceFolder | undefined, nameOrConfiguration: string | DebugConfiguration): Thenable<boolean>;
+    startDebugging(
+        folder: WorkspaceFolder | undefined,
+        nameOrConfiguration: string | DebugConfiguration
+    ): Thenable<boolean>;
 
     /**
      * Add breakpoints.
@@ -754,7 +867,7 @@ export interface IDebugService {
     removeBreakpoints(breakpoints: Breakpoint[]): void;
 }
 
-export const IApplicationEnvironment = Symbol('IApplicationEnvironment');
+export const IApplicationEnvironment = Symbol("IApplicationEnvironment");
 export interface IApplicationEnvironment {
     /**
      * The application name of the editor, like 'VS Code'.
@@ -807,7 +920,7 @@ export interface IApplicationEnvironment {
     packageJson: any;
 }
 
-export const IWebPanelMessageListener = Symbol('IWebPanelMessageListener');
+export const IWebPanelMessageListener = Symbol("IWebPanelMessageListener");
 export interface IWebPanelMessageListener extends Disposable {
     /**
      * Listens to web panel messages
@@ -831,7 +944,7 @@ export type WebPanelMessage = {
 };
 
 // Wraps the VS Code webview panel
-export const IWebPanel = Symbol('IWebPanel');
+export const IWebPanel = Symbol("IWebPanel");
 export interface IWebPanel {
     /**
      * Makes the webpanel show up.
@@ -851,7 +964,7 @@ export interface IWebPanel {
 }
 
 // Wraps the VS Code api for creating a web panel
-export const IWebPanelProvider = Symbol('IWebPanelProvider');
+export const IWebPanelProvider = Symbol("IWebPanelProvider");
 export interface IWebPanelProvider {
     /**
      * Creates a new webpanel
@@ -860,5 +973,10 @@ export interface IWebPanelProvider {
      * @param: mainScriptPath: full path in the output folder to the script
      * @return A IWebPanel that can be used to show html pages.
      */
-    create(listener: IWebPanelMessageListener, title: string, mainScriptPath: string, embeddedCss?: string): IWebPanel;
+    create(
+        listener: IWebPanelMessageListener,
+        title: string,
+        mainScriptPath: string,
+        embeddedCss?: string
+    ): IWebPanel;
 }

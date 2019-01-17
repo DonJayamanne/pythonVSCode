@@ -1,23 +1,34 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
-'use strict';
-import { nbformat } from '@jupyterlab/coreutils';
-import { Kernel, KernelMessage } from '@jupyterlab/services/lib/kernel';
-import { JSONObject } from '@phosphor/coreutils';
-import { Observable } from 'rxjs/Observable';
-import { CancellationToken, CodeLens, CodeLensProvider, Disposable, Event, Range, TextDocument, TextEditor } from 'vscode';
+"use strict";
+import { nbformat } from "@jupyterlab/coreutils";
+import { Kernel, KernelMessage } from "@jupyterlab/services/lib/kernel";
+import { JSONObject } from "@phosphor/coreutils";
+import { Observable } from "rxjs/Observable";
+import {
+    CancellationToken,
+    CodeLens,
+    CodeLensProvider,
+    Disposable,
+    Event,
+    Range,
+    TextDocument,
+    TextEditor
+} from "vscode";
 
-import { ICommandManager } from '../common/application/types';
-import { IAsyncDisposable, IDisposable } from '../common/types';
-import { PythonInterpreter } from '../interpreter/contracts';
+import { ICommandManager } from "../common/application/types";
+import { IAsyncDisposable, IDisposable } from "../common/types";
+import { PythonInterpreter } from "../interpreter/contracts";
 
 // Main interface
-export const IDataScience = Symbol('IDataScience');
+export const IDataScience = Symbol("IDataScience");
 export interface IDataScience extends Disposable {
     activate(): Promise<void>;
 }
 
-export const IDataScienceCommandListener = Symbol('IDataScienceCommandListener');
+export const IDataScienceCommandListener = Symbol(
+    "IDataScienceCommandListener"
+);
 export interface IDataScienceCommandListener {
     register(commandManager: ICommandManager);
 }
@@ -36,43 +47,72 @@ export enum InterruptResult {
 }
 
 // Talks to a jupyter ipython kernel to retrieve data for cells
-export const INotebookServer = Symbol('INotebookServer');
+export const INotebookServer = Symbol("INotebookServer");
 export interface INotebookServer extends Disposable {
     onStatusChanged: Event<boolean>;
-    connect(conninfo: IConnection, kernelSpec: IJupyterKernelSpec, cancelToken?: CancellationToken, workingDir?: string) : Promise<void>;
-    executeObservable(code: string, file: string, line: number) : Observable<ICell[]>;
-    execute(code: string, file: string, line: number, cancelToken?: CancellationToken) : Promise<ICell[]>;
-    restartKernel() : Promise<void>;
-    waitForIdle() : Promise<void>;
-    shutdown() : Promise<void>;
-    interruptKernel(timeoutInMs: number) : Promise<InterruptResult>;
+    connect(
+        conninfo: IConnection,
+        kernelSpec: IJupyterKernelSpec,
+        cancelToken?: CancellationToken,
+        workingDir?: string
+    ): Promise<void>;
+    executeObservable(
+        code: string,
+        file: string,
+        line: number
+    ): Observable<ICell[]>;
+    execute(
+        code: string,
+        file: string,
+        line: number,
+        cancelToken?: CancellationToken
+    ): Promise<ICell[]>;
+    restartKernel(): Promise<void>;
+    waitForIdle(): Promise<void>;
+    shutdown(): Promise<void>;
+    interruptKernel(timeoutInMs: number): Promise<InterruptResult>;
     setInitialDirectory(directory: string): Promise<void>;
     getConnectionInfo(): IConnection | undefined;
 }
 
-export const IJupyterExecution = Symbol('IJupyterExecution');
+export const IJupyterExecution = Symbol("IJupyterExecution");
 export interface IJupyterExecution {
-    isNotebookSupported(cancelToken?: CancellationToken) : Promise<boolean>;
-    isImportSupported(cancelToken?: CancellationToken) : Promise<boolean>;
+    isNotebookSupported(cancelToken?: CancellationToken): Promise<boolean>;
+    isImportSupported(cancelToken?: CancellationToken): Promise<boolean>;
     isKernelCreateSupported(cancelToken?: CancellationToken): Promise<boolean>;
-    connectToNotebookServer(uri: string | undefined, useDefaultConfig: boolean, cancelToken?: CancellationToken, workingDir?: string) : Promise<INotebookServer | undefined>;
-    spawnNotebook(file: string) : Promise<void>;
-    importNotebook(file: string, template: string) : Promise<string>;
-    getUsableJupyterPython(cancelToken?: CancellationToken) : Promise<PythonInterpreter | undefined>;
+    connectToNotebookServer(
+        uri: string | undefined,
+        useDefaultConfig: boolean,
+        cancelToken?: CancellationToken,
+        workingDir?: string
+    ): Promise<INotebookServer | undefined>;
+    spawnNotebook(file: string): Promise<void>;
+    importNotebook(file: string, template: string): Promise<string>;
+    getUsableJupyterPython(
+        cancelToken?: CancellationToken
+    ): Promise<PythonInterpreter | undefined>;
 }
 
-export const IJupyterSession = Symbol('IJupyterSession');
+export const IJupyterSession = Symbol("IJupyterSession");
 export interface IJupyterSession extends IAsyncDisposable {
     onRestarted: Event<void>;
-    restart() : Promise<void>;
-    interrupt() : Promise<void>;
-    waitForIdle() : Promise<void>;
-    requestExecute(content: KernelMessage.IExecuteRequest, disposeOnDone?: boolean, metadata?: JSONObject) : Kernel.IFuture | undefined;
+    restart(): Promise<void>;
+    interrupt(): Promise<void>;
+    waitForIdle(): Promise<void>;
+    requestExecute(
+        content: KernelMessage.IExecuteRequest,
+        disposeOnDone?: boolean,
+        metadata?: JSONObject
+    ): Kernel.IFuture | undefined;
 }
-export const IJupyterSessionManager = Symbol('IJupyterSessionManager');
+export const IJupyterSessionManager = Symbol("IJupyterSessionManager");
 export interface IJupyterSessionManager {
-    startNew(connInfo: IConnection, kernelSpec: IJupyterKernelSpec, cancelToken?: CancellationToken) : Promise<IJupyterSession>;
-    getActiveKernelSpecs(connInfo: IConnection) : Promise<IJupyterKernelSpec[]>;
+    startNew(
+        connInfo: IConnection,
+        kernelSpec: IJupyterKernelSpec,
+        cancelToken?: CancellationToken
+    ): Promise<IJupyterSession>;
+    getActiveKernelSpecs(connInfo: IConnection): Promise<IJupyterKernelSpec[]>;
 }
 
 export interface IJupyterKernelSpec extends IDisposable {
@@ -81,28 +121,36 @@ export interface IJupyterKernelSpec extends IDisposable {
     path: string | undefined;
 }
 
-export const INotebookImporter = Symbol('INotebookImporter');
+export const INotebookImporter = Symbol("INotebookImporter");
 export interface INotebookImporter extends Disposable {
-    importFromFile(file: string) : Promise<string>;
+    importFromFile(file: string): Promise<string>;
 }
 
-export const INotebookExporter = Symbol('INotebookExporter');
+export const INotebookExporter = Symbol("INotebookExporter");
 export interface INotebookExporter extends Disposable {
-    translateToNotebook(cells: ICell[], directoryChange?: string) : Promise<JSONObject | undefined>;
+    translateToNotebook(
+        cells: ICell[],
+        directoryChange?: string
+    ): Promise<JSONObject | undefined>;
 }
 
-export const IHistoryProvider = Symbol('IHistoryProvider');
+export const IHistoryProvider = Symbol("IHistoryProvider");
 export interface IHistoryProvider {
-    getActive() : IHistory | undefined;
+    getActive(): IHistory | undefined;
 
     getOrCreateActive(): IHistory;
 }
 
-export const IHistory = Symbol('IHistory');
+export const IHistory = Symbol("IHistory");
 export interface IHistory extends Disposable {
     closed: Event<IHistory>;
-    show() : Promise<void>;
-    addCode(code: string, file: string, line: number, editor?: TextEditor) : Promise<void>;
+    show(): Promise<void>;
+    addCode(
+        code: string,
+        file: string,
+        line: number,
+        editor?: TextEditor
+    ): Promise<void>;
     // tslint:disable-next-line:no-any
     postMessage(type: string, payload?: any);
     undoCells();
@@ -116,7 +164,7 @@ export interface IHistory extends Disposable {
 }
 
 // Wraps the vscode API in order to send messages back and forth from a webview
-export const IPostOffice = Symbol('IPostOffice');
+export const IPostOffice = Symbol("IPostOffice");
 export interface IPostOffice {
     // tslint:disable-next-line:no-any
     post(message: string, params: any[] | undefined);
@@ -125,18 +173,20 @@ export interface IPostOffice {
 }
 
 // Wraps the vscode CodeLensProvider base class
-export const IDataScienceCodeLensProvider = Symbol('IDataScienceCodeLensProvider');
+export const IDataScienceCodeLensProvider = Symbol(
+    "IDataScienceCodeLensProvider"
+);
 export interface IDataScienceCodeLensProvider extends CodeLensProvider {
-    getCodeWatcher(document: TextDocument) : ICodeWatcher | undefined;
+    getCodeWatcher(document: TextDocument): ICodeWatcher | undefined;
 }
 
 // Wraps the Code Watcher API
-export const ICodeWatcher = Symbol('ICodeWatcher');
+export const ICodeWatcher = Symbol("ICodeWatcher");
 export interface ICodeWatcher {
     addFile(document: TextDocument);
-    getFileName() : string;
-    getVersion() : number;
-    getCodeLenses() : CodeLens[];
+    getFileName(): string;
+    getVersion(): number;
+    getCodeLenses(): CodeLens[];
     runAllCells();
     runCell(range: Range);
     runCurrentCell();
@@ -156,7 +206,11 @@ export interface ICell {
     file: string;
     line: number;
     state: CellState;
-    data: nbformat.ICodeCell | nbformat.IRawCell | nbformat.IMarkdownCell | ISysInfo;
+    data:
+        | nbformat.ICodeCell
+        | nbformat.IRawCell
+        | nbformat.IMarkdownCell
+        | ISysInfo;
 }
 
 export interface IHistoryInfo {
@@ -166,7 +220,7 @@ export interface IHistoryInfo {
 }
 
 export interface ISysInfo extends nbformat.IBaseCell {
-    cell_type: 'sys_info';
+    cell_type: "sys_info";
     version: string;
     notebook_version: string;
     path: string;
@@ -174,17 +228,22 @@ export interface ISysInfo extends nbformat.IBaseCell {
     connection: string;
 }
 
-export const ICodeCssGenerator = Symbol('ICodeCssGenerator');
+export const ICodeCssGenerator = Symbol("ICodeCssGenerator");
 export interface ICodeCssGenerator {
-    generateThemeCss() : Promise<string>;
+    generateThemeCss(): Promise<string>;
 }
 
-export const IStatusProvider = Symbol('IStatusProvider');
+export const IStatusProvider = Symbol("IStatusProvider");
 export interface IStatusProvider {
     // call this function to set the new status on the active
     // history window. Dispose of the returned object when done.
-    set(message: string, timeout?: number) : Disposable;
+    set(message: string, timeout?: number): Disposable;
 
     // call this function to wait for a promise while displaying status
-    waitWithStatus<T>(promise: () => Promise<T>, message: string, timeout?: number, canceled?: () => void) : Promise<T>;
+    waitWithStatus<T>(
+        promise: () => Promise<T>,
+        message: string,
+        timeout?: number,
+        canceled?: () => void
+    ): Promise<T>;
 }

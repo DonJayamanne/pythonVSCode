@@ -1,44 +1,47 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-'use strict';
+"use strict";
 
-import { ComponentClass, configure, ReactWrapper  } from 'enzyme';
-import * as Adapter from 'enzyme-adapter-react-16';
-import { JSDOM } from 'jsdom';
-import * as React from 'react';
+import { ComponentClass, configure, ReactWrapper } from "enzyme";
+import * as Adapter from "enzyme-adapter-react-16";
+import { JSDOM } from "jsdom";
+import * as React from "react";
 
 export function setUpDomEnvironment() {
     // tslint:disable-next-line:no-http-string
-    const dom = new JSDOM('<!doctype html><html><body><div id="root"></div></body></html>', { pretendToBeVisual: true, url: 'http://localhost'});
+    const dom = new JSDOM(
+        '<!doctype html><html><body><div id="root"></div></body></html>',
+        { pretendToBeVisual: true, url: "http://localhost" }
+    );
     const { window } = dom;
 
     // tslint:disable-next-line:no-string-literal
-    global['window'] = window;
+    global["window"] = window;
     // tslint:disable-next-line:no-string-literal
-    global['document'] = window.document;
+    global["document"] = window.document;
     // tslint:disable-next-line:no-string-literal
-    global['navigator'] = {
-        userAgent: 'node.js',
-        platform: 'node'
+    global["navigator"] = {
+        userAgent: "node.js",
+        platform: "node"
     };
     // tslint:disable-next-line:no-string-literal
-    global['self'] = window;
+    global["self"] = window;
     copyProps(window, global);
 
     // Special case. Transform needs createRange
     // tslint:disable-next-line:no-string-literal
-    global['document'].createRange = () => ({
+    global["document"].createRange = () => ({
         createContextualFragment: str => JSDOM.fragment(str),
-        setEnd : (endNode, endOffset) => {},
-        setStart : (startNode, startOffset) => {},
-        getBoundingClientRect : () => null,
+        setEnd: (endNode, endOffset) => {},
+        setStart: (startNode, startOffset) => {},
+        getBoundingClientRect: () => null,
         getClientRects: () => []
     });
 
     // Another special case. CodeMirror needs selection
     // tslint:disable-next-line:no-string-literal
-    global['document'].selection = {
+    global["document"].selection = {
         anchorNode: null,
         anchorOffset: 0,
         baseNode: null,
@@ -49,7 +52,7 @@ export function setUpDomEnvironment() {
         focusOffset: 0,
         isCollapsed: false,
         rangeCount: 0,
-        type: '',
+        type: "",
         addRange: (range: Range) => {},
         createRange: () => null,
         collapse: (parentNode: Node, offset: number) => {},
@@ -63,36 +66,43 @@ export function setUpDomEnvironment() {
         removeAllRanges: () => {},
         removeRange: (range: Range) => {},
         selectAllChildren: (parentNode: Node) => {},
-        setBaseAndExtent: (baseNode: Node, baseOffset: number, extentNode: Node, extentOffset: number) => {},
+        setBaseAndExtent: (
+            baseNode: Node,
+            baseOffset: number,
+            extentNode: Node,
+            extentOffset: number
+        ) => {},
         setPosition: (parentNode: Node, offset: number) => {},
-        toString: () => '{Selection}'
+        toString: () => "{Selection}"
     };
 
     // For Jupyter server to load correctly. It expects the window object to not be defined
     // tslint:disable-next-line:no-eval
-    const fetchMod = eval('require')('node-fetch');
+    const fetchMod = eval("require")("node-fetch");
     // tslint:disable-next-line:no-string-literal
-    global['fetch'] = fetchMod;
+    global["fetch"] = fetchMod;
     // tslint:disable-next-line:no-string-literal
-    global['Request'] = fetchMod.Request;
+    global["Request"] = fetchMod.Request;
     // tslint:disable-next-line:no-string-literal
-    global['Headers'] = fetchMod.Headers;
+    global["Headers"] = fetchMod.Headers;
     // tslint:disable-next-line:no-string-literal no-eval
-    global['WebSocket'] = eval('require')('ws');
+    global["WebSocket"] = eval("require")("ws");
 
     // For the loc test to work, we have to have a global getter for loc strings
     // tslint:disable-next-line:no-string-literal no-eval
-    global['getLocStrings'] = () => {
-        return { 'DataScience.unknownMimeType' : 'Unknown mime type from helper' };
+    global["getLocStrings"] = () => {
+        return {
+            "DataScience.unknownMimeType": "Unknown mime type from helper"
+        };
     };
 
-    global['getInitialSettings'] = () => {
+    global["getInitialSettings"] = () => {
         return {
             allowImportFromNotebook: true,
             jupyterLaunchTimeout: 10,
             enabled: true,
-            jupyterServerURI: 'local',
-            notebookFileRoot: 'WORKSPACE',
+            jupyterServerURI: "local",
+            notebookFileRoot: "WORKSPACE",
             changeDirOnImportExport: true,
             useDefaultConfigForJupyter: true,
             jupyterInterruptTimeout: 10000,
@@ -106,14 +116,17 @@ export function setUpDomEnvironment() {
 }
 
 function copyProps(src, target) {
-    const props = Object.getOwnPropertyNames(src)
-        .filter(prop => typeof target[prop] === undefined);
-    props.forEach((p : string) => {
+    const props = Object.getOwnPropertyNames(src).filter(
+        prop => typeof target[prop] === undefined
+    );
+    props.forEach((p: string) => {
         target[p] = src[p];
     });
 }
 
-function waitForComponentDidUpdate<P, S, C>(component: React.Component<P, S, C>) : Promise<void> {
+function waitForComponentDidUpdate<P, S, C>(
+    component: React.Component<P, S, C>
+): Promise<void> {
     return new Promise((resolve, reject) => {
         if (component) {
             let originalUpdateFunc = component.componentDidUpdate;
@@ -122,7 +135,11 @@ function waitForComponentDidUpdate<P, S, C>(component: React.Component<P, S, C>)
             }
 
             // tslint:disable-next-line:no-any
-            component.componentDidUpdate = (prevProps: Readonly<P>, prevState: Readonly<S>, snapshot?: any) => {
+            component.componentDidUpdate = (
+                prevProps: Readonly<P>,
+                prevState: Readonly<S>,
+                snapshot?: any
+            ) => {
                 // When the component updates, call the original function and resolve our promise
                 if (originalUpdateFunc) {
                     originalUpdateFunc(prevProps, prevState, snapshot);
@@ -135,12 +152,15 @@ function waitForComponentDidUpdate<P, S, C>(component: React.Component<P, S, C>)
                 resolve();
             };
         } else {
-            reject('Cannot find the component for waitForComponentDidUpdate');
+            reject("Cannot find the component for waitForComponentDidUpdate");
         }
     });
 }
 
-function waitForRender<P, S, C>(component: React.Component<P, S, C>, numberOfRenders: number = 1) : Promise<void> {
+function waitForRender<P, S, C>(
+    component: React.Component<P, S, C>,
+    numberOfRenders: number = 1
+): Promise<void> {
     // tslint:disable-next-line:promise-must-complete
     return new Promise((resolve, reject) => {
         if (component) {
@@ -150,7 +170,7 @@ function waitForRender<P, S, C>(component: React.Component<P, S, C>, numberOfRen
             }
             let renderCount = 0;
             component.render = () => {
-                let result : React.ReactNode = null;
+                let result: React.ReactNode = null;
 
                 // When the render occurs, call the original function and resolve our promise
                 if (originalRenderFunc) {
@@ -167,12 +187,16 @@ function waitForRender<P, S, C>(component: React.Component<P, S, C>, numberOfRen
                 return result;
             };
         } else {
-            reject('Cannot find the component for waitForRender');
+            reject("Cannot find the component for waitForRender");
         }
     });
 }
 
-export async function waitForUpdate<P, S, C>(wrapper: ReactWrapper<P, S, C>, mainClass: ComponentClass<P>, numberOfRenders: number = 1) : Promise<void> {
+export async function waitForUpdate<P, S, C>(
+    wrapper: ReactWrapper<P, S, C>,
+    mainClass: ComponentClass<P>,
+    numberOfRenders: number = 1
+): Promise<void> {
     const mainObj = wrapper.find(mainClass).instance();
     if (mainObj) {
         // Hook the render first.

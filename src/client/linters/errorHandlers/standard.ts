@@ -1,22 +1,42 @@
-import { OutputChannel, Uri, window } from 'vscode';
-import { ExecutionInfo, Product } from '../../common/types';
-import { IServiceContainer } from '../../ioc/types';
-import { ILinterManager, LinterId } from '../types';
-import { BaseErrorHandler } from './baseErrorHandler';
+import { OutputChannel, Uri, window } from "vscode";
+import { ExecutionInfo, Product } from "../../common/types";
+import { IServiceContainer } from "../../ioc/types";
+import { ILinterManager, LinterId } from "../types";
+import { BaseErrorHandler } from "./baseErrorHandler";
 
 export class StandardErrorHandler extends BaseErrorHandler {
-    constructor(product: Product, outputChannel: OutputChannel, serviceContainer: IServiceContainer) {
+    constructor(
+        product: Product,
+        outputChannel: OutputChannel,
+        serviceContainer: IServiceContainer
+    ) {
         super(product, outputChannel, serviceContainer);
     }
-    public async handleError(error: Error, resource: Uri, execInfo: ExecutionInfo): Promise<boolean> {
-        if (typeof error === 'string' && (error as string).indexOf('OSError: [Errno 2] No such file or directory: \'/') > 0) {
-            return this.nextHandler ? this.nextHandler.handleError(error, resource, execInfo) : Promise.resolve(false);
+    public async handleError(
+        error: Error,
+        resource: Uri,
+        execInfo: ExecutionInfo
+    ): Promise<boolean> {
+        if (
+            typeof error === "string" &&
+            (error as string).indexOf(
+                "OSError: [Errno 2] No such file or directory: '/"
+            ) > 0
+        ) {
+            return this.nextHandler
+                ? this.nextHandler.handleError(error, resource, execInfo)
+                : Promise.resolve(false);
         }
 
-        const linterManager = this.serviceContainer.get<ILinterManager>(ILinterManager);
+        const linterManager = this.serviceContainer.get<ILinterManager>(
+            ILinterManager
+        );
         const info = linterManager.getLinterInfo(execInfo.product!);
 
-        this.logger.logError(`There was an error in running the linter ${info.id}`, error);
+        this.logger.logError(
+            `There was an error in running the linter ${info.id}`,
+            error
+        );
         this.outputChannel.appendLine(`Linting with ${info.id} failed.`);
         this.outputChannel.appendLine(error.toString());
 
@@ -25,7 +45,7 @@ export class StandardErrorHandler extends BaseErrorHandler {
     }
     private async displayLinterError(linterId: LinterId, resource: Uri) {
         const message = `There was an error in running the linter '${linterId}'`;
-        await window.showErrorMessage(message, 'View Errors');
+        await window.showErrorMessage(message, "View Errors");
         this.outputChannel.show();
     }
 }

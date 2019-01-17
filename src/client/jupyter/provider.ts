@@ -1,4 +1,4 @@
-import { Range, window, TextDocument, Position } from 'vscode';
+import { Range, window, TextDocument, Position } from "vscode";
 
 export class JupyterProvider {
     /**
@@ -22,7 +22,10 @@ export class JupyterProvider {
      *
      * @memberOf LanguageProvider
      */
-    getSelectedCode(selectedCode: string, currentCell?: Range): Promise<string> {
+    getSelectedCode(
+        selectedCode: string,
+        currentCell?: Range
+    ): Promise<string> {
         if (!JupyterProvider.isCodeBlock(selectedCode)) {
             return Promise.resolve(selectedCode);
         }
@@ -30,21 +33,33 @@ export class JupyterProvider {
         // ok we're in a block, look for the end of the block untill the last line in the cell (if there are any cells)
         return new Promise<string>((resolve, reject) => {
             const activeEditor = window.activeTextEditor;
-            const endLineNumber = currentCell ? currentCell.end.line : activeEditor.document.lineCount - 1;
+            const endLineNumber = currentCell
+                ? currentCell.end.line
+                : activeEditor.document.lineCount - 1;
             const startIndent = selectedCode.indexOf(selectedCode.trim());
             const nextStartLine = activeEditor.selection.start.line + 1;
 
-            for (let lineNumber = nextStartLine; lineNumber <= endLineNumber; lineNumber++) {
+            for (
+                let lineNumber = nextStartLine;
+                lineNumber <= endLineNumber;
+                lineNumber++
+            ) {
                 const line = activeEditor.document.lineAt(lineNumber);
                 const nextLine = line.text;
                 const nextLineIndent = nextLine.indexOf(nextLine.trim());
-                if (nextLine.trim().indexOf('#') === 0) {
+                if (nextLine.trim().indexOf("#") === 0) {
                     continue;
                 }
                 if (nextLineIndent === startIndent) {
                     // Return code untill previous line
-                    const endRange = activeEditor.document.lineAt(lineNumber - 1).range.end;
-                    resolve(activeEditor.document.getText(new Range(activeEditor.selection.start, endRange)));
+                    const endRange = activeEditor.document.lineAt(
+                        lineNumber - 1
+                    ).range.end;
+                    resolve(
+                        activeEditor.document.getText(
+                            new Range(activeEditor.selection.start, endRange)
+                        )
+                    );
                 }
             }
 
@@ -62,21 +77,30 @@ export class JupyterProvider {
      *
      * @memberOf LanguageProvider
      */
-    getFirstLineOfExecutableCode(document: TextDocument, range: Range): Promise<Position> {
-        for (let lineNumber = range.start.line; lineNumber < range.end.line; lineNumber++) {
+    getFirstLineOfExecutableCode(
+        document: TextDocument,
+        range: Range
+    ): Promise<Position> {
+        for (
+            let lineNumber = range.start.line;
+            lineNumber < range.end.line;
+            lineNumber++
+        ) {
             let line = document.lineAt(lineNumber);
             if (line.isEmptyOrWhitespace) {
                 continue;
             }
             const lineText = line.text;
             const trimmedLine = lineText.trim();
-            if (trimmedLine.startsWith('#')) {
+            if (trimmedLine.startsWith("#")) {
                 continue;
             }
             // Yay we have a line
             // Remember, we need to set the cursor to a character other than white space
             // Highlighting doesn't kick in for comments or white space
-            return Promise.resolve(new Position(lineNumber, lineText.indexOf(trimmedLine)));
+            return Promise.resolve(
+                new Position(lineNumber, lineText.indexOf(trimmedLine))
+            );
         }
 
         // give up
@@ -84,7 +108,6 @@ export class JupyterProvider {
     }
 
     private static isCodeBlock(code: string): boolean {
-        return code.trim().endsWith(':') && code.indexOf('#') === -1;
+        return code.trim().endsWith(":") && code.indexOf("#") === -1;
     }
-
 }

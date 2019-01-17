@@ -1,37 +1,51 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-'use strict';
+"use strict";
 
 // tslint:disable:no-any max-classes-per-file max-func-body-length
 
-import { expect } from 'chai';
-import * as md5 from 'md5';
-import { anything, instance, mock, verify, when } from 'ts-mockito';
-import { Disposable, Uri, WorkspaceFolder } from 'vscode';
-import { IWorkspaceService } from '../../../client/common/application/types';
-import { WorkspaceService } from '../../../client/common/application/workspace';
-import { noop } from '../../../client/common/utils/misc';
-import { IInterpreterWatcher, PythonInterpreter } from '../../../client/interpreter/contracts';
-import { CacheableLocatorService } from '../../../client/interpreter/locators/services/cacheableLocatorService';
-import { ServiceContainer } from '../../../client/ioc/container';
+import { expect } from "chai";
+import * as md5 from "md5";
+import { anything, instance, mock, verify, when } from "ts-mockito";
+import { Disposable, Uri, WorkspaceFolder } from "vscode";
+import { IWorkspaceService } from "../../../client/common/application/types";
+import { WorkspaceService } from "../../../client/common/application/workspace";
+import { noop } from "../../../client/common/utils/misc";
+import {
+    IInterpreterWatcher,
+    PythonInterpreter
+} from "../../../client/interpreter/contracts";
+import { CacheableLocatorService } from "../../../client/interpreter/locators/services/cacheableLocatorService";
+import { ServiceContainer } from "../../../client/ioc/container";
 
-suite('Interpreters - Cacheable Locator Service', () => {
-    suite('Caching', () => {
+suite("Interpreters - Cacheable Locator Service", () => {
+    suite("Caching", () => {
         class Locator extends CacheableLocatorService {
-            constructor(name, serviceCcontainer, private readonly mockLocator: MockLocator) {
+            constructor(
+                name,
+                serviceCcontainer,
+                private readonly mockLocator: MockLocator
+            ) {
                 super(name, serviceCcontainer);
             }
             public dispose() {
                 noop();
             }
-            protected async getInterpretersImplementation(resource?: Uri): Promise<PythonInterpreter[]> {
+            protected async getInterpretersImplementation(
+                resource?: Uri
+            ): Promise<PythonInterpreter[]> {
                 return this.mockLocator.getInterpretersImplementation();
             }
-            protected getCachedInterpreters(resource?: Uri): PythonInterpreter[] | undefined {
+            protected getCachedInterpreters(
+                resource?: Uri
+            ): PythonInterpreter[] | undefined {
                 return this.mockLocator.getCachedInterpreters();
             }
-            protected async cacheInterpreters(interpreters: PythonInterpreter[], resource?: Uri) {
+            protected async cacheInterpreters(
+                interpreters: PythonInterpreter[],
+                resource?: Uri
+            ) {
                 return this.mockLocator.cacheInterpreters();
             }
             protected getCacheKey(resource?: Uri) {
@@ -39,7 +53,9 @@ suite('Interpreters - Cacheable Locator Service', () => {
             }
         }
         class MockLocator {
-            public async getInterpretersImplementation(): Promise<PythonInterpreter[]> {
+            public async getInterpretersImplementation(): Promise<
+                PythonInterpreter[]
+            > {
                 return [];
             }
             public getCachedInterpreters(): PythonInterpreter[] | undefined {
@@ -49,7 +65,7 @@ suite('Interpreters - Cacheable Locator Service', () => {
                 return;
             }
             public getCacheKey(): string {
-                return '';
+                return "";
             }
         }
         let serviceContainer: ServiceContainer;
@@ -57,55 +73,90 @@ suite('Interpreters - Cacheable Locator Service', () => {
             serviceContainer = mock(ServiceContainer);
         });
 
-        test('Interpreters must be retrieved once, then cached', async () => {
+        test("Interpreters must be retrieved once, then cached", async () => {
             const expectedInterpreters = [1, 2] as any;
             const mockedLocatorForVerification = mock(MockLocator);
             const locator = new class extends Locator {
-                protected async addHandlersForInterpreterWatchers(cacheKey: string, resource: Uri | undefined): Promise<void> {
+                protected async addHandlersForInterpreterWatchers(
+                    cacheKey: string,
+                    resource: Uri | undefined
+                ): Promise<void> {
                     noop();
                 }
-            }('dummy', instance(serviceContainer), instance(mockedLocatorForVerification));
+            }(
+                "dummy",
+                instance(serviceContainer),
+                instance(mockedLocatorForVerification)
+            );
 
-            when(mockedLocatorForVerification.getInterpretersImplementation()).thenResolve(expectedInterpreters);
-            when(mockedLocatorForVerification.getCacheKey()).thenReturn('xyz');
-            when(mockedLocatorForVerification.getCachedInterpreters()).thenResolve();
+            when(
+                mockedLocatorForVerification.getInterpretersImplementation()
+            ).thenResolve(expectedInterpreters);
+            when(mockedLocatorForVerification.getCacheKey()).thenReturn("xyz");
+            when(
+                mockedLocatorForVerification.getCachedInterpreters()
+            ).thenResolve();
 
-            const [items1, items2, items3] = await Promise.all([locator.getInterpreters(), locator.getInterpreters(), locator.getInterpreters()]);
+            const [items1, items2, items3] = await Promise.all([
+                locator.getInterpreters(),
+                locator.getInterpreters(),
+                locator.getInterpreters()
+            ]);
             expect(items1).to.be.deep.equal(expectedInterpreters);
             expect(items2).to.be.deep.equal(expectedInterpreters);
             expect(items3).to.be.deep.equal(expectedInterpreters);
 
-            verify(mockedLocatorForVerification.getInterpretersImplementation()).once();
-            verify(mockedLocatorForVerification.getCachedInterpreters()).atLeast(1);
+            verify(
+                mockedLocatorForVerification.getInterpretersImplementation()
+            ).once();
+            verify(
+                mockedLocatorForVerification.getCachedInterpreters()
+            ).atLeast(1);
             verify(mockedLocatorForVerification.cacheInterpreters()).atLeast(1);
         });
 
-        test('Ensure onDidCreate event handler is attached', async () => {
+        test("Ensure onDidCreate event handler is attached", async () => {
             const mockedLocatorForVerification = mock(MockLocator);
             class Watcher implements IInterpreterWatcher {
-                public onDidCreate(listener: (e: void) => any, thisArgs?: any, disposables?: Disposable[]): Disposable {
+                public onDidCreate(
+                    listener: (e: void) => any,
+                    thisArgs?: any,
+                    disposables?: Disposable[]
+                ): Disposable {
                     return { dispose: noop };
                 }
             }
             const watcher: IInterpreterWatcher = mock(Watcher);
 
             const locator = new class extends Locator {
-                protected async getInterpreterWatchers(_resource: Uri | undefined): Promise<IInterpreterWatcher[]> {
+                protected async getInterpreterWatchers(
+                    _resource: Uri | undefined
+                ): Promise<IInterpreterWatcher[]> {
                     return [instance(watcher)];
                 }
-            }('dummy', instance(serviceContainer), instance(mockedLocatorForVerification));
+            }(
+                "dummy",
+                instance(serviceContainer),
+                instance(mockedLocatorForVerification)
+            );
 
             await locator.getInterpreters();
 
-            verify(watcher.onDidCreate(anything(), anything(), anything())).once();
+            verify(
+                watcher.onDidCreate(anything(), anything(), anything())
+            ).once();
         });
 
-        test('Ensure cache is cleared when watcher event fires', async () => {
+        test("Ensure cache is cleared when watcher event fires", async () => {
             const expectedInterpreters = [1, 2] as any;
             const mockedLocatorForVerification = mock(MockLocator);
             class Watcher implements IInterpreterWatcher {
                 private listner?: (e: void) => any;
-                public onDidCreate(listener: (e: void) => any, thisArgs?: any, disposables?: Disposable[]): Disposable {
+                public onDidCreate(
+                    listener: (e: void) => any,
+                    thisArgs?: any,
+                    disposables?: Disposable[]
+                ): Disposable {
                     this.listner = listener;
                     return { dispose: noop };
                 }
@@ -116,55 +167,92 @@ suite('Interpreters - Cacheable Locator Service', () => {
             const watcher = new Watcher();
 
             const locator = new class extends Locator {
-                protected async getInterpreterWatchers(_resource: Uri | undefined): Promise<IInterpreterWatcher[]> {
+                protected async getInterpreterWatchers(
+                    _resource: Uri | undefined
+                ): Promise<IInterpreterWatcher[]> {
                     return [watcher];
                 }
-            }('dummy', instance(serviceContainer), instance(mockedLocatorForVerification));
+            }(
+                "dummy",
+                instance(serviceContainer),
+                instance(mockedLocatorForVerification)
+            );
 
-            when(mockedLocatorForVerification.getInterpretersImplementation()).thenResolve(expectedInterpreters);
-            when(mockedLocatorForVerification.getCacheKey()).thenReturn('xyz');
-            when(mockedLocatorForVerification.getCachedInterpreters()).thenResolve();
+            when(
+                mockedLocatorForVerification.getInterpretersImplementation()
+            ).thenResolve(expectedInterpreters);
+            when(mockedLocatorForVerification.getCacheKey()).thenReturn("xyz");
+            when(
+                mockedLocatorForVerification.getCachedInterpreters()
+            ).thenResolve();
 
-            const [items1, items2, items3] = await Promise.all([locator.getInterpreters(), locator.getInterpreters(), locator.getInterpreters()]);
+            const [items1, items2, items3] = await Promise.all([
+                locator.getInterpreters(),
+                locator.getInterpreters(),
+                locator.getInterpreters()
+            ]);
             expect(items1).to.be.deep.equal(expectedInterpreters);
             expect(items2).to.be.deep.equal(expectedInterpreters);
             expect(items3).to.be.deep.equal(expectedInterpreters);
 
-            verify(mockedLocatorForVerification.getInterpretersImplementation()).once();
-            verify(mockedLocatorForVerification.getCachedInterpreters()).atLeast(1);
+            verify(
+                mockedLocatorForVerification.getInterpretersImplementation()
+            ).once();
+            verify(
+                mockedLocatorForVerification.getCachedInterpreters()
+            ).atLeast(1);
             verify(mockedLocatorForVerification.cacheInterpreters()).once();
 
             watcher.invokeListeners();
 
-            const [items4, items5, items6] = await Promise.all([locator.getInterpreters(), locator.getInterpreters(), locator.getInterpreters()]);
+            const [items4, items5, items6] = await Promise.all([
+                locator.getInterpreters(),
+                locator.getInterpreters(),
+                locator.getInterpreters()
+            ]);
             expect(items4).to.be.deep.equal(expectedInterpreters);
             expect(items5).to.be.deep.equal(expectedInterpreters);
             expect(items6).to.be.deep.equal(expectedInterpreters);
 
             // We must get the list of interperters again and cache the new result again.
-            verify(mockedLocatorForVerification.getInterpretersImplementation()).twice();
+            verify(
+                mockedLocatorForVerification.getInterpretersImplementation()
+            ).twice();
             verify(mockedLocatorForVerification.cacheInterpreters()).twice();
         });
-        test('Ensure locating event is raised', async () => {
+        test("Ensure locating event is raised", async () => {
             const mockedLocatorForVerification = mock(MockLocator);
             const locator = new class extends Locator {
-                protected async getInterpreterWatchers(_resource: Uri | undefined): Promise<IInterpreterWatcher[]> {
+                protected async getInterpreterWatchers(
+                    _resource: Uri | undefined
+                ): Promise<IInterpreterWatcher[]> {
                     return [];
                 }
-            }('dummy', instance(serviceContainer), instance(mockedLocatorForVerification));
+            }(
+                "dummy",
+                instance(serviceContainer),
+                instance(mockedLocatorForVerification)
+            );
 
             let locatingEventRaised = false;
-            locator.onLocating(() => locatingEventRaised = true);
+            locator.onLocating(() => (locatingEventRaised = true));
 
-            when(mockedLocatorForVerification.getInterpretersImplementation()).thenResolve([1, 2] as any);
-            when(mockedLocatorForVerification.getCacheKey()).thenReturn('xyz');
-            when(mockedLocatorForVerification.getCachedInterpreters()).thenResolve();
+            when(
+                mockedLocatorForVerification.getInterpretersImplementation()
+            ).thenResolve([1, 2] as any);
+            when(mockedLocatorForVerification.getCacheKey()).thenReturn("xyz");
+            when(
+                mockedLocatorForVerification.getCachedInterpreters()
+            ).thenResolve();
 
             await locator.getInterpreters();
-            expect(locatingEventRaised).to.be.equal(true, 'Locating Event not raised');
+            expect(locatingEventRaised).to.be.equal(
+                true,
+                "Locating Event not raised"
+            );
         });
     });
-    suite('Cache Key', () => {
+    suite("Cache Key", () => {
         class Locator extends CacheableLocatorService {
             public dispose() {
                 noop();
@@ -173,13 +261,20 @@ suite('Interpreters - Cacheable Locator Service', () => {
             public getCacheKey(resource?: Uri) {
                 return super.getCacheKey(resource);
             }
-            protected async getInterpretersImplementation(resource?: Uri): Promise<PythonInterpreter[]> {
+            protected async getInterpretersImplementation(
+                resource?: Uri
+            ): Promise<PythonInterpreter[]> {
                 return [];
             }
-            protected getCachedInterpreters(resource?: Uri): PythonInterpreter[] | undefined {
+            protected getCachedInterpreters(
+                resource?: Uri
+            ): PythonInterpreter[] | undefined {
                 return [];
             }
-            protected async cacheInterpreters(interpreters: PythonInterpreter[], resource?: Uri) {
+            protected async cacheInterpreters(
+                interpreters: PythonInterpreter[],
+                resource?: Uri
+            ) {
                 noop();
             }
         }
@@ -188,48 +283,85 @@ suite('Interpreters - Cacheable Locator Service', () => {
             serviceContainer = mock(ServiceContainer);
         });
 
-        test('Cache Key must contain name of locator', async () => {
-            const locator = new Locator('hello-World', instance(serviceContainer));
+        test("Cache Key must contain name of locator", async () => {
+            const locator = new Locator(
+                "hello-World",
+                instance(serviceContainer)
+            );
 
             const key = locator.getCacheKey();
 
-            expect(key).contains('hello-World');
+            expect(key).contains("hello-World");
         });
 
-        test('Cache Key must not contain path to workspace', async () => {
+        test("Cache Key must not contain path to workspace", async () => {
             const workspace = mock(WorkspaceService);
-            const workspaceFolder: WorkspaceFolder = { name: '1', index: 1, uri: Uri.file(__dirname) };
+            const workspaceFolder: WorkspaceFolder = {
+                name: "1",
+                index: 1,
+                uri: Uri.file(__dirname)
+            };
 
             when(workspace.hasWorkspaceFolders).thenReturn(true);
             when(workspace.workspaceFolders).thenReturn([workspaceFolder]);
-            when(workspace.getWorkspaceFolder(anything())).thenReturn(workspaceFolder);
-            when(serviceContainer.get<IWorkspaceService>(IWorkspaceService)).thenReturn(instance(workspace));
-            when(serviceContainer.get<IWorkspaceService>(IWorkspaceService, anything())).thenReturn(instance(workspace));
+            when(workspace.getWorkspaceFolder(anything())).thenReturn(
+                workspaceFolder
+            );
+            when(
+                serviceContainer.get<IWorkspaceService>(IWorkspaceService)
+            ).thenReturn(instance(workspace));
+            when(
+                serviceContainer.get<IWorkspaceService>(
+                    IWorkspaceService,
+                    anything()
+                )
+            ).thenReturn(instance(workspace));
 
-            const locator = new Locator('hello-World', instance(serviceContainer), false);
+            const locator = new Locator(
+                "hello-World",
+                instance(serviceContainer),
+                false
+            );
 
-            const key = locator.getCacheKey(Uri.file('something'));
+            const key = locator.getCacheKey(Uri.file("something"));
 
-            expect(key).contains('hello-World');
+            expect(key).contains("hello-World");
             expect(key).not.contains(md5(workspaceFolder.uri.fsPath));
         });
 
-        test('Cache Key must contain path to workspace', async () => {
+        test("Cache Key must contain path to workspace", async () => {
             const workspace = mock(WorkspaceService);
-            const workspaceFolder: WorkspaceFolder = { name: '1', index: 1, uri: Uri.file(__dirname) };
-            const resource = Uri.file('a');
+            const workspaceFolder: WorkspaceFolder = {
+                name: "1",
+                index: 1,
+                uri: Uri.file(__dirname)
+            };
+            const resource = Uri.file("a");
 
             when(workspace.hasWorkspaceFolders).thenReturn(true);
             when(workspace.workspaceFolders).thenReturn([workspaceFolder]);
-            when(workspace.getWorkspaceFolder(resource)).thenReturn(workspaceFolder);
-            when(serviceContainer.get<IWorkspaceService>(IWorkspaceService)).thenReturn(instance(workspace));
-            when(serviceContainer.get<IWorkspaceService>(IWorkspaceService, anything())).thenReturn(instance(workspace));
+            when(workspace.getWorkspaceFolder(resource)).thenReturn(
+                workspaceFolder
+            );
+            when(
+                serviceContainer.get<IWorkspaceService>(IWorkspaceService)
+            ).thenReturn(instance(workspace));
+            when(
+                serviceContainer.get<IWorkspaceService>(
+                    IWorkspaceService,
+                    anything()
+                )
+            ).thenReturn(instance(workspace));
 
-            const locator = new Locator('hello-World', instance(serviceContainer), true);
+            const locator = new Locator(
+                "hello-World",
+                instance(serviceContainer),
+                true
+            );
 
             const key = locator.getCacheKey(resource);
 
-            expect(key).contains('hello-World');
+            expect(key).contains("hello-World");
             expect(key).contains(md5(workspaceFolder.uri.fsPath));
         });
     });

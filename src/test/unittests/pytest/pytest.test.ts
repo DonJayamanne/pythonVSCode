@@ -1,26 +1,47 @@
-import * as assert from 'assert';
-import * as path from 'path';
-import { instance, mock } from 'ts-mockito';
-import * as vscode from 'vscode';
-import { EXTENSION_ROOT_DIR } from '../../../client/common/constants';
-import { ICondaService, IInterpreterService } from '../../../client/interpreter/contracts';
-import { InterpreterService } from '../../../client/interpreter/interpreterService';
-import { CondaService } from '../../../client/interpreter/locators/services/condaService';
-import { CommandSource } from '../../../client/unittests/common/constants';
-import { ITestManagerFactory } from '../../../client/unittests/common/types';
-import { rootWorkspaceUri, updateSetting } from '../../common';
-import { UnitTestIocContainer } from '../serviceRegistry';
-import { initialize, initializeTest, IS_MULTI_ROOT_TEST } from './../../initialize';
+import * as assert from "assert";
+import * as path from "path";
+import { instance, mock } from "ts-mockito";
+import * as vscode from "vscode";
+import { EXTENSION_ROOT_DIR } from "../../../client/common/constants";
+import {
+    ICondaService,
+    IInterpreterService
+} from "../../../client/interpreter/contracts";
+import { InterpreterService } from "../../../client/interpreter/interpreterService";
+import { CondaService } from "../../../client/interpreter/locators/services/condaService";
+import { CommandSource } from "../../../client/unittests/common/constants";
+import { ITestManagerFactory } from "../../../client/unittests/common/types";
+import { rootWorkspaceUri, updateSetting } from "../../common";
+import { UnitTestIocContainer } from "../serviceRegistry";
+import {
+    initialize,
+    initializeTest,
+    IS_MULTI_ROOT_TEST
+} from "./../../initialize";
 
-const UNITTEST_SINGLE_TEST_FILE_PATH = path.join(EXTENSION_ROOT_DIR, 'src', 'test', 'pythonFiles', 'testFiles', 'single');
+const UNITTEST_SINGLE_TEST_FILE_PATH = path.join(
+    EXTENSION_ROOT_DIR,
+    "src",
+    "test",
+    "pythonFiles",
+    "testFiles",
+    "single"
+);
 
 // tslint:disable-next-line:max-func-body-length
-suite('Unit Tests - pytest - discovery against actual python process', () => {
+suite("Unit Tests - pytest - discovery against actual python process", () => {
     let ioc: UnitTestIocContainer;
-    const configTarget = IS_MULTI_ROOT_TEST ? vscode.ConfigurationTarget.WorkspaceFolder : vscode.ConfigurationTarget.Workspace;
+    const configTarget = IS_MULTI_ROOT_TEST
+        ? vscode.ConfigurationTarget.WorkspaceFolder
+        : vscode.ConfigurationTarget.Workspace;
     suiteSetup(async () => {
         await initialize();
-        await updateSetting('unitTest.pyTestArgs', [], rootWorkspaceUri, configTarget);
+        await updateSetting(
+            "unitTest.pyTestArgs",
+            [],
+            rootWorkspaceUri,
+            configTarget
+        );
     });
     setup(async () => {
         await initializeTest();
@@ -28,7 +49,12 @@ suite('Unit Tests - pytest - discovery against actual python process', () => {
     });
     teardown(async () => {
         await ioc.dispose();
-        await updateSetting('unitTest.pyTestArgs', [], rootWorkspaceUri, configTarget);
+        await updateSetting(
+            "unitTest.pyTestArgs",
+            [],
+            rootWorkspaceUri,
+            configTarget
+        );
     });
 
     function initializeDI() {
@@ -37,18 +63,58 @@ suite('Unit Tests - pytest - discovery against actual python process', () => {
         ioc.registerProcessTypes();
         ioc.registerUnitTestTypes();
         ioc.registerVariableTypes();
-        ioc.serviceManager.addSingleton<ICondaService>(ICondaService, CondaService);
-        ioc.serviceManager.addSingleton<IInterpreterService>(IInterpreterService, InterpreterService);
+        ioc.serviceManager.addSingleton<ICondaService>(
+            ICondaService,
+            CondaService
+        );
+        ioc.serviceManager.addSingleton<IInterpreterService>(
+            IInterpreterService,
+            InterpreterService
+        );
     }
 
-    test('Discover Tests (single test file)', async () => {
-        const factory = ioc.serviceContainer.get<ITestManagerFactory>(ITestManagerFactory);
-        const testManager = factory('pytest', rootWorkspaceUri!, UNITTEST_SINGLE_TEST_FILE_PATH);
-        const tests = await testManager.discoverTests(CommandSource.ui, true, true);
-        assert.equal(tests.testFiles.length, 2, 'Incorrect number of test files');
-        assert.equal(tests.testFunctions.length, 6, 'Incorrect number of test functions');
-        assert.equal(tests.testSuites.length, 2, 'Incorrect number of test suites');
-        assert.equal(tests.testFiles.some(t => t.name === 'tests/test_one.py' && t.nameToRun === t.name), true, 'Test File not found');
-        assert.equal(tests.testFiles.some(t => t.name === 'test_root.py' && t.nameToRun === t.name), true, 'Test File not found');
+    test("Discover Tests (single test file)", async () => {
+        const factory = ioc.serviceContainer.get<ITestManagerFactory>(
+            ITestManagerFactory
+        );
+        const testManager = factory(
+            "pytest",
+            rootWorkspaceUri!,
+            UNITTEST_SINGLE_TEST_FILE_PATH
+        );
+        const tests = await testManager.discoverTests(
+            CommandSource.ui,
+            true,
+            true
+        );
+        assert.equal(
+            tests.testFiles.length,
+            2,
+            "Incorrect number of test files"
+        );
+        assert.equal(
+            tests.testFunctions.length,
+            6,
+            "Incorrect number of test functions"
+        );
+        assert.equal(
+            tests.testSuites.length,
+            2,
+            "Incorrect number of test suites"
+        );
+        assert.equal(
+            tests.testFiles.some(
+                t => t.name === "tests/test_one.py" && t.nameToRun === t.name
+            ),
+            true,
+            "Test File not found"
+        );
+        assert.equal(
+            tests.testFiles.some(
+                t => t.name === "test_root.py" && t.nameToRun === t.name
+            ),
+            true,
+            "Test File not found"
+        );
     });
 });

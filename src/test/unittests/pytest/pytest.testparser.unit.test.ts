@@ -1,21 +1,31 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-'use strict';
+"use strict";
 
-import { expect, use } from 'chai';
-import * as chaipromise from 'chai-as-promised';
-import * as typeMoq from 'typemoq';
-import { CancellationToken, OutputChannel, Uri } from 'vscode';
-import { IApplicationShell, ICommandManager } from '../../../client/common/application/types';
-import { OSType } from '../../../client/common/utils/platform';
-import { IServiceContainer } from '../../../client/ioc/types';
-import { TestsHelper } from '../../../client/unittests/common/testUtils';
-import { TestFlatteningVisitor } from '../../../client/unittests/common/testVisitors/flatteningVisitor';
-import { FlattenedTestFunction, TestDiscoveryOptions, Tests } from '../../../client/unittests/common/types';
-import { TestsParser as PyTestsParser } from '../../../client/unittests/pytest/services/parserService';
-import { getOSType } from '../../common';
-import { PytestDataPlatformType, pytestScenarioData } from './pytest_unittest_parser_data';
+import { expect, use } from "chai";
+import * as chaipromise from "chai-as-promised";
+import * as typeMoq from "typemoq";
+import { CancellationToken, OutputChannel, Uri } from "vscode";
+import {
+    IApplicationShell,
+    ICommandManager
+} from "../../../client/common/application/types";
+import { OSType } from "../../../client/common/utils/platform";
+import { IServiceContainer } from "../../../client/ioc/types";
+import { TestsHelper } from "../../../client/unittests/common/testUtils";
+import { TestFlatteningVisitor } from "../../../client/unittests/common/testVisitors/flatteningVisitor";
+import {
+    FlattenedTestFunction,
+    TestDiscoveryOptions,
+    Tests
+} from "../../../client/unittests/common/types";
+import { TestsParser as PyTestsParser } from "../../../client/unittests/pytest/services/parserService";
+import { getOSType } from "../../common";
+import {
+    PytestDataPlatformType,
+    pytestScenarioData
+} from "./pytest_unittest_parser_data";
 
 use(chaipromise);
 
@@ -29,29 +39,43 @@ use(chaipromise);
 // However, to test all of the various layouts that are available, we have
 // created a JSON structure that defines all the tests - see file
 // `pytest_unittest_parser_data.ts` in this folder.
-suite('Unit Tests - PyTest - Test Parser used in discovery', () => {
-
+suite("Unit Tests - PyTest - Test Parser used in discovery", () => {
     // Build tests for the test data that is relevant for this platform.
     const testPlatformType: PytestDataPlatformType =
-        getOSType() === OSType.Windows ?
-            PytestDataPlatformType.Windows : PytestDataPlatformType.NonWindows;
+        getOSType() === OSType.Windows
+            ? PytestDataPlatformType.Windows
+            : PytestDataPlatformType.NonWindows;
 
-    pytestScenarioData.forEach((testScenario) => {
+    pytestScenarioData.forEach(testScenario => {
         if (testPlatformType === testScenario.platform) {
-
-            const testDescription: string =
-                `PyTest${testScenario.pytest_version_spec}: ${testScenario.description}`;
+            const testDescription: string = `PyTest${
+                testScenario.pytest_version_spec
+            }: ${testScenario.description}`;
 
             test(testDescription, async () => {
                 // Setup the service container for use by the parser.
-                const serviceContainer = typeMoq.Mock.ofType<IServiceContainer>();
+                const serviceContainer = typeMoq.Mock.ofType<
+                    IServiceContainer
+                >();
                 const appShell = typeMoq.Mock.ofType<IApplicationShell>();
                 const cmdMgr = typeMoq.Mock.ofType<ICommandManager>();
-                serviceContainer.setup(s => s.get(typeMoq.It.isValue(IApplicationShell), typeMoq.It.isAny()))
+                serviceContainer
+                    .setup(s =>
+                        s.get(
+                            typeMoq.It.isValue(IApplicationShell),
+                            typeMoq.It.isAny()
+                        )
+                    )
                     .returns(() => {
                         return appShell.object;
                     });
-                serviceContainer.setup(s => s.get(typeMoq.It.isValue(ICommandManager), typeMoq.It.isAny()))
+                serviceContainer
+                    .setup(s =>
+                        s.get(
+                            typeMoq.It.isValue(ICommandManager),
+                            typeMoq.It.isAny()
+                        )
+                    )
                     .returns(() => {
                         return cmdMgr.object;
                     });
@@ -59,7 +83,9 @@ suite('Unit Tests - PyTest - Test Parser used in discovery', () => {
                 // Create mocks used in the test discovery setup.
                 const outChannel = typeMoq.Mock.ofType<OutputChannel>();
                 const cancelToken = typeMoq.Mock.ofType<CancellationToken>();
-                cancelToken.setup(c => c.isCancellationRequested).returns(() => false);
+                cancelToken
+                    .setup(c => c.isCancellationRequested)
+                    .returns(() => false);
                 const wsFolder = typeMoq.Mock.ofType<Uri>();
 
                 // Create the test options for the mocked-up test. All data is either
@@ -75,35 +101,50 @@ suite('Unit Tests - PyTest - Test Parser used in discovery', () => {
 
                 // Setup the parser.
                 const testFlattener: TestFlatteningVisitor = new TestFlatteningVisitor();
-                const testHlp: TestsHelper = new TestsHelper(testFlattener, serviceContainer.object);
+                const testHlp: TestsHelper = new TestsHelper(
+                    testFlattener,
+                    serviceContainer.object
+                );
                 const parser = new PyTestsParser(testHlp);
 
                 // Each test scenario has a 'stdout' member that is an array of
                 // stdout lines. Join them here such that the parser can operate
                 // on stdout-like data.
-                const stdout: string = testScenario.stdout.join('\n');
+                const stdout: string = testScenario.stdout.join("\n");
 
                 const parsedTests: Tests = parser.parse(stdout, options);
 
                 // Now we can actually perform tests.
                 expect(parsedTests).is.not.equal(
                     undefined,
-                    'Should have gotten tests extracted from the parsed pytest result content.');
+                    "Should have gotten tests extracted from the parsed pytest result content."
+                );
 
                 expect(parsedTests.testFunctions.length).equals(
                     testScenario.functionCount,
-                    `Parsed pytest summary contained ${testScenario.functionCount} test functions.`);
+                    `Parsed pytest summary contained ${
+                        testScenario.functionCount
+                    } test functions.`
+                );
 
                 testScenario.test_functions.forEach((funcName: string) => {
-                    const findAllTests: FlattenedTestFunction[] | undefined = parsedTests.testFunctions.filter(
+                    const findAllTests:
+                        | FlattenedTestFunction[]
+                        | undefined = parsedTests.testFunctions.filter(
                         (tstFunc: FlattenedTestFunction) => {
                             return tstFunc.testFunction.nameToRun === funcName;
-                        });
+                        }
+                    );
                     // Each test identified in the testScenario should exist once and only once.
-                    expect(findAllTests).is.not.equal(undefined, `Could not find "${funcName}" in tests.`);
-                    expect(findAllTests.length).is.equal(1, 'There should be exactly one instance of each test.');
+                    expect(findAllTests).is.not.equal(
+                        undefined,
+                        `Could not find "${funcName}" in tests.`
+                    );
+                    expect(findAllTests.length).is.equal(
+                        1,
+                        "There should be exactly one instance of each test."
+                    );
                 });
-
             });
         }
     });

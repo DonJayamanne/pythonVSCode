@@ -1,5 +1,5 @@
 .CodeMirror {
-    text-align: left!important;
+    text-align: left !important;
     background-color: var(--vscode-editor-background);
     color: var(--vscode-editor-foreground);
     font-family: var(--vscode-editor-font-family);

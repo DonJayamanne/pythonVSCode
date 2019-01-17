@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-'use strict';
+"use strict";
 
-import { IDataScienceSettings } from '../../client/common/types';
+import { IDataScienceSettings } from "../../client/common/types";
 
 // The WebPanel constructed by the extension should inject a getInitialSettings function into
 // the script. This should return a dictionary of key value pairs for settings
@@ -12,7 +12,7 @@ export declare function getInitialSettings(): any;
 
 let loadedSettings: IDataScienceSettings;
 
-export function getSettings() : IDataScienceSettings {
+export function getSettings(): IDataScienceSettings {
     if (loadedSettings === undefined) {
         load();
     }
@@ -27,7 +27,7 @@ export function updateSettings(jsonSettingsString: string) {
 
 function load() {
     // tslint:disable-next-line:no-typeof-undefined
-    if (typeof getInitialSettings !== 'undefined') {
+    if (typeof getInitialSettings !== "undefined") {
         loadedSettings = <IDataScienceSettings>getInitialSettings();
     } else {
         // Default settings for tests
@@ -35,8 +35,8 @@ function load() {
             allowImportFromNotebook: true,
             jupyterLaunchTimeout: 10,
             enabled: true,
-            jupyterServerURI: 'local',
-            notebookFileRoot: 'WORKSPACE',
+            jupyterServerURI: "local",
+            notebookFileRoot: "WORKSPACE",
             changeDirOnImportExport: true,
             useDefaultConfigForJupyter: true,
             jupyterInterruptTimeout: 10000,

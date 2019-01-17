@@ -1,18 +1,28 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { inject, injectable } from 'inversify';
-import * as os from 'os';
-import * as path from 'path';
-import { convertFileToPackage, extractBetweenDelimiters } from '../../common/testUtils';
-import { ITestsHelper, ITestsParser, ParserOptions, TestFile, TestFunction, Tests, TestSuite } from '../../common/types';
+import { inject, injectable } from "inversify";
+import * as os from "os";
+import * as path from "path";
+import {
+    convertFileToPackage,
+    extractBetweenDelimiters
+} from "../../common/testUtils";
+import {
+    ITestsHelper,
+    ITestsParser,
+    ParserOptions,
+    TestFile,
+    TestFunction,
+    Tests,
+    TestSuite
+} from "../../common/types";
 
-const DELIMITER = '\'';
+const DELIMITER = "'";
 
 @injectable()
 export class TestsParser implements ITestsParser {
-
-    constructor(@inject(ITestsHelper) private testsHelper: ITestsHelper) { }
+    constructor(@inject(ITestsHelper) private testsHelper: ITestsHelper) {}
 
     public parse(content: string, options: ParserOptions): Tests {
         const testFiles = this.getTestFiles(content, options);
@@ -20,9 +30,12 @@ export class TestsParser implements ITestsParser {
     }
 
     private getTestFiles(content: string, options: ParserOptions) {
-        let logOutputLines: string[] = [''];
+        let logOutputLines: string[] = [""];
         const testFiles: TestFile[] = [];
-        const parentNodes: { indent: number; item: TestFile | TestSuite }[] = [];
+        const parentNodes: {
+            indent: number;
+            item: TestFile | TestSuite;
+        }[] = [];
 
         const errorLine = /==*( *)ERRORS( *)=*/;
         const errorFileLine = /__*( *)ERROR collecting (.*)/;
@@ -30,7 +43,7 @@ export class TestsParser implements ITestsParser {
 
         let haveErrors = false;
 
-        let packagePrefix: string = '';
+        let packagePrefix: string = "";
         content.split(/\r?\n/g).forEach((line, index, lines) => {
             if (options.token && options.token.isCancellationRequested) {
                 return;
@@ -38,39 +51,70 @@ export class TestsParser implements ITestsParser {
 
             const trimmedLine: string = line.trim();
 
-            if (trimmedLine.startsWith('<Package \'')) {
+            if (trimmedLine.startsWith("<Package '")) {
                 // Process the previous lines.
-                this.parsePyTestModuleCollectionResult(options.cwd, logOutputLines, testFiles, parentNodes, packagePrefix);
-                logOutputLines = [''];
+                this.parsePyTestModuleCollectionResult(
+                    options.cwd,
+                    logOutputLines,
+                    testFiles,
+                    parentNodes,
+                    packagePrefix
+                );
+                logOutputLines = [""];
 
-                packagePrefix = this.extractPackageName(trimmedLine, options.cwd);
+                packagePrefix = this.extractPackageName(
+                    trimmedLine,
+                    options.cwd
+                );
             }
 
-            if (trimmedLine.startsWith('<Module \'') || index === lines.length - 1) {
+            if (
+                trimmedLine.startsWith("<Module '") ||
+                index === lines.length - 1
+            ) {
                 // Process the previous lines.
-                this.parsePyTestModuleCollectionResult(options.cwd, logOutputLines, testFiles, parentNodes, packagePrefix);
-                logOutputLines = [''];
+                this.parsePyTestModuleCollectionResult(
+                    options.cwd,
+                    logOutputLines,
+                    testFiles,
+                    parentNodes,
+                    packagePrefix
+                );
+                logOutputLines = [""];
             }
             if (errorLine.test(line)) {
                 haveErrors = true;
-                logOutputLines = [''];
+                logOutputLines = [""];
                 return;
             }
             if (errorFileLine.test(line)) {
                 haveErrors = true;
-                if (logOutputLines.length !== 1 && logOutputLines[0].length !== 0) {
-                    this.parsePyTestModuleCollectionError(options.cwd, logOutputLines, testFiles, parentNodes);
-                    logOutputLines = [''];
+                if (
+                    logOutputLines.length !== 1 &&
+                    logOutputLines[0].length !== 0
+                ) {
+                    this.parsePyTestModuleCollectionError(
+                        options.cwd,
+                        logOutputLines,
+                        testFiles,
+                        parentNodes
+                    );
+                    logOutputLines = [""];
                 }
             }
             if (lastLineWithErrors.test(line) && haveErrors) {
-                this.parsePyTestModuleCollectionError(options.cwd, logOutputLines, testFiles, parentNodes);
-                logOutputLines = [''];
+                this.parsePyTestModuleCollectionError(
+                    options.cwd,
+                    logOutputLines,
+                    testFiles,
+                    parentNodes
+                );
+                logOutputLines = [""];
             }
             if (index === 0) {
                 if (content.startsWith(os.EOL) || lines.length > 1) {
                     logOutputLines[logOutputLines.length - 1] += line;
-                    logOutputLines.push('');
+                    logOutputLines.push("");
                     return;
                 }
                 logOutputLines[logOutputLines.length - 1] += line;
@@ -81,36 +125,51 @@ export class TestsParser implements ITestsParser {
                 return;
             }
             logOutputLines[logOutputLines.length - 1] += line;
-            logOutputLines.push('');
+            logOutputLines.push("");
             return;
         });
 
         return testFiles;
     }
 
-    private parsePyTestModuleCollectionError(rootDirectory: string, lines: string[], testFiles: TestFile[],
-        parentNodes: { indent: number; item: TestFile | TestSuite }[]) {
-
+    private parsePyTestModuleCollectionError(
+        rootDirectory: string,
+        lines: string[],
+        testFiles: TestFile[],
+        parentNodes: { indent: number; item: TestFile | TestSuite }[]
+    ) {
         lines = lines.filter(line => line.trim().length > 0);
         if (lines.length <= 1) {
             return;
         }
 
         const errorFileLine = lines[0];
-        let fileName = errorFileLine.substring(errorFileLine.indexOf('ERROR collecting') + 'ERROR collecting'.length).trim();
-        fileName = fileName.substr(0, fileName.lastIndexOf(' '));
+        let fileName = errorFileLine
+            .substring(
+                errorFileLine.indexOf("ERROR collecting") +
+                    "ERROR collecting".length
+            )
+            .trim();
+        fileName = fileName.substr(0, fileName.lastIndexOf(" "));
 
         const currentPackage = convertFileToPackage(fileName);
-        const fullyQualifiedName = path.isAbsolute(fileName) ? fileName : path.resolve(rootDirectory, fileName);
+        const fullyQualifiedName = path.isAbsolute(fileName)
+            ? fileName
+            : path.resolve(rootDirectory, fileName);
         const testFile = {
-            functions: [], suites: [], name: fileName, fullPath: fullyQualifiedName,
-            nameToRun: fileName, xmlName: currentPackage, time: 0, errorsWhenDiscovering: lines.join('\n')
+            functions: [],
+            suites: [],
+            name: fileName,
+            fullPath: fullyQualifiedName,
+            nameToRun: fileName,
+            xmlName: currentPackage,
+            time: 0,
+            errorsWhenDiscovering: lines.join("\n")
         };
         testFiles.push(testFile);
         parentNodes.push({ indent: 0, item: testFile });
 
         return;
-
     }
 
     /**
@@ -120,7 +179,11 @@ export class TestsParser implements ITestsParser {
      * @param rootDir Value is pytest's `--rootdir=` parameter.
      */
     private extractPackageName(packageLine: string, rootDir: string): string {
-        const packagePath: string = extractBetweenDelimiters(packageLine, DELIMITER, DELIMITER);
+        const packagePath: string = extractBetweenDelimiters(
+            packageLine,
+            DELIMITER,
+            DELIMITER
+        );
         let packageName: string = path.normalize(packagePath);
         const tmpRoot: string = path.normalize(rootDir);
 
@@ -133,7 +196,7 @@ export class TestsParser implements ITestsParser {
                 packageName = packageName.substring(0, packageName.length - 1);
             }
         }
-        packageName = packageName.replace(/\\/g, '/');
+        packageName = packageName.replace(/\\/g, "/");
         return packageName;
     }
 
@@ -142,60 +205,95 @@ export class TestsParser implements ITestsParser {
         lines: string[],
         testFiles: TestFile[],
         parentNodes: { indent: number; item: TestFile | TestSuite }[],
-        packagePrefix: string = ''
+        packagePrefix: string = ""
     ) {
-
-        let currentPackage: string = '';
+        let currentPackage: string = "";
 
         lines.forEach(line => {
             const trimmedLine = line.trim();
-            let name: string = extractBetweenDelimiters(trimmedLine, DELIMITER, DELIMITER);
-            const indent = line.indexOf('<');
+            let name: string = extractBetweenDelimiters(
+                trimmedLine,
+                DELIMITER,
+                DELIMITER
+            );
+            const indent = line.indexOf("<");
 
-            if (trimmedLine.startsWith('<Module \'')) {
+            if (trimmedLine.startsWith("<Module '")) {
                 if (packagePrefix && packagePrefix.length > 0) {
-                    name = packagePrefix.concat('/', name);
+                    name = packagePrefix.concat("/", name);
                 }
                 currentPackage = convertFileToPackage(name);
-                const fullyQualifiedName = path.isAbsolute(name) ? name : path.resolve(rootDirectory, name);
+                const fullyQualifiedName = path.isAbsolute(name)
+                    ? name
+                    : path.resolve(rootDirectory, name);
                 const testFile = {
-                    functions: [], suites: [], name: name, fullPath: fullyQualifiedName,
-                    nameToRun: name, xmlName: currentPackage, time: 0
+                    functions: [],
+                    suites: [],
+                    name: name,
+                    fullPath: fullyQualifiedName,
+                    nameToRun: name,
+                    xmlName: currentPackage,
+                    time: 0
                 };
                 testFiles.push(testFile);
                 parentNodes.push({ indent: indent, item: testFile });
                 return;
             }
 
-            const parentNode = this.findParentOfCurrentItem(indent, parentNodes);
+            const parentNode = this.findParentOfCurrentItem(
+                indent,
+                parentNodes
+            );
 
-            if (parentNode && trimmedLine.startsWith('<Class \'') || trimmedLine.startsWith('<UnitTestCase \'')) {
-                const isUnitTest = trimmedLine.startsWith('<UnitTestCase \'');
+            if (
+                (parentNode && trimmedLine.startsWith("<Class '")) ||
+                trimmedLine.startsWith("<UnitTestCase '")
+            ) {
+                const isUnitTest = trimmedLine.startsWith("<UnitTestCase '");
                 const rawName = `${parentNode!.item.nameToRun}::${name}`;
                 const xmlName = `${parentNode!.item.xmlName}.${name}`;
-                const testSuite: TestSuite = { name: name, nameToRun: rawName, functions: [], suites: [], isUnitTest: isUnitTest, isInstance: false, xmlName: xmlName, time: 0 };
+                const testSuite: TestSuite = {
+                    name: name,
+                    nameToRun: rawName,
+                    functions: [],
+                    suites: [],
+                    isUnitTest: isUnitTest,
+                    isInstance: false,
+                    xmlName: xmlName,
+                    time: 0
+                };
                 parentNode!.item.suites.push(testSuite);
                 parentNodes.push({ indent: indent, item: testSuite });
                 return;
             }
-            if (parentNode && trimmedLine.startsWith('<Instance \'')) {
+            if (parentNode && trimmedLine.startsWith("<Instance '")) {
                 // tslint:disable-next-line:prefer-type-cast
-                const suite = (parentNode!.item as TestSuite);
+                const suite = parentNode!.item as TestSuite;
                 // suite.rawName = suite.rawName + '::()';
                 // suite.xmlName = suite.xmlName + '.()';
                 suite.isInstance = true;
                 return;
             }
-            if (parentNode && trimmedLine.startsWith('<TestCaseFunction \'') || trimmedLine.startsWith('<Function \'')) {
+            if (
+                (parentNode && trimmedLine.startsWith("<TestCaseFunction '")) ||
+                trimmedLine.startsWith("<Function '")
+            ) {
                 const rawName = `${parentNode!.item.nameToRun}::${name}`;
-                const fn: TestFunction = { name: name, nameToRun: rawName, time: 0 };
+                const fn: TestFunction = {
+                    name: name,
+                    nameToRun: rawName,
+                    time: 0
+                };
                 parentNode!.item.functions.push(fn);
                 return;
             }
         });
     }
 
-    private findParentOfCurrentItem(indentOfCurrentItem: number, parentNodes: { indent: number; item: TestFile | TestSuite }[]): { indent: number; item: TestFile | TestSuite } | undefined {
+    private findParentOfCurrentItem(
+        indentOfCurrentItem: number,
+        parentNodes: { indent: number; item: TestFile | TestSuite }[]
+    ): { indent: number; item: TestFile | TestSuite } | undefined {
         while (parentNodes.length > 0) {
             const parentNode = parentNodes[parentNodes.length - 1];
             if (parentNode.indent < indentOfCurrentItem) {
@@ -209,7 +307,7 @@ export class TestsParser implements ITestsParser {
     }
 }
 
-    /* Sample output from pytest --collect-only
+/* Sample output from pytest --collect-only
     <Module 'test_another.py'>
       <Class 'Test_CheckMyApp'>
         <Instance '()'>

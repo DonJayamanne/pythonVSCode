@@ -1,23 +1,23 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-'use strict';
+"use strict";
 
-import * as React from 'react';
-import { WebPanelMessage } from '../../client/common/application/types';
+import * as React from "react";
+import { WebPanelMessage } from "../../client/common/application/types";
 
 export interface IVsCodeApi {
     // tslint:disable-next-line:no-any
-    postMessage(msg: any) : void;
+    postMessage(msg: any): void;
     // tslint:disable-next-line:no-any
-    setState(state: any) : void;
+    setState(state: any): void;
     // tslint:disable-next-line:no-any
-    getState() : any;
+    getState(): any;
 }
 
 export interface IMessageHandler {
     // tslint:disable-next-line:no-any
-    handleMessage(type: string, payload?: any) : boolean;
+    handleMessage(type: string, payload?: any): boolean;
 }
 
 interface IPostOfficeProps {
@@ -28,8 +28,7 @@ interface IPostOfficeProps {
 export declare function acquireVsCodeApi(): IVsCodeApi;
 
 export class PostOffice extends React.Component<IPostOfficeProps> {
-
-    private static vscodeApi : IVsCodeApi | undefined;
+    private static vscodeApi: IVsCodeApi | undefined;
     private registered: boolean = false;
 
     constructor(props: IPostOfficeProps) {
@@ -52,12 +51,13 @@ export class PostOffice extends React.Component<IPostOfficeProps> {
         }
     }
 
-    private static acquireApi() : IVsCodeApi | undefined {
-
+    private static acquireApi(): IVsCodeApi | undefined {
         // Only do this once as it crashes if we ask more than once
-        if (!PostOffice.vscodeApi &&
+        if (
+            !PostOffice.vscodeApi &&
             // tslint:disable-next-line:no-typeof-undefined
-            typeof acquireVsCodeApi !== 'undefined') {
+            typeof acquireVsCodeApi !== "undefined"
+        ) {
             PostOffice.vscodeApi = acquireVsCodeApi();
         }
 
@@ -67,14 +67,14 @@ export class PostOffice extends React.Component<IPostOfficeProps> {
     public componentDidMount() {
         if (!this.registered) {
             this.registered = true;
-            window.addEventListener('message', this.handleMessages);
+            window.addEventListener("message", this.handleMessages);
         }
     }
 
     public componentWillUnmount() {
         if (this.registered) {
             this.registered = false;
-            window.removeEventListener('message', this.handleMessages);
+            window.removeEventListener("message", this.handleMessages);
         }
     }
 
@@ -86,10 +86,10 @@ export class PostOffice extends React.Component<IPostOfficeProps> {
         if (this.props) {
             const msg = ev.data as WebPanelMessage;
             if (msg) {
-                this.props.messageHandlers.forEach((h : IMessageHandler) => {
+                this.props.messageHandlers.forEach((h: IMessageHandler) => {
                     h.handleMessage(msg.type, msg.payload);
                 });
             }
         }
-    }
+    };
 }

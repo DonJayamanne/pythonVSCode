@@ -1,32 +1,41 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { inject, injectable } from 'inversify';
-import * as path from 'path';
-import { ITestsHelper, ITestsParser, TestFile,
-    TestFunction, Tests, TestStatus,
-    UnitTestParserOptions } from '../../common/types';
+import { inject, injectable } from "inversify";
+import * as path from "path";
+import {
+    ITestsHelper,
+    ITestsParser,
+    TestFile,
+    TestFunction,
+    Tests,
+    TestStatus,
+    UnitTestParserOptions
+} from "../../common/types";
 
 @injectable()
 export class TestsParser implements ITestsParser {
-    constructor(@inject(ITestsHelper) private testsHelper: ITestsHelper) { }
+    constructor(@inject(ITestsHelper) private testsHelper: ITestsHelper) {}
     public parse(content: string, options: UnitTestParserOptions): Tests {
         const testIds = this.getTestIds(content);
         let testsDirectory = options.cwd;
         if (options.startDirectory.length > 1) {
-            testsDirectory = path.isAbsolute(options.startDirectory) ? options.startDirectory : path.resolve(options.cwd, options.startDirectory);
+            testsDirectory = path.isAbsolute(options.startDirectory)
+                ? options.startDirectory
+                : path.resolve(options.cwd, options.startDirectory);
         }
         return this.parseTestIds(testsDirectory, testIds);
     }
     private getTestIds(content: string): string[] {
         let startedCollecting = false;
-        return content.split(/\r?\n/g)
+        return content
+            .split(/\r?\n/g)
             .map(line => {
                 if (!startedCollecting) {
-                    if (line === 'start') {
+                    if (line === "start") {
                         startedCollecting = true;
                     }
-                    return '';
+                    return "";
                 }
                 return line.trim();
             })
@@ -34,7 +43,9 @@ export class TestsParser implements ITestsParser {
     }
     private parseTestIds(rootDirectory: string, testIds: string[]): Tests {
         const testFiles: TestFile[] = [];
-        testIds.forEach(testId => this.addTestId(rootDirectory, testId, testFiles));
+        testIds.forEach(testId =>
+            this.addTestId(rootDirectory, testId, testFiles)
+        );
 
         return this.testsHelper.flattenTestFiles(testFiles);
     }
@@ -50,8 +61,12 @@ export class TestsParser implements ITestsParser {
      * @returns {Tests}
      * @memberof TestsParser
      */
-    private addTestId(rootDirectory: string, testId: string, testFiles: TestFile[]) {
-        const testIdParts = testId.split('.');
+    private addTestId(
+        rootDirectory: string,
+        testId: string,
+        testFiles: TestFile[]
+    ) {
+        const testIdParts = testId.split(".");
         // We must have a file, class and function name
         if (testIdParts.length <= 2) {
             return null;
@@ -60,7 +75,7 @@ export class TestsParser implements ITestsParser {
         const paths = testIdParts.slice(0, testIdParts.length - 2);
         const filePath = `${path.join(rootDirectory, ...paths)}.py`;
         const functionName = testIdParts.pop()!;
-        const suiteToRun = testIdParts.join('.');
+        const suiteToRun = testIdParts.join(".");
         const className = testIdParts.pop()!;
 
         // Check if we already have this test file
@@ -72,7 +87,7 @@ export class TestsParser implements ITestsParser {
                 functions: [],
                 suites: [],
                 nameToRun: `${suiteToRun}.${functionName}`,
-                xmlName: '',
+                xmlName: "",
                 status: TestStatus.Idle,
                 time: 0
             };
@@ -81,7 +96,9 @@ export class TestsParser implements ITestsParser {
 
         // Check if we already have this suite
         // nameToRun = testId - method name
-        let testSuite = testFile.suites.find(cls => cls.nameToRun === suiteToRun);
+        let testSuite = testFile.suites.find(
+            cls => cls.nameToRun === suiteToRun
+        );
         if (!testSuite) {
             testSuite = {
                 name: className,
@@ -90,7 +107,7 @@ export class TestsParser implements ITestsParser {
                 isUnitTest: true,
                 isInstance: false,
                 nameToRun: suiteToRun,
-                xmlName: '',
+                xmlName: "",
                 status: TestStatus.Idle,
                 time: 0
             };

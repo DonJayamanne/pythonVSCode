@@ -1,6 +1,11 @@
-import * as fs from 'fs';
-import { injectable } from 'inversify';
-import { IXUnitParser, PassCalculationFormulae, Tests, TestStatus } from './types';
+import * as fs from "fs";
+import { injectable } from "inversify";
+import {
+    IXUnitParser,
+    PassCalculationFormulae,
+    Tests,
+    TestStatus
+} from "./types";
 type TestSuiteResult = {
     $: {
         errors: string;
@@ -38,25 +43,39 @@ type TestCaseResult = {
 // tslint:disable-next-line:no-any
 function getSafeInt(value: string, defaultValue: any = 0): number {
     const num = parseInt(value, 10);
-    if (isNaN(num)) { return defaultValue; }
+    if (isNaN(num)) {
+        return defaultValue;
+    }
     return num;
 }
 
 @injectable()
 export class XUnitParser implements IXUnitParser {
-    public updateResultsFromXmlLogFile(tests: Tests, outputXmlFile: string, passCalculationFormulae: PassCalculationFormulae): Promise<void> {
-        return updateResultsFromXmlLogFile(tests, outputXmlFile, passCalculationFormulae);
+    public updateResultsFromXmlLogFile(
+        tests: Tests,
+        outputXmlFile: string,
+        passCalculationFormulae: PassCalculationFormulae
+    ): Promise<void> {
+        return updateResultsFromXmlLogFile(
+            tests,
+            outputXmlFile,
+            passCalculationFormulae
+        );
     }
 }
-export function updateResultsFromXmlLogFile(tests: Tests, outputXmlFile: string, passCalculationFormulae: PassCalculationFormulae): Promise<void> {
+export function updateResultsFromXmlLogFile(
+    tests: Tests,
+    outputXmlFile: string,
+    passCalculationFormulae: PassCalculationFormulae
+): Promise<void> {
     // tslint:disable-next-line:no-any
     return new Promise<any>((resolve, reject) => {
-        fs.readFile(outputXmlFile, 'utf8', (err, data) => {
+        fs.readFile(outputXmlFile, "utf8", (err, data) => {
             if (err) {
                 return reject(err);
             }
             // tslint:disable-next-line:no-require-imports
-            const xml2js = require('xml2js');
+            const xml2js = require("xml2js");
             xml2js.parseString(data, (error, parserResult) => {
                 if (error) {
                     return reject(error);
@@ -65,20 +84,32 @@ export function updateResultsFromXmlLogFile(tests: Tests, outputXmlFile: string,
                 const testSuiteResult: TestSuiteResult = parserResult.testsuite;
                 tests.summary.errors = getSafeInt(testSuiteResult.$.errors);
                 tests.summary.failures = getSafeInt(testSuiteResult.$.failures);
-                tests.summary.skipped = getSafeInt(testSuiteResult.$.skips ? testSuiteResult.$.skips : testSuiteResult.$.skip);
+                tests.summary.skipped = getSafeInt(
+                    testSuiteResult.$.skips
+                        ? testSuiteResult.$.skips
+                        : testSuiteResult.$.skip
+                );
                 const testCount = getSafeInt(testSuiteResult.$.tests);
 
                 switch (passCalculationFormulae) {
                     case PassCalculationFormulae.pytest: {
-                        tests.summary.passed = testCount - tests.summary.failures - tests.summary.skipped - tests.summary.errors;
+                        tests.summary.passed =
+                            testCount -
+                            tests.summary.failures -
+                            tests.summary.skipped -
+                            tests.summary.errors;
                         break;
                     }
                     case PassCalculationFormulae.nosetests: {
-                        tests.summary.passed = testCount - tests.summary.failures - tests.summary.skipped - tests.summary.errors;
+                        tests.summary.passed =
+                            testCount -
+                            tests.summary.failures -
+                            tests.summary.skipped -
+                            tests.summary.errors;
                         break;
                     }
                     default: {
-                        throw new Error('Unknown Test Pass Calculation');
+                        throw new Error("Unknown Test Pass Calculation");
                     }
                 }
 
@@ -87,8 +118,16 @@ export function updateResultsFromXmlLogFile(tests: Tests, outputXmlFile: string,
                 }
 
                 testSuiteResult.testcase.forEach((testcase: TestCaseResult) => {
-                    const xmlClassName = testcase.$.classname.replace(/\(\)/g, '').replace(/\.\./g, '.').replace(/\.\./g, '.').replace(/\.+$/, '');
-                    const result = tests.testFunctions.find(fn => fn.xmlClassName === xmlClassName && fn.testFunction.name === testcase.$.name);
+                    const xmlClassName = testcase.$.classname
+                        .replace(/\(\)/g, "")
+                        .replace(/\.\./g, ".")
+                        .replace(/\.\./g, ".")
+                        .replace(/\.+$/, "");
+                    const result = tests.testFunctions.find(
+                        fn =>
+                            fn.xmlClassName === xmlClassName &&
+                            fn.testFunction.name === testcase.$.name
+                    );
                     if (!result) {
                         // Possible we're dealing with nosetests, where the file name isn't returned to us
                         // When dealing with nose tests
@@ -99,7 +138,11 @@ export function updateResultsFromXmlLogFile(tests: Tests, outputXmlFile: string,
                         //     fn.parentTestSuite && fn.parentTestSuite.name === testcase.$.classname);
 
                         // Look for failed file test
-                        const fileTest = testcase.$.file && tests.testFiles.find(file => file.nameToRun === testcase.$.file);
+                        const fileTest =
+                            testcase.$.file &&
+                            tests.testFiles.find(
+                                file => file.nameToRun === testcase.$.file
+                            );
                         if (fileTest && testcase.error) {
                             fileTest.status = TestStatus.Error;
                             fileTest.passed = false;
@@ -109,7 +152,10 @@ export function updateResultsFromXmlLogFile(tests: Tests, outputXmlFile: string,
                         return;
                     }
 
-                    result.testFunction.line = getSafeInt(testcase.$.line, null);
+                    result.testFunction.line = getSafeInt(
+                        testcase.$.line,
+                        null
+                    );
                     result.testFunction.file = testcase.$.file;
                     result.testFunction.time = parseFloat(testcase.$.time);
                     result.testFunction.passed = true;
@@ -118,22 +164,25 @@ export function updateResultsFromXmlLogFile(tests: Tests, outputXmlFile: string,
                     if (testcase.failure) {
                         result.testFunction.status = TestStatus.Fail;
                         result.testFunction.passed = false;
-                        result.testFunction.message = testcase.failure[0].$.message;
+                        result.testFunction.message =
+                            testcase.failure[0].$.message;
                         result.testFunction.traceback = testcase.failure[0]._;
                     }
 
                     if (testcase.error) {
                         result.testFunction.status = TestStatus.Error;
                         result.testFunction.passed = false;
-                        result.testFunction.message = testcase.error[0].$.message;
+                        result.testFunction.message =
+                            testcase.error[0].$.message;
                         result.testFunction.traceback = testcase.error[0]._;
                     }
 
                     if (testcase.skipped) {
                         result.testFunction.status = TestStatus.Skipped;
                         result.testFunction.passed = undefined;
-                        result.testFunction.message = testcase.skipped[0].$.message;
-                        result.testFunction.traceback = '';
+                        result.testFunction.message =
+                            testcase.skipped[0].$.message;
+                        result.testFunction.traceback = "";
                     }
                 });
 

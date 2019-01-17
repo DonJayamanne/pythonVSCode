@@ -1,26 +1,31 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
-'use strict';
+"use strict";
 
-import { createHash } from 'crypto';
-import * as fileSystem from 'fs';
-import * as fs from 'fs-extra';
-import * as glob from 'glob';
-import { inject, injectable } from 'inversify';
-import * as path from 'path';
-import * as tmp from 'tmp';
-import { createDeferred } from '../utils/async';
-import { IFileSystem, IPlatformService, TemporaryFile } from './types';
+import { createHash } from "crypto";
+import * as fileSystem from "fs";
+import * as fs from "fs-extra";
+import * as glob from "glob";
+import { inject, injectable } from "inversify";
+import * as path from "path";
+import * as tmp from "tmp";
+import { createDeferred } from "../utils/async";
+import { IFileSystem, IPlatformService, TemporaryFile } from "./types";
 
 @injectable()
 export class FileSystem implements IFileSystem {
-    constructor(@inject(IPlatformService) private platformService: IPlatformService) { }
+    constructor(
+        @inject(IPlatformService) private platformService: IPlatformService
+    ) {}
 
     public get directorySeparatorChar(): string {
         return path.sep;
     }
 
-    public objectExists(filePath: string, statCheck: (s: fs.Stats) => boolean): Promise<boolean> {
+    public objectExists(
+        filePath: string,
+        statCheck: (s: fs.Stats) => boolean
+    ): Promise<boolean> {
         return new Promise<boolean>(resolve => {
             fs.stat(filePath, (error, stats) => {
                 if (error) {
@@ -32,7 +37,7 @@ export class FileSystem implements IFileSystem {
     }
 
     public fileExists(filePath: string): Promise<boolean> {
-        return this.objectExists(filePath, (stats) => stats.isFile());
+        return this.objectExists(filePath, stats => stats.isFile());
     }
     public fileExistsSync(filePath: string): boolean {
         return fs.existsSync(filePath);
@@ -47,12 +52,16 @@ export class FileSystem implements IFileSystem {
         return fs.readFile(filePath).then(buffer => buffer.toString());
     }
 
-    public async writeFile(filePath: string, data: {}, options: string | fs.WriteFileOptions = { encoding: 'utf8' }): Promise<void> {
+    public async writeFile(
+        filePath: string,
+        data: {},
+        options: string | fs.WriteFileOptions = { encoding: "utf8" }
+    ): Promise<void> {
         await fs.writeFile(filePath, data, options);
     }
 
     public directoryExists(filePath: string): Promise<boolean> {
-        return this.objectExists(filePath, (stats) => stats.isDirectory());
+        return this.objectExists(filePath, stats => stats.isDirectory());
     }
 
     public createDirectory(directoryPath: string): Promise<void> {
@@ -61,7 +70,10 @@ export class FileSystem implements IFileSystem {
 
     public deleteDirectory(directoryPath: string): Promise<void> {
         const deferred = createDeferred<void>();
-        fs.rmdir(directoryPath, err => err ? deferred.reject(err) : deferred.resolve());
+        fs.rmdir(
+            directoryPath,
+            err => (err ? deferred.reject(err) : deferred.resolve())
+        );
         return deferred.promise;
     }
 
@@ -79,7 +91,7 @@ export class FileSystem implements IFileSystem {
                             subDirs.push(fullPath);
                         }
                         // tslint:disable-next-line:no-empty
-                    } catch (ex) { }
+                    } catch (ex) {}
                 });
                 resolve(subDirs);
             });
@@ -108,10 +120,22 @@ export class FileSystem implements IFileSystem {
     }
 
     public appendFileSync(filename: string, data: {}, encoding: string): void;
-    public appendFileSync(filename: string, data: {}, options?: { encoding?: string; mode?: number; flag?: string }): void;
+    public appendFileSync(
+        filename: string,
+        data: {},
+        options?: { encoding?: string; mode?: number; flag?: string }
+    ): void;
     // tslint:disable-next-line:unified-signatures
-    public appendFileSync(filename: string, data: {}, options?: { encoding?: string; mode?: string; flag?: string }): void;
-    public appendFileSync(filename: string, data: {}, optionsOrEncoding: {}): void {
+    public appendFileSync(
+        filename: string,
+        data: {},
+        options?: { encoding?: string; mode?: string; flag?: string }
+    ): void;
+    public appendFileSync(
+        filename: string,
+        data: {},
+        optionsOrEncoding: {}
+    ): void {
         return fs.appendFileSync(filename, data, optionsOrEncoding);
     }
 
@@ -125,21 +149,27 @@ export class FileSystem implements IFileSystem {
 
     public copyFile(src: string, dest: string): Promise<void> {
         const deferred = createDeferred<void>();
-        const rs = fs.createReadStream(src).on('error', (err) => {
+        const rs = fs.createReadStream(src).on("error", err => {
             deferred.reject(err);
         });
-        const ws = fs.createWriteStream(dest).on('error', (err) => {
-            deferred.reject(err);
-        }).on('close', () => {
-            deferred.resolve();
-        });
+        const ws = fs
+            .createWriteStream(dest)
+            .on("error", err => {
+                deferred.reject(err);
+            })
+            .on("close", () => {
+                deferred.resolve();
+            });
         rs.pipe(ws);
         return deferred.promise;
     }
 
     public deleteFile(filename: string): Promise<void> {
         const deferred = createDeferred<void>();
-        fs.unlink(filename, err => err ? deferred.reject(err) : deferred.resolve());
+        fs.unlink(
+            filename,
+            err => (err ? deferred.reject(err) : deferred.resolve())
+        );
         return deferred.promise;
     }
 
@@ -149,7 +179,9 @@ export class FileSystem implements IFileSystem {
                 if (err) {
                     resolve();
                 } else {
-                    const actual = createHash('sha512').update(`${stats.ctimeMs}-${stats.mtimeMs}`).digest('hex');
+                    const actual = createHash("sha512")
+                        .update(`${stats.ctimeMs}-${stats.mtimeMs}`)
+                        .digest("hex");
                     resolve(actual);
                 }
             });
@@ -167,12 +199,15 @@ export class FileSystem implements IFileSystem {
     }
     public createTemporaryFile(extension: string): Promise<TemporaryFile> {
         return new Promise<TemporaryFile>((resolve, reject) => {
-            tmp.file({ postfix: extension }, (err, tmpFile, _, cleanupCallback) => {
-                if (err) {
-                    return reject(err);
+            tmp.file(
+                { postfix: extension },
+                (err, tmpFile, _, cleanupCallback) => {
+                    if (err) {
+                        return reject(err);
+                    }
+                    resolve({ filePath: tmpFile, dispose: cleanupCallback });
                 }
-                resolve({ filePath: tmpFile, dispose: cleanupCallback });
-            });
+            );
         });
     }
 

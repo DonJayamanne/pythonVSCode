@@ -1,48 +1,78 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-'use strict';
+"use strict";
 
-import { inject, injectable } from 'inversify';
-import { DiagnosticSeverity } from 'vscode';
-import { IApplicationEnvironment } from '../../../common/application/types';
-import '../../../common/extensions';
-import { IPlatformService } from '../../../common/platform/types';
-import { ICurrentProcess, IPathUtils } from '../../../common/types';
-import { IServiceContainer } from '../../../ioc/types';
-import { BaseDiagnostic, BaseDiagnosticsService } from '../base';
-import { IDiagnosticsCommandFactory } from '../commands/types';
-import { DiagnosticCodes } from '../constants';
-import { DiagnosticCommandPromptHandlerServiceId, MessageCommandPrompt } from '../promptHandler';
-import { DiagnosticScope, IDiagnostic, IDiagnosticHandlerService } from '../types';
+import { inject, injectable } from "inversify";
+import { DiagnosticSeverity } from "vscode";
+import { IApplicationEnvironment } from "../../../common/application/types";
+import "../../../common/extensions";
+import { IPlatformService } from "../../../common/platform/types";
+import { ICurrentProcess, IPathUtils } from "../../../common/types";
+import { IServiceContainer } from "../../../ioc/types";
+import { BaseDiagnostic, BaseDiagnosticsService } from "../base";
+import { IDiagnosticsCommandFactory } from "../commands/types";
+import { DiagnosticCodes } from "../constants";
+import {
+    DiagnosticCommandPromptHandlerServiceId,
+    MessageCommandPrompt
+} from "../promptHandler";
+import {
+    DiagnosticScope,
+    IDiagnostic,
+    IDiagnosticHandlerService
+} from "../types";
 
-const InvalidEnvPathVariableMessage = 'The environment variable \'{0}\' seems to have some paths containing the \'"\' character.' +
-    ' The existence of such a character is known to have caused the {1} extension to not load. If the extension fails to load please modify your paths to remove this \'"\' character.';
+const InvalidEnvPathVariableMessage =
+    "The environment variable '{0}' seems to have some paths containing the '\"' character." +
+    " The existence of such a character is known to have caused the {1} extension to not load. If the extension fails to load please modify your paths to remove this '\"' character.";
 
 export class InvalidEnvironmentPathVariableDiagnostic extends BaseDiagnostic {
     constructor(message) {
-        super(DiagnosticCodes.InvalidEnvironmentPathVariableDiagnostic,
-            message, DiagnosticSeverity.Warning, DiagnosticScope.Global);
+        super(
+            DiagnosticCodes.InvalidEnvironmentPathVariableDiagnostic,
+            message,
+            DiagnosticSeverity.Warning,
+            DiagnosticScope.Global
+        );
     }
 }
 
-export const EnvironmentPathVariableDiagnosticsServiceId = 'EnvironmentPathVariableDiagnosticsServiceId';
+export const EnvironmentPathVariableDiagnosticsServiceId =
+    "EnvironmentPathVariableDiagnosticsServiceId";
 
 @injectable()
 export class EnvironmentPathVariableDiagnosticsService extends BaseDiagnosticsService {
-    protected readonly messageService: IDiagnosticHandlerService<MessageCommandPrompt>;
+    protected readonly messageService: IDiagnosticHandlerService<
+        MessageCommandPrompt
+    >;
     private readonly platform: IPlatformService;
-    constructor(@inject(IServiceContainer) serviceContainer: IServiceContainer) {
-        super([DiagnosticCodes.InvalidEnvironmentPathVariableDiagnostic], serviceContainer);
-        this.platform = this.serviceContainer.get<IPlatformService>(IPlatformService);
-        this.messageService = serviceContainer.get<IDiagnosticHandlerService<MessageCommandPrompt>>(IDiagnosticHandlerService, DiagnosticCommandPromptHandlerServiceId);
+    constructor(
+        @inject(IServiceContainer) serviceContainer: IServiceContainer
+    ) {
+        super(
+            [DiagnosticCodes.InvalidEnvironmentPathVariableDiagnostic],
+            serviceContainer
+        );
+        this.platform = this.serviceContainer.get<IPlatformService>(
+            IPlatformService
+        );
+        this.messageService = serviceContainer.get<
+            IDiagnosticHandlerService<MessageCommandPrompt>
+        >(IDiagnosticHandlerService, DiagnosticCommandPromptHandlerServiceId);
     }
     public async diagnose(): Promise<IDiagnostic[]> {
-        if (this.platform.isWindows &&
-            this.doesPathVariableHaveInvalidEntries()) {
-            const env = this.serviceContainer.get<IApplicationEnvironment>(IApplicationEnvironment);
-            const message = InvalidEnvPathVariableMessage
-                .format(this.platform.pathVariableName, env.extensionName);
+        if (
+            this.platform.isWindows &&
+            this.doesPathVariableHaveInvalidEntries()
+        ) {
+            const env = this.serviceContainer.get<IApplicationEnvironment>(
+                IApplicationEnvironment
+            );
+            const message = InvalidEnvPathVariableMessage.format(
+                this.platform.pathVariableName,
+                env.extensionName
+            );
             return [new InvalidEnvironmentPathVariableDiagnostic(message)];
         } else {
             return [];
@@ -57,27 +87,40 @@ export class EnvironmentPathVariableDiagnosticsService extends BaseDiagnosticsSe
         if (await this.filterService.shouldIgnoreDiagnostic(diagnostic.code)) {
             return;
         }
-        const commandFactory = this.serviceContainer.get<IDiagnosticsCommandFactory>(IDiagnosticsCommandFactory);
+        const commandFactory = this.serviceContainer.get<
+            IDiagnosticsCommandFactory
+        >(IDiagnosticsCommandFactory);
         const options = [
             {
-                prompt: 'Ignore'
+                prompt: "Ignore"
             },
             {
-                prompt: 'Always Ignore',
-                command: commandFactory.createCommand(diagnostic, { type: 'ignore', options: DiagnosticScope.Global })
+                prompt: "Always Ignore",
+                command: commandFactory.createCommand(diagnostic, {
+                    type: "ignore",
+                    options: DiagnosticScope.Global
+                })
             },
             {
-                prompt: 'More Info',
-                command: commandFactory.createCommand(diagnostic, { type: 'launch', options: 'https://aka.ms/Niq35h' })
+                prompt: "More Info",
+                command: commandFactory.createCommand(diagnostic, {
+                    type: "launch",
+                    options: "https://aka.ms/Niq35h"
+                })
             }
         ];
 
-        await this.messageService.handle(diagnostic, { commandPrompts: options });
+        await this.messageService.handle(diagnostic, {
+            commandPrompts: options
+        });
     }
     private doesPathVariableHaveInvalidEntries() {
-        const currentProc = this.serviceContainer.get<ICurrentProcess>(ICurrentProcess);
+        const currentProc = this.serviceContainer.get<ICurrentProcess>(
+            ICurrentProcess
+        );
         const pathValue = currentProc.env[this.platform.pathVariableName];
-        const pathSeparator = this.serviceContainer.get<IPathUtils>(IPathUtils).delimiter;
+        const pathSeparator = this.serviceContainer.get<IPathUtils>(IPathUtils)
+            .delimiter;
         const paths = pathValue.split(pathSeparator);
         return paths.filter(item => item.indexOf('"') >= 0).length > 0;
     }

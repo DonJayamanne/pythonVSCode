@@ -7,15 +7,11 @@
             "type": "extensionHost",
             "request": "launch",
             "runtimeExecutable": "${execPath}",
-            "args": [
-                "--extensionDevelopmentPath=${workspaceFolder}"
-            ],
+            "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
             "stopOnEntry": false,
             "smartStep": true,
             "sourceMaps": true,
-            "outFiles": [
-                "${workspaceFolder}/out/**/*"
-            ],
+            "outFiles": ["${workspaceFolder}/out/**/*"],
             "preLaunchTask": "Compile"
         },
         {
@@ -25,13 +21,9 @@
             "program": "${workspaceFolder}/out/client/debugger/debugAdapter/main.js",
             "stopOnEntry": false,
             "smartStep": true,
-            "args": [
-                "--server=4711"
-            ],
+            "args": ["--server=4711"],
             "sourceMaps": true,
-            "outFiles": [
-                "${workspaceFolder}/out/client/**/*.js"
-            ],
+            "outFiles": ["${workspaceFolder}/out/client/**/*.js"],
             "cwd": "${workspaceFolder}",
             "preLaunchTask": "Compile"
         },
@@ -49,9 +41,7 @@
             "stopOnEntry": false,
             "sourceMaps": true,
             "smartStep": true,
-            "outFiles": [
-                "${workspaceFolder}/out/**/*"
-            ],
+            "outFiles": ["${workspaceFolder}/out/**/*"],
             "preLaunchTask": "Compile",
             "env": {
                 "IS_CI_SERVER_TEST_DEBUGGER": "1"
@@ -70,9 +60,7 @@
             ],
             "stopOnEntry": false,
             "sourceMaps": true,
-            "outFiles": [
-                "${workspaceFolder}/out/**/*.js"
-            ],
+            "outFiles": ["${workspaceFolder}/out/**/*.js"],
             "preLaunchTask": "Compile"
         },
         {
@@ -89,9 +77,7 @@
             "stopOnEntry": false,
             "sourceMaps": true,
             "smartStep": true,
-            "outFiles": [
-                "${workspaceFolder}/out/**/*"
-            ],
+            "outFiles": ["${workspaceFolder}/out/**/*"],
             "preLaunchTask": "Compile"
         },
         {
@@ -108,9 +94,7 @@
             "stopOnEntry": false,
             "smartStep": true,
             "sourceMaps": true,
-            "outFiles": [
-                "${workspaceFolder}/out/**/*.js"
-            ],
+            "outFiles": ["${workspaceFolder}/out/**/*.js"],
             "env": {
                 "MOCHA_REPORTER_JUNIT": "true"
             }
@@ -131,9 +115,7 @@
                 "--timeout=300000",
                 "--grep="
             ],
-            "outFiles": [
-                "${workspaceFolder}/out/**/*.js"
-            ],
+            "outFiles": ["${workspaceFolder}/out/**/*.js"],
             "preLaunchTask": "Compile"
         },
         {
@@ -152,9 +134,7 @@
                 "--timeout=300000",
                 "--grep="
             ],
-            "outFiles": [
-                "${workspaceFolder}/out/**/*.js"
-            ],
+            "outFiles": ["${workspaceFolder}/out/**/*.js"],
             "preLaunchTask": "Compile"
         },
         {
@@ -162,18 +142,13 @@
             "request": "launch",
             "name": "Gulp tasks (helpful for debugging gulpfile.js)",
             "program": "${workspaceFolder}/node_modules/gulp/bin/gulp.js",
-            "args": [
-                "watch"
-            ]
+            "args": ["watch"]
         }
     ],
     "compounds": [
         {
             "name": "Extension + Debugger",
-            "configurations": [
-                "Extension",
-                "Debugger as debugServer"
-            ]
+            "configurations": ["Extension", "Debugger as debugServer"]
         }
     ]
 }

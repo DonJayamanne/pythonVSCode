@@ -3,7 +3,6 @@
 import * as net from "net";
 const uint64be = require("uint64be");
 
-
 export class SocketStream {
     constructor(socket: net.Socket, buffer: Buffer) {
         this.buffer = buffer;
@@ -29,7 +28,6 @@ export class SocketStream {
     public Write(buffer: Buffer) {
         this.socket.write(buffer);
     }
-
 
     private buffer: Buffer;
     private isInTransaction: boolean;
@@ -83,7 +81,7 @@ export class SocketStream {
     }
 
     private isSufficientDataAvailable(length: number): boolean {
-        if (this.buffer.length < (this.bytesRead + length)) {
+        if (this.buffer.length < this.bytesRead + length) {
             this.hasInsufficientDataForReading = true;
         }
 
@@ -98,8 +96,7 @@ export class SocketStream {
         let value = this.buffer.slice(this.bytesRead, this.bytesRead + 1)[0];
         if (this.isInTransaction) {
             this.bytesRead++;
-        }
-        else {
+        } else {
             this.buffer = this.buffer.slice(1);
         }
         return value;
@@ -112,7 +109,9 @@ export class SocketStream {
         }
 
         if (byteRead < 0) {
-            throw new Error("IOException() - Socket.ReadString failed to read string type;");
+            throw new Error(
+                "IOException() - Socket.ReadString failed to read string type;"
+            );
         }
 
         let type = new Buffer([byteRead]).toString();
@@ -128,7 +127,10 @@ export class SocketStream {
                 break;
             }
             default: {
-                throw new Error("IOException(); Socket.ReadString failed to parse unknown string type " + type);
+                throw new Error(
+                    "IOException(); Socket.ReadString failed to parse unknown string type " +
+                        type
+                );
             }
         }
 
@@ -141,15 +143,19 @@ export class SocketStream {
             return null;
         }
 
-        let stringBuffer = this.buffer.slice(this.bytesRead, this.bytesRead + len);
+        let stringBuffer = this.buffer.slice(
+            this.bytesRead,
+            this.bytesRead + len
+        );
         if (this.isInTransaction) {
             this.bytesRead = this.bytesRead + len;
-        }
-        else {
+        } else {
             this.buffer = this.buffer.slice(len);
         }
 
-        let resp = isUnicode ? stringBuffer.toString("utf-8") : stringBuffer.toString();
+        let resp = isUnicode
+            ? stringBuffer.toString("utf-8")
+            : stringBuffer.toString();
         return resp;
     }
 
@@ -166,8 +172,7 @@ export class SocketStream {
 
         if (this.isInTransaction) {
             this.bytesRead = this.bytesRead + 8;
-        }
-        else {
+        } else {
             this.buffer = this.buffer.slice(8);
         }
 
@@ -180,11 +185,13 @@ export class SocketStream {
             return null;
         }
 
-        let stringBuffer = this.buffer.slice(this.bytesRead, this.bytesRead + length);
+        let stringBuffer = this.buffer.slice(
+            this.bytesRead,
+            this.bytesRead + length
+        );
         if (this.isInTransaction) {
             this.bytesRead = this.bytesRead + length;
-        }
-        else {
+        } else {
             this.buffer = this.buffer.slice(length);
         }
         return stringBuffer.toString("ascii");

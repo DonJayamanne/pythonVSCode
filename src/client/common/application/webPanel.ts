@@ -1,20 +1,19 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
-'use strict';
-import '../../common/extensions';
+"use strict";
+import "../../common/extensions";
 
-import * as fs from 'fs-extra';
-import * as path from 'path';
-import { Uri, ViewColumn, WebviewPanel, window } from 'vscode';
+import * as fs from "fs-extra";
+import * as path from "path";
+import { Uri, ViewColumn, WebviewPanel, window } from "vscode";
 
-import * as localize from '../../common/utils/localize';
-import { Identifiers } from '../../datascience/constants';
-import { IServiceContainer } from '../../ioc/types';
-import { IConfigurationService, IDisposableRegistry } from '../types';
-import { IWebPanel, IWebPanelMessageListener, WebPanelMessage } from './types';
+import * as localize from "../../common/utils/localize";
+import { Identifiers } from "../../datascience/constants";
+import { IServiceContainer } from "../../ioc/types";
+import { IConfigurationService, IDisposableRegistry } from "../types";
+import { IWebPanel, IWebPanelMessageListener, WebPanelMessage } from "./types";
 
 export class WebPanel implements IWebPanel {
-
     private listener: IWebPanelMessageListener;
     private panel: WebviewPanel | undefined;
     private loadPromise: Promise<void>;
@@ -27,20 +26,26 @@ export class WebPanel implements IWebPanel {
         listener: IWebPanelMessageListener,
         title: string,
         mainScriptPath: string,
-        embeddedCss?: string) {
-        this.configuration = serviceContainer.get<IConfigurationService>(IConfigurationService);
-        this.disposableRegistry = serviceContainer.get<IDisposableRegistry>(IDisposableRegistry);
+        embeddedCss?: string
+    ) {
+        this.configuration = serviceContainer.get<IConfigurationService>(
+            IConfigurationService
+        );
+        this.disposableRegistry = serviceContainer.get<IDisposableRegistry>(
+            IDisposableRegistry
+        );
         this.listener = listener;
         this.rootPath = path.dirname(mainScriptPath);
         this.panel = window.createWebviewPanel(
-            title.toLowerCase().replace(' ', ''),
+            title.toLowerCase().replace(" ", ""),
             title,
-            {viewColumn: ViewColumn.Two, preserveFocus: true},
+            { viewColumn: ViewColumn.Two, preserveFocus: true },
             {
                 enableScripts: true,
                 retainContextWhenHidden: true,
                 localResourceRoots: [Uri.file(this.rootPath)]
-            });
+            }
+        );
         this.loadPromise = this.load(mainScriptPath, embeddedCss);
     }
 
@@ -51,7 +56,7 @@ export class WebPanel implements IWebPanel {
         }
     }
 
-    public isVisible() : boolean {
+    public isVisible(): boolean {
         return this.panel ? this.panel.visible : false;
     }
 
@@ -64,21 +69,27 @@ export class WebPanel implements IWebPanel {
     private async load(mainScriptPath: string, embeddedCss?: string) {
         if (this.panel) {
             if (await fs.pathExists(mainScriptPath)) {
-
                 // Call our special function that sticks this script inside of an html page
                 // and translates all of the paths to vscode-resource URIs
-                this.panel.webview.html = this.generateReactHtml(mainScriptPath, embeddedCss);
+                this.panel.webview.html = this.generateReactHtml(
+                    mainScriptPath,
+                    embeddedCss
+                );
 
                 // Reset when the current panel is closed
-                this.disposableRegistry.push(this.panel.onDidDispose(() => {
-                    this.panel = undefined;
-                    this.listener.dispose();
-                }));
+                this.disposableRegistry.push(
+                    this.panel.onDidDispose(() => {
+                        this.panel = undefined;
+                        this.listener.dispose();
+                    })
+                );
 
-                this.disposableRegistry.push(this.panel.webview.onDidReceiveMessage(message => {
-                    // Pass the message onto our listener
-                    this.listener.onMessage(message.type, message.payload);
-                }));
+                this.disposableRegistry.push(
+                    this.panel.webview.onDidReceiveMessage(message => {
+                        // Pass the message onto our listener
+                        this.listener.onMessage(message.type, message.payload);
+                    })
+                );
             } else {
                 // Indicate that we can't load the file path
                 const badPanelString = localize.DataScience.badWebPanelFormatString();
@@ -90,11 +101,13 @@ export class WebPanel implements IWebPanel {
     private generateReactHtml(mainScriptPath: string, embeddedCss?: string) {
         const uriBasePath = Uri.file(`${path.dirname(mainScriptPath)}/`);
         const uriPath = Uri.file(mainScriptPath);
-        const uriBase = uriBasePath.with({ scheme: 'vscode-resource'});
-        const uri = uriPath.with({ scheme: 'vscode-resource' });
+        const uriBase = uriBasePath.with({ scheme: "vscode-resource" });
+        const uri = uriPath.with({ scheme: "vscode-resource" });
         const locDatabase = JSON.stringify(localize.getCollection());
-        const style = embeddedCss ? embeddedCss : '';
-        const dsSettings = JSON.stringify(this.configuration.getSettings().datascience);
+        const style = embeddedCss ? embeddedCss : "";
+        const dsSettings = JSON.stringify(
+            this.configuration.getSettings().datascience
+        );
 
         return `<!doctype html>
         <html lang="en">

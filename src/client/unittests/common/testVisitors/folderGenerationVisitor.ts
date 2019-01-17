@@ -1,6 +1,12 @@
-import { injectable } from 'inversify';
-import * as path from 'path';
-import { ITestVisitor, TestFile, TestFolder, TestFunction, TestSuite } from '../types';
+import { injectable } from "inversify";
+import * as path from "path";
+import {
+    ITestVisitor,
+    TestFile,
+    TestFolder,
+    TestFunction,
+    TestSuite
+} from "../types";
 
 @injectable()
 export class TestFolderGenerationVisitor implements ITestVisitor {
@@ -16,9 +22,9 @@ export class TestFolderGenerationVisitor implements ITestVisitor {
         return [...this._rootTestFolders];
     }
     // tslint:disable-next-line:no-empty
-    public visitTestFunction(testFunction: TestFunction): void { }
+    public visitTestFunction(testFunction: TestFunction): void {}
     // tslint:disable-next-line:no-empty
-    public visitTestSuite(testSuite: TestSuite): void { }
+    public visitTestSuite(testSuite: TestSuite): void {}
     public visitTestFile(testFile: TestFile): void {
         // First get all the unique folders
         const dir = path.dirname(testFile.name);
@@ -36,7 +42,13 @@ export class TestFolderGenerationVisitor implements ITestVisitor {
                 newPath = path.join(accumulatedPath, currentName);
             }
             if (!this.folderMap.has(newPath)) {
-                const testFolder: TestFolder = { name: newPath, testFiles: [], folders: [], nameToRun: newPath, time: 0 };
+                const testFolder: TestFolder = {
+                    name: newPath,
+                    testFiles: [],
+                    folders: [],
+                    nameToRun: newPath,
+                    time: 0
+                };
                 this.folderMap.set(newPath, testFolder);
                 if (parentFolder) {
                     parentFolder.folders.push(testFolder);
@@ -46,11 +58,11 @@ export class TestFolderGenerationVisitor implements ITestVisitor {
                 this._testFolders.push(testFolder);
             }
             return newPath;
-        }, '');
+        }, "");
 
         // tslint:disable-next-line:no-non-null-assertion
         this.folderMap.get(dir)!.testFiles.push(testFile);
     }
     // tslint:disable-next-line:no-empty
-    public visitTestFolder(testFile: TestFolder) { }
+    public visitTestFolder(testFile: TestFolder) {}
 }

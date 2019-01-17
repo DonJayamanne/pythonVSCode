@@ -1,18 +1,23 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-'use strict';
+"use strict";
 
-import { ChildProcess, spawn, SpawnOptions } from 'child_process';
-import * as path from 'path';
-import { DebugClient } from 'vscode-debugadapter-testsupport';
-import { EXTENSION_ROOT_DIR } from '../../client/common/constants';
-import { noop } from '../../client/common/utils/misc';
+import { ChildProcess, spawn, SpawnOptions } from "child_process";
+import * as path from "path";
+import { DebugClient } from "vscode-debugadapter-testsupport";
+import { EXTENSION_ROOT_DIR } from "../../client/common/constants";
+import { noop } from "../../client/common/utils/misc";
 
 export class DebugClientEx extends DebugClient {
     private adapterProcess: ChildProcess | undefined;
-    constructor(private executable: string, debugType: string, private coverageDirectory: string, private spawnOptions?: SpawnOptions) {
-        super('node', '', debugType, spawnOptions);
+    constructor(
+        private executable: string,
+        debugType: string,
+        private coverageDirectory: string,
+        private spawnOptions?: SpawnOptions
+    ) {
+        super("node", "", debugType, spawnOptions);
     }
     /**
      * Starts a new debug adapter and sets up communication via stdin/stdout.
@@ -22,26 +27,43 @@ export class DebugClientEx extends DebugClient {
      */
     public start(port?: number): Promise<void> {
         return new Promise((resolve, reject) => {
-            const runtime = path.join(EXTENSION_ROOT_DIR, 'node_modules', '.bin', 'istanbul');
-            const args = ['cover', '--report=json', '--print=none', `--dir=${this.coverageDirectory}`, '--handle-sigint', this.executable];
+            const runtime = path.join(
+                EXTENSION_ROOT_DIR,
+                "node_modules",
+                ".bin",
+                "istanbul"
+            );
+            const args = [
+                "cover",
+                "--report=json",
+                "--print=none",
+                `--dir=${this.coverageDirectory}`,
+                "--handle-sigint",
+                this.executable
+            ];
             this.adapterProcess = spawn(runtime, args, this.spawnOptions);
-            this.adapterProcess.stderr.on('data', noop);
-            this.adapterProcess.on('error', (err) => {
+            this.adapterProcess.stderr.on("data", noop);
+            this.adapterProcess.on("error", err => {
                 console.error(err);
                 reject(err);
             });
-            this.adapterProcess.on('exit', noop);
-            this.connect(this.adapterProcess.stdout, this.adapterProcess.stdin);
+            this.adapterProcess.on("exit", noop);
+            this.connect(
+                this.adapterProcess.stdout,
+                this.adapterProcess.stdin
+            );
             resolve();
         });
     }
     public stop(): Promise<void> {
-        return this.disconnectRequest().then(this.stopAdapterProcess).catch(this.stopAdapterProcess);
+        return this.disconnectRequest()
+            .then(this.stopAdapterProcess)
+            .catch(this.stopAdapterProcess);
     }
     private stopAdapterProcess = () => {
         if (this.adapterProcess) {
             this.adapterProcess.kill();
             this.adapterProcess = undefined;
         }
-    }
+    };
 }

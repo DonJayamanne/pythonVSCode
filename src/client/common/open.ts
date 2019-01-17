@@ -1,10 +1,10 @@
-'use strict';
+"use strict";
 
 //https://github.com/sindresorhus/opn/blob/master/index.js
 //Modified as this uses target as an argument
 
-import * as path from 'path';
-import * as childProcess from 'child_process';
+import * as path from "path";
+import * as childProcess from "child_process";
 
 export function open(opts: any): Promise<childProcess.ChildProcess> {
     // opts = objectAssign({wait: true}, opts);
@@ -16,7 +16,7 @@ export function open(opts: any): Promise<childProcess.ChildProcess> {
     var appArgs = [];
     var args = [];
     var cpOpts: any = {};
-    if (opts.cwd && typeof opts.cwd === 'string' && opts.cwd.length > 0) {
+    if (opts.cwd && typeof opts.cwd === "string" && opts.cwd.length > 0) {
         cpOpts.cwd = opts.cwd;
     }
     if (opts.env && Object.keys(opts.env).length > 0) {
@@ -28,19 +28,28 @@ export function open(opts: any): Promise<childProcess.ChildProcess> {
         opts.app = opts.app[0];
     }
 
-    if (process.platform === 'darwin') {
-        const sudoPrefix = opts.sudo === true ? 'sudo ' : '';
-        cmd = 'osascript';
-        args = ['-e', 'tell application "terminal"',
-            '-e', 'activate',
-            '-e', 'do script "' + sudoPrefix + [opts.app].concat(appArgs).join(" ") + '"',
-            '-e', 'end tell'];
-    } else if (process.platform === 'win32') {
-        cmd = 'cmd';
-        args.push('/c', 'start');
+    if (process.platform === "darwin") {
+        const sudoPrefix = opts.sudo === true ? "sudo " : "";
+        cmd = "osascript";
+        args = [
+            "-e",
+            'tell application "terminal"',
+            "-e",
+            "activate",
+            "-e",
+            'do script "' +
+                sudoPrefix +
+                [opts.app].concat(appArgs).join(" ") +
+                '"',
+            "-e",
+            "end tell"
+        ];
+    } else if (process.platform === "win32") {
+        cmd = "cmd";
+        args.push("/c", "start");
 
         if (opts.wait) {
-            args.push('/wait');
+            args.push("/wait");
         }
 
         if (opts.app) {
@@ -51,20 +60,25 @@ export function open(opts: any): Promise<childProcess.ChildProcess> {
             args = args.concat(appArgs);
         }
     } else {
-        cmd = 'gnome-terminal';
-        const sudoPrefix = opts.sudo === true ? 'sudo ' : '';
-        args = ['-x', 'sh', '-c', `"${sudoPrefix}${opts.app}" ${appArgs.join(" ")}`]
+        cmd = "gnome-terminal";
+        const sudoPrefix = opts.sudo === true ? "sudo " : "";
+        args = [
+            "-x",
+            "sh",
+            "-c",
+            `"${sudoPrefix}${opts.app}" ${appArgs.join(" ")}`
+        ];
     }
 
     var cp = childProcess.spawn(cmd, args, cpOpts);
 
     if (opts.wait) {
-        return new Promise(function (resolve, reject) {
-            cp.once('error', reject);
+        return new Promise(function(resolve, reject) {
+            cp.once("error", reject);
 
-            cp.once('close', function (code) {
+            cp.once("close", function(code) {
                 if (code > 0) {
-                    reject(new Error('Exited with code ' + code));
+                    reject(new Error("Exited with code " + code));
                     return;
                 }
 
@@ -76,4 +90,4 @@ export function open(opts: any): Promise<childProcess.ChildProcess> {
     cp.unref();
 
     return Promise.resolve(cp);
-};
+}

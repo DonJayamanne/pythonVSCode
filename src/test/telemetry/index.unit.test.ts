@@ -1,16 +1,16 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-'use strict';
+"use strict";
 
 //tslint:disable:max-func-body-length match-default-export-name
 
-import { expect } from 'chai';
-import rewiremock from 'rewiremock';
-import { EXTENSION_ROOT_DIR } from '../../client/constants';
-import { sendTelemetryEvent } from '../../client/telemetry';
+import { expect } from "chai";
+import rewiremock from "rewiremock";
+import { EXTENSION_ROOT_DIR } from "../../client/constants";
+import { sendTelemetryEvent } from "../../client/telemetry";
 
-suite('Telemetry', () => {
+suite("Telemetry", () => {
     const oldValueOfVSC_PYTHON_UNIT_TEST = process.env.VSC_PYTHON_UNIT_TEST;
     const oldValueOfVSC_PYTHON_CI_TEST = process.env.VSC_PYTHON_CI_TEST;
     setup(() => {
@@ -27,18 +27,22 @@ suite('Telemetry', () => {
         public static eventName: string;
         public static properties: { [key: string]: string };
         public static measures: {};
-        public sendTelemetryEvent(eventName: string, properties?: {}, measures?: {}) {
+        public sendTelemetryEvent(
+            eventName: string,
+            properties?: {},
+            measures?: {}
+        ) {
             Reporter.eventName = eventName;
             Reporter.properties = properties!;
             Reporter.measures = measures!;
         }
     }
-    test('Send Telemetry', () => {
+    test("Send Telemetry", () => {
         rewiremock.enable();
-        rewiremock('vscode-extension-telemetry').with({ default: Reporter });
+        rewiremock("vscode-extension-telemetry").with({ default: Reporter });
 
-        const eventName = 'Testing';
-        const properties = { hello: 'world', foo: 'bar' };
+        const eventName = "Testing";
+        const properties = { hello: "world", foo: "bar" };
         const measuers = { start: 123, end: 987 };
 
         // tslint:disable-next-line:no-any
@@ -48,25 +52,31 @@ suite('Telemetry', () => {
         expect(Reporter.measures).to.deep.equal(measuers);
         expect(Reporter.properties).to.deep.equal(properties);
     });
-    test('Send Telemetry', () => {
+    test("Send Telemetry", () => {
         rewiremock.enable();
-        rewiremock('vscode-extension-telemetry').with({ default: Reporter });
+        rewiremock("vscode-extension-telemetry").with({ default: Reporter });
 
-        const eventName = 'Testing';
+        const eventName = "Testing";
 
         sendTelemetryEvent(eventName);
 
         expect(Reporter.eventName).to.equal(eventName);
-        expect(Reporter.measures).to.equal(undefined, 'Measures should be empty');
-        expect(Reporter.properties).to.deep.equal({}, 'Properties should be empty');
+        expect(Reporter.measures).to.equal(
+            undefined,
+            "Measures should be empty"
+        );
+        expect(Reporter.properties).to.deep.equal(
+            {},
+            "Properties should be empty"
+        );
     });
-    test('Send Error Telemetry', () => {
+    test("Send Error Telemetry", () => {
         rewiremock.enable();
-        const error = new Error('Boo');
-        rewiremock('vscode-extension-telemetry').with({ default: Reporter });
+        const error = new Error("Boo");
+        rewiremock("vscode-extension-telemetry").with({ default: Reporter });
 
-        const eventName = 'Testing';
-        const properties = { hello: 'world', foo: 'bar' };
+        const eventName = "Testing";
+        const properties = { hello: "world", foo: "bar" };
         const measuers = { start: 123, end: 987 };
 
         // tslint:disable-next-line:no-any
@@ -77,12 +87,15 @@ suite('Telemetry', () => {
 
         expect(Reporter.eventName).to.equal(eventName);
         expect(Reporter.measures).to.deep.equal(measuers);
-        expect(Reporter.properties).to.deep.equal({ ...properties, originalEventName: eventName });
+        expect(Reporter.properties).to.deep.equal({
+            ...properties,
+            originalEventName: eventName
+        });
         expect(stackTrace).to.be.length.greaterThan(1);
     });
-    test('Send Error Telemetry', () => {
+    test("Send Error Telemetry", () => {
         rewiremock.enable();
-        const error = new Error('Boo');
+        const error = new Error("Boo");
         error.stack = `Error: Boo
 at Context.test (${EXTENSION_ROOT_DIR}/src/test/telemetry/index.unit.test.ts:50:23)
 at callFn (${EXTENSION_ROOT_DIR}/node_modules/mocha/lib/runnable.js:372:21)
@@ -101,10 +114,10 @@ at Immediate.<anonymous> (${EXTENSION_ROOT_DIR}/node_modules/mocha/lib/runner.js
 at runCallback (timers.js:789:20)
 at tryOnImmediate (timers.js:751:5)
 at processImmediate [as _immediateCallback] (timers.js:722:5)`;
-        rewiremock('vscode-extension-telemetry').with({ default: Reporter });
+        rewiremock("vscode-extension-telemetry").with({ default: Reporter });
 
-        const eventName = 'Testing';
-        const properties = { hello: 'world', foo: 'bar' };
+        const eventName = "Testing";
+        const properties = { hello: "world", foo: "bar" };
         const measuers = { start: 123, end: 987 };
 
         // tslint:disable-next-line:no-any
@@ -115,7 +128,10 @@ at processImmediate [as _immediateCallback] (timers.js:722:5)`;
 
         expect(Reporter.eventName).to.equal(eventName);
         expect(Reporter.measures).to.deep.equal(measuers);
-        expect(Reporter.properties).to.deep.equal({ ...properties, originalEventName: eventName });
+        expect(Reporter.properties).to.deep.equal({
+            ...properties,
+            originalEventName: eventName
+        });
         expect(stackTrace).to.be.length.greaterThan(1);
 
         // tslint:disable-next-line:no-multiline-string
@@ -139,19 +155,19 @@ at processImmediate [as _immediateCallback] (timers.js:722:5)`;
 
         expect(stackTrace).to.be.equal(expectedStack);
     });
-    test('Ensure non extension file paths are stripped from stack trace', () => {
+    test("Ensure non extension file paths are stripped from stack trace", () => {
         rewiremock.enable();
-        const error = new Error('Boo');
+        const error = new Error("Boo");
         error.stack = `Error: Boo
 at Context.test (${EXTENSION_ROOT_DIR}/src/test/telemetry/index.unit.test.ts:50:23)
 at callFn (c:/one/two/user/node_modules/mocha/lib/runnable.js:372:21)
 at Test.Runnable.run (/usr/Paul/Homer/desktop/node_modules/mocha/lib/runnable.js:364:7)
 at Runner.runTest (\\wow\wee/node_modules/mocha/lib/runner.js:455:10)
 at Immediate.<anonymous> (${EXTENSION_ROOT_DIR}/node_modules/mocha/lib/runner.js:347:5)`;
-        rewiremock('vscode-extension-telemetry').with({ default: Reporter });
+        rewiremock("vscode-extension-telemetry").with({ default: Reporter });
 
-        const eventName = 'Testing';
-        const properties = { hello: 'world', foo: 'bar' };
+        const eventName = "Testing";
+        const properties = { hello: "world", foo: "bar" };
         const measuers = { start: 123, end: 987 };
 
         // tslint:disable-next-line:no-any
@@ -162,7 +178,10 @@ at Immediate.<anonymous> (${EXTENSION_ROOT_DIR}/node_modules/mocha/lib/runner.js
 
         expect(Reporter.eventName).to.equal(eventName);
         expect(Reporter.measures).to.deep.equal(measuers);
-        expect(Reporter.properties).to.deep.equal({ ...properties, originalEventName: eventName });
+        expect(Reporter.properties).to.deep.equal({
+            ...properties,
+            originalEventName: eventName
+        });
         expect(stackTrace).to.be.length.greaterThan(1);
 
         // tslint:disable-next-line:no-multiline-string
@@ -174,19 +193,19 @@ at Immediate.<anonymous> (${EXTENSION_ROOT_DIR}/node_modules/mocha/lib/runner.js
 
         expect(stackTrace).to.be.equal(expectedStack);
     });
-    test('Ensure non function names containing file names (unlikely, but for sake of completeness) are stripped from stack trace', () => {
+    test("Ensure non function names containing file names (unlikely, but for sake of completeness) are stripped from stack trace", () => {
         rewiremock.enable();
-        const error = new Error('Boo');
+        const error = new Error("Boo");
         error.stack = `Error: Boo
 at Context.test (${EXTENSION_ROOT_DIR}/src/test/telemetry/index.unit.test.ts:50:23)
 at callFn (c:/one/two/user/node_modules/mocha/lib/runnable.js:372:21)
 at Test./usr/Paul/Homer/desktop/node_modules/mocha/lib/runnable.run (/usr/Paul/Homer/desktop/node_modules/mocha/lib/runnable.js:364:7)
 at Runner.runTest (\\wow\wee/node_modules/mocha/lib/runner.js:455:10)
 at Immediate.<anonymous> (${EXTENSION_ROOT_DIR}/node_modules/mocha/lib/runner.js:347:5)`;
-        rewiremock('vscode-extension-telemetry').with({ default: Reporter });
+        rewiremock("vscode-extension-telemetry").with({ default: Reporter });
 
-        const eventName = 'Testing';
-        const properties = { hello: 'world', foo: 'bar' };
+        const eventName = "Testing";
+        const properties = { hello: "world", foo: "bar" };
         const measuers = { start: 123, end: 987 };
 
         // tslint:disable-next-line:no-any
@@ -197,7 +216,10 @@ at Immediate.<anonymous> (${EXTENSION_ROOT_DIR}/node_modules/mocha/lib/runner.js
 
         expect(Reporter.eventName).to.equal(eventName);
         expect(Reporter.measures).to.deep.equal(measuers);
-        expect(Reporter.properties).to.deep.equal({ ...properties, originalEventName: eventName });
+        expect(Reporter.properties).to.deep.equal({
+            ...properties,
+            originalEventName: eventName
+        });
         expect(stackTrace).to.be.length.greaterThan(1);
 
         // tslint:disable-next-line:no-multiline-string

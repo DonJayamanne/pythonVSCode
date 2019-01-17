@@ -3,10 +3,7 @@
         "module": "commonjs",
         "target": "es5",
         "outDir": "out",
-        "lib": [
-            "es6",
-            "dom"
-        ],
+        "lib": ["es6", "dom"],
         "jsx": "react",
         "sourceMap": true,
         "rootDir": "src",
@@ -14,14 +11,8 @@
         "allowSyntheticDefaultImports": true,
         "noImplicitThis": false,
         "noUnusedLocals": true,
-        "noUnusedParameters": false,
+        "noUnusedParameters": false
         // "strict": true
     },
-    "exclude": [
-        ".vscode-test",
-        "src/test",
-        "src/server",
-        "src/client",
-        "build"
-    ]
+    "exclude": [".vscode-test", "src/test", "src/server", "src/client", "build"]
 }

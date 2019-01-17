@@ -1,16 +1,19 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-'use strict';
+"use strict";
 
-import { inject, injectable } from 'inversify';
-import { Uri } from 'vscode';
-import { IApplicationShell, IWorkspaceService } from '../common/application/types';
-import '../common/extensions';
-import { traceError } from '../common/logger';
-import { IConfigurationService, IInstaller, Product } from '../common/types';
-import { Linters } from '../common/utils/localize';
-import { IAvailableLinterActivator, ILinterInfo } from './types';
+import { inject, injectable } from "inversify";
+import { Uri } from "vscode";
+import {
+    IApplicationShell,
+    IWorkspaceService
+} from "../common/application/types";
+import "../common/extensions";
+import { traceError } from "../common/logger";
+import { IConfigurationService, IInstaller, Product } from "../common/types";
+import { Linters } from "../common/utils/localize";
+import { IAvailableLinterActivator, ILinterInfo } from "./types";
 
 @injectable()
 export class AvailableLinterActivator implements IAvailableLinterActivator {
@@ -18,8 +21,9 @@ export class AvailableLinterActivator implements IAvailableLinterActivator {
         @inject(IApplicationShell) private appShell: IApplicationShell,
         @inject(IInstaller) private installer: IInstaller,
         @inject(IWorkspaceService) private workspaceConfig: IWorkspaceService,
-        @inject(IConfigurationService) private configService: IConfigurationService
-    ) { }
+        @inject(IConfigurationService)
+        private configService: IConfigurationService
+    ) {}
 
     /**
      * Check if it is possible to enable an otherwise-unconfigured linter in
@@ -31,7 +35,10 @@ export class AvailableLinterActivator implements IAvailableLinterActivator {
      *
      * @returns true if configuration was updated in any way, false otherwise.
      */
-    public async promptIfLinterAvailable(linterInfo: ILinterInfo, resource?: Uri): Promise<boolean> {
+    public async promptIfLinterAvailable(
+        linterInfo: ILinterInfo,
+        resource?: Uri
+    ): Promise<boolean> {
         // Has the feature been enabled yet?
         if (!this.isFeatureEnabled) {
             return false;
@@ -44,7 +51,6 @@ export class AvailableLinterActivator implements IAvailableLinterActivator {
 
         // Is the linter available in the current workspace?
         if (await this.isLinterAvailable(linterInfo.product, resource)) {
-
             // great, it is - ask the user if they'd like to enable it.
             return this.promptToConfigureAvailableLinter(linterInfo);
         }
@@ -59,7 +65,9 @@ export class AvailableLinterActivator implements IAvailableLinterActivator {
      *
      * @returns true if the user requested a configuration change, false otherwise.
      */
-    public async promptToConfigureAvailableLinter(linterInfo: ILinterInfo): Promise<boolean> {
+    public async promptToConfigureAvailableLinter(
+        linterInfo: ILinterInfo
+    ): Promise<boolean> {
         type ConfigureLinterMessage = {
             enabled: boolean;
             title: string;
@@ -77,7 +85,10 @@ export class AvailableLinterActivator implements IAvailableLinterActivator {
         ];
 
         // tslint:disable-next-line:messages-must-be-localized
-        const pick = await this.appShell.showInformationMessage(Linters.installedButNotEnabled().format(linterInfo.id), ...optButtons);
+        const pick = await this.appShell.showInformationMessage(
+            Linters.installedButNotEnabled().format(linterInfo.id),
+            ...optButtons
+        );
         if (pick) {
             await linterInfo.enableAsync(pick.enabled);
             return true;
@@ -93,11 +104,18 @@ export class AvailableLinterActivator implements IAvailableLinterActivator {
      * @param linterProduct Linter to check in the current workspace environment.
      * @param resource Context information for workspace.
      */
-    public async isLinterAvailable(linterProduct: Product, resource?: Uri): Promise<boolean | undefined> {
-        return this.installer.isInstalled(linterProduct, resource)
-            .catch((reason) => {
+    public async isLinterAvailable(
+        linterProduct: Product,
+        resource?: Uri
+    ): Promise<boolean | undefined> {
+        return this.installer
+            .isInstalled(linterProduct, resource)
+            .catch(reason => {
                 // report and continue, assume the linter is unavailable.
-                traceError(`[WARNING]: Failed to discover if linter ${linterProduct} is installed.`, reason);
+                traceError(
+                    `[WARNING]: Failed to discover if linter ${linterProduct} is installed.`,
+                    reason
+                );
                 return false;
             });
     }
@@ -110,10 +128,20 @@ export class AvailableLinterActivator implements IAvailableLinterActivator {
      *
      * @returns true if the linter has not been configured at the user, workspace, or workspace-folder scope. false otherwise.
      */
-    public isLinterUsingDefaultConfiguration(linterInfo: ILinterInfo, resource?: Uri): boolean {
-        const ws = this.workspaceConfig.getConfiguration('python.linting', resource);
+    public isLinterUsingDefaultConfiguration(
+        linterInfo: ILinterInfo,
+        resource?: Uri
+    ): boolean {
+        const ws = this.workspaceConfig.getConfiguration(
+            "python.linting",
+            resource
+        );
         const pe = ws!.inspect(linterInfo.enabledSettingName);
-        return (pe!.globalValue === undefined && pe!.workspaceValue === undefined && pe!.workspaceFolderValue === undefined);
+        return (
+            pe!.globalValue === undefined &&
+            pe!.workspaceValue === undefined &&
+            pe!.workspaceFolderValue === undefined
+        );
     }
 
     /**

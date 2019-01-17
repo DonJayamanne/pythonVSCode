@@ -1,9 +1,16 @@
-import { inject, injectable } from 'inversify';
-import { Disposable, StatusBarAlignment, StatusBarItem, Uri } from 'vscode';
-import { IApplicationShell, IWorkspaceService } from '../../common/application/types';
-import { IDisposableRegistry, IPathUtils } from '../../common/types';
-import { IServiceContainer } from '../../ioc/types';
-import { IInterpreterDisplay, IInterpreterHelper, IInterpreterService } from '../contracts';
+import { inject, injectable } from "inversify";
+import { Disposable, StatusBarAlignment, StatusBarItem, Uri } from "vscode";
+import {
+    IApplicationShell,
+    IWorkspaceService
+} from "../../common/application/types";
+import { IDisposableRegistry, IPathUtils } from "../../common/types";
+import { IServiceContainer } from "../../ioc/types";
+import {
+    IInterpreterDisplay,
+    IInterpreterHelper,
+    IInterpreterService
+} from "../contracts";
 
 // tslint:disable-next-line:completed-docs
 @injectable()
@@ -14,17 +21,32 @@ export class InterpreterDisplay implements IInterpreterDisplay {
     private readonly pathUtils: IPathUtils;
     private readonly interpreterService: IInterpreterService;
 
-    constructor(@inject(IServiceContainer) serviceContainer: IServiceContainer) {
-        this.helper = serviceContainer.get<IInterpreterHelper>(IInterpreterHelper);
-        this.workspaceService = serviceContainer.get<IWorkspaceService>(IWorkspaceService);
+    constructor(
+        @inject(IServiceContainer) serviceContainer: IServiceContainer
+    ) {
+        this.helper = serviceContainer.get<IInterpreterHelper>(
+            IInterpreterHelper
+        );
+        this.workspaceService = serviceContainer.get<IWorkspaceService>(
+            IWorkspaceService
+        );
         this.pathUtils = serviceContainer.get<IPathUtils>(IPathUtils);
-        this.interpreterService = serviceContainer.get<IInterpreterService>(IInterpreterService);
+        this.interpreterService = serviceContainer.get<IInterpreterService>(
+            IInterpreterService
+        );
 
-        const application = serviceContainer.get<IApplicationShell>(IApplicationShell);
-        const disposableRegistry = serviceContainer.get<Disposable[]>(IDisposableRegistry);
+        const application = serviceContainer.get<IApplicationShell>(
+            IApplicationShell
+        );
+        const disposableRegistry = serviceContainer.get<Disposable[]>(
+            IDisposableRegistry
+        );
 
-        this.statusBar = application.createStatusBarItem(StatusBarAlignment.Left, 100);
-        this.statusBar.command = 'python.setInterpreter';
+        this.statusBar = application.createStatusBarItem(
+            StatusBarAlignment.Left,
+            100
+        );
+        this.statusBar.command = "python.setInterpreter";
         disposableRegistry.push(this.statusBar);
     }
     public async refresh(resource?: Uri) {
@@ -39,15 +61,20 @@ export class InterpreterDisplay implements IInterpreterDisplay {
         await this.updateDisplay(resource);
     }
     private async updateDisplay(workspaceFolder?: Uri) {
-        const interpreter = await this.interpreterService.getActiveInterpreter(workspaceFolder);
+        const interpreter = await this.interpreterService.getActiveInterpreter(
+            workspaceFolder
+        );
         if (interpreter) {
-            this.statusBar.color = '';
-            this.statusBar.tooltip = this.pathUtils.getDisplayName(interpreter.path, workspaceFolder ? workspaceFolder.fsPath : undefined);
+            this.statusBar.color = "";
+            this.statusBar.tooltip = this.pathUtils.getDisplayName(
+                interpreter.path,
+                workspaceFolder ? workspaceFolder.fsPath : undefined
+            );
             this.statusBar.text = interpreter.displayName!;
         } else {
-            this.statusBar.tooltip = '';
-            this.statusBar.color = 'yellow';
-            this.statusBar.text = '$(alert) Select Python Interpreter';
+            this.statusBar.tooltip = "";
+            this.statusBar.color = "yellow";
+            this.statusBar.text = "$(alert) Select Python Interpreter";
         }
         this.statusBar.show();
     }

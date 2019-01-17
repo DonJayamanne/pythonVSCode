@@ -1,16 +1,16 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
-'use strict';
-import * as fs from 'fs-extra';
-import { inject, injectable } from 'inversify';
-import * as os from 'os';
-import * as path from 'path';
-import { IWorkspaceService } from '../../common/application/types';
-import { IFileSystem } from '../../common/platform/types';
-import { IConfigurationService, IDisposableRegistry } from '../../common/types';
-import * as localize from '../../common/utils/localize';
-import { CodeSnippits } from '../constants';
-import { IJupyterExecution, INotebookImporter } from '../types';
+"use strict";
+import * as fs from "fs-extra";
+import { inject, injectable } from "inversify";
+import * as os from "os";
+import * as path from "path";
+import { IWorkspaceService } from "../../common/application/types";
+import { IFileSystem } from "../../common/platform/types";
+import { IConfigurationService, IDisposableRegistry } from "../../common/types";
+import * as localize from "../../common/utils/localize";
+import { CodeSnippits } from "../constants";
+import { IJupyterExecution, INotebookImporter } from "../types";
 
 @injectable()
 export class JupyterImporter implements INotebookImporter {
@@ -33,10 +33,13 @@ export class JupyterImporter implements INotebookImporter {
 
     constructor(
         @inject(IFileSystem) private fileSystem: IFileSystem,
-        @inject(IDisposableRegistry) private disposableRegistry: IDisposableRegistry,
-        @inject(IConfigurationService) private configuration: IConfigurationService,
+        @inject(IDisposableRegistry)
+        private disposableRegistry: IDisposableRegistry,
+        @inject(IConfigurationService)
+        private configuration: IConfigurationService,
         @inject(IJupyterExecution) private jupyterExecution: IJupyterExecution,
-        @inject(IWorkspaceService) private workspaceService: IWorkspaceService) {
+        @inject(IWorkspaceService) private workspaceService: IWorkspaceService
+    ) {
         this.templatePromise = this.createTemplateFile();
     }
 
@@ -52,7 +55,10 @@ export class JupyterImporter implements INotebookImporter {
 
         // Use the jupyter nbconvert functionality to turn the notebook into a python file
         if (await this.jupyterExecution.isImportSupported()) {
-            const fileOutput: string = await this.jupyterExecution.importNotebook(file, template);
+            const fileOutput: string = await this.jupyterExecution.importNotebook(
+                file,
+                template
+            );
             if (directoryChange) {
                 return this.addDirectoryChange(fileOutput, directoryChange);
             } else {
@@ -65,24 +71,41 @@ export class JupyterImporter implements INotebookImporter {
 
     public dispose = () => {
         this.isDisposed = true;
-    }
+    };
 
-    private addDirectoryChange = (pythonOutput: string, directoryChange: string): string => {
-        const newCode = CodeSnippits.ChangeDirectory.join(os.EOL).format(localize.DataScience.importChangeDirectoryComment(), directoryChange);
+    private addDirectoryChange = (
+        pythonOutput: string,
+        directoryChange: string
+    ): string => {
+        const newCode = CodeSnippits.ChangeDirectory.join(os.EOL).format(
+            localize.DataScience.importChangeDirectoryComment(),
+            directoryChange
+        );
         return newCode.concat(pythonOutput);
-    }
+    };
 
     // When importing a file, calculate if we can create a %cd so that the relative paths work
-    private calculateDirectoryChange = (notebookFile: string): string | undefined => {
+    private calculateDirectoryChange = (
+        notebookFile: string
+    ): string | undefined => {
         let directoryChange: string | undefined;
         const notebookFilePath = path.dirname(notebookFile);
         // First see if we have a workspace open, this only works if we have a workspace root to be relative to
         if (this.workspaceService.hasWorkspaceFolders) {
-            const workspacePath = this.workspaceService.workspaceFolders![0].uri.fsPath;
+            const workspacePath = this.workspaceService.workspaceFolders![0].uri
+                .fsPath;
 
             // Make sure that we have everything that we need here
-            if (workspacePath && path.isAbsolute(workspacePath) && notebookFilePath && path.isAbsolute(notebookFilePath)) {
-                directoryChange = path.relative(workspacePath, notebookFilePath);
+            if (
+                workspacePath &&
+                path.isAbsolute(workspacePath) &&
+                notebookFilePath &&
+                path.isAbsolute(notebookFilePath)
+            ) {
+                directoryChange = path.relative(
+                    workspacePath,
+                    notebookFilePath
+                );
             }
         }
 
@@ -93,11 +116,11 @@ export class JupyterImporter implements INotebookImporter {
         } else {
             return undefined;
         }
-    }
+    };
 
     private async createTemplateFile(): Promise<string> {
         // Create a temp file on disk
-        const file = await this.fileSystem.createTemporaryFile('.tpl');
+        const file = await this.fileSystem.createTemporaryFile(".tpl");
 
         // Write our template into it
         await fs.appendFile(file.filePath, this.nbconvertTemplate);

@@ -1,9 +1,15 @@
-import { CancellationToken, DiagnosticCollection, Disposable, OutputChannel, Uri } from 'vscode';
-import { IUnitTestSettings, Product } from '../../common/types';
-import { IPythonUnitTestMessage } from '../types';
-import { CommandSource } from './constants';
+import {
+    CancellationToken,
+    DiagnosticCollection,
+    Disposable,
+    OutputChannel,
+    Uri
+} from "vscode";
+import { IUnitTestSettings, Product } from "../../common/types";
+import { IPythonUnitTestMessage } from "../types";
+import { CommandSource } from "./constants";
 
-export type TestProvider = 'nosetest' | 'pytest' | 'unittest';
+export type TestProvider = "nosetest" | "pytest" | "unittest";
 
 export type TestDiscoveryOptions = {
     workspaceFolder: Uri;
@@ -25,7 +31,9 @@ export type TestRunOptions = {
     debug?: boolean;
 };
 
-export type UnitTestParserOptions = TestDiscoveryOptions & { startDirectory: string };
+export type UnitTestParserOptions = TestDiscoveryOptions & {
+    startDirectory: string;
+};
 
 export type TestFolder = TestResult & {
     name: string;
@@ -127,13 +135,26 @@ export type TestsToRun = {
     testFunction?: TestFunction[];
 };
 
-export type UnitTestProduct = Product.nosetest | Product.pytest | Product.unittest;
+export type UnitTestProduct =
+    | Product.nosetest
+    | Product.pytest
+    | Product.unittest;
 
-export const ITestConfigSettingsService = Symbol('ITestConfigSettingsService');
+export const ITestConfigSettingsService = Symbol("ITestConfigSettingsService");
 export interface ITestConfigSettingsService {
-    updateTestArgs(testDirectory: string | Uri, product: UnitTestProduct, args: string[]): Promise<void>;
-    enable(testDirectory: string | Uri, product: UnitTestProduct): Promise<void>;
-    disable(testDirectory: string | Uri, product: UnitTestProduct): Promise<void>;
+    updateTestArgs(
+        testDirectory: string | Uri,
+        product: UnitTestProduct,
+        args: string[]
+    ): Promise<void>;
+    enable(
+        testDirectory: string | Uri,
+        product: UnitTestProduct
+    ): Promise<void>;
+    disable(
+        testDirectory: string | Uri,
+        product: UnitTestProduct
+    ): Promise<void>;
 }
 
 export interface ITestManagerService extends Disposable {
@@ -142,7 +163,9 @@ export interface ITestManagerService extends Disposable {
     getPreferredTestManager(): UnitTestProduct | undefined;
 }
 
-export const IWorkspaceTestManagerService = Symbol('IWorkspaceTestManagerService');
+export const IWorkspaceTestManagerService = Symbol(
+    "IWorkspaceTestManagerService"
+);
 
 export interface IWorkspaceTestManagerService extends Disposable {
     getTestManager(resource: Uri): ITestManager | undefined;
@@ -156,7 +179,7 @@ export type TestSettingsPropertyNames = {
     pathName?: keyof IUnitTestSettings;
 };
 
-export const ITestsHelper = Symbol('ITestsHelper');
+export const ITestsHelper = Symbol("ITestsHelper");
 
 export interface ITestsHelper {
     parseProviderName(product: UnitTestProduct): TestProvider;
@@ -169,7 +192,7 @@ export interface ITestsHelper {
     mergeTests(items: Tests[]): Tests;
 }
 
-export const ITestVisitor = Symbol('ITestVisitor');
+export const ITestVisitor = Symbol("ITestVisitor");
 
 export interface ITestVisitor {
     visitTestFunction(testFunction: TestFunction): void;
@@ -178,14 +201,16 @@ export interface ITestVisitor {
     visitTestFolder(testFile: TestFolder): void;
 }
 
-export const ITestCollectionStorageService = Symbol('ITestCollectionStorageService');
+export const ITestCollectionStorageService = Symbol(
+    "ITestCollectionStorageService"
+);
 
 export interface ITestCollectionStorageService extends Disposable {
     getTests(wkspace: Uri): Tests | undefined;
     storeTests(wkspace: Uri, tests: Tests | null | undefined): void;
 }
 
-export const ITestResultsService = Symbol('ITestResultsService');
+export const ITestResultsService = Symbol("ITestResultsService");
 
 export interface ITestResultsService {
     resetResults(tests: Tests): void;
@@ -200,26 +225,30 @@ export type LaunchOptions = {
     outChannel?: OutputChannel;
 };
 
-export const ITestDebugLauncher = Symbol('ITestDebugLauncher');
+export const ITestDebugLauncher = Symbol("ITestDebugLauncher");
 
 export interface ITestDebugLauncher {
     launchDebugger(options: LaunchOptions): Promise<void>;
 }
 
-export const ITestManagerFactory = Symbol('ITestManagerFactory');
+export const ITestManagerFactory = Symbol("ITestManagerFactory");
 
 export interface ITestManagerFactory extends Function {
     // tslint:disable-next-line:callable-types
-    (testProvider: TestProvider, workspaceFolder: Uri, rootDirectory: string): ITestManager;
+    (
+        testProvider: TestProvider,
+        workspaceFolder: Uri,
+        rootDirectory: string
+    ): ITestManager;
 }
-export const ITestManagerServiceFactory = Symbol('TestManagerServiceFactory');
+export const ITestManagerServiceFactory = Symbol("TestManagerServiceFactory");
 
 export interface ITestManagerServiceFactory extends Function {
     // tslint:disable-next-line:callable-types
     (workspaceFolder: Uri): ITestManagerService;
 }
 
-export const ITestManager = Symbol('ITestManager');
+export const ITestManager = Symbol("ITestManager");
 export interface ITestManager extends Disposable {
     readonly status: TestStatus;
     readonly enabled: boolean;
@@ -228,24 +257,34 @@ export interface ITestManager extends Disposable {
     diagnosticCollection: DiagnosticCollection;
     stop(): void;
     resetTestResults(): void;
-    discoverTests(cmdSource: CommandSource, ignoreCache?: boolean, quietMode?: boolean, userInitiated?: boolean): Promise<Tests>;
-    runTest(cmdSource: CommandSource, testsToRun?: TestsToRun, runFailedTests?: boolean, debug?: boolean): Promise<Tests>;
+    discoverTests(
+        cmdSource: CommandSource,
+        ignoreCache?: boolean,
+        quietMode?: boolean,
+        userInitiated?: boolean
+    ): Promise<Tests>;
+    runTest(
+        cmdSource: CommandSource,
+        testsToRun?: TestsToRun,
+        runFailedTests?: boolean,
+        debug?: boolean
+    ): Promise<Tests>;
 }
 
-export const ITestDiscoveryService = Symbol('ITestDiscoveryService');
+export const ITestDiscoveryService = Symbol("ITestDiscoveryService");
 
 export interface ITestDiscoveryService {
     discoverTests(options: TestDiscoveryOptions): Promise<Tests>;
 }
 
-export const ITestsParser = Symbol('ITestsParser');
+export const ITestsParser = Symbol("ITestsParser");
 export interface ITestsParser {
     parse(content: string, options: ParserOptions): Tests;
 }
 
 export type ParserOptions = TestDiscoveryOptions;
 
-export const IUnitTestSocketServer = Symbol('IUnitTestSocketServer');
+export const IUnitTestSocketServer = Symbol("IUnitTestSocketServer");
 export interface IUnitTestSocketServer extends Disposable {
     on(event: string | symbol, listener: Function): this;
     removeListener(event: string | symbol, listener: Function): this;
@@ -262,7 +301,7 @@ export type Options = {
     token: CancellationToken;
 };
 
-export const ITestRunner = Symbol('ITestRunner');
+export const ITestRunner = Symbol("ITestRunner");
 export interface ITestRunner {
     run(testProvider: TestProvider, options: Options): Promise<string>;
 }
@@ -272,9 +311,13 @@ export enum PassCalculationFormulae {
     nosetests
 }
 
-export const IXUnitParser = Symbol('IXUnitParser');
+export const IXUnitParser = Symbol("IXUnitParser");
 export interface IXUnitParser {
-    updateResultsFromXmlLogFile(tests: Tests, outputXmlFile: string, passCalculationFormulae: PassCalculationFormulae): Promise<void>;
+    updateResultsFromXmlLogFile(
+        tests: Tests,
+        outputXmlFile: string,
+        passCalculationFormulae: PassCalculationFormulae
+    ): Promise<void>;
 }
 
 export type PythonVersionInformation = {
@@ -282,7 +325,10 @@ export type PythonVersionInformation = {
     minor: number;
 };
 
-export const ITestMessageService = Symbol('ITestMessageService');
+export const ITestMessageService = Symbol("ITestMessageService");
 export interface ITestMessageService {
-    getFilteredTestMessages(rootDirectory: string, testResults: Tests): Promise<IPythonUnitTestMessage[]>;
+    getFilteredTestMessages(
+        rootDirectory: string,
+        testResults: Tests
+    ): Promise<IPythonUnitTestMessage[]>;
 }

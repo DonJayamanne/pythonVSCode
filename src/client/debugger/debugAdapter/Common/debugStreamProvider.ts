@@ -1,20 +1,26 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { inject, injectable } from 'inversify';
-import { createServer, Socket } from 'net';
-import { isTestExecution } from '../../../common/constants';
-import { ICurrentProcess } from '../../../common/types';
-import { IServiceContainer } from '../../../ioc/types';
-import { IDebugStreamProvider } from '../types';
+import { inject, injectable } from "inversify";
+import { createServer, Socket } from "net";
+import { isTestExecution } from "../../../common/constants";
+import { ICurrentProcess } from "../../../common/types";
+import { IServiceContainer } from "../../../ioc/types";
+import { IDebugStreamProvider } from "../types";
 
 @injectable()
 export class DebugStreamProvider implements IDebugStreamProvider {
-    constructor(@inject(IServiceContainer) private readonly serviceContainer: IServiceContainer) { }
+    constructor(
+        @inject(IServiceContainer)
+        private readonly serviceContainer: IServiceContainer
+    ) {}
     public get useDebugSocketStream(): boolean {
         return this.getDebugPort() > 0;
     }
-    public async getInputAndOutputStreams(): Promise<{ input: NodeJS.ReadStream | Socket; output: NodeJS.WriteStream | Socket }> {
+    public async getInputAndOutputStreams(): Promise<{
+        input: NodeJS.ReadStream | Socket;
+        output: NodeJS.WriteStream | Socket;
+    }> {
         const debugPort = this.getDebugPort();
         let debugSocket: Promise<Socket> | undefined;
 
@@ -25,25 +31,31 @@ export class DebugStreamProvider implements IDebugStreamProvider {
                 // start as a server, and print to console in VS Code debugger for extension developer.
                 // Do not print this out when running unit tests.
                 if (!isTestExecution()) {
-                    console.error(`waiting for debug protocol on port ${debugPort}`);
+                    console.error(
+                        `waiting for debug protocol on port ${debugPort}`
+                    );
                 }
-                createServer((socket) => {
+                createServer(socket => {
                     if (!isTestExecution()) {
-                        console.error('>> accepted connection from client');
+                        console.error(">> accepted connection from client");
                     }
                     resolve(socket);
                 }).listen(debugPort);
             });
         }
 
-        const currentProcess = this.serviceContainer.get<ICurrentProcess>(ICurrentProcess);
+        const currentProcess = this.serviceContainer.get<ICurrentProcess>(
+            ICurrentProcess
+        );
         const input = debugSocket ? await debugSocket : currentProcess.stdin;
         const output = debugSocket ? await debugSocket : currentProcess.stdout;
 
         return { input, output };
     }
     private getDebugPort() {
-        const currentProcess = this.serviceContainer.get<ICurrentProcess>(ICurrentProcess);
+        const currentProcess = this.serviceContainer.get<ICurrentProcess>(
+            ICurrentProcess
+        );
 
         let debugPort = 0;
         const args = currentProcess.argv.slice(2);

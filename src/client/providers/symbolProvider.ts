@@ -1,19 +1,30 @@
-'use strict';
+"use strict";
 
 import {
-    CancellationToken, DocumentSymbol, DocumentSymbolProvider,
-    Location, Range, SymbolInformation, SymbolKind, TextDocument, Uri
-} from 'vscode';
-import { LanguageClient } from 'vscode-languageclient';
-import { IFileSystem } from '../common/platform/types';
-import { createDeferred, Deferred } from '../common/utils/async';
-import { IServiceContainer } from '../ioc/types';
-import { JediFactory } from '../languageServices/jediProxyFactory';
-import { captureTelemetry } from '../telemetry';
-import { SYMBOL } from '../telemetry/constants';
-import * as proxy from './jediProxy';
+    CancellationToken,
+    DocumentSymbol,
+    DocumentSymbolProvider,
+    Location,
+    Range,
+    SymbolInformation,
+    SymbolKind,
+    TextDocument,
+    Uri
+} from "vscode";
+import { LanguageClient } from "vscode-languageclient";
+import { IFileSystem } from "../common/platform/types";
+import { createDeferred, Deferred } from "../common/utils/async";
+import { IServiceContainer } from "../ioc/types";
+import { JediFactory } from "../languageServices/jediProxyFactory";
+import { captureTelemetry } from "../telemetry";
+import { SYMBOL } from "../telemetry/constants";
+import * as proxy from "./jediProxy";
 
-function flattenSymbolTree(tree: DocumentSymbol, uri: Uri, containerName: string = ''): SymbolInformation[] {
+function flattenSymbolTree(
+    tree: DocumentSymbol,
+    uri: Uri,
+    containerName: string = ""
+): SymbolInformation[] {
     const flattened: SymbolInformation[] = [];
 
     const range = new Range(
@@ -56,15 +67,16 @@ function flattenSymbolTree(tree: DocumentSymbol, uri: Uri, containerName: string
  *   https://code.visualstudio.com/docs/extensionAPI/vscode-api#DocumentSymbolProvider
  */
 export class LanguageServerSymbolProvider implements DocumentSymbolProvider {
-    constructor(
-        private readonly languageClient: LanguageClient
-    ) { }
+    constructor(private readonly languageClient: LanguageClient) {}
 
-    public async provideDocumentSymbols(document: TextDocument, token: CancellationToken): Promise<SymbolInformation[]> {
+    public async provideDocumentSymbols(
+        document: TextDocument,
+        token: CancellationToken
+    ): Promise<SymbolInformation[]> {
         const uri = document.uri;
         const args = { textDocument: { uri: uri.toString() } };
         const raw = await this.languageClient.sendRequest<DocumentSymbol[]>(
-            'textDocument/documentSymbol',
+            "textDocument/documentSymbol",
             args,
             token
         );
@@ -84,20 +96,36 @@ export class LanguageServerSymbolProvider implements DocumentSymbolProvider {
  *   https://code.visualstudio.com/docs/extensionAPI/vscode-api#DocumentSymbolProvider
  */
 export class JediSymbolProvider implements DocumentSymbolProvider {
-    private debounceRequest: Map<string, { timer: NodeJS.Timer; deferred: Deferred<SymbolInformation[]> }>;
+    private debounceRequest: Map<
+        string,
+        { timer: NodeJS.Timer; deferred: Deferred<SymbolInformation[]> }
+    >;
     private readonly fs: IFileSystem;
 
-    public constructor(serviceContainer: IServiceContainer, private jediFactory: JediFactory, private readonly debounceTimeoutMs = 500) {
-        this.debounceRequest = new Map<string, { timer: NodeJS.Timer; deferred: Deferred<SymbolInformation[]> }>();
+    public constructor(
+        serviceContainer: IServiceContainer,
+        private jediFactory: JediFactory,
+        private readonly debounceTimeoutMs = 500
+    ) {
+        this.debounceRequest = new Map<
+            string,
+            { timer: NodeJS.Timer; deferred: Deferred<SymbolInformation[]> }
+        >();
         this.fs = serviceContainer.get<IFileSystem>(IFileSystem);
     }
 
     @captureTelemetry(SYMBOL)
-    public provideDocumentSymbols(document: TextDocument, token: CancellationToken): Thenable<SymbolInformation[]> {
+    public provideDocumentSymbols(
+        document: TextDocument,
+        token: CancellationToken
+    ): Thenable<SymbolInformation[]> {
         return this.provideDocumentSymbolsThrottled(document, token);
     }
 
-    private provideDocumentSymbolsThrottled(document: TextDocument, token: CancellationToken): Thenable<SymbolInformation[]> {
+    private provideDocumentSymbolsThrottled(
+        document: TextDocument,
+        token: CancellationToken
+    ): Thenable<SymbolInformation[]> {
         const key = `${document.uri.fsPath}`;
         if (this.debounceRequest.has(key)) {
             const item = this.debounceRequest.get(key)!;
@@ -123,11 +151,12 @@ export class JediSymbolProvider implements DocumentSymbolProvider {
                 cmd.source = document.getText();
             }
 
-            this.jediFactory.getJediProxyHandler<proxy.ISymbolResult>(document.uri).sendCommand(cmd, token)
+            this.jediFactory
+                .getJediProxyHandler<proxy.ISymbolResult>(document.uri)
+                .sendCommand(cmd, token)
                 .then(data => this.parseData(document, data))
                 .then(items => deferred.resolve(items))
                 .catch(ex => deferred.reject(ex));
-
         }, this.debounceTimeoutMs);
 
         token.onCancellationRequested(() => {
@@ -146,7 +175,10 @@ export class JediSymbolProvider implements DocumentSymbolProvider {
 
     // This does not appear to be used anywhere currently...
     // tslint:disable-next-line:no-unused-variable
-    private provideDocumentSymbolsUnthrottled(document: TextDocument, token: CancellationToken): Thenable<SymbolInformation[]> {
+    private provideDocumentSymbolsUnthrottled(
+        document: TextDocument,
+        token: CancellationToken
+    ): Thenable<SymbolInformation[]> {
         const filename = document.fileName;
 
         const cmd: proxy.ICommand<proxy.ISymbolResult> = {
@@ -160,21 +192,36 @@ export class JediSymbolProvider implements DocumentSymbolProvider {
             cmd.source = document.getText();
         }
 
-        return this.jediFactory.getJediProxyHandler<proxy.ISymbolResult>(document.uri).sendCommandNonCancellableCommand(cmd, token)
+        return this.jediFactory
+            .getJediProxyHandler<proxy.ISymbolResult>(document.uri)
+            .sendCommandNonCancellableCommand(cmd, token)
             .then(data => this.parseData(document, data));
     }
 
-    private parseData(document: TextDocument, data?: proxy.ISymbolResult): SymbolInformation[] {
+    private parseData(
+        document: TextDocument,
+        data?: proxy.ISymbolResult
+    ): SymbolInformation[] {
         if (data) {
-            const symbols = data.definitions.filter(sym => this.fs.arePathsSame(sym.fileName, document.fileName));
+            const symbols = data.definitions.filter(sym =>
+                this.fs.arePathsSame(sym.fileName, document.fileName)
+            );
             return symbols.map(sym => {
                 const symbol = sym.kind;
                 const range = new Range(
-                    sym.range.startLine, sym.range.startColumn,
-                    sym.range.endLine, sym.range.endColumn);
+                    sym.range.startLine,
+                    sym.range.startColumn,
+                    sym.range.endLine,
+                    sym.range.endColumn
+                );
                 const uri = Uri.file(sym.fileName);
                 const location = new Location(uri, range);
-                return new SymbolInformation(sym.text, symbol, sym.container, location);
+                return new SymbolInformation(
+                    sym.text,
+                    symbol,
+                    sym.container,
+                    location
+                );
             });
         }
         return [];

@@ -3,13 +3,12 @@
 
 // tslint:disable:no-any
 
-import { injectable } from 'inversify';
-import { commands, Disposable, TextEditor, TextEditorEdit } from 'vscode';
-import { ICommandManager } from './types';
+import { injectable } from "inversify";
+import { commands, Disposable, TextEditor, TextEditorEdit } from "vscode";
+import { ICommandManager } from "./types";
 
 @injectable()
 export class CommandManager implements ICommandManager {
-
     /**
      * Registers a command that can be invoked via a keyboard shortcut,
      * a menu item, an action, or directly.
@@ -22,7 +21,11 @@ export class CommandManager implements ICommandManager {
      * @param thisArg The `this` context used when invoking the handler function.
      * @return Disposable which unregisters this command on disposal.
      */
-    public registerCommand(command: string, callback: (...args: any[]) => any, thisArg?: any): Disposable {
+    public registerCommand(
+        command: string,
+        callback: (...args: any[]) => any,
+        thisArg?: any
+    ): Disposable {
         return commands.registerCommand(command, callback, thisArg);
     }
 
@@ -40,7 +43,15 @@ export class CommandManager implements ICommandManager {
      * @param thisArg The `this` context used when invoking the handler function.
      * @return Disposable which unregisters this command on disposal.
      */
-    public registerTextEditorCommand(command: string, callback: (textEditor: TextEditor, edit: TextEditorEdit, ...args: any[]) => void, thisArg?: any): Disposable {
+    public registerTextEditorCommand(
+        command: string,
+        callback: (
+            textEditor: TextEditor,
+            edit: TextEditorEdit,
+            ...args: any[]
+        ) => void,
+        thisArg?: any
+    ): Disposable {
         return commands.registerTextEditorCommand(command, callback, thisArg);
     }
 
@@ -58,7 +69,10 @@ export class CommandManager implements ICommandManager {
      * @return A thenable that resolves to the returned value of the given command. `undefined` when
      * the command handler function doesn't return anything.
      */
-    public executeCommand<T>(command: string, ...rest: any[]): Thenable<T | undefined> {
+    public executeCommand<T>(
+        command: string,
+        ...rest: any[]
+    ): Thenable<T | undefined> {
         return commands.executeCommand<T>(command, ...rest);
     }
 

@@ -1,18 +1,40 @@
-import { inject, injectable, named } from 'inversify';
-import { ITestResultsService, ITestVisitor, TestFile, TestFolder, Tests, TestStatus, TestSuite } from './../types';
+import { inject, injectable, named } from "inversify";
+import {
+    ITestResultsService,
+    ITestVisitor,
+    TestFile,
+    TestFolder,
+    Tests,
+    TestStatus,
+    TestSuite
+} from "./../types";
 
 @injectable()
 export class TestResultsService implements ITestResultsService {
-    constructor(@inject(ITestVisitor) @named('TestResultResetVisitor') private resultResetVisitor: ITestVisitor) { }
+    constructor(
+        @inject(ITestVisitor)
+        @named("TestResultResetVisitor")
+        private resultResetVisitor: ITestVisitor
+    ) {}
     public resetResults(tests: Tests): void {
-        tests.testFolders.forEach(f => this.resultResetVisitor.visitTestFolder(f));
-        tests.testFunctions.forEach(fn => this.resultResetVisitor.visitTestFunction(fn.testFunction));
-        tests.testSuites.forEach(suite => this.resultResetVisitor.visitTestSuite(suite.testSuite));
-        tests.testFiles.forEach(testFile => this.resultResetVisitor.visitTestFile(testFile));
+        tests.testFolders.forEach(f =>
+            this.resultResetVisitor.visitTestFolder(f)
+        );
+        tests.testFunctions.forEach(fn =>
+            this.resultResetVisitor.visitTestFunction(fn.testFunction)
+        );
+        tests.testSuites.forEach(suite =>
+            this.resultResetVisitor.visitTestSuite(suite.testSuite)
+        );
+        tests.testFiles.forEach(testFile =>
+            this.resultResetVisitor.visitTestFile(testFile)
+        );
     }
     public updateResults(tests: Tests): void {
         tests.testFiles.forEach(test => this.updateTestFileResults(test));
-        tests.testFolders.forEach(folder => this.updateTestFolderResults(folder));
+        tests.testFolders.forEach(folder =>
+            this.updateTestFolderResults(folder)
+        );
     }
     private updateTestSuiteResults(test: TestSuite): void {
         this.updateTestSuiteAndFileResults(test);
@@ -25,7 +47,7 @@ export class TestResultsService implements ITestResultsService {
         let allFilesRan = true;
 
         testFolder.testFiles.forEach(fl => {
-            if (allFilesPassed && typeof fl.passed === 'boolean') {
+            if (allFilesPassed && typeof fl.passed === "boolean") {
                 if (!fl.passed) {
                     allFilesPassed = false;
                 }
@@ -42,7 +64,7 @@ export class TestResultsService implements ITestResultsService {
 
         testFolder.folders.forEach(folder => {
             this.updateTestFolderResults(folder);
-            if (allFoldersPassed && typeof folder.passed === 'boolean') {
+            if (allFoldersPassed && typeof folder.passed === "boolean") {
                 if (!folder.passed) {
                     allFoldersPassed = false;
                 }
@@ -56,7 +78,9 @@ export class TestResultsService implements ITestResultsService {
 
         if (allFilesRan && allFoldersRan) {
             testFolder.passed = allFilesPassed && allFoldersPassed;
-            testFolder.status = testFolder.passed ? TestStatus.Idle : TestStatus.Fail;
+            testFolder.status = testFolder.passed
+                ? TestStatus.Idle
+                : TestStatus.Fail;
         } else {
             testFolder.passed = undefined;
             testFolder.status = TestStatus.Unknown;
@@ -69,7 +93,7 @@ export class TestResultsService implements ITestResultsService {
 
         test.functions.forEach(fn => {
             totalTime += fn.time;
-            if (typeof fn.passed === 'boolean') {
+            if (typeof fn.passed === "boolean") {
                 if (fn.passed) {
                     test.functionsPassed! += 1;
                 } else {
@@ -87,7 +111,7 @@ export class TestResultsService implements ITestResultsService {
         test.suites.forEach(suite => {
             this.updateTestSuiteResults(suite);
             totalTime += suite.time;
-            if (allSuitesRan && typeof suite.passed === 'boolean') {
+            if (allSuitesRan && typeof suite.passed === "boolean") {
                 if (!suite.passed) {
                     allSuitesPassed = false;
                 }

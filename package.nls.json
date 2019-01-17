@@ -183,5 +183,5 @@
     "UnitTests.testErrorDiagnosticMessage": "Error",
     "UnitTests.testFailDiagnosticMessage": "Fail",
     "UnitTests.testSkippedDiagnosticMessage": "Skipped",
-    "Common.openOutputPanel":"Show output"
+    "Common.openOutputPanel": "Show output"
 }

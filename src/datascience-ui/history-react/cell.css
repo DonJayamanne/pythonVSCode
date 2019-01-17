@@ -14,7 +14,7 @@
 }
 
 .cell-outer {
-    display:flex;
+    display: flex;
     flex-direction: row;
     justify-content: left;
     width: 100%;
@@ -41,7 +41,7 @@
     margin: 0;
 }
 
-.cell-input pre{
+.cell-input pre {
     margin: 0px;
     padding: 0px;
 }
@@ -80,29 +80,31 @@
 .cell-output tr,
 .cell-output th,
 .cell-output td {
-  text-align: right;
-  vertical-align: middle;
-  padding: 0.5em 0.5em;
-  line-height: normal;
-  white-space: normal;
-  max-width: none;
-  border: none;
+    text-align: right;
+    vertical-align: middle;
+    padding: 0.5em 0.5em;
+    line-height: normal;
+    white-space: normal;
+    max-width: none;
+    border: none;
 }
 .cell-output th {
-  font-weight: bold;
+    font-weight: bold;
 }
 .cell-output tbody tr:nth-child(even) {
-  background: var(--vscode-editor-background); /* Force to white because the default color for output is gray */
+    background: var(
+        --vscode-editor-background
+    ); /* Force to white because the default color for output is gray */
 }
 .cell-output tbody tr:hover {
-  background: var(--vscode-editor-selectionBackground);
+    background: var(--vscode-editor-selectionBackground);
 }
 .cell-output * + table {
-  margin-top: 1em;
+    margin-top: 1em;
 }
 
 .controls-flex {
-    display:flex;
+    display: flex;
     min-width: 40px;
 }
 
@@ -110,4 +112,3 @@
     display: block;
     margin: 0 auto;
 }
-

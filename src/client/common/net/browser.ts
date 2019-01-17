@@ -1,13 +1,13 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-'use strict';
+"use strict";
 
 // tslint:disable:no-require-imports no-var-requires
-const opn = require('opn');
+const opn = require("opn");
 
-import { injectable } from 'inversify';
-import { IBrowserService } from '../types';
+import { injectable } from "inversify";
+import { IBrowserService } from "../types";
 
 export function launch(url: string) {
     opn(url);

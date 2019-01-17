@@ -1,19 +1,28 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
-'use strict';
+"use strict";
 
-import { Socket } from 'net';
-import { ConfigurationTarget, DiagnosticSeverity, Disposable, Extension, ExtensionContext, OutputChannel, Uri, WorkspaceEdit } from 'vscode';
-import { EnvironmentVariables } from './variables/types';
-export const IOutputChannel = Symbol('IOutputChannel');
-export interface IOutputChannel extends OutputChannel { }
-export const IDocumentSymbolProvider = Symbol('IDocumentSymbolProvider');
-export const IsWindows = Symbol('IS_WINDOWS');
-export const IDisposableRegistry = Symbol('IDiposableRegistry');
+import { Socket } from "net";
+import {
+    ConfigurationTarget,
+    DiagnosticSeverity,
+    Disposable,
+    Extension,
+    ExtensionContext,
+    OutputChannel,
+    Uri,
+    WorkspaceEdit
+} from "vscode";
+import { EnvironmentVariables } from "./variables/types";
+export const IOutputChannel = Symbol("IOutputChannel");
+export interface IOutputChannel extends OutputChannel {}
+export const IDocumentSymbolProvider = Symbol("IDocumentSymbolProvider");
+export const IsWindows = Symbol("IS_WINDOWS");
+export const IDisposableRegistry = Symbol("IDiposableRegistry");
 export type IDisposableRegistry = { push(disposable: Disposable): void };
-export const IMemento = Symbol('IGlobalMemento');
-export const GLOBAL_MEMENTO = Symbol('IGlobalMemento');
-export const WORKSPACE_MEMENTO = Symbol('IWorkspaceMemento');
+export const IMemento = Symbol("IGlobalMemento");
+export const GLOBAL_MEMENTO = Symbol("IGlobalMemento");
+export const WORKSPACE_MEMENTO = Symbol("IWorkspaceMemento");
 
 export type Resource = Uri | undefined;
 export interface IPersistentState<T> {
@@ -29,11 +38,19 @@ export type Version = {
     prerelease: string[];
 };
 
-export const IPersistentStateFactory = Symbol('IPersistentStateFactory');
+export const IPersistentStateFactory = Symbol("IPersistentStateFactory");
 
 export interface IPersistentStateFactory {
-    createGlobalPersistentState<T>(key: string, defaultValue?: T, expiryDurationMs?: number): IPersistentState<T>;
-    createWorkspacePersistentState<T>(key: string, defaultValue?: T, expiryDurationMs?: number): IPersistentState<T>;
+    createGlobalPersistentState<T>(
+        key: string,
+        defaultValue?: T,
+        expiryDurationMs?: number
+    ): IPersistentState<T>;
+    createWorkspacePersistentState<T>(
+        key: string,
+        defaultValue?: T,
+        expiryDurationMs?: number
+    ): IPersistentState<T>;
 }
 
 export type ExecutionInfo = {
@@ -44,12 +61,12 @@ export type ExecutionInfo = {
 };
 
 export enum LogLevel {
-    Information = 'Information',
-    Error = 'Error',
-    Warning = 'Warning'
+    Information = "Information",
+    Error = "Error",
+    Warning = "Warning"
 }
 
-export const ILogger = Symbol('ILogger');
+export const ILogger = Symbol("ILogger");
 
 export interface ILogger {
     logError(message: string, error?: Error);
@@ -64,11 +81,11 @@ export enum InstallerResponse {
 }
 
 export enum ProductType {
-    Linter = 'Linter',
-    Formatter = 'Formatter',
-    TestFramework = 'TestFramework',
-    RefactoringLibrary = 'RefactoringLibrary',
-    WorkspaceSymbols = 'WorkspaceSymbols'
+    Linter = "Linter",
+    Formatter = "Formatter",
+    TestFramework = "TestFramework",
+    RefactoringLibrary = "RefactoringLibrary",
+    WorkspaceSymbols = "WorkspaceSymbols"
 }
 
 export enum Product {
@@ -96,16 +113,22 @@ export enum ModuleNamePurpose {
     run = 2
 }
 
-export const IInstaller = Symbol('IInstaller');
+export const IInstaller = Symbol("IInstaller");
 
 export interface IInstaller {
-    promptToInstall(product: Product, resource?: Uri): Promise<InstallerResponse>;
+    promptToInstall(
+        product: Product,
+        resource?: Uri
+    ): Promise<InstallerResponse>;
     install(product: Product, resource?: Uri): Promise<InstallerResponse>;
     isInstalled(product: Product, resource?: Uri): Promise<boolean | undefined>;
-    translateProductToModuleName(product: Product, purpose: ModuleNamePurpose): string;
+    translateProductToModuleName(
+        product: Product,
+        purpose: ModuleNamePurpose
+    ): string;
 }
 
-export const IPathUtils = Symbol('IPathUtils');
+export const IPathUtils = Symbol("IPathUtils");
 
 export interface IPathUtils {
     readonly delimiter: string;
@@ -116,17 +139,17 @@ export interface IPathUtils {
      * @memberof IPathUtils
      */
     readonly separator: string;
-    getPathVariableName(): 'Path' | 'PATH';
+    getPathVariableName(): "Path" | "PATH";
     basename(pathValue: string, ext?: string): string;
     getDisplayName(pathValue: string, cwd?: string): string;
 }
 
-export const IRandom = Symbol('IRandom');
+export const IRandom = Symbol("IRandom");
 export interface IRandom {
     getRandomInt(min?: number, max?: number): number;
 }
 
-export const ICurrentProcess = Symbol('ICurrentProcess');
+export const ICurrentProcess = Symbol("ICurrentProcess");
 export interface ICurrentProcess {
     readonly env: EnvironmentVariables;
     readonly argv: string[];
@@ -265,7 +288,7 @@ export interface ITerminalSettings {
     readonly activateEnvironment: boolean;
 }
 
-export type LanguageServerDownloadChannels = 'stable' | 'beta' | 'daily';
+export type LanguageServerDownloadChannels = "stable" | "beta" | "daily";
 export interface IAnalysisSettings {
     readonly downloadChannel?: LanguageServerDownloadChannels;
     readonly openFilesOnly: boolean;
@@ -293,24 +316,35 @@ export interface IDataScienceSettings {
     collapseCellInputCodeByDefault: boolean;
 }
 
-export const IConfigurationService = Symbol('IConfigurationService');
+export const IConfigurationService = Symbol("IConfigurationService");
 export interface IConfigurationService {
     getSettings(resource?: Uri): IPythonSettings;
     isTestExecution(): boolean;
-    updateSetting(setting: string, value?: {}, resource?: Uri, configTarget?: ConfigurationTarget): Promise<void>;
-    updateSectionSetting(section: string, setting: string, value?: {}, resource?: Uri, configTarget?: ConfigurationTarget): Promise<void>;
+    updateSetting(
+        setting: string,
+        value?: {},
+        resource?: Uri,
+        configTarget?: ConfigurationTarget
+    ): Promise<void>;
+    updateSectionSetting(
+        section: string,
+        setting: string,
+        value?: {},
+        resource?: Uri,
+        configTarget?: ConfigurationTarget
+    ): Promise<void>;
 }
 
-export const ISocketServer = Symbol('ISocketServer');
+export const ISocketServer = Symbol("ISocketServer");
 export interface ISocketServer extends Disposable {
     readonly client: Promise<Socket>;
     Start(options?: { port?: number; host?: string }): Promise<number>;
 }
 
-export const IExtensionContext = Symbol('ExtensionContext');
-export interface IExtensionContext extends ExtensionContext { }
+export const IExtensionContext = Symbol("ExtensionContext");
+export interface IExtensionContext extends ExtensionContext {}
 
-export const IExtensions = Symbol('IExtensions');
+export const IExtensions = Symbol("IExtensions");
 export interface IExtensions {
     /**
      * All extensions currently known to the system.
@@ -336,19 +370,19 @@ export interface IExtensions {
     getExtension<T>(extensionId: string): Extension<T> | undefined;
 }
 
-export const IBrowserService = Symbol('IBrowserService');
+export const IBrowserService = Symbol("IBrowserService");
 export interface IBrowserService {
     launch(url: string): void;
 }
 
-export const IPythonExtensionBanner = Symbol('IPythonExtensionBanner');
+export const IPythonExtensionBanner = Symbol("IPythonExtensionBanner");
 export interface IPythonExtensionBanner {
     readonly enabled: boolean;
     showBanner(): Promise<void>;
 }
-export const BANNER_NAME_LS_SURVEY: string = 'LSSurveyBanner';
-export const BANNER_NAME_PROPOSE_LS: string = 'ProposeLS';
-export const BANNER_NAME_DS_SURVEY: string = 'DSSurveyBanner';
+export const BANNER_NAME_LS_SURVEY: string = "LSSurveyBanner";
+export const BANNER_NAME_PROPOSE_LS: string = "ProposeLS";
+export const BANNER_NAME_DS_SURVEY: string = "DSSurveyBanner";
 
 export type DeprecatedSettingAndValue = {
     setting: string;
@@ -363,16 +397,20 @@ export type DeprecatedFeatureInfo = {
     setting?: DeprecatedSettingAndValue;
 };
 
-export const IFeatureDeprecationManager = Symbol('IFeatureDeprecationManager');
+export const IFeatureDeprecationManager = Symbol("IFeatureDeprecationManager");
 
 export interface IFeatureDeprecationManager extends Disposable {
     initialize(): void;
     registerDeprecation(deprecatedInfo: DeprecatedFeatureInfo): void;
 }
 
-export const IEditorUtils = Symbol('IEditorUtils');
+export const IEditorUtils = Symbol("IEditorUtils");
 export interface IEditorUtils {
-    getWorkspaceEditsFromPatch(originalContents: string, patch: string, uri: Uri): WorkspaceEdit;
+    getWorkspaceEditsFromPatch(
+        originalContents: string,
+        patch: string,
+        uri: Uri
+    ): WorkspaceEdit;
 }
 
 export interface IDisposable {
@@ -382,7 +420,7 @@ export interface IAsyncDisposable {
     dispose(): Promise<void>;
 }
 
-export const IAsyncDisposableRegistry = Symbol('IAsyncDisposableRegistry');
+export const IAsyncDisposableRegistry = Symbol("IAsyncDisposableRegistry");
 export interface IAsyncDisposableRegistry extends IAsyncDisposable {
     push(disposable: IDisposable | IAsyncDisposable);
 }

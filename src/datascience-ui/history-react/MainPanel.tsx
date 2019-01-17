@@ -1,25 +1,29 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
-'use strict';
-import './mainPanel.css';
+"use strict";
+import "./mainPanel.css";
 
-import { min } from 'lodash';
-import * as React from 'react';
+import { min } from "lodash";
+import * as React from "react";
 
-import { concatMultilineString } from '../../client/datascience/common';
-import { HistoryMessages } from '../../client/datascience/constants';
-import { CellState, ICell, IHistoryInfo } from '../../client/datascience/types';
-import { ErrorBoundary } from '../react-common/errorBoundary';
-import { getLocString } from '../react-common/locReactSide';
-import { IMessageHandler, PostOffice } from '../react-common/postOffice';
-import { Progress } from '../react-common/progress';
-import { getSettings, updateSettings } from '../react-common/settingsReactSide';
-import { Cell, ICellViewModel } from './cell';
-import { CellButton } from './cellButton';
-import { Image, ImageName } from './image';
-import { InputCell } from './inputCell';
-import { createCellVM, generateTestState, IMainPanelState } from './mainPanelState';
-import { MenuBar } from './menuBar';
+import { concatMultilineString } from "../../client/datascience/common";
+import { HistoryMessages } from "../../client/datascience/constants";
+import { CellState, ICell, IHistoryInfo } from "../../client/datascience/types";
+import { ErrorBoundary } from "../react-common/errorBoundary";
+import { getLocString } from "../react-common/locReactSide";
+import { IMessageHandler, PostOffice } from "../react-common/postOffice";
+import { Progress } from "../react-common/progress";
+import { getSettings, updateSettings } from "../react-common/settingsReactSide";
+import { Cell, ICellViewModel } from "./cell";
+import { CellButton } from "./cellButton";
+import { Image, ImageName } from "./image";
+import { InputCell } from "./inputCell";
+import {
+    createCellVM,
+    generateTestState,
+    IMainPanelState
+} from "./mainPanelState";
+import { MenuBar } from "./menuBar";
 
 export interface IMainPanelProps {
     skipDefault?: boolean;
@@ -28,7 +32,8 @@ export interface IMainPanelProps {
     codeTheme: string;
 }
 
-export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState> implements IMessageHandler {
+export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
+    implements IMessageHandler {
     private stackLimit = 10;
 
     private bottom: HTMLDivElement | undefined;
@@ -38,7 +43,7 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
         super(props);
 
         // Default state should show a busy message
-        this.state = { cellVMs: [], busy: true, undoStack: [], redoStack : [] };
+        this.state = { cellVMs: [], busy: true, undoStack: [], redoStack: [] };
 
         if (!this.props.skipDefault) {
             this.state = generateTestState(this.inputBlockToggled);
@@ -54,44 +59,134 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
     }
 
     public render() {
-
-        const progressBar = this.state.busy && !this.props.testMode ? <Progress /> : undefined;
+        const progressBar =
+            this.state.busy && !this.props.testMode ? <Progress /> : undefined;
 
         return (
-            <div className='main-panel'>
+            <div className="main-panel">
                 <PostOffice messageHandlers={[this]} />
-                <MenuBar baseTheme={this.props.baseTheme} stylePosition='top-fixed'>
+                <MenuBar
+                    baseTheme={this.props.baseTheme}
+                    stylePosition="top-fixed"
+                >
                     {this.renderExtraButtons()}
-                    <CellButton baseTheme={this.props.baseTheme} onClick={this.collapseAll} disabled={!this.canCollapseAll()} tooltip={getLocString('DataScience.collapseAll', 'Collapse all cell inputs')}>
-                        <Image baseTheme={this.props.baseTheme} class='cell-button-image' image={ImageName.CollapseAll}/>
+                    <CellButton
+                        baseTheme={this.props.baseTheme}
+                        onClick={this.collapseAll}
+                        disabled={!this.canCollapseAll()}
+                        tooltip={getLocString(
+                            "DataScience.collapseAll",
+                            "Collapse all cell inputs"
+                        )}
+                    >
+                        <Image
+                            baseTheme={this.props.baseTheme}
+                            class="cell-button-image"
+                            image={ImageName.CollapseAll}
+                        />
                     </CellButton>
-                    <CellButton baseTheme={this.props.baseTheme} onClick={this.expandAll} disabled={!this.canExpandAll()} tooltip={getLocString('DataScience.expandAll', 'Expand all cell inputs')}>
-                        <Image baseTheme={this.props.baseTheme} class='cell-button-image' image={ImageName.ExpandAll}/>
+                    <CellButton
+                        baseTheme={this.props.baseTheme}
+                        onClick={this.expandAll}
+                        disabled={!this.canExpandAll()}
+                        tooltip={getLocString(
+                            "DataScience.expandAll",
+                            "Expand all cell inputs"
+                        )}
+                    >
+                        <Image
+                            baseTheme={this.props.baseTheme}
+                            class="cell-button-image"
+                            image={ImageName.ExpandAll}
+                        />
                     </CellButton>
-                    <CellButton baseTheme={this.props.baseTheme} onClick={this.export} disabled={!this.canExport()} tooltip={getLocString('DataScience.export', 'Export as Jupyter Notebook')}>
-                        <Image baseTheme={this.props.baseTheme} class='cell-button-image' image={ImageName.SaveAs}/>
+                    <CellButton
+                        baseTheme={this.props.baseTheme}
+                        onClick={this.export}
+                        disabled={!this.canExport()}
+                        tooltip={getLocString(
+                            "DataScience.export",
+                            "Export as Jupyter Notebook"
+                        )}
+                    >
+                        <Image
+                            baseTheme={this.props.baseTheme}
+                            class="cell-button-image"
+                            image={ImageName.SaveAs}
+                        />
                     </CellButton>
-                    <CellButton baseTheme={this.props.baseTheme} onClick={this.restartKernel} tooltip={getLocString('DataScience.restartServer', 'Restart iPython Kernel')}>
-                        <Image baseTheme={this.props.baseTheme} class='cell-button-image' image={ImageName.Restart}/>
+                    <CellButton
+                        baseTheme={this.props.baseTheme}
+                        onClick={this.restartKernel}
+                        tooltip={getLocString(
+                            "DataScience.restartServer",
+                            "Restart iPython Kernel"
+                        )}
+                    >
+                        <Image
+                            baseTheme={this.props.baseTheme}
+                            class="cell-button-image"
+                            image={ImageName.Restart}
+                        />
                     </CellButton>
-                    <CellButton baseTheme={this.props.baseTheme} onClick={this.interruptKernel} tooltip={getLocString('DataScience.interruptKernel', 'Interrupt iPython Kernel')}>
-                        <Image baseTheme={this.props.baseTheme} class='cell-button-image' image={ImageName.Interrupt}/>
+                    <CellButton
+                        baseTheme={this.props.baseTheme}
+                        onClick={this.interruptKernel}
+                        tooltip={getLocString(
+                            "DataScience.interruptKernel",
+                            "Interrupt iPython Kernel"
+                        )}
+                    >
+                        <Image
+                            baseTheme={this.props.baseTheme}
+                            class="cell-button-image"
+                            image={ImageName.Interrupt}
+                        />
                     </CellButton>
-                    <CellButton baseTheme={this.props.baseTheme} onClick={this.undo} disabled={!this.canUndo()} tooltip={getLocString('DataScience.undo', 'Undo')}>
-                        <Image baseTheme={this.props.baseTheme} class='cell-button-image' image={ImageName.Undo}/>
+                    <CellButton
+                        baseTheme={this.props.baseTheme}
+                        onClick={this.undo}
+                        disabled={!this.canUndo()}
+                        tooltip={getLocString("DataScience.undo", "Undo")}
+                    >
+                        <Image
+                            baseTheme={this.props.baseTheme}
+                            class="cell-button-image"
+                            image={ImageName.Undo}
+                        />
                     </CellButton>
-                    <CellButton baseTheme={this.props.baseTheme} onClick={this.redo} disabled={!this.canRedo()} tooltip={getLocString('DataScience.redo', 'Redo')}>
-                        <Image baseTheme={this.props.baseTheme} class='cell-button-image' image={ImageName.Redo}/>
+                    <CellButton
+                        baseTheme={this.props.baseTheme}
+                        onClick={this.redo}
+                        disabled={!this.canRedo()}
+                        tooltip={getLocString("DataScience.redo", "Redo")}
+                    >
+                        <Image
+                            baseTheme={this.props.baseTheme}
+                            class="cell-button-image"
+                            image={ImageName.Redo}
+                        />
                     </CellButton>
-                    <CellButton baseTheme={this.props.baseTheme} onClick={this.clearAll} tooltip={getLocString('DataScience.clearAll', 'Remove All Cells')}>
-                        <Image baseTheme={this.props.baseTheme} class='cell-button-image' image={ImageName.Cancel}/>
+                    <CellButton
+                        baseTheme={this.props.baseTheme}
+                        onClick={this.clearAll}
+                        tooltip={getLocString(
+                            "DataScience.clearAll",
+                            "Remove All Cells"
+                        )}
+                    >
+                        <Image
+                            baseTheme={this.props.baseTheme}
+                            class="cell-button-image"
+                            image={ImageName.Cancel}
+                        />
                     </CellButton>
                 </MenuBar>
-                <div className='top-spacing'/>
+                <div className="top-spacing" />
                 {progressBar}
                 {this.renderCells()}
                 {this.renderInput()}
-                <div ref={this.updateBottom}/>
+                <div ref={this.updateBottom} />
             </div>
         );
     }
@@ -137,13 +232,13 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
 
             case HistoryMessages.StartProgress:
                 if (!this.props.testMode) {
-                    this.setState({busy: true});
+                    this.setState({ busy: true });
                 }
                 break;
 
             case HistoryMessages.StopProgress:
                 if (!this.props.testMode) {
-                    this.setState({busy: false});
+                    this.setState({ busy: false });
                 }
                 break;
 
@@ -156,7 +251,7 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
         }
 
         return false;
-    }
+    };
 
     // tslint:disable-next-line:no-any
     private updateSettings = (payload?: any) => {
@@ -168,158 +263,217 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
             const showInputs = getSettings().showCellInputCode;
 
             if (prevShowInputs !== showInputs) {
-                this.toggleCellInputVisibility(showInputs, getSettings().collapseCellInputCodeByDefault);
+                this.toggleCellInputVisibility(
+                    showInputs,
+                    getSettings().collapseCellInputCodeByDefault
+                );
             }
         }
-    }
+    };
 
     private getAllCells = () => {
         // Send all of our cells back to the other side
-        const cells = this.state.cellVMs.map((cellVM : ICellViewModel) => {
+        const cells = this.state.cellVMs.map((cellVM: ICellViewModel) => {
             return cellVM.cell;
         });
 
-        PostOffice.sendMessage({type: HistoryMessages.ReturnAllCells, payload: { contents: cells }});
-    }
+        PostOffice.sendMessage({
+            type: HistoryMessages.ReturnAllCells,
+            payload: { contents: cells }
+        });
+    };
 
     private renderExtraButtons = () => {
         if (!this.props.skipDefault) {
-            return <CellButton baseTheme={this.props.baseTheme} onClick={this.addMarkdown} tooltip='Add Markdown Test'>M</CellButton>;
+            return (
+                <CellButton
+                    baseTheme={this.props.baseTheme}
+                    onClick={this.addMarkdown}
+                    tooltip="Add Markdown Test"
+                >
+                    M
+                </CellButton>
+            );
         }
 
         return null;
-    }
+    };
 
     private renderCells = () => {
-        return this.state.cellVMs.map((cellVM: ICellViewModel, index: number) =>
-            <ErrorBoundary key={index}>
-                <Cell
-                    testMode={this.props.testMode}
-                    cellVM={cellVM}
-                    baseTheme={this.props.baseTheme}
-                    codeTheme={this.props.codeTheme}
-                    gotoCode={() => this.gotoCellCode(index)}
-                    delete={() => this.deleteCell(index)}/>
-            </ErrorBoundary>
+        return this.state.cellVMs.map(
+            (cellVM: ICellViewModel, index: number) => (
+                <ErrorBoundary key={index}>
+                    <Cell
+                        testMode={this.props.testMode}
+                        cellVM={cellVM}
+                        baseTheme={this.props.baseTheme}
+                        codeTheme={this.props.codeTheme}
+                        gotoCode={() => this.gotoCellCode(index)}
+                        delete={() => this.deleteCell(index)}
+                    />
+                </ErrorBoundary>
+            )
         );
-    }
+    };
 
     private renderInput = () => {
         if (getSettings && getSettings().allowInput) {
-            const realCells = this.state.cellVMs.filter(c => c.cell.data.cell_type !== 'sys_info');
-            const inputExecutionCount = realCells && realCells.length > 0 ? parseInt(realCells[realCells.length - 1].cell.data.execution_count.toString(), 10) + 1 : 1;
+            const realCells = this.state.cellVMs.filter(
+                c => c.cell.data.cell_type !== "sys_info"
+            );
+            const inputExecutionCount =
+                realCells && realCells.length > 0
+                    ? parseInt(
+                          realCells[
+                              realCells.length - 1
+                          ].cell.data.execution_count.toString(),
+                          10
+                      ) + 1
+                    : 1;
             return (
                 <ErrorBoundary>
-                    <InputCell baseTheme={this.props.baseTheme} testMode={this.props.testMode} codeTheme={this.props.codeTheme} onSubmit={this.submitInput} count={inputExecutionCount.toString()} />
+                    <InputCell
+                        baseTheme={this.props.baseTheme}
+                        testMode={this.props.testMode}
+                        codeTheme={this.props.codeTheme}
+                        onSubmit={this.submitInput}
+                        count={inputExecutionCount.toString()}
+                    />
                 </ErrorBoundary>
             );
         } else {
             return null;
         }
-    }
+    };
 
     private addMarkdown = () => {
         this.addCell({
-            data :         {
-                cell_type: 'markdown',
+            data: {
+                cell_type: "markdown",
                 metadata: {},
                 source: [
-                    '## Cell 3\n',
-                    'Here\'s some markdown\n',
-                    '- A List\n',
-                    '- Of Items'
+                    "## Cell 3\n",
+                    "Here's some markdown\n",
+                    "- A List\n",
+                    "- Of Items"
                 ]
             },
-            id : '1111',
-            file : 'foo.py',
-            line : 0,
-            state : CellState.finished
+            id: "1111",
+            file: "foo.py",
+            line: 0,
+            state: CellState.finished
         });
-    }
+    };
 
     private canCollapseAll = () => {
         return this.state.cellVMs.length > 0;
-    }
+    };
 
     private canExpandAll = () => {
         return this.state.cellVMs.length > 0;
-    }
+    };
 
     private canExport = () => {
-        return this.state.cellVMs.length > 0 ;
-    }
+        return this.state.cellVMs.length > 0;
+    };
 
     private canRedo = () => {
-        return this.state.redoStack.length > 0 ;
-    }
+        return this.state.redoStack.length > 0;
+    };
 
     private canUndo = () => {
-        return this.state.undoStack.length > 0 ;
-    }
+        return this.state.undoStack.length > 0;
+    };
 
-    private pushStack = (stack : ICellViewModel[][], cells : ICellViewModel[]) => {
+    private pushStack = (
+        stack: ICellViewModel[][],
+        cells: ICellViewModel[]
+    ) => {
         // Get the undo stack up to the maximum length
         const slicedUndo = stack.slice(0, min([stack.length, this.stackLimit]));
 
         // Combine this with our set of cells
         return [...slicedUndo, cells];
-    }
+    };
 
     private gotoCellCode = (index: number) => {
         // Find our cell
         const cellVM = this.state.cellVMs[index];
 
         // Send a message to the other side to jump to a particular cell
-        PostOffice.sendMessage({ type: HistoryMessages.GotoCodeCell, payload: { file : cellVM.cell.file, line: cellVM.cell.line }});
-    }
+        PostOffice.sendMessage({
+            type: HistoryMessages.GotoCodeCell,
+            payload: { file: cellVM.cell.file, line: cellVM.cell.line }
+        });
+    };
 
     private deleteCell = (index: number) => {
-        PostOffice.sendMessage({ type: HistoryMessages.DeleteCell, payload: { }});
+        PostOffice.sendMessage({
+            type: HistoryMessages.DeleteCell,
+            payload: {}
+        });
 
         // Update our state
         this.setState({
-            cellVMs: this.state.cellVMs.filter((c : ICellViewModel, i: number) => {
-                return i !== index;
-            }),
-            undoStack : this.pushStack(this.state.undoStack, this.state.cellVMs),
+            cellVMs: this.state.cellVMs.filter(
+                (c: ICellViewModel, i: number) => {
+                    return i !== index;
+                }
+            ),
+            undoStack: this.pushStack(this.state.undoStack, this.state.cellVMs),
             skipNextScroll: true
         });
-    }
+    };
 
     private collapseAll = () => {
-        PostOffice.sendMessage({ type: HistoryMessages.CollapseAll, payload: { }});
+        PostOffice.sendMessage({
+            type: HistoryMessages.CollapseAll,
+            payload: {}
+        });
         this.collapseAllSilent();
-    }
+    };
 
     private expandAll = () => {
-        PostOffice.sendMessage({ type: HistoryMessages.ExpandAll, payload: { }});
+        PostOffice.sendMessage({
+            type: HistoryMessages.ExpandAll,
+            payload: {}
+        });
         this.expandAllSilent();
-    }
+    };
 
     private clearAll = () => {
-        PostOffice.sendMessage({ type: HistoryMessages.DeleteAllCells, payload: { }});
+        PostOffice.sendMessage({
+            type: HistoryMessages.DeleteAllCells,
+            payload: {}
+        });
         this.clearAllSilent();
-    }
+    };
 
     private clearAllSilent = () => {
         // Update our state
         this.setState({
             cellVMs: [],
-            undoStack : this.pushStack(this.state.undoStack, this.state.cellVMs),
+            undoStack: this.pushStack(this.state.undoStack, this.state.cellVMs),
             skipNextScroll: true,
             busy: false // No more progress on delete all
         });
 
         // Tell other side, we changed our number of cells
         this.sendInfo();
-    }
+    };
 
     private redo = () => {
         // Pop one off of our redo stack and update our undo
         const cells = this.state.redoStack[this.state.redoStack.length - 1];
-        const redoStack = this.state.redoStack.slice(0, this.state.redoStack.length - 1);
-        const undoStack = this.pushStack(this.state.undoStack, this.state.cellVMs);
-        PostOffice.sendMessage({ type: HistoryMessages.Redo, payload: { }});
+        const redoStack = this.state.redoStack.slice(
+            0,
+            this.state.redoStack.length - 1
+        );
+        const undoStack = this.pushStack(
+            this.state.undoStack,
+            this.state.cellVMs
+        );
+        PostOffice.sendMessage({ type: HistoryMessages.Redo, payload: {} });
         this.setState({
             cellVMs: cells,
             undoStack: undoStack,
@@ -329,58 +483,86 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
 
         // Tell other side, we changed our number of cells
         this.sendInfo();
-    }
+    };
 
     private undo = () => {
         // Pop one off of our undo stack and update our redo
         const cells = this.state.undoStack[this.state.undoStack.length - 1];
-        const undoStack = this.state.undoStack.slice(0, this.state.undoStack.length - 1);
-        const redoStack = this.pushStack(this.state.redoStack, this.state.cellVMs);
-        PostOffice.sendMessage({ type: HistoryMessages.Undo, payload: { }});
+        const undoStack = this.state.undoStack.slice(
+            0,
+            this.state.undoStack.length - 1
+        );
+        const redoStack = this.pushStack(
+            this.state.redoStack,
+            this.state.cellVMs
+        );
+        PostOffice.sendMessage({ type: HistoryMessages.Undo, payload: {} });
         this.setState({
             cellVMs: cells,
-            undoStack : undoStack,
-            redoStack : redoStack,
-            skipNextScroll : true
+            undoStack: undoStack,
+            redoStack: redoStack,
+            skipNextScroll: true
         });
 
         // Tell other side, we changed our number of cells
         this.sendInfo();
-    }
+    };
 
     private restartKernel = () => {
         // Send a message to the other side to restart the kernel
-        PostOffice.sendMessage({ type: HistoryMessages.RestartKernel, payload: { }});
-    }
+        PostOffice.sendMessage({
+            type: HistoryMessages.RestartKernel,
+            payload: {}
+        });
+    };
 
     private interruptKernel = () => {
         // Send a message to the other side to restart the kernel
-        PostOffice.sendMessage({ type: HistoryMessages.Interrupt, payload: { }});
-    }
+        PostOffice.sendMessage({
+            type: HistoryMessages.Interrupt,
+            payload: {}
+        });
+    };
 
     private export = () => {
         // Send a message to the other side to export our current list
-        const cellContents: ICell[] = this.state.cellVMs.map((cellVM: ICellViewModel, index: number) => { return cellVM.cell; });
-        PostOffice.sendMessage({ type: HistoryMessages.Export, payload: { contents: cellContents }});
-    }
+        const cellContents: ICell[] = this.state.cellVMs.map(
+            (cellVM: ICellViewModel, index: number) => {
+                return cellVM.cell;
+            }
+        );
+        PostOffice.sendMessage({
+            type: HistoryMessages.Export,
+            payload: { contents: cellContents }
+        });
+    };
 
     private scrollToBottom = () => {
-        if (this.bottom && this.bottom.scrollIntoView && !this.state.skipNextScroll && !this.props.testMode) {
+        if (
+            this.bottom &&
+            this.bottom.scrollIntoView &&
+            !this.state.skipNextScroll &&
+            !this.props.testMode
+        ) {
             // Delay this until we are about to render. React hasn't setup the size of the bottom element
             // yet so we need to delay. 10ms looks good from a user point of view
             setTimeout(() => {
                 if (this.bottom) {
-                    this.bottom.scrollIntoView({behavior: 'smooth', block : 'end', inline: 'end'});
+                    this.bottom.scrollIntoView({
+                        behavior: "smooth",
+                        block: "end",
+                        inline: "end"
+                    });
                 }
             }, 100);
         }
-    }
+    };
 
     private updateBottom = (newBottom: HTMLDivElement) => {
         if (newBottom !== this.bottom) {
             this.bottom = newBottom;
         }
-    }
+    };
 
     // tslint:disable-next-line:no-any
     private addCell = (payload?: any) => {
@@ -390,7 +572,10 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
 
         if (payload) {
             const cell = payload as ICell;
-            let cellVM: ICellViewModel = createCellVM(cell, this.inputBlockToggled);
+            let cellVM: ICellViewModel = createCellVM(
+                cell,
+                this.inputBlockToggled
+            );
 
             // Set initial cell visibility and collapse
             cellVM = this.alterCellVM(cellVM, showInputs, !collapseInputs);
@@ -398,7 +583,10 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
             if (cellVM) {
                 this.setState({
                     cellVMs: [...this.state.cellVMs, cellVM],
-                    undoStack : this.pushStack(this.state.undoStack, this.state.cellVMs),
+                    undoStack: this.pushStack(
+                        this.state.undoStack,
+                        this.state.cellVMs
+                    ),
                     redoStack: this.state.redoStack,
                     skipNextScroll: false
                 });
@@ -407,7 +595,7 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
                 this.sendInfo();
             }
         }
-    }
+    };
 
     private inputBlockToggled = (id: string) => {
         // Create a shallow copy of the array, let not const as this is the shallow array copy that we will be changing
@@ -421,30 +609,37 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
             const targetCellVM = cellVMArray[cellVMIndex];
 
             // Mutate the shallow array copy
-            cellVMArray[cellVMIndex] = this.alterCellVM(targetCellVM, true, !targetCellVM.inputBlockOpen);
+            cellVMArray[cellVMIndex] = this.alterCellVM(
+                targetCellVM,
+                true,
+                !targetCellVM.inputBlockOpen
+            );
 
             this.setState({
                 skipNextScroll: true,
                 cellVMs: cellVMArray
             });
         }
-    }
+    };
 
-    private toggleCellInputVisibility = (visible: boolean, collapse: boolean) => {
+    private toggleCellInputVisibility = (
+        visible: boolean,
+        collapse: boolean
+    ) => {
         this.alterAllCellVMs(visible, !collapse);
-    }
+    };
 
     private collapseAllSilent = () => {
         if (getSettings().showCellInputCode) {
             this.alterAllCellVMs(true, false);
         }
-    }
+    };
 
     private expandAllSilent = () => {
         if (getSettings().showCellInputCode) {
             this.alterAllCellVMs(true, true);
         }
-    }
+    };
 
     private alterAllCellVMs = (visible: boolean, expanded: boolean) => {
         const newCells = this.state.cellVMs.map((value: ICellViewModel) => {
@@ -455,17 +650,24 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
             skipNextScroll: true,
             cellVMs: newCells
         });
-    }
+    };
 
     // Adjust the visibility or collapsed state of a cell
-    private alterCellVM = (cellVM: ICellViewModel, visible: boolean, expanded: boolean) => {
-        if (cellVM.cell.data.cell_type === 'code') {
+    private alterCellVM = (
+        cellVM: ICellViewModel,
+        visible: boolean,
+        expanded: boolean
+    ) => {
+        if (cellVM.cell.data.cell_type === "code") {
             // If we are already in the correct state, return back our initial cell vm
-            if (cellVM.inputBlockShow === visible && cellVM.inputBlockOpen === expanded) {
+            if (
+                cellVM.inputBlockShow === visible &&
+                cellVM.inputBlockOpen === expanded
+            ) {
                 return cellVM;
             }
 
-            const newCellVM = {...cellVM};
+            const newCellVM = { ...cellVM };
             if (cellVM.inputBlockShow !== visible) {
                 if (visible) {
                     // Show the cell, the rest of the function will add on correct collapse state
@@ -477,7 +679,11 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
             }
 
             // No elseif as we want newly visible cells to pick up the correct expand / collapse state
-            if (cellVM.inputBlockOpen !== expanded && cellVM.inputBlockCollapseNeeded && cellVM.inputBlockShow) {
+            if (
+                cellVM.inputBlockOpen !== expanded &&
+                cellVM.inputBlockCollapseNeeded &&
+                cellVM.inputBlockShow
+            ) {
                 if (expanded) {
                     // Expand the cell
                     const newText = this.extractInputText(cellVM.cell);
@@ -488,9 +694,9 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
                     // Collapse the cell
                     let newText = this.extractInputText(cellVM.cell);
                     if (newText.length > 0) {
-                        newText = newText.split('\n', 1)[0];
+                        newText = newText.split("\n", 1)[0];
                         newText = newText.slice(0, 255); // Slice to limit length, slicing past length is fine
-                        newText = newText.concat('...');
+                        newText = newText.concat("...");
                     }
 
                     newCellVM.inputBlockOpen = false;
@@ -502,23 +708,28 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
         }
 
         return cellVM;
-    }
+    };
 
     private extractInputText = (cell: ICell) => {
         return concatMultilineString(cell.data.source);
-    }
+    };
 
     private sendInfo = () => {
-        const info : IHistoryInfo = {
+        const info: IHistoryInfo = {
             cellCount: this.state.cellVMs.length,
             undoCount: this.state.undoStack.length,
             redoCount: this.state.redoStack.length
         };
-        PostOffice.sendMessage({type: HistoryMessages.SendInfo, payload: { info: info }});
-    }
+        PostOffice.sendMessage({
+            type: HistoryMessages.SendInfo,
+            payload: { info: info }
+        });
+    };
 
-    private updateOrAdd = (cell: ICell, allowAdd? : boolean) => {
-        const index = this.state.cellVMs.findIndex((c : ICellViewModel) => c.cell.id === cell.id);
+    private updateOrAdd = (cell: ICell, allowAdd?: boolean) => {
+        const index = this.state.cellVMs.findIndex(
+            (c: ICellViewModel) => c.cell.id === cell.id
+        );
         if (index >= 0) {
             // Update this cell
             this.state.cellVMs[index].cell = cell;
@@ -527,10 +738,10 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
             // This is an entirely new cell (it may have started out as finished)
             this.addCell(cell);
         }
-    }
+    };
 
-    private isCellSupported(cell: ICell) : boolean {
-        return !this.props.testMode || cell.data.cell_type !== 'sys_info';
+    private isCellSupported(cell: ICell): boolean {
+        return !this.props.testMode || cell.data.cell_type !== "sys_info";
     }
 
     // tslint:disable-next-line:no-any
@@ -541,7 +752,7 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
                 this.updateOrAdd(cell, true);
             }
         }
-    }
+    };
 
     // tslint:disable-next-line:no-any
     private updateCell = (payload?: any) => {
@@ -551,9 +762,12 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
                 this.updateOrAdd(cell, false);
             }
         }
-    }
+    };
 
     private submitInput = (code: string) => {
-        PostOffice.sendMessage({ type: HistoryMessages.SubmitNewCell, payload: code });
-    }
+        PostOffice.sendMessage({
+            type: HistoryMessages.SubmitNewCell,
+            payload: code
+        });
+    };
 }

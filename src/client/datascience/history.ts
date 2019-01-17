@@ -1,15 +1,24 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
-'use strict';
-import '../common/extensions';
+"use strict";
+import "../common/extensions";
 
-import { nbformat } from '@jupyterlab/coreutils';
-import * as fs from 'fs-extra';
-import { inject, injectable } from 'inversify';
-import * as path from 'path';
-import * as uuid from 'uuid/v4';
-import { Event, EventEmitter, Position, Range, Selection, TextEditor, Uri, ViewColumn } from 'vscode';
-import { Disposable } from 'vscode-jsonrpc';
+import { nbformat } from "@jupyterlab/coreutils";
+import * as fs from "fs-extra";
+import { inject, injectable } from "inversify";
+import * as path from "path";
+import * as uuid from "uuid/v4";
+import {
+    Event,
+    EventEmitter,
+    Position,
+    Range,
+    Selection,
+    TextEditor,
+    Uri,
+    ViewColumn
+} from "vscode";
+import { Disposable } from "vscode-jsonrpc";
 
 import {
     IApplicationShell,
@@ -19,19 +28,29 @@ import {
     IWebPanelMessageListener,
     IWebPanelProvider,
     IWorkspaceService
-} from '../common/application/types';
-import { CancellationError } from '../common/cancellation';
-import { PythonSettings } from '../common/configSettings';
-import { EXTENSION_ROOT_DIR } from '../common/constants';
-import { ContextKey } from '../common/contextKey';
-import { IFileSystem } from '../common/platform/types';
-import { IConfigurationService, IDisposableRegistry, ILogger } from '../common/types';
-import { createDeferred } from '../common/utils/async';
-import * as localize from '../common/utils/localize';
-import { IInterpreterService } from '../interpreter/contracts';
-import { captureTelemetry, sendTelemetryEvent } from '../telemetry';
-import { EditorContexts, HistoryMessages, Identifiers, Settings, Telemetry } from './constants';
-import { JupyterInstallError } from './jupyter/jupyterInstallError';
+} from "../common/application/types";
+import { CancellationError } from "../common/cancellation";
+import { PythonSettings } from "../common/configSettings";
+import { EXTENSION_ROOT_DIR } from "../common/constants";
+import { ContextKey } from "../common/contextKey";
+import { IFileSystem } from "../common/platform/types";
+import {
+    IConfigurationService,
+    IDisposableRegistry,
+    ILogger
+} from "../common/types";
+import { createDeferred } from "../common/utils/async";
+import * as localize from "../common/utils/localize";
+import { IInterpreterService } from "../interpreter/contracts";
+import { captureTelemetry, sendTelemetryEvent } from "../telemetry";
+import {
+    EditorContexts,
+    HistoryMessages,
+    Identifiers,
+    Settings,
+    Telemetry
+} from "./constants";
+import { JupyterInstallError } from "./jupyter/jupyterInstallError";
 import {
     CellState,
     ICell,
@@ -44,7 +63,7 @@ import {
     INotebookServer,
     InterruptResult,
     IStatusProvider
-} from './types';
+} from "./types";
 
 export enum SysInfoReason {
     Start,
@@ -54,38 +73,45 @@ export enum SysInfoReason {
 
 @injectable()
 export class History implements IWebPanelMessageListener, IHistory {
-    private disposed : boolean = false;
-    private webPanel : IWebPanel | undefined;
+    private disposed: boolean = false;
+    private webPanel: IWebPanel | undefined;
     private loadPromise: Promise<void>;
-    private interpreterChangedDisposable : Disposable;
-    private closedEvent : EventEmitter<IHistory>;
+    private interpreterChangedDisposable: Disposable;
+    private closedEvent: EventEmitter<IHistory>;
     private unfinishedCells: ICell[] = [];
     private restartingKernel: boolean = false;
     private potentiallyUnfinishedStatus: Disposable[] = [];
     private addedSysInfo: boolean = false;
     private ignoreCount: number = 0;
-    private waitingForExportCells : boolean = false;
+    private waitingForExportCells: boolean = false;
     private jupyterServer: INotebookServer | undefined;
 
     constructor(
         @inject(IApplicationShell) private applicationShell: IApplicationShell,
         @inject(IDocumentManager) private documentManager: IDocumentManager,
-        @inject(IInterpreterService) private interpreterService: IInterpreterService,
+        @inject(IInterpreterService)
+        private interpreterService: IInterpreterService,
         @inject(IWebPanelProvider) private provider: IWebPanelProvider,
         @inject(IDisposableRegistry) private disposables: IDisposableRegistry,
-        @inject(ICodeCssGenerator) private cssGenerator : ICodeCssGenerator,
-        @inject(ILogger) private logger : ILogger,
-        @inject(IStatusProvider) private statusProvider : IStatusProvider,
+        @inject(ICodeCssGenerator) private cssGenerator: ICodeCssGenerator,
+        @inject(ILogger) private logger: ILogger,
+        @inject(IStatusProvider) private statusProvider: IStatusProvider,
         @inject(IJupyterExecution) private jupyterExecution: IJupyterExecution,
         @inject(IFileSystem) private fileSystem: IFileSystem,
-        @inject(IConfigurationService) private configuration: IConfigurationService,
+        @inject(IConfigurationService)
+        private configuration: IConfigurationService,
         @inject(ICommandManager) private commandManager: ICommandManager,
         @inject(INotebookExporter) private jupyterExporter: INotebookExporter,
-        @inject(IWorkspaceService) private workspaceService: IWorkspaceService) {
-
+        @inject(IWorkspaceService) private workspaceService: IWorkspaceService
+    ) {
         // Sign up for configuration changes
-        this.interpreterChangedDisposable = this.interpreterService.onDidChangeInterpreter(this.onInterpreterChanged);
-        (this.configuration.getSettings() as PythonSettings).addListener('change', this.onSettingsChanged);
+        this.interpreterChangedDisposable = this.interpreterService.onDidChangeInterpreter(
+            this.onInterpreterChanged
+        );
+        (this.configuration.getSettings() as PythonSettings).addListener(
+            "change",
+            this.onSettingsChanged
+        );
 
         // Create our event emitter
         this.closedEvent = new EventEmitter<IHistory>();
@@ -95,7 +121,7 @@ export class History implements IWebPanelMessageListener, IHistory {
         this.loadPromise = this.load();
     }
 
-    public async show() : Promise<void> {
+    public async show(): Promise<void> {
         if (!this.disposed) {
             // Make sure we're loaded first
             await this.loadPromise;
@@ -107,11 +133,16 @@ export class History implements IWebPanelMessageListener, IHistory {
         }
     }
 
-    public get closed() : Event<IHistory> {
+    public get closed(): Event<IHistory> {
         return this.closedEvent.event;
     }
 
-    public async addCode(code: string, file: string, line: number, editor?: TextEditor) : Promise<void> {
+    public async addCode(
+        code: string,
+        file: string,
+        line: number,
+        editor?: TextEditor
+    ): Promise<void> {
         // Start a status item
         const status = this.setStatus(localize.DataScience.executingCode());
 
@@ -124,9 +155,10 @@ export class History implements IWebPanelMessageListener, IHistory {
         };
 
         try {
-
             // Make sure we're loaded first.
-            const statusLoad = this.setStatus(localize.DataScience.startingJupyter());
+            const statusLoad = this.setStatus(
+                localize.DataScience.startingJupyter()
+            );
             try {
                 await this.loadPromise;
             } finally {
@@ -142,17 +174,23 @@ export class History implements IWebPanelMessageListener, IHistory {
             if (this.jupyterServer) {
                 // Before we try to execute code make sure that we have an initial directory set
                 // Normally set via the workspace, but we might not have one here if loading a single loose file
-                await this.jupyterServer.setInitialDirectory(path.dirname(file));
+                await this.jupyterServer.setInitialDirectory(
+                    path.dirname(file)
+                );
 
                 // Attempt to evaluate this cell in the jupyter notebook
-                const observable = this.jupyterServer.executeObservable(code, file, line);
+                const observable = this.jupyterServer.executeObservable(
+                    code,
+                    file,
+                    line
+                );
 
                 // Sign up for cell changes
                 observable.subscribe(
                     (cells: ICell[]) => {
                         this.onAddCodeEvent(cells, editor);
                     },
-                    (error) => {
+                    error => {
                         status.dispose();
                         if (!(error instanceof CancellationError)) {
                             this.applicationShell.showErrorMessage(error);
@@ -161,7 +199,8 @@ export class History implements IWebPanelMessageListener, IHistory {
                     () => {
                         // Indicate executing until this cell is done.
                         status.dispose();
-                    });
+                    }
+                );
 
                 // Wait for the cell to finish
                 await finishedAddingCode.promise;
@@ -179,7 +218,7 @@ export class History implements IWebPanelMessageListener, IHistory {
     // tslint:disable-next-line: no-any no-empty
     public postMessage(type: string, payload?: any) {
         if (this.webPanel) {
-            this.webPanel.postMessage({type: type, payload: payload});
+            this.webPanel.postMessage({ type: type, payload: payload });
         }
     }
 
@@ -241,13 +280,16 @@ export class History implements IWebPanelMessageListener, IHistory {
             default:
                 break;
         }
-    }
+    };
 
-    public async dispose()  {
+    public async dispose() {
         if (!this.disposed) {
             this.disposed = true;
             this.interpreterChangedDisposable.dispose();
-            (this.configuration.getSettings() as PythonSettings).removeListener('change', this.onSettingsChanged);
+            (this.configuration.getSettings() as PythonSettings).removeListener(
+                "change",
+                this.onSettingsChanged
+            );
             this.closedEvent.fire(this);
             if (this.jupyterServer) {
                 await this.jupyterServer.shutdown();
@@ -297,26 +339,32 @@ export class History implements IWebPanelMessageListener, IHistory {
             const yes = localize.DataScience.restartKernelMessageYes();
             const no = localize.DataScience.restartKernelMessageNo();
 
-            this.applicationShell.showInformationMessage(message, yes, no).then(v => {
-                if (v === yes) {
-                    this.restartKernelInternal().catch(e => {
-                        this.applicationShell.showErrorMessage(e);
-                        this.logger.logError(e);
-                    });
-                }
-            });
+            this.applicationShell
+                .showInformationMessage(message, yes, no)
+                .then(v => {
+                    if (v === yes) {
+                        this.restartKernelInternal().catch(e => {
+                            this.applicationShell.showErrorMessage(e);
+                            this.logger.logError(e);
+                        });
+                    }
+                });
         }
     }
 
     @captureTelemetry(Telemetry.Interrupt)
     public interruptKernel() {
         if (this.jupyterServer && !this.restartingKernel) {
-            const status = this.statusProvider.set(localize.DataScience.interruptKernelStatus());
+            const status = this.statusProvider.set(
+                localize.DataScience.interruptKernelStatus()
+            );
 
             const settings = this.configuration.getSettings();
-            const interruptTimeout = settings.datascience.jupyterInterruptTimeout;
+            const interruptTimeout =
+                settings.datascience.jupyterInterruptTimeout;
 
-            this.jupyterServer.interruptKernel(interruptTimeout)
+            this.jupyterServer
+                .interruptKernel(interruptTimeout)
                 .then(result => {
                     status.dispose();
                     if (result === InterruptResult.TimedOut) {
@@ -324,14 +372,18 @@ export class History implements IWebPanelMessageListener, IHistory {
                         const yes = localize.DataScience.restartKernelMessageYes();
                         const no = localize.DataScience.restartKernelMessageNo();
 
-                        this.applicationShell.showInformationMessage(message, yes, no).then(v => {
-                            if (v === yes) {
-                                this.restartKernelInternal().catch(e => {
-                                    this.applicationShell.showErrorMessage(e);
-                                    this.logger.logError(e);
-                                });
-                            }
-                        });
+                        this.applicationShell
+                            .showInformationMessage(message, yes, no)
+                            .then(v => {
+                                if (v === yes) {
+                                    this.restartKernelInternal().catch(e => {
+                                        this.applicationShell.showErrorMessage(
+                                            e
+                                        );
+                                        this.logger.logError(e);
+                                    });
+                                }
+                            });
                     } else if (result === InterruptResult.Restarted) {
                         // Uh-oh, keyboard interrupt crashed the kernel.
                         this.addSysInfo(SysInfoReason.Interrupt).ignoreErrors();
@@ -345,14 +397,17 @@ export class History implements IWebPanelMessageListener, IHistory {
         }
     }
 
-    private async restartKernelInternal() : Promise<void> {
+    private async restartKernelInternal(): Promise<void> {
         this.restartingKernel = true;
 
         // First we need to finish all outstanding cells.
         this.unfinishedCells.forEach(c => {
             c.state = CellState.error;
             if (this.webPanel) {
-                this.webPanel.postMessage({ type: HistoryMessages.FinishCell, payload: c });
+                this.webPanel.postMessage({
+                    type: HistoryMessages.FinishCell,
+                    payload: c
+                });
             }
         });
         this.unfinishedCells = [];
@@ -360,7 +415,9 @@ export class History implements IWebPanelMessageListener, IHistory {
         this.potentiallyUnfinishedStatus = [];
 
         // Set our status
-        const status = this.statusProvider.set(localize.DataScience.restartingKernelStatus());
+        const status = this.statusProvider.set(
+            localize.DataScience.restartingKernelStatus()
+        );
 
         try {
             if (this.jupyterServer) {
@@ -379,17 +436,26 @@ export class History implements IWebPanelMessageListener, IHistory {
         if (this.waitingForExportCells) {
             this.export(payload);
         }
-    }
+    };
 
     // tslint:disable-next-line:no-any
     private updateContexts = (payload?: any) => {
         // This should be called by the python interactive window every
         // time state changes. We use this opportunity to update our
         // extension contexts
-        const interactiveContext = new ContextKey(EditorContexts.HaveInteractive, this.commandManager);
+        const interactiveContext = new ContextKey(
+            EditorContexts.HaveInteractive,
+            this.commandManager
+        );
         interactiveContext.set(!this.disposed).catch();
-        const interactiveCellsContext = new ContextKey(EditorContexts.HaveInteractiveCells, this.commandManager);
-        const redoableContext = new ContextKey(EditorContexts.HaveRedoableCells, this.commandManager);
+        const interactiveCellsContext = new ContextKey(
+            EditorContexts.HaveInteractiveCells,
+            this.commandManager
+        );
+        const redoableContext = new ContextKey(
+            EditorContexts.HaveRedoableCells,
+            this.commandManager
+        );
         if (payload && payload.info) {
             const info = payload.info as IHistoryInfo;
             if (info) {
@@ -403,7 +469,7 @@ export class History implements IWebPanelMessageListener, IHistory {
             interactiveCellsContext.set(false).catch();
             redoableContext.set(false).catch();
         }
-    }
+    };
 
     @captureTelemetry(Telemetry.SubmitCellThroughInput, {}, false)
     // tslint:disable-next-line:no-any
@@ -416,31 +482,35 @@ export class History implements IWebPanelMessageListener, IHistory {
         }
     }
 
-    private setStatus = (message: string) : Disposable => {
+    private setStatus = (message: string): Disposable => {
         const result = this.statusProvider.set(message);
         this.potentiallyUnfinishedStatus.push(result);
         return result;
-    }
+    };
 
-    private logTelemetry = (event : string) => {
+    private logTelemetry = (event: string) => {
         sendTelemetryEvent(event);
-    }
+    };
 
     private sendCell(cell: ICell, message: string) {
         // Remove our ignore count from the execution count prior to sending
         const copy = JSON.parse(JSON.stringify(cell));
-        if (copy.data && copy.data.execution_count !== null && copy.data.execution_count > 0) {
+        if (
+            copy.data &&
+            copy.data.execution_count !== null &&
+            copy.data.execution_count > 0
+        ) {
             const count = cell.data.execution_count as number;
             copy.data.execution_count = count - this.ignoreCount;
         }
         if (this.webPanel) {
-            this.webPanel.postMessage({type: message, payload: copy});
+            this.webPanel.postMessage({ type: message, payload: copy });
         }
     }
 
-    private onAddCodeEvent = (cells : ICell[], editor?: TextEditor) => {
+    private onAddCodeEvent = (cells: ICell[], editor?: TextEditor) => {
         // Send each cell to the other side
-        cells.forEach((cell : ICell) => {
+        cells.forEach((cell: ICell) => {
             if (this.webPanel) {
                 switch (cell.state) {
                     case CellState.init:
@@ -459,10 +529,12 @@ export class History implements IWebPanelMessageListener, IHistory {
                     case CellState.error:
                     case CellState.finished:
                         // Tell the react controls we're done
-                        this.sendCell(cell,  HistoryMessages.FinishCell);
+                        this.sendCell(cell, HistoryMessages.FinishCell);
 
                         // Remove from the list of unfinished cells
-                        this.unfinishedCells = this.unfinishedCells.filter(c => c.id !== cell.id);
+                        this.unfinishedCells = this.unfinishedCells.filter(
+                            c => c.id !== cell.id
+                        );
                         break;
 
                     default:
@@ -475,22 +547,27 @@ export class History implements IWebPanelMessageListener, IHistory {
         if (cells.length > 1 && cells[1].state === CellState.finished) {
             // If we have an active editor, do the edit there so that the user can undo it, otherwise don't bother
             if (editor) {
-                editor.edit((editBuilder) => {
-                    editBuilder.insert(new Position(cells[1].line, 0), '#%%\n');
+                editor.edit(editBuilder => {
+                    editBuilder.insert(new Position(cells[1].line, 0), "#%%\n");
                 });
             }
         }
-    }
+    };
 
     // Post a message to our webpanel and update our new datascience settings
     private onSettingsChanged = () => {
         // Stringify our settings to send over to the panel
-        const dsSettings = JSON.stringify(this.configuration.getSettings().datascience);
+        const dsSettings = JSON.stringify(
+            this.configuration.getSettings().datascience
+        );
 
         if (this.webPanel) {
-            this.webPanel.postMessage({type: HistoryMessages.UpdateSettings, payload: dsSettings});
+            this.webPanel.postMessage({
+                type: HistoryMessages.UpdateSettings,
+                payload: dsSettings
+            });
         }
-    }
+    };
 
     private onInterpreterChanged = async () => {
         // Update our load promise. We need to restart the jupyter server
@@ -501,7 +578,7 @@ export class History implements IWebPanelMessageListener, IHistory {
             }
         }
         this.loadPromise = this.loadJupyterServer(true);
-    }
+    };
 
     @captureTelemetry(Telemetry.GotoSourceCode, {}, false)
     private gotoCode(file: string, line: number) {
@@ -511,13 +588,18 @@ export class History implements IWebPanelMessageListener, IHistory {
     }
 
     private async gotoCodeInternal(file: string, line: number) {
-        let editor : TextEditor | undefined;
+        let editor: TextEditor | undefined;
 
         if (await fs.pathExists(file)) {
-            editor = await this.documentManager.showTextDocument(Uri.file(file), {viewColumn: ViewColumn.One});
+            editor = await this.documentManager.showTextDocument(
+                Uri.file(file),
+                { viewColumn: ViewColumn.One }
+            );
         } else {
             // File URI isn't going to work. Look through the active text documents
-            editor = this.documentManager.visibleTextEditors.find(te => te.document.fileName === file);
+            editor = this.documentManager.visibleTextEditors.find(
+                te => te.document.fileName === file
+            );
             if (editor) {
                 editor.show();
             }
@@ -526,28 +608,31 @@ export class History implements IWebPanelMessageListener, IHistory {
         // If we found the editor change its selection
         if (editor) {
             editor.revealRange(new Range(line, 0, line, 0));
-            editor.selection = new Selection(new Position(line, 0), new Position(line, 0));
+            editor.selection = new Selection(
+                new Position(line, 0),
+                new Position(line, 0)
+            );
         }
     }
 
     @captureTelemetry(Telemetry.ExportNotebook, {}, false)
     // tslint:disable-next-line: no-any no-empty
-    private export (payload: any) {
+    private export(payload: any) {
         if (payload.contents) {
             // Should be an array of cells
             const cells = payload.contents as ICell[];
             if (cells && this.applicationShell) {
-
                 const filtersKey = localize.DataScience.exportDialogFilter();
                 const filtersObject = {};
-                filtersObject[filtersKey] = ['ipynb'];
+                filtersObject[filtersKey] = ["ipynb"];
 
                 // Bring up the open file dialog box
-                this.applicationShell.showSaveDialog(
-                    {
+                this.applicationShell
+                    .showSaveDialog({
                         saveLabel: localize.DataScience.exportDialogTitle(),
                         filters: filtersObject
-                    }).then(async (uri: Uri | undefined) => {
+                    })
+                    .then(async (uri: Uri | undefined) => {
                         if (uri) {
                             await this.exportToFile(cells, uri.fsPath);
                         }
@@ -556,7 +641,7 @@ export class History implements IWebPanelMessageListener, IHistory {
         }
     }
 
-    private exportToFile = async (cells: ICell[], file : string) => {
+    private exportToFile = async (cells: ICell[], file: string) => {
         // Take the list of cells, convert them to a notebook json format and write to disk
         if (this.jupyterServer) {
             let directoryChange;
@@ -565,31 +650,53 @@ export class History implements IWebPanelMessageListener, IHistory {
                 directoryChange = file;
             }
 
-            const notebook = await this.jupyterExporter.translateToNotebook(cells, directoryChange);
+            const notebook = await this.jupyterExporter.translateToNotebook(
+                cells,
+                directoryChange
+            );
 
             try {
                 // tslint:disable-next-line: no-any
-                await this.fileSystem.writeFile(file, JSON.stringify(notebook), {encoding: 'utf8', flag: 'w'});
-                this.applicationShell.showInformationMessage(localize.DataScience.exportDialogComplete().format(file), localize.DataScience.exportOpenQuestion()).then((str : string | undefined) => {
-                    if (str && this.jupyterServer) {
-                        // If the user wants to, open the notebook they just generated.
-                        this.jupyterExecution.spawnNotebook(file).ignoreErrors();
-                    }
-                });
+                await this.fileSystem.writeFile(
+                    file,
+                    JSON.stringify(notebook),
+                    { encoding: "utf8", flag: "w" }
+                );
+                this.applicationShell
+                    .showInformationMessage(
+                        localize.DataScience.exportDialogComplete().format(
+                            file
+                        ),
+                        localize.DataScience.exportOpenQuestion()
+                    )
+                    .then((str: string | undefined) => {
+                        if (str && this.jupyterServer) {
+                            // If the user wants to, open the notebook they just generated.
+                            this.jupyterExecution
+                                .spawnNotebook(file)
+                                .ignoreErrors();
+                        }
+                    });
             } catch (exc) {
-                this.logger.logError('Error in exporting notebook file');
-                this.applicationShell.showInformationMessage(localize.DataScience.exportDialogFailed().format(exc));
+                this.logger.logError("Error in exporting notebook file");
+                this.applicationShell.showInformationMessage(
+                    localize.DataScience.exportDialogFailed().format(exc)
+                );
             }
         }
-    }
+    };
 
-    private loadJupyterServer = async (restart?: boolean) : Promise<void> => {
+    private loadJupyterServer = async (restart?: boolean): Promise<void> => {
         // Startup our jupyter server
         const settings = this.configuration.getSettings();
-        let serverURI: string | undefined = settings.datascience.jupyterServerURI;
+        let serverURI: string | undefined =
+            settings.datascience.jupyterServerURI;
         let workingDir: string | undefined;
-        const useDefaultConfig : boolean | undefined = settings.datascience.useDefaultConfigForJupyter;
-        const status = this.setStatus(localize.DataScience.connectingToJupyter());
+        const useDefaultConfig: boolean | undefined =
+            settings.datascience.useDefaultConfigForJupyter;
+        const status = this.setStatus(
+            localize.DataScience.connectingToJupyter()
+        );
         try {
             // For the local case pass in our URI as undefined, that way connect doesn't have to check the setting
             if (serverURI === Settings.JupyterServerLocalLaunch) {
@@ -597,7 +704,12 @@ export class History implements IWebPanelMessageListener, IHistory {
 
                 workingDir = await this.calculateWorkingDirectory();
             }
-            this.jupyterServer = await this.jupyterExecution.connectToNotebookServer(serverURI, useDefaultConfig, undefined, workingDir);
+            this.jupyterServer = await this.jupyterExecution.connectToNotebookServer(
+                serverURI,
+                useDefaultConfig,
+                undefined,
+                workingDir
+            );
 
             // If this is a restart, show our restart info
             if (restart) {
@@ -608,11 +720,12 @@ export class History implements IWebPanelMessageListener, IHistory {
                 status.dispose();
             }
         }
-    }
+    };
 
     // Calculate the working directory that we should move into when starting up our Jupyter server locally
-    private calculateWorkingDirectory = async (): Promise<string | undefined> =>
-    {
+    private calculateWorkingDirectory = async (): Promise<
+        string | undefined
+    > => {
         let workingDir: string | undefined;
         // For a local launch calculate the working directory that we should switch into
         const settings = this.configuration.getSettings();
@@ -621,7 +734,8 @@ export class History implements IWebPanelMessageListener, IHistory {
         // If we don't have a workspace open the notebookFileRoot seems to often have a random location in it (we use ${workspaceRoot} as default)
         // so only do this setting if we actually have a valid workspace open
         if (fileRoot && this.workspaceService.hasWorkspaceFolders) {
-            const workspaceFolderPath = this.workspaceService.workspaceFolders![0].uri.fsPath;
+            const workspaceFolderPath = this.workspaceService
+                .workspaceFolders![0].uri.fsPath;
             if (path.isAbsolute(fileRoot)) {
                 if (await this.fileSystem.directoryExists(fileRoot)) {
                     // User setting is absolute and exists, use it
@@ -631,33 +745,36 @@ export class History implements IWebPanelMessageListener, IHistory {
                     workingDir = workspaceFolderPath;
                 }
             } else {
-               // fileRoot is a relative path, combine it with the workspace folder
-               const combinedPath = path.join(workspaceFolderPath, fileRoot);
-               if (await this.fileSystem.directoryExists(combinedPath)) {
-                   // combined path exists, use it
-                   workingDir = combinedPath;
-               } else {
-                   // Combined path doesn't exist, use workspace
-                   workingDir = workspaceFolderPath;
-               }
+                // fileRoot is a relative path, combine it with the workspace folder
+                const combinedPath = path.join(workspaceFolderPath, fileRoot);
+                if (await this.fileSystem.directoryExists(combinedPath)) {
+                    // combined path exists, use it
+                    workingDir = combinedPath;
+                } else {
+                    // Combined path doesn't exist, use workspace
+                    workingDir = workspaceFolderPath;
+                }
             }
         }
         return workingDir;
-    }
+    };
 
-    private extractStreamOutput(cell: ICell) : string {
-        let result = '';
-        if (cell.state === CellState.error || cell.state === CellState.finished) {
+    private extractStreamOutput(cell: ICell): string {
+        let result = "";
+        if (
+            cell.state === CellState.error ||
+            cell.state === CellState.finished
+        ) {
             const outputs = cell.data.outputs as nbformat.IOutput[];
             if (outputs) {
                 outputs.forEach(o => {
-                    if (o.output_type === 'stream') {
+                    if (o.output_type === "stream") {
                         const stream = o as nbformat.IStream;
                         result = result.concat(stream.text.toString());
                     } else {
                         const data = o.data;
-                        if (data && data.hasOwnProperty('text/plain')) {
-                            result = result.concat(data['text/plain']);
+                        if (data && data.hasOwnProperty("text/plain")) {
+                            result = result.concat(data["text/plain"]);
                         }
                     }
                 });
@@ -666,87 +783,125 @@ export class History implements IWebPanelMessageListener, IHistory {
         return result;
     }
 
-    private generateSysInfoCell = async (reason: SysInfoReason) : Promise<ICell | undefined> => {
+    private generateSysInfoCell = async (
+        reason: SysInfoReason
+    ): Promise<ICell | undefined> => {
         // Execute the code 'import sys\r\nsys.version' and 'import sys\r\nsys.executable' to get our
         // version and executable
         if (this.jupyterServer) {
             const message = await this.generateSysInfoMessage(reason);
             // tslint:disable-next-line:no-multiline-string
-            const versionCells = await this.jupyterServer.execute(`import sys\r\nsys.version`, 'foo.py', 0);
+            const versionCells = await this.jupyterServer.execute(
+                `import sys\r\nsys.version`,
+                "foo.py",
+                0
+            );
             // tslint:disable-next-line:no-multiline-string
-            const pathCells = await this.jupyterServer.execute(`import sys\r\nsys.executable`, 'foo.py', 0);
+            const pathCells = await this.jupyterServer.execute(
+                `import sys\r\nsys.executable`,
+                "foo.py",
+                0
+            );
             // tslint:disable-next-line:no-multiline-string
-            const notebookVersionCells = await this.jupyterServer.execute(`import notebook\r\nnotebook.version_info`, 'foo.py', 0);
+            const notebookVersionCells = await this.jupyterServer.execute(
+                `import notebook\r\nnotebook.version_info`,
+                "foo.py",
+                0
+            );
 
             // Both should have streamed output
-            const version = versionCells.length > 0 ? this.extractStreamOutput(versionCells[0]).trimQuotes() : '';
-            const notebookVersion = notebookVersionCells.length > 0 ? this.extractStreamOutput(notebookVersionCells[0]).trimQuotes() : '';
-            const pythonPath = versionCells.length > 0 ? this.extractStreamOutput(pathCells[0]).trimQuotes() : '';
+            const version =
+                versionCells.length > 0
+                    ? this.extractStreamOutput(versionCells[0]).trimQuotes()
+                    : "";
+            const notebookVersion =
+                notebookVersionCells.length > 0
+                    ? this.extractStreamOutput(
+                          notebookVersionCells[0]
+                      ).trimQuotes()
+                    : "";
+            const pythonPath =
+                versionCells.length > 0
+                    ? this.extractStreamOutput(pathCells[0]).trimQuotes()
+                    : "";
 
             // Both should influence our ignore count. We don't want them to count against execution
             this.ignoreCount = this.ignoreCount + 3;
 
             // Connection string only for our initial start, not restart or interrupt
-            let connectionString: string = '';
+            let connectionString: string = "";
             if (reason === SysInfoReason.Start) {
-                connectionString = this.generateConnectionInfoString(this.jupyterServer.getConnectionInfo());
+                connectionString = this.generateConnectionInfoString(
+                    this.jupyterServer.getConnectionInfo()
+                );
             }
 
             // Combine this data together to make our sys info
             return {
                 data: {
-                    cell_type: 'sys_info',
+                    cell_type: "sys_info",
                     message: message,
                     version: version,
-                    notebook_version: localize.DataScience.notebookVersionFormat().format(notebookVersion),
+                    notebook_version: localize.DataScience.notebookVersionFormat().format(
+                        notebookVersion
+                    ),
                     path: pythonPath,
                     connection: connectionString,
                     metadata: {},
                     source: []
                 },
                 id: uuid(),
-                file: '',
+                file: "",
                 line: 0,
                 state: CellState.finished
             };
         }
-    }
+    };
 
-    private async generateSysInfoMessage(reason: SysInfoReason): Promise<string> {
+    private async generateSysInfoMessage(
+        reason: SysInfoReason
+    ): Promise<string> {
         switch (reason) {
             case SysInfoReason.Start:
-                    // Message depends upon if ipykernel is supported or not.
-                    if (!(await this.jupyterExecution.isKernelCreateSupported())) {
-                        return localize.DataScience.pythonVersionHeaderNoPyKernel();
-                    }
-                    return localize.DataScience.pythonVersionHeader();
-                    break;
+                // Message depends upon if ipykernel is supported or not.
+                if (!(await this.jupyterExecution.isKernelCreateSupported())) {
+                    return localize.DataScience.pythonVersionHeaderNoPyKernel();
+                }
+                return localize.DataScience.pythonVersionHeader();
+                break;
             case SysInfoReason.Restart:
-                    return localize.DataScience.pythonRestartHeader();
-                    break;
+                return localize.DataScience.pythonRestartHeader();
+                break;
             case SysInfoReason.Interrupt:
-                    return localize.DataScience.pythonInterruptFailedHeader();
-                    break;
+                return localize.DataScience.pythonInterruptFailedHeader();
+                break;
             default:
-                    this.logger.logError('Invalid SysInfoReason');
-                    return '';
-                    break;
+                this.logger.logError("Invalid SysInfoReason");
+                return "";
+                break;
         }
     }
 
-    private generateConnectionInfoString(connInfo: IConnection | undefined): string {
+    private generateConnectionInfoString(
+        connInfo: IConnection | undefined
+    ): string {
         if (!connInfo) {
-            return '';
+            return "";
         }
 
-        const tokenString = connInfo.token.length > 0 ? `?token=${connInfo.token}` : '';
+        const tokenString =
+            connInfo.token.length > 0 ? `?token=${connInfo.token}` : "";
         const urlString = `${connInfo.baseUrl}${tokenString}`;
 
         return `${localize.DataScience.sysInfoURILabel()}${urlString}`;
     }
 
-    private addSysInfo = async (reason: SysInfoReason) : Promise<void> => {
-        if (!this.addedSysInfo || reason === SysInfoReason.Interrupt || reason === SysInfoReason.Restart) {
+    private addSysInfo = async (reason: SysInfoReason): Promise<void> => {
+        if (
+            !this.addedSysInfo ||
+            reason === SysInfoReason.Interrupt ||
+            reason === SysInfoReason.Restart
+        ) {
             this.addedSysInfo = true;
             this.ignoreCount = 0;
 
@@ -756,23 +911,34 @@ export class History implements IWebPanelMessageListener, IHistory {
                 this.onAddCodeEvent([sysInfo]);
             }
         }
-    }
+    };
 
-    private loadWebPanel = async () : Promise<void> => {
+    private loadWebPanel = async (): Promise<void> => {
         // Create our web panel (it's the UI that shows up for the history)
 
         // Figure out the name of our main bundle. Should be in our output directory
-        const mainScriptPath = path.join(EXTENSION_ROOT_DIR, 'out', 'datascience-ui', 'history-react', 'index_bundle.js');
+        const mainScriptPath = path.join(
+            EXTENSION_ROOT_DIR,
+            "out",
+            "datascience-ui",
+            "history-react",
+            "index_bundle.js"
+        );
 
         // Generate a css to put into the webpanel for viewing code
         const css = await this.cssGenerator.generateThemeCss();
 
         // Use this script to create our web view panel. It should contain all of the necessary
         // script to communicate with this class.
-        this.webPanel = this.provider.create(this, localize.DataScience.historyTitle(), mainScriptPath, css);
-    }
+        this.webPanel = this.provider.create(
+            this,
+            localize.DataScience.historyTitle(),
+            mainScriptPath,
+            css
+        );
+    };
 
-    private load = async () : Promise<void> => {
+    private load = async (): Promise<void> => {
         const status = this.setStatus(localize.DataScience.startingJupyter());
 
         // Check to see if we support ipykernel or not
@@ -783,16 +949,36 @@ export class History implements IWebPanelMessageListener, IHistory {
                 status.dispose();
 
                 // Nobody is useable, throw an exception
-                throw new JupyterInstallError(localize.DataScience.jupyterNotSupported(), localize.DataScience.pythonInteractiveHelpLink());
+                throw new JupyterInstallError(
+                    localize.DataScience.jupyterNotSupported(),
+                    localize.DataScience.pythonInteractiveHelpLink()
+                );
             } else {
                 // See if the usable interpreter is not our active one. If so, show a warning
                 const active = await this.interpreterService.getActiveInterpreter();
-                const activeDisplayName = active ? active.displayName : undefined;
+                const activeDisplayName = active
+                    ? active.displayName
+                    : undefined;
                 const activePath = active ? active.path : undefined;
-                const usableDisplayName = usableInterpreter ? usableInterpreter.displayName : undefined;
-                const usablePath = usableInterpreter ? usableInterpreter.path : undefined;
-                if (activePath && usablePath && !this.fileSystem.arePathsSame(activePath, usablePath) && activeDisplayName && usableDisplayName) {
-                    this.applicationShell.showWarningMessage(localize.DataScience.jupyterKernelNotSupportedOnActive().format(activeDisplayName, usableDisplayName));
+                const usableDisplayName = usableInterpreter
+                    ? usableInterpreter.displayName
+                    : undefined;
+                const usablePath = usableInterpreter
+                    ? usableInterpreter.path
+                    : undefined;
+                if (
+                    activePath &&
+                    usablePath &&
+                    !this.fileSystem.arePathsSame(activePath, usablePath) &&
+                    activeDisplayName &&
+                    usableDisplayName
+                ) {
+                    this.applicationShell.showWarningMessage(
+                        localize.DataScience.jupyterKernelNotSupportedOnActive().format(
+                            activeDisplayName,
+                            usableDisplayName
+                        )
+                    );
                 }
             }
 
@@ -801,5 +987,5 @@ export class History implements IWebPanelMessageListener, IHistory {
         } finally {
             status.dispose();
         }
-    }
+    };
 }

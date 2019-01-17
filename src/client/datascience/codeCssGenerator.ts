@@ -1,18 +1,18 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
-'use strict';
-import { JSONArray, JSONObject, JSONValue } from '@phosphor/coreutils';
-import { FindOptions } from 'file-matcher';
-import * as fs from 'fs-extra';
-import { inject, injectable } from 'inversify';
-import * as path from 'path';
-import * as stripJsonComments from 'strip-json-comments';
+"use strict";
+import { JSONArray, JSONObject, JSONValue } from "@phosphor/coreutils";
+import { FindOptions } from "file-matcher";
+import * as fs from "fs-extra";
+import { inject, injectable } from "inversify";
+import * as path from "path";
+import * as stripJsonComments from "strip-json-comments";
 
-import { IWorkspaceService } from '../common/application/types';
-import { ICurrentProcess, ILogger } from '../common/types';
-import { EXTENSION_ROOT_DIR } from '../constants';
-import { Identifiers } from './constants';
-import { ICodeCssGenerator } from './types';
+import { IWorkspaceService } from "../common/application/types";
+import { ICurrentProcess, ILogger } from "../common/types";
+import { EXTENSION_ROOT_DIR } from "../constants";
+import { Identifiers } from "./constants";
+import { ICodeCssGenerator } from "./types";
 
 // This class generates css using the current theme in order to colorize code.
 //
@@ -25,17 +25,22 @@ export class CodeCssGenerator implements ICodeCssGenerator {
     constructor(
         @inject(IWorkspaceService) private workspaceService: IWorkspaceService,
         @inject(ICurrentProcess) private currentProcess: ICurrentProcess,
-        @inject(ILogger) private logger: ILogger) {
-    }
+        @inject(ILogger) private logger: ILogger
+    ) {}
 
     public generateThemeCss = async (): Promise<string> => {
         try {
             // First compute our current theme.
-            const workbench = this.workspaceService.getConfiguration('workbench');
-            const theme = workbench.get<string>('colorTheme');
-            const editor = this.workspaceService.getConfiguration('editor', undefined);
-            const font = editor.get<string>('fontFamily');
-            const fontSize = editor.get<number>('fontSize');
+            const workbench = this.workspaceService.getConfiguration(
+                "workbench"
+            );
+            const theme = workbench.get<string>("colorTheme");
+            const editor = this.workspaceService.getConfiguration(
+                "editor",
+                undefined
+            );
+            const font = editor.get<string>("fontFamily");
+            const fontSize = editor.get<number>("fontSize");
 
             // Then we have to find where the theme resources are loaded from
             if (theme) {
@@ -51,19 +56,21 @@ export class CodeCssGenerator implements ICodeCssGenerator {
             this.logger.logError(err);
         }
 
-        return '';
+        return "";
+    };
+
+    private escapeThemeName(themeName: string): string {
+        return themeName.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
     }
 
-    private escapeThemeName(themeName: string) : string {
-        return themeName.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-    }
-
-    private matchTokenColor(tokenColors: JSONArray, scope: string) : number {
+    private matchTokenColor(tokenColors: JSONArray, scope: string): number {
         return tokenColors.findIndex(entry => {
             if (entry) {
-                const scopes = entry['scope'] as JSONValue;
+                const scopes = entry["scope"] as JSONValue;
                 if (scopes && Array.isArray(scopes)) {
-                    if (scopes.find(v => v !== null && v.toString() === scope)) {
+                    if (
+                        scopes.find(v => v !== null && v.toString() === scope)
+                    ) {
                         return true;
                     }
                 } else if (scopes && scopes.toString() === scope) {
@@ -75,7 +82,11 @@ export class CodeCssGenerator implements ICodeCssGenerator {
         });
     }
 
-    private getScopeColor = (tokenColors: JSONArray, scope: string, secondary?: string): string => {
+    private getScopeColor = (
+        tokenColors: JSONArray,
+        scope: string,
+        secondary?: string
+    ): string => {
         // Search through the scopes on the json object
         let match = this.matchTokenColor(tokenColors, scope);
         if (match < 0 && secondary) {
@@ -83,32 +94,41 @@ export class CodeCssGenerator implements ICodeCssGenerator {
         }
         const found = match >= 0 ? tokenColors[match] : null;
         if (found !== null) {
-            const settings = found['settings'];
+            const settings = found["settings"];
             if (settings && settings !== null) {
-                return settings['foreground'];
+                return settings["foreground"];
             }
         }
 
         // Default to editor foreground
-        return 'var(--vscode-editor-foreground)';
-    }
+        return "var(--vscode-editor-foreground)";
+    };
 
     // tslint:disable-next-line:max-func-body-length
-    private generateCss(theme: string, tokenColors: JSONArray, fontFamily: string, fontSize: number): string {
+    private generateCss(
+        theme: string,
+        tokenColors: JSONArray,
+        fontFamily: string,
+        fontSize: number
+    ): string {
         const escapedThemeName = Identifiers.GeneratedThemeName;
 
         // There's a set of values that need to be found
-        const comment = this.getScopeColor(tokenColors, 'comment');
-        const numeric = this.getScopeColor(tokenColors, 'constant.numeric');
-        const stringColor = this.getScopeColor(tokenColors, 'string');
-        const keyword = this.getScopeColor(tokenColors, 'keyword.control', 'keyword');
-        const operator = this.getScopeColor(tokenColors, 'keyword.operator');
-        const variable = this.getScopeColor(tokenColors, 'variable');
+        const comment = this.getScopeColor(tokenColors, "comment");
+        const numeric = this.getScopeColor(tokenColors, "constant.numeric");
+        const stringColor = this.getScopeColor(tokenColors, "string");
+        const keyword = this.getScopeColor(
+            tokenColors,
+            "keyword.control",
+            "keyword"
+        );
+        const operator = this.getScopeColor(tokenColors, "keyword.operator");
+        const variable = this.getScopeColor(tokenColors, "variable");
         // const atomic = this.getScopeColor(tokenColors, 'atomic');
-        const builtin = this.getScopeColor(tokenColors, 'support.function');
-        const punctuation = this.getScopeColor(tokenColors, 'punctuation');
+        const builtin = this.getScopeColor(tokenColors, "support.function");
+        const punctuation = this.getScopeColor(tokenColors, "punctuation");
 
-        const def = 'var(--vscode-editor-foreground)';
+        const def = "var(--vscode-editor-foreground)";
 
         // Use these values to fill in our format string
         return `
@@ -136,22 +156,27 @@ export class CodeCssGenerator implements ICodeCssGenerator {
         .cm-s-${escapedThemeName} span.cm-string-2 {color: ${stringColor};}
         .cm-s-${escapedThemeName} span.cm-builtin {color: ${builtin};}
 `;
-
     }
 
-    private mergeColors = (colors1: JSONArray, colors2: JSONArray): JSONArray => {
+    private mergeColors = (
+        colors1: JSONArray,
+        colors2: JSONArray
+    ): JSONArray => {
         return [...colors1, ...colors2];
-    }
+    };
 
     private readTokenColors = async (themeFile: string): Promise<JSONArray> => {
-        const tokenContent = await fs.readFile(themeFile, 'utf8');
+        const tokenContent = await fs.readFile(themeFile, "utf8");
         const theme = JSON.parse(stripJsonComments(tokenContent)) as JSONObject;
-        const tokenColors = theme['tokenColors'] as JSONArray;
+        const tokenColors = theme["tokenColors"] as JSONArray;
         if (tokenColors && tokenColors.length > 0) {
             // This theme may include others. If so we need to combine the two together
-            const include = theme ? theme['include'] : undefined;
+            const include = theme ? theme["include"] : undefined;
             if (include && include !== null) {
-                const includePath = path.join(path.dirname(themeFile), include.toString());
+                const includePath = path.join(
+                    path.dirname(themeFile),
+                    include.toString()
+                );
                 const includedColors = await this.readTokenColors(includePath);
                 return this.mergeColors(tokenColors, includedColors);
             }
@@ -161,18 +186,28 @@ export class CodeCssGenerator implements ICodeCssGenerator {
         }
 
         return [];
-    }
+    };
 
     private findTokenColors = async (theme: string): Promise<JSONArray> => {
         const currentExe = this.currentProcess.execPath;
         let currentPath = path.dirname(currentExe);
 
         // Should be somewhere under currentPath/resources/app/extensions inside of a json file
-        let extensionsPath = path.join(currentPath, 'resources', 'app', 'extensions');
+        let extensionsPath = path.join(
+            currentPath,
+            "resources",
+            "app",
+            "extensions"
+        );
         if (!(await fs.pathExists(extensionsPath))) {
             // Might be on mac or linux. try a different path
-            currentPath = path.resolve(currentPath, '../../../..');
-            extensionsPath = path.join(currentPath, 'resources', 'app', 'extensions');
+            currentPath = path.resolve(currentPath, "../../../..");
+            extensionsPath = path.join(
+                currentPath,
+                "resources",
+                "app",
+                "extensions"
+            );
         }
 
         // Search through all of the json files for the theme name
@@ -181,12 +216,14 @@ export class CodeCssGenerator implements ICodeCssGenerator {
             path: extensionsPath,
             recursiveSearch: true,
             fileFilter: {
-                fileNamePattern: '**/*.json',
-                content: new RegExp(`[name|id][',"]:\\s*[',"]${escapedThemeName}[',"]`)
+                fileNamePattern: "**/*.json",
+                content: new RegExp(
+                    `[name|id][',"]:\\s*[',"]${escapedThemeName}[',"]`
+                )
             }
         };
         // tslint:disable-next-line:no-require-imports
-        const fm = require('file-matcher') as typeof import('file-matcher');
+        const fm = require("file-matcher") as typeof import("file-matcher");
         const matcher = new fm.FileMatcher();
 
         try {
@@ -195,34 +232,39 @@ export class CodeCssGenerator implements ICodeCssGenerator {
             // Use the first result if we have one
             if (results && results.length > 0) {
                 // This should be the path to the file. Load it as a json object
-                const contents = await fs.readFile(results[0], 'utf8');
-                const json = JSON.parse(stripJsonComments(contents)) as JSONObject;
+                const contents = await fs.readFile(results[0], "utf8");
+                const json = JSON.parse(
+                    stripJsonComments(contents)
+                ) as JSONObject;
 
                 // There should be a theme colors section
-                const contributes = json['contributes'] as JSONObject;
+                const contributes = json["contributes"] as JSONObject;
 
                 // If no contributes section, see if we have a tokenColors section. This means
                 // this is a direct token colors file
                 if (!contributes) {
-                    const tokenColors = json['tokenColors'] as JSONObject;
+                    const tokenColors = json["tokenColors"] as JSONObject;
                     if (tokenColors) {
                         return await this.readTokenColors(results[0]);
                     }
                 }
 
                 // This should have a themes section
-                const themes = contributes['themes'] as JSONArray;
+                const themes = contributes["themes"] as JSONArray;
 
                 // One of these (it's an array), should have our matching theme entry
                 const index = themes.findIndex(e => {
-                    return e !== null && e['id'] === theme;
+                    return e !== null && e["id"] === theme;
                 });
 
                 const found = index >= 0 ? themes[index] : null;
                 if (found !== null) {
                     // Then the path entry should contain a relative path to the json file with
                     // the tokens in it
-                    const themeFile = path.join(path.dirname(results[0]), found['path']);
+                    const themeFile = path.join(
+                        path.dirname(results[0]),
+                        found["path"]
+                    );
                     return await this.readTokenColors(themeFile);
                 }
             }
@@ -232,7 +274,11 @@ export class CodeCssGenerator implements ICodeCssGenerator {
         }
 
         // We should return a default. The vscode-light theme
-        const defaultThemeFile = path.join(EXTENSION_ROOT_DIR, 'resources', 'defaultTheme.json');
+        const defaultThemeFile = path.join(
+            EXTENSION_ROOT_DIR,
+            "resources",
+            "defaultTheme.json"
+        );
         return this.readTokenColors(defaultThemeFile);
-    }
+    };
 }

@@ -1,22 +1,28 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-'use strict';
+"use strict";
 
-import { IBrowserService } from '../../../common/types';
-import { IServiceContainer } from '../../../ioc/types';
-import { sendTelemetryEvent } from '../../../telemetry';
-import { DIAGNOSTICS_ACTION } from '../../../telemetry/constants';
-import { IDiagnostic } from '../types';
-import { BaseDiagnosticCommand } from './base';
+import { IBrowserService } from "../../../common/types";
+import { IServiceContainer } from "../../../ioc/types";
+import { sendTelemetryEvent } from "../../../telemetry";
+import { DIAGNOSTICS_ACTION } from "../../../telemetry/constants";
+import { IDiagnostic } from "../types";
+import { BaseDiagnosticCommand } from "./base";
 
 export class LaunchBrowserCommand extends BaseDiagnosticCommand {
-    constructor(diagnostic: IDiagnostic, private serviceContainer: IServiceContainer, private url: string) {
+    constructor(
+        diagnostic: IDiagnostic,
+        private serviceContainer: IServiceContainer,
+        private url: string
+    ) {
         super(diagnostic);
     }
     public async invoke(): Promise<void> {
         sendTelemetryEvent(DIAGNOSTICS_ACTION, undefined, { url: this.url });
-        const browser = this.serviceContainer.get<IBrowserService>(IBrowserService);
+        const browser = this.serviceContainer.get<IBrowserService>(
+            IBrowserService
+        );
         return browser.launch(this.url);
     }
 }
