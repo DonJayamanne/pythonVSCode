@@ -7,10 +7,6 @@ from . import pytest, report
 from .errors import UnsupportedToolError, UnsupportedCommandError
 
 
-# Set this to True to pretty-print the output.
-DEBUG=False
-#DEBUG=True
-
 TOOLS = {
     'pytest': {
         '_add_subparser': pytest.add_cli_subparser,
@@ -76,7 +72,9 @@ def main(toolname, cmdname, subargs, toolargs,
         raise UnsupportedCommandError(cmdname)
 
     result = run(toolargs, **subargs)
-    report_result(result, debug=DEBUG)
+    report_result(result,
+                  debug=('-v' in toolargs or '--verbose' in toolargs),
+                  )
 
 
 if __name__ == '__main__':
