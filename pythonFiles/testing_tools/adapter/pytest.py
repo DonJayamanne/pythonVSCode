@@ -61,7 +61,7 @@ class TestCollector(object):
 
     def __init__(self, tests=None):
         if tests is None:
-            tests = DiscoveredTests
+            tests = DiscoveredTests()
         self._tests = tests
         self._started = False
 
