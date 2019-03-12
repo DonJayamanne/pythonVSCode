@@ -18,6 +18,7 @@ REPORTERS = {
     }
 
 
+
 def parse_args(
         argv=sys.argv[1:],
         prog=sys.argv[0],
@@ -36,6 +37,8 @@ def parse_args(
     # Add "run" and "debug" subcommands when ready.
     for cmdname in ['discover']:
         sub = cmdsubs.add_parser(cmdname)
+        if cmdname == 'discover':
+            sub.add_argument('--simple', action='store_true')
         subsubs = sub.add_subparsers(dest='tool')
         for toolname in sorted(TOOLS):
             try:
@@ -51,6 +54,10 @@ def parse_args(
     cmd = ns.pop('cmd')
     if not cmd:
         parser.error('missing command')
+    if cmd == 'discover' and '--simple' in toolargs:
+        toolargs.remove('--simple')
+        ns['simple'] = True
+
     tool = ns.pop('tool')
     if not tool:
         parser.error('missing tool')
@@ -71,9 +78,10 @@ def main(toolname, cmdname, subargs, toolargs,
     except KeyError:
         raise UnsupportedCommandError(cmdname)
 
-    result = run(toolargs, **subargs)
-    report_result(result,
+    parents, result = run(toolargs, **subargs)
+    report_result(result, parents,
                   debug=('-v' in toolargs or '--verbose' in toolargs),
+                  **subargs
                   )
 
 

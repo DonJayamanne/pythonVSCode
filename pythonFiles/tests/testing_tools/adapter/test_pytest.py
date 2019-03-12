@@ -699,10 +699,10 @@ class DiscoveredTestsTests(unittest.TestCase):
             [relfile2 + '::BasicTests',
              ],
             ])
+
         discovered = DiscoveredTests()
         for test, suiteids in zip(alltests, allsuiteids):
             discovered.add_test(test, suiteids)
-
         tests = list(discovered)
         parents = discovered.parents
 
