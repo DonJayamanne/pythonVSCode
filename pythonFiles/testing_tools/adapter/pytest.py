@@ -202,31 +202,35 @@ def _parse_item(item, normcase, pathsep):
     (pytest.Item)
         pytest.Function
     """
-    # Figure out the file.
-    fspath = str(item.fspath)
-    filename, lineno, fullname = item.location
-    if not normcase(fspath).endswith(normcase('/' + filename)):
-        raise NotImplementedError
-    filename = fspath[-len(filename):]
-    testroot = str(item.fspath)[:-len(filename) - 1].rstrip(pathsep)
-    if pathsep in filename:
-        relfile = filename
-    else:
-        relfile = '.' + pathsep + filename
-
     # Figure out the func, suites, and subs.
     (fileid, suites, suiteids, funcname, funcid, parameterized
      ) = _parse_node_id(item.nodeid)
     if item.function.__name__ != funcname:
         # TODO: What to do?
         raise NotImplementedError
-    if fileid != filename:
-        # TODO: What to do?
-        raise NotImplementedError
     if suites:
         testfunc = '.'.join(suites) + '.' + funcname
     else:
         testfunc = funcname
+
+    # Figure out the file.
+    fspath = str(item.fspath)
+    if not fspath.endswith(pathsep + fileid):
+        raise NotImplementedError
+    filename = fspath[-len(fileid):]
+    testroot = str(item.fspath)[:-len(fileid)].rstrip(pathsep)
+    if pathsep in filename:
+        relfile = filename
+    else:
+        relfile = '.' + pathsep + filename
+    srcfile, lineno, fullname = item.location
+    if srcfile != fileid:
+        # pytest supports discovery of tests imported from other
+        # modules.  This is reflected by a different filename
+        # in item.location.
+        # TODO: What to do?
+        #raise NotImplementedError
+        pass
     if fullname != testfunc + parameterized:
         # TODO: What to do?
         raise NotImplementedError
