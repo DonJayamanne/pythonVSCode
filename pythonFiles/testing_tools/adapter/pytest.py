@@ -56,6 +56,9 @@ def _adjust_pytest_args(pytestargs):
 class TestCollector(object):
     """This is a pytest plugin that collects the discovered tests."""
 
+    NORMCASE = staticmethod(os.path.normcase)
+    PATHSEP = os.path.sep
+
     def __init__(self, tests=None):
         if tests is None:
             tests = DiscoveredTests
@@ -69,7 +72,7 @@ class TestCollector(object):
         self._started = True
         self._tests.reset()
         for item in items:
-            test, suiteids = _parse_item(item)
+            test, suiteids = _parse_item(item, self.NORMCASE, self.PATHSEP)
             self._tests.add_test(test, suiteids)
 
     # This hook is not specified in the docs, so we also provide
@@ -88,7 +91,7 @@ class TestCollector(object):
 #            print(' ', item.own_markers)
 #            print(' ', list(item.iter_markers()))
 #            print()
-            test, suiteids = _parse_item(item)
+            test, suiteids = _parse_item(item, self.NORMCASE, self.PATHSEP)
             self._tests.add_test(test, suiteids)
 
 
@@ -134,7 +137,6 @@ class DiscoveredTests(object):
                                       rootdir, parent)
                 self._parents[(rootdir, parentid)] = funcinfo
         elif parent != parentid:
-            print(parent, parentid)
             # TODO: What to do?
             raise NotImplementedError
         return parentid
@@ -189,7 +191,7 @@ class DiscoveredTests(object):
         return final
 
 
-def _parse_item(item):
+def _parse_item(item, normcase, pathsep):
     """
     (pytest.Collector)
         pytest.Session
@@ -201,14 +203,16 @@ def _parse_item(item):
         pytest.Function
     """
     # Figure out the file.
+    fspath = str(item.fspath)
     filename, lineno, fullname = item.location
-    if not str(item.fspath).endswith(os.path.sep + filename):
+    if not normcase(fspath).endswith(normcase('/' + filename)):
         raise NotImplementedError
-    testroot = str(item.fspath)[:-len(filename)].rstrip(os.path.sep)
-    if os.path.sep in filename:
+    filename = fspath[-len(filename):]
+    testroot = str(item.fspath)[:-len(filename) - 1].rstrip(pathsep)
+    if pathsep in filename:
         relfile = filename
     else:
-        relfile = os.path.join('.', filename)
+        relfile = '.' + pathsep + filename
 
     # Figure out the func, suites, and subs.
     (fileid, suites, suiteids, funcname, funcid, parameterized

@@ -433,6 +433,53 @@ class CollectorTests(unittest.TestCase):
                 )),
             ])
 
+    def test_windows(self):
+        stub = Stub()
+        discovered = StubDiscoveredTests(stub)
+        session = StubPytestSession(stub)
+        testroot = r'c:\a\b\c'
+        relfile = r'X\Y\Z\test_eggs.py'
+        session.items = [
+            StubPytestItem(
+                stub,
+                nodeid=relfile + '::SpamTests::test_spam',
+                name='test_spam',
+                location=('x/y/z/test_eggs.py', 12, 'SpamTests.test_spam'),
+                fspath=testroot + '\\' + relfile,
+                function=FakeFunc('test_spam'),
+                ),
+            ]
+        collector = TestCollector(tests=discovered)
+        if os.name != 'nt':
+            def normcase(path):
+                path = path.lower()
+                return path.replace('/', '\\')
+            collector.NORMCASE = normcase
+            collector.PATHSEP = '\\'
+
+        collector.pytest_collection_finish(session)
+
+        self.maxDiff = None
+        self.assertEqual(stub.calls, [
+            ('discovered.reset', None, None),
+            ('discovered.add_test', None, dict(
+                suiteids=[relfile + '::SpamTests'],
+                test=TestInfo(
+                    id=relfile + '::SpamTests::test_spam',
+                    name='test_spam',
+                    path=TestPath(
+                        root=testroot,
+                        relfile=relfile,
+                        func='SpamTests.test_spam',
+                        sub=None,
+                        ),
+                    lineno=12,
+                    markers=None,
+                    parentid=relfile + '::SpamTests',
+                    ),
+                )),
+            ])
+
 
 class DiscoveredTestsTests(unittest.TestCase):
 
