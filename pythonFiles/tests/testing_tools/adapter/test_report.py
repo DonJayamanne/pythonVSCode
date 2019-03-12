@@ -37,6 +37,7 @@ class ReportTests(unittest.TestCase):
                     ),
                 lineno=10,
                 markers=None,
+                parentid='suite#1',
                 ),
             ]
         expected = [{
@@ -114,6 +115,7 @@ class ReportTests(unittest.TestCase):
                     ),
                 lineno=10,
                 markers=None,
+                parentid='suite#1',
                 ),
             TestInfo(
                 id='test#2',
@@ -126,6 +128,7 @@ class ReportTests(unittest.TestCase):
                     ),
                 lineno=21,
                 markers=None,
+                parentid='suite#1',
                 ),
             # under second root folder
             TestInfo(
@@ -139,6 +142,7 @@ class ReportTests(unittest.TestCase):
                     ),
                 lineno=17,
                 markers=None,
+                parentid='suite#2',
                 ),
             TestInfo(
                 id='test#4',
@@ -151,6 +155,7 @@ class ReportTests(unittest.TestCase):
                     ),
                 lineno=8,
                 markers=None,
+                parentid='file#3',
                 ),
             TestInfo(
                 id='test#5',
@@ -163,6 +168,7 @@ class ReportTests(unittest.TestCase):
                     ),
                 lineno=19,
                 markers=['expected-failure'],
+                parentid='suite#3',
                 ),
             TestInfo(
                 id='test#6',
@@ -175,6 +181,7 @@ class ReportTests(unittest.TestCase):
                     ),
                 lineno=35,
                 markers=None,
+                parentid='suite#3',
                 ),
             TestInfo(
                 id='test#7',
@@ -187,6 +194,7 @@ class ReportTests(unittest.TestCase):
                     ),
                 lineno=57,
                 markers=None,
+                parentid='suite#4',
                 ),
             TestInfo(
                 id='test#8',
@@ -199,6 +207,7 @@ class ReportTests(unittest.TestCase):
                     ),
                 lineno=72,
                 markers=None,
+                parentid='suite#3',
                 ),
             TestInfo(
                 id='test#9',
@@ -211,6 +220,7 @@ class ReportTests(unittest.TestCase):
                     ),
                 lineno=15,
                 markers=None,
+                parentid='suite#5',
                 ),
             TestInfo(
                 id='test#10',
@@ -223,6 +233,7 @@ class ReportTests(unittest.TestCase):
                     ),
                 lineno=12,
                 markers=None,
+                parentid='suite#6',
                 ),
             TestInfo(
                 id='test#11',
@@ -235,6 +246,7 @@ class ReportTests(unittest.TestCase):
                     ),
                 lineno=27,
                 markers=None,
+                parentid='suite#7',
                 ),
             ]
         expected = [{

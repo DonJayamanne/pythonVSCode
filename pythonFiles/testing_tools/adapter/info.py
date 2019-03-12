@@ -24,17 +24,17 @@ class TestPath(namedtuple('TestPath', 'root relfile func sub')):
         # self.sub may be None
 
 
-class ParentInfo(namedtuple('ParentInfo', 'id kind name rootid parentid')):
+class ParentInfo(namedtuple('ParentInfo', 'id kind name root parentid')):
 
     KINDS = ('folder', 'file', 'suite', 'function', 'subtest')
 
-    def __new__(cls, id, kind, name, rootid=None, parentid=None):
+    def __new__(cls, id, kind, name, root=None, parentid=None):
         self = super(ParentInfo, cls).__new__(
                 cls,
                 str(id) if id else None,
                 str(kind) if kind else None,
                 str(name) if name else None,
-                str(rootid) if rootid else None,
+                str(root) if root else None,
                 str(parentid) if parentid else None,
                 )
         return self
@@ -48,9 +48,9 @@ class ParentInfo(namedtuple('ParentInfo', 'id kind name rootid parentid')):
             raise ValueError('unsupported kind {!r}'.format(self.kind))
         if self.name is None:
             raise TypeError('missing name')
-        if self.rootid is None:
+        if self.root is None:
             if self.parentid is not None or self.kind != 'folder':
-                raise TypeError('missing rootid')
+                raise TypeError('missing root')
         elif self.parentid is None:
             raise TypeError('missing parentid')
 
@@ -60,7 +60,7 @@ class TestInfo(namedtuple('TestInfo', 'id name path lineno markers parentid')):
 
     MARKERS = ('skip', 'skip-if', 'expected-failure')
 
-    def __new__(cls, id, name, path, lineno, markers, parentid=None):
+    def __new__(cls, id, name, path, lineno, markers, parentid):
         self = super(TestInfo, cls).__new__(
                 cls,
                 str(id) if id else None,
@@ -84,9 +84,9 @@ class TestInfo(namedtuple('TestInfo', 'id name path lineno markers parentid')):
         badmarkers = [m for m in self.markers if m not in self.MARKERS]
         if badmarkers:
             raise ValueError('unsupported markers {!r}'.format(badmarkers))
-        #if self.parentid is None:
-        #    raise TypeError('missing parentid')
+        if self.parentid is None:
+            raise TypeError('missing parentid')
 
     @property
-    def rootid(self):
+    def root(self):
         return self.path.root
