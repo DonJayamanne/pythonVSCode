@@ -55,18 +55,18 @@ class ParentInfo(namedtuple('ParentInfo', 'id kind name root parentid')):
             raise TypeError('missing parentid')
 
 
-class TestInfo(namedtuple('TestInfo', 'id name path lineno markers parentid')):
+class TestInfo(namedtuple('TestInfo', 'id name path source markers parentid')):
     """Info for a single test."""
 
     MARKERS = ('skip', 'skip-if', 'expected-failure')
 
-    def __new__(cls, id, name, path, lineno, markers, parentid):
+    def __new__(cls, id, name, path, source, markers, parentid):
         self = super(TestInfo, cls).__new__(
                 cls,
                 str(id) if id else None,
                 str(name) if name else None,
                 path or None,
-                int(lineno) if lineno or lineno == 0 else None,
+                str(source) if source else None,
                 [str(marker) for marker in markers or ()],
                 str(parentid) if parentid else None,
                 )
@@ -79,8 +79,11 @@ class TestInfo(namedtuple('TestInfo', 'id name path lineno markers parentid')):
             raise TypeError('missing name')
         if self.path is None:
             raise TypeError('missing path')
-        if self.lineno is None:
-            raise TypeError('missing lineno')
+        if self.source is None:
+            raise TypeError('missing source')
+        srcfile, _, lineno = self.source.rpartition(':')
+        if not srcfile or not lineno or int(lineno) < 0:
+            raise ValueError('bad source {!r}'.format(self.source))
         badmarkers = [m for m in self.markers if m not in self.MARKERS]
         if badmarkers:
             raise ValueError('unsupported markers {!r}'.format(badmarkers))
@@ -90,3 +93,11 @@ class TestInfo(namedtuple('TestInfo', 'id name path lineno markers parentid')):
     @property
     def root(self):
         return self.path.root
+
+    @property
+    def srcfile(self):
+        return self.source.rpartition(':')[0]
+
+    @property
+    def lineno(self):
+        return int(self.source.rpartition(':')[-1])

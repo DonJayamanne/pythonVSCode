@@ -228,9 +228,10 @@ def _parse_item(item, normcase, pathsep):
         # pytest supports discovery of tests imported from other
         # modules.  This is reflected by a different filename
         # in item.location.
-        # TODO: What to do?
-        #raise NotImplementedError
         pass
+    else:
+        srcfile = relfile
+    location = '{}:{}'.format(srcfile, lineno)
     if fullname != testfunc + parameterized:
         # TODO: What to do?
         raise NotImplementedError
@@ -267,7 +268,7 @@ def _parse_item(item, normcase, pathsep):
             func=testfunc,
             sub=[parameterized] if parameterized else None,
             ),
-        lineno=lineno,
+        source=location,
         markers=sorted(markers) if markers else None,
         parentid=parentid,
         )

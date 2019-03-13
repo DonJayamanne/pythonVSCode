@@ -41,13 +41,14 @@ def report_discovered(tests, parents, simple=False, debug=False,
         for test in tests:
             # We are guaranteed that the parent was added.
             root = byroot[test.path.root]
-            root['tests'].append({
+            testdata = {
                 'id': test.id,
                 'name': test.name,
-                'lineno': test.lineno,
+                'source': test.source,
                 'markers': test.markers,
                 'parentid': test.parentid,
-                })
+                }
+            root['tests'].append(testdata)
         data = [{
             'rootid': byroot[root]['id'],
             'root': root,
