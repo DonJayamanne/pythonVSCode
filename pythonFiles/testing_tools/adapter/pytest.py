@@ -187,7 +187,8 @@ class DiscoveredTests(object):
         else:
             name = fullsuite
             suiteinfo = ParentInfo(suiteid, 'suite', name, rootdir, fileid)
-            self._parents[(rootdir, suiteid)] = suiteinfo
+            if (rootdir, suiteid) not in self._parents:
+                self._parents[(rootdir, suiteid)] = suiteinfo
         return final
 
 

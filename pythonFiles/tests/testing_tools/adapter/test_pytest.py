@@ -915,39 +915,55 @@ class DiscoveredTestsTests(unittest.TestCase):
                 ),
             ])
 
-    def test_nested_suite(self):
+    def test_nested_suite_simple(self):
         stub = Stub()
         discovered = StubDiscoveredTests(stub)
         session = StubPytestSession(stub)
         testroot = '/a/b/c'.replace('/', os.path.sep)
         relfile = './test_eggs.py'.replace('/', os.path.sep)
-
-        suiteids = [
-                relfile + '::TestSpam',
-                relfile + '::TestSpam::TestHam',
-                relfile + '::TestSpam::TestHam::TestEggs',
-                ]
-        test = TestInfo(
-                id=relfile + '::TestSpam::TestHam::TestEggs::test_spam',
+        alltests = [
+            TestInfo(
+                id=relfile + '::TestOuter::TestInner::test_spam',
                 name='test_spam',
                 path=TestPath(
                     root=testroot,
                     relfile=relfile,
-                    func='TestSpam.TestHam.TestEggs.test_spam',
-                    sub=None,
+                    func='TestOuter.TestInner.test_spam',
                     ),
-                source='{}:{}'.format(relfile, 12),
+                source='{}:{}'.format(relfile, 10),
                 markers=None,
-                parentid=relfile + '::TestSpam::TestHam::TestEggs',
-                )
-        discovered = DiscoveredTests()
+                parentid=relfile + '::TestOuter::TestInner',
+                ),
+            TestInfo(
+                id=relfile + '::TestOuter::TestInner::test_eggs',
+                name='test_eggs',
+                path=TestPath(
+                    root=testroot,
+                    relfile=relfile,
+                    func='TestOuter.TestInner.test_eggs',
+                    ),
+                source='{}:{}'.format(relfile, 21),
+                markers=None,
+                parentid=relfile + '::TestOuter::TestInner',
+                ),
+            ]
+        allsuiteids = [
+            [relfile + '::TestOuter',
+             relfile + '::TestOuter::TestInner',
+             ],
+            [relfile + '::TestOuter',
+             relfile + '::TestOuter::TestInner',
+             ],
+            ]
 
-        discovered.add_test(test, suiteids)
+        discovered = DiscoveredTests()
+        for test, suiteids in zip(alltests, allsuiteids):
+            discovered.add_test(test, suiteids)
         tests = list(discovered)
         parents = discovered.parents
 
         self.maxDiff = None
-        self.assertEqual(tests, [test])
+        self.assertEqual(tests, alltests)
         self.assertEqual(parents, [
             ParentInfo(
                 id='.',
@@ -962,24 +978,17 @@ class DiscoveredTestsTests(unittest.TestCase):
                 parentid=os.path.dirname(relfile),
                 ),
             ParentInfo(
-                id=relfile + '::TestSpam',
+                id=relfile + '::TestOuter',
                 kind='suite',
-                name='TestSpam',
+                name='TestOuter',
                 root=testroot,
                 parentid=relfile,
                 ),
             ParentInfo(
-                id=relfile + '::TestSpam::TestHam',
+                id=relfile + '::TestOuter::TestInner',
                 kind='suite',
-                name='TestHam',
+                name='TestInner',
                 root=testroot,
-                parentid=relfile + '::TestSpam',
-                ),
-            ParentInfo(
-                id=relfile + '::TestSpam::TestHam::TestEggs',
-                kind='suite',
-                name='TestEggs',
-                root=testroot,
-                parentid=relfile + '::TestSpam::TestHam',
+                parentid=relfile + '::TestOuter',
                 ),
             ])
