@@ -434,6 +434,47 @@ class CollectorTests(unittest.TestCase):
                 )),
             ])
 
+    def test_nested_brackets(self):
+        stub = Stub()
+        discovered = StubDiscoveredTests(stub)
+        session = StubPytestSession(stub)
+        testroot = '/a/b/c'.replace('/', os.path.sep)
+        relfile = 'x/y/z/test_eggs.py'.replace('/', os.path.sep)
+        session.items = [
+            StubPytestItem(
+                stub,
+                nodeid=relfile + '::SpamTests::test_spam[a-[b]-c]',
+                name='test_spam[a-[b]-c]',
+                location=(relfile, 12, 'SpamTests.test_spam[a-[b]-c]'),
+                fspath=os.path.join(testroot, relfile),
+                function=FakeFunc('test_spam'),
+                ),
+            ]
+        collector = TestCollector(tests=discovered)
+
+        collector.pytest_collection_finish(session)
+
+        self.maxDiff = None
+        self.assertEqual(stub.calls, [
+            ('discovered.reset', None, None),
+            ('discovered.add_test', None, dict(
+                suiteids=[relfile + '::SpamTests'],
+                test=TestInfo(
+                    id=relfile + '::SpamTests::test_spam[a-[b]-c]',
+                    name='test_spam[a-[b]-c]',
+                    path=TestPath(
+                        root=testroot,
+                        relfile=relfile,
+                        func='SpamTests.test_spam',
+                        sub=['[a-[b]-c]'],
+                        ),
+                    source='{}:{}'.format(relfile, 12),
+                    markers=None,
+                    parentid=relfile + '::SpamTests::test_spam',
+                    ),
+                )),
+            ])
+
     def test_nested_suite(self):
         stub = Stub()
         discovered = StubDiscoveredTests(stub)

@@ -280,7 +280,7 @@ def _parse_item(item, normcase, pathsep):
 def _parse_node_id(nodeid):
     parameterized = ''
     if nodeid.endswith(']'):
-        funcid, sep, parameterized = nodeid.rpartition('[')
+        funcid, sep, parameterized = nodeid.partition('[')
         if not sep:
             # TODO: What to do?
             raise NotImplementedError
