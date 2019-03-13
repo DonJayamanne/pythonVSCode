@@ -45,7 +45,7 @@ def report_discovered(tests, parents, simple=False, debug=False,
                 'id': test.id,
                 'name': test.name,
                 'source': test.source,
-                'markers': test.markers,
+                'markers': test.markers or [],
                 'parentid': test.parentid,
                 }
             root['tests'].append(testdata)
