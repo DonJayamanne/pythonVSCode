@@ -434,6 +434,51 @@ class CollectorTests(unittest.TestCase):
                 )),
             ])
 
+    def test_nested_suite(self):
+        stub = Stub()
+        discovered = StubDiscoveredTests(stub)
+        session = StubPytestSession(stub)
+        testroot = '/a/b/c'.replace('/', os.path.sep)
+        relfile = 'x/y/z/test_eggs.py'.replace('/', os.path.sep)
+        session.items = [
+            StubPytestItem(
+                stub,
+                nodeid=relfile + '::SpamTests::Ham::Eggs::test_spam',
+                name='test_spam',
+                location=(relfile, 12, 'SpamTests.Ham.Eggs.test_spam'),
+                fspath=os.path.join(testroot, relfile),
+                function=FakeFunc('test_spam'),
+                ),
+            ]
+        collector = TestCollector(tests=discovered)
+
+        collector.pytest_collection_finish(session)
+
+        self.maxDiff = None
+        self.assertEqual(stub.calls, [
+            ('discovered.reset', None, None),
+            ('discovered.add_test', None, dict(
+                suiteids=[
+                    relfile + '::SpamTests',
+                    relfile + '::SpamTests::Ham',
+                    relfile + '::SpamTests::Ham::Eggs',
+                    ],
+                test=TestInfo(
+                    id=relfile + '::SpamTests::Ham::Eggs::test_spam',
+                    name='test_spam',
+                    path=TestPath(
+                        root=testroot,
+                        relfile=relfile,
+                        func='SpamTests.Ham.Eggs.test_spam',
+                        sub=None,
+                        ),
+                    source='{}:{}'.format(relfile, 12),
+                    markers=None,
+                    parentid=relfile + '::SpamTests::Ham::Eggs',
+                    ),
+                )),
+            ])
+
     def test_windows(self):
         stub = Stub()
         discovered = StubDiscoveredTests(stub)
@@ -867,5 +912,74 @@ class DiscoveredTestsTests(unittest.TestCase):
                 name='BasicTests',
                 root=testroot2,
                 parentid=relfileid2,
+                ),
+            ])
+
+    def test_nested_suite(self):
+        stub = Stub()
+        discovered = StubDiscoveredTests(stub)
+        session = StubPytestSession(stub)
+        testroot = '/a/b/c'.replace('/', os.path.sep)
+        relfile = './test_eggs.py'.replace('/', os.path.sep)
+
+        suiteids = [
+                relfile + '::TestSpam',
+                relfile + '::TestSpam::TestHam',
+                relfile + '::TestSpam::TestHam::TestEggs',
+                ]
+        test = TestInfo(
+                id=relfile + '::TestSpam::TestHam::TestEggs::test_spam',
+                name='test_spam',
+                path=TestPath(
+                    root=testroot,
+                    relfile=relfile,
+                    func='TestSpam.TestHam.TestEggs.test_spam',
+                    sub=None,
+                    ),
+                source='{}:{}'.format(relfile, 12),
+                markers=None,
+                parentid=relfile + '::TestSpam::TestHam::TestEggs',
+                )
+        discovered = DiscoveredTests()
+
+        discovered.add_test(test, suiteids)
+        tests = list(discovered)
+        parents = discovered.parents
+
+        self.maxDiff = None
+        self.assertEqual(tests, [test])
+        self.assertEqual(parents, [
+            ParentInfo(
+                id='.',
+                kind='folder',
+                name=testroot,
+                ),
+            ParentInfo(
+                id=relfile,
+                kind='file',
+                name=os.path.basename(relfile),
+                root=testroot,
+                parentid=os.path.dirname(relfile),
+                ),
+            ParentInfo(
+                id=relfile + '::TestSpam',
+                kind='suite',
+                name='TestSpam',
+                root=testroot,
+                parentid=relfile,
+                ),
+            ParentInfo(
+                id=relfile + '::TestSpam::TestHam',
+                kind='suite',
+                name='TestHam',
+                root=testroot,
+                parentid=relfile + '::TestSpam',
+                ),
+            ParentInfo(
+                id=relfile + '::TestSpam::TestHam::TestEggs',
+                kind='suite',
+                name='TestEggs',
+                root=testroot,
+                parentid=relfile + '::TestSpam::TestHam',
                 ),
             ])
