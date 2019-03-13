@@ -228,7 +228,8 @@ def _parse_item(item, normcase, pathsep):
         # pytest supports discovery of tests imported from other
         # modules.  This is reflected by a different filename
         # in item.location.
-        pass
+        if normcase(fileid) == normcase(srcfile):
+            srcfile = fileid
     else:
         srcfile = relfile
     location = '{}:{}'.format(srcfile, lineno)

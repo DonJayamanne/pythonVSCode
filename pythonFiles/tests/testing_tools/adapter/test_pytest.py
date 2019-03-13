@@ -474,7 +474,7 @@ class CollectorTests(unittest.TestCase):
                         func='SpamTests.test_spam',
                         sub=None,
                         ),
-                    source='x/y/z/test_eggs.py:{}'.format(12),
+                    source='{}:{}'.format(relfile, 12),
                     markers=None,
                     parentid=relfile + '::SpamTests',
                     ),
