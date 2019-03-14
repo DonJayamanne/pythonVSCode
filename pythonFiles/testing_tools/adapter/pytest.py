@@ -201,7 +201,7 @@ def _parse_item(item, _normcase, _pathsep):
     (pytest.Item)
         pytest.Function
     """
-    _debug_item(item, showsummary=True)
+    #_debug_item(item, showsummary=True)
     kind, _ = _get_item_kind(item)
     # Figure out the func, suites, and subs.
     (fileid, suiteids, suites, funcid, basename, parameterized
