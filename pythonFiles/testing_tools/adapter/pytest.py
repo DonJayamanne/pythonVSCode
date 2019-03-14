@@ -19,13 +19,13 @@ def add_cli_subparser(cmd, name, parent):
     return parser
 
 
-def discover(pytestargs=None, simple=False,
-             _pytest_main=pytest.main, _plugin=None):
+def discover(pytestargs=None, show_pytest=False,
+             _pytest_main=pytest.main, _plugin=None, **kwargs):
     """Return the results of test discovery."""
     if _plugin is None:
         _plugin = TestCollector()
 
-    pytestargs = _adjust_pytest_args(pytestargs)
+    pytestargs = _adjust_pytest_args(pytestargs, show_pytest=show_pytest)
     ec = _pytest_main(pytestargs, [_plugin])
     if ec != 0:
         raise Exception('pytest discovery failed (exit code {})'.format(ec))
@@ -42,11 +42,12 @@ def discover(pytestargs=None, simple=False,
             )
 
 
-def _adjust_pytest_args(pytestargs):
+def _adjust_pytest_args(pytestargs, show_pytest):
     pytestargs = list(pytestargs) if pytestargs else []
     # Duplicate entries should be okay.
     pytestargs.insert(0, '--collect-only')
-    pytestargs.insert(0, '-pno:terminal')
+    if not show_pytest:
+        pytestargs.insert(0, '-pno:terminal')
     # TODO: pull in code from:
     #  src/client/unittests/pytest/services/discoveryService.ts
     #  src/client/unittests/pytest/services/argsService.ts

@@ -39,6 +39,7 @@ def parse_args(
         sub = cmdsubs.add_parser(cmdname)
         if cmdname == 'discover':
             sub.add_argument('--simple', action='store_true')
+            sub.add_argument('--show-pytest', action='store_true')
         subsubs = sub.add_subparsers(dest='tool')
         for toolname in sorted(TOOLS):
             try:
@@ -54,9 +55,13 @@ def parse_args(
     cmd = ns.pop('cmd')
     if not cmd:
         parser.error('missing command')
-    if cmd == 'discover' and '--simple' in toolargs:
-        toolargs.remove('--simple')
-        ns['simple'] = True
+    if cmd == 'discover':
+        if '--simple' in toolargs:
+            toolargs.remove('--simple')
+            ns['simple'] = True
+        if '--show-pytest' in toolargs:
+            toolargs.remove('--show-pytest')
+            ns['show_pytest'] = True
 
     tool = ns.pop('tool')
     if not tool:

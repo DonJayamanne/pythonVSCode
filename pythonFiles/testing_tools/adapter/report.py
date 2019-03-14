@@ -3,8 +3,8 @@ from __future__ import print_function
 import json
 
 
-def report_discovered(tests, parents, simple=False, debug=False,
-                      _send=print):
+def report_discovered(tests, parents, debug=False, simple=False,
+                      _send=print, **kwargs):
     """Serialize the discovered tests and write to stdout."""
     if simple:
         data = [{
