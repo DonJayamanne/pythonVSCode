@@ -205,38 +205,54 @@ def _parse_item(item, _normcase, _pathsep):
     (pytest.Item)
         pytest.Function
     """
+    #_debug_item(item, showsummary=True)
+    kind, _ = _get_item_kind(item)
     # Figure out the func, suites, and subs.
-    (fileid, suites, suiteids, funcname, funcid, parameterized
-     ) = _parse_node_id(item.nodeid)
-    if item.function.__name__ != funcname:
-        # TODO: What to do?
-        raise NotImplementedError
-    if suites:
-        testfunc = '.'.join(suites) + '.' + funcname
-    else:
-        testfunc = funcname
+    (fileid, suiteids, suites, funcid, basename, parameterized
+     ) = _parse_node_id(item.nodeid, kind)
+    if kind == 'function':
+        funcname = basename
+        if funcid and item.function.__name__ != funcname:
+            # TODO: What to do?
+            raise NotImplementedError
+        if suites:
+            testfunc = '.'.join(suites) + '.' + funcname
+        else:
+            testfunc = funcname
+    elif kind == 'doctest':
+        testfunc = None
+        funcname = None
 
     # Figure out the file.
     fspath = str(item.fspath)
-    if not fspath.endswith(pathsep + fileid):
+    if not fspath.endswith(_pathsep + fileid):
         raise NotImplementedError
     filename = fspath[-len(fileid):]
-    testroot = str(item.fspath)[:-len(fileid)].rstrip(pathsep)
-    if pathsep in filename:
+    testroot = str(item.fspath)[:-len(fileid)].rstrip(_pathsep)
+    if _pathsep in filename:
         relfile = filename
     else:
-        relfile = '.' + pathsep + filename
+        relfile = '.' + _pathsep + filename
     srcfile, lineno, fullname = item.location
     if srcfile != fileid:
         # pytest supports discovery of tests imported from other
         # modules.  This is reflected by a different filename
         # in item.location.
-        # TODO: What to do?
-        #raise NotImplementedError
-        pass
-    if fullname != testfunc + parameterized:
-        # TODO: What to do?
-        raise NotImplementedError
+        if _normcase(fileid) == _normcase(srcfile):
+            srcfile = fileid
+    else:
+        srcfile = relfile
+    location = '{}:{}'.format(srcfile, lineno)
+    if kind == 'function':
+        if testfunc and fullname != testfunc + parameterized:
+            print(fullname, testfunc)
+            # TODO: What to do?
+            raise NotImplementedError
+    elif kind == 'doctest':
+        if testfunc and fullname != testfunc + parameterized:
+            print(fullname, testfunc)
+            # TODO: What to do?
+            raise NotImplementedError
 
     # Sort out the parent.
     if parameterized:
