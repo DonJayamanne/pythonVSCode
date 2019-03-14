@@ -450,6 +450,117 @@ class CollectorTests(unittest.TestCase):
                 )),
             ])
 
+    def test_doctest(self):
+        stub = Stub()
+        discovered = StubDiscoveredTests(stub)
+        session = StubPytestSession(stub)
+        testroot = '/a/b/c'.replace('/', os.path.sep)
+        doctestfile = 'x/test_doctest.txt'.replace('/', os.path.sep)
+        relfile = 'x/y/z/test_eggs.py'.replace('/', os.path.sep)
+        session.items = [
+            StubPytestItem(
+                stub,
+                nodeid=doctestfile + '::test_doctest.txt',
+                name='test_doctest.txt',
+                location=(doctestfile, 0, '[doctest] test_doctest.txt'),
+                fspath=os.path.join(testroot, doctestfile),
+                kind='DoctestItem',
+                ),
+            # With --doctest-modules
+            StubPytestItem(
+                stub,
+                nodeid=relfile + '::test_eggs',
+                name='test_eggs',
+                location=(relfile, 0, '[doctest] test_eggs'),
+                fspath=os.path.join(testroot, relfile),
+                kind='DoctestItem',
+                ),
+            StubPytestItem(
+                stub,
+                nodeid=relfile + '::test_eggs.TestSpam',
+                name='test_eggs.TestSpam',
+                location=(relfile, 12, '[doctest] test_eggs.TestSpam'),
+                fspath=os.path.join(testroot, relfile),
+                kind='DoctestItem',
+                ),
+            StubPytestItem(
+                stub,
+                nodeid=relfile + '::test_eggs.TestSpam.TestEggs',
+                name='test_eggs.TestSpam.TestEggs',
+                location=(relfile, 27, '[doctest] test_eggs.TestSpam.TestEggs'),
+                fspath=os.path.join(testroot, relfile),
+                kind='DoctestItem',
+                ),
+            ]
+        collector = TestCollector(tests=discovered)
+
+        collector.pytest_collection_finish(session)
+
+        self.maxDiff = None
+        self.assertEqual(stub.calls, [
+            ('discovered.reset', None, None),
+            ('discovered.add_test', None, dict(
+                suiteids=[],
+                test=TestInfo(
+                    id=doctestfile + '::test_doctest.txt',
+                    name='test_doctest.txt',
+                    path=TestPath(
+                        root=testroot,
+                        relfile=doctestfile,
+                        func=None,
+                        ),
+                    source='{}:{}'.format(doctestfile, 0),
+                    markers=[],
+                    parentid=doctestfile,
+                    ),
+                )),
+            ('discovered.add_test', None, dict(
+                suiteids=[],
+                test=TestInfo(
+                    id=relfile + '::test_eggs',
+                    name='test_eggs',
+                    path=TestPath(
+                        root=testroot,
+                        relfile=relfile,
+                        func=None,
+                        ),
+                    source='{}:{}'.format(relfile, 0),
+                    markers=[],
+                    parentid=relfile,
+                    ),
+                )),
+            ('discovered.add_test', None, dict(
+                suiteids=[],
+                test=TestInfo(
+                    id=relfile + '::test_eggs.TestSpam',
+                    name='test_eggs.TestSpam',
+                    path=TestPath(
+                        root=testroot,
+                        relfile=relfile,
+                        func=None,
+                        ),
+                    source='{}:{}'.format(relfile, 12),
+                    markers=[],
+                    parentid=relfile,
+                    ),
+                )),
+            ('discovered.add_test', None, dict(
+                suiteids=[],
+                test=TestInfo(
+                    id=relfile + '::test_eggs.TestSpam.TestEggs',
+                    name='test_eggs.TestSpam.TestEggs',
+                    path=TestPath(
+                        root=testroot,
+                        relfile=relfile,
+                        func=None,
+                        ),
+                    source='{}:{}'.format(relfile, 27),
+                    markers=[],
+                    parentid=relfile,
+                    ),
+                )),
+            ])
+
     def test_nested_brackets(self):
         stub = Stub()
         discovered = StubDiscoveredTests(stub)
