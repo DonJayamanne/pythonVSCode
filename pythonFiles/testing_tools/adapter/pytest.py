@@ -122,6 +122,9 @@ class DiscoveredTests(object):
         fileid = self._ensure_file(path.root, path.relfile)
         rootdir = path.root
 
+        if not path.func:
+            return parentid
+
         fullsuite, _, funcname = path.func.rpartition('.')
         suiteid = self._ensure_suites(fullsuite, rootdir, fileid, suiteids)
         parent = suiteid if suiteid else fileid

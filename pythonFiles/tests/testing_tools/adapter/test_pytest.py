@@ -1083,6 +1083,114 @@ class DiscoveredTestsTests(unittest.TestCase):
                 ),
             ])
 
+    def test_doctest(self):
+        stub = Stub()
+        testroot = '/a/b/c'.replace('/', os.path.sep)
+        doctestfile = './x/test_doctest.txt'.replace('/', os.path.sep)
+        relfile = './x/y/z/test_eggs.py'.replace('/', os.path.sep)
+        alltests = [
+            TestInfo(
+                id=doctestfile + '::test_doctest.txt',
+                name='test_doctest.txt',
+                path=TestPath(
+                    root=testroot,
+                    relfile=doctestfile,
+                    func=None,
+                    ),
+                source='{}:{}'.format(doctestfile, 0),
+                markers=[],
+                parentid=doctestfile,
+                ),
+            # With --doctest-modules
+            TestInfo(
+                id=relfile + '::test_eggs',
+                name='test_eggs',
+                path=TestPath(
+                    root=testroot,
+                    relfile=relfile,
+                    func=None,
+                    ),
+                source='{}:{}'.format(relfile, 0),
+                markers=[],
+                parentid=relfile,
+                ),
+            TestInfo(
+                id=relfile + '::test_eggs.TestSpam',
+                name='test_eggs.TestSpam',
+                path=TestPath(
+                    root=testroot,
+                    relfile=relfile,
+                    func=None,
+                    ),
+                source='{}:{}'.format(relfile, 12),
+                markers=[],
+                parentid=relfile,
+                ),
+            TestInfo(
+                id=relfile + '::test_eggs.TestSpam.TestEggs',
+                name='test_eggs.TestSpam.TestEggs',
+                path=TestPath(
+                    root=testroot,
+                    relfile=relfile,
+                    func=None,
+                    ),
+                source='{}:{}'.format(relfile, 27),
+                markers=[],
+                parentid=relfile,
+                ),
+            ]
+        discovered = DiscoveredTests()
+
+        for test in alltests:
+            discovered.add_test(test, [])
+        tests = list(discovered)
+        parents = discovered.parents
+
+        self.maxDiff = None
+        self.assertEqual(tests, alltests)
+        self.assertEqual(parents, [
+            ParentInfo(
+                id='.',
+                kind='folder',
+                name=testroot,
+                ),
+            ParentInfo(
+                id='./x'.replace('/', os.path.sep),
+                kind='folder',
+                name='x',
+                root=testroot,
+                parentid='.',
+                ),
+            ParentInfo(
+                id=doctestfile,
+                kind='file',
+                name=os.path.basename(doctestfile),
+                root=testroot,
+                parentid=os.path.dirname(doctestfile),
+                ),
+            ParentInfo(
+                id='./x/y'.replace('/', os.path.sep),
+                kind='folder',
+                name='y',
+                root=testroot,
+                parentid='./x'.replace('/', os.path.sep),
+                ),
+            ParentInfo(
+                id='./x/y/z'.replace('/', os.path.sep),
+                kind='folder',
+                name='z',
+                root=testroot,
+                parentid='./x/y'.replace('/', os.path.sep),
+                ),
+            ParentInfo(
+                id=relfile,
+                kind='file',
+                name=os.path.basename(relfile),
+                root=testroot,
+                parentid=os.path.dirname(relfile),
+                ),
+            ])
+
     def test_nested_suite_simple(self):
         stub = Stub()
         discovered = StubDiscoveredTests(stub)
