@@ -19,9 +19,8 @@ class TestPath(namedtuple('TestPath', 'root relfile func sub')):
             raise TypeError('missing id')
         if self.relfile is None:
             raise TypeError('missing kind')
-        if self.func is None:
-            raise TypeError('missing func')
-        # self.sub may be None
+        # self.func may be None (e.g. for doctests).
+        # self.sub may be None.
 
 
 class ParentInfo(namedtuple('ParentInfo', 'id kind name root parentid')):
