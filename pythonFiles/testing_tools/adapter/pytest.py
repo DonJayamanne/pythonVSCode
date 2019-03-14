@@ -322,20 +322,24 @@ def _get_item_kind(item):
 # useful for debugging
 
 def _debug_item(item, showsummary=False):
-    # TODO: Make a PytestTest class to wrap the item?
-    summary = {
-            'id': item.nodeid,
-            'kind': _get_item_kind(item),
-            'class': item.__class__.__name__,
-            'name': item.name,
-            'fspath': item.fspath,
-            'location': item.location,
-            'func': getattr(item, 'function', None),
-            'markers': item.own_markers,
-            #'markers': list(item.iter_markers()),
-            'props': item.user_properties,
-            'attrnames': dir(item),
-            }
+    item._debugging = True
+    try:
+        # TODO: Make a PytestTest class to wrap the item?
+        summary = {
+                'id': item.nodeid,
+                'kind': _get_item_kind(item),
+                'class': item.__class__.__name__,
+                'name': item.name,
+                'fspath': item.fspath,
+                'location': item.location,
+                'func': getattr(item, 'function', None),
+                'markers': item.own_markers,
+                #'markers': list(item.iter_markers()),
+                'props': item.user_properties,
+                'attrnames': dir(item),
+                }
+    finally:
+        item._debugging = False
 
     if showsummary:
         print(item.nodeid)

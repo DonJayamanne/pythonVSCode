@@ -104,14 +104,30 @@ class FakeMarker(object):
 
 class StubPytestItem(StubProxy):
 
+    kind = 'Function'
+
+    _debugging = False
+    _hasfunc = True
+
     def __init__(self, stub=None, **attrs):
         super(StubPytestItem, self).__init__(stub, 'pytest.Item')
+        if attrs.get('function') is None:
+            attrs.pop('function', None)
+            self._hasfunc = False
+
+        attrs.setdefault('user_properties', [])
+
         self.__dict__.update(attrs)
+
         if 'own_markers' not in attrs:
             self.own_markers = ()
 
     def __getattr__(self, name):
-        self.add_call(name + ' (attr)', None, None)
+        if not self._debugging:
+            self.add_call(name + ' (attr)', None, None)
+        if name == 'function':
+            if not self._hasfunc:
+                raise AttributeError(name)
         def func(*args, **kwargs):
             self.add_call(name, args or None, kwargs or None)
         return func
