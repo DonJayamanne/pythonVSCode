@@ -84,13 +84,8 @@ class TestCollector(object):
         except AttributeError:
             # TODO: Is there an alternative?
             return
-#        print(', '.join(k for k in dir(items[0]) if k[0].islower()))
         self._tests.reset()
         for item in items:
-#            print(' ', item.user_properties)
-#            print(' ', item.own_markers)
-#            print(' ', list(item.iter_markers()))
-#            print()
             test, suiteids = _parse_item(item, self.NORMCASE, self.PATHSEP)
             self._tests.add_test(test, suiteids)
 
@@ -302,3 +297,71 @@ def _parse_node_id(nodeid):
     fileid = parentid
 
     return fileid, suites, suiteids, funcname, funcid, parameterized
+
+
+def _get_item_kind(item):
+    """Return (kind, isunittest) for the given item."""
+    try:
+        itemtype = item.kind
+    except AttributeError:
+        itemtype = item.__class__.__name__
+
+    if itemtype == 'DoctestItem':
+        return 'doctest', False
+    elif itemtype == 'Function':
+        return 'function', False
+    elif itemtype == 'TestCaseFunction':
+        return 'function', True
+    elif item.hasattr('function'):
+        return 'function', False
+    else:
+        return None, False
+
+
+#############################
+# useful for debugging
+
+def _debug_item(item, showsummary=False):
+    # TODO: Make a PytestTest class to wrap the item?
+    summary = {
+            'id': item.nodeid,
+            'kind': _get_item_kind(item),
+            'class': item.__class__.__name__,
+            'name': item.name,
+            'fspath': item.fspath,
+            'location': item.location,
+            'func': getattr(item, 'function', None),
+            'markers': item.own_markers,
+            #'markers': list(item.iter_markers()),
+            'props': item.user_properties,
+            'attrnames': dir(item),
+            }
+
+    if showsummary:
+        print(item.nodeid)
+        for key in ('kind', 'class', 'name', 'fspath', 'location', 'func',
+                    'markers', 'props'):
+            print('  {:12} {}'.format(key, summary[key]))
+        print()
+
+    return summary
+
+
+def _group_attr_names(attrnames):
+    grouped = {
+            'dunder': [n for n in attrnames
+                       if n.startswith('__') and n.endswith('__')],
+            'private': [n for n in attrnames if n.startswith('_')],
+            'constants': [n for n in attrnames if n.isupper()],
+            'classes': [n for n in attrnames
+                        if n == n.capitalize() and not n.isupper()],
+            'vars': [n for n in attrnames if n.islower()],
+            }
+    grouped['other'] = [n for n in attrnames
+                          if n not in grouped['dunder']
+                          and n not in grouped['private']
+                          and n not in grouped['constants']
+                          and n not in grouped['classes']
+                          and n not in grouped['vars']
+                          ]
+    return grouped
