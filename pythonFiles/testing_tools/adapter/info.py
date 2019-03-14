@@ -54,12 +54,13 @@ class ParentInfo(namedtuple('ParentInfo', 'id kind name root parentid')):
             raise TypeError('missing parentid')
 
 
-class TestInfo(namedtuple('TestInfo', 'id name path source markers parentid')):
+class TestInfo(namedtuple('TestInfo', 'id name path source markers parentid kind')):
     """Info for a single test."""
 
     MARKERS = ('skip', 'skip-if', 'expected-failure')
+    KINDS = ('function', 'doctest')
 
-    def __new__(cls, id, name, path, source, markers, parentid):
+    def __new__(cls, id, name, path, source, markers, parentid, kind='function'):
         self = super(TestInfo, cls).__new__(
                 cls,
                 str(id) if id else None,
@@ -68,6 +69,7 @@ class TestInfo(namedtuple('TestInfo', 'id name path source markers parentid')):
                 str(source) if source else None,
                 [str(marker) for marker in markers or ()],
                 str(parentid) if parentid else None,
+                str(kind) if kind else None,
                 )
         return self
 
@@ -80,14 +82,21 @@ class TestInfo(namedtuple('TestInfo', 'id name path source markers parentid')):
             raise TypeError('missing path')
         if self.source is None:
             raise TypeError('missing source')
-        srcfile, _, lineno = self.source.rpartition(':')
-        if not srcfile or not lineno or int(lineno) < 0:
-            raise ValueError('bad source {!r}'.format(self.source))
-        badmarkers = [m for m in self.markers if m not in self.MARKERS]
-        if badmarkers:
-            raise ValueError('unsupported markers {!r}'.format(badmarkers))
+        else:
+            srcfile, _, lineno = self.source.rpartition(':')
+            if not srcfile or not lineno or int(lineno) < 0:
+                raise ValueError('bad source {!r}'.format(self.source))
+        if self.markers:
+            badmarkers = [m for m in self.markers if m not in self.MARKERS]
+            if badmarkers:
+                raise ValueError('unsupported markers {!r}'.format(badmarkers))
         if self.parentid is None:
             raise TypeError('missing parentid')
+        if self.kind is None:
+            raise TypeError('missing kind')
+        elif self.kind not in self.KINDS:
+            raise ValueError('unsupported kind {!r}'.format(self.kind))
+
 
     @property
     def root(self):

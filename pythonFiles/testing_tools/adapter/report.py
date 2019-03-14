@@ -44,6 +44,8 @@ def report_discovered(tests, parents, simple=False, debug=False,
             testdata = {
                 'id': test.id,
                 'name': test.name,
+                # TODO: Add a "kind" field
+                #  (e.g. "unittest", "function", "doctest")
                 'source': test.source,
                 'markers': test.markers or [],
                 'parentid': test.parentid,
