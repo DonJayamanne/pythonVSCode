@@ -66,7 +66,7 @@ class StubDiscoveredTests(StubProxy):
     NOT_FOUND = object()
 
     def __init__(self, stub=None):
-        super().__init__(stub, 'discovered')
+        super(StubDiscoveredTests, self).__init__(stub, 'discovered')
         self.return_items = []
         self.return_parents = []
 
