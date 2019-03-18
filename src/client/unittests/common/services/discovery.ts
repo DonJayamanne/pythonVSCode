@@ -11,26 +11,7 @@ import { EXTENSION_ROOT_DIR } from '../../../constants';
 import { captureTelemetry } from '../../../telemetry';
 import { EventName } from '../../../telemetry/constants';
 import { ITestDiscoveryService, TestDiscoveryOptions, Tests } from '../types';
-import { ITestDiscoveredTestParser } from './types';
-
-type TestContainer = {
-    id: string;
-    kind: 'file' | 'folder' | 'suite' | 'function';
-    name: string;
-    parentid: string;
-};
-type TestItem = {
-    id: string;
-    name: string;
-    source: string;
-    parentid: string;
-};
-type DiscoveredTests = {
-    rootid: string;
-    root: string;
-    parents: TestContainer[];
-    tests: TestItem[];
-};
+import { DiscoveredTests, ITestDiscoveredTestParser } from './types';
 
 const DISCOVERY_FILE = path.join(EXTENSION_ROOT_DIR, 'pythonFiles', 'testing_tools', 'run_adapter.py');
 
@@ -40,12 +21,15 @@ export class TestsDiscoveryService implements ITestDiscoveryService {
         @inject(ITestDiscoveredTestParser) private readonly parser: ITestDiscoveredTestParser) { }
     @captureTelemetry(EventName.UNITTEST_DISCOVER_WITH_PYCODE, undefined, true)
     public async discoverTests(options: TestDiscoveryOptions): Promise<Tests> {
-        const output = await this.exec(options);
+        let output: ExecutionResult<string> | undefined;
         try {
+            output = await this.exec(options);
             const discoveredTests = JSON.parse(output.stdout) as DiscoveredTests[];
             return this.parser.parse(options.workspaceFolder, discoveredTests);
         } catch (ex) {
-            traceError('Failed to parse discovered Test', new Error(output.stdout));
+            if (output) {
+                traceError('Failed to parse discovered Test', new Error(output.stdout));
+            }
             traceError('Failed to parse discovered Test', ex);
             throw ex;
         }
