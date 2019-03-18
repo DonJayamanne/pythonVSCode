@@ -8,6 +8,8 @@ import * as path from 'path';
 import { traceError } from '../../../common/logger';
 import { ExecutionFactoryCreateWithEnvironmentOptions, ExecutionResult, IPythonExecutionFactory, SpawnOptions } from '../../../common/process/types';
 import { EXTENSION_ROOT_DIR } from '../../../constants';
+import { captureTelemetry } from '../../../telemetry';
+import { EventName } from '../../../telemetry/constants';
 import { ITestDiscoveryService, TestDiscoveryOptions, Tests } from '../types';
 import { ITestDiscoveredTestParser } from './types';
 
@@ -36,13 +38,15 @@ const DISCOVERY_FILE = path.join(EXTENSION_ROOT_DIR, 'pythonFiles', 'testing_too
 export class TestsDiscoveryService implements ITestDiscoveryService {
     constructor(@inject(IPythonExecutionFactory) private readonly execFactory: IPythonExecutionFactory,
         @inject(ITestDiscoveredTestParser) private readonly parser: ITestDiscoveredTestParser) { }
+    @captureTelemetry(EventName.UNITTEST_DISCOVER_WITH_PYCODE, undefined, true)
     public async discoverTests(options: TestDiscoveryOptions): Promise<Tests> {
         const output = await this.exec(options);
         try {
             const discoveredTests = JSON.parse(output.stdout) as DiscoveredTests[];
             return this.parser.parse(options.workspaceFolder, discoveredTests);
         } catch (ex) {
-            traceError(`Failed to parse discovered Test, output received = ${output.stdout}`, ex);
+            traceError('Failed to parse discovered Test', new Error(output.stdout));
+            traceError('Failed to parse discovered Test', ex);
             throw ex;
         }
     }
