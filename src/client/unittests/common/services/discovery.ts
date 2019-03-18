@@ -5,6 +5,7 @@
 
 import { inject, injectable } from 'inversify';
 import * as path from 'path';
+import { traceError } from '../../../common/logger';
 import { ExecutionFactoryCreateWithEnvironmentOptions, ExecutionResult, IPythonExecutionFactory, SpawnOptions } from '../../../common/process/types';
 import { EXTENSION_ROOT_DIR } from '../../../constants';
 import { ITestDiscoveryService, TestDiscoveryOptions, Tests } from '../types';
@@ -37,8 +38,13 @@ export class TestsDiscoveryService implements ITestDiscoveryService {
         @inject(ITestDiscoveredTestParser) private readonly parser: ITestDiscoveredTestParser) { }
     public async discoverTests(options: TestDiscoveryOptions): Promise<Tests> {
         const output = await this.exec(options);
-        const discoveredTests = JSON.parse(output.stdout) as DiscoveredTests[];
-        return this.parser.parse(options.workspaceFolder, discoveredTests);
+        try {
+            const discoveredTests = JSON.parse(output.stdout) as DiscoveredTests[];
+            return this.parser.parse(options.workspaceFolder, discoveredTests);
+        } catch (ex) {
+            traceError(`Failed to parse discovered Test, output received = ${output.stdout}`, ex);
+            throw ex;
+        }
     }
     protected async exec(options: TestDiscoveryOptions): Promise<ExecutionResult<string>> {
         const creationOptions: ExecutionFactoryCreateWithEnvironmentOptions = {
