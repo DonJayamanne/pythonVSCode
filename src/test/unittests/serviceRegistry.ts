@@ -21,11 +21,13 @@ import {
 import { IServiceContainer } from '../../client/ioc/types';
 import { NOSETEST_PROVIDER, PYTEST_PROVIDER, UNITTEST_PROVIDER } from '../../client/unittests/common/constants';
 import { TestContextService } from '../../client/unittests/common/services/contextService';
+import { TestDiscoveredTestParser } from '../../client/unittests/common/services/discoveredTestParser';
 import { TestsDiscoveryService } from '../../client/unittests/common/services/discovery';
 import { TestCollectionStorageService } from '../../client/unittests/common/services/storageService';
 import { TestManagerService } from '../../client/unittests/common/services/testManagerService';
 import { TestResultsService } from '../../client/unittests/common/services/testResultsService';
 import { TestsStatusUpdaterService } from '../../client/unittests/common/services/testsStatusService';
+import { ITestDiscoveredTestParser } from '../../client/unittests/common/services/types';
 import { UnitTestDiagnosticService } from '../../client/unittests/common/services/unitTestDiagnosticService';
 import { TestsHelper } from '../../client/unittests/common/testUtils';
 import { TestFlatteningVisitor } from '../../client/unittests/common/testVisitors/flatteningVisitor';
@@ -107,6 +109,7 @@ export class UnitTestIocContainer extends IocContainer {
         this.serviceManager.add<ITestDiscoveryService>(ITestDiscoveryService, PytestTestDiscoveryService, PYTEST_PROVIDER);
         this.serviceManager.add<ITestDiscoveryService>(ITestDiscoveryService, NoseTestDiscoveryService, NOSETEST_PROVIDER);
         this.serviceManager.add<ITestDiscoveryService>(ITestDiscoveryService, TestsDiscoveryService, 'common');
+        this.serviceManager.add<ITestDiscoveredTestParser>(ITestDiscoveredTestParser, TestDiscoveredTestParser);
     }
 
     public registerTestDiagnosticServices() {
