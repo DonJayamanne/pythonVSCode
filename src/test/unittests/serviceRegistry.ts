@@ -21,6 +21,7 @@ import {
 import { IServiceContainer } from '../../client/ioc/types';
 import { NOSETEST_PROVIDER, PYTEST_PROVIDER, UNITTEST_PROVIDER } from '../../client/unittests/common/constants';
 import { TestContextService } from '../../client/unittests/common/services/contextService';
+import { TestsDiscoveryService } from '../../client/unittests/common/services/discovery';
 import { TestCollectionStorageService } from '../../client/unittests/common/services/storageService';
 import { TestManagerService } from '../../client/unittests/common/services/testManagerService';
 import { TestResultsService } from '../../client/unittests/common/services/testResultsService';
@@ -105,6 +106,7 @@ export class UnitTestIocContainer extends IocContainer {
         this.serviceManager.add<ITestDiscoveryService>(ITestDiscoveryService, UnitTestTestDiscoveryService, UNITTEST_PROVIDER);
         this.serviceManager.add<ITestDiscoveryService>(ITestDiscoveryService, PytestTestDiscoveryService, PYTEST_PROVIDER);
         this.serviceManager.add<ITestDiscoveryService>(ITestDiscoveryService, NoseTestDiscoveryService, NOSETEST_PROVIDER);
+        this.serviceManager.add<ITestDiscoveryService>(ITestDiscoveryService, TestsDiscoveryService, 'common');
     }
 
     public registerTestDiagnosticServices() {
