@@ -54,7 +54,7 @@ export class TestDiscoveryService implements ITestDiscoveryService {
     protected async discoverTestsInTestDirectory(options: TestDiscoveryOptions): Promise<Tests> {
         const token = options.token ? options.token : new CancellationTokenSource().token;
         const discoveryOptions = { ...options };
-        discoveryOptions.args = ['discover', PYTEST_PROVIDER, ...options.args];
+        discoveryOptions.args = ['discover', PYTEST_PROVIDER, '--', ...options.args];
         discoveryOptions.token = token;
 
         const discoveryService = this.serviceContainer.get<ITestDiscoveryService>(ITestDiscoveryService, 'common');
