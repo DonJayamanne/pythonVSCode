@@ -34,7 +34,7 @@ export class TestsDiscoveryService implements ITestDiscoveryService {
             throw ex;
         }
     }
-    protected async exec(options: TestDiscoveryOptions): Promise<ExecutionResult<string>> {
+    public async exec(options: TestDiscoveryOptions): Promise<ExecutionResult<string>> {
         const creationOptions: ExecutionFactoryCreateWithEnvironmentOptions = {
             allowEnvironmentFetchExceptions: false,
             resource: options.workspaceFolder

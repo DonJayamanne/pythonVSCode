@@ -9,7 +9,7 @@ import { deepEqual, instance, mock, when } from 'ts-mockito';
 import * as typemoq from 'typemoq';
 import { CancellationTokenSource, Uri } from 'vscode';
 import { PythonExecutionFactory } from '../../../../client/common/process/pythonExecutionFactory';
-import { ExecutionFactoryCreateWithEnvironmentOptions, ExecutionResult, IPythonExecutionFactory, IPythonExecutionService, SpawnOptions } from '../../../../client/common/process/types';
+import { ExecutionFactoryCreateWithEnvironmentOptions, IPythonExecutionFactory, IPythonExecutionService, SpawnOptions } from '../../../../client/common/process/types';
 import { EXTENSION_ROOT_DIR } from '../../../../client/constants';
 import { TestDiscoveredTestParser } from '../../../../client/unittests/common/services/discoveredTestParser';
 import { TestsDiscoveryService } from '../../../../client/unittests/common/services/discovery';
@@ -19,18 +19,13 @@ import { MockOutputChannel } from '../../../mockClasses';
 
 // tslint:disable:no-unnecessary-override no-any
 suite('Unit Tests - Common Discovery', () => {
-    class TestDiscovery extends TestsDiscoveryService {
-        public exec(options: TestDiscoveryOptions): Promise<ExecutionResult<string>> {
-            return super.exec(options);
-        }
-    }
-    let discovery: TestDiscovery;
+    let discovery: TestsDiscoveryService;
     let executionFactory: IPythonExecutionFactory;
     let parser: ITestDiscoveredTestParser;
     setup(() => {
         executionFactory = mock(PythonExecutionFactory);
         parser = mock(TestDiscoveredTestParser);
-        discovery = new TestDiscovery(instance(executionFactory), instance(parser));
+        discovery = new TestsDiscoveryService(instance(executionFactory), instance(parser));
     });
     test('Use parser to parser results', async () => {
         const options: TestDiscoveryOptions = {
