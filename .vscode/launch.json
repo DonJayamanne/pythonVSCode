@@ -16,7 +16,8 @@
             "outFiles": [
                 "${workspaceFolder}/out/**/*"
             ],
-            "preLaunchTask": "Compile"
+            "preLaunchTask": "Compile",
+            // "devContainer": true // Use this value to debug in containers
         },
         {
             "name": "Debugger as debugServer",
