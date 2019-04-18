@@ -2,7 +2,7 @@ title: Python for Visual Studio Code
 description: Python extension for Visual Studio Code
 google_analytics: 
 show_downloads: true
-theme: jekyll-theme-slate
+theme: jekyll-theme-leap-day
 
 gems:
   - jekyll-mentions
