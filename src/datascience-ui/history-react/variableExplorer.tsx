@@ -195,7 +195,7 @@ export class VariableExplorer extends React.Component<IVariableExplorerProps, IV
         this.props.variableExplorerToggled(!this.state.open);
     }
 
-    private sortRows = (sortColumn: string | number, sortDirection: string) => {
+    public sortRows = (sortColumn: string | number, sortDirection: string) => {
         this.setState({
             sortColumn,
             sortDirection,
@@ -204,20 +204,20 @@ export class VariableExplorer extends React.Component<IVariableExplorerProps, IV
     }
 
     private getColumnType(key: string | number) : string | undefined {
-        // Special case our "size" column. It's displayed as a string but
-        // we will compare it as a number
-        if (key === 'size') {
-            return 'number';
-        }
-
         let column;
         if (typeof key === 'string') {
             //tslint:disable-next-line:no-any
             column = this.state.gridColumns.find(c => c.key === key) as any;
         } else {
+            // This is the index lookup
             column = this.state.gridColumns[key];
         }
-        if (column && column.type) {
+
+        // Special case our size column, it's displayed as a string
+        // but we will sort it like a number
+        if (column && column.key === 'size') {
+            return 'number';
+        } else if (column && column.type) {
             return column.type;
         }
     }
@@ -256,27 +256,31 @@ export class VariableExplorer extends React.Component<IVariableExplorerProps, IV
         return gridRows.sort(comparer);
     }
 
+    // Get the numerical comparison value for a column
     private getComparisonValue(gridRow: IGridRow, sortColumn: string | number): number {
-        // We need a special case here for the size column
-        if (sortColumn === 'size') {
-            const sizeStr: string = gridRow.size as string;
-            if (!sizeStr || sizeStr.length === 0) {
-                return 0;
-            } else if (sizeStr[0] === '(') {
-                const commaIndex = sizeStr.indexOf(',');
-                if (commaIndex > 0) {
-                    return parseInt(sizeStr.substring(1, commaIndex), 10);
-                }
-            } else {
-                // In this case we expect a straight i to a conversion
-                return parseInt(sizeStr, 10);
-            }
-        } else {
-            // For none size column just assume a standard numeric column
-            return gridRow[sortColumn];
+        return (sortColumn === 'size') ? this.sizeColumnComparisonValue(gridRow) : gridRow[sortColumn];
+    }
+
+    // The size column needs special casing
+    private sizeColumnComparisonValue(gridRow: IGridRow): number {
+        const sizeStr: string = gridRow.size as string;
+
+        if (!sizeStr) {
+            return -1;
         }
 
-        return 0;
+        let sizeNumber = -1;
+        const commaIndex = sizeStr.indexOf(',');
+        // First check the shape case like so (5000,1000) in this case we want the 5000 to compare with
+        if (sizeStr[0] === '(' && commaIndex > 0) {
+            sizeNumber = parseInt(sizeStr.substring(1, commaIndex), 10);
+        } else {
+            // If not in the shape format, assume a to i conversion
+            sizeNumber = parseInt(sizeStr, 10);
+        }
+
+        // If our parse fails we get NaN for any case that like return -1
+        return isNaN(sizeNumber) ? -1 : sizeNumber;
     }
 
     private rowDoubleClick = (_rowIndex: number, row: IGridRow) => {
