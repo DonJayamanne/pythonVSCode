@@ -12,6 +12,7 @@ import { getSettings } from '../react-common/settingsReactSide';
 import { CollapseButton } from './collapseButton';
 import { VariableExplorerButtonCellFormatter } from './variableExplorerButtonCellFormatter';
 import { CellStyle, VariableExplorerCellFormatter } from './variableExplorerCellFormatter';
+import { VariableExplorerEmptyRowsView } from './variableExplorerEmptyRows';
 
 import * as AdazzleReactDataGrid from 'react-data-grid';
 
@@ -32,13 +33,18 @@ interface IVariableExplorerState {
     gridHeight: number;
     height: number;
     fontSize: number;
+    sortDirection: string;
+    sortColumn: string | number;
 }
 
 const defaultColumnProperties = {
     filterable: false,
-    sortable: false,
+    sortable: true,
     resizable: true
 };
+
+// Sanity check on our string comparisons
+const MaxStringCompare = 400;
 
 interface IGridRow {
     // tslint:disable-next-line:no-any
@@ -47,6 +53,7 @@ interface IGridRow {
 
 export class VariableExplorer extends React.Component<IVariableExplorerProps, IVariableExplorerState> {
     private divRef: React.RefObject<HTMLDivElement>;
+    private variableFetchCount: number;
 
     constructor(prop: IVariableExplorerProps) {
         super(prop);
@@ -55,16 +62,19 @@ export class VariableExplorer extends React.Component<IVariableExplorerProps, IV
             {key: 'type', name: getLocString('DataScience.variableExplorerTypeColumn', 'Type'), type: 'string', width: 120},
             {key: 'size', name: getLocString('DataScience.variableExplorerSizeColumn', 'Count'), type: 'string', width: 120, formatter: <VariableExplorerCellFormatter cellStyle={CellStyle.numeric} />},
             {key: 'value', name: getLocString('DataScience.variableExplorerValueColumn', 'Value'), type: 'string', width: 300},
-            {key: 'buttons', name: '', type: 'boolean', width: 34, formatter: <VariableExplorerButtonCellFormatter showDataExplorer={this.props.showDataExplorer} baseTheme={this.props.baseTheme} /> }
+            {key: 'buttons', name: '', type: 'boolean', width: 34, sortable: false, resizable: false, formatter: <VariableExplorerButtonCellFormatter showDataExplorer={this.props.showDataExplorer} baseTheme={this.props.baseTheme} /> }
         ];
         this.state = { open: false,
                         gridColumns: columns,
                         gridRows: [],
                         gridHeight: 200,
                         height: 0,
-                        fontSize: 14};
+                        fontSize: 14,
+                        sortColumn: 'name',
+                        sortDirection: 'NONE'};
 
         this.divRef = React.createRef<HTMLDivElement>();
+        this.variableFetchCount = 0;
     }
 
     public render() {
@@ -86,13 +96,15 @@ export class VariableExplorer extends React.Component<IVariableExplorerProps, IV
                     <div className={contentClassName}>
                         <div id='variable-explorer-data-grid'>
                             <AdazzleReactDataGrid
-                                columns = {this.state.gridColumns.map(c => { return {...c, ...defaultColumnProperties}; })}
+                                columns = {this.state.gridColumns.map(c => { return {...defaultColumnProperties, ...c }; })}
                                 rowGetter = {this.getRow}
                                 rowsCount = {this.state.gridRows.length}
                                 minHeight = {this.state.gridHeight}
                                 headerRowHeight = {this.state.fontSize + 9}
                                 rowHeight = {this.state.fontSize + 9}
                                 onRowDoubleClick = {this.rowDoubleClick}
+                                onGridSort = {this.sortRows}
+                                emptyRowsView = {VariableExplorerEmptyRowsView}
                             />
                         </div>
                     </div>
@@ -126,10 +138,15 @@ export class VariableExplorer extends React.Component<IVariableExplorerProps, IV
     // Help to keep us independent of main history window state if we choose to break out the variable explorer
     public newVariablesData(newVariables: IJupyterVariable[]) {
         const newGridRows = newVariables.map(newVar => {
-            return { buttons: {name: newVar.name, supportsDataExplorer: newVar.supportsDataExplorer}, name: newVar.name, type: newVar.type, size: '', value: getLocString('DataScience.variableLoadingValue', 'Loading...')};
+            return { buttons: {name: newVar.name, supportsDataExplorer: newVar.supportsDataExplorer},
+             name: newVar.name,
+             type: newVar.type,
+             size: '',
+             value: getLocString('DataScience.variableLoadingValue', 'Loading...')};
         });
 
         this.setState({ gridRows: newGridRows});
+        this.variableFetchCount = newGridRows.length;
     }
 
     // Update the value of a single variable already in our list
@@ -148,13 +165,22 @@ export class VariableExplorer extends React.Component<IVariableExplorerProps, IV
                     newSize = newVariable.count.toString();
                 }
 
-                const newGridRow = {...newGridRows[i], value: newVariable.value, size: newSize};
+                const newGridRow = {...newGridRows[i],
+                    value: newVariable.value,
+                    size: newSize};
 
                 newGridRows[i] = newGridRow;
             }
         }
 
-        this.setState({ gridRows: newGridRows });
+        // Update that we have retreived a new variable
+        // When we hit zero we have all the vars and can sort our values
+        this.variableFetchCount = this.variableFetchCount - 1;
+        if (this.variableFetchCount === 0) {
+            this.setState({ gridRows: this.internalSortRows(newGridRows, this.state.sortColumn, this.state.sortDirection) });
+        } else {
+            this.setState({ gridRows: newGridRows });
+        }
     }
 
     public toggleInputBlock = () => {
@@ -167,6 +193,90 @@ export class VariableExplorer extends React.Component<IVariableExplorerProps, IV
 
         // Notify of the toggle, reverse it as the state is not updated yet
         this.props.variableExplorerToggled(!this.state.open);
+    }
+
+    private sortRows = (sortColumn: string | number, sortDirection: string) => {
+        this.setState({
+            sortColumn,
+            sortDirection,
+            gridRows: this.internalSortRows(this.state.gridRows, sortColumn, sortDirection)
+        });
+    }
+
+    private getColumnType(key: string | number) : string | undefined {
+        // Special case our "size" column. It's displayed as a string but
+        // we will compare it as a number
+        if (key === 'size') {
+            return 'number';
+        }
+
+        let column;
+        if (typeof key === 'string') {
+            //tslint:disable-next-line:no-any
+            column = this.state.gridColumns.find(c => c.key === key) as any;
+        } else {
+            column = this.state.gridColumns[key];
+        }
+        if (column && column.type) {
+            return column.type;
+        }
+    }
+
+    private internalSortRows = (gridRows: IGridRow[], sortColumn: string | number, sortDirection: string): IGridRow[] => {
+        // Default to the name column
+        if (sortDirection === 'NONE') {
+            sortColumn = 'name';
+            sortDirection = 'ASC';
+        }
+
+        const columnType = this.getColumnType(sortColumn);
+        const isStringColumn = columnType === 'string' || columnType === 'object';
+        const invert = sortDirection !== 'DESC';
+
+        // Use a special comparer for string columns as we can't compare too much of a string
+        // or it will take too long
+        const comparer = isStringColumn ?
+            //tslint:disable-next-line:no-any
+            (a: any, b: any): number => {
+                const aVal = a[sortColumn] as string;
+                const bVal = b[sortColumn] as string;
+                const aStr = aVal ? aVal.substring(0, Math.min(aVal.length, MaxStringCompare)).toUpperCase() : aVal;
+                const bStr = bVal ? bVal.substring(0, Math.min(bVal.length, MaxStringCompare)).toUpperCase() : bVal;
+                const result = aStr > bStr ? -1 : 1;
+                return invert ? -1 * result : result;
+            } :
+            //tslint:disable-next-line:no-any
+            (a: any, b: any): number => {
+                const aVal = this.getComparisonValue(a, sortColumn);
+                const bVal = this.getComparisonValue(b, sortColumn);
+                const result = aVal > bVal ? -1 : 1;
+                return invert ? -1 * result : result;
+            };
+
+        return gridRows.sort(comparer);
+    }
+
+    private getComparisonValue(gridRow: IGridRow, sortColumn: string | number): number {
+        // We need a special case here for the size column
+        if (sortColumn === 'size') {
+            const sizeStr: string = gridRow.size as string;
+            if (!sizeStr || sizeStr.length === 0) {
+                return 0;
+            } else if (sizeStr[0] === '(') {
+                const commaIndex = sizeStr.indexOf(',');
+                if (commaIndex > 0) {
+                    return parseInt(sizeStr.substring(1, commaIndex), 10);
+                }
+            } else {
+                // In this case we expect a straight i to a conversion
+                return parseInt(sizeStr, 10);
+            }
+        } else {
+            // For none size column just assume a standard numeric column
+            return gridRow[sortColumn];
+        }
+
+        return 0;
     }
 
     private rowDoubleClick = (_rowIndex: number, row: IGridRow) => {
