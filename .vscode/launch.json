@@ -3,21 +3,6 @@
     "version": "0.1.0",
     "configurations": [
         {
-            "name": "Python: Current File with iPython",
-            "type": "python",
-            "request": "launch",
-            "module": "IPython",
-            "console": "integratedTerminal",
-            "args": ["${file}"] // Additional args should be prefixed with a '--' first.
-        },
-        {
-            "name": "Python: Current File",
-            "type": "python",
-            "request": "launch",
-            "program": "${file}",
-            "console": "integratedTerminal"
-        },
-        {
             "name": "Extension",
             "type": "extensionHost",
             "request": "launch",
@@ -32,6 +17,40 @@
                 "${workspaceFolder}/out/**/*"
             ],
             "preLaunchTask": "Compile"
+        },
+        {
+            "name": "Extension inside container",
+            "type": "extensionHost",
+            "request": "launch",
+            "runtimeExecutable": "${execPath}",
+            "args": [
+                "--extensionDevelopmentPath=${workspaceFolder}",
+                "${workspaceFolder}/data"
+            ],
+            "stopOnEntry": false,
+            "smartStep": true,
+            "sourceMaps": true,
+            "outFiles": [
+                "${workspaceFolder}/out/**/*"
+            ],
+            "preLaunchTask": "Compile"
+        },
+        {
+            "name": "Python: Current File with iPython",
+            "type": "python",
+            "request": "launch",
+            "module": "IPython",
+            "console": "integratedTerminal",
+            "args": [
+                "${file}"
+            ] // Additional args should be prefixed with a '--' first.
+        },
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal"
         },
         {
             "name": "Debugger as debugServer",
@@ -185,30 +204,19 @@
             ]
         },
         {
-            "name": "Behave Smoke Tests",
+            "name": "UI Tests (BDD)",
             "type": "python",
             "request": "launch",
-            "module": "behave",
+            "program": "${workspaceFolder}/uitests/__main__.py",
             "args": [
-                "-f",
-                "plain",
-                "-T",
-                "--no-capture",
-                "tasks/smoketests"
+                "test",
+                "--",
+                "--format",
+                "progress3",
+                "--tags=wip"
             ],
-            "debugStdLib": true,
-            "console": "none"
-        },
-        {
-            "name": "PyInvoke",
-            "type": "python",
-            "request": "launch",
-            "module": "invoke",
-            "args": [
-                // Change to debug a specific task.
-                "smoke"
-            ],
-            "console": "none"
+            "justMyCode": false,
+            "console": "internalConsole"
         }
     ],
     "compounds": [

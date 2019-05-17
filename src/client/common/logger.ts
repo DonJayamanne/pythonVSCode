@@ -1,58 +1,120 @@
 // tslint:disable:no-console no-any
 import { injectable } from 'inversify';
 
+import * as fs from 'fs-extra';
+import * as os from 'os';
+import * as util from 'util';
 import { sendTelemetryEvent } from '../telemetry';
 import { isTestExecution } from './constants';
 import { ILogger, LogLevel } from './types';
 
 const PREFIX = 'Python Extension: ';
+const consoleError = console.error;
+const consoleWarn = console.warn;
+const consoleInfo = console.info;
+
+export function initialize() {
+    if (process.env.VSC_PYTHON_LOG_FILE) {
+        return;
+    }
+    // tslint:disable-next-line:no-function-expression
+    console.log = function () {
+        Logger.verbose.apply(Logger, arguments as any);
+    };
+    // tslint:disable-next-line:no-function-expression
+    console.error = function () {
+        Logger.error.apply(Logger, arguments as any);
+    };
+    // tslint:disable-next-line:no-function-expression
+    console.warn = function () {
+        Logger.warn.apply(Logger, arguments as any);
+    };
+    // tslint:disable-next-line:no-function-expression
+    console.info = function () {
+        Logger.verbose.apply(Logger, arguments as any);
+    };
+}
 
 @injectable()
 export class Logger implements ILogger {
     private skipLogging = false;
+    private readonly logToFile: (...args: any[]) => void;
     constructor() {
         if (isTestExecution() && !process.env.VSC_PYTHON_FORCE_LOGGING) {
             this.skipLogging = true;
         }
-    }
-    // tslint:disable-next-line:no-any
-    public static error(title: string = '', message: any) {
-        new Logger().logError(`${title}, ${message}`);
-    }
-    // tslint:disable-next-line:no-any
-    public static warn(title: string = '', message: any = '') {
-        new Logger().logWarning(`${title}, ${message}`);
-    }
-    // tslint:disable-next-line:no-any
-    public static verbose(title: string = '') {
-        new Logger().logInformation(title);
-    }
-    public logError(message: string, ex?: Error) {
-        if (!this.skipLogging) {
-            if (ex) {
-                console.error(`${PREFIX}${message}`, ex);
-            } else {
-                console.error(`${PREFIX}${message}`);
-            }
+        if (process.env.VSC_PYTHON_LOG_FILE) {
+            this.skipLogging = false;
+            this.logToFile = logToFile;
+        } else {
+            this.logToFile = () => {
+                // Do nothing.
+            };
         }
     }
-    public logWarning(message: string, ex?: Error) {
-        if (!this.skipLogging) {
-            if (ex) {
-                console.warn(`${PREFIX}${message}`, ex);
-            } else {
-                console.warn(`${PREFIX}${message}`);
-            }
-        }
+    // tslint:disable-next-line:no-any
+    public static error(...args: any[]) {
+        new Logger().logError(...args);
     }
-    public logInformation(message: string, ex?: Error) {
+    // tslint:disable-next-line:no-any
+    public static warn(...args: any[]) {
+        new Logger().logWarning(...args);
+    }
+    // tslint:disable-next-line:no-any
+    public static verbose(...args: any[]) {
+        new Logger().logInformation(...args);
+    }
+    public logError(...args: any[]) {
+        const message = formatArgs(args);
         if (!this.skipLogging) {
-            if (ex) {
-                console.info(`${PREFIX}${message}`, ex);
-            } else {
-                console.info(`${PREFIX}${message}`);
-            }
+            consoleError(PREFIX, message);
         }
+        this.logToFile(`Error: ${message}`);
+    }
+    public logWarning(...args: any[]) {
+        const message = formatArgs(args);
+        if (!this.skipLogging) {
+            consoleWarn(PREFIX, message);
+        }
+        this.logToFile(`Warning: ${message}`);
+    }
+    public logInformation(...args: any[]) {
+        const message = formatArgs(args);
+        if (!this.skipLogging) {
+            consoleInfo(PREFIX, formatArgs(args));
+        }
+        this.logToFile(`Information: ${message}`);
+    }
+}
+
+let dataToLog: string[] = [];
+let timer: NodeJS.Timer | undefined;
+let busy = false;
+function formatArgs(...args: any[]) {
+    return util.format.apply(util.format, Array.prototype.slice.call(args) as any);
+}
+
+function logToFile(message: string) {
+    dataToLog.push(message);
+    if (timer) {
+        clearTimeout(timer);
+    }
+    timer = setTimeout(logData, 0);
+}
+async function logData() {
+    if (busy || dataToLog.length === 0) {
+        return;
+    }
+    // We need to preserve the order, hence we don't want multiple I/O threads writing to the same file at the same time.
+    busy = true;
+    const content = `${os.EOL}${dataToLog.join(os.EOL)}`;
+    dataToLog = [];
+    await fs.appendFile(process.env.VSC_PYTHON_LOG_FILE!, content).catch(() => {
+        // Do nothing.
+    });
+    busy = false;
+    if (dataToLog.length > 0) {
+        timer = setTimeout(logData, 0);
     }
 }
 
@@ -104,18 +166,20 @@ function returnValueToLogString(returnValue: any): string {
     }
 }
 
-export function traceVerbose(message: string) {
-    new Logger().logInformation(message);
-}
-export function traceError(message: string, ex?: Error) {
-    new Logger().logError(message, ex);
-}
-export function traceInfo(message: string) {
-    new Logger().logInformation(message);
+export function traceVerbose(...args: any[]) {
+    new Logger().logInformation(...args);
 }
 
-export function traceWarning(message: string) {
-    new Logger().logWarning(message);
+export function traceError(...args: any[]) {
+    new Logger().logError(...args);
+}
+
+export function traceInfo(...args: any[]) {
+    new Logger().logInformation(...args);
+}
+
+export function traceWarning(...args: any[]) {
+    new Logger().logWarning(...args);
 }
 
 export namespace traceDecorators {

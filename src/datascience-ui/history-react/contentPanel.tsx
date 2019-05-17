@@ -3,8 +3,10 @@
 'use strict';
 import './contentPanel.css';
 
+import * as monacoEditor from 'monaco-editor/esm/vs/editor/editor.api';
 import * as React from 'react';
-import { noop } from '../../test/core';
+
+import { noop } from '../../client/common/utils/misc';
 import { ErrorBoundary } from '../react-common/errorBoundary';
 import { getSettings } from '../react-common/settingsReactSide';
 import { Cell, ICellViewModel } from './cell';
@@ -19,10 +21,11 @@ export interface IContentPanelProps {
     codeTheme: string;
     submittedText: boolean;
     skipNextScroll: boolean;
-    saveEditCellRef(ref: Cell | null): void;
+    monacoTheme: string | undefined;
     gotoCellCode(index: number): void;
     deleteCell(index: number): void;
-    submitInput(code: string): void;
+    onCodeChange(changes: monacoEditor.editor.IModelContentChange[], cellId: string, modelId: string): void;
+    onCodeCreated(code: string, file: string, cellId: string, modelId: string): void;
 }
 
 export class ContentPanel extends React.Component<IContentPanelProps> {
@@ -40,20 +43,14 @@ export class ContentPanel extends React.Component<IContentPanelProps> {
     }
 
     public render() {
-        const newContentTop = `${this.props.contentTop.toString()}px solid transparent`;
-
-        const newBorderStyle: React.CSSProperties = {
-            borderTop: newContentTop
-        };
-
-        return(
-            <div id='content-panel-div' style={newBorderStyle}>
+        return (
+            <div id='content-panel-div'>
                 <div id='cell-table'>
                     <div id='cell-table-body'>
                         {this.renderCells()}
                     </div>
                 </div>
-                <div ref={this.updateBottom}/>
+                <div ref={this.updateBottom} />
             </div>
         );
     }
@@ -67,19 +64,22 @@ export class ContentPanel extends React.Component<IContentPanelProps> {
         return this.props.cellVMs.map((cellVM: ICellViewModel, index: number) =>
             <ErrorBoundary key={index}>
                 <Cell
-                    history={cellVM.editable ? this.props.history : undefined}
+                    history={undefined}
                     maxTextSize={maxTextSize}
-                    autoFocus={document.hasFocus()}
+                    autoFocus={false}
                     testMode={this.props.testMode}
                     cellVM={cellVM}
-                    submitNewCode={this.props.submitInput}
+                    submitNewCode={noop}
                     baseTheme={baseTheme}
                     codeTheme={this.props.codeTheme}
-                    showWatermark={!this.props.submittedText}
+                    showWatermark={false}
                     errorBackgroundColor={actualErrorBackgroundColor}
-                    ref={(r) => cellVM.editable ? this.props.saveEditCellRef(r) : noop()}
                     gotoCode={() => this.props.gotoCellCode(index)}
-                    delete={() => this.props.deleteCell(index)}/>
+                    delete={() => this.props.deleteCell(index)}
+                    onCodeChange={this.props.onCodeChange}
+                    onCodeCreated={this.props.onCodeCreated}
+                    monacoTheme={this.props.monacoTheme}
+                />
             </ErrorBoundary>
         );
     }
@@ -90,7 +90,7 @@ export class ContentPanel extends React.Component<IContentPanelProps> {
             // yet so we need to delay. 10ms looks good from a user point of view
             setTimeout(() => {
                 if (this.bottom) {
-                    this.bottom.scrollIntoView({behavior: 'smooth', block : 'end', inline: 'end'});
+                    this.bottom.scrollIntoView({ behavior: 'smooth', block: 'end', inline: 'end' });
                 }
             }, 100);
         }

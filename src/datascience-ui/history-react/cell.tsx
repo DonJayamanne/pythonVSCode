@@ -1,20 +1,20 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
-
 'use strict';
 
 import { nbformat } from '@jupyterlab/coreutils';
 import { JSONObject } from '@phosphor/coreutils';
 import ansiToHtml from 'ansi-to-html';
+import * as monacoEditor from 'monaco-editor/esm/vs/editor/editor.api';
 import * as React from 'react';
 // tslint:disable-next-line:match-default-export-name import-name
 import JSONTree from 'react-json-tree';
 
 import '../../client/common/extensions';
+import { noop } from '../../client/common/utils/misc';
 import { concatMultilineString, formatStreamText } from '../../client/datascience/common';
 import { Identifiers } from '../../client/datascience/constants';
 import { CellState, ICell } from '../../client/datascience/types';
-import { noop } from '../../test/core';
 import { getLocString } from '../react-common/locReactSide';
 import { getSettings } from '../react-common/settingsReactSide';
 import './cell.css';
@@ -39,9 +39,12 @@ interface ICellProps {
     history: InputHistory | undefined;
     showWatermark: boolean;
     errorBackgroundColor: string;
+    monacoTheme: string | undefined;
     gotoCode(): void;
     delete(): void;
     submitNewCode(code: string): void;
+    onCodeChange(changes: monacoEditor.editor.IModelContentChange[], cellId: string, modelId: string): void;
+    onCodeCreated(code: string, file: string, cellId: string, modelId: string): void;
 }
 
 export interface ICellViewModel {
@@ -60,12 +63,12 @@ export class Cell extends React.Component<ICellProps> {
 
     constructor(prop: ICellProps) {
         super(prop);
-        this.state = {focused: this.props.autoFocus};
+        this.state = { focused: this.props.autoFocus };
     }
 
     public render() {
         if (this.props.cellVM.cell.data.cell_type === 'sys_info') {
-            return <SysInfo theme={this.props.baseTheme} connection={this.props.cellVM.cell.data.connection} path={this.props.cellVM.cell.data.path} message={this.props.cellVM.cell.data.message} version={this.props.cellVM.cell.data.version} notebook_version={this.props.cellVM.cell.data.notebook_version}/>;
+            return <SysInfo theme={this.props.baseTheme} connection={this.props.cellVM.cell.data.connection} path={this.props.cellVM.cell.data.path} message={this.props.cellVM.cell.data.message} version={this.props.cellVM.cell.data.version} notebook_version={this.props.cellVM.cell.data.notebook_version} />;
         } else {
             return this.renderNormalCell();
         }
@@ -121,11 +124,12 @@ export class Cell extends React.Component<ICellProps> {
         const allowsPlainInput = getSettings().showCellInputCode || this.props.cellVM.directInput || this.props.cellVM.editable;
         const shouldRender = allowsPlainInput || (results && results.length > 0);
         const cellOuterClass = this.props.cellVM.editable ? 'cell-outer-editable' : 'cell-outer';
+        const cellWrapperClass = this.props.cellVM.editable ? 'cell-wrapper' : 'cell-wrapper cell-wrapper-noneditable';
 
         // Only render if we are allowed to.
         if (shouldRender) {
             return (
-                <div className='cell-wrapper' role='row' onClick={this.onMouseClick}>
+                <div className={cellWrapperClass} role='row' onClick={this.onMouseClick}>
                     <MenuBar baseTheme={this.props.baseTheme}>
                         <CellButton baseTheme={this.props.baseTheme} onClick={this.props.delete} tooltip={this.getDeleteString()} hidden={this.props.cellVM.editable}>
                             <Image baseTheme={this.props.baseTheme} class='cell-button-image' image={ImageName.Cancel} />
@@ -158,11 +162,11 @@ export class Cell extends React.Component<ICellProps> {
         }
     }
 
-    private showInputs = () : boolean => {
+    private showInputs = (): boolean => {
         return (this.isCodeCell() && (this.props.cellVM.inputBlockShow || this.props.cellVM.editable));
     }
 
-    private getRenderableInputCode = () : string => {
+    private getRenderableInputCode = (): string => {
         if (this.props.cellVM.editable) {
             return '';
         }
@@ -217,9 +221,12 @@ export class Cell extends React.Component<ICellProps> {
                         readOnly={!this.props.cellVM.editable}
                         showWatermark={this.props.showWatermark}
                         onSubmit={this.props.submitNewCode}
-                        onChangeLineCount={this.onChangeLineCount}
                         ref={this.updateCodeRef}
-                        />
+                        onChange={this.onCodeChange}
+                        onCreated={this.onCodeCreated}
+                        outermostParentClass='cell-wrapper'
+                        monacoTheme={this.props.monacoTheme}
+                    />
                 </div>
             );
         } else {
@@ -227,7 +234,15 @@ export class Cell extends React.Component<ICellProps> {
         }
     }
 
-    private getCursorType = () : string => {
+    private onCodeChange = (changes: monacoEditor.editor.IModelContentChange[], modelId: string) => {
+        this.props.onCodeChange(changes, this.props.cellVM.cell.id, modelId);
+    }
+
+    private onCodeCreated = (code: string, modelId: string) => {
+        this.props.onCodeCreated(code, this.props.cellVM.cell.file, this.props.cellVM.cell.id, modelId);
+    }
+
+    private getCursorType = (): string => {
         if (getSettings && getSettings().extraSettings) {
             return getSettings().extraSettings.terminalCursor;
         }
@@ -267,15 +282,15 @@ export class Cell extends React.Component<ICellProps> {
         return [];
     }
 
-    private renderMarkdown = (markdown : nbformat.IMarkdownCell) => {
+    private renderMarkdown = (markdown: nbformat.IMarkdownCell) => {
         // React-markdown expects that the source is a string
         const source = concatMultilineString(markdown.source);
         const Transform = transforms['text/markdown'];
 
-        return [<Transform key={0} data={source}/>];
+        return [<Transform key={0} data={source} />];
     }
 
-    private renderWithTransform = (mimetype: string, output : nbformat.IOutput, index : number, renderWithScrollbars: boolean, forceLightTheme: boolean) => {
+    private renderWithTransform = (mimetype: string, output: nbformat.IOutput, index: number, renderWithScrollbars: boolean, forceLightTheme: boolean) => {
 
         // If we found a mimetype, use the transform
         if (mimetype) {
@@ -326,7 +341,7 @@ export class Cell extends React.Component<ICellProps> {
         return <div></div>;
     }
 
-    private convertToLinearRgb(color: number) : number {
+    private convertToLinearRgb(color: number): number {
         let c = color / 255;
         if (c <= 0.03928) {
             c = c / 12.92;
@@ -360,20 +375,20 @@ export class Cell extends React.Component<ICellProps> {
         }
     }
 
-    private renderOutput = (output : nbformat.IOutput, index: number) => {
+    private renderOutput = (output: nbformat.IOutput, index: number) => {
         // Borrowed this from Don's Jupyter extension
 
         // First make sure we have the mime data
         if (!output) {
-          return <div key={index}/>;
+            return <div key={index} />;
         }
 
         // Make a copy of our data so we don't modify our cell
-        const copy = {...output};
+        const copy = { ...output };
 
         // Special case for json
         if (copy.data && copy.data.hasOwnProperty('application/json')) {
-          return <JSONTree key={index} data={copy.data} />;
+            return <JSONTree key={index} data={copy.data} />;
         }
 
         // Only for text and error ouptut do we add scrollbars
@@ -389,7 +404,7 @@ export class Cell extends React.Component<ICellProps> {
             const multiline = concatMultilineString(stream.text);
             const formatted = formatStreamText(multiline);
             copy.data = {
-                'text/html' : `<xmp>${formatted}</xmp>`
+                'text/html': `<xmp>${formatted}</xmp>`
             };
 
             // Output may have goofy ascii colorization chars in it. Try
@@ -441,11 +456,7 @@ export class Cell extends React.Component<ICellProps> {
         } else {
             mimetype = 'unknown';
         }
-        const str : string = this.getUnknownMimeTypeFormatString().format(mimetype);
+        const str: string = this.getUnknownMimeTypeFormatString().format(mimetype);
         return <div key={index}>{str}</div>;
-    }
-
-    private onChangeLineCount = (_lineCount: number) => {
-        // Ignored for now. Might use this to update the . next to the code lines
     }
 }
