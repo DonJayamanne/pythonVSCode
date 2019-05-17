@@ -16,11 +16,7 @@ import { createDeferred, Deferred } from '../../../common/utils/async';
 import { Identifiers } from '../../constants';
 import { IHistoryListener } from '../../types';
 import { BaseIntellisenseProvider } from './baseIntellisenseProvider';
-<<<<<<< HEAD
-import { convertToMonacoCompletionList, convertToMonacoHover } from './conversion';
-=======
 import { convertToMonacoCompletionList, convertToMonacoHover, convertToMonacoSignatureHelp } from './conversion';
->>>>>>> master
 import { IntellisenseDocument } from './intellisenseDocument';
 
 // tslint:disable:no-any
@@ -86,8 +82,6 @@ export class DotNetIntellisenseProvider extends BaseIntellisenseProvider impleme
             contents: []
         };
     }
-<<<<<<< HEAD
-=======
     protected async provideSignatureHelp(position: monacoEditor.Position, _context: monacoEditor.languages.SignatureHelpContext, cellId: string, token: CancellationToken) : Promise<monacoEditor.languages.SignatureHelp> {
         const languageClient = await this.getLanguageClient();
         const document = await this.getDocument();
@@ -106,7 +100,6 @@ export class DotNetIntellisenseProvider extends BaseIntellisenseProvider impleme
             activeSignature: 0
         };
     }
->>>>>>> master
 
     protected async handleChanges(originalFile: string | undefined, document: IntellisenseDocument, changes: TextDocumentContentChangeEvent[]) : Promise<void> {
         // Then see if we can talk to our language client

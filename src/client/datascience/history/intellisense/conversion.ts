@@ -202,8 +202,6 @@ export function convertToMonacoHover(result: vscodeLanguageClient.Hover | vscode
         contents: []
     };
 }
-<<<<<<< HEAD
-=======
 
 export function convertToMonacoSignatureHelp(
     result: vscodeLanguageClient.SignatureHelp | vscode.SignatureHelp | null) : monacoEditor.languages.SignatureHelp {
@@ -217,4 +215,3 @@ export function convertToMonacoSignatureHelp(
         activeSignature: 0
     };
 }
->>>>>>> master

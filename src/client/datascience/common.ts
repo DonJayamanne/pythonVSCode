@@ -3,7 +3,7 @@
 'use strict';
 import { nbformat } from '@jupyterlab/coreutils/lib/nbformat';
 
-import { noop } from '../common/utils/misc';
+import { noop } from '../../test/core';
 
 const SingleQuoteMultiline = '\'\'\'';
 const DoubleQuoteMultiline = '\"\"\"';
@@ -82,7 +82,7 @@ export function parseForComments(
     foundCommentLine: (s: string, i: number) => void,
     foundNonCommentLine: (s: string, i: number) => void) {
     // Check for either multiline or single line comments
-    let insideMultilineComment: string | undefined;
+    let insideMultilineComment: string | undefined ;
     let insideMultilineQuote: string | undefined;
     let pos = 0;
     for (const l of lines) {
@@ -99,7 +99,7 @@ export function parseForComments(
                 insideMultilineQuote = undefined;
             }
             foundNonCommentLine(l, pos);
-            // Not inside quote, see if inside a comment
+        // Not inside quote, see if inside a comment
         } else if (insideMultilineComment) {
             if (insideMultilineComment === isMultilineComment) {
                 insideMultilineComment = undefined;
@@ -107,11 +107,11 @@ export function parseForComments(
             if (insideMultilineComment) {
                 foundCommentLine(l, pos);
             }
-            // Not inside either, see if starting a quote
+        // Not inside either, see if starting a quote
         } else if (isMultilineQuote && !isMultilineComment) {
             insideMultilineQuote = isMultilineQuote;
             foundNonCommentLine(l, pos);
-            // Not starting a quote, might be starting a comment
+        // Not starting a quote, might be starting a comment
         } else if (isMultilineComment) {
             insideMultilineComment = isMultilineComment;
 

@@ -29,10 +29,7 @@ import {
     IHistoryMapping,
     IProvideCompletionItemsRequest,
     IProvideHoverRequest,
-<<<<<<< HEAD
-=======
     IProvideSignatureHelpRequest,
->>>>>>> master
     IRemoveCell
 } from '.././historyTypes';
 import { IntellisenseDocument } from './intellisenseDocument';
@@ -83,15 +80,12 @@ export abstract class BaseIntellisenseProvider implements IHistoryListener {
                 }
                 break;
 
-<<<<<<< HEAD
-=======
             case HistoryMessages.ProvideSignatureHelpRequest:
                 if (this.isActive) {
                     this.dispatchMessage(message, payload, this.handleSignatureHelpRequest);
                 }
                 break;
 
->>>>>>> master
             case HistoryMessages.EditCell:
                 this.dispatchMessage(message, payload, this.editCell);
                 break;
@@ -145,10 +139,7 @@ export abstract class BaseIntellisenseProvider implements IHistoryListener {
     protected abstract get isActive(): boolean;
     protected abstract provideCompletionItems(position: monacoEditor.Position, context: monacoEditor.languages.CompletionContext, cellId: string, token: CancellationToken) : Promise<monacoEditor.languages.CompletionList>;
     protected abstract provideHover(position: monacoEditor.Position, cellId: string, token: CancellationToken) : Promise<monacoEditor.languages.Hover>;
-<<<<<<< HEAD
-=======
     protected abstract provideSignatureHelp(position: monacoEditor.Position, context: monacoEditor.languages.SignatureHelpContext, cellId: string, token: CancellationToken) : Promise<monacoEditor.languages.SignatureHelp>;
->>>>>>> master
     protected abstract handleChanges(originalFile: string | undefined, document: IntellisenseDocument, changes: TextDocumentContentChangeEvent[]) : Promise<void>;
 
     private dispatchMessage<M extends IHistoryMapping, T extends keyof M>(_message: T, payload: any, handler: (args : M[T]) => void) {
@@ -197,8 +188,6 @@ export abstract class BaseIntellisenseProvider implements IHistoryListener {
         });
     }
 
-<<<<<<< HEAD
-=======
     private handleSignatureHelpRequest(request: IProvideSignatureHelpRequest) {
         const cancelSource = new CancellationTokenSource();
         this.cancellationSources.set(request.requestId, cancelSource);
@@ -209,16 +198,11 @@ export abstract class BaseIntellisenseProvider implements IHistoryListener {
         });
     }
 
->>>>>>> master
     private async addCell(request: IAddCell): Promise<void> {
         // Get the document and then pass onto the sub class
         const document = await this.getDocument(request.file === Identifiers.EmptyFileName ? undefined : Uri.file(request.file));
         if (document) {
-<<<<<<< HEAD
-            const changes = document.addCell(request.text, request.id);
-=======
             const changes = document.addCell(request.fullText, request.currentText, request.id);
->>>>>>> master
             return this.handleChanges(request.file, document, changes);
         }
     }
