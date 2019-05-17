@@ -2312,7 +2312,6 @@
         "retyped-diff-match-patch-tsd-ambient": "^1.0.0-0",
         "rewiremock": "^3.13.0",
         "sass-loader": "^7.1.0",
-        "selenium-webdriver": "^4.0.0-alpha.1",
         "shortid": "^2.2.8",
         "style-loader": "^0.23.1",
         "styled-jsx": "^3.1.0",

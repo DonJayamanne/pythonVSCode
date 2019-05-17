@@ -25,14 +25,14 @@ const logLevelMap = {
 };
 
 function log(logLevel: LogLevel, ...args: any[]) {
-    if (consoleLogger.transports.length > 0){
+    if (consoleLogger.transports.length > 0) {
         const message = args.length === 0 ? '' : util.format(args[0], ...args.slice(1));
         consoleLogger.log(logLevelMap[logLevel], message);
     }
     logToFile(logLevel, ...args);
 }
 function logToFile(logLevel: LogLevel, ...args: any[]) {
-    if (fileLogger.transports.length === 0){
+    if (fileLogger.transports.length === 0) {
         return;
     }
     const message = args.length === 0 ? '' : util.format(args[0], ...args.slice(1));
@@ -119,7 +119,7 @@ function initializeConsoleLogger() {
         };
     }
 
-    if (isTestExecution() && !process.env.VSC_PYTHON_FORCE_LOGGING){
+    if (isTestExecution() && !process.env.VSC_PYTHON_FORCE_LOGGING) {
         // Do not log to console if running tests on CI and we're not asked to do so.
         return;
     }
@@ -138,7 +138,6 @@ function initializeConsoleLogger() {
                 next();
             }
         }
-        this.logToFile(`Error: ${message}`);
     }
     const consoleFormatter = format.printf(({ level, message, label, timestamp }) => {
         // If we're on CI server, no need for the label (prefix)
@@ -194,7 +193,6 @@ export class Logger implements ILogger {
         if (enableLogging) {
             log(LogLevel.Error, ...args);
         }
-        this.logToFile(`Warning: ${message}`);
     }
     // tslint:disable-next-line:no-any
     public static warn(...args: any[]) {
@@ -207,38 +205,6 @@ export class Logger implements ILogger {
         if (enableLogging) {
             log(LogLevel.Information, ...args);
         }
-        this.logToFile(`Information: ${message}`);
-    }
-}
-
-let dataToLog: string[] = [];
-let timer: NodeJS.Timer | undefined;
-let busy = false;
-function formatArgs(...args: any[]) {
-    return util.format.apply(util.format, Array.prototype.slice.call(args) as any);
-}
-
-function logToFile(message: string) {
-    dataToLog.push(message);
-    if (timer) {
-        clearTimeout(timer);
-    }
-    timer = setTimeout(logData, 0);
-}
-async function logData() {
-    if (busy || dataToLog.length === 0) {
-        return;
-    }
-    // We need to preserve the order, hence we don't want multiple I/O threads writing to the same file at the same time.
-    busy = true;
-    const content = `${os.EOL}${dataToLog.join(os.EOL)}`;
-    dataToLog = [];
-    await fs.appendFile(process.env.VSC_PYTHON_LOG_FILE!, content).catch(() => {
-        // Do nothing.
-    });
-    busy = false;
-    if (dataToLog.length > 0) {
-        timer = setTimeout(logData, 0);
     }
     public logError(...args: any[]) {
         Logger.error(...args);
