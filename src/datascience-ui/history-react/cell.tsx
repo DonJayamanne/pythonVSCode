@@ -40,6 +40,10 @@ interface ICellProps {
     showWatermark: boolean;
     errorBackgroundColor: string;
     monacoTheme: string | undefined;
+<<<<<<< HEAD
+=======
+    editorOptions: monacoEditor.editor.IEditorOptions;
+>>>>>>> master
     gotoCode(): void;
     delete(): void;
     submitNewCode(code: string): void;
@@ -212,6 +216,7 @@ export class Cell extends React.Component<ICellProps> {
             return (
                 <div className='cell-input'>
                     <Code
+                        editorOptions={this.props.editorOptions}
                         cursorType={this.getCursorType()}
                         history={this.props.history}
                         autoFocus={this.props.autoFocus}
@@ -226,7 +231,11 @@ export class Cell extends React.Component<ICellProps> {
                         onCreated={this.onCodeCreated}
                         outermostParentClass='cell-wrapper'
                         monacoTheme={this.props.monacoTheme}
+<<<<<<< HEAD
                     />
+=======
+                        />
+>>>>>>> master
                 </div>
             );
         } else {
@@ -242,7 +251,11 @@ export class Cell extends React.Component<ICellProps> {
         this.props.onCodeCreated(code, this.props.cellVM.cell.file, this.props.cellVM.cell.id, modelId);
     }
 
+<<<<<<< HEAD
     private getCursorType = (): string => {
+=======
+    private getCursorType = () : string => {
+>>>>>>> master
         if (getSettings && getSettings().extraSettings) {
             return getSettings().extraSettings.terminalCursor;
         }

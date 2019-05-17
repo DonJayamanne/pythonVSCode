@@ -55,7 +55,12 @@ class IntellisenseLine implements TextLine {
 interface ICellRange {
     id: string;
     start: number;
+<<<<<<< HEAD
     end: number;
+=======
+    fullEnd: number;
+    currentEnd: number;
+>>>>>>> master
 }
 
 export class IntellisenseDocument implements TextDocument {
@@ -74,7 +79,11 @@ export class IntellisenseDocument implements TextDocument {
         this._uri = Uri.file(fileName);
 
         // We should start our edit offset at 0. Each cell should end with a '/n'
+<<<<<<< HEAD
         this._cellRanges.push({ id: Identifiers.EditCellId, start: 0, end: 0 });
+=======
+        this._cellRanges.push({ id: Identifiers.EditCellId, start: 0, fullEnd: 0, currentEnd: 0 });
+>>>>>>> master
     }
 
     public get uri(): Uri {
@@ -183,17 +192,30 @@ export class IntellisenseDocument implements TextDocument {
             version: this.version
         };
     }
+<<<<<<< HEAD
     public addCell(code: string, id: string): TextDocumentContentChangeEvent[] {
+=======
+    public addCell(fullCode: string, currentCode: string, id: string): TextDocumentContentChangeEvent[] {
+>>>>>>> master
         // This should only happen once for each cell.
         this._version += 1;
 
         // Get rid of windows line endings. We're normalizing on linux
+<<<<<<< HEAD
         const normalized = code.replace(/\r/g, '');
+=======
+        const normalized = fullCode.replace(/\r/g, '');
+        const normalizedCurrent = currentCode.replace(/\r/g, '');
+>>>>>>> master
 
         // This item should go just before the edit cell
 
         // Make sure to put a newline between this code and the next code
         const newCode = `${normalized}\n`;
+<<<<<<< HEAD
+=======
+        const newCurrentCode = `${normalizedCurrent}\n`;
+>>>>>>> master
 
         // We should start just before the last cell.
         const fromOffset = this._cellRanges[this._cellRanges.length - 1].start;
@@ -204,13 +226,23 @@ export class IntellisenseDocument implements TextDocument {
         const fromPosition = this.positionAt(fromOffset);
 
         // Save the range for this cell ()
+<<<<<<< HEAD
         this._cellRanges.splice(this._cellRanges.length - 1, 0, { id, start: fromOffset, end: fromOffset + newCode.length });
+=======
+        this._cellRanges.splice(this._cellRanges.length - 1, 0,
+            { id, start: fromOffset, fullEnd: fromOffset + newCode.length, currentEnd: fromOffset + newCurrentCode.length });
+>>>>>>> master
 
         // Update our entire contents and recompute our lines
         this._contents = `${before}${newCode}${after}`;
         this._lines = this.createLines();
         this._cellRanges[this._cellRanges.length - 1].start += newCode.length;
+<<<<<<< HEAD
         this._cellRanges[this._cellRanges.length - 1].end += newCode.length;
+=======
+        this._cellRanges[this._cellRanges.length - 1].fullEnd += newCode.length;
+        this._cellRanges[this._cellRanges.length - 1].currentEnd += newCode.length;
+>>>>>>> master
 
         return [
             {
@@ -222,6 +254,7 @@ export class IntellisenseDocument implements TextDocument {
         ];
     }
 
+<<<<<<< HEAD
     public removeCell(id: string): TextDocumentContentChangeEvent[] {
         const cellIndex = this._cellRanges.findIndex(c => c.id === id);
         if (cellIndex >= 0) {
@@ -243,6 +276,8 @@ export class IntellisenseDocument implements TextDocument {
         return [];
     }
 
+=======
+>>>>>>> master
     public removeAllCells(): TextDocumentContentChangeEvent[] {
         // Remove everything up to the edit cell
         if (this._cellRanges.length > 1) {
@@ -260,7 +295,12 @@ export class IntellisenseDocument implements TextDocument {
             this._cellRanges = [ {
                 id: Identifiers.EditCellId,
                 start: 0,
+<<<<<<< HEAD
                 end: this._cellRanges[this._cellRanges.length - 1].end - toOffset
+=======
+                fullEnd: this._cellRanges[this._cellRanges.length - 1].fullEnd - toOffset,
+                currentEnd: this._cellRanges[this._cellRanges.length - 1].fullEnd - toOffset
+>>>>>>> master
             }];
 
             return result;
@@ -278,7 +318,12 @@ export class IntellisenseDocument implements TextDocument {
 
             // Figure out which cell we're editing.
             const cellIndex = this._cellRanges.findIndex(c => c.id === id);
+<<<<<<< HEAD
             if (cellIndex >= 0) {
+=======
+            if (id === Identifiers.EditCellId && cellIndex >= 0) {
+                // This is an actual edit.
+>>>>>>> master
                 // Line/column are within this cell. Use its offset to compute the real position
                 const editPos = this.positionAt(this._cellRanges[cellIndex].start);
                 const from = new Position(editPos.line + editorChanges[0].range.startLineNumber - 1, editorChanges[0].range.startColumn - 1);
@@ -286,6 +331,13 @@ export class IntellisenseDocument implements TextDocument {
 
                 // Remove this range from the contents and return the change.
                 return this.removeRange(normalized, from, to, cellIndex);
+<<<<<<< HEAD
+=======
+            } else if (cellIndex >= 0) {
+                // This is an edit of a read only cell. Just replace our currentEnd position
+                const newCode = `${normalized}\n`;
+                this._cellRanges[cellIndex].currentEnd = this._cellRanges[cellIndex].start + newCode.length;
+>>>>>>> master
             }
         }
 
@@ -324,7 +376,12 @@ export class IntellisenseDocument implements TextDocument {
             if (i !== cellIndex) {
                 this._cellRanges[i].start += lengthDiff;
             }
+<<<<<<< HEAD
             this._cellRanges[i].end += lengthDiff;
+=======
+            this._cellRanges[i].fullEnd += lengthDiff;
+            this._cellRanges[i].currentEnd += lengthDiff;
+>>>>>>> master
         }
 
         return [

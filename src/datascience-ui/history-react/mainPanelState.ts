@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 'use strict';
 import { nbformat } from '@jupyterlab/coreutils';
+import * as monacoEditor from 'monaco-editor/esm/vs/editor/editor.api';
 import * as path from 'path';
 
 import { IDataScienceSettings } from '../../client/common/types';
@@ -28,6 +29,10 @@ export interface IMainPanelState {
     forceDark?: boolean;
     monacoTheme?: string;
     tokenizerLoaded?: boolean;
+<<<<<<< HEAD
+=======
+    editorOptions: monacoEditor.editor.IEditorOptions;
+>>>>>>> master
 }
 
 // tslint:disable-next-line: no-multiline-string
@@ -46,7 +51,11 @@ const darkStyle = `
 // This function generates test state when running under a browser instead of inside of
 export function generateTestState(inputBlockToggled: (id: string) => void, filePath: string = ''): IMainPanelState {
     return {
+<<<<<<< HEAD
         cellVMs: generateVMs(inputBlockToggled, filePath),
+=======
+        cellVMs : generateVMs(inputBlockToggled, filePath),
+>>>>>>> master
         editCellVM: createEditableCellVM(1),
         busy: true,
         skipNextScroll: false,
@@ -56,7 +65,12 @@ export function generateTestState(inputBlockToggled: (id: string) => void, fileP
         history: new InputHistory(),
         contentTop: 24,
         rootStyle: darkStyle,
+<<<<<<< HEAD
         tokenizerLoaded: true
+=======
+        tokenizerLoaded: true,
+        editorOptions: {}
+>>>>>>> master
     };
 }
 
@@ -166,7 +180,11 @@ function generateCellData(): (nbformat.ICodeCell | nbformat.IMarkdownCell | nbfo
             outputs: [
                 {
                     data: {
+<<<<<<< HEAD
                         // tslint:disable-next-line: no-multiline-string
+=======
+// tslint:disable-next-line: no-multiline-string
+>>>>>>> master
                         'text/html': [`
                             <div style="
                             overflow: auto;
@@ -358,7 +376,11 @@ function generateCellData(): (nbformat.ICodeCell | nbformat.IMarkdownCell | nbfo
                         </table>
                         <p>5 rows × 3000 columns</p>
                         </div>`
+<<<<<<< HEAD
                         ]
+=======
+                    ]
+>>>>>>> master
                     },
                     execution_count: 4,
                     metadata: {},
