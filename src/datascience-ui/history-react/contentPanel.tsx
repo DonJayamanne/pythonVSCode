@@ -6,7 +6,11 @@ import './contentPanel.css';
 import * as monacoEditor from 'monaco-editor/esm/vs/editor/editor.api';
 import * as React from 'react';
 
+<<<<<<< HEAD
+import { noop } from '../../client/common/utils/misc';
+=======
 import { noop } from '../../test/core';
+>>>>>>> master
 import { ErrorBoundary } from '../react-common/errorBoundary';
 import { getSettings } from '../react-common/settingsReactSide';
 import { Cell, ICellViewModel } from './cell';
@@ -22,7 +26,10 @@ export interface IContentPanelProps {
     submittedText: boolean;
     skipNextScroll: boolean;
     monacoTheme: string | undefined;
+<<<<<<< HEAD
+=======
     editorOptions: monacoEditor.editor.IEditorOptions;
+>>>>>>> master
     gotoCellCode(index: number): void;
     deleteCell(index: number): void;
     onCodeChange(changes: monacoEditor.editor.IModelContentChange[], cellId: string, modelId: string): void;
@@ -44,14 +51,18 @@ export class ContentPanel extends React.Component<IContentPanelProps> {
     }
 
     public render() {
+<<<<<<< HEAD
+        return (
+=======
         return(
+>>>>>>> master
             <div id='content-panel-div'>
                 <div id='cell-table'>
                     <div id='cell-table-body'>
                         {this.renderCells()}
                     </div>
                 </div>
-                <div ref={this.updateBottom}/>
+                <div ref={this.updateBottom} />
             </div>
         );
     }
@@ -65,7 +76,10 @@ export class ContentPanel extends React.Component<IContentPanelProps> {
         return this.props.cellVMs.map((cellVM: ICellViewModel, index: number) =>
             <ErrorBoundary key={index}>
                 <Cell
+<<<<<<< HEAD
+=======
                     editorOptions={this.props.editorOptions}
+>>>>>>> master
                     history={undefined}
                     maxTextSize={maxTextSize}
                     autoFocus={false}
@@ -81,7 +95,11 @@ export class ContentPanel extends React.Component<IContentPanelProps> {
                     onCodeChange={this.props.onCodeChange}
                     onCodeCreated={this.props.onCodeCreated}
                     monacoTheme={this.props.monacoTheme}
+<<<<<<< HEAD
+                />
+=======
                     />
+>>>>>>> master
             </ErrorBoundary>
         );
     }
@@ -92,7 +110,7 @@ export class ContentPanel extends React.Component<IContentPanelProps> {
             // yet so we need to delay. 10ms looks good from a user point of view
             setTimeout(() => {
                 if (this.bottom) {
-                    this.bottom.scrollIntoView({behavior: 'smooth', block : 'end', inline: 'end'});
+                    this.bottom.scrollIntoView({ behavior: 'smooth', block: 'end', inline: 'end' });
                 }
             }, 100);
         }

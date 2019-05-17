@@ -11,10 +11,10 @@ import * as React from 'react';
 import JSONTree from 'react-json-tree';
 
 import '../../client/common/extensions';
+import { noop } from '../../client/common/utils/misc';
 import { concatMultilineString, formatStreamText } from '../../client/datascience/common';
 import { Identifiers } from '../../client/datascience/constants';
 import { CellState, ICell } from '../../client/datascience/types';
-import { noop } from '../../test/core';
 import { getLocString } from '../react-common/locReactSide';
 import { getSettings } from '../react-common/settingsReactSide';
 import './cell.css';
@@ -40,7 +40,10 @@ interface ICellProps {
     showWatermark: boolean;
     errorBackgroundColor: string;
     monacoTheme: string | undefined;
+<<<<<<< HEAD
+=======
     editorOptions: monacoEditor.editor.IEditorOptions;
+>>>>>>> master
     gotoCode(): void;
     delete(): void;
     submitNewCode(code: string): void;
@@ -64,12 +67,12 @@ export class Cell extends React.Component<ICellProps> {
 
     constructor(prop: ICellProps) {
         super(prop);
-        this.state = {focused: this.props.autoFocus};
+        this.state = { focused: this.props.autoFocus };
     }
 
     public render() {
         if (this.props.cellVM.cell.data.cell_type === 'sys_info') {
-            return <SysInfo theme={this.props.baseTheme} connection={this.props.cellVM.cell.data.connection} path={this.props.cellVM.cell.data.path} message={this.props.cellVM.cell.data.message} version={this.props.cellVM.cell.data.version} notebook_version={this.props.cellVM.cell.data.notebook_version}/>;
+            return <SysInfo theme={this.props.baseTheme} connection={this.props.cellVM.cell.data.connection} path={this.props.cellVM.cell.data.path} message={this.props.cellVM.cell.data.message} version={this.props.cellVM.cell.data.version} notebook_version={this.props.cellVM.cell.data.notebook_version} />;
         } else {
             return this.renderNormalCell();
         }
@@ -163,11 +166,11 @@ export class Cell extends React.Component<ICellProps> {
         }
     }
 
-    private showInputs = () : boolean => {
+    private showInputs = (): boolean => {
         return (this.isCodeCell() && (this.props.cellVM.inputBlockShow || this.props.cellVM.editable));
     }
 
-    private getRenderableInputCode = () : string => {
+    private getRenderableInputCode = (): string => {
         if (this.props.cellVM.editable) {
             return '';
         }
@@ -228,7 +231,11 @@ export class Cell extends React.Component<ICellProps> {
                         onCreated={this.onCodeCreated}
                         outermostParentClass='cell-wrapper'
                         monacoTheme={this.props.monacoTheme}
+<<<<<<< HEAD
+                    />
+=======
                         />
+>>>>>>> master
                 </div>
             );
         } else {
@@ -244,7 +251,11 @@ export class Cell extends React.Component<ICellProps> {
         this.props.onCodeCreated(code, this.props.cellVM.cell.file, this.props.cellVM.cell.id, modelId);
     }
 
+<<<<<<< HEAD
+    private getCursorType = (): string => {
+=======
     private getCursorType = () : string => {
+>>>>>>> master
         if (getSettings && getSettings().extraSettings) {
             return getSettings().extraSettings.terminalCursor;
         }
@@ -284,15 +295,15 @@ export class Cell extends React.Component<ICellProps> {
         return [];
     }
 
-    private renderMarkdown = (markdown : nbformat.IMarkdownCell) => {
+    private renderMarkdown = (markdown: nbformat.IMarkdownCell) => {
         // React-markdown expects that the source is a string
         const source = concatMultilineString(markdown.source);
         const Transform = transforms['text/markdown'];
 
-        return [<Transform key={0} data={source}/>];
+        return [<Transform key={0} data={source} />];
     }
 
-    private renderWithTransform = (mimetype: string, output : nbformat.IOutput, index : number, renderWithScrollbars: boolean, forceLightTheme: boolean) => {
+    private renderWithTransform = (mimetype: string, output: nbformat.IOutput, index: number, renderWithScrollbars: boolean, forceLightTheme: boolean) => {
 
         // If we found a mimetype, use the transform
         if (mimetype) {
@@ -343,7 +354,7 @@ export class Cell extends React.Component<ICellProps> {
         return <div></div>;
     }
 
-    private convertToLinearRgb(color: number) : number {
+    private convertToLinearRgb(color: number): number {
         let c = color / 255;
         if (c <= 0.03928) {
             c = c / 12.92;
@@ -377,20 +388,20 @@ export class Cell extends React.Component<ICellProps> {
         }
     }
 
-    private renderOutput = (output : nbformat.IOutput, index: number) => {
+    private renderOutput = (output: nbformat.IOutput, index: number) => {
         // Borrowed this from Don's Jupyter extension
 
         // First make sure we have the mime data
         if (!output) {
-          return <div key={index}/>;
+            return <div key={index} />;
         }
 
         // Make a copy of our data so we don't modify our cell
-        const copy = {...output};
+        const copy = { ...output };
 
         // Special case for json
         if (copy.data && copy.data.hasOwnProperty('application/json')) {
-          return <JSONTree key={index} data={copy.data} />;
+            return <JSONTree key={index} data={copy.data} />;
         }
 
         // Only for text and error ouptut do we add scrollbars
@@ -406,7 +417,7 @@ export class Cell extends React.Component<ICellProps> {
             const multiline = concatMultilineString(stream.text);
             const formatted = formatStreamText(multiline);
             copy.data = {
-                'text/html' : `<xmp>${formatted}</xmp>`
+                'text/html': `<xmp>${formatted}</xmp>`
             };
 
             // Output may have goofy ascii colorization chars in it. Try
@@ -458,7 +469,7 @@ export class Cell extends React.Component<ICellProps> {
         } else {
             mimetype = 'unknown';
         }
-        const str : string = this.getUnknownMimeTypeFormatString().format(mimetype);
+        const str: string = this.getUnknownMimeTypeFormatString().format(mimetype);
         return <div key={index}>{str}</div>;
     }
 }

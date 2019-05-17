@@ -112,6 +112,8 @@ export class MonacoEditor extends React.Component<IMonacoEditorProps, IMonacoEdi
             // Make sure our suggest and hover windows show up on top of other stuff
             this.updateWidgetParent(editor);
 
+<<<<<<< HEAD
+=======
             // Eliminate the find action if possible
             // tslint:disable-next-line: no-any
             const editorAny = editor as any;
@@ -119,6 +121,7 @@ export class MonacoEditor extends React.Component<IMonacoEditorProps, IMonacoEdi
                 editorAny._standaloneKeybindingService.addDynamicKeybinding('-actions.find');
             }
 
+>>>>>>> master
             // Tell our parent the editor is ready to use
             this.props.editorMounted(editor);
         }
