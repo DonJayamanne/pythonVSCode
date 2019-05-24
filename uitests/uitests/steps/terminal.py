@@ -75,7 +75,7 @@ def _ensure_shell_is_cmd(context):
     except Exception:
         current_value = ""
 
-    if "cmd.exe" in current_value:
+    if current_value is not None and "cmd.exe" in current_value:
         return
     change_shell_to_cmd(context)
 
@@ -90,6 +90,6 @@ def _ensure_shell_is_bash(context):
     except Exception:
         current_value = ""
 
-    if "bash" in current_value:
+    if current_value is not None and "bash" in current_value:
         return
     change_shell_to_bash(context)
