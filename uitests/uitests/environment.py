@@ -50,19 +50,9 @@ def _exit(context):
     uitests.vscode.startup.CONTEXT["driver"] = None
 
 
-def write_log_header(message, options):
-    pass
-    # with open(os.path.join(options.logfiles_dir, "vsc.log"), "a+") as fp:
-    #     fp.write(os.linesep)
-    #     fp.write(message)
-    #     fp.write(os.linesep)
-
-
 @uitests.tools.log_exceptions()
 @uitests.tools.retry((AttributeError, PermissionError, FileNotFoundError), tries=2)
 def before_feature(context, feature):
-    write_log_header(feature.name, context.options)
-
     # Restore `drive`, as behave will overwrite with original value.
     # Note, its possible we have a new driver instance due to reloading of VSC.
     context.driver = uitests.vscode.startup.CONTEXT["driver"]
@@ -92,7 +82,6 @@ def before_scenario(context, scenario):
 
     context.options = uitests.vscode.application.get_options(**context.config.userdata)
     context.options.workspace_folder = feature_workspace_folder
-    write_log_header(scenario.name, context.options)
 
     # Restore python.pythonPath in user & workspace settings.
     settings_json = os.path.join(context.options.user_dir, "User", "settings.json")
