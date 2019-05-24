@@ -50,13 +50,13 @@ def _exit(context):
     uitests.vscode.startup.CONTEXT["driver"] = None
 
 
-@uitests.tools.log_exceptions()
 @uitests.tools.retry((AttributeError, PermissionError, FileNotFoundError), tries=2)
+@uitests.tools.log_exceptions()
 def before_feature(context, feature):
     # Restore `drive`, as behave will overwrite with original value.
     # Note, its possible we have a new driver instance due to reloading of VSC.
     context.driver = uitests.vscode.startup.CONTEXT["driver"]
-    if context.driver is None:
+    if context.driver is not None:
         uitests.vscode.startup.clear_everything(context)
 
     repo = [
@@ -73,8 +73,8 @@ def before_feature(context, feature):
     uitests.vscode.startup.reload(context)
 
 
-@uitests.tools.log_exceptions()
 @uitests.tools.retry((PermissionError, FileNotFoundError), tries=2)
+@uitests.tools.log_exceptions()
 def before_scenario(context, scenario):
     # Restore `drive`, as behave will overwrite with original value.
     # Note, its possible we have a new driver instance due to reloading of VSC.
