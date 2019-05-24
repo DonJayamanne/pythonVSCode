@@ -59,13 +59,15 @@ def write_log_header(message, options):
 
 
 @uitests.tools.log_exceptions()
-@uitests.tools.retry((PermissionError, FileNotFoundError), tries=2)
+@uitests.tools.retry((AttributeError, PermissionError, FileNotFoundError), tries=2)
 def before_feature(context, feature):
+    write_log_header(feature.name, context.options)
+
     # Restore `drive`, as behave will overwrite with original value.
     # Note, its possible we have a new driver instance due to reloading of VSC.
     context.driver = uitests.vscode.startup.CONTEXT["driver"]
-    uitests.vscode.startup.clear_everything(context)
-    write_log_header(feature.name, context.options)
+    if context.driver is None:
+        uitests.vscode.startup.clear_everything(context)
 
     repo = [
         tag for tag in feature.tags if tag.lower().startswith("https://github.com/")
@@ -87,6 +89,7 @@ def before_scenario(context, scenario):
     # Restore `drive`, as behave will overwrite with original value.
     # Note, its possible we have a new driver instance due to reloading of VSC.
     context.driver = uitests.vscode.startup.CONTEXT["driver"]
+
     context.options = uitests.vscode.application.get_options(**context.config.userdata)
     context.options.workspace_folder = feature_workspace_folder
     write_log_header(scenario.name, context.options)
@@ -97,6 +100,10 @@ def before_scenario(context, scenario):
     uitests.vscode.settings.update_settings(
         settings_json, {"python.pythonPath": context.options.python_path}
     )
+
+    # Flaky issues, ensure VSC is loaded.
+    if context.driver is None:
+        uitests.vscode.startup.reload(context)
 
     # We want this open so it can get captured in screenshots.
     uitests.vscode.quick_open.select_command(context, "View: Show Explorer")
