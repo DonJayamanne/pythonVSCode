@@ -157,6 +157,13 @@ steps:
 
     - task: CopyFiles@2
       inputs:
+          contents: ".vscode-test/screenshots/**"
+          targetFolder: $(Build.ArtifactStagingDirectory)
+      displayName: "Copy Screenshots"
+      condition: always()
+
+    - task: CopyFiles@2
+      inputs:
           contents: ".vscode-test/logs/**"
           targetFolder: $(Build.ArtifactStagingDirectory)
       displayName: "Copy Extension Logs"

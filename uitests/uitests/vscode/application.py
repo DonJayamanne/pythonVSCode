@@ -216,6 +216,11 @@ def capture_screen(context):
     if context.options.embed_screenshots:
         screenshot = context.driver.get_screenshot_as_base64()
         uitests.report.PrettyCucumberJSONFormatter.instance.attach_image(screenshot)
+        # Also save for logging purposes (easier to look at images).
+        filename = tempfile.NamedTemporaryFile(prefix="screen_capture_")
+        filename = f"{os.path.basename(filename.name)}.png"
+        filename = os.path.join(context.options.screenshots_dir, filename)
+        context.driver.save_screenshot(filename)
     else:
         filename = tempfile.NamedTemporaryFile(prefix="screen_capture_")
         filename = f"{os.path.basename(filename.name)}.png"
