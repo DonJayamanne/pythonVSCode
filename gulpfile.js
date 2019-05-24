@@ -83,10 +83,10 @@ gulp.task('compile', (done) => {
     const tsProject = ts.createProject("tsconfig.json");
     tsProject.src()
         .pipe(tsProject())
-        .on("error", ()=> failed = true)
+        .on("error", () => failed = true)
         .js
         .pipe(gulp.dest("out"))
-        .on("finish",  ()=> failed ? done(new Error('TypeScript compilation errors')) : done());
+        .on("finish", () => failed ? done(new Error('TypeScript compilation errors')) : done());
 });
 
 gulp.task('precommit', (done) => run({ exitOnError: true, mode: 'staged' }, done));
