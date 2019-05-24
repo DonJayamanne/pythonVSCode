@@ -59,7 +59,7 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
             cellVMs: [],
             busy: true,
             undoStack: [],
-            redoStack: [],
+            redoStack : [],
             submittedText: false,
             history: new InputHistory(),
             editCellVM: getSettings && getSettings().allowInput ? createEditableCellVM(1) : undefined,
@@ -85,7 +85,7 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
         if (this.props.skipDefault) {
             if (this.props.testMode) {
                 // Running a test, skip the tokenizer. We want the UI to display synchronously
-                this.state = { tokenizerLoaded: true, ...this.state };
+                this.state = {tokenizerLoaded: true, ...this.state};
 
                 // However we still need to register python as a language
                 registerMonacoLanguage();
@@ -195,13 +195,13 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
 
             case HistoryMessages.StartProgress:
                 if (!this.props.testMode) {
-                    this.setState({ busy: true });
+                    this.setState({busy: true});
                 }
                 break;
 
             case HistoryMessages.StopProgress:
                 if (!this.props.testMode) {
-                    this.setState({ busy: false });
+                    this.setState({busy: false});
                 }
                 break;
 
@@ -326,7 +326,7 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
         );
     }
 
-    private computeEditorOptions(): monacoEditor.editor.IEditorOptions {
+    private computeEditorOptions() : monacoEditor.editor.IEditorOptions {
         const intellisenseOptions = getSettings().intellisenseOptions;
         const extraSettings = getSettings().extraSettings;
         if (intellisenseOptions && extraSettings) {
@@ -354,11 +354,6 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
         }
 
         return {};
-    }
-
-    // Called by the header control when size changes (such as expanding variables)
-    private onHeaderHeightChange = (newHeight: number) => {
-        this.setState({ contentTop: newHeight });
     }
 
     private darkChanged = (newDark: boolean) => {
@@ -418,32 +413,37 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
             openLink: this.openLink
         };
     }
-    private getHeaderProps = (baseTheme: string): IHeaderPanelProps => {
-        return {
-            addMarkdown: this.addMarkdown,
-            busy: this.state.busy,
-            collapseAll: this.collapseAll,
-            expandAll: this.expandAll,
-            export: this.export,
-            restartKernel: this.restartKernel,
-            interruptKernel: this.interruptKernel,
-            undo: this.undo,
-            redo: this.redo,
-            clearAll: this.clearAll,
-            skipDefault: this.props.skipDefault,
-            showDataExplorer: this.showDataViewer,
-            testMode: this.props.testMode,
-            variableExplorerRef: this.variableExplorerRef,
-            canCollapseAll: this.canCollapseAll(),
-            canExpandAll: this.canExpandAll(),
-            canExport: this.canExport(),
-            canUndo: this.canUndo(),
-            canRedo: this.canRedo(),
-            refreshVariables: this.refreshVariables,
-            variableExplorerToggled: this.variableExplorerToggled,
-            onHeightChange: this.onHeaderHeightChange,
-            baseTheme: baseTheme
-        };
+    private getToolbarProps = (baseTheme: string): IToolbarPanelProps => {
+       return {
+        addMarkdown: this.addMarkdown,
+        collapseAll: this.collapseAll,
+        expandAll: this.expandAll,
+        export: this.export,
+        restartKernel: this.restartKernel,
+        interruptKernel: this.interruptKernel,
+        undo: this.undo,
+        redo: this.redo,
+        clearAll: this.clearAll,
+        skipDefault: this.props.skipDefault,
+        canCollapseAll: this.canCollapseAll(),
+        canExpandAll: this.canExpandAll(),
+        canExport: this.canExport(),
+        canUndo: this.canUndo(),
+        canRedo: this.canRedo(),
+        baseTheme: baseTheme
+       };
+    }
+
+    private getVariableProps = (baseTheme: string): IVariablePanelProps => {
+       return {
+        busy: this.state.busy,
+        showDataExplorer: this.showDataViewer,
+        testMode: this.props.testMode,
+        variableExplorerRef: this.variableExplorerRef,
+        refreshVariables: this.refreshVariables,
+        variableExplorerToggled: this.variableExplorerToggled,
+        baseTheme: baseTheme
+       };
     }
 
     private activate() {
@@ -453,7 +453,7 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
             setTimeout(() => {
                 // First we have to give ourselves focus (so that focus actually ends up in the code cell)
                 if (this.mainPanel) {
-                    this.mainPanel.focus({ preventScroll: true });
+                    this.mainPanel.focus({preventScroll: true});
                 }
 
                 if (this.editCellRef) {
@@ -497,7 +497,7 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
 
     private getAllCells = () => {
         // Send all of our cells back to the other side
-        const cells = this.state.cellVMs.map((cellVM: ICellViewModel) => {
+        const cells = this.state.cellVMs.map((cellVM : ICellViewModel) => {
             return cellVM.cell;
         });
 
@@ -510,7 +510,7 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
 
     private addMarkdown = () => {
         this.addCell({
-            data: {
+            data :         {
                 cell_type: 'markdown',
                 metadata: {},
                 source: [
@@ -520,14 +520,14 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
                     '- Of Items'
                 ]
             },
-            id: '1111',
-            file: 'foo.py',
-            line: 0,
-            state: CellState.finished
+            id : '1111',
+            file : 'foo.py',
+            line : 0,
+            state : CellState.finished
         });
     }
 
-    private getNonEditCellVMs(): ICellViewModel[] {
+    private getNonEditCellVMs() : ICellViewModel [] {
         return this.state.cellVMs.filter(c => !c.editable);
     }
 
@@ -544,14 +544,14 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
     }
 
     private canRedo = () => {
-        return this.state.redoStack.length > 0;
+        return this.state.redoStack.length > 0 ;
     }
 
     private canUndo = () => {
-        return this.state.undoStack.length > 0;
+        return this.state.undoStack.length > 0 ;
     }
 
-    private pushStack = (stack: ICellViewModel[][], cells: ICellViewModel[]) => {
+    private pushStack = (stack : ICellViewModel[][], cells : ICellViewModel[]) => {
         // Get the undo stack up to the maximum length
         const slicedUndo = stack.slice(0, min([stack.length, this.stackLimit]));
 
@@ -564,22 +564,22 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
         const cellVM = this.state.cellVMs[index];
 
         // Send a message to the other side to jump to a particular cell
-        this.sendMessage(HistoryMessages.GotoCodeCell, { file: cellVM.cell.file, line: cellVM.cell.line });
+        this.sendMessage(HistoryMessages.GotoCodeCell, { file : cellVM.cell.file, line: cellVM.cell.line });
     }
 
     private deleteCell = (index: number) => {
         this.sendMessage(HistoryMessages.DeleteCell);
         const cellVM = this.state.cellVMs[index];
         if (cellVM) {
-            this.sendMessage(HistoryMessages.RemoveCell, { id: cellVM.cell.id });
+            this.sendMessage(HistoryMessages.RemoveCell, {id: cellVM.cell.id});
         }
 
         // Update our state
         this.setState({
-            cellVMs: this.state.cellVMs.filter((_c: ICellViewModel, i: number) => {
+            cellVMs: this.state.cellVMs.filter((_c : ICellViewModel, i: number) => {
                 return i !== index;
             }),
-            undoStack: this.pushStack(this.state.undoStack, this.state.cellVMs),
+            undoStack : this.pushStack(this.state.undoStack, this.state.cellVMs),
             skipNextScroll: true
         });
     }
@@ -603,7 +603,7 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
         // Update our state
         this.setState({
             cellVMs: [],
-            undoStack: this.pushStack(this.state.undoStack, this.state.cellVMs),
+            undoStack : this.pushStack(this.state.undoStack, this.state.cellVMs),
             skipNextScroll: true,
             busy: false // No more progress on delete all
         });
@@ -637,9 +637,9 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
         this.sendMessage(HistoryMessages.Undo);
         this.setState({
             cellVMs: cells,
-            undoStack: undoStack,
-            redoStack: redoStack,
-            skipNextScroll: true
+            undoStack : undoStack,
+            redoStack : redoStack,
+            skipNextScroll : true
         });
 
         // Tell other side, we changed our number of cells
@@ -694,7 +694,7 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
         }
     }
 
-    private getEditCell(): ICellViewModel | undefined {
+    private getEditCell() : ICellViewModel | undefined {
         return this.state.editCellVM;
     }
 
@@ -754,7 +754,7 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
                 return cellVM;
             }
 
-            const newCellVM = { ...cellVM };
+            const newCellVM = {...cellVM};
             if (cellVM.inputBlockShow !== visible) {
                 if (visible) {
                     // Show the cell, the rest of the function will add on correct collapse state
@@ -794,7 +794,7 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
     }
 
     private sendInfo = () => {
-        const info: IHistoryInfo = {
+        const info : IHistoryInfo = {
             cellCount: this.getNonEditCellVMs().length,
             undoCount: this.state.undoStack.length,
             redoCount: this.state.redoStack.length
@@ -802,12 +802,12 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
         this.sendMessage(HistoryMessages.SendInfo, info);
     }
 
-    private updateOrAdd = (cell: ICell, allowAdd?: boolean) => {
-        const index = this.state.cellVMs.findIndex((c: ICellViewModel) => {
+    private updateOrAdd = (cell: ICell, allowAdd? : boolean) => {
+        const index = this.state.cellVMs.findIndex((c : ICellViewModel) => {
             return c.cell.id === cell.id &&
-                c.cell.line === cell.line &&
-                c.cell.file === cell.file;
-        });
+                   c.cell.line === cell.line &&
+                   c.cell.file === cell.file;
+            });
         if (index >= 0) {
             // Update this cell
             this.state.cellVMs[index].cell = cell;
@@ -882,7 +882,7 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
             editCell.cell.data.source = code;
 
             // Change type to markdown if necessary
-            const split = code.splitLines({ trim: false });
+            const split = code.splitLines({trim: false});
             const firstLine = split[0];
             const matcher = new CellMatcher(getSettings());
             if (matcher.isMarkdown(firstLine)) {
@@ -914,11 +914,7 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
                 submittedText: true
             });
 
-            // Send a message to execute this code if necessary.
             if (editCell.cell.state !== CellState.finished) {
-                this.sendMessage(HistoryMessages.SubmitNewCell, { code, id: editCell.cell.id });
-            }
-        }
     }
 
     private variableExplorerToggled = (open: boolean) => {
@@ -1002,7 +998,7 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
         this.monacoIdToCellId.set(monacoId, id);
     }
 
-    private getCellId = (monacoId: string): string => {
+    private getCellId = (monacoId: string) : string => {
         const result = this.monacoIdToCellId.get(monacoId);
         if (result) {
             return result;
@@ -1017,7 +1013,7 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
         this.setState({ tokenizerLoaded: true });
     }
 
-    private loadOnigasm = (): Promise<ArrayBuffer> => {
+    private loadOnigasm = () : Promise<ArrayBuffer> => {
         if (!this.onigasmPromise) {
             this.onigasmPromise = createDeferred<ArrayBuffer>();
             // Send our load onigasm request
@@ -1026,7 +1022,7 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
         return this.onigasmPromise.promise;
     }
 
-    private loadTmlanguage = (): Promise<string> => {
+    private loadTmlanguage = () : Promise<string> => {
         if (!this.tmlangugePromise) {
             this.tmlangugePromise = createDeferred<string>();
             // Send our load onigasm request
