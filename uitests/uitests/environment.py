@@ -26,20 +26,14 @@ feature_workspace_folder = None
 @uitests.tools.retry((TimeoutError, WebDriverException), tries=5, delay=5)
 @uitests.tools.log_exceptions()
 def before_all(context):
-    try:
-        options = uitests.vscode.application.get_options(**context.config.userdata)
-        app_context = uitests.vscode.startup.start(options)
-        uitests.vscode.startup.clear_everything(app_context)
-        context.driver = app_context.driver
-        context.options = app_context.options
-        context.workspace_repo = None
-    except (TimeoutError, WebDriverException):
-        # Exit before we retry again.
-        uitests.vscode.application.exit(context)
-        # Use the driver we defined in startup.
-        _exit(context)
-        # Reraise exception.
-        raise
+    # Use the driver we defined in startup.
+    _exit(context)
+    options = uitests.vscode.application.get_options(**context.config.userdata)
+    app_context = uitests.vscode.startup.start(options)
+    uitests.vscode.startup.clear_everything(app_context)
+    context.driver = app_context.driver
+    context.options = app_context.options
+    context.workspace_repo = None
 
 
 def after_all(context):
@@ -47,6 +41,8 @@ def after_all(context):
 
 
 def _exit(context):
+    # Exit with current driver in context object.
+    uitests.vscode.application.exit(context)
     context.driver = uitests.vscode.startup.CONTEXT["driver"]
     uitests.vscode.application.exit(context)
     uitests.vscode.startup.CONTEXT["driver"] = None
