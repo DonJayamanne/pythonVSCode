@@ -11,6 +11,7 @@ import shutil
 import stat
 import sys
 import tempfile
+import time
 import traceback
 from dataclasses import dataclass
 from socket import socket
@@ -204,6 +205,8 @@ def exit(context):
                 pass
             try:
                 context.driver.quit()
+                # Give it time to release ports (based on stack overflow suggestions).
+                time.sleep(1)
             except Exception:
                 pass
             try:

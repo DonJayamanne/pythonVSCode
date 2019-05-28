@@ -38,6 +38,8 @@ def before_all(context):
         uitests.vscode.application.exit(context)
         # Use the driver we defined in startup.
         _exit(context)
+        # Reraise exception.
+        raise
 
 
 def after_all(context):
