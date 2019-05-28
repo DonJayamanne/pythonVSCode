@@ -58,6 +58,7 @@ def _start_vscode(options):
     return context
 
 
+@uitests.tools.retry(TimeoutError, tries=5, delay=1)
 def reload(context):
     logging.debug("Reloading VS Code")
     # Ignore all messages written to console.
