@@ -185,7 +185,7 @@ def launch_vscode(options):
     )
 
     port = _get_free_port()
-    driver = webdriver.Chrome(options=chrome_options, port=port)
+    driver = webdriver.Chrome(options=chrome_options, port=port, keep_alive=False)
     return driver
 
 
