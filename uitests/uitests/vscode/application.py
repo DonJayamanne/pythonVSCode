@@ -177,6 +177,7 @@ def launch_vscode(options):
         "sticky-quickopen",
         "disable-telemetry",
         "disable-updates",
+        "no-sandbox",  # We don't need this Chrome feature.
         "disable-crash-reporter",
     ]:
         chrome_options.add_argument(arg)
