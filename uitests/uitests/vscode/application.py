@@ -13,10 +13,11 @@ import sys
 import tempfile
 import traceback
 from dataclasses import dataclass
-
-from selenium import webdriver
+from socket import socket
 
 import psutil
+from selenium import webdriver
+
 import uitests.bootstrap
 import uitests.report
 import uitests.tools
@@ -154,6 +155,12 @@ def _install_extension(extensions_dir, extension_name, vsix):
     shutil.rmtree(temp_dir, ignore_errors=True)
 
 
+def _get_free_port():
+    with socket() as s:
+        s.bind(("", 0))
+        return s.getsockname()[1]
+
+
 def launch_vscode(options):
     """Launches the smoke tests copy of VSC."""
     chrome_options = webdriver.ChromeOptions()
@@ -176,7 +183,9 @@ def launch_vscode(options):
     chrome_options.binary_location = _get_binary_location(
         options.executable_dir, options.channel
     )
-    driver = webdriver.Chrome(options=chrome_options)
+
+    port = _get_free_port()
+    driver = webdriver.Chrome(options=chrome_options, port=port)
     return driver
 
 
