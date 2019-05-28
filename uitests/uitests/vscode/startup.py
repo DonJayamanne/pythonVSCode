@@ -7,12 +7,13 @@ import io
 import logging
 import os
 import os.path
+import sys
 import tempfile
 import time
-import sys
 from dataclasses import dataclass
 
 from selenium import webdriver
+from selenium.common.exceptions import WebDriverException
 
 import uitests.tools
 
@@ -58,7 +59,7 @@ def _start_vscode(options):
     return context
 
 
-@uitests.tools.retry(TimeoutError, tries=5, delay=1)
+@uitests.tools.retry((TimeoutError, WebDriverException), tries=5, delay=1)
 def reload(context):
     logging.debug("Reloading VS Code")
     # Ignore all messages written to console.
