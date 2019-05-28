@@ -201,10 +201,6 @@ def exit(context):
             except Exception:
                 pass
             try:
-                context.driver.close()
-            except Exception:
-                pass
-            try:
                 context.driver.quit()
                 # Give it time to release ports (based on stack overflow suggestions).
                 time.sleep(1)
