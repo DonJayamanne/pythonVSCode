@@ -36,10 +36,10 @@ export class DjangoLaunchDebugConfigurationProvider implements IDebugConfigurati
             request: 'launch',
             program: program || defaultProgram,
             args: [
-                'runserver',
-                '--noreload'
+                'runserver'
             ],
-            django: true
+            django: true,
+            subProcess: true
         };
         if (!program) {
             const selectedProgram = await input.showInputBox({

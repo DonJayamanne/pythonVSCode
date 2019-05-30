@@ -33,11 +33,10 @@
         "program": "${workspaceFolder}/manage.py",
         "console": "integratedTerminal",
         "args": [
-            "runserver",
-            "--noreload",
-            "--nothreading"
+            "runserver"
         ],
-        "django": true
+        "django": true,
+        "subProcess": true
     },
     {
         "name": "Python: Flask",
@@ -49,10 +48,10 @@
         },
         "args": [
             "run",
-            "--no-debugger",
-            "--no-reload"
+            "--no-debugger"
         ],
-        "jinja": true
+        "jinja": true,
+        "subProcess": true
     },
     {
         "name": "Python: Current File (External Terminal)",

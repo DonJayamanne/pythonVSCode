@@ -136,10 +136,10 @@ suite('Debugging - Configuration Provider Django', () => {
             request: 'launch',
             program: 'xyz.py',
             args: [
-                'runserver',
-                '--noreload'
+                'runserver'
             ],
-            django: true
+            django: true,
+            subProcess: true
         };
 
         expect(state.config).to.be.deep.equal(config);
@@ -159,10 +159,10 @@ suite('Debugging - Configuration Provider Django', () => {
             request: 'launch',
             program: 'hello',
             args: [
-                'runserver',
-                '--noreload'
+                'runserver'
             ],
-            django: true
+            django: true,
+            subProcess: true
         };
 
         expect(state.config).to.be.deep.equal(config);
@@ -185,10 +185,10 @@ suite('Debugging - Configuration Provider Django', () => {
             request: 'launch',
             program: defaultProgram,
             args: [
-                'runserver',
-                '--noreload'
+                'runserver'
             ],
-            django: true
+            django: true,
+            subProcess: true
         };
 
         expect(state.config).to.be.deep.equal(config);

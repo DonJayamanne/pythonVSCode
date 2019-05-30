@@ -71,10 +71,10 @@ suite('Debugging - Configuration Provider Flask', () => {
             },
             args: [
                 'run',
-                '--no-debugger',
-                '--no-reload'
+                '--no-debugger'
             ],
-            jinja: true
+            jinja: true,
+            subProcess: true
         };
 
         expect(state.config).to.be.deep.equal(config);
@@ -100,10 +100,10 @@ suite('Debugging - Configuration Provider Flask', () => {
             },
             args: [
                 'run',
-                '--no-debugger',
-                '--no-reload'
+                '--no-debugger'
             ],
-            jinja: true
+            jinja: true,
+            subProcess: true
         };
 
         expect(state.config).to.be.deep.equal(config);
@@ -129,10 +129,10 @@ suite('Debugging - Configuration Provider Flask', () => {
             },
             args: [
                 'run',
-                '--no-debugger',
-                '--no-reload'
+                '--no-debugger'
             ],
-            jinja: true
+            jinja: true,
+            subProcess: true
         };
 
         expect(state.config).to.be.deep.equal(config);
