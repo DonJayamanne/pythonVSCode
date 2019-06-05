@@ -348,8 +348,8 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
                 parameterHints: {
                     enabled: intellisenseOptions.parameterHintsEnabled
                 },
-                cursorStyle: extraSettings.editorCursor,
-                cursorBlinking: extraSettings.editorCursorBlink
+                cursorStyle: extraSettings.terminalCursor,
+                cursorBlinking: extraSettings.terminalCursorBlink
             };
         }
 
@@ -914,7 +914,11 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
                 submittedText: true
             });
 
+            // Send a message to execute this code if necessary.
             if (editCell.cell.state !== CellState.finished) {
+                this.sendMessage(HistoryMessages.SubmitNewCell, { code, id: editCell.cell.id });
+            }
+        }
     }
 
     private variableExplorerToggled = (open: boolean) => {
