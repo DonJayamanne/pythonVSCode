@@ -9,6 +9,7 @@
 .gitmodules
 .huskyrc.json
 .npmrc
+.nycrc
 .travis.yml
 CODE_OF_CONDUCT.md
 CODING_STANDARDS.md
@@ -31,6 +32,7 @@ vscode-python-signing.*
 webpack.config.js
 webpack.datascience-*.config.js
 
+.devcontainer/**
 .github/**
 .mocha-reporter/**
 .nvm/**
@@ -44,6 +46,7 @@ bin/**
 build/**
 BuildOutput/**
 coverage/**
+data/**
 debug_coverage*/**
 images/**/*.gif
 images/**/*.png
@@ -70,3 +73,4 @@ tmp/**
 tpn/**
 typings/**
 types/**
+uitests/**

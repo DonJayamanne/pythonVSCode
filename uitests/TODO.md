@@ -1,0 +1,10 @@
+-   [ ] Dynamic detection of where `pyenv` environments are created and stored
+    -   uitests/uitests/vscode/startup.py
+-   [ ] CRC compare files unzipped using python module and general unzipping.
+    -   [ ] Identify whats wrong and file an issue upstream on Python if required.
+    -   [ ] Use node.js as alternative
+-   [ ] Unzip using Python code
+    -   Unzip tar files.
+-   [ ] Conda on Azure Pipelines don't work as the `environments.txt` file is not available/not updated.
+    -   Is this the case in realworld?
+    -   We need a fix/work around.
