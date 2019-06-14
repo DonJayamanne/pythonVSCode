@@ -170,9 +170,9 @@ getNamesAndValues(OSType).forEach(os => {
             });
 
             if (os.name === 'Windows') {
-                test(`Ensure drive letter is lower cased for local path mappings on Windows when host is ${host}`, async () => {
+                test(`Ensure drive letter is lower cased for local path mappings on Windows when host is '${host}'`, async () => {
                     const activeFile = 'xyz.py';
-                    const workspaceFolder = createMoqWorkspaceFolder('C:/Debug/Python_Path');
+                    const workspaceFolder = createMoqWorkspaceFolder(path.join('C:', 'Debug', 'Python_Path'));
                     setupActiveEditor(activeFile, PYTHON_LANGUAGE);
                     const defaultWorkspace = path.join('usr', 'desktop');
                     setupWorkspaces([defaultWorkspace]);
@@ -183,6 +183,33 @@ getNamesAndValues(OSType).forEach(os => {
                     const lowercasedLocalRoot = workspaceFolder.uri.fsPath.charAt(0).toLowerCase() + workspaceFolder.uri.fsPath.substr(1);
 
                     expect(pathMappings![0].localRoot).to.be.equal(lowercasedLocalRoot);
+                });
+                test(`Ensure local path mappings are not modified when not pointing to a local drive when host is '${host}'`, async () => {
+                    const activeFile = 'xyz.py';
+                    const workspaceFolder = createMoqWorkspaceFolder(path.join('Server', 'Debug', 'Python_Path'));
+                    setupActiveEditor(activeFile, PYTHON_LANGUAGE);
+                    const defaultWorkspace = path.join('usr', 'desktop');
+                    setupWorkspaces([defaultWorkspace]);
+
+                    const localRoot = `Debug_PythonPath_${new Date().toString()}`;
+                    const debugConfig = await debugProvider.resolveDebugConfiguration!(workspaceFolder, { localRoot, host, request: 'attach' } as any as DebugConfiguration);
+                    const pathMappings = (debugConfig as AttachRequestArguments).pathMappings;
+
+                    expect(pathMappings![0].localRoot).to.be.equal(workspaceFolder.uri.fsPath);
+                });
+            } else {
+                test(`Ensure local path mappings are not modified and when host is '${host}'`, async () => {
+                    const activeFile = 'xyz.py';
+                    const workspaceFolder = createMoqWorkspaceFolder(path.join('C:', 'Debug', 'Python_Path'));
+                    setupActiveEditor(activeFile, PYTHON_LANGUAGE);
+                    const defaultWorkspace = path.join('usr', 'desktop');
+                    setupWorkspaces([defaultWorkspace]);
+
+                    const localRoot = `Debug_PythonPath_${new Date().toString()}`;
+                    const debugConfig = await debugProvider.resolveDebugConfiguration!(workspaceFolder, { localRoot, host, request: 'attach' } as any as DebugConfiguration);
+                    const pathMappings = (debugConfig as AttachRequestArguments).pathMappings;
+
+                    expect(pathMappings![0].localRoot).to.be.equal(workspaceFolder.uri.fsPath);
                 });
             }
         });
