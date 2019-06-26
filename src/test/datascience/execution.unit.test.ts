@@ -39,6 +39,7 @@ import { JupyterExecutionFactory } from '../../client/datascience/jupyter/jupyte
 import {
     ICell,
     IConnection,
+    IDebuggerConnectInfo,
     IJupyterKernelSpec,
     INotebookCompletion,
     INotebookServer,
@@ -114,6 +115,14 @@ class MockJupyterServer implements INotebookServer {
     }
 
     public getSysInfo() : Promise<ICell | undefined> {
+        return Promise.resolve(undefined);
+    }
+
+    public setDebugTracing(_tracingOn: boolean): Promise<void> {
+        return Promise.resolve();
+    }
+
+    public async getDebuggerInfo(): Promise<IDebuggerConnectInfo | undefined> {
         return Promise.resolve(undefined);
     }
 

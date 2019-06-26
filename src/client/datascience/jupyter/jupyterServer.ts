@@ -423,6 +423,14 @@ export class JupyterServerBase implements INotebookServer {
         throw new Error(localize.DataScience.sessionDisposed());
     }
 
+    public async setDebugTracing(tracingOn: boolean): Promise<void> {
+        const silentResults = await this.executeSilently(`from ptvsd import tracing\r\ntracing(${tracingOn ? 'True' : 'False'})`);
+    }
+
+    public getDebuggerInfo(): Promise<IDebuggerConnectInfo | undefined> {
+        return Promise.resolve(this.debuggerConnectInfo);
+    }
+
     private finishUncompletedCells() {
         const copyPending = [...this.pendingCellSubscriptions];
         copyPending.forEach(c => c.cancel());
@@ -579,12 +587,6 @@ export class JupyterServerBase implements INotebookServer {
         if (debugInfoMatch) {
             return { hostName: debugInfoMatch[1], port: parseInt(debugInfoMatch[2], 10) };
         }
-        //const urlMatch = nameAndPortRegEx.exec(output);
-        //if (urlMatch && !urlMatch[4]) {
-            //return `${urlMatch[1]}://${urlMatch[2]}:${urlMatch[3]}/`;
-        //} else if (urlMatch && urlMatch.length === 5) {
-            //return `${urlMatch[1]}://${urlMatch[2]}:${urlMatch[3]}/?token=${urlMatch[4]}`;
-        //}
 
         // undefined here?
         return { hostName: 'localhost', port: 5678 };

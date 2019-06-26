@@ -8,13 +8,14 @@ import * as fs from 'fs-extra';
 import { inject, injectable, multiInject } from 'inversify';
 import * as path from 'path';
 import * as uuid from 'uuid/v4';
-import { ConfigurationTarget, Event, EventEmitter, Position, Range, Selection, TextEditor, Uri, ViewColumn } from 'vscode';
+import { ConfigurationTarget, DebugConfiguration, Event, EventEmitter, Position, Range, Selection, TextEditor, Uri, ViewColumn } from 'vscode';
 import { Disposable } from 'vscode-jsonrpc';
 import * as vsls from 'vsls/vscode';
 
 import {
     IApplicationShell,
     ICommandManager,
+    IDebugService,
     IDocumentManager,
     ILiveShareApi,
     IWebPanelProvider,
@@ -26,7 +27,7 @@ import { ContextKey } from '../../common/contextKey';
 import { traceInfo, traceWarning } from '../../common/logger';
 import { IFileSystem } from '../../common/platform/types';
 import { IConfigurationService, IDisposableRegistry, ILogger } from '../../common/types';
-import { createDeferred, Deferred } from '../../common/utils/async';
+import { createDeferred, Deferred, sleep } from '../../common/utils/async';
 import * as localize from '../../common/utils/localize';
 import { IInterpreterService, PythonInterpreter } from '../../interpreter/contracts';
 import { captureTelemetry, sendTelemetryEvent } from '../../telemetry';
@@ -115,7 +116,8 @@ export class InteractiveWindow extends WebViewHost<IInteractiveWindowMapping> im
         @inject(IInteractiveWindowProvider) private interactiveWindowProvider: IInteractiveWindowProvider,
         @inject(IDataViewerProvider) private dataExplorerProvider: IDataViewerProvider,
         @inject(IJupyterVariables) private jupyterVariables: IJupyterVariables,
-        @inject(INotebookImporter) private jupyterImporter: INotebookImporter
+        @inject(INotebookImporter) private jupyterImporter: INotebookImporter,
+        @inject(IDebugService) private debugService: IDebugService
         ) {
         super(
             configuration,
@@ -781,6 +783,47 @@ export class InteractiveWindow extends WebViewHost<IInteractiveWindowMapping> im
         }
     }
 
+    private async debuggerAttach(): Promise<void> {
+        if (this.jupyterServer) {
+            // Get our connection info
+            const debugConnectInfo = await this.jupyterServer.getDebuggerInfo();
+
+            // tslint:disable-next-line:no-multiline-string
+            this.jupyterServer.execute(`import ptvsd\r\nptvsd.wait_for_attach()`, Identifiers.EmptyFileName, 0, uuid(), undefined, true);
+
+            // IANHU: Not right. Just giving time to see if we have actually executed
+            await sleep(4000);
+
+            if (debugConnectInfo) {
+                // First connect the VSCode UI
+                const config: DebugConfiguration = {
+                    name: 'IPython',
+                    request: 'attach',
+                    type: 'python',
+                    port: debugConnectInfo.port,
+                    host: debugConnectInfo.hostName
+                };
+
+                await this.debugService.startDebugging(undefined, config);
+            }
+
+            // Then enable tracing
+            await this.jupyterServer.setDebugTracing(true);
+        }
+    }
+
+    private async debuggerDetach(): Promise<void> {
+        // Disable tracing
+        if (this.jupyterServer) {
+            await this.jupyterServer.setDebugTracing(false);
+        }
+
+        // Stop our debugging UI session
+        //if (this.debugService.activeDebugSession) {
+            //this.debugService.activeDebugSession.
+        //}
+    }
+
     private async debugCodeInternal(code: string, file: string, line: number, id?: string, _editor?: TextEditor) : Promise<void> {
         this.logger.logInformation(`Submitting code for ${this.id}`);
 
@@ -830,7 +873,8 @@ export class InteractiveWindow extends WebViewHost<IInteractiveWindowMapping> im
                     await this.jupyterServer.setInitialDirectory(path.dirname(file));
                 }
 
-                // Check if we have a debugger port set up
+                // Attach our debugger
+                await this.debuggerAttach();
 
                 // Attempt to evaluate this cell in the jupyter notebook
                 const observable = this.jupyterServer.executeObservable(code, file, line, id, false);
@@ -857,6 +901,9 @@ export class InteractiveWindow extends WebViewHost<IInteractiveWindowMapping> im
                 // Wait for the cell to finish
                 await finishedAddingCode.promise;
                 traceInfo(`Finished execution for ${id}`);
+
+                // Detach our debugger
+                this.debuggerDetach();
             }
         } catch (err) {
             status.dispose();
