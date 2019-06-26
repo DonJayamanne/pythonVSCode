@@ -338,6 +338,7 @@ export interface IEventNamePropertyMapping {
     [Telemetry.ConnectRemoteSelfCertFailedJupyter]: never | undefined;
     [Telemetry.CopySourceCode]: never | undefined;
     [Telemetry.DataScienceSettings]: JSONObject;
+    [Telemetry.DebugCurrentCell]: never | undefined;
     [Telemetry.DeleteAllCells]: never | undefined;
     [Telemetry.DeleteCell]: never | undefined;
     [Telemetry.DisableInteractiveShiftEnter]: never | undefined;

@@ -50,16 +50,13 @@ export enum InterruptResult {
 }
 
 // Information needed to attach our debugger instance
-// IANHU Make this a part of launch info?
-export interface IDebuggerConnectInfo
-{
+export interface IDebuggerConnectInfo {
     hostName: string;
     port: number;
 }
 
 // Information used to launch a notebook server
-export interface INotebookServerLaunchInfo
-{
+export interface INotebookServerLaunchInfo {
     connectionInfo: IConnection;
     currentInterpreter: PythonInterpreter | undefined;
     uri: string | undefined; // Different from the connectionInfo as this is the setting used, not the result
@@ -95,7 +92,6 @@ export interface INotebookServer extends IAsyncDisposable {
     getSysInfo() : Promise<ICell | undefined>;
     setMatplotLibStyle(useDark: boolean) : Promise<void>;
     setDebugTracing(tracingOn: boolean): Promise<void>;
-    // IANHU: Combine with something else
     getDebuggerInfo(): Promise<IDebuggerConnectInfo | undefined>;
 }
 
@@ -179,9 +175,6 @@ export interface IInteractiveWindow extends Disposable {
     onExecutedCode: Event<string>;
     show() : Promise<void>;
     addCode(code: string, file: string, line: number, editor?: TextEditor, debug?: boolean) : Promise<void>;
-    // IANHU combine with add code
-    //debugCode(code: string, file: string, line: number, editor?: TextEditor): Promise<void>;
-    // tslint:disable-next-line:no-any
     startProgress(): void;
     stopProgress(): void;
     undoCells(): void;

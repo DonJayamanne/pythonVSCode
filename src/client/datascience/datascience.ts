@@ -287,6 +287,20 @@ export class DataScience implements IDataScience {
         }
     }
 
+    private async debugCurrentCell(): Promise<void> {
+        this.dataScienceSurveyBanner.showBanner().ignoreErrors();
+
+        const currentCodeLens = this.getCurrentCodeLens();
+        if (currentCodeLens) {
+            const activeCodeWatcher = this.getCurrentCodeWatcher();
+            if (activeCodeWatcher) {
+                return activeCodeWatcher.debugCurrentCell();
+            }
+        } else {
+            return Promise.resolve();
+        }
+    }
+
     private validateURI = (testURI: string): string | undefined | null => {
         try {
             // tslint:disable-next-line:no-unused-expression
@@ -329,21 +343,6 @@ export class DataScience implements IDataScience {
 
         // Ask our code lens provider to find the matching code watcher for the current document
         return this.dataScienceCodeLensProvider.getCodeWatcher(activeEditor.document);
-    }
-
-    private async debugCurrentCell(): Promise<void> {
-        this.dataScienceSurveyBanner.showBanner().ignoreErrors();
-
-        const currentCodeLens = this.getCurrentCodeLens();
-        if (currentCodeLens) {
-            const activeCodeWatcher = this.getCurrentCodeWatcher();
-            if (activeCodeWatcher) {
-                //return activeCodeWatcher.runCellAndAllBelow(currentCodeLens.range.start.line, currentCodeLens.range.start.character);
-                return activeCodeWatcher.debugCurrentCell();
-            }
-        } else {
-            return Promise.resolve();
-        }
     }
 
     private registerCommands(): void {

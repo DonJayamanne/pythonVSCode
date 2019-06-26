@@ -567,16 +567,16 @@ export class JupyterServerBase implements INotebookServer {
             // If our setting for this is turned on, then import the debugger and enable it to attach
             if (this.launchInfo && this.launchInfo.enableDebugging) {
                 this.debuggerConnectInfo = await this.enableDebugging();
-                traceInfo(this.debuggerConnectInfo.hostName);
             }
         } catch (e) {
             traceWarning(e);
         }
     }
 
-    private async enableDebugging(): Promise<IDebuggerConnectInfo> {
+    private async enableDebugging(): Promise<IDebuggerConnectInfo | undefined> {
         // tslint:disable-next-line:no-multiline-string
         const enableDebuggerResults = await this.executeSilently(`import sys\r\nsys.path.append('d:/ptvsd-drop/kdrop/src')\r\nimport os\r\nos.environ["PTVSD_LOG_DIR"] = "d:/note_dbg/logs"\r\nimport ptvsd\r\nptvsd.enable_attach(('localhost', 0))`);
+        //const enableDebuggerResults = await this.executeSilently(`import ptvsd\r\nptvsd.enable_attach(('localhost', 0))`);
 
         const enableAttachString = enableDebuggerResults.length > 0 ? this.extractStreamOutput(enableDebuggerResults[0]).trimQuotes() : '';
         traceInfo(enableAttachString);
@@ -588,8 +588,7 @@ export class JupyterServerBase implements INotebookServer {
             return { hostName: debugInfoMatch[1], port: parseInt(debugInfoMatch[2], 10) };
         }
 
-        // undefined here?
-        return { hostName: 'localhost', port: 5678 };
+        return undefined;
     }
 
     private combineObservables = (...args: Observable<ICell>[]): Observable<ICell[]> => {

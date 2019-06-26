@@ -774,17 +774,16 @@ export class InteractiveWindow extends WebViewHost<IInteractiveWindowMapping> im
                 // Wait for the cell to finish
                 await finishedAddingCode.promise;
                 traceInfo(`Finished execution for ${id}`);
-
-                // IANHU: Right spot here?
-                if (debug) {
-                    this.debuggerDetach();
-                }
             }
         } catch (err) {
             status.dispose();
 
             const message = localize.DataScience.executingCodeFailure().format(err);
             this.applicationShell.showErrorMessage(message);
+        } finally {
+            if (debug) {
+                this.debuggerDetach();
+            }
         }
     }
 
@@ -804,13 +803,13 @@ export class InteractiveWindow extends WebViewHost<IInteractiveWindowMapping> im
                 };
 
                 await this.debugService.startDebugging(undefined, config);
+
+                // tslint:disable-next-line:no-multiline-string
+                await this.jupyterServer.execute(`import ptvsd\r\nptvsd.wait_for_attach()`, Identifiers.EmptyFileName, 0, uuid(), undefined, true);
+
+                // Then enable tracing
+                await this.jupyterServer.setDebugTracing(true);
             }
-
-            // tslint:disable-next-line:no-multiline-string
-            await this.jupyterServer.execute(`import ptvsd\r\nptvsd.wait_for_attach()`, Identifiers.EmptyFileName, 0, uuid(), undefined, true);
-
-            // Then enable tracing
-            await this.jupyterServer.setDebugTracing(true);
         }
     }
 
@@ -820,9 +819,8 @@ export class InteractiveWindow extends WebViewHost<IInteractiveWindowMapping> im
             await this.jupyterServer.setDebugTracing(false);
         }
 
-        // Stop our debugging UI session
-        // IANHU: await not needed here?
-        await this.commandManager.executeCommand('workbench.action.debug.stop');
+        // Stop our debugging UI session, no await as we just want it stopped
+        this.commandManager.executeCommand('workbench.action.debug.stop');
     }
 
     private setStatus = (message: string): Disposable => {
