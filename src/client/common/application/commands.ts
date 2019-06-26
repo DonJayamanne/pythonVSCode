@@ -22,6 +22,7 @@ interface ICommandNameWithoutArgumentTypeMapping {
     [Commands.Set_ShebangInterpreter]: [];
     [Commands.Run_Linter]: [];
     [Commands.Enable_Linter]: [];
+    ['workbench.action.debug.stop']: [];
     ['workbench.action.reloadWindow']: [];
     ['editor.action.formatDocument']: [];
     ['editor.action.rename']: [];

@@ -424,7 +424,7 @@ export class JupyterServerBase implements INotebookServer {
     }
 
     public async setDebugTracing(tracingOn: boolean): Promise<void> {
-        const silentResults = await this.executeSilently(`from ptvsd import tracing\r\ntracing(${tracingOn ? 'True' : 'False'})`);
+        await this.executeSilently(`from ptvsd import tracing\r\ntracing(${tracingOn ? 'True' : 'False'})`);
     }
 
     public getDebuggerInfo(): Promise<IDebuggerConnectInfo | undefined> {

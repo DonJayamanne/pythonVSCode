@@ -178,9 +178,9 @@ export interface IInteractiveWindow extends Disposable {
     ready: Promise<void>;
     onExecutedCode: Event<string>;
     show() : Promise<void>;
-    addCode(code: string, file: string, line: number, editor?: TextEditor) : Promise<void>;
+    addCode(code: string, file: string, line: number, editor?: TextEditor, debug?: boolean) : Promise<void>;
     // IANHU combine with add code
-    debugCode(code: string, file: string, line: number, editor?: TextEditor): Promise<void>;
+    //debugCode(code: string, file: string, line: number, editor?: TextEditor): Promise<void>;
     // tslint:disable-next-line:no-any
     startProgress(): void;
     stopProgress(): void;
