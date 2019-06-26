@@ -139,6 +139,7 @@ export class JupyterExecutionBase implements IJupyterExecution {
             // Try to connect to our jupyter process. Check our setting for the number of tries
             let tryCount = 0;
             const maxTries = this.configuration.getSettings().datascience.jupyterLaunchRetries;
+            const enableDebugging = this.configuration.getSettings().datascience.enableDebugging ? this.configuration.getSettings().datascience.enableDebugging : false;
             while (tryCount < maxTries) {
                 try {
                     // Start or connect to the process
@@ -154,7 +155,8 @@ export class JupyterExecutionBase implements IJupyterExecution {
                         kernelSpec: startInfo.kernelSpec,
                         workingDir: options ? options.workingDir : undefined,
                         uri: options ? options.uri : undefined,
-                        purpose: options ? options.purpose : uuid()
+                        purpose: options ? options.purpose : uuid(),
+                        enableDebugging: enableDebugging
                     };
 
                     traceInfo(`Connecting to process for ${options ? options.purpose : 'unknown type of'} server`);

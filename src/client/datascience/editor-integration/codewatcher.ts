@@ -93,6 +93,15 @@ export class CodeWatcher implements ICodeWatcher {
         return this.codeLenses;
     }
 
+    public async debugCurrentCell() {
+        if (!this.documentManager.activeTextEditor || !this.documentManager.activeTextEditor.document) {
+            return Promise.resolve();
+        }
+
+        // Run the cell that matches the current cursor position.
+        return this.debugMatchingCell(this.documentManager.activeTextEditor.selection, false);
+    }
+
     @captureTelemetry(Telemetry.RunAllCells)
     public async runAllCells() {
         // Run all of our code lenses, they should always be ordered in the file so we can just
@@ -247,6 +256,42 @@ export class CodeWatcher implements ICodeWatcher {
 
             const newPosition = new Position(editor.document.lineCount + 3, 0); // +3 to account for the added spaces and to position after the new mark
             return this.advanceToRange(new Range(newPosition, newPosition));
+        }
+    }
+
+    // IANHU: Duplicating too much with run commands, perhaps debug is a parameter on run?
+    private async debugMatchingCell(range: Range, advance?: boolean) {
+        const currentRunCellLens = this.getCurrentCellLens(range.start);
+        const nextRunCellLens = this.getNextCellLens(range.start);
+
+        if (currentRunCellLens) {
+            // Move the next cell if allowed.
+            if (advance) {
+                // Either use the next cell that we found, or add a new one into the document
+                let nextRange: Range;
+                if (!nextRunCellLens) {
+                    nextRange = this.createNewCell(currentRunCellLens.range);
+                } else {
+                    nextRange = nextRunCellLens.range;
+                }
+
+                if (nextRange) {
+                    this.advanceToRange(nextRange);
+                }
+            }
+
+            // Run the cell after moving the selection
+            if (this.document) {
+                // Use that to get our code.
+                const code = this.document.getText(currentRunCellLens.range);
+
+                try {
+                    const activeInteractiveWindow = await this.interactiveWindowProvider.getOrCreateActive();
+                    await activeInteractiveWindow.debugCode(code, this.getFileName(), range.start.line, this.documentManager.activeTextEditor);
+                } catch (err) {
+                    this.handleError(err);
+                }
+            }
         }
     }
 

@@ -183,6 +183,11 @@ export class InteractiveWindow extends WebViewHost<IInteractiveWindowMapping> im
         return this.submitCode(code, file, line, undefined, editor);
     }
 
+    public debugCode(code: string, file: string, line: number, editor?: TextEditor) : Promise<void> {
+        // Call the internal method.
+        return this.debugCodeInternal(code, file, line, undefined, editor);
+    }
+
     // tslint:disable-next-line: no-any no-empty cyclomatic-complexity max-func-body-length
     public onMessage(message: string, payload: any) {
         switch (message) {
@@ -741,6 +746,91 @@ export class InteractiveWindow extends WebViewHost<IInteractiveWindowMapping> im
                 if (file !== Identifiers.EmptyFileName) {
                     await this.jupyterServer.setInitialDirectory(path.dirname(file));
                 }
+
+                // Attempt to evaluate this cell in the jupyter notebook
+                const observable = this.jupyterServer.executeObservable(code, file, line, id, false);
+
+                // Indicate we executed some code
+                this.executeEvent.fire(code);
+
+                // Sign up for cell changes
+                observable.subscribe(
+                    (cells: ICell[]) => {
+                        this.onAddCodeEvent(cells, undefined);
+                    },
+                    (error) => {
+                        status.dispose();
+                        if (!(error instanceof CancellationError)) {
+                            this.applicationShell.showErrorMessage(error.toString());
+                        }
+                    },
+                    () => {
+                        // Indicate executing until this cell is done.
+                        status.dispose();
+                    });
+
+                // Wait for the cell to finish
+                await finishedAddingCode.promise;
+                traceInfo(`Finished execution for ${id}`);
+            }
+        } catch (err) {
+            status.dispose();
+
+            const message = localize.DataScience.executingCodeFailure().format(err);
+            this.applicationShell.showErrorMessage(message);
+        }
+    }
+
+    private async debugCodeInternal(code: string, file: string, line: number, id?: string, _editor?: TextEditor) : Promise<void> {
+        this.logger.logInformation(`Submitting code for ${this.id}`);
+
+        // Start a status item
+        const status = this.setStatus(localize.DataScience.executingCode());
+
+        // Transmit this submission to all other listeners (in a live share session)
+        if (!id) {
+            id = uuid();
+            this.shareMessage(InteractiveWindowMessages.RemoteAddCode, {code, file, line, id, originator: this.id});
+        }
+
+        // Create a deferred object that will wait until the status is disposed
+        const finishedAddingCode = createDeferred<void>();
+        const actualDispose = status.dispose.bind(status);
+        status.dispose = () => {
+            finishedAddingCode.resolve();
+            actualDispose();
+        };
+
+        try {
+
+            // Make sure we're loaded first.
+            try {
+                this.logger.logInformation('Waiting for jupyter server and web panel ...');
+                await this.loadPromise;
+            } catch (exc) {
+                // We should dispose ourselves if the load fails. Othewise the user
+                // updates their install and we just fail again because the load promise is the same.
+                this.dispose();
+
+                throw exc;
+            }
+
+            // Then show our webpanel
+            await this.show();
+
+            // Add our sys info if necessary
+            if (file !== Identifiers.EmptyFileName) {
+                await this.addSysInfo(SysInfoReason.Start);
+            }
+
+            if (this.jupyterServer) {
+                // Before we try to execute code make sure that we have an initial directory set
+                // Normally set via the workspace, but we might not have one here if loading a single loose file
+                if (file !== Identifiers.EmptyFileName) {
+                    await this.jupyterServer.setInitialDirectory(path.dirname(file));
+                }
+
+                // Check if we have a debugger port set up
 
                 // Attempt to evaluate this cell in the jupyter notebook
                 const observable = this.jupyterServer.executeObservable(code, file, line, id, false);

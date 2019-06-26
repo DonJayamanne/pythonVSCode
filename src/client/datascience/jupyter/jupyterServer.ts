@@ -28,6 +28,7 @@ import {
     ICell,
     IConnection,
     IDataScience,
+    IDebuggerConnectInfo,
     IJupyterSession,
     IJupyterSessionManager,
     INotebookCompletion,
@@ -132,6 +133,7 @@ export class JupyterServerBase implements INotebookServer {
     private connectPromise: Deferred<INotebookServerLaunchInfo> = createDeferred<INotebookServerLaunchInfo>();
     private connectionInfoDisconnectHandler: Disposable | undefined;
     private serverExitCode: number | undefined;
+    private debuggerConnectInfo: IDebuggerConnectInfo | undefined;
 
     constructor(
         _liveShare: ILiveShareApi,
@@ -553,9 +555,39 @@ export class JupyterServerBase implements INotebookServer {
                 CodeSnippits.MatplotLibInit,
                 cancelToken
             );
+
+            // If our setting for this is turned on, then import the debugger and enable it to attach
+            if (this.launchInfo && this.launchInfo.enableDebugging) {
+                this.debuggerConnectInfo = await this.enableDebugging();
+                traceInfo(this.debuggerConnectInfo.hostName);
+            }
         } catch (e) {
             traceWarning(e);
         }
+    }
+
+    private async enableDebugging(): Promise<IDebuggerConnectInfo> {
+        // tslint:disable-next-line:no-multiline-string
+        const enableDebuggerResults = await this.executeSilently(`import sys\r\nsys.path.append('d:/ptvsd-drop/kdrop/src')\r\nimport os\r\nos.environ["PTVSD_LOG_DIR"] = "d:/note_dbg/logs"\r\nimport ptvsd\r\nptvsd.enable_attach(('localhost', 0))`);
+
+        const enableAttachString = enableDebuggerResults.length > 0 ? this.extractStreamOutput(enableDebuggerResults[0]).trimQuotes() : '';
+        traceInfo(enableAttachString);
+
+        const debugInfoRegEx = /\('(.*?)', ([0-9]*)\)/;
+
+        const debugInfoMatch = debugInfoRegEx.exec(enableAttachString);
+        if (debugInfoMatch) {
+            return { hostName: debugInfoMatch[1], port: parseInt(debugInfoMatch[2], 10) };
+        }
+        //const urlMatch = nameAndPortRegEx.exec(output);
+        //if (urlMatch && !urlMatch[4]) {
+            //return `${urlMatch[1]}://${urlMatch[2]}:${urlMatch[3]}/`;
+        //} else if (urlMatch && urlMatch.length === 5) {
+            //return `${urlMatch[1]}://${urlMatch[2]}:${urlMatch[3]}/?token=${urlMatch[4]}`;
+        //}
+
+        // undefined here?
+        return { hostName: 'localhost', port: 5678 };
     }
 
     private combineObservables = (...args: Observable<ICell>[]): Observable<ICell[]> => {

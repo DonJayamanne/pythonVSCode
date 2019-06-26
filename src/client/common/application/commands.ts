@@ -100,6 +100,7 @@ export interface ICommandNameArgumentTypeMapping extends ICommandNameWithoutArgu
     [DSCommands.RunCellAndAllBelow]: [string, number, number];
     [DSCommands.RunAllCellsAbovePalette]: [];
     [DSCommands.RunCellAndAllBelowPalette]: [];
+    [DSCommands.DebugCurrentCellPalette]: [];
     [DSCommands.RunToLine]: [string, number, number];
     [DSCommands.RunFromLine]: [string, number, number];
     [DSCommands.ImportNotebook]: [undefined | Uri, undefined | CommandSource];

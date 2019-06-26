@@ -33,6 +33,7 @@ export namespace Commands {
     export const ExecSelectionInInteractiveWindow = 'python.datascience.execSelectionInteractive';
     export const RunFileInInteractiveWindows = 'python.datascience.runFileInteractive';
     export const AddCellBelow = 'python.datascience.addcellbelow';
+    export const DebugCurrentCellPalette = 'python.datascience.debugcurrentcell.palette';
 }
 
 export namespace EditorContexts {

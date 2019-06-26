@@ -49,6 +49,14 @@ export enum InterruptResult {
     Restarted = 2
 }
 
+// Information needed to attach our debugger instance
+// IANHU Make this a part of launch info?
+export interface IDebuggerConnectInfo
+{
+    hostName: string;
+    port: number;
+}
+
 // Information used to launch a notebook server
 export interface INotebookServerLaunchInfo
 {
@@ -58,6 +66,7 @@ export interface INotebookServerLaunchInfo
     kernelSpec: IJupyterKernelSpec | undefined;
     workingDir: string | undefined;
     purpose: string | undefined; // Purpose this server is for
+    enableDebugging: boolean | undefined; // If we should enable debugging for this server
 }
 
 export interface INotebookCompletion {
@@ -167,6 +176,8 @@ export interface IInteractiveWindow extends Disposable {
     onExecutedCode: Event<string>;
     show() : Promise<void>;
     addCode(code: string, file: string, line: number, editor?: TextEditor) : Promise<void>;
+    // IANHU combine with add code
+    debugCode(code: string, file: string, line: number, editor?: TextEditor): Promise<void>;
     // tslint:disable-next-line:no-any
     startProgress(): void;
     stopProgress(): void;
@@ -235,6 +246,7 @@ export interface ICodeWatcher {
     runCellAndAllBelow(startLine: number, startCharacter: number): Promise<void>;
     runFileInteractive(): Promise<void>;
     addEmptyCellToBottom(): Promise<void>;
+    debugCurrentCell(): Promise<void>;
 }
 
 export enum CellState {
