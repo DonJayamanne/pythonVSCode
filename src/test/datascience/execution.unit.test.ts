@@ -118,14 +118,6 @@ class MockJupyterServer implements INotebookServer {
         return Promise.resolve(undefined);
     }
 
-    public setDebugTracing(_tracingOn: boolean): Promise<void> {
-        return Promise.resolve();
-    }
-
-    public async getDebuggerInfo(): Promise<IDebuggerConnectInfo | undefined> {
-        return Promise.resolve(undefined);
-    }
-
     public interruptKernel(_timeout: number) : Promise<InterruptResult> {
         throw new Error('Method not implemented');
     }

@@ -91,8 +91,6 @@ export interface INotebookServer extends IAsyncDisposable {
     getConnectionInfo(): IConnection | undefined;
     getSysInfo() : Promise<ICell | undefined>;
     setMatplotLibStyle(useDark: boolean) : Promise<void>;
-    //setDebugTracing(tracingOn: boolean): Promise<void>;
-    //getDebuggerInfo(): Promise<IDebuggerConnectInfo | undefined>;
 }
 
 export interface INotebookServerOptions {

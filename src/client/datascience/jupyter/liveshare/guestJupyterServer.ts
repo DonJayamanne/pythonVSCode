@@ -95,15 +95,6 @@ export class GuestJupyterServer
         return deferred.promise;
     }
 
-    public setDebugTracing(_tracingOn: boolean): Promise<void> {
-        // Ignore on guest side for now
-        return Promise.resolve();
-    }
-
-    public async getDebuggerInfo(): Promise<IDebuggerConnectInfo | undefined> {
-        return Promise.resolve(undefined);
-    }
-
     public setInitialDirectory(_directory: string): Promise<void> {
         // Ignore this command on this side
         return Promise.resolve();
