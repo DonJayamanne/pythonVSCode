@@ -287,7 +287,11 @@ export class CodeWatcher implements ICodeWatcher {
 
                 try {
                     const activeInteractiveWindow = await this.interactiveWindowProvider.getOrCreateActive();
-                    await activeInteractiveWindow.addCode(code, this.getFileName(), range.start.line, this.documentManager.activeTextEditor, debug);
+                    if (debug) {
+                        await activeInteractiveWindow.debugCode(code, this.getFileName(), range.start.line, this.documentManager.activeTextEditor);
+                    } else {
+                        await activeInteractiveWindow.addCode(code, this.getFileName(), range.start.line, this.documentManager.activeTextEditor);
+                    }
                 } catch (err) {
                     this.handleError(err);
                 }

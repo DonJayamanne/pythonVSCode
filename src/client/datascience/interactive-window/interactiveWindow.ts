@@ -180,9 +180,14 @@ export class InteractiveWindow extends WebViewHost<IInteractiveWindowMapping> im
         return this.executeEvent.event;
     }
 
-    public addCode(code: string, file: string, line: number, editor?: TextEditor, debug?: boolean) : Promise<void> {
+    public addCode(code: string, file: string, line: number, editor?: TextEditor) : Promise<void> {
         // Call the internal method.
-        return this.submitCode(code, file, line, undefined, editor, debug);
+        return this.submitCode(code, file, line, undefined, editor, false);
+    }
+
+    public debugCode(code: string, file: string, line: number, editor?: TextEditor) : Promise<void> {
+        // Call the internal method.
+        return this.submitCode(code, file, line, undefined, editor, true);
     }
 
     // tslint:disable-next-line: no-any no-empty cyclomatic-complexity max-func-body-length

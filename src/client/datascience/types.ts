@@ -175,6 +175,7 @@ export interface IInteractiveWindow extends Disposable {
     onExecutedCode: Event<string>;
     show() : Promise<void>;
     addCode(code: string, file: string, line: number, editor?: TextEditor, debug?: boolean) : Promise<void>;
+    debugCode(code: string, file: string, line: number, editor?: TextEditor, debug?: boolean) : Promise<void>;
     startProgress(): void;
     stopProgress(): void;
     undoCells(): void;
