@@ -39,7 +39,6 @@ import { JupyterExecutionFactory } from '../../client/datascience/jupyter/jupyte
 import {
     ICell,
     IConnection,
-    IDebuggerConnectInfo,
     IJupyterKernelSpec,
     INotebookCompletion,
     INotebookServer,

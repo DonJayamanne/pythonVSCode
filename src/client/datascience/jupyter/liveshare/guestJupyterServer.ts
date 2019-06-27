@@ -16,7 +16,6 @@ import {
     ICell,
     IConnection,
     IDataScience,
-    IDebuggerConnectInfo,
     IJupyterSessionManager,
     INotebookCompletion,
     INotebookServer,
