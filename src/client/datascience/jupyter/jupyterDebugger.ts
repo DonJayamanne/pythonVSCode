@@ -21,35 +21,19 @@ export class JupyterDebugger implements IJupyterDebugger {
         ) {}
 
     public async enableAttach(server: INotebookServer): Promise<void> {
-                //await this.jupyterServer.execute(`import ptvsd\r\nptvsd.wait_for_attach()`, Identifiers.EmptyFileName, 0, uuid(), undefined, true);
-        //// tslint:disable-next-line:no-multiline-string
-        //const enableDebuggerResults = await this.executeSilently(`import sys\r\nsys.path.append('d:/ptvsd-drop/kdrop/src')\r\nimport os\r\nos.environ["PTVSD_LOG_DIR"] = "d:/note_dbg/logs"\r\nimport ptvsd\r\nptvsd.enable_attach(('localhost', 0))`);
-        ////const enableDebuggerResults = await this.executeSilently(`import ptvsd\r\nptvsd.enable_attach(('localhost', 0))`);
-
-        //const enableAttachString = enableDebuggerResults.length > 0 ? this.extractStreamOutput(enableDebuggerResults[0]).trimQuotes() : '';
-        //traceInfo(enableAttachString);
-
-        //const debugInfoRegEx = /\('(.*?)', ([0-9]*)\)/;
-
-        //const debugInfoMatch = debugInfoRegEx.exec(enableAttachString);
-        //if (debugInfoMatch) {
-            //return { hostName: debugInfoMatch[1], port: parseInt(debugInfoMatch[2], 10) };
-        //}
-
-        //return undefined;
         traceInfo('enable debugger attach');
 
         // IANHU this current import is only for local testing with specific bits. The main ptvsd code is below
         // tslint:disable-next-line:no-multiline-string
         const enableDebuggerResults = await this.executeSilently(server, `import sys\r\nsys.path.append('d:/ptvsd-drop/kdrop/src')\r\nimport os\r\nos.environ["PTVSD_LOG_DIR"] = "d:/note_dbg/logs"\r\nimport ptvsd\r\nptvsd.enable_attach(('localhost', 0))`);
         //const enableDebuggerResults = await this.executeSilently(`import ptvsd\r\nptvsd.enable_attach(('localhost', 0))`);
+
+        // Save our connection info to this server
         this.connectInfo = this.parseConnectInfo(enableDebuggerResults);
-        // IANHU: We need to clear this out when disconnected from the server
     }
 
     public async startDebugging(server: INotebookServer): Promise<void> {
         traceInfo('start debugging');
-        // IANHU: no connect info = throw exception? Log it?
         if (this.connectInfo) {
             // First connect the VSCode UI
             const config: DebugConfiguration = {
@@ -83,43 +67,38 @@ export class JupyterDebugger implements IJupyterDebugger {
     }
 
     private executeSilently(server: INotebookServer, code: string): Promise<ICell[]> {
-        // IANHU add to notebook server interface?
         return server.execute(code, Identifiers.EmptyFileName, 0, uuid(), undefined, true);
     }
 
+    // Pull our connection info out from the cells returned by enable_attach
     private parseConnectInfo(cells: ICell[]): IDebuggerConnectInfo | undefined {
-        const enableAttachString = cells.length > 0 ? this.extractStreamOutput(cells[0]).trimQuotes() : '';
+        if (cells.length > 0) {
+            let enableAttachString = this.extractOutput(cells[0]);
+            if (enableAttachString) {
+                enableAttachString = enableAttachString.trimQuotes();
 
-        const debugInfoRegEx = /\('(.*?)', ([0-9]*)\)/;
+                const debugInfoRegEx = /\('(.*?)', ([0-9]*)\)/;
 
-        const debugInfoMatch = debugInfoRegEx.exec(enableAttachString);
-        if (debugInfoMatch) {
-            return { hostName: debugInfoMatch[1], port: parseInt(debugInfoMatch[2], 10) };
+                const debugInfoMatch = debugInfoRegEx.exec(enableAttachString);
+                if (debugInfoMatch) {
+                    return { hostName: debugInfoMatch[1], port: parseInt(debugInfoMatch[2], 10) };
+                }
+            }
         }
-
         return undefined;
     }
 
-    // IANHU Copied from INotebookServer, combine?
-    private extractStreamOutput(cell: ICell): string {
-        let result = '';
+    private extractOutput(cell: ICell): string | undefined {
         if (cell.state === CellState.error || cell.state === CellState.finished) {
             const outputs = cell.data.outputs as nbformat.IOutput[];
-            if (outputs) {
-                outputs.forEach(o => {
-                    if (o.output_type === 'stream') {
-                        const stream = o as nbformat.IStream;
-                        result = result.concat(stream.text.toString());
-                    } else {
-                        const data = o.data;
-                        if (data && data.hasOwnProperty('text/plain')) {
-                            // tslint:disable-next-line:no-any
-                            result = result.concat((data as any)['text/plain']);
-                        }
-                    }
-                });
+            if (outputs.length > 0) {
+                const data = outputs[0].data;
+                if (data && data.hasOwnProperty('text/plain')) {
+                    // tslint:disable-next-line:no-any
+                    return ((data as any)['text/plain']);
+                }
             }
         }
-        return result;
+        return undefined;
     }
 }
