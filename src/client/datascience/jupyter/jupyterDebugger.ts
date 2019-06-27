@@ -23,10 +23,11 @@ export class JupyterDebugger implements IJupyterDebugger {
     public async enableAttach(server: INotebookServer): Promise<void> {
         traceInfo('enable debugger attach');
 
-        // IANHU this current import is only for local testing with specific bits. The main ptvsd code is below
+        // Current version of ptvsd doesn't support returning the value that we need so you need to install the correct version or use my hardcoded line above
         // tslint:disable-next-line:no-multiline-string
-        const enableDebuggerResults = await this.executeSilently(server, `import sys\r\nsys.path.append('d:/ptvsd-drop/kdrop/src')\r\nimport os\r\nos.environ["PTVSD_LOG_DIR"] = "d:/note_dbg/logs"\r\nimport ptvsd\r\nptvsd.enable_attach(('localhost', 0))`);
-        //const enableDebuggerResults = await this.executeSilently(`import ptvsd\r\nptvsd.enable_attach(('localhost', 0))`);
+        //const enableDebuggerResults = await this.executeSilently(server, `import sys\r\nsys.path.append('d:/ptvsd-drop/kdrop/src')\r\nimport os\r\nos.environ["PTVSD_LOG_DIR"] = "d:/note_dbg/logs"\r\nimport ptvsd\r\nptvsd.enable_attach(('localhost', 0))`);
+        // tslint:disable-next-line:no-multiline-string
+        const enableDebuggerResults = await this.executeSilently(server, `import ptvsd\r\nptvsd.enable_attach(('localhost', 0))`);
 
         // Save our connection info to this server
         this.connectInfo = this.parseConnectInfo(enableDebuggerResults);
