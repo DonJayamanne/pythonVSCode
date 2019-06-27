@@ -13,7 +13,6 @@ import {
     ICell,
     IConnection,
     IDataScience,
-    IDebuggerConnectInfo,
     IJupyterSessionManager,
     INotebookCompletion,
     INotebookServer,
@@ -158,14 +157,4 @@ export class JupyterServerFactory implements INotebookServer {
         const server = await this.serverFactory.get();
         return server.getCompletion(cellCode, offsetInCode, cancelToken);
     }
-
-    //public async setDebugTracing(tracingOn: boolean): Promise<void> {
-        //const server = await this.serverFactory.get();
-        //return server.setDebugTracing(tracingOn);
-    //}
-
-    //public async getDebuggerInfo(): Promise<IDebuggerConnectInfo | undefined> {
-        //const server = await this.serverFactory.get();
-        //return server.getDebuggerInfo();
-    //}
 }

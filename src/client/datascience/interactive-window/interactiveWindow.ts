@@ -8,14 +8,13 @@ import * as fs from 'fs-extra';
 import { inject, injectable, multiInject } from 'inversify';
 import * as path from 'path';
 import * as uuid from 'uuid/v4';
-import { ConfigurationTarget, DebugConfiguration, Event, EventEmitter, Position, Range, Selection, TextEditor, Uri, ViewColumn } from 'vscode';
+import { ConfigurationTarget, Event, EventEmitter, Position, Range, Selection, TextEditor, Uri, ViewColumn } from 'vscode';
 import { Disposable } from 'vscode-jsonrpc';
 import * as vsls from 'vsls/vscode';
 
 import {
     IApplicationShell,
     ICommandManager,
-    IDebugService,
     IDocumentManager,
     ILiveShareApi,
     IWebPanelProvider,
@@ -118,7 +117,6 @@ export class InteractiveWindow extends WebViewHost<IInteractiveWindowMapping> im
         @inject(IDataViewerProvider) private dataExplorerProvider: IDataViewerProvider,
         @inject(IJupyterVariables) private jupyterVariables: IJupyterVariables,
         @inject(INotebookImporter) private jupyterImporter: INotebookImporter,
-        @inject(IDebugService) private debugService: IDebugService,
         @inject(IJupyterDebugger) private jupyterDebugger: IJupyterDebugger
         ) {
         super(

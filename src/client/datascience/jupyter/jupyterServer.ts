@@ -28,7 +28,6 @@ import {
     ICell,
     IConnection,
     IDataScience,
-    IDebuggerConnectInfo,
     IJupyterSession,
     IJupyterSessionManager,
     INotebookCompletion,
@@ -133,7 +132,6 @@ export class JupyterServerBase implements INotebookServer {
     private connectPromise: Deferred<INotebookServerLaunchInfo> = createDeferred<INotebookServerLaunchInfo>();
     private connectionInfoDisconnectHandler: Disposable | undefined;
     private serverExitCode: number | undefined;
-    private debuggerConnectInfo: IDebuggerConnectInfo | undefined;
 
     constructor(
         _liveShare: ILiveShareApi,
@@ -421,14 +419,6 @@ export class JupyterServerBase implements INotebookServer {
 
         // Default is just say session was disposed
         throw new Error(localize.DataScience.sessionDisposed());
-    }
-
-    //public async setDebugTracing(tracingOn: boolean): Promise<void> {
-        //await this.executeSilently(`from ptvsd import tracing\r\ntracing(${tracingOn ? 'True' : 'False'})`);
-    //}
-
-    public getDebuggerInfo(): Promise<IDebuggerConnectInfo | undefined> {
-        return Promise.resolve(this.debuggerConnectInfo);
     }
 
     private finishUncompletedCells() {
