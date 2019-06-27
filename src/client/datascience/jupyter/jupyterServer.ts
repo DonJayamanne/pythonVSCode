@@ -423,9 +423,9 @@ export class JupyterServerBase implements INotebookServer {
         throw new Error(localize.DataScience.sessionDisposed());
     }
 
-    public async setDebugTracing(tracingOn: boolean): Promise<void> {
-        await this.executeSilently(`from ptvsd import tracing\r\ntracing(${tracingOn ? 'True' : 'False'})`);
-    }
+    //public async setDebugTracing(tracingOn: boolean): Promise<void> {
+        //await this.executeSilently(`from ptvsd import tracing\r\ntracing(${tracingOn ? 'True' : 'False'})`);
+    //}
 
     public getDebuggerInfo(): Promise<IDebuggerConnectInfo | undefined> {
         return Promise.resolve(this.debuggerConnectInfo);
@@ -565,31 +565,31 @@ export class JupyterServerBase implements INotebookServer {
             );
 
             // If our setting for this is turned on, then import the debugger and enable it to attach
-            if (this.launchInfo && this.launchInfo.enableDebugging) {
-                this.debuggerConnectInfo = await this.enableDebugging();
-            }
+            //if (this.launchInfo && this.launchInfo.enableDebugging) {
+                //this.debuggerConnectInfo = await this.enableDebugging();
+            //}
         } catch (e) {
             traceWarning(e);
         }
     }
 
-    private async enableDebugging(): Promise<IDebuggerConnectInfo | undefined> {
-        // tslint:disable-next-line:no-multiline-string
-        const enableDebuggerResults = await this.executeSilently(`import sys\r\nsys.path.append('d:/ptvsd-drop/kdrop/src')\r\nimport os\r\nos.environ["PTVSD_LOG_DIR"] = "d:/note_dbg/logs"\r\nimport ptvsd\r\nptvsd.enable_attach(('localhost', 0))`);
-        //const enableDebuggerResults = await this.executeSilently(`import ptvsd\r\nptvsd.enable_attach(('localhost', 0))`);
+    //private async enableDebugging(): Promise<IDebuggerConnectInfo | undefined> {
+        //// tslint:disable-next-line:no-multiline-string
+        //const enableDebuggerResults = await this.executeSilently(`import sys\r\nsys.path.append('d:/ptvsd-drop/kdrop/src')\r\nimport os\r\nos.environ["PTVSD_LOG_DIR"] = "d:/note_dbg/logs"\r\nimport ptvsd\r\nptvsd.enable_attach(('localhost', 0))`);
+        ////const enableDebuggerResults = await this.executeSilently(`import ptvsd\r\nptvsd.enable_attach(('localhost', 0))`);
 
-        const enableAttachString = enableDebuggerResults.length > 0 ? this.extractStreamOutput(enableDebuggerResults[0]).trimQuotes() : '';
-        traceInfo(enableAttachString);
+        //const enableAttachString = enableDebuggerResults.length > 0 ? this.extractStreamOutput(enableDebuggerResults[0]).trimQuotes() : '';
+        //traceInfo(enableAttachString);
 
-        const debugInfoRegEx = /\('(.*?)', ([0-9]*)\)/;
+        //const debugInfoRegEx = /\('(.*?)', ([0-9]*)\)/;
 
-        const debugInfoMatch = debugInfoRegEx.exec(enableAttachString);
-        if (debugInfoMatch) {
-            return { hostName: debugInfoMatch[1], port: parseInt(debugInfoMatch[2], 10) };
-        }
+        //const debugInfoMatch = debugInfoRegEx.exec(enableAttachString);
+        //if (debugInfoMatch) {
+            //return { hostName: debugInfoMatch[1], port: parseInt(debugInfoMatch[2], 10) };
+        //}
 
-        return undefined;
-    }
+        //return undefined;
+    //}
 
     private combineObservables = (...args: Observable<ICell>[]): Observable<ICell[]> => {
         return new Observable<ICell[]>(subscriber => {

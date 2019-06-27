@@ -48,6 +48,7 @@ import {
     IInteractiveWindowInfo,
     IInteractiveWindowListener,
     IInteractiveWindowProvider,
+    IJupyterDebugger,
     IJupyterExecution,
     IJupyterVariable,
     IJupyterVariables,
@@ -117,7 +118,8 @@ export class InteractiveWindow extends WebViewHost<IInteractiveWindowMapping> im
         @inject(IDataViewerProvider) private dataExplorerProvider: IDataViewerProvider,
         @inject(IJupyterVariables) private jupyterVariables: IJupyterVariables,
         @inject(INotebookImporter) private jupyterImporter: INotebookImporter,
-        @inject(IDebugService) private debugService: IDebugService
+        @inject(IDebugService) private debugService: IDebugService,
+        @inject(IJupyterDebugger) private jupyterDebugger: IJupyterDebugger
         ) {
         super(
             configuration,
@@ -751,7 +753,8 @@ export class InteractiveWindow extends WebViewHost<IInteractiveWindowMapping> im
 
                 if (debug) {
                     // Attach our debugger
-                    await this.debuggerAttach();
+                    //await this.debuggerAttach();
+                    await this.jupyterDebugger.startDebugging(this.jupyterServer);
                 }
 
                 // Attempt to evaluate this cell in the jupyter notebook
@@ -787,46 +790,49 @@ export class InteractiveWindow extends WebViewHost<IInteractiveWindowMapping> im
             this.applicationShell.showErrorMessage(message);
         } finally {
             if (debug) {
-                this.debuggerDetach();
+                //this.debuggerDetach();
+                if (this.jupyterServer) {
+                    await this.jupyterDebugger.stopDebugging(this.jupyterServer);
+                }
             }
         }
     }
 
-    private async debuggerAttach(): Promise<void> {
-        if (this.jupyterServer) {
-            // Get our connection info
-            const debugConnectInfo = await this.jupyterServer.getDebuggerInfo();
+    //private async debuggerAttach(): Promise<void> {
+        //if (this.jupyterServer) {
+            //// Get our connection info
+            //const debugConnectInfo = await this.jupyterServer.getDebuggerInfo();
 
-            if (debugConnectInfo) {
-                // First connect the VSCode UI
-                const config: DebugConfiguration = {
-                    name: 'IPython',
-                    request: 'attach',
-                    type: 'python',
-                    port: debugConnectInfo.port,
-                    host: debugConnectInfo.hostName
-                };
+            //if (debugConnectInfo) {
+                //// First connect the VSCode UI
+                //const config: DebugConfiguration = {
+                    //name: 'IPython',
+                    //request: 'attach',
+                    //type: 'python',
+                    //port: debugConnectInfo.port,
+                    //host: debugConnectInfo.hostName
+                //};
 
-                await this.debugService.startDebugging(undefined, config);
+                //await this.debugService.startDebugging(undefined, config);
 
-                // tslint:disable-next-line:no-multiline-string
-                await this.jupyterServer.execute(`import ptvsd\r\nptvsd.wait_for_attach()`, Identifiers.EmptyFileName, 0, uuid(), undefined, true);
+                //// tslint:disable-next-line:no-multiline-string
+                //await this.jupyterServer.execute(`import ptvsd\r\nptvsd.wait_for_attach()`, Identifiers.EmptyFileName, 0, uuid(), undefined, true);
 
-                // Then enable tracing
-                await this.jupyterServer.setDebugTracing(true);
-            }
-        }
-    }
+                //// Then enable tracing
+                //await this.jupyterServer.setDebugTracing(true);
+            //}
+        //}
+    //}
 
-    private async debuggerDetach(): Promise<void> {
-        // Disable tracing
-        if (this.jupyterServer) {
-            await this.jupyterServer.setDebugTracing(false);
-        }
+    //private async debuggerDetach(): Promise<void> {
+        //// Disable tracing
+        //if (this.jupyterServer) {
+            //await this.jupyterServer.setDebugTracing(false);
+        //}
 
-        // Stop our debugging UI session, no await as we just want it stopped
-        this.commandManager.executeCommand('workbench.action.debug.stop');
-    }
+        //// Stop our debugging UI session, no await as we just want it stopped
+        //this.commandManager.executeCommand('workbench.action.debug.stop');
+    //}
 
     private setStatus = (message: string): Disposable => {
         const result = this.statusProvider.set(message);
@@ -1052,6 +1058,11 @@ export class InteractiveWindow extends WebViewHost<IInteractiveWindowMapping> im
 
         // Now try to create a notebook server
         this.jupyterServer = await this.jupyterExecution.connectToNotebookServer(options);
+
+        // Enable debugging support if set
+        if (options.enableDebugging && this.jupyterServer) {
+            await this.jupyterDebugger.enableAttach(this.jupyterServer);
+        }
 
         // Before we run any cells, update the dark setting
         if (this.jupyterServer) {

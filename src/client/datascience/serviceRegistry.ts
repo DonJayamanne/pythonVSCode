@@ -18,6 +18,7 @@ import { InteractiveWindowProvider } from './interactive-window/interactiveWindo
 import { LinkProvider } from './interactive-window/linkProvider';
 import { ShowPlotListener } from './interactive-window/showPlotListener';
 import { JupyterCommandFactory } from './jupyter/jupyterCommand';
+import { JupyterDebugger } from './jupyter/jupyterDebugger';
 import { JupyterExecutionFactory } from './jupyter/jupyterExecutionFactory';
 import { JupyterExporter } from './jupyter/jupyterExporter';
 import { JupyterImporter } from './jupyter/jupyterImporter';
@@ -41,6 +42,7 @@ import {
     IInteractiveWindowListener,
     IInteractiveWindowProvider,
     IJupyterCommandFactory,
+    IJupyterDebugger,
     IJupyterExecution,
     IJupyterPasswordConnect,
     IJupyterSessionManager,
@@ -81,4 +83,5 @@ export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.add<IInteractiveWindowListener>(IInteractiveWindowListener, ShowPlotListener);
     serviceManager.addSingleton<IPlotViewerProvider>(IPlotViewerProvider, PlotViewerProvider);
     serviceManager.add<IPlotViewer>(IPlotViewer, PlotViewer);
+    serviceManager.addSingleton<IJupyterDebugger>(IJupyterDebugger, JupyterDebugger);
 }

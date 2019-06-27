@@ -91,8 +91,8 @@ export interface INotebookServer extends IAsyncDisposable {
     getConnectionInfo(): IConnection | undefined;
     getSysInfo() : Promise<ICell | undefined>;
     setMatplotLibStyle(useDark: boolean) : Promise<void>;
-    setDebugTracing(tracingOn: boolean): Promise<void>;
-    getDebuggerInfo(): Promise<IDebuggerConnectInfo | undefined>;
+    //setDebugTracing(tracingOn: boolean): Promise<void>;
+    //getDebuggerInfo(): Promise<IDebuggerConnectInfo | undefined>;
 }
 
 export interface INotebookServerOptions {
@@ -117,6 +117,13 @@ export interface IJupyterExecution extends IAsyncDisposable {
     importNotebook(file: string, template: string | undefined) : Promise<string>;
     getUsableJupyterPython(cancelToken?: CancellationToken) : Promise<PythonInterpreter | undefined>;
     getServer(options?: INotebookServerOptions) : Promise<INotebookServer | undefined>;
+}
+
+export const IJupyterDebugger = Symbol('IJupyterDebugger');
+export interface IJupyterDebugger {
+    enableAttach(server: INotebookServer): Promise<void>;
+    startDebugging(server: INotebookServer): Promise<void>;
+    stopDebugging(server: INotebookServer): Promise<void>;
 }
 
 export interface IJupyterPasswordConnectInfo {
