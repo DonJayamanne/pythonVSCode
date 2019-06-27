@@ -96,6 +96,7 @@ export interface INotebookServer extends IAsyncDisposable {
 }
 
 export interface INotebookServerOptions {
+    enableDebugging?: boolean;
     uri?: string;
     usingDarkTheme?: boolean;
     useDefaultConfig?: boolean;
