@@ -5,20 +5,12 @@ import { nbformat } from '@jupyterlab/coreutils';
 import { Kernel, KernelMessage } from '@jupyterlab/services/lib/kernel';
 import { JSONObject } from '@phosphor/coreutils';
 import { Observable } from 'rxjs/Observable';
-import {
-    CancellationToken,
-    CodeLens,
-    CodeLensProvider,
-    Disposable,
-    Event,
-    Range,
-    TextDocument,
-    TextEditor
-} from 'vscode';
+import { CancellationToken, CodeLens, CodeLensProvider, Disposable, Event, Range, TextDocument, TextEditor } from 'vscode';
 
 import { ICommandManager } from '../common/application/types';
 import { ExecutionResult, ObservableExecutionResult, SpawnOptions } from '../common/process/types';
 import { IAsyncDisposable, IDataScienceSettings, IDisposable } from '../common/types';
+import { StopWatch } from '../common/utils/stopWatch';
 import { PythonInterpreter } from '../interpreter/contracts';
 
 // Main interface
@@ -180,8 +172,8 @@ export interface IInteractiveWindow extends Disposable {
     ready: Promise<void>;
     onExecutedCode: Event<string>;
     show() : Promise<void>;
-    addCode(code: string, file: string, line: number, editor?: TextEditor, debug?: boolean) : Promise<void>;
-    debugCode(code: string, file: string, line: number, editor?: TextEditor, debug?: boolean) : Promise<void>;
+    addCode(code: string, file: string, line: number, editor?: TextEditor, runningStopWatch?: StopWatch) : Promise<void>;
+    debugCode(code: string, file: string, line: number, editor?: TextEditor, runningStopWatch?: StopWatch) : Promise<void>;
     startProgress(): void;
     stopProgress(): void;
     undoCells(): void;
@@ -394,4 +386,20 @@ export interface IPlotViewer extends IDisposable {
     removed: Event<number>;
     addPlot(imageHtml: string) : Promise<void>;
     show(): Promise<void>;
+}
+
+export interface ICellHash {
+    line: number;       // 1 based
+    endLine: number;    // 1 based and inclusive
+    hash: string;
+    executionCount: number;
+}
+
+export interface IFileHashes {
+    file: string;
+    hashes: ICellHash[];
+}
+
+export interface ICellHashProvider {
+    getHashes() : IFileHashes[];
 }

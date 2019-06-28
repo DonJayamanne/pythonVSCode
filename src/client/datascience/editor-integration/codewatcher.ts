@@ -9,6 +9,7 @@ import { IFileSystem } from '../../common/platform/types';
 import { IConfigurationService, IDataScienceSettings, ILogger } from '../../common/types';
 import * as localize from '../../common/utils/localize';
 import { noop } from '../../common/utils/misc';
+import { StopWatch } from '../../common/utils/stopWatch';
 import { captureTelemetry } from '../../telemetry';
 import { ICodeExecutionHelper } from '../../terminals/types';
 import { generateCellRanges } from '../cellFactory';
@@ -116,8 +117,7 @@ export class CodeWatcher implements ICodeWatcher {
 
                     // Note: We do a get or create active before all addCode commands to make sure that we either have a history up already
                     // or if we do not we need to start it up as these commands are all expected to start a new history if needed
-                    const activeInteractiveWindow = await this.interactiveWindowProvider.getOrCreateActive();
-                    await activeInteractiveWindow.addCode(code, this.getFileName(), range.start.line);
+                    await this.addCode(code, this.getFileName(), range.start.line);
                 }
             }
         }
@@ -145,8 +145,7 @@ export class CodeWatcher implements ICodeWatcher {
                 if (!pastStop && this.document) {
                     // We have a cell and we are not past or at the stop point
                     const code = this.document.getText(lens.range);
-                    const activeInteractiveWindow = await this.interactiveWindowProvider.getOrCreateActive();
-                    await activeInteractiveWindow.addCode(code, this.getFileName(), lens.range.start.line);
+                    await this.addCode(code, this.getFileName(), lens.range.start.line);
                 } else {
                     // If we get a cell past or at the stop point stop
                     break;
@@ -166,8 +165,7 @@ export class CodeWatcher implements ICodeWatcher {
                 if (pastStart && this.document) {
                     // We have a cell and we are not past or at the stop point
                     const code = this.document.getText(lens.range);
-                    const activeInteractiveWindow = await this.interactiveWindowProvider.getOrCreateActive();
-                    await activeInteractiveWindow.addCode(code, this.getFileName(), lens.range.start.line);
+                    await this.addCode(code, this.getFileName(), lens.range.start.line);
                 }
             }
         }
@@ -186,8 +184,7 @@ export class CodeWatcher implements ICodeWatcher {
             if (!normalizedCode || normalizedCode.trim().length === 0) {
                 return;
             }
-            const activeInteractiveWindow = await this.interactiveWindowProvider.getOrCreateActive();
-            await activeInteractiveWindow.addCode(normalizedCode, this.getFileName(), activeEditor.selection.start.line, activeEditor);
+            await this.addCode(normalizedCode, this.getFileName(), activeEditor.selection.start.line, activeEditor);
         }
     }
 
@@ -198,8 +195,7 @@ export class CodeWatcher implements ICodeWatcher {
             const code = this.document.getText(new Range(0, 0, previousLine.range.end.line, previousLine.range.end.character));
 
             if (code && code.trim().length) {
-                const activeInteractiveWindow = await this.interactiveWindowProvider.getOrCreateActive();
-                await activeInteractiveWindow.addCode(code, this.getFileName(), 0);
+                await this.addCode(code, this.getFileName(), 0);
             }
         }
     }
@@ -211,8 +207,7 @@ export class CodeWatcher implements ICodeWatcher {
             const code = this.document.getText(new Range(targetLine, 0, lastLine.range.end.line, lastLine.range.end.character));
 
             if (code && code.trim().length) {
-                const activeInteractiveWindow = await this.interactiveWindowProvider.getOrCreateActive();
-                await activeInteractiveWindow.addCode(code, this.getFileName(), targetLine);
+                await this.addCode(code, this.getFileName(), targetLine);
             }
         }
     }
@@ -260,6 +255,20 @@ export class CodeWatcher implements ICodeWatcher {
         }
     }
 
+    private async addCode(code: string, file: string, line: number, editor?: TextEditor, debug?: boolean) : Promise<void> {
+        try {
+            const stopWatch = new StopWatch();
+            const activeInteractiveWindow = await this.interactiveWindowProvider.getOrCreateActive();
+            if (debug) {
+                await activeInteractiveWindow.debugCode(code, file, line, editor, stopWatch);
+            } else {
+                await activeInteractiveWindow.addCode(code, file, line, editor, stopWatch);
+            }
+        } catch (err) {
+            this.handleError(err);
+        }
+    }
+
     private async runMatchingCell(range: Range, advance?: boolean, debug?: boolean) {
         const currentRunCellLens = this.getCurrentCellLens(range.start);
         const nextRunCellLens = this.getNextCellLens(range.start);
@@ -284,17 +293,7 @@ export class CodeWatcher implements ICodeWatcher {
             if (this.document) {
                 // Use that to get our code.
                 const code = this.document.getText(currentRunCellLens.range);
-
-                try {
-                    const activeInteractiveWindow = await this.interactiveWindowProvider.getOrCreateActive();
-                    if (debug) {
-                        await activeInteractiveWindow.debugCode(code, this.getFileName(), range.start.line, this.documentManager.activeTextEditor);
-                    } else {
-                        await activeInteractiveWindow.addCode(code, this.getFileName(), range.start.line, this.documentManager.activeTextEditor);
-                    }
-                } catch (err) {
-                    this.handleError(err);
-                }
+                await this.addCode(code, this.getFileName(), range.start.line, this.documentManager.activeTextEditor, debug);
             }
         }
     }
@@ -314,8 +313,7 @@ export class CodeWatcher implements ICodeWatcher {
     private async runFileInteractiveInternal() {
         if (this.document) {
             const code = this.document.getText();
-            const activeInteractiveWindow = await this.interactiveWindowProvider.getOrCreateActive();
-            await activeInteractiveWindow.addCode(code, this.getFileName(), 0);
+            await this.addCode(code, this.getFileName(), 0);
         }
     }
 
