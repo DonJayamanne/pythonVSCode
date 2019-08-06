@@ -71,9 +71,7 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
             };
 
             // Fire off a timer to mimic dynamic loading
-            setTimeout(() => {
-                this.handleGetAllRowsResponse({data: data.rows});
-            }, 1000);
+            setTimeout(() => this.handleGetAllRowsResponse({data: data.rows}), 1000);
         } else {
             this.state = {
                 gridColumns: [],
