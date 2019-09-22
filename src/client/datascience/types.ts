@@ -321,7 +321,7 @@ export enum CellState {
 
 // Basic structure for a cell from a notebook
 export interface ICell {
-    id: string; // This value isn't unique. File and line are needed to.
+    id: string; // This value isn't unique. File and line are needed too.
     file: string;
     line: number;
     state: CellState;

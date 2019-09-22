@@ -1,7 +1,7 @@
 import { DataflowAnalyzer } from '@msrvida/python-program-analysis';
-import { JupyterCell as ICell, LabCell } from '@msrvida/python-program-analysis/lib/cell';
-import { CellSlice } from '@msrvida/python-program-analysis/lib/cellslice';
-import { ExecutionLogSlicer } from '@msrvida/python-program-analysis/lib/log-slicer';
+import { Cell as ICell, LogCell } from '@msrvida/python-program-analysis/dist/es5/cell';
+import { CellSlice } from '@msrvida/python-program-analysis/dist/es5/cellslice';
+import { ExecutionLogSlicer } from '@msrvida/python-program-analysis/dist/es5/log-slicer';
 
 import { inject, injectable } from 'inversify';
 // tslint:disable-next-line: no-require-imports
@@ -34,8 +34,7 @@ export class GatherExecution implements IGatherExecution, INotebookExecutionLogg
     ) {
         this._enabled = this.configService.getSettings().datascience.enableGather ? true : false;
 
-        const rules = this.configService.getSettings().datascience.gatherRules;
-        this.dataflowAnalyzer = new DataflowAnalyzer(rules);
+        this.dataflowAnalyzer = new DataflowAnalyzer();
         this._executionSlicer = new ExecutionLogSlicer(this.dataflowAnalyzer);
 
         if (this.enabled) {
@@ -62,7 +61,7 @@ export class GatherExecution implements IGatherExecution, INotebookExecutionLogg
                 cloneCell.data.source = cellMatcher.stripFirstMarker(concatMultilineString(vscCell.data.source));
 
                 // Convert IVscCell to IGatherCell
-                const cell = convertVscToGatherCell(cloneCell) as LabCell;
+                const cell = convertVscToGatherCell(cloneCell) as LogCell;
 
                 // Call internal logging method
                 if (!cloneCell.data.source.startsWith(internalUseCellKey)) {

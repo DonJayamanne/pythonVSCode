@@ -492,7 +492,7 @@ export abstract class InteractiveBase extends WebViewHost<IInteractiveWindowMapp
 
                 // Set the file variable
                 if (file !== Identifiers.EmptyFileName) {
-                    await this.notebook.execute(`__file__ = '${file.replace(/\\/g, '\\\\')}'`, file, line, uuid(), undefined, true);
+                    file = `__file__ = '${file.replace(/\\/g, '\\\\')}'`;
                 }
 
                 // Attempt to evaluate this cell in the jupyter notebook
