@@ -512,4 +512,4 @@ export interface IDebugLocationTracker extends DebugAdapterTracker {
 }
 
 // Cells silently executed on behalf of the user are tagged with the following.
-export const internalUseCellKey: string = '#%DATASCIENCE_INTERNAL_KEY%#';
+export const silentCell: string = '#%DATASCIENCE_INTERNAL_KEY%#';

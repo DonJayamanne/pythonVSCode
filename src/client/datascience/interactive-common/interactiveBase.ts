@@ -71,8 +71,7 @@ import {
     INotebookServerOptions,
     InterruptResult,
     IStatusProvider,
-    IThemeFinder,
-    internalUseCellKey
+    IThemeFinder
 } from '../types';
 import { WebViewHost } from '../webViewHost';
 import { InteractiveWindowMessageListener } from './interactiveWindowMessageListener';
@@ -493,7 +492,7 @@ export abstract class InteractiveBase extends WebViewHost<IInteractiveWindowMapp
 
                 // If the file isn't unknown, set the active kernel's __file__ variable to point to that same file.
                 if (file !== Identifiers.EmptyFileName) {
-                    await this.notebook.execute(`${internalUseCellKey}\n__file__ = '${file.replace(/\\/g, '\\\\')}'`, file, line, uuid(), undefined, true);
+                    await this.notebook.execute(`__file__ = '${file.replace(/\\/g, '\\\\')}'`, file, line, uuid(), undefined, true);
                 }
 
                 const observable = this.notebook.executeObservable(code, file, line, id, false);
