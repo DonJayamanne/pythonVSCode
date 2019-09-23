@@ -34,8 +34,7 @@ import {
     INotebookExecutionLogger,
     INotebookServer,
     INotebookServerLaunchInfo,
-    InterruptResult,
-    silentCell
+    InterruptResult
 } from '../types';
 
 class CellSubscriber {
@@ -227,11 +226,8 @@ export class JupyterNotebookBase implements INotebook {
         // Create a deferred that we'll fire when we're done
         const deferred = createDeferred<ICell[]>();
 
-        // If executing silently, be sure to prepend the silentCell tag to the code so that Gather doesn't collect it.
-        const codeToExecute: string = silent !== undefined && silent === true ? `${silentCell}\n${code}` : code;
-
         // Attempt to evaluate this cell in the jupyter notebook.
-        const observable = this.executeObservable(codeToExecute, file, line, id, silent);
+        const observable = this.executeObservable(code, file, line, id, silent);
         let output: ICell[];
 
         observable.subscribe(

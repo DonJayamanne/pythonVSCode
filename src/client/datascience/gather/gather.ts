@@ -15,7 +15,7 @@ import { Common } from '../../common/utils/localize';
 import { noop } from '../../common/utils/misc';
 import { CellMatcher } from '../cellMatcher';
 import { concatMultilineString } from '../common';
-import { CellState, ICell as IVscCell, IGatherExecution, INotebookExecutionLogger, silentCell } from '../types';
+import { CellState, ICell as IVscCell, IGatherExecution, INotebookExecutionLogger } from '../types';
 
 /**
  * An adapter class to wrap the code gathering functionality from [microsoft/python-program-analysis](https://www.npmjs.com/package/@msrvida/python-program-analysis).
@@ -37,7 +37,7 @@ export class GatherExecution implements IGatherExecution, INotebookExecutionLogg
         this.dataflowAnalyzer = new DataflowAnalyzer();
         this._executionSlicer = new ExecutionLogSlicer(this.dataflowAnalyzer);
 
-        if (this.enabled) {
+        if (this._enabled) {
             this.disposables.push(this.configService.getSettings().onDidChange(e => this.updateEnableGather(e)));
         }
 
@@ -50,9 +50,10 @@ export class GatherExecution implements IGatherExecution, INotebookExecutionLogg
     }
 
     public async postExecute(vscCell: IVscCell, _silent: boolean): Promise<void> {
-        if (this.enabled) {
-            // Don't log if vscCell.data.source is an empty string. Original Jupyter extension also does this.
-            if (vscCell.data.source !== '') {
+        if (this._enabled) {
+            // Don't log if vscCell.data.source is an empty string or if it was
+            // silently executed. Original Jupyter extension also does this.
+            if (vscCell.data.source !== '' && !_silent) {
                 // First make a copy of this cell, as we are going to modify it
                 const cloneCell: IVscCell = cloneDeep(vscCell);
 
@@ -64,9 +65,7 @@ export class GatherExecution implements IGatherExecution, INotebookExecutionLogg
                 const cell = convertVscToGatherCell(cloneCell) as LogCell;
 
                 // Call internal logging method
-                if (!cloneCell.data.source.startsWith(silentCell)) {
-                    this._executionSlicer.logExecution(cell);
-                }
+                this._executionSlicer.logExecution(cell);
             }
         }
     }
