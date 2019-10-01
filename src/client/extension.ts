@@ -108,6 +108,8 @@ import { TEST_OUTPUT_CHANNEL } from './testing/common/constants';
 import { ITestContextService } from './testing/common/types';
 import { ITestCodeNavigatorCommandHandler, ITestExplorerCommandHandler } from './testing/navigation/types';
 import { registerTypes as unitTestsRegisterTypes } from './testing/serviceRegistry';
+import { DebugVariablesPanel } from './datascience/debugLocationTracker';
+import { IFileSystem } from './common/platform/types';
 
 durations.codeLoadingTime = stopWatch.elapsedTime;
 const activationDeferred = createDeferred<void>();
@@ -287,6 +289,9 @@ async function initializeServices(context: ExtensionContext, serviceManager: Ser
     serviceContainer.get<ITestExplorerCommandHandler>(ITestExplorerCommandHandler).register();
     serviceContainer.get<ILanguageServerExtension>(ILanguageServerExtension).register();
     serviceContainer.get<ITestContextService>(ITestContextService).register();
+
+    DebugVariablesPanel.instance.initialize(serviceContainer.get<IApplicationShell>(IApplicationShell), cmdManager,
+    serviceContainer.get<IFileSystem>(IFileSystem), serviceContainer);
 }
 
 // tslint:disable-next-line:no-any
