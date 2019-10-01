@@ -5,11 +5,12 @@ import '../../common/extensions';
 
 import { inject, injectable } from 'inversify';
 import * as path from 'path';
-import { ViewColumn } from 'vscode';
+import { DebugSession, ViewColumn } from 'vscode';
 
 import { IApplicationShell, IWebPanelProvider, IWorkspaceService } from '../../common/application/types';
 import { EXTENSION_ROOT_DIR } from '../../common/constants';
 import { traceError } from '../../common/logger';
+import { IFileSystem } from '../../common/platform/types';
 import { IConfigurationService, IDisposable } from '../../common/types';
 import * as localize from '../../common/utils/localize';
 import { noop } from '../../common/utils/misc';
@@ -17,6 +18,7 @@ import { StopWatch } from '../../common/utils/stopWatch';
 import { sendTelemetryEvent } from '../../telemetry';
 import { HelpLinks, Telemetry } from '../constants';
 import { JupyterDataRateLimitError } from '../jupyter/jupyterDataRateLimitError';
+import { PythonVariables } from '../jupyter/pythonVariables';
 import { ICodeCssGenerator, IDataViewer, IJupyterVariable, IJupyterVariables, INotebook, IThemeFinder } from '../types';
 import { WebViewHost } from '../webViewHost';
 import { DataViewerMessageListener } from './dataViewerMessageListener';
@@ -28,14 +30,26 @@ export class DataViewer extends WebViewHost<IDataViewerMapping> implements IData
     private variable: IJupyterVariable | undefined;
     private rowsTimer: StopWatch | undefined;
     private pendingRowsCount: number = 0;
-
+    private useDebugSession?: DebugSession;
+    private pythonVariables?: IJupyterVariables;
+    private get variableManager(): IJupyterVariables {
+        if (this.useDebugSession) {
+            if (!this.pythonVariables) {
+                this.pythonVariables = new PythonVariables(this.fileSystem);
+            }
+            return this.pythonVariables;
+        } else {
+            return this._variableManager;
+        }
+    }
     constructor(
         @inject(IWebPanelProvider) provider: IWebPanelProvider,
         @inject(IConfigurationService) configuration: IConfigurationService,
         @inject(ICodeCssGenerator) cssGenerator: ICodeCssGenerator,
         @inject(IThemeFinder) themeFinder: IThemeFinder,
         @inject(IWorkspaceService) workspaceService: IWorkspaceService,
-        @inject(IJupyterVariables) private variableManager: IJupyterVariables,
+        @inject(IFileSystem) private readonly fileSystem: IFileSystem,
+        @inject(IJupyterVariables) private _variableManager: IJupyterVariables,
         @inject(IApplicationShell) private applicationShell: IApplicationShell
     ) {
         super(
@@ -47,9 +61,12 @@ export class DataViewer extends WebViewHost<IDataViewerMapping> implements IData
             (c, v, d) => new DataViewerMessageListener(c, v, d),
             path.join(EXTENSION_ROOT_DIR, 'out', 'datascience-ui', 'data-explorer', 'index_bundle.js'),
             localize.DataScience.dataExplorerTitle(),
-            ViewColumn.One);
+            ViewColumn.Beside
+        );
     }
-
+    public setDebugSession(debugSession: DebugSession): void {
+        this.useDebugSession = debugSession;
+    }
     public async showVariable(variable: IJupyterVariable, notebook: INotebook): Promise<void> {
         if (!this.isDisposed) {
             // Save notebook this is tied to

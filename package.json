@@ -548,6 +548,24 @@
                 "command": "python.datascience.scrolltocell",
                 "title": "%python.command.python.datascience.scrolltocell.title%",
                 "category": "Python"
+            },
+            {
+                "command": "python.viewList",
+                "title": "View the List in an awesome viewer",
+                "category": "Python",
+                "icon": {
+                    "light": "resources/light/repl.svg",
+                    "dark": "resources/dark/repl.svg"
+                }
+            },
+            {
+                "command": "python.viewDataFrame",
+                "title": "View the DataFrame in an awesome viewer",
+                "category": "Python",
+                "icon": {
+                    "light": "resources/light/open-file.svg",
+                    "dark": "resources/dark/open-file.svg"
+                }
             }
         ],
         "menus": {
@@ -1007,6 +1025,24 @@
                     "command": "python.runTestNode",
                     "when": "view == python_tests && viewItem == suite && !busyTests",
                     "group": "inline@0"
+                },
+                {
+                    "command": "python.viewDataFrame",
+                    "when": "view == dsVariables && viewItem == DataFrame",
+                    "group": "inline@0"
+                },
+                {
+                    "command": "python.viewList",
+                    "when": "view == dsVariables && viewItem == list",
+                    "group": "inline@0"
+                },
+                {
+                    "command": "python.viewDataFrame",
+                    "when": "view == dsVariables && viewItem == DataFrame"
+                },
+                {
+                    "command": "python.viewList",
+                    "when": "view == dsVariables && viewItem == list"
                 }
             ]
         },
@@ -2567,6 +2603,13 @@
             }
         ],
         "views": {
+            "debug": [
+                {
+                    "id": "dsVariables",
+                    "name": "Data Science Variables",
+                    "when": "inDebugMode"
+                }
+            ],
             "test": [
                 {
                     "id": "python_tests",

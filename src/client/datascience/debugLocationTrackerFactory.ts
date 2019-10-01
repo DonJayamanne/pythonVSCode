@@ -4,7 +4,7 @@
 import { inject, injectable } from 'inversify';
 import { DebugAdapterTracker, DebugAdapterTrackerFactory, DebugSession, Event, EventEmitter, ProviderResult } from 'vscode';
 
-import { IDebugService } from '../common/application/types';
+import { IApplicationShell, IDebugService } from '../common/application/types';
 import { IDisposableRegistry } from '../common/types';
 import { DebugLocationTracker } from './debugLocationTracker';
 import { IDebugLocationTracker } from './types';
@@ -12,19 +12,19 @@ import { IDebugLocationTracker } from './types';
 // Hook up our IDebugLocationTracker to python debugging sessions
 @injectable()
 export class DebugLocationTrackerFactory implements IDebugLocationTracker, DebugAdapterTrackerFactory {
-
     private activeTrackers: Map<string, DebugLocationTracker> = new Map<string, DebugLocationTracker>();
     private updatedEmitter: EventEmitter<void> = new EventEmitter<void>();
 
     constructor(
         @inject(IDebugService) debugService: IDebugService,
-        @inject(IDisposableRegistry) disposableRegistry: IDisposableRegistry
+        @inject(IDisposableRegistry) disposableRegistry: IDisposableRegistry,
+        @inject(IApplicationShell) private readonly appShell: IApplicationShell
     ) {
         disposableRegistry.push(debugService.registerDebugAdapterTrackerFactory('python', this));
     }
 
     public createDebugAdapterTracker(session: DebugSession): ProviderResult<DebugAdapterTracker> {
-        const result = new DebugLocationTracker(session.id);
+        const result = new DebugLocationTracker(session.id, session, this.appShell);
         this.activeTrackers.set(session.id, result);
         result.sessionEnded(this.onSessionEnd.bind(this));
         result.debugLocationUpdated(this.onLocationUpdated.bind(this));
