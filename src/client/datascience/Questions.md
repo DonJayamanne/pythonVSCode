@@ -94,3 +94,17 @@ throw new JupyterWaitForIdleError(localize.DataScience.jupyterLaunchTimedOut());
 22. What is the purpose of `JupyterSession.waitForIdleOnSession`?
     Is this to wait for the session to be idle so we can send commands to it?
     I.e. why do we need to wait for idle, or another way of asking this question is, what if we didn't want and removed this wait?
+
+23. When running some code that's required for extension (e.g. setting backgrounds for matplotlib, getting python version,etc).
+    In such cases they are executed as silent without the history.
+    Some of them don't require a result. E.g. setting the background colors for matplot lib.
+    Why don't we just ignore that (we can use `silent` in the request. Today we're using `store_history` for these).
+    Any reason, or just to avoid having to set both of them!
+
+24. Do we maintain our own cell counter (history).
+    Is this mapped to the one coming form jupyter.
+
+25. Do we shutdown kernels when closing VS Code?
+    If not we have a lot of these orphaned processes that chew up memory and CPU
+
+26. Creation of kernel specs. When and why do we do this?

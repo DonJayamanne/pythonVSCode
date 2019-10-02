@@ -1,7 +1,7 @@
 // Place your settings in this file to overwrite default and user settings.
 {
     "files.exclude": {
-        "out": true, // set this to true to hide the "out" folder with the compiled JS files
+        "out": false, // set this to true to hide the "out" folder with the compiled JS files
         "uitests/out": true,
         "**/*.pyc": true,
         ".nyc_output": true,
@@ -47,8 +47,7 @@
     "python.linting.pylintEnabled": false,
     "python.linting.flake8Enabled": true,
     "cucumberautocomplete.skipDocStringsFormat": true,
-    "python.linting.flake8Args": [
-        "--max-line-length=120"
-    ],
-    "typescript.preferences.importModuleSpecifier": "relative"
+    "python.linting.flake8Args": ["--max-line-length=120"],
+    "typescript.preferences.importModuleSpecifier": "relative",
+    "python.pythonPath": "/Users/donjayamanne/miniconda3/envs/env373/bin/python"
 }
