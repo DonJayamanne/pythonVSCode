@@ -5,19 +5,31 @@
 2. Is nodebook the object that carries information about everything (i.e. considered the session object)
 
 3. What is `InteractiveBase` in `interactiveBase.ts`.
+
+
 4. Explain `IInteractiveWindowListener`
 
 -   Who sends and who receives.
 -   Who fires the event & who handles the responses.
 
 5. How is this different from `IWebPanelMessageListener`.
+This is used to wire up post office.
+One per webview host (top level)
 
 6. What is the `IInteractiveBase` interface
+Dervied by interactive windows.
+
 7. What is the difference betwee `IInteractiveBase` and `IInteractiveWindow`
    I.e. why the inheritance and why not just have `IInteractiveWindow`.
+* IInteractiveWindow - has add code (this is the interactive window, not the native editor)
+* IInteractiveBase - no add code (this is the base for both native editor & interactive window).
+
+
 
 8. What is the `InteractiveWindow` class, where is this used. I.e. what UI element does this relate to?
+
 9. What is the difference between `InteractiveWindow` and `NativeEditor`.
+
 10. Where is `NativeEditorProvider` used, i.e. who calls this?
 
 11. Why not close then open
