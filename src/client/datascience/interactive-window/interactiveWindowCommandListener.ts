@@ -26,7 +26,6 @@ import {
     IInteractiveWindowProvider,
     IJupyterExecution,
     INotebookExporter,
-    INotebookImporter,
     INotebookServer,
     IStatusProvider
 } from '../types';
@@ -44,7 +43,6 @@ export class InteractiveWindowCommandListener implements IDataScienceCommandList
         @inject(ILogger) private logger: ILogger,
         @inject(IConfigurationService) private configuration: IConfigurationService,
         @inject(IStatusProvider) private statusProvider: IStatusProvider,
-        @inject(INotebookImporter) private jupyterImporter: INotebookImporter,
         @inject(IDataScienceErrorHandler) private dataScienceErrorHandler: IDataScienceErrorHandler
     ) {
     }
@@ -168,8 +166,7 @@ export class InteractiveWindowCommandListener implements IDataScienceCommandList
                                 directoryChange = uri.fsPath;
                             }
 
-                            const notebook = await this.jupyterExporter.translateToNotebook(cells, directoryChange);
-                            await this.fileSystem.writeFile(uri.fsPath, JSON.stringify(notebook));
+                            await this.jupyterExporter.save('notebook', cells, {filePath: uri.fsPath, directoryChange});
                         }
                     }, localize.DataScience.exportingFormat(), file);
 
@@ -263,9 +260,7 @@ export class InteractiveWindowCommandListener implements IDataScienceCommandList
                 directoryChange = file;
             }
 
-            const notebookJson = await this.jupyterExporter.translateToNotebook(cells, directoryChange);
-            await this.fileSystem.writeFile(file, JSON.stringify(notebookJson));
-
+            await this.jupyterExporter.save('notebook', cells, {directoryChange, filePath: file});
         } finally {
             if (server) {
                 await server.dispose();
@@ -369,7 +364,7 @@ export class InteractiveWindowCommandListener implements IDataScienceCommandList
         if (uris && uris.length > 0) {
             // Don't call the other overload as we'll end up with double telemetry.
             await this.waitForStatus(async () => {
-                const contents = await this.jupyterImporter.importFromFile(uris[0].fsPath);
+                const contents = await this.jupyterExporter.export('python', uris[0].fsPath, {});
                 await this.viewDocument(contents);
             }, localize.DataScience.importingFormat(), uris[0].fsPath);
         }
@@ -379,7 +374,7 @@ export class InteractiveWindowCommandListener implements IDataScienceCommandList
     private async importNotebookOnFile(file: string): Promise<void> {
         if (file && file.length > 0) {
             await this.waitForStatus(async () => {
-                const contents = await this.jupyterImporter.importFromFile(file);
+                const contents = await this.jupyterExporter.export('python', file, {});
                 await this.viewDocument(contents);
             }, localize.DataScience.importingFormat(), file);
         }

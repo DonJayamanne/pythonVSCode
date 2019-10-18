@@ -629,12 +629,8 @@ export abstract class InteractiveBase extends WebViewHost<IInteractiveWindowMapp
                 directoryChange = file;
             }
 
-            const notebook = await this.jupyterExporter.translateToNotebook(cells, directoryChange);
-
             try {
-                // tslint:disable-next-line: no-any
-                const contents = JSON.stringify(notebook);
-                await this.fileSystem.writeFile(file, contents, { encoding: 'utf8', flag: 'w' });
+                await this.jupyterExporter.save('notebook', cells, {directoryChange, filePath: file});
                 const openQuestion1 = localize.DataScience.exportOpenQuestion1();
                 const openQuestion2 = (await this.jupyterExecution.isSpawnSupported()) ? localize.DataScience.exportOpenQuestion() : undefined;
                 this.showInformationMessage(localize.DataScience.exportDialogComplete().format(file), openQuestion1, openQuestion2).then(async (str: string | undefined) => {
@@ -643,6 +639,7 @@ export abstract class InteractiveBase extends WebViewHost<IInteractiveWindowMapp
                             // If the user wants to, open the notebook they just generated.
                             await this.jupyterExecution.spawnNotebook(file);
                         } else if (str === openQuestion1) {
+                            const contents = await fs.readFile(file, 'utf-8');
                             await this.ipynbProvider.open(Uri.file(file), contents);
                         }
                     } catch (e) {

@@ -23,9 +23,8 @@ import {
     InteractiveWindowCommandListener
 } from '../../client/datascience/interactive-window/interactiveWindowCommandListener';
 import { InteractiveWindowProvider } from '../../client/datascience/interactive-window/interactiveWindowProvider';
+import { JupyterExporter } from '../../client/datascience/jupyter/export/jupyterExporter';
 import { JupyterExecutionFactory } from '../../client/datascience/jupyter/jupyterExecutionFactory';
-import { JupyterExporter } from '../../client/datascience/jupyter/jupyterExporter';
-import { JupyterImporter } from '../../client/datascience/jupyter/jupyterImporter';
 import {
     IInteractiveBase,
     IInteractiveWindow,
@@ -79,7 +78,6 @@ suite('Interactive window command listener', async () => {
     const disposableRegistry: IDisposable[] = [];
     const interactiveWindowProvider = mock(InteractiveWindowProvider);
     const dataScienceErrorHandler = mock(DataScienceErrorHandler);
-    const notebookImporter = mock(JupyterImporter);
     const notebookExporter = mock(JupyterExporter);
     const applicationShell = mock(ApplicationShell);
     const jupyterExecution = mock(JupyterExecutionFactory);
@@ -178,7 +176,7 @@ suite('Interactive window command listener', async () => {
 
         when(interactiveWindowProvider.getActive()).thenReturn(interactiveWindow.object);
         when(interactiveWindowProvider.getOrCreateActive()).thenResolve(interactiveWindow.object);
-        when(notebookImporter.importFromFile(anything())).thenResolve('imported');
+        when(notebookExporter.export('python', anything(), anything())).thenResolve('imported');
         const metadata: nbformat.INotebookMetadata = {
             language_info: {
                 name: 'python',
@@ -195,7 +193,7 @@ suite('Interactive window command listener', async () => {
             pygments_lexer: `ipython${3}`,
             version: 3
         };
-        when(notebookExporter.translateToNotebook(anything())).thenResolve(
+        when(notebookExporter.export(anything(), anything(), anything())).thenResolve(
             {
                 cells: [],
                 nbformat: 4,
@@ -224,7 +222,6 @@ suite('Interactive window command listener', async () => {
             instance(logger),
             instance(configService),
             statusProvider,
-            instance(notebookImporter),
             instance(dataScienceErrorHandler));
         result.register(commandManager);
 

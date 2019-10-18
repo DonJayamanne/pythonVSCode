@@ -21,7 +21,7 @@ import {
 } from '../../common/application/types';
 import { ContextKey } from '../../common/contextKey';
 import { traceError } from '../../common/logger';
-import { IFileSystem, TemporaryFile } from '../../common/platform/types';
+import { IFileSystem } from '../../common/platform/types';
 import { IConfigurationService, IDisposableRegistry, IMemento, WORKSPACE_MEMENTO } from '../../common/types';
 import { createDeferred, Deferred } from '../../common/utils/async';
 import * as localize from '../../common/utils/localize';
@@ -29,7 +29,7 @@ import { StopWatch } from '../../common/utils/stopWatch';
 import { EXTENSION_ROOT_DIR } from '../../constants';
 import { IInterpreterService } from '../../interpreter/contracts';
 import { captureTelemetry, sendTelemetryEvent } from '../../telemetry';
-import { concatMultilineStringInput, splitMultilineString } from '../common';
+import { concatMultilineStringInput } from '../common';
 import {
     EditorContexts,
     Identifiers,
@@ -60,7 +60,6 @@ import {
     INotebookEditor,
     INotebookEditorProvider,
     INotebookExporter,
-    INotebookImporter,
     INotebookServerOptions,
     IStatusProvider,
     IThemeFinder
@@ -108,7 +107,6 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
         @inject(IDataViewerProvider) dataExplorerProvider: IDataViewerProvider,
         @inject(IJupyterVariables) jupyterVariables: IJupyterVariables,
         @inject(IJupyterDebugger) jupyterDebugger: IJupyterDebugger,
-        @inject(INotebookImporter) private importer: INotebookImporter,
         @inject(IDataScienceErrorHandler) errorHandler: IDataScienceErrorHandler,
         @inject(IMemento) @named(WORKSPACE_MEMENTO) private workspaceStorage: Memento
     ) {
@@ -588,7 +586,8 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
             this.visibleCells = cells;
 
             // Save our dirty state in the storage for reopen later
-            await this.storeContents(this.generateNotebookContent(cells));
+            const notebook = await this.jupyterExporter.export('notebook', this.visibleCells, {notebookData: this.notebookJson});
+            await this.storeContents(JSON.stringify(notebook));
 
             // Indicate dirty
             await this.setDirty();
@@ -617,25 +616,12 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
     @captureTelemetry(Telemetry.ConvertToPythonFile, undefined, false)
     private async export(cells: ICell[]): Promise<void> {
         const status = this.setStatus(localize.DataScience.convertingToPythonFile());
-        // First generate a temporary notebook with these cells.
-        let tempFile: TemporaryFile | undefined;
         try {
-            tempFile = await this.fileSystem.createTemporaryFile('.ipynb');
-
-            // Translate the cells into a notebook
-            await this.fileSystem.writeFile(tempFile.filePath, this.generateNotebookContent(cells), { encoding: 'utf-8' });
-
-            // Import this file and show it
-            const contents = await this.importer.importFromFile(tempFile.filePath);
-            if (contents) {
-                await this.viewDocument(contents);
-            }
+            const contents = await this.jupyterExporter.export('python', cells, {notebookData: this.notebookJson});
+            await this.viewDocument(contents);
         } catch (e) {
             await this.errorHandler.handleError(e);
         } finally {
-            if (tempFile) {
-                tempFile.dispose();
-            }
             status.dispose();
         }
     }
@@ -643,23 +629,6 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
     private async viewDocument(contents: string): Promise<void> {
         const doc = await this.documentManager.openTextDocument({ language: 'python', content: contents });
         await this.documentManager.showTextDocument(doc, ViewColumn.One);
-    }
-
-    private fixupCell(cell: nbformat.ICell): nbformat.ICell {
-        // Source is usually a single string on input. Convert back to an array
-        return {
-            ...cell,
-            source: splitMultilineString(cell.source)
-        };
-    }
-
-    private generateNotebookContent(cells: ICell[]): string {
-        // Reuse our original json except for the cells.
-        const json = {
-            ...this.notebookJson,
-            cells: cells.map(c => this.fixupCell(c.data))
-        };
-        return JSON.stringify(json, null, this.indentAmount);
     }
 
     @captureTelemetry(Telemetry.Save, undefined, true)
@@ -685,8 +654,9 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
             }
 
             if (fileToSaveTo && isDirty) {
-                // Write out our visible cells
-                await this.fileSystem.writeFile(fileToSaveTo.fsPath, this.generateNotebookContent(this.visibleCells));
+                // Save our visible cells into the file
+                const options = {filePath: fileToSaveTo.fsPath, indent: this.indentAmount, notebookData: this.notebookJson};
+                await this.jupyterExporter.save('notebook', this.visibleCells, options);
 
                 // Update our file name and dirty state
                 this._file = fileToSaveTo;

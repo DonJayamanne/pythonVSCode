@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 'use strict';
-import { JSONObject } from '@phosphor/coreutils/lib/json';
 import { assert } from 'chai';
 import * as fs from 'fs-extra';
 import * as os from 'os';
@@ -87,9 +86,6 @@ class MockJupyterNotebook implements INotebook {
         throw new Error('Method not implemented');
     }
     public restartKernel(): Promise<void> {
-        throw new Error('Method not implemented');
-    }
-    public translateToNotebook(_cells: ICell[]): Promise<JSONObject> {
         throw new Error('Method not implemented');
     }
     public waitForIdle(): Promise<void> {

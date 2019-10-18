@@ -255,7 +255,7 @@ for _ in range(50):
             const runAllCells =  baseFile.map(cell => {
                 return createFileCell(cell, cell.data);
             });
-            const notebook = await ioc.get<INotebookExporter>(INotebookExporter).translateToNotebook(runAllCells, undefined);
+            const notebook = await ioc.get<INotebookExporter>(INotebookExporter).export('notebook', runAllCells, {});
             await openEditor(ioc, JSON.stringify(notebook));
 
             // Export should cause exportCalled to change to true
@@ -279,7 +279,7 @@ for _ in range(50):
             const runAllCells =  baseFile.map(cell => {
                 return createFileCell(cell, cell.data);
             });
-            const notebook = await ioc.get<INotebookExporter>(INotebookExporter).translateToNotebook(runAllCells, undefined);
+            const notebook = await ioc.get<INotebookExporter>(INotebookExporter).export('notebook', runAllCells, {});
             let editor = await openEditor(ioc, JSON.stringify(notebook));
 
             // Run everything

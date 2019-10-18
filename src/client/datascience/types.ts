@@ -185,14 +185,77 @@ export interface IJupyterKernelSpec extends IAsyncDisposable {
 
 export const INotebookImporter = Symbol('INotebookImporter');
 export interface INotebookImporter extends Disposable {
-    importFromFile(file: string): Promise<string>;
     importCellsFromFile(file: string): Promise<ICell[]>;
     importCells(json: string): Promise<ICell[]>;
 }
 
+export type NotebookExportOptions = {
+    notebookData?: Partial<nbformat.INotebookContent>;
+    directoryChange?: string;
+};
+
+export type NotebookSaveOptions = NotebookExportOptions & {
+    indent?: string;
+};
+
+export type PythonExportOptions = {
+    notebookData?: Partial<nbformat.INotebookContent>;
+    directoryChange?: string;
+};
+
 export const INotebookExporter = Symbol('INotebookExporter');
 export interface INotebookExporter extends Disposable {
-    translateToNotebook(cells: ICell[], directoryChange?: string): Promise<JSONObject | undefined>;
+    /**
+     * Export the cells into the notebook format (JSON)
+     *
+     * @param {'notebook'} format
+     * @param {ICell[]} cells
+     * @param {string} [directoryChange]
+     * @returns {Promise<JSONObject>}
+     * @memberof INotebookExporter
+     */
+    export(format: 'notebook', cells: ICell[], options: NotebookExportOptions): Promise<JSONObject>;
+    /**
+     * Export the cells into python code.
+     *
+     * @param {'notebook'} format
+     * @param {ICell[]} cells
+     * @param {string} [directoryChange]
+     * @returns {Promise<JSONObject>}
+     * @memberof INotebookExporter
+     */
+    export(format: 'python', cells: ICell[], options: NotebookExportOptions): Promise<string>;
+    /**
+     * Export the ipynb (notebook) into python code.
+     *
+     * @param {'notebook'} format
+     * @param {string} notebookFilePath
+     * @param {string} [directoryChange]
+     * @returns {Promise<JSONObject>}
+     * @memberof INotebookExporter
+     */
+    // tslint:disable-next-line: unified-signatures
+    export(format: 'python', notebookFilePath: string, options: NotebookExportOptions): Promise<string>;
+    /**
+     * Save the cells into a notebook file.
+     *
+     * @param {('notebook' | 'python')} format
+     * @param {ICell[]} cells
+     * @param {(NotebookSaveOptions & {filePath: string})} options
+     * @returns {Promise<void>}
+     * @memberof INotebookExporter
+     */
+    save(format: 'notebook' | 'python', cells: ICell[], options: NotebookSaveOptions & {filePath: string}): Promise<void>;
+    /**
+     * Save the cells into a python file.
+     *
+     * @param {'python'} format
+     * @param {ICell[]} cells
+     * @param {(PythonExportOptions & {filePath: string})} options
+     * @returns {Promise<void>}
+     * @memberof INotebookExporter
+     */
+    save(format: 'python', cells: ICell[], options: PythonExportOptions & {filePath: string}): Promise<void>;
 }
 
 export const IInteractiveWindowProvider = Symbol('IInteractiveWindowProvider');

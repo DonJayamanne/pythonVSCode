@@ -116,10 +116,10 @@ import { InteractiveWindow } from '../../client/datascience/interactive-window/i
 import {
     InteractiveWindowCommandListener
 } from '../../client/datascience/interactive-window/interactiveWindowCommandListener';
+import { JupyterExporter } from '../../client/datascience/jupyter/export/jupyterExporter';
 import { JupyterCommandFactory } from '../../client/datascience/jupyter/jupyterCommand';
 import { JupyterDebugger } from '../../client/datascience/jupyter/jupyterDebugger';
 import { JupyterExecutionFactory } from '../../client/datascience/jupyter/jupyterExecutionFactory';
-import { JupyterExporter } from '../../client/datascience/jupyter/jupyterExporter';
 import { JupyterImporter } from '../../client/datascience/jupyter/jupyterImporter';
 import { JupyterPasswordConnect } from '../../client/datascience/jupyter/jupyterPasswordConnect';
 import { JupyterServerFactory } from '../../client/datascience/jupyter/jupyterServerFactory';

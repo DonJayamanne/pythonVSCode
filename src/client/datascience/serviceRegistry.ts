@@ -32,10 +32,13 @@ import { NativeEditorProvider } from './interactive-ipynb/nativeEditorProvider';
 import { InteractiveWindow } from './interactive-window/interactiveWindow';
 import { InteractiveWindowCommandListener } from './interactive-window/interactiveWindowCommandListener';
 import { InteractiveWindowProvider } from './interactive-window/interactiveWindowProvider';
+import { ExportHelper } from './jupyter/export/helper';
+import { JupyterExporter } from './jupyter/export/jupyterExporter';
+import { NotebookConverter } from './jupyter/export/notebookConverter';
+import { PythonConverter } from './jupyter/export/pythonConverter';
 import { JupyterCommandFactory } from './jupyter/jupyterCommand';
 import { JupyterDebugger } from './jupyter/jupyterDebugger';
 import { JupyterExecutionFactory } from './jupyter/jupyterExecutionFactory';
-import { JupyterExporter } from './jupyter/jupyterExporter';
 import { JupyterImporter } from './jupyter/jupyterImporter';
 import { JupyterPasswordConnect } from './jupyter/jupyterPasswordConnect';
 import { JupyterServerFactory } from './jupyter/jupyterServerFactory';
@@ -105,6 +108,8 @@ export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.addSingleton<IInteractiveWindowProvider>(IInteractiveWindowProvider, wrapType(InteractiveWindowProvider));
     serviceManager.add<IInteractiveWindow>(IInteractiveWindow, wrapType(InteractiveWindow));
     serviceManager.add<INotebookExporter>(INotebookExporter, wrapType(JupyterExporter));
+    serviceManager.add<PythonConverter>(PythonConverter, wrapType(PythonConverter));
+    serviceManager.add<NotebookConverter>(NotebookConverter, wrapType(NotebookConverter));
     serviceManager.add<INotebookImporter>(INotebookImporter, wrapType(JupyterImporter));
     serviceManager.add<INotebookServer>(INotebookServer, wrapType(JupyterServerFactory));
     serviceManager.addSingleton<ICodeCssGenerator>(ICodeCssGenerator, wrapType(CodeCssGenerator));
@@ -141,4 +146,5 @@ export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.addBinding(IGatherExecution, INotebookExecutionLogger);
     serviceManager.addBinding(ICodeLensFactory, IInteractiveWindowListener);
     serviceManager.addSingleton<IDebugLocationTracker>(IDebugLocationTracker, wrapType(DebugLocationTrackerFactory));
+    serviceManager.addSingleton<ExportHelper>(ExportHelper, wrapType(ExportHelper));
 }
