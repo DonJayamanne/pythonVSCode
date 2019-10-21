@@ -2857,7 +2857,7 @@
         "node-html-parser": "^1.1.13",
         "nyc": "^14.1.1",
         "raw-loader": "^0.5.1",
-        "react": "^16.5.2",
+        "react": "^16.10.2",
         "react-data-grid": "^6.0.2-0",
         "react-dev-utils": "^5.0.2",
         "react-dom": "^16.5.2",
