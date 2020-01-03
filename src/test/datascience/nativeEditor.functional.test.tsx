@@ -910,10 +910,11 @@ for _ in range(50):
                 assert.equal(wrapper.find('NativeCell').length, 4);
 
                 // Give focus
-                update = waitForUpdate(wrapper, NativeEditor, 3);
-                clickCell(3);
+                update = waitForUpdate(wrapper, NativeEditor, 1);
+                clickCell(2);
                 simulateKeyPressOnCell(3, { code: 'Enter', editorInfo: undefined });
                 await update;
+                assert.ok(isCellFocused(wrapper, 'NativeCell', 2));
 
                 const editorEnzyme = getNativeFocusedEditor(wrapper);
 
