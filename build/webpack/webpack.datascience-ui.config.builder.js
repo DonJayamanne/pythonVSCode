@@ -123,7 +123,7 @@ function buildConfiguration(folderName) {
                         }
                     ]
                 },
-                { test: /\.(png|woff|woff2|eot|ttf)$/, loader: 'url-loader?limit=100000' },
+                { test: /\.(png|woff|woff2|eot|gif|ttf)$/, loader: 'url-loader?limit=100000' },
                 {
                     test: /\.less$/,
                     use: ['style-loader', 'css-loader', 'less-loader']
