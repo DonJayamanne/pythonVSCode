@@ -273,9 +273,15 @@ export class MockJupyterRequest implements Kernel.IFuture<any, any> {
                     .then(r => {
                         // If there's a message, send it.
                         if (r.message && r.message.channel === 'iopub' && this.onIOPub) {
-                            this.onIOPub(r.message as KernelMessage.IIOPubMessage);
+                            const result = this.onIOPub(r.message as KernelMessage.IIOPubMessage);
+                            if (result) {
+                                result.then(noop, noop);
+                            }
                         } else if (r.message && r.message.channel === 'stdin' && this.onStdin) {
-                            this.onStdin(r.message as KernelMessage.IStdinMessage);
+                            const result = this.onStdin(r.message as KernelMessage.IStdinMessage);
+                            if (result) {
+                                result.then(noop, noop);
+                            }
                         }
 
                         // Move onto the next producer if allowed

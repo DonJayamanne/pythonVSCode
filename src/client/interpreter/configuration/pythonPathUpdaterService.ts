@@ -10,6 +10,7 @@ import { EventName } from '../../telemetry/constants';
 import { PythonInterpreterTelemetry } from '../../telemetry/types';
 import { IInterpreterVersionService } from '../contracts';
 import { IPythonPathUpdaterServiceFactory, IPythonPathUpdaterServiceManager } from './types';
+import { noop } from '../../common/utils/misc';
 
 @injectable()
 export class PythonPathUpdaterService implements IPythonPathUpdaterServiceManager {
@@ -31,7 +32,7 @@ export class PythonPathUpdaterService implements IPythonPathUpdaterServiceManage
             failed = true;
             // tslint:disable-next-line:no-unsafe-any prefer-type-cast
             const message = reason && typeof reason.message === 'string' ? (reason.message as string) : '';
-            window.showErrorMessage(`Failed to set 'pythonPath'. Error: ${message}`);
+            window.showErrorMessage(`Failed to set 'pythonPath'. Error: ${message}`).then(noop, noop);
             traceError(reason);
         }
         // do not wait for this to complete

@@ -95,7 +95,7 @@ suite('Daemon - Python Daemon Pool', () => {
         const pool = new DaemonPool(logger, [], { daemonCount: 5, observableDaemonCount: 3, pythonPath: 'py.exe' }, instance(pythonExecService), undefined);
         const promise = setupDaemon(pool);
 
-        expect(promise).to.eventually.be.rejectedWith('Timeout');
+        await expect(promise).to.eventually.be.rejectedWith('Timeout');
     });
     test('If executing python is fast, then use the daemon', async () => {
         const getInterpreterInformationStub = sinon.stub(PythonDaemonExecutionService.prototype, 'getInterpreterInformation');

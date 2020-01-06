@@ -8,6 +8,7 @@ import { IServiceContainer } from '../../ioc/types';
 import { CommandSource } from '../common/constants';
 import { FlattenedTestFunction, ITestCollectionStorageService, TestFile, TestFunction, Tests, TestStatus, TestsToRun } from '../common/types';
 import { ITestDisplay } from '../types';
+import { noop } from '../../common/utils/misc';
 
 @injectable()
 export class TestDisplay implements ITestDisplay {
@@ -18,17 +19,20 @@ export class TestDisplay implements ITestDisplay {
         this.appShell = serviceRegistry.get<IApplicationShell>(IApplicationShell);
     }
     public displayStopTestUI(workspace: Uri, message: string) {
-        this.appShell.showQuickPick([message]).then(item => {
-            if (item === message) {
-                this.commandManager.executeCommand(constants.Commands.Tests_Stop, undefined, workspace);
-            }
-        });
+        this.appShell
+            .showQuickPick([message])
+            .then(item => {
+                if (item === message) {
+                    this.commandManager.executeCommand(constants.Commands.Tests_Stop, undefined, workspace).then(noop, noop);
+                }
+            })
+            .then(noop, noop);
     }
     public displayTestUI(cmdSource: CommandSource, wkspace: Uri) {
         const tests = this.testCollectionStorage.getTests(wkspace);
         this.appShell
             .showQuickPick(buildItems(tests), { matchOnDescription: true, matchOnDetail: true })
-            .then(item => (item ? onItemSelected(this.commandManager, cmdSource, wkspace, item, false) : Promise.resolve()));
+            .then(item => (item ? onItemSelected(this.commandManager, cmdSource, wkspace, item, false) : Promise.resolve()), noop);
     }
     public selectTestFunction(rootDirectory: string, tests: Tests): Promise<FlattenedTestFunction> {
         return new Promise<FlattenedTestFunction>((resolve, reject) => {
@@ -68,7 +72,7 @@ export class TestDisplay implements ITestDisplay {
         const functionItems = buildItemsForFunctions(rootDirectory, flattenedFunctions, undefined, undefined, debug);
         this.appShell
             .showQuickPick(runAllItem.concat(...functionItems), { matchOnDescription: true, matchOnDetail: true })
-            .then(testItem => (testItem ? onItemSelected(this.commandManager, cmdSource, wkspace, testItem, debug) : Promise.resolve()));
+            .then(testItem => (testItem ? onItemSelected(this.commandManager, cmdSource, wkspace, testItem, debug) : Promise.resolve()), noop);
     }
 }
 

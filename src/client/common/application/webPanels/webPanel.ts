@@ -13,6 +13,7 @@ import { IFileSystem } from '../../platform/types';
 import { IDisposableRegistry } from '../../types';
 import * as localize from '../../utils/localize';
 import { IWebPanel, IWebPanelOptions, WebPanelMessage } from '../types';
+import { noop } from '../../utils/misc';
 
 // Pick a static port to remap the remote port to one that VS code will route traffic to.
 // According to this, it should be a static number:
@@ -74,7 +75,7 @@ export class WebPanel implements IWebPanel {
 
     public postMessage(message: WebPanelMessage) {
         if (this.panel && this.panel.webview) {
-            this.panel.webview.postMessage(message);
+            this.panel.webview.postMessage(message).then(noop, noop);
         }
     }
 

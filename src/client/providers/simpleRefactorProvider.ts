@@ -8,6 +8,7 @@ import { IServiceContainer } from '../ioc/types';
 import { RefactorProxy } from '../refactor/proxy';
 import { sendTelemetryWhenDone } from '../telemetry';
 import { EventName } from '../telemetry/constants';
+import { noop } from '../common/utils/misc';
 
 type RenameResponse = {
     results: [{ diff: string }];
@@ -108,13 +109,16 @@ function validateDocumentForRefactor(textEditor: vscode.TextEditor): Promise<any
 
     // tslint:disable-next-line:no-any
     return new Promise<any>((resolve, reject) => {
-        vscode.window.showInformationMessage('Please save changes before refactoring', 'Save').then(item => {
-            if (item === 'Save') {
-                textEditor.document.save().then(resolve, reject);
-            } else {
-                return reject();
-            }
-        });
+        vscode.window
+            .showInformationMessage('Please save changes before refactoring', 'Save')
+            .then(item => {
+                if (item === 'Save') {
+                    textEditor.document.save().then(resolve, reject);
+                } else {
+                    return reject();
+                }
+            })
+            .then(noop, noop);
     });
 }
 
@@ -185,7 +189,7 @@ function extractName(
             }
             outputChannel.appendLine(`${'#'.repeat(10)}Refactor Output${'#'.repeat(10)}`);
             outputChannel.appendLine(`Error in refactoring:\n${errorMessage}`);
-            vscode.window.showErrorMessage(`Cannot perform refactoring using selected element(s). (${errorMessage})`);
+            vscode.window.showErrorMessage(`Cannot perform refactoring using selected element(s). (${errorMessage})`).then(noop, noop);
             return Promise.reject(error);
         });
 }

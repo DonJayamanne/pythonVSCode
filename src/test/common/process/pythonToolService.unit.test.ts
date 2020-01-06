@@ -74,7 +74,7 @@ suite('Process - Python tool execution service', () => {
         executionService = new PythonToolExecutionService(instance(serviceContainer));
     });
 
-    test('When calling execObservable, throw an error if environment variables are passed to the options parameter', () => {
+    test('When calling execObservable, throw an error if environment variables are passed to the options parameter', async () => {
         const options = { env: { envOne: 'envOne' } };
         const executionInfo: ExecutionInfo = {
             execPath: 'foo',
@@ -84,7 +84,7 @@ suite('Process - Python tool execution service', () => {
 
         const promise = executionService.execObservable(executionInfo, options, resource);
 
-        expect(promise).to.eventually.be.rejectedWith('Environment variables are not supported');
+        await expect(promise).to.eventually.be.rejectedWith('Environment variables are not supported');
     });
 
     test('When calling execObservable, use a python execution service if a module name is passed to the execution info', async () => {
@@ -128,7 +128,7 @@ suite('Process - Python tool execution service', () => {
         verify(processService.execObservable(executionInfo.execPath!, executionInfo.args, anything())).once();
     });
 
-    test('When calling exec, throw an error if environment variables are passed to the options parameter', () => {
+    test('When calling exec, throw an error if environment variables are passed to the options parameter', async () => {
         const options = { env: { envOne: 'envOne' } };
         const executionInfo: ExecutionInfo = {
             execPath: 'foo',
@@ -138,7 +138,7 @@ suite('Process - Python tool execution service', () => {
 
         const promise = executionService.exec(executionInfo, options, resource);
 
-        expect(promise).to.eventually.be.rejectedWith('Environment variables are not supported');
+        await expect(promise).to.eventually.be.rejectedWith('Environment variables are not supported');
     });
 
     test('When calling exec, use a python execution service if a module name is passed to the execution info', async () => {

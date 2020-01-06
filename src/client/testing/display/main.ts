@@ -102,7 +102,7 @@ export class TestResultDisplay implements ITestResultDisplay {
         this.statusBar.command = constants.Commands.Tests_View_UI;
         this.didChange.fire();
         if (statusText.length === 0 && !debug) {
-            this.appShell.showWarningMessage('No tests ran, please check the configuration settings for the tests.');
+            this.appShell.showWarningMessage('No tests ran, please check the configuration settings for the tests.').then(noop, noop);
         }
         return tests;
     }
@@ -153,7 +153,7 @@ export class TestResultDisplay implements ITestResultDisplay {
         for (const setting of settingsToDisable) {
             await configurationService.updateSetting(setting, false).catch(noop);
         }
-        this.cmdManager.executeCommand('setContext', 'testsDiscovered', false);
+        this.cmdManager.executeCommand('setContext', 'testsDiscovered', false).then(noop, noop);
     }
 
     private updateWithDiscoverSuccess(tests: Tests, quietMode: boolean = false) {
@@ -174,9 +174,9 @@ export class TestResultDisplay implements ITestResultDisplay {
                     if (item === Testing.disableTests()) {
                         this.disableTests().catch(ex => traceError('Python Extension: disableTests', ex));
                     } else if (item === Testing.configureTests()) {
-                        this.cmdManager.executeCommand(constants.Commands.Tests_Configure, undefined, undefined, undefined).then(noop);
+                        this.cmdManager.executeCommand(constants.Commands.Tests_Configure, undefined, undefined, undefined).then(noop, noop);
                     }
-                });
+                }, noop);
         }
     }
 
@@ -196,7 +196,7 @@ export class TestResultDisplay implements ITestResultDisplay {
                 // tslint:disable-next-line:no-suspicious-comment
                 // TODO: show an option that will invoke a command 'python.test.configureTest' or similar.
                 // This will be hanlded by main.ts that will capture input from user and configure the tests.
-                this.appShell.showErrorMessage('Test discovery error, please check the configuration settings for the tests.');
+                this.appShell.showErrorMessage('Test discovery error, please check the configuration settings for the tests.').then(noop, noop);
             }
         }
     }

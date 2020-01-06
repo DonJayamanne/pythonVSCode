@@ -19,6 +19,7 @@ import { ICodeCssGenerator, IPlotViewer, IThemeFinder } from '../types';
 import { WebViewHost } from '../webViewHost';
 import { PlotViewerMessageListener } from './plotViewerMessageListener';
 import { IExportPlotRequest, IPlotViewerMapping, PlotViewerMessages } from './types';
+import { noop } from '../../common/utils/misc';
 
 const plotDir = path.join(EXTENSION_ROOT_DIR, 'out', 'datascience-ui', 'plot');
 @injectable()
@@ -165,7 +166,7 @@ export class PlotViewer extends WebViewHost<IPlotViewerMapping> implements IPlot
             }
         } catch (e) {
             traceError(e);
-            this.applicationShell.showErrorMessage(localize.DataScience.exportImageFailed().format(e));
+            this.applicationShell.showErrorMessage(localize.DataScience.exportImageFailed().format(e)).then(noop, noop);
         }
     }
 }

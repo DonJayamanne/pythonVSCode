@@ -9,6 +9,7 @@ import { createDeferred, Deferred } from '../../common/utils/async';
 import * as localize from '../../common/utils/localize';
 import { LiveShare, LiveShareCommands } from '../constants';
 import { ServiceProxy } from './serviceProxy';
+import { noop } from '../../common/utils/misc';
 
 // tslint:disable:no-any unified-signatures
 export class LiveShareProxy implements vsls.LiveShare {
@@ -168,7 +169,7 @@ export class LiveShareProxy implements vsls.LiveShare {
             .then(() => {
                 this.pendingGuestCheckCount = 0;
                 this.peerCheckPromise = undefined;
-                this.applicationShell.showErrorMessage(localize.DataScience.liveShareInvalid());
+                this.applicationShell.showErrorMessage(localize.DataScience.liveShareInvalid()).then(noop, noop);
             })
             .ignoreErrors();
     }

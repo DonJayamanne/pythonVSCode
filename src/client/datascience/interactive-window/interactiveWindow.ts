@@ -34,6 +34,7 @@ import {
     IStatusProvider,
     IThemeFinder
 } from '../types';
+import { noop } from '../../common/utils/misc';
 
 const historyReactDir = path.join(EXTENSION_ROOT_DIR, 'out', 'datascience-ui', 'history-react');
 
@@ -258,18 +259,18 @@ export class InteractiveWindow extends InteractiveBase implements IInteractiveWi
         // extension contexts
         if (this.commandManager && this.commandManager.executeCommand) {
             const interactiveContext = new ContextKey(EditorContexts.HaveInteractive, this.commandManager);
-            interactiveContext.set(!this.isDisposed).catch();
+            interactiveContext.set(!this.isDisposed).catch(noop);
             const interactiveCellsContext = new ContextKey(EditorContexts.HaveInteractiveCells, this.commandManager);
             const redoableContext = new ContextKey(EditorContexts.HaveRedoableCells, this.commandManager);
             const hasCellSelectedContext = new ContextKey(EditorContexts.HaveCellSelected, this.commandManager);
             if (info) {
-                interactiveCellsContext.set(info.cellCount > 0).catch();
-                redoableContext.set(info.redoCount > 0).catch();
-                hasCellSelectedContext.set(info.selectedCell ? true : false).catch();
+                interactiveCellsContext.set(info.cellCount > 0).catch(noop);
+                redoableContext.set(info.redoCount > 0).catch(noop);
+                hasCellSelectedContext.set(info.selectedCell ? true : false).catch(noop);
             } else {
-                interactiveCellsContext.set(false).catch();
-                redoableContext.set(false).catch();
-                hasCellSelectedContext.set(false).catch();
+                interactiveCellsContext.set(false).catch(noop);
+                redoableContext.set(false).catch(noop);
+                hasCellSelectedContext.set(false).catch(noop);
             }
         }
     }
@@ -306,7 +307,7 @@ export class InteractiveWindow extends InteractiveBase implements IInteractiveWi
                     if (uri) {
                         await this.exportToFile(cells, uri.fsPath);
                     }
-                });
+                }, noop);
         }
     }
 

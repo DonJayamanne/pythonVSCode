@@ -13,6 +13,7 @@ import { IServiceContainer } from '../../../ioc/types';
 import { IInterpreterHelper, InterpreterType, IPipEnvService, PythonInterpreter } from '../../contracts';
 import { IPipEnvServiceHelper } from '../types';
 import { CacheableLocatorService } from './cacheableLocatorService';
+import { noop } from '../../../common/utils/misc';
 
 const pipEnvFileNameVariable = 'PIPENV_PIPFILE';
 
@@ -102,7 +103,7 @@ export class PipEnvService extends CacheableLocatorService implements IPipEnvSer
             const version = await this.invokePipenv('--version', cwd);
             if (version === undefined) {
                 const appShell = this.serviceContainer.get<IApplicationShell>(IApplicationShell);
-                appShell.showWarningMessage(`Workspace contains Pipfile but '${this.executable}' was not found. Make sure '${this.executable}' is on the PATH.`);
+                appShell.showWarningMessage(`Workspace contains Pipfile but '${this.executable}' was not found. Make sure '${this.executable}' is on the PATH.`).then(noop, noop);
                 return;
             }
             // The --py command will fail if the virtual environment has not been setup yet.
@@ -110,9 +111,9 @@ export class PipEnvService extends CacheableLocatorService implements IPipEnvSer
             const venv = await this.invokePipenv('--venv', cwd);
             if (venv === undefined) {
                 const appShell = this.serviceContainer.get<IApplicationShell>(IApplicationShell);
-                appShell.showWarningMessage(
-                    'Workspace contains Pipfile but the associated virtual environment has not been setup. Setup the virtual environment manually if needed.'
-                );
+                appShell
+                    .showWarningMessage('Workspace contains Pipfile but the associated virtual environment has not been setup. Setup the virtual environment manually if needed.')
+                    .then(noop, noop);
                 return;
             }
             const pythonPath = await this.invokePipenv('--py', cwd);

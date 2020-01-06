@@ -526,7 +526,7 @@ suite('Data Science - Native Editor', () => {
         expect(localStorage.get(`notebook-storage-${file.toString()}`)).to.be.undefined;
 
         // Put the regular file into the local storage
-        localStorage.update(`notebook-storage-${file.toString()}`, baseFile);
+        await localStorage.update(`notebook-storage-${file.toString()}`, baseFile);
         const editor = createEditor();
         await editor.load('', file);
 
@@ -546,7 +546,7 @@ suite('Data Science - Native Editor', () => {
         expect(localStorage.get(`notebook-storage-${file.toString()}`)).to.be.undefined;
 
         // Put the regular file into the global storage
-        storage.update(`notebook-storage-${file.toString()}`, { contents: baseFile, lastModifiedTimeMs: Date.now() });
+        await storage.update(`notebook-storage-${file.toString()}`, { contents: baseFile, lastModifiedTimeMs: Date.now() });
         const editor = createEditor();
         await editor.load('', file);
 
@@ -567,10 +567,10 @@ suite('Data Science - Native Editor', () => {
         expect(localStorage.get(`notebook-storage-${file.toString()}`)).to.be.undefined;
 
         // Put the regular file into the global storage
-        storage.update(`notebook-storage-${file.toString()}`, { contents: baseFile, lastModifiedTimeMs: Date.now() });
+        await storage.update(`notebook-storage-${file.toString()}`, { contents: baseFile, lastModifiedTimeMs: Date.now() });
 
         // Put another file into the global storage
-        storage.update(`notebook-storage-file::///bar.ipynb`, { contents: baseFile, lastModifiedTimeMs: Date.now() });
+        await storage.update(`notebook-storage-file::///bar.ipynb`, { contents: baseFile, lastModifiedTimeMs: Date.now() });
 
         const editor = createEditor();
         await editor.load('', file);

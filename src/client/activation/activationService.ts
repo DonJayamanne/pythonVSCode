@@ -275,7 +275,7 @@ export class LanguageServerExtensionActivationService implements IExtensionActiv
 
         const item = await this.appShell.showInformationMessage('Please reload the window switching between language engines.', 'Reload');
         if (item === 'Reload') {
-            this.serviceContainer.get<ICommandManager>(ICommandManager).executeCommand('workbench.action.reloadWindow');
+            this.serviceContainer.get<ICommandManager>(ICommandManager).executeCommand('workbench.action.reloadWindow').then(noop, noop);
         }
     }
     private async getKey(resource: Resource, interpreter?: PythonInterpreter): Promise<string> {

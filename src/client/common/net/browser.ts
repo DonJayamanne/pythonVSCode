@@ -8,9 +8,10 @@
 import { injectable } from 'inversify';
 import { env, Uri } from 'vscode';
 import { IBrowserService } from '../types';
+import { noop } from '../utils/misc';
 
 export function launch(url: string) {
-    env.openExternal(Uri.parse(url));
+    env.openExternal(Uri.parse(url)).then(noop, noop);
 }
 
 @injectable()

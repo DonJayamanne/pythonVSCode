@@ -460,18 +460,18 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
         // extension contexts
         if (this.commandManager && this.commandManager.executeCommand) {
             const interactiveContext = new ContextKey(EditorContexts.HaveNative, this.commandManager);
-            interactiveContext.set(!this.isDisposed).catch();
+            interactiveContext.set(!this.isDisposed).catch(noop);
             const interactiveCellsContext = new ContextKey(EditorContexts.HaveNativeCells, this.commandManager);
             const redoableContext = new ContextKey(EditorContexts.HaveNativeRedoableCells, this.commandManager);
             const hasCellSelectedContext = new ContextKey(EditorContexts.HaveCellSelected, this.commandManager);
             if (info) {
-                interactiveCellsContext.set(info.cellCount > 0).catch();
-                redoableContext.set(info.redoCount > 0).catch();
-                hasCellSelectedContext.set(info.selectedCell ? true : false).catch();
+                interactiveCellsContext.set(info.cellCount > 0).catch(noop);
+                redoableContext.set(info.redoCount > 0).catch(noop);
+                hasCellSelectedContext.set(info.selectedCell ? true : false).catch(noop);
             } else {
-                hasCellSelectedContext.set(false).catch();
-                interactiveCellsContext.set(false).catch();
-                redoableContext.set(false).catch();
+                hasCellSelectedContext.set(false).catch(noop);
+                interactiveCellsContext.set(false).catch(noop);
+                redoableContext.set(false).catch(noop);
             }
         }
     }
@@ -481,7 +481,7 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
 
         // Update our contexts
         const interactiveContext = new ContextKey(EditorContexts.HaveNative, this.commandManager);
-        interactiveContext.set(visible && active).catch();
+        interactiveContext.set(visible && active).catch(noop);
     }
 
     protected async closeBecauseOfFailure(_exc: Error): Promise<void> {
@@ -694,7 +694,7 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
         const workspaceData = this.localStorage.get<string>(key);
         if (workspaceData && !this.isUntitled) {
             // Make sure to clear so we don't use this again.
-            this.localStorage.update(key, undefined);
+            this.localStorage.update(key, undefined).then(noop, noop);
 
             // Transfer this to a file so we use that next time instead.
             const filePath = this.getHashedFileName(key);

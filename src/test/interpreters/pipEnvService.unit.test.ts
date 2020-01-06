@@ -104,9 +104,9 @@ suite('Interpreters - PipEnv', () => {
                 pipEnvService = new PipEnvService(serviceContainer.object);
             });
 
-            test(`Should return an empty list'${testSuffix}`, () => {
+            test(`Should return an empty list'${testSuffix}`, async () => {
                 const environments = pipEnvService.getInterpreters(resource);
-                expect(environments).to.be.eventually.deep.equal([]);
+                await expect(environments).to.be.eventually.deep.equal([]);
             });
             test(`Should return an empty list if there is no \'PipFile\'${testSuffix}`, async () => {
                 const env = {};

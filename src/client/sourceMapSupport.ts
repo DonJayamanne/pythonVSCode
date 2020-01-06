@@ -10,6 +10,7 @@ import { traceError } from './common/logger';
 import { FileSystem } from './common/platform/fileSystem';
 import { PlatformService } from './common/platform/platformService';
 import { EXTENSION_ROOT_DIR } from './constants';
+import { noop } from './common/utils/misc';
 
 type VSCode = typeof import('vscode');
 
@@ -29,11 +30,14 @@ export class SourceMapSupport {
         require('source-map-support').install();
         const localize = require('./common/utils/localize') as typeof import('./common/utils/localize');
         const disable = localize.Diagnostics.disableSourceMaps();
-        this.vscode.window.showWarningMessage(localize.Diagnostics.warnSourceMaps(), disable).then(selection => {
-            if (selection === disable) {
-                this.disable().ignoreErrors();
-            }
-        });
+        this.vscode.window
+            .showWarningMessage(localize.Diagnostics.warnSourceMaps(), disable)
+            .then(selection => {
+                if (selection === disable) {
+                    this.disable().ignoreErrors();
+                }
+            })
+            .then(noop, noop);
     }
     public get enabled(): boolean {
         return this.config.get<boolean>(setting, false);

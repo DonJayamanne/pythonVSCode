@@ -84,7 +84,7 @@ export class DataScienceCodeLensProvider implements IDataScienceCodeLensProvider
         // ask whenever a change occurs. Do this regardless of if we have code lens turned on or not as
         // shift+enter relies on this code context.
         const editorContext = new ContextKey(EditorContexts.HasCodeCells, this.commandManager);
-        editorContext.set(result && result.length > 0).catch();
+        editorContext.set(result && result.length > 0).catch(noop);
 
         // Don't provide any code lenses if we have not enabled data science
         const settings = this.configuration.getSettings();

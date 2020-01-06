@@ -10,6 +10,7 @@ import { BaseFormatter } from './../formatters/baseFormatter';
 import { BlackFormatter } from './../formatters/blackFormatter';
 import { DummyFormatter } from './../formatters/dummyFormatter';
 import { YapfFormatter } from './../formatters/yapfFormatter';
+import { noop } from '../common/utils/misc';
 
 export class PythonFormattingEditProvider implements vscode.DocumentFormattingEditProvider, vscode.DocumentRangeFormattingEditProvider, vscode.Disposable {
     private readonly config: IConfigurationService;
@@ -89,11 +90,14 @@ export class PythonFormattingEditProvider implements vscode.DocumentFormattingEd
                 if (this.formatterMadeChanges && !document.isDirty && document.version === this.documentVersionBeforeFormatting) {
                     // Formatter changes were not actually applied due to the timeout on save.
                     // Force formatting now and then save the document.
-                    this.commands.executeCommand('editor.action.formatDocument').then(async () => {
-                        this.saving = true;
-                        await document.save();
-                        this.saving = false;
-                    });
+                    this.commands
+                        .executeCommand('editor.action.formatDocument')
+                        .then(async () => {
+                            this.saving = true;
+                            await document.save();
+                            this.saving = false;
+                        })
+                        .then(noop, noop);
                 }
             } finally {
                 this.documentVersionBeforeFormatting = -1;

@@ -14,6 +14,7 @@ import { IServiceContainer } from '../../ioc/types';
 import { captureTelemetry, sendTelemetryEvent } from '../../telemetry';
 import { Identifiers, Settings, Telemetry } from '../constants';
 import { IDataScienceErrorHandler, INotebookEditor, INotebookEditorProvider, INotebookServerOptions } from '../types';
+import { noop } from '../../common/utils/misc';
 
 @injectable()
 export class NativeEditorProvider implements INotebookEditorProvider, IAsyncDisposable {
@@ -45,7 +46,7 @@ export class NativeEditorProvider implements INotebookEditorProvider, IAsyncDisp
         // on this though.
         const findFilesPromise = this.workspace.findFiles('**/*.ipynb');
         if (findFilesPromise && findFilesPromise.then) {
-            findFilesPromise.then(r => (this.notebookCount += r.length));
+            findFilesPromise.then(r => (this.notebookCount += r.length), noop);
         }
 
         this.disposables.push(this.documentManager.onDidChangeActiveTextEditor(this.onDidChangeActiveTextEditorHandler.bind(this)));

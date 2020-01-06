@@ -11,6 +11,7 @@ import { traceError } from '../../common/logger';
 import { IPythonExecutionFactory } from '../../common/process/types';
 import { IServiceContainer } from '../../ioc/types';
 import { ICodeExecutionHelper } from '../types';
+import { noop } from '../../common/utils/misc';
 
 @injectable()
 export class CodeExecutionHelper implements ICodeExecutionHelper {
@@ -44,15 +45,15 @@ export class CodeExecutionHelper implements ICodeExecutionHelper {
     public async getFileToExecute(): Promise<Uri | undefined> {
         const activeEditor = this.documentManager.activeTextEditor!;
         if (!activeEditor) {
-            this.applicationShell.showErrorMessage('No open file to run in terminal');
+            this.applicationShell.showErrorMessage('No open file to run in terminal').then(noop, noop);
             return;
         }
         if (activeEditor.document.isUntitled) {
-            this.applicationShell.showErrorMessage('The active file needs to be saved before it can be run');
+            this.applicationShell.showErrorMessage('The active file needs to be saved before it can be run').then(noop, noop);
             return;
         }
         if (activeEditor.document.languageId !== PYTHON_LANGUAGE) {
-            this.applicationShell.showErrorMessage('The active file is not a Python source file');
+            this.applicationShell.showErrorMessage('The active file is not a Python source file').then(noop, noop);
             return;
         }
         if (activeEditor.document.isDirty) {

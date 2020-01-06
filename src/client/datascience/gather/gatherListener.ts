@@ -102,7 +102,7 @@ export class GatherListener implements IInteractiveWindowListener {
 
     private doGather(payload: ICell): void {
         this.gatherCodeInternal(payload).catch(err => {
-            this.applicationShell.showErrorMessage(err);
+            this.applicationShell.showErrorMessage(err).then(noop, noop);
         });
     }
 
@@ -167,7 +167,7 @@ export class GatherListener implements IInteractiveWindowListener {
         const editor = await this.documentManager.showTextDocument(doc, viewColumn);
 
         // Edit the document so that it is dirty (add a space at the end)
-        editor.edit(editBuilder => {
+        await editor.edit(editBuilder => {
             editBuilder.insert(new Position(editor.document.lineCount, 0), '\n');
         });
     }

@@ -8,6 +8,7 @@ import { IServiceContainer } from '../ioc/types';
 import { RefactorProxy } from '../refactor/proxy';
 import { captureTelemetry } from '../telemetry';
 import { EventName } from '../telemetry/constants';
+import { noop } from '../common/utils/misc';
 
 type RenameResponse = {
     results: [{ diff: string }];
@@ -65,7 +66,7 @@ export class PythonRenameProvider implements RenameProvider {
                     installer.promptToInstall(Product.rope, document.uri).catch(ex => traceError('Python Extension: promptToInstall', ex));
                     return Promise.reject('');
                 } else {
-                    window.showErrorMessage(reason);
+                    window.showErrorMessage(reason).then(noop, noop);
                     this.outputChannel.appendLine(reason);
                 }
                 return Promise.reject(reason);

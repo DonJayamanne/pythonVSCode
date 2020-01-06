@@ -141,7 +141,7 @@ suite('PythonExecutionService', () => {
 
         const result = executionService.getExecutablePath();
 
-        expect(result).to.eventually.be.rejectedWith(stderr);
+        await expect(result).to.eventually.be.rejectedWith(stderr);
     });
 
     test('isModuleInstalled should call processService.exec()', async () => {
@@ -247,7 +247,7 @@ suite('PythonExecutionService', () => {
 
         const result = executionService.execModule(moduleName, args, options);
 
-        expect(result).to.eventually.be.rejectedWith(`Module '${moduleName}' not installed`);
+        await expect(result).to.eventually.be.rejectedWith(`Module '${moduleName}' not installed`);
     });
 
     test('getExecutionInfo should return pythonPath and the execution arguments as is', () => {

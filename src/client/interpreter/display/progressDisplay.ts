@@ -11,6 +11,7 @@ import { IDisposableRegistry } from '../../common/types';
 import { createDeferred, Deferred } from '../../common/utils/async';
 import { Common, Interpreters } from '../../common/utils/localize';
 import { IInterpreterLocatorProgressHandler, IInterpreterLocatorProgressService } from '../contracts';
+import { noop } from '../../common/utils/misc';
 
 @injectable()
 export class InterpreterLocatorProgressStatubarHandler implements IInterpreterLocatorProgressHandler {
@@ -44,9 +45,11 @@ export class InterpreterLocatorProgressStatubarHandler implements IInterpreterLo
             title: this.isFirstTimeLoadingInterpreters ? Common.loadingExtension() : Interpreters.refreshing()
         };
         this.isFirstTimeLoadingInterpreters = false;
-        this.shell.withProgress(progressOptions, () => {
-            this.deferred = createDeferred();
-            return this.deferred.promise;
-        });
+        this.shell
+            .withProgress(progressOptions, () => {
+                this.deferred = createDeferred();
+                return this.deferred.promise;
+            })
+            .then(noop, noop);
     }
 }

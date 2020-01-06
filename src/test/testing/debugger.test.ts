@@ -25,6 +25,7 @@ import { deleteDirectory, rootWorkspaceUri, updateSetting } from '../common';
 import { initialize, initializeTest, IS_MULTI_ROOT_TEST } from './../initialize';
 import { MockDebugLauncher } from './mocks';
 import { UnitTestIocContainer } from './serviceRegistry';
+import { noop } from '../core';
 
 use(chaiAsPromised);
 
@@ -191,7 +192,7 @@ suite('Unit Tests - debugging', () => {
             // tslint:disable-next-line: no-floating-promises
             .then(error => {
                 deferred.reject(error);
-            });
+            }, noop);
 
         // Should complete without any errors
         await deferred.promise;

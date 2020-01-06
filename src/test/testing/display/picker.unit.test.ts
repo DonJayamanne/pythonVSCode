@@ -49,7 +49,7 @@ suite('Unit Tests - Picker (execution of commands)', () => {
                         commandSource.value = CommandSource.commandPalette;
                     }
 
-                    onItemSelected(instance(commandManager), commandSource.value, workspaceUri, selection as any, debug);
+                    await onItemSelected(instance(commandManager), commandSource.value, workspaceUri, selection as any, debug);
 
                     switch (selection.type) {
                         case Type.Null: {

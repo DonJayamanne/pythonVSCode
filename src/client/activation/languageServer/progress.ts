@@ -6,6 +6,7 @@
 import { Progress, ProgressLocation, window } from 'vscode';
 import { Disposable, LanguageClient } from 'vscode-languageclient';
 import { createDeferred, Deferred } from '../../common/utils/async';
+import { noop } from '../../common/utils/misc';
 
 export class ProgressReporting implements Disposable {
     private statusBarMessage: Disposable | undefined;
@@ -61,6 +62,6 @@ export class ProgressReporting implements Disposable {
                 this.progress = progress;
                 return this.progressDeferred!.promise;
             }
-        );
+        ).then(noop, noop);
     }
 }

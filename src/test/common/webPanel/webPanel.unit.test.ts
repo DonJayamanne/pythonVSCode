@@ -14,6 +14,7 @@ import { WebPanelServer } from '../../../client/common/application/webPanels/web
 import { FileSystem } from '../../../client/common/platform/fileSystem';
 import { PlatformService } from '../../../client/common/platform/platformService';
 import { EXTENSION_ROOT_DIR } from '../../../client/constants';
+import { noop } from '../../core';
 
 // tslint:disable:no-any
 // tslint:disable-next-line: max-func-body-length
@@ -42,7 +43,8 @@ suite('WebPanelServer', () => {
                 chai.expect(r, 'Response status is not 200').to.have.status(200);
                 chai.expect(r.text, 'Response does not have the script').to.include('index_bundle.js');
                 done();
-            });
+            })
+            .then(noop, noop);
     });
 
     test('Server responds with 404 when given invalid input', done => {
@@ -52,7 +54,8 @@ suite('WebPanelServer', () => {
                 // tslint:disable-next-line: no-unused-expression
                 chai.expect(r, 'Response status is not 404').to.have.status(404);
                 done();
-            });
+            })
+            .then(noop, noop);
     });
 
     test('Server responds with 404 when given file not found', done => {
@@ -62,12 +65,16 @@ suite('WebPanelServer', () => {
             .end((_e, r) => {
                 // tslint:disable-next-line: no-unused-expression
                 chai.expect(r, 'Response status is not 200 on first request').to.have.status(200);
-                agent.get('/foobar.png').end((_e2, r2) => {
-                    chai.expect(r2, 'Response status is not 404').to.have.status(404);
-                    agent.close();
-                    done();
-                });
-            });
+                agent
+                    .get('/foobar.png')
+                    .end((_e2, r2) => {
+                        chai.expect(r2, 'Response status is not 404').to.have.status(404);
+                        agent.close();
+                        done();
+                    })
+                    .then(noop, noop);
+            })
+            .then(noop, noop);
     });
 
     test('Server can find the index_bundle', done => {
@@ -85,7 +92,8 @@ suite('WebPanelServer', () => {
                     agent.close();
                     done();
                 });
-            });
+            })
+            .then(noop, noop);
     });
 
     test('Server can find the a file in a cwd', done => {
@@ -105,7 +113,8 @@ suite('WebPanelServer', () => {
                     agent.close();
                     done();
                 });
-            });
+            })
+            .then(noop, noop);
     });
 
     test('Server will skip a file not in the cwd', done => {
@@ -125,6 +134,7 @@ suite('WebPanelServer', () => {
                     agent.close();
                     done();
                 });
-            });
+            })
+            .then(noop, noop);
     });
 });

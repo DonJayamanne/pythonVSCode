@@ -49,7 +49,7 @@ export class LinkProvider implements IInteractiveWindowListener {
                                 const buffer = new Buffer(payload.replace('data:image/png;base64', ''), 'base64');
                                 this.fileSystem.writeFile(f.fsPath, buffer).ignoreErrors();
                             }
-                        });
+                        }, noop);
                 }
                 break;
             default:

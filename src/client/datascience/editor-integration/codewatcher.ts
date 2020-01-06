@@ -272,7 +272,7 @@ export class CodeWatcher implements ICodeWatcher {
         const editor = this.documentManager.activeTextEditor;
         const cellDelineator = this.defaultCellMarker;
         if (editor) {
-            editor.edit(editBuilder => {
+            await editor.edit(editBuilder => {
                 editBuilder.insert(new Position(editor.document.lineCount, 0), `\n\n${cellDelineator}\n`);
             });
 
@@ -292,7 +292,7 @@ export class CodeWatcher implements ICodeWatcher {
         const cellDelineator = this.defaultCellMarker;
 
         if (editor) {
-            editor.edit(editBuilder => {
+            await editor.edit(editBuilder => {
                 let lastCell = true;
 
                 for (let i = editor.selection.end.line + 1; i < editor.document.lineCount; i += 1) {
@@ -425,7 +425,7 @@ export class CodeWatcher implements ICodeWatcher {
         const newPosition = new Position(currentRange.end.line + 3, 0); // +3 to account for the added spaces and to position after the new mark
 
         if (editor) {
-            editor.edit(editBuilder => {
+            await editor.edit(editBuilder => {
                 editBuilder.insert(new Position(currentRange.end.line + 1, 0), `\n\n${this.defaultCellMarker}\n`);
             });
         }

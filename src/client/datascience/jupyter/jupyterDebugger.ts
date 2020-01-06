@@ -88,7 +88,7 @@ export class JupyterDebugger implements IJupyterDebugger, ICellHashListener {
             traceInfo('stop debugging');
 
             // Stop our debugging UI session, no await as we just want it stopped
-            this.commandManager.executeCommand('workbench.action.debug.stop');
+            await this.commandManager.executeCommand('workbench.action.debug.stop');
 
             // Disable tracing after we disconnect because we don't want to step through this
             // code if the user was in step mode.

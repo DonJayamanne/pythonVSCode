@@ -220,7 +220,7 @@ suite('Language Server Activation - Downloader', () => {
             await promise.catch(noop);
 
             verify(outputChannelDownload.appendLine(LanguageService.extractionCompletedOutputMessage())).never();
-            expect(promise).to.eventually.be.rejectedWith('kaboom');
+            await expect(promise).to.eventually.be.rejectedWith('kaboom');
         });
     });
 

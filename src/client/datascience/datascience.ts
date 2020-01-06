@@ -15,6 +15,7 @@ import { hasCells } from './cellFactory';
 import { CommandRegistry } from './commands/commandRegistry';
 import { EditorContexts, Telemetry } from './constants';
 import { IDataScience, IDataScienceCodeLensProvider } from './types';
+import { noop } from '../common/utils/misc';
 
 @injectable()
 export class DataScience implements IDataScience {
@@ -67,10 +68,10 @@ export class DataScience implements IDataScience {
         const settings = this.configuration.getSettings();
         const enabled = settings.datascience.enabled;
         let editorContext = new ContextKey(EditorContexts.DataScienceEnabled, this.commandManager);
-        editorContext.set(enabled).catch();
+        editorContext.set(enabled).catch(noop);
         const ownsSelection = settings.datascience.sendSelectionToInteractiveWindow;
         editorContext = new ContextKey(EditorContexts.OwnsSelection, this.commandManager);
-        editorContext.set(ownsSelection && enabled).catch();
+        editorContext.set(ownsSelection && enabled).catch(noop);
     };
 
     private onChangedActiveTextEditor() {
@@ -81,9 +82,9 @@ export class DataScience implements IDataScience {
         if (activeEditor && activeEditor.document.languageId === PYTHON_LANGUAGE) {
             // Inform the editor context that we have cells, fire and forget is ok on the promise here
             // as we don't care to wait for this context to be set and we can't do anything if it fails
-            editorContext.set(hasCells(activeEditor.document, this.configuration.getSettings().datascience)).catch();
+            editorContext.set(hasCells(activeEditor.document, this.configuration.getSettings().datascience)).catch(noop);
         } else {
-            editorContext.set(false).catch();
+            editorContext.set(false).catch(noop);
         }
     }
 

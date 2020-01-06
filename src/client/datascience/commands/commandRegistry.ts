@@ -234,7 +234,7 @@ export class CommandRegistry implements IDisposable {
 
         // Make sure that we are in debug mode
         if (this.debugService.activeDebugSession) {
-            this.commandManager.executeCommand('workbench.action.debug.stepOver');
+            await this.commandManager.executeCommand('workbench.action.debug.stepOver');
         }
     }
 
@@ -244,7 +244,7 @@ export class CommandRegistry implements IDisposable {
 
         // Make sure that we are in debug mode
         if (this.debugService.activeDebugSession) {
-            this.commandManager.executeCommand('workbench.action.debug.stop');
+            await this.commandManager.executeCommand('workbench.action.debug.stop');
         }
     }
 
@@ -254,7 +254,7 @@ export class CommandRegistry implements IDisposable {
 
         // Make sure that we are in debug mode
         if (this.debugService.activeDebugSession) {
-            this.commandManager.executeCommand('workbench.action.debug.continue');
+            await this.commandManager.executeCommand('workbench.action.debug.continue');
         }
     }
     @captureTelemetry(Telemetry.AddCellBelow)

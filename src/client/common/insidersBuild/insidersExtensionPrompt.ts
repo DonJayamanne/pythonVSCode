@@ -45,7 +45,7 @@ export class InsidersExtensionPrompt implements IInsiderExtensionPrompt {
         const selection = await this.appShell.showInformationMessage(ExtensionChannels.reloadToUseInsidersMessage(), Common.reload());
         sendTelemetryEvent(EventName.INSIDERS_RELOAD_PROMPT, undefined, { selection: selection ? 'Reload' : undefined });
         if (selection === Common.reload()) {
-            this.cmdManager.executeCommand('workbench.action.reloadWindow').then(noop);
+            this.cmdManager.executeCommand('workbench.action.reloadWindow').then(noop, noop);
         }
     }
 

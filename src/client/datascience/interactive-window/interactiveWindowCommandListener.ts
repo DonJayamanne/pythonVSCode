@@ -31,6 +31,7 @@ import {
     INotebookServer,
     IStatusProvider
 } from '../types';
+import { noop } from '../../common/utils/misc';
 
 @injectable()
 export class InteractiveWindowCommandListener implements IDataScienceCommandListener {
@@ -123,10 +124,10 @@ export class InteractiveWindowCommandListener implements IDataScienceCommandList
             if (!(err instanceof CancellationError)) {
                 if (err.message) {
                     this.logger.logError(err.message);
-                    this.applicationShell.showErrorMessage(err.message);
+                    this.applicationShell.showErrorMessage(err.message).then(noop, noop);
                 } else {
                     this.logger.logError(err.toString());
-                    this.applicationShell.showErrorMessage(err.toString());
+                    this.applicationShell.showErrorMessage(err.toString()).then(noop, noop);
                 }
             } else {
                 this.logger.logInformation('Canceled');
@@ -219,7 +220,7 @@ export class InteractiveWindowCommandListener implements IDataScienceCommandList
                                     return this.exportCellsWithOutput(ranges, activeEditor.document, output, cancelSource.token);
                                 } catch (err) {
                                     if (!(err instanceof CancellationError)) {
-                                        this.showInformationMessage(localize.DataScience.exportDialogFailed().format(err));
+                                        this.showInformationMessage(localize.DataScience.exportDialogFailed().format(err)).then(noop, noop);
                                     }
                                 }
                                 return Promise.resolve();
@@ -418,7 +419,7 @@ export class InteractiveWindowCommandListener implements IDataScienceCommandList
         const editor = await this.documentManager.showTextDocument(doc, ViewColumn.One);
 
         // Edit the document so that it is dirty (add a space at the end)
-        editor.edit(editBuilder => {
+        await editor.edit(editBuilder => {
             editBuilder.insert(new Position(editor.document.lineCount, 0), '\n');
         });
     };

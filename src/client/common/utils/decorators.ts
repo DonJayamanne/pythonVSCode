@@ -7,6 +7,7 @@ import { traceError, traceVerbose } from '../logger';
 import { Resource } from '../types';
 import { createDeferred, Deferred } from './async';
 import { getCacheKeyFromFunctionArgs, getGlobalCacheStore, InMemoryInterpreterSpecificCache } from './cacheUtils';
+import { noop } from './misc';
 
 // tslint:disable-next-line:no-require-imports no-var-requires
 const _debounce = require('lodash/debounce') as typeof import('lodash/debounce');
@@ -216,7 +217,7 @@ export function displayProgress(title: string, location = ProgressLocation.Windo
             // tslint:disable-next-line:no-invalid-this
             const promise = originalMethod.apply(this, args);
             if (!isTestExecution()) {
-                window.withProgress(progressOptions, () => promise);
+                window.withProgress(progressOptions, () => promise).then(noop, noop);
             }
             return promise;
         };

@@ -7,6 +7,7 @@ import { Disposable, ProgressLocation, ProgressOptions } from 'vscode';
 import { IApplicationShell } from '../common/application/types';
 import { createDeferred, Deferred } from '../common/utils/async';
 import { IInteractiveBase, IStatusProvider } from './types';
+import { noop } from '../common/utils/misc';
 
 class StatusItem implements Disposable {
     private deferred: Deferred<void>;
@@ -77,7 +78,7 @@ export class StatusProvider implements IStatusProvider {
                 });
             }
             return statusItem.promise();
-        });
+        }).then(noop, noop);
 
         return statusItem;
     }

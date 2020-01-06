@@ -12,6 +12,7 @@ import * as path from 'path';
 import { commands, extensions } from 'vscode';
 import { PVSC_EXTENSION_ID } from '../../client/common/constants';
 import { StopWatch } from '../../client/common/utils/stopWatch';
+import { noop } from '../core';
 
 const AllowedIncreaseInActivationDelayInMS = 500;
 
@@ -40,7 +41,7 @@ suite('Activation Times', () => {
                 await fs.appendFile(logFile, `${elapsedTime}${EOL}`, { encoding: 'utf8' });
                 console.log(`Loaded in ${elapsedTime}ms`);
             }
-            commands.executeCommand('workbench.action.reloadWindow');
+            commands.executeCommand('workbench.action.reloadWindow').then(noop, noop);
         });
     }
 

@@ -33,6 +33,7 @@ import {
     WorkspaceFolderPickOptions
 } from 'vscode';
 import { IApplicationShell } from './types';
+import { noop } from '../utils/misc';
 
 @injectable()
 export class ApplicationShell implements IApplicationShell {
@@ -79,7 +80,7 @@ export class ApplicationShell implements IApplicationShell {
         return window.showInputBox(options, token);
     }
     public openUrl(url: string): void {
-        env.openExternal(Uri.parse(url));
+        env.openExternal(Uri.parse(url)).then(noop, noop);
     }
 
     public setStatusBarMessage(text: string, hideAfterTimeout: number): Disposable;

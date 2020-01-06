@@ -14,6 +14,7 @@ import { getTestDataItemType } from '../common/testUtils';
 import { TestFile, TestFolder, TestFunction, TestsToRun, TestSuite } from '../common/types';
 import { ITestExplorerCommandHandler } from '../navigation/types';
 import { ITestDataItemResource, TestDataItem, TestDataItemType } from '../types';
+import { noop } from '../../common/utils/misc';
 
 type NavigationCommands = typeof Commands.navigateToTestFile | typeof Commands.navigateToTestFunction | typeof Commands.navigateToTestSuite;
 const testNavigationCommandMapping: { [key: string]: NavigationCommands } = {
@@ -56,7 +57,7 @@ export class TestExplorerCommandHandler implements ITestExplorerCommandHandler {
         if (!command) {
             throw new Error('Unknown Test Type');
         }
-        this.cmdManager.executeCommand(command, testUri, item, true);
+        this.cmdManager.executeCommand(command, testUri, item, true).then(noop, noop);
     }
 
     protected async runDebugTestNode(item: TestDataItem, runType: 'run' | 'debug'): Promise<void> {
@@ -84,6 +85,6 @@ export class TestExplorerCommandHandler implements ITestExplorerCommandHandler {
         }
         const testUri = this.testResource.getResource(item);
         const cmd = runType === 'run' ? Commands.Tests_Run : Commands.Tests_Debug;
-        this.cmdManager.executeCommand(cmd, undefined, CommandSource.testExplorer, testUri, testToRun);
+        this.cmdManager.executeCommand(cmd, undefined, CommandSource.testExplorer, testUri, testToRun).then(noop, noop);
     }
 }

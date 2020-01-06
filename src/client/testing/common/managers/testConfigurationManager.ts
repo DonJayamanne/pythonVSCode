@@ -8,6 +8,7 @@ import { IServiceContainer } from '../../../ioc/types';
 import { ITestConfigSettingsService, ITestConfigurationManager } from '../../types';
 import { TEST_OUTPUT_CHANNEL, UNIT_TEST_PRODUCTS } from '../constants';
 import { UnitTestProduct } from '../types';
+import { noop } from '../../../common/utils/misc';
 
 export abstract class TestConfigurationManager implements ITestConfigurationManager {
     protected readonly outputChannel: OutputChannel;
@@ -61,7 +62,7 @@ export abstract class TestConfigurationManager implements ITestConfigurationMana
             }
 
             def.resolve(item.label);
-        });
+        }).then(noop, noop);
 
         return def.promise;
     }
@@ -90,7 +91,7 @@ export abstract class TestConfigurationManager implements ITestConfigurationMana
             }
 
             def.resolve(item.label);
-        });
+        }).then(noop, noop);
 
         return def.promise;
     }

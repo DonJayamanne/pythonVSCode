@@ -10,6 +10,7 @@ import * as localize from '../../common/utils/localize';
 import { Common } from '../../common/utils/localize';
 import { Identifiers } from '../constants';
 import { CellState, ICell as IVscCell, IGatherExecution } from '../types';
+import { noop } from '../../common/utils/misc';
 
 /**
  * An adapter class to wrap the code gathering functionality from [microsoft/python-program-analysis](https://www.npmjs.com/package/@msrvida/python-program-analysis).
@@ -90,7 +91,7 @@ export class GatherExecution implements IGatherExecution {
                 return;
             }
             if (item === 'Reload') {
-                this.commandManager.executeCommand('workbench.action.reloadWindow');
+                this.commandManager.executeCommand('workbench.action.reloadWindow').then(noop, noop);
             }
         }
     }

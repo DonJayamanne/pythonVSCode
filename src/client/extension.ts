@@ -99,6 +99,7 @@ import { TEST_OUTPUT_CHANNEL } from './testing/common/constants';
 import { ITestContextService } from './testing/common/types';
 import { ITestCodeNavigatorCommandHandler, ITestExplorerCommandHandler } from './testing/navigation/types';
 import { registerTypes as unitTestsRegisterTypes } from './testing/serviceRegistry';
+import { noop } from './common/utils/misc';
 
 durations.codeLoadingTime = stopWatch.elapsedTime;
 const activationDeferred = createDeferred<void>();
@@ -222,7 +223,7 @@ export function deactivate(): Thenable<void> {
 // tslint:disable-next-line:no-any
 function displayProgress(promise: Promise<any>) {
     const progressOptions: ProgressOptions = { location: ProgressLocation.Window, title: Common.loadingExtension() };
-    window.withProgress(progressOptions, () => promise);
+    window.withProgress(progressOptions, () => promise).then(noop, noop);
 }
 
 function registerServices(context: ExtensionContext, serviceManager: ServiceManager, serviceContainer: ServiceContainer) {

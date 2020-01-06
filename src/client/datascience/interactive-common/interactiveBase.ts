@@ -72,6 +72,7 @@ import {
 } from '../types';
 import { WebViewHost } from '../webViewHost';
 import { InteractiveWindowMessageListener } from './interactiveWindowMessageListener';
+import { noop } from '../../common/utils/misc';
 
 @injectable()
 export abstract class InteractiveBase extends WebViewHost<IInteractiveWindowMapping> implements IInteractiveBase {
@@ -380,7 +381,7 @@ export abstract class InteractiveBase extends WebViewHost<IInteractiveWindowMapp
             } catch (err) {
                 status.dispose();
                 traceError(err);
-                this.applicationShell.showErrorMessage(err);
+                this.applicationShell.showErrorMessage(err).then(noop, noop);
             }
         }
     }
@@ -388,7 +389,7 @@ export abstract class InteractiveBase extends WebViewHost<IInteractiveWindowMapp
     @captureTelemetry(Telemetry.CopySourceCode, undefined, false)
     public copyCode(args: ICopyCode) {
         this.copyCodeInternal(args.source).catch(err => {
-            this.applicationShell.showErrorMessage(err);
+            this.applicationShell.showErrorMessage(err).then(noop, noop);
         });
     }
 
@@ -536,7 +537,7 @@ export abstract class InteractiveBase extends WebViewHost<IInteractiveWindowMapp
                     error => {
                         status.dispose();
                         if (!(error instanceof CancellationError)) {
-                            this.applicationShell.showErrorMessage(error.toString());
+                            this.applicationShell.showErrorMessage(error.toString()).then(noop, noop);
                         }
                     },
                     () => {
@@ -663,10 +664,10 @@ export abstract class InteractiveBase extends WebViewHost<IInteractiveWindowMapp
                     } catch (e) {
                         await this.errorHandler.handleError(e);
                     }
-                });
+                }).then(noop, noop);
             } catch (exc) {
                 traceError('Error in exporting notebook file');
-                this.applicationShell.showInformationMessage(localize.DataScience.exportDialogFailed().format(exc));
+                this.applicationShell.showInformationMessage(localize.DataScience.exportDialogFailed().format(exc)).then(noop, noop);
             }
         }
     };
@@ -774,7 +775,7 @@ export abstract class InteractiveBase extends WebViewHost<IInteractiveWindowMapp
                     }
                     // Don't leave our Interactive Window open in a non-connected state
                     this.closeBecauseOfFailure(e).ignoreErrors();
-                });
+                }).then(noop, noop);
                 throw e;
             } else {
                 throw e;
@@ -832,7 +833,7 @@ export abstract class InteractiveBase extends WebViewHost<IInteractiveWindowMapp
                 await this.dataExplorerProvider.create(request.variableName, this._notebook!);
             }
         } catch (e) {
-            this.applicationShell.showErrorMessage(e.toString());
+            this.applicationShell.showErrorMessage(e.toString()).then(noop, noop);
         }
     }
 
@@ -915,7 +916,7 @@ export abstract class InteractiveBase extends WebViewHost<IInteractiveWindowMapp
                 await this.addSysInfo(SysInfoReason.Restart);
             } else {
                 // Show the error message
-                this.applicationShell.showErrorMessage(exc);
+                this.applicationShell.showErrorMessage(exc).then(noop, noop);
                 traceError(exc);
             }
         } finally {
@@ -954,7 +955,7 @@ export abstract class InteractiveBase extends WebViewHost<IInteractiveWindowMapp
     @captureTelemetry(Telemetry.GotoSourceCode, undefined, false)
     private gotoCode(args: IGotoCode) {
         this.gotoCodeInternal(args.file, args.line).catch(err => {
-            this.applicationShell.showErrorMessage(err);
+            this.applicationShell.showErrorMessage(err).then(noop, noop);
         });
     }
 
@@ -1192,7 +1193,7 @@ export abstract class InteractiveBase extends WebViewHost<IInteractiveWindowMapp
                         if (activePath && usablePath && !this.fileSystem.arePathsSame(activePath, usablePath) && activeDisplayName && usableDisplayName) {
                             this.applicationShell.showWarningMessage(
                                 localize.DataScience.jupyterKernelNotSupportedOnActive().format(activeDisplayName, usableDisplayName, notebookError)
-                            );
+                            ).then(noop, noop);
                         }
                     }
                 }

@@ -147,11 +147,11 @@ export class DataViewer extends WebViewHost<IDataViewerMapping> implements IData
                     if (v === actionTitle) {
                         this.applicationShell.openUrl(HelpLinks.JupyterDataRateHelpLink);
                     }
-                });
+                }, noop);
                 this.dispose();
             }
             traceError(e);
-            this.applicationShell.showErrorMessage(e);
+            this.applicationShell.showErrorMessage(e).then(noop, noop);
         } finally {
             this.sendElapsedTimeTelemetry();
         }

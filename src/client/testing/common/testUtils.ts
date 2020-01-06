@@ -23,6 +23,7 @@ import {
     TestSuite,
     UnitTestProduct
 } from './types';
+import { noop } from '../../common/utils/misc';
 
 export async function selectTestWorkspace(appShell: IApplicationShell): Promise<Uri | undefined> {
     if (!Array.isArray(workspace.workspaceFolders) || workspace.workspaceFolders.length === 0) {
@@ -226,11 +227,14 @@ export class TestsHelper implements ITestsHelper {
         };
     }
     public displayTestErrorMessage(message: string) {
-        this.appShell.showErrorMessage(message, constants.Button_Text_Tests_View_Output).then(action => {
-            if (action === constants.Button_Text_Tests_View_Output) {
-                this.commandManager.executeCommand(constants.Commands.Tests_ViewOutput, undefined, CommandSource.ui);
-            }
-        });
+        this.appShell
+            .showErrorMessage(message, constants.Button_Text_Tests_View_Output)
+            .then(action => {
+                if (action === constants.Button_Text_Tests_View_Output) {
+                    this.commandManager.executeCommand(constants.Commands.Tests_ViewOutput, undefined, CommandSource.ui).then(noop, noop);
+                }
+            })
+            .then(noop, noop);
     }
     public mergeTests(items: Tests[]): Tests {
         return items.reduce((tests, otherTests, index) => {

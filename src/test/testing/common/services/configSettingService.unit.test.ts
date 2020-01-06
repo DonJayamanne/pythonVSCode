@@ -206,7 +206,7 @@ suite('Unit Tests - ConfigSettingsService', () => {
                     const { configValue } = getExpectedValueAndSettings();
 
                     const promise = testConfigSettingsService.updateTestArgs(workspaceUri, product, configValue);
-                    expect(promise).to.eventually.rejectedWith();
+                    await expect(promise).to.eventually.rejectedWith();
                     workspaceService.verifyAll();
                 });
             });
