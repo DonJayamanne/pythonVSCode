@@ -434,7 +434,10 @@ suite('Process - PythonExecutionFactory', () => {
                 const initialize = sinon.stub(PythonDaemonExecutionServicePool.prototype, 'initialize');
                 initialize.returns(Promise.resolve());
 
-                const [daemon1, daemon2] = await Promise.all([factory.createDaemon({ resource, pythonPath: item.interpreter?.path }), factory.createDaemon({ resource, pythonPath: item.interpreter?.path })]);
+                const [daemon1, daemon2] = await Promise.all([
+                    factory.createDaemon({ resource, pythonPath: item.interpreter?.path }),
+                    factory.createDaemon({ resource, pythonPath: item.interpreter?.path })
+                ]);
 
                 expect(daemon1).to.equal(daemon2);
             });
