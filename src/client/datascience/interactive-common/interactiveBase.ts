@@ -653,18 +653,20 @@ export abstract class InteractiveBase extends WebViewHost<IInteractiveWindowMapp
                 await this.fileSystem.writeFile(file, contents, { encoding: 'utf8', flag: 'w' });
                 const openQuestion1 = localize.DataScience.exportOpenQuestion1();
                 const openQuestion2 = (await this.jupyterExecution.isSpawnSupported()) ? localize.DataScience.exportOpenQuestion() : undefined;
-                this.showInformationMessage(localize.DataScience.exportDialogComplete().format(file), openQuestion1, openQuestion2).then(async (str: string | undefined) => {
-                    try {
-                        if (str === openQuestion2 && openQuestion2 && this._notebook) {
-                            // If the user wants to, open the notebook they just generated.
-                            await this.jupyterExecution.spawnNotebook(file);
-                        } else if (str === openQuestion1) {
-                            await this.ipynbProvider.open(Uri.file(file), contents);
+                this.showInformationMessage(localize.DataScience.exportDialogComplete().format(file), openQuestion1, openQuestion2)
+                    .then(async (str: string | undefined) => {
+                        try {
+                            if (str === openQuestion2 && openQuestion2 && this._notebook) {
+                                // If the user wants to, open the notebook they just generated.
+                                await this.jupyterExecution.spawnNotebook(file);
+                            } else if (str === openQuestion1) {
+                                await this.ipynbProvider.open(Uri.file(file), contents);
+                            }
+                        } catch (e) {
+                            await this.errorHandler.handleError(e);
                         }
-                    } catch (e) {
-                        await this.errorHandler.handleError(e);
-                    }
-                }).then(noop, noop);
+                    })
+                    .then(noop, noop);
             } catch (exc) {
                 traceError('Error in exporting notebook file');
                 this.applicationShell.showInformationMessage(localize.DataScience.exportDialogFailed().format(exc)).then(noop, noop);
@@ -766,16 +768,19 @@ export abstract class InteractiveBase extends WebViewHost<IInteractiveWindowMapp
                 // On a self cert error, warn the user and ask if they want to change the setting
                 const enableOption: string = localize.DataScience.jupyterSelfCertEnable();
                 const closeOption: string = localize.DataScience.jupyterSelfCertClose();
-                this.applicationShell.showErrorMessage(localize.DataScience.jupyterSelfCertFail().format(e.message), enableOption, closeOption).then(value => {
-                    if (value === enableOption) {
-                        sendTelemetryEvent(Telemetry.SelfCertsMessageEnabled);
-                        this.configuration.updateSetting('dataScience.allowUnauthorizedRemoteConnection', true, undefined, ConfigurationTarget.Workspace).ignoreErrors();
-                    } else if (value === closeOption) {
-                        sendTelemetryEvent(Telemetry.SelfCertsMessageClose);
-                    }
-                    // Don't leave our Interactive Window open in a non-connected state
-                    this.closeBecauseOfFailure(e).ignoreErrors();
-                }).then(noop, noop);
+                this.applicationShell
+                    .showErrorMessage(localize.DataScience.jupyterSelfCertFail().format(e.message), enableOption, closeOption)
+                    .then(value => {
+                        if (value === enableOption) {
+                            sendTelemetryEvent(Telemetry.SelfCertsMessageEnabled);
+                            this.configuration.updateSetting('dataScience.allowUnauthorizedRemoteConnection', true, undefined, ConfigurationTarget.Workspace).ignoreErrors();
+                        } else if (value === closeOption) {
+                            sendTelemetryEvent(Telemetry.SelfCertsMessageClose);
+                        }
+                        // Don't leave our Interactive Window open in a non-connected state
+                        this.closeBecauseOfFailure(e).ignoreErrors();
+                    })
+                    .then(noop, noop);
                 throw e;
             } else {
                 throw e;
@@ -1191,9 +1196,9 @@ export abstract class InteractiveBase extends WebViewHost<IInteractiveWindowMapp
                         const usablePath = usableInterpreter ? usableInterpreter.path : undefined;
                         const notebookError = await this.jupyterExecution.getNotebookError();
                         if (activePath && usablePath && !this.fileSystem.arePathsSame(activePath, usablePath) && activeDisplayName && usableDisplayName) {
-                            this.applicationShell.showWarningMessage(
-                                localize.DataScience.jupyterKernelNotSupportedOnActive().format(activeDisplayName, usableDisplayName, notebookError)
-                            ).then(noop, noop);
+                            this.applicationShell
+                                .showWarningMessage(localize.DataScience.jupyterKernelNotSupportedOnActive().format(activeDisplayName, usableDisplayName, notebookError))
+                                .then(noop, noop);
                         }
                     }
                 }

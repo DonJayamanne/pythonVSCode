@@ -70,15 +70,17 @@ export class StatusProvider implements IStatusProvider {
         };
 
         // Set our application shell status with a busy icon
-        this.applicationShell.withProgress(progressOptions, (_p, c) => {
-            if (c && cancel) {
-                c.onCancellationRequested(() => {
-                    cancel();
-                    statusItem.reject();
-                });
-            }
-            return statusItem.promise();
-        }).then(noop, noop);
+        this.applicationShell
+            .withProgress(progressOptions, (_p, c) => {
+                if (c && cancel) {
+                    c.onCancellationRequested(() => {
+                        cancel();
+                        statusItem.reject();
+                    });
+                }
+                return statusItem.promise();
+            })
+            .then(noop, noop);
 
         return statusItem;
     }

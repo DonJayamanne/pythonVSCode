@@ -55,14 +55,17 @@ export abstract class TestConfigurationManager implements ITestConfigurationMana
         items = customOptions.concat(items);
         const def = createDeferred<string>();
         const appShell = this.serviceContainer.get<IApplicationShell>(IApplicationShell);
-        appShell.showQuickPick(items, options).then(item => {
-            if (!item) {
-                this.handleCancelled(); // This will throw an exception.
-                return;
-            }
+        appShell
+            .showQuickPick(items, options)
+            .then(item => {
+                if (!item) {
+                    this.handleCancelled(); // This will throw an exception.
+                    return;
+                }
 
-            def.resolve(item.label);
-        }).then(noop, noop);
+                def.resolve(item.label);
+            })
+            .then(noop, noop);
 
         return def.promise;
     }
@@ -84,14 +87,17 @@ export abstract class TestConfigurationManager implements ITestConfigurationMana
 
         const def = createDeferred<string>();
         const appShell = this.serviceContainer.get<IApplicationShell>(IApplicationShell);
-        appShell.showQuickPick(items, options).then(item => {
-            if (!item) {
-                this.handleCancelled(); // This will throw an exception.
-                return;
-            }
+        appShell
+            .showQuickPick(items, options)
+            .then(item => {
+                if (!item) {
+                    this.handleCancelled(); // This will throw an exception.
+                    return;
+                }
 
-            def.resolve(item.label);
-        }).then(noop, noop);
+                def.resolve(item.label);
+            })
+            .then(noop, noop);
 
         return def.promise;
     }
