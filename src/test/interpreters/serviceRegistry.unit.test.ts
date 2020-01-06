@@ -52,7 +52,8 @@ import {
     KNOWN_PATH_SERVICE,
     PIPENV_SERVICE,
     WINDOWS_REGISTRY_SERVICE,
-    WORKSPACE_VIRTUAL_ENV_SERVICE
+    WORKSPACE_VIRTUAL_ENV_SERVICE,
+    POETRY_ENV_SERVICE
 } from '../../client/interpreter/contracts';
 import { InterpreterDisplay } from '../../client/interpreter/display';
 import { InterpreterSelectionTip } from '../../client/interpreter/display/interpreterSelectionTip';
@@ -86,6 +87,7 @@ import { CondaInheritEnvPrompt } from '../../client/interpreter/virtualEnvs/cond
 import { IVirtualEnvironmentManager } from '../../client/interpreter/virtualEnvs/types';
 import { VirtualEnvironmentPrompt } from '../../client/interpreter/virtualEnvs/virtualEnvPrompt';
 import { ServiceManager } from '../../client/ioc/serviceManager';
+import { PoetryEnvService } from '../../client/interpreter/locators/services/poetryEnvService';
 
 suite('Interpreters - Service Registry', () => {
     test('Registrations', () => {
@@ -114,6 +116,7 @@ suite('Interpreters - Service Registry', () => {
             [IInterpreterLocatorService, GlobalVirtualEnvService, GLOBAL_VIRTUAL_ENV_SERVICE],
             [IInterpreterLocatorService, WorkspaceVirtualEnvService, WORKSPACE_VIRTUAL_ENV_SERVICE],
             [IInterpreterLocatorService, PipEnvService, PIPENV_SERVICE],
+            [IInterpreterLocatorService, PoetryEnvService, POETRY_ENV_SERVICE],
             [IPipEnvService, PipEnvService],
 
             [IInterpreterLocatorService, WindowsRegistryService, WINDOWS_REGISTRY_SERVICE],

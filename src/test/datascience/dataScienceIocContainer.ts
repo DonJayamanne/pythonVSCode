@@ -222,7 +222,8 @@ import {
     PIPENV_SERVICE,
     PythonInterpreter,
     WINDOWS_REGISTRY_SERVICE,
-    WORKSPACE_VIRTUAL_ENV_SERVICE
+    WORKSPACE_VIRTUAL_ENV_SERVICE,
+    POETRY_ENV_SERVICE
 } from '../../client/interpreter/contracts';
 import { ShebangCodeLensProvider } from '../../client/interpreter/display/shebangCodeLensProvider';
 import { InterpreterHelper } from '../../client/interpreter/helpers';
@@ -268,6 +269,7 @@ import { MockWorkspaceConfiguration } from './mockWorkspaceConfig';
 import { blurWindow, createMessageEvent } from './reactHelpers';
 import { TestInteractiveWindowProvider } from './testInteractiveWindowProvider';
 import { TestNativeEditorProvider } from './testNativeEditorProvider';
+import { PoetryEnvService } from '../../client/interpreter/locators/services/poetryEnvService';
 
 export class DataScienceIocContainer extends UnitTestIocContainer {
     public webPanelListener: IWebPanelMessageListener | undefined;
@@ -632,6 +634,7 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
         this.serviceManager.addSingleton<IInterpreterLocatorService>(IInterpreterLocatorService, GlobalVirtualEnvService, GLOBAL_VIRTUAL_ENV_SERVICE);
         this.serviceManager.addSingleton<IInterpreterLocatorService>(IInterpreterLocatorService, WorkspaceVirtualEnvService, WORKSPACE_VIRTUAL_ENV_SERVICE);
         this.serviceManager.addSingleton<IInterpreterLocatorService>(IInterpreterLocatorService, PipEnvService, PIPENV_SERVICE);
+        this.serviceManager.addSingleton<IInterpreterLocatorService>(IInterpreterLocatorService, PoetryEnvService, POETRY_ENV_SERVICE);
         this.serviceManager.addSingleton<IInterpreterLocatorService>(IPipEnvService, PipEnvService);
         this.serviceManager.addSingleton<IInterpreterLocatorService>(IInterpreterLocatorService, WindowsRegistryService, WINDOWS_REGISTRY_SERVICE);
 

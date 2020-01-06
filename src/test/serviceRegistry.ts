@@ -40,7 +40,8 @@ import {
     KNOWN_PATH_SERVICE,
     PIPENV_SERVICE,
     WINDOWS_REGISTRY_SERVICE,
-    WORKSPACE_VIRTUAL_ENV_SERVICE
+    WORKSPACE_VIRTUAL_ENV_SERVICE,
+    POETRY_ENV_SERVICE
 } from '../client/interpreter/contracts';
 import { InterpreterService } from '../client/interpreter/interpreterService';
 import { PythonInterpreterLocatorService } from '../client/interpreter/locators';
@@ -71,6 +72,7 @@ import { MockAutoSelectionService } from './mocks/autoSelector';
 import { MockMemento } from './mocks/mementos';
 import { MockProcessService } from './mocks/proc';
 import { MockProcess } from './mocks/process';
+import { PoetryEnvService } from '../client/interpreter/locators/services/poetryEnvService';
 
 export class IocContainer {
     public readonly serviceManager: IServiceManager;
@@ -173,6 +175,7 @@ export class IocContainer {
         this.serviceManager.addSingleton<IInterpreterLocatorService>(IInterpreterLocatorService, GlobalVirtualEnvService, GLOBAL_VIRTUAL_ENV_SERVICE);
         this.serviceManager.addSingleton<IInterpreterLocatorService>(IInterpreterLocatorService, WorkspaceVirtualEnvService, WORKSPACE_VIRTUAL_ENV_SERVICE);
         this.serviceManager.addSingleton<IInterpreterLocatorService>(IInterpreterLocatorService, PipEnvService, PIPENV_SERVICE);
+        this.serviceManager.addSingleton<IInterpreterLocatorService>(IInterpreterLocatorService, PoetryEnvService, POETRY_ENV_SERVICE);
         this.serviceManager.addSingleton<IInterpreterLocatorService>(IInterpreterLocatorService, WindowsRegistryService, WINDOWS_REGISTRY_SERVICE);
         this.serviceManager.addSingleton<IInterpreterLocatorService>(IInterpreterLocatorService, KnownPathsService, KNOWN_PATH_SERVICE);
         this.serviceManager.addSingleton<IInterpreterLocatorService>(IPipEnvService, PipEnvService);

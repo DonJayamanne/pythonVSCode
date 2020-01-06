@@ -45,7 +45,8 @@ import {
     KNOWN_PATH_SERVICE,
     PIPENV_SERVICE,
     WINDOWS_REGISTRY_SERVICE,
-    WORKSPACE_VIRTUAL_ENV_SERVICE
+    WORKSPACE_VIRTUAL_ENV_SERVICE,
+    POETRY_ENV_SERVICE
 } from './contracts';
 import { InterpreterDisplay } from './display';
 import { InterpreterSelectionTip } from './display/interpreterSelectionTip';
@@ -78,6 +79,7 @@ import { CondaInheritEnvPrompt } from './virtualEnvs/condaInheritEnvPrompt';
 import { VirtualEnvironmentManager } from './virtualEnvs/index';
 import { IVirtualEnvironmentManager } from './virtualEnvs/types';
 import { VirtualEnvironmentPrompt } from './virtualEnvs/virtualEnvPrompt';
+import { PoetryEnvService } from './locators/services/poetryEnvService';
 
 export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.addSingleton<IKnownSearchPathsForInterpreters>(IKnownSearchPathsForInterpreters, KnownSearchPathsForInterpreters);
@@ -102,6 +104,7 @@ export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.addSingleton<IInterpreterLocatorService>(IInterpreterLocatorService, GlobalVirtualEnvService, GLOBAL_VIRTUAL_ENV_SERVICE);
     serviceManager.addSingleton<IInterpreterLocatorService>(IInterpreterLocatorService, WorkspaceVirtualEnvService, WORKSPACE_VIRTUAL_ENV_SERVICE);
     serviceManager.addSingleton<IInterpreterLocatorService>(IInterpreterLocatorService, PipEnvService, PIPENV_SERVICE);
+    serviceManager.addSingleton<IInterpreterLocatorService>(IInterpreterLocatorService, PoetryEnvService, POETRY_ENV_SERVICE);
     serviceManager.addSingleton<IInterpreterLocatorService>(IPipEnvService, PipEnvService);
 
     serviceManager.addSingleton<IInterpreterLocatorService>(IInterpreterLocatorService, WindowsRegistryService, WINDOWS_REGISTRY_SERVICE);
