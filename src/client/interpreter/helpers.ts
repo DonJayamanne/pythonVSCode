@@ -107,6 +107,9 @@ export class InterpreterHelper implements IInterpreterHelper {
             case InterpreterType.VirtualEnv: {
                 return 'virtualenv';
             }
+            case InterpreterType.Poetry: {
+                return 'poetry';
+            }
             default: {
                 return '';
             }
