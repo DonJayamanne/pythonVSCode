@@ -380,7 +380,7 @@ export class CodeWatcher implements ICodeWatcher {
                 // Either use the next cell that we found, or add a new one into the document
                 let nextRange: Range;
                 if (!nextRunCellLens) {
-                    nextRange = this.createNewCell(currentRunCellLens.range);
+                    nextRange = await this.createNewCell(currentRunCellLens.range);
                 } else {
                     nextRange = nextRunCellLens.range;
                 }
@@ -420,7 +420,7 @@ export class CodeWatcher implements ICodeWatcher {
 
     // User has picked run and advance on the last cell of a document
     // Create a new cell at the bottom and put their selection there, ready to type
-    private createNewCell(currentRange: Range): Range {
+    private async createNewCell(currentRange: Range): Promise<Range> {
         const editor = this.documentManager.activeTextEditor;
         const newPosition = new Position(currentRange.end.line + 3, 0); // +3 to account for the added spaces and to position after the new mark
 

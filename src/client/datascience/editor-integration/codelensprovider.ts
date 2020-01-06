@@ -13,6 +13,7 @@ import { IServiceContainer } from '../../ioc/types';
 import { sendTelemetryEvent } from '../../telemetry';
 import { CodeLensCommands, EditorContexts, Telemetry } from '../constants';
 import { ICodeWatcher, IDataScienceCodeLensProvider, IDebugLocationTracker } from '../types';
+import { noop } from '../../common/utils/misc';
 
 @injectable()
 export class DataScienceCodeLensProvider implements IDataScienceCodeLensProvider, IDisposable {
