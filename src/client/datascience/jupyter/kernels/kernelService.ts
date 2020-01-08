@@ -219,7 +219,8 @@ export class KernelService {
      * @returns {Promise<IJupyterKernelSpec>}
      * @memberof KernelService
      */
-    @captureTelemetry(Telemetry.RegisterInterpreterAsKernel, undefined, true)
+    // tslint:disable-next-line: max-func-body-length
+     @captureTelemetry(Telemetry.RegisterInterpreterAsKernel, undefined, true)
     @traceDecorators.error('Failed to register an interpreter as a kernel')
     public async registerKernel(interpreter: PythonInterpreter, cancelToken?: CancellationToken): Promise<IJupyterKernelSpec | undefined> {
         if (!interpreter.displayName) {
