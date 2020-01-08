@@ -269,7 +269,7 @@ export class KernelService {
             await sleep(500);
             kernel = await this.findMatchingKernelSpec({ display_name: interpreter.displayName, name }, undefined, cancelToken);
         }
-        if (!kernel){
+        if (!kernel) {
             // Possible user doesn't have kernelspec installed.
             kernel = await this.getKernelSpecFromStdOut(output.stdout).catch(ex => {
                 traceError('Failed to get kernelspec from stdout', ex);
@@ -363,7 +363,7 @@ export class KernelService {
      * @memberof KernelService
      */
     @traceDecorators.error('Failed to parse kernel creation stdout')
-    private async getKernelSpecFromStdOut(output : string): Promise<JupyterKernelSpec | undefined> {
+    private async getKernelSpecFromStdOut(output: string): Promise<JupyterKernelSpec | undefined> {
         if (!output) {
             return;
         }
@@ -372,20 +372,20 @@ export class KernelService {
         // `Installed kernel <kernelname> in <path>`
         const regEx = NamedRegexp('Installed\\skernelspec\\s(?<name>\\w*)\\sin\\s(?<path>.*)', 'g');
         const match = regEx.exec(output);
-        if (!match || !match.groups()){
+        if (!match || !match.groups()) {
             return;
         }
 
-        type RegExGroup = {name: string; path: string};
+        type RegExGroup = { name: string; path: string };
         const groups = match.groups() as RegExGroup | undefined;
 
-        if (!groups || !groups.name || !groups.path){
+        if (!groups || !groups.name || !groups.path) {
             traceError('Kernel Output not parsed', output);
             throw new Error('Unable to parse output to get the kernel info');
         }
 
         const specFile = path.join(groups.path, 'kernel.json');
-        if (!await this.fileSystem.fileExists(specFile)) {
+        if (!(await this.fileSystem.fileExists(specFile))) {
             throw new Error('KernelSpec file not found');
         }
 
@@ -434,5 +434,5 @@ export class KernelService {
             // This is failing for some folks. In that case return nothing
             return [];
         }
-    };
+    }
 }
