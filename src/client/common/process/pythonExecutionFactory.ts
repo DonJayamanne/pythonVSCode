@@ -123,9 +123,12 @@ export class PythonExecutionFactory implements IPythonExecutionFactory {
         processService.on('exec', processLogger.logProcess.bind(processLogger));
         this.serviceContainer.get<IDisposableRegistry>(IDisposableRegistry).push(processService);
 
-        const condaExecutionService = await this.createCondaExecutionService(pythonPath, processService);
-        if (condaExecutionService) {
-            return condaExecutionService;
+        // Allow parts of the code to ignore conda run.
+        if (!options.bypassCondaExecution){
+            const condaExecutionService = await this.createCondaExecutionService(pythonPath, processService);
+            if (condaExecutionService) {
+                return condaExecutionService;
+            }
         }
 
         return new PythonExecutionService(this.serviceContainer, processService, pythonPath);
