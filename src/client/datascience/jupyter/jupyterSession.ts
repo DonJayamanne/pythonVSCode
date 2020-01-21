@@ -19,6 +19,7 @@ import { Telemetry } from '../constants';
 import { reportAction } from '../progress/decorator';
 import { ReportableAction } from '../progress/types';
 import { IConnection, IJupyterKernelSpec, IJupyterSession } from '../types';
+import { captureJupyterSessionBusyReason, returnEmptyResponseRequestIfServerIsBusy, ServerBusyStatusReason } from './jupyterSessionCompletionRequests';
 import { JupyterWaitForIdleError } from './jupyterWaitForIdleError';
 import { JupyterKernelPromiseFailedError } from './kernels/jupyterKernelPromiseFailedError';
 import { KernelSelector } from './kernels/kernelSelector';
@@ -167,6 +168,7 @@ export class JupyterSession implements IJupyterSession {
         }
     }
 
+    @captureJupyterSessionBusyReason(ServerBusyStatusReason.ExecutingCode)
     public requestExecute(
         content: KernelMessage.IExecuteRequestMsg['content'],
         disposeOnDone?: boolean,
@@ -181,10 +183,13 @@ export class JupyterSession implements IJupyterSession {
         return result;
     }
 
+    @captureJupyterSessionBusyReason(ServerBusyStatusReason.InspectingVariables)
     public requestInspect(content: KernelMessage.IInspectRequestMsg['content']): Promise<KernelMessage.IInspectReplyMsg | undefined> {
         return this.session && this.session.kernel ? this.session.kernel.requestInspect(content) : Promise.resolve(undefined);
     }
 
+    @returnEmptyResponseRequestIfServerIsBusy()
+    @captureJupyterSessionBusyReason(ServerBusyStatusReason.ProvingCodeCompletion)
     public requestComplete(content: KernelMessage.ICompleteRequestMsg['content']): Promise<KernelMessage.ICompleteReplyMsg | undefined> {
         return this.session && this.session.kernel ? this.session.kernel.requestComplete(content) : Promise.resolve(undefined);
     }

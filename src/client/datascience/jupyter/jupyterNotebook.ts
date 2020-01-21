@@ -10,7 +10,7 @@ import { Disposable, Event, EventEmitter, Uri } from 'vscode';
 import { CancellationToken } from 'vscode-jsonrpc';
 import { ServerStatus } from '../../../datascience-ui/interactive-common/mainState';
 import { IApplicationShell, ILiveShareApi, IWorkspaceService } from '../../common/application/types';
-import { Cancellation, CancellationError } from '../../common/cancellation';
+import { CancellationError, createPromiseFromCancellation } from '../../common/cancellation';
 import '../../common/extensions';
 import { traceError, traceInfo, traceWarning } from '../../common/logger';
 import { IFileSystem } from '../../common/platform/types';
@@ -508,14 +508,13 @@ export class JupyterNotebookBase implements INotebook {
 
     public async getCompletion(cellCode: string, offsetInCode: number, cancelToken?: CancellationToken): Promise<INotebookCompletion> {
         if (this.session) {
-            const result = await Cancellation.race(
-                () =>
-                    this.session!.requestComplete({
-                        code: cellCode,
-                        cursor_pos: offsetInCode
-                    }),
-                cancelToken
-            );
+            const result = await Promise.race([
+                this.session!.requestComplete({
+                    code: cellCode,
+                    cursor_pos: offsetInCode
+                }),
+                createPromiseFromCancellation({ defaultValue: undefined, cancelAction: 'resolve', token: cancelToken })
+            ]);
             if (result && result.content) {
                 if ('matches' in result.content) {
                     return {
@@ -526,14 +525,13 @@ export class JupyterNotebookBase implements INotebook {
                         },
                         metadata: result.content.metadata
                     };
-                } else {
-                    return {
-                        matches: [],
-                        cursor: { start: 0, end: 0 },
-                        metadata: []
-                    };
                 }
             }
+            return {
+                matches: [],
+                cursor: { start: 0, end: 0 },
+                metadata: []
+            };
         }
 
         // Default is just say session was disposed
