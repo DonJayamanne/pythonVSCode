@@ -50,6 +50,7 @@ import { JupyterExporter } from './jupyter/jupyterExporter';
 import { JupyterImporter } from './jupyter/jupyterImporter';
 import { JupyterPasswordConnect } from './jupyter/jupyterPasswordConnect';
 import { JupyterServerFactory } from './jupyter/jupyterServerFactory';
+import { JupyterSessionCompletionCleanup } from './jupyter/jupyterSessionCompletionRequests';
 import { JupyterSessionManagerFactory } from './jupyter/jupyterSessionManagerFactory';
 import { JupyterVariables } from './jupyter/jupyterVariables';
 import { KernelSelectionProvider } from './jupyter/kernels/kernelSelections';
@@ -100,7 +101,6 @@ import {
     IStatusProvider,
     IThemeFinder
 } from './types';
-import { JupyterSessionCompletionCleanup } from './jupyter/jupyterSessionCompletionRequests';
 
 export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.addSingleton<IDataScienceCodeLensProvider>(IDataScienceCodeLensProvider, DataScienceCodeLensProvider);

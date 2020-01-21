@@ -131,7 +131,6 @@ export function captureJupyterSessionBusyReason(reason: ServerBusyStatusReason) 
                     })
                     .catch(noop);
             } else {
-                console.log('Hello');
                 // If method returned nothing, then it has completed.
                 info.requests -= 1;
                 info.requests = info.requests < 0 ? 0 : info.requests;
