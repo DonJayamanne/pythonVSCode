@@ -100,6 +100,7 @@ import {
     IStatusProvider,
     IThemeFinder
 } from './types';
+import { JupyterSessionCompletionCleanup } from './jupyter/jupyterSessionCompletionRequests';
 
 export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.addSingleton<IDataScienceCodeLensProvider>(IDataScienceCodeLensProvider, DataScienceCodeLensProvider);
@@ -156,6 +157,7 @@ export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.addSingleton<JupyterServerSelector>(JupyterServerSelector, JupyterServerSelector);
     serviceManager.addSingleton<JupyterInterpreterStateStore>(JupyterInterpreterStateStore, JupyterInterpreterStateStore);
     serviceManager.addSingleton<IExtensionSingleActivationService>(IExtensionSingleActivationService, JupyterInterpreterSelectionCommand);
+    serviceManager.addSingleton<IExtensionSingleActivationService>(IExtensionSingleActivationService, JupyterSessionCompletionCleanup);
     serviceManager.addSingleton<JupyterInterpreterSelector>(JupyterInterpreterSelector, JupyterInterpreterSelector);
     serviceManager.addSingleton<JupyterInterpreterDependencyService>(JupyterInterpreterDependencyService, JupyterInterpreterDependencyService);
     serviceManager.addSingleton<JupyterInterpreterService>(JupyterInterpreterService, JupyterInterpreterService);
