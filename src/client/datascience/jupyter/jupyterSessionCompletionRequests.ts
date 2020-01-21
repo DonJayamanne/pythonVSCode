@@ -114,7 +114,7 @@ export function captureJupyterSessionBusyReason(reason: ServerBusyStatusReason) 
             const result = (originalMethod as Function).apply(this, args);
             const execReply = result as Kernel.IShellFuture<KernelMessage.IExecuteRequestMsg, KernelMessage.IExecuteReplyMsg> | undefined;
             const inspectReply = result as Promise<KernelMessage.IInspectReplyMsg | KernelMessage.IExecuteReplyMsg | undefined>;
-            if (execReply && execReply.done && execReply.msg && execReply.onReply) {
+            if (execReply && execReply.done && execReply.done.then) {
                 // If exec reply, then handle finally in the done property.
                 execReply.done
                     .finally(() => {
@@ -131,6 +131,7 @@ export function captureJupyterSessionBusyReason(reason: ServerBusyStatusReason) 
                     })
                     .catch(noop);
             } else {
+                console.log('Hello');
                 // If method returned nothing, then it has completed.
                 info.requests -= 1;
                 info.requests = info.requests < 0 ? 0 : info.requests;
