@@ -318,8 +318,10 @@ export namespace Settings {
     export const JupyterServerLocalLaunch = 'local';
     export const JupyterServerUriList = 'python.dataScience.jupyterServer.uriList';
     export const JupyterServerUriListMax = 10;
-    export const IntellisenseTimeout = 30000;
-    export const MaxIntellisenseTimeout = 30000;
+    // If this timeout expires, ignore the completion request sent to Jupyter.
+    export const IntellisenseTimeout = 500;
+    // If this timeout expires, ignore the completions requests. (don't wait for it to complete).
+    export const MaxIntellisenseTimeout = 30_000;
     export const RemoteDebuggerPortBegin = 8889;
     export const RemoteDebuggerPortEnd = 9000;
     export const DefaultVariableQuery: IVariableQuery = {
