@@ -508,6 +508,14 @@ export class JupyterNotebookBase implements INotebook {
 
     public async getCompletion(cellCode: string, offsetInCode: number, cancelToken?: CancellationToken): Promise<INotebookCompletion> {
         if (this.session) {
+            // If server is busy, then don't delay code completion.
+            if (this.session.serverStatus === ServerStatus.Busy) {
+                return {
+                    matches: [],
+                    cursor: { start: 0, end: 0 },
+                    metadata: []
+                };
+            }
             const result = await Promise.race([
                 this.session!.requestComplete({
                     code: cellCode,

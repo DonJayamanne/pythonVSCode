@@ -50,7 +50,6 @@ import { JupyterExporter } from './jupyter/jupyterExporter';
 import { JupyterImporter } from './jupyter/jupyterImporter';
 import { JupyterPasswordConnect } from './jupyter/jupyterPasswordConnect';
 import { JupyterServerFactory } from './jupyter/jupyterServerFactory';
-import { JupyterSessionCompletionCleanup } from './jupyter/jupyterSessionCompletionRequests';
 import { JupyterSessionManagerFactory } from './jupyter/jupyterSessionManagerFactory';
 import { JupyterVariables } from './jupyter/jupyterVariables';
 import { KernelSelectionProvider } from './jupyter/kernels/kernelSelections';
@@ -157,7 +156,6 @@ export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.addSingleton<JupyterServerSelector>(JupyterServerSelector, JupyterServerSelector);
     serviceManager.addSingleton<JupyterInterpreterStateStore>(JupyterInterpreterStateStore, JupyterInterpreterStateStore);
     serviceManager.addSingleton<IExtensionSingleActivationService>(IExtensionSingleActivationService, JupyterInterpreterSelectionCommand);
-    serviceManager.addSingleton<IExtensionSingleActivationService>(IExtensionSingleActivationService, JupyterSessionCompletionCleanup);
     serviceManager.addSingleton<JupyterInterpreterSelector>(JupyterInterpreterSelector, JupyterInterpreterSelector);
     serviceManager.addSingleton<JupyterInterpreterDependencyService>(JupyterInterpreterDependencyService, JupyterInterpreterDependencyService);
     serviceManager.addSingleton<JupyterInterpreterService>(JupyterInterpreterService, JupyterInterpreterService);
