@@ -26,7 +26,7 @@ export class MockJupyterSession implements IJupyterSession {
     private forceRestartTimeout: boolean = false;
     private completionTimeout: number = 1;
     private lastRequest: MockJupyterRequest | undefined;
-    public get serverStatus() {
+    public get status() {
         return ServerStatus.NotStarted;
     }
     constructor(cellDictionary: Record<string, ICell>, timedelay: number) {
