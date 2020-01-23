@@ -5,6 +5,7 @@
     "version": "2020.2.0-dev",
     "languageServerVersion": "0.4.114",
     "publisher": "ms-python",
+    "enabledProposedApi": true,
     "author": {
         "name": "Microsoft Corporation"
     },
