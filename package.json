@@ -2989,7 +2989,7 @@
         "prettier": "^1.19.1",
         "range-inclusive": "^1.0.2",
         "raw-loader": "^0.5.1",
-        "react": "^16.5.2",
+        "react": "^16.12.0",
         "react-data-grid": "^6.0.2-0",
         "react-dev-utils": "^5.0.2",
         "react-dom": "^16.5.2",
