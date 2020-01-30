@@ -26,10 +26,10 @@ import { DebugListener } from './interactive-common/debugListener';
 import { IntellisenseProvider } from './interactive-common/intellisense/intellisenseProvider';
 import { LinkProvider } from './interactive-common/linkProvider';
 import { ShowPlotListener } from './interactive-common/showPlotListener';
-import { AutoSaveService } from './interactive-ipynb/autoSaveService';
 import { NativeEditor } from './interactive-ipynb/nativeEditor';
 import { NativeEditorCommandListener } from './interactive-ipynb/nativeEditorCommandListener';
 import { NativeEditorProvider } from './interactive-ipynb/nativeEditorProvider';
+import { NativeEditorStorage } from './interactive-ipynb/nativeEditorStorage';
 import { InteractiveWindow } from './interactive-window/interactiveWindow';
 import { InteractiveWindowCommandListener } from './interactive-window/interactiveWindowCommandListener';
 import { InteractiveWindowProvider } from './interactive-window/interactiveWindowProvider';
@@ -95,6 +95,7 @@ import {
     INotebookExporter,
     INotebookImporter,
     INotebookServer,
+    INotebookStorage,
     IPlotViewer,
     IPlotViewerProvider,
     IStatusProvider,
@@ -127,7 +128,6 @@ export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.add<IInteractiveWindowListener>(IInteractiveWindowListener, ShowPlotListener);
     serviceManager.add<IInteractiveWindowListener>(IInteractiveWindowListener, DebugListener);
     serviceManager.add<IInteractiveWindowListener>(IInteractiveWindowListener, GatherListener);
-    serviceManager.add<IInteractiveWindowListener>(IInteractiveWindowListener, AutoSaveService);
     serviceManager.addSingleton<IPlotViewerProvider>(IPlotViewerProvider, PlotViewerProvider);
     serviceManager.add<IPlotViewer>(IPlotViewer, PlotViewer);
     serviceManager.addSingleton<IJupyterDebugger>(IJupyterDebugger, JupyterDebugger);
@@ -139,6 +139,7 @@ export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.addBinding(ICellHashProvider, INotebookExecutionLogger);
     serviceManager.addBinding(IJupyterDebugger, ICellHashListener);
     serviceManager.addSingleton<INotebookEditorProvider>(INotebookEditorProvider, NativeEditorProvider);
+    serviceManager.add<INotebookStorage>(INotebookStorage, NativeEditorStorage);
     serviceManager.add<INotebookEditor>(INotebookEditor, NativeEditor);
     serviceManager.addSingleton<IDataScienceCommandListener>(IDataScienceCommandListener, NativeEditorCommandListener);
     serviceManager.addBinding(ICodeLensFactory, IInteractiveWindowListener);

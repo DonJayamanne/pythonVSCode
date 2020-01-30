@@ -8,7 +8,9 @@
             "request": "launch",
             "runtimeExecutable": "${execPath}",
             "args": [
-                "--extensionDevelopmentPath=${workspaceFolder}"
+                "--extensionDevelopmentPath=${workspaceFolder}",
+                "--enable-proposed-api",
+                "ms-python.python"
             ],
             "stopOnEntry": false,
             "smartStep": true,
@@ -19,7 +21,7 @@
             "preLaunchTask": "Compile",
             "skipFiles": [
                 "<node_internals>/**"
-            ]
+            ],
         },
         {
             "name": "Extension inside container",

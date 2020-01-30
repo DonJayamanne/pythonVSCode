@@ -183,7 +183,7 @@ export class InteractiveWindowCommandListener implements IDataScienceCommandList
                         const questions = [openQuestion1, ...(openQuestion2 ? [openQuestion2] : [])];
                         const selection = await this.applicationShell.showInformationMessage(localize.DataScience.exportDialogComplete().format(uri.fsPath), ...questions);
                         if (selection === openQuestion1) {
-                            await this.ipynbProvider.open(uri, await this.fileSystem.readFile(uri.fsPath));
+                            await this.ipynbProvider.open(uri);
                         }
                         if (selection === openQuestion2) {
                             // If the user wants to, open the notebook they just generated.
@@ -237,7 +237,7 @@ export class InteractiveWindowCommandListener implements IDataScienceCommandList
                         const questions = [openQuestion1, ...(openQuestion2 ? [openQuestion2] : [])];
                         const selection = await this.applicationShell.showInformationMessage(localize.DataScience.exportDialogComplete().format(output), ...questions);
                         if (selection === openQuestion1) {
-                            await this.ipynbProvider.open(Uri.file(output), await this.fileSystem.readFile(output));
+                            await this.ipynbProvider.open(Uri.file(output));
                         }
                         if (selection === openQuestion2) {
                             // If the user wants to, open the notebook they just generated.

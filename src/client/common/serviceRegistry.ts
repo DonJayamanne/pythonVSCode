@@ -9,6 +9,7 @@ import { IImportTracker } from '../telemetry/types';
 import { ApplicationEnvironment } from './application/applicationEnvironment';
 import { ApplicationShell } from './application/applicationShell';
 import { CommandManager } from './application/commandManager';
+import { CustomEditorService } from './application/customEditorService';
 import { DebugService } from './application/debugService';
 import { DebugSessionTelemetry } from './application/debugSessionTelemetry';
 import { DocumentManager } from './application/documentManager';
@@ -19,6 +20,7 @@ import {
     IApplicationEnvironment,
     IApplicationShell,
     ICommandManager,
+    ICustomEditorService,
     IDebugService,
     IDocumentManager,
     ILanguageService,
@@ -151,4 +153,5 @@ export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.addSingleton<IExtensionChannelRule>(IExtensionChannelRule, ExtensionInsidersDailyChannelRule, ExtensionChannel.daily);
     serviceManager.addSingleton<IExtensionChannelRule>(IExtensionChannelRule, ExtensionInsidersWeeklyChannelRule, ExtensionChannel.weekly);
     serviceManager.addSingleton<IExtensionSingleActivationService>(IExtensionSingleActivationService, DebugSessionTelemetry);
+    serviceManager.addSingleton<ICustomEditorService>(ICustomEditorService, CustomEditorService);
 }

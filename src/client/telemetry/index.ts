@@ -1694,4 +1694,9 @@ export interface IEventNamePropertyMapping {
      * @memberof IEventNamePropertyMapping
      */
     [Telemetry.StartSessionFailedJupyter]: undefined | never;
+    /**
+     * Telemetry event fired if a failure occurs loading a notebook
+     * message param is the exception message string.
+     */
+    [Telemetry.OpenNotebookFailure]: { message: string };
 }

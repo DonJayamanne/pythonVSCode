@@ -5,6 +5,7 @@
     "version": "2020.2.0-dev",
     "languageServerVersion": "0.4.114",
     "publisher": "ms-python",
+    "enableProposedApi": true,
     "author": {
         "name": "Microsoft Corporation"
     },
@@ -82,7 +83,8 @@
         "onCommand:python.datascience.exportfileasnotebook",
         "onCommand:python.datascience.exportfileandoutputasnotebook",
         "onCommand:python.datascience.selectJupyterInterpreter",
-        "onCommand:python.enableSourceMapSupport"
+        "onCommand:python.enableSourceMapSupport",
+        "onWebviewEditor:NativeEditorProvider.ipynb"
     ],
     "main": "./out/client/extension",
     "contributes": {
@@ -2767,7 +2769,18 @@
                     "when": "testsDiscovered"
                 }
             ]
-        }
+        },
+        "webviewEditors": [
+            {
+                "viewType": "NativeEditorProvider.ipynb",
+                "displayName": "Jupyter Notebook",
+                "selector": [
+                    {
+                        "filenamePattern": "*.ipynb"
+                    }
+                ]
+            }
+        ]
     },
     "scripts": {
         "package": "gulp clean && gulp prePublishBundle && vsce package -o ms-python-insiders.vsix",

@@ -6,7 +6,7 @@ import { Session } from '@jupyterlab/services';
 import { Kernel, KernelMessage } from '@jupyterlab/services/lib/kernel';
 import { JSONObject } from '@phosphor/coreutils';
 import { Observable } from 'rxjs/Observable';
-import { CancellationToken, CodeLens, CodeLensProvider, DebugSession, Disposable, Event, Range, TextDocument, TextEditor, Uri } from 'vscode';
+import { CancellationToken, CodeLens, CodeLensProvider, DebugSession, Disposable, Event, Range, TextDocument, TextEditor, Uri, WebviewPanel } from 'vscode';
 import { ServerStatus } from '../../datascience-ui/interactive-common/mainState';
 import { ICommandManager } from '../common/application/types';
 import { ExecutionResult, ObservableExecutionResult, SpawnOptions } from '../common/process/types';
@@ -254,6 +254,7 @@ export interface INotebookImporter extends Disposable {
 export const INotebookExporter = Symbol('INotebookExporter');
 export interface INotebookExporter extends Disposable {
     translateToNotebook(cells: ICell[], directoryChange?: string): Promise<nbformat.INotebookContent | undefined>;
+    exportToFile(cells: ICell[], file: string): Promise<void>;
 }
 
 export const IInteractiveWindowProvider = Symbol('IInteractiveWindowProvider');
@@ -305,7 +306,8 @@ export interface INotebookEditorProvider {
     readonly editors: INotebookEditor[];
     readonly onDidOpenNotebookEditor: Event<INotebookEditor>;
     readonly onDidChangeActiveNotebookEditor: Event<INotebookEditor | undefined>;
-    open(file: Uri, contents: string): Promise<INotebookEditor>;
+    readonly onDidCloseNotebookEditor: Event<INotebookEditor>;
+    open(file: Uri): Promise<INotebookEditor>;
     show(file: Uri): Promise<INotebookEditor | undefined>;
     createNew(contents?: string): Promise<INotebookEditor>;
     getNotebookOptions(): Promise<INotebookServerOptions>;
@@ -319,7 +321,6 @@ export interface INotebookEditor extends IInteractiveBase {
     readonly executed: Event<INotebookEditor>;
     readonly modified: Event<INotebookEditor>;
     readonly saved: Event<INotebookEditor>;
-    readonly metadataUpdated: Event<INotebookEditor>;
     /**
      * Is this notebook representing an untitled file which has never been saved yet.
      */
@@ -331,7 +332,7 @@ export interface INotebookEditor extends IInteractiveBase {
     readonly file: Uri;
     readonly visible: boolean;
     readonly active: boolean;
-    load(contents: string, file: Uri): Promise<void>;
+    load(storage: INotebookModel, webViewPanel: WebviewPanel): Promise<void>;
     runAllCells(): void;
     runSelectedCell(): void;
     addCellBelow(): void;
@@ -724,4 +725,36 @@ export interface IJupyterInterpreterDependencyManager {
      * @memberof IJupyterInterpreterDependencyManager
      */
     installMissingDependencies(err?: JupyterInstallError): Promise<void>;
+}
+
+export interface INotebookEdit {
+    readonly contents: ICell[];
+}
+
+export interface INotebookModelChange {
+    model: INotebookModel;
+    newFile?: Uri;
+    oldFile?: Uri;
+    isDirty?: boolean;
+    isUntitled?: boolean;
+    newCells?: ICell[];
+    oldCells?: ICell[];
+}
+
+export interface INotebookModel {
+    readonly file: Uri;
+    readonly isDirty: boolean;
+    readonly isUntitled: boolean;
+    readonly changed: Event<INotebookModelChange>;
+    readonly cells: ICell[];
+    getJson(): Promise<Partial<nbformat.INotebookContent>>;
+    getContent(cells?: ICell[]): Promise<string>;
+}
+
+export const INotebookStorage = Symbol('INotebookStorage');
+
+export interface INotebookStorage {
+    load(file: Uri, contents?: string): Promise<INotebookModel>;
+    save(): Promise<INotebookModel>;
+    saveAs(file: Uri): Promise<INotebookModel>;
 }
