@@ -9,9 +9,8 @@ import { EventEmitter } from 'events';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as sinon from 'sinon';
-import { anything, when } from 'ts-mockito';
 import * as TypeMoq from 'typemoq';
-import { Disposable, TextDocument, TextEditor, Uri, WindowState } from 'vscode';
+import { Disposable, TextDocument, TextEditor, Uri } from 'vscode';
 import { IApplicationShell, IDocumentManager } from '../../client/common/application/types';
 import { IFileSystem } from '../../client/common/platform/types';
 import { createDeferred, sleep, waitForPromise } from '../../client/common/utils/async';
@@ -31,7 +30,6 @@ import { IMonacoEditorState, MonacoEditor } from '../../datascience-ui/react-com
 import { waitForCondition } from '../common';
 import { createTemporaryFile } from '../utils/fs';
 import { DataScienceIocContainer } from './dataScienceIocContainer';
-import { defaultDataScienceSettings } from './helpers';
 import { MockDocumentManager } from './mockDocumentManager';
 import { addCell, closeNotebook, createNewEditor, getNativeCellResults, mountNativeWebView, openEditor, runMountedTest, setupWebview } from './nativeEditorTestHelpers';
 import { waitForUpdate } from './reactHelpers';
@@ -369,7 +367,6 @@ for _ in range(50):
                         return;
                     }
                 };
-                let saveCalled = false;
                 const appShell = TypeMoq.Mock.ofType<IApplicationShell>();
                 appShell
                     .setup(a => a.showErrorMessage(TypeMoq.It.isAnyString()))
@@ -380,20 +377,23 @@ for _ in range(50):
                 appShell
                     .setup(a => a.showSaveDialog(TypeMoq.It.isAny()))
                     .returns(() => {
-                        saveCalled = true;
                         return Promise.resolve(undefined);
                     });
                 appShell.setup(a => a.setStatusBarMessage(TypeMoq.It.isAny())).returns(() => dummyDisposable);
                 ioc.serviceManager.rebindInstance<IApplicationShell>(IApplicationShell, appShell.object);
 
                 // Make sure to create the interactive window after the rebind or it gets the wrong application shell.
-                await createNewEditor(ioc);
+                const saveCalled = createDeferred<boolean>();
+                const editor = await createNewEditor(ioc);
+                editor.saved(() => {
+                    saveCalled.resolve(true);
+                });
                 await addCell(wrapper, ioc, 'a=1\na');
 
                 // Export should cause exportCalled to change to true
                 const saveButton = findButton(wrapper, NativeEditor, 8);
                 await waitForMessageResponse(ioc, () => saveButton!.simulate('click'));
-                assert.equal(saveCalled, true, 'Save should have been called');
+                await waitForPromise(saveCalled.promise, 5_000);
 
                 // Click export and wait for a document to change
                 const activeTextEditorChange = createDeferred();
@@ -473,9 +473,10 @@ for _ in range(50):
                 let editor = await openEditor(ioc, JSON.stringify(notebook));
 
                 // Run everything
+                let renderAll = waitForMessage(ioc, InteractiveWindowMessages.ExecutionRendered, { numberOfTimes: 3 });
                 let runAllButton = findButton(wrapper, NativeEditor, 0);
                 await waitForMessageResponse(ioc, () => runAllButton!.simulate('click'));
-                await waitForUpdate(wrapper, NativeEditor, 15);
+                await renderAll;
 
                 // Close editor. Should still have the server up
                 await closeNotebook(editor, wrapper);
@@ -489,8 +490,9 @@ for _ in range(50):
                 assert.ok(newWrapper, 'Could not mount a second time');
                 editor = await openEditor(ioc, JSON.stringify(notebook));
                 runAllButton = findButton(newWrapper!, NativeEditor, 0);
+                renderAll = waitForMessage(ioc, InteractiveWindowMessages.ExecutionRendered, { numberOfTimes: 3 });
                 await waitForMessageResponse(ioc, () => runAllButton!.simulate('click'));
-                await waitForUpdate(newWrapper!, NativeEditor, 15);
+                await renderAll;
                 verifyHtmlOnCell(newWrapper!, 'NativeCell', `1`, 0);
             },
             () => {
@@ -653,7 +655,6 @@ for _ in range(50):
             outputs: [],
             source: []
         });
-        const addedJSONFile = JSON.stringify(addedJSON, null, ' ');
 
         let notebookFile: {
             filePath: string;
@@ -1143,8 +1144,8 @@ for _ in range(50):
                 await update;
 
                 // Monaco editor should be rendered and the cell should be markdown
-                assert.ok(isCellFocused(wrapper, 'NativeCell', 1));
-                assert.ok(isCellMarkdown(wrapper, 'NativeCell', 1));
+                assert.ok(isCellFocused(wrapper, 'NativeCell', 1), '1st cell is not focused');
+                assert.ok(isCellMarkdown(wrapper, 'NativeCell', 1), '1st cell is not markdown');
                 assert.equal(
                     wrapper
                         .find(NativeCell)
@@ -1159,13 +1160,13 @@ for _ in range(50):
 
                 // Switch back to code mode.
                 // First lose focus
-                update = waitForUpdate(wrapper, NativeEditor, 1);
+                update = waitForMessage(ioc, InteractiveWindowMessages.UnfocusedCellEditor);
                 simulateKeyPressOnCell(1, { code: 'Escape' });
                 await update;
 
                 // Confirm markdown output is rendered
-                assert.ok(!isCellFocused(wrapper, 'NativeCell', 1));
-                assert.ok(isCellMarkdown(wrapper, 'NativeCell', 1));
+                assert.ok(!isCellFocused(wrapper, 'NativeCell', 1), '1st cell is focused');
+                assert.ok(isCellMarkdown(wrapper, 'NativeCell', 1), '1st cell is not markdown');
                 assert.equal(
                     wrapper
                         .find(NativeCell)
@@ -1185,8 +1186,8 @@ for _ in range(50):
                 wrapperElement.simulate('keyDown', { key: 'y' });
                 await update;
 
-                assert.ok(isCellFocused(wrapper, 'NativeCell', 1));
-                assert.ok(!isCellMarkdown(wrapper, 'NativeCell', 1));
+                assert.ok(isCellFocused(wrapper, 'NativeCell', 1), '1st cell is not focused 2nd time');
+                assert.ok(!isCellMarkdown(wrapper, 'NativeCell', 1), '1st cell is markdown second time');
 
                 // Confirm editor still has the same text
                 editor = getNativeFocusedEditor(wrapper);
@@ -1344,218 +1345,6 @@ for _ in range(50):
             });
         });
 
-        suite('Auto Save', () => {
-            let windowStateChangeHandlers: ((e: WindowState) => any)[] = [];
-            setup(async function() {
-                initIoc();
-
-                windowStateChangeHandlers = [];
-                // Keep track of all handlers for the onDidChangeWindowState event.
-                ioc.applicationShell.setup(app => app.onDidChangeWindowState(TypeMoq.It.isAny())).callback(cb => windowStateChangeHandlers.push(cb));
-
-                // tslint:disable-next-line: no-invalid-this
-                await setupFunction.call(this);
-            });
-            teardown(() => sinon.restore());
-
-            /**
-             * Make some kind of a change to the notebook.
-             *
-             * @param {number} cellIndex
-             */
-            async function modifyNotebook() {
-                // (Add a cell into the UI)
-                await addCell(wrapper, ioc, 'a', false);
-            }
-
-            test('Auto save notebook every 1s', async () => {
-                // Configure notebook to save automatically ever 1s.
-                when(ioc.mockedWorkspaceConfig.get('autoSave', 'off')).thenReturn('afterDelay');
-                when(ioc.mockedWorkspaceConfig.get<number>('autoSaveDelay', anything())).thenReturn(1_000);
-                ioc.forceSettingsChanged(ioc.getSettings().pythonPath);
-
-                /**
-                 * Make some changes to a cell of a notebook, then verify the notebook is auto saved.
-                 *
-                 * @param {number} cellIndex
-                 */
-                async function makeChangesAndConfirmFileIsUpdated() {
-                    const notebookFileContents = await fs.readFile(notebookFile.filePath, 'utf8');
-                    const dirtyPromise = waitForMessage(ioc, InteractiveWindowMessages.NotebookDirty);
-                    const cleanPromise = waitForMessage(ioc, InteractiveWindowMessages.NotebookClean);
-
-                    await modifyNotebook();
-                    await dirtyPromise;
-
-                    // At this point a message should be sent to extension asking it to save.
-                    // After the save, the extension should send a message to react letting it know that it was saved successfully.
-                    await cleanPromise;
-
-                    // Confirm file has been updated as well.
-                    const newFileContents = await fs.readFile(notebookFile.filePath, 'utf8');
-                    assert.notEqual(newFileContents, notebookFileContents);
-                }
-
-                // Make changes & validate (try a couple of times).
-                await makeChangesAndConfirmFileIsUpdated();
-                await makeChangesAndConfirmFileIsUpdated();
-                await makeChangesAndConfirmFileIsUpdated();
-            });
-
-            test('File saved with same format', async () => {
-                // Configure notebook to save automatically ever 1s.
-                when(ioc.mockedWorkspaceConfig.get('autoSave', 'off')).thenReturn('afterDelay');
-                when(ioc.mockedWorkspaceConfig.get<number>('autoSaveDelay', anything())).thenReturn(2_000);
-                ioc.forceSettingsChanged(ioc.getSettings().pythonPath);
-                const notebookFileContents = await fs.readFile(notebookFile.filePath, 'utf8');
-                const dirtyPromise = waitForMessage(ioc, InteractiveWindowMessages.NotebookDirty);
-                const cleanPromise = waitForMessage(ioc, InteractiveWindowMessages.NotebookClean);
-
-                await modifyNotebook();
-                await dirtyPromise;
-
-                // At this point a message should be sent to extension asking it to save.
-                // After the save, the extension should send a message to react letting it know that it was saved successfully.
-                await cleanPromise;
-
-                // Confirm file is not the same. There should be a single cell that's been added
-                const newFileContents = await fs.readFile(notebookFile.filePath, 'utf8');
-                assert.notEqual(newFileContents, notebookFileContents);
-                assert.equal(newFileContents, addedJSONFile);
-            });
-
-            test('Should not auto save notebook, ever', async () => {
-                const notebookFileContents = await fs.readFile(notebookFile.filePath, 'utf8');
-
-                // Configure notebook to to never save.
-                when(ioc.mockedWorkspaceConfig.get('autoSave', 'off')).thenReturn('off');
-                when(ioc.mockedWorkspaceConfig.get<number>('autoSaveDelay', anything())).thenReturn(1000);
-                // Update the settings and wait for the component to receive it and process it.
-                const promise = waitForMessage(ioc, InteractiveWindowMessages.SettingsUpdated);
-                ioc.forceSettingsChanged(ioc.getSettings().pythonPath, { ...defaultDataScienceSettings(), showCellInputCode: false });
-                await promise;
-
-                const dirtyPromise = waitForMessage(ioc, InteractiveWindowMessages.NotebookDirty);
-                const cleanPromise = waitForMessage(ioc, InteractiveWindowMessages.NotebookClean, { timeoutMs: 5_000 });
-
-                await modifyNotebook();
-                await dirtyPromise;
-
-                // Now that the notebook is dirty, change the active editor.
-                const docManager = ioc.get<IDocumentManager>(IDocumentManager) as MockDocumentManager;
-                docManager.didChangeActiveTextEditorEmitter.fire();
-                // Also, send notification about changes to window state.
-                windowStateChangeHandlers.forEach(item => item({ focused: false }));
-                windowStateChangeHandlers.forEach(item => item({ focused: true }));
-
-                // Confirm the message is not clean, trying to wait for it to get saved will timeout (i.e. rejected).
-                await expect(cleanPromise).to.eventually.be.rejected;
-                // Confirm file has not been updated as well.
-                assert.equal(await fs.readFile(notebookFile.filePath, 'utf8'), notebookFileContents);
-            }).timeout(10_000);
-
-            async function testAutoSavingWhenEditorFocusChanges(newEditor: TextEditor | undefined) {
-                const notebookFileContents = await fs.readFile(notebookFile.filePath, 'utf8');
-                const dirtyPromise = waitForMessage(ioc, InteractiveWindowMessages.NotebookDirty);
-                const cleanPromise = waitForMessage(ioc, InteractiveWindowMessages.NotebookClean);
-
-                await modifyNotebook();
-                await dirtyPromise;
-
-                // Configure notebook to save when active editor changes.
-                when(ioc.mockedWorkspaceConfig.get('autoSave', 'off')).thenReturn('onFocusChange');
-                ioc.forceSettingsChanged(ioc.getSettings().pythonPath);
-
-                // Now that the notebook is dirty, change the active editor.
-                const docManager = ioc.get<IDocumentManager>(IDocumentManager) as MockDocumentManager;
-                docManager.didChangeActiveTextEditorEmitter.fire(newEditor);
-
-                // At this point a message should be sent to extension asking it to save.
-                // After the save, the extension should send a message to react letting it know that it was saved successfully.
-                await cleanPromise;
-
-                // Confirm file has been updated as well.
-                assert.notEqual(await fs.readFile(notebookFile.filePath, 'utf8'), notebookFileContents);
-            }
-
-            test('Auto save notebook when focus changes from active editor to none', () => testAutoSavingWhenEditorFocusChanges(undefined));
-
-            test('Auto save notebook when focus changes from active editor to something else', () =>
-                testAutoSavingWhenEditorFocusChanges(TypeMoq.Mock.ofType<TextEditor>().object));
-
-            test('Should not auto save notebook when active editor changes', async () => {
-                const notebookFileContents = await fs.readFile(notebookFile.filePath, 'utf8');
-                const dirtyPromise = waitForMessage(ioc, InteractiveWindowMessages.NotebookDirty);
-                const cleanPromise = waitForMessage(ioc, InteractiveWindowMessages.NotebookClean, { timeoutMs: 5_000 });
-
-                await modifyNotebook();
-                await dirtyPromise;
-
-                // Configure notebook to save when window state changes.
-                when(ioc.mockedWorkspaceConfig.get('autoSave', 'off')).thenReturn('onWindowChange');
-                ioc.forceSettingsChanged(ioc.getSettings().pythonPath);
-
-                // Now that the notebook is dirty, change the active editor.
-                // This should not trigger a save of notebook (as its configured to save only when window state changes).
-                const docManager = ioc.get<IDocumentManager>(IDocumentManager) as MockDocumentManager;
-                docManager.didChangeActiveTextEditorEmitter.fire();
-
-                // Confirm the message is not clean, trying to wait for it to get saved will timeout (i.e. rejected).
-                await expect(cleanPromise).to.eventually.be.rejected;
-                // Confirm file has not been updated as well.
-                assert.equal(await fs.readFile(notebookFile.filePath, 'utf8'), notebookFileContents);
-            }).timeout(10_000);
-
-            async function testAutoSavingWithChangesToWindowState(focused: boolean) {
-                const notebookFileContents = await fs.readFile(notebookFile.filePath, 'utf8');
-                const dirtyPromise = waitForMessage(ioc, InteractiveWindowMessages.NotebookDirty);
-                const cleanPromise = waitForMessage(ioc, InteractiveWindowMessages.NotebookClean);
-
-                await modifyNotebook();
-                await dirtyPromise;
-
-                // Configure notebook to save when active editor changes.
-                when(ioc.mockedWorkspaceConfig.get('autoSave', 'off')).thenReturn('onWindowChange');
-                ioc.forceSettingsChanged(ioc.getSettings().pythonPath);
-
-                // Now that the notebook is dirty, send notification about changes to window state.
-                windowStateChangeHandlers.forEach(item => item({ focused }));
-
-                // At this point a message should be sent to extension asking it to save.
-                // After the save, the extension should send a message to react letting it know that it was saved successfully.
-                await cleanPromise;
-
-                // Confirm file has been updated as well.
-                assert.notEqual(await fs.readFile(notebookFile.filePath, 'utf8'), notebookFileContents);
-            }
-
-            test('Auto save notebook when window state changes to being not focused', async () => testAutoSavingWithChangesToWindowState(false));
-            test('Auto save notebook when window state changes to being focused', async () => testAutoSavingWithChangesToWindowState(true));
-
-            test('Should not auto save notebook when window state changes', async () => {
-                const notebookFileContents = await fs.readFile(notebookFile.filePath, 'utf8');
-                const dirtyPromise = waitForMessage(ioc, InteractiveWindowMessages.NotebookDirty);
-                const cleanPromise = waitForMessage(ioc, InteractiveWindowMessages.NotebookClean, { timeoutMs: 5_000 });
-
-                await modifyNotebook();
-                await dirtyPromise;
-
-                // Configure notebook to save when active editor changes.
-                when(ioc.mockedWorkspaceConfig.get('autoSave', 'off')).thenReturn('onFocusChange');
-                ioc.forceSettingsChanged(ioc.getSettings().pythonPath);
-
-                // Now that the notebook is dirty, change window state.
-                // This should not trigger a save of notebook (as its configured to save only when focus is changed).
-                windowStateChangeHandlers.forEach(item => item({ focused: false }));
-                windowStateChangeHandlers.forEach(item => item({ focused: true }));
-
-                // Confirm the message is not clean, trying to wait for it to get saved will timeout (i.e. rejected).
-                await expect(cleanPromise).to.eventually.be.rejected;
-                // Confirm file has not been updated as well.
-                assert.equal(await fs.readFile(notebookFile.filePath, 'utf8'), notebookFileContents);
-            }).timeout(10_000);
-        });
-
         suite('Update Metadata', () => {
             setup(async function() {
                 initIoc();
@@ -1637,9 +1426,7 @@ for _ in range(50):
                 const editor = notebookProvider.editors[0];
                 assert.ok(editor, 'No editor when saving');
                 const savedPromise = createDeferred();
-                const metadataUpdatedPromise = createDeferred();
                 const disposeSaved = editor.saved(() => savedPromise.resolve());
-                const disposeMetadataUpdated = editor.metadataUpdated(() => metadataUpdatedPromise.resolve());
 
                 // add cells, run them and save
                 await addCell(wrapper, ioc, 'a=1\na');
@@ -1647,10 +1434,6 @@ for _ in range(50):
                 const threeCellsUpdated = waitForMessage(ioc, InteractiveWindowMessages.ExecutionRendered, { numberOfTimes: 3 });
                 await waitForMessageResponse(ioc, () => runAllButton!.simulate('click'));
                 await threeCellsUpdated;
-
-                // Make sure metadata has updated before we save
-                await metadataUpdatedPromise.promise;
-                disposeMetadataUpdated.dispose();
 
                 simulateKeyPressOnCell(1, { code: 's', ctrlKey: true });
 

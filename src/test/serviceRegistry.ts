@@ -4,11 +4,10 @@
 import { Container } from 'inversify';
 import { anything, instance, mock, when } from 'ts-mockito';
 import * as TypeMoq from 'typemoq';
-import { Disposable, Memento, OutputChannel } from 'vscode';
+import { Disposable, Memento, OutputChannel, Uri } from 'vscode';
 import { STANDARD_OUTPUT_CHANNEL } from '../client/common/constants';
 import { Logger } from '../client/common/logger';
 import { IS_WINDOWS } from '../client/common/platform/constants';
-import { FileSystem } from '../client/common/platform/fileSystem';
 import { PathUtils } from '../client/common/platform/pathUtils';
 import { PlatformService } from '../client/common/platform/platformService';
 import { RegistryImplementation } from '../client/common/platform/registry';
@@ -66,6 +65,7 @@ import { IServiceContainer, IServiceManager } from '../client/ioc/types';
 import { registerTypes as lintersRegisterTypes } from '../client/linters/serviceRegistry';
 import { TEST_OUTPUT_CHANNEL } from '../client/testing/common/constants';
 import { registerTypes as unittestsRegisterTypes } from '../client/testing/serviceRegistry';
+import { MockFileSystem } from './datascience/mockFileSystem';
 import { MockOutputChannel } from './mockClasses';
 import { MockAutoSelectionService } from './mocks/autoSelector';
 import { MockMemento } from './mocks/mementos';
@@ -117,9 +117,13 @@ export class IocContainer {
             this.registerFileSystemTypes();
         }
     }
+    public setFileContents(uri: Uri, contents: string) {
+        const fileSystem = this.serviceManager.get<IFileSystem>(IFileSystem) as MockFileSystem;
+        fileSystem.addFileContents(uri.fsPath, contents);
+    }
     public registerFileSystemTypes() {
         this.serviceManager.addSingleton<IPlatformService>(IPlatformService, PlatformService);
-        this.serviceManager.addSingleton<IFileSystem>(IFileSystem, FileSystem);
+        this.serviceManager.addSingletonInstance<IFileSystem>(IFileSystem, new MockFileSystem(this.serviceManager.get<IPlatformService>(IPlatformService)));
     }
     public registerProcessTypes() {
         processRegisterTypes(this.serviceManager);

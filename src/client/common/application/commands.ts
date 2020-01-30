@@ -6,7 +6,10 @@
 import { CancellationToken, Position, TextDocument, Uri } from 'vscode';
 import { Commands as LSCommands } from '../../activation/languageServer/constants';
 import { Commands as DSCommands } from '../../datascience/constants';
-import { INotebook } from '../../datascience/types';
+import { IEditCell, IInsertCell, ISwapCells } from '../../datascience/interactive-common/interactiveWindowTypes';
+import { LiveKernelModel } from '../../datascience/jupyter/kernels/types';
+import { ICell, IJupyterKernelSpec, INotebook } from '../../datascience/types';
+import { PythonInterpreter } from '../../interpreter/contracts';
 import { CommandSource } from '../../testing/common/constants';
 import { TestFunction, TestsToRun } from '../../testing/common/types';
 import { TestDataItem, TestWorkspaceFolder } from '../../testing/types';
@@ -87,6 +90,9 @@ export interface ICommandNameArgumentTypeMapping extends ICommandNameWithoutArgu
     ['python._loadLanguageServerExtension']: {}[];
     ['python.SelectAndInsertDebugConfiguration']: [TextDocument, Position, CancellationToken];
     ['python.viewLanguageServerOutput']: [];
+    ['vscode.open']: [Uri];
+    ['workbench.action.files.saveAs']: [Uri];
+    ['workbench.action.files.save']: [Uri];
     [Commands.Build_Workspace_Symbols]: [boolean, CancellationToken];
     [Commands.Sort_Imports]: [undefined, Uri];
     [Commands.Exec_In_Terminal]: [undefined, Uri];
@@ -142,4 +148,12 @@ export interface ICommandNameArgumentTypeMapping extends ICommandNameWithoutArgu
     [DSCommands.ScrollToCell]: [string, string];
     [DSCommands.ViewJupyterOutput]: [];
     [DSCommands.SwitchJupyterKernel]: [INotebook | undefined];
+    [DSCommands.NotebookStorage_DeleteAllCells]: [Uri];
+    [DSCommands.NotebookStorage_ModifyCells]: [Uri, ICell[]];
+    [DSCommands.NotebookStorage_EditCell]: [Uri, IEditCell];
+    [DSCommands.NotebookStorage_InsertCell]: [Uri, IInsertCell];
+    [DSCommands.NotebookStorage_RemoveCell]: [Uri, string];
+    [DSCommands.NotebookStorage_SwapCells]: [Uri, ISwapCells];
+    [DSCommands.NotebookStorage_ClearCellOutputs]: [Uri];
+    [DSCommands.NotebookStorage_UpdateVersion]: [Uri, PythonInterpreter | undefined, IJupyterKernelSpec | LiveKernelModel | undefined];
 }

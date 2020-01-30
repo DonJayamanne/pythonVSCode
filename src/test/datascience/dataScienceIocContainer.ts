@@ -54,6 +54,7 @@ import { TerminalManager } from '../../client/common/application/terminalManager
 import {
     IApplicationShell,
     ICommandManager,
+    ICustomEditorService,
     IDebugService,
     IDocumentManager,
     ILiveShareApi,
@@ -146,9 +147,9 @@ import { DataScienceErrorHandler } from '../../client/datascience/errorHandler/e
 import { GatherExecution } from '../../client/datascience/gather/gather';
 import { GatherListener } from '../../client/datascience/gather/gatherListener';
 import { IntellisenseProvider } from '../../client/datascience/interactive-common/intellisense/intellisenseProvider';
-import { AutoSaveService } from '../../client/datascience/interactive-ipynb/autoSaveService';
 import { NativeEditor } from '../../client/datascience/interactive-ipynb/nativeEditor';
 import { NativeEditorCommandListener } from '../../client/datascience/interactive-ipynb/nativeEditorCommandListener';
+import { NativeEditorStorage } from '../../client/datascience/interactive-ipynb/nativeEditorStorage';
 import { InteractiveWindow } from '../../client/datascience/interactive-window/interactiveWindow';
 import { InteractiveWindowCommandListener } from '../../client/datascience/interactive-window/interactiveWindowCommandListener';
 import { JupyterCommandFactory } from '../../client/datascience/jupyter/interpreter/jupyterCommand';
@@ -211,6 +212,7 @@ import {
     INotebookExporter,
     INotebookImporter,
     INotebookServer,
+    INotebookStorage,
     IPlotViewer,
     IPlotViewerProvider,
     IStatusProvider,
@@ -283,6 +285,7 @@ import { MockOutputChannel } from '../mockClasses';
 import { MockAutoSelectionService } from '../mocks/autoSelector';
 import { UnitTestIocContainer } from '../testing/serviceRegistry';
 import { MockCommandManager } from './mockCommandManager';
+import { MockCustomEditorService } from './mockCustomEditorService';
 import { MockDebuggerService } from './mockDebugService';
 import { MockDocumentManager } from './mockDocumentManager';
 import { MockExtensions } from './mockExtensions';
@@ -436,6 +439,8 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
         this.serviceManager.addSingleton<IDebugLocationTracker>(IDebugLocationTracker, DebugLocationTrackerFactory);
         this.serviceManager.addSingleton<INotebookEditorProvider>(INotebookEditorProvider, TestNativeEditorProvider);
         this.serviceManager.add<INotebookEditor>(INotebookEditor, NativeEditor);
+        this.serviceManager.add<INotebookStorage>(INotebookStorage, NativeEditorStorage);
+        this.serviceManager.addSingletonInstance<ICustomEditorService>(ICustomEditorService, new MockCustomEditorService(this.asyncRegistry, this.commandManager));
         this.serviceManager.addSingleton<IDataScienceCommandListener>(IDataScienceCommandListener, NativeEditorCommandListener);
         this.serviceManager.addSingletonInstance<IOutputChannel>(IOutputChannel, mock(MockOutputChannel), JUPYTER_OUTPUT_CHANNEL);
         this.serviceManager.addSingleton<ICryptoUtils>(ICryptoUtils, CryptoUtils);
@@ -469,7 +474,6 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
         this.serviceManager.add<ILanguageServerManager>(ILanguageServerManager, NodeLanguageServerManager, LanguageServerType.Node);
         this.serviceManager.addSingleton<ILanguageServerAnalysisOptions>(ILanguageServerAnalysisOptions, MockLanguageServerAnalysisOptions);
         this.serviceManager.add<IInteractiveWindowListener>(IInteractiveWindowListener, IntellisenseProvider);
-        this.serviceManager.add<IInteractiveWindowListener>(IInteractiveWindowListener, AutoSaveService);
         this.serviceManager.add<IProtocolParser>(IProtocolParser, ProtocolParser);
         this.serviceManager.addSingleton<IDebugService>(IDebugService, MockDebuggerService);
         this.serviceManager.addSingleton<ICellHashProvider>(ICellHashProvider, CellHashProvider);
@@ -765,6 +769,26 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
         await Promise.all(activationServices.map(a => a.activate()));
     }
 
+    public createWebPanel(): IWebPanel {
+        const webPanel = TypeMoq.Mock.ofType<IWebPanel>();
+        webPanel
+            .setup(p => p.postMessage(TypeMoq.It.isAny()))
+            .callback((m: WebPanelMessage) => {
+                const message = createMessageEvent(m);
+                if (this.postMessage) {
+                    this.postMessage(message);
+                } else {
+                    throw new Error('postMessage callback not defined');
+                }
+            });
+        webPanel.setup(p => p.show(TypeMoq.It.isAny())).returns(() => Promise.resolve());
+
+        // See https://github.com/florinn/typemoq/issues/67 for why this is necessary
+        webPanel.setup((p: any) => p.then).returns(() => undefined);
+
+        return webPanel.object;
+    }
+
     // tslint:disable:any
     public createWebView(mount: () => ReactWrapper<any, Readonly<{}>, React.Component>, role: vsls.Role = vsls.Role.None) {
         // Force the container to mock actual live share if necessary
@@ -779,7 +803,7 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
         } else {
             this.webPanelProvider.reset();
         }
-        const webPanel = TypeMoq.Mock.ofType<IWebPanel>();
+        const webPanel = this.createWebPanel();
 
         // Setup the webpanel provider so that it returns our dummy web panel. It will have to talk to our global JSDOM window so that the react components can link into it
         this.webPanelProvider
@@ -804,23 +828,8 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
                 }
 
                 // Return our dummy web panel
-                return Promise.resolve(webPanel.object);
+                return Promise.resolve(webPanel);
             });
-        webPanel
-            .setup(p => p.postMessage(TypeMoq.It.isAny()))
-            .callback((m: WebPanelMessage) => {
-                const message = createMessageEvent(m);
-                if (this.postMessage) {
-                    this.postMessage(message);
-                } else {
-                    throw new Error('postMessage callback not defined');
-                }
-            });
-        webPanel.setup(p => p.show(TypeMoq.It.isAny())).returns(() => Promise.resolve());
-
-        // See https://github.com/florinn/typemoq/issues/67 for why this is necessary
-        webPanel.setup((p: any) => p.then).returns(() => undefined);
-
         // We need to mount the react control before we even create an interactive window object. Otherwise the mount will miss rendering some parts
         this.mountReactControl(mount);
     }

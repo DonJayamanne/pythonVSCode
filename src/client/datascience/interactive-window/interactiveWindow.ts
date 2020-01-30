@@ -30,7 +30,6 @@ import {
     IJupyterDebugger,
     IJupyterExecution,
     IJupyterVariables,
-    INotebookEditorProvider,
     INotebookExporter,
     INotebookServerOptions,
     IStatusProvider,
@@ -77,7 +76,6 @@ export class InteractiveWindow extends InteractiveBase implements IInteractiveWi
         @inject(IDataViewerProvider) dataExplorerProvider: IDataViewerProvider,
         @inject(IJupyterVariables) jupyterVariables: IJupyterVariables,
         @inject(IJupyterDebugger) jupyterDebugger: IJupyterDebugger,
-        @inject(INotebookEditorProvider) editorProvider: INotebookEditorProvider,
         @inject(IDataScienceErrorHandler) errorHandler: IDataScienceErrorHandler,
         @inject(IPersistentStateFactory) private readonly stateFactory: IPersistentStateFactory,
         @inject(IMemento) @named(GLOBAL_MEMENTO) globalStorage: Memento,
@@ -103,7 +101,6 @@ export class InteractiveWindow extends InteractiveBase implements IInteractiveWi
             dataExplorerProvider,
             jupyterVariables,
             jupyterDebugger,
-            editorProvider,
             errorHandler,
             commandManager,
             globalStorage,
@@ -332,7 +329,7 @@ export class InteractiveWindow extends InteractiveBase implements IInteractiveWi
                     filters: filtersObject
                 });
                 if (uri) {
-                    await this.exportToFile(cells, uri.fsPath);
+                    await this.jupyterExporter.exportToFile(cells, uri.fsPath);
                 }
             } finally {
                 this.stopProgress();
