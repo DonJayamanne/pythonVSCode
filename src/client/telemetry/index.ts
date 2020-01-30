@@ -832,6 +832,19 @@ export interface IEventNamePropertyMapping {
          * @type {boolean}
          */
         failed?: boolean;
+        /**
+         * Whether the environment was activated within a terminal or not.
+         *
+         * @type {boolean}
+         */
+        activatedInTerminal?: boolean;
+        /**
+         * Whether the environment was activated by the wrapper class.
+         * If `true`, this telemetry is sent by the class that wraps the two activation providers   .
+         *
+         * @type {boolean}
+         */
+        activatedByWrapper?: boolean;
     };
     /**
      * Telemetry event sent when getting activation commands for active interpreter
@@ -1421,7 +1434,6 @@ export interface IEventNamePropertyMapping {
     [Telemetry.CodeLensAverageAcquisitionTime]: never | undefined;
     [Telemetry.CollapseAll]: never | undefined;
     [Telemetry.ConnectFailedJupyter]: never | undefined;
-    [Telemetry.NotebookExecutionActivated]: never | undefined;
     [Telemetry.ConnectLocalJupyter]: never | undefined;
     [Telemetry.ConnectRemoteJupyter]: never | undefined;
     [Telemetry.ConnectRemoteFailedJupyter]: never | undefined;
@@ -1435,7 +1447,6 @@ export interface IEventNamePropertyMapping {
     [Telemetry.CopySourceCode]: never | undefined;
     [Telemetry.CreateNewNotebook]: never | undefined;
     [Telemetry.DataScienceSettings]: JSONObject;
-    [Telemetry.DataViewerFetchTime]: never | undefined;
     [Telemetry.DebugContinue]: never | undefined;
     [Telemetry.DebugCurrentCell]: never | undefined;
     [Telemetry.DebugStepOver]: never | undefined;
@@ -1469,6 +1480,7 @@ export interface IEventNamePropertyMapping {
     [Telemetry.NotebookOpenTime]: number;
     [Telemetry.PandasNotInstalled]: never | undefined;
     [Telemetry.PandasTooOld]: never | undefined;
+    [Telemetry.PtvsdInstallCancelled]: never | undefined;
     [Telemetry.PtvsdInstallFailed]: never | undefined;
     [Telemetry.PtvsdPromptToInstall]: never | undefined;
     [Telemetry.PtvsdSuccessfullyInstalled]: never | undefined;
@@ -1699,4 +1711,20 @@ export interface IEventNamePropertyMapping {
      * message param is the exception message string.
      */
     [Telemetry.OpenNotebookFailure]: { message: string };
+    /**
+     * Telemetry event sent to capture total time taken for completions list to be provided by LS.
+     * This is used to compare against time taken by Jupyter.
+     *
+     * @type {(undefined | never)}
+     * @memberof IEventNamePropertyMapping
+     */
+    [Telemetry.CompletionTimeFromLS]: undefined | never;
+    /**
+     * Telemetry event sent to capture total time taken for completions list to be provided by Jupyter.
+     * This is used to compare against time taken by LS.
+     *
+     * @type {(undefined | never)}
+     * @memberof IEventNamePropertyMapping
+     */
+    [Telemetry.CompletionTimeFromJupyter]: undefined | never;
 }

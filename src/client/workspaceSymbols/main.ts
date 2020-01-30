@@ -114,7 +114,6 @@ export class WorkspaceSymbols implements Disposable {
                     return;
                 } catch (error) {
                     if (!isNotInstalledError(error)) {
-                        this.outputChannel.show();
                         return;
                     }
                 }

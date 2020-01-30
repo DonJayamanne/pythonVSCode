@@ -7,13 +7,12 @@ import { assert, expect } from 'chai';
 import * as path from 'path';
 import { CryptoUtils } from '../../client/common/crypto';
 import { FileSystem } from '../../client/common/platform/fileSystem';
-import { PlatformService } from '../../client/common/platform/platformService';
 import { EXTENSION_ROOT_DIR_FOR_TESTS } from '../constants';
 
 // tslint:disable-next-line: max-func-body-length
 suite('Crypto Utils', async () => {
     let crypto: CryptoUtils;
-    const fs = new FileSystem(new PlatformService());
+    const fs = new FileSystem();
     const file = path.join(EXTENSION_ROOT_DIR_FOR_TESTS, 'src', 'test', 'common', 'randomWords.txt');
     setup(() => {
         crypto = new CryptoUtils();
@@ -25,6 +24,16 @@ suite('Crypto Utils', async () => {
     test('If hashFormat equals `string`, method createHash() returns a string', async () => {
         const hash = crypto.createHash('blabla', 'string');
         assert.typeOf(hash, 'string', 'Type should be a string');
+    });
+    test('Hashes must be same for same strings (sha256)', async () => {
+        const hash1 = crypto.createHash('blabla', 'string', 'SHA256');
+        const hash2 = crypto.createHash('blabla', 'string', 'SHA256');
+        assert.equal(hash1, hash2);
+    });
+    test('Hashes must be different for different strings (sha256)', async () => {
+        const hash1 = crypto.createHash('Hello', 'string', 'SHA256');
+        const hash2 = crypto.createHash('World', 'string', 'SHA256');
+        assert.notEqual(hash1, hash2);
     });
     test('If hashFormat equals `number`, the hash should not be NaN', async () => {
         let hash = crypto.createHash('test', 'number');

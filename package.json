@@ -1466,6 +1466,8 @@
                             "PtvsdWheels37 - experiment",
                             "Reload - experiment",
                             "AA_testing - experiment",
+                            "WebHostNotebook - experiment",
+                            "UseTerminalToGetActivatedEnvVars - experiment",
                             "All"
                         ]
                     },
@@ -1484,6 +1486,8 @@
                             "PtvsdWheels37 - experiment",
                             "Reload - experiment",
                             "AA_testing - experiment",
+                            "WebHostNotebook - experiment",
+                            "UseTerminalToGetActivatedEnvVars - experiment",
                             "All"
                         ]
                     },
@@ -2787,7 +2791,6 @@
         "compile": "tsc -watch -p ./",
         "compile-webviews-watch": "cross-env NODE_OPTIONS=--max_old_space_size=9096 webpack --config ./build/webpack/webpack.datascience-ui.config.js --watch",
         "checkDependencies": "gulp checkDependencies",
-        "dump-datascience-webpack-stats": "cross-env NODE_OPTIONS=--max_old_space_size=9096 webpack --config ./build/webpack/webpack.datascience-ui.config.js --profile --json > tmp/ds-stats.json",
         "postinstall": "node ./build/ci/postInstall.js",
         "test": "node ./out/test/standardTest.js && node ./out/test/multiRootTest.js",
         "test:unittests": "mocha --opts ./build/.mocha.unittests.js.opts",
@@ -2972,6 +2975,7 @@
         "event-stream": "3.3.4",
         "expose-loader": "^0.7.5",
         "extract-zip": "^1.6.7",
+        "fast-xml-parser": "^3.16.0",
         "filemanager-webpack-plugin": "^2.0.5",
         "flat": "^4.0.0",
         "gulp": "^4.0.0",

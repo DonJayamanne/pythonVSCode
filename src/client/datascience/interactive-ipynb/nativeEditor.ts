@@ -12,7 +12,7 @@ import { IApplicationShell, ICommandManager, IDocumentManager, ILiveShareApi, IW
 import { ContextKey } from '../../common/contextKey';
 import { traceError } from '../../common/logger';
 import { IFileSystem, TemporaryFile } from '../../common/platform/types';
-import { GLOBAL_MEMENTO, IConfigurationService, IDisposableRegistry, IMemento } from '../../common/types';
+import { GLOBAL_MEMENTO, IConfigurationService, IDisposableRegistry, IExperimentsManager, IMemento } from '../../common/types';
 import { createDeferred, Deferred } from '../../common/utils/async';
 import * as localize from '../../common/utils/localize';
 import { StopWatch } from '../../common/utils/stopWatch';
@@ -95,7 +95,8 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
         @inject(INotebookImporter) private importer: INotebookImporter,
         @inject(IDataScienceErrorHandler) errorHandler: IDataScienceErrorHandler,
         @inject(IMemento) @named(GLOBAL_MEMENTO) globalStorage: Memento,
-        @inject(ProgressReporter) progressReporter: ProgressReporter
+        @inject(ProgressReporter) progressReporter: ProgressReporter,
+        @inject(IExperimentsManager) experimentsManager: IExperimentsManager
     ) {
         super(
             progressReporter,
@@ -121,9 +122,10 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
             commandManager,
             globalStorage,
             nativeEditorDir,
-            [path.join(nativeEditorDir, 'index_bundle.js')],
+            [path.join(nativeEditorDir, 'monaco.bundle.js'), path.join(nativeEditorDir, 'commons.initial.bundle.js'), path.join(nativeEditorDir, 'nativeEditor.js')],
             localize.DataScience.nativeEditorTitle(),
-            ViewColumn.Active
+            ViewColumn.Active,
+            experimentsManager
         );
     }
 

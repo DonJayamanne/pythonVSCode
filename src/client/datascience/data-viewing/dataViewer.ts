@@ -9,8 +9,9 @@ import { ViewColumn } from 'vscode';
 
 import { IApplicationShell, IWebPanelProvider, IWorkspaceService } from '../../common/application/types';
 import { EXTENSION_ROOT_DIR } from '../../common/constants';
+import { WebHostNotebook } from '../../common/experimentGroups';
 import { traceError } from '../../common/logger';
-import { IConfigurationService, IDisposable } from '../../common/types';
+import { IConfigurationService, IDisposable, IExperimentsManager } from '../../common/types';
 import * as localize from '../../common/utils/localize';
 import { noop } from '../../common/utils/misc';
 import { StopWatch } from '../../common/utils/stopWatch';
@@ -22,7 +23,7 @@ import { WebViewHost } from '../webViewHost';
 import { DataViewerMessageListener } from './dataViewerMessageListener';
 import { DataViewerMessages, IDataViewerMapping, IGetRowsRequest } from './types';
 
-const dataExplorereDir = path.join(EXTENSION_ROOT_DIR, 'out', 'datascience-ui', 'data-explorer');
+const dataExplorereDir = path.join(EXTENSION_ROOT_DIR, 'out', 'datascience-ui', 'viewers');
 @injectable()
 export class DataViewer extends WebViewHost<IDataViewerMapping> implements IDataViewer, IDisposable {
     private notebook: INotebook | undefined;
@@ -37,7 +38,8 @@ export class DataViewer extends WebViewHost<IDataViewerMapping> implements IData
         @inject(IThemeFinder) themeFinder: IThemeFinder,
         @inject(IWorkspaceService) workspaceService: IWorkspaceService,
         @inject(IJupyterVariables) private variableManager: IJupyterVariables,
-        @inject(IApplicationShell) private applicationShell: IApplicationShell
+        @inject(IApplicationShell) private applicationShell: IApplicationShell,
+        @inject(IExperimentsManager) experimentsManager: IExperimentsManager
     ) {
         super(
             configuration,
@@ -47,9 +49,10 @@ export class DataViewer extends WebViewHost<IDataViewerMapping> implements IData
             workspaceService,
             (c, v, d) => new DataViewerMessageListener(c, v, d),
             dataExplorereDir,
-            [path.join(dataExplorereDir, 'index_bundle.js')],
+            [path.join(dataExplorereDir, 'commons.initial.bundle.js'), path.join(dataExplorereDir, 'dataExplorer.js')],
             localize.DataScience.dataExplorerTitle(),
-            ViewColumn.One
+            ViewColumn.One,
+            experimentsManager.inExperiment(WebHostNotebook.experiment)
         );
 
         // Load the web panel using our current directory as we don't expect to load any other files

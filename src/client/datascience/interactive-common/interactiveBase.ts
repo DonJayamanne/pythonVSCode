@@ -14,9 +14,10 @@ import { ServerStatus } from '../../../datascience-ui/interactive-common/mainSta
 import { IApplicationShell, ICommandManager, IDocumentManager, ILiveShareApi, IWebPanelProvider, IWorkspaceService } from '../../common/application/types';
 import { CancellationError } from '../../common/cancellation';
 import { EXTENSION_ROOT_DIR, PYTHON_LANGUAGE } from '../../common/constants';
+import { WebHostNotebook } from '../../common/experimentGroups';
 import { traceError, traceInfo, traceWarning } from '../../common/logger';
 import { IFileSystem } from '../../common/platform/types';
-import { IConfigurationService, IDisposableRegistry } from '../../common/types';
+import { IConfigurationService, IDisposableRegistry, IExperimentsManager } from '../../common/types';
 import { createDeferred, Deferred } from '../../common/utils/async';
 import * as localize from '../../common/utils/localize';
 import { IInterpreterService, PythonInterpreter } from '../../interpreter/contracts';
@@ -113,7 +114,8 @@ export abstract class InteractiveBase extends WebViewHost<IInteractiveWindowMapp
         @unmanaged() rootPath: string,
         @unmanaged() scripts: string[],
         @unmanaged() title: string,
-        @unmanaged() viewColumn: ViewColumn
+        @unmanaged() viewColumn: ViewColumn,
+        @unmanaged() experimentsManager: IExperimentsManager
     ) {
         super(
             configuration,
@@ -125,7 +127,8 @@ export abstract class InteractiveBase extends WebViewHost<IInteractiveWindowMapp
             rootPath,
             scripts,
             title,
-            viewColumn
+            viewColumn,
+            experimentsManager.inExperiment(WebHostNotebook.experiment)
         );
 
         // Create our unique id. We use this to skip messages we send to other interactive windows

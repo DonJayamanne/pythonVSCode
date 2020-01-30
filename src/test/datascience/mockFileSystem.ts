@@ -3,13 +3,12 @@
 'use strict';
 
 import { FileSystem } from '../../client/common/platform/fileSystem';
-import { IPlatformService } from '../../client/common/platform/types';
 
 export class MockFileSystem extends FileSystem {
     private contentOverloads = new Map<string, string>();
 
-    constructor(platformService: IPlatformService) {
-        super(platformService);
+    constructor() {
+        super();
     }
     public async readFile(filePath: string): Promise<string> {
         const contents = this.contentOverloads.get(filePath);

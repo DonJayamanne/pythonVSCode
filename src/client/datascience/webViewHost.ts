@@ -7,7 +7,7 @@ import { injectable, unmanaged } from 'inversify';
 import { ConfigurationChangeEvent, ViewColumn, WebviewPanel, WorkspaceConfiguration } from 'vscode';
 
 import { IWebPanel, IWebPanelMessageListener, IWebPanelProvider, IWorkspaceService } from '../common/application/types';
-import { traceInfo } from '../common/logger';
+import { traceInfo, traceWarning } from '../common/logger';
 import { IConfigurationService, IDisposable } from '../common/types';
 import { createDeferred, Deferred } from '../common/utils/async';
 import * as localize from '../common/utils/localize';
@@ -41,7 +41,8 @@ export class WebViewHost<IMapping> implements IDisposable {
         @unmanaged() private rootPath: string,
         @unmanaged() private scripts: string[],
         @unmanaged() private title: string,
-        @unmanaged() private viewColumn: ViewColumn
+        @unmanaged() private viewColumn: ViewColumn,
+        @unmanaged() private readonly useWebViewServer: boolean
     ) {
         // Create our message listener for our web panel.
         this.messageListener = messageListenerCtor(this.onMessage.bind(this), this.webPanelViewStateChanged.bind(this), this.dispose.bind(this));
@@ -224,9 +225,18 @@ export class WebViewHost<IMapping> implements IDisposable {
 
             traceInfo('Loading web view...');
 
-            // Determine if we should start an HTTP server or not based on if in the insider's channel or
-            // if it's forced on.
-            const startHttpServer = settings.useWebViewServer !== undefined ? settings.useWebViewServer : insiders !== 'off';
+            let startHttpServer = false;
+
+            if (typeof settings.useWebViewServer === 'boolean') {
+                // Always allow user to turn this feature on/off via settings.
+                startHttpServer = settings.useWebViewServer === true;
+            } else {
+                // Determine if we should start an HTTP server or not based on if in the insider's channel or
+                // if it's forced on.
+                startHttpServer = this.useWebViewServer || insiders !== 'off';
+            }
+
+            traceWarning(`startHttpServer=${startHttpServer}, will not be used. Temporarily turned off`);
 
             // Use this script to create our web view panel. It should contain all of the necessary
             // script to communicate with this class.
@@ -237,7 +247,7 @@ export class WebViewHost<IMapping> implements IDisposable {
                 rootPath: this.rootPath,
                 scripts: this.scripts,
                 settings,
-                startHttpServer,
+                startHttpServer: false,
                 cwd,
                 webViewPanel
             });
