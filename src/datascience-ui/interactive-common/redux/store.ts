@@ -202,7 +202,7 @@ function createMiddleWare(testMode: boolean): Redux.Middleware<{}, IStore>[] {
         }
     });
     const loggerMiddleware = process.env.VSC_PYTHON_FORCE_LOGGING !== undefined || (process.env.NODE_ENV !== 'production' && !testMode) ? logger : undefined;
-
+    // tslint:disable-next-line: no-console
     const results: Redux.Middleware<{}, IStore>[] = [];
     results.push(queueableActions);
     results.push(updateContext);
