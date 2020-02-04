@@ -2979,7 +2979,7 @@
         "husky": "^1.1.2",
         "immutable": "^4.0.0-rc.12",
         "jsdom": "^15.0.0",
-        "less": "^3.9.0",
+        "less": "^3.10.3",
         "less-loader": "^5.0.0",
         "less-plugin-inline-urls": "^1.2.0",
         "loader-utils": "^1.1.0",
