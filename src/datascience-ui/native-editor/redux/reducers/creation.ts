@@ -121,9 +121,6 @@ export namespace Creation {
     }
 
     export function deleteAllCells(arg: NativeEditorReducerArg<IAddCellAction>): IMainState {
-        // Send messages to other side to indicate the deletes
-        arg.queueAction(createPostableAction(InteractiveWindowMessages.DeleteAllCells));
-
         // Just leave one single blank empty cell
         const newVM: ICellViewModel = {
             cell: createEmptyCell(arg.payload.data.newCellId, null),
