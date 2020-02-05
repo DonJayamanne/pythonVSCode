@@ -21,9 +21,9 @@ import { Progress } from '../react-common/progress';
 import { AddCellLine } from './addCellLine';
 import { getConnectedNativeCell } from './nativeCell';
 import './nativeEditor.less';
-import { actionCreators } from './redux/actions';
+import { ActionCreators, mapDispatchToProps } from './redux/actions';
 
-type INativeEditorProps = IMainWithVariables & typeof actionCreators;
+type INativeEditorProps = IMainWithVariables & ActionCreators;
 
 function mapStateToProps(state: IStore): IMainWithVariables {
     return { ...state.main, variableState: state.variables };
@@ -414,5 +414,5 @@ export class NativeEditor extends React.Component<INativeEditorProps> {
 
 // Main export, return a redux connected editor
 export function getConnectedNativeEditor() {
-    return connect(mapStateToProps, actionCreators)(NativeEditor);
+    return connect(mapStateToProps, mapDispatchToProps)(NativeEditor);
 }

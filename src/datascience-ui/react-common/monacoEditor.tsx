@@ -600,7 +600,7 @@ export class MonacoEditor extends React.Component<IMonacoEditorProps, IMonacoEdi
 
         // Find the parameter widget the user is currently hovering over.
         this.parameterWidget = hoverElements.find(item => {
-            if (!item.className) {
+            if (typeof item.className !== 'string') {
                 return false;
             }
             // Check if user is hovering over a parameter widget.

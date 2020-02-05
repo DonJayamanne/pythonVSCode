@@ -3,7 +3,7 @@
 'use strict';
 import * as monacoEditor from 'monaco-editor/esm/vs/editor/editor.api';
 import { IServerState } from '../../../datascience-ui/interactive-common/mainState';
-import { CommonActionType, IAddCellAction, ICellAction } from '../../../datascience-ui/interactive-common/redux/reducers/types';
+import { CommonActionType, IAddCellAction, ICellAction, ICellAndCursorAction } from '../../../datascience-ui/interactive-common/redux/reducers/types';
 import { CssMessages, IGetCssRequest, IGetCssResponse, IGetMonacoThemeRequest, SharedMessages } from '../messages';
 import { IGetMonacoThemeResponse } from '../monacoMessages';
 import { ICell, IInteractiveWindowInfo, IJupyterVariable, IJupyterVariablesRequest, IJupyterVariablesResponse } from '../types';
@@ -377,6 +377,7 @@ export class IInteractiveWindowMapping {
     public [InteractiveWindowMessages.NotebookRunAllCells]: never | undefined;
     public [InteractiveWindowMessages.NotebookRunSelectedCell]: never | undefined;
     public [InteractiveWindowMessages.NotebookAddCellBelow]: IAddCellAction;
+    public [CommonActionType.FOCUS_CELL]: ICellAndCursorAction;
     public [InteractiveWindowMessages.DoSave]: never | undefined;
     public [InteractiveWindowMessages.ExecutionRendered]: IRenderComplete;
     public [InteractiveWindowMessages.FocusedCellEditor]: IFocusedCellEditor;

@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 'use strict';
 import * as monacoEditor from 'monaco-editor/esm/vs/editor/editor.api';
+import { bindActionCreators, Dispatch } from 'redux';
 import * as uuid from 'uuid/v4';
 import { InteractiveWindowMessages, NativeCommandType } from '../../../client/datascience/interactive-common/interactiveWindowTypes';
 import { IJupyterVariable, IJupyterVariablesRequest } from '../../../client/datascience/types';
@@ -10,39 +11,71 @@ import { createIncomingAction, createIncomingActionWithPayload } from '../../int
 import {
     CommonAction,
     CommonActionType,
-    IAddCellAction,
     ICellAction,
     ICellAndCursorAction,
-    IChangeCellTypeAction,
     ICodeAction,
     ICodeCreatedAction,
     IEditCellAction,
-    IExecuteAction,
     ILinkClickAction,
     ISendCommandAction,
     IShowDataViewerAction
 } from '../../interactive-common/redux/reducers/types';
 
+const actionCreatorsWithDispatch = (dispatch: Dispatch) => {
+    return {
+        addCell: () => {
+            const newCellId = uuid();
+            dispatch(createIncomingActionWithPayload(CommonActionType.ADD_NEW_CELL, { newCellId }));
+            dispatch(createIncomingActionWithPayload(CommonActionType.FOCUS_CELL, { cellId: newCellId, cursorPos: CursorPos.Current }));
+        },
+        insertAboveFirst: () => {
+            const newCellId = uuid();
+            dispatch(createIncomingActionWithPayload(CommonActionType.INSERT_ABOVE_FIRST, { newCellId }));
+            dispatch(createIncomingActionWithPayload(CommonActionType.FOCUS_CELL, { cellId: newCellId, cursorPos: CursorPos.Current }));
+        },
+        insertAbove: (cellId: string | undefined) => {
+            // Use settimeout to ensure the newly created cell does not end up with the key that was entered by user.
+            // E.g. if user types `a`, then we create a new cell, however old approach would result in the new editor having a character `a`.
+            setTimeout(() => {
+                const newCellId = uuid();
+                dispatch(createIncomingActionWithPayload(CommonActionType.INSERT_ABOVE, { cellId, newCellId }));
+                dispatch(createIncomingActionWithPayload(CommonActionType.FOCUS_CELL, { cellId: newCellId, cursorPos: CursorPos.Current }));
+            }, 1);
+        },
+        insertBelow: (cellId: string | undefined) => {
+            if (!cellId) {
+                return;
+            }
+            // Use settimeout to ensure the newly created cell does not end up with the key that was entered by user.
+            // E.g. if user types `a`, then we create a new cell, however old approach would result in the new editor having a character `a`.
+            setTimeout(() => {
+                const newCellId = uuid();
+                dispatch(createIncomingActionWithPayload(CommonActionType.INSERT_BELOW, { cellId, newCellId }));
+                dispatch(createIncomingActionWithPayload(CommonActionType.FOCUS_CELL, { cellId: newCellId, cursorPos: CursorPos.Current }));
+            }, 1);
+        },
+        executeCell: (cellId: string, code: string, moveOp: 'add' | 'select' | 'none') => {
+            dispatch(createIncomingActionWithPayload(CommonActionType.EXECUTE_CELL, { cellId, code, moveOp }));
+            if (moveOp === 'add') {
+                const newCellId = uuid();
+                dispatch(createIncomingActionWithPayload(CommonActionType.INSERT_BELOW, { cellId, newCellId }));
+                dispatch(createIncomingActionWithPayload(CommonActionType.FOCUS_CELL, { cellId: newCellId, cursorPos: CursorPos.Current }));
+            }
+        },
+        changeCellType: (cellId: string, currentCode: string) => {
+            dispatch(createIncomingActionWithPayload(CommonActionType.CHANGE_CELL_TYPE, { cellId, currentCode }));
+            dispatch(createIncomingActionWithPayload(CommonActionType.FOCUS_CELL, { cellId, cursorPos: CursorPos.Current }));
+        }
+    };
+};
+
 // See https://react-redux.js.org/using-react-redux/connect-mapdispatch#defining-mapdispatchtoprops-as-an-object
-export const actionCreators = {
-    insertAbove: (cellId: string | undefined): CommonAction<ICellAction & IAddCellAction> =>
-        createIncomingActionWithPayload(CommonActionType.INSERT_ABOVE, { cellId, newCellId: uuid() }),
-    insertAboveFirst: (): CommonAction<IAddCellAction> => createIncomingActionWithPayload(CommonActionType.INSERT_ABOVE_FIRST, { newCellId: uuid() }),
-    insertBelow: (cellId: string | undefined): CommonAction<ICellAction & IAddCellAction> =>
-        createIncomingActionWithPayload(CommonActionType.INSERT_BELOW, { cellId, newCellId: uuid() }),
+const actionCreators = {
     focusCell: (cellId: string, cursorPos: CursorPos = CursorPos.Current): CommonAction<ICellAndCursorAction> =>
         createIncomingActionWithPayload(CommonActionType.FOCUS_CELL, { cellId, cursorPos }),
     unfocusCell: (cellId: string, code: string): CommonAction<ICodeAction> => createIncomingActionWithPayload(CommonActionType.UNFOCUS_CELL, { cellId, code }),
     selectCell: (cellId: string, cursorPos: CursorPos = CursorPos.Current): CommonAction<ICellAndCursorAction> =>
         createIncomingActionWithPayload(CommonActionType.SELECT_CELL, { cellId, cursorPos }),
-    addCell: (): CommonAction<IAddCellAction> => createIncomingActionWithPayload(CommonActionType.ADD_NEW_CELL, { newCellId: uuid() }),
-    executeCell: (cellId: string, code: string, moveOp: 'add' | 'select' | 'none'): CommonAction<IExecuteAction> => {
-        if (moveOp === 'add') {
-            return createIncomingActionWithPayload(CommonActionType.EXECUTE_CELL, { cellId, code, moveOp, newCellId: uuid() });
-        } else {
-            return createIncomingActionWithPayload(CommonActionType.EXECUTE_CELL, { cellId, code, moveOp });
-        }
-    },
     executeAllCells: (): CommonAction => createIncomingAction(CommonActionType.EXECUTE_ALL_CELLS),
     executeAbove: (cellId: string): CommonAction<ICellAction> => createIncomingActionWithPayload(CommonActionType.EXECUTE_ABOVE, { cellId }),
     executeCellAndBelow: (cellId: string, code: string): CommonAction<ICodeAction> => createIncomingActionWithPayload(CommonActionType.EXECUTE_CELL_AND_BELOW, { cellId, code }),
@@ -58,8 +91,7 @@ export const actionCreators = {
         createIncomingActionWithPayload(CommonActionType.SEND_COMMAND, { command, commandType }),
     moveCellUp: (cellId: string): CommonAction<ICellAction> => createIncomingActionWithPayload(CommonActionType.MOVE_CELL_UP, { cellId }),
     moveCellDown: (cellId: string): CommonAction<ICellAction> => createIncomingActionWithPayload(CommonActionType.MOVE_CELL_DOWN, { cellId }),
-    changeCellType: (cellId: string, currentCode: string): CommonAction<IChangeCellTypeAction> =>
-        createIncomingActionWithPayload(CommonActionType.CHANGE_CELL_TYPE, { cellId, currentCode }),
+    // changeCellType: (cellId: string, currentCode: string) => createIncomingActionWithPayload(CommonActionType.CHANGE_CELL_TYPE, { cellId, currentCode }),
     toggleLineNumbers: (cellId: string): CommonAction<ICellAction> => createIncomingActionWithPayload(CommonActionType.TOGGLE_LINE_NUMBERS, { cellId }),
     toggleOutput: (cellId: string): CommonAction<ICellAction> => createIncomingActionWithPayload(CommonActionType.TOGGLE_OUTPUT, { cellId }),
     deleteCell: (cellId: string): CommonAction<ICellAction> => createIncomingActionWithPayload(InteractiveWindowMessages.DeleteCell, { cellId }),
@@ -82,3 +114,12 @@ export const actionCreators = {
     getVariableData: (newExecutionCount: number, startIndex: number = 0, pageSize: number = 100): CommonAction<IJupyterVariablesRequest> =>
         createIncomingActionWithPayload(CommonActionType.GET_VARIABLE_DATA, { executionCount: newExecutionCount, sortColumn: 'name', sortAscending: true, startIndex, pageSize })
 };
+
+export type ActionCreators = typeof actionCreators & ReturnType<typeof actionCreatorsWithDispatch>;
+
+export function mapDispatchToProps(dispatch: Dispatch): ActionCreators {
+    return {
+        ...actionCreatorsWithDispatch(dispatch),
+        ...bindActionCreators(actionCreators, dispatch)
+    };
+}

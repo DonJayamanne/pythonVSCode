@@ -14,7 +14,6 @@ import { Helpers } from '../../../interactive-common/redux/reducers/helpers';
 import { CommonActionType, ICellAction, IChangeCellTypeAction, ICodeAction, IExecuteAction } from '../../../interactive-common/redux/reducers/types';
 import { QueueAnotherFunc } from '../../../react-common/reduxUtils';
 import { NativeEditorReducerArg } from '../mapping';
-import { Creation } from './creation';
 import { Effects } from './effects';
 
 export namespace Execution {
@@ -69,11 +68,7 @@ export namespace Execution {
             const executeResult = executeRange(arg.prevState, index, index, [arg.payload.data.code], arg.queueAction);
 
             // Modify the execute result if moving
-            // Use `if` instead of `switch case` to ensure type safety.
-            if (arg.payload.data.moveOp === 'add') {
-                // Add a new cell below
-                return Creation.insertBelow({ ...arg, prevState: executeResult, payload: { ...arg.payload, data: { ...arg.payload.data } } });
-            } else if (arg.payload.data.moveOp === 'select') {
+            if (arg.payload.data.moveOp === 'select') {
                 // Select the cell below this one, but don't focus it
                 if (index < arg.prevState.cellVMs.length - 1) {
                     return Effects.selectCell(
@@ -186,12 +181,10 @@ export namespace Execution {
                 arg.queueAction(createPostableAction(InteractiveWindowMessages.RemoveCell, { id: current.cell.id }));
             }
 
-            // When changing a cell type, also give the cell focus.
-            return Effects.focusCell({
-                ...arg,
-                prevState: { ...arg.prevState, cellVMs },
-                payload: { ...arg.payload, data: { cellId: arg.payload.data.cellId, cursorPos: CursorPos.Current } }
-            });
+            return {
+                ...arg.prevState,
+                cellVMs
+            };
         }
 
         return arg.prevState;

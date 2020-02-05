@@ -25,7 +25,7 @@ import { Image, ImageName } from '../react-common/image';
 import { ImageButton } from '../react-common/imageButton';
 import { getLocString } from '../react-common/locReactSide';
 import { AddCellLine } from './addCellLine';
-import { actionCreators } from './redux/actions';
+import { ActionCreators, mapDispatchToProps } from './redux/actions';
 
 interface INativeCellBaseProps {
     role?: string;
@@ -44,7 +44,7 @@ interface INativeCellBaseProps {
     themeMatplotlibPlots: boolean | undefined;
 }
 
-type INativeCellProps = INativeCellBaseProps & typeof actionCreators;
+type INativeCellProps = INativeCellBaseProps & ActionCreators;
 
 // tslint:disable: react-this-binding-issue
 export class NativeCell extends React.Component<INativeCellProps> {
@@ -689,5 +689,5 @@ export class NativeCell extends React.Component<INativeCellProps> {
 
 // Main export, return a redux connected editor
 export function getConnectedNativeCell() {
-    return connect(null, actionCreators)(NativeCell);
+    return connect(null, mapDispatchToProps)(NativeCell);
 }

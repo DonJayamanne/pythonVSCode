@@ -7,7 +7,10 @@ import { inject, injectable, multiInject, named } from 'inversify';
 import * as path from 'path';
 import { Event, EventEmitter, Memento, Uri, ViewColumn, WebviewPanel } from 'vscode';
 
+import * as uuid from 'uuid/v4';
 import { createCodeCell, createErrorOutput } from '../../../datascience-ui/common/cellFactory';
+import { CursorPos } from '../../../datascience-ui/interactive-common/mainState';
+import { CommonActionType } from '../../../datascience-ui/interactive-common/redux/reducers/types';
 import { IApplicationShell, ICommandManager, IDocumentManager, ILiveShareApi, IWebPanelProvider, IWorkspaceService } from '../../common/application/types';
 import { ContextKey } from '../../common/contextKey';
 import { traceError } from '../../common/logger';
@@ -273,7 +276,10 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
     }
 
     public addCellBelow() {
-        this.postMessage(InteractiveWindowMessages.NotebookAddCellBelow).ignoreErrors();
+        const newCellId = uuid();
+        this.postMessage(InteractiveWindowMessages.NotebookAddCellBelow, { newCellId }).ignoreErrors();
+        // tslint:disable-next-line: no-any
+        this.postMessage(CommonActionType.FOCUS_CELL, { cellId: newCellId, cursorPos: CursorPos.Top } as any).ignoreErrors();
     }
 
     public async removeAllCells(): Promise<void> {

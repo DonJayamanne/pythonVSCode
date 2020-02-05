@@ -8,7 +8,6 @@ import { createCellVM, createEmptyCell, CursorPos, extractInputText, getSelected
 import { createPostableAction } from '../../../interactive-common/redux/helpers';
 import { Helpers } from '../../../interactive-common/redux/reducers/helpers';
 import { IAddCellAction, ICellAction } from '../../../interactive-common/redux/reducers/types';
-import { actionCreators } from '../actions';
 import { NativeEditorReducerArg } from '../mapping';
 
 export namespace Creation {
@@ -60,11 +59,6 @@ export namespace Creation {
             createPostableAction(InteractiveWindowMessages.InsertCell, { cell: newVM.cell, index: position, code: '', codeCellAboveId: findFirstCodeCellAbove(newList, position) })
         );
 
-        // Queue up an action to set focus to the cell we're inserting
-        setTimeout(() => {
-            arg.queueAction(actionCreators.focusCell(newVM.cell.id));
-        });
-
         return result;
     }
 
@@ -94,11 +88,6 @@ export namespace Creation {
         arg.queueAction(
             createPostableAction(InteractiveWindowMessages.InsertCell, { cell: newVM.cell, index, code: '', codeCellAboveId: findFirstCodeCellAbove(newList, position) })
         );
-
-        // Queue up an action to set focus to the cell we're inserting
-        setTimeout(() => {
-            arg.queueAction(actionCreators.focusCell(newVM.cell.id));
-        });
 
         return result;
     }

@@ -3,7 +3,7 @@
 'use strict';
 import * as monacoEditor from 'monaco-editor/esm/vs/editor/editor.api';
 
-import { InteractiveWindowMessages, IShowDataViewer, NativeCommandType } from '../../../../client/datascience/interactive-common/interactiveWindowTypes';
+import { IInteractiveWindowMapping, InteractiveWindowMessages, IShowDataViewer, NativeCommandType } from '../../../../client/datascience/interactive-common/interactiveWindowTypes';
 import { BaseReduxActionPayload } from '../../../../client/datascience/interactive-common/types';
 import { IJupyterVariablesRequest } from '../../../../client/datascience/types';
 import { ActionWithPayload, ReducerArg } from '../../../react-common/reduxUtils';
@@ -71,7 +71,7 @@ export type CommonActionTypeMapping = {
     [CommonActionType.INSERT_BELOW]: ICellAction & IAddCellAction;
     [CommonActionType.INSERT_ABOVE_FIRST]: IAddCellAction;
     [CommonActionType.FOCUS_CELL]: ICellAndCursorAction;
-    [CommonActionType.UNFOCUS_CELL]: ICodeAction;
+    [CommonActionType.UNFOCUS_CELL]: ICellAction | ICodeAction;
     [CommonActionType.ADD_NEW_CELL]: IAddCellAction;
     [CommonActionType.EDIT_CELL]: IEditCellAction;
     [CommonActionType.EXECUTE_CELL]: IExecuteAction;
@@ -145,14 +145,9 @@ export interface IEditCellAction extends ICodeAction {
 
 // I.e. when using the operation `add`, we need the corresponding `IAddCellAction`.
 // They are mutually exclusive, if not `add`, then there's no `newCellId`.
-export type IExecuteAction =
-    | (ICodeAction & {
-          moveOp: 'select' | 'none';
-      })
-    | (ICodeAction &
-          IAddCellAction & {
-              moveOp: 'add';
-          });
+export type IExecuteAction = ICodeAction & {
+    moveOp: 'select' | 'none' | 'add';
+};
 
 export interface ICodeCreatedAction extends ICellAction {
     modelId: string;
@@ -178,3 +173,20 @@ export interface IChangeCellTypeAction {
     currentCode: string;
 }
 export type CommonAction<T = never | undefined> = ActionWithPayload<T, CommonActionType | InteractiveWindowMessages>;
+
+/*
+ Create a type which has `unknown` for all `CustomActionType` items that do not have a corresponding entry in `CommonActionTypeMapping`.
+ This provides the ability for strong typeing of actions created for a specific command type.
+ */
+type UnknownTypeForMissingMappings = CommonActionTypeMapping & { [W in CommonActionType]: unknown };
+
+export function createIncomingActionWithPayload<K extends CommonActionType, V extends UnknownTypeForMissingMappings[K]>(type: K, data: V): CommonAction<V>;
+export function createIncomingActionWithPayload<T extends IInteractiveWindowMapping, K extends InteractiveWindowMessages, P extends T[K]>(type: K, data: P): CommonAction<P>;
+// tslint:disable-next-line: no-any
+export function createIncomingActionWithPayload(type: any, data: any): CommonAction<any> {
+    // tslint:disable-next-line: no-any
+    return { type, payload: ({ data, messageDirection: 'incoming' } as any) as BaseReduxActionPayload<any> } as any;
+}
+export function createIncomingAction(type: CommonActionType | InteractiveWindowMessages): CommonAction {
+    return { type, payload: { messageDirection: 'incoming', data: undefined } };
+}
