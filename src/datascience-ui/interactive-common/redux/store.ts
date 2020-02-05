@@ -16,7 +16,8 @@ import { combineReducers, createQueueableActionMiddleware, QueuableAction } from
 import { computeEditorOptions, getDefaultSettings } from '../../react-common/settingsReactSide';
 import { createEditableCellVM, generateTestState } from '../mainState';
 import { forceLoad } from '../transforms';
-import { AllowedMessages, createPostableAction, generatePostOfficeSendReducer } from './postOffice';
+import { createPostableAction, isAllowedAction, isAllowedMessage } from './helpers';
+import { generatePostOfficeSendReducer } from './postOffice';
 import { generateMonacoReducer, IMonacoState } from './reducers/monaco';
 import { generateVariableReducer, IVariableState } from './reducers/variables';
 
@@ -71,6 +72,11 @@ function createSendInfoMiddleware(): Redux.Middleware<{}, IStore> {
         const prevState = store.getState();
         const res = next(action);
         const afterState = store.getState();
+
+        // If the action is part of a sync message, then do not send it to the extension.
+        if (action.payload && typeof (action.payload as BaseReduxActionPayload).messageType === 'number') {
+            return res;
+        }
 
         // If cell vm count changed or selected cell changed, send the message
         const currentSelection = getSelectedAndFocusedInfo(afterState.main);
@@ -232,6 +238,21 @@ export interface IMainWithVariables extends IMainState {
     variableState: IVariableState;
 }
 
+/**
+ * Middleware that will ensure all actions have `messageDirection` property.
+ */
+const addMessageDirectionMiddleware: Redux.Middleware = _store => next => (action: Redux.AnyAction) => {
+    if (isAllowedAction(action)) {
+        // Ensure all dispatched messages have been flagged as `incoming`.
+        const payload: BaseReduxActionPayload<{}> = action.payload || {};
+        if (!payload.messageDirection) {
+            action.payload = { ...payload, messageDirection: 'incoming' };
+        }
+    }
+
+    return next(action);
+};
+
 export function createStore<M>(skipDefault: boolean, baseTheme: string, testMode: boolean, editable: boolean, reducerMap: M) {
     // Create a post office to listen to store dispatches and allow reducers to
     // send messages
@@ -258,7 +279,7 @@ export function createStore<M>(skipDefault: boolean, baseTheme: string, testMode
     });
 
     // Create our middleware
-    const middleware = createMiddleWare(testMode);
+    const middleware = createMiddleWare(testMode).concat([addMessageDirectionMiddleware]);
 
     // Use this reducer and middle ware to create a store
     const store = Redux.createStore(rootReducer, Redux.applyMiddleware(...middleware));
@@ -269,21 +290,17 @@ export function createStore<M>(skipDefault: boolean, baseTheme: string, testMode
         // tslint:disable-next-line: no-any
         handleMessage(message: string, payload?: any): boolean {
             // Double check this is one of our messages. React will actually post messages here too during development
-            if (!AllowedMessages.find(k => k === message)) {
-                return true;
-            }
-            // Add `isIncomingMessage` property so we can differentiate between messages in reducers.
-            // This way we:
-            // - Have one reducer for incoming
-            // - Have another reducer for outgoing
-            let basePayload = payload as BaseReduxActionPayload<{}> | undefined;
-            if (!basePayload?.broadcastReason && !basePayload?.messageDirection) {
-                // Re-wrap to indicate this is an incoming message.
-                basePayload = { data: payload, messageDirection: 'incoming' };
-            }
-            if (AllowedMessages.find(k => k === message) && basePayload.messageDirection !== 'outgoing') {
+            if (isAllowedMessage(message)) {
+                const basePayload: BaseReduxActionPayload = { data: payload };
+                if (message === InteractiveWindowMessages.Sync) {
+                    // Unwrap the message.
+                    message = payload.type;
+                    basePayload.messageType = payload.payload.messageType;
+                    basePayload.data = payload.payload.data;
+                }
                 store.dispatch({ type: message, payload: basePayload });
             }
+
             return true;
         }
     });
