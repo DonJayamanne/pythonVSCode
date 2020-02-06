@@ -7,7 +7,7 @@ import * as Redux from 'redux';
 import { IInteractiveWindowMapping, InteractiveWindowMessages } from '../../../client/datascience/interactive-common/interactiveWindowTypes';
 import { BaseReduxActionPayload } from '../../../client/datascience/interactive-common/types';
 import { CssMessages, SharedMessages } from '../../../client/datascience/messages';
-import { CommonAction, CommonActionType } from './reducers/types';
+import { CommonAction, CommonActionType, CommonActionTypeMapping } from './reducers/types';
 
 const AllowedMessages = [...Object.values(InteractiveWindowMessages), ...Object.values(CssMessages), ...Object.values(SharedMessages), ...Object.values(CommonActionType)];
 export function isAllowedMessage(message: string) {
@@ -18,9 +18,9 @@ export function isAllowedAction(action: Redux.AnyAction) {
     return isAllowedMessage(action.type);
 }
 
-export function createIncomingActionWithPayload<T>(type: CommonActionType | InteractiveWindowMessages, data: T): CommonAction<T> {
+export function createIncomingActionWithPayload<M extends IInteractiveWindowMapping & CommonActionTypeMapping, K extends keyof M>(type: K, data: M[K]): CommonAction<M[K]> {
     // tslint:disable-next-line: no-any
-    return { type, payload: ({ data, messageDirection: 'incoming' } as any) as BaseReduxActionPayload<T> };
+    return { type, payload: { data, messageDirection: 'incoming' } as any } as any;
 }
 export function createIncomingAction(type: CommonActionType | InteractiveWindowMessages): CommonAction {
     return { type, payload: { messageDirection: 'incoming', data: undefined } };

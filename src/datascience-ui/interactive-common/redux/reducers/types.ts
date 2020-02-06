@@ -3,7 +3,7 @@
 'use strict';
 import * as monacoEditor from 'monaco-editor/esm/vs/editor/editor.api';
 
-import { IInteractiveWindowMapping, InteractiveWindowMessages, IShowDataViewer, NativeCommandType } from '../../../../client/datascience/interactive-common/interactiveWindowTypes';
+import { InteractiveWindowMessages, IShowDataViewer, NativeCommandType } from '../../../../client/datascience/interactive-common/interactiveWindowTypes';
 import { BaseReduxActionPayload } from '../../../../client/datascience/interactive-common/types';
 import { IJupyterVariablesRequest } from '../../../../client/datascience/types';
 import { ActionWithPayload, ReducerArg } from '../../../react-common/reduxUtils';
@@ -107,6 +107,8 @@ export type CommonActionTypeMapping = {
     [CommonActionType.CODE_CREATED]: ICodeCreatedAction;
     [CommonActionType.GET_VARIABLE_DATA]: IJupyterVariablesRequest;
     [CommonActionType.TOGGLE_VARIABLE_EXPLORER]: never | undefined;
+    [CommonActionType.PostOutgoingMessage]: never | undefined;
+    [CommonActionType.REFRESH_VARIABLES]: never | undefined;
 };
 
 export interface IShowDataViewerAction extends IShowDataViewer {}
@@ -173,20 +175,3 @@ export interface IChangeCellTypeAction {
     currentCode: string;
 }
 export type CommonAction<T = never | undefined> = ActionWithPayload<T, CommonActionType | InteractiveWindowMessages>;
-
-/*
- Create a type which has `unknown` for all `CustomActionType` items that do not have a corresponding entry in `CommonActionTypeMapping`.
- This provides the ability for strong typeing of actions created for a specific command type.
- */
-type UnknownTypeForMissingMappings = CommonActionTypeMapping & { [W in CommonActionType]: unknown };
-
-export function createIncomingActionWithPayload<K extends CommonActionType, V extends UnknownTypeForMissingMappings[K]>(type: K, data: V): CommonAction<V>;
-export function createIncomingActionWithPayload<T extends IInteractiveWindowMapping, K extends InteractiveWindowMessages, P extends T[K]>(type: K, data: P): CommonAction<P>;
-// tslint:disable-next-line: no-any
-export function createIncomingActionWithPayload(type: any, data: any): CommonAction<any> {
-    // tslint:disable-next-line: no-any
-    return { type, payload: ({ data, messageDirection: 'incoming' } as any) as BaseReduxActionPayload<any> } as any;
-}
-export function createIncomingAction(type: CommonActionType | InteractiveWindowMessages): CommonAction {
-    return { type, payload: { messageDirection: 'incoming', data: undefined } };
-}
