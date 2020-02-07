@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 'use strict';
-import * as monacoEditor from 'monaco-editor/esm/vs/editor/editor.api';
 import { bindActionCreators, Dispatch } from 'redux';
 import * as uuid from 'uuid/v4';
 import { InteractiveWindowMessages, NativeCommandType } from '../../../client/datascience/interactive-common/interactiveWindowTypes';
@@ -20,6 +19,7 @@ import {
     ISendCommandAction,
     IShowDataViewerAction
 } from '../../interactive-common/redux/reducers/types';
+import { IMonacoModelContentChangeEvent } from '../../react-common/monacoHelpers';
 
 // See https://react-redux.js.org/using-react-redux/connect-mapdispatch#defining-mapdispatchtoprops-as-an-object
 const actionCreators = {
@@ -53,13 +53,21 @@ const actionCreators = {
     // changeCellType: (cellId: string, currentCode: string) => createIncomingActionWithPayload(CommonActionType.CHANGE_CELL_TYPE, { cellId, currentCode }),
     toggleLineNumbers: (cellId: string): CommonAction<ICellAction> => createIncomingActionWithPayload(CommonActionType.TOGGLE_LINE_NUMBERS, { cellId }),
     toggleOutput: (cellId: string): CommonAction<ICellAction> => createIncomingActionWithPayload(CommonActionType.TOGGLE_OUTPUT, { cellId }),
-    deleteCell: (cellId: string): CommonAction<ICellAction> => createIncomingActionWithPayload(InteractiveWindowMessages.DeleteCell, { cellId }),
+    deleteCell: (cellId: string): CommonAction<ICellAction> => createIncomingActionWithPayload(CommonActionType.DELETE_CELL, { cellId }),
     undo: (): CommonAction => createIncomingAction(InteractiveWindowMessages.Undo),
     redo: (): CommonAction => createIncomingAction(InteractiveWindowMessages.Redo),
     arrowUp: (cellId: string, code: string): CommonAction<ICodeAction> => createIncomingActionWithPayload(CommonActionType.ARROW_UP, { cellId, code }),
     arrowDown: (cellId: string, code: string): CommonAction<ICodeAction> => createIncomingActionWithPayload(CommonActionType.ARROW_DOWN, { cellId, code }),
-    editCell: (cellId: string, changes: monacoEditor.editor.IModelContentChange[], modelId: string, code: string): CommonAction<IEditCellAction> =>
-        createIncomingActionWithPayload(CommonActionType.EDIT_CELL, { cellId, changes, modelId, code }),
+    editCell: (cellId: string, e: IMonacoModelContentChangeEvent): CommonAction<IEditCellAction> =>
+        createIncomingActionWithPayload(CommonActionType.EDIT_CELL, {
+            cellId,
+            version: e.versionId,
+            modelId: e.model.id,
+            forward: e.forward,
+            reverse: e.reverse,
+            id: cellId,
+            code: e.model.getValue()
+        }),
     linkClick: (href: string): CommonAction<ILinkClickAction> => createIncomingActionWithPayload(CommonActionType.LINK_CLICK, { href }),
     showPlot: (imageHtml: string) => createIncomingActionWithPayload(InteractiveWindowMessages.ShowPlot, imageHtml),
     gatherCell: (cellId: string | undefined): CommonAction<ICellAction> => createIncomingActionWithPayload(CommonActionType.GATHER_CELL, { cellId }),

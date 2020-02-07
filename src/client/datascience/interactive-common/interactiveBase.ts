@@ -69,7 +69,8 @@ import {
     INotebookServerOptions,
     InterruptResult,
     IStatusProvider,
-    IThemeFinder
+    IThemeFinder,
+    WebViewViewChangeEventArgs
 } from '../types';
 import { WebViewHost } from '../webViewHost';
 import { InteractiveWindowMessageListener } from './interactiveWindowMessageListener';
@@ -85,6 +86,7 @@ export abstract class InteractiveBase extends WebViewHost<IInteractiveWindowMapp
     private _id: string;
     private executeEvent: EventEmitter<string> = new EventEmitter<string>();
     private serverAndNotebookPromise: Promise<void> | undefined;
+    private notebookPromise: Promise<void> | undefined;
     private setDarkPromise: Deferred<boolean> | undefined;
     public get notebook(): INotebook | undefined {
         return this._notebook;
@@ -207,14 +209,6 @@ export abstract class InteractiveBase extends WebViewHost<IInteractiveWindowMapp
 
             case InteractiveWindowMessages.ReExecuteCell:
                 this.handleMessage(message, payload, this.reexecuteCell);
-                break;
-
-            case InteractiveWindowMessages.DeleteAllCells:
-                this.logTelemetry(Telemetry.DeleteAllCells);
-                break;
-
-            case InteractiveWindowMessages.DeleteCell:
-                this.logTelemetry(Telemetry.DeleteCell);
                 break;
 
             case InteractiveWindowMessages.Undo:
@@ -393,7 +387,7 @@ export abstract class InteractiveBase extends WebViewHost<IInteractiveWindowMapp
         });
     }
 
-    protected onViewStateChanged(_visible: boolean, active: boolean) {
+    protected onViewStateChanged(args: WebViewViewChangeEventArgs) {
         // Only activate if the active editor is empty. This means that
         // vscode thinks we are actually supposed to have focus. It would be
         // nice if they would more accurrately tell us this, but this works for now.
@@ -402,7 +396,7 @@ export abstract class InteractiveBase extends WebViewHost<IInteractiveWindowMapp
         // it's been activated. However if there's no active text editor and we're active, we
         // can safely attempt to give ourselves focus. This won't actually give us focus if we aren't
         // allowed to have it.
-        if (active && !this.viewState.active) {
+        if (args.current.active && !args.previous.active) {
             this.activating().ignoreErrors();
         }
     }
@@ -906,23 +900,44 @@ export abstract class InteractiveBase extends WebViewHost<IInteractiveWindowMapp
     };
 
     private async stopServer(): Promise<void> {
+        // Finish either of our notebook promises
         if (this.serverAndNotebookPromise) {
             await this.serverAndNotebookPromise;
             this.serverAndNotebookPromise = undefined;
-            if (this._notebook) {
-                const server = this._notebook;
-                this._notebook = undefined;
-                await server.dispose();
-            }
+        }
+        if (this.notebookPromise) {
+            await this.notebookPromise;
+            this.notebookPromise = undefined;
+        }
+        // If we have a notebook dispose of it
+        if (this._notebook) {
+            const server = this._notebook;
+            this._notebook = undefined;
+            await server.dispose();
         }
     }
 
+    // ensureNotebook can be called apart from ensureNotebookAndServer and it needs
+    // the same protection to not be called twice
     private async ensureNotebook(server: INotebookServer): Promise<void> {
+        if (!this.notebookPromise) {
+            this.notebookPromise = this.ensureNotebookImpl(server);
+        }
+        try {
+            await this.notebookPromise;
+        } catch (e) {
+            // Reset the load promise. Don't want to keep hitting the same error
+            this.notebookPromise = undefined;
+            throw e;
+        }
+    }
+
+    private async ensureNotebookImpl(server: INotebookServer): Promise<void> {
         // Create a new notebook if we need to.
         if (!this._notebook) {
-            this._notebook = await server.createNotebook(await this.getNotebookIdentity());
+            const [uri, options] = await Promise.all([this.getNotebookIdentity(), this.getNotebookOptions()]);
+            this._notebook = await server.createNotebook(uri, options.metadata);
             if (this._notebook) {
-                const uri: Uri = await this.getNotebookIdentity();
                 this.postMessage(InteractiveWindowMessages.NotebookExecutionActivated, uri.toString()).ignoreErrors();
 
                 const statusChangeHandler = async (status: ServerStatus) => {
@@ -989,6 +1004,7 @@ export abstract class InteractiveBase extends WebViewHost<IInteractiveWindowMapp
             this._notebook = undefined;
         } finally {
             this.serverAndNotebookPromise = undefined;
+            this.notebookPromise = undefined;
         }
         await this.ensureServerAndNotebook();
     }

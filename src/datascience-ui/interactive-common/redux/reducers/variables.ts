@@ -22,7 +22,7 @@ type VariableReducerFunc<T = never | undefined> = ReducerFunc<IVariableState, In
 type VariableReducerArg<T = never | undefined> = ReducerArg<IVariableState, InteractiveWindowMessages, BaseReduxActionPayload<T>>;
 
 function handleRequest(arg: VariableReducerArg<IJupyterVariablesRequest>): IVariableState {
-    const newExecutionCount = arg.payload.data.executionCount ? arg.payload.data.executionCount : arg.prevState.currentExecutionCount;
+    const newExecutionCount = arg.payload.data.executionCount !== undefined ? arg.payload.data.executionCount : arg.prevState.currentExecutionCount;
     arg.queueAction(
         createPostableAction(InteractiveWindowMessages.GetVariablesRequest, {
             executionCount: newExecutionCount,
@@ -111,10 +111,15 @@ function handleResponse(arg: VariableReducerArg<IJupyterVariablesResponse>): IVa
 function handleRestarted(arg: VariableReducerArg): IVariableState {
     // If the variables are visible, refresh them
     if (arg.prevState.visible) {
-        return handleRequest({
+        const result = handleRequest({
             ...arg,
             payload: { ...arg.payload, data: { executionCount: 0, sortColumn: 'name', sortAscending: true, startIndex: 0, pageSize: arg.prevState.pageSize } }
         });
+        return {
+            ...result,
+            currentExecutionCount: 0,
+            variables: []
+        };
     }
     return arg.prevState;
 }

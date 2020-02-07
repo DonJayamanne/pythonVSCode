@@ -24,6 +24,7 @@ import { IKeyboardEvent } from '../react-common/event';
 import { Image, ImageName } from '../react-common/image';
 import { ImageButton } from '../react-common/imageButton';
 import { getLocString } from '../react-common/locReactSide';
+import { IMonacoModelContentChangeEvent } from '../react-common/monacoHelpers';
 import { AddCellLine } from './addCellLine';
 import { ActionCreators, mapDispatchToProps } from './redux/actions';
 
@@ -42,6 +43,7 @@ interface INativeCellBaseProps {
     enableGather: boolean | undefined;
     editorOptions: monacoEditor.editor.IEditorOptions;
     themeMatplotlibPlots: boolean | undefined;
+    focusPending: number;
 }
 
 type INativeCellProps = INativeCellBaseProps & ActionCreators;
@@ -282,6 +284,7 @@ export class NativeCell extends React.Component<INativeCellProps> {
                     this.props.sendCommand(NativeCommandType.ToggleOutput, 'keyboard');
                 }
                 break;
+            case 'NumpadEnter':
             case 'Enter':
                 if (e.shiftKey) {
                     this.shiftEnterCell(e);
@@ -603,6 +606,9 @@ export class NativeCell extends React.Component<INativeCellProps> {
                         keyDown={this.keyDownInput}
                         showLineNumbers={this.props.cellVM.showLineNumbers}
                         font={this.props.font}
+                        disableUndoStack={true}
+                        codeVersion={this.props.cellVM.codeVersion ? this.props.cellVM.codeVersion : 1}
+                        focusPending={this.props.focusPending}
                     />
                 </div>
             );
@@ -619,8 +625,8 @@ export class NativeCell extends React.Component<INativeCellProps> {
         this.props.unfocusCell(this.cellId, this.getCurrentCode());
     };
 
-    private onCodeChange = (changes: monacoEditor.editor.IModelContentChange[], cellId: string, modelId: string) => {
-        this.props.editCell(cellId, changes, modelId, this.getCurrentCode());
+    private onCodeChange = (e: IMonacoModelContentChangeEvent) => {
+        this.props.editCell(this.getCell().id, e);
     };
 
     private onCodeCreated = (_code: string, _file: string, cellId: string, modelId: string) => {

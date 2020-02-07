@@ -69,7 +69,6 @@ export class PostOffice implements IDisposable {
             this.vscodeApi = acquireVsCodeApi(); // NOSONAR
         }
         if (!this.registered) {
-            // rewireConsole = true;
             this.registered = true;
             window.addEventListener('message', this.baseHandler);
         }

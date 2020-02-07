@@ -16,7 +16,7 @@ import { IInterpreterService } from '../../interpreter/contracts';
 import { captureTelemetry, sendTelemetryEvent } from '../../telemetry';
 import { EditorContexts, Identifiers, Telemetry } from '../constants';
 import { InteractiveBase } from '../interactive-common/interactiveBase';
-import { InteractiveWindowMessages, ISubmitNewCell, SysInfoReason } from '../interactive-common/interactiveWindowTypes';
+import { InteractiveWindowMessages, ISubmitNewCell, NotebookModelChange, SysInfoReason } from '../interactive-common/interactiveWindowTypes';
 import { ProgressReporter } from '../progress/progressReporter';
 import {
     ICell,
@@ -33,7 +33,8 @@ import {
     INotebookExporter,
     INotebookServerOptions,
     IStatusProvider,
-    IThemeFinder
+    IThemeFinder,
+    WebViewViewChangeEventArgs
 } from '../types';
 
 const historyReactDir = path.join(EXTENSION_ROOT_DIR, 'out', 'datascience-ui', 'notebook');
@@ -185,6 +186,10 @@ export class InteractiveWindow extends InteractiveBase implements IInteractiveWi
                 this.handleMessage(message, payload, this.handleReturnAllCells);
                 break;
 
+            case InteractiveWindowMessages.UpdateModel:
+                this.handleMessage(message, payload, this.handleModelChange);
+                break;
+
             default:
                 break;
         }
@@ -238,8 +243,8 @@ export class InteractiveWindow extends InteractiveBase implements IInteractiveWi
     public scrollToCell(id: string): void {
         this.postMessage(InteractiveWindowMessages.ScrollToCell, { id }).ignoreErrors();
     }
-    protected async onViewStateChanged(visible: boolean, active: boolean) {
-        super.onViewStateChanged(visible, active);
+    protected async onViewStateChanged(args: WebViewViewChangeEventArgs) {
+        super.onViewStateChanged(args);
         this._onDidChangeViewState.fire();
     }
 
@@ -335,6 +340,17 @@ export class InteractiveWindow extends InteractiveBase implements IInteractiveWi
                 }
             } finally {
                 this.stopProgress();
+            }
+        }
+    }
+
+    private handleModelChange(update: NotebookModelChange) {
+        // Send telemetry for delete and delete all. We don't send telemetry for the other updates yet
+        if (update.source === 'user') {
+            if (update.kind === 'remove_all') {
+                sendTelemetryEvent(Telemetry.DeleteAllCells);
+            } else if (update.kind === 'remove') {
+                sendTelemetryEvent(Telemetry.DeleteCell);
             }
         }
     }

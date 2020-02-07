@@ -22,19 +22,9 @@ import { StopWatch } from '../../common/utils/stopWatch';
 import { EXTENSION_ROOT_DIR } from '../../constants';
 import { IInterpreterService } from '../../interpreter/contracts';
 import { captureTelemetry, sendTelemetryEvent } from '../../telemetry';
-import { Commands, EditorContexts, Identifiers, NativeKeyboardCommandTelemetryLookup, NativeMouseCommandTelemetryLookup, Telemetry } from '../constants';
+import { EditorContexts, Identifiers, NativeKeyboardCommandTelemetryLookup, NativeMouseCommandTelemetryLookup, Telemetry } from '../constants';
 import { InteractiveBase } from '../interactive-common/interactiveBase';
-import {
-    IEditCell,
-    IInsertCell,
-    INativeCommand,
-    InteractiveWindowMessages,
-    IRemoveCell,
-    ISaveAll,
-    ISubmitNewCell,
-    ISwapCells,
-    SysInfoReason
-} from '../interactive-common/interactiveWindowTypes';
+import { INativeCommand, InteractiveWindowMessages, ISaveAll, ISubmitNewCell, NotebookModelChange, SysInfoReason } from '../interactive-common/interactiveWindowTypes';
 import { ProgressReporter } from '../progress/progressReporter';
 import {
     CellState,
@@ -52,10 +42,10 @@ import {
     INotebookExporter,
     INotebookImporter,
     INotebookModel,
-    INotebookModelChange,
     INotebookServerOptions,
     IStatusProvider,
-    IThemeFinder
+    IThemeFinder,
+    WebViewViewChangeEventArgs
 } from '../types';
 
 const nativeEditorDir = path.join(EXTENSION_ROOT_DIR, 'out', 'datascience-ui', 'notebook');
@@ -68,7 +58,6 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
     private closedEvent: EventEmitter<INotebookEditor> = new EventEmitter<INotebookEditor>();
     private executedEvent: EventEmitter<INotebookEditor> = new EventEmitter<INotebookEditor>();
     private modifiedEvent: EventEmitter<INotebookEditor> = new EventEmitter<INotebookEditor>();
-    private savedEvent: EventEmitter<INotebookEditor> = new EventEmitter<INotebookEditor>();
     private loadedPromise: Deferred<void> = createDeferred<void>();
     private startupTimer: StopWatch = new StopWatch();
     private loadedAllCells: boolean = false;
@@ -192,10 +181,6 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
         return this.modifiedEvent.event;
     }
 
-    public get saved(): Event<INotebookEditor> {
-        return this.savedEvent.event;
-    }
-
     public get isDirty(): boolean {
         return this._model ? this._model.isDirty : false;
     }
@@ -216,24 +201,8 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
                 this.handleMessage(message, payload, this.export);
                 break;
 
-            case InteractiveWindowMessages.EditCell:
-                this.handleMessage(message, payload, this.editCell);
-                break;
-
-            case InteractiveWindowMessages.InsertCell:
-                this.handleMessage(message, payload, this.insertCell);
-                break;
-
-            case InteractiveWindowMessages.RemoveCell:
-                this.handleMessage(message, payload, this.removeCell);
-                break;
-
-            case InteractiveWindowMessages.SwapCells:
-                this.handleMessage(message, payload, this.swapCells);
-                break;
-
-            case InteractiveWindowMessages.DeleteAllCells:
-                this.handleMessage(message, payload, this.removeAllCells);
+            case InteractiveWindowMessages.UpdateModel:
+                this.handleMessage(message, payload, this.updateModel);
                 break;
 
             case InteractiveWindowMessages.NativeCommand:
@@ -245,10 +214,6 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
                 this.handleMessage(message, payload, this.loadCellsComplete);
                 break;
 
-            case InteractiveWindowMessages.ClearAllOutputs:
-                this.handleMessage(message, payload, this.clearAllOutputs);
-                break;
-
             default:
                 break;
         }
@@ -256,6 +221,7 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
 
     public async getNotebookOptions(): Promise<INotebookServerOptions> {
         const options = await this.editorProvider.getNotebookOptions();
+        await this.loadedPromise.promise;
         if (this._model) {
             const metadata = (await this._model.getJson()).metadata;
             return {
@@ -280,13 +246,6 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
         this.postMessage(InteractiveWindowMessages.NotebookAddCellBelow, { newCellId }).ignoreErrors();
         // tslint:disable-next-line: no-any
         this.postMessage(CommonActionType.FOCUS_CELL, { cellId: newCellId, cursorPos: CursorPos.Top } as any).ignoreErrors();
-    }
-
-    public async removeAllCells(): Promise<void> {
-        super.removeAllCells();
-        // Clear our visible cells in our model too. This should cause an update to the model
-        // that will fire off a changed event
-        this.commandManager.executeCommand(Commands.NotebookStorage_DeleteAllCells, this.file);
     }
 
     protected addSysInfo(_reason: SysInfoReason): Promise<void> {
@@ -384,15 +343,33 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
         // Filter out sysinfo messages. Don't want to show those
         const filtered = cells.filter(c => c.data.cell_type !== 'messages');
 
-        // Update these cells in our storage
-        this.commandManager.executeCommand(Commands.NotebookStorage_ModifyCells, this.file, cells);
+        // Update these cells in our storage only when cells are finished
+        const modified = filtered.filter(c => c.state === CellState.finished || c.state === CellState.error);
+        const unmodified = this._model?.cells.filter(c => modified.find(m => m.id === c.id));
+        if (modified.length > 0 && unmodified && this._model) {
+            this._model.update({
+                source: 'user',
+                kind: 'modify',
+                newCells: modified,
+                oldCells: unmodified,
+                oldDirty: this._model.isDirty,
+                newDirty: true
+            });
+        }
 
         // Tell storage about our notebook object
         const notebook = this.getNotebook();
-        if (notebook) {
+        if (notebook && this._model) {
             const interpreter = notebook.getMatchingInterpreter();
             const kernelSpec = notebook.getKernelSpec();
-            this.commandManager.executeCommand(Commands.NotebookStorage_UpdateVersion, this.file, interpreter, kernelSpec);
+            this._model.update({
+                source: 'user',
+                kind: 'version',
+                oldDirty: this._model.isDirty,
+                newDirty: this._model.isDirty,
+                interpreter,
+                kernelSpec
+            });
         }
 
         // Send onto the webview.
@@ -404,8 +381,8 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
         // time state changes. We use this opportunity to update our
         // extension contexts
         if (this.commandManager && this.commandManager.executeCommand) {
-            const interactiveContext = new ContextKey(EditorContexts.HaveNative, this.commandManager);
-            interactiveContext.set(!this.isDisposed).catch();
+            const nativeContext = new ContextKey(EditorContexts.HaveNative, this.commandManager);
+            nativeContext.set(!this.isDisposed).catch();
             const interactiveCellsContext = new ContextKey(EditorContexts.HaveNativeCells, this.commandManager);
             const redoableContext = new ContextKey(EditorContexts.HaveNativeRedoableCells, this.commandManager);
             const hasCellSelectedContext = new ContextKey(EditorContexts.HaveCellSelected, this.commandManager);
@@ -421,12 +398,12 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
         }
     }
 
-    protected async onViewStateChanged(visible: boolean, active: boolean) {
-        super.onViewStateChanged(visible, active);
+    protected async onViewStateChanged(args: WebViewViewChangeEventArgs) {
+        super.onViewStateChanged(args);
 
         // Update our contexts
-        const interactiveContext = new ContextKey(EditorContexts.HaveNative, this.commandManager);
-        interactiveContext.set(visible && active).catch();
+        const nativeContext = new ContextKey(EditorContexts.HaveNative, this.commandManager);
+        nativeContext.set(args.current.visible && args.current.active).catch();
         this._onDidChangeViewState.fire();
     }
 
@@ -434,18 +411,30 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
         // Actually don't close, just let the error bubble out
     }
 
-    private modelChanged(change: INotebookModelChange) {
-        if (change.isDirty !== undefined) {
-            this.modifiedEvent.fire();
-            if (change.model.isDirty) {
-                return this.postMessage(InteractiveWindowMessages.NotebookDirty);
-            } else {
-                // Going clean should only happen on a save (for now. Undo might do this too)
-                this.savedEvent.fire(this);
+    private async modelChanged(change: NotebookModelChange) {
+        if (change.source !== 'user') {
+            // VS code is telling us to broadcast this to our UI. Tell the UI about the new change
+            await this.postMessage(InteractiveWindowMessages.UpdateModel, change);
+        }
 
+        // Use the current state of the model to indicate dirty (not the message itself)
+        if (this._model && change.newDirty !== change.oldDirty) {
+            this.modifiedEvent.fire();
+            if (this._model.isDirty) {
+                await this.postMessage(InteractiveWindowMessages.NotebookDirty);
+            } else {
                 // Then tell the UI
-                return this.postMessage(InteractiveWindowMessages.NotebookClean);
+                await this.postMessage(InteractiveWindowMessages.NotebookClean);
             }
+        }
+    }
+
+    private updateModel(change: NotebookModelChange) {
+        // Send to our model using a command. User has done something that changes the model
+        if (change.source === 'user' && this._model) {
+            // Note, originally this was posted with a command but sometimes had problems
+            // with commands being handled out of order.
+            this._model.update(change);
         }
     }
 
@@ -469,23 +458,6 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
         if (oldAsk && settings && settings.datascience) {
             settings.datascience.askForKernelRestart = true;
         }
-    }
-
-    private async editCell(request: IEditCell) {
-        this.commandManager.executeCommand(Commands.NotebookStorage_EditCell, this.file, request);
-    }
-
-    private async insertCell(request: IInsertCell): Promise<void> {
-        this.commandManager.executeCommand(Commands.NotebookStorage_InsertCell, this.file, request);
-    }
-
-    private async removeCell(request: IRemoveCell): Promise<void> {
-        this.commandManager.executeCommand(Commands.NotebookStorage_RemoveCell, this.file, request.id);
-    }
-
-    private async swapCells(request: ISwapCells): Promise<void> {
-        // Swap two cells in our list
-        this.commandManager.executeCommand(Commands.NotebookStorage_SwapCells, this.file, request);
     }
 
     @captureTelemetry(Telemetry.ConvertToPythonFile, undefined, false)
@@ -539,9 +511,5 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
             this.loadedAllCells = true;
             sendTelemetryEvent(Telemetry.NotebookOpenTime, this.startupTimer.elapsedTime);
         }
-    }
-
-    private async clearAllOutputs() {
-        this.commandManager.executeCommand(Commands.NotebookStorage_ClearCellOutputs, this.file);
     }
 }

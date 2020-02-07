@@ -1,9 +1,8 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 'use strict';
-import * as monacoEditor from 'monaco-editor/esm/vs/editor/editor.api';
 
-import { InteractiveWindowMessages, IShowDataViewer, NativeCommandType } from '../../../../client/datascience/interactive-common/interactiveWindowTypes';
+import { IEditorContentChange, InteractiveWindowMessages, IShowDataViewer, NativeCommandType } from '../../../../client/datascience/interactive-common/interactiveWindowTypes';
 import { BaseReduxActionPayload } from '../../../../client/datascience/interactive-common/types';
 import { IJupyterVariablesRequest } from '../../../../client/datascience/types';
 import { ActionWithPayload, ReducerArg } from '../../../react-common/reduxUtils';
@@ -33,6 +32,7 @@ export enum CommonActionType {
     CLICK_CELL = 'action.click_cell',
     CODE_CREATED = 'action.code_created',
     COPY_CELL_CODE = 'action.copy_cell_code',
+    DELETE_CELL = 'action.delete_cell',
     EDITOR_LOADED = 'action.editor_loaded',
     EDIT_CELL = 'action.edit_cell',
     EXECUTE_ABOVE = 'action.execute_above',
@@ -109,6 +109,7 @@ export type CommonActionTypeMapping = {
     [CommonActionType.SCROLL]: IScrollAction;
     [CommonActionType.CLICK_CELL]: ICellAction;
     [CommonActionType.COPY_CELL_CODE]: ICellAction;
+    [CommonActionType.DELETE_CELL]: ICellAction;
     [CommonActionType.GATHER_CELL]: ICellAction;
     [CommonActionType.EDITOR_LOADED]: never | undefined;
     [CommonActionType.LOADED_ALL_CELLS]: never | undefined;
@@ -151,8 +152,11 @@ export interface ICodeAction extends ICellAction {
 }
 
 export interface IEditCellAction extends ICodeAction {
-    changes: monacoEditor.editor.IModelContentChange[];
+    forward: IEditorContentChange[];
+    reverse: IEditorContentChange[];
+    id: string;
     modelId: string;
+    version: number;
 }
 
 // I.e. when using the operation `add`, we need the corresponding `IAddCellAction`.

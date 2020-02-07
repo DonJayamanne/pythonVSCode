@@ -28,7 +28,7 @@ export namespace Effects {
 
                 if (typeof removeFocusIndex === 'number') {
                     const oldFocusCell = prevState.cellVMs[removeFocusIndex];
-                    const oldCode = oldFocusCell.uncomittedText || oldFocusCell.inputBlockText;
+                    const oldCode = oldFocusCell.uncommittedText || oldFocusCell.inputBlockText;
                     prevState = unfocusCell({ ...arg, prevState, payload: { ...arg.payload, data: { cellId: prevState.cellVMs[removeFocusIndex].cell.id, code: oldCode } } });
                     prevState = deselectCell({ ...arg, prevState, payload: { ...arg.payload, data: { cellId: prevState.cellVMs[removeFocusIndex].cell.id } } });
                 }
@@ -149,7 +149,7 @@ export namespace Effects {
 
             if (removeFocusIndex >= 0) {
                 const oldFocusCell = prevState.cellVMs[removeFocusIndex];
-                const oldCode = oldFocusCell.uncomittedText || oldFocusCell.inputBlockText;
+                const oldCode = oldFocusCell.uncommittedText || oldFocusCell.inputBlockText;
                 prevState = unfocusCell({ ...arg, prevState, payload: { ...arg.payload, data: { cellId: prevState.cellVMs[removeFocusIndex].cell.id, code: oldCode } } });
                 prevState = deselectCell({ ...arg, prevState, payload: { ...arg.payload, data: { cellId: prevState.cellVMs[removeFocusIndex].cell.id } } });
             }

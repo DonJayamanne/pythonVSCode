@@ -1,8 +1,10 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 'use strict';
-import { InteractiveWindowMessages } from '../../../../client/datascience/interactive-common/interactiveWindowTypes';
+import { Identifiers } from '../../../../client/datascience/constants';
+import { IEditorContentChange, InteractiveWindowMessages, NotebookModelChange } from '../../../../client/datascience/interactive-common/interactiveWindowTypes';
 import { CssMessages } from '../../../../client/datascience/messages';
+import { ICell } from '../../../../client/datascience/types';
 import { extractInputText, getSelectedAndFocusedInfo, IMainState } from '../../mainState';
 import { createPostableAction } from '../helpers';
 import { Helpers } from './helpers';
@@ -91,11 +93,86 @@ export namespace Transfer {
         return arg.prevState;
     }
 
-    export function editCell(arg: CommonReducerArg<CommonActionType, IEditCellAction>): IMainState {
-        if (arg.payload.data.cellId) {
-            arg.queueAction(createPostableAction(InteractiveWindowMessages.EditCell, { changes: arg.payload.data.changes, id: arg.payload.data.cellId }));
+    function postModelUpdate<T>(arg: CommonReducerArg<CommonActionType, T>, update: NotebookModelChange) {
+        arg.queueAction(createPostableAction(InteractiveWindowMessages.UpdateModel, update));
+    }
 
-            // Update the uncomitted text on the cell view model
+    export function postModelEdit<T>(arg: CommonReducerArg<CommonActionType, T>, forward: IEditorContentChange[], reverse: IEditorContentChange[], id: string) {
+        postModelUpdate(arg, {
+            source: 'user',
+            kind: 'edit',
+            newDirty: true,
+            oldDirty: arg.prevState.dirty,
+            forward,
+            reverse,
+            id
+        });
+    }
+
+    export function postModelInsert<T>(arg: CommonReducerArg<CommonActionType, T>, index: number, cell: ICell, codeCellAboveId?: string) {
+        postModelUpdate(arg, {
+            source: 'user',
+            kind: 'insert',
+            newDirty: true,
+            oldDirty: arg.prevState.dirty,
+            index,
+            cell,
+            codeCellAboveId
+        });
+    }
+
+    export function postModelRemove<T>(arg: CommonReducerArg<CommonActionType, T>, index: number, cell: ICell) {
+        postModelUpdate(arg, {
+            source: 'user',
+            kind: 'remove',
+            oldDirty: arg.prevState.dirty,
+            newDirty: true,
+            cell,
+            index
+        });
+    }
+
+    export function postModelClearOutputs<T>(arg: CommonReducerArg<CommonActionType, T>) {
+        postModelUpdate(arg, {
+            source: 'user',
+            kind: 'clear',
+            oldDirty: arg.prevState.dirty,
+            newDirty: true,
+            // tslint:disable-next-line: no-any
+            oldCells: arg.prevState.cellVMs.map(c => c.cell as any) as ICell[]
+        });
+    }
+
+    export function postModelRemoveAll<T>(arg: CommonReducerArg<CommonActionType, T>, newCellId: string) {
+        postModelUpdate(arg, {
+            source: 'user',
+            kind: 'remove_all',
+            oldDirty: arg.prevState.dirty,
+            newDirty: true,
+            // tslint:disable-next-line: no-any
+            oldCells: arg.prevState.cellVMs.map(c => c.cell as any) as ICell[],
+            newCellId
+        });
+    }
+
+    export function postModelSwap<T>(arg: CommonReducerArg<CommonActionType, T>, firstCellId: string, secondCellId: string) {
+        postModelUpdate(arg, {
+            source: 'user',
+            kind: 'swap',
+            oldDirty: arg.prevState.dirty,
+            newDirty: true,
+            firstCellId,
+            secondCellId
+        });
+    }
+
+    export function editCell(arg: CommonReducerArg<CommonActionType, IEditCellAction>): IMainState {
+        const cellVM = arg.payload.data.cellId === Identifiers.EditCellId ? arg.prevState.editCellVM : arg.prevState.cellVMs.find(c => c.cell.id === arg.payload.data.cellId);
+        if (cellVM) {
+            // Tell the underlying model on the extension side
+            postModelEdit(arg, arg.payload.data.forward, arg.payload.data.reverse, cellVM.cell.id);
+
+            // Update the uncommitted text on the cell view model
             // We keep this saved here so we don't re-render and we put this code into the input / code data
             // when focus is lost
             const index = arg.prevState.cellVMs.findIndex(c => c.cell.id === arg.payload.data.cellId);
@@ -105,7 +182,8 @@ export namespace Transfer {
                 const current = arg.prevState.cellVMs[index];
                 const newCell = {
                     ...current,
-                    uncomittedText: arg.payload.data.code
+                    uncommittedText: arg.payload.data.code,
+                    codeVersion: arg.payload.data.version
                 };
 
                 // tslint:disable-next-line: no-any

@@ -4,13 +4,16 @@ import { Disposable, Uri, WebviewPanel, WebviewPanelOptions } from 'vscode';
 import { ICommandManager, ICustomEditorService, WebviewCustomEditorEditingDelegate, WebviewCustomEditorProvider } from '../../client/common/application/types';
 import { IDisposableRegistry } from '../../client/common/types';
 import { noop } from '../../client/common/utils/misc';
-import { INotebookEdit, INotebookEditor, INotebookEditorProvider } from '../../client/datascience/types';
+import { NotebookModelChange } from '../../client/datascience/interactive-common/interactiveWindowTypes';
+import { INotebookEditor, INotebookEditorProvider } from '../../client/datascience/types';
 
 export class MockCustomEditorService implements ICustomEditorService {
     private provider: WebviewCustomEditorProvider | undefined;
     private resolvedList = new Map<string, Thenable<void>>();
+    private undoStack = new Map<string, unknown[]>();
+    private redoStack = new Map<string, unknown[]>();
 
-    constructor(disposableRegistry: IDisposableRegistry, commandManager: ICommandManager) {
+    constructor(private disposableRegistry: IDisposableRegistry, commandManager: ICommandManager) {
         disposableRegistry.push(commandManager.registerCommand('workbench.action.files.save', this.onFileSave.bind(this)));
         disposableRegistry.push(commandManager.registerCommand('workbench.action.files.saveAs', this.onFileSaveAs.bind(this)));
     }
@@ -22,6 +25,11 @@ export class MockCustomEditorService implements ICustomEditorService {
         // Sign up for close so we can clear our resolved map
         // tslint:disable-next-line: no-any
         ((this.provider as any) as INotebookEditorProvider).onDidCloseNotebookEditor(this.closedEditor.bind(this));
+
+        // Listen for updates so we can keep an undo/redo stack
+        if (this.provider.editingDelegate) {
+            this.disposableRegistry.push(this.provider.editingDelegate.onEdit(this.onEditChange.bind(this)));
+        }
 
         return { dispose: noop };
     }
@@ -42,15 +50,44 @@ export class MockCustomEditorService implements ICustomEditorService {
         await resolved;
     }
 
+    public undo(file: Uri) {
+        this.popAndApply(file, this.undoStack, this.redoStack, e => {
+            const nativeProvider = (this.provider as unknown) as WebviewCustomEditorEditingDelegate<NotebookModelChange>;
+            nativeProvider.undoEdits(file, [e as NotebookModelChange]);
+        });
+    }
+
+    public redo(file: Uri) {
+        this.popAndApply(file, this.redoStack, this.undoStack, e => {
+            const nativeProvider = (this.provider as unknown) as WebviewCustomEditorEditingDelegate<NotebookModelChange>;
+            nativeProvider.applyEdits(file, [e as NotebookModelChange]);
+        });
+    }
+
+    private popAndApply(file: Uri, from: Map<string, unknown[]>, to: Map<string, unknown[]>, apply: (element: unknown) => void) {
+        const key = file.toString();
+        const fromStack = from.get(key);
+        if (fromStack) {
+            const element = fromStack.pop();
+            apply(element);
+            let toStack = to.get(key);
+            if (toStack === undefined) {
+                toStack = [];
+                to.set(key, toStack);
+            }
+            toStack.push(element);
+        }
+    }
+
     private onFileSave(file: Uri) {
-        const nativeProvider = (this.provider as unknown) as WebviewCustomEditorEditingDelegate<INotebookEdit>;
+        const nativeProvider = (this.provider as unknown) as WebviewCustomEditorEditingDelegate<NotebookModelChange>;
         if (nativeProvider) {
             nativeProvider.save(file);
         }
     }
 
     private onFileSaveAs(file: Uri) {
-        const nativeProvider = (this.provider as unknown) as WebviewCustomEditorEditingDelegate<INotebookEdit>;
+        const nativeProvider = (this.provider as unknown) as WebviewCustomEditorEditingDelegate<NotebookModelChange>;
         if (nativeProvider) {
             // Just make up a new URI
             nativeProvider.saveAs(file, Uri.file('bar.ipynb'));
@@ -59,5 +96,14 @@ export class MockCustomEditorService implements ICustomEditorService {
 
     private closedEditor(editor: INotebookEditor) {
         this.resolvedList.delete(editor.file.toString());
+    }
+
+    private onEditChange(e: { readonly resource: Uri; readonly edit: unknown }) {
+        let stack = this.undoStack.get(e.resource.toString());
+        if (stack === undefined) {
+            stack = [];
+            this.undoStack.set(e.resource.toString(), stack);
+        }
+        stack.push(e.edit);
     }
 }

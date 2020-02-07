@@ -39,15 +39,18 @@ export namespace Kernel {
         };
     }
 
-    export function updateStatus(arg: CommonReducerArg<CommonActionType | InteractiveWindowMessages, IServerState>): IMainState {
-        return {
-            ...arg.prevState,
-            kernel: {
-                localizedUri: arg.payload.data.localizedUri,
-                jupyterServerStatus: arg.payload.data.jupyterServerStatus,
-                displayName: arg.payload.data.displayName
-            }
-        };
+    export function updateStatus(arg: CommonReducerArg<CommonActionType | InteractiveWindowMessages, IServerState | undefined>): IMainState {
+        if (arg.payload.data) {
+            return {
+                ...arg.prevState,
+                kernel: {
+                    localizedUri: arg.payload.data.localizedUri,
+                    jupyterServerStatus: arg.payload.data.jupyterServerStatus,
+                    displayName: arg.payload.data.displayName
+                }
+            };
+        }
+        return arg.prevState;
     }
 
     export function handleRestarted<T>(arg: CommonReducerArg<T>) {
