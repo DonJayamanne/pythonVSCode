@@ -21,9 +21,8 @@ import { Progress } from '../react-common/progress';
 import { AddCellLine } from './addCellLine';
 import { getConnectedNativeCell } from './nativeCell';
 import './nativeEditor.less';
-import { ActionCreators, mapDispatchToProps } from './redux/actions';
 
-type INativeEditorProps = IMainWithVariables & ActionCreators;
+type INativeEditorProps = IMainWithVariables & typeof actionCreators;
 
 function mapStateToProps(state: IStore): IMainWithVariables {
     return { ...state.main, variableState: state.variables };

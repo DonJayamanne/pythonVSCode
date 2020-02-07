@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 'use strict';
-import { bindActionCreators, Dispatch } from 'redux';
 import * as uuid from 'uuid/v4';
 import { InteractiveWindowMessages, NativeCommandType } from '../../../client/datascience/interactive-common/interactiveWindowTypes';
 import { IJupyterVariable, IJupyterVariablesRequest } from '../../../client/datascience/types';
@@ -22,7 +21,7 @@ import {
 import { IMonacoModelContentChangeEvent } from '../../react-common/monacoHelpers';
 
 // See https://react-redux.js.org/using-react-redux/connect-mapdispatch#defining-mapdispatchtoprops-as-an-object
-const actionCreators = {
+export const actionCreators = {
     addCell: () => createIncomingActionWithPayload(CommonActionType.ADD_AND_FOCUS_NEW_CELL, { newCellId: uuid() }),
     insertAboveFirst: () => createIncomingActionWithPayload(CommonActionType.INSERT_ABOVE_FIRST_AND_FOCUS_NEW_CELL, { newCellId: uuid() }),
     insertAbove: (cellId: string | undefined) => createIncomingActionWithPayload(CommonActionType.INSERT_ABOVE_AND_FOCUS_NEW_CELL, { cellId, newCellId: uuid() }),
@@ -32,7 +31,6 @@ const actionCreators = {
     focusCell: (cellId: string, cursorPos: CursorPos = CursorPos.Current): CommonAction<ICellAndCursorAction> =>
         createIncomingActionWithPayload(CommonActionType.FOCUS_CELL, { cellId, cursorPos }),
     unfocusCell: (cellId: string, code: string) => createIncomingActionWithPayload(CommonActionType.UNFOCUS_CELL, { cellId, code }),
-    changeCellType: (cellId: string, currentCode: string) => createIncomingActionWithPayload(CommonActionType.CHANGE_CELL_TYPE, { cellId, currentCode }),
     selectCell: (cellId: string, cursorPos: CursorPos = CursorPos.Current): CommonAction<ICellAndCursorAction> =>
         createIncomingActionWithPayload(CommonActionType.SELECT_CELL, { cellId, cursorPos }),
     executeAllCells: (): CommonAction => createIncomingAction(CommonActionType.EXECUTE_ALL_CELLS),
@@ -50,7 +48,7 @@ const actionCreators = {
         createIncomingActionWithPayload(CommonActionType.SEND_COMMAND, { command, commandType }),
     moveCellUp: (cellId: string): CommonAction<ICellAction> => createIncomingActionWithPayload(CommonActionType.MOVE_CELL_UP, { cellId }),
     moveCellDown: (cellId: string): CommonAction<ICellAction> => createIncomingActionWithPayload(CommonActionType.MOVE_CELL_DOWN, { cellId }),
-    // changeCellType: (cellId: string, currentCode: string) => createIncomingActionWithPayload(CommonActionType.CHANGE_CELL_TYPE, { cellId, currentCode }),
+    changeCellType: (cellId: string, currentCode: string) => createIncomingActionWithPayload(CommonActionType.CHANGE_CELL_TYPE, { cellId, currentCode }),
     toggleLineNumbers: (cellId: string): CommonAction<ICellAction> => createIncomingActionWithPayload(CommonActionType.TOGGLE_LINE_NUMBERS, { cellId }),
     toggleOutput: (cellId: string): CommonAction<ICellAction> => createIncomingActionWithPayload(CommonActionType.TOGGLE_OUTPUT, { cellId }),
     deleteCell: (cellId: string): CommonAction<ICellAction> => createIncomingActionWithPayload(CommonActionType.DELETE_CELL, { cellId }),
@@ -81,11 +79,3 @@ const actionCreators = {
     getVariableData: (newExecutionCount: number, startIndex: number = 0, pageSize: number = 100): CommonAction<IJupyterVariablesRequest> =>
         createIncomingActionWithPayload(CommonActionType.GET_VARIABLE_DATA, { executionCount: newExecutionCount, sortColumn: 'name', sortAscending: true, startIndex, pageSize })
 };
-
-export type ActionCreators = typeof actionCreators;
-
-export function mapDispatchToProps(dispatch: Dispatch): ActionCreators {
-    return {
-        ...bindActionCreators(actionCreators, dispatch)
-    };
-}

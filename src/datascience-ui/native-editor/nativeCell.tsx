@@ -26,7 +26,6 @@ import { ImageButton } from '../react-common/imageButton';
 import { getLocString } from '../react-common/locReactSide';
 import { IMonacoModelContentChangeEvent } from '../react-common/monacoHelpers';
 import { AddCellLine } from './addCellLine';
-import { ActionCreators, mapDispatchToProps } from './redux/actions';
 
 interface INativeCellBaseProps {
     role?: string;
@@ -46,7 +45,7 @@ interface INativeCellBaseProps {
     focusPending: number;
 }
 
-type INativeCellProps = INativeCellBaseProps & ActionCreators;
+type INativeCellProps = INativeCellBaseProps & typeof actionCreators;
 
 // tslint:disable: react-this-binding-issue
 export class NativeCell extends React.Component<INativeCellProps> {
@@ -320,23 +319,6 @@ export class NativeCell extends React.Component<INativeCellProps> {
                     this.props.sendCommand(NativeCommandType.InsertBelow, 'keyboard');
                 }
                 break;
-            case 'z':
-            case 'Z':
-                if (!this.isFocused()) {
-                    if (e.shiftKey && !e.ctrlKey && !e.altKey) {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        this.props.redo();
-                        this.props.sendCommand(NativeCommandType.Redo, 'keyboard');
-                    } else if (!e.shiftKey && !e.altKey && !e.ctrlKey) {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        this.props.undo();
-                        this.props.sendCommand(NativeCommandType.Undo, 'keyboard');
-                    }
-                }
-                break;
-
             default:
                 break;
         }
