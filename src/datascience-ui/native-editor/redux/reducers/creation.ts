@@ -5,9 +5,9 @@
 import { ILoadAllCells, InteractiveWindowMessages } from '../../../../client/datascience/interactive-common/interactiveWindowTypes';
 import { ICell, IDataScienceExtraSettings } from '../../../../client/datascience/types';
 import { createCellVM, createEmptyCell, CursorPos, extractInputText, getSelectedAndFocusedInfo, ICellViewModel, IMainState } from '../../../interactive-common/mainState';
-import { createPostableAction } from '../../../interactive-common/redux/helpers';
+import { createIncomingActionWithPayload, createPostableAction } from '../../../interactive-common/redux/helpers';
 import { Helpers } from '../../../interactive-common/redux/reducers/helpers';
-import { IAddCellAction, ICellAction } from '../../../interactive-common/redux/reducers/types';
+import { CommonActionType, IAddCellAction, ICellAction } from '../../../interactive-common/redux/reducers/types';
 import { NativeEditorReducerArg } from '../mapping';
 
 export namespace Creation {
@@ -33,6 +33,30 @@ export namespace Creation {
                 return cellVMs[index].cell.id;
             }
         }
+    }
+
+    export function addAndFocusCell(arg: NativeEditorReducerArg<IAddCellAction>): IMainState {
+        arg.queueAction(createIncomingActionWithPayload(CommonActionType.ADD_NEW_CELL, { newCellId: arg.payload.data.newCellId }));
+        arg.queueAction(createIncomingActionWithPayload(CommonActionType.FOCUS_CELL, { cellId: arg.payload.data.newCellId, cursorPos: CursorPos.Current }));
+        return arg.prevState;
+    }
+
+    export function insertAboveAndFocusCell(arg: NativeEditorReducerArg<IAddCellAction & ICellAction>): IMainState {
+        arg.queueAction(createIncomingActionWithPayload(CommonActionType.INSERT_ABOVE, { cellId: arg.payload.data.cellId, newCellId: arg.payload.data.newCellId }));
+        arg.queueAction(createIncomingActionWithPayload(CommonActionType.FOCUS_CELL, { cellId: arg.payload.data.newCellId, cursorPos: CursorPos.Current }));
+        return arg.prevState;
+    }
+
+    export function insertBelowAndFocusCell(arg: NativeEditorReducerArg<IAddCellAction & ICellAction>): IMainState {
+        arg.queueAction(createIncomingActionWithPayload(CommonActionType.INSERT_BELOW, { cellId: arg.payload.data.cellId, newCellId: arg.payload.data.newCellId }));
+        arg.queueAction(createIncomingActionWithPayload(CommonActionType.FOCUS_CELL, { cellId: arg.payload.data.newCellId, cursorPos: CursorPos.Current }));
+        return arg.prevState;
+    }
+
+    export function insertAboveFirstAndFocusCell(arg: NativeEditorReducerArg<IAddCellAction>): IMainState {
+        arg.queueAction(createIncomingActionWithPayload(CommonActionType.INSERT_ABOVE_FIRST, { newCellId: arg.payload.data.newCellId }));
+        arg.queueAction(createIncomingActionWithPayload(CommonActionType.FOCUS_CELL, { cellId: arg.payload.data.newCellId, cursorPos: CursorPos.Current }));
+        return arg.prevState;
     }
 
     export function insertAbove(arg: NativeEditorReducerArg<ICellAction & IAddCellAction>): IMainState {

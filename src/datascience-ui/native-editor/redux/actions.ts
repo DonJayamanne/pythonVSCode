@@ -21,59 +21,18 @@ import {
     IShowDataViewerAction
 } from '../../interactive-common/redux/reducers/types';
 
-const actionCreatorsWithDispatch = (dispatch: Dispatch) => {
-    return {
-        addCell: () => {
-            const newCellId = uuid();
-            dispatch(createIncomingActionWithPayload(CommonActionType.ADD_NEW_CELL, { newCellId }));
-            dispatch(createIncomingActionWithPayload(CommonActionType.FOCUS_CELL, { cellId: newCellId, cursorPos: CursorPos.Current }));
-        },
-        insertAboveFirst: () => {
-            const newCellId = uuid();
-            dispatch(createIncomingActionWithPayload(CommonActionType.INSERT_ABOVE_FIRST, { newCellId }));
-            dispatch(createIncomingActionWithPayload(CommonActionType.FOCUS_CELL, { cellId: newCellId, cursorPos: CursorPos.Current }));
-        },
-        insertAbove: (cellId: string | undefined) => {
-            // Use settimeout to ensure the newly created cell does not end up with the key that was entered by user.
-            // E.g. if user types `a`, then we create a new cell, however old approach would result in the new editor having a character `a`.
-            setTimeout(() => {
-                const newCellId = uuid();
-                dispatch(createIncomingActionWithPayload(CommonActionType.INSERT_ABOVE, { cellId, newCellId }));
-                dispatch(createIncomingActionWithPayload(CommonActionType.FOCUS_CELL, { cellId: newCellId, cursorPos: CursorPos.Current }));
-            }, 1);
-        },
-        insertBelow: (cellId: string | undefined) => {
-            if (!cellId) {
-                return;
-            }
-            // Use settimeout to ensure the newly created cell does not end up with the key that was entered by user.
-            // E.g. if user types `a`, then we create a new cell, however old approach would result in the new editor having a character `a`.
-            setTimeout(() => {
-                const newCellId = uuid();
-                dispatch(createIncomingActionWithPayload(CommonActionType.INSERT_BELOW, { cellId, newCellId }));
-                dispatch(createIncomingActionWithPayload(CommonActionType.FOCUS_CELL, { cellId: newCellId, cursorPos: CursorPos.Current }));
-            }, 1);
-        },
-        executeCell: (cellId: string, code: string, moveOp: 'add' | 'select' | 'none') => {
-            dispatch(createIncomingActionWithPayload(CommonActionType.EXECUTE_CELL, { cellId, code, moveOp }));
-            if (moveOp === 'add') {
-                const newCellId = uuid();
-                dispatch(createIncomingActionWithPayload(CommonActionType.INSERT_BELOW, { cellId, newCellId }));
-                dispatch(createIncomingActionWithPayload(CommonActionType.FOCUS_CELL, { cellId: newCellId, cursorPos: CursorPos.Current }));
-            }
-        },
-        changeCellType: (cellId: string, currentCode: string) => {
-            dispatch(createIncomingActionWithPayload(CommonActionType.CHANGE_CELL_TYPE, { cellId, currentCode }));
-            dispatch(createIncomingActionWithPayload(CommonActionType.FOCUS_CELL, { cellId, cursorPos: CursorPos.Current }));
-        }
-    };
-};
-
 // See https://react-redux.js.org/using-react-redux/connect-mapdispatch#defining-mapdispatchtoprops-as-an-object
 const actionCreators = {
+    addCell: () => createIncomingActionWithPayload(CommonActionType.ADD_AND_FOCUS_NEW_CELL, { newCellId: uuid() }),
+    insertAboveFirst: () => createIncomingActionWithPayload(CommonActionType.INSERT_ABOVE_FIRST_AND_FOCUS_NEW_CELL, { newCellId: uuid() }),
+    insertAbove: (cellId: string | undefined) => createIncomingActionWithPayload(CommonActionType.INSERT_ABOVE_AND_FOCUS_NEW_CELL, { cellId, newCellId: uuid() }),
+    insertBelow: (cellId: string | undefined) => createIncomingActionWithPayload(CommonActionType.INSERT_BELOW_AND_FOCUS_NEW_CELL, { cellId, newCellId: uuid() }),
+    executeCell: (cellId: string, code: string, moveOp: 'add' | 'select' | 'none') =>
+        createIncomingActionWithPayload(CommonActionType.EXECUTE_CELL_AND_ADVANCE, { cellId, code, moveOp }),
     focusCell: (cellId: string, cursorPos: CursorPos = CursorPos.Current): CommonAction<ICellAndCursorAction> =>
         createIncomingActionWithPayload(CommonActionType.FOCUS_CELL, { cellId, cursorPos }),
     unfocusCell: (cellId: string, code: string) => createIncomingActionWithPayload(CommonActionType.UNFOCUS_CELL, { cellId, code }),
+    changeCellType: (cellId: string, currentCode: string) => createIncomingActionWithPayload(CommonActionType.CHANGE_CELL_TYPE, { cellId, currentCode }),
     selectCell: (cellId: string, cursorPos: CursorPos = CursorPos.Current): CommonAction<ICellAndCursorAction> =>
         createIncomingActionWithPayload(CommonActionType.SELECT_CELL, { cellId, cursorPos }),
     executeAllCells: (): CommonAction => createIncomingAction(CommonActionType.EXECUTE_ALL_CELLS),
@@ -115,11 +74,10 @@ const actionCreators = {
         createIncomingActionWithPayload(CommonActionType.GET_VARIABLE_DATA, { executionCount: newExecutionCount, sortColumn: 'name', sortAscending: true, startIndex, pageSize })
 };
 
-export type ActionCreators = typeof actionCreators & ReturnType<typeof actionCreatorsWithDispatch>;
+export type ActionCreators = typeof actionCreators;
 
 export function mapDispatchToProps(dispatch: Dispatch): ActionCreators {
     return {
-        ...actionCreatorsWithDispatch(dispatch),
         ...bindActionCreators(actionCreators, dispatch)
     };
 }

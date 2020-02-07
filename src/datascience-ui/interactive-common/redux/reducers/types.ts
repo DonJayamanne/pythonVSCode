@@ -22,6 +22,10 @@ import { CursorPos, IMainState } from '../../mainState';
  */
 
 export enum CommonActionType {
+    ADD_AND_FOCUS_NEW_CELL = 'action.add_new_cell_and_focus_cell',
+    INSERT_ABOVE_AND_FOCUS_NEW_CELL = 'action.insert_above_and_focus_cell',
+    INSERT_BELOW_AND_FOCUS_NEW_CELL = 'action.insert_below_and_focus_cell',
+    INSERT_ABOVE_FIRST_AND_FOCUS_NEW_CELL = 'action.insert_above_first_and_focus_cell',
     ADD_NEW_CELL = 'action.add_new_cell',
     ARROW_DOWN = 'action.arrow_down',
     ARROW_UP = 'action.arrow_up',
@@ -34,6 +38,7 @@ export enum CommonActionType {
     EXECUTE_ABOVE = 'action.execute_above',
     EXECUTE_ALL_CELLS = 'action.execute_all_cells',
     EXECUTE_CELL = 'action.execute_cell',
+    EXECUTE_CELL_AND_ADVANCE = 'action.execute_cell_and_advance',
     EXECUTE_CELL_AND_BELOW = 'action.execute_cell_and_below',
     EXPORT = 'action.export',
     FOCUS_CELL = 'action.focus_cell',
@@ -67,13 +72,18 @@ export enum CommonActionType {
 }
 
 export type CommonActionTypeMapping = {
+    [CommonActionType.ADD_AND_FOCUS_NEW_CELL]: IAddCellAction;
     [CommonActionType.INSERT_ABOVE]: ICellAction & IAddCellAction;
     [CommonActionType.INSERT_BELOW]: ICellAction & IAddCellAction;
     [CommonActionType.INSERT_ABOVE_FIRST]: IAddCellAction;
+    [CommonActionType.INSERT_ABOVE_FIRST_AND_FOCUS_NEW_CELL]: IAddCellAction;
+    [CommonActionType.INSERT_BELOW_AND_FOCUS_NEW_CELL]: ICellAction & IAddCellAction;
+    [CommonActionType.INSERT_ABOVE_AND_FOCUS_NEW_CELL]: ICellAction & IAddCellAction;
     [CommonActionType.FOCUS_CELL]: ICellAndCursorAction;
     [CommonActionType.UNFOCUS_CELL]: ICellAction | ICodeAction;
     [CommonActionType.ADD_NEW_CELL]: IAddCellAction;
     [CommonActionType.EDIT_CELL]: IEditCellAction;
+    [CommonActionType.EXECUTE_CELL_AND_ADVANCE]: IExecuteAction;
     [CommonActionType.EXECUTE_CELL]: IExecuteAction;
     [CommonActionType.EXECUTE_ALL_CELLS]: never | undefined;
     [CommonActionType.EXECUTE_ABOVE]: ICellAction;

@@ -3,13 +3,14 @@
 'use strict';
 // tslint:disable-next-line: no-require-imports no-var-requires
 const cloneDeep = require('lodash/cloneDeep');
+import * as uuid from 'uuid/v4';
 import { CellMatcher } from '../../../../client/datascience/cellMatcher';
 import { InteractiveWindowMessages } from '../../../../client/datascience/interactive-common/interactiveWindowTypes';
 import { CellState } from '../../../../client/datascience/types';
 import { concatMultilineStringInput } from '../../../common';
 import { createCellFrom } from '../../../common/cellFactory';
 import { CursorPos, getSelectedAndFocusedInfo, ICellViewModel, IMainState } from '../../../interactive-common/mainState';
-import { createPostableAction } from '../../../interactive-common/redux/helpers';
+import { createIncomingActionWithPayload, createPostableAction } from '../../../interactive-common/redux/helpers';
 import { Helpers } from '../../../interactive-common/redux/reducers/helpers';
 import { CommonActionType, ICellAction, IChangeCellTypeAction, ICodeAction, IExecuteAction } from '../../../interactive-common/redux/reducers/types';
 import { QueueAnotherFunc } from '../../../react-common/reduxUtils';
@@ -57,6 +58,18 @@ export namespace Execution {
         if (index > 0) {
             const codes = arg.prevState.cellVMs.filter((_c, i) => i < index).map(c => concatMultilineStringInput(c.cell.data.source));
             return executeRange(arg.prevState, 0, index - 1, codes, arg.queueAction);
+        }
+        return arg.prevState;
+    }
+
+    export function executeCellAndAdvance(arg: NativeEditorReducerArg<IExecuteAction>): IMainState {
+        arg.queueAction(
+            createIncomingActionWithPayload(CommonActionType.EXECUTE_CELL, { cellId: arg.payload.data.cellId, code: arg.payload.data.code, moveOp: arg.payload.data.moveOp })
+        );
+        if (arg.payload.data.moveOp === 'add') {
+            const newCellId = uuid();
+            arg.queueAction(createIncomingActionWithPayload(CommonActionType.INSERT_BELOW, { cellId: arg.payload.data.cellId, newCellId }));
+            arg.queueAction(createIncomingActionWithPayload(CommonActionType.FOCUS_CELL, { cellId: newCellId, cursorPos: CursorPos.Current }));
         }
         return arg.prevState;
     }

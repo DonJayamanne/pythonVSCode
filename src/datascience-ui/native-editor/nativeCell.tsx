@@ -269,6 +269,7 @@ export class NativeCell extends React.Component<INativeCellProps> {
             case 'l':
                 if (!this.isFocused() && this.isSelected()) {
                     e.stopPropagation();
+                    e.preventDefault();
                     this.props.toggleLineNumbers(cellId);
                     this.props.sendCommand(NativeCommandType.ToggleLineNumbers, 'keyboard');
                 }
@@ -276,6 +277,7 @@ export class NativeCell extends React.Component<INativeCellProps> {
             case 'o':
                 if (!this.isFocused() && this.isSelected()) {
                     e.stopPropagation();
+                    e.preventDefault();
                     this.props.toggleOutput(cellId);
                     this.props.sendCommand(NativeCommandType.ToggleOutput, 'keyboard');
                 }
@@ -302,6 +304,7 @@ export class NativeCell extends React.Component<INativeCellProps> {
             case 'a':
                 if (!this.isFocused()) {
                     e.stopPropagation();
+                    e.preventDefault();
                     this.props.insertAbove(cellId);
                     this.props.sendCommand(NativeCommandType.InsertAbove, 'keyboard');
                 }
@@ -309,6 +312,7 @@ export class NativeCell extends React.Component<INativeCellProps> {
             case 'b':
                 if (!this.isFocused()) {
                     e.stopPropagation();
+                    e.preventDefault();
                     this.props.insertBelow(cellId);
                     this.props.sendCommand(NativeCommandType.InsertBelow, 'keyboard');
                 }
@@ -318,10 +322,12 @@ export class NativeCell extends React.Component<INativeCellProps> {
                 if (!this.isFocused()) {
                     if (e.shiftKey && !e.ctrlKey && !e.altKey) {
                         e.stopPropagation();
+                        e.preventDefault();
                         this.props.redo();
                         this.props.sendCommand(NativeCommandType.Redo, 'keyboard');
                     } else if (!e.shiftKey && !e.altKey && !e.ctrlKey) {
                         e.stopPropagation();
+                        e.preventDefault();
                         this.props.undo();
                         this.props.sendCommand(NativeCommandType.Undo, 'keyboard');
                     }
