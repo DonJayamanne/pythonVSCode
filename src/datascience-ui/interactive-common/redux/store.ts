@@ -38,6 +38,7 @@ function generateDefaultState(skipDefault: boolean, testMode: boolean, baseTheme
             currentExecutionCount: 0,
             debugging: false,
             knownDark: false,
+            dirty: false,
             editCellVM: editable ? undefined : createEditableCellVM(0),
             isAtBottom: true,
             font: {
@@ -150,6 +151,11 @@ function createTestMiddleware(): Redux.Middleware<{}, IStore> {
         // Indicate variables complete
         if (!fastDeepEqual(prevState.variables.variables, afterState.variables.variables)) {
             sendMessage(InteractiveWindowMessages.VariablesComplete);
+        }
+
+        // Indicate update from extension side
+        if (action.type && action.type === InteractiveWindowMessages.UpdateModel) {
+            sendMessage(InteractiveWindowMessages.ReceivedUpdateModel);
         }
 
         // Special case for rendering complete

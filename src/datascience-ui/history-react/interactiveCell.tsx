@@ -11,7 +11,6 @@ import { connect } from 'react-redux';
 
 import { Identifiers } from '../../client/datascience/constants';
 import { CellState, IDataScienceExtraSettings } from '../../client/datascience/types';
-import { concatMultilineStringInput } from '../common';
 import { CellInput } from '../interactive-common/cellInput';
 import { CellOutput } from '../interactive-common/cellOutput';
 import { CollapseButton } from '../interactive-common/collapseButton';
@@ -23,6 +22,7 @@ import { IKeyboardEvent } from '../react-common/event';
 import { Image, ImageName } from '../react-common/image';
 import { ImageButton } from '../react-common/imageButton';
 import { getLocString } from '../react-common/locReactSide';
+import { IMonacoModelContentChangeEvent } from '../react-common/monacoHelpers';
 import { actionCreators } from './redux/actions';
 
 interface IInteractiveCellBaseProps {
@@ -250,6 +250,8 @@ export class InteractiveCell extends React.Component<IInteractiveCellProps> {
                     keyDown={this.isEditCell() ? this.onEditCellKeyDown : undefined}
                     showLineNumbers={this.props.cellVM.showLineNumbers}
                     font={this.props.font}
+                    disableUndoStack={this.props.cellVM.cell.id !== Identifiers.EditCellId}
+                    codeVersion={this.props.cellVM.codeVersion ? this.props.cellVM.codeVersion : 0}
                 />
             );
         }
@@ -264,14 +266,8 @@ export class InteractiveCell extends React.Component<IInteractiveCellProps> {
         this.props.unfocus(this.getCell().id);
     };
 
-    private getCurrentCode(): string {
-        // Get current monaco code, if not available fallback to cell data source
-        const contents = this.codeRef.current ? this.codeRef.current.getContents() : undefined;
-        return contents || concatMultilineStringInput(this.props.cellVM.cell.data.source);
-    }
-
-    private onCodeChange = (changes: monacoEditor.editor.IModelContentChange[], cellId: string, modelId: string) => {
-        this.props.editCell(cellId, changes, modelId, this.getCurrentCode());
+    private onCodeChange = (e: IMonacoModelContentChangeEvent) => {
+        this.props.editCell(this.getCell().id, e);
     };
 
     private onCodeCreated = (_code: string, _file: string, cellId: string, modelId: string) => {
@@ -311,6 +307,8 @@ export class InteractiveCell extends React.Component<IInteractiveCellProps> {
         if (e.code === 'Escape') {
             this.editCellEscape(e);
         } else if (e.code === 'Enter' && e.shiftKey) {
+            this.editCellSubmit(e);
+        } else if (e.code === 'NumpadEnter' && e.shiftKey) {
             this.editCellSubmit(e);
         }
     };

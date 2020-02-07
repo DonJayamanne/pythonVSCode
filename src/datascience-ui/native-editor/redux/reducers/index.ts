@@ -38,7 +38,7 @@ export const reducerMap: Partial<INativeEditorActionMapping> = {
     [CommonActionType.SELECT_SERVER]: Kernel.selectJupyterURI,
     [CommonActionType.MOVE_CELL_UP]: Movement.moveCellUp,
     [CommonActionType.MOVE_CELL_DOWN]: Movement.moveCellDown,
-    [InteractiveWindowMessages.DeleteCell]: Creation.deleteCell,
+    [CommonActionType.DELETE_CELL]: Creation.deleteCell,
     [CommonActionType.TOGGLE_LINE_NUMBERS]: Effects.toggleLineNumbers,
     [CommonActionType.TOGGLE_OUTPUT]: Effects.toggleOutput,
     [CommonActionType.CHANGE_CELL_TYPE]: Execution.changeCellType,
@@ -76,6 +76,7 @@ export const reducerMap: Partial<INativeEditorActionMapping> = {
     [CssMessages.GetCssResponse]: CommonEffects.handleCss,
     [InteractiveWindowMessages.MonacoReady]: CommonEffects.monacoReady,
     [CssMessages.GetMonacoThemeResponse]: CommonEffects.monacoThemeChange,
+    [InteractiveWindowMessages.UpdateModel]: Creation.handleUpdate,
     [InteractiveWindowMessages.UpdateKernel]: Kernel.updateStatus,
     [SharedMessages.LocInit]: CommonEffects.handleLocInit
 };

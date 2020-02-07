@@ -13,12 +13,13 @@ import * as localize from '../../common/utils/localize';
 import { IServiceContainer } from '../../ioc/types';
 import { captureTelemetry, sendTelemetryEvent } from '../../telemetry';
 import { Identifiers, Settings, Telemetry } from '../constants';
-import { INotebookEdit, INotebookEditor, INotebookEditorProvider, INotebookModel, INotebookModelChange, INotebookServerOptions, INotebookStorage } from '../types';
+import { NotebookModelChange } from '../interactive-common/interactiveWindowTypes';
+import { INotebookEditor, INotebookEditorProvider, INotebookModel, INotebookServerOptions, INotebookStorage } from '../types';
 
 // Class that is registered as the custom editor provider for notebooks. VS code will call into this class when
 // opening an ipynb file. This class then creates a backing storage, model, and opens a view for the file.
 @injectable()
-export class NativeEditorProvider implements INotebookEditorProvider, WebviewCustomEditorProvider, WebviewCustomEditorEditingDelegate<INotebookEdit>, IAsyncDisposable {
+export class NativeEditorProvider implements INotebookEditorProvider, WebviewCustomEditorProvider, WebviewCustomEditorEditingDelegate<NotebookModelChange>, IAsyncDisposable {
     // Note, this constant has to match the value used in the package.json to register the webview custom editor.
     public static readonly customEditorViewType = 'NativeEditorProvider.ipynb';
     public get onDidChangeActiveNotebookEditor(): Event<INotebookEditor | undefined> {
@@ -29,7 +30,7 @@ export class NativeEditorProvider implements INotebookEditorProvider, WebviewCus
     }
     private readonly _onDidChangeActiveNotebookEditor = new EventEmitter<INotebookEditor | undefined>();
     private readonly _onDidCloseNotebookEditor = new EventEmitter<INotebookEditor>();
-    private readonly _editEventEmitter = new EventEmitter<{ readonly resource: Uri; readonly edit: INotebookEdit }>();
+    private readonly _editEventEmitter = new EventEmitter<{ readonly resource: Uri; readonly edit: NotebookModelChange }>();
     private openedEditors: Set<INotebookEditor> = new Set<INotebookEditor>();
     private models = new Map<string, Promise<{ model: INotebookModel; storage: INotebookStorage }>>();
     private modelChangedHandlers: Map<string, Disposable> = new Map<string, Disposable>();
@@ -74,14 +75,22 @@ export class NativeEditorProvider implements INotebookEditorProvider, WebviewCus
             }
         });
     }
-    public get onEdit(): Event<{ readonly resource: Uri; readonly edit: INotebookEdit }> {
+    public get onEdit(): Event<{ readonly resource: Uri; readonly edit: NotebookModelChange }> {
         return this._editEventEmitter.event;
     }
-    public applyEdits(_resource: Uri, _edits: readonly INotebookEdit[]): Thenable<void> {
-        return Promise.resolve();
+    public applyEdits(resource: Uri, edits: readonly NotebookModelChange[]): Thenable<void> {
+        return this.loadModel(resource).then(s => {
+            if (s) {
+                edits.forEach(e => s.update({ ...e, source: 'redo' }));
+            }
+        });
     }
-    public undoEdits(_resource: Uri, _edits: readonly INotebookEdit[]): Thenable<void> {
-        return Promise.resolve();
+    public undoEdits(resource: Uri, edits: readonly NotebookModelChange[]): Thenable<void> {
+        return this.loadModel(resource).then(s => {
+            if (s) {
+                edits.forEach(e => s.update({ ...e, source: 'undo' }));
+            }
+        });
     }
     public async resolveWebviewEditor(resource: Uri, panel: WebviewPanel) {
         try {
@@ -212,16 +221,23 @@ export class NativeEditorProvider implements INotebookEditorProvider, WebviewCus
         }
     }
 
-    private async modelChanged(file: Uri, change: INotebookModelChange): Promise<void> {
-        // If the file changes, update our storage
-        if (change.oldFile && change.newFile && this.models.has(change.oldFile.toString())) {
-            const promise = this.models.get(change.oldFile.toString());
-            this.models.delete(change.oldFile.toString());
-            this.models.set(change.newFile.toString(), promise!);
-        }
-        // If the cells change, tell VS code about it
-        if (change.newCells && change.isDirty) {
-            this._editEventEmitter.fire({ resource: file, edit: { contents: change.newCells } });
+    private async modelChanged(file: Uri, change: NotebookModelChange): Promise<void> {
+        // If the cells change because of a UI event, tell VS code about it
+        if (change.source === 'user') {
+            // Skip version and file changes. They can't be undone
+            switch (change.kind) {
+                case 'version':
+                    break;
+                case 'file':
+                    // Update our storage
+                    const promise = this.models.get(change.oldFile.toString());
+                    this.models.delete(change.oldFile.toString());
+                    this.models.set(change.newFile.toString(), promise!);
+                    break;
+                default:
+                    this._editEventEmitter.fire({ resource: file, edit: change });
+                    break;
+            }
         }
     }
 

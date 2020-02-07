@@ -62,16 +62,6 @@ export namespace Commands {
     export const ScrollToCell = 'python.datascience.scrolltocell';
     export const CreateNewNotebook = 'python.datascience.createnewnotebook';
     export const ViewJupyterOutput = 'python.datascience.viewJupyterOutput';
-
-    // Make sure to put these into the package .json
-    export const NotebookStorage_DeleteAllCells = 'python.datascience.notebook.deleteall';
-    export const NotebookStorage_ModifyCells = 'python.datascience.notebook.modifycells';
-    export const NotebookStorage_EditCell = 'python.datascience.notebook.editcell';
-    export const NotebookStorage_InsertCell = 'python.datascience.notebook.insertcell';
-    export const NotebookStorage_RemoveCell = 'python.datascience.notebook.removecell';
-    export const NotebookStorage_SwapCells = 'python.datascience.notebook.swapcells';
-    export const NotebookStorage_ClearCellOutputs = 'python.datascience.notebook.clearoutputs';
-    export const NotebookStorage_UpdateVersion = 'python.datascience.notebook.updateversion';
 }
 
 export namespace CodeLensCommands {

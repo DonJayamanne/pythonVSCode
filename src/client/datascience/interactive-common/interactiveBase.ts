@@ -209,14 +209,6 @@ export abstract class InteractiveBase extends WebViewHost<IInteractiveWindowMapp
                 this.handleMessage(message, payload, this.reexecuteCell);
                 break;
 
-            case InteractiveWindowMessages.DeleteAllCells:
-                this.logTelemetry(Telemetry.DeleteAllCells);
-                break;
-
-            case InteractiveWindowMessages.DeleteCell:
-                this.logTelemetry(Telemetry.DeleteCell);
-                break;
-
             case InteractiveWindowMessages.Undo:
                 this.logTelemetry(Telemetry.Undo);
                 break;

@@ -14,6 +14,7 @@ import { IAsyncDisposable, IDataScienceSettings, IDisposable } from '../common/t
 import { StopWatch } from '../common/utils/stopWatch';
 import { PythonInterpreter } from '../interpreter/contracts';
 import { JupyterCommands } from './constants';
+import { NotebookModelChange } from './interactive-common/interactiveWindowTypes';
 import { JupyterServerInfo } from './jupyter/jupyterConnection';
 import { JupyterInstallError } from './jupyter/jupyterInstallError';
 import { JupyterKernelSpec } from './jupyter/kernels/jupyterKernelSpec';
@@ -320,7 +321,6 @@ export interface INotebookEditor extends IInteractiveBase {
     readonly closed: Event<INotebookEditor>;
     readonly executed: Event<INotebookEditor>;
     readonly modified: Event<INotebookEditor>;
-    readonly saved: Event<INotebookEditor>;
     /**
      * Is this notebook representing an untitled file which has never been saved yet.
      */
@@ -727,28 +727,15 @@ export interface IJupyterInterpreterDependencyManager {
     installMissingDependencies(err?: JupyterInstallError): Promise<void>;
 }
 
-export interface INotebookEdit {
-    readonly contents: ICell[];
-}
-
-export interface INotebookModelChange {
-    model: INotebookModel;
-    newFile?: Uri;
-    oldFile?: Uri;
-    isDirty?: boolean;
-    isUntitled?: boolean;
-    newCells?: ICell[];
-    oldCells?: ICell[];
-}
-
 export interface INotebookModel {
     readonly file: Uri;
     readonly isDirty: boolean;
     readonly isUntitled: boolean;
-    readonly changed: Event<INotebookModelChange>;
+    readonly changed: Event<NotebookModelChange>;
     readonly cells: ICell[];
     getJson(): Promise<Partial<nbformat.INotebookContent>>;
     getContent(cells?: ICell[]): Promise<string>;
+    update(change: NotebookModelChange): void;
 }
 
 export const INotebookStorage = Symbol('INotebookStorage');

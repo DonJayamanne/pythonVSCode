@@ -11,6 +11,7 @@ import { createCellFrom } from '../../../common/cellFactory';
 import { CursorPos, getSelectedAndFocusedInfo, ICellViewModel, IMainState } from '../../../interactive-common/mainState';
 import { createPostableAction } from '../../../interactive-common/redux/helpers';
 import { Helpers } from '../../../interactive-common/redux/reducers/helpers';
+import { Transfer } from '../../../interactive-common/redux/reducers/transfer';
 import { CommonActionType, ICellAction, IChangeCellTypeAction, ICodeAction, IExecuteAction } from '../../../interactive-common/redux/reducers/types';
 import { QueueAnotherFunc } from '../../../react-common/reduxUtils';
 import { NativeEditorReducerArg } from '../mapping';
@@ -147,7 +148,7 @@ export namespace Execution {
             return Helpers.asCellViewModel({ ...cellVM, cell: { ...cellVM.cell, data: { ...cellVM.cell.data, outputs: [], execution_count: null } } });
         });
 
-        arg.queueAction(createPostableAction(InteractiveWindowMessages.ClearAllOutputs));
+        Transfer.postModelClearOutputs(arg);
 
         return {
             ...arg.prevState,
@@ -174,16 +175,9 @@ export namespace Execution {
             // tslint:disable-next-line: no-any
             cellVMs[index] = newCell as any; // This is because IMessageCell doesn't fit in here. But message cells can't change type
             if (newType === 'code') {
-                arg.queueAction(
-                    createPostableAction(InteractiveWindowMessages.InsertCell, {
-                        cell: cellVMs[index].cell,
-                        index,
-                        code: arg.payload.data.currentCode,
-                        codeCellAboveId: Helpers.firstCodeCellAbove(arg.prevState, current.cell.id)
-                    })
-                );
+                Transfer.postModelInsert(arg, index, cellVMs[index].cell, Helpers.firstCodeCellAbove(arg.prevState, current.cell.id));
             } else {
-                arg.queueAction(createPostableAction(InteractiveWindowMessages.RemoveCell, { id: current.cell.id }));
+                Transfer.postModelRemove(arg, index, current.cell);
             }
 
             // When changing a cell type, also give the cell focus.

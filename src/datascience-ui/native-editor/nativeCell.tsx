@@ -24,6 +24,7 @@ import { IKeyboardEvent } from '../react-common/event';
 import { Image, ImageName } from '../react-common/image';
 import { ImageButton } from '../react-common/imageButton';
 import { getLocString } from '../react-common/locReactSide';
+import { IMonacoModelContentChangeEvent } from '../react-common/monacoHelpers';
 import { AddCellLine } from './addCellLine';
 import { actionCreators } from './redux/actions';
 
@@ -280,6 +281,7 @@ export class NativeCell extends React.Component<INativeCellProps> {
                     this.props.sendCommand(NativeCommandType.ToggleOutput, 'keyboard');
                 }
                 break;
+            case 'NumpadEnter':
             case 'Enter':
                 if (e.shiftKey) {
                     this.shiftEnterCell(e);
@@ -311,20 +313,6 @@ export class NativeCell extends React.Component<INativeCellProps> {
                     e.stopPropagation();
                     this.props.insertBelow(cellId);
                     this.props.sendCommand(NativeCommandType.InsertBelow, 'keyboard');
-                }
-                break;
-            case 'z':
-            case 'Z':
-                if (!this.isFocused()) {
-                    if (e.shiftKey && !e.ctrlKey && !e.altKey) {
-                        e.stopPropagation();
-                        this.props.redo();
-                        this.props.sendCommand(NativeCommandType.Redo, 'keyboard');
-                    } else if (!e.shiftKey && !e.altKey && !e.ctrlKey) {
-                        e.stopPropagation();
-                        this.props.undo();
-                        this.props.sendCommand(NativeCommandType.Undo, 'keyboard');
-                    }
                 }
                 break;
 
@@ -597,6 +585,8 @@ export class NativeCell extends React.Component<INativeCellProps> {
                         keyDown={this.keyDownInput}
                         showLineNumbers={this.props.cellVM.showLineNumbers}
                         font={this.props.font}
+                        disableUndoStack={true}
+                        codeVersion={this.props.cellVM.codeVersion ? this.props.cellVM.codeVersion : 1}
                     />
                 </div>
             );
@@ -613,8 +603,8 @@ export class NativeCell extends React.Component<INativeCellProps> {
         this.props.unfocusCell(this.cellId, this.getCurrentCode());
     };
 
-    private onCodeChange = (changes: monacoEditor.editor.IModelContentChange[], cellId: string, modelId: string) => {
-        this.props.editCell(cellId, changes, modelId, this.getCurrentCode());
+    private onCodeChange = (e: IMonacoModelContentChangeEvent) => {
+        this.props.editCell(this.getCell().id, e);
     };
 
     private onCodeCreated = (_code: string, _file: string, cellId: string, modelId: string) => {
