@@ -26,6 +26,7 @@ import { ImageButton } from '../react-common/imageButton';
 import { getLocString } from '../react-common/locReactSide';
 import { IMonacoModelContentChangeEvent } from '../react-common/monacoHelpers';
 import { AddCellLine } from './addCellLine';
+import { actionCreators } from './redux/actions';
 
 interface INativeCellBaseProps {
     role?: string;
@@ -683,5 +684,5 @@ export class NativeCell extends React.Component<INativeCellProps> {
 
 // Main export, return a redux connected editor
 export function getConnectedNativeCell() {
-    return connect(null, mapDispatchToProps)(NativeCell);
+    return connect(null, actionCreators)(NativeCell);
 }

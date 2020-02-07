@@ -11,6 +11,7 @@ import { Helpers } from '../../../interactive-common/redux/reducers/helpers';
 import { Transfer } from '../../../interactive-common/redux/reducers/transfer';
 import { CommonActionType, IAddCellAction, ICellAction } from '../../../interactive-common/redux/reducers/types';
 import { NativeEditorReducerArg } from '../mapping';
+import { Effects } from './effects';
 import { Execution } from './execution';
 import { Movement } from './movement';
 
