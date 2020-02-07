@@ -41,7 +41,8 @@ import {
     INotebookModel,
     INotebookServerOptions,
     IStatusProvider,
-    IThemeFinder
+    IThemeFinder,
+    WebViewViewChangeEventArgs
 } from '../types';
 
 const nativeEditorDir = path.join(EXTENSION_ROOT_DIR, 'out', 'datascience-ui', 'notebook');
@@ -217,6 +218,7 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
 
     public async getNotebookOptions(): Promise<INotebookServerOptions> {
         const options = await this.editorProvider.getNotebookOptions();
+        await this.loadedPromise.promise;
         if (this._model) {
             const metadata = (await this._model.getJson()).metadata;
             return {
@@ -373,8 +375,8 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
         // time state changes. We use this opportunity to update our
         // extension contexts
         if (this.commandManager && this.commandManager.executeCommand) {
-            const interactiveContext = new ContextKey(EditorContexts.HaveNative, this.commandManager);
-            interactiveContext.set(!this.isDisposed).catch();
+            const nativeContext = new ContextKey(EditorContexts.HaveNative, this.commandManager);
+            nativeContext.set(!this.isDisposed).catch();
             const interactiveCellsContext = new ContextKey(EditorContexts.HaveNativeCells, this.commandManager);
             const redoableContext = new ContextKey(EditorContexts.HaveNativeRedoableCells, this.commandManager);
             const hasCellSelectedContext = new ContextKey(EditorContexts.HaveCellSelected, this.commandManager);
@@ -390,12 +392,12 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
         }
     }
 
-    protected async onViewStateChanged(visible: boolean, active: boolean) {
-        super.onViewStateChanged(visible, active);
+    protected async onViewStateChanged(args: WebViewViewChangeEventArgs) {
+        super.onViewStateChanged(args);
 
         // Update our contexts
-        const interactiveContext = new ContextKey(EditorContexts.HaveNative, this.commandManager);
-        interactiveContext.set(visible && active).catch();
+        const nativeContext = new ContextKey(EditorContexts.HaveNative, this.commandManager);
+        nativeContext.set(args.current.visible && args.current.active).catch();
         this._onDidChangeViewState.fire();
     }
 

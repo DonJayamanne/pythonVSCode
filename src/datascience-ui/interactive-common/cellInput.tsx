@@ -29,6 +29,7 @@ interface ICellInputProps {
     showLineNumbers?: boolean;
     font: IFont;
     disableUndoStack: boolean;
+    focusPending: number;
     onCodeChange(e: IMonacoModelContentChangeEvent): void;
     onCodeCreated(code: string, file: string, cellId: string, modelId: string): void;
     openLink(uri: monacoEditor.Uri): void;
@@ -116,6 +117,7 @@ export class CellInput extends React.Component<ICellInputProps> {
                         disableUndoStack={this.props.disableUndoStack}
                         version={this.props.codeVersion}
                         previousCode={this.props.cellVM.uncommittedText}
+                        focusPending={this.props.focusPending}
                     />
                 </div>
             );

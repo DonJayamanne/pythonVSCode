@@ -43,6 +43,7 @@ interface INativeCellBaseProps {
     enableGather: boolean | undefined;
     editorOptions: monacoEditor.editor.IEditorOptions;
     themeMatplotlibPlots: boolean | undefined;
+    focusPending: number;
 }
 
 type INativeCellProps = INativeCellBaseProps & typeof actionCreators;
@@ -587,6 +588,7 @@ export class NativeCell extends React.Component<INativeCellProps> {
                         font={this.props.font}
                         disableUndoStack={true}
                         codeVersion={this.props.cellVM.codeVersion ? this.props.cellVM.codeVersion : 1}
+                        focusPending={this.props.focusPending}
                     />
                 </div>
             );
