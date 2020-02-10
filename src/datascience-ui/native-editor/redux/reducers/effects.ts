@@ -51,7 +51,7 @@ export namespace Effects {
         return arg.prevState;
     }
 
-    export function unfocusCell(arg: NativeEditorReducerArg<ICodeAction>): IMainState {
+    export function unfocusCell(arg: NativeEditorReducerArg<ICellAction | ICodeAction>): IMainState {
         // Unfocus the cell
         const index = arg.prevState.cellVMs.findIndex(c => c.cell.id === arg.payload.data.cellId);
         const selectionInfo = getSelectedAndFocusedInfo(arg.prevState);
@@ -60,13 +60,13 @@ export namespace Effects {
             const current = arg.prevState.cellVMs[index];
             const newCell = {
                 ...current,
-                inputBlockText: arg.payload.data.code,
+                inputBlockText: 'code' in arg.payload.data ? arg.payload.data.code : current.inputBlockText,
                 focused: false,
                 cell: {
                     ...current.cell,
                     data: {
                         ...current.cell.data,
-                        source: arg.payload.data.code
+                        source: 'code' in arg.payload.data ? arg.payload.data.code : current.cell.data.source
                     }
                 }
             };
@@ -84,12 +84,12 @@ export namespace Effects {
             const current = arg.prevState.cellVMs[index];
             const newCell = {
                 ...current,
-                inputBlockText: arg.payload.data.code,
+                inputBlockText: 'code' in arg.payload.data ? arg.payload.data.code : current.inputBlockText,
                 cell: {
                     ...current.cell,
                     data: {
                         ...current.cell.data,
-                        source: arg.payload.data.code
+                        source: 'code' in arg.payload.data ? arg.payload.data.code : current.cell.data.source
                     }
                 }
             };

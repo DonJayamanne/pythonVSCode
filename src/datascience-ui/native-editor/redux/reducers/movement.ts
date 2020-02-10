@@ -2,11 +2,11 @@
 // Licensed under the MIT License.
 'use strict';
 import { CursorPos, IMainState } from '../../../interactive-common/mainState';
+import { createIncomingActionWithPayload } from '../../../interactive-common/redux/helpers';
 import { Helpers } from '../../../interactive-common/redux/reducers/helpers';
 import { Transfer } from '../../../interactive-common/redux/reducers/transfer';
-import { ICellAction, ICodeAction } from '../../../interactive-common/redux/reducers/types';
+import { CommonActionType, ICellAction, ICodeAction } from '../../../interactive-common/redux/reducers/types';
 import { NativeEditorReducerArg } from '../mapping';
-import { Effects } from './effects';
 
 export namespace Movement {
     export function swapCells(arg: NativeEditorReducerArg<{ firstCellId: string; secondCellId: string }>) {
@@ -50,17 +50,7 @@ export namespace Movement {
     export function arrowUp(arg: NativeEditorReducerArg<ICodeAction>): IMainState {
         const index = arg.prevState.cellVMs.findIndex(c => c.cell.id === arg.payload.data.cellId);
         if (index > 0) {
-            const newState = Effects.selectCell({ ...arg, payload: { ...arg.payload, data: { cellId: arg.prevState.cellVMs[index - 1].cell.id, cursorPos: CursorPos.Bottom } } });
-            const newVMs = [...newState.cellVMs];
-            newVMs[index] = Helpers.asCellViewModel({
-                ...newVMs[index],
-                inputBlockText: arg.payload.data.code,
-                cell: { ...newVMs[index].cell, data: { ...newVMs[index].cell.data, source: arg.payload.data.code } }
-            });
-            return {
-                ...newState,
-                cellVMs: newVMs
-            };
+            arg.queueAction(createIncomingActionWithPayload(CommonActionType.SELECT_CELL, { cellId: arg.prevState.cellVMs[index - 1].cell.id, cursorPos: CursorPos.Bottom }));
         }
 
         return arg.prevState;
@@ -69,17 +59,7 @@ export namespace Movement {
     export function arrowDown(arg: NativeEditorReducerArg<ICodeAction>): IMainState {
         const index = arg.prevState.cellVMs.findIndex(c => c.cell.id === arg.payload.data.cellId);
         if (index < arg.prevState.cellVMs.length - 1) {
-            const newState = Effects.selectCell({ ...arg, payload: { ...arg.payload, data: { cellId: arg.prevState.cellVMs[index + 1].cell.id, cursorPos: CursorPos.Top } } });
-            const newVMs = [...newState.cellVMs];
-            newVMs[index] = Helpers.asCellViewModel({
-                ...newVMs[index],
-                inputBlockText: arg.payload.data.code,
-                cell: { ...newVMs[index].cell, data: { ...newVMs[index].cell.data, source: arg.payload.data.code } }
-            });
-            return {
-                ...newState,
-                cellVMs: newVMs
-            };
+            arg.queueAction(createIncomingActionWithPayload(CommonActionType.SELECT_CELL, { cellId: arg.prevState.cellVMs[index + 1].cell.id, cursorPos: CursorPos.Bottom }));
         }
 
         return arg.prevState;

@@ -6,10 +6,10 @@ import { noop } from '../../../../client/common/utils/misc';
 import { IEditorContentChange, ILoadAllCells, NotebookModelChange } from '../../../../client/datascience/interactive-common/interactiveWindowTypes';
 import { ICell, IDataScienceExtraSettings } from '../../../../client/datascience/types';
 import { createCellVM, createEmptyCell, CursorPos, extractInputText, getSelectedAndFocusedInfo, ICellViewModel, IMainState } from '../../../interactive-common/mainState';
+import { createIncomingActionWithPayload } from '../../../interactive-common/redux/helpers';
 import { Helpers } from '../../../interactive-common/redux/reducers/helpers';
 import { Transfer } from '../../../interactive-common/redux/reducers/transfer';
-import { IAddCellAction, ICellAction } from '../../../interactive-common/redux/reducers/types';
-import { actionCreators } from '../actions';
+import { CommonActionType, IAddCellAction, ICellAction } from '../../../interactive-common/redux/reducers/types';
 import { NativeEditorReducerArg } from '../mapping';
 import { Effects } from './effects';
 import { Execution } from './execution';
@@ -40,6 +40,30 @@ export namespace Creation {
         }
     }
 
+    export function addAndFocusCell(arg: NativeEditorReducerArg<IAddCellAction>): IMainState {
+        arg.queueAction(createIncomingActionWithPayload(CommonActionType.ADD_NEW_CELL, { newCellId: arg.payload.data.newCellId }));
+        arg.queueAction(createIncomingActionWithPayload(CommonActionType.FOCUS_CELL, { cellId: arg.payload.data.newCellId, cursorPos: CursorPos.Current }));
+        return arg.prevState;
+    }
+
+    export function insertAboveAndFocusCell(arg: NativeEditorReducerArg<IAddCellAction & ICellAction>): IMainState {
+        arg.queueAction(createIncomingActionWithPayload(CommonActionType.INSERT_ABOVE, { cellId: arg.payload.data.cellId, newCellId: arg.payload.data.newCellId }));
+        arg.queueAction(createIncomingActionWithPayload(CommonActionType.FOCUS_CELL, { cellId: arg.payload.data.newCellId, cursorPos: CursorPos.Current }));
+        return arg.prevState;
+    }
+
+    export function insertBelowAndFocusCell(arg: NativeEditorReducerArg<IAddCellAction & ICellAction>): IMainState {
+        arg.queueAction(createIncomingActionWithPayload(CommonActionType.INSERT_BELOW, { cellId: arg.payload.data.cellId, newCellId: arg.payload.data.newCellId }));
+        arg.queueAction(createIncomingActionWithPayload(CommonActionType.FOCUS_CELL, { cellId: arg.payload.data.newCellId, cursorPos: CursorPos.Current }));
+        return arg.prevState;
+    }
+
+    export function insertAboveFirstAndFocusCell(arg: NativeEditorReducerArg<IAddCellAction>): IMainState {
+        arg.queueAction(createIncomingActionWithPayload(CommonActionType.INSERT_ABOVE_FIRST, { newCellId: arg.payload.data.newCellId }));
+        arg.queueAction(createIncomingActionWithPayload(CommonActionType.FOCUS_CELL, { cellId: arg.payload.data.newCellId, cursorPos: CursorPos.Current }));
+        return arg.prevState;
+    }
+
     export function insertAbove(arg: NativeEditorReducerArg<ICellAction & IAddCellAction>): IMainState {
         const newVM = prepareCellVM(createEmptyCell(arg.payload.data.newCellId, null), false, arg.prevState.settings);
         const newList = [...arg.prevState.cellVMs];
@@ -61,11 +85,6 @@ export namespace Creation {
 
         // Send a messsage that we inserted a cell
         Transfer.postModelInsert(arg, position, newVM.cell, findFirstCodeCellAbove(newList, position));
-
-        // Queue up an action to set focus to the cell we're inserting
-        setTimeout(() => {
-            arg.queueAction(actionCreators.focusCell(newVM.cell.id));
-        });
 
         return result;
     }
@@ -91,11 +110,6 @@ export namespace Creation {
 
         // Send a messsage that we inserted a cell
         Transfer.postModelInsert(arg, arg.prevState.cellVMs.length, newVM.cell, findFirstCodeCellAbove(newList, position));
-
-        // Queue up an action to set focus to the cell we're inserting
-        setTimeout(() => {
-            arg.queueAction(actionCreators.focusCell(newVM.cell.id));
-        });
 
         return result;
     }

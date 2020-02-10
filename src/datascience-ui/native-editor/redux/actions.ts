@@ -9,14 +9,11 @@ import { createIncomingAction, createIncomingActionWithPayload } from '../../int
 import {
     CommonAction,
     CommonActionType,
-    IAddCellAction,
     ICellAction,
     ICellAndCursorAction,
-    IChangeCellTypeAction,
     ICodeAction,
     ICodeCreatedAction,
     IEditCellAction,
-    IExecuteAction,
     ILinkClickAction,
     ISendCommandAction,
     IShowDataViewerAction
@@ -25,24 +22,17 @@ import { IMonacoModelContentChangeEvent } from '../../react-common/monacoHelpers
 
 // See https://react-redux.js.org/using-react-redux/connect-mapdispatch#defining-mapdispatchtoprops-as-an-object
 export const actionCreators = {
-    insertAbove: (cellId: string | undefined): CommonAction<ICellAction & IAddCellAction> =>
-        createIncomingActionWithPayload(CommonActionType.INSERT_ABOVE, { cellId, newCellId: uuid() }),
-    insertAboveFirst: (): CommonAction<IAddCellAction> => createIncomingActionWithPayload(CommonActionType.INSERT_ABOVE_FIRST, { newCellId: uuid() }),
-    insertBelow: (cellId: string | undefined): CommonAction<ICellAction & IAddCellAction> =>
-        createIncomingActionWithPayload(CommonActionType.INSERT_BELOW, { cellId, newCellId: uuid() }),
+    addCell: () => createIncomingActionWithPayload(CommonActionType.ADD_AND_FOCUS_NEW_CELL, { newCellId: uuid() }),
+    insertAboveFirst: () => createIncomingActionWithPayload(CommonActionType.INSERT_ABOVE_FIRST_AND_FOCUS_NEW_CELL, { newCellId: uuid() }),
+    insertAbove: (cellId: string | undefined) => createIncomingActionWithPayload(CommonActionType.INSERT_ABOVE_AND_FOCUS_NEW_CELL, { cellId, newCellId: uuid() }),
+    insertBelow: (cellId: string | undefined) => createIncomingActionWithPayload(CommonActionType.INSERT_BELOW_AND_FOCUS_NEW_CELL, { cellId, newCellId: uuid() }),
+    executeCell: (cellId: string, code: string, moveOp: 'add' | 'select' | 'none') =>
+        createIncomingActionWithPayload(CommonActionType.EXECUTE_CELL_AND_ADVANCE, { cellId, code, moveOp }),
     focusCell: (cellId: string, cursorPos: CursorPos = CursorPos.Current): CommonAction<ICellAndCursorAction> =>
         createIncomingActionWithPayload(CommonActionType.FOCUS_CELL, { cellId, cursorPos }),
-    unfocusCell: (cellId: string, code: string): CommonAction<ICodeAction> => createIncomingActionWithPayload(CommonActionType.UNFOCUS_CELL, { cellId, code }),
+    unfocusCell: (cellId: string, code: string) => createIncomingActionWithPayload(CommonActionType.UNFOCUS_CELL, { cellId, code }),
     selectCell: (cellId: string, cursorPos: CursorPos = CursorPos.Current): CommonAction<ICellAndCursorAction> =>
         createIncomingActionWithPayload(CommonActionType.SELECT_CELL, { cellId, cursorPos }),
-    addCell: (): CommonAction<IAddCellAction> => createIncomingActionWithPayload(CommonActionType.ADD_NEW_CELL, { newCellId: uuid() }),
-    executeCell: (cellId: string, code: string, moveOp: 'add' | 'select' | 'none'): CommonAction<IExecuteAction> => {
-        if (moveOp === 'add') {
-            return createIncomingActionWithPayload(CommonActionType.EXECUTE_CELL, { cellId, code, moveOp, newCellId: uuid() });
-        } else {
-            return createIncomingActionWithPayload(CommonActionType.EXECUTE_CELL, { cellId, code, moveOp });
-        }
-    },
     executeAllCells: (): CommonAction => createIncomingAction(CommonActionType.EXECUTE_ALL_CELLS),
     executeAbove: (cellId: string): CommonAction<ICellAction> => createIncomingActionWithPayload(CommonActionType.EXECUTE_ABOVE, { cellId }),
     executeCellAndBelow: (cellId: string, code: string): CommonAction<ICodeAction> => createIncomingActionWithPayload(CommonActionType.EXECUTE_CELL_AND_BELOW, { cellId, code }),
@@ -58,8 +48,7 @@ export const actionCreators = {
         createIncomingActionWithPayload(CommonActionType.SEND_COMMAND, { command, commandType }),
     moveCellUp: (cellId: string): CommonAction<ICellAction> => createIncomingActionWithPayload(CommonActionType.MOVE_CELL_UP, { cellId }),
     moveCellDown: (cellId: string): CommonAction<ICellAction> => createIncomingActionWithPayload(CommonActionType.MOVE_CELL_DOWN, { cellId }),
-    changeCellType: (cellId: string, currentCode: string): CommonAction<IChangeCellTypeAction> =>
-        createIncomingActionWithPayload(CommonActionType.CHANGE_CELL_TYPE, { cellId, currentCode }),
+    changeCellType: (cellId: string, currentCode: string) => createIncomingActionWithPayload(CommonActionType.CHANGE_CELL_TYPE, { cellId, currentCode }),
     toggleLineNumbers: (cellId: string): CommonAction<ICellAction> => createIncomingActionWithPayload(CommonActionType.TOGGLE_LINE_NUMBERS, { cellId }),
     toggleOutput: (cellId: string): CommonAction<ICellAction> => createIncomingActionWithPayload(CommonActionType.TOGGLE_OUTPUT, { cellId }),
     deleteCell: (cellId: string): CommonAction<ICellAction> => createIncomingActionWithPayload(CommonActionType.DELETE_CELL, { cellId }),
@@ -78,7 +67,7 @@ export const actionCreators = {
             code: e.model.getValue()
         }),
     linkClick: (href: string): CommonAction<ILinkClickAction> => createIncomingActionWithPayload(CommonActionType.LINK_CLICK, { href }),
-    showPlot: (imageHtml: string): CommonAction<string> => createIncomingActionWithPayload(InteractiveWindowMessages.ShowPlot, imageHtml),
+    showPlot: (imageHtml: string) => createIncomingActionWithPayload(InteractiveWindowMessages.ShowPlot, imageHtml),
     gatherCell: (cellId: string | undefined): CommonAction<ICellAction> => createIncomingActionWithPayload(CommonActionType.GATHER_CELL, { cellId }),
     editorLoaded: (): CommonAction => createIncomingAction(CommonActionType.EDITOR_LOADED),
     codeCreated: (cellId: string | undefined, modelId: string): CommonAction<ICodeCreatedAction> =>

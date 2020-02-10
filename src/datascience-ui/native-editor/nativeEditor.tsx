@@ -37,6 +37,7 @@ export class NativeEditor extends React.Component<INativeEditorProps> {
 
     constructor(props: INativeEditorProps) {
         super(props);
+        this.insertAboveFirst = this.insertAboveFirst.bind(this);
     }
 
     public componentDidMount() {
@@ -83,7 +84,7 @@ export class NativeEditor extends React.Component<INativeEditorProps> {
         const progressBar = this.props.busy && !this.props.testMode ? <Progress /> : undefined;
         const addCellLine =
             this.props.cellVMs.length === 0 ? null : (
-                <AddCellLine includePlus={true} className="add-cell-line-top" click={this.props.insertAboveFirst} baseTheme={this.props.baseTheme} />
+                <AddCellLine includePlus={true} className="add-cell-line-top" click={this.insertAboveFirst} baseTheme={this.props.baseTheme} />
             );
 
         return (
@@ -106,13 +107,16 @@ export class NativeEditor extends React.Component<INativeEditorProps> {
         );
     }
 
+    private insertAboveFirst() {
+        setTimeout(() => this.props.insertAboveFirst(), 1);
+    }
     // tslint:disable: react-this-binding-issue
     // tslint:disable-next-line: max-func-body-length
     private renderToolbarPanel() {
         const selectedInfo = getSelectedAndFocusedInfo(this.props);
 
         const addCell = () => {
-            this.props.addCell();
+            setTimeout(() => this.props.addCell(), 1);
             this.props.sendCommand(NativeCommandType.AddToEnd, 'mouse');
         };
         const runAll = () => {
@@ -357,7 +361,7 @@ export class NativeEditor extends React.Component<INativeEditorProps> {
         }
 
         const addNewCell = () => {
-            this.props.insertBelow(cellVM.cell.id);
+            setTimeout(() => this.props.insertBelow(cellVM.cell.id), 1);
             this.props.sendCommand(NativeCommandType.AddToEnd, 'mouse');
         };
         const firstLine = index === 0;

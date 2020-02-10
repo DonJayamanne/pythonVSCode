@@ -167,6 +167,9 @@ function createTestMiddleware(): Redux.Middleware<{}, IStore> {
             sendMessage(InteractiveWindowMessages.ExecutionRendered, { ids: diff });
         }
 
+        if (action.type !== 'action.postOutgoingMessage') {
+            sendMessage(`DISPATCHED_ACTION_${action.type}`, {});
+        }
         return res;
     };
 }

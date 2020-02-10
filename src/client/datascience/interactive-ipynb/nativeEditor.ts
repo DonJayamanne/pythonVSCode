@@ -7,6 +7,7 @@ import { inject, injectable, multiInject, named } from 'inversify';
 import * as path from 'path';
 import { Event, EventEmitter, Memento, Uri, ViewColumn, WebviewPanel } from 'vscode';
 
+import * as uuid from 'uuid/v4';
 import { createCodeCell, createErrorOutput } from '../../../datascience-ui/common/cellFactory';
 import { IApplicationShell, ICommandManager, IDocumentManager, ILiveShareApi, IWebPanelProvider, IWorkspaceService } from '../../common/application/types';
 import { ContextKey } from '../../common/contextKey';
@@ -242,7 +243,7 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
     }
 
     public addCellBelow() {
-        this.postMessage(InteractiveWindowMessages.NotebookAddCellBelow).ignoreErrors();
+        this.postMessage(InteractiveWindowMessages.NotebookAddCellBelow, { newCellId: uuid() }).ignoreErrors();
     }
 
     protected addSysInfo(_reason: SysInfoReason): Promise<void> {

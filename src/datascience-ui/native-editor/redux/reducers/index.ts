@@ -16,12 +16,17 @@ import { Movement } from './movement';
 // The list of reducers. 1 per message/action.
 export const reducerMap: Partial<INativeEditorActionMapping> = {
     // State updates
+    [CommonActionType.INSERT_ABOVE_AND_FOCUS_NEW_CELL]: Creation.insertAboveAndFocusCell,
+    [CommonActionType.INSERT_ABOVE_FIRST_AND_FOCUS_NEW_CELL]: Creation.insertAboveFirstAndFocusCell,
+    [CommonActionType.INSERT_BELOW_AND_FOCUS_NEW_CELL]: Creation.insertBelowAndFocusCell,
     [CommonActionType.INSERT_ABOVE]: Creation.insertAbove,
     [CommonActionType.INSERT_ABOVE_FIRST]: Creation.insertAboveFirst,
     [CommonActionType.INSERT_BELOW]: Creation.insertBelow,
     [CommonActionType.FOCUS_CELL]: Effects.focusCell,
     [CommonActionType.UNFOCUS_CELL]: Effects.unfocusCell,
+    [CommonActionType.ADD_AND_FOCUS_NEW_CELL]: Creation.addAndFocusCell,
     [CommonActionType.ADD_NEW_CELL]: Creation.addNewCell,
+    [CommonActionType.EXECUTE_CELL_AND_ADVANCE]: Execution.executeCellAndAdvance,
     [CommonActionType.EXECUTE_CELL]: Execution.executeCell,
     [CommonActionType.EXECUTE_ALL_CELLS]: Execution.executeAllCells,
     [CommonActionType.EXECUTE_ABOVE]: Execution.executeAbove,
@@ -63,7 +68,7 @@ export const reducerMap: Partial<INativeEditorActionMapping> = {
     [InteractiveWindowMessages.LoadAllCells]: Creation.loadAllCells,
     [InteractiveWindowMessages.NotebookRunAllCells]: Execution.executeAllCells,
     [InteractiveWindowMessages.NotebookRunSelectedCell]: Execution.executeSelectedCell,
-    [InteractiveWindowMessages.NotebookAddCellBelow]: Creation.addNewCell,
+    [InteractiveWindowMessages.NotebookAddCellBelow]: Creation.addAndFocusCell,
     [InteractiveWindowMessages.DoSave]: Transfer.save,
     [InteractiveWindowMessages.DeleteAllCells]: Creation.deleteAllCells,
     [InteractiveWindowMessages.Undo]: Execution.undo,

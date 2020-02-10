@@ -271,6 +271,7 @@ export class NativeCell extends React.Component<INativeCellProps> {
             case 'l':
                 if (!this.isFocused() && this.isSelected()) {
                     e.stopPropagation();
+                    e.preventDefault();
                     this.props.toggleLineNumbers(cellId);
                     this.props.sendCommand(NativeCommandType.ToggleLineNumbers, 'keyboard');
                 }
@@ -278,6 +279,7 @@ export class NativeCell extends React.Component<INativeCellProps> {
             case 'o':
                 if (!this.isFocused() && this.isSelected()) {
                     e.stopPropagation();
+                    e.preventDefault();
                     this.props.toggleOutput(cellId);
                     this.props.sendCommand(NativeCommandType.ToggleOutput, 'keyboard');
                 }
@@ -305,18 +307,19 @@ export class NativeCell extends React.Component<INativeCellProps> {
             case 'a':
                 if (!this.isFocused()) {
                     e.stopPropagation();
-                    this.props.insertAbove(cellId);
+                    e.preventDefault();
+                    setTimeout(() => this.props.insertAbove(cellId), 1);
                     this.props.sendCommand(NativeCommandType.InsertAbove, 'keyboard');
                 }
                 break;
             case 'b':
                 if (!this.isFocused()) {
                     e.stopPropagation();
-                    this.props.insertBelow(cellId);
+                    e.preventDefault();
+                    setTimeout(() => this.props.insertBelow(cellId), 1);
                     this.props.sendCommand(NativeCommandType.InsertBelow, 'keyboard');
                 }
                 break;
-
             default:
                 break;
         }
@@ -420,7 +423,7 @@ export class NativeCell extends React.Component<INativeCellProps> {
     };
 
     private addNewCell = () => {
-        this.props.insertBelow(this.cellId);
+        setTimeout(() => this.props.insertBelow(this.cellId), 1);
         this.props.sendCommand(NativeCommandType.AddToEnd, 'mouse');
     };
 

@@ -3,19 +3,19 @@
 'use strict';
 // tslint:disable-next-line: no-require-imports no-var-requires
 const cloneDeep = require('lodash/cloneDeep');
+import * as uuid from 'uuid/v4';
 import { CellMatcher } from '../../../../client/datascience/cellMatcher';
 import { InteractiveWindowMessages } from '../../../../client/datascience/interactive-common/interactiveWindowTypes';
 import { CellState } from '../../../../client/datascience/types';
 import { concatMultilineStringInput } from '../../../common';
 import { createCellFrom } from '../../../common/cellFactory';
 import { CursorPos, getSelectedAndFocusedInfo, ICellViewModel, IMainState } from '../../../interactive-common/mainState';
-import { createPostableAction } from '../../../interactive-common/redux/helpers';
+import { createIncomingActionWithPayload, createPostableAction } from '../../../interactive-common/redux/helpers';
 import { Helpers } from '../../../interactive-common/redux/reducers/helpers';
 import { Transfer } from '../../../interactive-common/redux/reducers/transfer';
 import { CommonActionType, ICellAction, IChangeCellTypeAction, ICodeAction, IExecuteAction } from '../../../interactive-common/redux/reducers/types';
 import { QueueAnotherFunc } from '../../../react-common/reduxUtils';
 import { NativeEditorReducerArg } from '../mapping';
-import { Creation } from './creation';
 import { Effects } from './effects';
 
 export namespace Execution {
@@ -63,6 +63,18 @@ export namespace Execution {
         return arg.prevState;
     }
 
+    export function executeCellAndAdvance(arg: NativeEditorReducerArg<IExecuteAction>): IMainState {
+        arg.queueAction(
+            createIncomingActionWithPayload(CommonActionType.EXECUTE_CELL, { cellId: arg.payload.data.cellId, code: arg.payload.data.code, moveOp: arg.payload.data.moveOp })
+        );
+        if (arg.payload.data.moveOp === 'add') {
+            const newCellId = uuid();
+            arg.queueAction(createIncomingActionWithPayload(CommonActionType.INSERT_BELOW, { cellId: arg.payload.data.cellId, newCellId }));
+            arg.queueAction(createIncomingActionWithPayload(CommonActionType.FOCUS_CELL, { cellId: newCellId, cursorPos: CursorPos.Current }));
+        }
+        return arg.prevState;
+    }
+
     export function executeCell(arg: NativeEditorReducerArg<IExecuteAction>): IMainState {
         const index = arg.prevState.cellVMs.findIndex(c => c.cell.id === arg.payload.data.cellId);
         if (index >= 0) {
@@ -70,11 +82,7 @@ export namespace Execution {
             const executeResult = executeRange(arg.prevState, index, index, [arg.payload.data.code], arg.queueAction);
 
             // Modify the execute result if moving
-            // Use `if` instead of `switch case` to ensure type safety.
-            if (arg.payload.data.moveOp === 'add') {
-                // Add a new cell below
-                return Creation.insertBelow({ ...arg, prevState: executeResult, payload: { ...arg.payload, data: { ...arg.payload.data } } });
-            } else if (arg.payload.data.moveOp === 'select') {
+            if (arg.payload.data.moveOp === 'select') {
                 // Select the cell below this one, but don't focus it
                 if (index < arg.prevState.cellVMs.length - 1) {
                     return Effects.selectCell(
@@ -180,12 +188,10 @@ export namespace Execution {
                 Transfer.postModelRemove(arg, index, current.cell);
             }
 
-            // When changing a cell type, also give the cell focus.
-            return Effects.focusCell({
-                ...arg,
-                prevState: { ...arg.prevState, cellVMs },
-                payload: { ...arg.payload, data: { cellId: arg.payload.data.cellId, cursorPos: CursorPos.Current } }
-            });
+            return {
+                ...arg.prevState,
+                cellVMs
+            };
         }
 
         return arg.prevState;

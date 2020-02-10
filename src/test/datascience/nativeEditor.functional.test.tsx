@@ -4,6 +4,7 @@
 import { nbformat } from '@jupyterlab/coreutils';
 import { assert, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
+import * as dedent from 'dedent';
 import { ReactWrapper } from 'enzyme';
 import { EventEmitter } from 'events';
 import * as fs from 'fs-extra';
@@ -22,6 +23,7 @@ import { JupyterExecutionFactory } from '../../client/datascience/jupyter/jupyte
 import { ICell, IDataScienceErrorHandler, IJupyterExecution, INotebookEditorProvider, INotebookExporter } from '../../client/datascience/types';
 import { PythonInterpreter } from '../../client/interpreter/contracts';
 import { Editor } from '../../datascience-ui/interactive-common/editor';
+import { CommonActionType } from '../../datascience-ui/interactive-common/redux/reducers/types';
 import { NativeCell } from '../../datascience-ui/native-editor/nativeCell';
 import { NativeEditor } from '../../datascience-ui/native-editor/nativeEditor';
 import { IKeyboardEvent } from '../../datascience-ui/react-common/event';
@@ -128,26 +130,26 @@ suite('DataScience Native Editor', () => {
                 // Create an editor so something is listening to messages
                 await createNewEditor(ioc);
 
-                const badPanda = `import pandas as pd
-df = pd.read("${escapePath(path.join(srcDirectory(), 'DefaultSalesReport.csv'))}")
-df.head()`;
-                const goodPanda = `import pandas as pd
-df = pd.read_csv("${escapePath(path.join(srcDirectory(), 'DefaultSalesReport.csv'))}")
-df.head()`;
+                const badPanda = dedent`import pandas as pd
+                    df = pd.read("${escapePath(path.join(srcDirectory(), 'DefaultSalesReport.csv'))}")
+                    df.head()`;
+                const goodPanda = dedent`import pandas as pd
+                    df = pd.read_csv("${escapePath(path.join(srcDirectory(), 'DefaultSalesReport.csv'))}")
+                    df.head()`;
                 const matPlotLib = 'import matplotlib.pyplot as plt\r\nimport numpy as np\r\nx = np.linspace(0,20,100)\r\nplt.plot(x, np.sin(x))\r\nplt.show()';
                 const matPlotLibResults = 'img';
-                const spinningCursor = `import sys
-import time
-def spinning_cursor():
-    while True:
-        for cursor in '|/-\\\\':
-            yield cursor
-spinner = spinning_cursor()
-for _ in range(50):
-    sys.stdout.write(next(spinner))
-    sys.stdout.flush()
-    time.sleep(0.1)
-    sys.stdout.write('\\r')`;
+                const spinningCursor = dedent`import sys
+                    import time
+                    def spinning_cursor():
+                        while True:
+                            for cursor in '|/-\\\\':
+                                yield cursor
+                    spinner = spinning_cursor()
+                    for _ in range(50):
+                        sys.stdout.write(next(spinner))
+                        sys.stdout.flush()
+                        time.sleep(0.1)
+                        sys.stdout.write('\\r')`;
                 const alternating = `from IPython.display import display\r\nprint('foo')\r\ndisplay('foo')\r\nprint('bar')\r\ndisplay('bar')`;
                 const alternatingResults = ['foo\n', 'foo', 'bar\n', 'bar'];
 
@@ -499,7 +501,7 @@ for _ in range(50):
             }
         );
 
-        test('Failure', async () => {
+        test('xFailure', async () => {
             let fail = true;
             const errorThrownDeferred = createDeferred<Error>();
             // Make a dummy class that will fail during launch
@@ -536,7 +538,7 @@ for _ in range(50):
             assert.equal(imageButtons.length, 6, 'Cell buttons not found');
             const runButton = imageButtons.findWhere(w => w.props().tooltip === 'Run cell');
             assert.equal(runButton.length, 1, 'No run button found');
-            const update = waitForMessage(ioc, InteractiveWindowMessages.ExecutionRendered);
+            const update = waitForMessage(ioc, InteractiveWindowMessages.ExecutionRendered, { numberOfTimes: 2 });
             runButton.simulate('click');
             await update;
             verifyHtmlOnCell(wrapper, 'NativeCell', `1`, 1);
@@ -801,13 +803,20 @@ for _ in range(50):
                 clickCell(0);
 
                 // Switch to markdown
-                let update = waitForMessage(ioc, InteractiveWindowMessages.FocusedCellEditor);
+                let update = waitForMessage(ioc, CommonActionType.CHANGE_CELL_TYPE);
                 simulateKeyPressOnCell(0, { code: 'm' });
                 await update;
 
                 // Monaco editor should be rendered and the cell should be markdown
-                assert.ok(isCellFocused(wrapper, 'NativeCell', 0));
+                assert.ok(!isCellFocused(wrapper, 'NativeCell', 0));
                 assert.ok(isCellMarkdown(wrapper, 'NativeCell', 0));
+
+                // Focus the cell.
+                update = waitForUpdate(wrapper, NativeEditor, 1);
+                simulateKeyPressOnCell(0, { code: 'Enter', editorInfo: undefined });
+                await update;
+
+                assert.ok(isCellFocused(wrapper, 'NativeCell', 0));
                 assert.equal(
                     wrapper
                         .find(NativeCell)
@@ -1088,7 +1097,7 @@ for _ in range(50):
                 // Confirm it is no longer focused, and it is selected.
                 assert.equal(isCellSelected(wrapper, 'NativeCell', 1), true);
                 assert.equal(isCellFocused(wrapper, 'NativeCell', 1), false);
-            });
+            }).retries(3);
 
             test("Pressing 'Shift+Enter' on a selected cell executes the cell and advances to the next cell", async () => {
                 let update = waitForUpdate(wrapper, NativeEditor, 1);
@@ -1347,17 +1356,43 @@ for _ in range(50):
                 assert.equal(optionsUpdated.lastCall.args[0].lineNumbers, 'off');
             });
 
-            test("Toggle markdown and code modes using 'y' and 'm' keys", async () => {
+            test("Toggle markdown and code modes using 'y' and 'm' keys (cells should not be focused)", async () => {
                 clickCell(1);
-
                 // Switch to markdown
-                let update = waitForMessage(ioc, InteractiveWindowMessages.FocusedCellEditor);
+                let update = waitForMessage(ioc, CommonActionType.CHANGE_CELL_TYPE);
                 simulateKeyPressOnCell(1, { code: 'm' });
                 await update;
 
                 // Monaco editor should be rendered and the cell should be markdown
-                assert.ok(isCellFocused(wrapper, 'NativeCell', 1), '1st cell is not focused');
+                assert.ok(!isCellFocused(wrapper, 'NativeCell', 1), '1st cell is not focused');
                 assert.ok(isCellMarkdown(wrapper, 'NativeCell', 1), '1st cell is not markdown');
+
+                // Switch to code
+                update = waitForMessage(ioc, CommonActionType.CHANGE_CELL_TYPE);
+                simulateKeyPressOnCell(1, { code: 'y' });
+                await update;
+
+                assert.ok(!isCellFocused(wrapper, 'NativeCell', 1), '1st cell is not focused 2nd time');
+                assert.ok(!isCellMarkdown(wrapper, 'NativeCell', 1), '1st cell is markdown second time');
+            });
+
+            test("Toggle markdown and code modes using 'y' and 'm' keys & ensure changes to cells is preserved", async () => {
+                clickCell(1);
+                // Switch to markdown
+                let update = waitForMessage(ioc, CommonActionType.CHANGE_CELL_TYPE);
+                simulateKeyPressOnCell(1, { code: 'm' });
+                await update;
+
+                // Monaco editor should be rendered and the cell should be markdown
+                assert.ok(!isCellFocused(wrapper, 'NativeCell', 1), '1st cell is not focused');
+                assert.ok(isCellMarkdown(wrapper, 'NativeCell', 1), '1st cell is not markdown');
+
+                // Focus the cell.
+                update = waitForUpdate(wrapper, NativeEditor, 1);
+                simulateKeyPressOnCell(1, { code: 'Enter', editorInfo: undefined });
+                await update;
+
+                assert.ok(isCellFocused(wrapper, 'NativeCell', 1));
                 assert.equal(
                     wrapper
                         .find(NativeCell)
@@ -1388,18 +1423,17 @@ for _ in range(50):
                 );
 
                 // Switch to code
-                update = waitForMessage(ioc, InteractiveWindowMessages.FocusedCellEditor);
-                // At this moment, there's no cell input element, hence send key strokes to the wrapper.
-                const wrapperElement = wrapper
-                    .find(NativeCell)
-                    .at(1)
-                    .find('.cell-wrapper')
-                    .first();
-                wrapperElement.simulate('keyDown', { key: 'y' });
+                update = waitForMessage(ioc, CommonActionType.CHANGE_CELL_TYPE);
+                simulateKeyPressOnCell(1, { code: 'y' });
                 await update;
 
-                assert.ok(isCellFocused(wrapper, 'NativeCell', 1), '1st cell is not focused 2nd time');
+                assert.ok(!isCellFocused(wrapper, 'NativeCell', 1), '1st cell is not focused 2nd time');
                 assert.ok(!isCellMarkdown(wrapper, 'NativeCell', 1), '1st cell is markdown second time');
+
+                // Focus the cell.
+                update = waitForUpdate(wrapper, NativeEditor, 1);
+                simulateKeyPressOnCell(1, { code: 'Enter', editorInfo: undefined });
+                await update;
 
                 // Confirm editor still has the same text
                 editor = getNativeFocusedEditor(wrapper);

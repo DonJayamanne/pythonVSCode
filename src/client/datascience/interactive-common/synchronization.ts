@@ -30,6 +30,7 @@ export type IInteractiveActionMapping = MessageMapping<IInteractiveWindowMapping
 // This way, if a new message is added, we'll make the decision early on whether it needs to be synchronized and how.
 // Rather than waiting for users to report issues related to new messages.
 const messageWithMessageTypes: MessageMapping<IInteractiveWindowMapping> & MessageMapping<CommonActionTypeMapping> = {
+    [CommonActionType.ADD_AND_FOCUS_NEW_CELL]: MessageType.other,
     [CommonActionType.ADD_NEW_CELL]: MessageType.syncAcrossSameNotebooks | MessageType.syncWithLiveShare,
     [CommonActionType.ARROW_DOWN]: MessageType.syncWithLiveShare,
     [CommonActionType.ARROW_UP]: MessageType.syncWithLiveShare,
@@ -40,6 +41,7 @@ const messageWithMessageTypes: MessageMapping<IInteractiveWindowMapping> & Messa
     [CommonActionType.COPY_CELL_CODE]: MessageType.other,
     [CommonActionType.EDITOR_LOADED]: MessageType.other,
     [CommonActionType.EDIT_CELL]: MessageType.syncAcrossSameNotebooks | MessageType.syncWithLiveShare,
+    [CommonActionType.EXECUTE_CELL_AND_ADVANCE]: MessageType.other,
     [CommonActionType.EXECUTE_ABOVE]: MessageType.other,
     [CommonActionType.EXECUTE_ALL_CELLS]: MessageType.other,
     [CommonActionType.EXECUTE_CELL]: MessageType.other,
@@ -49,9 +51,12 @@ const messageWithMessageTypes: MessageMapping<IInteractiveWindowMapping> & Messa
     [CommonActionType.GATHER_CELL]: MessageType.other,
     [CommonActionType.GET_VARIABLE_DATA]: MessageType.other,
     [CommonActionType.GOTO_CELL]: MessageType.syncWithLiveShare,
+    [CommonActionType.INSERT_ABOVE_AND_FOCUS_NEW_CELL]: MessageType.other,
     [CommonActionType.INSERT_ABOVE]: MessageType.syncAcrossSameNotebooks | MessageType.syncWithLiveShare,
+    [CommonActionType.INSERT_ABOVE_FIRST_AND_FOCUS_NEW_CELL]: MessageType.other,
     [CommonActionType.INSERT_ABOVE_FIRST]: MessageType.syncAcrossSameNotebooks | MessageType.syncWithLiveShare,
     [CommonActionType.INSERT_BELOW]: MessageType.syncAcrossSameNotebooks | MessageType.syncWithLiveShare,
+    [CommonActionType.INSERT_BELOW_AND_FOCUS_NEW_CELL]: MessageType.other,
     [CommonActionType.INTERRUPT_KERNEL]: MessageType.other,
     [CommonActionType.LOADED_ALL_CELLS]: MessageType.other,
     [CommonActionType.LINK_CLICK]: MessageType.other,
@@ -71,6 +76,8 @@ const messageWithMessageTypes: MessageMapping<IInteractiveWindowMapping> & Messa
     [CommonActionType.TOGGLE_VARIABLE_EXPLORER]: MessageType.syncWithLiveShare,
     [CommonActionType.UNFOCUS_CELL]: MessageType.syncWithLiveShare,
     [CommonActionType.UNMOUNT]: MessageType.other,
+    [CommonActionType.PostOutgoingMessage]: MessageType.other,
+    [CommonActionType.REFRESH_VARIABLES]: MessageType.other,
 
     // Types from InteractiveWindowMessages
     [InteractiveWindowMessages.Activate]: MessageType.other,
