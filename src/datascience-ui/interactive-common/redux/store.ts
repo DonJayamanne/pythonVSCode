@@ -6,6 +6,7 @@ import * as Redux from 'redux';
 import { createLogger } from 'redux-logger';
 import { Identifiers } from '../../../client/datascience/constants';
 import { InteractiveWindowMessages } from '../../../client/datascience/interactive-common/interactiveWindowTypes';
+import { MessageType } from '../../../client/datascience/interactive-common/synchronization';
 import { BaseReduxActionPayload } from '../../../client/datascience/interactive-common/types';
 import { CssMessages } from '../../../client/datascience/messages';
 import { CellState } from '../../../client/datascience/types';
@@ -75,7 +76,11 @@ function createSendInfoMiddleware(): Redux.Middleware<{}, IStore> {
         const afterState = store.getState();
 
         // If the action is part of a sync message, then do not send it to the extension.
-        if (action.payload && typeof (action.payload as BaseReduxActionPayload).messageType === 'number') {
+        const messageType = (action?.payload as BaseReduxActionPayload).messageType ?? MessageType.userAction;
+        const isSyncMessage =
+            (messageType & MessageType.syncAcrossSameNotebooks) === MessageType.syncAcrossSameNotebooks &&
+            (messageType & MessageType.syncAcrossSameNotebooks) === MessageType.syncWithLiveShare;
+        if (isSyncMessage) {
             return res;
         }
 
@@ -296,10 +301,14 @@ export function createStore<M>(skipDefault: boolean, baseTheme: string, testMode
             if (isAllowedMessage(message)) {
                 const basePayload: BaseReduxActionPayload = { data: payload };
                 if (message === InteractiveWindowMessages.Sync) {
+                    // This is a message that has been sent from extension purely for synchronization purposes.
                     // Unwrap the message.
                     message = payload.type;
-                    basePayload.messageType = payload.payload.messageType;
+                    basePayload.messageType = payload.payload.messageType ?? MessageType.syncAcrossSameNotebooks;
                     basePayload.data = payload.payload.data;
+                } else {
+                    // Messages result of some user action.
+                    basePayload.messageType = basePayload.messageType ?? MessageType.userAction;
                 }
                 store.dispatch({ type: message, payload: basePayload });
             }
