@@ -59,6 +59,7 @@ export enum CommonActionType {
     LINK_CLICK = 'action.link_click',
     MOVE_CELL_DOWN = 'action.move_cell_down',
     MOVE_CELL_UP = 'action.move_cell_up',
+    OPEN_SETTINGS = 'action.open_settings',
     PostOutgoingMessage = 'action.postOutgoingMessage',
     REFRESH_VARIABLES = 'action.refresh_variables',
     RESTART_KERNEL = 'action.restart_kernel_action',
@@ -126,6 +127,8 @@ export type CommonActionTypeMapping = {
     [CommonActionType.TOGGLE_VARIABLE_EXPLORER]: never | undefined;
     [CommonActionType.PostOutgoingMessage]: never | undefined;
     [CommonActionType.REFRESH_VARIABLES]: never | undefined;
+    [CommonActionType.OPEN_SETTINGS]: IOpenSettingsAction;
+    [CommonActionType.FOCUS_INPUT]: never | undefined;
 };
 
 export interface IShowDataViewerAction extends IShowDataViewer {}
@@ -197,5 +200,9 @@ export interface ISendCommandAction {
 export interface IChangeCellTypeAction {
     cellId: string;
     currentCode: string;
+}
+
+export interface IOpenSettingsAction {
+    setting: string | undefined;
 }
 export type CommonAction<T = never | undefined> = ActionWithPayload<T, CommonActionType | InteractiveWindowMessages>;

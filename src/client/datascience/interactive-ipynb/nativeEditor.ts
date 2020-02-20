@@ -84,8 +84,8 @@ import {
     WebViewViewChangeEventArgs
 } from '../types';
 
-// tslint:disable-next-line: no-require-imports
 import { nbformat } from '@jupyterlab/coreutils';
+// tslint:disable-next-line: no-require-imports
 import cloneDeep = require('lodash/cloneDeep');
 
 const nativeEditorDir = path.join(EXTENSION_ROOT_DIR, 'out', 'datascience-ui', 'notebook');
@@ -105,7 +105,6 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
     private loadedAllCells: boolean = false;
     private _model: INotebookModel | undefined;
     private executeCancelTokens = new Set<CancellationTokenSource>();
-    private _disposed = false;
 
     constructor(
         @multiInject(IInteractiveWindowListener) listeners: IInteractiveWindowListener[],
@@ -191,7 +190,6 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
     }
 
     public dispose(): Promise<void> {
-        this._disposed = true;
         super.dispose();
         return this.close();
     }

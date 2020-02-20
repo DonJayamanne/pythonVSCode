@@ -19,6 +19,7 @@ import {
     ICodeCreatedAction,
     IEditCellAction,
     ILinkClickAction,
+    IOpenSettingsAction,
     ISendCommandAction,
     IShowDataViewerAction
 } from '../../interactive-common/redux/reducers/types';
@@ -115,6 +116,8 @@ export const actionCreators = {
     editorUnmounted: (): CommonAction => createIncomingAction(CommonActionType.UNMOUNT),
     selectKernel: (): CommonAction => createIncomingAction(InteractiveWindowMessages.SelectKernel),
     selectServer: (): CommonAction => createIncomingAction(CommonActionType.SELECT_SERVER),
+    openSettings: (setting?: string): CommonAction<IOpenSettingsAction> =>
+        createIncomingActionWithPayload(CommonActionType.OPEN_SETTINGS, { setting }),
     getVariableData: (
         newExecutionCount: number,
         startIndex: number = 0,

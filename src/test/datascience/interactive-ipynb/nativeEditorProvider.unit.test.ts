@@ -37,6 +37,7 @@ suite('Data Science - Native Editor Provider', () => {
         svcContainer = mock(ServiceContainer);
         configService = mock(ConfigurationService);
         workspace = mock(WorkspaceService);
+        storage = typemoq.Mock.ofType<INotebookStorage & INotebookModel>();
         customEditorService = typemoq.Mock.ofType<ICustomEditorService>();
         panel = typemoq.Mock.ofType<WebviewPanel>();
         panel.setup(e => (e as any).then).returns(() => undefined);
@@ -45,8 +46,6 @@ suite('Data Science - Native Editor Provider', () => {
     function createNotebookProvider() {
         editor = typemoq.Mock.ofType<INotebookEditor>();
         when(configService.getSettings(anything())).thenReturn({ datascience: { useNotebookEditor: true } } as any);
-        when(docManager.onDidChangeActiveTextEditor).thenReturn(changeActiveTextEditorEventEmitter.event);
-        when(docManager.visibleTextEditors).thenReturn([]);
         editor.setup(e => e.closed).returns(() => new EventEmitter<INotebookEditor>().event);
         editor.setup(e => e.executed).returns(() => new EventEmitter<INotebookEditor>().event);
         editor.setup(e => (e as any).then).returns(() => undefined);

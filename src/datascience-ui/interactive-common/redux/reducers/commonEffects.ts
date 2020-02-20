@@ -8,7 +8,8 @@ import { IGetMonacoThemeResponse } from '../../../../client/datascience/monacoMe
 import { IMainState } from '../../../interactive-common/mainState';
 import { Helpers } from '../../../interactive-common/redux/reducers/helpers';
 import { storeLocStrings } from '../../../react-common/locReactSide';
-import { CommonActionType, CommonReducerArg } from './types';
+import { postActionToExtension } from '../helpers';
+import { CommonActionType, CommonReducerArg, IOpenSettingsAction } from './types';
 
 export namespace CommonEffects {
     export function notebookDirty(arg: CommonReducerArg): IMainState {
@@ -123,9 +124,8 @@ export namespace CommonEffects {
         };
     }
 
-    export function openSettings(arg: CommonReducerArg): IMainState {
-        arg.queueAction(createPostableAction(InteractiveWindowMessages.OpenSettings));
-
+    export function openSettings(arg: CommonReducerArg<CommonActionType, IOpenSettingsAction>): IMainState {
+        postActionToExtension(arg, InteractiveWindowMessages.OpenSettings, arg.payload.data.setting);
         return arg.prevState;
     }
 }

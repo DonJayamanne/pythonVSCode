@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 'use strict';
 import { nbformat } from '@jupyterlab/coreutils';
-import { assert, use } from 'chai';
+import { assert, expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as dedent from 'dedent';
 import { ReactWrapper } from 'enzyme';
@@ -29,6 +29,7 @@ import {
 } from '../../client/datascience/types';
 import { PythonInterpreter } from '../../client/interpreter/contracts';
 import { Editor } from '../../datascience-ui/interactive-common/editor';
+import { ExecutionCount } from '../../datascience-ui/interactive-common/executionCount';
 import { CommonActionType } from '../../datascience-ui/interactive-common/redux/reducers/types';
 import { NativeCell } from '../../datascience-ui/native-editor/nativeCell';
 import { NativeEditor } from '../../datascience-ui/native-editor/nativeEditor';
@@ -71,7 +72,6 @@ import {
     waitForMessage,
     waitForMessageResponse
 } from './testHelpers';
-import { ExecutionCount } from '../../datascience-ui/interactive-common/executionCount';
 
 use(chaiAsPromised);
 
@@ -540,7 +540,9 @@ df.head()`;
                     numberOfTimes: 3
                 });
                 runAllButton = findButton(newWrapper!, NativeEditor, 0);
-                renderAll = waitForMessage(ioc, InteractiveWindowMessages.ExecutionRendered, { numberOfTimes: 3 });
+                threeCellsUpdated = waitForMessage(ioc, InteractiveWindowMessages.ExecutionRendered, {
+                    numberOfTimes: 3
+                });
                 await waitForMessageResponse(ioc, () => runAllButton!.simulate('click'));
                 await threeCellsUpdated;
                 verifyHtmlOnCell(newWrapper!, 'NativeCell', `1`, 0);
@@ -1681,6 +1683,7 @@ df.head()`;
                     numberOfTimes: 3
                 });
                 await waitForMessageResponse(ioc, () => runAllButton!.simulate('click'));
+                await threeCellsUpdated;
 
                 const saveButton = findButton(wrapper, NativeEditor, 8);
                 let saved = waitForMessage(ioc, InteractiveWindowMessages.NotebookClean);

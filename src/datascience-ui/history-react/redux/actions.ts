@@ -16,6 +16,7 @@ import {
     ICodeCreatedAction,
     IEditCellAction,
     ILinkClickAction,
+    IOpenSettingsAction,
     IScrollAction,
     IShowDataViewerAction
 } from '../../interactive-common/redux/reducers/types';
@@ -36,6 +37,7 @@ function createIncomingAction(type: CommonActionType | InteractiveWindowMessages
 
 // See https://react-redux.js.org/using-react-redux/connect-mapdispatch#defining-mapdispatchtoprops-as-an-object
 export const actionCreators = {
+    focusInput: (): CommonAction => createIncomingAction(CommonActionType.FOCUS_INPUT),
     restartKernel: (): CommonAction => createIncomingAction(CommonActionType.RESTART_KERNEL),
     interruptKernel: (): CommonAction => createIncomingAction(CommonActionType.INTERRUPT_KERNEL),
     deleteAllCells: (): CommonAction => createIncomingAction(InteractiveWindowMessages.DeleteAllCells),
@@ -84,6 +86,8 @@ export const actionCreators = {
     editorUnmounted: (): CommonAction => createIncomingAction(CommonActionType.UNMOUNT),
     selectKernel: (): CommonAction => createIncomingAction(InteractiveWindowMessages.SelectKernel),
     selectServer: (): CommonAction => createIncomingAction(CommonActionType.SELECT_SERVER),
+    openSettings: (setting?: string): CommonAction<IOpenSettingsAction> =>
+        createIncomingActionWithPayload(CommonActionType.OPEN_SETTINGS, { setting }),
     getVariableData: (
         newExecutionCount: number,
         startIndex: number = 0,
