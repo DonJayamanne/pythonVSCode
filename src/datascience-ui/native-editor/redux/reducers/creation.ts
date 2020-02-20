@@ -217,11 +217,12 @@ export namespace Creation {
         arg: NativeEditorReducerArg<{ id: string; changes: IEditorContentChange[] }>
     ): IMainState {
         const index = arg.prevState.cellVMs.findIndex(c => c.cell.id === arg.payload.data.id);
-        if (index) {
+        if (index >= 0) {
             const newVM = { ...arg.prevState.cellVMs[index] };
             arg.payload.data.changes.forEach(c => {
                 const source = newVM.uncommittedText ? newVM.uncommittedText : newVM.inputBlockText;
                 const before = source.slice(0, c.rangeOffset);
+                // tslint:disable-next-line: restrict-plus-operands
                 const after = source.slice(c.rangeOffset + c.rangeLength);
                 newVM.uncommittedText = `${before}${c.text}${after}`;
             });
