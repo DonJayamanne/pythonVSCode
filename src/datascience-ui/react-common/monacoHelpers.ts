@@ -1,5 +1,9 @@
 import * as monacoEditor from 'monaco-editor/esm/vs/editor/editor.api';
-import { IEditorContentChange, IEditorPosition, IEditorRange } from '../../client/datascience/interactive-common/interactiveWindowTypes';
+import {
+    IEditorContentChange,
+    IEditorPosition,
+    IEditorRange
+} from '../../client/datascience/interactive-common/interactiveWindowTypes';
 
 export interface IMonacoTextModel {
     readonly id: string;
@@ -53,7 +57,11 @@ function getValueInRange(text: string, r: IEditorRange): string {
     return '';
 }
 
-export function generateReverseChange(oldModelValue: string, model: IMonacoTextModel, c: monacoEditor.editor.IModelContentChange): monacoEditor.editor.IModelContentChange {
+export function generateReverseChange(
+    oldModelValue: string,
+    model: IMonacoTextModel,
+    c: monacoEditor.editor.IModelContentChange
+): monacoEditor.editor.IModelContentChange {
     const oldStart = model.getPositionAt(c.rangeOffset);
     const oldEnd = model.getPositionAt(c.rangeOffset + c.rangeLength);
     const oldText = getValueInRange(oldModelValue, c.range);
@@ -71,7 +79,11 @@ export function generateReverseChange(oldModelValue: string, model: IMonacoTextM
     };
 }
 
-export function generateChangeEvent(ev: monacoEditor.editor.IModelContentChangedEvent, m: IMonacoTextModel, oldText: string): IMonacoModelContentChangeEvent {
+export function generateChangeEvent(
+    ev: monacoEditor.editor.IModelContentChangedEvent,
+    m: IMonacoTextModel,
+    oldText: string
+): IMonacoModelContentChangeEvent {
     // Figure out the end position from the offset plus the length of the text we added
     const currentOffset = ev.changes[ev.changes.length - 1].rangeOffset + ev.changes[ev.changes.length - 1].text.length;
     const currentPosition = m.getPositionAt(currentOffset);

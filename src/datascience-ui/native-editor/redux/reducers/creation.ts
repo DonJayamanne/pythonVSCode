@@ -3,9 +3,21 @@
 'use strict';
 
 import { noop } from '../../../../client/common/utils/misc';
-import { IEditorContentChange, ILoadAllCells, NotebookModelChange } from '../../../../client/datascience/interactive-common/interactiveWindowTypes';
+import {
+    IEditorContentChange,
+    ILoadAllCells,
+    NotebookModelChange
+} from '../../../../client/datascience/interactive-common/interactiveWindowTypes';
 import { ICell, IDataScienceExtraSettings } from '../../../../client/datascience/types';
-import { createCellVM, createEmptyCell, CursorPos, extractInputText, getSelectedAndFocusedInfo, ICellViewModel, IMainState } from '../../../interactive-common/mainState';
+import {
+    createCellVM,
+    createEmptyCell,
+    CursorPos,
+    extractInputText,
+    getSelectedAndFocusedInfo,
+    ICellViewModel,
+    IMainState
+} from '../../../interactive-common/mainState';
 import { queueIncomingActionWithPayload } from '../../../interactive-common/redux/helpers';
 import { Helpers } from '../../../interactive-common/redux/reducers/helpers';
 import { Transfer } from '../../../interactive-common/redux/reducers/transfer';
@@ -42,25 +54,45 @@ export namespace Creation {
 
     export function addAndFocusCell(arg: NativeEditorReducerArg<IAddCellAction>): IMainState {
         queueIncomingActionWithPayload(arg, CommonActionType.ADD_NEW_CELL, { newCellId: arg.payload.data.newCellId });
-        queueIncomingActionWithPayload(arg, CommonActionType.FOCUS_CELL, { cellId: arg.payload.data.newCellId, cursorPos: CursorPos.Current });
+        queueIncomingActionWithPayload(arg, CommonActionType.FOCUS_CELL, {
+            cellId: arg.payload.data.newCellId,
+            cursorPos: CursorPos.Current
+        });
         return arg.prevState;
     }
 
     export function insertAboveAndFocusCell(arg: NativeEditorReducerArg<IAddCellAction & ICellAction>): IMainState {
-        queueIncomingActionWithPayload(arg, CommonActionType.INSERT_ABOVE, { cellId: arg.payload.data.cellId, newCellId: arg.payload.data.newCellId });
-        queueIncomingActionWithPayload(arg, CommonActionType.FOCUS_CELL, { cellId: arg.payload.data.newCellId, cursorPos: CursorPos.Current });
+        queueIncomingActionWithPayload(arg, CommonActionType.INSERT_ABOVE, {
+            cellId: arg.payload.data.cellId,
+            newCellId: arg.payload.data.newCellId
+        });
+        queueIncomingActionWithPayload(arg, CommonActionType.FOCUS_CELL, {
+            cellId: arg.payload.data.newCellId,
+            cursorPos: CursorPos.Current
+        });
         return arg.prevState;
     }
 
     export function insertBelowAndFocusCell(arg: NativeEditorReducerArg<IAddCellAction & ICellAction>): IMainState {
-        queueIncomingActionWithPayload(arg, CommonActionType.INSERT_BELOW, { cellId: arg.payload.data.cellId, newCellId: arg.payload.data.newCellId });
-        queueIncomingActionWithPayload(arg, CommonActionType.FOCUS_CELL, { cellId: arg.payload.data.newCellId, cursorPos: CursorPos.Current });
+        queueIncomingActionWithPayload(arg, CommonActionType.INSERT_BELOW, {
+            cellId: arg.payload.data.cellId,
+            newCellId: arg.payload.data.newCellId
+        });
+        queueIncomingActionWithPayload(arg, CommonActionType.FOCUS_CELL, {
+            cellId: arg.payload.data.newCellId,
+            cursorPos: CursorPos.Current
+        });
         return arg.prevState;
     }
 
     export function insertAboveFirstAndFocusCell(arg: NativeEditorReducerArg<IAddCellAction>): IMainState {
-        queueIncomingActionWithPayload(arg, CommonActionType.INSERT_ABOVE_FIRST, { newCellId: arg.payload.data.newCellId });
-        queueIncomingActionWithPayload(arg, CommonActionType.FOCUS_CELL, { cellId: arg.payload.data.newCellId, cursorPos: CursorPos.Current });
+        queueIncomingActionWithPayload(arg, CommonActionType.INSERT_ABOVE_FIRST, {
+            newCellId: arg.payload.data.newCellId
+        });
+        queueIncomingActionWithPayload(arg, CommonActionType.FOCUS_CELL, {
+            cellId: arg.payload.data.newCellId,
+            cursorPos: CursorPos.Current
+        });
         return arg.prevState;
     }
 
@@ -109,7 +141,12 @@ export namespace Creation {
         };
 
         // Send a messsage that we inserted a cell
-        Transfer.postModelInsert(arg, arg.prevState.cellVMs.length, newVM.cell, findFirstCodeCellAbove(newList, position));
+        Transfer.postModelInsert(
+            arg,
+            arg.prevState.cellVMs.length,
+            newVM.cell,
+            findFirstCodeCellAbove(newList, position)
+        );
 
         return result;
     }
@@ -119,14 +156,23 @@ export namespace Creation {
         const firstCellId = arg.prevState.cellVMs.length > 0 ? arg.prevState.cellVMs[0].cell.id : undefined;
 
         // Do what an insertAbove does
-        return insertAbove({ ...arg, payload: { ...arg.payload, data: { cellId: firstCellId, newCellId: arg.payload.data.newCellId } } });
+        return insertAbove({
+            ...arg,
+            payload: { ...arg.payload, data: { cellId: firstCellId, newCellId: arg.payload.data.newCellId } }
+        });
     }
 
     export function addNewCell(arg: NativeEditorReducerArg<IAddCellAction>): IMainState {
         // Do the same thing that an insertBelow does using the currently selected cell.
         return insertBelow({
             ...arg,
-            payload: { ...arg.payload, data: { cellId: getSelectedAndFocusedInfo(arg.prevState).selectedCellId, newCellId: arg.payload.data.newCellId } }
+            payload: {
+                ...arg.payload,
+                data: {
+                    cellId: getSelectedAndFocusedInfo(arg.prevState).selectedCellId,
+                    newCellId: arg.payload.data.newCellId
+                }
+            }
         });
     }
 
@@ -167,7 +213,9 @@ export namespace Creation {
         };
     }
 
-    export function applyCellEdit(arg: NativeEditorReducerArg<{ id: string; changes: IEditorContentChange[] }>): IMainState {
+    export function applyCellEdit(
+        arg: NativeEditorReducerArg<{ id: string; changes: IEditorContentChange[] }>
+    ): IMainState {
         const index = arg.prevState.cellVMs.findIndex(c => c.cell.id === arg.payload.data.id);
         if (index) {
             const newVM = { ...arg.prevState.cellVMs[index] };
@@ -229,9 +277,16 @@ export namespace Creation {
                 const previousSelection = getSelectedAndFocusedInfo(arg.prevState);
                 const newVMs = [...arg.prevState.cellVMs.filter(c => c.cell.id !== arg.payload.data.cellId)];
                 const nextOrPrev = index === arg.prevState.cellVMs.length - 1 ? index - 1 : index;
-                if (previousSelection.selectedCellId === arg.payload.data.cellId || previousSelection.focusedCellId === arg.payload.data.cellId) {
+                if (
+                    previousSelection.selectedCellId === arg.payload.data.cellId ||
+                    previousSelection.focusedCellId === arg.payload.data.cellId
+                ) {
                     if (nextOrPrev >= 0) {
-                        newVMs[nextOrPrev] = { ...newVMs[nextOrPrev], selected: true, focused: previousSelection.focusedCellId === arg.payload.data.cellId };
+                        newVMs[nextOrPrev] = {
+                            ...newVMs[nextOrPrev],
+                            selected: true,
+                            focused: previousSelection.focusedCellId === arg.payload.data.cellId
+                        };
                     }
                 }
 
@@ -274,29 +329,54 @@ export namespace Creation {
         const disabledQueueArg = { ...arg, queueAction: noop };
         switch (arg.payload.data.kind) {
             case 'clear':
-                return loadAllCells({ ...disabledQueueArg, payload: { ...arg.payload, data: { cells: arg.payload.data.oldCells } } });
+                return loadAllCells({
+                    ...disabledQueueArg,
+                    payload: { ...arg.payload, data: { cells: arg.payload.data.oldCells } }
+                });
             case 'edit':
-                return applyCellEdit({ ...disabledQueueArg, payload: { ...arg.payload, data: { id: arg.payload.data.id, changes: arg.payload.data.reverse } } });
+                return applyCellEdit({
+                    ...disabledQueueArg,
+                    payload: { ...arg.payload, data: { id: arg.payload.data.id, changes: arg.payload.data.reverse } }
+                });
             case 'insert':
-                return deleteCell({ ...disabledQueueArg, payload: { ...arg.payload, data: { cellId: arg.payload.data.cell.id } } });
+                return deleteCell({
+                    ...disabledQueueArg,
+                    payload: { ...arg.payload, data: { cellId: arg.payload.data.cell.id } }
+                });
             case 'remove':
-                const cellBelow = arg.prevState.cellVMs.length > arg.payload.data.index ? arg.prevState.cellVMs[arg.payload.data.index].cell : undefined;
+                const cellBelow =
+                    arg.prevState.cellVMs.length > arg.payload.data.index
+                        ? arg.prevState.cellVMs[arg.payload.data.index].cell
+                        : undefined;
                 return insertAbove({
                     ...disabledQueueArg,
-                    payload: { ...arg.payload, data: { newCellId: arg.payload.data.cell.id, cellId: cellBelow ? cellBelow.id : undefined } }
+                    payload: {
+                        ...arg.payload,
+                        data: { newCellId: arg.payload.data.cell.id, cellId: cellBelow ? cellBelow.id : undefined }
+                    }
                 });
             case 'remove_all':
-                return loadAllCells({ ...disabledQueueArg, payload: { ...arg.payload, data: { cells: arg.payload.data.oldCells } } });
+                return loadAllCells({
+                    ...disabledQueueArg,
+                    payload: { ...arg.payload, data: { cells: arg.payload.data.oldCells } }
+                });
             case 'swap':
                 return Movement.swapCells({
                     ...disabledQueueArg,
-                    payload: { ...arg.payload, data: { firstCellId: arg.payload.data.secondCellId, secondCellId: arg.payload.data.firstCellId } }
+                    payload: {
+                        ...arg.payload,
+                        data: { firstCellId: arg.payload.data.secondCellId, secondCellId: arg.payload.data.firstCellId }
+                    }
                 });
             case 'modify':
                 // Undo for modify should reapply the outputs. Go through each and apply the update
                 let result = arg.prevState;
                 arg.payload.data.oldCells.forEach(c => {
-                    result = updateCell({ ...disabledQueueArg, prevState: result, payload: { ...arg.payload, data: c } });
+                    result = updateCell({
+                        ...disabledQueueArg,
+                        prevState: result,
+                        payload: { ...arg.payload, data: c }
+                    });
                 });
                 return result;
 
@@ -317,23 +397,45 @@ export namespace Creation {
                 // tslint:disable-next-line: no-any
                 return Execution.clearAllOutputs(disabledQueueArg as any);
             case 'edit':
-                return applyCellEdit({ ...disabledQueueArg, payload: { ...arg.payload, data: { id: arg.payload.data.id, changes: arg.payload.data.forward } } });
+                return applyCellEdit({
+                    ...disabledQueueArg,
+                    payload: { ...arg.payload, data: { id: arg.payload.data.id, changes: arg.payload.data.forward } }
+                });
             case 'insert':
-                return insertAbove({ ...disabledQueueArg, payload: { ...arg.payload, data: { newCellId: arg.payload.data.cell.id, cellId: arg.payload.data.codeCellAboveId } } });
+                return insertAbove({
+                    ...disabledQueueArg,
+                    payload: {
+                        ...arg.payload,
+                        data: { newCellId: arg.payload.data.cell.id, cellId: arg.payload.data.codeCellAboveId }
+                    }
+                });
             case 'remove':
-                return deleteCell({ ...disabledQueueArg, payload: { ...arg.payload, data: { cellId: arg.payload.data.cell.id } } });
+                return deleteCell({
+                    ...disabledQueueArg,
+                    payload: { ...arg.payload, data: { cellId: arg.payload.data.cell.id } }
+                });
             case 'remove_all':
-                return deleteAllCells({ ...disabledQueueArg, payload: { ...arg.payload, data: { newCellId: arg.payload.data.newCellId } } });
+                return deleteAllCells({
+                    ...disabledQueueArg,
+                    payload: { ...arg.payload, data: { newCellId: arg.payload.data.newCellId } }
+                });
             case 'swap':
                 return Movement.swapCells({
                     ...disabledQueueArg,
-                    payload: { ...arg.payload, data: { firstCellId: arg.payload.data.secondCellId, secondCellId: arg.payload.data.firstCellId } }
+                    payload: {
+                        ...arg.payload,
+                        data: { firstCellId: arg.payload.data.secondCellId, secondCellId: arg.payload.data.firstCellId }
+                    }
                 });
             case 'modify':
                 // Redo for modify should reapply the outputs. Go through each and apply the update
                 let result = arg.prevState;
                 arg.payload.data.newCells.forEach(c => {
-                    result = updateCell({ ...disabledQueueArg, prevState: result, payload: { ...arg.payload, data: c } });
+                    result = updateCell({
+                        ...disabledQueueArg,
+                        prevState: result,
+                        payload: { ...arg.payload, data: c }
+                    });
                 });
                 return result;
             default:

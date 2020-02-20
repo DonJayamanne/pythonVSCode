@@ -61,7 +61,9 @@ suite('Data Science - Native Editor Provider', () => {
         when(svcContainer.get<INotebookStorage>(INotebookStorage)).thenReturn(storage.object);
         customEditorService.setup(e => (e as any).then).returns(() => undefined);
         customEditorService
-            .setup(c => c.registerWebviewCustomEditorProvider(typemoq.It.isAny(), typemoq.It.isAny(), typemoq.It.isAny()))
+            .setup(c =>
+                c.registerWebviewCustomEditorProvider(typemoq.It.isAny(), typemoq.It.isAny(), typemoq.It.isAny())
+            )
             .returns((_a1, _a2, _a3) => {
                 return { dispose: noop };
             });

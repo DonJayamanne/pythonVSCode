@@ -5,8 +5,11 @@ import * as tmp from 'tmp';
 import { ITempFileSystem, TemporaryFile } from './types';
 
 interface IRawTempFS {
-    // tslint:disable-next-line:no-any
-    file(config: tmp.Options, callback?: (err: any, path: string, fd: number, cleanupCallback: () => void) => void): void;
+    file(
+        config: tmp.Options,
+        // tslint:disable-next-line:no-any
+        callback?: (err: any, path: string, fd: number, cleanupCallback: () => void) => void
+    ): void;
 }
 
 // Operations related to temporary files and directories.

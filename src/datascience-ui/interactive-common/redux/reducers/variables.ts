@@ -2,9 +2,17 @@
 // Licensed under the MIT License.
 'use strict';
 import { Reducer } from 'redux';
-import { IInteractiveWindowMapping, InteractiveWindowMessages } from '../../../../client/datascience/interactive-common/interactiveWindowTypes';
+import {
+    IInteractiveWindowMapping,
+    InteractiveWindowMessages
+} from '../../../../client/datascience/interactive-common/interactiveWindowTypes';
 import { BaseReduxActionPayload } from '../../../../client/datascience/interactive-common/types';
-import { ICell, IJupyterVariable, IJupyterVariablesRequest, IJupyterVariablesResponse } from '../../../../client/datascience/types';
+import {
+    ICell,
+    IJupyterVariable,
+    IJupyterVariablesRequest,
+    IJupyterVariablesResponse
+} from '../../../../client/datascience/types';
 import { combineReducers, QueuableAction, ReducerArg, ReducerFunc } from '../../../react-common/reduxUtils';
 import { postActionToExtension } from '../helpers';
 import { CommonActionType, CommonActionTypeMapping } from './types';
@@ -18,11 +26,22 @@ export type IVariableState = {
     pageSize: number;
 };
 
-type VariableReducerFunc<T = never | undefined> = ReducerFunc<IVariableState, InteractiveWindowMessages, BaseReduxActionPayload<T>>;
-type VariableReducerArg<T = never | undefined> = ReducerArg<IVariableState, InteractiveWindowMessages, BaseReduxActionPayload<T>>;
+type VariableReducerFunc<T = never | undefined> = ReducerFunc<
+    IVariableState,
+    InteractiveWindowMessages,
+    BaseReduxActionPayload<T>
+>;
+type VariableReducerArg<T = never | undefined> = ReducerArg<
+    IVariableState,
+    InteractiveWindowMessages,
+    BaseReduxActionPayload<T>
+>;
 
 function handleRequest(arg: VariableReducerArg<IJupyterVariablesRequest>): IVariableState {
-    const newExecutionCount = arg.payload.data.executionCount !== undefined ? arg.payload.data.executionCount : arg.prevState.currentExecutionCount;
+    const newExecutionCount =
+        arg.payload.data.executionCount !== undefined
+            ? arg.payload.data.executionCount
+            : arg.prevState.currentExecutionCount;
     postActionToExtension(arg, InteractiveWindowMessages.GetVariablesRequest, {
         executionCount: newExecutionCount,
         sortColumn: arg.payload.data.sortColumn,
@@ -51,7 +70,13 @@ function toggleVariableExplorer(arg: VariableReducerArg): IVariableState {
             prevState: newState,
             payload: {
                 ...arg.payload,
-                data: { executionCount: arg.prevState.currentExecutionCount, sortColumn: 'name', sortAscending: true, startIndex: 0, pageSize: arg.prevState.pageSize }
+                data: {
+                    executionCount: arg.prevState.currentExecutionCount,
+                    sortColumn: 'name',
+                    sortAscending: true,
+                    startIndex: 0,
+                    pageSize: arg.prevState.pageSize
+                }
             }
         });
     } else {
@@ -111,7 +136,16 @@ function handleRestarted(arg: VariableReducerArg): IVariableState {
     if (arg.prevState.visible) {
         const result = handleRequest({
             ...arg,
-            payload: { ...arg.payload, data: { executionCount: 0, sortColumn: 'name', sortAscending: true, startIndex: 0, pageSize: arg.prevState.pageSize } }
+            payload: {
+                ...arg.payload,
+                data: {
+                    executionCount: 0,
+                    sortColumn: 'name',
+                    sortAscending: true,
+                    startIndex: 0,
+                    pageSize: arg.prevState.pageSize
+                }
+            }
         });
         return {
             ...result,
@@ -123,13 +157,24 @@ function handleRestarted(arg: VariableReducerArg): IVariableState {
 }
 
 function handleFinishCell(arg: VariableReducerArg<ICell>): IVariableState {
-    const executionCount = arg.payload.data.data.execution_count ? parseInt(arg.payload.data.data.execution_count.toString(), 10) : undefined;
+    const executionCount = arg.payload.data.data.execution_count
+        ? parseInt(arg.payload.data.data.execution_count.toString(), 10)
+        : undefined;
 
     // If the variables are visible, refresh them
     if (arg.prevState.visible && executionCount) {
         return handleRequest({
             ...arg,
-            payload: { ...arg.payload, data: { executionCount, sortColumn: 'name', sortAscending: true, startIndex: 0, pageSize: arg.prevState.pageSize } }
+            payload: {
+                ...arg.payload,
+                data: {
+                    executionCount,
+                    sortColumn: 'name',
+                    sortAscending: true,
+                    startIndex: 0,
+                    pageSize: arg.prevState.pageSize
+                }
+            }
         });
     }
     return {
@@ -142,7 +187,8 @@ type VariableReducerFunctions<T> = {
     [P in keyof T]: T[P] extends never | undefined ? VariableReducerFunc : VariableReducerFunc<T[P]>;
 };
 
-type VariableActionMapping = VariableReducerFunctions<IInteractiveWindowMapping> & VariableReducerFunctions<CommonActionTypeMapping>;
+type VariableActionMapping = VariableReducerFunctions<IInteractiveWindowMapping> &
+    VariableReducerFunctions<CommonActionTypeMapping>;
 
 // Create the map between message type and the actual function to call to update state
 const reducerMap: Partial<VariableActionMapping> = {

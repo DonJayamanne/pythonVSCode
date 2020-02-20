@@ -26,7 +26,11 @@ export function generatePostOfficeSendReducer(postOffice: PostOffice): Redux.Red
                 if (payload?.messageDirection === 'incoming') {
                     // We can delay this, first focus on UX perf.
                     setTimeout(() => {
-                        reBroadcastMessageIfRequired(postOffice.sendMessage.bind(postOffice), action.type, action?.payload);
+                        reBroadcastMessageIfRequired(
+                            postOffice.sendMessage.bind(postOffice),
+                            action.type,
+                            action?.payload
+                        );
                     }, 1);
                 }
             }

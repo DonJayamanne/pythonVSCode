@@ -5,21 +5,42 @@ import { inject, injectable } from 'inversify';
 import * as uuid from 'uuid/v4';
 import { Disposable, Event, EventEmitter, Uri, WebviewPanel } from 'vscode';
 import { arePathsSame } from '../../../datascience-ui/react-common/arePathsSame';
-import { ICustomEditorService, IWorkspaceService, WebviewCustomEditorEditingDelegate, WebviewCustomEditorProvider } from '../../common/application/types';
+import {
+    ICustomEditorService,
+    IWorkspaceService,
+    WebviewCustomEditorEditingDelegate,
+    WebviewCustomEditorProvider
+} from '../../common/application/types';
 import { traceInfo } from '../../common/logger';
-import { IAsyncDisposable, IAsyncDisposableRegistry, IConfigurationService, IDisposableRegistry } from '../../common/types';
+import {
+    IAsyncDisposable,
+    IAsyncDisposableRegistry,
+    IConfigurationService,
+    IDisposableRegistry
+} from '../../common/types';
 import { createDeferred } from '../../common/utils/async';
 import * as localize from '../../common/utils/localize';
 import { IServiceContainer } from '../../ioc/types';
 import { captureTelemetry, sendTelemetryEvent } from '../../telemetry';
 import { Identifiers, Settings, Telemetry } from '../constants';
 import { NotebookModelChange } from '../interactive-common/interactiveWindowTypes';
-import { INotebookEditor, INotebookEditorProvider, INotebookModel, INotebookServerOptions, INotebookStorage } from '../types';
+import {
+    INotebookEditor,
+    INotebookEditorProvider,
+    INotebookModel,
+    INotebookServerOptions,
+    INotebookStorage
+} from '../types';
 
 // Class that is registered as the custom editor provider for notebooks. VS code will call into this class when
 // opening an ipynb file. This class then creates a backing storage, model, and opens a view for the file.
 @injectable()
-export class NativeEditorProvider implements INotebookEditorProvider, WebviewCustomEditorProvider, WebviewCustomEditorEditingDelegate<NotebookModelChange>, IAsyncDisposable {
+export class NativeEditorProvider
+    implements
+        INotebookEditorProvider,
+        WebviewCustomEditorProvider,
+        WebviewCustomEditorEditingDelegate<NotebookModelChange>,
+        IAsyncDisposable {
     // Note, this constant has to match the value used in the package.json to register the webview custom editor.
     public static readonly customEditorViewType = 'NativeEditorProvider.ipynb';
     public get onDidChangeActiveNotebookEditor(): Event<INotebookEditor | undefined> {
@@ -30,7 +51,10 @@ export class NativeEditorProvider implements INotebookEditorProvider, WebviewCus
     }
     private readonly _onDidChangeActiveNotebookEditor = new EventEmitter<INotebookEditor | undefined>();
     private readonly _onDidCloseNotebookEditor = new EventEmitter<INotebookEditor>();
-    private readonly _editEventEmitter = new EventEmitter<{ readonly resource: Uri; readonly edit: NotebookModelChange }>();
+    private readonly _editEventEmitter = new EventEmitter<{
+        readonly resource: Uri;
+        readonly edit: NotebookModelChange;
+    }>();
     private openedEditors: Set<INotebookEditor> = new Set<INotebookEditor>();
     private models = new Map<string, Promise<{ model: INotebookModel; storage: INotebookStorage }>>();
     private modelChangedHandlers: Map<string, Disposable> = new Map<string, Disposable>();
@@ -58,7 +82,10 @@ export class NativeEditorProvider implements INotebookEditorProvider, WebviewCus
         }
 
         // Register for the custom editor service.
-        customEditorService.registerWebviewCustomEditorProvider(NativeEditorProvider.customEditorViewType, this, { enableFindWidget: true, retainContextWhenHidden: true });
+        customEditorService.registerWebviewCustomEditorProvider(NativeEditorProvider.customEditorViewType, this, {
+            enableFindWidget: true,
+            retainContextWhenHidden: true
+        });
     }
 
     public save(resource: Uri): Thenable<void> {

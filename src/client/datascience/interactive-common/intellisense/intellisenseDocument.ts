@@ -166,11 +166,18 @@ export class IntellisenseDocument implements TextDocument {
             regexp = DefaultWordPattern;
         } else if (regExpLeadsToEndlessLoop(regexp)) {
             // use default when custom-regexp is bad
-            console.warn(`[getWordRangeAtPosition]: ignoring custom regexp '${regexp.source}' because it matches the empty string.`);
+            console.warn(
+                `[getWordRangeAtPosition]: ignoring custom regexp '${regexp.source}' because it matches the empty string.`
+            );
             regexp = DefaultWordPattern;
         }
 
-        const wordAtText = getWordAtText(position.character + 1, ensureValidWordDefinition(regexp), this._lines[position.line].text, 0);
+        const wordAtText = getWordAtText(
+            position.character + 1,
+            ensureValidWordDefinition(regexp),
+            this._lines[position.line].text,
+            0
+        );
 
         if (wordAtText) {
             return new Range(position.line, wordAtText.startColumn - 1, position.line, wordAtText.endColumn - 1);
@@ -277,7 +284,12 @@ export class IntellisenseDocument implements TextDocument {
         const fromPosition = this.positionAt(fromOffset);
 
         // Save the range for this cell ()
-        this._cellRanges.splice(this._cellRanges.length - 1, 0, { id, start: fromOffset, fullEnd: fromOffset + newCode.length, currentEnd: fromOffset + newCurrentCode.length });
+        this._cellRanges.splice(this._cellRanges.length - 1, 0, {
+            id,
+            start: fromOffset,
+            fullEnd: fromOffset + newCode.length,
+            currentEnd: fromOffset + newCurrentCode.length
+        });
 
         // Update our entire contents and recompute our lines
         this._contents = `${before}${newCode}${after}`;
@@ -313,7 +325,11 @@ export class IntellisenseDocument implements TextDocument {
         return [];
     }
 
-    public insertCell(id: string, code: string, codeCellAboveOrIndex: string | undefined | number): TextDocumentContentChangeEvent[] {
+    public insertCell(
+        id: string,
+        code: string,
+        codeCellAboveOrIndex: string | undefined | number
+    ): TextDocumentContentChangeEvent[] {
         // This should only happen once for each cell.
         this._version += 1;
 
@@ -325,7 +341,8 @@ export class IntellisenseDocument implements TextDocument {
         const insertIndex = typeof codeCellAboveOrIndex === 'number' ? codeCellAboveOrIndex : aboveIndex + 1;
 
         // Compute where we start from.
-        const fromOffset = insertIndex < this._cellRanges.length ? this._cellRanges[insertIndex].start : this._contents.length;
+        const fromOffset =
+            insertIndex < this._cellRanges.length ? this._cellRanges[insertIndex].start : this._contents.length;
 
         // Split our text between the text and the cells above
         const before = this._contents.substr(0, fromOffset);
@@ -342,7 +359,12 @@ export class IntellisenseDocument implements TextDocument {
             this._cellRanges[i].fullEnd += newCode.length;
             this._cellRanges[i].currentEnd += newCode.length;
         }
-        this._cellRanges.splice(insertIndex, 0, { id, start: fromOffset, fullEnd: fromOffset + newCode.length, currentEnd: fromOffset + newCode.length });
+        this._cellRanges.splice(insertIndex, 0, {
+            id,
+            start: fromOffset,
+            fullEnd: fromOffset + newCode.length,
+            currentEnd: fromOffset + newCode.length
+        });
 
         return [
             {
@@ -389,8 +411,14 @@ export class IntellisenseDocument implements TextDocument {
                 // This is an actual edit.
                 // Line/column are within this cell. Use its offset to compute the real position
                 const editPos = this.positionAt(this._cellRanges[cellIndex].start);
-                const from = new Position(editPos.line + editorChanges[0].range.startLineNumber - 1, editorChanges[0].range.startColumn - 1);
-                const to = new Position(editPos.line + editorChanges[0].range.endLineNumber - 1, editorChanges[0].range.endColumn - 1);
+                const from = new Position(
+                    editPos.line + editorChanges[0].range.startLineNumber - 1,
+                    editorChanges[0].range.startColumn - 1
+                );
+                const to = new Position(
+                    editPos.line + editorChanges[0].range.endLineNumber - 1,
+                    editorChanges[0].range.endColumn - 1
+                );
 
                 // Remove this range from the contents and return the change.
                 return this.removeRange(normalized, from, to, cellIndex);
@@ -467,7 +495,8 @@ export class IntellisenseDocument implements TextDocument {
             this._cellRanges[bottomIndex].id = top.id;
             this._cellRanges[bottomIndex].start = this._cellRanges[topIndex].fullEnd;
             this._cellRanges[bottomIndex].fullEnd = this._cellRanges[topIndex].fullEnd + (top.fullEnd - top.start);
-            this._cellRanges[bottomIndex].currentEnd = this._cellRanges[topIndex].fullEnd + (top.currentEnd - top.start);
+            this._cellRanges[bottomIndex].currentEnd =
+                this._cellRanges[topIndex].fullEnd + (top.currentEnd - top.start);
 
             const fromOffset = this.convertToOffset(from);
             const toOffset = this.convertToOffset(to);
@@ -576,7 +605,12 @@ export class IntellisenseDocument implements TextDocument {
         return lineCounter;
     }
 
-    private removeRange(newText: string, from: Position, to: Position, cellIndex: number): TextDocumentContentChangeEvent[] {
+    private removeRange(
+        newText: string,
+        from: Position,
+        to: Position,
+        cellIndex: number
+    ): TextDocumentContentChangeEvent[] {
         const fromOffset = this.convertToOffset(from);
         const toOffset = this.convertToOffset(to);
 
@@ -618,7 +652,11 @@ export class IntellisenseDocument implements TextDocument {
     }
 
     private createTextLine(line: string, index: number, prevLine: IntellisenseLine | undefined): IntellisenseLine {
-        return new IntellisenseLine(line, index, prevLine ? prevLine.offset + prevLine.rangeIncludingLineBreak.end.character : 0);
+        return new IntellisenseLine(
+            line,
+            index,
+            prevLine ? prevLine.offset + prevLine.rangeIncludingLineBreak.end.character : 0
+        );
     }
 
     private convertToOffset(pos: Position): number {

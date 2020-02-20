@@ -31,7 +31,16 @@ export namespace Movement {
     export function moveCellUp(arg: NativeEditorReducerArg<ICellAction>): IMainState {
         const index = arg.prevState.cellVMs.findIndex(cvm => cvm.cell.id === arg.payload.data.cellId);
         if (index > 0 && arg.payload.data.cellId) {
-            return swapCells({ ...arg, payload: { ...arg.payload, data: { firstCellId: arg.prevState.cellVMs[index - 1].cell.id, secondCellId: arg.payload.data.cellId } } });
+            return swapCells({
+                ...arg,
+                payload: {
+                    ...arg.payload,
+                    data: {
+                        firstCellId: arg.prevState.cellVMs[index - 1].cell.id,
+                        secondCellId: arg.payload.data.cellId
+                    }
+                }
+            });
         }
 
         return arg.prevState;
@@ -41,7 +50,16 @@ export namespace Movement {
         const newVMs = [...arg.prevState.cellVMs];
         const index = newVMs.findIndex(cvm => cvm.cell.id === arg.payload.data.cellId);
         if (index < newVMs.length - 1 && arg.payload.data.cellId) {
-            return swapCells({ ...arg, payload: { ...arg.payload, data: { firstCellId: arg.payload.data.cellId, secondCellId: arg.prevState.cellVMs[index + 1].cell.id } } });
+            return swapCells({
+                ...arg,
+                payload: {
+                    ...arg.payload,
+                    data: {
+                        firstCellId: arg.payload.data.cellId,
+                        secondCellId: arg.prevState.cellVMs[index + 1].cell.id
+                    }
+                }
+            });
         }
 
         return arg.prevState;
@@ -50,7 +68,10 @@ export namespace Movement {
     export function arrowUp(arg: NativeEditorReducerArg<ICodeAction>): IMainState {
         const index = arg.prevState.cellVMs.findIndex(c => c.cell.id === arg.payload.data.cellId);
         if (index > 0) {
-            queueIncomingActionWithPayload(arg, CommonActionType.SELECT_CELL, { cellId: arg.prevState.cellVMs[index - 1].cell.id, cursorPos: CursorPos.Bottom });
+            queueIncomingActionWithPayload(arg, CommonActionType.SELECT_CELL, {
+                cellId: arg.prevState.cellVMs[index - 1].cell.id,
+                cursorPos: CursorPos.Bottom
+            });
         }
 
         return arg.prevState;
@@ -59,7 +80,10 @@ export namespace Movement {
     export function arrowDown(arg: NativeEditorReducerArg<ICodeAction>): IMainState {
         const index = arg.prevState.cellVMs.findIndex(c => c.cell.id === arg.payload.data.cellId);
         if (index < arg.prevState.cellVMs.length - 1) {
-            queueIncomingActionWithPayload(arg, CommonActionType.SELECT_CELL, { cellId: arg.prevState.cellVMs[index + 1].cell.id, cursorPos: CursorPos.Bottom });
+            queueIncomingActionWithPayload(arg, CommonActionType.SELECT_CELL, {
+                cellId: arg.prevState.cellVMs[index + 1].cell.id,
+                cursorPos: CursorPos.Bottom
+            });
         }
 
         return arg.prevState;

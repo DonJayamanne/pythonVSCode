@@ -1,4 +1,7 @@
-import { CommonActionType, CommonActionTypeMapping } from '../../../datascience-ui/interactive-common/redux/reducers/types';
+import {
+    CommonActionType,
+    CommonActionTypeMapping
+} from '../../../datascience-ui/interactive-common/redux/reducers/types';
 import { CssMessages, SharedMessages } from '../messages';
 import { IInteractiveWindowMapping, InteractiveWindowMessages } from './interactiveWindowTypes';
 
@@ -113,7 +116,8 @@ const messageWithMessageTypes: MessageMapping<IInteractiveWindowMapping> & Messa
     [InteractiveWindowMessages.LoadTmLanguageResponse]: MessageType.userAction,
     [InteractiveWindowMessages.MonacoReady]: MessageType.userAction,
     [InteractiveWindowMessages.NativeCommand]: MessageType.userAction,
-    [InteractiveWindowMessages.NotebookAddCellBelow]: MessageType.syncAcrossSameNotebooks | MessageType.syncWithLiveShare,
+    [InteractiveWindowMessages.NotebookAddCellBelow]:
+        MessageType.syncAcrossSameNotebooks | MessageType.syncWithLiveShare,
     [InteractiveWindowMessages.NotebookClean]: MessageType.userAction,
     [InteractiveWindowMessages.NotebookDirty]: MessageType.userAction,
     [InteractiveWindowMessages.NotebookExecutionActivated]: MessageType.userAction,
@@ -198,9 +202,15 @@ export function shouldRebroadcast(message: keyof IInteractiveWindowMapping): [bo
     const messageType: MessageType | undefined = messageWithMessageTypes[message];
     // Support for liveshare is turned off for now, we can enable that later.
     // I.e. we only support synchronizing across editors in the same session.
-    if (messageType === undefined || (messageType & MessageType.syncAcrossSameNotebooks) !== MessageType.syncAcrossSameNotebooks) {
+    if (
+        messageType === undefined ||
+        (messageType & MessageType.syncAcrossSameNotebooks) !== MessageType.syncAcrossSameNotebooks
+    ) {
         return [false, MessageType.userAction];
     }
 
-    return [(messageType & MessageType.syncAcrossSameNotebooks) > 0 || (messageType & MessageType.syncWithLiveShare) > 0, messageType];
+    return [
+        (messageType & MessageType.syncAcrossSameNotebooks) > 0 || (messageType & MessageType.syncWithLiveShare) > 0,
+        messageType
+    ];
 }

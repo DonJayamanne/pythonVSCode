@@ -7,10 +7,22 @@ import * as sinon from 'sinon';
 import { anything, instance, mock, when } from 'ts-mockito';
 import { Matcher } from 'ts-mockito/lib/matcher/type/Matcher';
 import * as typemoq from 'typemoq';
-import { ConfigurationChangeEvent, ConfigurationTarget, EventEmitter, TextEditor, Uri, WorkspaceConfiguration } from 'vscode';
+import {
+    ConfigurationChangeEvent,
+    ConfigurationTarget,
+    EventEmitter,
+    TextEditor,
+    Uri,
+    WorkspaceConfiguration
+} from 'vscode';
 
 import { DocumentManager } from '../../../client/common/application/documentManager';
-import { IDocumentManager, IWebPanelMessageListener, IWebPanelProvider, IWorkspaceService } from '../../../client/common/application/types';
+import {
+    IDocumentManager,
+    IWebPanelMessageListener,
+    IWebPanelProvider,
+    IWorkspaceService
+} from '../../../client/common/application/types';
 import { WebPanel } from '../../../client/common/application/webPanels/webPanel';
 import { WebPanelProvider } from '../../../client/common/application/webPanels/webPanelProvider';
 import { WorkspaceService } from '../../../client/common/application/workspace';
@@ -20,7 +32,10 @@ import { CryptoUtils } from '../../../client/common/crypto';
 import { IFileSystem } from '../../../client/common/platform/types';
 import { IConfigurationService, ICryptoUtils, IDisposable, IExtensionContext } from '../../../client/common/types';
 import { EXTENSION_ROOT_DIR } from '../../../client/constants';
-import { IEditorContentChange, InteractiveWindowMessages } from '../../../client/datascience/interactive-common/interactiveWindowTypes';
+import {
+    IEditorContentChange,
+    InteractiveWindowMessages
+} from '../../../client/datascience/interactive-common/interactiveWindowTypes';
 import { NativeEditorStorage } from '../../../client/datascience/interactive-ipynb/nativeEditorStorage';
 import { JupyterExecutionFactory } from '../../../client/datascience/jupyter/jupyterExecutionFactory';
 import { ICell, IJupyterExecution, INotebookServerOptions } from '../../../client/datascience/types';
@@ -49,10 +64,22 @@ class MockWorkspaceConfiguration implements WorkspaceConfiguration {
     }
     public inspect<T>(
         _section: string
-    ): { key: string; defaultValue?: T | undefined; globalValue?: T | undefined; workspaceValue?: T | undefined; workspaceFolderValue?: T | undefined } | undefined {
+    ):
+        | {
+              key: string;
+              defaultValue?: T | undefined;
+              globalValue?: T | undefined;
+              workspaceValue?: T | undefined;
+              workspaceFolderValue?: T | undefined;
+          }
+        | undefined {
         return;
     }
-    public update(section: string, value: any, _configurationTarget?: boolean | ConfigurationTarget | undefined): Promise<void> {
+    public update(
+        section: string,
+        value: any,
+        _configurationTarget?: boolean | ConfigurationTarget | undefined
+    ): Promise<void> {
         this.map.set(section, value);
         return Promise.resolve();
     }
@@ -264,7 +291,9 @@ suite('Data Science - Native Editor Storage', () => {
         const settings = mock(PythonSettings);
         const settingsChangedEvent = new EventEmitter<void>();
 
-        context.setup(c => c.globalStoragePath).returns(() => path.join(EXTENSION_ROOT_DIR, 'src', 'test', 'datascience', 'WorkspaceDir'));
+        context
+            .setup(c => c.globalStoragePath)
+            .returns(() => path.join(EXTENSION_ROOT_DIR, 'src', 'test', 'datascience', 'WorkspaceDir'));
 
         when(settings.onDidChange).thenReturn(settingsChangedEvent.event);
         when(configService.getSettings()).thenReturn(instance(settings));
@@ -478,7 +507,10 @@ suite('Data Science - Native Editor Storage', () => {
         expect(localMemento.get(`notebook-storage-${file.toString()}`)).to.be.undefined;
 
         // Put the regular file into the global storage
-        await globalMemento.update(`notebook-storage-${file.toString()}`, { contents: differentFile, lastModifiedTimeMs: Date.now() });
+        await globalMemento.update(`notebook-storage-${file.toString()}`, {
+            contents: differentFile,
+            lastModifiedTimeMs: Date.now()
+        });
         await storage.load(file);
 
         // It should load with that value
@@ -498,10 +530,16 @@ suite('Data Science - Native Editor Storage', () => {
         expect(localMemento.get(`notebook-storage-${file.toString()}`)).to.be.undefined;
 
         // Put the regular file into the global storage
-        await globalMemento.update(`notebook-storage-${file.toString()}`, { contents: differentFile, lastModifiedTimeMs: Date.now() });
+        await globalMemento.update(`notebook-storage-${file.toString()}`, {
+            contents: differentFile,
+            lastModifiedTimeMs: Date.now()
+        });
 
         // Put another file into the global storage
-        await globalMemento.update(`notebook-storage-file::///bar.ipynb`, { contents: differentFile, lastModifiedTimeMs: Date.now() });
+        await globalMemento.update(`notebook-storage-file::///bar.ipynb`, {
+            contents: differentFile,
+            lastModifiedTimeMs: Date.now()
+        });
 
         await storage.load(file);
 

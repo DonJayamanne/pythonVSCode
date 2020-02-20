@@ -9,7 +9,9 @@ import { CommonActionType, CommonReducerArg } from './types';
 
 export namespace Kernel {
     // tslint:disable-next-line: no-any
-    export function selectKernel(arg: CommonReducerArg<CommonActionType | InteractiveWindowMessages, IServerState | undefined>): IMainState {
+    export function selectKernel(
+        arg: CommonReducerArg<CommonActionType | InteractiveWindowMessages, IServerState | undefined>
+    ): IMainState {
         postActionToExtension(arg, InteractiveWindowMessages.SelectKernel);
 
         return arg.prevState;
@@ -39,7 +41,9 @@ export namespace Kernel {
         };
     }
 
-    export function updateStatus(arg: CommonReducerArg<CommonActionType | InteractiveWindowMessages, IServerState | undefined>): IMainState {
+    export function updateStatus(
+        arg: CommonReducerArg<CommonActionType | InteractiveWindowMessages, IServerState | undefined>
+    ): IMainState {
         if (arg.payload.data) {
             return {
                 ...arg.prevState,

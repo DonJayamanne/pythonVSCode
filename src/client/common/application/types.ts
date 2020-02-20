@@ -107,7 +107,11 @@ export interface IApplicationShell {
      * @param items A set of items that will be rendered as actions in the message.
      * @return A thenable that resolves to the selected item or `undefined` when being dismissed.
      */
-    showInformationMessage<T extends MessageItem>(message: string, options: MessageOptions, ...items: T[]): Thenable<T | undefined>;
+    showInformationMessage<T extends MessageItem>(
+        message: string,
+        options: MessageOptions,
+        ...items: T[]
+    ): Thenable<T | undefined>;
 
     /**
      * Show a warning message.
@@ -153,7 +157,11 @@ export interface IApplicationShell {
      * @param items A set of items that will be rendered as actions in the message.
      * @return A thenable that resolves to the selected item or `undefined` when being dismissed.
      */
-    showWarningMessage<T extends MessageItem>(message: string, options: MessageOptions, ...items: T[]): Thenable<T | undefined>;
+    showWarningMessage<T extends MessageItem>(
+        message: string,
+        options: MessageOptions,
+        ...items: T[]
+    ): Thenable<T | undefined>;
 
     /**
      * Show an error message.
@@ -199,7 +207,11 @@ export interface IApplicationShell {
      * @param items A set of items that will be rendered as actions in the message.
      * @return A thenable that resolves to the selected item or `undefined` when being dismissed.
      */
-    showErrorMessage<T extends MessageItem>(message: string, options: MessageOptions, ...items: T[]): Thenable<T | undefined>;
+    showErrorMessage<T extends MessageItem>(
+        message: string,
+        options: MessageOptions,
+        ...items: T[]
+    ): Thenable<T | undefined>;
 
     /**
      * Shows a selection list.
@@ -209,7 +221,11 @@ export interface IApplicationShell {
      * @param token A token that can be used to signal cancellation.
      * @return A promise that resolves to the selection or `undefined`.
      */
-    showQuickPick(items: string[] | Thenable<string[]>, options?: QuickPickOptions, token?: CancellationToken): Thenable<string | undefined>;
+    showQuickPick(
+        items: string[] | Thenable<string[]>,
+        options?: QuickPickOptions,
+        token?: CancellationToken
+    ): Thenable<string | undefined>;
 
     /**
      * Shows a selection list.
@@ -219,7 +235,11 @@ export interface IApplicationShell {
      * @param token A token that can be used to signal cancellation.
      * @return A promise that resolves to the selected item or `undefined`.
      */
-    showQuickPick<T extends QuickPickItem>(items: T[] | Thenable<T[]>, options?: QuickPickOptions, token?: CancellationToken): Thenable<T | undefined>;
+    showQuickPick<T extends QuickPickItem>(
+        items: T[] | Thenable<T[]>,
+        options?: QuickPickOptions,
+        token?: CancellationToken
+    ): Thenable<T | undefined>;
 
     /**
      * Shows a file open dialog to the user which allows to select a file
@@ -349,7 +369,10 @@ export interface IApplicationShell {
      *
      * @return The thenable the task-callback returned.
      */
-    withProgress<R>(options: ProgressOptions, task: (progress: Progress<{ message?: string; increment?: number }>, token: CancellationToken) => Thenable<R>): Thenable<R>;
+    withProgress<R>(
+        options: ProgressOptions,
+        task: (progress: Progress<{ message?: string; increment?: number }>, token: CancellationToken) => Thenable<R>
+    ): Thenable<R>;
 
     /**
      * Create a [TreeView](#TreeView) for the view contributed using the extension point `views`.
@@ -402,7 +425,11 @@ export interface ICommandManager {
      * @param thisArg The `this` context used when invoking the handler function.
      * @return Disposable which unregisters this command on disposal.
      */
-    registerTextEditorCommand(command: string, callback: (textEditor: TextEditor, edit: TextEditorEdit, ...args: any[]) => void, thisArg?: any): Disposable;
+    registerTextEditorCommand(
+        command: string,
+        callback: (textEditor: TextEditor, edit: TextEditorEdit, ...args: any[]) => void,
+        thisArg?: any
+    ): Disposable;
 
     /**
      * Executes the command denoted by the given command identifier.
@@ -418,7 +445,10 @@ export interface ICommandManager {
      * @return A thenable that resolves to the returned value of the given command. `undefined` when
      * the command handler function doesn't return anything.
      */
-    executeCommand<T, E extends keyof ICommandNameArgumentTypeMapping, U extends ICommandNameArgumentTypeMapping[E]>(command: E, ...rest: U): Thenable<T | undefined>;
+    executeCommand<T, E extends keyof ICommandNameArgumentTypeMapping, U extends ICommandNameArgumentTypeMapping[E]>(
+        command: E,
+        ...rest: U
+    ): Thenable<T | undefined>;
 
     /**
      * Retrieve the list of all available commands. Commands starting an underscore are
@@ -672,7 +702,12 @@ export interface IWorkspaceService {
      * @param ignoreDeleteEvents Ignore when files have been deleted.
      * @return A new file system watcher instance.
      */
-    createFileSystemWatcher(globPattern: GlobPattern, ignoreCreateEvents?: boolean, ignoreChangeEvents?: boolean, ignoreDeleteEvents?: boolean): FileSystemWatcher;
+    createFileSystemWatcher(
+        globPattern: GlobPattern,
+        ignoreCreateEvents?: boolean,
+        ignoreChangeEvents?: boolean,
+        ignoreDeleteEvents?: boolean
+    ): FileSystemWatcher;
 
     /**
      * Find files across all [workspace folders](#workspace.workspaceFolders) in the workspace.
@@ -688,7 +723,12 @@ export interface IWorkspaceService {
      * @return A thenable that resolves to an array of resource identifiers. Will return no results if no
      * [workspace folders](#workspace.workspaceFolders) are opened.
      */
-    findFiles(include: GlobPattern, exclude?: GlobPattern, maxResults?: number, token?: CancellationToken): Thenable<Uri[]>;
+    findFiles(
+        include: GlobPattern,
+        exclude?: GlobPattern,
+        maxResults?: number,
+        token?: CancellationToken
+    ): Thenable<Uri[]>;
 
     /**
      * Get a workspace configuration object.
@@ -815,7 +855,11 @@ export interface IDebugService {
      * @param nameOrConfiguration Either the name of a debug or compound configuration or a [DebugConfiguration](#DebugConfiguration) object.
      * @return A thenable that resolves when debugging could be successfully started.
      */
-    startDebugging(folder: WorkspaceFolder | undefined, nameOrConfiguration: string | DebugConfiguration, parentSession?: DebugSession): Thenable<boolean>;
+    startDebugging(
+        folder: WorkspaceFolder | undefined,
+        nameOrConfiguration: string | DebugConfiguration,
+        parentSession?: DebugSession
+    ): Thenable<boolean>;
 
     /**
      * Add breakpoints.
@@ -1034,7 +1078,11 @@ export interface ILanguageService {
      * @param triggerCharacters Trigger completion when the user types one of the characters, like `.` or `:`.
      * @return A [disposable](#Disposable) that unregisters this provider when being disposed.
      */
-    registerCompletionItemProvider(selector: DocumentSelector, provider: CompletionItemProvider, ...triggerCharacters: string[]): Disposable;
+    registerCompletionItemProvider(
+        selector: DocumentSelector,
+        provider: CompletionItemProvider,
+        ...triggerCharacters: string[]
+    ): Disposable;
 }
 
 export type Channel = 'stable' | 'insiders';
@@ -1139,7 +1187,11 @@ export interface ICustomEditorService {
      *
      * @return Disposable that unregisters the `WebviewCustomEditorProvider`.
      */
-    registerWebviewCustomEditorProvider(viewType: string, provider: WebviewCustomEditorProvider, options?: WebviewPanelOptions): Disposable;
+    registerWebviewCustomEditorProvider(
+        viewType: string,
+        provider: WebviewCustomEditorProvider,
+        options?: WebviewPanelOptions
+    ): Disposable;
     /**
      * Opens a file with a custom editor
      */

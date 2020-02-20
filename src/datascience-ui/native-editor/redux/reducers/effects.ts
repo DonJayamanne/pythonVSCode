@@ -29,8 +29,19 @@ export namespace Effects {
                 if (typeof removeFocusIndex === 'number') {
                     const oldFocusCell = prevState.cellVMs[removeFocusIndex];
                     const oldCode = oldFocusCell.uncommittedText || oldFocusCell.inputBlockText;
-                    prevState = unfocusCell({ ...arg, prevState, payload: { ...arg.payload, data: { cellId: prevState.cellVMs[removeFocusIndex].cell.id, code: oldCode } } });
-                    prevState = deselectCell({ ...arg, prevState, payload: { ...arg.payload, data: { cellId: prevState.cellVMs[removeFocusIndex].cell.id } } });
+                    prevState = unfocusCell({
+                        ...arg,
+                        prevState,
+                        payload: {
+                            ...arg.payload,
+                            data: { cellId: prevState.cellVMs[removeFocusIndex].cell.id, code: oldCode }
+                        }
+                    });
+                    prevState = deselectCell({
+                        ...arg,
+                        prevState,
+                        payload: { ...arg.payload, data: { cellId: prevState.cellVMs[removeFocusIndex].cell.id } }
+                    });
                 }
             }
 
@@ -39,7 +50,12 @@ export namespace Effects {
             // Add focus on new cell
             const addFocusIndex = newVMs.findIndex(c => c.cell.id === arg.payload.data.cellId);
             if (addFocusIndex >= 0) {
-                newVMs[addFocusIndex] = { ...newVMs[addFocusIndex], focused: true, selected: true, cursorPos: arg.payload.data.cursorPos };
+                newVMs[addFocusIndex] = {
+                    ...newVMs[addFocusIndex],
+                    focused: true,
+                    selected: true,
+                    cursorPos: arg.payload.data.cursorPos
+                };
             }
 
             return {
@@ -134,13 +150,17 @@ export namespace Effects {
      *
      * @param {boolean} [shouldFocusCell] If provided, then will control the focus behavior of the cell. (defaults to focus state of previously selected cell).
      */
-    export function selectCell(arg: NativeEditorReducerArg<ICellAndCursorAction>, shouldFocusCell?: boolean): IMainState {
+    export function selectCell(
+        arg: NativeEditorReducerArg<ICellAndCursorAction>,
+        shouldFocusCell?: boolean
+    ): IMainState {
         // Skip doing anything if already selected.
         const selectionInfo = getSelectedAndFocusedInfo(arg.prevState);
         if (arg.payload.data.cellId !== selectionInfo.selectedCellId) {
             let prevState = arg.prevState;
             const addIndex = prevState.cellVMs.findIndex(c => c.cell.id === arg.payload.data.cellId);
-            const someOtherCellWasFocusedAndSelected = selectionInfo.focusedCellId === selectionInfo.selectedCellId && !!selectionInfo.focusedCellId;
+            const someOtherCellWasFocusedAndSelected =
+                selectionInfo.focusedCellId === selectionInfo.selectedCellId && !!selectionInfo.focusedCellId;
             // First find the old focused cell and unfocus it
             let removeFocusIndex = arg.prevState.cellVMs.findIndex(c => c.cell.id === selectionInfo.focusedCellId);
             if (removeFocusIndex < 0) {
@@ -150,15 +170,27 @@ export namespace Effects {
             if (removeFocusIndex >= 0) {
                 const oldFocusCell = prevState.cellVMs[removeFocusIndex];
                 const oldCode = oldFocusCell.uncommittedText || oldFocusCell.inputBlockText;
-                prevState = unfocusCell({ ...arg, prevState, payload: { ...arg.payload, data: { cellId: prevState.cellVMs[removeFocusIndex].cell.id, code: oldCode } } });
-                prevState = deselectCell({ ...arg, prevState, payload: { ...arg.payload, data: { cellId: prevState.cellVMs[removeFocusIndex].cell.id } } });
+                prevState = unfocusCell({
+                    ...arg,
+                    prevState,
+                    payload: {
+                        ...arg.payload,
+                        data: { cellId: prevState.cellVMs[removeFocusIndex].cell.id, code: oldCode }
+                    }
+                });
+                prevState = deselectCell({
+                    ...arg,
+                    prevState,
+                    payload: { ...arg.payload, data: { cellId: prevState.cellVMs[removeFocusIndex].cell.id } }
+                });
             }
 
             const newVMs = [...prevState.cellVMs];
             if (addIndex >= 0 && arg.payload.data.cellId !== selectionInfo.selectedCellId) {
                 newVMs[addIndex] = {
                     ...newVMs[addIndex],
-                    focused: typeof shouldFocusCell === 'boolean' ? shouldFocusCell : someOtherCellWasFocusedAndSelected,
+                    focused:
+                        typeof shouldFocusCell === 'boolean' ? shouldFocusCell : someOtherCellWasFocusedAndSelected,
                     selected: true,
                     cursorPos: arg.payload.data.cursorPos
                 };
@@ -203,11 +235,17 @@ export namespace Effects {
         const newSettingsJSON = JSON.parse(arg.payload.data);
         const newSettings = <IDataScienceExtraSettings>newSettingsJSON;
         const newEditorOptions = computeEditorOptions(newSettings);
-        const newFontFamily = newSettings.extraSettings ? newSettings.extraSettings.fontFamily : arg.prevState.font.family;
+        const newFontFamily = newSettings.extraSettings
+            ? newSettings.extraSettings.fontFamily
+            : arg.prevState.font.family;
         const newFontSize = newSettings.extraSettings ? newSettings.extraSettings.fontSize : arg.prevState.font.size;
 
         // Ask for new theme data if necessary
-        if (newSettings && newSettings.extraSettings && newSettings.extraSettings.theme !== arg.prevState.vscodeThemeName) {
+        if (
+            newSettings &&
+            newSettings.extraSettings &&
+            newSettings.extraSettings.theme !== arg.prevState.vscodeThemeName
+        ) {
             const knownDark = Helpers.computeKnownDark(newSettings);
             // User changed the current theme. Rerender
             postActionToExtension(arg, CssMessages.GetCssRequest, { isDark: knownDark });

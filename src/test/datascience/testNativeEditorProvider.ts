@@ -34,7 +34,14 @@ export class TestNativeEditorProvider implements INotebookEditorProvider {
         @inject(IConfigurationService) configuration: IConfigurationService,
         @inject(ICustomEditorService) customEditorService: ICustomEditorService
     ) {
-        this.realProvider = new NativeEditorProvider(serviceContainer, asyncRegistry, disposables, workspace, configuration, customEditorService);
+        this.realProvider = new NativeEditorProvider(
+            serviceContainer,
+            asyncRegistry,
+            disposables,
+            workspace,
+            configuration,
+            customEditorService
+        );
     }
 
     public get activeEditor(): INotebookEditor | undefined {

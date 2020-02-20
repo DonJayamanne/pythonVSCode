@@ -79,7 +79,12 @@ export type IMainState = {
  * Returns the cell id and index of selected and focused cells.
  */
 export function getSelectedAndFocusedInfo(state: IMainState) {
-    const info: { selectedCellId?: string; selectedCellIndex?: number; focusedCellId?: string; focusedCellIndex?: number } = {};
+    const info: {
+        selectedCellId?: string;
+        selectedCellIndex?: number;
+        focusedCellId?: string;
+        focusedCellIndex?: number;
+    } = {};
     for (let index = 0; index < state.cellVMs.length; index += 1) {
         const cell = state.cellVMs[index];
         if (cell.selected) {
@@ -229,7 +234,12 @@ export function extractInputText(inputCellVM: ICellViewModel, settings: IDataSci
     return concatMultilineStringInput(source);
 }
 
-export function createCellVM(inputCell: ICell, settings: IDataScienceSettings | undefined, editable: boolean, runDuringDebug: boolean): ICellViewModel {
+export function createCellVM(
+    inputCell: ICell,
+    settings: IDataScienceSettings | undefined,
+    editable: boolean,
+    runDuringDebug: boolean
+): ICellViewModel {
     const vm = {
         cell: inputCell,
         editable,
@@ -274,16 +284,18 @@ export function generateTestCells(filePath: string, repetitions: number): ICell[
     for (let i = 0; i < repetitions; i += 1) {
         cellData = [...cellData, ...generateCellData()];
     }
-    return cellData.map((data: nbformat.ICodeCell | nbformat.IMarkdownCell | nbformat.IRawCell | IMessageCell, key: number) => {
-        return {
-            id: key.toString(),
-            file: path.join(filePath, 'foo.py').toLowerCase(),
-            line: 1,
-            state: key === cellData.length - 1 ? CellState.executing : CellState.finished,
-            type: key === 3 ? 'preview' : 'execute',
-            data: data
-        };
-    });
+    return cellData.map(
+        (data: nbformat.ICodeCell | nbformat.IMarkdownCell | nbformat.IRawCell | IMessageCell, key: number) => {
+            return {
+                id: key.toString(),
+                file: path.join(filePath, 'foo.py').toLowerCase(),
+                line: 1,
+                state: key === cellData.length - 1 ? CellState.executing : CellState.finished,
+                type: key === 3 ? 'preview' : 'execute',
+                data: data
+            };
+        }
+    );
 }
 
 //tslint:disable:max-func-body-length

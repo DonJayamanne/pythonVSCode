@@ -27,4 +27,8 @@ type BaseDataWithPayload<T> = {
 };
 
 // This forms the base content of every payload in all dispatchers.
-export type BaseReduxActionPayload<T = never | undefined> = T extends never ? (T extends undefined ? BaseData : BaseDataWithPayload<T>) : BaseDataWithPayload<T>;
+export type BaseReduxActionPayload<T = never | undefined> = T extends never
+    ? T extends undefined
+        ? BaseData
+        : BaseDataWithPayload<T>
+    : BaseDataWithPayload<T>;

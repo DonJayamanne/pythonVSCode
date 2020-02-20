@@ -195,7 +195,10 @@ export class NativeCell extends React.Component<INativeCellProps> {
     };
 
     private shouldRenderMarkdownEditor = (): boolean => {
-        return this.isMarkdownCell() && (this.isShowingMarkdownEditor() || this.props.cellVM.cell.id === Identifiers.EditCellId);
+        return (
+            this.isMarkdownCell() &&
+            (this.isShowingMarkdownEditor() || this.props.cellVM.cell.id === Identifiers.EditCellId)
+        );
     };
 
     private isShowingMarkdownEditor = (): boolean => {
@@ -207,7 +210,11 @@ export class NativeCell extends React.Component<INativeCellProps> {
     }
 
     private hasOutput = () => {
-        return this.getCell().state === CellState.finished || this.getCell().state === CellState.error || this.getCell().state === CellState.executing;
+        return (
+            this.getCell().state === CellState.finished ||
+            this.getCell().state === CellState.error ||
+            this.getCell().state === CellState.executing
+        );
     };
 
     private getCodeCell = () => {
@@ -217,7 +224,13 @@ export class NativeCell extends React.Component<INativeCellProps> {
     private shouldRenderOutput(): boolean {
         if (this.isCodeCell()) {
             const cell = this.getCodeCell();
-            return this.hasOutput() && cell.outputs && !this.props.cellVM.hideOutput && Array.isArray(cell.outputs) && cell.outputs.length !== 0;
+            return (
+                this.hasOutput() &&
+                cell.outputs &&
+                !this.props.cellVM.hideOutput &&
+                Array.isArray(cell.outputs) &&
+                cell.outputs.length !== 0
+            );
         } else if (this.isMarkdownCell()) {
             return !this.isShowingMarkdownEditor();
         }
@@ -438,7 +451,11 @@ export class NativeCell extends React.Component<INativeCellProps> {
         };
         const addButtonRender = !this.props.lastCell ? (
             <div className="navbar-add-button">
-                <ImageButton baseTheme={this.props.baseTheme} onClick={this.addNewCell} tooltip={getLocString('DataScience.insertBelow', 'Insert cell below')}>
+                <ImageButton
+                    baseTheme={this.props.baseTheme}
+                    onClick={this.addNewCell}
+                    tooltip={getLocString('DataScience.insertBelow', 'Insert cell below')}
+                >
                     <Image baseTheme={this.props.baseTheme} class="image-button-image" image={ImageName.InsertBelow} />
                 </ImageButton>
             </div>
@@ -447,7 +464,12 @@ export class NativeCell extends React.Component<INativeCellProps> {
         return (
             <div className="navbar-div">
                 <div>
-                    <ImageButton baseTheme={this.props.baseTheme} onClick={moveUp} disabled={this.props.firstCell} tooltip={getLocString('DataScience.moveCellUp', 'Move cell up')}>
+                    <ImageButton
+                        baseTheme={this.props.baseTheme}
+                        onClick={moveUp}
+                        disabled={this.props.firstCell}
+                        tooltip={getLocString('DataScience.moveCellUp', 'Move cell up')}
+                    >
                         <Image baseTheme={this.props.baseTheme} class="image-button-image" image={ImageName.Up} />
                     </ImageButton>
                 </div>
@@ -471,7 +493,14 @@ export class NativeCell extends React.Component<INativeCellProps> {
         if (!this.props.lastCell) {
             // Divider should only show if no output
             if (!checkOutput || !this.shouldRenderOutput()) {
-                return <AddCellLine className="add-divider" baseTheme={this.props.baseTheme} includePlus={false} click={this.addNewCell} />;
+                return (
+                    <AddCellLine
+                        className="add-divider"
+                        baseTheme={this.props.baseTheme}
+                        includePlus={false}
+                        click={this.addNewCell}
+                    />
+                );
             }
         }
 
@@ -508,7 +537,8 @@ export class NativeCell extends React.Component<INativeCellProps> {
                 ? getLocString('DataScience.switchToMarkdown', 'Change to markdown')
                 : getLocString('DataScience.switchToCode', 'Change to code');
         const otherCellType = this.props.cellVM.cell.data.cell_type === 'code' ? 'markdown' : 'code';
-        const otherCellTypeCommand = otherCellType === 'markdown' ? NativeCommandType.ChangeToMarkdown : NativeCommandType.ChangeToCode;
+        const otherCellTypeCommand =
+            otherCellType === 'markdown' ? NativeCommandType.ChangeToMarkdown : NativeCommandType.ChangeToCode;
         const otherCellImage = otherCellType === 'markdown' ? ImageName.SwitchToMarkdown : ImageName.SwitchToCode;
         const switchCellType = (event: React.MouseEvent<HTMLButtonElement>) => {
             // Prevent this mouse click from stealing focus so that we
@@ -523,7 +553,12 @@ export class NativeCell extends React.Component<INativeCellProps> {
         return (
             <div className={toolbarClassName}>
                 <div className="native-editor-celltoolbar-middle">
-                    <ImageButton baseTheme={this.props.baseTheme} onClick={runCell} tooltip={getLocString('DataScience.runCell', 'Run cell')} hidden={this.isMarkdownCell()}>
+                    <ImageButton
+                        baseTheme={this.props.baseTheme}
+                        onClick={runCell}
+                        tooltip={getLocString('DataScience.runCell', 'Run cell')}
+                        hidden={this.isMarkdownCell()}
+                    >
                         <Image baseTheme={this.props.baseTheme} class="image-button-image" image={ImageName.Run} />
                     </ImageButton>
                     <ImageButton baseTheme={this.props.baseTheme} onMouseDown={switchCellType} tooltip={switchTooltip}>
@@ -532,11 +567,18 @@ export class NativeCell extends React.Component<INativeCellProps> {
                     <ImageButton
                         baseTheme={this.props.baseTheme}
                         onClick={gatherCell}
-                        tooltip={getLocString('DataScience.gatherCell', 'Gather the code required to generate this cell into a new notebook')}
+                        tooltip={getLocString(
+                            'DataScience.gatherCell',
+                            'Gather the code required to generate this cell into a new notebook'
+                        )}
                         hidden={gatherDisabled}
                         className="hover-cell-button"
                     >
-                        <Image baseTheme={this.props.baseTheme} class="image-button-image" image={ImageName.GatherCode} />
+                        <Image
+                            baseTheme={this.props.baseTheme}
+                            class="image-button-image"
+                            image={ImageName.GatherCode}
+                        />
                     </ImageButton>
                     <ImageButton
                         baseTheme={this.props.baseTheme}
@@ -553,9 +595,13 @@ export class NativeCell extends React.Component<INativeCellProps> {
     };
 
     private renderControls = () => {
-        const busy = this.props.cellVM.cell.state === CellState.init || this.props.cellVM.cell.state === CellState.executing;
+        const busy =
+            this.props.cellVM.cell.state === CellState.init || this.props.cellVM.cell.state === CellState.executing;
         const executionCount =
-            this.props.cellVM && this.props.cellVM.cell && this.props.cellVM.cell.data && this.props.cellVM.cell.data.execution_count
+            this.props.cellVM &&
+            this.props.cellVM.cell &&
+            this.props.cellVM.cell.data &&
+            this.props.cellVM.cell.data.execution_count
                 ? this.props.cellVM.cell.data.execution_count.toString()
                 : '-';
 
@@ -668,7 +714,10 @@ export class NativeCell extends React.Component<INativeCellProps> {
 
         if (this.props.cellVM.cell.data.cell_type === 'markdown') {
             classes += ' collapse-bar-markdown';
-        } else if (Array.isArray(this.props.cellVM.cell.data.outputs) && this.props.cellVM.cell.data.outputs.length !== 0) {
+        } else if (
+            Array.isArray(this.props.cellVM.cell.data.outputs) &&
+            this.props.cellVM.cell.data.outputs.length !== 0
+        ) {
             classes += ' collapse-bar-output';
         } else {
             return null;

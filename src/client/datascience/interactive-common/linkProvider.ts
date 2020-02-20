@@ -18,7 +18,10 @@ const LineQueryRegex = /line=(\d+)/;
 // tslint:disable: no-any
 @injectable()
 export class LinkProvider implements IInteractiveWindowListener {
-    private postEmitter: EventEmitter<{ message: string; payload: any }> = new EventEmitter<{ message: string; payload: any }>();
+    private postEmitter: EventEmitter<{ message: string; payload: any }> = new EventEmitter<{
+        message: string;
+        payload: any;
+    }>();
     constructor(
         @inject(IApplicationShell) private applicationShell: IApplicationShell,
         @inject(IFileSystem) private fileSystem: IFileSystem,
@@ -85,11 +88,15 @@ export class LinkProvider implements IInteractiveWindowListener {
         }
 
         // Show the matching editor if there is one
-        const editor = this.documentManager.visibleTextEditors.find(e => this.fileSystem.arePathsSame(e.document.fileName, uri.fsPath));
+        const editor = this.documentManager.visibleTextEditors.find(e =>
+            this.fileSystem.arePathsSame(e.document.fileName, uri.fsPath)
+        );
         if (editor) {
-            this.documentManager.showTextDocument(editor.document, { selection, viewColumn: editor.viewColumn }).then(() => {
-                editor.revealRange(selection, TextEditorRevealType.InCenter);
-            });
+            this.documentManager
+                .showTextDocument(editor.document, { selection, viewColumn: editor.viewColumn })
+                .then(() => {
+                    editor.revealRange(selection, TextEditorRevealType.InCenter);
+                });
         } else {
             this.documentManager.showTextDocument(uri, { selection });
         }

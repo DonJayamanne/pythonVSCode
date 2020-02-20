@@ -10,7 +10,11 @@ import { ICommandManager, ICustomEditorService, WebviewCustomEditorProvider } fr
 export class CustomEditorService implements ICustomEditorService {
     constructor(@inject(ICommandManager) private commandManager: ICommandManager) {}
 
-    public registerWebviewCustomEditorProvider(viewType: string, provider: WebviewCustomEditorProvider, options?: vscode.WebviewPanelOptions): vscode.Disposable {
+    public registerWebviewCustomEditorProvider(
+        viewType: string,
+        provider: WebviewCustomEditorProvider,
+        options?: vscode.WebviewPanelOptions
+    ): vscode.Disposable {
         // tslint:disable-next-line: no-any
         return (vscode.window as any).registerWebviewCustomEditorProvider(viewType, provider, options);
     }

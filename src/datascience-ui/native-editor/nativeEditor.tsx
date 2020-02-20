@@ -84,7 +84,12 @@ export class NativeEditor extends React.Component<INativeEditorProps> {
         const progressBar = this.props.busy && !this.props.testMode ? <Progress /> : undefined;
         const addCellLine =
             this.props.cellVMs.length === 0 ? null : (
-                <AddCellLine includePlus={true} className="add-cell-line-top" click={this.insertAboveFirst} baseTheme={this.props.baseTheme} />
+                <AddCellLine
+                    includePlus={true}
+                    className="add-cell-line-top"
+                    click={this.insertAboveFirst}
+                    baseTheme={this.props.baseTheme}
+                />
             );
 
         return (
@@ -96,7 +101,10 @@ export class NativeEditor extends React.Component<INativeEditorProps> {
                     {this.renderToolbarPanel()}
                     {progressBar}
                 </header>
-                <section id="main-panel-variable" aria-label={getLocString('DataScience.collapseVariableExplorerLabel', 'Variables')}>
+                <section
+                    id="main-panel-variable"
+                    aria-label={getLocString('DataScience.collapseVariableExplorerLabel', 'Variables')}
+                >
                     {this.renderVariablePanel(this.props.baseTheme)}
                 </section>
                 <main id="main-panel-content">
@@ -145,7 +153,10 @@ export class NativeEditor extends React.Component<INativeEditorProps> {
             if (selectedInfo.selectedCellId && typeof selectedInfo.selectedCellIndex === 'number') {
                 // tslint:disable-next-line: no-suspicious-comment
                 // TODO: Is the source going to be up to date during run below?
-                this.props.executeCellAndBelow(selectedInfo.selectedCellId, concatMultilineStringInput(this.props.cellVMs[selectedInfo.selectedCellIndex].cell.data.source));
+                this.props.executeCellAndBelow(
+                    selectedInfo.selectedCellId,
+                    concatMultilineStringInput(this.props.cellVMs[selectedInfo.selectedCellIndex].cell.data.source)
+                );
                 this.props.sendCommand(NativeCommandType.RunBelow, 'mouse');
             }
         };
@@ -158,7 +169,8 @@ export class NativeEditor extends React.Component<INativeEditorProps> {
             this.props.sendCommand(NativeCommandType.SelectServer, 'mouse');
         };
         const canRunAbove = (selectedInfo.selectedCellIndex ?? -1) > 0;
-        const canRunBelow = (selectedInfo.selectedCellIndex ?? -1) < this.props.cellVMs.length - 1 && selectedInfo.selectedCellId;
+        const canRunBelow =
+            (selectedInfo.selectedCellIndex ?? -1) < this.props.cellVMs.length - 1 && selectedInfo.selectedCellId;
 
         return (
             <div id="toolbar-panel">
@@ -171,7 +183,11 @@ export class NativeEditor extends React.Component<INativeEditorProps> {
                             className="native-button"
                             tooltip={getLocString('DataScience.runAll', 'Run All Cells')}
                         >
-                            <Image baseTheme={this.props.baseTheme} class="image-button-image" image={ImageName.RunAll} />
+                            <Image
+                                baseTheme={this.props.baseTheme}
+                                class="image-button-image"
+                                image={ImageName.RunAll}
+                            />
                         </ImageButton>
                         <ImageButton
                             baseTheme={this.props.baseTheme}
@@ -180,7 +196,11 @@ export class NativeEditor extends React.Component<INativeEditorProps> {
                             className="native-button"
                             tooltip={getLocString('DataScience.runAbove', 'Run cells above')}
                         >
-                            <Image baseTheme={this.props.baseTheme} class="image-button-image" image={ImageName.RunAbove} />
+                            <Image
+                                baseTheme={this.props.baseTheme}
+                                class="image-button-image"
+                                image={ImageName.RunAbove}
+                            />
                         </ImageButton>
                         <ImageButton
                             baseTheme={this.props.baseTheme}
@@ -189,7 +209,11 @@ export class NativeEditor extends React.Component<INativeEditorProps> {
                             className="native-button"
                             tooltip={getLocString('DataScience.runBelow', 'Run cell and below')}
                         >
-                            <Image baseTheme={this.props.baseTheme} class="image-button-image" image={ImageName.RunBelow} />
+                            <Image
+                                baseTheme={this.props.baseTheme}
+                                class="image-button-image"
+                                image={ImageName.RunBelow}
+                            />
                         </ImageButton>
                         <ImageButton
                             baseTheme={this.props.baseTheme}
@@ -198,7 +222,11 @@ export class NativeEditor extends React.Component<INativeEditorProps> {
                             className="native-button"
                             tooltip={getLocString('DataScience.restartServer', 'Restart IPython kernel')}
                         >
-                            <Image baseTheme={this.props.baseTheme} class="image-button-image" image={ImageName.Restart} />
+                            <Image
+                                baseTheme={this.props.baseTheme}
+                                class="image-button-image"
+                                image={ImageName.Restart}
+                            />
                         </ImageButton>
                         <ImageButton
                             baseTheme={this.props.baseTheme}
@@ -207,10 +235,23 @@ export class NativeEditor extends React.Component<INativeEditorProps> {
                             className="native-button"
                             tooltip={getLocString('DataScience.interruptKernel', 'Interrupt IPython kernel')}
                         >
-                            <Image baseTheme={this.props.baseTheme} class="image-button-image" image={ImageName.Interrupt} />
+                            <Image
+                                baseTheme={this.props.baseTheme}
+                                class="image-button-image"
+                                image={ImageName.Interrupt}
+                            />
                         </ImageButton>
-                        <ImageButton baseTheme={this.props.baseTheme} onClick={addCell} className="native-button" tooltip={getLocString('DataScience.addNewCell', 'Insert cell')}>
-                            <Image baseTheme={this.props.baseTheme} class="image-button-image" image={ImageName.InsertBelow} />
+                        <ImageButton
+                            baseTheme={this.props.baseTheme}
+                            onClick={addCell}
+                            className="native-button"
+                            tooltip={getLocString('DataScience.addNewCell', 'Insert cell')}
+                        >
+                            <Image
+                                baseTheme={this.props.baseTheme}
+                                class="image-button-image"
+                                image={ImageName.InsertBelow}
+                            />
                         </ImageButton>
                         <ImageButton
                             baseTheme={this.props.baseTheme}
@@ -219,10 +260,23 @@ export class NativeEditor extends React.Component<INativeEditorProps> {
                             className="native-button"
                             tooltip={getLocString('DataScience.clearAllOutput', 'Clear All Output')}
                         >
-                            <Image baseTheme={this.props.baseTheme} class="image-button-image" image={ImageName.ClearAllOutput} />
+                            <Image
+                                baseTheme={this.props.baseTheme}
+                                class="image-button-image"
+                                image={ImageName.ClearAllOutput}
+                            />
                         </ImageButton>
-                        <ImageButton baseTheme={this.props.baseTheme} onClick={toggleVariableExplorer} className="native-button" tooltip={variableExplorerTooltip}>
-                            <Image baseTheme={this.props.baseTheme} class="image-button-image" image={ImageName.VariableExplorer} />
+                        <ImageButton
+                            baseTheme={this.props.baseTheme}
+                            onClick={toggleVariableExplorer}
+                            className="native-button"
+                            tooltip={variableExplorerTooltip}
+                        >
+                            <Image
+                                baseTheme={this.props.baseTheme}
+                                class="image-button-image"
+                                image={ImageName.VariableExplorer}
+                            />
                         </ImageButton>
                         <ImageButton
                             baseTheme={this.props.baseTheme}
@@ -231,7 +285,11 @@ export class NativeEditor extends React.Component<INativeEditorProps> {
                             className="native-button"
                             tooltip={getLocString('DataScience.save', 'Save File')}
                         >
-                            <Image baseTheme={this.props.baseTheme} class="image-button-image" image={ImageName.SaveAs} />
+                            <Image
+                                baseTheme={this.props.baseTheme}
+                                class="image-button-image"
+                                image={ImageName.SaveAs}
+                            />
                         </ImageButton>
                         <ImageButton
                             baseTheme={this.props.baseTheme}
@@ -240,10 +298,20 @@ export class NativeEditor extends React.Component<INativeEditorProps> {
                             className="native-button"
                             tooltip={getLocString('DataScience.exportAsPythonFileTooltip', 'Save As Python File')}
                         >
-                            <Image baseTheme={this.props.baseTheme} class="image-button-image" image={ImageName.ExportToPython} />
+                            <Image
+                                baseTheme={this.props.baseTheme}
+                                class="image-button-image"
+                                image={ImageName.ExportToPython}
+                            />
                         </ImageButton>
                     </div>
-                    <KernelSelection baseTheme={this.props.baseTheme} font={this.props.font} kernel={this.props.kernel} selectServer={selectServer} selectKernel={selectKernel} />
+                    <KernelSelection
+                        baseTheme={this.props.baseTheme}
+                        font={this.props.font}
+                        kernel={this.props.kernel}
+                        selectServer={selectServer}
+                        selectKernel={selectKernel}
+                    />
                 </div>
                 <div className="toolbar-divider" />
             </div>
@@ -366,7 +434,14 @@ export class NativeEditor extends React.Component<INativeEditorProps> {
         };
         const firstLine = index === 0;
         const lastLine =
-            index === this.props.cellVMs.length - 1 ? <AddCellLine includePlus={true} baseTheme={this.props.baseTheme} className="add-cell-line-cell" click={addNewCell} /> : null;
+            index === this.props.cellVMs.length - 1 ? (
+                <AddCellLine
+                    includePlus={true}
+                    baseTheme={this.props.baseTheme}
+                    className="add-cell-line-cell"
+                    click={addNewCell}
+                />
+            ) : null;
 
         return (
             <div key={cellVM.cell.id} id={cellVM.cell.id}>

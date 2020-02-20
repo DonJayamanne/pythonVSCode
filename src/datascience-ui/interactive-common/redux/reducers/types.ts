@@ -2,7 +2,12 @@
 // Licensed under the MIT License.
 'use strict';
 
-import { IEditorContentChange, InteractiveWindowMessages, IShowDataViewer, NativeCommandType } from '../../../../client/datascience/interactive-common/interactiveWindowTypes';
+import {
+    IEditorContentChange,
+    InteractiveWindowMessages,
+    IShowDataViewer,
+    NativeCommandType
+} from '../../../../client/datascience/interactive-common/interactiveWindowTypes';
 import { BaseReduxActionPayload } from '../../../../client/datascience/interactive-common/types';
 import { IJupyterVariablesRequest } from '../../../../client/datascience/types';
 import { ActionWithPayload, ReducerArg } from '../../../react-common/reduxUtils';
@@ -133,7 +138,11 @@ export interface IScrollAction {
 }
 
 // tslint:disable-next-line: no-any
-export type CommonReducerArg<AT = CommonActionType | InteractiveWindowMessages, T = never | undefined> = ReducerArg<IMainState, AT, BaseReduxActionPayload<T>>;
+export type CommonReducerArg<AT = CommonActionType | InteractiveWindowMessages, T = never | undefined> = ReducerArg<
+    IMainState,
+    AT,
+    BaseReduxActionPayload<T>
+>;
 
 export interface ICellAction {
     cellId: string | undefined;

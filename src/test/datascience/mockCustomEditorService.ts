@@ -1,7 +1,12 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 import { Disposable, Uri, WebviewPanel, WebviewPanelOptions } from 'vscode';
-import { ICommandManager, ICustomEditorService, WebviewCustomEditorEditingDelegate, WebviewCustomEditorProvider } from '../../client/common/application/types';
+import {
+    ICommandManager,
+    ICustomEditorService,
+    WebviewCustomEditorEditingDelegate,
+    WebviewCustomEditorProvider
+} from '../../client/common/application/types';
 import { IDisposableRegistry } from '../../client/common/types';
 import { noop } from '../../client/common/utils/misc';
 import { NotebookModelChange } from '../../client/datascience/interactive-common/interactiveWindowTypes';
@@ -15,11 +20,19 @@ export class MockCustomEditorService implements ICustomEditorService {
     private redoStack = new Map<string, unknown[]>();
 
     constructor(private disposableRegistry: IDisposableRegistry, commandManager: ICommandManager) {
-        disposableRegistry.push(commandManager.registerCommand('workbench.action.files.save', this.onFileSave.bind(this)));
-        disposableRegistry.push(commandManager.registerCommand('workbench.action.files.saveAs', this.onFileSaveAs.bind(this)));
+        disposableRegistry.push(
+            commandManager.registerCommand('workbench.action.files.save', this.onFileSave.bind(this))
+        );
+        disposableRegistry.push(
+            commandManager.registerCommand('workbench.action.files.saveAs', this.onFileSaveAs.bind(this))
+        );
     }
 
-    public registerWebviewCustomEditorProvider(_viewType: string, provider: WebviewCustomEditorProvider, _options?: WebviewPanelOptions | undefined): Disposable {
+    public registerWebviewCustomEditorProvider(
+        _viewType: string,
+        provider: WebviewCustomEditorProvider,
+        _options?: WebviewPanelOptions | undefined
+    ): Disposable {
         // Only support one view type, so just save the provider
         this.provider = provider;
 
@@ -53,19 +66,28 @@ export class MockCustomEditorService implements ICustomEditorService {
 
     public undo(file: Uri) {
         this.popAndApply(file, this.undoStack, this.redoStack, e => {
-            const nativeProvider = (this.provider as unknown) as WebviewCustomEditorEditingDelegate<NotebookModelChange>;
+            const nativeProvider = (this.provider as unknown) as WebviewCustomEditorEditingDelegate<
+                NotebookModelChange
+            >;
             nativeProvider.undoEdits(file, [e as NotebookModelChange]);
         });
     }
 
     public redo(file: Uri) {
         this.popAndApply(file, this.redoStack, this.undoStack, e => {
-            const nativeProvider = (this.provider as unknown) as WebviewCustomEditorEditingDelegate<NotebookModelChange>;
+            const nativeProvider = (this.provider as unknown) as WebviewCustomEditorEditingDelegate<
+                NotebookModelChange
+            >;
             nativeProvider.applyEdits(file, [e as NotebookModelChange]);
         });
     }
 
-    private popAndApply(file: Uri, from: Map<string, unknown[]>, to: Map<string, unknown[]>, apply: (element: unknown) => void) {
+    private popAndApply(
+        file: Uri,
+        from: Map<string, unknown[]>,
+        to: Map<string, unknown[]>,
+        apply: (element: unknown) => void
+    ) {
         const key = file.toString();
         const fromStack = from.get(key);
         if (fromStack) {

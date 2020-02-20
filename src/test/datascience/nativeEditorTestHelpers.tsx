@@ -12,7 +12,15 @@ import { CursorPos } from '../../datascience-ui/interactive-common/mainState';
 import { NativeCell } from '../../datascience-ui/native-editor/nativeCell';
 import { ImageButton } from '../../datascience-ui/react-common/imageButton';
 import { DataScienceIocContainer } from './dataScienceIocContainer';
-import { addMockData, getCellResults, getNativeFocusedEditor, injectCode, mountWebView, simulateKey, waitForMessage } from './testHelpers';
+import {
+    addMockData,
+    getCellResults,
+    getNativeFocusedEditor,
+    injectCode,
+    mountWebView,
+    simulateKey,
+    waitForMessage
+} from './testHelpers';
 
 // tslint:disable: no-any
 
@@ -36,7 +44,11 @@ export async function createNewEditor(ioc: DataScienceIocContainer): Promise<INo
     return getOrCreateNativeEditor(ioc);
 }
 
-export async function openEditor(ioc: DataScienceIocContainer, contents: string, filePath: string = '/usr/home/test.ipynb'): Promise<INotebookEditor> {
+export async function openEditor(
+    ioc: DataScienceIocContainer,
+    contents: string,
+    filePath: string = '/usr/home/test.ipynb'
+): Promise<INotebookEditor> {
     const uri = Uri.file(filePath);
     ioc.setFileContents(uri, contents);
     return getOrCreateNativeEditor(ioc, uri);
@@ -82,7 +94,11 @@ export async function setupWebview(ioc: DataScienceIocContainer) {
     }
 }
 
-export function focusCell(ioc: DataScienceIocContainer, wrapper: ReactWrapper<any, Readonly<{}>, React.Component>, index: number): Promise<void> {
+export function focusCell(
+    ioc: DataScienceIocContainer,
+    wrapper: ReactWrapper<any, Readonly<{}>, React.Component>,
+    index: number
+): Promise<void> {
     const cell = wrapper.find(NativeCell).at(index);
     if (cell) {
         const vm = cell.props().cellVM;
@@ -96,7 +112,12 @@ export function focusCell(ioc: DataScienceIocContainer, wrapper: ReactWrapper<an
 }
 
 // tslint:disable-next-line: no-any
-export async function addCell(wrapper: ReactWrapper<any, Readonly<{}>, React.Component>, ioc: DataScienceIocContainer, code: string, submit: boolean = true): Promise<void> {
+export async function addCell(
+    wrapper: ReactWrapper<any, Readonly<{}>, React.Component>,
+    ioc: DataScienceIocContainer,
+    code: string,
+    submit: boolean = true
+): Promise<void> {
     // First get the main toolbar. We'll use this to add a cell.
     const toolbar = wrapper.find('#main-panel-toolbar');
     assert.ok(toolbar, 'Cannot find the main panel toolbar during adding a cell');
@@ -123,7 +144,10 @@ export async function addCell(wrapper: ReactWrapper<any, Readonly<{}>, React.Com
     }
 }
 
-export function closeNotebook(editor: INotebookEditor, wrapper: ReactWrapper<any, Readonly<{}>, React.Component>): Promise<void> {
+export function closeNotebook(
+    editor: INotebookEditor,
+    wrapper: ReactWrapper<any, Readonly<{}>, React.Component>
+): Promise<void> {
     const promise = editor.dispose();
     wrapper.unmount();
     return promise;

@@ -18,7 +18,14 @@ import * as localize from '../../common/utils/localize';
 import { noop } from '../../common/utils/misc';
 import { CellMatcher } from '../cellMatcher';
 import { CodeSnippits, Identifiers } from '../constants';
-import { CellState, ICell, IDataScienceErrorHandler, IJupyterExecution, INotebookEditorProvider, INotebookExporter } from '../types';
+import {
+    CellState,
+    ICell,
+    IDataScienceErrorHandler,
+    IJupyterExecution,
+    INotebookEditorProvider,
+    INotebookExporter
+} from '../types';
 
 @injectable()
 export class JupyterExporter implements INotebookExporter {
@@ -51,8 +58,14 @@ export class JupyterExporter implements INotebookExporter {
             const contents = JSON.stringify(notebook);
             await this.fileSystem.writeFile(file, contents, { encoding: 'utf8', flag: 'w' });
             const openQuestion1 = localize.DataScience.exportOpenQuestion1();
-            const openQuestion2 = (await this.jupyterExecution.isSpawnSupported()) ? localize.DataScience.exportOpenQuestion() : undefined;
-            this.showInformationMessage(localize.DataScience.exportDialogComplete().format(file), openQuestion1, openQuestion2).then(async (str: string | undefined) => {
+            const openQuestion2 = (await this.jupyterExecution.isSpawnSupported())
+                ? localize.DataScience.exportOpenQuestion()
+                : undefined;
+            this.showInformationMessage(
+                localize.DataScience.exportDialogComplete().format(file),
+                openQuestion1,
+                openQuestion2
+            ).then(async (str: string | undefined) => {
                 try {
                     if (str === openQuestion2 && openQuestion2) {
                         // If the user wants to, open the notebook they just generated.
@@ -69,7 +82,10 @@ export class JupyterExporter implements INotebookExporter {
             this.applicationShell.showInformationMessage(localize.DataScience.exportDialogFailed().format(exc));
         }
     }
-    public async translateToNotebook(cells: ICell[], changeDirectory?: string): Promise<nbformat.INotebookContent | undefined> {
+    public async translateToNotebook(
+        cells: ICell[],
+        changeDirectory?: string
+    ): Promise<nbformat.INotebookContent | undefined> {
         // If requested, add in a change directory cell to fix relative paths
         if (changeDirectory && this.configService.getSettings().datascience.changeDirOnImportExport) {
             cells = await this.addDirectoryChangeCell(cells, changeDirectory);
@@ -107,7 +123,11 @@ export class JupyterExporter implements INotebookExporter {
         };
     }
 
-    private showInformationMessage(message: string, question1: string, question2?: string): Thenable<string | undefined> {
+    private showInformationMessage(
+        message: string,
+        question1: string,
+        question2?: string
+    ): Thenable<string | undefined> {
         if (question2) {
             return this.applicationShell.showInformationMessage(message, question1, question2);
         } else {
@@ -162,7 +182,9 @@ export class JupyterExporter implements INotebookExporter {
     private calculateDirectoryChange = async (notebookFile: string, cells: ICell[]): Promise<string | undefined> => {
         // Make sure we don't already have a cell with a ChangeDirectory comment in it.
         let directoryChange: string | undefined;
-        const haveChangeAlready = cells.find(c => concatMultilineStringInput(c.data.source).includes(CodeSnippits.ChangeDirectoryCommentIdentifier));
+        const haveChangeAlready = cells.find(c =>
+            concatMultilineStringInput(c.data.source).includes(CodeSnippits.ChangeDirectoryCommentIdentifier)
+        );
         if (!haveChangeAlready) {
             const notebookFilePath = path.dirname(notebookFile);
             // First see if we have a workspace open, this only works if we have a workspace root to be relative to
@@ -170,7 +192,12 @@ export class JupyterExporter implements INotebookExporter {
                 const workspacePath = await this.firstWorkspaceFolder(cells);
 
                 // Make sure that we have everything that we need here
-                if (workspacePath && path.isAbsolute(workspacePath) && notebookFilePath && path.isAbsolute(notebookFilePath)) {
+                if (
+                    workspacePath &&
+                    path.isAbsolute(workspacePath) &&
+                    notebookFilePath &&
+                    path.isAbsolute(notebookFilePath)
+                ) {
                     directoryChange = path.relative(notebookFilePath, workspacePath);
                 }
             }

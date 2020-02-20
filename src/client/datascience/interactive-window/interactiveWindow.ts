@@ -4,19 +4,38 @@
 import { inject, injectable, multiInject, named } from 'inversify';
 import * as path from 'path';
 import { Event, EventEmitter, Memento, TextEditor, Uri, ViewColumn } from 'vscode';
-import { IApplicationShell, ICommandManager, IDocumentManager, ILiveShareApi, IWebPanelProvider, IWorkspaceService } from '../../common/application/types';
+import {
+    IApplicationShell,
+    ICommandManager,
+    IDocumentManager,
+    ILiveShareApi,
+    IWebPanelProvider,
+    IWorkspaceService
+} from '../../common/application/types';
 import { ContextKey } from '../../common/contextKey';
 import '../../common/extensions';
 import { traceError } from '../../common/logger';
 import { IFileSystem } from '../../common/platform/types';
-import { GLOBAL_MEMENTO, IConfigurationService, IDisposableRegistry, IExperimentsManager, IMemento, IPersistentStateFactory } from '../../common/types';
+import {
+    GLOBAL_MEMENTO,
+    IConfigurationService,
+    IDisposableRegistry,
+    IExperimentsManager,
+    IMemento,
+    IPersistentStateFactory
+} from '../../common/types';
 import * as localize from '../../common/utils/localize';
 import { EXTENSION_ROOT_DIR } from '../../constants';
 import { IInterpreterService } from '../../interpreter/contracts';
 import { captureTelemetry, sendTelemetryEvent } from '../../telemetry';
 import { EditorContexts, Identifiers, Telemetry } from '../constants';
 import { InteractiveBase } from '../interactive-common/interactiveBase';
-import { InteractiveWindowMessages, ISubmitNewCell, NotebookModelChange, SysInfoReason } from '../interactive-common/interactiveWindowTypes';
+import {
+    InteractiveWindowMessages,
+    ISubmitNewCell,
+    NotebookModelChange,
+    SysInfoReason
+} from '../interactive-common/interactiveWindowTypes';
 import { ProgressReporter } from '../progress/progressReporter';
 import {
     ICell,
@@ -107,7 +126,11 @@ export class InteractiveWindow extends InteractiveBase implements IInteractiveWi
             commandManager,
             globalStorage,
             historyReactDir,
-            [path.join(historyReactDir, 'monaco.bundle.js'), path.join(historyReactDir, 'commons.initial.bundle.js'), path.join(historyReactDir, 'interactiveWindow.js')],
+            [
+                path.join(historyReactDir, 'monaco.bundle.js'),
+                path.join(historyReactDir, 'commons.initial.bundle.js'),
+                path.join(historyReactDir, 'interactiveWindow.js')
+            ],
             localize.DataScience.historyTitle(),
             ViewColumn.Two,
             experimentsManager

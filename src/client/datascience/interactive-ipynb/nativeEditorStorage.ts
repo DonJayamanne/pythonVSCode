@@ -50,7 +50,13 @@ export class NativeEditorStorage implements INotebookModel, INotebookStorage {
         return this._state.cells;
     }
     private _changedEmitter = new EventEmitter<NotebookModelChange>();
-    private _state: INativeEditorStorageState = { file: Uri.file(''), changeCount: 0, saveChangeCount: 0, cells: [], notebookJson: {} };
+    private _state: INativeEditorStorageState = {
+        file: Uri.file(''),
+        changeCount: 0,
+        saveChangeCount: 0,
+        cells: [],
+        notebookJson: {}
+    };
     private indentAmount: string = ' ';
 
     constructor(
@@ -80,7 +86,14 @@ export class NativeEditorStorage implements INotebookModel, INotebookStorage {
         const contents = await this.getContent();
         await this.fileSystem.writeFile(file.fsPath, contents, 'utf-8');
         if (this.isDirty || file.fsPath !== this.file.fsPath) {
-            this.handleModelChange({ source: 'user', kind: 'file', newFile: file, oldFile: this.file, newDirty: false, oldDirty: this.isDirty });
+            this.handleModelChange({
+                source: 'user',
+                kind: 'file',
+                newFile: file,
+                oldFile: this.file,
+                newDirty: false,
+                oldDirty: this.isDirty
+            });
         }
         return this;
     }
@@ -266,7 +279,9 @@ export class NativeEditorStorage implements INotebookModel, INotebookStorage {
     }
 
     private clearOutputs(): boolean {
-        const newCells = this.cells.map(c => this.asCell({ ...c, data: { ...c.data, execution_count: null, outputs: [] } }));
+        const newCells = this.cells.map(c =>
+            this.asCell({ ...c, data: { ...c.data, execution_count: null, outputs: [] } })
+        );
         const result = !fastDeepEqual(newCells, this.cells);
         this._state.cells = newCells;
         return result;
@@ -278,9 +293,17 @@ export class NativeEditorStorage implements INotebookModel, INotebookStorage {
         return true;
     }
 
-    private updateVersionInfo(interpreter: PythonInterpreter | undefined, kernelSpec: IJupyterKernelSpec | LiveKernelModel | undefined) {
+    private updateVersionInfo(
+        interpreter: PythonInterpreter | undefined,
+        kernelSpec: IJupyterKernelSpec | LiveKernelModel | undefined
+    ) {
         // Get our kernel_info and language_info from the current notebook
-        if (interpreter && interpreter.version && this._state.notebookJson.metadata && this._state.notebookJson.metadata.language_info) {
+        if (
+            interpreter &&
+            interpreter.version &&
+            this._state.notebookJson.metadata &&
+            this._state.notebookJson.metadata.language_info
+        ) {
             this._state.notebookJson.metadata.language_info.version = interpreter.version.raw;
         }
 
@@ -293,7 +316,8 @@ export class NativeEditorStorage implements INotebookModel, INotebookStorage {
         } else if (kernelSpec && this._state.notebookJson.metadata && this._state.notebookJson.metadata.kernelspec) {
             // Spec exists, just update name and display_name
             this._state.notebookJson.metadata.kernelspec.name = kernelSpec.name || kernelSpec.display_name || '';
-            this._state.notebookJson.metadata.kernelspec.display_name = kernelSpec.display_name || kernelSpec.name || '';
+            this._state.notebookJson.metadata.kernelspec.display_name =
+                kernelSpec.display_name || kernelSpec.name || '';
         }
     }
 
@@ -309,7 +333,8 @@ export class NativeEditorStorage implements INotebookModel, INotebookStorage {
 
         try {
             // Attempt to read the contents if a viable file
-            const contents = file.scheme === 'untitled' ? possibleContents : await this.fileSystem.readFile(this.file.fsPath);
+            const contents =
+                file.scheme === 'untitled' ? possibleContents : await this.fileSystem.readFile(this.file.fsPath);
 
             // See if this file was stored in storage prior to shutdown
             const dirtyContents = await this.getStoredContents();

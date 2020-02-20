@@ -19,7 +19,12 @@ export namespace Creation {
         return true;
     }
 
-    export function alterCellVM(cellVM: ICellViewModel, settings?: IDataScienceExtraSettings, visible?: boolean, expanded?: boolean): ICellViewModel {
+    export function alterCellVM(
+        cellVM: ICellViewModel,
+        settings?: IDataScienceExtraSettings,
+        visible?: boolean,
+        expanded?: boolean
+    ): ICellViewModel {
         if (cellVM.cell.data.cell_type === 'code') {
             // If we are already in the correct state, return back our initial cell vm
             if (cellVM.inputBlockShow === visible && cellVM.inputBlockOpen === expanded) {
@@ -81,7 +86,10 @@ export namespace Creation {
     export function startCell(arg: InteractiveReducerArg<ICell>): IMainState {
         if (isCellSupported(arg.prevState, arg.payload.data)) {
             const result = Helpers.updateOrAdd(arg, prepareCellVM);
-            if (result.cellVMs.length > arg.prevState.cellVMs.length && arg.payload.data.id !== Identifiers.EditCellId) {
+            if (
+                result.cellVMs.length > arg.prevState.cellVMs.length &&
+                arg.payload.data.id !== Identifiers.EditCellId
+            ) {
                 const cellVM = result.cellVMs[result.cellVMs.length - 1];
 
                 // We're adding a new cell here. Tell the intellisense engine we have a new cell

@@ -9,20 +9,46 @@ import { Event, EventEmitter, Memento, Uri, ViewColumn, WebviewPanel } from 'vsc
 
 import * as uuid from 'uuid/v4';
 import { createCodeCell, createErrorOutput } from '../../../datascience-ui/common/cellFactory';
-import { IApplicationShell, ICommandManager, IDocumentManager, ILiveShareApi, IWebPanelProvider, IWorkspaceService } from '../../common/application/types';
+import {
+    IApplicationShell,
+    ICommandManager,
+    IDocumentManager,
+    ILiveShareApi,
+    IWebPanelProvider,
+    IWorkspaceService
+} from '../../common/application/types';
 import { ContextKey } from '../../common/contextKey';
 import { traceError } from '../../common/logger';
 import { IFileSystem, TemporaryFile } from '../../common/platform/types';
-import { GLOBAL_MEMENTO, IConfigurationService, IDisposableRegistry, IExperimentsManager, IMemento } from '../../common/types';
+import {
+    GLOBAL_MEMENTO,
+    IConfigurationService,
+    IDisposableRegistry,
+    IExperimentsManager,
+    IMemento
+} from '../../common/types';
 import { createDeferred, Deferred } from '../../common/utils/async';
 import * as localize from '../../common/utils/localize';
 import { StopWatch } from '../../common/utils/stopWatch';
 import { EXTENSION_ROOT_DIR } from '../../constants';
 import { IInterpreterService } from '../../interpreter/contracts';
 import { captureTelemetry, sendTelemetryEvent } from '../../telemetry';
-import { EditorContexts, Identifiers, NativeKeyboardCommandTelemetryLookup, NativeMouseCommandTelemetryLookup, Telemetry } from '../constants';
+import {
+    EditorContexts,
+    Identifiers,
+    NativeKeyboardCommandTelemetryLookup,
+    NativeMouseCommandTelemetryLookup,
+    Telemetry
+} from '../constants';
 import { InteractiveBase } from '../interactive-common/interactiveBase';
-import { INativeCommand, InteractiveWindowMessages, ISaveAll, ISubmitNewCell, NotebookModelChange, SysInfoReason } from '../interactive-common/interactiveWindowTypes';
+import {
+    INativeCommand,
+    InteractiveWindowMessages,
+    ISaveAll,
+    ISubmitNewCell,
+    NotebookModelChange,
+    SysInfoReason
+} from '../interactive-common/interactiveWindowTypes';
 import { ProgressReporter } from '../progress/progressReporter';
 import {
     CellState,
@@ -115,7 +141,11 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
             commandManager,
             globalStorage,
             nativeEditorDir,
-            [path.join(nativeEditorDir, 'monaco.bundle.js'), path.join(nativeEditorDir, 'commons.initial.bundle.js'), path.join(nativeEditorDir, 'nativeEditor.js')],
+            [
+                path.join(nativeEditorDir, 'monaco.bundle.js'),
+                path.join(nativeEditorDir, 'commons.initial.bundle.js'),
+                path.join(nativeEditorDir, 'nativeEditor.js')
+            ],
             localize.DataScience.nativeEditorTitle(),
             ViewColumn.Active,
             experimentsManager
@@ -500,7 +530,10 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
     }
 
     private logNativeCommand(args: INativeCommand) {
-        const telemetryEvent = args.source === 'mouse' ? NativeMouseCommandTelemetryLookup[args.command] : NativeKeyboardCommandTelemetryLookup[args.command];
+        const telemetryEvent =
+            args.source === 'mouse'
+                ? NativeMouseCommandTelemetryLookup[args.command]
+                : NativeKeyboardCommandTelemetryLookup[args.command];
         sendTelemetryEvent(telemetryEvent);
     }
 

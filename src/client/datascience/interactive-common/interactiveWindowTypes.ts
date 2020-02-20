@@ -9,7 +9,14 @@ import { PythonInterpreter } from '../../interpreter/contracts';
 import { LiveKernelModel } from '../jupyter/kernels/types';
 import { CssMessages, IGetCssRequest, IGetCssResponse, IGetMonacoThemeRequest, SharedMessages } from '../messages';
 import { IGetMonacoThemeResponse } from '../monacoMessages';
-import { ICell, IInteractiveWindowInfo, IJupyterKernelSpec, IJupyterVariable, IJupyterVariablesRequest, IJupyterVariablesResponse } from '../types';
+import {
+    ICell,
+    IInteractiveWindowInfo,
+    IJupyterKernelSpec,
+    IJupyterVariable,
+    IJupyterVariablesRequest,
+    IJupyterVariablesResponse
+} from '../types';
 import { BaseReduxActionPayload } from './types';
 
 export enum InteractiveWindowMessages {
@@ -495,8 +502,11 @@ export class IInteractiveWindowMapping {
     public [InteractiveWindowMessages.NotebookDirty]: never | undefined;
     public [InteractiveWindowMessages.NotebookClean]: never | undefined;
     public [InteractiveWindowMessages.SaveAll]: ISaveAll;
-    // tslint:disable-next-line: no-any
-    public [InteractiveWindowMessages.Sync]: { type: InteractiveWindowMessages | SharedMessages | CommonActionType; payload: BaseReduxActionPayload<any> };
+    public [InteractiveWindowMessages.Sync]: {
+        type: InteractiveWindowMessages | SharedMessages | CommonActionType;
+        // tslint:disable-next-line: no-any
+        payload: BaseReduxActionPayload<any>;
+    };
     public [InteractiveWindowMessages.NativeCommand]: INativeCommand;
     public [InteractiveWindowMessages.VariablesComplete]: never | undefined;
     public [InteractiveWindowMessages.NotebookRunAllCells]: never | undefined;

@@ -2,13 +2,25 @@
 // Licensed under the MIT License.
 'use strict';
 import { Identifiers } from '../../../../client/datascience/constants';
-import { IEditorContentChange, InteractiveWindowMessages, NotebookModelChange } from '../../../../client/datascience/interactive-common/interactiveWindowTypes';
+import {
+    IEditorContentChange,
+    InteractiveWindowMessages,
+    NotebookModelChange
+} from '../../../../client/datascience/interactive-common/interactiveWindowTypes';
 import { CssMessages } from '../../../../client/datascience/messages';
 import { ICell } from '../../../../client/datascience/types';
 import { extractInputText, getSelectedAndFocusedInfo, IMainState } from '../../mainState';
 import { postActionToExtension } from '../helpers';
 import { Helpers } from './helpers';
-import { CommonActionType, CommonReducerArg, ICellAction, IEditCellAction, ILinkClickAction, ISendCommandAction, IShowDataViewerAction } from './types';
+import {
+    CommonActionType,
+    CommonReducerArg,
+    ICellAction,
+    IEditCellAction,
+    ILinkClickAction,
+    ISendCommandAction,
+    IShowDataViewerAction
+} from './types';
 
 // These are all reducers that don't actually change state. They merely dispatch a message to the other side.
 export namespace Transfer {
@@ -27,21 +39,31 @@ export namespace Transfer {
         // Note: this is assuming editor contents have already been saved. That should happen as a result of focus change
 
         // Actually waiting for save results before marking as not dirty, so don't do it here.
-        postActionToExtension(arg, InteractiveWindowMessages.SaveAll, { cells: arg.prevState.cellVMs.map(cvm => cvm.cell) });
+        postActionToExtension(arg, InteractiveWindowMessages.SaveAll, {
+            cells: arg.prevState.cellVMs.map(cvm => cvm.cell)
+        });
         return arg.prevState;
     }
 
     export function showDataViewer(arg: CommonReducerArg<CommonActionType, IShowDataViewerAction>): IMainState {
-        postActionToExtension(arg, InteractiveWindowMessages.ShowDataViewer, { variable: arg.payload.data.variable, columnSize: arg.payload.data.columnSize });
+        postActionToExtension(arg, InteractiveWindowMessages.ShowDataViewer, {
+            variable: arg.payload.data.variable,
+            columnSize: arg.payload.data.columnSize
+        });
         return arg.prevState;
     }
 
     export function sendCommand(arg: CommonReducerArg<CommonActionType, ISendCommandAction>): IMainState {
-        postActionToExtension(arg, InteractiveWindowMessages.NativeCommand, { command: arg.payload.data.command, source: arg.payload.data.commandType });
+        postActionToExtension(arg, InteractiveWindowMessages.NativeCommand, {
+            command: arg.payload.data.command,
+            source: arg.payload.data.commandType
+        });
         return arg.prevState;
     }
 
-    export function showPlot(arg: CommonReducerArg<CommonActionType | InteractiveWindowMessages, string | undefined>): IMainState {
+    export function showPlot(
+        arg: CommonReducerArg<CommonActionType | InteractiveWindowMessages, string | undefined>
+    ): IMainState {
         if (arg.payload.data) {
             postActionToExtension(arg, InteractiveWindowMessages.ShowPlot, arg.payload.data);
         }
@@ -66,7 +88,10 @@ export namespace Transfer {
     export function gotoCell(arg: CommonReducerArg<CommonActionType, ICellAction>): IMainState {
         const cellVM = arg.prevState.cellVMs.find(c => c.cell.id === arg.payload.data.cellId);
         if (cellVM && cellVM.cell.data.cell_type === 'code') {
-            postActionToExtension(arg, InteractiveWindowMessages.GotoCodeCell, { file: cellVM.cell.file, line: cellVM.cell.line });
+            postActionToExtension(arg, InteractiveWindowMessages.GotoCodeCell, {
+                file: cellVM.cell.file,
+                line: cellVM.cell.line
+            });
         }
         return arg.prevState;
     }
@@ -79,7 +104,9 @@ export namespace Transfer {
 
         // Send a message to the other side to jump to a particular cell
         if (cellVM) {
-            postActionToExtension(arg, InteractiveWindowMessages.CopyCodeCell, { source: extractInputText(cellVM, arg.prevState.settings) });
+            postActionToExtension(arg, InteractiveWindowMessages.CopyCodeCell, {
+                source: extractInputText(cellVM, arg.prevState.settings)
+            });
         }
 
         return arg.prevState;
@@ -97,7 +124,12 @@ export namespace Transfer {
         postActionToExtension(arg, InteractiveWindowMessages.UpdateModel, update);
     }
 
-    export function postModelEdit<T>(arg: CommonReducerArg<CommonActionType, T>, forward: IEditorContentChange[], reverse: IEditorContentChange[], id: string) {
+    export function postModelEdit<T>(
+        arg: CommonReducerArg<CommonActionType, T>,
+        forward: IEditorContentChange[],
+        reverse: IEditorContentChange[],
+        id: string
+    ) {
         postModelUpdate(arg, {
             source: 'user',
             kind: 'edit',
@@ -109,7 +141,12 @@ export namespace Transfer {
         });
     }
 
-    export function postModelInsert<T>(arg: CommonReducerArg<CommonActionType, T>, index: number, cell: ICell, codeCellAboveId?: string) {
+    export function postModelInsert<T>(
+        arg: CommonReducerArg<CommonActionType, T>,
+        index: number,
+        cell: ICell,
+        codeCellAboveId?: string
+    ) {
         postModelUpdate(arg, {
             source: 'user',
             kind: 'insert',
@@ -155,7 +192,11 @@ export namespace Transfer {
         });
     }
 
-    export function postModelSwap<T>(arg: CommonReducerArg<CommonActionType, T>, firstCellId: string, secondCellId: string) {
+    export function postModelSwap<T>(
+        arg: CommonReducerArg<CommonActionType, T>,
+        firstCellId: string,
+        secondCellId: string
+    ) {
         postModelUpdate(arg, {
             source: 'user',
             kind: 'swap',
@@ -167,7 +208,10 @@ export namespace Transfer {
     }
 
     export function editCell(arg: CommonReducerArg<CommonActionType, IEditCellAction>): IMainState {
-        const cellVM = arg.payload.data.cellId === Identifiers.EditCellId ? arg.prevState.editCellVM : arg.prevState.cellVMs.find(c => c.cell.id === arg.payload.data.cellId);
+        const cellVM =
+            arg.payload.data.cellId === Identifiers.EditCellId
+                ? arg.prevState.editCellVM
+                : arg.prevState.cellVMs.find(c => c.cell.id === arg.payload.data.cellId);
         if (cellVM) {
             // Tell the underlying model on the extension side
             postModelEdit(arg, arg.payload.data.forward, arg.payload.data.reverse, cellVM.cell.id);
@@ -201,14 +245,18 @@ export namespace Transfer {
         // Send all of our initial requests
         postActionToExtension(arg, InteractiveWindowMessages.Started);
         postActionToExtension(arg, CssMessages.GetCssRequest, { isDark: arg.prevState.baseTheme !== 'vscode-light' });
-        postActionToExtension(arg, CssMessages.GetMonacoThemeRequest, { isDark: arg.prevState.baseTheme !== 'vscode-light' });
+        postActionToExtension(arg, CssMessages.GetMonacoThemeRequest, {
+            isDark: arg.prevState.baseTheme !== 'vscode-light'
+        });
         postActionToExtension(arg, InteractiveWindowMessages.LoadOnigasmAssemblyRequest);
         postActionToExtension(arg, InteractiveWindowMessages.LoadTmLanguageRequest);
         return arg.prevState;
     }
 
     export function loadedAllCells(arg: CommonReducerArg): IMainState {
-        postActionToExtension(arg, InteractiveWindowMessages.LoadAllCellsComplete, { cells: arg.prevState.cellVMs.map(c => c.cell) });
+        postActionToExtension(arg, InteractiveWindowMessages.LoadAllCellsComplete, {
+            cells: arg.prevState.cellVMs.map(c => c.cell)
+        });
         return arg.prevState;
     }
 }

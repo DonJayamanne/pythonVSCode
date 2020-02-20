@@ -50,14 +50,24 @@ export namespace Helpers {
         return cell as ICell;
     }
 
-    export function updateOrAdd(arg: CommonReducerArg<CommonActionType, ICell>, generateVM: (cell: ICell, mainState: IMainState) => ICellViewModel): IMainState {
+    export function updateOrAdd(
+        arg: CommonReducerArg<CommonActionType, ICell>,
+        generateVM: (cell: ICell, mainState: IMainState) => ICellViewModel
+    ): IMainState {
         // First compute new execution count.
         const newExecutionCount = arg.payload.data.data.execution_count
-            ? Math.max(arg.prevState.currentExecutionCount, parseInt(arg.payload.data.data.execution_count.toString(), 10))
+            ? Math.max(
+                  arg.prevState.currentExecutionCount,
+                  parseInt(arg.payload.data.data.execution_count.toString(), 10)
+              )
             : arg.prevState.currentExecutionCount;
 
         const index = arg.prevState.cellVMs.findIndex((c: ICellViewModel) => {
-            return c.cell.id === arg.payload.data.id && c.cell.line === arg.payload.data.line && arePathsSame(c.cell.file, arg.payload.data.file);
+            return (
+                c.cell.id === arg.payload.data.id &&
+                c.cell.line === arg.payload.data.line &&
+                arePathsSame(c.cell.file, arg.payload.data.file)
+            );
         });
         if (index >= 0) {
             // This means the cell existed already so it was actual executed code.

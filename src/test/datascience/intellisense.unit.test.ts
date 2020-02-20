@@ -12,7 +12,11 @@ import { IConfigurationService } from '../../client/common/types';
 import { Identifiers } from '../../client/datascience/constants';
 import { IntellisenseDocument } from '../../client/datascience/interactive-common/intellisense/intellisenseDocument';
 import { IntellisenseProvider } from '../../client/datascience/interactive-common/intellisense/intellisenseProvider';
-import { IEditorContentChange, IInteractiveWindowMapping, InteractiveWindowMessages } from '../../client/datascience/interactive-common/interactiveWindowTypes';
+import {
+    IEditorContentChange,
+    IInteractiveWindowMapping,
+    InteractiveWindowMessages
+} from '../../client/datascience/interactive-common/interactiveWindowTypes';
 import { ICell, IInteractiveWindowProvider, IJupyterExecution } from '../../client/datascience/types';
 import { IInterpreterService } from '../../client/interpreter/contracts';
 import { createEmptyCell, generateTestCells } from '../../datascience-ui/interactive-common/mainState';
@@ -77,7 +81,10 @@ suite('Data Science Intellisense Unit Tests', () => {
         intellisenseDocument = await intellisenseProvider.getDocument();
     });
 
-    function sendMessage<M extends IInteractiveWindowMapping, T extends keyof M>(type: T, payload?: M[T]): Promise<void> {
+    function sendMessage<M extends IInteractiveWindowMapping, T extends keyof M>(
+        type: T,
+        payload?: M[T]
+    ): Promise<void> {
         const result = languageServerCache.getMockServer().waitForNotification();
         intellisenseProvider.onMessage(type.toString(), payload);
         return result;
@@ -113,8 +120,17 @@ suite('Data Science Intellisense Unit Tests', () => {
         };
     }
 
-    function sendUpdate(id: string, oldText: string, doc: IntellisenseDocument, change: IEditorContentChange, source: 'user' | 'undo' | 'redo' = 'user') {
-        const reverse = { ...generateReverseChange(oldText, generateModel(doc), change), position: { lineNumber: 1, column: 1 } };
+    function sendUpdate(
+        id: string,
+        oldText: string,
+        doc: IntellisenseDocument,
+        change: IEditorContentChange,
+        source: 'user' | 'undo' | 'redo' = 'user'
+    ) {
+        const reverse = {
+            ...generateReverseChange(oldText, generateModel(doc), change),
+            position: { lineNumber: 1, column: 1 }
+        };
         return sendMessage(InteractiveWindowMessages.UpdateModel, {
             source,
             kind: 'edit',
@@ -126,7 +142,12 @@ suite('Data Science Intellisense Unit Tests', () => {
         });
     }
 
-    function updateCell(newCode: string, oldCode: string, id: string, source: 'user' | 'undo' | 'redo' = 'user'): Promise<void> {
+    function updateCell(
+        newCode: string,
+        oldCode: string,
+        id: string,
+        source: 'user' | 'undo' | 'redo' = 'user'
+    ): Promise<void> {
         const oldSplit = oldCode.split('\n');
         const change: IEditorContentChange = {
             range: {
@@ -198,7 +219,11 @@ suite('Data Science Intellisense Unit Tests', () => {
         return sendUpdate(cells[cells.length - 1].id, '', getDocument(), change);
     }
 
-    async function removeCell(cell: ICell | undefined, oldIndex: number = -1, source: 'user' | 'undo' | 'redo' = 'user'): Promise<number> {
+    async function removeCell(
+        cell: ICell | undefined,
+        oldIndex: number = -1,
+        source: 'user' | 'undo' | 'redo' = 'user'
+    ): Promise<number> {
         if (cell) {
             let index = cells.findIndex(c => c.id === cell.id);
             if (index < 0) {
@@ -241,7 +266,13 @@ suite('Data Science Intellisense Unit Tests', () => {
         });
     }
 
-    function insertCell(id: string, code: string, codeCellAbove?: string, source: 'user' | 'undo' | 'redo' = 'user', end?: boolean): Promise<void> {
+    function insertCell(
+        id: string,
+        code: string,
+        codeCellAbove?: string,
+        source: 'user' | 'undo' | 'redo' = 'user',
+        end?: boolean
+    ): Promise<void> {
         const cell = createEmptyCell(id, null);
         cell.data.source = code;
         const index = codeCellAbove ? cells.findIndex(c => c.id === codeCellAbove) : end ? cells.length : 0;
@@ -418,7 +449,10 @@ suite('Data Science Intellisense Unit Tests', () => {
         await removeAllCells();
         expect(getDocumentContents()).to.be.eq('import sys\nimport foo\nimport bar\nsys', 'Removing all cells broken');
         await addCell('import baz', '3');
-        expect(getDocumentContents()).to.be.eq('import sys\nimport foo\nimport bar\nimport baz\nsys', 'Document not set');
+        expect(getDocumentContents()).to.be.eq(
+            'import sys\nimport foo\nimport bar\nimport baz\nsys',
+            'Document not set'
+        );
     });
 
     test('Load remove and insert', async () => {

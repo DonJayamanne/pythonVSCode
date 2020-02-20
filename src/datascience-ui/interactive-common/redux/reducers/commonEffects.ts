@@ -60,7 +60,11 @@ export namespace CommonEffects {
         // We also get this in our response, but computing is more reliable
         // than searching for it.
         const newBaseTheme =
-            arg.prevState.knownDark !== computedKnownDark && !arg.prevState.testMode ? (computedKnownDark ? 'vscode-dark' : 'vscode-light') : arg.prevState.baseTheme;
+            arg.prevState.knownDark !== computedKnownDark && !arg.prevState.testMode
+                ? computedKnownDark
+                    ? 'vscode-dark'
+                    : 'vscode-light'
+                : arg.prevState.baseTheme;
 
         let fontSize: number = 14;
         let fontFamily: string = "Consolas, 'Courier New', monospace";
@@ -71,7 +75,10 @@ export namespace CommonEffects {
 
         if (fontSizeIndex > -1) {
             const fontSizeEndIndex = arg.payload.data.css.indexOf('px;', fontSizeIndex + sizeSetting.length);
-            fontSize = parseInt(arg.payload.data.css.substring(fontSizeIndex + sizeSetting.length, fontSizeEndIndex), 10);
+            fontSize = parseInt(
+                arg.payload.data.css.substring(fontSizeIndex + sizeSetting.length, fontSizeEndIndex),
+                10
+            );
         }
 
         if (fontFamilyIndex > -1) {

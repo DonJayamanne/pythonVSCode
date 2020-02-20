@@ -31,9 +31,17 @@ export interface IMonacoState {
     postOffice: PostOffice;
 }
 
-type MonacoReducerFunc<T = never | undefined> = ReducerFunc<IMonacoState, CommonActionType | InteractiveWindowMessages, BaseReduxActionPayload<T>>;
+type MonacoReducerFunc<T = never | undefined> = ReducerFunc<
+    IMonacoState,
+    CommonActionType | InteractiveWindowMessages,
+    BaseReduxActionPayload<T>
+>;
 
-type MonacoReducerArg<T = never | undefined> = ReducerArg<IMonacoState, CommonActionType | InteractiveWindowMessages, BaseReduxActionPayload<T>>;
+type MonacoReducerArg<T = never | undefined> = ReducerArg<
+    IMonacoState,
+    CommonActionType | InteractiveWindowMessages,
+    BaseReduxActionPayload<T>
+>;
 
 function handleStarted<T>(arg: MonacoReducerArg<T>): IMonacoState {
     // If in test mode, register the monaco provider
@@ -51,7 +59,9 @@ function handleStarted<T>(arg: MonacoReducerArg<T>): IMonacoState {
     if (!arg.prevState.intellisenseProvider && arg.prevState.postOffice) {
         return {
             ...arg.prevState,
-            intellisenseProvider: new IntellisenseProvider(arg.prevState.postOffice.sendMessage.bind(arg.prevState.postOffice))
+            intellisenseProvider: new IntellisenseProvider(
+                arg.prevState.postOffice.sendMessage.bind(arg.prevState.postOffice)
+            )
         };
     }
 
@@ -165,7 +175,9 @@ class IMonacoActionMapping {
     public [InteractiveWindowMessages.LoadOnigasmAssemblyResponse]: MonacoReducerFunc<Buffer>;
     public [InteractiveWindowMessages.LoadTmLanguageResponse]: MonacoReducerFunc<string>;
     public [CssMessages.GetMonacoThemeResponse]: MonacoReducerFunc<IGetMonacoThemeResponse>;
-    public [InteractiveWindowMessages.ProvideCompletionItemsResponse]: MonacoReducerFunc<IProvideCompletionItemsResponse>;
+    public [InteractiveWindowMessages.ProvideCompletionItemsResponse]: MonacoReducerFunc<
+        IProvideCompletionItemsResponse
+    >;
     public [InteractiveWindowMessages.ProvideSignatureHelpResponse]: MonacoReducerFunc<IProvideSignatureHelpResponse>;
     public [InteractiveWindowMessages.ProvideHoverResponse]: MonacoReducerFunc<IProvideHoverResponse>;
     public [InteractiveWindowMessages.ResolveCompletionItemResponse]: MonacoReducerFunc<IResolveCompletionItemResponse>;
@@ -189,7 +201,10 @@ const reducerMap: IMonacoActionMapping = {
     [CommonActionType.UNMOUNT]: handleUnmount
 };
 
-export function generateMonacoReducer(testMode: boolean, postOffice: PostOffice): Reducer<IMonacoState, QueuableAction<IMonacoActionMapping>> {
+export function generateMonacoReducer(
+    testMode: boolean,
+    postOffice: PostOffice
+): Reducer<IMonacoState, QueuableAction<IMonacoActionMapping>> {
     // First create our default state.
     const defaultState: IMonacoState = {
         onigasmData: undefined,
