@@ -31,6 +31,7 @@ import { ModuleExistsStatus } from '../../client/datascience/jupyter/interpreter
 import { getMessageForLibrariesNotInstalled } from '../../client/datascience/jupyter/interpreter/jupyterInterpreterDependencyService';
 import { JupyterExecutionFactory } from '../../client/datascience/jupyter/jupyterExecutionFactory';
 import { JupyterKernelPromiseFailedError } from '../../client/datascience/jupyter/kernels/jupyterKernelPromiseFailedError';
+import { HostJupyterNotebook } from '../../client/datascience/jupyter/liveshare/hostJupyterNotebook';
 import {
     CellState,
     ICell,
@@ -65,6 +66,7 @@ suite('DataScience notebook tests', () => {
     let processFactory: IProcessServiceFactory;
     let ioc: DataScienceIocContainer;
     let modifiedConfig = false;
+    const baseUri = Uri.file('foo.py');
 
     setup(() => {
         ioc = new DataScienceIocContainer();
@@ -304,7 +306,7 @@ suite('DataScience notebook tests', () => {
                 assert.ok(false, `Expected server to not be created`);
             }
             if (server) {
-                const notebook = await server.createNotebook(Uri.parse(Identifiers.InteractiveWindowIdentity));
+                const notebook = await server.createNotebook(baseUri, Uri.parse(Identifiers.InteractiveWindowIdentity));
                 // If specified set our launch file
                 if (launchingFile) {
                     await notebook.setLaunchingFile(launchingFile);
@@ -408,7 +410,7 @@ suite('DataScience notebook tests', () => {
             // We have a connection string here, so try to connect jupyterExecution to the notebook server
             const server = await jupyterExecution.connectToNotebookServer({ uri, useDefaultConfig: true, purpose: '' });
             const notebook = server
-                ? await server.createNotebook(Uri.parse(Identifiers.InteractiveWindowIdentity))
+                ? await server.createNotebook(baseUri, Uri.parse(Identifiers.InteractiveWindowIdentity))
                 : undefined;
             if (!notebook) {
                 assert.fail('Failed to connect to remote self cert server');
@@ -465,7 +467,7 @@ suite('DataScience notebook tests', () => {
                     purpose: ''
                 });
                 const notebook = server
-                    ? await server.createNotebook(Uri.parse(Identifiers.InteractiveWindowIdentity))
+                    ? await server.createNotebook(baseUri, Uri.parse(Identifiers.InteractiveWindowIdentity))
                     : undefined;
                 if (!notebook) {
                     assert.fail('Failed to connect to remote password server');
@@ -546,7 +548,7 @@ suite('DataScience notebook tests', () => {
             // We have a connection string here, so try to connect jupyterExecution to the notebook server
             const server = await jupyterExecution.connectToNotebookServer({ uri, useDefaultConfig: true, purpose: '' });
             const notebook = server
-                ? await server.createNotebook(Uri.parse(Identifiers.InteractiveWindowIdentity))
+                ? await server.createNotebook(baseUri, Uri.parse(Identifiers.InteractiveWindowIdentity))
                 : undefined;
             if (!notebook) {
                 assert.fail('Failed to connect to remote password server');
@@ -593,7 +595,7 @@ suite('DataScience notebook tests', () => {
             // We have a connection string here, so try to connect jupyterExecution to the notebook server
             const server = await jupyterExecution.connectToNotebookServer({ uri, useDefaultConfig: true, purpose: '' });
             const notebook = server
-                ? await server.createNotebook(Uri.parse(Identifiers.InteractiveWindowIdentity))
+                ? await server.createNotebook(baseUri, Uri.parse(Identifiers.InteractiveWindowIdentity))
                 : undefined;
             if (!notebook) {
                 assert.fail('Failed to connect to remote server');
@@ -907,7 +909,7 @@ suite('DataScience notebook tests', () => {
         const nonCancelSource = new CancellationTokenSource();
         const server = await jupyterExecution.connectToNotebookServer(undefined, nonCancelSource.token);
         const notebook = server
-            ? await server.createNotebook(Uri.parse(Identifiers.InteractiveWindowIdentity))
+            ? await server.createNotebook(baseUri, Uri.parse(Identifiers.InteractiveWindowIdentity))
             : undefined;
         assert.ok(notebook, 'Server not found with a cancel token that does not cancel');
 
@@ -982,8 +984,8 @@ suite('DataScience notebook tests', () => {
         assert.equal(finishedBefore, false, 'Finished before the interruption');
         assert.equal(error, undefined, 'Error thrown during interrupt');
         assert.ok(
-            finishedPromise.completed || result === InterruptResult.TimedOut || result === InterruptResult.Restarted,
-            `Timed out before interrupt for result: ${result}: ${code}`
+            finishedPromise.completed || result === InterruptResult.TimedOut || result === InterruptResult.Success,
+            `Interrupt restarted ${result} for: ${code}`
         );
 
         return result;
@@ -1215,6 +1217,22 @@ plt.show()`,
         }
     });
 
+    runTest('Custom command line', async () => {
+        if (!ioc.mockJupyter) {
+            const tempDir = os.tmpdir();
+            const settings = ioc.getSettings();
+            settings.datascience.jupyterCommandLineArguments = ['--NotebookApp.port=9975', `--notebook-dir=${tempDir}`];
+            ioc.forceSettingsChanged(settings.pythonPath, settings.datascience);
+            const notebook = await createNotebook(true);
+            assert.ok(notebook, 'Server should have started on port 9975');
+            const hs = notebook as HostJupyterNotebook;
+            // Check port number. Should have at least started with the one specified.
+            assert.ok(hs.server.getConnectionInfo()?.baseUrl.startsWith('http://localhost:99'), 'Port was not used');
+
+            await verifySimple(hs, `a=1${os.EOL}a`, 1);
+        }
+    });
+
     runTest('Invalid kernel spec works', async () => {
         if (ioc.mockJupyter) {
             // Make a dummy class that will fail during launch
@@ -1441,7 +1459,10 @@ plt.show()`,
                 threw = true;
                 // When using old command finder, the error is `Not Supported` (directly from stdout). - can be deprecated when jupyterCommandFinder.ts is deleted.
                 // When using new approach, we inform user that some packages are not installed.
-                const expectedErrorMsg = getMessageForLibrariesNotInstalled([Product.jupyter, Product.notebook]);
+                const expectedErrorMsg = getMessageForLibrariesNotInstalled(
+                    [Product.jupyter, Product.notebook],
+                    'Python'
+                );
 
                 assert.ok(
                     e.message.includes('Not supported') || e.message.includes(expectedErrorMsg),

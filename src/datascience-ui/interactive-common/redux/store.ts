@@ -52,7 +52,7 @@ function generateDefaultState(
                 family: "Consolas, 'Courier New', monospace"
             },
             codeTheme: Identifiers.GeneratedThemeName,
-            activateCount: 0,
+            focusPending: 0,
             monacoReady: testMode, // When testing, monaco starts out ready
             loaded: false,
             kernel: {

@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
-'use strict';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { Identifiers } from '../../client/datascience/constants';
+import { buildSettingsCss } from '../interactive-common/buildSettingsCss';
 import { ContentPanel, IContentPanelProps } from '../interactive-common/contentPanel';
 import { handleLinkClick } from '../interactive-common/handlers';
 import { KernelSelection } from '../interactive-common/kernelSelection';
@@ -63,7 +63,8 @@ export class InteractivePanel extends React.Component<IInteractivePanelProps> {
         return (
             <div id="main-panel" ref={this.mainPanelRef} role="Main" style={dynamicFont}>
                 <div className="styleSetter">
-                    <style>{this.props.rootCss}</style>
+                    <style>{`${this.props.rootCss ? this.props.rootCss : ''}
+${buildSettingsCss(this.props.settings)}`}</style>
                 </div>
                 <header id="main-panel-toolbar">
                     {this.renderToolbarPanel()}
@@ -80,6 +81,7 @@ export class InteractivePanel extends React.Component<IInteractivePanelProps> {
                 </main>
                 <section
                     id="main-panel-footer"
+                    onClick={this.footerPanelClick}
                     aria-label={getLocString('DataScience.editSection', 'Input new cells here')}
                 >
                     {this.renderFooterPanel(this.props.baseTheme)}
@@ -87,6 +89,11 @@ export class InteractivePanel extends React.Component<IInteractivePanelProps> {
             </div>
         );
     }
+
+    // Make the entire footer focus our input, instead of having to click directly on the monaco editor
+    private footerPanelClick = (_event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+        this.props.focusInput();
+    };
 
     // tslint:disable-next-line: max-func-body-length
     private renderToolbarPanel() {
@@ -259,7 +266,7 @@ export class InteractivePanel extends React.Component<IInteractivePanelProps> {
                         monacoTheme={this.props.monacoTheme}
                         font={this.props.font}
                         settings={this.props.settings}
-                        focusPending={this.props.activateCount}
+                        focusPending={this.props.focusPending}
                     />
                 </ErrorBoundary>
             </div>
@@ -279,9 +286,11 @@ export class InteractivePanel extends React.Component<IInteractivePanelProps> {
             submittedText: this.props.submittedText,
             skipNextScroll: this.props.skipNextScroll ? true : false,
             editable: false,
-            newCellVM: undefined,
             renderCell: this.renderCell,
-            scrollToBottom: this.scrollDiv
+            scrollToBottom: this.scrollDiv,
+            scrollBeyondLastLine: this.props.settings
+                ? this.props.settings.extraSettings.editor.scrollBeyondLastLine
+                : false
         };
     };
     private getVariableProps = (baseTheme: string): IVariablePanelProps => {
@@ -327,7 +336,7 @@ export class InteractivePanel extends React.Component<IInteractivePanelProps> {
                             monacoTheme={this.props.monacoTheme}
                             font={this.props.font}
                             settings={this.props.settings}
-                            focusPending={this.props.activateCount}
+                            focusPending={this.props.focusPending}
                         />
                     </ErrorBoundary>
                 </div>
@@ -345,8 +354,11 @@ export class InteractivePanel extends React.Component<IInteractivePanelProps> {
             this.internalScrollCount += 1;
             // Force auto here as smooth scrolling can be canceled by updates to the window
             // from elsewhere (and keeping track of these would make this hard to maintain)
-            if (div.scrollIntoView) {
-                div.scrollIntoView({ behavior: 'auto', block: 'start', inline: 'nearest' });
+            // tslint:disable: no-any
+            if ((div as any).scrollIntoViewIfNeeded) {
+                (div as any).scrollIntoViewIfNeeded(false);
+            } else if (div && div.scrollIntoView) {
+                div.scrollIntoView(false);
             }
         }
     };
@@ -354,10 +366,8 @@ export class InteractivePanel extends React.Component<IInteractivePanelProps> {
     private handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
         if (this.internalScrollCount > 0) {
             this.internalScrollCount -= 1;
-        } else {
-            const currentHeight = e.currentTarget.scrollHeight - e.currentTarget.scrollTop;
-            const isAtBottom =
-                currentHeight < e.currentTarget.clientHeight + 2 && currentHeight > e.currentTarget.clientHeight - 2;
+        } else if (this.contentPanelRef.current) {
+            const isAtBottom = this.contentPanelRef.current.computeIsAtBottom(e.currentTarget);
             this.props.scroll(isAtBottom);
         }
     };

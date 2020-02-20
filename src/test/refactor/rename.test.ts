@@ -25,6 +25,7 @@ import { PYTHON_PATH } from '../common';
 import { closeActiveWindows, initialize, initializeTest } from './../initialize';
 
 // tslint:disable:no-any
+// tslint:disable: max-func-body-length
 
 type RenameResponse = {
     results: [{ diff: string }];

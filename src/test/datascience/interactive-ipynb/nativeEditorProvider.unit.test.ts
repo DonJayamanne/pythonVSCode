@@ -6,7 +6,7 @@
 // tslint:disable: no-any
 
 import { expect } from 'chai';
-import { instance, mock, when } from 'ts-mockito';
+import { anything, instance, mock, when } from 'ts-mockito';
 import * as typemoq from 'typemoq';
 import { EventEmitter, Uri, WebviewPanel } from 'vscode';
 import { ICustomEditorService, IWorkspaceService } from '../../../client/common/application/types';
@@ -44,8 +44,9 @@ suite('Data Science - Native Editor Provider', () => {
 
     function createNotebookProvider() {
         editor = typemoq.Mock.ofType<INotebookEditor>();
-        storage = typemoq.Mock.ofType<INotebookStorage & INotebookModel>();
-        when(configService.getSettings()).thenReturn({ datascience: { useNotebookEditor: true } } as any);
+        when(configService.getSettings(anything())).thenReturn({ datascience: { useNotebookEditor: true } } as any);
+        when(docManager.onDidChangeActiveTextEditor).thenReturn(changeActiveTextEditorEventEmitter.event);
+        when(docManager.visibleTextEditors).thenReturn([]);
         editor.setup(e => e.closed).returns(() => new EventEmitter<INotebookEditor>().event);
         editor.setup(e => e.executed).returns(() => new EventEmitter<INotebookEditor>().event);
         editor.setup(e => (e as any).then).returns(() => undefined);

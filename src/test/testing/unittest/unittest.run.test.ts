@@ -40,12 +40,13 @@ import { MockUnitTestSocketServer } from '../mocks';
 import { UnitTestIocContainer } from '../serviceRegistry';
 import { initialize, initializeTest, IS_MULTI_ROOT_TEST } from './../../initialize';
 
+// tslint:disable:max-func-body-length
+
 const testFilesPath = path.join(EXTENSION_ROOT_DIR, 'src', 'test', 'pythonFiles', 'testFiles');
 const UNITTEST_TEST_FILES_PATH = path.join(testFilesPath, 'standard');
 const unitTestSpecificTestFilesPath = path.join(testFilesPath, 'specificTest');
 const defaultUnitTestArgs = ['-v', '-s', '.', '-p', '*test*.py'];
 
-// tslint:disable-next-line:max-func-body-length
 suite('Unit Tests - unittest - run with mocked process output', () => {
     let ioc: UnitTestIocContainer;
     const rootDirectory = UNITTEST_TEST_FILES_PATH;

@@ -80,9 +80,11 @@ suite('DataScience Interactive Window output tests', () => {
     });
 
     async function forceSettingsChange(newSettings: IDataScienceSettings) {
-        await getOrCreateInteractiveWindow(ioc);
+        const window = await getOrCreateInteractiveWindow(ioc);
+        await window.show();
+        const update = waitForMessage(ioc, InteractiveWindowMessages.SettingsUpdated);
         ioc.forceSettingsChanged(ioc.getSettings().pythonPath, newSettings);
-        return waitForMessage(ioc, InteractiveWindowMessages.SettingsUpdated);
+        return update;
     }
 
     // Uncomment this to debug hangs on exit
@@ -96,6 +98,29 @@ suite('DataScience Interactive Window output tests', () => {
             await addCode(ioc, wrapper, 'a=1\na');
 
             verifyHtmlOnCell(wrapper, 'InteractiveCell', '<span>1</span>', CellPosition.Last);
+        },
+        () => {
+            return ioc;
+        }
+    );
+
+    runMountedTest(
+        'Clear output',
+        async wrapper => {
+            const text = `from IPython.display import clear_output
+for i in range(10):
+    clear_output()
+    print("Hello World {0}!".format(i))
+`;
+            addContinuousMockData(ioc, text, async _c => {
+                return {
+                    result: 'Hello World 9!',
+                    haveMore: false
+                };
+            });
+            await addCode(ioc, wrapper, text);
+
+            verifyHtmlOnCell(wrapper, 'InteractiveCell', '<div>Hello World 9!', CellPosition.Last);
         },
         () => {
             return ioc;
@@ -177,6 +202,48 @@ suite('DataScience Interactive Window output tests', () => {
                 // send the ctrl + 1/2 message, this should put focus back on the input box
                 const message = createMessageEvent({ type: InteractiveWindowMessages.Activate, payload: undefined });
                 ioc.postMessage(message);
+
+                // Then enter press shift + enter on the active element
+                const activeElement = document.activeElement;
+                if (activeElement) {
+                    await submitInput(ioc, activeElement as HTMLTextAreaElement);
+                }
+            }
+
+            verifyHtmlOnCell(wrapper, 'InteractiveCell', '<span>1</span>', CellPosition.Last);
+        },
+        () => {
+            return ioc;
+        }
+    );
+
+    runMountedTest(
+        'Click outside cells sets focus to input box',
+        async wrapper => {
+            // Create an interactive window so that it listens to the results.
+            const interactiveWindow = await getOrCreateInteractiveWindow(ioc);
+            await interactiveWindow.show();
+
+            // Type in the input box
+            const editor = getInteractiveEditor(wrapper);
+            typeCode(editor, 'a=1\na');
+
+            // Give focus to a random div
+            const reactDiv = wrapper
+                .find('div')
+                .first()
+                .getDOMNode();
+
+            const domDiv = reactDiv.querySelector('div');
+
+            if (domDiv && ioc.postMessage) {
+                domDiv.tabIndex = -1;
+                domDiv.focus();
+
+                wrapper
+                    .find('section#main-panel-footer')
+                    .first()
+                    .simulate('click');
 
                 // Then enter press shift + enter on the active element
                 const activeElement = document.activeElement;
@@ -295,6 +362,17 @@ for _ in range(50):
 
             await addCode(ioc, wrapper, spinningCursor);
             verifyHtmlOnCell(wrapper, 'InteractiveCell', '<div>', CellPosition.Last);
+
+            addContinuousMockData(ioc, 'len?', async _c => {
+                return Promise.resolve({
+                    result: `Signature: len(obj, /)
+Docstring: Return the number of items in a container.
+Type:      builtin_function_or_method`,
+                    haveMore: false
+                });
+            });
+            await addCode(ioc, wrapper, 'len?');
+            verifyHtmlOnCell(wrapper, 'InteractiveCell', 'len', CellPosition.Last);
         },
         () => {
             return ioc;
@@ -484,6 +562,50 @@ for _ in range(50):
             const response = waitForMessageResponse(ioc, () => exportButton!.simulate('click'));
             await waitForPromise(response, 100);
             assert.equal(exportCalled, false, 'Export should not be called when no cells visible');
+        },
+        () => {
+            return ioc;
+        }
+    );
+
+    runMountedTest(
+        'Multiple Interpreters',
+        async _wrapper => {
+            // if (!ioc.mockJupyter) {
+            //     const interactiveWindowProvider = ioc.get<IInteractiveWindowProvider>(IInteractiveWindowProvider);
+            //     const interpreterService = ioc.get<IInterpreterService>(IInterpreterService);
+            //     const window = (await interactiveWindowProvider.getOrCreateActive()) as InteractiveWindow;
+            //     await addCode(ioc, wrapper, 'a=1\na');
+            //     const activeInterpreter = await interpreterService.getActiveInterpreter(
+            //         await window.getNotebookResource()
+            //     );
+            //     verifyHtmlOnCell(wrapper, 'InteractiveCell', '<span>1</span>', CellPosition.Last);
+            //     assert.equal(
+            //         window.notebook!.getMatchingInterpreter()?.path,
+            //         activeInterpreter?.path,
+            //         'Active intrepreter not used to launch notebook'
+            //     );
+            //     await closeInteractiveWindow(window, wrapper);
+
+            //     // Add another python path (hopefully there's more than one on the machine?)
+            //     const secondUri = Uri.file('bar.py');
+            //     await ioc.addNewSetting(secondUri, undefined);
+            //     const newWrapper = mountWebView(ioc, 'interactive');
+            //     assert.ok(newWrapper, 'Could not mount a second time');
+            //     const newWindow = (await interactiveWindowProvider.getOrCreateActive()) as InteractiveWindow;
+            //     await addCode(ioc, wrapper, 'a=1\na', false, secondUri);
+            //     verifyHtmlOnCell(wrapper, 'InteractiveCell', '<span>1</span>', CellPosition.Last);
+            //     assert.notEqual(
+            //         newWindow.notebook!.getMatchingInterpreter()?.path,
+            //         activeInterpreter?.path,
+            //         'Active intrepreter used to launch second notebook when it should not have'
+            //     );
+            // } else {
+            // tslint:disable-next-line: no-console
+            console.log(
+                'Multiple interpreters test skipped for now. Reenable after fixing https://github.com/microsoft/vscode-python/issues/10134'
+            );
+            //            }
         },
         () => {
             return ioc;
@@ -846,7 +968,8 @@ for _ in range(50):
             const docManager = ioc.get<IDocumentManager>(IDocumentManager);
             docManager.showTextDocument(docManager.textDocuments[0]);
             const window = (await getOrCreateInteractiveWindow(ioc)) as InteractiveWindow;
-            window.copyCode({ source: 'print("baz")' });
+            await window.show();
+            await window.copyCode({ source: 'print("baz")' });
             assert.equal(
                 docManager.textDocuments[0].getText(),
                 `${defaultCellMarker}${os.EOL}print("baz")${os.EOL}${defaultCellMarker}${os.EOL}print("bar")`,
@@ -854,7 +977,7 @@ for _ in range(50):
             );
             const activeEditor = docManager.activeTextEditor as MockEditor;
             activeEditor.selection = new Selection(1, 2, 1, 2);
-            window.copyCode({ source: 'print("baz")' });
+            await window.copyCode({ source: 'print("baz")' });
             assert.equal(
                 docManager.textDocuments[0].getText(),
                 `${defaultCellMarker}${os.EOL}${defaultCellMarker}${os.EOL}print("baz")${os.EOL}${defaultCellMarker}${os.EOL}print("baz")${os.EOL}${defaultCellMarker}${os.EOL}print("bar")`,

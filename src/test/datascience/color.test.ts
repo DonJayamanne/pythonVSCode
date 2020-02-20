@@ -73,7 +73,8 @@ suite('Theme colors', () => {
             enablePlotViewer: true,
             runStartupCommands: '',
             debugJustMyCode: true,
-            variableQueries: []
+            variableQueries: [],
+            jupyterCommandLineArguments: []
         };
         configService = TypeMoq.Mock.ofType<IConfigurationService>();
         configService.setup(x => x.getSettings(TypeMoq.It.isAny())).returns(() => settings);
@@ -115,9 +116,9 @@ suite('Theme colors', () => {
                     .returns((_s, d) => {
                         return d;
                     });
-                const theme = await cssGenerator.generateMonacoTheme(isDark, themeName);
+                const theme = await cssGenerator.generateMonacoTheme(undefined, isDark, themeName);
                 assert.ok(theme, `Cannot find monaco theme for ${themeName}`);
-                const colors = await cssGenerator.generateThemeCss(isDark, themeName);
+                const colors = await cssGenerator.generateThemeCss(undefined, isDark, themeName);
                 assert.ok(colors, 'Cannot find theme colors for Kimbie Dark');
 
                 // Make sure we have a string value that is not set to a variable
@@ -163,7 +164,7 @@ suite('Theme colors', () => {
         const fs = new FileSystem();
         cssGenerator = new CodeCssGenerator(workspaceService.object, mockThemeFinder.object, configService.object, fs);
 
-        const colors = await cssGenerator.generateThemeCss(false, 'Kimbie Dark');
+        const colors = await cssGenerator.generateThemeCss(undefined, false, 'Kimbie Dark');
         assert.ok(colors, 'Cannot find theme colors for Kimbie Dark');
 
         // Make sure we have a string value that is not set to a variable

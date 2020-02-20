@@ -5,7 +5,12 @@ import { inject, injectable } from 'inversify';
 import { Event, Uri } from 'vscode';
 
 import { ICustomEditorService, IWorkspaceService } from '../../client/common/application/types';
-import { IAsyncDisposableRegistry, IConfigurationService, IDisposableRegistry } from '../../client/common/types';
+import {
+    IAsyncDisposableRegistry,
+    IConfigurationService,
+    IDisposableRegistry,
+    Resource
+} from '../../client/common/types';
 import { InteractiveWindowMessageListener } from '../../client/datascience/interactive-common/interactiveWindowMessageListener';
 import { InteractiveWindowMessages } from '../../client/datascience/interactive-common/interactiveWindowTypes';
 import { NativeEditor } from '../../client/datascience/interactive-ipynb/nativeEditor';
@@ -87,7 +92,7 @@ export class TestNativeEditorProvider implements INotebookEditorProvider {
         return result;
     }
 
-    public async getNotebookOptions(): Promise<INotebookServerOptions> {
-        return this.realProvider.getNotebookOptions();
+    public async getNotebookOptions(resource: Resource): Promise<INotebookServerOptions> {
+        return this.realProvider.getNotebookOptions(resource);
     }
 }

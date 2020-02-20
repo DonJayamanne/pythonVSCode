@@ -6,6 +6,7 @@ import { connect } from 'react-redux';
 import { OSType } from '../../client/common/utils/platform';
 import { NativeCommandType } from '../../client/datascience/interactive-common/interactiveWindowTypes';
 import { concatMultilineStringInput } from '../common';
+import { buildSettingsCss } from '../interactive-common/buildSettingsCss';
 import { ContentPanel, IContentPanelProps } from '../interactive-common/contentPanel';
 import { handleLinkClick } from '../interactive-common/handlers';
 import { KernelSelection } from '../interactive-common/kernelSelection';
@@ -95,7 +96,8 @@ export class NativeEditor extends React.Component<INativeEditorProps> {
         return (
             <div id="main-panel" role="Main" style={dynamicFont}>
                 <div className="styleSetter">
-                    <style>{this.props.rootCss}</style>
+                    <style>{`${this.props.rootCss ? this.props.rootCss : ''}
+${buildSettingsCss(this.props.settings)}`}</style>
                 </div>
                 <header id="main-panel-toolbar">
                     {this.renderToolbarPanel()}
@@ -349,7 +351,10 @@ export class NativeEditor extends React.Component<INativeEditorProps> {
             skipNextScroll: this.props.skipNextScroll ? true : false,
             editable: true,
             renderCell: this.renderCell,
-            scrollToBottom: this.scrollDiv
+            scrollToBottom: this.scrollDiv,
+            scrollBeyondLastLine: this.props.settings
+                ? this.props.settings.extraSettings.editor.scrollBeyondLastLine
+                : false
         };
     };
     private getVariableProps = (baseTheme: string): IVariablePanelProps => {
@@ -461,7 +466,8 @@ export class NativeEditor extends React.Component<INativeEditorProps> {
                         editorOptions={this.props.editorOptions}
                         enableGather={this.props.settings.enableGather}
                         themeMatplotlibPlots={this.props.settings.themeMatplotlibPlots}
-                        focusPending={this.props.activateCount}
+                        // Focus pending does not apply to native editor.
+                        focusPending={0}
                     />
                 </ErrorBoundary>
                 {lastLine}

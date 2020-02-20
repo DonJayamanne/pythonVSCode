@@ -8,7 +8,7 @@ import { ConfigurationChangeEvent, ViewColumn, WebviewPanel, WorkspaceConfigurat
 
 import { IWebPanel, IWebPanelMessageListener, IWebPanelProvider, IWorkspaceService } from '../common/application/types';
 import { traceInfo, traceWarning } from '../common/logger';
-import { IConfigurationService, IDisposable } from '../common/types';
+import { IConfigurationService, IDisposable, Resource } from '../common/types';
 import { createDeferred, Deferred } from '../common/utils/async';
 import * as localize from '../common/utils/localize';
 import { noop } from '../common/utils/misc';
@@ -19,7 +19,7 @@ import { CssMessages, IGetCssRequest, IGetMonacoThemeRequest, SharedMessages } f
 import { ICodeCssGenerator, IDataScienceExtraSettings, IThemeFinder, WebViewViewChangeEventArgs } from './types';
 
 @injectable() // For some reason this is necessary to get the class hierarchy to work.
-export class WebViewHost<IMapping> implements IDisposable {
+export abstract class WebViewHost<IMapping> implements IDisposable {
     protected viewState: { visible: boolean; active: boolean } = { visible: false, active: false };
     private disposed: boolean = false;
     private webPanel: IWebPanel | undefined;
@@ -60,11 +60,11 @@ export class WebViewHost<IMapping> implements IDisposable {
 
         // Listen for settings changes
         this.settingsChangeHandler = this.configService
-            .getSettings()
+            .getSettings(undefined)
             .onDidChange(this.onDataScienceSettingsChanged.bind(this));
 
         // Send the first settings message
-        this.onDataScienceSettingsChanged();
+        this.onDataScienceSettingsChanged().ignoreErrors();
 
         // Send the loc strings
         this.postMessageInternal(SharedMessages.LocInit, localize.getCollectionJSON()).ignoreErrors();
@@ -120,6 +120,8 @@ export class WebViewHost<IMapping> implements IDisposable {
         }
     }
 
+    protected abstract getOwningResource(): Promise<Resource>;
+
     protected get isDisposed(): boolean {
         return this.disposed;
     }
@@ -169,12 +171,13 @@ export class WebViewHost<IMapping> implements IDisposable {
         }
     }
 
-    protected generateDataScienceExtraSettings(): IDataScienceExtraSettings {
+    protected async generateDataScienceExtraSettings(): Promise<IDataScienceExtraSettings> {
+        const resource = await this.getOwningResource();
         const editor = this.workspaceService.getConfiguration('editor');
         const workbench = this.workspaceService.getConfiguration('workbench');
         const theme = !workbench ? DefaultTheme : workbench.get<string>('colorTheme', DefaultTheme);
         return {
-            ...this.configService.getSettings().datascience,
+            ...this.configService.getSettings(resource).datascience,
             extraSettings: {
                 editor: {
                     cursor: this.getValue(editor, 'cursorStyle', 'line'),
@@ -183,10 +186,13 @@ export class WebViewHost<IMapping> implements IDisposable {
                     autoClosingQuotes: this.getValue(editor, 'autoClosingQuotes', 'languageDefined'),
                     autoSurround: this.getValue(editor, 'autoSurround', 'languageDefined'),
                     autoIndent: this.getValue(editor, 'autoIndent', false),
-                    fontLigatures: this.getValue(editor, 'fontLigatures', false)
+                    fontLigatures: this.getValue(editor, 'fontLigatures', false),
+                    scrollBeyondLastLine: this.getValue(editor, 'scrollBeyondLastLine', true),
+                    // VS Code puts a value for this, but it's 10 (the explorer bar size) not 14 the editor size
+                    verticalScrollbarSize: this.getValue(editor, 'scrollbar.verticalScrollbarSize', 14),
+                    fontSize: this.getValue(editor, 'fontSize', 14),
+                    fontFamily: this.getValue(editor, 'fontFamily', "Consolas, 'Courier New', monospace")
                 },
-                fontSize: this.getValue(editor, 'fontSize', 14),
-                fontFamily: this.getValue(editor, 'fontFamily', "Consolas, 'Courier New', monospace"),
                 theme: theme
             },
             intellisenseOptions: {
@@ -229,9 +235,11 @@ export class WebViewHost<IMapping> implements IDisposable {
 
         // Create our web panel (it's the UI that shows up for the history)
         if (this.webPanel === undefined) {
+            const resource = await this.getOwningResource();
+
             // Get our settings to pass along to the react control
-            const settings = this.generateDataScienceExtraSettings();
-            const insiders = this.configService.getSettings().insidersChannel;
+            const settings = await this.generateDataScienceExtraSettings();
+            const insiders = this.configService.getSettings(resource).insidersChannel;
 
             traceInfo('Loading web view...');
 
@@ -285,13 +293,14 @@ export class WebViewHost<IMapping> implements IDisposable {
 
     @captureTelemetry(Telemetry.WebviewStyleUpdate)
     private async handleCssRequest(request: IGetCssRequest): Promise<void> {
-        const settings = this.generateDataScienceExtraSettings();
+        const settings = await this.generateDataScienceExtraSettings();
         const requestIsDark = settings.ignoreVscodeTheme ? false : request.isDark;
         this.setTheme(requestIsDark);
         const isDark = settings.ignoreVscodeTheme
             ? false
             : await this.themeFinder.isThemeDark(settings.extraSettings.theme);
-        const css = await this.cssGenerator.generateThemeCss(requestIsDark, settings.extraSettings.theme);
+        const resource = await this.getOwningResource();
+        const css = await this.cssGenerator.generateThemeCss(resource, requestIsDark, settings.extraSettings.theme);
         return this.postMessageInternal(CssMessages.GetCssResponse, {
             css,
             theme: settings.extraSettings.theme,
@@ -301,10 +310,11 @@ export class WebViewHost<IMapping> implements IDisposable {
 
     @captureTelemetry(Telemetry.WebviewMonacoStyleUpdate)
     private async handleMonacoThemeRequest(request: IGetMonacoThemeRequest): Promise<void> {
-        const settings = this.generateDataScienceExtraSettings();
+        const settings = await this.generateDataScienceExtraSettings();
         const isDark = settings.ignoreVscodeTheme ? false : request.isDark;
         this.setTheme(isDark);
-        const monacoTheme = await this.cssGenerator.generateMonacoTheme(isDark, settings.extraSettings.theme);
+        const resource = await this.getOwningResource();
+        const monacoTheme = await this.cssGenerator.generateMonacoTheme(resource, isDark, settings.extraSettings.theme);
         return this.postMessageInternal(CssMessages.GetMonacoThemeResponse, { theme: monacoTheme });
     }
 
@@ -322,7 +332,7 @@ export class WebViewHost<IMapping> implements IDisposable {
     }
 
     // Post a message to our webpanel and update our new datascience settings
-    private onPossibleSettingsChange = (event: ConfigurationChangeEvent) => {
+    private onPossibleSettingsChange = async (event: ConfigurationChangeEvent) => {
         if (
             event.affectsConfiguration('workbench.colorTheme') ||
             event.affectsConfiguration('editor.fontSize') ||
@@ -333,13 +343,15 @@ export class WebViewHost<IMapping> implements IDisposable {
             event.affectsConfiguration('editor.autoClosingQuotes') ||
             event.affectsConfiguration('editor.autoSurround') ||
             event.affectsConfiguration('editor.autoIndent') ||
+            event.affectsConfiguration('editor.scrollBeyondLastLine') ||
             event.affectsConfiguration('editor.fontLigatures') ||
+            event.affectsConfiguration('editor.scrollbar.verticalScrollbarSize') ||
             event.affectsConfiguration('files.autoSave') ||
             event.affectsConfiguration('files.autoSaveDelay') ||
             event.affectsConfiguration('python.dataScience.enableGather')
         ) {
             // See if the theme changed
-            const newSettings = this.generateDataScienceExtraSettings();
+            const newSettings = await this.generateDataScienceExtraSettings();
             if (newSettings) {
                 const dsSettings = JSON.stringify(newSettings);
                 this.postMessageInternal(SharedMessages.UpdateSettings, dsSettings).ignoreErrors();
@@ -348,9 +360,9 @@ export class WebViewHost<IMapping> implements IDisposable {
     };
 
     // Post a message to our webpanel and update our new datascience settings
-    private onDataScienceSettingsChanged = () => {
+    private onDataScienceSettingsChanged = async () => {
         // Stringify our settings to send over to the panel
-        const dsSettings = JSON.stringify(this.generateDataScienceExtraSettings());
+        const dsSettings = JSON.stringify(await this.generateDataScienceExtraSettings());
         this.postMessageInternal(SharedMessages.UpdateSettings, dsSettings).ignoreErrors();
     };
 }

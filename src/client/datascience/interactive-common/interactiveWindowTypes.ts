@@ -78,7 +78,7 @@ export enum InteractiveWindowMessages {
     LoadAllCells = 'load_all_cells',
     LoadAllCellsComplete = 'load_all_cells_complete',
     ScrollToCell = 'scroll_to_cell',
-    ReExecuteCell = 'reexecute_cell',
+    ReExecuteCells = 'reexecute_cells',
     NotebookIdentity = 'identity',
     NotebookDirty = 'dirty',
     NotebookClean = 'clean',
@@ -97,7 +97,8 @@ export enum InteractiveWindowMessages {
     UpdateKernel = 'update_kernel',
     SelectJupyterServer = 'select_jupyter_server',
     UpdateModel = 'update_model',
-    ReceivedUpdateModel = 'received_update_model'
+    ReceivedUpdateModel = 'received_update_model',
+    OpenSettings = 'open_settings'
 }
 
 export enum NativeCommandType {
@@ -179,6 +180,10 @@ export interface IRemoteReexecuteCode extends IExecuteInfo {
 export interface ISubmitNewCell {
     code: string;
     id: string;
+}
+
+export interface IReExecuteCells {
+    entries: { cell: ICell; code: string }[];
 }
 
 export interface IProvideCompletionItemsRequest {
@@ -445,6 +450,7 @@ export class IInteractiveWindowMapping {
     public [InteractiveWindowMessages.RestartKernel]: never | undefined;
     public [InteractiveWindowMessages.SelectKernel]: IServerState | undefined;
     public [InteractiveWindowMessages.SelectJupyterServer]: never | undefined;
+    public [InteractiveWindowMessages.OpenSettings]: string | undefined;
     public [InteractiveWindowMessages.Export]: ICell[];
     public [InteractiveWindowMessages.GetAllCells]: never | undefined;
     public [InteractiveWindowMessages.ReturnAllCells]: ICell[];
@@ -497,7 +503,7 @@ export class IInteractiveWindowMapping {
     public [InteractiveWindowMessages.LoadAllCells]: ILoadAllCells;
     public [InteractiveWindowMessages.LoadAllCellsComplete]: ILoadAllCells;
     public [InteractiveWindowMessages.ScrollToCell]: IScrollToCell;
-    public [InteractiveWindowMessages.ReExecuteCell]: ISubmitNewCell;
+    public [InteractiveWindowMessages.ReExecuteCells]: IReExecuteCells;
     public [InteractiveWindowMessages.NotebookIdentity]: INotebookIdentity;
     public [InteractiveWindowMessages.NotebookDirty]: never | undefined;
     public [InteractiveWindowMessages.NotebookClean]: never | undefined;

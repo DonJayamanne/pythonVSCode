@@ -338,10 +338,11 @@ export class UnitTestManagementService implements ITestManagementService, Dispos
         if (!selectedTestFn) {
             return;
         }
+        // tslint:disable-next-line:prefer-type-cast
         await this.runTestsImpl(
             cmdSource,
             testManager.workspaceFolder,
-            // tslint:disable-next-line:prefer-type-cast no-object-literal-type-assertion
+            // tslint:disable-next-line:no-object-literal-type-assertion
             { testFunction: [selectedTestFn.testFunction] } as TestsToRun,
             false,
             debug

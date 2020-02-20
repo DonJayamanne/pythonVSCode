@@ -33,6 +33,8 @@ import { initialize, initializeTest, IS_MULTI_ROOT_TEST } from '../../initialize
 import { UnitTestIocContainer } from '../serviceRegistry';
 import { ITestDetails, testScenarios } from './pytest_run_tests_data';
 
+// tslint:disable:max-func-body-length
+
 const UNITTEST_TEST_FILES_PATH = path.join(EXTENSION_ROOT_DIR, 'src', 'test', 'pythonFiles', 'testFiles', 'standard');
 const PYTEST_RESULTS_PATH = path.join(
     EXTENSION_ROOT_DIR,

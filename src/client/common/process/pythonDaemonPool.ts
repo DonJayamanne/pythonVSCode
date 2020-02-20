@@ -70,14 +70,16 @@ export class PythonDaemonExecutionServicePool implements IPythonDaemonExecutionS
     }
     public async initialize() {
         const promises = Promise.all(
-            // tslint:disable-next-line: prefer-array-literal
-            [...new Array(this.options.daemonCount ?? 2).keys()].map(() => this.addDaemonService('StandardDaemon'))
+            [
+                // tslint:disable-next-line: prefer-array-literal
+                ...new Array(this.options.daemonCount ?? 2).keys()
+            ].map(() => this.addDaemonService('StandardDaemon'))
         );
         const promises2 = Promise.all(
-            // tslint:disable-next-line: prefer-array-literal
-            [...new Array(this.options.observableDaemonCount ?? 1).keys()].map(() =>
-                this.addDaemonService('ObservableDaemon')
-            )
+            [
+                // tslint:disable-next-line: prefer-array-literal
+                ...new Array(this.options.observableDaemonCount ?? 1).keys()
+            ].map(() => this.addDaemonService('ObservableDaemon'))
         );
 
         await Promise.all([promises, promises2]);

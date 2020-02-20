@@ -19,6 +19,7 @@ export const reducerMap: Partial<IInteractiveActionMapping> = {
     [CommonActionType.INTERRUPT_KERNEL]: Kernel.interruptKernel,
     [InteractiveWindowMessages.SelectKernel]: Kernel.selectKernel,
     [CommonActionType.SELECT_SERVER]: Kernel.selectJupyterURI,
+    [CommonActionType.OPEN_SETTINGS]: CommonEffects.openSettings,
     [CommonActionType.EXPORT]: Transfer.exportCells,
     [CommonActionType.SAVE]: Transfer.save,
     [CommonActionType.SHOW_DATA_VIEWER]: Transfer.showDataViewer,
@@ -37,6 +38,7 @@ export const reducerMap: Partial<IInteractiveActionMapping> = {
     [CommonActionType.CLICK_CELL]: Effects.clickCell,
     [CommonActionType.UNFOCUS_CELL]: Effects.unfocusCell,
     [CommonActionType.UNMOUNT]: Creation.unmount,
+    [CommonActionType.FOCUS_INPUT]: CommonEffects.focusInput,
 
     // Messages from the webview (some are ignored)
     [InteractiveWindowMessages.Undo]: Execution.undo,

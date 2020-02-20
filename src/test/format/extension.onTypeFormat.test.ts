@@ -8,6 +8,8 @@ import * as vscode from 'vscode';
 import { BlockFormatProviders } from '../../client/typeFormatters/blockFormatProvider';
 import { closeActiveWindows, initialize, initializeTest } from '../initialize';
 
+// tslint:disable: max-func-body-length
+
 const srcPythoFilesPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'pythonFiles', 'typeFormatFiles');
 const outPythoFilesPath = path.join(__dirname, 'pythonFiles', 'typeFormatFiles');
 
@@ -432,7 +434,6 @@ suite('Try blocks with indentation of Tab', () => {
     });
 });
 
-// tslint:disable-next-line:max-func-body-length
 suite('Else blocks with indentation of 2 spaces', () => {
     suiteSetup(async () => {
         await initialize();
@@ -556,7 +557,6 @@ suite('Else blocks with indentation of 2 spaces', () => {
     });
 });
 
-// tslint:disable-next-line:max-func-body-length
 suite('Else blocks with indentation of 4 spaces', () => {
     suiteSetup(async () => {
         await initialize();
@@ -673,7 +673,6 @@ suite('Else blocks with indentation of 4 spaces', () => {
     });
 });
 
-// tslint:disable-next-line:max-func-body-length
 suite('Else blocks with indentation of Tab', () => {
     suiteSetup(async () => {
         await initialize();

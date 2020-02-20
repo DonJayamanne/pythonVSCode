@@ -292,6 +292,14 @@ export namespace DataScience {
         'DataScience.librariesRequiredToLaunchJupyterNotInstalled',
         'Data Science libraries {0} are not installed.'
     );
+    export const libraryRequiredToLaunchJupyterNotInstalledInterpreter = localize(
+        'DataScience.libraryRequiredToLaunchJupyterNotInstalledInterpreter',
+        'Data Science library {1} is not installed in interpreter {0}.'
+    );
+    export const librariesRequiredToLaunchJupyterNotInstalledInterpreter = localize(
+        'DataScience.librariesRequiredToLaunchJupyterNotInstalledInterpreter',
+        'Data Science libraries {1} are not installed in interpreter {0}.'
+    );
     export const selectJupyterInterpreter = localize(
         'DataScience.selectJupyterInterpreter',
         'Select an Interpreter to start Jupyter'
@@ -751,6 +759,37 @@ export namespace DataScience {
     export const gettingListOfKernelSpecs = localize('DataScience.gettingListOfKernelSpecs', 'Fetching Kernel specs');
     export const startingJupyterNotebook = localize('DataScience.startingJupyterNotebook', 'Starting Jupyter Notebook');
     export const registeringKernel = localize('DataScience.registeringKernel', 'Registering Kernel');
+    export const trimmedOutput = localize(
+        'DataScience.trimmedOutput',
+        'Output was trimmed for performance reasons.\nTo see the full output set the setting "python.dataScience.textOutputLimit" to 0.'
+    );
+    export const jupyterCommandLineDefaultLabel = localize('DataScience.jupyterCommandLineDefaultLabel', 'Default');
+    export const jupyterCommandLineDefaultDetail = localize(
+        'DataScience.jupyterCommandLineDefaultDetail',
+        'The Python extension will determine the appropriate command line for Jupyter'
+    );
+    export const jupyterCommandLineCustomLabel = localize('DataScience.jupyterCommandLineCustomLabel', 'Custom');
+    export const jupyterCommandLineCustomDetail = localize(
+        'DataScience.jupyterCommandLineCustomDetail',
+        'Customize the command line passed to Jupyter on startup'
+    );
+    export const jupyterCommandLineReloadQuestion = localize(
+        'DataScience.jupyterCommandLineReloadQuestion',
+        'Please reload the window when changing the Jupyter command line.'
+    );
+    export const jupyterCommandLineReloadAnswer = localize('DataScience.jupyterCommandLineReloadAnswer', 'Reload');
+    export const jupyterCommandLineQuickPickPlaceholder = localize(
+        'DataScience.jupyterCommandLineQuickPickPlaceholder',
+        'Choose an option'
+    );
+    export const jupyterCommandLineQuickPickTitle = localize(
+        'DataScience.jupyterCommandLineQuickPickTitle',
+        'Pick command line for Jupyter'
+    );
+    export const jupyterCommandLinePrompt = localize(
+        'DataScience.jupyterCommandLinePrompt',
+        'Enter your custom command line for Jupyter'
+    );
 }
 
 export namespace DebugConfigStrings {

@@ -17,6 +17,7 @@ const debounce = require('lodash/debounce') as typeof import('lodash/debounce');
 // tslint:disable-next-line:no-require-imports no-var-requires
 const throttle = require('lodash/throttle') as typeof import('lodash/throttle');
 
+import { noop } from '../../client/common/utils/misc';
 import { CursorPos } from '../interactive-common/mainState';
 import './monacoEditor.css';
 import { generateChangeEvent, IMonacoModelContentChangeEvent } from './monacoHelpers';
@@ -144,6 +145,14 @@ export class MonacoEditor extends React.Component<IMonacoEditorProps, IMonacoEdi
 
                 // Listen to model changes too.
                 this.subscriptions.push(model?.onDidChangeContent(this.onModelChanged));
+            }
+
+            // When testing, eliminate the _assertNotDisposed call. It can break tests if autocomplete
+            // is still open at the end of a test
+            // tslint:disable-next-line: no-any
+            if (isTestExecution() && model && (model as any)._assertNotDisposed) {
+                // tslint:disable-next-line: no-any
+                (model as any)._assertNotDisposed = noop;
             }
 
             // Register a link opener so when a user clicks on a link we can navigate to it.

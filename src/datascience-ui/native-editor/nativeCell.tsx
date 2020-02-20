@@ -675,6 +675,7 @@ export class NativeCell extends React.Component<INativeCellProps> {
                         expandImage={this.props.showPlot}
                         maxTextSize={this.props.maxTextSize}
                         themeMatplotlibPlots={themeMatplotlibPlots}
+                        openSettings={this.props.openSettings}
                     />
                 </div>
             );

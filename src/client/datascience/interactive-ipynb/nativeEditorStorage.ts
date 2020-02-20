@@ -11,7 +11,7 @@ import { IFileSystem } from '../../common/platform/types';
 import { GLOBAL_MEMENTO, ICryptoUtils, IExtensionContext, IMemento, WORKSPACE_MEMENTO } from '../../common/types';
 import { noop } from '../../common/utils/misc';
 import { PythonInterpreter } from '../../interpreter/contracts';
-import { Identifiers } from '../constants';
+import { Identifiers, KnownNotebookLanguages, Telemetry } from '../constants';
 import { IEditorContentChange, NotebookModelChange } from '../interactive-common/interactiveWindowTypes';
 import { InvalidNotebookFileError } from '../jupyter/invalidNotebookFileError';
 import { LiveKernelModel } from '../jupyter/kernels/types';
@@ -19,6 +19,7 @@ import { CellState, ICell, IJupyterExecution, IJupyterKernelSpec, INotebookModel
 
 // tslint:disable-next-line:no-require-imports no-var-requires
 import detectIndent = require('detect-indent');
+import { sendTelemetryEvent } from '../../telemetry';
 
 const KeyPrefix = 'notebook-storage-';
 const NotebookTransferKey = 'notebook-transfered';
@@ -105,6 +106,27 @@ export class NativeEditorStorage implements INotebookModel, INotebookStorage {
 
     public getContent(cells?: ICell[]): Promise<string> {
         return this.generateNotebookContent(cells ? cells : this.cells);
+    }
+
+    private sendLanguageTelemetry(notebookJson: Partial<nbformat.INotebookContent>) {
+        try {
+            // See if we have a language
+            let language = '';
+            if (notebookJson.metadata?.language_info?.name) {
+                language = notebookJson.metadata?.language_info?.name;
+            } else if (notebookJson.metadata?.kernelspec?.language) {
+                language = notebookJson.metadata?.kernelspec?.language.toString();
+            }
+            if (language && !KnownNotebookLanguages.includes(language.toLowerCase())) {
+                language = 'unknown';
+            }
+            if (language) {
+                sendTelemetryEvent(Telemetry.NotebookLanguage, undefined, { language });
+            }
+        } catch {
+            // If this fails, doesn't really matter
+            noop();
+        }
     }
 
     private handleModelChange(change: NotebookModelChange) {
@@ -378,6 +400,9 @@ export class NativeEditorStorage implements INotebookModel, INotebookStorage {
         // Then save the contents. We'll stick our cells back into this format when we save
         if (json) {
             this._state.notebookJson = json;
+
+            // Log language or kernel telemetry
+            this.sendLanguageTelemetry(this._state.notebookJson);
         }
 
         // Extract cells from the json

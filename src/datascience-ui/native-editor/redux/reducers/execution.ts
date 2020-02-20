@@ -38,6 +38,7 @@ export namespace Execution {
         originalArg: NativeEditorReducerArg<any>
     ): IMainState {
         const newVMs = [...prevState.cellVMs];
+        const cellsToExecute = [];
         for (let pos = start; pos <= end; pos += 1) {
             const orig = prevState.cellVMs[pos];
             const code = codes[pos - start];
@@ -55,12 +56,6 @@ export namespace Execution {
                         inputBlockText: code,
                         cell: { ...orig.cell, state: CellState.executing, data: clonedCell }
                     });
-
-                    // Send a message if a code cell
-                    postActionToExtension(originalArg, InteractiveWindowMessages.ReExecuteCell, {
-                        code,
-                        id: orig.cell.id
-                    });
                 } else {
                     // Update our input to be our new code
                     newVMs[pos] = Helpers.asCellViewModel({
@@ -69,7 +64,16 @@ export namespace Execution {
                         cell: { ...orig.cell, data: clonedCell }
                     });
                 }
+                cellsToExecute.push(clonedCell);
             }
+        }
+
+        // If any cells to execute, execute them all
+        if (cellsToExecute) {
+            // Send a message if a code cell
+            postActionToExtension(originalArg, InteractiveWindowMessages.ReExecuteCells, {
+                entries: cellsToExecute
+            });
         }
 
         return {

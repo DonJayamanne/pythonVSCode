@@ -846,6 +846,7 @@ suite('Module Installer only', () => {
                         options[0],
                         options[1]
                     )
+                    // tslint:disable-next-line:no-any
                 ).thenResolve('Select Linter' as any);
                 when(cmdManager.executeCommand(Commands.Set_Linter)).thenResolve(undefined);
 
@@ -866,7 +867,6 @@ suite('Module Installer only', () => {
                 const product = Product.pylint;
                 const options = ['Select Linter', 'Do not show again'];
                 const productName = ProductNames.get(product)!;
-                // tslint:disable-next-line:no-any
                 when(
                     appShell.showErrorMessage(
                         `Linter ${productName} is not installed.`,
@@ -874,6 +874,7 @@ suite('Module Installer only', () => {
                         options[0],
                         options[1]
                     )
+                    // tslint:disable-next-line:no-any
                 ).thenResolve('Install' as any);
                 when(cmdManager.executeCommand(Commands.Set_Linter)).thenResolve(undefined);
                 const install = sinon.stub(LinterInstaller.prototype, 'install');
@@ -931,7 +932,6 @@ suite('Module Installer only', () => {
 
             test('If nothing is selected, return Ignore as response', async () => {
                 const product = Product.autopep8;
-                // tslint:disable-next-line: no-any
                 when(
                     appShell.showErrorMessage(
                         `Formatter autopep8 is not installed. Install?`,
@@ -939,6 +939,7 @@ suite('Module Installer only', () => {
                         'Use black',
                         'Use yapf'
                     )
+                    // tslint:disable-next-line: no-any
                 ).thenReturn(undefined as any);
 
                 const response = await installer.promptToInstallImplementation(product, resource);
@@ -959,7 +960,6 @@ suite('Module Installer only', () => {
                 const install = sinon.stub(FormatterInstaller.prototype, 'install');
                 install.resolves(InstallerResponse.Installed);
 
-                // tslint:disable-next-line: no-any
                 when(
                     appShell.showErrorMessage(
                         `Formatter autopep8 is not installed. Install?`,
@@ -967,6 +967,7 @@ suite('Module Installer only', () => {
                         'Use black',
                         'Use yapf'
                     )
+                    // tslint:disable-next-line: no-any
                 ).thenReturn('Yes' as any);
                 const response = await installer.promptToInstallImplementation(product, resource);
 
@@ -987,7 +988,6 @@ suite('Module Installer only', () => {
                 const install = sinon.stub(FormatterInstaller.prototype, 'install');
                 install.resolves(InstallerResponse.Installed);
 
-                // tslint:disable-next-line: no-any
                 when(
                     appShell.showErrorMessage(
                         `Formatter autopep8 is not installed. Install?`,
@@ -995,6 +995,7 @@ suite('Module Installer only', () => {
                         'Use black',
                         'Use yapf'
                     )
+                    // tslint:disable-next-line: no-any
                 ).thenReturn('Use black' as any);
                 when(configService.updateSetting('formatting.provider', 'black', resource)).thenResolve();
 
@@ -1018,7 +1019,6 @@ suite('Module Installer only', () => {
                 const install = sinon.stub(FormatterInstaller.prototype, 'install');
                 install.resolves(InstallerResponse.Installed);
 
-                // tslint:disable-next-line: no-any
                 when(
                     appShell.showErrorMessage(
                         `Formatter autopep8 is not installed. Install?`,
@@ -1026,6 +1026,7 @@ suite('Module Installer only', () => {
                         'Use black',
                         'Use yapf'
                     )
+                    // tslint:disable-next-line: no-any
                 ).thenReturn('Use yapf' as any);
                 when(configService.updateSetting('formatting.provider', 'yapf', resource)).thenResolve();
 

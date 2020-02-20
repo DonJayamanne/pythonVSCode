@@ -4,6 +4,7 @@
 import { Identifiers } from '../../../../client/datascience/constants';
 import { InteractiveWindowMessages } from '../../../../client/datascience/interactive-common/interactiveWindowTypes';
 import { ICell, IDataScienceExtraSettings } from '../../../../client/datascience/types';
+import { removeLinesFromFrontAndBack } from '../../../common';
 import { createCellVM, extractInputText, ICellViewModel, IMainState } from '../../../interactive-common/mainState';
 import { postActionToExtension } from '../../../interactive-common/redux/helpers';
 import { Helpers } from '../../../interactive-common/redux/reducers/helpers';
@@ -17,6 +18,14 @@ export namespace Creation {
             return cell.data.cell_type !== 'messages';
         }
         return true;
+    }
+
+    function extractInputBlockText(cellVM: ICellViewModel, settings?: IDataScienceExtraSettings) {
+        // Use the base function first
+        const text = extractInputText(cellVM, settings);
+
+        // Then remove text on the front and back. We only do this for the interactive window
+        return removeLinesFromFrontAndBack(text);
     }
 
     export function alterCellVM(
@@ -44,22 +53,29 @@ export namespace Creation {
 
             // No elseif as we want newly visible cells to pick up the correct expand / collapse state
             if (cellVM.inputBlockOpen !== expanded && cellVM.inputBlockCollapseNeeded && cellVM.inputBlockShow) {
-                if (expanded) {
-                    // Expand the cell
-                    const newText = extractInputText(cellVM, settings);
+                let newText = extractInputBlockText(cellVM, settings);
 
-                    newCellVM.inputBlockOpen = true;
-                    newCellVM.inputBlockText = newText;
-                } else {
-                    // Collapse the cell
-                    let newText = extractInputText(cellVM, settings);
-                    if (newText.length > 0) {
-                        newText = newText.split('\n', 1)[0];
-                        newText = newText.slice(0, 255); // Slice to limit length, slicing past length is fine
-                        newText = newText.concat('...');
+                // While extracting the text, we might eliminate all extra lines
+                if (newText.includes('\n')) {
+                    if (expanded) {
+                        // Expand the cell
+                        newCellVM.inputBlockOpen = true;
+                        newCellVM.inputBlockText = newText;
+                    } else {
+                        // Collapse the cell
+                        if (newText.length > 0) {
+                            newText = newText.split('\n', 1)[0];
+                            newText = newText.slice(0, 255); // Slice to limit length, slicing past length is fine
+                            newText = newText.concat('...');
+                        }
+
+                        newCellVM.inputBlockOpen = false;
+                        newCellVM.inputBlockText = newText;
                     }
-
-                    newCellVM.inputBlockOpen = false;
+                } else {
+                    // If all lines eliminated, get rid of the collapse bar.
+                    newCellVM.inputBlockCollapseNeeded = false;
+                    newCellVM.inputBlockOpen = true;
                     newCellVM.inputBlockText = newText;
                 }
             }

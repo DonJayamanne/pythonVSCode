@@ -22,11 +22,15 @@ interface IMessageProducer {
 }
 
 class SimpleMessageProducer implements IMessageProducer {
-    private type: KernelMessage.IOPubMessageType;
+    private type: KernelMessage.IOPubMessageType | KernelMessage.ShellMessageType;
     private result: any;
     private channel: string = 'iopub';
 
-    constructor(type: KernelMessage.IOPubMessageType, result: any, channel: string = 'iopub') {
+    constructor(
+        type: KernelMessage.IOPubMessageType | KernelMessage.ShellMessageType,
+        result: any,
+        channel: string = 'iopub'
+    ) {
         this.type = type;
         this.result = result;
         this.channel = channel;
@@ -34,7 +38,10 @@ class SimpleMessageProducer implements IMessageProducer {
 
     public produceNextMessage(): Promise<IMessageResult> {
         return new Promise<IMessageResult>((resolve, _reject) => {
-            const message = this.generateMessage(this.type, this.result, this.channel);
+            const message =
+                this.channel === 'iopub'
+                    ? this.generateIOPubMessage(this.type as KernelMessage.IOPubMessageType, this.result)
+                    : this.generateShellMessage(this.type as KernelMessage.ShellMessageType, this.result);
             resolve({ message: message, haveMore: false });
         });
     }
@@ -43,13 +50,29 @@ class SimpleMessageProducer implements IMessageProducer {
         noop();
     }
 
-    protected generateMessage(
-        msgType: KernelMessage.IOPubMessageType,
-        result: any,
-        _channel: string = 'iopub'
-    ): KernelMessage.IIOPubMessage {
+    protected generateIOPubMessage(msgType: KernelMessage.IOPubMessageType, result: any): KernelMessage.IIOPubMessage {
         return {
             channel: 'iopub',
+            header: {
+                username: 'foo',
+                version: '1.1',
+                session: '1111111111',
+                msg_id: '1.1',
+                msg_type: msgType,
+                date: ''
+            },
+            parent_header: {},
+            metadata: {},
+            content: result
+        };
+    }
+
+    protected generateShellMessage(
+        msgType: KernelMessage.ShellMessageType,
+        result: any
+    ): KernelMessage.IShellControlMessage {
+        return {
+            channel: 'shell',
             header: {
                 username: 'foo',
                 version: '1.1',
@@ -126,7 +149,7 @@ class OutputMessageProducer extends SimpleMessageProducer {
             if (resultGenerator) {
                 const streamResult = await resultGenerator(this.cancelToken);
                 return {
-                    message: this.generateMessage(streamResult.result.output_type, streamResult.result),
+                    message: this.generateIOPubMessage(streamResult.result.output_type, streamResult.result),
                     haveMore: streamResult.haveMore
                 };
             }
@@ -302,7 +325,20 @@ export class MockJupyterRequest implements Kernel.IFuture<any, any> {
             }, delay);
         } else {
             this.currentProducer = undefined;
-            // No more messages, create a simple producer for our shell message
+            // No more messages, send the execute reply message
+            const replyProducer = new SimpleMessageProducer(
+                'execute_reply',
+                { execution_count: this.executionCount },
+                'shell'
+            );
+            replyProducer
+                .produceNextMessage()
+                .then(r => {
+                    this.onReply((<any>r.message) as KernelMessage.IShellMessage);
+                })
+                .ignoreErrors();
+
+            // Then the done message
             const shellProducer = new SimpleMessageProducer('done' as any, { status: 'success' }, 'shell');
             shellProducer
                 .produceNextMessage()

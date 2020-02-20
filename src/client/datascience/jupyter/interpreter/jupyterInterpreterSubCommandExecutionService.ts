@@ -15,7 +15,8 @@ import { DataScience } from '../../../common/utils/localize';
 import { noop } from '../../../common/utils/misc';
 import { EXTENSION_ROOT_DIR } from '../../../constants';
 import { IInterpreterService, PythonInterpreter } from '../../../interpreter/contracts';
-import { JUPYTER_OUTPUT_CHANNEL, PythonDaemonModule } from '../../constants';
+import { sendTelemetryEvent } from '../../../telemetry';
+import { JUPYTER_OUTPUT_CHANNEL, PythonDaemonModule, Telemetry } from '../../constants';
 import { IJupyterInterpreterDependencyManager, IJupyterSubCommandExecutionService } from '../../types';
 import { JupyterServerInfo } from '../jupyterConnection';
 import { JupyterInstallError } from '../jupyterInstallError';
@@ -91,10 +92,10 @@ export class JupyterInterpreterSubCommandExecutionService
         }
 
         if (productsNotInstalled.length === 1 && productsNotInstalled[0] === Product.kernelspec) {
-            return DataScience.jupyterKernelSpecModuleNotFound();
+            return DataScience.jupyterKernelSpecModuleNotFound().format(interpreter.path);
         }
 
-        return getMessageForLibrariesNotInstalled(productsNotInstalled);
+        return getMessageForLibrariesNotInstalled(productsNotInstalled, interpreter.displayName);
     }
     public async getSelectedInterpreter(token?: CancellationToken): Promise<PythonInterpreter | undefined> {
         return this.jupyterInterpreter.getSelectedInterpreter(token);
@@ -105,7 +106,10 @@ export class JupyterInterpreterSubCommandExecutionService
     ): Promise<ObservableExecutionResult<string>> {
         const interpreter = await this.getSelectedInterpreterAndThrowIfNotAvailable(options.token);
         this.jupyterOutputChannel.appendLine(
-            DataScience.startingJupyterLogMessage().format(this.pathUtils.getDisplayName(interpreter.path))
+            DataScience.startingJupyterLogMessage().format(
+                this.pathUtils.getDisplayName(interpreter.path),
+                notebookArgs.join(' ')
+            )
         );
         const executionService = await this.pythonExecutionFactory.createDaemon({
             daemonModule: PythonDaemonModule,
@@ -189,6 +193,7 @@ export class JupyterInterpreterSubCommandExecutionService
                 .execModule('jupyter', ['kernelspec', 'list', '--json'], spawnOptions)
                 .then(output => output.stdout)
                 .catch(daemonEx => {
+                    sendTelemetryEvent(Telemetry.KernelSpecNotFound);
                     traceError('Failed to list kernels from daemon', daemonEx);
                     return '';
                 });

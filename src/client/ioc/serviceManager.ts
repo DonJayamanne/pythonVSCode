@@ -24,7 +24,6 @@ export class ServiceManager implements IServiceManager {
             this.container.bind<T>(serviceIdentifier).to(constructor);
         }
     }
-    // tslint:disable-next-line:no-any
     public addFactory<T>(
         factoryIdentifier: interfaces.ServiceIdentifier<interfaces.Factory<T>>,
         factoryMethod: interfaces.FactoryCreator<T>
@@ -32,7 +31,6 @@ export class ServiceManager implements IServiceManager {
         this.container.bind<interfaces.Factory<T>>(factoryIdentifier).toFactory<T>(factoryMethod);
     }
 
-    // tslint:disable-next-line:no-any
     public addBinding<T1, T2>(from: identifier<T1>, to: identifier<T2>): void {
         this.container.bind(to).toService(from);
     }
@@ -56,7 +54,6 @@ export class ServiceManager implements IServiceManager {
                 .inSingletonScope();
         }
     }
-    // tslint:disable-next-line:no-any
     public addSingletonInstance<T>(
         serviceIdentifier: identifier<T>,
         instance: T,

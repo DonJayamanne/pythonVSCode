@@ -5,6 +5,10 @@ import * as tmp from 'tmp';
 import { ITempFileSystem, TemporaryFile } from './types';
 
 interface IRawTempFS {
+    // tslint:disable-next-line:no-suspicious-comment
+    // TODO (https://github.com/microsoft/vscode/issues/84517)
+    //   This functionality has been requested for the
+    //   VS Code FS API (vscode.workspace.fs.*).
     file(
         config: tmp.Options,
         // tslint:disable-next-line:no-any
@@ -14,13 +18,13 @@ interface IRawTempFS {
 
 // Operations related to temporary files and directories.
 export class TemporaryFileSystem implements ITempFileSystem {
-    // prettier-ignore
     constructor(
+        // (effectively) the third-party "tmp" module to use
         private readonly raw: IRawTempFS
-    ) { }
+    ) {}
     public static withDefaults(): TemporaryFileSystem {
-        // prettier-ignore
         return new TemporaryFileSystem(
+            // Use the actual "tmp" module.
             tmp
         );
     }

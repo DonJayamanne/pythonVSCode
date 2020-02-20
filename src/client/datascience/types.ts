@@ -22,7 +22,7 @@ import {
 import { ServerStatus } from '../../datascience-ui/interactive-common/mainState';
 import { ICommandManager } from '../common/application/types';
 import { ExecutionResult, ObservableExecutionResult, SpawnOptions } from '../common/process/types';
-import { IAsyncDisposable, IDataScienceSettings, IDisposable } from '../common/types';
+import { IAsyncDisposable, IDataScienceSettings, IDisposable, Resource } from '../common/types';
 import { StopWatch } from '../common/utils/stopWatch';
 import { PythonInterpreter } from '../interpreter/contracts';
 import { JupyterCommands } from './constants';
@@ -95,11 +95,12 @@ export const INotebookServer = Symbol('INotebookServer');
 export interface INotebookServer extends IAsyncDisposable {
     readonly id: string;
     createNotebook(
-        resource: Uri,
+        resource: Resource,
+        identity: Uri,
         notebookMetadata?: nbformat.INotebookMetadata,
         cancelToken?: CancellationToken
     ): Promise<INotebook>;
-    getNotebook(resource: Uri): Promise<INotebook | undefined>;
+    getNotebook(identity: Uri): Promise<INotebook | undefined>;
     connect(launchInfo: INotebookServerLaunchInfo, cancelToken?: CancellationToken): Promise<void>;
     getConnectionInfo(): IConnection | undefined;
     waitForConnect(): Promise<INotebookServerLaunchInfo | undefined>;
@@ -107,7 +108,8 @@ export interface INotebookServer extends IAsyncDisposable {
 }
 
 export interface INotebook extends IAsyncDisposable {
-    readonly resource: Uri;
+    readonly resource: Resource;
+    readonly identity: Uri;
     readonly server: INotebookServer;
     readonly status: ServerStatus;
     onSessionStatusChanged: Event<ServerStatus>;
@@ -304,7 +306,7 @@ export interface IInteractiveWindowProvider {
     onExecutedCode: Event<string>;
     getActive(): IInteractiveWindow | undefined;
     getOrCreateActive(): Promise<IInteractiveWindow>;
-    getNotebookOptions(): Promise<INotebookServerOptions>;
+    getNotebookOptions(resource: Resource): Promise<INotebookServerOptions>;
 }
 
 export const IDataScienceErrorHandler = Symbol('IDataScienceErrorHandler');
@@ -363,7 +365,7 @@ export interface INotebookEditorProvider {
     open(file: Uri): Promise<INotebookEditor>;
     show(file: Uri): Promise<INotebookEditor | undefined>;
     createNew(contents?: string): Promise<INotebookEditor>;
-    getNotebookOptions(): Promise<INotebookServerOptions>;
+    getNotebookOptions(resource: Resource): Promise<INotebookServerOptions>;
 }
 
 // For native editing, the INotebookEditor acts like a TextEditor and a TextDocument together
@@ -489,8 +491,8 @@ export interface IMessageCell extends nbformat.IBaseCell {
 
 export const ICodeCssGenerator = Symbol('ICodeCssGenerator');
 export interface ICodeCssGenerator {
-    generateThemeCss(isDark: boolean, theme: string): Promise<string>;
-    generateMonacoTheme(isDark: boolean, theme: string): Promise<JSONObject>;
+    generateThemeCss(resource: Resource, isDark: boolean, theme: string): Promise<string>;
+    generateMonacoTheme(resource: Resource, isDark: boolean, theme: string): Promise<JSONObject>;
 }
 
 export const IThemeFinder = Symbol('IThemeFinder');
@@ -557,9 +559,11 @@ export interface IDataScienceExtraSettings extends IDataScienceSettings {
             autoClosingQuotes: string;
             autoSurround: string;
             autoIndent: boolean;
+            scrollBeyondLastLine: boolean;
+            verticalScrollbarSize: number;
+            fontSize: number;
+            fontFamily: string;
         };
-        fontSize: number;
-        fontFamily: string;
         theme: string;
     };
     intellisenseOptions: {

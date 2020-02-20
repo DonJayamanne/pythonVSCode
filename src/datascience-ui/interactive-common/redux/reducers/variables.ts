@@ -132,28 +132,24 @@ function handleResponse(arg: VariableReducerArg<IJupyterVariablesResponse>): IVa
 }
 
 function handleRestarted(arg: VariableReducerArg): IVariableState {
-    // If the variables are visible, refresh them
-    if (arg.prevState.visible) {
-        const result = handleRequest({
-            ...arg,
-            payload: {
-                ...arg.payload,
-                data: {
-                    executionCount: 0,
-                    sortColumn: 'name',
-                    sortAscending: true,
-                    startIndex: 0,
-                    pageSize: arg.prevState.pageSize
-                }
+    const result = handleRequest({
+        ...arg,
+        payload: {
+            ...arg.payload,
+            data: {
+                executionCount: 0,
+                sortColumn: 'name',
+                sortAscending: true,
+                startIndex: 0,
+                pageSize: arg.prevState.pageSize
             }
-        });
-        return {
-            ...result,
-            currentExecutionCount: 0,
-            variables: []
-        };
-    }
-    return arg.prevState;
+        }
+    });
+    return {
+        ...result,
+        currentExecutionCount: 0,
+        variables: []
+    };
 }
 
 function handleFinishCell(arg: VariableReducerArg<ICell>): IVariableState {

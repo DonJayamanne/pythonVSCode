@@ -31,6 +31,8 @@ import { JupyterWaitForIdleError } from './jupyterWaitForIdleError';
 import { KernelSelector, KernelSpecInterpreter } from './kernels/kernelSelector';
 import { NotebookStarter } from './notebookStarter';
 
+const LocalHosts = ['localhost', '127.0.0.1', '::1'];
+
 export class JupyterExecutionBase implements IJupyterExecution {
     private usablePythonInterpreter: PythonInterpreter | undefined;
     private eventEmitter: EventEmitter<void> = new EventEmitter<void>();
@@ -142,6 +144,7 @@ export class JupyterExecutionBase implements IJupyterExecution {
                 traceInfo(`Getting kernel specs for ${options ? options.purpose : 'unknown type of'} server`);
                 kernelSpecInterpreterPromise = this.kernelSelector.getKernelForLocalConnection(
                     undefined,
+                    undefined,
                     options?.metadata,
                     !allowUI,
                     kernelSpecCancelSource.token
@@ -150,7 +153,7 @@ export class JupyterExecutionBase implements IJupyterExecution {
 
             // Try to connect to our jupyter process. Check our setting for the number of tries
             let tryCount = 0;
-            const maxTries = this.configuration.getSettings().datascience.jupyterLaunchRetries;
+            const maxTries = this.configuration.getSettings(undefined).datascience.jupyterLaunchRetries;
             const stopWatch = new StopWatch();
             while (tryCount < maxTries) {
                 try {
@@ -159,6 +162,10 @@ export class JupyterExecutionBase implements IJupyterExecution {
                         this.startOrConnect(options, cancelToken),
                         kernelSpecInterpreterPromise
                     ]);
+
+                    if (!connection.localLaunch && LocalHosts.includes(connection.hostName.toLowerCase())) {
+                        sendTelemetryEvent(Telemetry.ConnectRemoteJupyterViaLocalHost);
+                    }
                     // Create a server tha  t we will then attempt to connect to.
                     result = this.serviceContainer.get<INotebookServer>(INotebookServer);
 
@@ -169,6 +176,7 @@ export class JupyterExecutionBase implements IJupyterExecution {
                         );
                         const sessionManager = await sessionManagerFactory.create(connection);
                         kernelSpecInterpreter = await this.kernelSelector.getKernelForRemoteConnection(
+                            undefined,
                             sessionManager,
                             options?.metadata,
                             cancelToken
@@ -221,6 +229,8 @@ export class JupyterExecutionBase implements IJupyterExecution {
                                     >(IJupyterSessionManagerFactory);
                                     const sessionManager = await sessionManagerFactory.create(connection);
                                     const kernelInterpreter = await this.kernelSelector.selectLocalKernel(
+                                        undefined,
+                                        new StopWatch(),
                                         sessionManager,
                                         cancelToken,
                                         launchInfo.kernelSpec
@@ -327,7 +337,11 @@ export class JupyterExecutionBase implements IJupyterExecution {
         if (!options || !options.uri) {
             traceInfo(`Launching ${options ? options.purpose : 'unknown type of'} server`);
             const useDefaultConfig = options && options.useDefaultConfig ? true : false;
-            const connection = await this.startNotebookServer(useDefaultConfig, cancelToken);
+            const connection = await this.startNotebookServer(
+                useDefaultConfig,
+                this.configuration.getSettings(undefined).datascience.jupyterCommandLineArguments,
+                cancelToken
+            );
             if (connection) {
                 return connection;
             } else {
@@ -339,7 +353,7 @@ export class JupyterExecutionBase implements IJupyterExecution {
             }
         } else {
             // If we have a URI spec up a connection info for it
-            return createRemoteConnectionInfo(options.uri, this.configuration.getSettings().datascience);
+            return createRemoteConnectionInfo(options.uri, this.configuration.getSettings(undefined).datascience);
         }
     }
 
@@ -347,9 +361,10 @@ export class JupyterExecutionBase implements IJupyterExecution {
     @captureTelemetry(Telemetry.StartJupyter)
     private async startNotebookServer(
         useDefaultConfig: boolean,
+        customCommandLine: string[],
         cancelToken?: CancellationToken
     ): Promise<IConnection> {
-        return this.notebookStarter.start(useDefaultConfig, cancelToken);
+        return this.notebookStarter.start(useDefaultConfig, customCommandLine, cancelToken);
     }
     private onSettingsChanged() {
         // Clear our usableJupyterInterpreter so that we recompute our values

@@ -77,9 +77,9 @@ export class GatherListener implements IInteractiveWindowListener {
         }
     }
 
-    // tslint:disable:no-any
     private handleMessage<M extends IInteractiveWindowMapping, T extends keyof M>(
         _message: T,
+        // tslint:disable:no-any
         payload: any,
         handler: (args: M[T]) => void
     ) {
@@ -96,7 +96,7 @@ export class GatherListener implements IInteractiveWindowListener {
 
         // First get the active server
         const activeServer = await this.jupyterExecution.getServer(
-            await this.interactiveWindowProvider.getNotebookOptions()
+            await this.interactiveWindowProvider.getNotebookOptions(this.notebookUri)
         );
 
         let nb: INotebook | undefined;

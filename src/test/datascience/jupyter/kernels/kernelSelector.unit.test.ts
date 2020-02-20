@@ -10,10 +10,11 @@ import { ApplicationShell } from '../../../../client/common/application/applicat
 import { IApplicationShell } from '../../../../client/common/application/types';
 import { PYTHON_LANGUAGE } from '../../../../client/common/constants';
 import { ProductInstaller } from '../../../../client/common/installer/productInstaller';
-import { IInstaller, Product } from '../../../../client/common/types';
+import { IInstaller, Product, Resource } from '../../../../client/common/types';
 import * as localize from '../../../../client/common/utils/localize';
 import { noop } from '../../../../client/common/utils/misc';
 import { Architecture } from '../../../../client/common/utils/platform';
+import { StopWatch } from '../../../../client/common/utils/stopWatch';
 import { JupyterSessionManager } from '../../../../client/datascience/jupyter/jupyterSessionManager';
 import { KernelSelectionProvider } from '../../../../client/datascience/jupyter/kernels/kernelSelections';
 import { KernelSelector } from '../../../../client/datascience/jupyter/kernels/kernelSelector';
@@ -23,7 +24,8 @@ import { IJupyterKernelSpec, IJupyterSessionManager } from '../../../../client/d
 import { IInterpreterService, InterpreterType, PythonInterpreter } from '../../../../client/interpreter/contracts';
 import { InterpreterService } from '../../../../client/interpreter/interpreterService';
 
-// tslint:disable: max-func-body-length no-any
+// tslint:disable: max-func-body-length
+
 suite('Data Science - KernelSelector', () => {
     let kernelSelectionProvider: KernelSelectionProvider;
     let kernelService: KernelService;
@@ -68,48 +70,80 @@ suite('Data Science - KernelSelector', () => {
     suite('Select Remote Kernel', () => {
         test('Should display quick pick and return nothing when nothing is selected (remote sessions)', async () => {
             when(
-                kernelSelectionProvider.getKernelSelectionsForRemoteSession(instance(sessionManager), anything())
+                kernelSelectionProvider.getKernelSelectionsForRemoteSession(
+                    anything(),
+                    instance(sessionManager),
+                    anything()
+                )
             ).thenResolve([]);
             when(appShell.showQuickPick(anything(), anything(), anything())).thenResolve();
 
-            const kernel = await kernelSelector.selectRemoteKernel(instance(sessionManager));
+            const kernel = await kernelSelector.selectRemoteKernel(
+                undefined,
+                new StopWatch(),
+                instance(sessionManager)
+            );
 
             assert.isEmpty(kernel);
             verify(
-                kernelSelectionProvider.getKernelSelectionsForRemoteSession(instance(sessionManager), anything())
+                kernelSelectionProvider.getKernelSelectionsForRemoteSession(
+                    anything(),
+                    instance(sessionManager),
+                    anything()
+                )
             ).once();
             verify(appShell.showQuickPick(anything(), anything(), anything())).once();
         });
         test('Should display quick pick and return nothing when nothing is selected (local sessions)', async () => {
             when(
-                kernelSelectionProvider.getKernelSelectionsForLocalSession(instance(sessionManager), anything())
+                kernelSelectionProvider.getKernelSelectionsForLocalSession(
+                    anything(),
+                    instance(sessionManager),
+                    anything()
+                )
             ).thenResolve([]);
             when(appShell.showQuickPick(anything(), anything(), anything())).thenResolve();
 
-            const kernel = await kernelSelector.selectLocalKernel(instance(sessionManager));
+            const kernel = await kernelSelector.selectLocalKernel(undefined, new StopWatch(), instance(sessionManager));
 
             assert.isEmpty(kernel);
             verify(
-                kernelSelectionProvider.getKernelSelectionsForLocalSession(instance(sessionManager), anything())
+                kernelSelectionProvider.getKernelSelectionsForLocalSession(
+                    anything(),
+                    instance(sessionManager),
+                    anything()
+                )
             ).once();
             verify(appShell.showQuickPick(anything(), anything(), anything())).once();
         });
         test('Should return the selected remote kernelspec along with a matching interpreter', async () => {
             when(
-                kernelSelectionProvider.getKernelSelectionsForRemoteSession(instance(sessionManager), anything())
+                kernelSelectionProvider.getKernelSelectionsForRemoteSession(
+                    anything(),
+                    instance(sessionManager),
+                    anything()
+                )
             ).thenResolve([]);
             when(kernelService.findMatchingInterpreter(kernelSpec, anything())).thenResolve(interpreter);
-            // tslint:disable-next-line: no-any
             when(appShell.showQuickPick(anything(), anything(), anything())).thenResolve({
                 selection: { kernelSpec }
+                // tslint:disable-next-line: no-any
             } as any);
 
-            const kernel = await kernelSelector.selectRemoteKernel(instance(sessionManager));
+            const kernel = await kernelSelector.selectRemoteKernel(
+                undefined,
+                new StopWatch(),
+                instance(sessionManager)
+            );
 
             assert.isOk(kernel.kernelSpec === kernelSpec);
             assert.isOk(kernel.interpreter === interpreter);
             verify(
-                kernelSelectionProvider.getKernelSelectionsForRemoteSession(instance(sessionManager), anything())
+                kernelSelectionProvider.getKernelSelectionsForRemoteSession(
+                    anything(),
+                    instance(sessionManager),
+                    anything()
+                )
             ).once();
             verify(appShell.showQuickPick(anything(), anything(), anything())).once();
             verify(kernelService.findMatchingInterpreter(kernelSpec, anything())).once();
@@ -118,40 +152,40 @@ suite('Data Science - KernelSelector', () => {
     suite('Hide kernels from Remote & Local Kernel', () => {
         test('Should hide kernel from remote sessions', async () => {
             const kernelModels: LiveKernelModel[] = [
-                // tslint:disable-next-line: no-any
                 {
                     lastActivityTime: new Date(),
                     name: '1one',
                     numberOfConnections: 1,
                     id: 'id1',
                     display_name: '1',
+                    // tslint:disable-next-line: no-any
                     session: {} as any
                 },
-                // tslint:disable-next-line: no-any
                 {
                     lastActivityTime: new Date(),
                     name: '2two',
                     numberOfConnections: 1,
                     id: 'id2',
                     display_name: '2',
+                    // tslint:disable-next-line: no-any
                     session: {} as any
                 },
-                // tslint:disable-next-line: no-any
                 {
                     lastActivityTime: new Date(),
                     name: '3three',
                     numberOfConnections: 1,
                     id: 'id3',
                     display_name: '3',
+                    // tslint:disable-next-line: no-any
                     session: {} as any
                 },
-                // tslint:disable-next-line: no-any
                 {
                     lastActivityTime: new Date(),
                     name: '4four',
                     numberOfConnections: 1,
                     id: 'id4',
                     display_name: '4',
+                    // tslint:disable-next-line: no-any
                     session: {} as any
                 }
             ];
@@ -163,7 +197,11 @@ suite('Data Science - KernelSelector', () => {
             });
 
             when(
-                kernelSelectionProvider.getKernelSelectionsForRemoteSession(instance(sessionManager), anything())
+                kernelSelectionProvider.getKernelSelectionsForRemoteSession(
+                    anything(),
+                    instance(sessionManager),
+                    anything()
+                )
             ).thenResolve(quickPickItems);
             when(appShell.showQuickPick(anything(), anything(), anything())).thenResolve(undefined);
 
@@ -171,11 +209,19 @@ suite('Data Science - KernelSelector', () => {
             kernelSelector.addKernelToIgnoreList({ id: 'id2' } as any);
             // tslint:disable-next-line: no-any
             kernelSelector.addKernelToIgnoreList({ clientId: 'id4' } as any);
-            const kernel = await kernelSelector.selectRemoteKernel(instance(sessionManager));
+            const kernel = await kernelSelector.selectRemoteKernel(
+                undefined,
+                new StopWatch(),
+                instance(sessionManager)
+            );
 
             assert.isEmpty(kernel);
             verify(
-                kernelSelectionProvider.getKernelSelectionsForRemoteSession(instance(sessionManager), anything())
+                kernelSelectionProvider.getKernelSelectionsForRemoteSession(
+                    anything(),
+                    instance(sessionManager),
+                    anything()
+                )
             ).once();
             verify(appShell.showQuickPick(anything(), anything(), anything())).once();
             const suggestions = capture(appShell.showQuickPick).first()[0] as IKernelSpecQuickPickItem[];
@@ -186,40 +232,40 @@ suite('Data Science - KernelSelector', () => {
         });
         test('Should hide kernel from local sessions', async () => {
             const kernelModels: LiveKernelModel[] = [
-                // tslint:disable-next-line: no-any
                 {
                     lastActivityTime: new Date(),
                     name: '1one',
                     numberOfConnections: 1,
                     id: 'id1',
                     display_name: '1',
+                    // tslint:disable-next-line: no-any
                     session: {} as any
                 },
-                // tslint:disable-next-line: no-any
                 {
                     lastActivityTime: new Date(),
                     name: '2two',
                     numberOfConnections: 1,
                     id: 'id2',
                     display_name: '2',
+                    // tslint:disable-next-line: no-any
                     session: {} as any
                 },
-                // tslint:disable-next-line: no-any
                 {
                     lastActivityTime: new Date(),
                     name: '3three',
                     numberOfConnections: 1,
                     id: 'id3',
                     display_name: '3',
+                    // tslint:disable-next-line: no-any
                     session: {} as any
                 },
-                // tslint:disable-next-line: no-any
                 {
                     lastActivityTime: new Date(),
                     name: '4four',
                     numberOfConnections: 1,
                     id: 'id4',
                     display_name: '4',
+                    // tslint:disable-next-line: no-any
                     session: {} as any
                 }
             ];
@@ -231,7 +277,11 @@ suite('Data Science - KernelSelector', () => {
             });
 
             when(
-                kernelSelectionProvider.getKernelSelectionsForLocalSession(instance(sessionManager), anything())
+                kernelSelectionProvider.getKernelSelectionsForLocalSession(
+                    anything(),
+                    instance(sessionManager),
+                    anything()
+                )
             ).thenResolve(quickPickItems);
             when(appShell.showQuickPick(anything(), anything(), anything())).thenResolve(undefined);
 
@@ -239,11 +289,15 @@ suite('Data Science - KernelSelector', () => {
             kernelSelector.addKernelToIgnoreList({ id: 'id2' } as any);
             // tslint:disable-next-line: no-any
             kernelSelector.addKernelToIgnoreList({ clientId: 'id4' } as any);
-            const kernel = await kernelSelector.selectLocalKernel(instance(sessionManager));
+            const kernel = await kernelSelector.selectLocalKernel(undefined, new StopWatch(), instance(sessionManager));
 
             assert.isEmpty(kernel);
             verify(
-                kernelSelectionProvider.getKernelSelectionsForLocalSession(instance(sessionManager), anything())
+                kernelSelectionProvider.getKernelSelectionsForLocalSession(
+                    anything(),
+                    instance(sessionManager),
+                    anything()
+                )
             ).once();
             verify(appShell.showQuickPick(anything(), anything(), anything())).once();
             const suggestions = capture(appShell.showQuickPick).first()[0] as IKernelSpecQuickPickItem[];
@@ -256,20 +310,28 @@ suite('Data Science - KernelSelector', () => {
     suite('Select Local Kernel', () => {
         test('Should return the selected local kernelspec along with a matching interpreter', async () => {
             when(
-                kernelSelectionProvider.getKernelSelectionsForLocalSession(instance(sessionManager), anything())
+                kernelSelectionProvider.getKernelSelectionsForLocalSession(
+                    anything(),
+                    instance(sessionManager),
+                    anything()
+                )
             ).thenResolve([]);
             when(kernelService.findMatchingInterpreter(kernelSpec, anything())).thenResolve(interpreter);
-            // tslint:disable-next-line: no-any
             when(appShell.showQuickPick(anything(), anything(), anything())).thenResolve({
                 selection: { kernelSpec }
+                // tslint:disable-next-line: no-any
             } as any);
 
-            const kernel = await kernelSelector.selectLocalKernel(instance(sessionManager));
+            const kernel = await kernelSelector.selectLocalKernel(undefined, new StopWatch(), instance(sessionManager));
 
             assert.isOk(kernel.kernelSpec === kernelSpec);
             assert.isOk(kernel.interpreter === interpreter);
             verify(
-                kernelSelectionProvider.getKernelSelectionsForLocalSession(instance(sessionManager), anything())
+                kernelSelectionProvider.getKernelSelectionsForLocalSession(
+                    anything(),
+                    instance(sessionManager),
+                    anything()
+                )
             ).once();
             verify(appShell.showQuickPick(anything(), anything(), anything())).once();
             verify(kernelService.findMatchingInterpreter(kernelSpec, anything())).once();
@@ -280,23 +342,31 @@ suite('Data Science - KernelSelector', () => {
                 kernelSpec
             );
             when(
-                kernelSelectionProvider.getKernelSelectionsForLocalSession(instance(sessionManager), anything())
+                kernelSelectionProvider.getKernelSelectionsForLocalSession(
+                    anything(),
+                    instance(sessionManager),
+                    anything()
+                )
             ).thenResolve([]);
             when(
                 appShell.showInformationMessage(localize.DataScience.fallbackToUseActiveInterpeterAsKernel())
             ).thenResolve();
-            // tslint:disable-next-line: no-any
             when(appShell.showQuickPick(anything(), anything(), anything())).thenResolve({
                 selection: { interpreter, kernelSpec }
+                // tslint:disable-next-line: no-any
             } as any);
 
-            const kernel = await kernelSelector.selectLocalKernel(instance(sessionManager));
+            const kernel = await kernelSelector.selectLocalKernel(undefined, new StopWatch(), instance(sessionManager));
 
             assert.isOk(kernel.kernelSpec === kernelSpec);
             verify(installer.isInstalled(Product.ipykernel, interpreter)).once();
             verify(kernelService.findMatchingKernelSpec(interpreter, instance(sessionManager), anything())).once();
             verify(
-                kernelSelectionProvider.getKernelSelectionsForLocalSession(instance(sessionManager), anything())
+                kernelSelectionProvider.getKernelSelectionsForLocalSession(
+                    anything(),
+                    instance(sessionManager),
+                    anything()
+                )
             ).once();
             verify(appShell.showQuickPick(anything(), anything(), anything())).once();
             verify(kernelService.registerKernel(anything(), anything())).never();
@@ -312,24 +382,32 @@ suite('Data Science - KernelSelector', () => {
             when(kernelService.findMatchingKernelSpec(interpreter, instance(sessionManager), anything())).thenResolve();
             when(kernelService.registerKernel(interpreter, anything(), anything())).thenResolve(kernelSpec);
             when(
-                kernelSelectionProvider.getKernelSelectionsForLocalSession(instance(sessionManager), anything())
+                kernelSelectionProvider.getKernelSelectionsForLocalSession(
+                    anything(),
+                    instance(sessionManager),
+                    anything()
+                )
             ).thenResolve([]);
             when(
                 appShell.showInformationMessage(localize.DataScience.fallBackToRegisterAndUseActiveInterpeterAsKernel())
             ).thenResolve();
-            // tslint:disable-next-line: no-any
             when(appShell.showQuickPick(anything(), anything(), anything())).thenResolve({
                 selection: { interpreter, kernelSpec }
+                // tslint:disable-next-line: no-any
             } as any);
 
-            const kernel = await kernelSelector.selectLocalKernel(instance(sessionManager));
+            const kernel = await kernelSelector.selectLocalKernel(undefined, new StopWatch(), instance(sessionManager));
 
             assert.isOk(kernel.kernelSpec === kernelSpec);
             assert.isOk(kernel.interpreter === interpreter);
             verify(installer.isInstalled(Product.ipykernel, interpreter)).once();
             verify(kernelService.findMatchingKernelSpec(interpreter, instance(sessionManager), anything())).once();
             verify(
-                kernelSelectionProvider.getKernelSelectionsForLocalSession(instance(sessionManager), anything())
+                kernelSelectionProvider.getKernelSelectionsForLocalSession(
+                    anything(),
+                    instance(sessionManager),
+                    anything()
+                )
             ).twice(); // Once for caching.
             verify(appShell.showQuickPick(anything(), anything(), anything())).once();
             verify(
@@ -343,22 +421,30 @@ suite('Data Science - KernelSelector', () => {
             when(installer.isInstalled(Product.ipykernel, interpreter)).thenResolve(false);
             when(kernelService.registerKernel(interpreter, anything(), anything())).thenResolve(kernelSpec);
             when(
-                kernelSelectionProvider.getKernelSelectionsForLocalSession(instance(sessionManager), anything())
+                kernelSelectionProvider.getKernelSelectionsForLocalSession(
+                    anything(),
+                    instance(sessionManager),
+                    anything()
+                )
             ).thenResolve([]);
             when(
                 appShell.showInformationMessage(localize.DataScience.fallBackToRegisterAndUseActiveInterpeterAsKernel())
             ).thenResolve();
-            // tslint:disable-next-line: no-any
             when(appShell.showQuickPick(anything(), anything(), anything())).thenResolve({
                 selection: { interpreter, kernelSpec }
+                // tslint:disable-next-line: no-any
             } as any);
 
-            const kernel = await kernelSelector.selectLocalKernel(instance(sessionManager));
+            const kernel = await kernelSelector.selectLocalKernel(undefined, new StopWatch(), instance(sessionManager));
 
             assert.isOk(kernel.kernelSpec === kernelSpec);
             verify(installer.isInstalled(Product.ipykernel, interpreter)).once();
             verify(
-                kernelSelectionProvider.getKernelSelectionsForLocalSession(instance(sessionManager), anything())
+                kernelSelectionProvider.getKernelSelectionsForLocalSession(
+                    anything(),
+                    instance(sessionManager),
+                    anything()
+                )
             ).twice(); // once for caching.
             verify(appShell.showQuickPick(anything(), anything(), anything())).once();
             verify(kernelService.findMatchingKernelSpec(interpreter, instance(sessionManager), anything())).never();
@@ -380,6 +466,8 @@ suite('Data Science - KernelSelector', () => {
         let nbMetadata: nbformat.INotebookMetadata = {} as any;
         let selectLocalKernelStub: sinon.SinonStub<
             [
+                Resource,
+                StopWatch,
                 (IJupyterSessionManager | undefined)?,
                 (CancellationToken | undefined)?,
                 (IJupyterKernelSpec | LiveKernelModel)?
@@ -407,9 +495,15 @@ suite('Data Science - KernelSelector', () => {
                 kernelService.findMatchingKernelSpec(nbMetadataKernelSpec, instance(sessionManager), anything())
             ).thenResolve(kernelSpec);
             when(kernelService.findMatchingInterpreter(kernelSpec, anything())).thenResolve(interpreter);
-            when(kernelSelectionProvider.getKernelSelectionsForLocalSession(anything(), anything())).thenResolve();
+            when(
+                kernelSelectionProvider.getKernelSelectionsForLocalSession(anything(), anything(), anything())
+            ).thenResolve();
 
-            const kernel = await kernelSelector.getKernelForLocalConnection(instance(sessionManager), nbMetadata);
+            const kernel = await kernelSelector.getKernelForLocalConnection(
+                anything(),
+                instance(sessionManager),
+                nbMetadata
+            );
 
             assert.isOk(kernel.kernelSpec === kernelSpec);
             assert.isOk(kernel.interpreter === interpreter);
@@ -426,9 +520,15 @@ suite('Data Science - KernelSelector', () => {
                 kernelService.findMatchingKernelSpec(nbMetadataKernelSpec, instance(sessionManager), anything())
             ).thenResolve(kernelSpec);
             when(kernelService.findMatchingInterpreter(kernelSpec, anything())).thenResolve();
-            when(kernelSelectionProvider.getKernelSelectionsForLocalSession(anything(), anything())).thenResolve();
+            when(
+                kernelSelectionProvider.getKernelSelectionsForLocalSession(anything(), anything(), anything())
+            ).thenResolve();
 
-            const kernel = await kernelSelector.getKernelForLocalConnection(instance(sessionManager), nbMetadata);
+            const kernel = await kernelSelector.getKernelForLocalConnection(
+                undefined,
+                instance(sessionManager),
+                nbMetadata
+            );
 
             assert.isOk(kernel.kernelSpec === kernelSpec);
             assert.isUndefined(kernel.interpreter);
@@ -457,9 +557,15 @@ suite('Data Science - KernelSelector', () => {
                     )
                 )
             ).thenResolve();
-            when(kernelSelectionProvider.getKernelSelectionsForLocalSession(anything(), anything())).thenResolve();
+            when(
+                kernelSelectionProvider.getKernelSelectionsForLocalSession(anything(), anything(), anything())
+            ).thenResolve();
 
-            const kernel = await kernelSelector.getKernelForLocalConnection(instance(sessionManager), nbMetadata);
+            const kernel = await kernelSelector.getKernelForLocalConnection(
+                undefined,
+                instance(sessionManager),
+                nbMetadata
+            );
 
             assert.isOk(kernel.kernelSpec === kernelSpec);
             assert.isOk(kernel.interpreter === interpreter);
@@ -490,9 +596,15 @@ suite('Data Science - KernelSelector', () => {
             ).thenResolve(undefined);
             when(interpreterService.getActiveInterpreter(undefined)).thenResolve(interpreter);
             when(kernelService.searchAndRegisterKernel(interpreter, anything(), anything())).thenResolve(kernelSpec);
-            when(kernelSelectionProvider.getKernelSelectionsForLocalSession(anything(), anything())).thenResolve();
+            when(
+                kernelSelectionProvider.getKernelSelectionsForLocalSession(anything(), anything(), anything())
+            ).thenResolve();
 
-            const kernel = await kernelSelector.getKernelForLocalConnection(instance(sessionManager), undefined);
+            const kernel = await kernelSelector.getKernelForLocalConnection(
+                undefined,
+                instance(sessionManager),
+                undefined
+            );
 
             assert.isOk(kernel.kernelSpec === kernelSpec);
             assert.isOk(kernel.interpreter === interpreter);
@@ -529,9 +641,15 @@ suite('Data Science - KernelSelector', () => {
             ]);
             when(interpreterService.getActiveInterpreter(undefined)).thenResolve(interpreter);
             when(kernelService.searchAndRegisterKernel(interpreter, anything(), anything())).thenResolve(kernelSpec);
-            when(kernelSelectionProvider.getKernelSelectionsForLocalSession(anything(), anything())).thenResolve();
+            when(
+                kernelSelectionProvider.getKernelSelectionsForLocalSession(anything(), anything(), anything())
+            ).thenResolve();
 
-            const kernel = await kernelSelector.getKernelForRemoteConnection(instance(sessionManager), undefined);
+            const kernel = await kernelSelector.getKernelForRemoteConnection(
+                undefined,
+                instance(sessionManager),
+                undefined
+            );
 
             assert.ok(kernel.kernelSpec, 'No kernel spec found for remote');
             assert.equal(kernel.kernelSpec?.display_name, 'foo', 'Did not find the python kernel spec');
@@ -576,9 +694,11 @@ suite('Data Science - KernelSelector', () => {
             ]);
             when(interpreterService.getActiveInterpreter(undefined)).thenResolve(interpreter);
             when(kernelService.searchAndRegisterKernel(interpreter, anything())).thenResolve(kernelSpec);
-            when(kernelSelectionProvider.getKernelSelectionsForLocalSession(anything(), anything())).thenResolve();
+            when(
+                kernelSelectionProvider.getKernelSelectionsForLocalSession(anything(), anything(), anything())
+            ).thenResolve();
 
-            const kernel = await kernelSelector.getKernelForRemoteConnection(instance(sessionManager), {
+            const kernel = await kernelSelector.getKernelForRemoteConnection(undefined, instance(sessionManager), {
                 orig_nbformat: 4,
                 kernelspec: { display_name: 'foo', name: 'foo' }
             });
@@ -626,9 +746,11 @@ suite('Data Science - KernelSelector', () => {
             ]);
             when(interpreterService.getActiveInterpreter(undefined)).thenResolve(interpreter);
             when(kernelService.searchAndRegisterKernel(interpreter, anything())).thenResolve(kernelSpec);
-            when(kernelSelectionProvider.getKernelSelectionsForLocalSession(anything(), anything())).thenResolve();
+            when(
+                kernelSelectionProvider.getKernelSelectionsForLocalSession(anything(), anything(), anything())
+            ).thenResolve();
 
-            const kernel = await kernelSelector.getKernelForRemoteConnection(instance(sessionManager), {
+            const kernel = await kernelSelector.getKernelForRemoteConnection(undefined, instance(sessionManager), {
                 orig_nbformat: 4,
                 kernelspec: { display_name: 'foo', name: 'foo' }
             });

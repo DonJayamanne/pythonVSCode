@@ -40,7 +40,8 @@ import { createDeferred, createDeferredFromPromise } from '../../client/common/u
 import { sleep } from '../common';
 import { noop } from '../core';
 
-// tslint:disable-next-line: max-func-body-length
+// tslint:disable: max-func-body-length
+
 suite('A/B experiments', () => {
     let workspaceService: IWorkspaceService;
     let httpClient: IHttpClient;
@@ -571,10 +572,8 @@ suite('A/B experiments', () => {
         downloadedExperimentsStorage.verifyAll();
     });
 
-    // tslint:disable-next-line:max-func-body-length
     suite(
         'When latest experiments are not available, and experiment storage is empty, then function updateExperimentStorage() stops execution and returns',
-        // tslint:disable-next-line: max-func-body-length
         () => {
             setup(() => {
                 const doBestEffortToPopulateExperiments = sinon.stub(

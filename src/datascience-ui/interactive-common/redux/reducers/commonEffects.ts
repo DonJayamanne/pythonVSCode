@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 'use strict';
 import { Identifiers } from '../../../../client/datascience/constants';
+import { InteractiveWindowMessages } from '../../../../client/datascience/interactive-common/interactiveWindowTypes';
 import { IGetCssResponse } from '../../../../client/datascience/messages';
 import { IGetMonacoThemeResponse } from '../../../../client/datascience/monacoMessages';
 import { IMainState } from '../../../interactive-common/mainState';
@@ -39,10 +40,11 @@ export namespace CommonEffects {
     }
 
     export function activate(arg: CommonReducerArg): IMainState {
-        return {
-            ...arg.prevState,
-            activateCount: arg.prevState.activateCount + 1
-        };
+        return focusPending(arg.prevState);
+    }
+
+    export function focusInput(arg: CommonReducerArg): IMainState {
+        return focusPending(arg.prevState);
     }
 
     export function handleLocInit(arg: CommonReducerArg<CommonActionType, string>): IMainState {
@@ -111,5 +113,19 @@ export namespace CommonEffects {
             ...arg.prevState,
             monacoTheme: Identifiers.GeneratedThemeName
         };
+    }
+
+    function focusPending(prevState: IMainState): IMainState {
+        return {
+            ...prevState,
+            // This is only applicable for interactive window & not native editor.
+            focusPending: prevState.focusPending + 1
+        };
+    }
+
+    export function openSettings(arg: CommonReducerArg): IMainState {
+        arg.queueAction(createPostableAction(InteractiveWindowMessages.OpenSettings));
+
+        return arg.prevState;
     }
 }

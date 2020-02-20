@@ -63,7 +63,8 @@ import { IServiceManager } from '../../client/ioc/types';
 import { LanguageServerSurveyBanner } from '../../client/languageServices/languageServerSurveyBanner';
 import { ProposeLanguageServerBanner } from '../../client/languageServices/proposeLanguageServerBanner';
 
-// tslint:disable-next-line: max-func-body-length
+// tslint:disable:max-func-body-length
+
 suite('Unit Tests - Language Server Activation Service Registry', () => {
     let serviceManager: IServiceManager;
 

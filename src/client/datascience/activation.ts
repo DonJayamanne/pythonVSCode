@@ -28,7 +28,9 @@ export class Activation implements IExtensionSingleActivationService {
     public async activate(): Promise<void> {
         this.disposables.push(this.notebookProvider.onDidOpenNotebookEditor(this.onDidOpenNotebookEditor, this));
         this.disposables.push(this.jupyterInterpreterService.onDidChangeInterpreter(this.onDidChangeInterpreter, this));
-        await this.contextService.activate();
+        // Warm up our selected interpreter for the extension
+        this.jupyterInterpreterService.setInitialInterpreter().ignoreErrors();
+        this.contextService.activate().ignoreErrors();
     }
 
     private onDidOpenNotebookEditor(_: INotebookEditor) {

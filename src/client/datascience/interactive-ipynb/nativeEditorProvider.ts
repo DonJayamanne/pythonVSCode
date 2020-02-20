@@ -16,7 +16,8 @@ import {
     IAsyncDisposable,
     IAsyncDisposableRegistry,
     IConfigurationService,
-    IDisposableRegistry
+    IDisposableRegistry,
+    Resource
 } from '../../common/types';
 import { createDeferred } from '../../common/utils/async';
 import * as localize from '../../common/utils/localize';
@@ -204,8 +205,8 @@ export class NativeEditorProvider
         return this.open(uri);
     }
 
-    public async getNotebookOptions(): Promise<INotebookServerOptions> {
-        const settings = this.configuration.getSettings();
+    public async getNotebookOptions(resource: Resource): Promise<INotebookServerOptions> {
+        const settings = this.configuration.getSettings(resource);
         let serverURI: string | undefined = settings.datascience.jupyterServerURI;
         const useDefaultConfig: boolean | undefined = settings.datascience.useDefaultConfigForJupyter;
 

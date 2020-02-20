@@ -86,6 +86,7 @@ export interface ICommandNameArgumentTypeMapping extends ICommandNameWithoutArgu
     ['revealLine']: [{ lineNumber: number; at: 'top' | 'center' | 'bottom' }];
     ['python._loadLanguageServerExtension']: {}[];
     ['python.SelectAndInsertDebugConfiguration']: [TextDocument, Position, CancellationToken];
+    ['vscode.open']: [Uri];
     ['python.viewLanguageServerOutput']: [];
     ['vscode.open']: [Uri];
     ['workbench.action.files.saveAs']: [Uri];
@@ -155,4 +156,5 @@ export interface ICommandNameArgumentTypeMapping extends ICommandNameWithoutArgu
     [DSCommands.ScrollToCell]: [string, string];
     [DSCommands.ViewJupyterOutput]: [];
     [DSCommands.SwitchJupyterKernel]: [INotebook | undefined];
+    [DSCommands.SelectJupyterCommandLine]: [undefined | Uri];
 }

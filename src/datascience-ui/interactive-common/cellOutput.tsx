@@ -31,14 +31,20 @@ interface ICellOutputProps {
     hideOutput?: boolean;
     themeMatplotlibPlots?: boolean;
     expandImage(imageHtml: string): void;
+    openSettings(setting?: string): void;
 }
 
-interface ICellOutput {
+interface ICellOutputData {
     mimeType: string;
     data: nbformat.MultilineString | JSONObject;
+    mimeBundle: nbformat.IMimeBundle;
     renderWithScrollbars: boolean;
     isText: boolean;
     isError: boolean;
+}
+
+interface ICellOutput {
+    output: ICellOutputData;
     extraButton: JSX.Element | null; // Extra button for plot viewing is stored here
     outputSpanClassName?: string; // Wrap this output in a span with the following className, undefined to not wrap
     doubleClick(): void; // Double click handler for plot viewing is stored here
@@ -55,7 +61,6 @@ export class CellOutput extends React.Component<ICellOutputProps> {
     private static get ansiToHtmlClass(): ClassType<any> {
         if (!CellOutput.ansiToHtmlClass_ctor) {
             // ansiToHtml is different between the tests running and webpack. figure out which one
-            // tslint:disable-next-line: no-any
             if (ansiToHtml instanceof Function) {
                 CellOutput.ansiToHtmlClass_ctor = ansiToHtml;
             } else {
@@ -169,6 +174,22 @@ export class CellOutput extends React.Component<ICellOutputProps> {
         return getLocString('DataScience.unknownMimeTypeFormat', 'Unknown Mime Type');
     }
 
+    private getTrimMessage() {
+        const newLine = '\n...\n';
+        return (
+            <a onClick={this.changeTextOutputLimit} role="button" className="image-button-image">
+                {getLocString(
+                    'DataScience.trimmedOutput',
+                    'Output was trimmed for performance reasons.\nTo see the full output set the setting "python.dataScience.textOutputLimit" to 0.'
+                ) + newLine}
+            </a>
+        );
+    }
+
+    private changeTextOutputLimit = () => {
+        this.props.openSettings('python.dataScience.textOutputLimit');
+    };
+
     private getCell = () => {
         return this.props.cellVM.cell;
     };
@@ -206,8 +227,9 @@ export class CellOutput extends React.Component<ICellOutputProps> {
 
     private renderCodeOutputs = () => {
         if (this.isCodeCell() && this.hasOutput() && this.getCodeCell().outputs && !this.props.hideOutput) {
+            const trim = this.props.cellVM.cell.data.metadata.tags ? this.props.cellVM.cell.data.metadata.tags[0] : '';
             // Render the outputs
-            return this.renderOutputs(this.getCodeCell().outputs);
+            return this.renderOutputs(this.getCodeCell().outputs, trim);
         }
 
         return [];
@@ -227,32 +249,29 @@ export class CellOutput extends React.Component<ICellOutputProps> {
         ];
     };
 
-    // tslint:disable-next-line: max-func-body-length
-    private transformOutput(output: nbformat.IOutput): ICellOutput {
-        // First make a copy of the outputs.
-        const copy = cloneDeep(output);
-
+    private computeOutputData(output: nbformat.IOutput): ICellOutputData {
         let isText = false;
         let isError = false;
         let mimeType = 'text/plain';
+        let input = output.data;
         let renderWithScrollbars = false;
-        let extraButton: JSX.Element | null = null;
 
         // Special case for json. Just turn into a string
-        if (copy.data && copy.data.hasOwnProperty('application/json')) {
-            copy.data = JSON.stringify(copy.data);
+        if (input && input.hasOwnProperty('application/json')) {
+            input = JSON.stringify(output.data);
             renderWithScrollbars = true;
             isText = true;
-        } else if (copy.output_type === 'stream') {
+        } else if (output.output_type === 'stream') {
             // Stream output needs to be wrapped in xmp so it
             // show literally. Otherwise < chars start a new html element.
             mimeType = 'text/html';
             isText = true;
             isError = false;
             renderWithScrollbars = true;
-            const stream = copy as nbformat.IStream;
+            // Sonar is wrong, TS won't compile without this AS
+            const stream = output as nbformat.IStream; // NOSONAR
             const formatted = concatMultilineStringOutput(stream.text);
-            copy.data = {
+            input = {
                 'text/html': formatted.includes('<') ? `<xmp>${formatted}</xmp>` : `<div>${formatted}</div>`
             };
 
@@ -262,64 +281,86 @@ export class CellOutput extends React.Component<ICellOutputProps> {
                 if (ansiRegex().test(formatted)) {
                     const converter = new CellOutput.ansiToHtmlClass(CellOutput.getAnsiToHtmlOptions());
                     const html = converter.toHtml(formatted);
-                    copy.data = {
+                    input = {
                         'text/html': html
                     };
                 }
             } catch {
                 noop();
             }
-        } else if (copy.output_type === 'error') {
+        } else if (output.output_type === 'error') {
             mimeType = 'text/html';
             isText = true;
             isError = true;
             renderWithScrollbars = true;
-            const error = copy as nbformat.IError;
+            // Sonar is wrong, TS won't compile without this AS
+            const error = output as nbformat.IError; // NOSONAR
             try {
                 const converter = new CellOutput.ansiToHtmlClass(CellOutput.getAnsiToHtmlOptions());
                 const trace = converter.toHtml(error.traceback.join('\n'));
-                copy.data = {
+                input = {
                     'text/html': trace
                 };
             } catch {
                 // This can fail during unit tests, just use the raw data
-                copy.data = {
+                input = {
                     'text/html': error.evalue
                 };
             }
-        } else if (copy.data) {
+        } else if (input) {
             // Compute the mime type
-            mimeType = getRichestMimetype(copy.data);
+            mimeType = getRichestMimetype(input);
             isText = mimeType === 'text/plain';
         }
 
         // Then parse the mime type
-        try {
-            const mimeBundle = copy.data as nbformat.IMimeBundle;
-            let data: nbformat.MultilineString | JSONObject = mimeBundle[mimeType];
-            // For un-executed output we might get text or svg output as multiline string arrays
-            // we want to concat those so we don't display a bunch of weird commas as we expect
-            // Single strings in our output
-            if (Array.isArray(data)) {
-                data = concatMultilineStringOutput(data as nbformat.MultilineString);
-            }
+        const mimeBundle = input as nbformat.IMimeBundle; // NOSONAR
+        let data: nbformat.MultilineString | JSONObject = mimeBundle[mimeType];
 
+        // For un-executed output we might get text or svg output as multiline string arrays
+        // we want to concat those so we don't display a bunch of weird commas as we expect
+        // Single strings in our output
+        if (Array.isArray(data)) {
+            data = concatMultilineStringOutput(data as nbformat.MultilineString);
+        }
+
+        // Fixup latex to make sure it has the requisite $$ around it
+        if (mimeType === 'text/latex') {
+            data = fixLatexEquations(concatMultilineStringOutput(data as nbformat.MultilineString), true);
+        }
+
+        return {
+            isText,
+            isError,
+            renderWithScrollbars,
+            data: data,
+            mimeType,
+            mimeBundle
+        };
+    }
+
+    private transformOutput(output: nbformat.IOutput): ICellOutput {
+        // First make a copy of the outputs.
+        const copy = cloneDeep(output);
+
+        // Then compute the data
+        const data = this.computeOutputData(copy);
+        let extraButton: JSX.Element | null = null;
+
+        // Then parse the mime type
+        try {
             // Text based mimeTypes don't get a white background
-            if (/^text\//.test(mimeType)) {
+            if (/^text\//.test(data.mimeType)) {
                 return {
-                    mimeType,
-                    data,
-                    isText,
-                    isError,
-                    renderWithScrollbars: true,
+                    output: data,
                     extraButton,
                     doubleClick: noop
                 };
-            } else if (mimeType === 'image/svg+xml' || mimeType === 'image/png') {
+            } else if (data.mimeType === 'image/svg+xml' || data.mimeType === 'image/png') {
                 // If we have a png or svg enable the plot viewer button
                 // There should be two mime bundles. Well if enablePlotViewer is turned on. See if we have both
-                const svg = mimeBundle['image/svg+xml'];
-                const png = mimeBundle['image/png'];
+                const svg = data.mimeBundle['image/svg+xml'];
+                const png = data.mimeBundle['image/png'];
                 const buttonTheme = this.props.themeMatplotlibPlots ? this.props.baseTheme : 'vscode-light';
                 let doubleClick: () => void = noop;
                 if (svg && png) {
@@ -340,8 +381,8 @@ export class CellOutput extends React.Component<ICellOutputProps> {
                     );
 
                     // Switch the data to the png
-                    data = png;
-                    mimeType = 'image/png';
+                    data.data = png;
+                    data.mimeType = 'image/png';
 
                     // Switch double click to do the same thing as the extra button
                     doubleClick = openClick;
@@ -350,11 +391,7 @@ export class CellOutput extends React.Component<ICellOutputProps> {
                 // return the image
                 // If not theming plots then wrap in a span
                 return {
-                    mimeType,
-                    data,
-                    isText,
-                    isError,
-                    renderWithScrollbars,
+                    output: data,
                     extraButton,
                     doubleClick,
                     outputSpanClassName: this.props.themeMatplotlibPlots ? undefined : 'cell-output-plot-background'
@@ -363,11 +400,7 @@ export class CellOutput extends React.Component<ICellOutputProps> {
                 // For anything else just return it with a white plot background. This lets stuff like vega look good in
                 // dark mode
                 return {
-                    mimeType,
-                    data,
-                    isText,
-                    isError,
-                    renderWithScrollbars,
+                    output: data,
                     extraButton,
                     doubleClick: noop,
                     outputSpanClassName: this.props.themeMatplotlibPlots ? undefined : 'cell-output-plot-background'
@@ -375,36 +408,39 @@ export class CellOutput extends React.Component<ICellOutputProps> {
             }
         } catch (e) {
             return {
-                data: e.toString(),
-                isText: true,
-                isError: false,
+                output: {
+                    data: e.toString(),
+                    isText: true,
+                    isError: false,
+                    renderWithScrollbars: false,
+                    mimeType: 'text/plain',
+                    mimeBundle: {}
+                },
                 extraButton: null,
-                renderWithScrollbars: false,
-                mimeType: 'text/plain',
                 doubleClick: noop
             };
         }
     }
 
     // tslint:disable-next-line: max-func-body-length
-    private renderOutputs(outputs: nbformat.IOutput[]): JSX.Element[] {
-        return [this.renderOutput(outputs)];
+    private renderOutputs(outputs: nbformat.IOutput[], trim: string): JSX.Element[] {
+        return [this.renderOutput(outputs, trim)];
     }
 
-    private renderOutput = (outputs: nbformat.IOutput[]): JSX.Element => {
+    private renderOutput = (outputs: nbformat.IOutput[], trim: string): JSX.Element => {
         const buffer: JSX.Element[] = [];
         const transformedList = outputs.map(this.transformOutput.bind(this));
 
         transformedList.forEach((transformed, index) => {
-            let mimetype = transformed.mimeType;
+            let mimetype = transformed.output.mimeType;
 
             // If that worked, use the transform
             if (mimetype && isMimeTypeSupported(mimetype)) {
                 // Get the matching React.Component for that mimetype
                 const Transform = getTransform(mimetype);
 
-                let className = transformed.isText ? 'cell-output-text' : 'cell-output-html';
-                className = transformed.isError ? `${className} cell-output-error` : className;
+                let className = transformed.output.isText ? 'cell-output-text' : 'cell-output-html';
+                className = transformed.output.isError ? `${className} cell-output-error` : className;
 
                 // If we are not theming plots then wrap them in a white span
                 if (transformed.outputSpanClassName) {
@@ -412,24 +448,34 @@ export class CellOutput extends React.Component<ICellOutputProps> {
                         <div role="group" key={index} onDoubleClick={transformed.doubleClick} className={className}>
                             <span className={transformed.outputSpanClassName}>
                                 {transformed.extraButton}
-                                <Transform data={transformed.data} />
+                                <Transform data={transformed.output.data} />
                             </span>
                         </div>
                     );
                 } else {
-                    buffer.push(
-                        <div role="group" key={index} onDoubleClick={transformed.doubleClick} className={className}>
-                            {transformed.extraButton}
-                            <Transform data={transformed.data} />
-                        </div>
-                    );
+                    if (trim === 'outputPrepend') {
+                        buffer.push(
+                            <div role="group" key={index} onDoubleClick={transformed.doubleClick} className={className}>
+                                {transformed.extraButton}
+                                {this.getTrimMessage()}
+                                <Transform data={transformed.output.data} />
+                            </div>
+                        );
+                    } else {
+                        buffer.push(
+                            <div role="group" key={index} onDoubleClick={transformed.doubleClick} className={className}>
+                                {transformed.extraButton}
+                                <Transform data={transformed.output.data} />
+                            </div>
+                        );
+                    }
                 }
             } else if (mimetype.startsWith('application/scrapbook.scrap.')) {
                 // Silently skip rendering of these mime types, render an empty div so the user sees the cell was executed.
                 buffer.push(<div key={index}></div>);
             } else {
-                if (transformed.data) {
-                    const keys = Object.keys(transformed.data);
+                if (transformed.output.data) {
+                    const keys = Object.keys(transformed.output.data);
                     mimetype = keys.length > 0 ? keys[0] : 'unknown';
                 } else {
                     mimetype = 'unknown';
@@ -443,7 +489,7 @@ export class CellOutput extends React.Component<ICellOutputProps> {
         const style: React.CSSProperties = {};
 
         // Create a scrollbar style if necessary
-        if (transformedList.some(transformed => transformed.renderWithScrollbars) && this.props.maxTextSize) {
+        if (transformedList.some(transformed => transformed.output.renderWithScrollbars) && this.props.maxTextSize) {
             style.overflowY = 'auto';
             style.maxHeight = `${this.props.maxTextSize}px`;
         }

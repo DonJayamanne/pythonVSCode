@@ -104,9 +104,6 @@ export class KernelService {
                 if (item.language.toLowerCase() !== PYTHON_LANGUAGE.toLowerCase()) {
                     return false;
                 }
-                if (item.display_name !== option.displayName) {
-                    return false;
-                }
                 return (
                     this.fileSystem.arePathsSame(item.argv[0], option.path) ||
                     this.fileSystem.arePathsSame(item.metadata?.interpreter?.path || '', option.path)
@@ -424,7 +421,17 @@ export class KernelService {
             return [];
         }
         const specs: IJupyterKernelSpec[] = await enumerator;
-        return specs.filter(item => !!item);
+        const result = specs.filter(item => !!item);
+
+        // Send telemetry on this enumeration.
+        const anyPython = result.find(k => k.language === 'python') !== undefined;
+        sendTelemetryEvent(Telemetry.KernelEnumeration, undefined, {
+            count: result.length,
+            isPython: anyPython,
+            source: sessionManager ? 'connection' : 'cli'
+        });
+
+        return result;
     }
     /**
      * Not all characters are allowed in a kernel name.

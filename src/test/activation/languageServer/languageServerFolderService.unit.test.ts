@@ -14,6 +14,8 @@ import { IFileSystem } from '../../../client/common/platform/types';
 import { IConfigurationService } from '../../../client/common/types';
 import { IServiceContainer } from '../../../client/ioc/types';
 
+// tslint:disable:max-func-body-length
+
 suite('Language Server Folder Service', () => {
     let serviceContainer: TypeMoq.IMock<IServiceContainer>;
     let languageServerFolderService: DotNetLanguageServerFolderService;

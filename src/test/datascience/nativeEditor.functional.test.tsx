@@ -71,6 +71,7 @@ import {
     waitForMessage,
     waitForMessageResponse
 } from './testHelpers';
+import { ExecutionCount } from '../../datascience-ui/interactive-common/executionCount';
 
 use(chaiAsPromised);
 
@@ -156,12 +157,12 @@ suite('DataScience Native Editor', () => {
                 // Create an editor so something is listening to messages
                 await createNewEditor(ioc);
 
-                const badPanda = dedent`import pandas as pd
-                    df = pd.read("${escapePath(path.join(srcDirectory(), 'DefaultSalesReport.csv'))}")
-                    df.head()`;
-                const goodPanda = dedent`import pandas as pd
-                    df = pd.read_csv("${escapePath(path.join(srcDirectory(), 'DefaultSalesReport.csv'))}")
-                    df.head()`;
+                const badPanda = `import pandas as pd
+df = pd.read("${escapePath(path.join(srcDirectory(), 'DefaultSalesReport.csv'))}")
+df.head()`;
+                const goodPanda = `import pandas as pd
+df = pd.read_csv("${escapePath(path.join(srcDirectory(), 'DefaultSalesReport.csv'))}")
+df.head()`;
                 const matPlotLib =
                     'import matplotlib.pyplot as plt\r\nimport numpy as np\r\nx = np.linspace(0,20,100)\r\nplt.plot(x, np.sin(x))\r\nplt.show()';
                 const matPlotLibResults = 'img';
@@ -452,13 +453,14 @@ suite('DataScience Native Editor', () => {
         runMountedTest(
             'RunAllCells',
             async wrapper => {
-                addMockData(ioc, 'b=2\nb', 2);
-                addMockData(ioc, 'c=3\nc', 3);
+                addMockData(ioc, 'print(1)\na=1', 1);
+                addMockData(ioc, 'a=a+1\nprint(a)', 2);
+                addMockData(ioc, 'print(a+1)', 3);
 
                 const baseFile = [
-                    { id: 'NotebookImport#0', data: { source: 'a=1\na' } },
-                    { id: 'NotebookImport#1', data: { source: 'b=2\nb' } },
-                    { id: 'NotebookImport#2', data: { source: 'c=3\nc' } }
+                    { id: 'NotebookImport#0', data: { source: 'print(1)\na=1' } },
+                    { id: 'NotebookImport#1', data: { source: 'a=a+1\nprint(a)' } },
+                    { id: 'NotebookImport#2', data: { source: 'print(a+1)' } }
                 ];
                 const runAllCells = baseFile.map(cell => {
                     return createFileCell(cell, cell.data);
@@ -515,26 +517,32 @@ suite('DataScience Native Editor', () => {
                 let editor = await openEditor(ioc, JSON.stringify(notebook));
 
                 // Run everything
-                let renderAll = waitForMessage(ioc, InteractiveWindowMessages.ExecutionRendered, { numberOfTimes: 3 });
+                let threeCellsUpdated = waitForMessage(ioc, InteractiveWindowMessages.ExecutionRendered, {
+                    numberOfTimes: 3
+                });
                 let runAllButton = findButton(wrapper, NativeEditor, 0);
                 await waitForMessageResponse(ioc, () => runAllButton!.simulate('click'));
-                await renderAll;
+                await threeCellsUpdated;
 
                 // Close editor. Should still have the server up
                 await closeNotebook(editor, wrapper);
                 const jupyterExecution = ioc.serviceManager.get<IJupyterExecution>(IJupyterExecution);
                 const editorProvider = ioc.serviceManager.get<INotebookEditorProvider>(INotebookEditorProvider);
-                const server = await jupyterExecution.getServer(await editorProvider.getNotebookOptions());
+                const server = await jupyterExecution.getServer(await editorProvider.getNotebookOptions(undefined));
                 assert.ok(server, 'Server was destroyed on notebook shutdown');
 
                 // Reopen, and rerun
                 const newWrapper = await setupWebview(ioc);
                 assert.ok(newWrapper, 'Could not mount a second time');
                 editor = await openEditor(ioc, JSON.stringify(notebook));
+
+                threeCellsUpdated = waitForMessage(ioc, InteractiveWindowMessages.ExecutionRendered, {
+                    numberOfTimes: 3
+                });
                 runAllButton = findButton(newWrapper!, NativeEditor, 0);
                 renderAll = waitForMessage(ioc, InteractiveWindowMessages.ExecutionRendered, { numberOfTimes: 3 });
                 await waitForMessageResponse(ioc, () => runAllButton!.simulate('click'));
-                await renderAll;
+                await threeCellsUpdated;
                 verifyHtmlOnCell(newWrapper!, 'NativeCell', `1`, 0);
             },
             () => {
@@ -864,7 +872,7 @@ suite('DataScience Native Editor', () => {
                 assert.ok(isCellMarkdown(wrapper, 'NativeCell', 0));
 
                 // Focus the cell.
-                update = waitForUpdate(wrapper, NativeEditor, 1);
+                update = waitForMessage(ioc, InteractiveWindowMessages.FocusedCellEditor);
                 simulateKeyPressOnCell(0, { code: 'Enter', editorInfo: undefined });
                 await update;
 
@@ -1454,7 +1462,7 @@ suite('DataScience Native Editor', () => {
                 assert.ok(isCellMarkdown(wrapper, 'NativeCell', 1), '1st cell is not markdown');
 
                 // Focus the cell.
-                update = waitForUpdate(wrapper, NativeEditor, 1);
+                update = waitForMessage(ioc, InteractiveWindowMessages.FocusedCellEditor);
                 simulateKeyPressOnCell(1, { code: 'Enter', editorInfo: undefined });
                 await update;
 
@@ -1497,7 +1505,7 @@ suite('DataScience Native Editor', () => {
                 assert.ok(!isCellMarkdown(wrapper, 'NativeCell', 1), '1st cell is markdown second time');
 
                 // Focus the cell.
-                update = waitForUpdate(wrapper, NativeEditor, 1);
+                update = waitForMessage(ioc, InteractiveWindowMessages.FocusedCellEditor);
                 simulateKeyPressOnCell(1, { code: 'Enter', editorInfo: undefined });
                 await update;
 
@@ -1508,78 +1516,77 @@ suite('DataScience Native Editor', () => {
             });
         });
 
+        const oldJson: nbformat.INotebookContent = {
+            nbformat: 4,
+            nbformat_minor: 2,
+            cells: [
+                {
+                    cell_type: 'code',
+                    execution_count: 1,
+                    metadata: {
+                        collapsed: true
+                    },
+                    outputs: [
+                        {
+                            data: {
+                                'text/plain': ['1']
+                            },
+                            output_type: 'execute_result',
+                            execution_count: 1,
+                            metadata: {}
+                        }
+                    ],
+                    source: ['a=1\n', 'a']
+                },
+                {
+                    cell_type: 'code',
+                    execution_count: 2,
+                    metadata: {},
+                    outputs: [
+                        {
+                            data: {
+                                'text/plain': ['2']
+                            },
+                            output_type: 'execute_result',
+                            execution_count: 2,
+                            metadata: {}
+                        }
+                    ],
+                    source: ['b=2\n', 'b']
+                },
+                {
+                    cell_type: 'code',
+                    execution_count: 3,
+                    metadata: {},
+                    outputs: [
+                        {
+                            data: {
+                                'text/plain': ['3']
+                            },
+                            output_type: 'execute_result',
+                            execution_count: 3,
+                            metadata: {}
+                        }
+                    ],
+                    source: ['c=3\n', 'c']
+                }
+            ],
+            metadata: {
+                orig_nbformat: 4,
+                kernelspec: {
+                    display_name: 'JUNK',
+                    name: 'JUNK'
+                },
+                language_info: {
+                    name: 'python',
+                    version: '1.2.3'
+                }
+            }
+        };
+
         suite('Update Metadata', () => {
             setup(async function() {
                 initIoc();
-
-                const oldJson: nbformat.INotebookContent = {
-                    nbformat: 4,
-                    nbformat_minor: 2,
-                    cells: [
-                        {
-                            cell_type: 'code',
-                            execution_count: 1,
-                            metadata: {
-                                collapsed: true
-                            },
-                            outputs: [
-                                {
-                                    data: {
-                                        'text/plain': ['1']
-                                    },
-                                    output_type: 'execute_result',
-                                    execution_count: 1,
-                                    metadata: {}
-                                }
-                            ],
-                            source: ['a=1\n', 'a']
-                        },
-                        {
-                            cell_type: 'code',
-                            execution_count: 2,
-                            metadata: {},
-                            outputs: [
-                                {
-                                    data: {
-                                        'text/plain': ['2']
-                                    },
-                                    output_type: 'execute_result',
-                                    execution_count: 2,
-                                    metadata: {}
-                                }
-                            ],
-                            source: ['b=2\n', 'b']
-                        },
-                        {
-                            cell_type: 'code',
-                            execution_count: 3,
-                            metadata: {},
-                            outputs: [
-                                {
-                                    data: {
-                                        'text/plain': ['3']
-                                    },
-                                    output_type: 'execute_result',
-                                    execution_count: 3,
-                                    metadata: {}
-                                }
-                            ],
-                            source: ['c=3\n', 'c']
-                        }
-                    ],
-                    metadata: {
-                        orig_nbformat: 4,
-                        kernelspec: {
-                            display_name: 'JUNK',
-                            name: 'JUNK'
-                        },
-                        language_info: {
-                            name: 'python',
-                            version: '1.2.3'
-                        }
-                    }
-                };
-
                 // tslint:disable-next-line: no-invalid-this
                 await setupFunction.call(this, JSON.stringify(oldJson));
             });
@@ -1607,6 +1614,9 @@ suite('DataScience Native Editor', () => {
                 const fileContent = await fs.readFile(notebookFile.filePath, 'utf8');
                 const fileObject = JSON.parse(fileContent);
 
+                // First cell should still have the 'collapsed' metadata
+                assert.ok(fileObject.cells[0].metadata.collapsed, 'Metadata erased during execution');
+
                 // The version should be updated to something not "1.2.3"
                 assert.notEqual(fileObject.metadata.language_info.version, '1.2.3');
 
@@ -1624,75 +1634,58 @@ suite('DataScience Native Editor', () => {
             setup(async function() {
                 initIoc();
                 // tslint:disable-next-line: no-invalid-this
-                await setupFunction.call(this);
+                await setupFunction.call(this, JSON.stringify(oldJson));
             });
 
-            // function verifyExecutionCount(cellIndex: number, executionCountContent: string) {
-            //     const foundResult = wrapper.find('NativeCell');
-            //     assert.ok(foundResult.length >= 1, 'Didn\'t find any cells being rendered');
-            //     const targetCell = foundResult.at(cellIndex);
-            //     assert.ok(targetCell!, 'Target cell doesn\'t exist');
+            function verifyExecutionCount(cellIndex: number, executionCountContent: string) {
+                assert.equal(
+                    wrapper
+                        .find(ExecutionCount)
+                        .at(cellIndex)
+                        .props().count,
+                    executionCountContent
+                );
+            }
 
-            //     const sliced = executionCountContent.substr(0, min([executionCountContent.length, 100]));
-            //     const output = targetCell!.find('div.execution-count');
-            //     assert.ok(output.length > 0, 'No output cell found');
-            //     const outHtml = output.html();
-            //     assert.ok(outHtml.includes(sliced), `${outHtml} does not contain ${sliced}`);
-            // }
+            test('Clear Outputs in WebView', async () => {
+                const runAllButton = findButton(wrapper, NativeEditor, 0);
+                const threeCellsUpdated = waitForMessage(ioc, InteractiveWindowMessages.ExecutionRendered, {
+                    numberOfTimes: 3
+                });
+                await waitForMessageResponse(ioc, () => runAllButton!.simulate('click'));
+                await threeCellsUpdated;
 
-            // This test always times out in the Azure Pipeline, even though it works locally.
-            // test('Clear Outputs in HTML', async () => {
-            //     // Run all Cells
-            //     const baseFile2 = [ {id: 'NotebookImport#0', data: {source: 'a=1\na'}},
-            //     {id: 'NotebookImport#1', data: {source: 'b=2\nb'}},
-            //     {id: 'NotebookImport#2', data: {source: 'c=3\nc'}}];
-            //     const runAllCells =  baseFile2.map(cell => {
-            //         return createFileCell(cell, cell.data);
-            //     });
+                verifyExecutionCount(0, '1');
+                verifyExecutionCount(1, '2');
+                verifyExecutionCount(2, '3');
 
-            //     const notebook = await ioc.get<INotebookExporter>(INotebookExporter).translateToNotebook(runAllCells, undefined);
-            //     await openEditor(ioc, JSON.stringify(notebook));
+                // Press clear all outputs
+                const clearAllOutput = waitForMessage(ioc, InteractiveWindowMessages.ClearAllOutputs);
+                const clearAllOutputButton = findButton(wrapper, NativeEditor, 6);
+                await waitForMessageResponse(ioc, () => clearAllOutputButton!.simulate('click'));
+                await clearAllOutput;
 
-            //     const runAllButton = findButton(wrapper, NativeEditor, 0);
-            //     await waitForMessageResponse(ioc, () => runAllButton!.simulate('click'));
+                verifyExecutionCount(0, '-');
+                verifyExecutionCount(1, '-');
+                verifyExecutionCount(2, '-');
+            });
 
-            //     await waitForUpdate(wrapper, NativeEditor, 15);
-
-            //     verifyHtmlOnCell(wrapper, 'NativeCell', `1`, 0);
-            //     verifyHtmlOnCell(wrapper, 'NativeCell', `2`, 1);
-            //     verifyHtmlOnCell(wrapper, 'NativeCell', `3`, 2);
-
-            //     // After adding the cells, clear them
-            //     const clearAllOutputButton = findButton(wrapper, NativeEditor, 6);
-            //     await waitForMessageResponse(ioc, () => clearAllOutputButton!.simulate('click'));
-
-            //     await sleep(1000);
-
-            //     verifyHtmlOnCell(wrapper, 'NativeCell', undefined, 0);
-            //     verifyHtmlOnCell(wrapper, 'NativeCell', undefined, 1);
-            //     verifyHtmlOnCell(wrapper, 'NativeCell', undefined, 2);
-
-            //     verifyExecutionCount(0, '-');
-            //     verifyExecutionCount(1, '-');
-            //     verifyExecutionCount(2, '-');
-            // });
-
-            test('Clear Outputs in File', async () => {
+            test('Clear execution_count and outputs in notebook', async () => {
                 const notebookProvider = ioc.get<INotebookEditorProvider>(INotebookEditorProvider);
                 const editor = notebookProvider.editors[0];
                 assert.ok(editor, 'No editor when saving');
                 // add cells, run them and save
-                await addCell(wrapper, ioc, 'a=1\na');
+                // await addCell(wrapper, ioc, 'a=1\na');
                 const runAllButton = findButton(wrapper, NativeEditor, 0);
+                const threeCellsUpdated = waitForMessage(ioc, InteractiveWindowMessages.ExecutionRendered, {
+                    numberOfTimes: 3
+                });
                 await waitForMessageResponse(ioc, () => runAllButton!.simulate('click'));
 
                 const saveButton = findButton(wrapper, NativeEditor, 8);
                 let saved = waitForMessage(ioc, InteractiveWindowMessages.NotebookClean);
                 await waitForMessageResponse(ioc, () => saveButton!.simulate('click'));
                 await saved;
-
-                // the file has output and execution count
-                const fileContent = await fs.readFile(notebookFile.filePath, 'utf8');
 
                 // press clear all outputs, and save
                 const clearAllOutputButton = findButton(wrapper, NativeEditor, 6);
@@ -1702,9 +1695,13 @@ suite('DataScience Native Editor', () => {
                 await waitForMessageResponse(ioc, () => saveButton!.simulate('click'));
                 await saved;
 
-                // the file now shouldn't have outputs or execution count
-                const newFileContent = await fs.readFile(notebookFile.filePath, 'utf8');
-                assert.notEqual(newFileContent, fileContent, 'File did not change.');
+                const nb = JSON.parse(await fs.readFile(notebookFile.filePath, 'utf8')) as nbformat.INotebookContent;
+                assert.equal(nb.cells[0].execution_count, null);
+                assert.equal(nb.cells[1].execution_count, null);
+                assert.equal(nb.cells[2].execution_count, null);
+                expect(nb.cells[0].outputs).to.be.lengthOf(0);
+                expect(nb.cells[1].outputs).to.be.lengthOf(0);
+                expect(nb.cells[2].outputs).to.be.lengthOf(0);
             });
         });
     });
