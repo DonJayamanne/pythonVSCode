@@ -641,10 +641,9 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
         if (this.isUntitled) {
             this.commandManager.executeCommand('workbench.action.files.saveAs', this.file);
         } else {
-            this.commandManager.executeCommand('workbench.action.files.save', this.file).then(
-                () => this.savedEvent.fire(this),
-                () => this.savedEvent.fire(this)
-            );
+            this.commandManager
+                .executeCommand('workbench.action.files.save', this.file)
+                .then(() => this.savedEvent.fire(this));
         }
     }
 
