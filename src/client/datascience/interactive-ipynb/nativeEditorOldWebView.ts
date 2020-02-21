@@ -5,7 +5,7 @@ import '../../common/extensions';
 
 import { inject, injectable, multiInject, named } from 'inversify';
 import * as path from 'path';
-import { Memento, WebviewPanel } from 'vscode';
+import { Memento, Uri, WebviewPanel } from 'vscode';
 
 import {
     IApplicationShell,
@@ -15,6 +15,7 @@ import {
     IWebPanelProvider,
     IWorkspaceService
 } from '../../common/application/types';
+import { traceError } from '../../common/logger';
 import { IFileSystem } from '../../common/platform/types';
 import {
     GLOBAL_MEMENTO,
@@ -26,6 +27,9 @@ import {
 } from '../../common/types';
 import * as localize from '../../common/utils/localize';
 import { IInterpreterService } from '../../interpreter/contracts';
+import { captureTelemetry } from '../../telemetry';
+import { Telemetry } from '../constants';
+import { InteractiveWindowMessages } from '../interactive-common/interactiveWindowTypes';
 import { ProgressReporter } from '../progress/progressReporter';
 import {
     ICodeCssGenerator,
@@ -44,6 +48,12 @@ import {
 } from '../types';
 import { NativeEditor } from './nativeEditor';
 
+enum AskForSaveResult {
+    Yes,
+    No,
+    Cancel
+}
+
 @injectable()
 export class NativeEditorOldWebView extends NativeEditor {
     public get visible(): boolean {
@@ -52,10 +62,9 @@ export class NativeEditorOldWebView extends NativeEditor {
     public get active(): boolean {
         return this.viewState.active;
     }
-    public get isUntitled(): boolean {
-        const baseName = path.basename(this.file.fsPath);
-        return baseName.includes(localize.DataScience.untitledNotebookFileName());
-    }
+
+    private isPromptingToSaveToDisc: boolean = false;
+
     constructor(
         @multiInject(IInteractiveWindowListener) listeners: IInteractiveWindowListener[],
         @inject(ILiveShareApi) liveShare: ILiveShareApi,
@@ -122,170 +131,152 @@ export class NativeEditorOldWebView extends NativeEditor {
 
         // Show ourselves
         await this.show();
+        this.model?.changed(() => {
+            if (this.model?.isDirty) {
+                this.setDirty().ignoreErrors();
+            } else {
+                this.setClean().ignoreErrors();
+            }
+        });
+    }
+    protected async close(): Promise<void> {
+        const actuallyClose = async () => {
+            // Tell listeners.
+            this.closedEvent.fire(this);
 
-        // // See if this file was stored in storage prior to shutdown
-        // const dirtyContents = await model.getContent();
-        // if (dirtyContents) {
-        //     // This means we're dirty. Indicate dirty and load from this content
-        //     return this.loadContents(dirtyContents, true);
-        // } else {
-        //     // Load without setting dirty
-        //     return this.loadContents(contents, false);
-        // }
+            // Restart our kernel so that execution counts are reset
+            let oldAsk: boolean | undefined = false;
+            const settings = this.configuration.getSettings(await this.getOwningResource());
+            if (settings && settings.datascience) {
+                oldAsk = settings.datascience.askForKernelRestart;
+                settings.datascience.askForKernelRestart = false;
+            }
+            await this.restartKernel();
+            if (oldAsk && settings && settings.datascience) {
+                settings.datascience.askForKernelRestart = true;
+            }
+        };
+
+        // Ask user if they want to save. It seems hotExit has no bearing on
+        // whether or not we should ask
+        if (this.isDirty) {
+            const askResult = await this.askForSave();
+            switch (askResult) {
+                case AskForSaveResult.Yes:
+                    // Save the file
+                    await this.saveToDisk();
+
+                    // Close it
+                    await actuallyClose();
+                    break;
+
+                case AskForSaveResult.No:
+                    // Close it
+                    await actuallyClose();
+                    break;
+
+                default:
+                    // Reopen
+                    await this.reopen();
+                    break;
+            }
+        } else {
+            // Not dirty, just close normally.
+            return actuallyClose();
+        }
     }
 
-    // protected async reopen(cells: ICell[]): Promise<void> {
-    //     try {
-    //         // Reload the web panel too.
-    //         await super.loadWebPanel(path.basename(this._file.fsPath));
-    //         await this.show();
+    protected saveAll() {
+        this.saveToDisk().ignoreErrors();
+    }
 
-    //         // Indicate we have our identity
-    //         this.loadedPromise.resolve();
+    private async reopen(): Promise<void> {
+        // TODO: Fire command to open an nb.
+    }
 
-    //         // Update our title to match
-    //         if (this._dirty) {
-    //             this._dirty = false;
-    //             await this.setDirty();
-    //         } else {
-    //             this.setTitle(path.basename(this._file.fsPath));
-    //         }
+    private async askForSave(): Promise<AskForSaveResult> {
+        const message1 = localize.DataScience.dirtyNotebookMessage1().format(`${path.basename(this.file.fsPath)}`);
+        const message2 = localize.DataScience.dirtyNotebookMessage2();
+        const yes = localize.DataScience.dirtyNotebookYes();
+        const no = localize.DataScience.dirtyNotebookNo();
+        const result = await this.applicationShell.showInformationMessage(
+            // tslint:disable-next-line: messages-must-be-localized
+            `${message1}\n${message2}`,
+            { modal: true },
+            yes,
+            no
+        );
+        switch (result) {
+            case yes:
+                return AskForSaveResult.Yes;
 
-    //         // If that works, send the cells to the web view
-    //         return this.postMessage(InteractiveWindowMessages.LoadAllCells, { cells });
-    //     } catch (e) {
-    //         return this.errorHandler.handleError(e);
-    //     }
-    // }
+            case no:
+                return AskForSaveResult.No;
 
-    //     private async askForSave(): Promise<AskForSaveResult> {
-    //         const message1 = localize.DataScience.dirtyNotebookMessage1().format(`${path.basename(this.file.fsPath)}`);
-    //         const message2 = localize.DataScience.dirtyNotebookMessage2();
-    //         const yes = localize.DataScience.dirtyNotebookYes();
-    //         const no = localize.DataScience.dirtyNotebookNo();
-    //         const result = await this.applicationShell.showInformationMessage(
-    //             // tslint:disable-next-line: messages-must-be-localized
-    //             `${message1}\n${message2}`,
-    //             { modal: true },
-    //             yes,
-    //             no
-    //         );
-    //         switch (result) {
-    //             case yes:
-    //                 return AskForSaveResult.Yes;
+            default:
+                return AskForSaveResult.Cancel;
+        }
+    }
+    private async setDirty(): Promise<void> {
+        // Then update dirty flag.
+        if (this.isDirty) {
+            this.setTitle(`${path.basename(this.file.fsPath)}*`);
 
-    //             case no:
-    //                 return AskForSaveResult.No;
+            // Tell the webview we're dirty
+            await this.postMessage(InteractiveWindowMessages.NotebookDirty);
 
-    //             default:
-    //                 return AskForSaveResult.Cancel;
-    //         }
-    //     }
+            // Tell listeners we're dirty
+            this.modifiedEvent.fire(this);
+        }
+    }
 
-    //     private async setDirty(): Promise<void> {
-    //         // Update storage if not untitled. Don't wait for results.
-    //         if (!this.isUntitled) {
-    //             this.generateNotebookConten; this.storeContents(c).catch(ex => traceError('Failed to generate notebook content to store in state', ex));te;', ex);
-    //                     )
-    //                 )
-    //                 .ignoreErrors();
-    //         }
+    private async setClean(): Promise<void> {
+        if (!this.isDirty) {
+            this.setTitle(`${path.basename(this.file.fsPath)}`);
+            await this.postMessage(InteractiveWindowMessages.NotebookClean);
+        }
+    }
 
-    //         // Then update dirty flag.
-    //         if (!this._dirty) {
-    //             this._dirty = true;
-    //             this.setTitle(`${path.basename(this.file.fsPath)}*`);
+    @captureTelemetry(Telemetry.Save, undefined, true)
+    private async saveToDisk(): Promise<void> {
+        // If we're already in the middle of prompting the user to save, then get out of here.
+        // We could add a debounce decorator, unfortunately that slows saving (by waiting for no more save events to get sent).
+        if ((this.isPromptingToSaveToDisc && this.isUntitled) || !this.model) {
+            return;
+        }
+        try {
+            if (!this.isUntitled) {
+                await this.commandManager.executeCommand('save.Notebook', this.model?.file);
+                this.savedEvent.fire(this);
+                return;
+            }
+            // Ask user for a save as dialog if no title
+            let fileToSaveTo: Uri | undefined = this.file;
 
-    //             // Tell the webview we're dirty
-    //             await this.postMessage(InteractiveWindowMessages.NotebookDirty);
+            this.isPromptingToSaveToDisc = true;
+            const filtersKey = localize.DataScience.dirtyNotebookDialogFilter();
+            const filtersObject: { [name: string]: string[] } = {};
+            filtersObject[filtersKey] = ['ipynb'];
 
-    //             // Tell listeners we're dirty
-    //             this.modifiedEvent.fire(this);
-    //         }
-    //     }
+            const defaultUri =
+                Array.isArray(this.workspaceService.workspaceFolders) &&
+                this.workspaceService.workspaceFolders.length > 0
+                    ? this.workspaceService.workspaceFolders[0].uri
+                    : undefined;
+            fileToSaveTo = await this.applicationShell.showSaveDialog({
+                saveLabel: localize.DataScience.dirtyNotebookDialogTitle(),
+                filters: filtersObject,
+                defaultUri
+            });
 
-    //     private async setClean(): Promise<void> {
-    //         // Always update storage
-    //         this.storeContents(undefined).catch(ex => traceError('Failed to clear notebook store', ex));
-
-    //         if (this._dirty) {
-    //             this._dirty = false;
-    //             this.setTitle(`${path.basename(this.file.fsPath)}`);
-    //             await this.postMessage(InteractiveWindowMessages.NotebookClean);
-    //         }
-    //     }
-
-    //     private async viewDocument(contents: string): Promise<void> {
-    //         const doc = await this.documentManager.openTextDocument({ language: 'python', content: contents });
-    //         await this.documentManager.showTextDocument(doc, ViewColumn.One);
-    //     }
-
-    //     @captureTelemetry(Telemetry.Save, undefined, true)
-    //     private async saveToDisk(): Promise<void> {
-    //         // If we're already in the middle of prompting the user to save, then get out of here.
-    //         // We could add a debounce decorator, unfortunately that slows saving (by waiting for no more save events to get sent).
-    //         if (this.isPromptingToSaveToDisc && this.isUntitled) {
-    //             return;
-    //         }
-    //         try {
-    //             let fileToSaveTo: Uri | undefined = this.file;
-    //             let isDirty = this._dirty;
-
-    //             // Ask user for a save as dialog if no title
-    //             if (this.isUntitled) {
-    //                 this.isPromptingToSaveToDisc = true;
-    //                 const filtersKey = localize.DataScience.dirtyNotebookDialogFilter();
-    //                 const filtersObject: { [name: string]: string[] } = {};
-    //                 filtersObject[filtersKey] = ['ipynb'];
-    //                 isDirty = true;
-
-    //                 const defaultUri =
-    //                     Array.isAervice.workspaceFolders); &&
-    //                     this.workspaceService.workspaceFolders.length > 0
-    //                         ? this.workspaceService.workspaceFolders[0].uri
-    //                         : undefined;
-    //                 fileToSaveTo = await this.applicationShell.showSaveDialog({
-    //                     saveLabel: localize.DataScience.dirtyNotebookDialogTitle(),
-    //                     filters: filtersObject,
-    //                     defaultUri
-    //                 });
-    //             }
-
-    //             if (fileToSaveTo && isDirty) {
-    //                 // Write out our visible cells
-    //  fileToSaveTo.fsPath, await this.generateNotebookContent(this.visibleCells);bookContent(this.visibleCells);
-    //                 )
-
-    //                 // Update our file name and dirty state
-    //                 this._file = fileToSaveTo;
-    //                 await this.setClean();
-    //                 this.savedEvent.fire(this);
-    //             }
-    //         } catch (e) {
-    //             traceError(e);
-    //         } finally {
-    //             this.isPromptingToSaveToDisc = false;
-    //         }
-    //     }
-
-    //     private saveAll(args: ISaveAll) {
-    //         this.visibleCells = args.cells;
-    //         this.saveToDisk().ignoreErrors();
-    //     }
-
-    //     private loadCellsComplete(); {
-    //         if (!this.loadedAllCells) {
-    //             this.loadedAllCells = true;
-    //             sendTelemetryEvent(Telemetry.NotebookOpenTime, this.startupTimer.elapsedTime);
-    //         }
-    //     }
-
-    //     private async; clearAllOutputs(); {
-    //         this.visibleCells.forEach(cell => {
-    //             cell.data.execution_count = null;
-    //             cell.data.outputs = [];
-    //         });
-
-    //         await this.setDirty();
-    //     }
+            if (fileToSaveTo) {
+                await this.commandManager.executeCommand('saveAs.Notebook', this.model.file, fileToSaveTo);
+                this.savedEvent.fire(this);
+            }
+        } catch (e) {
+            traceError('Failed to Save nb', e);
+        } finally {
+            this.isPromptingToSaveToDisc = false;
+        }
+    }
 }

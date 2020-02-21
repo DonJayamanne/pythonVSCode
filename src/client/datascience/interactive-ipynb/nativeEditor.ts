@@ -56,7 +56,6 @@ import {
     INativeCommand,
     InteractiveWindowMessages,
     IReExecuteCells,
-    ISaveAll,
     ISubmitNewCell,
     NotebookModelChange,
     SysInfoReason
@@ -95,16 +94,54 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
         return this._onDidChangeViewState.event;
     }
 
+    public get visible(): boolean {
+        return this.viewState.visible;
+    }
+
+    public get active(): boolean {
+        return this.viewState.active;
+    }
+
+    public get file(): Uri {
+        if (this.model) {
+            return this.model.file;
+        }
+        return Uri.file('');
+    }
+
+    public get isUntitled(): boolean {
+        return this.model ? this.model.isUntitled : false;
+    }
+
+    public get closed(): Event<INotebookEditor> {
+        return this.closedEvent.event;
+    }
+
+    public get executed(): Event<INotebookEditor> {
+        return this.executedEvent.event;
+    }
+
+    public get modified(): Event<INotebookEditor> {
+        return this.modifiedEvent.event;
+    }
+    public get saved(): Event<INotebookEditor> {
+        return this.savedEvent.event;
+    }
+
+    public get isDirty(): boolean {
+        return this.model ? this.model.isDirty : false;
+    }
+    protected savedEvent: EventEmitter<INotebookEditor> = new EventEmitter<INotebookEditor>();
+    protected model: INotebookModel | undefined;
+    protected closedEvent: EventEmitter<INotebookEditor> = new EventEmitter<INotebookEditor>();
+    protected modifiedEvent: EventEmitter<INotebookEditor> = new EventEmitter<INotebookEditor>();
+
     private sentExecuteCellTelemetry: boolean = false;
     private _onDidChangeViewState = new EventEmitter<void>();
-    private closedEvent: EventEmitter<INotebookEditor> = new EventEmitter<INotebookEditor>();
     private executedEvent: EventEmitter<INotebookEditor> = new EventEmitter<INotebookEditor>();
-    private modifiedEvent: EventEmitter<INotebookEditor> = new EventEmitter<INotebookEditor>();
-    private savedEvent: EventEmitter<INotebookEditor> = new EventEmitter<INotebookEditor>();
     private loadedPromise: Deferred<void> = createDeferred<void>();
     private startupTimer: StopWatch = new StopWatch();
     private loadedAllCells: boolean = false;
-    private _model: INotebookModel | undefined;
     private executeCancelTokens = new Set<CancellationTokenSource>();
 
     constructor(
@@ -171,25 +208,6 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
         asyncRegistry.push(this);
     }
 
-    public get visible(): boolean {
-        return this.viewState.visible;
-    }
-
-    public get active(): boolean {
-        return this.viewState.active;
-    }
-
-    public get file(): Uri {
-        if (this._model) {
-            return this._model.file;
-        }
-        return Uri.file('');
-    }
-
-    public get isUntitled(): boolean {
-        return this._model ? this._model.isUntitled : false;
-    }
-
     public dispose(): Promise<void> {
         super.dispose();
         return this.close();
@@ -197,7 +215,7 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
 
     public async load(model: INotebookModel, webViewPanel: WebviewPanel): Promise<void> {
         // Save the model we're using
-        this._model = model;
+        this.model = model;
 
         // Indicate we have our identity
         this.loadedPromise.resolve();
@@ -218,25 +236,6 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
                 }
             })
             .catch(exc => traceError('Error loading cells: ', exc));
-    }
-
-    public get closed(): Event<INotebookEditor> {
-        return this.closedEvent.event;
-    }
-
-    public get executed(): Event<INotebookEditor> {
-        return this.executedEvent.event;
-    }
-
-    public get modified(): Event<INotebookEditor> {
-        return this.modifiedEvent.event;
-    }
-    public get saved(): Event<INotebookEditor> {
-        return this.savedEvent.event;
-    }
-
-    public get isDirty(): boolean {
-        return this._model ? this._model.isDirty : false;
     }
 
     // tslint:disable-next-line: no-any
@@ -284,8 +283,8 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
     public async getNotebookOptions(): Promise<INotebookServerOptions> {
         const options = await this.editorProvider.getNotebookOptions(await this.getOwningResource());
         await this.loadedPromise.promise;
-        if (this._model) {
-            const metadata = (await this._model.getJson()).metadata;
+        if (this.model) {
+            const metadata = (await this.model.getJson()).metadata;
             return {
                 ...options,
                 metadata
@@ -422,28 +421,28 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
 
         // Update these cells in our storage only when cells are finished
         const modified = filtered.filter(c => c.state === CellState.finished || c.state === CellState.error);
-        const unmodified = this._model?.cells.filter(c => modified.find(m => m.id === c.id));
-        if (modified.length > 0 && unmodified && this._model) {
-            this._model.update({
+        const unmodified = this.model?.cells.filter(c => modified.find(m => m.id === c.id));
+        if (modified.length > 0 && unmodified && this.model) {
+            this.model.update({
                 source: 'user',
                 kind: 'modify',
                 newCells: modified,
                 oldCells: cloneDeep(unmodified),
-                oldDirty: this._model.isDirty,
+                oldDirty: this.model.isDirty,
                 newDirty: true
             });
         }
 
         // Tell storage about our notebook object
         const notebook = this.getNotebook();
-        if (notebook && this._model) {
+        if (notebook && this.model) {
             const interpreter = notebook.getMatchingInterpreter();
             const kernelSpec = notebook.getKernelSpec();
-            this._model.update({
+            this.model.update({
                 source: 'user',
                 kind: 'version',
-                oldDirty: this._model.isDirty,
-                newDirty: this._model.isDirty,
+                oldDirty: this.model.isDirty,
+                newDirty: this.model.isDirty,
                 interpreter,
                 kernelSpec
             });
@@ -486,6 +485,32 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
 
     protected async closeBecauseOfFailure(_exc: Error): Promise<void> {
         // Actually don't close, just let the error bubble out
+    }
+
+    protected async close(): Promise<void> {
+        // Fire our event
+        this.closedEvent.fire(this);
+
+        // Restart our kernel so that execution counts are reset
+        let oldAsk: boolean | undefined = false;
+        const settings = this.configuration.getSettings();
+        if (settings && settings.datascience) {
+            oldAsk = settings.datascience.askForKernelRestart;
+            settings.datascience.askForKernelRestart = false;
+        }
+        await this.restartKernel();
+        if (oldAsk && settings && settings.datascience) {
+            settings.datascience.askForKernelRestart = true;
+        }
+    }
+
+    protected saveAll() {
+        // Ask user for a save as dialog if no title
+        if (this.isUntitled) {
+            this.commandManager.executeCommand('workbench.action.files.saveAs', this.file);
+        } else {
+            this.commandManager.executeCommand('workbench.action.files.save', this.file);
+        }
     }
 
     private async modelChanged(change: NotebookModelChange) {
@@ -575,33 +600,16 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
 
     private updateModel(change: NotebookModelChange) {
         // Send to our model using a command. User has done something that changes the model
-        if (change.source === 'user' && this._model) {
+        if (change.source === 'user' && this.model) {
             // Note, originally this was posted with a command but sometimes had problems
             // with commands being handled out of order.
-            this._model.update(change);
+            this.model.update(change);
         }
     }
 
     private async sendInitialCellsToWebView(cells: ICell[]): Promise<void> {
         sendTelemetryEvent(Telemetry.CellCount, undefined, { count: cells.length });
         return this.postMessage(InteractiveWindowMessages.LoadAllCells, { cells });
-    }
-
-    private async close(): Promise<void> {
-        // Fire our event
-        this.closedEvent.fire(this);
-
-        // Restart our kernel so that execution counts are reset
-        let oldAsk: boolean | undefined = false;
-        const settings = this.configuration.getSettings();
-        if (settings && settings.datascience) {
-            oldAsk = settings.datascience.askForKernelRestart;
-            settings.datascience.askForKernelRestart = false;
-        }
-        await this.restartKernel();
-        if (oldAsk && settings && settings.datascience) {
-            settings.datascience.askForKernelRestart = true;
-        }
     }
 
     @captureTelemetry(Telemetry.ConvertToPythonFile, undefined, false)
@@ -613,7 +621,7 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
             tempFile = await this.fileSystem.createTemporaryFile('.ipynb');
 
             // Translate the cells into a notebook
-            const content = this._model ? await this._model.getContent(cells) : '';
+            const content = this.model ? await this.model.getContent(cells) : '';
             await this.fileSystem.writeFile(tempFile.filePath, content, 'utf-8');
 
             // Import this file and show it
@@ -634,17 +642,6 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
     private async viewDocument(contents: string): Promise<void> {
         const doc = await this.documentManager.openTextDocument({ language: 'python', content: contents });
         await this.documentManager.showTextDocument(doc, ViewColumn.One);
-    }
-
-    private async saveAll(_args: ISaveAll) {
-        // Ask user for a save as dialog if no title
-        if (this.isUntitled) {
-            this.commandManager.executeCommand('workbench.action.files.saveAs', this.file);
-        } else {
-            this.commandManager
-                .executeCommand('workbench.action.files.save', this.file)
-                .then(() => this.savedEvent.fire(this));
-        }
     }
 
     private logNativeCommand(args: INativeCommand) {

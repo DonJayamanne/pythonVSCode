@@ -51,6 +51,16 @@ export class NativeEditorProviderOld extends NativeEditorProvider {
         this.disposables.push(
             this.documentManager.onDidChangeActiveTextEditor(this.onDidChangeActiveTextEditorHandler.bind(this))
         );
+        this.disposables.push(
+            this.cmdManager.registerCommand('save.Notebook', (resource: Uri) => {
+                this.save(resource);
+            })
+        );
+        this.disposables.push(
+            this.cmdManager.registerCommand('saveAs.Notebook', (resource: Uri, targetResource: Uri) => {
+                this.saveAs(resource, targetResource);
+            })
+        );
 
         // // Since we may have activated after a document was opened, also run open document for all documents.
         // // This needs to be async though. Iterating over all of these in the .ctor is crashing the extension
