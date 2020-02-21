@@ -100,6 +100,7 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
     private closedEvent: EventEmitter<INotebookEditor> = new EventEmitter<INotebookEditor>();
     private executedEvent: EventEmitter<INotebookEditor> = new EventEmitter<INotebookEditor>();
     private modifiedEvent: EventEmitter<INotebookEditor> = new EventEmitter<INotebookEditor>();
+    private savedEvent: EventEmitter<INotebookEditor> = new EventEmitter<INotebookEditor>();
     private loadedPromise: Deferred<void> = createDeferred<void>();
     private startupTimer: StopWatch = new StopWatch();
     private loadedAllCells: boolean = false;
@@ -127,7 +128,7 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
         @inject(IDataViewerProvider) dataExplorerProvider: IDataViewerProvider,
         @inject(IJupyterVariables) jupyterVariables: IJupyterVariables,
         @inject(IJupyterDebugger) jupyterDebugger: IJupyterDebugger,
-        @inject(INotebookImporter) private importer: INotebookImporter,
+        @inject(INotebookImporter) protected readonly importer: INotebookImporter,
         @inject(IDataScienceErrorHandler) errorHandler: IDataScienceErrorHandler,
         @inject(IMemento) @named(GLOBAL_MEMENTO) globalStorage: Memento,
         @inject(ProgressReporter) progressReporter: ProgressReporter,
@@ -229,6 +230,9 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
 
     public get modified(): Event<INotebookEditor> {
         return this.modifiedEvent.event;
+    }
+    public get saved(): Event<INotebookEditor> {
+        return this.savedEvent.event;
     }
 
     public get isDirty(): boolean {
@@ -637,7 +641,10 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
         if (this.isUntitled) {
             this.commandManager.executeCommand('workbench.action.files.saveAs', this.file);
         } else {
-            this.commandManager.executeCommand('workbench.action.files.save', this.file);
+            this.commandManager.executeCommand('workbench.action.files.save', this.file).then(
+                () => this.savedEvent.fire(this),
+                () => this.savedEvent.fire(this)
+            );
         }
     }
 

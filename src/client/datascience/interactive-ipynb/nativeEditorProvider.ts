@@ -42,15 +42,34 @@ export class NativeEditorProvider
         WebviewCustomEditorProvider,
         WebviewCustomEditorEditingDelegate<NotebookModelChange>,
         IAsyncDisposable {
-    // Note, this constant has to match the value used in the package.json to register the webview custom editor.
-    public static readonly customEditorViewType = 'NativeEditorProvider.ipynb';
     public get onDidChangeActiveNotebookEditor(): Event<INotebookEditor | undefined> {
         return this._onDidChangeActiveNotebookEditor.event;
     }
     public get onDidCloseNotebookEditor(): Event<INotebookEditor> {
         return this._onDidCloseNotebookEditor.event;
     }
-    private readonly _onDidChangeActiveNotebookEditor = new EventEmitter<INotebookEditor | undefined>();
+    public get onEdit(): Event<{ readonly resource: Uri; readonly edit: NotebookModelChange }> {
+        return this._editEventEmitter.event;
+    }
+
+    public get editingDelegate(): WebviewCustomEditorEditingDelegate<unknown> | undefined {
+        return this;
+    }
+
+    public get onDidOpenNotebookEditor(): Event<INotebookEditor> {
+        return this._onDidOpenNotebookEditor.event;
+    }
+    public get activeEditor(): INotebookEditor | undefined {
+        return this.editors.find(e => e.visible && e.active);
+    }
+
+    public get editors(): INotebookEditor[] {
+        return [...this.openedEditors];
+    }
+    // Note, this constant has to match the value used in the package.json to register the webview custom editor.
+    public static readonly customEditorViewType = 'NativeEditorProvider.ipynb';
+    protected readonly _onDidChangeActiveNotebookEditor = new EventEmitter<INotebookEditor | undefined>();
+    protected readonly _onDidOpenNotebookEditor = new EventEmitter<INotebookEditor>();
     private readonly _onDidCloseNotebookEditor = new EventEmitter<INotebookEditor>();
     private readonly _editEventEmitter = new EventEmitter<{
         readonly resource: Uri;
@@ -59,17 +78,16 @@ export class NativeEditorProvider
     private openedEditors: Set<INotebookEditor> = new Set<INotebookEditor>();
     private models = new Map<string, Promise<{ model: INotebookModel; storage: INotebookStorage }>>();
     private modelChangedHandlers: Map<string, Disposable> = new Map<string, Disposable>();
-    private _onDidOpenNotebookEditor = new EventEmitter<INotebookEditor>();
     private executedEditors: Set<string> = new Set<string>();
     private notebookCount: number = 0;
     private openedNotebookCount: number = 0;
     private _id = uuid();
     constructor(
-        @inject(IServiceContainer) private serviceContainer: IServiceContainer,
-        @inject(IAsyncDisposableRegistry) asyncRegistry: IAsyncDisposableRegistry,
-        @inject(IDisposableRegistry) private disposables: IDisposableRegistry,
-        @inject(IWorkspaceService) workspace: IWorkspaceService,
-        @inject(IConfigurationService) private configuration: IConfigurationService,
+        @inject(IServiceContainer) protected readonly serviceContainer: IServiceContainer,
+        @inject(IAsyncDisposableRegistry) protected readonly asyncRegistry: IAsyncDisposableRegistry,
+        @inject(IDisposableRegistry) protected readonly disposables: IDisposableRegistry,
+        @inject(IWorkspaceService) protected readonly workspace: IWorkspaceService,
+        @inject(IConfigurationService) protected readonly configuration: IConfigurationService,
         @inject(ICustomEditorService) private customEditorService: ICustomEditorService
     ) {
         traceInfo(`id is ${this._id}`);
@@ -103,9 +121,6 @@ export class NativeEditorProvider
             }
         });
     }
-    public get onEdit(): Event<{ readonly resource: Uri; readonly edit: NotebookModelChange }> {
-        return this._editEventEmitter.event;
-    }
     public applyEdits(resource: Uri, edits: readonly NotebookModelChange[]): Thenable<void> {
         return this.loadModel(resource).then(s => {
             if (s) {
@@ -121,26 +136,7 @@ export class NativeEditorProvider
         });
     }
     public async resolveWebviewEditor(resource: Uri, panel: WebviewPanel) {
-        try {
-            // Get the model
-            const model = await this.loadModel(resource);
-
-            // Create a new editor
-            const editor = this.serviceContainer.get<INotebookEditor>(INotebookEditor);
-
-            // Load it (should already be visible)
-            return editor.load(model, panel).then(() => this.openedEditor(editor));
-        } catch (exc) {
-            // Send telemetry indicating a failure
-            sendTelemetryEvent(Telemetry.OpenNotebookFailure);
-        }
-    }
-    public get editingDelegate(): WebviewCustomEditorEditingDelegate<unknown> | undefined {
-        return this;
-    }
-
-    public get onDidOpenNotebookEditor(): Event<INotebookEditor> {
-        return this._onDidOpenNotebookEditor.event;
+        await this.createNotebookEditor(resource, panel);
     }
 
     public async dispose(): Promise<void> {
@@ -154,13 +150,6 @@ export class NativeEditorProvider
         if (this.notebookCount) {
             sendTelemetryEvent(Telemetry.NotebookWorkspaceCount, undefined, { count: this.notebookCount });
         }
-    }
-    public get activeEditor(): INotebookEditor | undefined {
-        return this.editors.find(e => e.visible && e.active);
-    }
-
-    public get editors(): INotebookEditor[] {
-        return [...this.openedEditors];
     }
 
     public async open(file: Uri): Promise<INotebookEditor> {
@@ -222,6 +211,36 @@ export class NativeEditorProvider
             purpose: Identifiers.HistoryPurpose // Share the same one as the interactive window. Just need a new session
         };
     }
+    protected async createNotebookEditor(resource: Uri, panel?: WebviewPanel) {
+        try {
+            // Get the model
+            const model = await this.loadModel(resource);
+
+            // Create a new editor
+            const editor = this.serviceContainer.get<INotebookEditor>(INotebookEditor);
+
+            // Load it (should already be visible)
+            return editor
+                .load(model, panel)
+                .then(() => this.openedEditor(editor))
+                .then(() => editor);
+        } catch (exc) {
+            // Send telemetry indicating a failure
+            sendTelemetryEvent(Telemetry.OpenNotebookFailure);
+            throw exc;
+        }
+    }
+
+    protected openedEditor(editor: INotebookEditor): void {
+        this.openedNotebookCount += 1;
+        if (!this.executedEditors.has(editor.file.fsPath)) {
+            editor.executed(this.onExecuted.bind(this));
+        }
+        this.disposables.push(editor.onDidChangeViewState(this.onChangedViewState, this));
+        this.openedEditors.add(editor);
+        editor.closed(this.closedEditor.bind(this));
+        this._onDidOpenNotebookEditor.fire(editor);
+    }
 
     private closedEditor(editor: INotebookEditor): void {
         this.openedEditors.delete(editor);
@@ -232,17 +251,6 @@ export class NativeEditorProvider
             this.models.delete(key);
         }
         this._onDidCloseNotebookEditor.fire(editor);
-    }
-
-    private openedEditor(editor: INotebookEditor): void {
-        this.openedNotebookCount += 1;
-        if (!this.executedEditors.has(editor.file.fsPath)) {
-            editor.executed(this.onExecuted.bind(this));
-        }
-        this.disposables.push(editor.onDidChangeViewState(this.onChangedViewState, this));
-        this.openedEditors.add(editor);
-        editor.closed(this.closedEditor.bind(this));
-        this._onDidOpenNotebookEditor.fire(editor);
     }
 
     private onChangedViewState(): void {

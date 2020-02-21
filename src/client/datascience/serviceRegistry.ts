@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 'use strict';
 import { IExtensionSingleActivationService } from '../activation/types';
-import { IWorkspaceService } from '../common/application/types';
+import { IApplicationEnvironment, IWorkspaceService } from '../common/application/types';
 import { IServiceManager } from '../ioc/types';
 import { Activation } from './activation';
 import { CodeCssGenerator } from './codeCssGenerator';
@@ -29,7 +29,9 @@ import { LinkProvider } from './interactive-common/linkProvider';
 import { ShowPlotListener } from './interactive-common/showPlotListener';
 import { NativeEditor } from './interactive-ipynb/nativeEditor';
 import { NativeEditorCommandListener } from './interactive-ipynb/nativeEditorCommandListener';
+import { NativeEditorOldWebView } from './interactive-ipynb/nativeEditorOldWebView';
 import { NativeEditorProvider } from './interactive-ipynb/nativeEditorProvider';
+import { NativeEditorProviderOld } from './interactive-ipynb/nativeEditorProviderOld';
 import { NativeEditorStorage } from './interactive-ipynb/nativeEditorStorage';
 import { InteractiveWindow } from './interactive-window/interactiveWindow';
 import { InteractiveWindowCommandListener } from './interactive-window/interactiveWindowCommandListener';
@@ -151,9 +153,16 @@ export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.addBinding(ICellHashProvider, IInteractiveWindowListener);
     serviceManager.addBinding(ICellHashProvider, INotebookExecutionLogger);
     serviceManager.addBinding(IJupyterDebugger, ICellHashListener);
-    serviceManager.addSingleton<INotebookEditorProvider>(INotebookEditorProvider, NativeEditorProvider);
+    const app = serviceManager.get<IApplicationEnvironment>(IApplicationEnvironment);
+    serviceManager.addSingleton<INotebookEditorProvider>(
+        INotebookEditorProvider,
+        app.packageJson.enableProposedApi ? NativeEditorProvider : NativeEditorProviderOld
+    );
     serviceManager.add<INotebookStorage>(INotebookStorage, NativeEditorStorage);
-    serviceManager.add<INotebookEditor>(INotebookEditor, NativeEditor);
+    serviceManager.add<INotebookEditor>(
+        INotebookEditor,
+        app.packageJson.enableProposedApi ? NativeEditor : NativeEditorOldWebView
+    );
     serviceManager.addSingleton<IDataScienceCommandListener>(IDataScienceCommandListener, NativeEditorCommandListener);
     serviceManager.addBinding(ICodeLensFactory, IInteractiveWindowListener);
     serviceManager.addSingleton<IDebugLocationTracker>(IDebugLocationTracker, DebugLocationTrackerFactory);
