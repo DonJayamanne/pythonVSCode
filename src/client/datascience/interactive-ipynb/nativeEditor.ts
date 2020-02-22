@@ -489,6 +489,17 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
             // VS code is telling us to broadcast this to our UI. Tell the UI about the new change
             await this.postMessage(InteractiveWindowMessages.UpdateModel, change);
         }
+
+        // Use the current state of the model to indicate dirty (not the message itself)
+        if (this._model && change.newDirty !== change.oldDirty) {
+            this.modifiedEvent.fire();
+            if (this._model.isDirty) {
+                await this.postMessage(InteractiveWindowMessages.NotebookDirty);
+            } else {
+                // Then tell the UI
+                await this.postMessage(InteractiveWindowMessages.NotebookClean);
+            }
+        }
     }
     private interruptExecution() {
         this.executeCancelTokens.forEach(t => t.cancel());
@@ -524,19 +535,6 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
                     false,
                     cancelToken
                 );
-
-                if (!cancelToken.isCancellationRequested) {
-                    // Activate the other side, and send as if came from a file
-                    await this.editorProvider.show(this.file);
-                    this.shareMessage(InteractiveWindowMessages.RemoteReexecuteCode, {
-                        code: entry.code,
-                        file: Identifiers.EmptyFileName,
-                        line: 0,
-                        id: entry.cell.id,
-                        originator: this.id,
-                        debug: false
-                    });
-                }
             }
         } catch (exc) {
             // Make this error our cell output
