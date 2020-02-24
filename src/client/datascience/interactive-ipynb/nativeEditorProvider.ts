@@ -107,28 +107,28 @@ export class NativeEditorProvider
         });
     }
 
-    public save(resource: Uri): Thenable<void> {
+    public save(resource: Uri): Promise<void> {
         return this.loadStorage(resource).then(async s => {
             if (s) {
                 await s.save();
             }
         });
     }
-    public saveAs(resource: Uri, targetResource: Uri): Thenable<void> {
+    public saveAs(resource: Uri, targetResource: Uri): Promise<void> {
         return this.loadStorage(resource).then(async s => {
             if (s) {
                 await s.saveAs(targetResource);
             }
         });
     }
-    public applyEdits(resource: Uri, edits: readonly NotebookModelChange[]): Thenable<void> {
+    public applyEdits(resource: Uri, edits: readonly NotebookModelChange[]): Promise<void> {
         return this.loadModel(resource).then(s => {
             if (s) {
                 edits.forEach(e => s.update({ ...e, source: 'redo' }));
             }
         });
     }
-    public undoEdits(resource: Uri, edits: readonly NotebookModelChange[]): Thenable<void> {
+    public undoEdits(resource: Uri, edits: readonly NotebookModelChange[]): Promise<void> {
         return this.loadModel(resource).then(s => {
             if (s) {
                 edits.forEach(e => s.update({ ...e, source: 'undo' }));

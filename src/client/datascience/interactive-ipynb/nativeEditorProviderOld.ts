@@ -52,15 +52,15 @@ export class NativeEditorProviderOld extends NativeEditorProvider {
             this.documentManager.onDidChangeActiveTextEditor(this.onDidChangeActiveTextEditorHandler.bind(this))
         );
         this.disposables.push(
-            this.cmdManager.registerCommand(Commands.SaveNotebookNonCustomEditor, (resource: Uri) => {
-                this.save(resource);
+            this.cmdManager.registerCommand(Commands.SaveNotebookNonCustomEditor, async (resource: Uri) => {
+                await this.save(resource);
             })
         );
         this.disposables.push(
             this.cmdManager.registerCommand(
                 Commands.SaveAsNotebookNonCustomEditor,
-                (resource: Uri, targetResource: Uri) => {
-                    this.saveAs(resource, targetResource);
+                async (resource: Uri, targetResource: Uri) => {
+                    await this.saveAs(resource, targetResource);
                 }
             )
         );
