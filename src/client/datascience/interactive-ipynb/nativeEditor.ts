@@ -520,9 +520,9 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
         }
 
         // Use the current state of the model to indicate dirty (not the message itself)
-        if (this._model && change.newDirty !== change.oldDirty) {
+        if (this.model && change.newDirty !== change.oldDirty) {
             this.modifiedEvent.fire();
-            if (this._model.isDirty) {
+            if (this.model.isDirty) {
                 await this.postMessage(InteractiveWindowMessages.NotebookDirty);
             } else {
                 // Then tell the UI

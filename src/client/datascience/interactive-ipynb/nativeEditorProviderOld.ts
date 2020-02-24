@@ -15,7 +15,7 @@ import { JUPYTER_LANGUAGE } from '../../common/constants';
 import { IFileSystem } from '../../common/platform/types';
 import { IAsyncDisposableRegistry, IConfigurationService, IDisposableRegistry, Resource } from '../../common/types';
 import { IServiceContainer } from '../../ioc/types';
-import { Identifiers, Settings } from '../constants';
+import { Commands, Identifiers, Settings } from '../constants';
 import { IDataScienceErrorHandler, INotebookEditor, INotebookServerOptions } from '../types';
 import { NativeEditorProvider } from './nativeEditorProvider';
 
@@ -52,14 +52,17 @@ export class NativeEditorProviderOld extends NativeEditorProvider {
             this.documentManager.onDidChangeActiveTextEditor(this.onDidChangeActiveTextEditorHandler.bind(this))
         );
         this.disposables.push(
-            this.cmdManager.registerCommand('save.Notebook', (resource: Uri) => {
+            this.cmdManager.registerCommand(Commands.SaveNotebookNonCustomEditor, (resource: Uri) => {
                 this.save(resource);
             })
         );
         this.disposables.push(
-            this.cmdManager.registerCommand('saveAs.Notebook', (resource: Uri, targetResource: Uri) => {
-                this.saveAs(resource, targetResource);
-            })
+            this.cmdManager.registerCommand(
+                Commands.SaveAsNotebookNonCustomEditor,
+                (resource: Uri, targetResource: Uri) => {
+                    this.saveAs(resource, targetResource);
+                }
+            )
         );
 
         // // Since we may have activated after a document was opened, also run open document for all documents.

@@ -28,7 +28,7 @@ import {
 import * as localize from '../../common/utils/localize';
 import { IInterpreterService } from '../../interpreter/contracts';
 import { captureTelemetry } from '../../telemetry';
-import { Telemetry } from '../constants';
+import { Commands, Telemetry } from '../constants';
 import { InteractiveWindowMessages } from '../interactive-common/interactiveWindowTypes';
 import { ProgressReporter } from '../progress/progressReporter';
 import {
@@ -246,7 +246,7 @@ export class NativeEditorOldWebView extends NativeEditor {
         }
         try {
             if (!this.isUntitled) {
-                await this.commandManager.executeCommand('save.Notebook', this.model?.file);
+                await this.commandManager.executeCommand(Commands.SaveNotebookNonCustomEditor, this.model?.file);
                 this.savedEvent.fire(this);
                 return;
             }
@@ -260,7 +260,7 @@ export class NativeEditorOldWebView extends NativeEditor {
 
             const defaultUri =
                 Array.isArray(this.workspaceService.workspaceFolders) &&
-                this.workspaceService.workspaceFolders.length > 0
+                    this.workspaceService.workspaceFolders.length > 0
                     ? this.workspaceService.workspaceFolders[0].uri
                     : undefined;
             fileToSaveTo = await this.applicationShell.showSaveDialog({
@@ -270,7 +270,11 @@ export class NativeEditorOldWebView extends NativeEditor {
             });
 
             if (fileToSaveTo) {
-                await this.commandManager.executeCommand('saveAs.Notebook', this.model.file, fileToSaveTo);
+                await this.commandManager.executeCommand(
+                    Commands.SaveAsNotebookNonCustomEditor,
+                    this.model.file,
+                    fileToSaveTo
+                );
                 this.savedEvent.fire(this);
             }
         } catch (e) {

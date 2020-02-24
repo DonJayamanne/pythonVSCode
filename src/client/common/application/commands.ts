@@ -157,4 +157,6 @@ export interface ICommandNameArgumentTypeMapping extends ICommandNameWithoutArgu
     [DSCommands.ViewJupyterOutput]: [];
     [DSCommands.SwitchJupyterKernel]: [INotebook | undefined];
     [DSCommands.SelectJupyterCommandLine]: [undefined | Uri];
+    [DSCommands.SaveNotebookNonCustomEditor]: [Uri];
+    [DSCommands.SaveAsNotebookNonCustomEditor]: [Uri, Uri];
 }
