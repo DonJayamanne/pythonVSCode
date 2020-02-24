@@ -1345,12 +1345,11 @@ df.head()`;
                 wrapper.update();
                 assert.equal(wrapper.find('NativeCell').length, 3);
 
-                // const secondCell = wrapper.find('NativeCell').at(1);
-
                 clickCell(0);
+                const addedCell = waitForMessage(ioc, CommonActionType.INSERT_ABOVE_AND_FOCUS_NEW_CELL);
                 const update = waitForUpdate(wrapper, NativeEditor, 1);
                 simulateKeyPressOnCell(0, { code: 'a' });
-                await update;
+                await Promise.all([update, addedCell]);
 
                 // There should be 4 cells.
                 assert.equal(wrapper.find('NativeCell').length, 4);
