@@ -236,7 +236,6 @@ suite('Unit Tests - unittest - run with mocked process output', () => {
             assert.equal(results.summary.skipped, 1, 'skipped');
         });
 
-        // tslint:disable-next-line: max-func-body-length
         test(`Run Failed Tests [${cfg.startDirSwitch}, ${cfg.patternSwitch}]`, async () => {
             await updateSetting(
                 'testing.unittestArgs',
