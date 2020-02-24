@@ -27,6 +27,7 @@ import { DebugListener } from './interactive-common/debugListener';
 import { IntellisenseProvider } from './interactive-common/intellisense/intellisenseProvider';
 import { LinkProvider } from './interactive-common/linkProvider';
 import { ShowPlotListener } from './interactive-common/showPlotListener';
+import { AutoSaveService } from './interactive-ipynb/autoSaveService';
 import { NativeEditor } from './interactive-ipynb/nativeEditor';
 import { NativeEditorCommandListener } from './interactive-ipynb/nativeEditorCommandListener';
 import { NativeEditorOldWebView } from './interactive-ipynb/nativeEditorOldWebView';
@@ -141,6 +142,7 @@ export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.add<IInteractiveWindowListener>(IInteractiveWindowListener, IntellisenseProvider);
     serviceManager.add<IInteractiveWindowListener>(IInteractiveWindowListener, LinkProvider);
     serviceManager.add<IInteractiveWindowListener>(IInteractiveWindowListener, ShowPlotListener);
+    serviceManager.add<IInteractiveWindowListener>(IInteractiveWindowListener, AutoSaveService);
     serviceManager.add<IInteractiveWindowListener>(IInteractiveWindowListener, DebugListener);
     serviceManager.add<IInteractiveWindowListener>(IInteractiveWindowListener, GatherListener);
     serviceManager.addSingleton<IPlotViewerProvider>(IPlotViewerProvider, PlotViewerProvider);
