@@ -390,6 +390,20 @@ ${buildSettingsCss(this.props.settings)}`}</style>
                 }
                 break;
             }
+            case 'z':
+            case 'Z':
+                if (!getSelectedAndFocusedInfo(this.props).focusedCellId) {
+                    if (event.shiftKey && !event.ctrlKey && !event.altKey) {
+                        event.stopPropagation();
+                        this.props.redo();
+                        this.props.sendCommand(NativeCommandType.Redo, 'keyboard');
+                    } else if (!event.shiftKey && !event.altKey && !event.ctrlKey) {
+                        event.stopPropagation();
+                        this.props.undo();
+                        this.props.sendCommand(NativeCommandType.Undo, 'keyboard');
+                    }
+                }
+                break;
             default:
                 break;
         }
