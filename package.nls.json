@@ -178,6 +178,7 @@
     "DataScience.pythonVersionHeader": "Python version:",
     "DataScience.pythonRestartHeader": "Restarted kernel:",
     "DataScience.pythonNewHeader": "Started new kernel:",
+    "DataScience.pythonConnectHeader": "Connected to kernel:",
     "DataScience.executingCodeFailure": "Executing code failed : {0}",
     "DataScience.inputWatermark": "Type code here and press shift-enter to run",
     "DataScience.deleteButtonTooltip": "Remove cell",
@@ -442,5 +443,8 @@
     "DataScience.gettingListOfKernelSpecs": "Fetching Kernel specs",
     "DataScience.startingJupyterNotebook": "Starting Jupyter Notebook",
     "DataScience.registeringKernel": "Registering Kernel",
-    "DataScience.trimmedOutput": "Output was trimmed for performance reasons.\nTo see the full output set the setting \"python.dataScience.textOutputLimit\" to 0."
+    "DataScience.trimmedOutput": "Output was trimmed for performance reasons.\nTo see the full output set the setting \"python.dataScience.textOutputLimit\" to 0.",
+    "DataScience.connectingToJupyterUri" : "Connecting to Jupyter server at {0}",
+    "DataScience.createdNewNotebook" : "{0}: Creating new notebook ",
+    "DataScience.createdNewKernel" : "{0}: Kernel started: {1}"
 }

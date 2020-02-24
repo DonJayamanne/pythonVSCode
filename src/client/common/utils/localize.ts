@@ -409,6 +409,7 @@ export namespace DataScience {
     export const pythonVersionHeader = localize('DataScience.pythonVersionHeader', 'Python Version:');
     export const pythonRestartHeader = localize('DataScience.pythonRestartHeader', 'Restarted Kernel:');
     export const pythonNewHeader = localize('DataScience.pythonNewHeader', 'Started new kernel:');
+    export const pythonConnectHeader = localize('DataScience.pythonConnectHeader', 'Connected to kernel:');
 
     export const jupyterSelectURIPrompt = localize(
         'DataScience.jupyterSelectURIPrompt',
@@ -790,6 +791,14 @@ export namespace DataScience {
         'DataScience.jupyterCommandLinePrompt',
         'Enter your custom command line for Jupyter'
     );
+
+    export const connectingToJupyterUri = localize(
+        'DataScience.connectingToJupyterUri',
+        'Connecting to Jupyter server at {0}'
+    );
+    export const createdNewNotebook = localize('DataScience.createdNewNotebook', '{0}: Creating new notebook ');
+
+    export const createdNewKernel = localize('DataScience.createdNewKernel', '{0}: Kernel started: {1}');
 }
 
 export namespace DebugConfigStrings {
