@@ -188,7 +188,7 @@ export class NativeEditorOldWebView extends NativeEditor {
             const autoSave = filesConfig.get('autoSave', 'off');
             if (autoSave === 'off') {
                 const model = this.model as NativeEditorStorage;
-                await model.storeContentsInHotExitFile(await model.getContent());
+                await model.storeContentsInHotExitFile();
             }
             this.commandManager.executeCommand(Commands.OpenNotebookNonCustomEditor, this.model.file).then(noop, noop);
         }

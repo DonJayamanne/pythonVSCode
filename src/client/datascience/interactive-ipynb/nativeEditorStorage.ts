@@ -113,7 +113,8 @@ export class NativeEditorStorage implements INotebookModel, INotebookStorage {
      * Also keep track of the current time. This way we can check whether changes were
      * made to the file since the last time uncommitted changes were stored.
      */
-    public async storeContentsInHotExitFile(contents: string): Promise<void> {
+    public async storeContentsInHotExitFile(): Promise<void> {
+        const contents = await this.getContent();
         const key = this.getStorageKey();
         const filePath = this.getHashedFileName(key);
 
