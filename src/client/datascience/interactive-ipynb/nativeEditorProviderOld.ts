@@ -65,6 +65,12 @@ export class NativeEditorProviderOld extends NativeEditorProvider {
             )
         );
 
+        this.disposables.push(
+            this.cmdManager.registerCommand(Commands.OpenNotebookNonCustomEditor, async (resource: Uri) => {
+                await this.open(resource);
+            })
+        );
+
         // // Since we may have activated after a document was opened, also run open document for all documents.
         // // This needs to be async though. Iterating over all of these in the .ctor is crashing the extension
         // // host, so postpone till after the ctor is finished.

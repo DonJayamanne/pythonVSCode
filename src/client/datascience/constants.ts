@@ -80,6 +80,7 @@ export namespace Commands {
     export const ViewJupyterOutput = 'python.datascience.viewJupyterOutput';
     export const SaveNotebookNonCustomEditor = 'python.datascience.notebookeditor.save';
     export const SaveAsNotebookNonCustomEditor = 'python.datascience.notebookeditor.saveAs';
+    export const OpenNotebookNonCustomEditor = 'python.datascience.notebookeditor.open';
 }
 
 export namespace CodeLensCommands {

@@ -26,6 +26,7 @@ import {
     IMemento
 } from '../../common/types';
 import * as localize from '../../common/utils/localize';
+import { noop } from '../../common/utils/misc';
 import { IInterpreterService } from '../../interpreter/contracts';
 import { captureTelemetry } from '../../telemetry';
 import { Commands, Telemetry } from '../constants';
@@ -47,6 +48,7 @@ import {
     IThemeFinder
 } from '../types';
 import { NativeEditor } from './nativeEditor';
+import { NativeEditorStorage } from './nativeEditorStorage';
 
 enum AskForSaveResult {
     Yes,
@@ -175,10 +177,11 @@ export class NativeEditorOldWebView extends NativeEditor {
                     await actuallyClose();
                     break;
 
-                default:
-                    // Reopen
+                default: {
+                    await actuallyClose();
                     await this.reopen();
                     break;
+                }
             }
         } else {
             // Not dirty, just close normally.
@@ -190,8 +193,22 @@ export class NativeEditorOldWebView extends NativeEditor {
         this.saveToDisk().ignoreErrors();
     }
 
+    /**
+     * Used closed notebook with unsaved changes, then when prompted they clicked cancel.
+     * Clicking cancel means we need to keep the nb open.
+     * Hack is to re-open nb with old changes.
+     */
     private async reopen(): Promise<void> {
-        // TODO: Fire command to open an nb.
+        if (this.model) {
+            // Skip doing this if auto save is enabled.
+            const filesConfig = this.workspaceService.getConfiguration('files', this.file);
+            const autoSave = filesConfig.get('autoSave', 'off');
+            if (autoSave === 'off') {
+                const model = this.model as NativeEditorStorage;
+                await model.storeContentsInHotExitFile(await model.getContent());
+            }
+            this.commandManager.executeCommand(Commands.OpenNotebookNonCustomEditor, this.model.file).then(noop, noop);
+        }
     }
 
     private async askForSave(): Promise<AskForSaveResult> {
