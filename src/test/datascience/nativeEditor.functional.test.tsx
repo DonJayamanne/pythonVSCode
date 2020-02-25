@@ -90,6 +90,10 @@ suite('DataScience Native Editor', () => {
     suite('Editor tests', () => {
         const disposables: Disposable[] = [];
         let ioc: DataScienceIocContainer;
+        let tempNotebookFile: {
+            filePath: string;
+            cleanupCallback: Function;
+        };
 
         setup(async () => {
             ioc = new DataScienceIocContainer();
@@ -117,6 +121,7 @@ suite('DataScience Native Editor', () => {
                 .setup(a => a.showSaveDialog(TypeMoq.It.isAny()))
                 .returns(() => Promise.resolve(Uri.file('foo.ipynb')));
             ioc.serviceManager.rebindInstance<IApplicationShell>(IApplicationShell, appShell.object);
+            tempNotebookFile = await createTemporaryFile('.ipynb');
         });
 
         teardown(async () => {
@@ -131,6 +136,11 @@ suite('DataScience Native Editor', () => {
                 }
             }
             await ioc.dispose();
+            try {
+                tempNotebookFile.cleanupCallback();
+            } catch {
+                noop();
+            }
         });
 
         // Uncomment this to debug hangs on exit
@@ -418,14 +428,16 @@ df.head()`;
                 appShell
                     .setup(a => a.showSaveDialog(TypeMoq.It.isAny()))
                     .returns(() => {
-                        return Promise.resolve(undefined);
+                        return Promise.resolve(Uri.file(tempNotebookFile.filePath));
                     });
                 appShell.setup(a => a.setStatusBarMessage(TypeMoq.It.isAny())).returns(() => dummyDisposable);
                 ioc.serviceManager.rebindInstance<IApplicationShell>(IApplicationShell, appShell.object);
 
                 // Make sure to create the interactive window after the rebind or it gets the wrong application shell.
                 await createNewEditor(ioc);
+                const dirtyPromise = waitForMessage(ioc, InteractiveWindowMessages.NotebookDirty);
                 await addCell(wrapper, ioc, 'a=1\na');
+                await dirtyPromise;
 
                 // Export should cause exportCalled to change to true
                 const saveButton = findButton(wrapper, NativeEditor, 8);
@@ -447,6 +459,57 @@ df.head()`;
                 const newDoc = docManager.activeTextEditor;
                 assert.ok(newDoc, 'New doc not created');
                 assert.ok(newDoc!.document.getText().includes('a=1'), 'Export did not create a python file');
+            },
+            () => {
+                return ioc;
+            }
+        );
+
+        runMountedTest(
+            'Save As',
+            async wrapper => {
+                const initialFileContents = (await fs.readFile(tempNotebookFile.filePath, 'utf8')).toString();
+                // Export should cause the export dialog to come up. Remap appshell so we can check
+                const dummyDisposable = {
+                    dispose: () => {
+                        return;
+                    }
+                };
+                const appShell = TypeMoq.Mock.ofType<IApplicationShell>();
+                appShell
+                    .setup(a => a.showErrorMessage(TypeMoq.It.isAnyString()))
+                    .returns(e => {
+                        throw e;
+                    });
+                appShell
+                    .setup(a => a.showInformationMessage(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+                    .returns(() => Promise.resolve(''));
+                appShell
+                    .setup(a => a.showSaveDialog(TypeMoq.It.isAny()))
+                    .returns(() => {
+                        return Promise.resolve(Uri.file(tempNotebookFile.filePath));
+                    });
+                appShell.setup(a => a.setStatusBarMessage(TypeMoq.It.isAny())).returns(() => dummyDisposable);
+                ioc.serviceManager.rebindInstance<IApplicationShell>(IApplicationShell, appShell.object);
+
+                // Make sure to create the interactive window after the rebind or it gets the wrong application shell.
+                await createNewEditor(ioc);
+                const dirtyPromise = waitForMessage(ioc, InteractiveWindowMessages.NotebookDirty);
+                await addCell(wrapper, ioc, 'a=1\na');
+                await dirtyPromise;
+
+                // Export should cause exportCalled to change to true
+                const saveButton = findButton(wrapper, NativeEditor, 8);
+                const saved = waitForMessage(ioc, InteractiveWindowMessages.NotebookClean);
+                await waitForMessageResponse(ioc, () => saveButton!.simulate('click'));
+                await saved;
+
+                const newFileContents = (await fs.readFile(tempNotebookFile.filePath, 'utf8')).toString();
+                // File should have been modified.
+                assert.notEqual(initialFileContents, newFileContents);
+                // Should be a valid json with 2 cells.
+                const nbContent = JSON.parse(newFileContents) as nbformat.INotebookContent;
+                assert.equal(nbContent.cells.length, 2);
             },
             () => {
                 return ioc;
