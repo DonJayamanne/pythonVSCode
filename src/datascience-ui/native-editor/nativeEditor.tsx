@@ -13,7 +13,7 @@ import { KernelSelection } from '../interactive-common/kernelSelection';
 import { getSelectedAndFocusedInfo, ICellViewModel, IMainState } from '../interactive-common/mainState';
 import { IMainWithVariables, IStore } from '../interactive-common/redux/store';
 import { IVariablePanelProps, VariablePanel } from '../interactive-common/variablePanel';
-import { getOSType } from '../react-common/constants';
+import { getOSType, UseCustomEditor } from '../react-common/constants';
 import { ErrorBoundary } from '../react-common/errorBoundary';
 import { Image, ImageName } from '../react-common/image';
 import { ImageButton } from '../react-common/imageButton';
@@ -392,7 +392,7 @@ ${buildSettingsCss(this.props.settings)}`}</style>
             }
             case 'z':
             case 'Z':
-                if (!getSelectedAndFocusedInfo(this.props).focusedCellId) {
+                if (!getSelectedAndFocusedInfo(this.props).focusedCellId && UseCustomEditor) {
                     if (event.shiftKey && !event.ctrlKey && !event.altKey) {
                         event.stopPropagation();
                         this.props.redo();

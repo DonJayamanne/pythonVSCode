@@ -19,7 +19,7 @@ import { CellOutput } from '../interactive-common/cellOutput';
 import { ExecutionCount } from '../interactive-common/executionCount';
 import { InformationMessages } from '../interactive-common/informationMessages';
 import { CursorPos, ICellViewModel, IFont } from '../interactive-common/mainState';
-import { getOSType } from '../react-common/constants';
+import { getOSType, UseCustomEditor } from '../react-common/constants';
 import { IKeyboardEvent } from '../react-common/event';
 import { Image, ImageName } from '../react-common/image';
 import { ImageButton } from '../react-common/imageButton';
@@ -335,7 +335,7 @@ export class NativeCell extends React.Component<INativeCellProps> {
                 break;
             case 'z':
             case 'Z':
-                if (!this.isFocused()) {
+                if (!this.isFocused() && UseCustomEditor) {
                     if (e.shiftKey && !e.ctrlKey && !e.altKey) {
                         e.stopPropagation();
                         this.props.redo();
@@ -649,7 +649,7 @@ export class NativeCell extends React.Component<INativeCellProps> {
                         keyDown={this.keyDownInput}
                         showLineNumbers={this.props.cellVM.showLineNumbers}
                         font={this.props.font}
-                        disableUndoStack={true}
+                        disableUndoStack={UseCustomEditor}
                         codeVersion={this.props.cellVM.codeVersion ? this.props.cellVM.codeVersion : 1}
                         focusPending={this.props.focusPending}
                     />
