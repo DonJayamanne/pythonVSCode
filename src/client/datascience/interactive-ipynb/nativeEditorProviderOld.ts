@@ -71,23 +71,14 @@ export class NativeEditorProviderOld extends NativeEditorProvider {
             })
         );
 
-        // // Since we may have activated after a document was opened, also run open document for all documents.
-        // // This needs to be async though. Iterating over all of these in the .ctor is crashing the extension
-        // // host, so postpone till after the ctor is finished.
-        // setTimeout(() => {
-        //     if (this.documentManager.textDocuments && this.documentManager.textDocuments.forEach) {
-        //         this.documentManager.textDocuments.forEach(doc => this.openNotebookAndCloseEditor(doc, false));
-        //     }
-        // }, 0);
-
-        // // Reopen our list of files that were open during shutdown. Actually not doing this for now. The files
-        // don't open until the extension loads and all they all steal focus.
-        // const uriList = this.workspaceStorage.get<Uri[]>(NotebookUriListStorageKey);
-        // if (uriList && uriList.length) {
-        //     uriList.forEach(u => {
-        //         this.fileSystem.readFile(u.fsPath).then(c => this.open(u, c).ignoreErrors()).ignoreErrors();
-        //     });
-        // }
+        // Since we may have activated after a document was opened, also run open document for all documents.
+        // This needs to be async though. Iterating over all of these in the .ctor is crashing the extension
+        // host, so postpone till after the ctor is finished.
+        setTimeout(() => {
+            if (this.documentManager.textDocuments && this.documentManager.textDocuments.forEach) {
+                this.documentManager.textDocuments.forEach(doc => this.openNotebookAndCloseEditor(doc, false));
+            }
+        }, 0);
     }
 
     public async open(file: Uri): Promise<INotebookEditor> {
