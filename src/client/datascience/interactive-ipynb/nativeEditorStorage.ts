@@ -108,6 +108,36 @@ export class NativeEditorStorage implements INotebookModel, INotebookStorage {
         return this.generateNotebookContent(cells ? cells : this.cells);
     }
 
+    /**
+     * Stores the uncommitted notebook changes into a temporary location.
+     * Also keep track of the current time. This way we can check whether changes were
+     * made to the file since the last time uncommitted changes were stored.
+     */
+    public async storeContentsInHotExitFile(): Promise<void> {
+        const contents = await this.getContent();
+        const key = this.getStorageKey();
+        const filePath = this.getHashedFileName(key);
+
+        // Keep track of the time when this data was saved.
+        // This way when we retrieve the data we can compare it against last modified date of the file.
+        const specialContents = contents ? JSON.stringify({ contents, lastModifiedTimeMs: Date.now() }) : undefined;
+
+        // Write but debounced (wait at least 250 ms)
+        return this.writeToStorage(filePath, specialContents);
+    }
+    private async writeToStorage(filePath: string, contents?: string): Promise<void> {
+        try {
+            if (contents) {
+                await this.fileSystem.createDirectory(path.dirname(filePath));
+                return this.fileSystem.writeFile(filePath, contents);
+            } else {
+                return this.fileSystem.deleteFile(filePath);
+            }
+        } catch (exc) {
+            traceError(`Error writing storage for ${filePath}: `, exc);
+        }
+    }
+
     private sendLanguageTelemetry(notebookJson: Partial<nbformat.INotebookContent>) {
         try {
             // See if we have a language
