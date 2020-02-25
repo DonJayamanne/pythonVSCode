@@ -4,7 +4,13 @@
 import { inject, injectable } from 'inversify';
 import { Event, Uri } from 'vscode';
 
-import { ICustomEditorService, IWorkspaceService } from '../../client/common/application/types';
+import {
+    ICommandManager,
+    ICustomEditorService,
+    IDocumentManager,
+    IWorkspaceService
+} from '../../client/common/application/types';
+import { IFileSystem } from '../../client/common/platform/types';
 import {
     IAsyncDisposableRegistry,
     IConfigurationService,
@@ -15,7 +21,13 @@ import { InteractiveWindowMessageListener } from '../../client/datascience/inter
 import { InteractiveWindowMessages } from '../../client/datascience/interactive-common/interactiveWindowTypes';
 import { NativeEditor } from '../../client/datascience/interactive-ipynb/nativeEditor';
 import { NativeEditorProvider } from '../../client/datascience/interactive-ipynb/nativeEditorProvider';
-import { INotebookEditor, INotebookEditorProvider, INotebookServerOptions } from '../../client/datascience/types';
+import { NativeEditorProviderOld } from '../../client/datascience/interactive-ipynb/nativeEditorProviderOld';
+import {
+    IDataScienceErrorHandler,
+    INotebookEditor,
+    INotebookEditorProvider,
+    INotebookServerOptions
+} from '../../client/datascience/types';
 import { IServiceContainer } from '../../client/ioc/types';
 
 @injectable()
@@ -32,21 +44,41 @@ export class TestNativeEditorProvider implements INotebookEditorProvider {
     }
 
     constructor(
+        @inject('USE_CUSTOM_EDITOR') useCustomEditor: boolean,
         @inject(IServiceContainer) serviceContainer: IServiceContainer,
         @inject(IAsyncDisposableRegistry) asyncRegistry: IAsyncDisposableRegistry,
         @inject(IDisposableRegistry) disposables: IDisposableRegistry,
         @inject(IWorkspaceService) workspace: IWorkspaceService,
         @inject(IConfigurationService) configuration: IConfigurationService,
-        @inject(ICustomEditorService) customEditorService: ICustomEditorService
+        @inject(ICustomEditorService) customEditorService: ICustomEditorService,
+        @inject(IFileSystem) fs: IFileSystem,
+        @inject(IDocumentManager) documentManager: IDocumentManager,
+        @inject(ICommandManager) cmdManager: ICommandManager,
+        @inject(IDataScienceErrorHandler) dataScienceErrorHandler: IDataScienceErrorHandler
     ) {
-        this.realProvider = new NativeEditorProvider(
-            serviceContainer,
-            asyncRegistry,
-            disposables,
-            workspace,
-            configuration,
-            customEditorService
-        );
+        if (useCustomEditor) {
+            this.realProvider = new NativeEditorProvider(
+                serviceContainer,
+                asyncRegistry,
+                disposables,
+                workspace,
+                configuration,
+                customEditorService
+            );
+        } else {
+            this.realProvider = new NativeEditorProviderOld(
+                serviceContainer,
+                asyncRegistry,
+                disposables,
+                workspace,
+                configuration,
+                customEditorService,
+                fs,
+                documentManager,
+                cmdManager,
+                dataScienceErrorHandler
+            );
+        }
     }
 
     public get activeEditor(): INotebookEditor | undefined {

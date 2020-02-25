@@ -174,6 +174,7 @@ import { IntellisenseProvider } from '../../client/datascience/interactive-commo
 import { AutoSaveService } from '../../client/datascience/interactive-ipynb/autoSaveService';
 import { NativeEditor } from '../../client/datascience/interactive-ipynb/nativeEditor';
 import { NativeEditorCommandListener } from '../../client/datascience/interactive-ipynb/nativeEditorCommandListener';
+import { NativeEditorOldWebView } from '../../client/datascience/interactive-ipynb/nativeEditorOldWebView';
 import { NativeEditorStorage } from '../../client/datascience/interactive-ipynb/nativeEditorStorage';
 import { InteractiveWindow } from '../../client/datascience/interactive-window/interactiveWindow';
 import { InteractiveWindowCommandListener } from '../../client/datascience/interactive-window/interactiveWindowCommandListener';
@@ -453,7 +454,7 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
     }
 
     //tslint:disable:max-func-body-length
-    public registerDataScienceTypes() {
+    public registerDataScienceTypes(useCustomEditor: boolean = false) {
         const testWorkspaceFolder = path.join(EXTENSION_ROOT_DIR, 'src', 'test', 'datascience');
 
         this.registerFileSystemTypes();
@@ -463,6 +464,7 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
             IInteractiveWindowProvider,
             TestInteractiveWindowProvider
         );
+        this.serviceManager.addSingletonInstance('USE_CUSTOM_EDITOR', useCustomEditor);
         this.serviceManager.addSingleton<IDataViewerProvider>(IDataViewerProvider, DataViewerProvider);
         this.serviceManager.addSingleton<IPlotViewerProvider>(IPlotViewerProvider, PlotViewerProvider);
         this.serviceManager.add<IInteractiveWindow>(IInteractiveWindow, InteractiveWindow);
@@ -509,7 +511,11 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
         this.serviceManager.addSingleton<IJupyterDebugger>(IJupyterDebugger, JupyterDebugger);
         this.serviceManager.addSingleton<IDebugLocationTracker>(IDebugLocationTracker, DebugLocationTrackerFactory);
         this.serviceManager.addSingleton<INotebookEditorProvider>(INotebookEditorProvider, TestNativeEditorProvider);
-        this.serviceManager.add<INotebookEditor>(INotebookEditor, NativeEditor);
+        this.serviceManager.add<INotebookEditor>(
+            INotebookEditor,
+            useCustomEditor ? NativeEditor : NativeEditorOldWebView
+        );
+
         this.serviceManager.add<INotebookStorage>(INotebookStorage, NativeEditorStorage);
         this.serviceManager.addSingletonInstance<ICustomEditorService>(
             ICustomEditorService,

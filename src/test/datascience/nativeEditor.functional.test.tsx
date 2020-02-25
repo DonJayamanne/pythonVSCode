@@ -1596,7 +1596,9 @@ df.head()`;
                 (window.navigator as any).platform = 'Win';
                 clickCell(0);
 
+                const dirtyPromise = waitForMessage(ioc, InteractiveWindowMessages.NotebookDirty);
                 await addCell(wrapper, ioc, 'a=1\na', true);
+                await dirtyPromise;
 
                 const notebookProvider = ioc.get<INotebookEditorProvider>(INotebookEditorProvider);
                 const editor = notebookProvider.editors[0];
@@ -1604,15 +1606,14 @@ df.head()`;
                 const savedPromise = createDeferred();
                 editor.saved(() => savedPromise.resolve());
 
+                const clean = waitForMessage(ioc, InteractiveWindowMessages.NotebookClean);
                 simulateKeyPressOnCell(1, { code: 's', ctrlKey: true });
-                console.error('1');
                 await waitForCondition(
                     () => savedPromise.promise.then(() => true).catch(() => false),
-                    1_000,
+                    10_000,
                     'Timedout'
                 );
-                console.error('2');
-
+                await clean;
                 assert.ok(!editor!.isDirty, 'Editor should not be dirty after saving');
             });
 
@@ -1620,7 +1621,9 @@ df.head()`;
                 (window.navigator as any).platform = 'Mac';
                 clickCell(0);
 
+                const dirtyPromise = waitForMessage(ioc, InteractiveWindowMessages.NotebookDirty);
                 await addCell(wrapper, ioc, 'a=1\na', true);
+                await dirtyPromise;
 
                 const notebookProvider = ioc.get<INotebookEditorProvider>(INotebookEditorProvider);
                 const editor = notebookProvider.editors[0];
@@ -1633,6 +1636,7 @@ df.head()`;
                 await expect(
                     waitForCondition(() => savedPromise.promise.then(() => true).catch(() => false), 1_000, 'Timedout')
                 ).to.eventually.be.rejected;
+
                 assert.ok(editor!.isDirty, 'Editor be dirty as nothing got saved');
             });
 
@@ -1641,7 +1645,9 @@ df.head()`;
 
                 clickCell(0);
 
+                const dirtyPromise = waitForMessage(ioc, InteractiveWindowMessages.NotebookDirty);
                 await addCell(wrapper, ioc, 'a=1\na', true);
+                await dirtyPromise;
 
                 const notebookProvider = ioc.get<INotebookEditorProvider>(INotebookEditorProvider);
                 const editor = notebookProvider.editors[0];
@@ -1651,11 +1657,13 @@ df.head()`;
 
                 simulateKeyPressOnCell(1, { code: 's', metaKey: true });
 
+                const clean = waitForMessage(ioc, InteractiveWindowMessages.NotebookClean);
                 await waitForCondition(
                     () => savedPromise.promise.then(() => true).catch(() => false),
                     1_000,
                     'Timedout'
                 );
+                await clean;
 
                 assert.ok(!editor!.isDirty, 'Editor should not be dirty after saving');
             });
@@ -1678,6 +1686,7 @@ df.head()`;
                 await expect(
                     waitForCondition(() => savedPromise.promise.then(() => true).catch(() => false), 1_000, 'Timedout')
                 ).to.eventually.be.rejected;
+
                 assert.ok(editor!.isDirty, 'Editor be dirty as nothing got saved');
             });
         });
