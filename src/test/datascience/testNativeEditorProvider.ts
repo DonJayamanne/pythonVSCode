@@ -10,6 +10,7 @@ import {
     IDocumentManager,
     IWorkspaceService
 } from '../../client/common/application/types';
+import { UseCustomEditorApi } from '../../client/common/constants';
 import { IFileSystem } from '../../client/common/platform/types';
 import {
     IAsyncDisposableRegistry,
@@ -44,7 +45,7 @@ export class TestNativeEditorProvider implements INotebookEditorProvider {
     }
 
     constructor(
-        @inject('USE_CUSTOM_EDITOR') useCustomEditor: boolean,
+        @inject(UseCustomEditorApi) useCustomEditor: boolean,
         @inject(IServiceContainer) serviceContainer: IServiceContainer,
         @inject(IAsyncDisposableRegistry) asyncRegistry: IAsyncDisposableRegistry,
         @inject(IDisposableRegistry) disposables: IDisposableRegistry,

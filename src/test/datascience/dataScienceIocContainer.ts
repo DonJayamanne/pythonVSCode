@@ -84,7 +84,7 @@ import {
 import { WorkspaceService } from '../../client/common/application/workspace';
 import { AsyncDisposableRegistry } from '../../client/common/asyncDisposableRegistry';
 import { PythonSettings } from '../../client/common/configSettings';
-import { EXTENSION_ROOT_DIR } from '../../client/common/constants';
+import { EXTENSION_ROOT_DIR, UseCustomEditorApi } from '../../client/common/constants';
 import { CryptoUtils } from '../../client/common/crypto';
 import { DotNetCompatibilityService } from '../../client/common/dotnet/compatibilityService';
 import { IDotNetCompatibilityService } from '../../client/common/dotnet/types';
@@ -464,7 +464,7 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
             IInteractiveWindowProvider,
             TestInteractiveWindowProvider
         );
-        this.serviceManager.addSingletonInstance('USE_CUSTOM_EDITOR', useCustomEditor);
+        this.serviceManager.addSingletonInstance(UseCustomEditorApi, useCustomEditor);
         this.serviceManager.addSingleton<IDataViewerProvider>(IDataViewerProvider, DataViewerProvider);
         this.serviceManager.addSingleton<IPlotViewerProvider>(IPlotViewerProvider, PlotViewerProvider);
         this.serviceManager.add<IInteractiveWindow>(IInteractiveWindow, InteractiveWindow);

@@ -4,14 +4,15 @@
 import { inject, injectable } from 'inversify';
 import * as vscode from 'vscode';
 
+import { UseCustomEditorApi } from '../constants';
 import { noop } from '../utils/misc';
-import { IApplicationEnvironment, ICommandManager, ICustomEditorService, WebviewCustomEditorProvider } from './types';
+import { ICommandManager, ICustomEditorService, WebviewCustomEditorProvider } from './types';
 
 @injectable()
 export class CustomEditorService implements ICustomEditorService {
     constructor(
         @inject(ICommandManager) private commandManager: ICommandManager,
-        @inject(IApplicationEnvironment) private readonly appEnv: IApplicationEnvironment
+        @inject(UseCustomEditorApi) private readonly useCustomEditorApi: boolean
     ) {}
 
     public registerWebviewCustomEditorProvider(
@@ -19,7 +20,7 @@ export class CustomEditorService implements ICustomEditorService {
         provider: WebviewCustomEditorProvider,
         options?: vscode.WebviewPanelOptions
     ): vscode.Disposable {
-        if (this.appEnv.packageJson.enableProposedApi) {
+        if (this.useCustomEditorApi) {
             // tslint:disable-next-line: no-any
             return (vscode.window as any).registerWebviewCustomEditorProvider(viewType, provider, options);
         } else {
@@ -28,7 +29,7 @@ export class CustomEditorService implements ICustomEditorService {
     }
 
     public async openEditor(file: vscode.Uri): Promise<void> {
-        if (this.appEnv.packageJson.enableProposedApi) {
+        if (this.useCustomEditorApi) {
             await this.commandManager.executeCommand('vscode.open', file);
         }
     }

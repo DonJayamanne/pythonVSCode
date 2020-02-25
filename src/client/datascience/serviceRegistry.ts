@@ -3,6 +3,7 @@
 'use strict';
 import { IExtensionSingleActivationService } from '../activation/types';
 import { IApplicationEnvironment, IWorkspaceService } from '../common/application/types';
+import { UseCustomEditorApi } from '../common/constants';
 import { IServiceManager } from '../ioc/types';
 import { Activation } from './activation';
 import { CodeCssGenerator } from './codeCssGenerator';
@@ -110,6 +111,10 @@ import {
 
 // tslint:disable-next-line: max-func-body-length
 export function registerTypes(serviceManager: IServiceManager) {
+    const useCustomEditorApi = serviceManager.get<IApplicationEnvironment>(IApplicationEnvironment).packageJson
+        .enableProposedApi;
+    serviceManager.addSingletonInstance<boolean>(UseCustomEditorApi, useCustomEditorApi);
+
     serviceManager.addSingleton<IDataScienceCodeLensProvider>(
         IDataScienceCodeLensProvider,
         DataScienceCodeLensProvider
@@ -155,16 +160,12 @@ export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.addBinding(ICellHashProvider, IInteractiveWindowListener);
     serviceManager.addBinding(ICellHashProvider, INotebookExecutionLogger);
     serviceManager.addBinding(IJupyterDebugger, ICellHashListener);
-    const app = serviceManager.get<IApplicationEnvironment>(IApplicationEnvironment);
     serviceManager.addSingleton<INotebookEditorProvider>(
         INotebookEditorProvider,
-        app.packageJson.enableProposedApi ? NativeEditorProvider : NativeEditorProviderOld
+        useCustomEditorApi ? NativeEditorProvider : NativeEditorProviderOld
     );
     serviceManager.add<INotebookStorage>(INotebookStorage, NativeEditorStorage);
-    serviceManager.add<INotebookEditor>(
-        INotebookEditor,
-        app.packageJson.enableProposedApi ? NativeEditor : NativeEditorOldWebView
-    );
+    serviceManager.add<INotebookEditor>(INotebookEditor, useCustomEditorApi ? NativeEditor : NativeEditorOldWebView);
     serviceManager.addSingleton<IDataScienceCommandListener>(IDataScienceCommandListener, NativeEditorCommandListener);
     serviceManager.addBinding(ICodeLensFactory, IInteractiveWindowListener);
     serviceManager.addSingleton<IDebugLocationTracker>(IDebugLocationTracker, DebugLocationTrackerFactory);
