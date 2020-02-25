@@ -80,7 +80,7 @@ use(chaiAsPromised);
 
 // tslint:disable:max-func-body-length trailing-comma no-any no-multiline-string
 
-suite('xDataScience Native Editor', () => {
+suite('DataScience Native Editor', () => {
     const originalPlatform = window.navigator.platform;
     Object.defineProperty(
         window.navigator,
