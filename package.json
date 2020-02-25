@@ -2835,8 +2835,7 @@
                 }
             ]
         },
-        "webviewEditors": [
-        ]
+        "webviewEditors": []
     },
     "scripts": {
         "package": "gulp clean && gulp prePublishBundle && vsce package -o ms-python-insiders.vsix",
