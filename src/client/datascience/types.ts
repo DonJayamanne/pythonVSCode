@@ -375,6 +375,7 @@ export interface INotebookEditor extends IInteractiveBase {
     readonly closed: Event<INotebookEditor>;
     readonly executed: Event<INotebookEditor>;
     readonly modified: Event<INotebookEditor>;
+    readonly saved: Event<INotebookEditor>;
     /**
      * Is this notebook representing an untitled file which has never been saved yet.
      */
@@ -386,7 +387,7 @@ export interface INotebookEditor extends IInteractiveBase {
     readonly file: Uri;
     readonly visible: boolean;
     readonly active: boolean;
-    load(storage: INotebookModel, webViewPanel: WebviewPanel): Promise<void>;
+    load(storage: INotebookModel, webViewPanel?: WebviewPanel): Promise<void>;
     runAllCells(): void;
     runSelectedCell(): void;
     addCellBelow(): void;

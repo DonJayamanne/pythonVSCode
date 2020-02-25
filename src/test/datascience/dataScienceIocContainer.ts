@@ -84,7 +84,7 @@ import {
 import { WorkspaceService } from '../../client/common/application/workspace';
 import { AsyncDisposableRegistry } from '../../client/common/asyncDisposableRegistry';
 import { PythonSettings } from '../../client/common/configSettings';
-import { EXTENSION_ROOT_DIR } from '../../client/common/constants';
+import { EXTENSION_ROOT_DIR, UseCustomEditorApi } from '../../client/common/constants';
 import { CryptoUtils } from '../../client/common/crypto';
 import { DotNetCompatibilityService } from '../../client/common/dotnet/compatibilityService';
 import { IDotNetCompatibilityService } from '../../client/common/dotnet/types';
@@ -171,8 +171,10 @@ import { DataScienceErrorHandler } from '../../client/datascience/errorHandler/e
 import { GatherExecution } from '../../client/datascience/gather/gather';
 import { GatherListener } from '../../client/datascience/gather/gatherListener';
 import { IntellisenseProvider } from '../../client/datascience/interactive-common/intellisense/intellisenseProvider';
+import { AutoSaveService } from '../../client/datascience/interactive-ipynb/autoSaveService';
 import { NativeEditor } from '../../client/datascience/interactive-ipynb/nativeEditor';
 import { NativeEditorCommandListener } from '../../client/datascience/interactive-ipynb/nativeEditorCommandListener';
+import { NativeEditorOldWebView } from '../../client/datascience/interactive-ipynb/nativeEditorOldWebView';
 import { NativeEditorStorage } from '../../client/datascience/interactive-ipynb/nativeEditorStorage';
 import { InteractiveWindow } from '../../client/datascience/interactive-window/interactiveWindow';
 import { InteractiveWindowCommandListener } from '../../client/datascience/interactive-window/interactiveWindowCommandListener';
@@ -452,7 +454,7 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
     }
 
     //tslint:disable:max-func-body-length
-    public registerDataScienceTypes() {
+    public registerDataScienceTypes(useCustomEditor: boolean = false) {
         const testWorkspaceFolder = path.join(EXTENSION_ROOT_DIR, 'src', 'test', 'datascience');
 
         this.registerFileSystemTypes();
@@ -462,6 +464,7 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
             IInteractiveWindowProvider,
             TestInteractiveWindowProvider
         );
+        this.serviceManager.addSingletonInstance(UseCustomEditorApi, useCustomEditor);
         this.serviceManager.addSingleton<IDataViewerProvider>(IDataViewerProvider, DataViewerProvider);
         this.serviceManager.addSingleton<IPlotViewerProvider>(IPlotViewerProvider, PlotViewerProvider);
         this.serviceManager.add<IInteractiveWindow>(IInteractiveWindow, InteractiveWindow);
@@ -508,7 +511,11 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
         this.serviceManager.addSingleton<IJupyterDebugger>(IJupyterDebugger, JupyterDebugger);
         this.serviceManager.addSingleton<IDebugLocationTracker>(IDebugLocationTracker, DebugLocationTrackerFactory);
         this.serviceManager.addSingleton<INotebookEditorProvider>(INotebookEditorProvider, TestNativeEditorProvider);
-        this.serviceManager.add<INotebookEditor>(INotebookEditor, NativeEditor);
+        this.serviceManager.add<INotebookEditor>(
+            INotebookEditor,
+            useCustomEditor ? NativeEditor : NativeEditorOldWebView
+        );
+
         this.serviceManager.add<INotebookStorage>(INotebookStorage, NativeEditorStorage);
         this.serviceManager.addSingletonInstance<ICustomEditorService>(
             ICustomEditorService,
@@ -598,6 +605,7 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
         }
 
         this.serviceManager.add<IInteractiveWindowListener>(IInteractiveWindowListener, IntellisenseProvider);
+        this.serviceManager.add<IInteractiveWindowListener>(IInteractiveWindowListener, AutoSaveService);
         this.serviceManager.add<IProtocolParser>(IProtocolParser, ProtocolParser);
         this.serviceManager.addSingleton<IDebugService>(IDebugService, MockDebuggerService);
         this.serviceManager.addSingleton<ICellHashProvider>(ICellHashProvider, CellHashProvider);

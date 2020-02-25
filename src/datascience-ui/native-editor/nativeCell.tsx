@@ -19,7 +19,7 @@ import { CellOutput } from '../interactive-common/cellOutput';
 import { ExecutionCount } from '../interactive-common/executionCount';
 import { InformationMessages } from '../interactive-common/informationMessages';
 import { CursorPos, ICellViewModel, IFont } from '../interactive-common/mainState';
-import { getOSType } from '../react-common/constants';
+import { getOSType, UseCustomEditor } from '../react-common/constants';
 import { IKeyboardEvent } from '../react-common/event';
 import { Image, ImageName } from '../react-common/image';
 import { ImageButton } from '../react-common/imageButton';
@@ -333,6 +333,20 @@ export class NativeCell extends React.Component<INativeCellProps> {
                     this.props.sendCommand(NativeCommandType.InsertBelow, 'keyboard');
                 }
                 break;
+            case 'z':
+            case 'Z':
+                if (!this.isFocused() && !UseCustomEditor) {
+                    if (e.shiftKey && !e.ctrlKey && !e.altKey) {
+                        e.stopPropagation();
+                        this.props.redo();
+                        this.props.sendCommand(NativeCommandType.Redo, 'keyboard');
+                    } else if (!e.shiftKey && !e.altKey && !e.ctrlKey) {
+                        e.stopPropagation();
+                        this.props.undo();
+                        this.props.sendCommand(NativeCommandType.Undo, 'keyboard');
+                    }
+                }
+                break;
             default:
                 break;
         }
@@ -635,7 +649,7 @@ export class NativeCell extends React.Component<INativeCellProps> {
                         keyDown={this.keyDownInput}
                         showLineNumbers={this.props.cellVM.showLineNumbers}
                         font={this.props.font}
-                        disableUndoStack={true}
+                        disableUndoStack={UseCustomEditor}
                         codeVersion={this.props.cellVM.codeVersion ? this.props.cellVM.codeVersion : 1}
                         focusPending={this.props.focusPending}
                     />
