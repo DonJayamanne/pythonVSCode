@@ -77,8 +77,8 @@ import {
 } from './testHelpers';
 
 use(chaiAsPromised);
+
 // tslint:disable:max-func-body-length trailing-comma no-any no-multiline-string
-// tslint:disable:no-any no-multiline-string max-func-body-length no-console max-classes-per-file trailing-comma
 
 suite('xDataScience Native Editor', () => {
     const originalPlatform = window.navigator.platform;
