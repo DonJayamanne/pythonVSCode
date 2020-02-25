@@ -335,7 +335,7 @@ export class NativeCell extends React.Component<INativeCellProps> {
                 break;
             case 'z':
             case 'Z':
-                if (!this.isFocused() && UseCustomEditor) {
+                if (!this.isFocused() && !UseCustomEditor) {
                     if (e.shiftKey && !e.ctrlKey && !e.altKey) {
                         e.stopPropagation();
                         this.props.redo();

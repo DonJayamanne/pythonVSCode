@@ -392,7 +392,7 @@ ${buildSettingsCss(this.props.settings)}`}</style>
             }
             case 'z':
             case 'Z':
-                if (!getSelectedAndFocusedInfo(this.props).focusedCellId && UseCustomEditor) {
+                if (!getSelectedAndFocusedInfo(this.props).focusedCellId && !UseCustomEditor) {
                     if (event.shiftKey && !event.ctrlKey && !event.altKey) {
                         event.stopPropagation();
                         this.props.redo();
