@@ -142,23 +142,6 @@ export class NativeEditorOldWebView extends NativeEditor {
         });
     }
     protected async close(): Promise<void> {
-        const actuallyClose = async () => {
-            // Tell listeners.
-            this.closedEvent.fire(this);
-
-            // Restart our kernel so that execution counts are reset
-            let oldAsk: boolean | undefined = false;
-            const settings = this.configuration.getSettings(await this.getOwningResource());
-            if (settings && settings.datascience) {
-                oldAsk = settings.datascience.askForKernelRestart;
-                settings.datascience.askForKernelRestart = false;
-            }
-            await this.restartKernel();
-            if (oldAsk && settings && settings.datascience) {
-                settings.datascience.askForKernelRestart = true;
-            }
-        };
-
         // Ask user if they want to save. It seems hotExit has no bearing on
         // whether or not we should ask
         if (this.isDirty) {
@@ -169,23 +152,23 @@ export class NativeEditorOldWebView extends NativeEditor {
                     await this.saveToDisk();
 
                     // Close it
-                    await actuallyClose();
+                    await super.close();
                     break;
 
                 case AskForSaveResult.No:
                     // Close it
-                    await actuallyClose();
+                    await super.close();
                     break;
 
                 default: {
-                    await actuallyClose();
+                    await super.close();
                     await this.reopen();
                     break;
                 }
             }
         } else {
             // Not dirty, just close normally.
-            return actuallyClose();
+            await super.close();
         }
     }
 

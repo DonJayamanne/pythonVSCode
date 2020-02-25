@@ -493,7 +493,7 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
 
         // Restart our kernel so that execution counts are reset
         let oldAsk: boolean | undefined = false;
-        const settings = this.configuration.getSettings();
+        const settings = this.configuration.getSettings(await this.getOwningResource());
         if (settings && settings.datascience) {
             oldAsk = settings.datascience.askForKernelRestart;
             settings.datascience.askForKernelRestart = false;
