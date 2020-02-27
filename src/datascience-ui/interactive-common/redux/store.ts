@@ -8,7 +8,10 @@ import { createLogger } from 'redux-logger';
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
 import { Identifiers } from '../../../client/datascience/constants';
-import { InteractiveWindowMessages } from '../../../client/datascience/interactive-common/interactiveWindowTypes';
+import {
+    IInteractiveWindowMapping,
+    InteractiveWindowMessages
+} from '../../../client/datascience/interactive-common/interactiveWindowTypes';
 import { MessageType } from '../../../client/datascience/interactive-common/synchronization';
 import { BaseReduxActionPayload } from '../../../client/datascience/interactive-common/types';
 import { CssMessages } from '../../../client/datascience/messages';
