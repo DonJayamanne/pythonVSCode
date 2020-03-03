@@ -20,7 +20,7 @@ import {
     WebviewPanel
 } from 'vscode';
 import { ServerStatus } from '../../datascience-ui/interactive-common/mainState';
-import { ICommandManager } from '../common/application/types';
+import { CustomEditorEditingCapability, ICommandManager } from '../common/application/types';
 import { ExecutionResult, ObservableExecutionResult, SpawnOptions } from '../common/process/types';
 import { IAsyncDisposable, IDataScienceSettings, IDisposable, Resource } from '../common/types';
 import { StopWatch } from '../common/utils/stopWatch';
@@ -821,10 +821,8 @@ export interface INotebookModel {
 
 export const INotebookStorage = Symbol('INotebookStorage');
 
-export interface INotebookStorage {
+export interface INotebookStorage extends CustomEditorEditingCapability<NotebookModelChange> {
     load(file: Uri, contents?: string): Promise<INotebookModel>;
-    save(): Promise<INotebookModel>;
-    saveAs(file: Uri): Promise<INotebookModel>;
 }
 type WebViewViewState = {
     readonly visible: boolean;
