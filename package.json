@@ -5,6 +5,7 @@
     "version": "2020.4.0-dev",
     "languageServerVersion": "0.5.30",
     "publisher": "ms-python",
+    "enableProposedApi": true,
     "author": {
         "name": "Microsoft Corporation"
     },
@@ -24,7 +25,7 @@
         "theme": "dark"
     },
     "engines": {
-        "vscode": "^1.42.0"
+        "vscode": "^1.43.0"
     },
     "keywords": [
         "python",
@@ -83,7 +84,8 @@
         "onCommand:python.datascience.exportfileandoutputasnotebook",
         "onCommand:python.datascience.selectJupyterInterpreter",
         "onCommand:python.datascience.selectjupytercommandline",
-        "onCommand:python.enableSourceMapSupport"
+        "onCommand:python.enableSourceMapSupport",
+        "onCustomEditor:NativeEditorProvider.ipynb"
     ],
     "main": "./out/client/extension",
     "contributes": {
@@ -2836,7 +2838,18 @@
                     "when": "testsDiscovered"
                 }
             ]
-        }
+        },
+        "customEditors": [
+            {
+                "viewType": "NativeEditorProvider.ipynb",
+                "displayName": "Jupyter Notebook",
+                "selector": [
+                    {
+                        "filenamePattern": "*.ipynb"
+                    }
+                ]
+            }            
+        ]
     },
     "scripts": {
         "package": "gulp clean && gulp prePublishBundle && vsce package -o ms-python-insiders.vsix",
