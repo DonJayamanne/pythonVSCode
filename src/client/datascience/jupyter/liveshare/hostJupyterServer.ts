@@ -10,6 +10,7 @@ import * as vsls from 'vsls/vscode';
 
 import { nbformat } from '@jupyterlab/coreutils';
 import { IApplicationShell, ILiveShareApi, IWorkspaceService } from '../../../common/application/types';
+import { isTestExecution } from '../../../common/constants';
 import { traceInfo } from '../../../common/logger';
 import { IFileSystem } from '../../../common/platform/types';
 import {
@@ -280,7 +281,7 @@ export class HostJupyterServer extends LiveShareParticipantHost(JupyterServerBas
                       resource,
                       sessionManager,
                       notebookMetadata,
-                      false,
+                      isTestExecution(),
                       cancelToken
                   )
                 : this.kernelSelector.getKernelForRemoteConnection(
@@ -293,6 +294,7 @@ export class HostJupyterServer extends LiveShareParticipantHost(JupyterServerBas
             const kernelInfoToUse = kernelInfo?.kernelSpec || kernelInfo?.kernelModel;
             if (kernelInfoToUse) {
                 launchInfo.kernelSpec = kernelInfoToUse;
+                launchInfo.interpreter = resourceInterpreter;
                 changedKernel = true;
             }
         }
