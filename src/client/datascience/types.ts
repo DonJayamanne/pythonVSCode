@@ -113,6 +113,7 @@ export interface INotebook extends IAsyncDisposable {
     readonly server: INotebookServer;
     readonly status: ServerStatus;
     onSessionStatusChanged: Event<ServerStatus>;
+    onDisposed: Event<void>;
     onKernelChanged: Event<IJupyterKernelSpec | LiveKernelModel>;
     clear(id: string): void;
     executeObservable(code: string, file: string, line: number, id: string, silent: boolean): Observable<ICell[]>;
@@ -848,3 +849,10 @@ type WebViewViewState = {
     readonly active: boolean;
 };
 export type WebViewViewChangeEventArgs = { current: WebViewViewState; previous: WebViewViewState };
+
+export interface INotebookProvider {
+    /**
+     * Gets or creates a notebook, and manages the lifetime of notebooks.
+     */
+    getNotebook(server: INotebookServer, resource: Uri, options?: nbformat.INotebookMetadata): Promise<INotebook>;
+}

@@ -45,12 +45,14 @@ import {
     INotebookExporter,
     INotebookImporter,
     INotebookModel,
+    INotebookProvider,
     IStatusProvider,
     IThemeFinder
 } from '../types';
 import { NativeEditor } from './nativeEditor';
 import { NativeEditorStorage } from './nativeEditorStorage';
 import { NativeEditorSynchronizer } from './nativeEditorSynchronizer';
+import { NativeNotebookProvider } from './notebookProvider';
 
 enum AskForSaveResult {
     Yes,
@@ -97,7 +99,8 @@ export class NativeEditorOldWebView extends NativeEditor {
         @inject(ProgressReporter) progressReporter: ProgressReporter,
         @inject(IExperimentsManager) experimentsManager: IExperimentsManager,
         @inject(IAsyncDisposableRegistry) asyncRegistry: IAsyncDisposableRegistry,
-        @inject(KernelSwitcher) switcher: KernelSwitcher
+        @inject(KernelSwitcher) switcher: KernelSwitcher,
+        @inject(NativeNotebookProvider) notebookProvider: INotebookProvider
     ) {
         super(
             listeners,
@@ -127,7 +130,8 @@ export class NativeEditorOldWebView extends NativeEditor {
             progressReporter,
             experimentsManager,
             asyncRegistry,
-            switcher
+            switcher,
+            notebookProvider
         );
         asyncRegistry.push(this);
         // No ui syncing in old notebooks.

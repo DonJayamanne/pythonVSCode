@@ -78,6 +78,7 @@ import {
     INotebookExporter,
     INotebookImporter,
     INotebookModel,
+    INotebookProvider,
     INotebookServerOptions,
     IStatusProvider,
     IThemeFinder,
@@ -90,6 +91,7 @@ import { nbformat } from '@jupyterlab/coreutils';
 import cloneDeep = require('lodash/cloneDeep');
 import { concatMultilineStringInput } from '../../../datascience-ui/common';
 import { KernelSwitcher } from '../jupyter/kernels/kernelSwitcher';
+import { NativeNotebookProvider } from './notebookProvider';
 
 const nativeEditorDir = path.join(EXTENSION_ROOT_DIR, 'out', 'datascience-ui', 'notebook');
 @injectable()
@@ -176,7 +178,8 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
         @inject(ProgressReporter) progressReporter: ProgressReporter,
         @inject(IExperimentsManager) experimentsManager: IExperimentsManager,
         @inject(IAsyncDisposableRegistry) asyncRegistry: IAsyncDisposableRegistry,
-        @inject(KernelSwitcher) switcher: KernelSwitcher
+        @inject(KernelSwitcher) switcher: KernelSwitcher,
+        @inject(NativeNotebookProvider) notebookProvider: INotebookProvider
     ) {
         super(
             progressReporter,
@@ -210,7 +213,8 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
             localize.DataScience.nativeEditorTitle(),
             ViewColumn.Active,
             experimentsManager,
-            switcher
+            switcher,
+            notebookProvider
         );
         asyncRegistry.push(this);
 
