@@ -198,6 +198,7 @@ function buildConfiguration(isNotebook) {
             }),
             ...getPlugins(isNotebook)
         ],
+        externals: ['log4js'],
         resolve: {
             // Add '.ts' and '.tsx' as resolvable extensions.
             extensions: ['.ts', '.tsx', '.js', '.json', '.svg']
