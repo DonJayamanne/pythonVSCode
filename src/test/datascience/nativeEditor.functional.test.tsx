@@ -2197,7 +2197,7 @@ df.head()`;
                         await makeChangesAndConfirmFileIsUpdated();
                         await makeChangesAndConfirmFileIsUpdated();
                         await makeChangesAndConfirmFileIsUpdated();
-                    });
+                    }).retries(2);
 
                     test('File saved with same format', async () => {
                         // Configure notebook to save automatically ever 1s.

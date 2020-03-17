@@ -23,6 +23,7 @@ import {
 import { createDeferred } from '../../../common/utils/async';
 import * as localize from '../../../common/utils/localize';
 import { IInterpreterService } from '../../../interpreter/contracts';
+import { IServiceContainer } from '../../../ioc/types';
 import { Identifiers, LiveShare, LiveShareCommands, RegExpValues } from '../../constants';
 import {
     IDataScience,
@@ -56,14 +57,22 @@ export class HostJupyterServer extends LiveShareParticipantHost(JupyterServerBas
         configService: IConfigurationService,
         sessionManager: IJupyterSessionManagerFactory,
         private workspaceService: IWorkspaceService,
-        loggers: INotebookExecutionLogger[],
+        serviceContainer: IServiceContainer,
         private appService: IApplicationShell,
         private fs: IFileSystem,
         private readonly kernelSelector: KernelSelector,
         private readonly interpreterService: IInterpreterService,
         outputChannel: IOutputChannel
     ) {
-        super(liveShare, asyncRegistry, disposableRegistry, configService, sessionManager, loggers, outputChannel);
+        super(
+            liveShare,
+            asyncRegistry,
+            disposableRegistry,
+            configService,
+            sessionManager,
+            serviceContainer,
+            outputChannel
+        );
     }
 
     public async dispose(): Promise<void> {
