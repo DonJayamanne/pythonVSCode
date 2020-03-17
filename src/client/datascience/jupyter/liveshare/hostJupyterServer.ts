@@ -173,7 +173,7 @@ export class HostJupyterServer extends LiveShareParticipantHost(JupyterServerBas
         possibleSession: IJupyterSession | undefined,
         disposableRegistry: IDisposableRegistry,
         configService: IConfigurationService,
-        loggers: INotebookExecutionLogger[],
+        serviceContainer: IServiceContainer,
         notebookMetadata?: nbformat.INotebookMetadata,
         cancelToken?: CancellationToken
     ): Promise<INotebook> {
@@ -228,7 +228,7 @@ export class HostJupyterServer extends LiveShareParticipantHost(JupyterServerBas
                     disposableRegistry,
                     this,
                     info,
-                    loggers,
+                    serviceContainer.getAll<INotebookExecutionLogger>(INotebookExecutionLogger),
                     resource,
                     identity,
                     this.getDisposedError.bind(this),
