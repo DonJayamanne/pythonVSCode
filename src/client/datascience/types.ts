@@ -166,6 +166,8 @@ export interface INotebookServerOptions {
     workingDir?: string;
     purpose: string;
     metadata?: nbformat.INotebookMetadata;
+    disableUI?: boolean;
+    skipSearchingForKernel?: boolean;
     allowUI(): boolean;
 }
 
