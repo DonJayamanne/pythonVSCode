@@ -101,6 +101,9 @@ export class RawKernel implements Kernel.IKernel {
         _metadata?: JSONObject
     ): Kernel.IShellFuture<KernelMessage.IExecuteRequestMsg, KernelMessage.IExecuteReplyMsg> {
         if (this.jmpConnection) {
+            // tslint:disable-next-line:no-require-imports
+            const jupyterLab = require('@jupyterlab/services') as typeof import('@jupyterlab/services');
+
             // Build our execution message
             // Silent is supposed to be options, but in my testing the message was not passing
             // correctly without it, so specifying it here with default false
@@ -111,34 +114,99 @@ export class RawKernel implements Kernel.IKernel {
                 username: 'vscode',
                 content: { ...content, silent: content.silent || false }
             };
-            const executeMessage = KernelMessage.createMessage<KernelMessage.IExecuteRequestMsg>(executeOptions);
-
-            // Send off our message to our jmp connection
-            this.jmpConnection.sendMessage(executeMessage);
-
-            // Create a future to watch for reply messages
-            const newFuture = new RawFuture<KernelMessage.IExecuteRequestMsg, KernelMessage.IExecuteReplyMsg>(
-                executeMessage,
-                disposeOnDone || true
-            );
-            this.futures.set(
-                newFuture.msg.header.msg_id,
-                newFuture as RawFuture<KernelMessage.IShellControlMessage, KernelMessage.IShellControlMessage>
+            const executeMessage = jupyterLab.KernelMessage.createMessage<KernelMessage.IExecuteRequestMsg>(
+                executeOptions
             );
 
-            // Set our future to remove itself when disposed
-            const oldDispose = newFuture.dispose.bind(newFuture);
-            newFuture.dispose = () => {
-                this.futures.delete(newFuture.msg.header.msg_id);
-                return oldDispose();
-            };
+            const newFuture = this.sendShellMessage(executeMessage, disposeOnDone || true);
 
-            return newFuture;
+            return newFuture as Kernel.IShellFuture<KernelMessage.IExecuteRequestMsg, KernelMessage.IExecuteReplyMsg>;
         }
 
         // RAWKERNEL: What should we do here? Throw?
         // Probably should not get here if session is not available
         throw new Error('No session available?');
+    }
+
+    public requestComplete(
+        content: KernelMessage.ICompleteRequestMsg['content']
+    ): Promise<KernelMessage.ICompleteReplyMsg> {
+        if (this.jmpConnection) {
+            // tslint:disable-next-line:no-require-imports
+            const jupyterLab = require('@jupyterlab/services') as typeof import('@jupyterlab/services');
+
+            const completeOptions: KernelMessage.IOptions<KernelMessage.ICompleteRequestMsg> = {
+                session: this._clientId,
+                channel: 'shell',
+                msgType: 'complete_request',
+                username: 'vscode',
+                content
+            };
+            const completeMessage = jupyterLab.KernelMessage.createMessage<KernelMessage.ICompleteRequestMsg>(
+                completeOptions
+            );
+
+            return this.sendShellMessage(completeMessage).done as Promise<KernelMessage.ICompleteReplyMsg>;
+        }
+
+        // RAWKERNEL: What should we do here? Throw?
+        // Probably should not get here if session is not available
+        throw new Error('No session available?');
+    }
+
+    public requestInspect(
+        content: KernelMessage.IInspectRequestMsg['content']
+    ): Promise<KernelMessage.IInspectReplyMsg> {
+        if (this.jmpConnection) {
+            // tslint:disable-next-line:no-require-imports
+            const jupyterLab = require('@jupyterlab/services') as typeof import('@jupyterlab/services');
+
+            const inspectOptions: KernelMessage.IOptions<KernelMessage.IInspectRequestMsg> = {
+                session: this._clientId,
+                channel: 'shell',
+                msgType: 'inspect_request',
+                username: 'vscode',
+                content
+            };
+            const inspectMessage = jupyterLab.KernelMessage.createMessage<KernelMessage.IInspectRequestMsg>(
+                inspectOptions
+            );
+
+            return this.sendShellMessage(inspectMessage).done as Promise<KernelMessage.IInspectReplyMsg>;
+        }
+
+        // RAWKERNEL: What should we do here? Throw?
+        // Probably should not get here if session is not available
+        throw new Error('No session available?');
+    }
+
+    public sendShellMessage<T extends KernelMessage.ShellMessageType>(
+        message: KernelMessage.IShellMessage<T>,
+        _expectReply?: boolean,
+        disposeOnDone?: boolean
+    ): Kernel.IShellFuture<KernelMessage.IShellMessage<T>> {
+        if (this.jmpConnection) {
+            // First send our message
+            this.jmpConnection.sendMessage(message);
+
+            // Next we need to build our future
+            const future = new RawFuture(message, disposeOnDone || true);
+
+            // RAWKERNEL: DisplayID calculations need to happen here
+            this.futures.set(message.header.msg_id, future);
+
+            // Set our future to remove itself when disposed
+            const oldDispose = future.dispose.bind(future);
+            future.dispose = () => {
+                this.futures.delete(future.msg.header.msg_id);
+                return oldDispose();
+            };
+
+            return future as Kernel.IShellFuture<KernelMessage.IShellMessage<T>>;
+        }
+
+        // RAWKERNEL: sending without a connection
+        throw new Error('Attemping to send shell message without connection');
     }
 
     // On dispose close down our connection and get rid of saved futures
@@ -163,13 +231,6 @@ export class RawKernel implements Kernel.IKernel {
     public getSpec(): Promise<Kernel.ISpecModel> {
         throw new Error('Not yet implemented');
     }
-    public sendShellMessage<T extends KernelMessage.ShellMessageType>(
-        _msg: KernelMessage.IShellMessage<T>,
-        _expectReply?: boolean,
-        _disposeOnDone?: boolean
-    ): Kernel.IShellFuture<KernelMessage.IShellMessage<T>> {
-        throw new Error('Not yet implemented');
-    }
     public sendControlMessage<T extends KernelMessage.ControlMessageType>(
         _msg: KernelMessage.IControlMessage<T>,
         _expectReply?: boolean,
@@ -187,16 +248,6 @@ export class RawKernel implements Kernel.IKernel {
         throw new Error('Not yet implemented');
     }
     public requestKernelInfo(): Promise<KernelMessage.IInfoReplyMsg> {
-        throw new Error('Not yet implemented');
-    }
-    public requestComplete(
-        _content: KernelMessage.ICompleteRequestMsg['content']
-    ): Promise<KernelMessage.ICompleteReplyMsg> {
-        throw new Error('Not yet implemented');
-    }
-    public requestInspect(
-        _content: KernelMessage.IInspectRequestMsg['content']
-    ): Promise<KernelMessage.IInspectReplyMsg> {
         throw new Error('Not yet implemented');
     }
     public requestHistory(
