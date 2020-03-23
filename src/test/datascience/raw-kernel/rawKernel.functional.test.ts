@@ -101,15 +101,14 @@ suite('DataScience raw kernel tests', () => {
 
     // tslint:disable-next-line: no-function-expression
     test('Basic iopub', async function() {
-        const sessionId = uuid();
         const reply = createDeferred();
-        await enchannelConnection.connect(connectionInfo, sessionId);
+        await enchannelConnection.connect(connectionInfo);
         enchannelConnection.subscribe(msg => {
             if (msg.header.msg_type === 'status') {
                 reply.resolve();
             }
         });
-        enchannelConnection.sendMessage(createShutdownMessage(sessionId));
+        enchannelConnection.sendMessage(createShutdownMessage(uuid()));
         await reply.promise;
     });
 });
