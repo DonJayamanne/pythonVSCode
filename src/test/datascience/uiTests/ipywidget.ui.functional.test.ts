@@ -22,6 +22,8 @@ import { addMockData } from '../testHelpersCore';
 import { waitTimeForUIToUpdate } from './helpers';
 import { openNotebook } from './notebookHelpers';
 import { NotebookEditorUI } from './notebookUi';
+import { TestRecorder } from './recorder';
+import { WebServer } from './webBrowserPanel';
 
 const sanitize = require('sanitize-filename');
 // Include default timeout.
@@ -31,7 +33,7 @@ use(chaiAsPromised);
 
 [false].forEach(useCustomEditorApi => {
     //import { asyncDump } from '../common/asyncDump';
-    suite(`${useCustomEditorApi ? 'With' : 'Without'} Custom Editor API`, () => {
+    suite(`DataScience IPyWidgets (${useCustomEditorApi ? 'With' : 'Without'} Custom Editor API)`, () => {
         const disposables: Disposable[] = [];
         let ioc: DataScienceIocContainer;
 
@@ -45,13 +47,43 @@ use(chaiAsPromised);
             this.timeout(30_000); // UI Tests, need time to start jupyter.
             this.retries(3); // UI Tests can be flaky.
         });
-        setup(async () => {
+        let testRecorder: TestRecorder;
+        setup(async function() {
+            const testFileName = path.join(
+                EXTENSION_ROOT_DIR,
+                `src/test/datascience/uiTests/recordedTests/test_log_${sanitize(this.currentTest?.title)}.log`
+            );
             UseCustomEditor.enabled = useCustomEditorApi;
             ioc = new DataScienceIocContainer(true);
             ioc.registerDataScienceTypes(useCustomEditorApi);
+
+            // Use mode = 'replay' for testing with fake jupyter and fake messages (play back recorded messages sent/received from/to UI).
+            // Use mode = 'record' to record messages to be played back for running tests without real jupyter.
+            //              Use this locally so you can generate the test logs and check in with PR.
+            // Use mode = 'skip' to run tests without recording or playing (with real jupyter and on CI.)
+            let mode: 'skip' | 'replay' | 'record' = 'skip';
+            if (process.env.VSCODE_PYTHON_ROLLING) {
+                // Definitely running tests on CI/local machine with real jupyter.
+                mode = 'skip';
+            } else if (!process.env.VSCODE_PYTHON_ROLLING) {
+                // Definitely running tests without real jupyter.
+                // Hence use fake messages.
+                mode = 'replay';
+            }
+            // Hardcode value to `record` to re-generate or generate new test logs.
+            // mode = 'record';
+            if (mode === 'replay' && !(await fs.pathExists(testFileName))) {
+                return this.skip();
+            }
+            WebServer.create = () => {
+                const server = new WebServer();
+                testRecorder = new TestRecorder(server, mode, testFileName);
+                return server;
+            };
             await ioc.activate();
         });
         teardown(async () => {
+            await testRecorder.end();
             sinon.restore();
             mockedVSCodeNamespaces.window?.reset();
             for (const disposable of disposables) {
@@ -70,9 +102,8 @@ use(chaiAsPromised);
         let notebookUi: NotebookEditorUI;
         teardown(async function() {
             if (this.test && this.test.state === 'failed') {
-                const imageName = `${sanitize(this.test.fullTitle())}.png`;
+                const imageName = `${sanitize(this.currentTest?.title)}.png`;
                 await notebookUi.captureScreenshot(path.join(os.tmpdir(), 'tmp', 'screenshots', imageName));
-                // await notebookUi.captureScreenshot(path.join(EXTENSION_ROOT_DIR, 'tmp', 'screenshots', imageName));
             }
         });
         function getIpynbFilePath(fileName: string) {
@@ -123,82 +154,98 @@ use(chaiAsPromised);
         });
         test('Output displayed after executing a cell', async () => {
             const { notebookUI } = await openABCIpynb();
-            let hasOutput = await notebookUI.cellHasOutput(0);
-            assert.isFalse(hasOutput);
+            if (!ioc.mockJupyter) {
+                await assert.eventually.isFalse(notebookUI.cellHasOutput(0));
+            }
 
             await notebookUI.executeCell(0);
 
             await retryIfFail(async () => {
-                hasOutput = await notebookUI.cellHasOutput(0);
-                assert.isTrue(hasOutput);
+                await assert.eventually.isTrue(notebookUI.cellHasOutput(0));
                 const outputHtml = await notebookUI.getCellOutputHTML(0);
                 assert.include(outputHtml, '<span>1</span>');
             });
         });
-        suite('Standard IPyWidgets', () => {
+
+        test('Slider Widget', async () => {
+            const { notebookUI } = await openStandardWidgetsIpynb();
+            if (!ioc.mockJupyter) {
+                await assert.eventually.isFalse(notebookUI.cellHasOutput(0));
+            }
+
+            await notebookUI.executeCell(0);
+
+            await retryIfFail(async () => {
+                await assert.eventually.isTrue(notebookUI.cellHasOutput(0));
+                const outputHtml = await notebookUI.getCellOutputHTML(0);
+
+                // Should not contain the string representation of widget (rendered when ipywidgets wasn't supported).
+                // We should only render widget not string representation.
+                assert.notInclude(outputHtml, 'IntSlider(value=0)');
+
+                // Ensure Widget HTML exists
+                assert.include(outputHtml, 'jupyter-widgets');
+                assert.include(outputHtml, 'ui-slider');
+                assert.include(outputHtml, '<div class="ui-slider');
+            });
+        });
+        test('Text Widget', async () => {
+            const { notebookUI } = await openStandardWidgetsIpynb();
+            if (!ioc.mockJupyter) {
+                await assert.eventually.isFalse(notebookUI.cellHasOutput(1));
+            }
+
+            await notebookUI.executeCell(1);
+
+            await retryIfFail(async () => {
+                await assert.eventually.isTrue(notebookUI.cellHasOutput(1));
+                const outputHtml = await notebookUI.getCellOutputHTML(1);
+
+                // Ensure Widget HTML exists
+                assert.include(outputHtml, 'jupyter-widgets');
+                assert.include(outputHtml, 'widget-text');
+                assert.include(outputHtml, '<input type="text');
+            });
+        });
+        test('Checkox Widget', async () => {
+            const { notebookUI } = await openStandardWidgetsIpynb();
+            if (!ioc.mockJupyter) {
+                await assert.eventually.isFalse(notebookUI.cellHasOutput(2));
+            }
+
+            await notebookUI.executeCell(2);
+
+            await retryIfFail(async () => {
+                await assert.eventually.isTrue(notebookUI.cellHasOutput(2));
+                const outputHtml = await notebookUI.getCellOutputHTML(2);
+
+                // Ensure Widget HTML exists
+                assert.include(outputHtml, 'jupyter-widgets');
+                assert.include(outputHtml, 'widget-checkbox');
+                assert.include(outputHtml, '<input type="checkbox');
+            });
+        });
+        test('Render ipysheets', async () => {
+            const { notebookUI } = await openIPySheetsIpynb();
+            if (!ioc.mockJupyter) {
+                await assert.eventually.isFalse(notebookUI.cellHasOutput(3));
+            }
+
+            await notebookUI.executeCell(1);
+            await notebookUI.executeCell(3);
+
+            await retryIfFail(async () => {
+                const cellOutput = await notebookUI.getCellOutputHTML(3);
+
+                assert.include(cellOutput, 'Hello</td>');
+                assert.include(cellOutput, 'World</td>');
+            });
+        });
+        suite('With real Jupyter', () => {
             setup(function() {
                 if (ioc.mockJupyter) {
                     return this.skip();
                 }
-            });
-
-            test('Slider Widget', async () => {
-                const { notebookUI } = await openStandardWidgetsIpynb();
-                let hasOutput = await notebookUI.cellHasOutput(1);
-                assert.isFalse(hasOutput);
-
-                await notebookUI.executeCell(0);
-
-                await retryIfFail(async () => {
-                    hasOutput = await notebookUI.cellHasOutput(0);
-                    assert.isTrue(hasOutput);
-                    const outputHtml = await notebookUI.getCellOutputHTML(0);
-
-                    // Should not contain the string representation of widget (rendered when ipywidgets wasn't supported).
-                    // We should only render widget not string representation.
-                    assert.notInclude(outputHtml, 'IntSlider(value=0)');
-
-                    // Ensure Widget HTML exists
-                    assert.include(outputHtml, 'jupyter-widgets');
-                    assert.include(outputHtml, 'ui-slider');
-                    assert.include(outputHtml, '<div class="ui-slider');
-                });
-            });
-            test('Text Widget', async () => {
-                const { notebookUI } = await openStandardWidgetsIpynb();
-                let hasOutput = await notebookUI.cellHasOutput(1);
-                assert.isFalse(hasOutput);
-
-                await notebookUI.executeCell(1);
-
-                await retryIfFail(async () => {
-                    hasOutput = await notebookUI.cellHasOutput(1);
-                    assert.isTrue(hasOutput);
-                    const outputHtml = await notebookUI.getCellOutputHTML(1);
-
-                    // Ensure Widget HTML exists
-                    assert.include(outputHtml, 'jupyter-widgets');
-                    assert.include(outputHtml, 'widget-text');
-                    assert.include(outputHtml, '<input type="text');
-                });
-            });
-            test('Checkox Widget', async () => {
-                const { notebookUI } = await openStandardWidgetsIpynb();
-                let hasOutput = await notebookUI.cellHasOutput(2);
-                assert.isFalse(hasOutput);
-
-                await notebookUI.executeCell(2);
-
-                await retryIfFail(async () => {
-                    hasOutput = await notebookUI.cellHasOutput(2);
-                    assert.isTrue(hasOutput);
-                    const outputHtml = await notebookUI.getCellOutputHTML(2);
-
-                    // Ensure Widget HTML exists
-                    assert.include(outputHtml, 'jupyter-widgets');
-                    assert.include(outputHtml, 'widget-checkbox');
-                    assert.include(outputHtml, '<input type="checkbox');
-                });
             });
             test('Button Interaction across Cells', async () => {
                 const { notebookUI } = await openStandardWidgetsIpynb();
@@ -219,40 +266,12 @@ use(chaiAsPromised);
                     return buttons[0];
                 });
 
-                await retryIfFail(async () => {
-                    // When we click the button, the text in the label will get updated (i.e. output in Cell 4 will be udpated).
-                    await button.click();
+                // When we click the button, the text in the label will get updated (i.e. output in Cell 4 will be udpated).
+                await button.click();
 
+                await retryIfFail(async () => {
                     const cell4Output = await notebookUI.getCellOutputHTML(4);
                     assert.include(cell4Output, 'Button Clicked');
-                });
-            });
-            test('Render ipysheets', async () => {
-                const { notebookUI } = await openIPySheetsIpynb();
-                await assert.eventually.isFalse(notebookUI.cellHasOutput(3));
-
-                await notebookUI.executeCell(1);
-                await notebookUI.executeCell(3);
-
-                await retryIfFail(async () => {
-                    const cellOutput = await notebookUI.getCellOutputHTML(3);
-
-                    assert.include(cellOutput, 'Hello</td>');
-                    assert.include(cellOutput, 'World</td>');
-                });
-            });
-            test('Render ipysheets', async () => {
-                const { notebookUI } = await openIPySheetsIpynb();
-                await assert.eventually.isFalse(notebookUI.cellHasOutput(3));
-
-                await notebookUI.executeCell(1);
-                await notebookUI.executeCell(3);
-
-                await retryIfFail(async () => {
-                    const cellOutput = await notebookUI.getCellOutputHTML(3);
-
-                    assert.include(cellOutput, 'Hello</td>');
-                    assert.include(cellOutput, 'World</td>');
                 });
             });
             test('Search ipysheets with textbox in another cell', async () => {

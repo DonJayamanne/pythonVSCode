@@ -21,6 +21,9 @@ import { ICodeCssGenerator, IDataScienceExtraSettings, IThemeFinder, WebViewView
 
 @injectable() // For some reason this is necessary to get the class hierarchy to work.
 export abstract class WebViewHost<IMapping> implements IDisposable {
+    protected get isDisposed(): boolean {
+        return this.disposed;
+    }
     protected viewState: { visible: boolean; active: boolean } = { visible: false, active: false };
     private disposed: boolean = false;
     private webPanel: IWebPanel | undefined;
@@ -116,10 +119,6 @@ export abstract class WebViewHost<IMapping> implements IDisposable {
     }
 
     protected abstract getOwningResource(): Promise<Resource>;
-
-    protected get isDisposed(): boolean {
-        return this.disposed;
-    }
 
     //tslint:disable-next-line:no-any
     protected onMessage(message: string, payload: any) {
@@ -277,6 +276,13 @@ export abstract class WebViewHost<IMapping> implements IDisposable {
         this.postMessageInternal(SharedMessages.LocInit, locStrings).ignoreErrors();
     }
 
+    // Post a message to our webpanel and update our new datascience settings
+    protected onDataScienceSettingsChanged = async () => {
+        // Stringify our settings to send over to the panel
+        const dsSettings = JSON.stringify(await this.generateDataScienceExtraSettings());
+        this.postMessageInternal(SharedMessages.UpdateSettings, dsSettings).ignoreErrors();
+    };
+
     private getValue<T>(workspaceConfig: WorkspaceConfiguration, section: string, defaultValue: T): T {
         if (workspaceConfig) {
             return workspaceConfig.get(section, defaultValue);
@@ -361,12 +367,5 @@ export abstract class WebViewHost<IMapping> implements IDisposable {
                 this.postMessageInternal(SharedMessages.UpdateSettings, dsSettings).ignoreErrors();
             }
         }
-    };
-
-    // Post a message to our webpanel and update our new datascience settings
-    private onDataScienceSettingsChanged = async () => {
-        // Stringify our settings to send over to the panel
-        const dsSettings = JSON.stringify(await this.generateDataScienceExtraSettings());
-        this.postMessageInternal(SharedMessages.UpdateSettings, dsSettings).ignoreErrors();
     };
 }
