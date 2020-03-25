@@ -237,11 +237,14 @@ export const createMainChannelFromSockets = (
                 return rxjs.fromEvent(socketEmitter, 'message').pipe(
                     map(
                         (body: any): JupyterMessage => {
-                            return wireProtocol.decode(
+                            const message = wireProtocol.decode(
                                 body,
                                 connectionInfo.key,
                                 connectionInfo.signature_scheme
                             ) as any;
+                            // Add on our channel property
+                            message.channel = name;
+                            return message;
                         }
                     ),
                     publish(),
