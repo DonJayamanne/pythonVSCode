@@ -12,7 +12,7 @@ import { IFileSystem } from '../../common/platform/types';
 import { IConfigurationService, IDisposableRegistry } from '../../common/types';
 import * as localize from '../../common/utils/localize';
 import { noop } from '../../common/utils/misc';
-import { IInterpreterService, PythonInterpreter } from '../../interpreter/contracts';
+import { IInterpreterService } from '../../interpreter/contracts';
 import { sendTelemetryEvent } from '../../telemetry';
 import { Identifiers, Settings, Telemetry } from '../constants';
 import { JupyterInstallError } from '../jupyter/jupyterInstallError';
