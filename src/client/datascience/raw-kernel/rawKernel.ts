@@ -3,6 +3,8 @@
 import { Kernel, KernelMessage, ServerConnection } from '@jupyterlab/services';
 import { JSONObject } from '@phosphor/coreutils';
 import { ISignal, Signal } from '@phosphor/signaling';
+// tslint:disable-next-line: no-require-imports
+import cloneDeep = require('lodash/cloneDeep');
 import * as uuid from 'uuid/v4';
 import { traceError } from '../../common/logger';
 import { IJMPConnection, IJMPConnectionInfo } from '../types';
@@ -68,7 +70,13 @@ export class RawKernel implements Kernel.IKernel {
 
     public isDisposed: boolean = false;
     private jmpConnection: IJMPConnection;
+    // Message chain to handle our messages async, but in order
     private messageChain: Promise<void> = Promise.resolve();
+    // Mappings for display id tracking
+    private displayIdToParentIds = new Map<string, string[]>();
+    private msgIdToDisplayIds = new Map<string, string[]>();
+    // The current kernel session Id that we are working with
+    private kernelSession: String = '';
 
     private _id: string;
     private _clientId: string;
@@ -201,7 +209,7 @@ export class RawKernel implements Kernel.IKernel {
             // Set our future to remove itself when disposed
             const oldDispose = future.dispose.bind(future);
             future.dispose = () => {
-                this.futures.delete(future.msg.header.msg_id);
+                this.futureDisposed(future);
                 return oldDispose();
             };
 
@@ -321,8 +329,47 @@ export class RawKernel implements Kernel.IKernel {
         throw new Error('Not yet implemented');
     }
 
+    // When a future is disposed this function is called to remove it from our
+    // various tracking lists
+    private futureDisposed(future: RawFuture<KernelMessage.IShellControlMessage, KernelMessage.IShellControlMessage>) {
+        const messageId = future.msg.header.msg_id;
+        this.futures.delete(messageId);
+
+        // Remove stored display id information.
+        const displayIds = this.msgIdToDisplayIds.get(messageId);
+        if (!displayIds) {
+            return;
+        }
+
+        displayIds.forEach(displayId => {
+            const messageIds = this.displayIdToParentIds.get(displayId);
+            if (messageIds) {
+                const index = messageIds.indexOf(messageId);
+                if (index === -1) {
+                    return;
+                }
+
+                if (messageIds.length === 1) {
+                    this.displayIdToParentIds.delete(displayId);
+                } else {
+                    messageIds.splice(index, 1);
+                    this.displayIdToParentIds.set(displayId, messageIds);
+                }
+            }
+        });
+
+        // Remove our message id from the mapping to display ids
+        this.msgIdToDisplayIds.delete(messageId);
+    }
+
     // Message incoming from the JMP connection. Queue it up for processing
     private msgIn(message: KernelMessage.IMessage) {
+        // Always keep our kernel session id up to date with incoming messages
+        // on something like a restart this will update when the first message on the
+        // new session comes in we use this to check the validity of messages that we are
+        // currently handling
+        this.kernelSession = message.header.session;
+
         // Add the message onto our message chain, we want to process them async
         // but in order so use a chain like this
         this.messageChain = this.messageChain
@@ -336,18 +383,119 @@ export class RawKernel implements Kernel.IKernel {
             });
     }
 
+    private async handleDisplayId(displayId: string, message: KernelMessage.IMessage): Promise<boolean> {
+        // tslint:disable-next-line:no-require-imports
+        const jupyterLab = require('@jupyterlab/services') as typeof import('@jupyterlab/services');
+
+        const messageId = (message.parent_header as KernelMessage.IHeader).msg_id;
+
+        // Get all parent ids for this display id
+        let parentIds = this.displayIdToParentIds.get(displayId);
+
+        // If we have seen this id before
+        if (parentIds) {
+            // We need to create a new update display data message to update the parents
+            const updateMessage: KernelMessage.IMessage = {
+                header: cloneDeep(message.header),
+                parent_header: cloneDeep(message.parent_header),
+                metadata: cloneDeep(message.metadata),
+                content: cloneDeep(message.content),
+                channel: message.channel,
+                buffers: message.buffers ? message.buffers.slice() : []
+            };
+            updateMessage.header.msg_type = 'update_display_data';
+
+            // Now send it out to all the parents
+            await Promise.all(
+                parentIds.map(async parentId => {
+                    const future = this.futures && this.futures.get(parentId);
+                    if (future) {
+                        await future.handleMessage(updateMessage);
+                    }
+                })
+            );
+        }
+
+        if (jupyterLab.KernelMessage.isUpdateDisplayDataMsg(message)) {
+            // End here for an update display data, indicate that we have handed it
+            // so it skip the normal displaying in handleMessage
+            return true;
+        }
+
+        // For display_data message record the mapping from
+        // the displayId to the parent messageId
+        parentIds = this.displayIdToParentIds.get(displayId) ?? [];
+        if (parentIds.indexOf(messageId) === -1) {
+            parentIds.push(messageId);
+        }
+        this.displayIdToParentIds.set(displayId, parentIds);
+
+        // Add to mapping of message -> display ids
+        const displayIds = this.msgIdToDisplayIds.get(messageId) ?? [];
+        if (displayIds.indexOf(messageId) === -1) {
+            displayIds.push(messageId);
+        }
+        this.msgIdToDisplayIds.set(messageId, displayIds);
+
+        // Return false so message continues to get processed
+        return false;
+    }
+
+    /* 
+    Messages are handled async so there is a possibility that the kernel might be
+    disposed or restarted during handling. Throw an error here if our message that
+    we are handling is no longer valid.
+    */
+    private checkMessageValid(message: KernelMessage.IMessage) {
+        if (this.isDisposed) {
+            throw new Error('Stop message handling on diposed kernel');
+        }
+
+        // kernelSession is updated when the first message from a new kernel session comes in
+        // in this case don't keep handling the old session messages
+        if (message.header.session !== this.kernelSession) {
+            throw new Error('Stop message handling on message from old session');
+        }
+    }
+
     // Handle a new message arriving from JMP connection
     private async handleMessage(message: KernelMessage.IMessage): Promise<void> {
-        // RAWKERNEL: display_data messages can route based on their id here first
+        // IANHU: CONVERT TO USING ONE REQUIRE?
+        // tslint:disable-next-line:no-require-imports
+        const jupyterLab = require('@jupyterlab/services') as typeof import('@jupyterlab/services');
+
+        let handled = false;
+
+        // Check to see if we have the right type of message for a display id
+        if (
+            message.parent_header &&
+            message.channel === 'iopub' &&
+            (jupyterLab.KernelMessage.isDisplayDataMsg(message) ||
+                jupyterLab.KernelMessage.isUpdateDisplayDataMsg(message) ||
+                jupyterLab.KernelMessage.isExecuteResultMsg(message))
+        ) {
+            // Display id can be found in transient message content
+            // https://jupyter-client.readthedocs.io/en/stable/messaging.html#display-data
+            const displayId = message.content.transient?.display_id;
+            if (displayId) {
+                handled = await this.handleDisplayId(displayId, message);
+
+                // After await check the validity of our message
+                this.checkMessageValid(message);
+            }
+        }
 
         // Look up in our future list and see if a future needs to be updated on this message
-        if (message.parent_header) {
+        if (!handled && message.parent_header) {
             const parentHeader = message.parent_header as KernelMessage.IHeader;
             const parentFuture = this.futures.get(parentHeader.msg_id);
 
             if (parentFuture) {
                 // Let the parent future message handle it here
                 await parentFuture.handleMessage(message);
+
+                // After await check the validity of our message
+                this.checkMessageValid(message);
             } else {
                 if (message.header.session === this._clientId && message.channel !== 'iopub') {
                     // RAWKERNEL: emit unhandled
