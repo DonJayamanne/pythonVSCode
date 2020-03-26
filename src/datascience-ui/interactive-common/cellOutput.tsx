@@ -261,11 +261,12 @@ export class CellOutput extends React.Component<ICellOutputProps> {
                 }
                 const output = itemsToRender.shift();
                 // tslint:disable-next-line: no-any
-                if (!output || !output.data || !(output.data as any)['application/vnd.jupyter.widget-view+json']) {
+                const outputData = output && output.data ? (output.data as any) : undefined; // NOSONAR
+                if (!outputData || !outputData['application/vnd.jupyter.widget-view+json']) {
                     return;
                 }
                 // tslint:disable-next-line: no-any
-                const widgetData: any = (output.data as any)['application/vnd.jupyter.widget-view+json'];
+                const widgetData: any = outputData['application/vnd.jupyter.widget-view+json'];
                 const element = this.ipyWidgetRef.current!;
                 const view = await WidgetManager.instance.renderWidget(widgetData, element);
                 // Check if we received a new update request (simplem cancellation mechanism).

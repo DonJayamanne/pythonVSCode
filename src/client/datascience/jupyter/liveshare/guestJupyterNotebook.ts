@@ -37,7 +37,7 @@ export class GuestJupyterNotebook
     private get jupyterLab(): undefined | typeof import('@jupyterlab/services') {
         if (!this._jupyterLab) {
             // tslint:disable-next-line:no-require-imports
-            this._jupyterLab = require('@jupyterlab/services') as typeof import('@jupyterlab/services');
+            this._jupyterLab = require('@jupyterlab/services') as typeof import('@jupyterlab/services'); // NOSONAR
         }
         return this._jupyterLab;
     }
@@ -284,7 +284,7 @@ export class GuestJupyterNotebook
 
         return {
             done: Promise.resolve(undefined),
-            msg: shellMessage!,
+            msg: shellMessage!, // NOSONAR
             onReply: noop,
             onIOPub: noop,
             onStdin: noop,

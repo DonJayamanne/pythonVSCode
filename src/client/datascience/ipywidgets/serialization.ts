@@ -48,7 +48,7 @@ export function serializeDataViews(msg: KernelMessage.IIOPubMessage): KernelMess
                 byteOffset: item.byteOffset,
                 buffer
                 // tslint:disable-next-line: no-any
-            } as any);
+            } as any); // NOSONAR
         } else {
             // tslint:disable-next-line: no-any
             newBufferView.push(Array.apply(null, new Uint8Array(item as any) as any) as any);

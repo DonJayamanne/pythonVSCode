@@ -37,7 +37,7 @@ export class IPyWidgetMessageDispatcher implements IIPyWidgetMessageDispatcher {
     public dispose() {
         while (this.disposables.length) {
             const disposable = this.disposables.shift();
-            disposable?.dispose();
+            disposable?.dispose(); // NOSONAR
         }
     }
 
@@ -123,7 +123,7 @@ export class IPyWidgetMessageDispatcher implements IIPyWidgetMessageDispatcher {
     public async initialize() {
         if (!this.jupyterLab) {
             // tslint:disable-next-line:no-require-imports
-            this.jupyterLab = require('@jupyterlab/services') as typeof import('@jupyterlab/services');
+            this.jupyterLab = require('@jupyterlab/services') as typeof import('@jupyterlab/services'); // NOSONAR
         }
 
         // If we have any pending targets, register them now
@@ -168,6 +168,11 @@ export class IPyWidgetMessageDispatcher implements IIPyWidgetMessageDispatcher {
     }
 
     private registerCommTargets(notebook: INotebook) {
+        const registerHandler = async (targetName: string, _comm: Kernel.IComm, msg: KernelMessage.ICommOpenMsg) => {
+            // Keep track of this so we can re-broadcast this to other ipywidgets from other views.
+            this.commTargetsRegistered.set(targetName, msg);
+            this.raisePostMessage(IPyWidgetMessages.IPyWidgets_comm_open, msg);
+        };
         while (this.pendingTargetNames.size > 0) {
             const targetNames = Array.from([...this.pendingTargetNames.values()]);
             const targetName = targetNames.shift();
@@ -183,11 +188,7 @@ export class IPyWidgetMessageDispatcher implements IIPyWidgetMessageDispatcher {
 
             this.commTargetsRegistered.set(targetName, undefined);
             this.pendingTargetNames.delete(targetName);
-            notebook.registerCommTarget(targetName, (_comm: Kernel.IComm, msg: KernelMessage.ICommOpenMsg) => {
-                // Keep track of this so we can re-broadcast this to other ipywidgets from other views.
-                this.commTargetsRegistered.set(targetName, msg);
-                this.raisePostMessage(IPyWidgetMessages.IPyWidgets_comm_open, msg);
-            });
+            notebook.registerCommTarget(targetName, registerHandler.bind(this, targetName));
         }
     }
 

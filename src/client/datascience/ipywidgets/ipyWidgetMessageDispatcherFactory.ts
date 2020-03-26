@@ -31,7 +31,7 @@ class IPyWidgetMessageDispatcherWithOldMessages implements IIPyWidgetMessageDisp
     public dispose() {
         while (this.disposables.length) {
             const disposable = this.disposables.shift();
-            disposable?.dispose();
+            disposable?.dispose(); // NOSONAR
         }
     }
     public async initialize() {
@@ -85,7 +85,7 @@ export class IPyWidgetMessageDispatcherFactory {
             notebookProvider.onNotebookCreated(async e => {
                 e.notebook.onDisposed(() => {
                     const item = this.ipywidgetMulticasters.get(e.identity.fsPath);
-                    item?.dispose();
+                    item?.dispose(); // NOSONAR
                     this.ipywidgetMulticasters.delete(e.identity.fsPath);
                 });
             })

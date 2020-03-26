@@ -159,7 +159,7 @@ export class NotebookProvider implements INotebookProvider {
             traceInfo(`Server started.`);
             return result;
         } catch (e) {
-            progressReporter?.dispose();
+            progressReporter?.dispose(); // NOSONAR
             // If user cancelled, then do nothing.
             if (progressReporter && progressReporter.token.isCancellationRequested && e instanceof CancellationError) {
                 return;
@@ -199,15 +199,13 @@ export class NotebookProvider implements INotebookProvider {
                 throw e;
             }
         } finally {
-            progressReporter?.dispose();
+            progressReporter?.dispose(); // NOSONAR
         }
     }
 
     private async checkUsable(options: INotebookServerOptions): Promise<boolean> {
-        let activeInterpreter: PythonInterpreter | undefined;
         try {
             if (options && !options.uri) {
-                activeInterpreter = await this.interpreterService.getActiveInterpreter(undefined);
                 const usableInterpreter = await this.jupyterExecution.getUsableJupyterPython();
                 return usableInterpreter ? true : false;
             } else {
@@ -217,6 +215,7 @@ export class NotebookProvider implements INotebookProvider {
             if (e instanceof JupyterZMQBinariesNotFoundError) {
                 throw e;
             }
+            const activeInterpreter = await this.interpreterService.getActiveInterpreter(undefined);
             // Can't find a usable interpreter, show the error.
             if (activeInterpreter) {
                 const displayName = activeInterpreter.displayName

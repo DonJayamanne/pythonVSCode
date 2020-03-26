@@ -51,7 +51,7 @@ export class IPyWidgetHandler implements IInteractiveWindowListener {
     }
 
     public dispose() {
-        this.ipyWidgetMessageDispatcher?.dispose();
+        this.ipyWidgetMessageDispatcher?.dispose(); // NOSONAR
     }
 
     // tslint:disable-next-line: no-any
