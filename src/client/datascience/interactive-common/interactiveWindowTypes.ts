@@ -106,6 +106,7 @@ export enum InteractiveWindowMessages {
 export enum IPyWidgetMessages {
     IPyWidgets_display_data_msg = 'IPyWidgets_display_data_msg',
     IPyWidgets_comm_msg = 'IPyWidgets_comm_msg',
+    IPyWidgets_comm_msg_reply = 'IPyWidgets_comm_msg_reply',
     IPyWidgets_comm_open = 'IPyWidgets_comm_open',
     IPyWidgets_ShellSend = 'IPyWidgets_ShellSend',
     IPyWidgets_ShellCommOpen = 'IPyWidgets_ShellCommOpen',
@@ -113,7 +114,13 @@ export enum IPyWidgetMessages {
     IPyWidgets_ShellSend_onIOPub = 'IPyWidgets_ShellSend_onIOPub',
     IPyWidgets_ShellSend_reply = 'IPyWidgets_ShellSend_reply',
     IPyWidgets_ShellSend_resolve = 'IPyWidgets_ShellSend_resolve',
-    IPyWidgets_ShellSend_reject = 'IPyWidgets_ShellSend_reject'
+    IPyWidgets_ShellSend_reject = 'IPyWidgets_ShellSend_reject',
+    IPyWidgets_RequestCommInfo_request = 'IPyWidgets_RequestCommInfo_request',
+    IPyWidgets_RequestCommInfo_reply = 'IPyWidgets_ReplyCommInfo_reply',
+    IPyWidgets_RegisterMessageHook = 'IPyWidgets_RegisterMessageHook',
+    IPyWidgets_RemoveMessageHook = 'IPyWidgets_RemoveMessageHook',
+    IPyWidgets_MessageHookCall = 'IPyWidgets_MessageHookCall',
+    IPyWidgets_MessageHookResponse = 'IPyWidgets_MessageHookResponse'
 }
 export enum NativeCommandType {
     AddToEnd = 0,
@@ -485,7 +492,29 @@ export class IInteractiveWindowMapping {
     public [IPyWidgetMessages.IPyWidgets_registerCommTarget]: string;
     public [IPyWidgetMessages.IPyWidgets_comm_open]: KernelMessage.ICommOpenMsg;
     public [IPyWidgetMessages.IPyWidgets_comm_msg]: KernelMessage.ICommMsgMsg;
+    public [IPyWidgetMessages.IPyWidgets_comm_msg_reply]: string;
     public [IPyWidgetMessages.IPyWidgets_display_data_msg]: KernelMessage.IDisplayDataMsg;
+    public [IPyWidgetMessages.IPyWidgets_RequestCommInfo_request]: {
+        requestId: string;
+        msg: KernelMessage.ICommInfoRequestMsg['content'];
+    };
+    public [IPyWidgetMessages.IPyWidgets_RequestCommInfo_reply]: {
+        requestId: string;
+        msg: KernelMessage.ICommInfoReplyMsg;
+    };
+    public [IPyWidgetMessages.IPyWidgets_RegisterMessageHook]: string;
+    public [IPyWidgetMessages.IPyWidgets_RemoveMessageHook]: string;
+    public [IPyWidgetMessages.IPyWidgets_MessageHookCall]: {
+        requestId: string;
+        parentId: string;
+        msg: KernelMessage.IIOPubMessage;
+    };
+    public [IPyWidgetMessages.IPyWidgets_MessageHookResponse]: {
+        requestId: string;
+        parentId: string;
+        msgType: string;
+        result: boolean;
+    };
 
     public [InteractiveWindowMessages.StartCell]: ICell;
     public [InteractiveWindowMessages.FinishCell]: ICell;

@@ -8,7 +8,6 @@ import { Event, EventEmitter, Uri } from 'vscode';
 import { traceError } from '../../common/logger';
 import { IDisposableRegistry } from '../../common/types';
 import {
-    IInteractiveWindowMapping,
     INotebookIdentity,
     InteractiveWindowMessages,
     IPyWidgetMessages
@@ -29,6 +28,7 @@ export class IPyWidgetHandler implements IInteractiveWindowListener {
     }
     private ipyWidgetMessageDispatcher?: IIPyWidgetMessageDispatcher;
     private notebookIdentity: Uri | undefined;
+    private ipywidgetMessages = Object.keys(IPyWidgetMessages);
 
     // tslint:disable-next-line: no-any
     private postEmitter: EventEmitter<{ message: string; payload: any }> = new EventEmitter<{
@@ -36,7 +36,6 @@ export class IPyWidgetHandler implements IInteractiveWindowListener {
         // tslint:disable-next-line: no-any
         payload: any;
     }>();
-
     constructor(
         @inject(INotebookProvider) notebookProvider: INotebookProvider,
         @inject(IDisposableRegistry) private readonly disposables: IDisposableRegistry,
@@ -57,32 +56,16 @@ export class IPyWidgetHandler implements IInteractiveWindowListener {
 
     // tslint:disable-next-line: no-any
     public onMessage(message: string, payload?: any): void {
-        switch (message) {
-            case InteractiveWindowMessages.NotebookIdentity:
-                this.saveIdentity(payload).catch(ex => traceError('Failed to initialize ipywidgetHandler', ex));
-                break;
-
-            case IPyWidgetMessages.IPyWidgets_ShellSend:
-                this.getIPyWidgetMulticaster()
-                    ?.sendIPythonShellMsg(payload)
-                    .catch(ex => traceError('Failed to send ipython Shell Message', ex));
-                break;
-
-            case IPyWidgetMessages.IPyWidgets_registerCommTarget:
-                this.getIPyWidgetMulticaster()
-                    ?.registerCommTarget(payload)
-                    .catch(ex => traceError('Failed to register Comm Target', ex));
-                break;
-
-            default:
-                break;
+        if (message === InteractiveWindowMessages.NotebookIdentity) {
+            this.saveIdentity(payload).catch(ex => traceError('Failed to initialize ipywidgetHandler', ex));
+        } else if (this.ipywidgetMessages.includes(message)) {
+            // Need a temp variable so SONAR doesn't flip out.
+            const ipywidgetMulticaster = this.getIPyWidgetMulticaster();
+            // tslint:disable-next-line: no-any
+            ipywidgetMulticaster!.receiveMessage({ message: message as any, payload });
         }
     }
 
-    private postMessageToWebView<M extends IInteractiveWindowMapping, T extends keyof M>(type: T, payload?: M[T]) {
-        // First send to our listeners
-        this.postEmitter.fire({ message: type.toString(), payload });
-    }
     private getIPyWidgetMulticaster() {
         if (!this.notebookIdentity) {
             return;
@@ -97,8 +80,8 @@ export class IPyWidgetHandler implements IInteractiveWindowListener {
         const ipywidgetMulticaster = this.getIPyWidgetMulticaster();
 
         this.disposables.push(
-            ipywidgetMulticaster!.onMessage(msg => {
-                this.postMessageToWebView(msg.message, msg.payload);
+            ipywidgetMulticaster!.postMessage(msg => {
+                this.postEmitter.fire(msg);
             })
         );
 

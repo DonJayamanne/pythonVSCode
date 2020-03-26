@@ -65,9 +65,6 @@ export class GuestJupyterNotebook
         return ServerStatus.Idle;
     }
 
-    public get ioPub(): Event<{ msg: KernelMessage.IIOPubMessage; requestId: string }> {
-        return this.ioPubEvent.event;
-    }
     public onKernelChanged: Event<IJupyterKernelSpec | LiveKernelModel> = new EventEmitter<
         IJupyterKernelSpec | LiveKernelModel
     >().event;
@@ -75,7 +72,6 @@ export class GuestJupyterNotebook
     private _jupyterLab?: typeof import('@jupyterlab/services');
     private responseQueue: ResponseQueue = new ResponseQueue();
     private onStatusChangedEvent: EventEmitter<ServerStatus> | undefined;
-    private ioPubEvent = new EventEmitter<{ msg: KernelMessage.IIOPubMessage; requestId: string }>();
 
     constructor(
         liveShare: ILiveShareApi,
@@ -298,6 +294,42 @@ export class GuestJupyterNotebook
             isDisposed: false,
             dispose: noop
         };
+    }
+
+    public requestCommInfo(
+        _content: KernelMessage.ICommInfoRequestMsg['content']
+    ): Promise<KernelMessage.ICommInfoReplyMsg> {
+        const shellMessage = KernelMessage.createMessage<KernelMessage.ICommInfoReplyMsg>({
+            msgType: 'comm_info_reply',
+            channel: 'shell',
+            content: {
+                status: 'ok'
+                // tslint:disable-next-line: no-any
+            } as any,
+            metadata: {},
+            session: '1',
+            username: '1'
+        });
+
+        return Promise.resolve(shellMessage);
+    }
+    public registerMessageHook(
+        _msgId: string,
+        _hook: (msg: KernelMessage.IIOPubMessage) => boolean | PromiseLike<boolean>
+    ): void {
+        noop();
+    }
+    public removeMessageHook(
+        _msgId: string,
+        _hook: (msg: KernelMessage.IIOPubMessage) => boolean | PromiseLike<boolean>
+    ): void {
+        noop();
+    }
+
+    public registerIOPubListener(
+        _listener: (msg: KernelMessage.IIOPubMessage, requestId: string) => Promise<void>
+    ): void {
+        noop();
     }
 
     private onServerResponse = (args: Object) => {

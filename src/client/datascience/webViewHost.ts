@@ -272,6 +272,10 @@ export abstract class WebViewHost<IMapping> implements IDisposable {
         this.onDataScienceSettingsChanged().ignoreErrors();
 
         // Send the loc strings (skip during testing as it takes up a lot of memory)
+        this.sendLocStrings().ignoreErrors();
+    }
+
+    protected async sendLocStrings() {
         const locStrings = isTestExecution() ? '{}' : localize.getCollectionJSON();
         this.postMessageInternal(SharedMessages.LocInit, locStrings).ignoreErrors();
     }
@@ -338,6 +342,10 @@ export abstract class WebViewHost<IMapping> implements IDisposable {
 
             traceInfo('Web view react rendered');
         }
+
+        // On started, resend our init data.
+        this.sendLocStrings().ignoreErrors();
+        this.onDataScienceSettingsChanged().ignoreErrors();
     }
 
     // Post a message to our webpanel and update our new datascience settings

@@ -3,33 +3,45 @@
 
 'use strict';
 
-import { DOMWidgetView, shims } from '@jupyter-widgets/base';
-import { HTMLManager } from '@jupyter-widgets/html-manager';
+import { shims } from '@jupyter-widgets/base';
+import * as jupyterlab from '@jupyter-widgets/jupyterlab-manager';
+import { RenderMimeRegistry, standardRendererFactories } from '@jupyterlab/rendermime';
 import { Kernel } from '@jupyterlab/services';
-import * as pWidget from '@phosphor/widgets';
+import { Widget } from '@phosphor/widgets';
+import { DocumentContext } from './documentContext';
 import { requireLoader } from './widgetLoader';
+
+export const WIDGET_MIMETYPE = 'application/vnd.jupyter.widget-view+json';
 
 // tslint:disable: no-any
 // Source borrowed from https://github.com/jupyter-widgets/ipywidgets/blob/master/examples/web3/src/manager.ts
 
-export class WidgetManager extends HTMLManager {
+export class WidgetManager extends jupyterlab.WidgetManager {
     public kernel: Kernel.IKernelConnection;
     public el: HTMLElement;
+
     constructor(kernel: Kernel.IKernelConnection, el: HTMLElement) {
-        super({ loader: requireLoader });
+        super(
+            new DocumentContext(kernel),
+            new RenderMimeRegistry({
+                initialFactories: standardRendererFactories
+            }),
+            { saveState: false }
+        );
         this.kernel = kernel;
         this.el = el;
+        this.rendermime.addFactory(
+            {
+                safe: false,
+                mimeTypes: [WIDGET_MIMETYPE],
+                createRenderer: options => new jupyterlab.WidgetRenderer(options, this)
+            },
+            0
+        );
 
         kernel.registerCommTarget(this.comm_target_name, async (comm, msg) => {
             const oldComm = new shims.services.Comm(comm);
             return this.handle_comm_open(oldComm, msg) as Promise<any>;
-        });
-    }
-
-    public display_view(view: DOMWidgetView, options: { el: HTMLElement }) {
-        return Promise.resolve(view).then(vw => {
-            pWidget.Widget.attach(view.pWidget, options.el);
-            return vw;
         });
     }
 
@@ -57,9 +69,30 @@ export class WidgetManager extends HTMLManager {
             .requestCommInfo({ target: this.comm_target_name })
             .then(reply => (reply.content as any).comms);
     }
-    protected loadClass(className: string, moduleName: string, moduleVersion: string): Promise<any> {
-        return super
-            .loadClass(className, moduleName, moduleVersion)
-            .catch(() => requireLoader(moduleName, moduleVersion));
+    public async display_view(msg: any, view: Backbone.View<Backbone.Model>, options: any): Promise<Widget> {
+        const widget = await super.display_view(msg, view, options);
+        const element = options.node ? (options.node as HTMLElement) : this.el;
+        // When do we detach?
+        if (element) {
+            Widget.attach(widget, element);
+        }
+        return widget;
+    }
+    protected async loadClass(className: string, moduleName: string, moduleVersion: string): Promise<any> {
+        // Call the base class to try and load. If that fails, look locally
+        const result = await super.loadClass(className, moduleName, moduleVersion).catch(async x => {
+            const m = await requireLoader(moduleName, moduleVersion);
+            if (m && m[className]) {
+                return m[className];
+            }
+            throw x;
+        });
+
+        // Log to output
+        if (result) {
+            window.console.log(`WidgetManager: Loading class ${className}:${moduleName}:${moduleVersion}`);
+        }
+
+        return result;
     }
 }

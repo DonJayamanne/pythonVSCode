@@ -16,16 +16,16 @@ import { IIPyWidgetMessageDispatcher, IPyWidgetMessage } from './types';
  * all messages that arrived before this class was contructed.
  */
 class IPyWidgetMessageDispatcherWithOldMessages implements IIPyWidgetMessageDispatcher {
-    public get onMessage(): Event<IPyWidgetMessage> {
-        return this._onMessage.event;
+    public get postMessage(): Event<IPyWidgetMessage> {
+        return this._postMessageEmitter.event;
     }
-    private _onMessage = new EventEmitter<IPyWidgetMessage>();
+    private _postMessageEmitter = new EventEmitter<IPyWidgetMessage>();
     private readonly disposables: IDisposable[] = [];
     constructor(
         private readonly baseMulticaster: IPyWidgetMessageDispatcher,
         private oldMessages: ReadonlyArray<IPyWidgetMessage>
     ) {
-        baseMulticaster.onMessage(this.raiseOnMessage, this, this.disposables);
+        baseMulticaster.postMessage(this.raisePostMessage, this, this.disposables);
     }
 
     public dispose() {
@@ -34,32 +34,21 @@ class IPyWidgetMessageDispatcherWithOldMessages implements IIPyWidgetMessageDisp
             disposable?.dispose();
         }
     }
-    public sendIPythonShellMsg(payload: {
-        // tslint:disable: no-any
-        data: any;
-        metadata: any;
-        commId: string;
-        requestId: string;
-        buffers?: any;
-        msgType: string;
-        targetName?: string;
-    }): Promise<void> {
-        return this.baseMulticaster.sendIPythonShellMsg(payload);
-    }
-    public registerCommTarget(targetName: string): Promise<void> {
-        return this.baseMulticaster.registerCommTarget(targetName);
-    }
     public async initialize() {
         return this.baseMulticaster.initialize();
     }
-    private raiseOnMessage(message: IPyWidgetMessage) {
+
+    public receiveMessage(message: IPyWidgetMessage) {
+        this.baseMulticaster.receiveMessage(message);
+    }
+    private raisePostMessage(message: IPyWidgetMessage) {
         // Send all of the old messages the notebook may not have received.
         // Also send them in the same order.
         this.oldMessages.forEach(oldMessage => {
-            this._onMessage.fire(oldMessage);
+            this._postMessageEmitter.fire(oldMessage);
         });
         this.oldMessages = [];
-        this._onMessage.fire(message);
+        this._postMessageEmitter.fire(message);
     }
 }
 
@@ -110,7 +99,7 @@ export class IPyWidgetMessageDispatcherFactory {
             this.ipywidgetMulticasters.set(identity.fsPath, baseDispatcher);
 
             // Capture all messages so we can re-play messages that others missed.
-            this.disposables.push(baseDispatcher.onMessage(this.onMessage, this));
+            this.disposables.push(baseDispatcher.postMessage(this.onMessage, this));
         }
 
         // If we have messages upto this point, then capture those messages,

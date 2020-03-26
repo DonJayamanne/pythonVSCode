@@ -155,20 +155,17 @@ export class JupyterNotebookBase implements INotebook {
     private _disposed: boolean = false;
     private _workingDirectory: string | undefined;
     private onStatusChangedEvent: EventEmitter<ServerStatus> | undefined;
-    private ioPubEvent = new EventEmitter<{ msg: KernelMessage.IIOPubMessage; requestId: string }>();
     public get onDisposed(): Event<void> {
         return this.disposed.event;
     }
     public get onKernelChanged(): Event<IJupyterKernelSpec | LiveKernelModel> {
         return this.kernelChanged.event;
     }
-    public get ioPub(): Event<{ msg: KernelMessage.IIOPubMessage; requestId: string }> {
-        return this.ioPubEvent.event;
-    }
     private kernelChanged = new EventEmitter<IJupyterKernelSpec | LiveKernelModel>();
     private disposed = new EventEmitter<void>();
     private sessionStatusChanged: Disposable | undefined;
     private initializedMatplotlib = false;
+    private ioPubListeners = new Set<(msg: KernelMessage.IIOPubMessage, requestId: string) => Promise<void>>();
 
     constructor(
         _liveShare: ILiveShareApi, // This is so the liveshare mixin works
@@ -626,6 +623,12 @@ export class JupyterNotebookBase implements INotebook {
         return this.loggers;
     }
 
+    public registerIOPubListener(
+        listener: (msg: KernelMessage.IIOPubMessage, requestId: string) => Promise<void>
+    ): void {
+        this.ioPubListeners.add(listener);
+    }
+
     public registerCommTarget(
         targetName: string,
         callback: (comm: Kernel.IComm, msg: KernelMessage.ICommOpenMsg) => void | PromiseLike<void>
@@ -650,6 +653,36 @@ export class JupyterNotebookBase implements INotebook {
     > {
         if (this.session) {
             return this.session.sendCommMessage(buffers, content, metadata, msgId);
+        } else {
+            throw new Error(localize.DataScience.sessionDisposed());
+        }
+    }
+
+    public requestCommInfo(
+        content: KernelMessage.ICommInfoRequestMsg['content']
+    ): Promise<KernelMessage.ICommInfoReplyMsg> {
+        if (this.session) {
+            return this.session.requestCommInfo(content);
+        } else {
+            throw new Error(localize.DataScience.sessionDisposed());
+        }
+    }
+    public registerMessageHook(
+        msgId: string,
+        hook: (msg: KernelMessage.IIOPubMessage) => boolean | PromiseLike<boolean>
+    ): void {
+        if (this.session) {
+            return this.session.registerMessageHook(msgId, hook);
+        } else {
+            throw new Error(localize.DataScience.sessionDisposed());
+        }
+    }
+    public removeMessageHook(
+        msgId: string,
+        hook: (msg: KernelMessage.IIOPubMessage) => boolean | PromiseLike<boolean>
+    ): void {
+        if (this.session) {
+            return this.session.removeMessageHook(msgId, hook);
         } else {
             throw new Error(localize.DataScience.sessionDisposed());
         }
@@ -879,7 +912,11 @@ export class JupyterNotebookBase implements INotebook {
         silent: boolean | undefined,
         clearState: RefBool,
         msg: KernelMessage.IIOPubMessage
-    ) {
+        // tslint:disable-next-line: no-any
+    ): Promise<any> {
+        // tslint:disable-next-line: no-any
+        let result: Promise<any> = Promise.resolve();
+
         // tslint:disable-next-line:no-require-imports
         const jupyterLab = require('@jupyterlab/services') as typeof import('@jupyterlab/services');
 
@@ -912,8 +949,10 @@ export class JupyterNotebookBase implements INotebook {
                 subscriber.cell.data.execution_count = msg.content.execution_count as number;
             }
 
-            // Send our event
-            this.ioPubEvent.fire({ msg, requestId: msg.header.msg_id });
+            // Tell all of the listeners about the event. They can cause this to not return until
+            // they are done handling the event.
+            // One such example is a comm_msg for ipywidgets. We have to wait for it to finish.
+            result = Promise.all([...this.ioPubListeners].map(l => l(msg, msg.header.msg_id)));
 
             // Show our update if any new output.
             subscriber.next(this.sessionStartTime);
@@ -921,6 +960,8 @@ export class JupyterNotebookBase implements INotebook {
             // If not a restart error, then tell the subscriber
             subscriber.error(this.sessionStartTime, err);
         }
+
+        return result;
     }
 
     private checkForExit(): Error | undefined {

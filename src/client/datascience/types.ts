@@ -111,7 +111,6 @@ export interface INotebook extends IAsyncDisposable {
     readonly identity: Uri;
     readonly server: INotebookServer;
     readonly status: ServerStatus;
-    readonly ioPub: Event<{ msg: KernelMessage.IIOPubMessage; requestId: string }>;
     onSessionStatusChanged: Event<ServerStatus>;
     onDisposed: Event<void>;
     onKernelChanged: Event<IJupyterKernelSpec | LiveKernelModel>;
@@ -142,6 +141,7 @@ export interface INotebook extends IAsyncDisposable {
     setKernelSpec(spec: IJupyterKernelSpec | LiveKernelModel, timeoutMS: number): Promise<void>;
     setInterpreter(interpeter: PythonInterpreter): void;
     getLoggers(): INotebookExecutionLogger[];
+    registerIOPubListener(listener: (msg: KernelMessage.IIOPubMessage, requestId: string) => Promise<void>): void;
     registerCommTarget(
         targetName: string,
         callback: (comm: Kernel.IComm, msg: KernelMessage.ICommOpenMsg) => void | PromiseLike<void>
@@ -157,6 +157,12 @@ export interface INotebook extends IAsyncDisposable {
         KernelMessage.IShellMessage<'comm_msg'>,
         KernelMessage.IShellMessage<KernelMessage.ShellMessageType>
     >;
+    requestCommInfo(content: KernelMessage.ICommInfoRequestMsg['content']): Promise<KernelMessage.ICommInfoReplyMsg>;
+    registerMessageHook(
+        msgId: string,
+        hook: (msg: KernelMessage.IIOPubMessage) => boolean | PromiseLike<boolean>
+    ): void;
+    removeMessageHook(msgId: string, hook: (msg: KernelMessage.IIOPubMessage) => boolean | PromiseLike<boolean>): void;
 }
 
 export interface INotebookServerOptions {
@@ -266,6 +272,12 @@ export interface IJupyterSession extends IAsyncDisposable {
         KernelMessage.IShellMessage<'comm_msg'>,
         KernelMessage.IShellMessage<KernelMessage.ShellMessageType>
     >;
+    requestCommInfo(content: KernelMessage.ICommInfoRequestMsg['content']): Promise<KernelMessage.ICommInfoReplyMsg>;
+    registerMessageHook(
+        msgId: string,
+        hook: (msg: KernelMessage.IIOPubMessage) => boolean | PromiseLike<boolean>
+    ): void;
+    removeMessageHook(msgId: string, hook: (msg: KernelMessage.IIOPubMessage) => boolean | PromiseLike<boolean>): void;
 }
 
 export const IJupyterSessionManagerFactory = Symbol('IJupyterSessionManagerFactory');

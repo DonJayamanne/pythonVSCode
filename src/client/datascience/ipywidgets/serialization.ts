@@ -29,9 +29,9 @@ export function restoreBuffers(buffers?: (ArrayBuffer | ArrayBufferView)[] | und
     return newBuffers;
 }
 
-export function serializeDataViews(msg: KernelMessage.IIOPubMessage) {
+export function serializeDataViews(msg: KernelMessage.IIOPubMessage): KernelMessage.IIOPubMessage {
     if (!Array.isArray(msg.buffers) || msg.buffers.length === 0) {
-        return;
+        return msg;
     }
     // tslint:disable-next-line: no-any
     const newBufferView: any[] = [];
@@ -55,5 +55,8 @@ export function serializeDataViews(msg: KernelMessage.IIOPubMessage) {
         }
     }
 
-    msg.buffers = newBufferView;
+    return {
+        ...msg,
+        buffers: newBufferView
+    };
 }

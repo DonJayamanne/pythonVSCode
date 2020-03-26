@@ -5,6 +5,7 @@
 
 import { Kernel, KernelMessage } from '@jupyterlab/services';
 import * as uuid from 'uuid/v4';
+import { createDeferred, Deferred } from '../../client/common/utils/async';
 import { noop } from '../../client/common/utils/misc';
 import { IPyWidgetMessages } from '../../client/datascience/interactive-common/interactiveWindowTypes';
 import { ClassicCommShellCallbackManager } from './callbackManager';
@@ -28,6 +29,8 @@ export class ProxyKernel implements Partial<Kernel.IKernel> {
     private commTargetCallbacks = new Map<string, CommTargetCallback>();
     private commsById = new Map<string, Kernel.IComm>();
     private readonly shellCallbackManager = new ClassicCommShellCallbackManager();
+    private pendingCommInfoResponses = new Map<string | undefined, Deferred<KernelMessage.ICommInfoReplyMsg>>();
+    private messageHooks = new Map<string, (msg: KernelMessage.IIOPubMessage) => boolean | PromiseLike<boolean>>();
     constructor(private readonly messageSender: IMessageSender) {}
     /**
      * This method is used by ipywidgets manager.
@@ -43,6 +46,32 @@ export class ProxyKernel implements Partial<Kernel.IKernel> {
     }
     public connectToComm(targetName: string, commId: string = uuid()): Kernel.IComm {
         return this.commsById.get(commId) || this.createComm(targetName, commId);
+    }
+    public requestCommInfo(
+        content: KernelMessage.ICommInfoRequestMsg['content']
+    ): Promise<KernelMessage.ICommInfoReplyMsg> {
+        const promiseHolder = createDeferred<KernelMessage.ICommInfoReplyMsg>();
+        const requestId = uuid();
+        this.pendingCommInfoResponses.set(requestId, promiseHolder);
+        this.messageSender.sendMessage(IPyWidgetMessages.IPyWidgets_RequestCommInfo_request, {
+            requestId,
+            msg: content
+        });
+        return promiseHolder.promise;
+    }
+    public registerMessageHook(
+        msgId: string,
+        hook: (msg: KernelMessage.IIOPubMessage) => boolean | PromiseLike<boolean>
+    ): void {
+        this.messageHooks.set(msgId, hook);
+        this.messageSender.sendMessage(IPyWidgetMessages.IPyWidgets_RegisterMessageHook, msgId);
+    }
+    public removeMessageHook(
+        msgId: string,
+        _hook: (msg: KernelMessage.IIOPubMessage) => boolean | PromiseLike<boolean>
+    ): void {
+        this.messageHooks.delete(msgId);
+        this.messageSender.sendMessage(IPyWidgetMessages.IPyWidgets_RemoveMessageHook, msgId);
     }
     public dispose() {
         while (this.handlers.shift()) {
@@ -75,11 +104,23 @@ export class ProxyKernel implements Partial<Kernel.IKernel> {
                         }
                     }
                 }
+
+                // Have to indicate to the real kernel when this message has been handled. Otherwise the
+                // kernel will start executing before the widget is ready to handle it
+                this.messageSender.sendMessage(IPyWidgetMessages.IPyWidgets_comm_msg_reply, commMsg.header.msg_id);
                 break;
             }
             case IPyWidgetMessages.IPyWidgets_comm_open:
                 await this.handleCommOpen(msg, payload);
                 break;
+            case IPyWidgetMessages.IPyWidgets_RequestCommInfo_reply:
+                this.handleCommInfo(payload);
+                break;
+
+            case IPyWidgetMessages.IPyWidgets_MessageHookCall:
+                this.handleMessageHookCall(payload);
+                break;
+
             default:
                 await this.shellCallbackManager.handleShellCallbacks(msg, payload);
                 break;
@@ -103,6 +144,49 @@ export class ProxyKernel implements Partial<Kernel.IKernel> {
         // tslint:disable-next-line: no-any
         if (promise && (promise as any).then) {
             await promise;
+        }
+    }
+    private handleMessageHookCall(args: { requestId: string; parentId: string; msg: KernelMessage.IIOPubMessage }) {
+        // tslint:disable-next-line: no-any
+        window.console.log(`Message hook callback for ${(args.msg as any).msg_type} and ${args.parentId}`);
+        // tslint:disable-next-line: no-any
+        const hook = this.messageHooks.get((args.msg.parent_header as any).msg_id);
+        if (hook) {
+            const result = hook(args.msg);
+            // tslint:disable-next-line: no-any
+            if ((result as any).then) {
+                // tslint:disable-next-line: no-any
+                (result as any).then((r: boolean) => {
+                    this.messageSender.sendMessage(IPyWidgetMessages.IPyWidgets_MessageHookResponse, {
+                        requestId: args.requestId,
+                        parentId: args.parentId,
+                        msgType: args.msg.header.msg_type,
+                        result: r
+                    });
+                });
+            } else {
+                this.messageSender.sendMessage(IPyWidgetMessages.IPyWidgets_MessageHookResponse, {
+                    requestId: args.requestId,
+                    parentId: args.parentId,
+                    msgType: args.msg.header.msg_type,
+                    result: result === true
+                });
+            }
+        } else {
+            // If no hook registered, make sure not to remove messages.
+            this.messageSender.sendMessage(IPyWidgetMessages.IPyWidgets_MessageHookResponse, {
+                requestId: args.requestId,
+                parentId: args.parentId,
+                msgType: args.msg.header.msg_type,
+                result: true
+            });
+        }
+    }
+    private handleCommInfo(reply: { requestId: string; msg: KernelMessage.ICommInfoReplyMsg }) {
+        const promise = this.pendingCommInfoResponses.get(reply.requestId);
+        if (promise) {
+            this.pendingCommInfoResponses.delete(reply.requestId);
+            promise.resolve(reply.msg);
         }
     }
     private createComm(targetName: string, commId: string): Kernel.IComm {
