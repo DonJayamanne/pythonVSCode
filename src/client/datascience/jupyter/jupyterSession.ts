@@ -59,7 +59,7 @@ export class JupyterSessionStartError extends Error {
 }
 
 export class JupyterSession implements IJupyterSession {
-    public session: ISession | undefined;
+    private session: ISession | undefined;
     private restartSessionPromise: Promise<ISession | undefined> | undefined;
     private notebookFiles: Contents.IModel[] = [];
     private onStatusChangedEvent: EventEmitter<ServerStatus> = new EventEmitter<ServerStatus>();
