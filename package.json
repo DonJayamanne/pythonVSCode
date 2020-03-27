@@ -3107,7 +3107,7 @@
         "immutable": "^4.0.0-rc.12",
         "jsdom": "^15.0.0",
         "json-loader": "^0.5.7",
-        "less": "^3.9.0",
+        "less": "^3.11.1",
         "less-loader": "^5.0.0",
         "less-plugin-inline-urls": "^1.2.0",
         "loader-utils": "^1.1.0",
