@@ -3000,7 +3000,7 @@
         "@phosphor/widgets": "^1.9.3",
         "@testing-library/react": "^9.4.0",
         "@types/ansi-regex": "^4.0.0",
-        "@types/chai": "^4.1.2",
+        "@types/chai": "^4.2.11",
         "@types/chai-arrays": "^1.0.2",
         "@types/chai-as-promised": "^7.1.0",
         "@types/copy-webpack-plugin": "^4.4.2",
