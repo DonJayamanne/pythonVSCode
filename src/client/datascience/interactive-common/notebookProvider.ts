@@ -29,7 +29,7 @@ import {
     INotebookEditorProvider,
     INotebookProvider,
     INotebookServer,
-    INotebookServerOptions
+    INotebookServerOptions,
 } from '../types';
 
 @injectable()
@@ -96,7 +96,7 @@ export class NotebookProvider implements INotebookProvider {
             };
 
             promise
-                .then(nb => {
+                .then((nb) => {
                     // If the notebook is disposed, remove from cache.
                     nb.onDisposed(removeFromCache);
                     this._notebookCreated.fire({ identity: options.identity, notebook: nb });
@@ -179,7 +179,7 @@ export class NotebookProvider implements INotebookProvider {
                         enableOption,
                         closeOption
                     )
-                    .then(value => {
+                    .then((value) => {
                         if (value === enableOption) {
                             sendTelemetryEvent(Telemetry.SelfCertsMessageEnabled);
                             this.configuration
@@ -248,7 +248,7 @@ export class NotebookProvider implements INotebookProvider {
             uri: serverURI,
             skipUsingDefaultConfig: !useDefaultConfig,
             purpose: Identifiers.HistoryPurpose,
-            allowUI: this.allowUI.bind(this)
+            allowUI: this.allowUI.bind(this),
         };
     }
 
@@ -259,7 +259,7 @@ export class NotebookProvider implements INotebookProvider {
     private async onDidCloseNotebookEditor(editor: INotebookEditor) {
         // First find all notebooks associated with this editor (ipynb file).
         const editors = this.editorProvider.editors.filter(
-            e => this.fs.arePathsSame(e.file.fsPath, editor.file.fsPath) && e !== editor
+            (e) => this.fs.arePathsSame(e.file.fsPath, editor.file.fsPath) && e !== editor
         );
 
         // If we have no editors for this file, then dispose the notebook.
@@ -277,8 +277,8 @@ export class NotebookProvider implements INotebookProvider {
             return;
         }
 
-        Array.from(this.notebooks.values()).forEach(promise => {
-            promise.then(notebook => notebook.dispose()).catch(noop);
+        Array.from(this.notebooks.values()).forEach((promise) => {
+            promise.then((notebook) => notebook.dispose()).catch(noop);
         });
 
         this.notebooks.clear();

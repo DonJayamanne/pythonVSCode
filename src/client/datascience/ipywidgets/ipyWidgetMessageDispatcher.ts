@@ -95,15 +95,15 @@ export class IPyWidgetMessageDispatcher implements IIPyWidgetMessageDispatcher {
             );
             const requestId = payload.requestId;
             future.done
-                .then(reply => {
+                .then((reply) => {
                     this.raisePostMessage(IPyWidgetMessages.IPyWidgets_ShellSend_resolve, {
                         requestId,
-                        msg: reply
+                        msg: reply,
                     });
                     this.pendingShellMessages.delete(requestId);
                     future.dispose();
                 })
-                .catch(ex => {
+                .catch((ex) => {
                     this.raisePostMessage(IPyWidgetMessages.IPyWidgets_ShellSend_reject, { requestId, msg: ex });
                 });
             future.onIOPub = (msg: KernelMessage.IIOPubMessage) => {
@@ -196,7 +196,7 @@ export class IPyWidgetMessageDispatcher implements IIPyWidgetMessageDispatcher {
         if (this.notebookIdentity && !this.notebook) {
             this.notebook = await this.notebookProvider.getOrCreateNotebook({
                 identity: this.notebookIdentity,
-                getOnly: true
+                getOnly: true,
             });
         }
         return this.notebook;
@@ -209,7 +209,7 @@ export class IPyWidgetMessageDispatcher implements IIPyWidgetMessageDispatcher {
             if (result) {
                 this.raisePostMessage(IPyWidgetMessages.IPyWidgets_RequestCommInfo_reply, {
                     requestId: args.requestId,
-                    msg: result
+                    msg: result,
                 });
             }
         }
