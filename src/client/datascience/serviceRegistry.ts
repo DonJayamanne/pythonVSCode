@@ -30,6 +30,7 @@ import { DebugListener } from './interactive-common/debugListener';
 import { IntellisenseProvider } from './interactive-common/intellisense/intellisenseProvider';
 import { LinkProvider } from './interactive-common/linkProvider';
 import { NotebookProvider } from './interactive-common/notebookProvider';
+import { NotebookServerProvider } from './interactive-common/notebookServerProvider';
 import { ShowPlotListener } from './interactive-common/showPlotListener';
 import { AutoSaveService } from './interactive-ipynb/autoSaveService';
 import { NativeEditor } from './interactive-ipynb/nativeEditor';
@@ -117,6 +118,7 @@ import {
     INotebookImporter,
     INotebookProvider,
     INotebookServer,
+    INotebookServerProvider,
     INotebookStorage,
     IPlotViewer,
     IPlotViewerProvider,
@@ -200,6 +202,7 @@ export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.addSingleton<ProgressReporter>(ProgressReporter, ProgressReporter);
     serviceManager.addSingleton<NativeEditorSynchronizer>(NativeEditorSynchronizer, NativeEditorSynchronizer);
     serviceManager.addSingleton<INotebookProvider>(INotebookProvider, NotebookProvider);
+    serviceManager.addSingleton<INotebookServerProvider>(INotebookServerProvider, NotebookServerProvider);
     serviceManager.add<IJMPConnection>(IJMPConnection, EnchannelJMPConnection);
     serviceManager.addSingleton<IPyWidgetMessageDispatcherFactory>(IPyWidgetMessageDispatcherFactory, IPyWidgetMessageDispatcherFactory);
 
