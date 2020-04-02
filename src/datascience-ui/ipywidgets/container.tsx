@@ -43,6 +43,7 @@ export class WidgetManagerComponent extends React.Component<Props> {
         );
 
         props.postOffice.addHandler({
+            // tslint:disable-next-line: no-any
             handleMessage: (type: string, payload?: any) => {
                 if (type === SharedMessages.UpdateSettings) {
                     const settings = JSON.parse(payload) as IDataScienceExtraSettings;
