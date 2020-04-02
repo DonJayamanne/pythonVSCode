@@ -554,7 +554,7 @@ export class CellOutput extends React.Component<ICellOutputProps> {
                 // If loading of widget source is not allowed, display a message.
                 const errorMessage = getLocString(
                     'DataScience.loadThirdPartyWidgetScriptsDisabled',
-                    "Loading of 3rd party widgets is disabled by default. Please enable the setting 'python.dataScience.loadWidgetScriptsFromThirdPartySource, alternatively click <a href='https://command:python.datascience.loadWidgetScriptsFromThirdPartySource'>here</a> to enable this. Once enabled you will need to restart the Kernel"
+                    "Loading of Widgets is disabled by default. Click <a href='https://command:python.datascience.loadWidgetScriptsFromThirdPartySource'>here</a> to enable the setting 'python.dataScience.loadWidgetScriptsFromThirdPartySource'. Once enabled you will need to restart the Kernel"
                 );
 
                 // tslint:disable: react-no-dangerous-html
