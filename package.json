@@ -1607,7 +1607,7 @@
                 "python.dataScience.loadWidgetScriptsFromThirdPartySource": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Enables loading of scripts files for Widgets (ipywidgest, bqplot, beakerx, ipyleaflet, etc) from a third party source such as https://unpkg.com.",
+                    "description": "Enables loading of scripts files for Widgets (ipywidgest, bqplot, beakerx, ipyleaflet, etc) from https://unpkg.com.",
                     "scope": "machine"
                 },
                 "python.dataScience.gatherRules": {
