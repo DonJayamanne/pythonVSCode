@@ -21,7 +21,7 @@ import { IIPyWidgetMessageDispatcher, IPyWidgetMessage } from './types';
 /**
  * This class maps between messages from the react code and talking to a real kernel.
  */
-export class IPyWidgetMessageDispatcher implements IIPyWidgetMessageDispatcher {
+    export class IPyWidgetMessageDispatcher implements IIPyWidgetMessageDispatcher {
     public get postMessage(): Event<IPyWidgetMessage> {
         return this._postMessageEmitter.event;
     }

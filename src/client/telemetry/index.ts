@@ -750,6 +750,30 @@ export interface IEventNamePropertyMapping {
         hasJupyter: boolean;
         hasVnd: boolean;
     };
+    /**
+     * Telemetry event sent with name of a Widget used in a notebook.
+     * This is used by the user.
+     */
+    [Telemetry.HashedIPyWidgetNameUsed]: {
+        /**
+         * Hash of the widget
+         */
+        hashedName: string;
+    };
+    /**
+     * Telemetry event sent with named of a Widget found in user environment.
+     * This is what we found on the system.
+     */
+    [Telemetry.HashedIPyWidgetNameDiscovered]: {
+        /**
+         * Hash of the widget
+         */
+        hashedName: string;
+    };
+    /**
+     * Total time taken to discover all IPyWidgets on disc.
+     */
+    [Telemetry.DiscoverIPyWidgetNamesPerf]: never | undefined;
     [EventName.HASHED_PACKAGE_PERF]: never | undefined;
     /**
      * Telemetry event sent with details of selection in prompt

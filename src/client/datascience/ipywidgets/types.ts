@@ -23,3 +23,28 @@ export interface IIPyWidgetMessageDispatcher extends IDisposable {
     receiveMessage(message: IPyWidgetMessage): void;
     initialize(): Promise<void>;
 }
+
+/**
+ * Name value pair of widget name/module along with the Uri to the script.
+ */
+export type WidgetScriptSource = {
+    moduleName: string;
+    /**
+     * Resource Uri (not using Uri type as this needs to be sent from extension to UI).
+     */
+    scriptUri?: string;
+};
+
+/**
+ * Used to get an entry for widget (or all of them).
+ */
+export interface IWidgetScriptSourceProvider {
+    /**
+     * Return the script path for the requested module.
+     */
+    getWidgetScriptSource(moduleName: string): Promise<WidgetScriptSource>;
+    /**
+     * Returns a list of all widgets with their sources. Can be empty.
+     */
+    getWidgetScriptSources(ignoreCache?: boolean): Promise<Readonly<WidgetScriptSource[]>>;
+}

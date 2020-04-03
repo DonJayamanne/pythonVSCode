@@ -56,9 +56,12 @@ export class WidgetManager implements IIPyWidgetManager {
         private readonly widgetContainer: HTMLElement,
         private readonly postOffice: PostOffice,
         private readonly scriptLoader: {
-            loadWidgetScriptsFromThirdPartySource: boolean;
+            readonly loadWidgetScriptsFromThirdPartySource: boolean;
+            readonly widgetsToLoadFromRequirejs: Readonly<Set<string>>;
+            readonly timeoutWaitingForScriptToLoad: number;
             // tslint:disable-next-line: no-any
             errorHandler(className: string, moduleName: string, moduleVersion: string, error: any): void;
+            loadWidgetScript(moduleName: string, done: () => void): void;
         }
     ) {
         // Create an observable with list of messages to be processed by the kernel in ipywidgets.

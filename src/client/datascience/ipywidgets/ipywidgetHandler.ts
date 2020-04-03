@@ -42,7 +42,7 @@ export class IPyWidgetHandler implements IInteractiveWindowListener {
     constructor(
         @inject(INotebookProvider) notebookProvider: INotebookProvider,
         @inject(IDisposableRegistry) private readonly disposables: IDisposableRegistry,
-        @inject(IPyWidgetMessageDispatcherFactory) private readonly factory: IPyWidgetMessageDispatcherFactory
+        @inject(IPyWidgetMessageDispatcherFactory) private readonly widgetMessageDispatcherFactory: IPyWidgetMessageDispatcherFactory
     ) {
         disposables.push(
             notebookProvider.onNotebookCreated(async (e) => {
@@ -95,7 +95,7 @@ export class IPyWidgetHandler implements IInteractiveWindowListener {
         if (!this.notebookIdentity) {
             return;
         }
-        this.ipyWidgetMessageDispatcher = this.factory.create(this.notebookIdentity);
+        this.ipyWidgetMessageDispatcher = this.widgetMessageDispatcherFactory.create(this.notebookIdentity);
         return this.ipyWidgetMessageDispatcher;
     }
 

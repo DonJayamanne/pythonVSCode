@@ -548,23 +548,23 @@ export class CellOutput extends React.Component<ICellOutputProps> {
         transformedList.forEach((transformed, index) => {
             const mimetype = transformed.output.mimeType;
             if (isIPyWidgetOutput(transformed.output.mimeBundle)) {
-                if (this.props.loadWidgetScriptsFromThirdPartySource) {
-                    return;
-                }
-                // If loading of widget source is not allowed, display a message.
-                const errorMessage = getLocString(
-                    'DataScience.loadThirdPartyWidgetScriptsDisabled',
-                    "Loading of Widgets is disabled by default. Click <a href='https://command:python.datascience.loadWidgetScriptsFromThirdPartySource'>here</a> to enable the setting 'python.dataScience.loadWidgetScriptsFromThirdPartySource'. Once enabled you will need to restart the Kernel"
-                );
+                // if (this.props.loadWidgetScriptsFromThirdPartySource) {
+                return;
+                // }
+                // // If loading of widget source is not allowed, display a message.
+                // const errorMessage = getLocString(
+                //     'DataScience.loadThirdPartyWidgetScriptsDisabled',
+                //     "Loading of Widgets is disabled by default. Click <a href='https://command:python.datascience.loadWidgetScriptsFromThirdPartySource'>here</a> to enable the setting 'python.dataScience.loadWidgetScriptsFromThirdPartySource'. Once enabled you will need to restart the Kernel"
+                // );
 
-                // tslint:disable: react-no-dangerous-html
-                buffer.push(
-                    <div role="group" key={index}>
-                        <span className={'cell-output-html cell-output-error'}>
-                            <div dangerouslySetInnerHTML={{ __html: errorMessage }} />
-                        </span>
-                    </div>
-                );
+                // // tslint:disable: react-no-dangerous-html
+                // buffer.push(
+                //     <div role="group" key={index}>
+                //         <span className={'cell-output-html cell-output-error'}>
+                //             <div dangerouslySetInnerHTML={{ __html: errorMessage }} />
+                //         </span>
+                //     </div>
+                // );
             } else if (mimetype && isMimeTypeSupported(mimetype)) {
                 // If that worked, use the transform
                 // Get the matching React.Component for that mimetype

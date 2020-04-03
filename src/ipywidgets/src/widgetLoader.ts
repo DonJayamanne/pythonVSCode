@@ -42,14 +42,8 @@ async function requirePromise(pkg: string | string[]): Promise<any> {
         }
     });
 }
-const widgetsToLoadFromRequire = [
-    'azureml_widgets',
-    '@jupyter-widgets/controls',
-    '@jupyter-widgets/base',
-    '@jupyter-widgets/output'
-];
-export function requireLoader(moduleName: string, moduleVersion: string) {
-    if (!widgetsToLoadFromRequire.includes(moduleName)) {
+export function requireLoader(moduleName: string, moduleVersion: string, useCdn: boolean) {
+    if (useCdn) {
         // tslint:disable-next-line: no-any
         const requirejs = (window as any).requirejs;
         if (requirejs === undefined) {
@@ -58,6 +52,11 @@ export function requireLoader(moduleName: string, moduleVersion: string) {
         const conf: { paths: { [key: string]: string } } = { paths: {} };
         conf.paths[moduleName] = moduleNameToCDNUrl(moduleName, moduleVersion);
         requirejs.config(conf);
+        // tslint:disable-next-line: no-console
+        console.log(`Using CDN to load Widget Module ${moduleName}, version ${moduleVersion}`);
+    } else {
+        // tslint:disable-next-line: no-console
+        console.log(`Not using CDN to load Widget Module ${moduleName}`);
     }
     return requirePromise([`${moduleName}`]);
 }

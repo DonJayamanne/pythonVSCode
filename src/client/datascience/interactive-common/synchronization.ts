@@ -182,9 +182,14 @@ const messageWithMessageTypes: MessageMapping<IInteractiveWindowMapping> & Messa
     [SharedMessages.Started]: MessageType.other,
     [SharedMessages.UpdateSettings]: MessageType.other,
     // IpyWidgets
-    [IPyWidgetMessages.IPyWidgets_kernelOptions]: MessageType.noIdea,
+    [IPyWidgetMessages.IPyWidgets_kernelOptions]: MessageType.syncAcrossSameNotebooks,
     [IPyWidgetMessages.IPyWidgets_Ready]: MessageType.noIdea,
-    [IPyWidgetMessages.IPyWidgets_onRestartKernel]: MessageType.noIdea,
+    [IPyWidgetMessages.IPyWidgets_AllWidgetScriptSourcesRequest]: MessageType.noIdea,
+    [IPyWidgetMessages.IPyWidgets_AllWidgetScriptSourcesResponse]: MessageType.syncAcrossSameNotebooks,
+    [IPyWidgetMessages.IPyWidgets_WidgetScriptSourceRequest]: MessageType.noIdea,
+    [IPyWidgetMessages.IPyWidgets_WidgetScriptSourceResponse]: MessageType.syncAcrossSameNotebooks,
+    [IPyWidgetMessages.IPyWidgets_onKernelChanged]: MessageType.syncAcrossSameNotebooks,
+    [IPyWidgetMessages.IPyWidgets_onRestartKernel]: MessageType.syncAcrossSameNotebooks,
     [IPyWidgetMessages.IPyWidgets_msg]: MessageType.noIdea,
     [IPyWidgetMessages.IPyWidgets_binary_msg]: MessageType.noIdea,
     [IPyWidgetMessages.IPyWidgets_registerCommTarget]: MessageType.noIdea

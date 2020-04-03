@@ -16,6 +16,9 @@ export const WIDGET_MIMETYPE = 'application/vnd.jupyter.widget-view+json';
 // tslint:disable: no-any
 // Source borrowed from https://github.com/jupyter-widgets/ipywidgets/blob/master/examples/web3/src/manager.ts
 
+// These widgets can always be loaded from requirejs (as it is bundled).
+const widgetsToLoadFromRequire = ['@jupyter-widgets/controls', '@jupyter-widgets/base', '@jupyter-widgets/output'];
+
 export class WidgetManager extends jupyterlab.WidgetManager {
     public kernel: Kernel.IKernelConnection;
     public el: HTMLElement;
@@ -24,8 +27,11 @@ export class WidgetManager extends jupyterlab.WidgetManager {
         kernel: Kernel.IKernelConnection,
         el: HTMLElement,
         private readonly scriptLoader: {
-            loadWidgetScriptsFromThirdPartySource: boolean;
+            readonly loadWidgetScriptsFromThirdPartySource: boolean;
+            readonly widgetsToLoadFromRequirejs: Readonly<Set<string>>;
+            readonly timeoutWaitingForScriptToLoad: number;
             errorHandler(className: string, moduleName: string, moduleVersion: string, error: any): void;
+            loadWidgetScript(moduleName: string, done: () => void): void;
         }
     ) {
         super(
@@ -95,10 +101,32 @@ export class WidgetManager extends jupyterlab.WidgetManager {
         // tslint:disable-next-line: no-unnecessary-local-variable
         const result = await super.loadClass(className, moduleName, moduleVersion).catch(async (originalException) => {
             try {
-                if (!this.scriptLoader.loadWidgetScriptsFromThirdPartySource) {
+                const loadModuleFromRequirejs =
+                    widgetsToLoadFromRequire.includes(moduleName) ||
+                    this.scriptLoader.widgetsToLoadFromRequirejs.has(moduleName);
+
+                if (!this.scriptLoader.loadWidgetScriptsFromThirdPartySource && !loadModuleFromRequirejs) {
                     throw new Error('Loading from 3rd party source is disabled');
                 }
-                const m = await requireLoader(moduleName, moduleVersion);
+
+                if (!loadModuleFromRequirejs) {
+                    // If not loading from requirejs, then check if we can.
+                    // But do not wait for too long.
+                    const didTimeOut = await Promise.race([
+                        new Promise<string>((resolve) =>
+                            setTimeout(() => resolve('timedout'), this.scriptLoader.timeoutWaitingForScriptToLoad)
+                        ),
+                        new Promise<undefined>((resolve) => this.scriptLoader.loadWidgetScript(moduleName, resolve))
+                    ]);
+                    if (didTimeOut === 'timedout') {
+                        // tslint:disable-next-line: no-console
+                        console.error(`Timeout waiting to load Widget module source ${moduleName}`);
+                    }
+                }
+
+                // If loading module from requirejs (e.g. already bundled), then do not use the cdn.
+                const useCdn = !loadModuleFromRequirejs && this.scriptLoader.loadWidgetScriptsFromThirdPartySource;
+                const m = await requireLoader(moduleName, moduleVersion, useCdn);
                 if (m && m[className]) {
                     return m[className];
                 }

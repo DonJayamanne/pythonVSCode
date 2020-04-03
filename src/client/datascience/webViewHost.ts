@@ -4,7 +4,7 @@
 import '../common/extensions';
 
 import { injectable, unmanaged } from 'inversify';
-import { ConfigurationChangeEvent, ViewColumn, WebviewPanel, WorkspaceConfiguration } from 'vscode';
+import { ConfigurationChangeEvent, Uri, ViewColumn, WebviewPanel, WorkspaceConfiguration } from 'vscode';
 
 import { IWebPanel, IWebPanelMessageListener, IWebPanelProvider, IWorkspaceService } from '../common/application/types';
 import { isTestExecution } from '../common/constants';
@@ -81,6 +81,12 @@ export abstract class WebViewHost<IMapping> implements IDisposable {
         if (this.webPanel) {
             this.webPanel.updateCwd(cwd);
         }
+    }
+    public asWebviewUri(localResource: Uri) {
+        if (!this.webPanel) {
+            throw new Error('asWebViewUri called too early');
+        }
+        return this.webPanel?.asWebviewUri(localResource);
     }
 
     public dispose() {

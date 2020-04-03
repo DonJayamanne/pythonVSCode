@@ -109,6 +109,7 @@ export interface INotebookServer extends IAsyncDisposable {
 
 export interface INotebook extends IAsyncDisposable {
     readonly resource: Resource;
+    readonly connection: Readonly<IConnection>;
     kernelSocket: Observable<KernelSocketInformation | undefined>;
     readonly identity: Uri;
     readonly server: INotebookServer;
@@ -366,7 +367,25 @@ export interface IDataScienceErrorHandler {
     handleError(err: Error): Promise<void>;
 }
 
-export interface IInteractiveBase extends Disposable {
+/**
+ * Given a local resource this will convert the Uri into a form such that it can be used in a WebView.
+ */
+export interface ILocalResourceUriConverter {
+    /**
+     * Convert a uri for the local file system to one that can be used inside webviews.
+     *
+     * Webviews cannot directly load resources from the workspace or local file system using `file:` uris. The
+     * `asWebviewUri` function takes a local `file:` uri and converts it into a uri that can be used inside of
+     * a webview to load the same resource:
+     *
+     * ```ts
+     * webview.html = `<img src="${webview.asWebviewUri(vscode.Uri.file('/Users/codey/workspace/cat.gif'))}">`
+     * ```
+     */
+    asWebviewUri(localResource: Uri): Uri;
+}
+
+export interface IInteractiveBase extends Disposable, ILocalResourceUriConverter {
     onExecutedCode: Event<string>;
     notebook?: INotebook;
     show(): Promise<void>;

@@ -244,6 +244,10 @@ export enum Telemetry {
     HashedCellOutputMimeType = 'DS_INTERNAL.HASHED_OUTPUT_MIME_TYPE',
     HashedCellOutputMimeTypePerf = 'DS_INTERNAL.HASHED_OUTPUT_MIME_TYPE_PERF',
     HashedNotebookCellOutputMimeTypePerf = 'DS_INTERNAL.HASHED_NOTEBOOK_OUTPUT_MIME_TYPE_PERF',
+    HashedIPyWidgetNameDiscovered = 'HashedIPyWidgetNameDiscovered',
+    HashedIPyWidgetNameUsed = 'HashedIPyWidgetNameUsed',
+    DiscoverIPyWidgetNamesPerf = 'DiscoverIPyWidgetNamesPerf',
+
     JupyterInstalledButNotKernelSpecModule = 'DS_INTERNAL.JUPYTER_INTALLED_BUT_NO_KERNELSPEC_MODULE',
     PtvsdPromptToInstall = 'DATASCIENCE.PTVSD_PROMPT_TO_INSTALL',
     PtvsdSuccessfullyInstalled = 'DATASCIENCE.PTVSD_SUCCESSFULLY_INSTALLED',
