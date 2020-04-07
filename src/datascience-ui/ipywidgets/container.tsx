@@ -40,8 +40,9 @@ export class WidgetManagerComponent extends React.Component<Props> {
     private readonly loaderSettings = {
         // Whether to allow loading widgets from 3rd party (cdn).
         loadWidgetScriptsFromThirdPartySource: false,
-        // Total time to wait for a script to load. This includes ipywidgets making a request from extension for a Uri of a widget,
-        // then extension replying back with the Uri (max time of 5 seconds).
+        // Total time to wait for a script to load. This includes ipywidgets making a request to extension for a Uri of a widget,
+        // then extension replying back with the Uri (max 5 seconds round trip time).
+        // If expires, then Widget downloader will attempt to download with what ever information it has (potentially failing).
         timeoutWaitingForScriptToLoad: 5_000,
         // List of widgets that must always be loaded using requirejs instead of using a CDN or the like.
         widgetsToLoadFromRequirejs: new Set<string>(),
@@ -72,7 +73,11 @@ export class WidgetManagerComponent extends React.Component<Props> {
                     this.registerScriptSourcesInRequirejs(payload as WidgetScriptSource[]);
                 } else if (type === IPyWidgetMessages.IPyWidgets_WidgetScriptSourceResponse) {
                     this.registerScriptSourceInRequirejs(payload as WidgetScriptSource);
-                } else if (type === IPyWidgetMessages.IPyWidgets_onKernelChanged) {
+                } else if (
+                    type === IPyWidgetMessages.IPyWidgets_kernelOptions ||
+                    type === IPyWidgetMessages.IPyWidgets_onKernelChanged
+                ) {
+                    // This happens when we have restarted a kernel.
                     // If user changed the kernel, then some widgets might exist now and some might now.
                     this.widgetSourceRequests.clear();
                     // Request again.

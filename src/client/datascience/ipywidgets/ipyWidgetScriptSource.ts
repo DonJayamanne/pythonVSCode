@@ -3,10 +3,12 @@
 
 'use strict';
 import type * as jupyterlabService from '@jupyterlab/services';
+import type * as serlialize from '@jupyterlab/services/lib/kernel/serialize';
 import { sha256 } from 'hash.js';
 import { inject, injectable } from 'inversify';
 import { IDisposable } from 'monaco-editor';
 import { Event, EventEmitter, Uri } from 'vscode';
+import type { Data as WebSocketData } from 'ws';
 import { traceError } from '../../common/logger';
 import { IFileSystem } from '../../common/platform/types';
 import { IDisposableRegistry } from '../../common/types';
@@ -52,6 +54,14 @@ export class IPyWidgetScriptSource implements IInteractiveWindowListener {
     private kernelSocketInfo?: KernelSocketInformation;
     private subscribedToKernelSocket: boolean = false;
     private pendingModuleRequests = new Set<string>();
+    private jupyterSerialize?: typeof serlialize;
+    private get deserialize(): typeof serlialize.deserialize {
+        if (!this.jupyterSerialize) {
+            // tslint:disable-next-line: no-require-imports
+            this.jupyterSerialize = require('@jupyterlab/services/lib/kernel/serialize') as typeof serlialize;
+        }
+        return this.jupyterSerialize.deserialize;
+    }
     constructor(
         @inject(IDisposableRegistry) disposables: IDisposableRegistry,
         @inject(INotebookProvider) private readonly notebookProvider: INotebookProvider,
@@ -109,6 +119,10 @@ export class IPyWidgetScriptSource implements IInteractiveWindowListener {
         });
     }
     private async sendWidgetSource(moduleName: string) {
+        // Standard widgets area already available, hence no need to look for them.
+        if (moduleName.startsWith('@jupyter')) {
+            return;
+        }
         if (!this.notebook || !this.scriptProvider) {
             this.pendingModuleRequests.add(moduleName);
             return;
@@ -161,13 +175,13 @@ export class IPyWidgetScriptSource implements IInteractiveWindowListener {
         } else {
             this.scriptProvider = new RemoteWidgetScriptSourceProvider(this.notebook.connection);
         }
-        this.subscribeToKernelSocket();
         await this.initializeNotebook();
     }
     private async initializeNotebook() {
         if (!this.notebook) {
             return;
         }
+        this.subscribeToKernelSocket();
         this.notebook.onDisposed(() => this.dispose());
         // When changing a kernel, we might have a new interpreter.
         this.notebook.onKernelChanged(
@@ -220,12 +234,28 @@ export class IPyWidgetScriptSource implements IInteractiveWindowListener {
      * If we get a comm open message, then we know a widget will be displayed.
      * In this case get hold of the name and send it up (pre-fetch it before UI makes a request for it).
      */
-    // tslint:disable-next-line: no-any
-    private onKernelSocketMessage(message: any) {
-        if (this.jupyterLab?.KernelMessage.isCommOpenMsg(message) && message.content.target_module) {
-            this.sendWidgetSource(message.content.target_module).catch(
-                traceError.bind('Failed to pre-load Widget Script')
-            );
+    private onKernelSocketMessage(message: WebSocketData) {
+        // tslint:disable-next-line: no-any
+        const msg = this.deserialize(message as any);
+        if (this.jupyterLab?.KernelMessage.isCommOpenMsg(msg) && msg.content.target_module) {
+            this.sendWidgetSource(msg.content.target_module).catch(traceError.bind('Failed to pre-load Widget Script'));
+        } else if (
+            this.jupyterLab?.KernelMessage.isCommOpenMsg(msg) &&
+            msg.content.data &&
+            msg.content.data.state &&
+            // tslint:disable-next-line: no-any
+            ((msg.content.data.state as any)._view_module || (msg.content.data.state as any)._model_module)
+        ) {
+            // tslint:disable-next-line: no-any
+            const viewModule: string = (msg.content.data.state as any)._view_module;
+            // tslint:disable-next-line: no-any
+            const modelModule = (msg.content.data.state as any)._model_module;
+            if (viewModule) {
+                this.sendWidgetSource(viewModule).catch(traceError.bind('Failed to pre-load Widget Script'));
+            }
+            if (modelModule) {
+                this.sendWidgetSource(viewModule).catch(traceError.bind('Failed to pre-load Widget Script'));
+            }
         }
     }
     private handlePendingRequests() {

@@ -27,16 +27,11 @@ export class WidgetManager extends jupyterlab.WidgetManager {
         kernel: Kernel.IKernelConnection,
         el: HTMLElement,
         private readonly scriptLoader: {
-<<<<<<< HEAD
             readonly loadWidgetScriptsFromThirdPartySource: boolean;
             readonly widgetsToLoadFromRequirejs: Readonly<Set<string>>;
             readonly timeoutWaitingForScriptToLoad: number;
             errorHandler(className: string, moduleName: string, moduleVersion: string, error: any): void;
             loadWidgetScript(moduleName: string, done: () => void): void;
-=======
-            loadWidgetScriptsFromThirdPartySource: boolean;
-            errorHandler(className: string, moduleName: string, moduleVersion: string, error: any): void;
->>>>>>> master
         }
     ) {
         super(
