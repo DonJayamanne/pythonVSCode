@@ -186,9 +186,9 @@ export class NativeCell extends React.Component<INativeCellProps> {
             return true;
         }
         if (!elem.closest(CssConstants.ImageButtonClass) && !elem.closest(CssConstants.CellOutputWrapperClass)) {
-            return false;
+            return true;
         }
-        return true;
+        return false;
     }
 
     private onMouseClick = (ev: React.MouseEvent<HTMLDivElement>) => {
