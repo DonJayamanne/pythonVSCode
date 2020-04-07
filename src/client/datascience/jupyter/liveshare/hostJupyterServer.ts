@@ -3,6 +3,8 @@
 'use strict';
 import '../../../common/extensions';
 
+// tslint:disable-next-line: no-require-imports
+import cloneDeep = require('lodash/cloneDeep');
 import * as os from 'os';
 import * as vscode from 'vscode';
 import { CancellationToken } from 'vscode-jsonrpc';
@@ -22,8 +24,7 @@ import {
 } from '../../../common/types';
 import { createDeferred } from '../../../common/utils/async';
 import * as localize from '../../../common/utils/localize';
-import { Architecture } from '../../../common/utils/platform';
-import { IInterpreterService, InterpreterType } from '../../../interpreter/contracts';
+import { IInterpreterService, PythonInterpreter } from '../../../interpreter/contracts';
 import { IServiceContainer } from '../../../ioc/types';
 import { Identifiers, LiveShare, LiveShareCommands, RegExpValues } from '../../constants';
 import {
@@ -307,15 +308,7 @@ export class HostJupyterServer extends LiveShareParticipantHost(JupyterServerBas
 
                 // For the interpreter, make sure to select the one matching the kernel.
                 launchInfo.interpreter = kernelInfoToUse.metadata?.interpreter?.path
-                    ? {
-                          path: kernelInfoToUse.metadata.interpreter.path, // This is really the only thing that matters
-                          sysVersion: kernelInfoToUse.metadata.interpreter.sysVersion ?? '',
-                          architecture: kernelInfoToUse.metadata.interpreter.architecture ?? Architecture.Unknown,
-                          sysPrefix: kernelInfoToUse.metadata.interpreter.sysPrefix ?? '',
-                          type: kernelInfoToUse.metadata.interpreter.type ?? InterpreterType.Unknown,
-                          displayName: kernelInfoToUse.metadata.interpreter.displayName,
-                          envName: kernelInfoToUse.metadata.interpreter.envName
-                      }
+                    ? (cloneDeep(kernelInfoToUse.metadata.interpreter) as PythonInterpreter)
                     : resourceInterpreter;
                 changedKernel = true;
             }
