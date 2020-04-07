@@ -218,7 +218,7 @@ export class IPyWidgetScriptSource implements IInteractiveWindowListener {
         // Listen to changes to kernel socket (e.g. restarts or changes to kernel).
         this.notebook.kernelSocket.subscribe((info) => {
             // Remove old handlers.
-            this.kernelSocketInfo?.socket?.removeListener('message', this.onKernelSocketMessage.bind(this)); // NOSONAR
+            this.kernelSocketInfo?.socket?.removeReceiveHook(this.onKernelSocketMessage.bind(this)); // NOSONAR
 
             if (!info || !info.socket) {
                 // No kernel socket information, hence nothing much we can do.
@@ -227,14 +227,14 @@ export class IPyWidgetScriptSource implements IInteractiveWindowListener {
             }
 
             this.kernelSocketInfo = info;
-            this.kernelSocketInfo.socket?.addListener('message', this.onKernelSocketMessage.bind(this)); // NOSONAR
+            this.kernelSocketInfo.socket?.addReceiveHook(this.onKernelSocketMessage.bind(this)); // NOSONAR
         });
     }
     /**
      * If we get a comm open message, then we know a widget will be displayed.
      * In this case get hold of the name and send it up (pre-fetch it before UI makes a request for it).
      */
-    private onKernelSocketMessage(message: WebSocketData) {
+    private async onKernelSocketMessage(message: WebSocketData): Promise<void> {
         // tslint:disable-next-line: no-any
         const msg = this.deserialize(message as any);
         if (this.jupyterLab?.KernelMessage.isCommOpenMsg(msg) && msg.content.target_module) {

@@ -103,8 +103,7 @@ export function renderWidgets(element = document.documentElement): void {
             loadWidgetScriptsFromThirdPartySource: false,
             widgetsToLoadFromRequirejs: new Set<string>(),
             errorHandler: () => 'Error loading widget.',
-            timeoutWaitingForScriptToLoad: 1_000,
-            loadWidgetScript: (_moduleName: string, _done: () => void) => undefined
+            loadWidgetScript: (_moduleName: string) => Promise.resolve()
         });
     };
     libembed.renderWidgets(managerFactory, element).catch((x) => {

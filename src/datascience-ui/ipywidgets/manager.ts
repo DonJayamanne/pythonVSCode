@@ -49,10 +49,9 @@ export class WidgetManager implements IIPyWidgetManager, IMessageHandler {
         private readonly scriptLoader: {
             readonly loadWidgetScriptsFromThirdPartySource: boolean;
             readonly widgetsToLoadFromRequirejs: Readonly<Set<string>>;
-            readonly timeoutWaitingForScriptToLoad: number;
             // tslint:disable-next-line: no-any
             errorHandler(className: string, moduleName: string, moduleVersion: string, error: any): void;
-            loadWidgetScript(moduleName: string, done: () => void): void;
+            loadWidgetScript(moduleName: string): void;
         }
     ) {
         // tslint:disable-next-line: no-any

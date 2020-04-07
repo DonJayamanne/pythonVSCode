@@ -183,7 +183,7 @@ export class WidgetManagerComponent extends React.Component<Props> {
         }
     }
 
-    private loadWidgetScript(moduleName: string, cb: () => void) {
+    private loadWidgetScript(moduleName: string): Promise<void> {
         // tslint:disable-next-line: no-console
         console.log(`Load IPyWidget ${moduleName}`);
         let deferred = this.widgetSourceRequests.get(moduleName);
@@ -194,9 +194,16 @@ export class WidgetManagerComponent extends React.Component<Props> {
                 IPyWidgetMessages.IPyWidgets_WidgetScriptSourceRequest,
                 moduleName
             );
+
+            // If we timeout, then resolve this promise.
+            // We don't want the calling code to unnecessary wait for too long.
+            setTimeout(() => deferred?.resolve(), this.loaderSettings.timeoutWaitingForScriptToLoad);
         }
 
-        // tslint:disable-next-line: no-console
-        deferred.promise.finally(cb).catch((ex) => console.log('Failed to load Widget Script from Extension', ex));
+        return (
+            deferred.promise
+                // tslint:disable-next-line: no-console
+                .catch((ex) => console.log('Failed to load Widget Script from Extension', ex))
+        );
     }
 }

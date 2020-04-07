@@ -29,9 +29,8 @@ export class WidgetManager extends jupyterlab.WidgetManager {
         private readonly scriptLoader: {
             readonly loadWidgetScriptsFromThirdPartySource: boolean;
             readonly widgetsToLoadFromRequirejs: Readonly<Set<string>>;
-            readonly timeoutWaitingForScriptToLoad: number;
             errorHandler(className: string, moduleName: string, moduleVersion: string, error: any): void;
-            loadWidgetScript(moduleName: string, done: () => void): void;
+            loadWidgetScript(moduleName: string): Promise<void>;
         }
     ) {
         super(
@@ -111,17 +110,7 @@ export class WidgetManager extends jupyterlab.WidgetManager {
 
                 if (!loadModuleFromRequirejs) {
                     // If not loading from requirejs, then check if we can.
-                    // But do not wait for too long.
-                    const didTimeOut = await Promise.race([
-                        new Promise<string>((resolve) =>
-                            setTimeout(() => resolve('timedout'), this.scriptLoader.timeoutWaitingForScriptToLoad)
-                        ),
-                        new Promise<undefined>((resolve) => this.scriptLoader.loadWidgetScript(moduleName, resolve))
-                    ]);
-                    if (didTimeOut === 'timedout') {
-                        // tslint:disable-next-line: no-console
-                        console.error(`Timeout waiting to load Widget module source ${moduleName}`);
-                    }
+                    await this.scriptLoader.loadWidgetScript(moduleName);
                 }
 
                 // If loading module from requirejs (e.g. already bundled), then do not use the cdn.
