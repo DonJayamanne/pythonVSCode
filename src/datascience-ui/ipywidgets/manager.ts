@@ -48,10 +48,10 @@ export class WidgetManager implements IIPyWidgetManager, IMessageHandler {
         private readonly postOffice: PostOffice,
         private readonly scriptLoader: {
             readonly loadWidgetScriptsFromThirdPartySource: boolean;
-            readonly widgetsToLoadFromRequirejs: Readonly<Set<string>>;
+            readonly widgetsRegisteredInRequireJs: Readonly<Set<string>>;
             // tslint:disable-next-line: no-any
             errorHandler(className: string, moduleName: string, moduleVersion: string, error: any): void;
-            loadWidgetScript(moduleName: string): void;
+            loadWidgetScript(moduleName: string, moduleVersion: string): void;
         }
     ) {
         // tslint:disable-next-line: no-any

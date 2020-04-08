@@ -26,7 +26,7 @@ export class HttpClient implements IHttpClient {
     }
 
     public async getJSON<T>(uri: string, strict: boolean = true): Promise<T> {
-        const body = await this.getBody(uri);
+        const body = await this.getContents(uri);
         return this.parseBodyToJSON(body, strict);
     }
 
@@ -44,7 +44,7 @@ export class HttpClient implements IHttpClient {
         }
     }
 
-    public async getBody(uri: string): Promise<string> {
+    public async getContents(uri: string): Promise<string> {
         // tslint:disable-next-line:no-require-imports
         const request = require('request') as typeof requestTypes;
         return new Promise<string>((resolve, reject) => {

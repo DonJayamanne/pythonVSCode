@@ -17,7 +17,7 @@ export const WIDGET_MIMETYPE = 'application/vnd.jupyter.widget-view+json';
 // Source borrowed from https://github.com/jupyter-widgets/ipywidgets/blob/master/examples/web3/src/manager.ts
 
 // These widgets can always be loaded from requirejs (as it is bundled).
-const widgetsToLoadFromRequire = ['@jupyter-widgets/controls', '@jupyter-widgets/base', '@jupyter-widgets/output'];
+const widgetsRegisteredInRequireJs = ['@jupyter-widgets/controls', '@jupyter-widgets/base', '@jupyter-widgets/output'];
 
 export class WidgetManager extends jupyterlab.WidgetManager {
     public kernel: Kernel.IKernelConnection;
@@ -28,9 +28,9 @@ export class WidgetManager extends jupyterlab.WidgetManager {
         el: HTMLElement,
         private readonly scriptLoader: {
             readonly loadWidgetScriptsFromThirdPartySource: boolean;
-            readonly widgetsToLoadFromRequirejs: Readonly<Set<string>>;
+            readonly widgetsRegisteredInRequireJs: Readonly<Set<string>>;
             errorHandler(className: string, moduleName: string, moduleVersion: string, error: any): void;
-            loadWidgetScript(moduleName: string): Promise<void>;
+            loadWidgetScript(moduleName: string, moduleVersion: string): Promise<void>;
         }
     ) {
         super(
@@ -101,8 +101,8 @@ export class WidgetManager extends jupyterlab.WidgetManager {
         const result = await super.loadClass(className, moduleName, moduleVersion).catch(async (originalException) => {
             try {
                 const loadModuleFromRequirejs =
-                    widgetsToLoadFromRequire.includes(moduleName) ||
-                    this.scriptLoader.widgetsToLoadFromRequirejs.has(moduleName);
+                    widgetsRegisteredInRequireJs.includes(moduleName) ||
+                    this.scriptLoader.widgetsRegisteredInRequireJs.has(moduleName);
 
                 if (!this.scriptLoader.loadWidgetScriptsFromThirdPartySource && !loadModuleFromRequirejs) {
                     throw new Error('Loading from 3rd party source is disabled');
@@ -110,7 +110,7 @@ export class WidgetManager extends jupyterlab.WidgetManager {
 
                 if (!loadModuleFromRequirejs) {
                     // If not loading from requirejs, then check if we can.
-                    await this.scriptLoader.loadWidgetScript(moduleName);
+                    await this.scriptLoader.loadWidgetScript(moduleName, moduleVersion);
                 }
 
                 // If loading module from requirejs (e.g. already bundled), then do not use the cdn.

@@ -11,7 +11,7 @@ import { Event, EventEmitter, Uri } from 'vscode';
 import type { Data as WebSocketData } from 'ws';
 import { traceError } from '../../common/logger';
 import { IFileSystem } from '../../common/platform/types';
-import { IDisposableRegistry } from '../../common/types';
+import { IConfigurationService, IDisposableRegistry, IHttpClient } from '../../common/types';
 import { IInterpreterService, PythonInterpreter } from '../../interpreter/contracts';
 import { sendTelemetryEvent } from '../../telemetry';
 import { Telemetry } from '../constants';
@@ -29,6 +29,7 @@ import {
     INotebookProvider,
     KernelSocketInformation
 } from '../types';
+import { CDNWidgetScriptSourceProvider } from './cdnWidgetScriptSourceProvider';
 import { LocalWidgetScriptSourceProvider } from './localWidgetScriptSourceProvider';
 import { RemoteWidgetScriptSourceProvider } from './remoteWidgetScriptSourceProvider';
 import { IWidgetScriptSourceProvider } from './types';
@@ -48,12 +49,15 @@ export class IPyWidgetScriptSource implements IInteractiveWindowListener {
     private notebook?: INotebook;
     private jupyterLab?: typeof jupyterlabService;
     private interactiveBase?: IInteractiveBase;
-    private scriptProvider?: IWidgetScriptSourceProvider;
+    private scriptProviders?: IWidgetScriptSourceProvider[];
     private disposables: IDisposable[] = [];
     private interpreterForWhichWidgetSourcesWereFetched?: PythonInterpreter;
     private kernelSocketInfo?: KernelSocketInformation;
     private subscribedToKernelSocket: boolean = false;
-    private pendingModuleRequests = new Set<string>();
+    /**
+     * Key value pair of widget modules along with the version that needs to be loaded.
+     */
+    private pendingModuleRequests = new Map<string, string>();
     private jupyterSerialize?: typeof serlialize;
     private get deserialize(): typeof serlialize.deserialize {
         if (!this.jupyterSerialize) {
@@ -68,7 +72,9 @@ export class IPyWidgetScriptSource implements IInteractiveWindowListener {
         @inject(IFileSystem) private readonly fs: IFileSystem,
         @inject(INotebookEditorProvider) private readonly notebookEditorProvider: INotebookEditorProvider,
         @inject(IInteractiveWindowProvider) private readonly interactiveWindowProvider: IInteractiveWindowProvider,
-        @inject(IInterpreterService) private readonly interpreterService: IInterpreterService
+        @inject(IInterpreterService) private readonly interpreterService: IInterpreterService,
+        @inject(IConfigurationService) private readonly configurationSettings: IConfigurationService,
+        @inject(IHttpClient) private readonly httpClient: IHttpClient
     ) {
         disposables.push(this);
         this.notebookProvider.onNotebookCreated(
@@ -100,37 +106,76 @@ export class IPyWidgetScriptSource implements IInteractiveWindowListener {
             this.sendListOfWidgetSources().catch(traceError.bind('Failed to send widget sources upon ready'));
         } else if (message === IPyWidgetMessages.IPyWidgets_WidgetScriptSourceRequest) {
             if (payload) {
+                const { moduleName, moduleVersion } = payload as { moduleName: string; moduleVersion: string };
                 sendTelemetryEvent(Telemetry.HashedIPyWidgetNameDiscovered, undefined, {
-                    hashedName: sha256().update(payload).digest('hex')
+                    hashedName: sha256().update(moduleName).digest('hex')
                 });
+                this.sendWidgetSource(moduleName, moduleVersion).catch(
+                    traceError.bind('Failed to send widget sources upon ready')
+                );
             }
-            this.sendWidgetSource(payload).catch(traceError.bind('Failed to send widget sources upon ready'));
         }
     }
 
     private async sendListOfWidgetSources(ignoreCache?: boolean) {
-        if (!this.notebook || !this.scriptProvider) {
+        if (!this.notebook || !this.scriptProviders) {
             return;
         }
-        const sources = await this.scriptProvider.getWidgetScriptSources(ignoreCache);
+
+        // Get script sources in order, if one works, then get out.
+        const scriptSourceProviders = [...this.scriptProviders];
+        while (scriptSourceProviders.length) {
+            const scriptProvider = scriptSourceProviders.shift();
+            if (!scriptProvider) {
+                continue;
+            }
+            const sources = await scriptProvider.getWidgetScriptSources(ignoreCache);
+            if (sources.length > 0) {
+                this.postEmitter.fire({
+                    message: IPyWidgetMessages.IPyWidgets_AllWidgetScriptSourcesResponse,
+                    payload: sources
+                });
+                return;
+            }
+        }
+
+        // Tried all providers, nothing worked, hence send an empty response.
         this.postEmitter.fire({
             message: IPyWidgetMessages.IPyWidgets_AllWidgetScriptSourcesResponse,
-            payload: sources
+            payload: []
         });
     }
-    private async sendWidgetSource(moduleName: string) {
+    private async sendWidgetSource(moduleName: string, moduleVersion: string) {
         // Standard widgets area already available, hence no need to look for them.
         if (moduleName.startsWith('@jupyter')) {
             return;
         }
-        if (!this.notebook || !this.scriptProvider) {
-            this.pendingModuleRequests.add(moduleName);
+        if (!this.notebook || !this.scriptProviders) {
+            this.pendingModuleRequests.set(moduleName, moduleVersion);
             return;
         }
-        const source = await this.scriptProvider.getWidgetScriptSource(moduleName);
+
+        // Get script sources in order, if one works, then get out.
+        const scriptSourceProviders = [...this.scriptProviders];
+        while (scriptSourceProviders.length) {
+            const scriptProvider = scriptSourceProviders.shift();
+            if (!scriptProvider) {
+                continue;
+            }
+            const source = await scriptProvider.getWidgetScriptSource(moduleName, moduleVersion);
+            if (source.scriptUri) {
+                this.postEmitter.fire({
+                    message: IPyWidgetMessages.IPyWidgets_WidgetScriptSourceResponse,
+                    payload: source
+                });
+                return;
+            }
+        }
+
+        // Tried all providers, nothing worked, hence send an empty response.
         this.postEmitter.fire({
             message: IPyWidgetMessages.IPyWidgets_WidgetScriptSourceResponse,
-            payload: source
+            payload: { moduleName }
         });
     }
     private async saveIdentity(args: INotebookIdentity) {
@@ -165,17 +210,67 @@ export class IPyWidgetScriptSource implements IInteractiveWindowListener {
         if (!this.interactiveBase) {
             return;
         }
+
+        // Check whether to use CDNs.
         if (this.notebook.connection.localLaunch) {
-            this.scriptProvider = new LocalWidgetScriptSourceProvider(
-                this.notebook,
-                this.interactiveBase,
-                this.fs,
-                this.interpreterService
-            );
+            this.scriptProviders = [
+                new LocalWidgetScriptSourceProvider(
+                    this.notebook,
+                    this.interactiveBase,
+                    this.fs,
+                    this.interpreterService
+                )
+            ];
         } else {
-            this.scriptProvider = new RemoteWidgetScriptSourceProvider(this.notebook.connection);
+            this.scriptProviders = [new RemoteWidgetScriptSourceProvider(this.notebook.connection)];
+        }
+
+        // If we're allowed to use CDN providers, then use them, and use in order of preference.
+        if (this.canUseCDN()) {
+            const preferCDNFirst = this.preferCDNFirst();
+            const cdnProvider = new CDNWidgetScriptSourceProvider(
+                this.notebook,
+                this.configurationSettings,
+                this.httpClient
+            );
+
+            if (preferCDNFirst) {
+                this.scriptProviders.splice(0, 0, cdnProvider);
+            } else {
+                this.scriptProviders.push(cdnProvider);
+            }
         }
         await this.initializeNotebook();
+    }
+    private canUseCDN(): boolean {
+        if (!this.notebook) {
+            return false;
+        }
+        const settings = this.configurationSettings.getSettings(undefined);
+        const scriptSources = this.notebook.connection.localLaunch
+            ? settings.datascience.ipyWidgets.localKernelScriptSources
+            : settings.datascience.ipyWidgets.remoteKernelScriptSources;
+
+        if (scriptSources.length === 0) {
+            return false;
+        }
+
+        return scriptSources.indexOf('jsdelivr.com') >= 0 || scriptSources.indexOf('unpkg.com') >= 0;
+    }
+    private preferCDNFirst(): boolean {
+        if (!this.notebook) {
+            return false;
+        }
+        const settings = this.configurationSettings.getSettings(undefined);
+        const scriptSources = this.notebook.connection.localLaunch
+            ? settings.datascience.ipyWidgets.localKernelScriptSources
+            : settings.datascience.ipyWidgets.remoteKernelScriptSources;
+
+        if (scriptSources.length === 0) {
+            return false;
+        }
+        const item = scriptSources[0];
+        return item === 'jsdelivr.com' || item === 'unpkg.com';
     }
     private async initializeNotebook() {
         if (!this.notebook) {
@@ -238,7 +333,9 @@ export class IPyWidgetScriptSource implements IInteractiveWindowListener {
         // tslint:disable-next-line: no-any
         const msg = this.deserialize(message as any);
         if (this.jupyterLab?.KernelMessage.isCommOpenMsg(msg) && msg.content.target_module) {
-            this.sendWidgetSource(msg.content.target_module).catch(traceError.bind('Failed to pre-load Widget Script'));
+            this.sendWidgetSource(msg.content.target_module, '').catch(
+                traceError.bind('Failed to pre-load Widget Script')
+            );
         } else if (
             this.jupyterLab?.KernelMessage.isCommOpenMsg(msg) &&
             msg.content.data &&
@@ -251,20 +348,21 @@ export class IPyWidgetScriptSource implements IInteractiveWindowListener {
             // tslint:disable-next-line: no-any
             const modelModule = (msg.content.data.state as any)._model_module;
             if (viewModule) {
-                this.sendWidgetSource(viewModule).catch(traceError.bind('Failed to pre-load Widget Script'));
+                this.sendWidgetSource(viewModule, '').catch(traceError.bind('Failed to pre-load Widget Script'));
             }
             if (modelModule) {
-                this.sendWidgetSource(viewModule).catch(traceError.bind('Failed to pre-load Widget Script'));
+                this.sendWidgetSource(viewModule, '').catch(traceError.bind('Failed to pre-load Widget Script'));
             }
         }
     }
     private handlePendingRequests() {
-        const pendingModuleNames = Array.from(this.pendingModuleRequests.values());
+        const pendingModuleNames = Array.from(this.pendingModuleRequests.keys());
         while (pendingModuleNames.length) {
             const moduleName = pendingModuleNames.shift();
             if (moduleName) {
+                const moduleVersion = this.pendingModuleRequests.get(moduleName)!;
                 this.pendingModuleRequests.delete(moduleName);
-                this.sendWidgetSource(moduleName).catch(
+                this.sendWidgetSource(moduleName, moduleVersion).catch(
                     traceError.bind(`Failed to send WidgetScript for ${moduleName}`)
                 );
             }

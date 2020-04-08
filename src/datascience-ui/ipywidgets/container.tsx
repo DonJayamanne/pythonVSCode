@@ -45,7 +45,7 @@ export class WidgetManagerComponent extends React.Component<Props> {
         // If expires, then Widget downloader will attempt to download with what ever information it has (potentially failing).
         timeoutWaitingForScriptToLoad: 5_000,
         // List of widgets that must always be loaded using requirejs instead of using a CDN or the like.
-        widgetsToLoadFromRequirejs: new Set<string>(),
+        widgetsRegisteredInRequireJs: new Set<string>(),
         // Callback when loading a widget fails.
         errorHandler: this.handleLoadError.bind(this),
         // Callback when requesting a module be registered with requirejs (if possible).
@@ -132,7 +132,7 @@ export class WidgetManagerComponent extends React.Component<Props> {
             .filter((source) => source.scriptUri)
             .map((source) => source as NonPartial<WidgetScriptSource>)
             .forEach((source) => {
-                this.loaderSettings.widgetsToLoadFromRequirejs.add(source.moduleName);
+                this.loaderSettings.widgetsRegisteredInRequireJs.add(source.moduleName);
                 // Register the script source into requirejs so it gets loaded via requirejs.
                 config.paths[source.moduleName] = source.scriptUri;
             });
@@ -183,22 +183,29 @@ export class WidgetManagerComponent extends React.Component<Props> {
         }
     }
 
-    private loadWidgetScript(moduleName: string): Promise<void> {
+    /**
+     * Method called by ipywidgets to get the source for a widget.
+     * When we get a source for the widget, we register it in requriejs.
+     * We need to check if it is avaialble on CDN, if not then fallback to local FS.
+     * Or check local FS then fall back to CDN (depending on the order defined by the user).
+     */
+    private loadWidgetScript(moduleName: string, moduleVersion: string): Promise<void> {
         // tslint:disable-next-line: no-console
-        console.log(`Load IPyWidget ${moduleName}`);
+        console.log(`Fetch IPyWidget source for ${moduleName}`);
         let deferred = this.widgetSourceRequests.get(moduleName);
         if (!deferred) {
             deferred = createDeferred<void>();
             this.widgetSourceRequests.set(moduleName, deferred);
-            this.props.postOffice.sendMessage<IInteractiveWindowMapping>(
-                IPyWidgetMessages.IPyWidgets_WidgetScriptSourceRequest,
-                moduleName
-            );
-
             // If we timeout, then resolve this promise.
             // We don't want the calling code to unnecessary wait for too long.
             setTimeout(() => deferred?.resolve(), this.loaderSettings.timeoutWaitingForScriptToLoad);
         }
+        // Whether we have the scripts or not, send message to extension.
+        // Useful telemetry and also we know it was explicity requestd by ipywidgest.
+        this.props.postOffice.sendMessage<IInteractiveWindowMapping>(
+            IPyWidgetMessages.IPyWidgets_WidgetScriptSourceRequest,
+            { moduleName, moduleVersion }
+        );
 
         return (
             deferred.promise

@@ -489,7 +489,7 @@ export class IInteractiveWindowMapping {
     public [IPyWidgetMessages.IPyWidgets_kernelOptions]: KernelSocketOptions;
     public [IPyWidgetMessages.IPyWidgets_AllWidgetScriptSourcesRequest]: undefined | never;
     public [IPyWidgetMessages.IPyWidgets_AllWidgetScriptSourcesResponse]: WidgetScriptSource[];
-    public [IPyWidgetMessages.IPyWidgets_WidgetScriptSourceRequest]: string;
+    public [IPyWidgetMessages.IPyWidgets_WidgetScriptSourceRequest]: { moduleName: string; moduleVersion: string };
     public [IPyWidgetMessages.IPyWidgets_WidgetScriptSourceResponse]: WidgetScriptSource;
     public [IPyWidgetMessages.IPyWidgets_Ready]: never | undefined;
     public [IPyWidgetMessages.IPyWidgets_onRestartKernel]: never | undefined;

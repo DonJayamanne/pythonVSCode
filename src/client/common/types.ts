@@ -393,7 +393,28 @@ export interface IDataScienceSettings {
     disableJupyterAutoStart?: boolean;
     jupyterCommandLineArguments: string[];
     loadWidgetScriptsFromThirdPartySource?: boolean;
+    ipyWidgets: WidgetSettings;
 }
+
+export type WidgetCDNs = 'unpkg.com' | 'jsdelivr.com';
+export type LocalKernelScriptSource = WidgetCDNs | 'localPythonEnvironment';
+export type RemoteKernelScriptSource = WidgetCDNs | 'remoteJupyterServer';
+export type WidgetSettings = {
+    /**
+     * Whether ipywidget support is enabled or not.
+     */
+    enabled: boolean;
+    /**
+     * Order of sources to fetch the widget scripts (when running a local kernel).
+     * In this case we might be able to get the widget scripts from the local python environment.
+     */
+    localKernelScriptSources: LocalKernelScriptSource[];
+    /**
+     * Order of sources to fetch the widget scripts (when running a remote kernel).
+     * In this case we cannot get widget script from local environment, but might be able to get it from the remote jupyter server.
+     */
+    remoteKernelScriptSources: RemoteKernelScriptSource[];
+};
 
 export const IConfigurationService = Symbol('IConfigurationService');
 export interface IConfigurationService {
@@ -465,6 +486,10 @@ export interface IHttpClient {
      * @param strict Set `false` to allow trailing comma and comments in the JSON, defaults to `true`
      */
     getJSON<T>(uri: string, strict?: boolean): Promise<T>;
+    /**
+     * Returns the contents of a remote resource.
+     */
+    getContents(uri: string): Promise<string>;
 }
 
 export const IExtensionContext = Symbol('ExtensionContext');

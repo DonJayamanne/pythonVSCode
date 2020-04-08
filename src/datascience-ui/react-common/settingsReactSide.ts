@@ -66,7 +66,12 @@ export function getDefaultSettings() {
         runStartupCommands: '',
         debugJustMyCode: true,
         variableQueries: [],
-        jupyterCommandLineArguments: []
+        jupyterCommandLineArguments: [],
+        ipyWidgets: {
+            enabled: true,
+            localKernelScriptSources: [],
+            remoteKernelScriptSources: []
+        }
     };
 
     return result;

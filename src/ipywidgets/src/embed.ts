@@ -101,7 +101,7 @@ export function renderWidgets(element = document.documentElement): void {
     const managerFactory = (): any => {
         return new wm.WidgetManager(undefined, element, {
             loadWidgetScriptsFromThirdPartySource: false,
-            widgetsToLoadFromRequirejs: new Set<string>(),
+            widgetsRegisteredInRequireJs: new Set<string>(),
             errorHandler: () => 'Error loading widget.',
             loadWidgetScript: (_moduleName: string) => Promise.resolve()
         });

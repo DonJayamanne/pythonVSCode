@@ -74,7 +74,12 @@ suite('Theme colors', () => {
             runStartupCommands: '',
             debugJustMyCode: true,
             variableQueries: [],
-            jupyterCommandLineArguments: []
+            jupyterCommandLineArguments: [],
+            ipyWidgets: {
+                enabled: true,
+                localKernelScriptSources: [],
+                remoteKernelScriptSources: []
+            }
         };
         configService = TypeMoq.Mock.ofType<IConfigurationService>();
         configService.setup((x) => x.getSettings(TypeMoq.It.isAny())).returns(() => settings);

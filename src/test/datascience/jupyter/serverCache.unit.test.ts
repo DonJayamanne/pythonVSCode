@@ -50,7 +50,12 @@ suite('Data Science - ServerCache', () => {
             runStartupCommands: '',
             debugJustMyCode: true,
             variableQueries: [],
-            jupyterCommandLineArguments: []
+            jupyterCommandLineArguments: [],
+            ipyWidgets: {
+                enabled: true,
+                localKernelScriptSources: [],
+                remoteKernelScriptSources: []
+            }
         };
         when(configService.getSettings(anything())).thenReturn(pythonSettings);
         serverCache = new ServerCache(instance(configService), instance(workspaceService), instance(fileSystem));

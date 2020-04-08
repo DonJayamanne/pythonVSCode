@@ -294,7 +294,8 @@ export enum Telemetry {
     GatherQualityReport = 'DS_INTERNAL.GATHER_QUALITY_REPORT',
     ZMQNotSupported = 'DATASCIENCE.ZMQ_NATIVE_BINARIES_NOT_LOADING',
     IPyWidgetLoadFailure = 'DS_INTERNAL.IPYWIDGET_LOAD_FAILURE',
-    IPyWidgetLoadDisabled = 'DS_INTERNAL.IPYWIDGET_LOAD_DISABLED'
+    IPyWidgetLoadDisabled = 'DS_INTERNAL.IPYWIDGET_LOAD_DISABLED',
+    IPyWidgetTestAvailabilityOnCDN = 'DS_INTERNAL.IPYWIDGET_TEST_AVAILABILITY_ON_CDN'
 }
 
 export enum NativeKeyboardCommandTelemetry {

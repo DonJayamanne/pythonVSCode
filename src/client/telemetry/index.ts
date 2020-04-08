@@ -1958,4 +1958,14 @@ export interface IEventNamePropertyMapping {
      * Telemetry event sent when an loading of 3rd party ipywidget JS scripts from 3rd party source has been disabled.
      */
     [Telemetry.IPyWidgetLoadDisabled]: { moduleHash: string; moduleVersion: string };
+    /**
+     * Telemetry send when we check whether a 3rd party widget exists on a CDN or not.
+     * We capture the time and whether the widget was found or not.
+     */
+    [Telemetry.IPyWidgetTestAvailabilityOnCDN]: {
+        // The CDN we were testing.
+        cdn: string;
+        // Whether we managed to find the widget on the CDN or not.
+        exists: boolean;
+    };
 }

@@ -30,6 +30,10 @@ export interface IIPyWidgetMessageDispatcher extends IDisposable {
 export type WidgetScriptSource = {
     moduleName: string;
     /**
+     * Where is the script being source from.
+     */
+    source?: 'cdn' | 'local' | 'remote';
+    /**
      * Resource Uri (not using Uri type as this needs to be sent from extension to UI).
      */
     scriptUri?: string;
@@ -42,7 +46,7 @@ export interface IWidgetScriptSourceProvider {
     /**
      * Return the script path for the requested module.
      */
-    getWidgetScriptSource(moduleName: string): Promise<WidgetScriptSource>;
+    getWidgetScriptSource(moduleName: string, moduleVersion: string): Promise<WidgetScriptSource>;
     /**
      * Returns a list of all widgets with their sources. Can be empty.
      */
