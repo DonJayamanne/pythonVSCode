@@ -96,7 +96,6 @@ suite('DataScience Code Watcher Unit Tests', () => {
             variableQueries: [],
             jupyterCommandLineArguments: [],
             ipyWidgets: {
-                enabled: true,
                 localKernelScriptSources: [],
                 remoteKernelScriptSources: []
             }

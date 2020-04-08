@@ -34,7 +34,6 @@ export function defaultDataScienceSettings(): IDataScienceSettings {
         variableQueries: [],
         jupyterCommandLineArguments: [],
         ipyWidgets: {
-            enabled: true,
             localKernelScriptSources: [],
             remoteKernelScriptSources: []
         }

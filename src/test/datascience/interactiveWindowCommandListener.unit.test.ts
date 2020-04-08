@@ -143,7 +143,6 @@ suite('Interactive window command listener', async () => {
             variableQueries: [],
             jupyterCommandLineArguments: [],
             ipyWidgets: {
-                enabled: true,
                 localKernelScriptSources: [],
                 remoteKernelScriptSources: []
             }

@@ -894,7 +894,6 @@ suite('Jupyter Execution', async () => {
             variableQueries: [],
             jupyterCommandLineArguments: [],
             ipyWidgets: {
-                enabled: true,
                 localKernelScriptSources: [],
                 remoteKernelScriptSources: []
             }

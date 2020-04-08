@@ -76,7 +76,6 @@ suite('Theme colors', () => {
             variableQueries: [],
             jupyterCommandLineArguments: [],
             ipyWidgets: {
-                enabled: true,
                 localKernelScriptSources: [],
                 remoteKernelScriptSources: []
             }

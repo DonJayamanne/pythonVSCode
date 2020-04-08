@@ -117,6 +117,9 @@ export class IPyWidgetScriptSource implements IInteractiveWindowListener {
         }
     }
 
+    /**
+     * Send a list of all widgets and sources to the UI.
+     */
     private async sendListOfWidgetSources(ignoreCache?: boolean) {
         if (!this.notebook || !this.scriptProviders) {
             return;
@@ -145,6 +148,9 @@ export class IPyWidgetScriptSource implements IInteractiveWindowListener {
             payload: []
         });
     }
+    /**
+     * Send the widget script source for a specific widget module & version.
+     */
     private async sendWidgetSource(moduleName: string, moduleVersion: string) {
         // Standard widgets area already available, hence no need to look for them.
         if (moduleName.startsWith('@jupyter')) {
@@ -257,6 +263,9 @@ export class IPyWidgetScriptSource implements IInteractiveWindowListener {
 
         return scriptSources.indexOf('jsdelivr.com') >= 0 || scriptSources.indexOf('unpkg.com') >= 0;
     }
+    /**
+     * Whether we should load widgets first from CDN then from else where.
+     */
     private preferCDNFirst(): boolean {
         if (!this.notebook) {
             return false;

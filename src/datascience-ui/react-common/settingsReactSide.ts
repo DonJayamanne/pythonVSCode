@@ -68,7 +68,6 @@ export function getDefaultSettings() {
         variableQueries: [],
         jupyterCommandLineArguments: [],
         ipyWidgets: {
-            enabled: true,
             localKernelScriptSources: [],
             remoteKernelScriptSources: []
         }
