@@ -401,10 +401,6 @@ export type LocalKernelScriptSource = WidgetCDNs | 'localPythonEnvironment';
 export type RemoteKernelScriptSource = WidgetCDNs | 'remoteJupyterServer';
 export type WidgetSettings = {
     /**
-     * Whether ipywidget support is enabled or not.
-     */
-    enabled: boolean;
-    /**
      * Order of sources to fetch the widget scripts (when running a local kernel).
      * In this case we might be able to get the widget scripts from the local python environment.
      */
