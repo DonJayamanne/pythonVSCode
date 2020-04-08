@@ -295,7 +295,9 @@ export enum Telemetry {
     ZMQNotSupported = 'DATASCIENCE.ZMQ_NATIVE_BINARIES_NOT_LOADING',
     IPyWidgetLoadFailure = 'DS_INTERNAL.IPYWIDGET_LOAD_FAILURE',
     IPyWidgetLoadDisabled = 'DS_INTERNAL.IPYWIDGET_LOAD_DISABLED',
-    IPyWidgetTestAvailabilityOnCDN = 'DS_INTERNAL.IPYWIDGET_TEST_AVAILABILITY_ON_CDN'
+    IPyWidgetTestAvailabilityOnCDN = 'DS_INTERNAL.IPYWIDGET_TEST_AVAILABILITY_ON_CDN',
+    IPyWidgetPromptToUseCDN = 'DS_INTERNAL.IPYWIDGET_PROMPT_TO_USE_CDN',
+    IPyWidgetPromptToUseCDNSelection = 'DS_INTERNAL.IPYWIDGET_PROMPT_TO_USE_CDN_SELECTION'
 }
 
 export enum NativeKeyboardCommandTelemetry {

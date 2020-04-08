@@ -67,7 +67,7 @@ export function getDefaultSettings() {
         debugJustMyCode: true,
         variableQueries: [],
         jupyterCommandLineArguments: [],
-        ipyWidgets: {
+        widgets: {
             localKernelScriptSources: [],
             remoteKernelScriptSources: []
         }

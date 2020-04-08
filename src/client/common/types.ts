@@ -393,7 +393,7 @@ export interface IDataScienceSettings {
     disableJupyterAutoStart?: boolean;
     jupyterCommandLineArguments: string[];
     loadWidgetScriptsFromThirdPartySource?: boolean;
-    ipyWidgets: WidgetSettings;
+    widgets: WidgetSettings;
 }
 
 export type WidgetCDNs = 'unpkg.com' | 'jsdelivr.com';

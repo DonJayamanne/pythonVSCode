@@ -42,13 +42,16 @@ export type WidgetScriptSource = {
 /**
  * Used to get an entry for widget (or all of them).
  */
-export interface IWidgetScriptSourceProvider {
+export interface IWidgetScriptSourceProvider extends IDisposable {
     /**
      * Return the script path for the requested module.
+     * This is called when ipywidgets needs a source for a particular widget.
      */
-    getWidgetScriptSource(moduleName: string, moduleVersion: string): Promise<WidgetScriptSource>;
+    getWidgetScriptSource(moduleName: string, moduleVersion: string): Promise<Readonly<WidgetScriptSource>>;
     /**
      * Returns a list of all widgets with their sources. Can be empty.
+     * This is only called as a way for extension to pre-fetch all known widgest to improve performance.
+     * But this doesn't mean ipywidgest is being used or user has any widgets.
      */
     getWidgetScriptSources(ignoreCache?: boolean): Promise<Readonly<WidgetScriptSource[]>>;
 }

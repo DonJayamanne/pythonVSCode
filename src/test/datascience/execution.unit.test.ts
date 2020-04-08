@@ -893,7 +893,7 @@ suite('Jupyter Execution', async () => {
             debugJustMyCode: true,
             variableQueries: [],
             jupyterCommandLineArguments: [],
-            ipyWidgets: {
+            widgets: {
                 localKernelScriptSources: [],
                 remoteKernelScriptSources: []
             }

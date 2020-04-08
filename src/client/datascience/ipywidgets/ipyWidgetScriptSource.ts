@@ -9,6 +9,7 @@ import { inject, injectable } from 'inversify';
 import { IDisposable } from 'monaco-editor';
 import { Event, EventEmitter, Uri } from 'vscode';
 import type { Data as WebSocketData } from 'ws';
+import { IApplicationShell, IWorkspaceService } from '../../common/application/types';
 import { traceError } from '../../common/logger';
 import { IFileSystem } from '../../common/platform/types';
 import { IConfigurationService, IDisposableRegistry, IHttpClient } from '../../common/types';
@@ -29,10 +30,7 @@ import {
     INotebookProvider,
     KernelSocketInformation
 } from '../types';
-import { CDNWidgetScriptSourceProvider } from './cdnWidgetScriptSourceProvider';
-import { LocalWidgetScriptSourceProvider } from './localWidgetScriptSourceProvider';
-import { RemoteWidgetScriptSourceProvider } from './remoteWidgetScriptSourceProvider';
-import { IWidgetScriptSourceProvider } from './types';
+import { IPyWidgetScriptSourceProvider } from './ipyWidgetScriptSourceProvider';
 
 @injectable()
 export class IPyWidgetScriptSource implements IInteractiveWindowListener {
@@ -49,7 +47,7 @@ export class IPyWidgetScriptSource implements IInteractiveWindowListener {
     private notebook?: INotebook;
     private jupyterLab?: typeof jupyterlabService;
     private interactiveBase?: IInteractiveBase;
-    private scriptProviders?: IWidgetScriptSourceProvider[];
+    private scriptProvider?: IPyWidgetScriptSourceProvider;
     private disposables: IDisposable[] = [];
     private interpreterForWhichWidgetSourcesWereFetched?: PythonInterpreter;
     private kernelSocketInfo?: KernelSocketInformation;
@@ -74,7 +72,9 @@ export class IPyWidgetScriptSource implements IInteractiveWindowListener {
         @inject(IInteractiveWindowProvider) private readonly interactiveWindowProvider: IInteractiveWindowProvider,
         @inject(IInterpreterService) private readonly interpreterService: IInterpreterService,
         @inject(IConfigurationService) private readonly configurationSettings: IConfigurationService,
-        @inject(IHttpClient) private readonly httpClient: IHttpClient
+        @inject(IHttpClient) private readonly httpClient: IHttpClient,
+        @inject(IApplicationShell) private readonly appShell: IApplicationShell,
+        @inject(IWorkspaceService) private readonly workspaceService: IWorkspaceService
     ) {
         disposables.push(this);
         this.notebookProvider.onNotebookCreated(
@@ -121,31 +121,14 @@ export class IPyWidgetScriptSource implements IInteractiveWindowListener {
      * Send a list of all widgets and sources to the UI.
      */
     private async sendListOfWidgetSources(ignoreCache?: boolean) {
-        if (!this.notebook || !this.scriptProviders) {
+        if (!this.notebook || !this.scriptProvider) {
             return;
         }
 
-        // Get script sources in order, if one works, then get out.
-        const scriptSourceProviders = [...this.scriptProviders];
-        while (scriptSourceProviders.length) {
-            const scriptProvider = scriptSourceProviders.shift();
-            if (!scriptProvider) {
-                continue;
-            }
-            const sources = await scriptProvider.getWidgetScriptSources(ignoreCache);
-            if (sources.length > 0) {
-                this.postEmitter.fire({
-                    message: IPyWidgetMessages.IPyWidgets_AllWidgetScriptSourcesResponse,
-                    payload: sources
-                });
-                return;
-            }
-        }
-
-        // Tried all providers, nothing worked, hence send an empty response.
+        const sources = await this.scriptProvider.getWidgetScriptSources(ignoreCache);
         this.postEmitter.fire({
             message: IPyWidgetMessages.IPyWidgets_AllWidgetScriptSourcesResponse,
-            payload: []
+            payload: sources
         });
     }
     /**
@@ -156,32 +139,15 @@ export class IPyWidgetScriptSource implements IInteractiveWindowListener {
         if (moduleName.startsWith('@jupyter')) {
             return;
         }
-        if (!this.notebook || !this.scriptProviders) {
+        if (!this.notebook || !this.scriptProvider) {
             this.pendingModuleRequests.set(moduleName, moduleVersion);
             return;
         }
 
-        // Get script sources in order, if one works, then get out.
-        const scriptSourceProviders = [...this.scriptProviders];
-        while (scriptSourceProviders.length) {
-            const scriptProvider = scriptSourceProviders.shift();
-            if (!scriptProvider) {
-                continue;
-            }
-            const source = await scriptProvider.getWidgetScriptSource(moduleName, moduleVersion);
-            if (source.scriptUri) {
-                this.postEmitter.fire({
-                    message: IPyWidgetMessages.IPyWidgets_WidgetScriptSourceResponse,
-                    payload: source
-                });
-                return;
-            }
-        }
-
-        // Tried all providers, nothing worked, hence send an empty response.
+        const source = await this.scriptProvider.getWidgetScriptSource(moduleName, moduleVersion);
         this.postEmitter.fire({
             message: IPyWidgetMessages.IPyWidgets_WidgetScriptSourceResponse,
-            payload: { moduleName }
+            payload: source
         });
     }
     private async saveIdentity(args: INotebookIdentity) {
@@ -196,90 +162,46 @@ export class IPyWidgetScriptSource implements IInteractiveWindowListener {
             this.jupyterLab = require('@jupyterlab/services') as typeof jupyterlabService; // NOSONAR
         }
 
-        if (!this.notebookIdentity || this.notebook) {
+        if (!this.notebookIdentity) {
             return;
         }
-        this.notebook = await this.notebookProvider.getOrCreateNotebook({
-            identity: this.notebookIdentity,
-            disableUI: true,
-            getOnly: true
-        });
+        if (!this.notebook) {
+            this.notebook = await this.notebookProvider.getOrCreateNotebook({
+                identity: this.notebookIdentity,
+                disableUI: true,
+                getOnly: true
+            });
+        }
         if (!this.notebook) {
             return;
         }
-        this.interactiveBase = this.notebookEditorProvider.editors.find(
-            (editor) => editor.notebook?.identity.toString() === this.notebookIdentity?.toString()
-        );
         if (!this.interactiveBase) {
-            this.interactiveBase = this.interactiveWindowProvider.getActive();
-        }
-        if (!this.interactiveBase) {
-            return;
-        }
-
-        // Check whether to use CDNs.
-        if (this.notebook.connection.localLaunch) {
-            this.scriptProviders = [
-                new LocalWidgetScriptSourceProvider(
-                    this.notebook,
-                    this.interactiveBase,
-                    this.fs,
-                    this.interpreterService
-                )
-            ];
-        } else {
-            this.scriptProviders = [new RemoteWidgetScriptSourceProvider(this.notebook.connection)];
-        }
-
-        // If we're allowed to use CDN providers, then use them, and use in order of preference.
-        if (this.canUseCDN()) {
-            const preferCDNFirst = this.preferCDNFirst();
-            const cdnProvider = new CDNWidgetScriptSourceProvider(
-                this.notebook,
-                this.configurationSettings,
-                this.httpClient
+            this.interactiveBase = this.notebookEditorProvider.editors.find(
+                (editor) =>
+                    editor.notebook?.identity.toString() === this.notebookIdentity?.toString() ||
+                    editor.file.toString() === this.notebookIdentity?.toString()
             );
-
-            if (preferCDNFirst) {
-                this.scriptProviders.splice(0, 0, cdnProvider);
-            } else {
-                this.scriptProviders.push(cdnProvider);
+            if (!this.interactiveBase) {
+                this.interactiveBase = this.interactiveWindowProvider.getActive();
             }
         }
+        if (!this.interactiveBase) {
+            return;
+        }
+        if (this.scriptProvider) {
+            return;
+        }
+        this.scriptProvider = new IPyWidgetScriptSourceProvider(
+            this.notebook,
+            this.interactiveBase,
+            this.fs,
+            this.interpreterService,
+            this.appShell,
+            this.configurationSettings,
+            this.workspaceService,
+            this.httpClient
+        );
         await this.initializeNotebook();
-    }
-    private canUseCDN(): boolean {
-        if (!this.notebook) {
-            return false;
-        }
-        const settings = this.configurationSettings.getSettings(undefined);
-        const scriptSources = this.notebook.connection.localLaunch
-            ? settings.datascience.ipyWidgets.localKernelScriptSources
-            : settings.datascience.ipyWidgets.remoteKernelScriptSources;
-
-        if (scriptSources.length === 0) {
-            return false;
-        }
-
-        return scriptSources.indexOf('jsdelivr.com') >= 0 || scriptSources.indexOf('unpkg.com') >= 0;
-    }
-    /**
-     * Whether we should load widgets first from CDN then from else where.
-     */
-    private preferCDNFirst(): boolean {
-        if (!this.notebook) {
-            return false;
-        }
-        const settings = this.configurationSettings.getSettings(undefined);
-        const scriptSources = this.notebook.connection.localLaunch
-            ? settings.datascience.ipyWidgets.localKernelScriptSources
-            : settings.datascience.ipyWidgets.remoteKernelScriptSources;
-
-        if (scriptSources.length === 0) {
-            return false;
-        }
-        const item = scriptSources[0];
-        return item === 'jsdelivr.com' || item === 'unpkg.com';
     }
     private async initializeNotebook() {
         if (!this.notebook) {
@@ -355,12 +277,20 @@ export class IPyWidgetScriptSource implements IInteractiveWindowListener {
             // tslint:disable-next-line: no-any
             const viewModule: string = (msg.content.data.state as any)._view_module;
             // tslint:disable-next-line: no-any
+            const viewModuleVersion: string = (msg.content.data.state as any)._view_module_version;
+            // tslint:disable-next-line: no-any
             const modelModule = (msg.content.data.state as any)._model_module;
+            // tslint:disable-next-line: no-any
+            const modelModuleVersion = (msg.content.data.state as any)._model_module_version;
             if (viewModule) {
-                this.sendWidgetSource(viewModule, '').catch(traceError.bind('Failed to pre-load Widget Script'));
+                this.sendWidgetSource(viewModule, modelModuleVersion || '').catch(
+                    traceError.bind('Failed to pre-load Widget Script')
+                );
             }
             if (modelModule) {
-                this.sendWidgetSource(viewModule, '').catch(traceError.bind('Failed to pre-load Widget Script'));
+                this.sendWidgetSource(viewModule, viewModuleVersion || '').catch(
+                    traceError.bind('Failed to pre-load Widget Script')
+                );
             }
         }
     }

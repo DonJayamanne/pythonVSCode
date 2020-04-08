@@ -56,26 +56,29 @@ export class CDNWidgetScriptSourceProvider implements IWidgetScriptSourceProvide
     private get cdnProviders(): readonly (LocalKernelScriptSource | RemoteKernelScriptSource)[] {
         const settings = this.configurationSettings.getSettings(undefined);
         if (this.notebook.connection.localLaunch) {
-            return settings.datascience.ipyWidgets.localKernelScriptSources;
+            return settings.datascience.widgets.localKernelScriptSources;
         } else {
-            return settings.datascience.ipyWidgets.remoteKernelScriptSources;
+            return settings.datascience.widgets.remoteKernelScriptSources;
         }
     }
-    private static validUrls = new Map<string, boolean>();
+    public static validUrls = new Map<string, boolean>();
     constructor(
         private readonly notebook: INotebook,
         private readonly configurationSettings: IConfigurationService,
         private readonly httpClient: IHttpClient
     ) {}
+    public dispose() {
+        // Noop.
+    }
     public async getWidgetScriptSource(moduleName: string, moduleVersion: string): Promise<WidgetScriptSource> {
         const cdns = [...this.cdnProviders];
-
         while (cdns.length) {
-            const cdn = getCDNPrefix(cdns.shift());
-            if (!cdn) {
+            const cdn = cdns.shift();
+            const cdnBaseUrl = getCDNPrefix(cdn);
+            if (!cdnBaseUrl || !cdn) {
                 continue;
             }
-            const scriptUri = moduleNameToCDNUrl(unpgkUrl, moduleName, moduleVersion);
+            const scriptUri = moduleNameToCDNUrl(cdnBaseUrl, moduleName, moduleVersion);
             const exists = await this.getUrlForWidget(cdn, moduleName, scriptUri);
             if (exists) {
                 return { moduleName, scriptUri, source: 'cdn' };
@@ -94,8 +97,8 @@ export class CDNWidgetScriptSourceProvider implements IWidgetScriptSourceProvide
         const stopWatch = new StopWatch();
         const exists = await this.httpClient
             .getContents(url)
-            .catch(() => false)
-            .then(() => true);
+            .then(() => true)
+            .catch(() => false);
         sendTelemetryEvent(Telemetry.IPyWidgetTestAvailabilityOnCDN, stopWatch.elapsedTime, { cdn, exists });
 
         // If exists, then can't contain PII, as its a public module.

@@ -61,6 +61,7 @@ export namespace Diagnostics {
 export namespace Common {
     export const canceled = localize('Common.canceled', 'Canceled');
     export const cancel = localize('Common.cancel', 'Cancel');
+    export const ok = localize('Common.ok', 'Ok');
     export const gotIt = localize('Common.gotIt', 'Got it!');
     export const install = localize('Common.install', 'Install');
     export const loadingExtension = localize('Common.loadingPythonExtension', 'Python extension loading...');
@@ -832,6 +833,10 @@ export namespace DataScience {
     export const loadThirdPartyWidgetScriptsPostEnabled = localize(
         'DataScience.loadThirdPartyWidgetScriptsPostEnabled',
         "Once you have updated the setting 'loadWidgetScriptsFromThirdPartySource' you will need to restart the Kernel."
+    );
+    export const useCDNForWidgets = localize(
+        'DataScience.useCDNForWidgets',
+        'Widgets require us to download supporting files from a 3rd party website. Click [here](https://aka.ms/widgets) for more information.'
     );
 }
 

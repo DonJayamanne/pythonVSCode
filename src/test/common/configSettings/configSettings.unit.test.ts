@@ -300,7 +300,7 @@ suite('Python Settings', async () => {
             debugJustMyCode: true,
             variableQueries: [],
             jupyterCommandLineArguments: [],
-            ipyWidgets: {
+            widgets: {
                 localKernelScriptSources: [],
                 remoteKernelScriptSources: []
             }

@@ -98,7 +98,7 @@ suite('JupyterVariables', () => {
             debugJustMyCode: true,
             variableQueries: [],
             jupyterCommandLineArguments: [],
-            ipyWidgets: {
+            widgets: {
                 localKernelScriptSources: [],
                 remoteKernelScriptSources: []
             }

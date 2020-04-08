@@ -29,10 +29,13 @@ export class LocalWidgetScriptSourceProvider implements IWidgetScriptSourceProvi
         private readonly fs: IFileSystem,
         private readonly interpreterService: IInterpreterService
     ) {}
-    public async getWidgetScriptSource(moduleName: string): Promise<WidgetScriptSource> {
+    public async getWidgetScriptSource(moduleName: string): Promise<Readonly<WidgetScriptSource>> {
         const sources = await this.getWidgetScriptSources();
         const found = sources.find((item) => item.moduleName.toLowerCase() === moduleName.toLowerCase());
         return found || { moduleName };
+    }
+    public dispose() {
+        // Noop.
     }
     public async getWidgetScriptSources(ignoreCache?: boolean): Promise<Readonly<WidgetScriptSource[]>> {
         if (!ignoreCache && this.cachedWidgetScripts) {
@@ -82,8 +85,13 @@ export class LocalWidgetScriptSourceProvider implements IWidgetScriptSourceProvi
         if (!interpreter?.path) {
             return;
         }
-        const interpreterInfo = await this.interpreterService.getInterpreterDetails(interpreter.path);
-        return interpreterInfo?.sysPrefix;
+        const interpreterInfo = await this.interpreterService
+            .getInterpreterDetails(interpreter.path)
+            .catch(traceError.bind(`Failed to get interpreter details for Kernel/Interpreter ${interpreter.path}`));
+
+        if (interpreterInfo) {
+            return interpreterInfo?.sysPrefix;
+        }
     }
     private getInterpreter(): Partial<PythonInterpreter> | undefined {
         let interpreter: undefined | Partial<PythonInterpreter> = this.notebook.getMatchingInterpreter();

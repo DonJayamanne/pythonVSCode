@@ -1959,7 +1959,7 @@ export interface IEventNamePropertyMapping {
      */
     [Telemetry.IPyWidgetLoadDisabled]: { moduleHash: string; moduleVersion: string };
     /**
-     * Telemetry send when we check whether a 3rd party widget exists on a CDN or not.
+     * Telemetry sent when we check whether a 3rd party widget exists on a CDN or not.
      * We capture the time and whether the widget was found or not.
      */
     [Telemetry.IPyWidgetTestAvailabilityOnCDN]: {
@@ -1967,5 +1967,16 @@ export interface IEventNamePropertyMapping {
         cdn: string;
         // Whether we managed to find the widget on the CDN or not.
         exists: boolean;
+    };
+    /**
+     * Telemetry sent when we prompt user to use a CDN for IPyWidget scripts.
+     * This is always sent when we display a prompt.
+     */
+    [Telemetry.IPyWidgetPromptToUseCDN]: never | undefined;
+    /**
+     * Telemetry sent when user does somethign with the prompt displsyed to user about using CDN for IPyWidget scripts.
+     */
+    [Telemetry.IPyWidgetPromptToUseCDNSelection]: {
+        selection: 'ok' | 'cancel' | 'dismissed';
     };
 }

@@ -1364,7 +1364,7 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
             jupyterCommandLineArguments: [],
             disableJupyterAutoStart: true,
             loadWidgetScriptsFromThirdPartySource: true,
-            ipyWidgets: {
+            widgets: {
                 localKernelScriptSources: [],
                 remoteKernelScriptSources: []
             }

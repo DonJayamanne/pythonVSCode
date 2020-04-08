@@ -33,7 +33,7 @@ export function defaultDataScienceSettings(): IDataScienceSettings {
         debugJustMyCode: true,
         variableQueries: [],
         jupyterCommandLineArguments: [],
-        ipyWidgets: {
+        widgets: {
             localKernelScriptSources: [],
             remoteKernelScriptSources: []
         }

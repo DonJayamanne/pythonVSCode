@@ -43,7 +43,9 @@ export class WidgetManagerComponent extends React.Component<Props> {
         // Total time to wait for a script to load. This includes ipywidgets making a request to extension for a Uri of a widget,
         // then extension replying back with the Uri (max 5 seconds round trip time).
         // If expires, then Widget downloader will attempt to download with what ever information it has (potentially failing).
-        timeoutWaitingForScriptToLoad: 5_000,
+        // Note, we might have a message displayed at the user end (asking for consent to use CDN).
+        // Hence use 60 seconds.
+        timeoutWaitingForScriptToLoad: 60_000,
         // List of widgets that must always be loaded using requirejs instead of using a CDN or the like.
         widgetsRegisteredInRequireJs: new Set<string>(),
         // Callback when loading a widget fails.

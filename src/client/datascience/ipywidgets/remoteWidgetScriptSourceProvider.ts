@@ -12,6 +12,9 @@ import { IWidgetScriptSourceProvider, WidgetScriptSource } from './types';
  */
 export class RemoteWidgetScriptSourceProvider implements IWidgetScriptSourceProvider {
     constructor(private readonly connection: IConnection) {}
+    public dispose() {
+        // Noop.
+    }
     public async getWidgetScriptSource(moduleName: string): Promise<WidgetScriptSource> {
         return { moduleName, scriptUri: `${this.connection.baseUrl}/nbextensions/${moduleName}/index` };
     }
