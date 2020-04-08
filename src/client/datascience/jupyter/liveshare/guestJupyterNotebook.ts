@@ -245,10 +245,6 @@ export class GuestJupyterNotebook
         return;
     }
 
-    public setInterpreter(_spec: PythonInterpreter) {
-        noop();
-    }
-
     public getKernelSpec(): IJupyterKernelSpec | LiveKernelModel | undefined {
         return;
     }
