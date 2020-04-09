@@ -139,6 +139,28 @@ export interface INotebookServer extends IAsyncDisposable {
     shutdown(): Promise<void>;
 }
 
+// Provides notebooks that talk directly to kernels as opposed to a jupyter server
+export const IRawNotebookProvider = Symbol('IRawNotebookProvider');
+export interface IRawNotebookProvider extends IAsyncDisposable {
+    connect(): Promise<IRawConnection>;
+    createNotebook(
+        identity: Uri,
+        resource: Resource,
+        notebookMetadata?: nbformat.INotebookMetadata,
+        cancelToken?: CancellationToken
+    ): Promise<INotebook>;
+    getNotebook(identity: Uri): Promise<INotebook | undefined>;
+}
+
+// Provides notebooks that talk to jupyter servers
+export const IJupyterNotebookProvider = Symbol('IJupyterNotebookProvider');
+export interface IJupyterNotebookProvider {
+    connect(options: ConnectNotebookProviderOptions): Promise<IConnection | undefined>;
+    createNotebook(options: GetNotebookOptions): Promise<INotebook>;
+    getNotebook(options: GetNotebookOptions): Promise<INotebook | undefined>;
+    disconnect(options: ConnectNotebookProviderOptions): Promise<void>;
+}
+
 export interface INotebook extends IAsyncDisposable {
     readonly resource: Resource;
     readonly connection: INotebookProviderConnection | undefined;
@@ -1004,8 +1026,8 @@ export interface INotebookProvider {
     disconnect(options: ConnectNotebookProviderOptions): Promise<void>;
 }
 
-export const INotebookServerProvider = Symbol('INotebookServerProvider');
-export interface INotebookServerProvider {
+export const IJupyterServerProvider = Symbol('IJupyterServerProvider');
+export interface IJupyterServerProvider {
     /**
      * Gets the server used for starting notebooks
      */

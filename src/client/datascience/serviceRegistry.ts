@@ -63,6 +63,7 @@ import { JupyterDebugger } from './jupyter/jupyterDebugger';
 import { JupyterExecutionFactory } from './jupyter/jupyterExecutionFactory';
 import { JupyterExporter } from './jupyter/jupyterExporter';
 import { JupyterImporter } from './jupyter/jupyterImporter';
+import { JupyterNotebookProvider } from './jupyter/jupyterNotebookProvider';
 import { JupyterPasswordConnect } from './jupyter/jupyterPasswordConnect';
 import { JupyterServerWrapper } from './jupyter/jupyterServerWrapper';
 import { JupyterSessionManagerFactory } from './jupyter/jupyterSessionManagerFactory';
@@ -82,6 +83,7 @@ import { PlotViewerProvider } from './plotting/plotViewerProvider';
 import { PreWarmActivatedJupyterEnvironmentVariables } from './preWarmVariables';
 import { ProgressReporter } from './progress/progressReporter';
 import { EnchannelJMPConnection } from './raw-kernel/enchannelJMPConnection';
+import { RawNotebookProviderWrapper } from './raw-kernel/rawNotebookProviderWrapper';
 import { StatusProvider } from './statusProvider';
 import { ThemeFinder } from './themeFinder';
 import {
@@ -107,7 +109,9 @@ import {
     IJupyterDebugger,
     IJupyterExecution,
     IJupyterInterpreterDependencyManager,
+    IJupyterNotebookProvider,
     IJupyterPasswordConnect,
+    IJupyterServerProvider,
     IJupyterSessionManagerFactory,
     IJupyterSubCommandExecutionService,
     IJupyterVariables,
@@ -118,10 +122,10 @@ import {
     INotebookImporter,
     INotebookProvider,
     INotebookServer,
-    INotebookServerProvider,
     INotebookStorage,
     IPlotViewer,
     IPlotViewerProvider,
+    IRawNotebookProvider,
     IStatusProvider,
     IThemeFinder
 } from './types';
@@ -152,6 +156,8 @@ export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.add<INotebookImporter>(INotebookImporter, JupyterImporter);
     serviceManager.add<INotebookServer>(INotebookServer, JupyterServerWrapper);
     serviceManager.add<INotebookStorage>(INotebookStorage, NativeEditorStorage);
+    serviceManager.addSingleton<IRawNotebookProvider>(IRawNotebookProvider, RawNotebookProviderWrapper);
+    serviceManager.addSingleton<IJupyterNotebookProvider>(IJupyterNotebookProvider, JupyterNotebookProvider);
     serviceManager.add<IPlotViewer>(IPlotViewer, PlotViewer);
     serviceManager.addSingleton<IKernelLauncher>(IKernelLauncher, KernelLauncher);
     serviceManager.addSingleton<IKernelFinder>(IKernelFinder, KernelFinder);
@@ -202,7 +208,7 @@ export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.addSingleton<ProgressReporter>(ProgressReporter, ProgressReporter);
     serviceManager.addSingleton<NativeEditorSynchronizer>(NativeEditorSynchronizer, NativeEditorSynchronizer);
     serviceManager.addSingleton<INotebookProvider>(INotebookProvider, NotebookProvider);
-    serviceManager.addSingleton<INotebookServerProvider>(INotebookServerProvider, NotebookServerProvider);
+    serviceManager.addSingleton<IJupyterServerProvider>(IJupyterServerProvider, NotebookServerProvider);
     serviceManager.add<IJMPConnection>(IJMPConnection, EnchannelJMPConnection);
     serviceManager.addSingleton<IPyWidgetMessageDispatcherFactory>(IPyWidgetMessageDispatcherFactory, IPyWidgetMessageDispatcherFactory);
 
