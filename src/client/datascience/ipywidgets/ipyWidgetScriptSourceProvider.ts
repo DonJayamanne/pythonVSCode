@@ -35,9 +35,9 @@ export class IPyWidgetScriptSourceProvider implements IWidgetScriptSourceProvide
     private get configuredScriptSources(): readonly (LocalKernelScriptSource | RemoteKernelScriptSource)[] {
         const settings = this.configurationSettings.getSettings(undefined);
         if (this.notebook.connection.localLaunch) {
-            return settings.datascience.widgets.localKernelScriptSources;
+            return settings.datascience.widgets.localConnectionScriptSources;
         } else {
-            return settings.datascience.widgets.remoteKernelScriptSources;
+            return settings.datascience.widgets.remoteConnectionScriptSources;
         }
     }
     constructor(
@@ -107,10 +107,10 @@ export class IPyWidgetScriptSourceProvider implements IWidgetScriptSourceProvide
     }
     private onSettingsChagned(e: ConfigurationChangeEvent) {
         const isLocalConnection = this.notebook.connection.localLaunch;
-        if (e.affectsConfiguration('python.datascience.widgets.localKernelScriptSources') && isLocalConnection) {
+        if (e.affectsConfiguration('python.datasSience.widgets.localConnectionScriptSources') && isLocalConnection) {
             this.rebuildProviders();
         }
-        if (e.affectsConfiguration('python.datascience.widgets.remoteKernelScriptSources') && !isLocalConnection) {
+        if (e.affectsConfiguration('python.datasSience.widgets.remoteConnectionScriptSources') && !isLocalConnection) {
             this.rebuildProviders();
         }
     }
@@ -162,8 +162,8 @@ export class IPyWidgetScriptSourceProvider implements IWidgetScriptSourceProvide
         }
         const settings = this.configurationSettings.getSettings(undefined);
         const scriptSources = this.notebook.connection.localLaunch
-            ? settings.datascience.widgets.localKernelScriptSources
-            : settings.datascience.widgets.remoteKernelScriptSources;
+            ? settings.datascience.widgets.localConnectionScriptSources
+            : settings.datascience.widgets.remoteConnectionScriptSources;
 
         if (scriptSources.length === 0) {
             return false;
@@ -180,8 +180,8 @@ export class IPyWidgetScriptSourceProvider implements IWidgetScriptSourceProvide
         }
         const settings = this.configurationSettings.getSettings(undefined);
         const scriptSources = this.notebook.connection.localLaunch
-            ? settings.datascience.widgets.localKernelScriptSources
-            : settings.datascience.widgets.remoteKernelScriptSources;
+            ? settings.datascience.widgets.localConnectionScriptSources
+            : settings.datascience.widgets.remoteConnectionScriptSources;
 
         if (scriptSources.length === 0) {
             return false;
@@ -223,8 +223,8 @@ export class IPyWidgetScriptSourceProvider implements IWidgetScriptSourceProvide
         scriptSources: LocalKernelScriptSource[] | RemoteKernelScriptSource[]
     ) {
         const targetSetting = updateLocalKernelSettings
-            ? 'datascience.widgets.localKernelScriptSources'
-            : 'datascience.widgets.remoteKernelScriptSources';
+            ? 'dataScience.widgets.localConnectionScriptSources'
+            : 'dataScience.widgets.remoteConnectionScriptSources';
         await this.configurationSettings.updateSetting(
             targetSetting,
             scriptSources,

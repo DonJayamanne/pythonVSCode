@@ -56,9 +56,9 @@ export class CDNWidgetScriptSourceProvider implements IWidgetScriptSourceProvide
     private get cdnProviders(): readonly (LocalKernelScriptSource | RemoteKernelScriptSource)[] {
         const settings = this.configurationSettings.getSettings(undefined);
         if (this.notebook.connection.localLaunch) {
-            return settings.datascience.widgets.localKernelScriptSources;
+            return settings.datascience.widgets.localConnectionScriptSources;
         } else {
-            return settings.datascience.widgets.remoteKernelScriptSources;
+            return settings.datascience.widgets.remoteConnectionScriptSources;
         }
     }
     public static validUrls = new Map<string, boolean>();
