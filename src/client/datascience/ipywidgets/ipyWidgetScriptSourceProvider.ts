@@ -3,6 +3,7 @@
 
 'use strict';
 
+import { sha256 } from 'hash.js';
 import { ConfigurationChangeEvent, ConfigurationTarget } from 'vscode';
 import { IApplicationShell, IWorkspaceService } from '../../common/application/types';
 import { IFileSystem } from '../../common/platform/types';
@@ -70,19 +71,25 @@ export class IPyWidgetScriptSourceProvider implements IWidgetScriptSourceProvide
 
         // Get script sources in order, if one works, then get out.
         const scriptSourceProviders = (this.scriptProviders || []).slice();
+        let found: WidgetScriptSource = { moduleName };
         while (scriptSourceProviders.length) {
             const scriptProvider = scriptSourceProviders.shift();
             if (!scriptProvider) {
                 continue;
             }
             const source = await scriptProvider.getWidgetScriptSource(moduleName, moduleVersion);
+            // If we found the script source, then use that.
             if (source.scriptUri) {
-                return source;
+                found = source;
+                break;
             }
         }
 
-        // Tried all providers, nothing worked, hence send an empty response.
-        return { moduleName };
+        sendTelemetryEvent(Telemetry.HashedIPyWidgetNameUsed, undefined, {
+            hashedName: sha256().update(found.moduleName).digest('hex'),
+            source: found.source
+        });
+        return found;
     }
     public async getWidgetScriptSources(ignoreCache?: boolean | undefined): Promise<readonly WidgetScriptSource[]> {
         // At this point we dont need to configure the settings.
@@ -100,6 +107,13 @@ export class IPyWidgetScriptSourceProvider implements IWidgetScriptSourceProvide
             }
             const sources = await scriptProvider.getWidgetScriptSources(ignoreCache);
             if (sources.length > 0) {
+                sources.forEach((item) =>
+                    sendTelemetryEvent(Telemetry.HashedIPyWidgetNameDiscovered, undefined, {
+                        hashedName: sha256().update(item.moduleName).digest('hex'),
+                        source: item.source
+                    })
+                );
+
                 return sources;
             }
         }
