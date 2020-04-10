@@ -3152,7 +3152,7 @@
         "flat": "^4.0.0",
         "gulp": "^4.0.0",
         "gulp-azure-storage": "^0.11.1",
-        "gulp-chmod": "^2.0.0",
+        "gulp-chmod": "^3.0.0",
         "gulp-filter": "^5.1.0",
         "gulp-gunzip": "^1.1.0",
         "gulp-rename": "^1.4.0",
