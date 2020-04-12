@@ -1654,68 +1654,6 @@
                     "markdownDescription": "Defines the location and order of the sources where scripts files for Widgets are downloaded from (e.g. ipywidgest, bqplot, beakerx, ipyleaflet, etc). Not selecting any of these could result in widgets not rendering or function correctly. See [here](https://aka.ms/PVSCIPyWidgets) for more information. Once updated you will need to restart the Kernel.",
                     "scope": "machine"
                 },
-                "python.dataScience.gatherRules": {
-                    "type": "array",
-                    "default": [
-                        {
-                            "objectName": "df",
-                            "functionName": "head",
-                            "doesNotModify": [
-                                "OBJECT"
-                            ]
-                        },
-                        {
-                            "objectName": "df",
-                            "functionName": "describe",
-                            "doesNotModify": [
-                                "OBJECT"
-                            ]
-                        },
-                        {
-                            "objectName": "df",
-                            "functionName": "tail",
-                            "doesNotModify": [
-                                "OBJECT"
-                            ]
-                        },
-                        {
-                            "functionName": "print",
-                            "doesNotModify": [
-                                "ARGUMENTS"
-                            ]
-                        },
-                        {
-                            "functionName": "KMeans",
-                            "doesNotModify": [
-                                "ARGUMENTS"
-                            ]
-                        },
-                        {
-                            "functionName": "scatter",
-                            "doesNotModify": [
-                                "ARGUMENTS"
-                            ]
-                        },
-                        {
-                            "functionName": "fit",
-                            "doesNotModify": [
-                                "ARGUMENTS"
-                            ]
-                        },
-                        {
-                            "functionName": "sum",
-                            "doesNotModify": [
-                                "ARGUMENTS"
-                            ]
-                        },
-                        {
-                            "functionName": "len",
-                            "doesNotModify": [
-                                "ARGUMENTS"
-                            ]
-                        }
-                    ]
-                },
                 "python.dataScience.askForLargeDataFrames": {
                     "type": "boolean",
                     "default": true,
@@ -1938,6 +1876,12 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Python Insiders Only: If experimental gather feature is enabled, gather code to a python script rather than a notebook.",
+                    "scope": "resource"
+                },
+                "python.dataScience.gatherSpecPath": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Python Insiders Only: If experimental gather feature is enabled, this setting allows you to set a customized folder location for gather spec files.",
                     "scope": "resource"
                 },
                 "python.dataScience.codeLenses": {
@@ -2938,6 +2882,8 @@
     },
     "scripts": {
         "package": "gulp clean && gulp prePublishBundle && vsce package -o ms-python-insiders.vsix",
+        "package-with-gather": "gulp clean && gulp adjustNpmrcForGather && npm install @msrvida/python-program-analysis && cross-env ENABLE_GATHER=1 gulp prePublishBundle && vsce package -o ms-python-insiders.vsix",
+        "authenticate-for-gather": "echo \"\n\nWindows - run this command: vsts-npm-auth -config .npmrc\nNon-windows - see instructions at https://dev.azure.com/msresearch/python-program-analysis/_packaging?_a=connect&feed=MSR-Python-Analysis\"",
         "compile": "tsc -watch -p ./",
         "compile-webviews-watch": "npm run build-ipywidgets && cross-env NODE_OPTIONS=--max_old_space_size=9096 webpack --config ./build/webpack/webpack.datascience-ui.config.js --watch",
         "build-ipywidgets": "npm run build-ipywidgets-clean && npm run build-ipywidgets-compile && npm run build-ipywidgets-webpack",

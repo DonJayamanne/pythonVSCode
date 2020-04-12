@@ -77,7 +77,7 @@ const config = {
                         { source: './node_modules/pdfkit/js/pdfkit.js', destination: './out/client/node_modules/' },
                         {
                             source: './node_modules/@msrvida/python-program-analysis/dist/es5/specs/*.yaml',
-                            destination: './out/client'
+                            destination: './out/client/gatherSpecs'
                         }
                     ]
                 }

@@ -90,49 +90,7 @@ suite('DataScience code gathering unit tests', () => {
     const configurationService = TypeMoq.Mock.ofType<IConfigurationService>();
     const pythonSettings = TypeMoq.Mock.ofType<IPythonSettings>();
     const dataScienceSettings = TypeMoq.Mock.ofType<IDataScienceSettings>();
-    const gatherRules = [
-        {
-            objectName: 'df',
-            functionName: 'head',
-            doesNotModify: ['OBJECT']
-        },
-        {
-            objectName: 'df',
-            functionName: 'tail',
-            doesNotModify: ['OBJECT']
-        },
-        {
-            objectName: 'df',
-            functionName: 'describe',
-            doesNotModify: ['OBJECT']
-        },
-        {
-            functionName: 'print',
-            doesNotModify: ['ARGUMENTS']
-        },
-        {
-            functionName: 'KMeans',
-            doesNotModify: ['ARGUMENTS']
-        },
-        {
-            functionName: 'scatter',
-            doesNotModify: ['ARGUMENTS']
-        },
-        {
-            functionName: 'fit',
-            doesNotModify: ['ARGUMENTS']
-        },
-        {
-            functionName: 'sum',
-            doesNotModify: ['ARGUMENTS']
-        },
-        {
-            functionName: 'len',
-            doesNotModify: ['ARGUMENTS']
-        }
-    ];
 
-    dataScienceSettings.setup((d) => d.gatherRules).returns(() => gatherRules);
     dataScienceSettings.setup((d) => d.enabled).returns(() => true);
     dataScienceSettings.setup((d) => d.defaultCellMarker).returns(() => '# %%');
     pythonSettings.setup((p) => p.datascience).returns(() => dataScienceSettings.object);

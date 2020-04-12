@@ -11,4 +11,5 @@ export declare class ClassType {
     constructor(spec: Spec);
     lookupMethod(name: string): any;
 }
-export declare const DefaultSpecs: Spec;
+export declare function setSpecFolder(dir: string): void;
+export declare let DefaultSpecs: Spec;

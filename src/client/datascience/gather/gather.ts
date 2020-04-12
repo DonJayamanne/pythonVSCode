@@ -1,5 +1,6 @@
 import * as ppatypes from '@msrvida-python-program-analysis';
 import { inject, injectable } from 'inversify';
+import * as path from 'path';
 import * as uuid from 'uuid/v4';
 import { IApplicationShell, ICommandManager } from '../../common/application/types';
 import { traceInfo } from '../../common/logger';
@@ -39,6 +40,17 @@ export class GatherProvider implements IGatherProvider {
                 const ppa = require('@msrvida/python-program-analysis') as typeof import('@msrvida-python-program-analysis');
 
                 if (ppa) {
+                    // If the __builtins__ specs are not available for gather, then no specs have been found.
+                    // They might be in a user-specified location or installed to a location relative to this extension.
+                    if (!ppa.DefaultSpecs.__builtins__) {
+                        const customSpecPath = this.configService.getSettings().datascience.gatherSpecPath;
+                        ppa.setSpecFolder(
+                            customSpecPath && customSpecPath !== ''
+                                ? customSpecPath
+                                : path.join(__dirname, 'gatherSpecs')
+                        );
+                    }
+
                     this.dataflowAnalyzer = new ppa.DataflowAnalyzer();
                     this._executionSlicer = new ppa.ExecutionLogSlicer(this.dataflowAnalyzer);
 
