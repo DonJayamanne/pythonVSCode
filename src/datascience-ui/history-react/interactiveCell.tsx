@@ -183,7 +183,11 @@ export class InteractiveCell extends React.Component<IInteractiveCellProps> {
                 <ImageButton
                     baseTheme={this.props.baseTheme}
                     onClick={gatherCode}
-                    hidden={this.props.cellVM.cell.state === CellState.error || !this.props.settings.enableGather}
+                    hidden={
+                        this.props.cellVM.cell.state === CellState.error ||
+                        this.props.cellVM.cell.data.cell_type === 'markdown' ||
+                        !this.props.settings.enableGather
+                    }
                     tooltip={getLocString('DataScience.gatherCodeTooltip', 'Gather code')}
                 >
                     <Image baseTheme={this.props.baseTheme} class="image-button-image" image={ImageName.GatherCode} />
