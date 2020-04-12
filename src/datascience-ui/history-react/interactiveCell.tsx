@@ -175,7 +175,7 @@ export class InteractiveCell extends React.Component<IInteractiveCellProps> {
         const gotoCode = () => this.props.gotoCell(cellId);
         const deleteCode = () => this.props.deleteCell(cellId);
         const copyCode = () => this.props.copyCellCode(cellId);
-        const gatherCode = () => this.props.gatherCell(cellId);
+        const gatherCode = () => this.props.gatherCellToScript(cellId);
         const hasNoSource = !cell || !cell.file || cell.file === Identifiers.EmptyFileName;
 
         return (

@@ -64,8 +64,12 @@ export class GatherListener implements IInteractiveWindowListener {
                 this.handleMessage(message, payload, this.doInitGather);
                 break;
 
-            case InteractiveWindowMessages.GatherCodeRequest:
+            case InteractiveWindowMessages.GatherCode:
                 this.handleMessage(message, payload, this.doGather);
+                break;
+
+            case InteractiveWindowMessages.GatherCodeToScript:
+                this.handleMessage(message, payload, this.doGatherToScript);
                 break;
 
             case InteractiveWindowMessages.RestartKernel:
@@ -119,7 +123,13 @@ export class GatherListener implements IInteractiveWindowListener {
         });
     }
 
-    private gatherCodeInternal = async (cell: ICell) => {
+    private doGatherToScript(payload: ICell): void {
+        this.gatherCodeInternal(payload, true).catch((err) => {
+            this.applicationShell.showErrorMessage(err);
+        });
+    }
+
+    private gatherCodeInternal = async (cell: ICell, toScript: boolean = false) => {
         this.gatherTimer = new StopWatch();
 
         const slicedProgram = this.gatherProvider ? this.gatherProvider.gatherCode(cell) : 'Gather internal error';
@@ -127,7 +137,7 @@ export class GatherListener implements IInteractiveWindowListener {
         if (!slicedProgram) {
             sendTelemetryEvent(Telemetry.GatherCompleted, this.gatherTimer?.elapsedTime, { result: 'err' });
         } else {
-            const gatherToScript: boolean | undefined = this.configService.getSettings().datascience.gatherToScript;
+            const gatherToScript: boolean = this.configService.getSettings().datascience.gatherToScript || toScript;
 
             if (gatherToScript) {
                 await this.showFile(slicedProgram, cell.file);
