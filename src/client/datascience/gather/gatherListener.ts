@@ -178,6 +178,17 @@ export class GatherListener implements IInteractiveWindowListener {
     }
 
     private async showFile(slicedProgram: string, filename: string) {
+        const defaultCellMarker =
+            this.configService.getSettings().datascience.defaultCellMarker || Identifiers.DefaultCodeCellMarker;
+
+        if (slicedProgram) {
+            // Remove all cell definitions and newlines
+            const re = new RegExp(`^(${defaultCellMarker}.*|\\s*)\n`, 'gm');
+            slicedProgram = slicedProgram.replace(re, '');
+        }
+
+        const annotatedScript = `${localize.DataScience.gatheredScriptDescription()}${defaultCellMarker}\n${slicedProgram}`;
+
         // Don't want to open the gathered code on top of the interactive window
         let viewColumn: ViewColumn | undefined;
         const fileNameMatch = this.documentManager.visibleTextEditors.filter((textEditor) =>
@@ -199,7 +210,7 @@ export class GatherListener implements IInteractiveWindowListener {
 
         // Create a new open editor with the returned program in the right panel
         const doc = await this.documentManager.openTextDocument({
-            content: slicedProgram,
+            content: annotatedScript,
             language: PYTHON_LANGUAGE
         });
         const editor = await this.documentManager.showTextDocument(doc, viewColumn);

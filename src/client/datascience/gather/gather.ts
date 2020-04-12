@@ -102,11 +102,7 @@ export class GatherProvider implements IGatherProvider {
 
         // Call internal slice method
         const slice = this._executionSlicer.sliceLatestExecution(gatherCell.persistentId);
-        const program = slice.cellSlices.reduce(concat, '').replace(/#%%/g, defaultCellMarker);
-
-        // Add a comment at the top of the file explaining what gather does
-        const descriptor = localize.DataScience.gatheredScriptDescription();
-        return descriptor.concat(program);
+        return slice.cellSlices.reduce(concat, '').replace(/#%%/g, defaultCellMarker);
     }
 
     public get executionSlicer() {
