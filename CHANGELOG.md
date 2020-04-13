@@ -33,6 +33,20 @@
    ([#11021](https://github.com/Microsoft/vscode-python/issues/11021))
 1. Hide "untrusted" interpreters from 'Select interpreter' dropdown list when in DeprecatePythonPath Experiment.
    ([#11046](https://github.com/Microsoft/vscode-python/issues/11046))
+1. Make spacing of icons on notebook toolbars match spacing on other VS code toolbars.
+   ([#10464](https://github.com/Microsoft/vscode-python/issues/10464))
+1. Make jupyter server status centered in the UI and use the same font as the rest of VS code.
+   ([#10465](https://github.com/Microsoft/vscode-python/issues/10465))
+1. Performa validation of interpreter only when a Notebook is opened instead of when extension activates.
+   ([#10893](https://github.com/Microsoft/vscode-python/issues/10893))
+1. Scrolling in cells doesn't happen on new line.
+   ([#10952](https://github.com/Microsoft/vscode-python/issues/10952))
+1. Ensure images in workspace folder are supported within markdown cells in a `Notebook`.
+   ([#11040](https://github.com/Microsoft/vscode-python/issues/11040))
+1. Make sure ipywidgets have a white background so they display in dark themes.
+   ([#11060](https://github.com/Microsoft/vscode-python/issues/11060))
+1. Arrowing down through cells put the cursor in the wrong spot.
+   ([#11094](https://github.com/Microsoft/vscode-python/issues/11094))
 
 ### Fixes
 
