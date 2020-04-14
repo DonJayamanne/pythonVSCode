@@ -3,7 +3,7 @@ import {
     CommonActionTypeMapping
 } from '../../../datascience-ui/interactive-common/redux/reducers/types';
 import { CssMessages, SharedMessages } from '../messages';
-import { IInteractiveWindowMapping, InteractiveWindowMessages } from './interactiveWindowTypes';
+import { IInteractiveWindowMapping, InteractiveWindowMessages, IPyWidgetMessages } from './interactiveWindowTypes';
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
@@ -85,6 +85,9 @@ const messageWithMessageTypes: MessageMapping<IInteractiveWindowMapping> & Messa
     [CommonActionType.PostOutgoingMessage]: MessageType.other,
     [CommonActionType.REFRESH_VARIABLES]: MessageType.other,
     [CommonActionType.FOCUS_INPUT]: MessageType.other,
+    [CommonActionType.LOAD_IPYWIDGET_CLASS_SUCCESS]: MessageType.other,
+    [CommonActionType.LOAD_IPYWIDGET_CLASS_FAILURE]: MessageType.other,
+    [CommonActionType.IPYWIDGET_RENDER_FAILURE]: MessageType.other,
 
     // Types from InteractiveWindowMessages
     [InteractiveWindowMessages.Activate]: MessageType.other,
@@ -110,6 +113,9 @@ const messageWithMessageTypes: MessageMapping<IInteractiveWindowMapping> & Messa
     [InteractiveWindowMessages.GotoCodeCell]: MessageType.syncWithLiveShare,
     [InteractiveWindowMessages.GotoCodeCell]: MessageType.syncWithLiveShare,
     [InteractiveWindowMessages.Interrupt]: MessageType.other,
+    [InteractiveWindowMessages.IPyWidgetLoadSuccess]: MessageType.other,
+    [InteractiveWindowMessages.IPyWidgetLoadFailure]: MessageType.other,
+    [InteractiveWindowMessages.IPyWidgetRenderFailure]: MessageType.other,
     [InteractiveWindowMessages.LoadAllCells]: MessageType.other,
     [InteractiveWindowMessages.LoadAllCellsComplete]: MessageType.other,
     [InteractiveWindowMessages.LoadOnigasmAssemblyRequest]: MessageType.other,
@@ -124,6 +130,7 @@ const messageWithMessageTypes: MessageMapping<IInteractiveWindowMapping> & Messa
     [InteractiveWindowMessages.NotebookDirty]: MessageType.other,
     [InteractiveWindowMessages.NotebookExecutionActivated]: MessageType.other,
     [InteractiveWindowMessages.NotebookIdentity]: MessageType.other,
+    [InteractiveWindowMessages.NotebookClose]: MessageType.other,
     [InteractiveWindowMessages.NotebookRunAllCells]: MessageType.other,
     [InteractiveWindowMessages.NotebookRunSelectedCell]: MessageType.other,
     [InteractiveWindowMessages.OpenLink]: MessageType.other,
@@ -162,11 +169,15 @@ const messageWithMessageTypes: MessageMapping<IInteractiveWindowMapping> & Messa
     [InteractiveWindowMessages.Sync]: MessageType.other,
     [InteractiveWindowMessages.Undo]: MessageType.other,
     [InteractiveWindowMessages.UnfocusedCellEditor]: MessageType.syncWithLiveShare,
-    [InteractiveWindowMessages.UpdateCell]: MessageType.syncAcrossSameNotebooks | MessageType.syncWithLiveShare,
+    [InteractiveWindowMessages.UpdateCellWithExecutionResults]:
+        MessageType.syncAcrossSameNotebooks | MessageType.syncWithLiveShare,
     [InteractiveWindowMessages.UpdateModel]: MessageType.syncAcrossSameNotebooks | MessageType.syncWithLiveShare,
     [InteractiveWindowMessages.UpdateKernel]: MessageType.syncAcrossSameNotebooks | MessageType.syncWithLiveShare,
+    [InteractiveWindowMessages.UpdateDisplayData]: MessageType.syncWithLiveShare,
     [InteractiveWindowMessages.VariableExplorerToggle]: MessageType.other,
     [InteractiveWindowMessages.VariablesComplete]: MessageType.other,
+    [InteractiveWindowMessages.ConvertUriForUseInWebViewRequest]: MessageType.other,
+    [InteractiveWindowMessages.ConvertUriForUseInWebViewResponse]: MessageType.other,
     // Types from CssMessages
     [CssMessages.GetCssRequest]: MessageType.other,
     [CssMessages.GetCssResponse]: MessageType.other,
@@ -175,7 +186,23 @@ const messageWithMessageTypes: MessageMapping<IInteractiveWindowMapping> & Messa
     // Types from Shared Messages
     [SharedMessages.LocInit]: MessageType.other,
     [SharedMessages.Started]: MessageType.other,
-    [SharedMessages.UpdateSettings]: MessageType.other
+    [SharedMessages.UpdateSettings]: MessageType.other,
+    // IpyWidgets
+    [IPyWidgetMessages.IPyWidgets_kernelOptions]: MessageType.syncAcrossSameNotebooks,
+    [IPyWidgetMessages.IPyWidgets_Ready]: MessageType.noIdea,
+    [IPyWidgetMessages.IPyWidgets_WidgetScriptSourceRequest]: MessageType.noIdea,
+    [IPyWidgetMessages.IPyWidgets_WidgetScriptSourceResponse]: MessageType.syncAcrossSameNotebooks,
+    [IPyWidgetMessages.IPyWidgets_onKernelChanged]: MessageType.syncAcrossSameNotebooks,
+    [IPyWidgetMessages.IPyWidgets_onRestartKernel]: MessageType.syncAcrossSameNotebooks,
+    [IPyWidgetMessages.IPyWidgets_msg]: MessageType.noIdea,
+    [IPyWidgetMessages.IPyWidgets_binary_msg]: MessageType.noIdea,
+    [IPyWidgetMessages.IPyWidgets_msg_handled]: MessageType.noIdea,
+    [IPyWidgetMessages.IPyWidgets_registerCommTarget]: MessageType.noIdea,
+    [IPyWidgetMessages.IPyWidgets_MessageHookCall]: MessageType.noIdea,
+    [IPyWidgetMessages.IPyWidgets_MessageHookResult]: MessageType.noIdea,
+    [IPyWidgetMessages.IPyWidgets_RegisterMessageHook]: MessageType.noIdea,
+    [IPyWidgetMessages.IPyWidgets_RemoveMessageHook]: MessageType.noIdea,
+    [IPyWidgetMessages.IPyWidgets_mirror_execute]: MessageType.noIdea
 };
 
 /**

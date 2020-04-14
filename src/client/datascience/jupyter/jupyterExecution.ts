@@ -28,7 +28,6 @@ import {
 import { JupyterSelfCertsError } from './jupyterSelfCertsError';
 import { createRemoteConnectionInfo } from './jupyterUtils';
 import { JupyterWaitForIdleError } from './jupyterWaitForIdleError';
-import { JupyterZMQBinariesNotFoundError } from './jupyterZMQBinariesNotFoundError';
 import { KernelSelector, KernelSpecInterpreter } from './kernels/kernelSelector';
 import { NotebookStarter } from './notebookStarter';
 
@@ -40,7 +39,6 @@ export class JupyterExecutionBase implements IJupyterExecution {
     private startedEmitter: EventEmitter<INotebookServerOptions> = new EventEmitter<INotebookServerOptions>();
     private disposed: boolean = false;
     private readonly jupyterInterpreterService: IJupyterSubCommandExecutionService;
-    private zmqError: Error | undefined;
 
     constructor(
         _liveShare: ILiveShareApi,
@@ -131,7 +129,7 @@ export class JupyterExecutionBase implements IJupyterExecution {
             let kernelSpecInterpreter: KernelSpecInterpreter | undefined;
             let kernelSpecInterpreterPromise: Promise<KernelSpecInterpreter> = Promise.resolve({});
             traceInfo(`Connecting to ${options ? options.purpose : 'unknown type of'} server`);
-            const allowUI = !options || !options.disableUI;
+            const allowUI = !options || options.allowUI();
             const kernelSpecCancelSource = new CancellationTokenSource();
             if (cancelToken) {
                 cancelToken.onCancellationRequested(() => {
@@ -198,8 +196,7 @@ export class JupyterExecutionBase implements IJupyterExecution {
                         kernelSpec: kernelSpecInterpreter.kernelSpec,
                         workingDir: options ? options.workingDir : undefined,
                         uri: options ? options.uri : undefined,
-                        purpose: options ? options.purpose : uuid(),
-                        enableDebugging: options ? options.enableDebugging : false
+                        purpose: options ? options.purpose : uuid()
                     };
 
                     // tslint:disable-next-line: no-constant-condition
@@ -332,32 +329,15 @@ export class JupyterExecutionBase implements IJupyterExecution {
         return Promise.resolve(undefined);
     }
 
-    private async verifyZMQ() {
-        if (this.zmqError) {
-            throw this.zmqError;
-        }
-        try {
-            await import('zeromq');
-            traceInfo(`ZMQ install verified.`);
-        } catch (e) {
-            traceError(`Exception while attempting zmq :`, e);
-            sendTelemetryEvent(Telemetry.ZMQNotSupported);
-            this.zmqError = new JupyterZMQBinariesNotFoundError(e.toString());
-            throw this.zmqError;
-        }
-    }
     private async startOrConnect(
         options?: INotebookServerOptions,
         cancelToken?: CancellationToken
     ): Promise<IConnection> {
         // If our uri is undefined or if it's set to local launch we need to launch a server locally
         if (!options || !options.uri) {
-            // First verify we have ZMQ installed correctly (this might change when we don't 'launch' servers anymore)
-            await this.verifyZMQ();
-
             // If that works, then attempt to start the server
             traceInfo(`Launching ${options ? options.purpose : 'unknown type of'} server`);
-            const useDefaultConfig = options && options.useDefaultConfig ? true : false;
+            const useDefaultConfig = !options || options.skipUsingDefaultConfig ? false : true;
             const connection = await this.startNotebookServer(
                 useDefaultConfig,
                 this.configuration.getSettings(undefined).datascience.jupyterCommandLineArguments,

@@ -28,6 +28,12 @@ import { IMonacoModelContentChangeEvent } from '../react-common/monacoHelpers';
 import { AddCellLine } from './addCellLine';
 import { actionCreators } from './redux/actions';
 
+namespace CssConstants {
+    export const CellOutputWrapper = 'cell-output-wrapper';
+    export const CellOutputWrapperClass = `.${CellOutputWrapper}`;
+    export const ImageButtonClass = '.image-button';
+}
+
 interface INativeCellBaseProps {
     role?: string;
     cellVM: ICellViewModel;
@@ -94,7 +100,8 @@ export class NativeCell extends React.Component<INativeCellProps> {
 
             // Scroll into view (since we have focus). However this function
             // is not supported on enzyme
-            if (this.wrapperRef.current.scrollIntoView) {
+            // tslint:disable-next-line: no-any
+            if ((this.wrapperRef.current as any).scrollIntoView) {
                 this.wrapperRef.current.scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'nearest' });
             }
         }
@@ -173,11 +180,21 @@ export class NativeCell extends React.Component<INativeCellProps> {
         );
     }
 
+    private allowClickPropagation(elem: HTMLElement): boolean {
+        if (this.isMarkdownCell()) {
+            return true;
+        }
+        if (!elem.closest(CssConstants.ImageButtonClass) && !elem.closest(CssConstants.CellOutputWrapperClass)) {
+            return true;
+        }
+        return false;
+    }
+
     private onMouseClick = (ev: React.MouseEvent<HTMLDivElement>) => {
         if (ev.nativeEvent.target) {
             const elem = ev.nativeEvent.target as HTMLElement;
-            if (!elem.className.includes || !elem.className.includes('image-button')) {
-                // Not a click on an button in a toolbar, select the cell.
+            if (this.allowClickPropagation(elem)) {
+                // Not a click on an button in a toolbar or in output, select the cell.
                 ev.stopPropagation();
                 this.lastKeyPressed = undefined;
                 this.props.selectCell(this.cellId);
@@ -186,9 +203,12 @@ export class NativeCell extends React.Component<INativeCellProps> {
     };
 
     private onMouseDoubleClick = (ev: React.MouseEvent<HTMLDivElement>) => {
-        // When we receive double click, propagate upwards. Might change our state
-        ev.stopPropagation();
-        this.props.focusCell(this.cellId, CursorPos.Current);
+        const elem = ev.nativeEvent.target as HTMLElement;
+        if (this.allowClickPropagation(elem)) {
+            // When we receive double click, propagate upwards. Might change our state
+            ev.stopPropagation();
+            this.props.focusCell(this.cellId, CursorPos.Current);
+        }
     };
 
     private shouldRenderCodeEditor = (): boolean => {
@@ -669,7 +689,7 @@ export class NativeCell extends React.Component<INativeCellProps> {
         const toolbar = this.props.cellVM.cell.data.cell_type === 'markdown' ? this.renderMiddleToolbar() : null;
         if (this.shouldRenderOutput()) {
             return (
-                <div className="cell-output-wrapper">
+                <div className={CssConstants.CellOutputWrapper}>
                     {toolbar}
                     <CellOutput
                         cellVM={this.props.cellVM}
@@ -677,6 +697,7 @@ export class NativeCell extends React.Component<INativeCellProps> {
                         expandImage={this.props.showPlot}
                         maxTextSize={this.props.maxTextSize}
                         themeMatplotlibPlots={themeMatplotlibPlots}
+                        widgetFailed={this.props.widgetFailed}
                     />
                 </div>
             );
@@ -686,7 +707,7 @@ export class NativeCell extends React.Component<INativeCellProps> {
 
     private onOuterKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
         // Handle keydown events for the entire cell when we don't have focus
-        if (event.key !== 'Tab' && !this.isFocused()) {
+        if (event.key !== 'Tab' && !this.isFocused() && !this.focusInOutput()) {
             this.keyDownInput(this.props.cellVM.cell.id, {
                 code: event.key,
                 shiftKey: event.shiftKey,
@@ -699,6 +720,14 @@ export class NativeCell extends React.Component<INativeCellProps> {
             });
         }
     };
+
+    private focusInOutput(): boolean {
+        const focusedElement = document.activeElement as HTMLElement;
+        if (focusedElement) {
+            return focusedElement.closest(CssConstants.CellOutputWrapperClass) !== null;
+        }
+        return false;
+    }
 
     private renderCollapseBar = (input: boolean) => {
         let classes = 'collapse-bar';

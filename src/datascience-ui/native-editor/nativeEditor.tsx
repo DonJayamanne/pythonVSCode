@@ -247,7 +247,6 @@ ${buildSettingsCss(this.props.settings)}`}</style>
         if (!this.props.settings || !this.props.editorOptions) {
             return null;
         }
-
         const addNewCell = () => {
             setTimeout(() => this.props.insertBelow(cellVM.cell.id), 1);
             this.props.sendCommand(NativeCommandType.AddToEnd, 'mouse');

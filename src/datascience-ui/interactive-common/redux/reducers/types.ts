@@ -55,6 +55,9 @@ export enum CommonActionType {
     INSERT_ABOVE_FIRST = 'action.insert_above_first',
     INSERT_BELOW = 'action.insert_below',
     INTERRUPT_KERNEL = 'action.interrupt_kernel_action',
+    IPYWIDGET_RENDER_FAILURE = 'action.ipywidget_render_failure',
+    LOAD_IPYWIDGET_CLASS_SUCCESS = 'action.load_ipywidget_class_success',
+    LOAD_IPYWIDGET_CLASS_FAILURE = 'action.load_ipywidget_class_failure',
     LOADED_ALL_CELLS = 'action.loaded_all_cells',
     LINK_CLICK = 'action.link_click',
     MOVE_CELL_DOWN = 'action.move_cell_down',
@@ -129,6 +132,9 @@ export type CommonActionTypeMapping = {
     [CommonActionType.REFRESH_VARIABLES]: never | undefined;
     [CommonActionType.OPEN_SETTINGS]: IOpenSettingsAction;
     [CommonActionType.FOCUS_INPUT]: never | undefined;
+    [CommonActionType.LOAD_IPYWIDGET_CLASS_SUCCESS]: LoadIPyWidgetClassLoadAction;
+    [CommonActionType.LOAD_IPYWIDGET_CLASS_FAILURE]: ILoadIPyWidgetClassFailureAction;
+    [CommonActionType.IPYWIDGET_RENDER_FAILURE]: Error;
 };
 
 export interface IShowDataViewerAction extends IShowDataViewer {}
@@ -204,4 +210,26 @@ export interface IChangeCellTypeAction {
 export interface IOpenSettingsAction {
     setting: string | undefined;
 }
+
+export interface ILoadIPyWidgetClassFailureAction {
+    className: string;
+    moduleName: string;
+    moduleVersion: string;
+    cdnsUsed: boolean;
+    isOnline: boolean;
+    // tslint:disable-next-line: no-any
+    error: any;
+}
+export type LoadIPyWidgetClassDisabledAction = {
+    className: string;
+    moduleName: string;
+    moduleVersion: string;
+};
+
+export type LoadIPyWidgetClassLoadAction = {
+    className: string;
+    moduleName: string;
+    moduleVersion: string;
+};
+
 export type CommonAction<T = never | undefined> = ActionWithPayload<T, CommonActionType | InteractiveWindowMessages>;

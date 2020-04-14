@@ -45,8 +45,8 @@ function getQuickPickItemForActiveKernel(kernel: LiveKernelModel, pathUtils: IPa
     const path = kernel.metadata?.interpreter?.path || kernel.path;
     return {
         label: kernel.display_name || kernel.name || '',
-        // If we have a matching interpreter, then display that path in the dropdown else path of the kernelspec.
-        detail: path ? pathUtils.getDisplayName(path) : '',
+        // If we have a session, use that path
+        detail: kernel.session.path || !path ? kernel.session.path : pathUtils.getDisplayName(path),
         description: localize.DataScience.jupyterSelectURIRunningDetailFormat().format(
             kernel.lastActivityTime.toLocaleString(),
             kernel.numberOfConnections.toString()
@@ -112,10 +112,8 @@ export class InstalledJupyterKernelSelectionListProvider implements IKernelSelec
     ): Promise<IKernelSpecQuickPickItem[]> {
         const items = await this.kernelService.getKernelSpecs(this.sessionManager, cancelToken);
         return items
-            ? items
-                  .filter(item => (item.language || '').toLowerCase() === PYTHON_LANGUAGE.toLowerCase())
-                  .map(item => getQuickPickItemForKernelSpec(item, this.pathUtils))
-            : [];
+            .filter(item => (item.language || '').toLowerCase() === PYTHON_LANGUAGE.toLowerCase())
+            .map(item => getQuickPickItemForKernelSpec(item, this.pathUtils));
     }
 }
 

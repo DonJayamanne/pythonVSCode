@@ -76,3 +76,17 @@ export enum CollectNodeLSRequestTiming {
     control = 'CollectNodeLSRequestTiming - control',
     experiment = 'CollectNodeLSRequestTiming - experiment'
 }
+
+// Determine if ipywidgets is enabled or not
+export enum EnableIPyWidgets {
+    control = 'EnableIPyWidgets - control',
+    experiment = 'EnableIPyWidgets - experiment'
+}
+
+/*
+ * Experiment to check whether the extension should deprecate `python.pythonPath` setting
+ */
+export enum DeprecatePythonPath {
+    control = 'DeprecatePythonPath - control',
+    experiment = 'DeprecatePythonPath - experiment'
+}

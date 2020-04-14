@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 'use strict';
-import {
+import type {
     Contents,
     ContentsManager,
     Kernel,
@@ -35,7 +35,6 @@ import { LiveKernelModel } from './kernels/types';
 export class JupyterSession extends BaseJupyterSession {
     private restartSessionPromise: Promise<ISession | undefined> | undefined;
     private notebookFiles: Contents.IModel[] = [];
-
     constructor(
         private connInfo: IConnection,
         private serverSettings: ServerConnection.ISettings,
@@ -54,7 +53,7 @@ export class JupyterSession extends BaseJupyterSession {
             try {
                 // Make sure we have a session first and it returns something
                 await this.sessionManager.refreshRunning();
-                await Promise.all(this.notebookFiles.map(f => this.contentsManager!.delete(f.path)));
+                await Promise.all(this.notebookFiles.map((f) => this.contentsManager!.delete(f.path)));
                 this.notebookFiles = [];
             } catch {
                 noop();
@@ -162,7 +161,7 @@ export class JupyterSession extends BaseJupyterSession {
         );
 
         // Listen for session status changes
-        this.session.statusChanged.connect(this.statusHandler);
+        this.session?.statusChanged.connect(this.statusHandler); // NOSONAR
 
         // Made it this far, we're connected now
         this.connected = true;
@@ -189,6 +188,7 @@ export class JupyterSession extends BaseJupyterSession {
             // Make sure it is idle before we return
             await this.waitForIdleOnSession(newSession, timeoutMS);
         } catch (exc) {
+            traceError('Failed to change kernel', exc);
             // Throw a new exception indicating we cannot change.
             throw new JupyterInvalidKernelError(kernel);
         }
@@ -196,7 +196,7 @@ export class JupyterSession extends BaseJupyterSession {
         // This is just like doing a restart, kill the old session (and the old restart session), and start new ones
         if (this.session) {
             this.shutdownSession(this.session, this.statusHandler).ignoreErrors();
-            this.restartSessionPromise?.then(r => this.shutdownSession(r, undefined)).ignoreErrors();
+            this.restartSessionPromise?.then((r) => this.shutdownSession(r, undefined)).ignoreErrors();
         }
 
         // Update our kernel spec
@@ -206,7 +206,7 @@ export class JupyterSession extends BaseJupyterSession {
         this.session = newSession;
 
         // Listen for session status changes
-        this.session.statusChanged.connect(this.statusHandler);
+        this.session?.statusChanged.connect(this.statusHandler); // NOSONAR
 
         // Start the restart session promise too.
         this.restartSessionPromise = this.createRestartSession(this.serverSettings, kernel, this.contentsManager);
@@ -245,13 +245,18 @@ export class JupyterSession extends BaseJupyterSession {
                 }
             };
 
-            const kernelStatusChangedPromise = new Promise((resolve, reject) =>
-                session.statusChanged.connect((_, e) => statusHandler(resolve, reject, e))
-            );
-            const statusChangedPromise = new Promise((resolve, reject) =>
-                session.kernelChanged.connect((_, e) => statusHandler(resolve, reject, e.newValue?.status))
-            );
-            const checkStatusPromise = new Promise(async resolve => {
+            let statusChangeHandler: Slot<ISession, Kernel.Status> | undefined;
+            const kernelStatusChangedPromise = new Promise((resolve, reject) => {
+                statusChangeHandler = (_: ISession, e: Kernel.Status) => statusHandler(resolve, reject, e);
+                session.statusChanged.connect(statusChangeHandler);
+            });
+            let kernelChangedHandler: Slot<ISession, Session.IKernelChangedArgs> | undefined;
+            const statusChangedPromise = new Promise((resolve, reject) => {
+                kernelChangedHandler = (_: ISession, e: Session.IKernelChangedArgs) =>
+                    statusHandler(resolve, reject, e.newValue?.status);
+                session.kernelChanged.connect(kernelChangedHandler);
+            });
+            const checkStatusPromise = new Promise(async (resolve) => {
                 // This function seems to cause CI builds to timeout randomly on
                 // different tests. Waiting for status to go idle doesn't seem to work and
                 // in the past, waiting on the ready promise doesn't work either. Check status with a maximum of 5 seconds
@@ -268,6 +273,13 @@ export class JupyterSession extends BaseJupyterSession {
             });
             await Promise.race([kernelStatusChangedPromise, statusChangedPromise, checkStatusPromise]);
             traceInfo(`Finished waiting for idle on (kernel): ${session.kernel.id} -> ${session.kernel.status}`);
+
+            if (statusChangeHandler && session && session.statusChanged) {
+                session.statusChanged.disconnect(statusChangeHandler);
+            }
+            if (kernelChangedHandler && session && session.kernelChanged) {
+                session.kernelChanged.disconnect(kernelChangedHandler);
+            }
 
             // If we didn't make it out in ten seconds, indicate an error
             if (session.kernel && session.kernel.status === 'idle') {
@@ -329,13 +341,13 @@ export class JupyterSession extends BaseJupyterSession {
         return Cancellation.race(
             () =>
                 this.sessionManager!.startNew(options)
-                    .then(s => {
+                    .then(async (session) => {
                         this.logRemoteOutput(
-                            localize.DataScience.createdNewKernel().format(this.connInfo.baseUrl, s?.kernel?.id)
+                            localize.DataScience.createdNewKernel().format(this.connInfo.baseUrl, session.kernel.id)
                         );
-                        return s;
+                        return session;
                     })
-                    .catch(ex => Promise.reject(new JupyterSessionStartError(ex))),
+                    .catch((ex) => Promise.reject(new JupyterSessionStartError(ex))),
             cancelToken
         );
     }
@@ -372,7 +384,7 @@ export class JupyterSession extends BaseJupyterSession {
                         if (defaultKernel && defaultKernel._futures) {
                             const futures = defaultKernel._futures as Map<any, any>;
                             if (futures) {
-                                futures.forEach(f => {
+                                futures.forEach((f) => {
                                     if (f._status !== undefined) {
                                         f._status |= 4;
                                     }

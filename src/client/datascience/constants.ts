@@ -81,6 +81,9 @@ export namespace Commands {
     export const SaveNotebookNonCustomEditor = 'python.datascience.notebookeditor.save';
     export const SaveAsNotebookNonCustomEditor = 'python.datascience.notebookeditor.saveAs';
     export const OpenNotebookNonCustomEditor = 'python.datascience.notebookeditor.open';
+    export const GatherQuality = 'python.datascience.gatherquality';
+    export const EnableLoadingWidgetsFrom3rdPartySource =
+        'python.datascience.enableLoadingWidgetScriptsFromThirdPartySource';
 }
 
 export namespace CodeLensCommands {
@@ -285,7 +288,20 @@ export enum Telemetry {
     KernelInvalid = 'DS_INTERNAL.INVALID_KERNEL_USED',
     GatherCompleted = 'DATASCIENCE.GATHER_COMPLETED',
     GatheredNotebookSaved = 'DATASCIENCE.GATHERED_NOTEBOOK_SAVED',
-    ZMQNotSupported = 'DATASCIENCE.ZMQ_NATIVE_BINARIES_NOT_LOADING'
+    GatherQualityReport = 'DS_INTERNAL.GATHER_QUALITY_REPORT',
+    ZMQNotSupported = 'DATASCIENCE.ZMQ_NATIVE_BINARIES_NOT_LOADING',
+    IPyWidgetLoadSuccess = 'DS_INTERNAL.IPYWIDGET_LOAD_SUCCESS',
+    IPyWidgetLoadFailure = 'DS_INTERNAL.IPYWIDGET_LOAD_FAILURE',
+    IPyWidgetLoadDisabled = 'DS_INTERNAL.IPYWIDGET_LOAD_DISABLED',
+    HashedIPyWidgetNameUsed = 'DS_INTERNAL.IPYWIDGET_USED_BY_USER',
+    HashedIPyWidgetNameDiscovered = 'DS_INTERNAL.IPYWIDGET_DISCOVERED',
+    HashedIPyWidgetScriptDiscoveryError = 'DS_INTERNAL.IPYWIDGET_DISCOVERY_ERRORED',
+    DiscoverIPyWidgetNamesLocalPerf = 'DS_INTERNAL.IPYWIDGET_TEST_AVAILABILITY_ON_LOCAL',
+    DiscoverIPyWidgetNamesCDNPerf = 'DS_INTERNAL.IPYWIDGET_TEST_AVAILABILITY_ON_CDN',
+    IPyWidgetPromptToUseCDN = 'DS_INTERNAL.IPYWIDGET_PROMPT_TO_USE_CDN',
+    IPyWidgetPromptToUseCDNSelection = 'DS_INTERNAL.IPYWIDGET_PROMPT_TO_USE_CDN_SELECTION',
+    IPyWidgetOverhead = 'DS_INTERNAL.IPYWIDGET_OVERHEAD',
+    IPyWidgetRenderFailure = 'DS_INTERNAL.IPYWIDGET_RENDER_FAILURE'
 }
 
 export enum NativeKeyboardCommandTelemetry {
