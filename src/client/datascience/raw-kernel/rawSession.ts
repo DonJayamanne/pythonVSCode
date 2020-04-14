@@ -3,7 +3,7 @@
 import { Kernel, KernelMessage, ServerConnection, Session } from '@jupyterlab/services';
 import { ISignal, Signal } from '@phosphor/signaling';
 import * as uuid from 'uuid/v4';
-import { IJMPConnection, IJMPConnectionInfo } from '../types';
+import { IJMPConnection } from '../types';
 import { RawKernel } from './rawKernel';
 
 /*
@@ -22,8 +22,6 @@ export class RawSession implements Session.ISession {
     private _kernel: RawKernel;
     private _statusChanged = new Signal<this, Kernel.Status>(this);
 
-    // RAWKERNEL: Still just pass connection for now, we'll have to
-    // inject this further up the chain
     constructor(connection: IJMPConnection) {
         // Unique ID for this session instance
         this._id = uuid();
@@ -31,14 +29,8 @@ export class RawSession implements Session.ISession {
         // ID for our client JMP connection
         this._clientID = uuid();
 
-        // Connect our kernel
+        // Connect our kernel and hook up status changes
         this._kernel = new RawKernel(connection, this._clientID);
-    }
-
-    public async connect(connectionInfo: IJMPConnectionInfo) {
-        await this._kernel.connect(connectionInfo);
-
-        // Connect for status changes
         this._kernel.statusChanged.connect(this.onKernelStatus, this);
     }
 

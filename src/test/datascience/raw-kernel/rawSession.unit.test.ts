@@ -3,16 +3,15 @@
 import { Kernel, KernelMessage } from '@jupyterlab/services';
 import { Slot } from '@phosphor/signaling';
 import { expect } from 'chai';
-import { anything, deepEqual, instance, mock, verify, when } from 'ts-mockito';
+import { anything, instance, mock, verify, when } from 'ts-mockito';
 import { RawSession } from '../../../client/datascience/raw-kernel/rawSession';
-import { IJMPConnection, IJMPConnectionInfo } from '../../../client/datascience/types';
+import { IJMPConnection } from '../../../client/datascience/types';
 import { MockJMPConnection } from './mockJMP';
 import { buildStatusMessage } from './rawKernel.unit.test';
 
 // tslint:disable: max-func-body-length
 suite('Data Science - RawSession', () => {
     let rawSession: RawSession;
-    let connectInfo: IJMPConnectionInfo;
 
     suite('RawSession - basic JMP', () => {
         let jmpConnection: IJMPConnection;
@@ -21,19 +20,6 @@ suite('Data Science - RawSession', () => {
             when(jmpConnection.connect(anything())).thenResolve();
             when(jmpConnection.subscribe(anything())).thenReturn();
             rawSession = new RawSession(instance(jmpConnection));
-
-            connectInfo = {
-                version: 0,
-                transport: 'tcp',
-                ip: '127.0.0.1',
-                shell_port: 55196,
-                iopub_port: 55197,
-                stdin_port: 55198,
-                hb_port: 55200,
-                control_port: 55199,
-                signature_scheme: 'hmac-sha256',
-                key: 'adaf9032-487d222a85026db284c3d5e7'
-            };
         });
 
         test('RawSession construct', async () => {
@@ -45,10 +31,7 @@ suite('Data Science - RawSession', () => {
         });
 
         test('RawSession connect', async () => {
-            await rawSession.connect(connectInfo);
-
             // Did we hook up our connection
-            verify(jmpConnection.connect(deepEqual(connectInfo))).once();
             verify(jmpConnection.subscribe(anything())).once();
             // The ID of the session is not the same as the kernel client id
             expect(rawSession.kernel.clientId).to.not.equal(rawSession.id);
@@ -70,24 +53,9 @@ suite('Data Science - RawSession', () => {
         setup(() => {
             mockJmpConnection = new MockJMPConnection();
             rawSession = new RawSession(mockJmpConnection);
-
-            connectInfo = {
-                version: 0,
-                transport: 'tcp',
-                ip: '127.0.0.1',
-                shell_port: 55196,
-                iopub_port: 55197,
-                stdin_port: 55198,
-                hb_port: 55200,
-                control_port: 55199,
-                signature_scheme: 'hmac-sha256',
-                key: 'adaf9032-487d222a85026db284c3d5e7'
-            };
         });
 
         test('RawSession status updates', async () => {
-            await rawSession.connect(connectInfo);
-
             const statusChanges = ['busy', 'idle'];
             let statusHit = 0;
             const statusHandler: Slot<RawSession, Kernel.Status> = (_sender: RawSession, args: Kernel.Status) => {

@@ -9,7 +9,7 @@ import * as vsls from 'vsls/vscode';
 
 import { nbformat } from '@jupyterlab/coreutils';
 import { IApplicationShell, ILiveShareApi, IWorkspaceService } from '../../../common/application/types';
-import { traceInfo } from '../../../common/logger';
+import { traceError, traceInfo } from '../../../common/logger';
 import { IFileSystem } from '../../../common/platform/types';
 import { IAsyncDisposableRegistry, IConfigurationService, IDisposableRegistry, Resource } from '../../../common/types';
 import { createDeferred } from '../../../common/utils/async';
@@ -18,8 +18,15 @@ import { Identifiers, LiveShare, Settings } from '../../constants';
 import { HostJupyterNotebook } from '../../jupyter/liveshare/hostJupyterNotebook';
 import { LiveShareParticipantHost } from '../../jupyter/liveshare/liveShareParticipantMixin';
 import { IRoleBasedObject } from '../../jupyter/liveshare/roleBasedFactory';
-import { INotebook, INotebookExecutionInfo, INotebookExecutionLogger, IRawNotebookProvider } from '../../types';
-import { EnchannelJMPConnection } from '../enchannelJMPConnection';
+import { IKernelLauncher } from '../../kernel-launcher/types';
+import {
+    IJupyterKernelSpec,
+    INotebook,
+    INotebookExecutionInfo,
+    INotebookExecutionLogger,
+    IRawNotebookProvider
+} from '../../types';
+import { calculateWorkingDirectory } from '../../utils';
 import { RawJupyterSession } from '../rawJupyterSession';
 import { RawNotebookProviderBase } from '../rawNotebookProvider';
 
@@ -38,7 +45,8 @@ export class HostRawNotebookProvider
         private workspaceService: IWorkspaceService,
         private appShell: IApplicationShell,
         private fs: IFileSystem,
-        private serviceContainer: IServiceContainer
+        private serviceContainer: IServiceContainer,
+        private kernelLauncher: IKernelLauncher
     ) {
         super(liveShare, asyncRegistry);
     }
@@ -72,35 +80,21 @@ export class HostRawNotebookProvider
         notebookMetadata?: nbformat.INotebookMetadata,
         cancelToken?: CancellationToken
     ): Promise<INotebook> {
-        throw new Error('Not implemented');
-        // RAWKERNEL: Hack to create session, uncomment throw and update ci to connect to a running kernel
-        const ci = {
-            version: 0,
-            transport: 'tcp',
-            ip: '127.0.0.1',
-            shell_port: 51065,
-            iopub_port: 51066,
-            stdin_port: 51067,
-            hb_port: 51069,
-            control_port: 51068,
-            signature_scheme: 'hmac-sha256',
-            key: '9a4f68cd-b5e4887e4b237ea4c91c265c'
-        };
-        const rawSession = new RawJupyterSession(new EnchannelJMPConnection());
-        try {
-            await rawSession.connect(ci);
-        } finally {
-            if (!rawSession.isConnected) {
-                await rawSession.dispose();
-            }
-        }
-
         const notebookPromise = createDeferred<INotebook>();
         this.setNotebook(identity, notebookPromise.promise);
 
+        const rawSession = new RawJupyterSession(this.kernelLauncher, this.serviceContainer);
         try {
+            const launchTimeout = this.configService.getSettings().datascience.jupyterLaunchTimeout;
+            const launchedKernelSpec = await rawSession.connect(
+                resource,
+                launchTimeout,
+                notebookMetadata?.kernelspec?.name,
+                cancelToken
+            );
+
             // Get the execution info for our notebook
-            const info = this.getExecutionInfo(resource, notebookMetadata);
+            const info = await this.getExecutionInfo(launchedKernelSpec);
 
             if (rawSession.isConnected) {
                 // Create our notebook
@@ -119,11 +113,6 @@ export class HostRawNotebookProvider
                     this.fs
                 );
 
-                // Wait for it to be ready
-                traceInfo(`Waiting for idle (session) ${this.id}`);
-                const idleTimeout = this.configService.getSettings().datascience.jupyterLaunchTimeout;
-                await notebook.waitForIdle(idleTimeout);
-
                 // Run initial setup
                 await notebook.initialize(cancelToken);
 
@@ -134,6 +123,10 @@ export class HostRawNotebookProvider
                 notebookPromise.reject(this.getDisposedError());
             }
         } catch (ex) {
+            // Make sure we shut down our session in case we started a process
+            rawSession.dispose().catch(error => {
+                traceError(`Failed to dispose of raw session on launch error: ${error} `);
+            });
             // If there's an error, then reject the promise that is returned.
             // This original promise must be rejected as it is cached (check `setNotebook`).
             notebookPromise.reject(ex);
@@ -142,17 +135,14 @@ export class HostRawNotebookProvider
         return notebookPromise.promise;
     }
 
-    // RAWKERNEL: Not the real execution info, just stub it out for now
-    private getExecutionInfo(
-        _resource: Resource,
-        _notebookMetadata?: nbformat.INotebookMetadata
-    ): INotebookExecutionInfo {
+    // Get the notebook execution info for this raw session instance
+    private async getExecutionInfo(kernelSpec?: IJupyterKernelSpec): Promise<INotebookExecutionInfo> {
         return {
             connectionInfo: this.getConnection(),
             uri: Settings.JupyterServerLocalLaunch,
             interpreter: undefined,
-            kernelSpec: undefined,
-            workingDir: undefined,
+            kernelSpec: kernelSpec,
+            workingDir: await calculateWorkingDirectory(this.configService, this.workspaceService, this.fs),
             purpose: Identifiers.RawPurpose
         };
     }

@@ -7,7 +7,7 @@ import { ISignal, Signal } from '@phosphor/signaling';
 import cloneDeep = require('lodash/cloneDeep');
 import * as uuid from 'uuid/v4';
 import { traceError } from '../../common/logger';
-import { IJMPConnection, IJMPConnectionInfo } from '../types';
+import { IJMPConnection } from '../types';
 import { RawFuture } from './rawFuture';
 
 /*
@@ -89,18 +89,15 @@ export class RawKernel implements Kernel.IKernel {
         RawFuture<KernelMessage.IShellControlMessage, KernelMessage.IShellControlMessage>
     >();
 
-    // JMP connection should be injected, but no need to yet until it actually exists
-    constructor(jmpConnection: IJMPConnection, clientID: string) {
+    constructor(jmpConnection: IJMPConnection, clientId: string) {
         // clientID is controlled by the session as we keep the same id
-        this._clientId = clientID;
+        this._clientId = clientId;
         this._id = uuid();
         this._status = 'unknown';
         this._statusChanged = new Signal<this, Kernel.Status>(this);
-        this.jmpConnection = jmpConnection;
-    }
 
-    public async connect(connectInfo: IJMPConnectionInfo) {
-        await this.jmpConnection.connect(connectInfo);
+        // Subscribe to messages coming in from our JMP channel
+        this.jmpConnection = jmpConnection;
         this.jmpConnection.subscribe((message) => {
             this.msgIn(message);
         });
