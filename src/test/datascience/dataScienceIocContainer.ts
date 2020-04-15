@@ -90,6 +90,7 @@ import { EXTENSION_ROOT_DIR, UseCustomEditorApi } from '../../client/common/cons
 import { CryptoUtils } from '../../client/common/crypto';
 import { DotNetCompatibilityService } from '../../client/common/dotnet/compatibilityService';
 import { IDotNetCompatibilityService } from '../../client/common/dotnet/types';
+import { LocalZMQKernel } from '../../client/common/experimentGroups';
 import { ExperimentsManager } from '../../client/common/experiments';
 import { InstallationChannelManager } from '../../client/common/installer/channelManager';
 import { ProductInstaller } from '../../client/common/installer/productInstaller';
@@ -829,7 +830,12 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
 
         // Turn off experiments.
         const experimentManager = mock(ExperimentsManager);
-        when(experimentManager.inExperiment(anything())).thenReturn(false);
+        when(experimentManager.inExperiment(anything())).thenCall((exp) => {
+            if (exp === LocalZMQKernel.experiment) {
+                return false;
+            }
+            return true;
+        });
         when(experimentManager.activate()).thenResolve();
         this.serviceManager.addSingletonInstance<IExperimentsManager>(IExperimentsManager, instance(experimentManager));
 
