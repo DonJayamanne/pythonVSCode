@@ -2985,7 +2985,7 @@
         "get-port": "^3.2.0",
         "glob": "^7.1.2",
         "hash.js": "^1.1.7",
-        "iconv-lite": "^0.4.21",
+        "iconv-lite": "^0.5.1",
         "inversify": "^4.11.1",
         "is-online": "^8.2.1",
         "jsonc-parser": "^2.0.3",
