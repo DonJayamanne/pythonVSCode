@@ -79,7 +79,7 @@ class KernelProcess implements IKernelProcess {
         const exeObs = executionService.execObservable(args, {});
 
         if (exeObs.proc) {
-            exeObs.proc!.on('exit', exitCode => {
+            exeObs.proc!.on('exit', (exitCode) => {
                 traceInfo('KernelProcess Exit', `Exit - ${exitCode}`);
                 if (!this.readyPromise.completed) {
                     this.readyPromise.reject(new Error(localize.DataScience.rawKernelProcessExitBeforeConnect()));
@@ -90,7 +90,7 @@ class KernelProcess implements IKernelProcess {
             traceInfo('KernelProcess failed to launch');
             this.readyPromise.reject(new Error(localize.DataScience.rawKernelProcessNotStarted()));
         }
-        exeObs.out.subscribe(output => {
+        exeObs.out.subscribe((output) => {
             if (output.source === 'stderr') {
                 traceWarning(`StdErr from Kernel Process ${output.out}`);
             } else {

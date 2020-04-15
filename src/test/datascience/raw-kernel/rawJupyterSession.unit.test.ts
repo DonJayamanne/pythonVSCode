@@ -37,16 +37,16 @@ suite('Data Science - RawJupyterSession', () => {
 
         // Fake out our jmp connection
         jmpConnection = createTypeMoq<IJMPConnection>('jmp connection');
-        jmpConnection.setup(jmp => jmp.connect(typemoq.It.isAny())).returns(() => Promise.resolve());
+        jmpConnection.setup((jmp) => jmp.connect(typemoq.It.isAny())).returns(() => Promise.resolve());
         when(serviceContainer.get<IJMPConnection>(IJMPConnection)).thenReturn(jmpConnection.object);
 
         // Set up a fake kernel process for the launcher to return
         processExitEvent = new EventEmitter<number | null>();
         kernelProcess = createTypeMoq<IKernelProcess>('kernel process');
-        kernelProcess.setup(kp => kp.kernelSpec).returns(() => 'testspec' as any);
-        kernelProcess.setup(kp => kp.connection).returns(() => 'testconnection' as any);
-        kernelProcess.setup(kp => kp.ready).returns(() => Promise.resolve());
-        kernelProcess.setup(kp => kp.exited).returns(() => processExitEvent.event);
+        kernelProcess.setup((kp) => kp.kernelSpec).returns(() => 'testspec' as any);
+        kernelProcess.setup((kp) => kp.connection).returns(() => 'testconnection' as any);
+        kernelProcess.setup((kp) => kp.ready).returns(() => Promise.resolve());
+        kernelProcess.setup((kp) => kp.exited).returns(() => processExitEvent.event);
         when(kernelLauncher.launch(anything(), anything())).thenResolve(kernelProcess.object);
 
         rawJupyterSession = new RawJupyterSession(instance(kernelLauncher), instance(serviceContainer));

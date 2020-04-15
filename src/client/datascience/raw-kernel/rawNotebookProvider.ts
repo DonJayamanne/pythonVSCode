@@ -61,7 +61,7 @@ export class RawNotebookProviderBase implements IRawNotebookProvider {
     public async dispose(): Promise<void> {
         traceInfo(`Shutting down notebooks for ${this.id}`);
         const notebooks = await Promise.all([...this.notebooks.values()]);
-        await Promise.all(notebooks.map(n => n?.dispose()));
+        await Promise.all(notebooks.map((n) => n?.dispose()));
     }
 
     // This may be a bit of a noop in the raw case
@@ -81,7 +81,7 @@ export class RawNotebookProviderBase implements IRawNotebookProvider {
         };
 
         notebook
-            .then(nb => {
+            .then((nb) => {
                 const oldDispose = nb.dispose;
                 nb.dispose = () => {
                     this.notebooks.delete(identity.toString());
