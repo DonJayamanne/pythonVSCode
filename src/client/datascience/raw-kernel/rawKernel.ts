@@ -101,7 +101,7 @@ export class RawKernel implements Kernel.IKernel {
 
     public async connect(connectInfo: IJMPConnectionInfo) {
         await this.jmpConnection.connect(connectInfo);
-        this.jmpConnection.subscribe(message => {
+        this.jmpConnection.subscribe((message) => {
             this.msgIn(message);
         });
     }
@@ -247,7 +247,7 @@ export class RawKernel implements Kernel.IKernel {
             }
 
             // Dispose of all our outstanding futures
-            this.futures.forEach(future => {
+            this.futures.forEach((future) => {
                 future.dispose();
             });
             this.futures.clear();
@@ -341,7 +341,7 @@ export class RawKernel implements Kernel.IKernel {
             return;
         }
 
-        displayIds.forEach(displayId => {
+        displayIds.forEach((displayId) => {
             const messageIds = this.displayIdToParentIds.get(displayId);
             if (messageIds) {
                 const index = messageIds.indexOf(messageId);
@@ -378,7 +378,7 @@ export class RawKernel implements Kernel.IKernel {
                 // processing the next one
                 return this.handleMessage(message);
             })
-            .catch(error => {
+            .catch((error) => {
                 traceError(error);
             });
     }
@@ -407,7 +407,7 @@ export class RawKernel implements Kernel.IKernel {
 
             // Now send it out to all the parents
             await Promise.all(
-                parentIds.map(async parentId => {
+                parentIds.map(async (parentId) => {
                     const future = this.futures && this.futures.get(parentId);
                     if (future) {
                         await future.handleMessage(updateMessage);

@@ -88,7 +88,7 @@ suite('Data Science - RawKernel', () => {
                 code
             };
             const future = rawKernel.requestExecute(executeContent, true, undefined);
-            future.done.catch(reason => {
+            future.done.catch((reason) => {
                 const error = reason as Error;
                 expect(error.message).to.equal('Disposed Future');
             });
@@ -169,7 +169,7 @@ suite('Data Science - RawKernel', () => {
             // Check our IOPub Messages
             const iopubMessages = [iopubBusyMessage, iopubExecuteInputMessage, iopubStreamMessage, iopubIdleMessage];
             let iopubHit = 0;
-            future.onIOPub = msg => {
+            future.onIOPub = (msg) => {
                 const targetMsg = iopubMessages[iopubHit];
                 expect(msg.header.msg_id).to.equal(targetMsg.header.msg_id);
                 iopubHit = iopubHit + 1;
@@ -178,7 +178,7 @@ suite('Data Science - RawKernel', () => {
             // Check our reply messages
             const replyMessages = [replyMessage];
             let replyHit = 0;
-            future.onReply = msg => {
+            future.onReply = (msg) => {
                 const targetMsg = replyMessages[replyHit];
                 expect(msg.header.msg_id).to.equal(targetMsg.header.msg_id);
                 replyHit = replyHit + 1;
@@ -359,13 +359,13 @@ suite('Data Science - RawKernel', () => {
             // not just one due to the display id
             let futureSeen = false;
             let future2Seen = false;
-            future.onIOPub = msg => {
+            future.onIOPub = (msg) => {
                 if (msg.header.msg_id === updateDDMessage.header.msg_id) {
                     futureSeen = true;
                 }
             };
 
-            future2.onIOPub = msg => {
+            future2.onIOPub = (msg) => {
                 if (msg.header.msg_id === updateDDMessage.header.msg_id) {
                     future2Seen = true;
                 }

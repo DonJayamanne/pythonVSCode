@@ -146,7 +146,7 @@ class SocketEventEmitter extends Events.EventEmitter {
             // tslint:disable-next-line: no-floating-promises
             socket
                 .receive()
-                .then(b => {
+                .then((b) => {
                     this.emit('message', b);
                     setTimeout(this.waitForReceive.bind(this, socket), 0);
                 })
@@ -176,7 +176,7 @@ export const createMainChannelFromSockets = (
     // The mega subject that encapsulates all the sockets as one multiplexed
     // stream
     const outgoingMessages = rxjs.Subscriber.create<JupyterMessage>(
-        async message => {
+        async (message) => {
             // There's always a chance that a bad message is sent, we'll ignore it
             // instead of consuming it
             if (!message || !message.channel) {
@@ -231,7 +231,7 @@ export const createMainChannelFromSockets = (
     const incomingMessages: rxjs.Observable<JupyterMessage> = rxjs
         .merge(
             // Form an Observable with each socket
-            ...Object.keys(sockets).map(name => {
+            ...Object.keys(sockets).map((name) => {
                 // Wrap in something that will emit an event whenever a message is received.
                 const socketEmitter = new SocketEventEmitter((sockets as any)[name]);
                 return rxjs.fromEvent(socketEmitter, 'message').pipe(

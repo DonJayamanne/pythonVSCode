@@ -29,17 +29,17 @@ suite('Data Science - RawFuture', () => {
 
     test('RawFuture dispose', async () => {
         // Set up some handlers
-        rawFuture.onReply = _msg => {
+        rawFuture.onReply = (_msg) => {
             noop();
         };
-        rawFuture.onIOPub = _msg => {
+        rawFuture.onIOPub = (_msg) => {
             noop();
         };
-        rawFuture.onStdin = _msg => {
+        rawFuture.onStdin = (_msg) => {
             noop();
         };
 
-        rawFuture.done.catch(reason => {
+        rawFuture.done.catch((reason) => {
             const error = reason as Error;
             expect(error.message).to.equal('Disposed Future');
         });
@@ -103,7 +103,7 @@ suite('Data Science - RawFuture', () => {
         replyMessage.parent_header = executeMessage.header;
 
         // Verify that the reply message matches the one we sent
-        rawFuture.onReply = msg => {
+        rawFuture.onReply = (msg) => {
             expect(msg.header.msg_id).to.equal(replyMessage.header.msg_id);
         };
 
@@ -128,7 +128,7 @@ suite('Data Science - RawFuture', () => {
         ioPubMessage.parent_header = executeMessage.header;
 
         // Verify that the iopub message matches the one we sent
-        rawFuture.onIOPub = msg => {
+        rawFuture.onIOPub = (msg) => {
             expect(msg.header.msg_id).to.equal(ioPubMessage.header.msg_id);
         };
 

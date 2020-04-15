@@ -489,7 +489,7 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
             const services = require('monaco-editor/esm/vs/editor/standalone/browser/standaloneServices') as any;
             if (services.StaticServices) {
                 const keys = Object.keys(services.StaticServices);
-                keys.forEach(k => {
+                keys.forEach((k) => {
                     const service = services.StaticServices[k] as any;
                     if (service && service._value && service._value.dispose) {
                         if (typeof service._value.dispose === 'function') {
@@ -626,8 +626,8 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
             ServerPreload
         );
         const mockExtensionContext = TypeMoq.Mock.ofType<IExtensionContext>();
-        mockExtensionContext.setup(m => m.globalStoragePath).returns(() => os.tmpdir());
-        mockExtensionContext.setup(m => m.extensionPath).returns(() => os.tmpdir());
+        mockExtensionContext.setup((m) => m.globalStoragePath).returns(() => os.tmpdir());
+        mockExtensionContext.setup((m) => m.extensionPath).returns(() => os.tmpdir());
         this.serviceManager.addSingletonInstance<IExtensionContext>(IExtensionContext, mockExtensionContext.object);
 
         const mockServerSelector = mock(JupyterServerSelector);
@@ -836,10 +836,10 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
         const configurationService = TypeMoq.Mock.ofType<IConfigurationService>();
         this.datascience = TypeMoq.Mock.ofType<IDataScience>();
 
-        configurationService.setup(c => c.getSettings(TypeMoq.It.isAny())).returns(this.getSettings.bind(this));
+        configurationService.setup((c) => c.getSettings(TypeMoq.It.isAny())).returns(this.getSettings.bind(this));
 
         const startTime = Date.now();
-        this.datascience.setup(d => d.activationStartTime).returns(() => startTime);
+        this.datascience.setup((d) => d.activationStartTime).returns(() => startTime);
 
         this.serviceManager.addSingleton<IEnvironmentVariablesProvider>(
             IEnvironmentVariablesProvider,
@@ -927,7 +927,7 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
         }
 
         const interpreterDisplay = TypeMoq.Mock.ofType<IInterpreterDisplay>();
-        interpreterDisplay.setup(i => i.refresh(TypeMoq.It.isAny())).returns(() => Promise.resolve());
+        interpreterDisplay.setup((i) => i.refresh(TypeMoq.It.isAny())).returns(() => Promise.resolve());
 
         // Create our jupyter mock if necessary
         if (this.shouldMockJupyter) {
@@ -1052,9 +1052,9 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
             // Don't use conda at all when mocking
             const condaService = TypeMoq.Mock.ofType<ICondaService>();
             this.serviceManager.addSingletonInstance<ICondaService>(ICondaService, condaService.object);
-            condaService.setup(c => c.isCondaAvailable()).returns(() => Promise.resolve(false));
-            condaService.setup(c => c.isCondaEnvironment(TypeMoq.It.isAny())).returns(() => Promise.resolve(false));
-            condaService.setup(c => c.condaEnvironmentsFile).returns(() => undefined);
+            condaService.setup((c) => c.isCondaAvailable()).returns(() => Promise.resolve(false));
+            condaService.setup((c) => c.isCondaEnvironment(TypeMoq.It.isAny())).returns(() => Promise.resolve(false));
+            condaService.setup((c) => c.condaEnvironmentsFile).returns(() => undefined);
 
             this.serviceManager.addSingleton<IVirtualEnvironmentsSearchPathProvider>(
                 IVirtualEnvironmentsSearchPathProvider,
@@ -1111,23 +1111,23 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
             }
         };
 
-        appShell.setup(a => a.showErrorMessage(TypeMoq.It.isAnyString())).returns(() => Promise.resolve(''));
+        appShell.setup((a) => a.showErrorMessage(TypeMoq.It.isAnyString())).returns(() => Promise.resolve(''));
         appShell
-            .setup(a => a.showInformationMessage(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+            .setup((a) => a.showInformationMessage(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(''));
         appShell
-            .setup(a => a.showInformationMessage(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+            .setup((a) => a.showInformationMessage(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .returns((_a1: string, a2: string, _a3: string) => Promise.resolve(a2));
         appShell
-            .setup(a =>
+            .setup((a) =>
                 a.showInformationMessage(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny())
             )
             .returns((_a1: string, a2: string, _a3: string, _a4: string) => Promise.resolve(a2));
         appShell
-            .setup(a => a.showSaveDialog(TypeMoq.It.isAny()))
+            .setup((a) => a.showSaveDialog(TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(Uri.file('test.ipynb')));
-        appShell.setup(a => a.setStatusBarMessage(TypeMoq.It.isAny())).returns(() => dummyDisposable);
-        appShell.setup(a => a.showInputBox(TypeMoq.It.isAny())).returns(() => Promise.resolve('Python'));
+        appShell.setup((a) => a.setStatusBarMessage(TypeMoq.It.isAny())).returns(() => dummyDisposable);
+        appShell.setup((a) => a.showInputBox(TypeMoq.It.isAny())).returns(() => Promise.resolve('Python'));
 
         const interpreterManager = this.serviceContainer.get<IInterpreterService>(IInterpreterService);
         interpreterManager.initialize();
@@ -1148,7 +1148,7 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
             IExtensionSingleActivationService
         );
 
-        await Promise.all(activationServices.map(a => a.activate()));
+        await Promise.all(activationServices.map((a) => a.activate()));
 
         // Then force our interpreter to be one that supports jupyter (unless in a mock state when we don't have to)
         if (!this.mockJupyter) {
@@ -1236,9 +1236,9 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
             return DataScienceIocContainer.jupyterInterpreters;
         }
         const list = await this.get<IInterpreterService>(IInterpreterService).getInterpreters(undefined);
-        const promises = list.map(f => this.hasJupyter(f).then(b => (b ? f : undefined)));
+        const promises = list.map((f) => this.hasJupyter(f).then((b) => (b ? f : undefined)));
         const resolved = await Promise.all(promises);
-        DataScienceIocContainer.jupyterInterpreters = resolved.filter(r => r) as PythonInterpreter[];
+        DataScienceIocContainer.jupyterInterpreters = resolved.filter((r) => r) as PythonInterpreter[];
         return DataScienceIocContainer.jupyterInterpreters;
     }
 
@@ -1249,7 +1249,7 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
     }
 
     public addResourceToFolder(resource: Uri, folderPath: string) {
-        let folder = this.workspaceFolders.find(f => f.uri.fsPath === folderPath);
+        let folder = this.workspaceFolders.find((f) => f.uri.fsPath === folderPath);
         if (!folder) {
             folder = this.addWorkspaceFolder(folderPath);
         }
@@ -1293,7 +1293,7 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
         }
 
         if (this.extraListeners.length) {
-            this.extraListeners.forEach(e => e(msg.type, msg.payload));
+            this.extraListeners.forEach((e) => e(msg.type, msg.payload));
         }
         if (this.wrapperCreatedPromise && !this.wrapperCreatedPromise.resolved) {
             this.wrapperCreatedPromise.resolve();
@@ -1313,7 +1313,7 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
                 postMessage: noop as any,
                 close: noop,
                 updateCwd: noop as any,
-                asWebviewUri: uri => uri
+                asWebviewUri: (uri) => uri
             });
         }
     }
@@ -1333,7 +1333,7 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
 
     private createWebPanel(): IWebPanel {
         const webPanel = mock(WebPanel);
-        when(webPanel.postMessage(anything())).thenCall(m => {
+        when(webPanel.postMessage(anything())).thenCall((m) => {
             // tslint:disable-next-line: no-require-imports
             const reactHelpers = require('./reactHelpers') as typeof import('./reactHelpers');
             const message = reactHelpers.createMessageEvent(m);
@@ -1359,7 +1359,7 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
             // This needs to be async because we are being called in the ctor of the webpanel. It can't
             // handle some messages during the ctor.
             setTimeout(() => {
-                this.missedMessages.forEach(m =>
+                this.missedMessages.forEach((m) =>
                     this.webPanelListener ? this.webPanelListener.onMessage(m.type, m.payload) : noop()
                 );
             }, 0);
@@ -1478,7 +1478,7 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
 
     private getWorkspaceFolder(uri: Resource): WorkspaceFolder | undefined {
         if (uri) {
-            return this.workspaceFolders.find(w => w.ownedResources.has(uri.toString()));
+            return this.workspaceFolders.find((w) => w.ownedResources.has(uri.toString()));
         }
         return undefined;
     }

@@ -35,7 +35,7 @@ suite('DataScience raw kernel tests', () => {
         kernel_name: 'python3',
         version: 5.1
     };
-    setup(async function() {
+    setup(async function () {
         ioc = new DataScienceIocContainer();
         ioc.registerDataScienceTypes();
         await ioc.activate();
@@ -75,10 +75,10 @@ suite('DataScience raw kernel tests', () => {
             throwOnStdErr: false
         });
         kernelProcResult.out.subscribe(
-            out => {
+            (out) => {
                 console.log(out.out);
             },
-            error => {
+            (error) => {
                 console.error(error);
             },
             () => {
@@ -87,7 +87,7 @@ suite('DataScience raw kernel tests', () => {
         );
         sessionId = uuid();
         await enchannelConnection.connect(connectionInfo);
-        messageObservable = new Observable(subscriber => {
+        messageObservable = new Observable((subscriber) => {
             enchannelConnection.subscribe(subscriber.next.bind(subscriber));
         });
     }
@@ -186,7 +186,7 @@ suite('DataScience raw kernel tests', () => {
         }
         let foundReply = false;
         let foundIdle = false;
-        const subscr = messageObservable.subscribe(m => {
+        const subscr = messageObservable.subscribe((m) => {
             replies.push(m);
             if (m.header.msg_type === 'status') {
                 foundIdle = (m.content as any).execution_state === 'idle';
@@ -203,7 +203,7 @@ suite('DataScience raw kernel tests', () => {
             }
         });
         enchannelConnection.sendMessage(message);
-        return waiter.promise.then(m => {
+        return waiter.promise.then((m) => {
             subscr.unsubscribe();
             return m;
         });
@@ -212,40 +212,40 @@ suite('DataScience raw kernel tests', () => {
     test('Basic connection', async () => {
         const replies = await sendMessage(createShutdownMessage());
         assert.ok(
-            replies.find(r => r.header.msg_type === 'shutdown_reply'),
+            replies.find((r) => r.header.msg_type === 'shutdown_reply'),
             'Reply not sent for shutdown'
         );
     });
 
     test('Basic request', async () => {
         const replies = await sendMessage(createExecutionMessage('a=1\na'));
-        const executeResult = replies.find(r => r.header.msg_type === 'execute_result');
+        const executeResult = replies.find((r) => r.header.msg_type === 'execute_result');
         assert.ok(executeResult, 'Result not found');
         assert.equal((executeResult?.content as any).data['text/plain'], '1', 'Results were not computed');
     });
 
     test('Multiple requests', async () => {
         let replies = await sendMessage(createExecutionMessage('a=1\na'));
-        let executeResult = replies.find(r => r.header.msg_type === 'execute_result');
+        let executeResult = replies.find((r) => r.header.msg_type === 'execute_result');
         assert.ok(executeResult, 'Result not found');
         replies = await sendMessage(createExecutionMessage('a=2\na'));
-        executeResult = replies.find(r => r.header.msg_type === 'execute_result');
+        executeResult = replies.find((r) => r.header.msg_type === 'execute_result');
         assert.ok(executeResult, 'Result 2 not found');
         assert.equal((executeResult?.content as any).data['text/plain'], '2', 'Results were not computed');
         replies = await sendMessage(createInspectMessage('a'));
-        const inspectResult = replies.find(r => r.header.msg_type === 'inspect_reply');
+        const inspectResult = replies.find((r) => r.header.msg_type === 'inspect_reply');
         assert.ok(inspectResult, 'Inspect result not found');
         assert.ok((inspectResult?.content as any).data['text/plain'], 'Inspect reply was not computed');
     });
 
     test('Startup and shutdown', async () => {
         let replies = await sendMessage(createExecutionMessage('a=1\na'));
-        let executeResult = replies.find(r => r.header.msg_type === 'execute_result');
+        let executeResult = replies.find((r) => r.header.msg_type === 'execute_result');
         assert.ok(executeResult, 'Result not found');
         await disconnectFromKernel();
         await connectToKernel(57418);
         replies = await sendMessage(createExecutionMessage('a=1\na'));
-        executeResult = replies.find(r => r.header.msg_type === 'execute_result');
+        executeResult = replies.find((r) => r.header.msg_type === 'execute_result');
         assert.ok(executeResult, 'Result not found');
     });
 });
