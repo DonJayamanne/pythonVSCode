@@ -127,7 +127,7 @@ export class NotebookProvider implements INotebookProvider {
 
     // Check to see if this machine supports our local ZMQ launching
     private async zmqSupported(): Promise<boolean> {
-        if (this._zmqSupported) {
+        if (this._zmqSupported !== undefined) {
             return this._zmqSupported;
         }
 
