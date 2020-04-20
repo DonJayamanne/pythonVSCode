@@ -93,7 +93,7 @@ suite('Kernel Launcher', () => {
                 'Timeout'
             );
         }
-    });
+    }).timeout(10_000);
 
     test('Bind with ZMQ', async function () {
         if (!process.env.VSCODE_PYTHON_ROLLING) {
