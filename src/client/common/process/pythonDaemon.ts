@@ -402,11 +402,12 @@ export class PythonDaemonExecutionService implements IPythonDaemonExecutionServi
         const OuputNotification = new NotificationType<Output<string>, void>('output');
         this.connection.onNotification(OuputNotification, (output) => this.outputObservale.next(output));
         const logNotification = new NotificationType<
-            { level: 'WARN' | 'WARNING' | 'INFO' | 'DEBUG' | 'NOTSET'; msg: string },
+            { level: 'WARN' | 'WARNING' | 'INFO' | 'DEBUG' | 'NOTSET'; msg: string; pid?: string },
             void
         >('log');
         this.connection.onNotification(logNotification, (output) => {
-            const msg = `Python Daemon: ${output.msg}`;
+            const pid = output.pid ? ` (pid: ${output.pid})` : '';
+            const msg = `Python Daemon${pid}: ${output.msg}`;
             if (output.level === 'DEBUG' || output.level === 'NOTSET') {
                 traceVerbose(msg);
             } else if (output.level === 'INFO') {

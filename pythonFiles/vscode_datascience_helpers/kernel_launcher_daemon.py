@@ -44,9 +44,11 @@ class PythonDaemon(JupyterDaemon):
         self.log.info("Interrupt kernel in DS Kernel Launcher Daemon")
         if self.kernel is not None:
             if sys.platform == 'win32':
+                self.log.debug("Interrupt kernel on Windows")
                 from vscode_datascience_helpers.win_interrupt import send_interrupt
                 send_interrupt(self.kernel.win32_interrupt_event)
             else:
+                self.log.debug("Interrupt kernel with SIGINT")
                 self.signal_kernel(signal.SIGINT)
 
     @error_decorator
@@ -85,6 +87,8 @@ class PythonDaemon(JupyterDaemon):
         cmd = [sys.executable, "-m", module_name] + args
         proc = launch_kernel(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd, env=env)
         self.kernel = proc
+        self.log.info("Kernel launched, with PID %s", proc.pid)
+
         while proc.poll() is None:
             stdout_output = proc.stdout.read(1)
             if stdout_output:
@@ -132,7 +136,10 @@ class PythonDaemon(JupyterDaemon):
                 try:
                     pgid = os.getpgid(self.kernel.pid)
                     os.killpg(pgid, signum)
+                    self.log.debug("Signalled kernel PID %s, with %s", self.kernel.pid, signum)
                     return
                 except OSError:
+                    self.log.debug("Failed to signal kernel PID %s, with %s", self.kernel.pid, signum)
                     pass
+            self.log.debug("Signalling kernel with using send_signal PID %s, with %s", self.kernel.pid, signum)
             self.kernel.send_signal(signum)
