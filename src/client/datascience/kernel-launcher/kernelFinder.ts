@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 'use strict';
 
+import { Kernel } from '@jupyterlab/services';
 import { inject, injectable } from 'inversify';
 import * as path from 'path';
 import { InterpreterUri } from '../../common/installer/types';
@@ -10,6 +11,7 @@ import { IFileSystem, IPlatformService } from '../../common/platform/types';
 import { IExtensionContext, IPathUtils, Resource } from '../../common/types';
 import { isResource } from '../../common/utils/misc';
 import { IInterpreterService, PythonInterpreter } from '../../interpreter/contracts';
+import { JupyterKernelSpec } from '../jupyter/kernels/jupyterKernelSpec';
 import { IJupyterKernelSpec } from '../types';
 import { IKernelFinder } from './types';
 
@@ -110,9 +112,9 @@ export class KernelFinder implements IKernelFinder {
             // If no kernel name is included, return the first kernel
             if (!kernelName) {
                 try {
-                    const kernelSpec: IJupyterKernelSpec = JSON.parse(
-                        await this.file.readFile(path.join(kernels[0], 'kernel.json'))
-                    );
+                    const kernelJsonFile = path.join(kernels[0], 'kernel.json');
+                    const kernelJson = JSON.parse(await this.file.readFile(kernelJsonFile));
+                    const kernelSpec: IJupyterKernelSpec = new JupyterKernelSpec(kernelJson, kernelJsonFile);
                     this.cache.push(kernelSpec);
                     return kernelSpec;
                 } catch (e) {
@@ -124,9 +126,9 @@ export class KernelFinder implements IKernelFinder {
             let spec: IJupyterKernelSpec | undefined;
             const promises = kernels.map(async (kernel) => {
                 try {
-                    const kernelSpec: IJupyterKernelSpec = JSON.parse(
-                        await this.file.readFile(path.join(kernel, 'kernel.json'))
-                    );
+                    const kernelJsonFile = path.join(kernel, 'kernel.json');
+                    const kernelJson = JSON.parse(await this.file.readFile(kernelJsonFile));
+                    const kernelSpec: IJupyterKernelSpec = new JupyterKernelSpec(kernelJson, kernelJsonFile);
                     this.cache.push(kernelSpec);
                     if (kernelSpec.name === kernelName) {
                         spec = kernelSpec;
@@ -193,9 +195,9 @@ export class KernelFinder implements IKernelFinder {
         for (let i = 0; i < searchResults.length; i += 1) {
             if (searchResults[i].length > 0) {
                 try {
-                    const kernelSpec: IJupyterKernelSpec = JSON.parse(
-                        await this.file.readFile(path.join(paths[i], searchResults[i][0], 'kernel.json'))
-                    );
+                    const kernelJsonFile = path.join(paths[i], searchResults[i][0], 'kernel.json');
+                    const kernelJson = JSON.parse(await this.file.readFile(kernelJsonFile));
+                    const kernelSpec: IJupyterKernelSpec = new JupyterKernelSpec(kernelJson, kernelJsonFile);
                     kernelSpec.name = searchResults[i][0];
                     this.cache.push(kernelSpec);
                     return kernelSpec;
@@ -213,7 +215,7 @@ export class KernelFinder implements IKernelFinder {
             this.activeInterpreter = await this.interpreterService.getActiveInterpreter(resource);
         }
 
-        const defaultSpec = {
+        const defaultSpec: Kernel.ISpecModel = {
             name: `python_defaultSpec_${Date.now()}`,
             language: 'python',
             path: '<path to kernel spec.json>',
@@ -225,11 +227,12 @@ export class KernelFinder implements IKernelFinder {
                 'ipykernel_launcher',
                 '-f',
                 connectionFilePlaceholder
-            ]
+            ],
+            resources: {}
         };
-
-        this.cache.push(defaultSpec);
-        return defaultSpec;
+        const kernelSpec = new JupyterKernelSpec(defaultSpec);
+        this.cache.push(kernelSpec);
+        return kernelSpec;
     }
 
     private async readCache(): Promise<IJupyterKernelSpec[]> {
