@@ -103,7 +103,7 @@ export class PythonExecutionFactory implements IPythonExecutionFactory {
                     activatedProc!,
                     activatedEnvVars
                 );
-                return factory.createDaemonServices<T>();
+                return factory.createDaemonService<T>();
             }
             const daemon = new PythonDaemonExecutionServicePool(
                 logger,

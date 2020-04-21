@@ -54,8 +54,8 @@ suite('Daemon - Python Daemon Pool', () => {
     let logger: IProcessLogger;
     class DaemonPool extends PythonDaemonExecutionServicePool {
         // tslint:disable-next-line: no-unnecessary-override
-        public createDaemonServices(): Promise<IPythonDaemonExecutionService> {
-            return super.createDaemonServices();
+        public createDaemonService<T extends IPythonDaemonExecutionService>(): Promise<T> {
+            return super.createDaemonService();
         }
     }
     suiteSetup(() => {
@@ -72,7 +72,7 @@ suite('Daemon - Python Daemon Pool', () => {
             return this.skip();
         }
         logger = mock(ProcessLogger);
-        createDaemonServicesSpy = sinon.spy(DaemonPool.prototype, 'createDaemonServices');
+        createDaemonServicesSpy = sinon.spy(DaemonPool.prototype, 'createDaemonService');
         pythonExecutionService = mock<IPythonExecutionService>();
         when(
             pythonExecutionService.execModuleObservable('vscode_datascience_helpers.daemon', anything(), anything())
