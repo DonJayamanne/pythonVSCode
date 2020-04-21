@@ -390,6 +390,11 @@ export interface IJupyterKernelSpec {
     language: string;
     path: string;
     /**
+     * A dictionary of environment variables to set for the kernel.
+     */
+    readonly env?: JSONObject;
+
+    /**
      * Kernel display name.
      *
      * @type {string}

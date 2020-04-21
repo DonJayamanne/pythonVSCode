@@ -20,13 +20,13 @@ import { StopWatch } from '../utils/stopWatch';
 import { ProcessService } from './proc';
 import { PythonDaemonExecutionService } from './pythonDaemon';
 import {
-    DaemonExecutionFactoryCreationOptions,
     ExecutionResult,
     InterpreterInfomation,
     IProcessLogger,
     IPythonDaemonExecutionService,
     IPythonExecutionService,
     ObservableExecutionResult,
+    PooledDaemonExecutionFactoryCreationOptions,
     PythonExecutionInfo,
     SpawnOptions
 } from './types';
@@ -42,7 +42,7 @@ export class PythonDaemonExecutionServicePool implements IPythonDaemonExecutionS
     constructor(
         private readonly logger: IProcessLogger,
         private readonly disposables: IDisposableRegistry,
-        private readonly options: DaemonExecutionFactoryCreationOptions,
+        private readonly options: PooledDaemonExecutionFactoryCreationOptions,
         private readonly pythonExecutionService: IPythonExecutionService,
         private readonly activatedEnvVariables?: NodeJS.ProcessEnv,
         private readonly timeoutWaitingForDaemon: number = 1_000
@@ -141,7 +141,11 @@ export class PythonDaemonExecutionServicePool implements IPythonDaemonExecutionS
     }
     @traceDecorators.error('Failed to create daemon')
     protected async createDaemonServices(): Promise<IPythonDaemonExecutionService> {
-        const loggingArgs: string[] = ['-v']; // Log information messages or greater (see daemon.__main__.py for options).
+        const loggingArgs: string[] = [
+            '-v',
+            '--v',
+            '--log-file=/Users/donjayamanne/Desktop/Development/vsc/pythonVSCode/daaemon.log'
+        ]; // Log information messages or greater (see daemon.__main__.py for options).
         const args = (this.options.daemonModule ? [`--daemon-module=${this.options.daemonModule}`] : []).concat(
             loggingArgs
         );

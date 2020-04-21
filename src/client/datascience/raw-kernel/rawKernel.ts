@@ -6,6 +6,7 @@ import { ISignal, Signal } from '@phosphor/signaling';
 // tslint:disable-next-line: no-require-imports
 import cloneDeep = require('lodash/cloneDeep');
 import * as uuid from 'uuid/v4';
+import { EventEmitter } from 'vscode';
 import { traceError } from '../../common/logger';
 import { IJMPConnection } from '../types';
 import { RawFuture } from './rawFuture';
@@ -88,6 +89,10 @@ export class RawKernel implements Kernel.IKernel {
         string,
         RawFuture<KernelMessage.IShellControlMessage, KernelMessage.IShellControlMessage>
     >();
+    private readonly _interrupted = new EventEmitter<void>();
+    public get interrupted() {
+        return this._interrupted.event;
+    }
 
     constructor(jmpConnection: IJMPConnection, clientId: string) {
         // clientID is controlled by the session as we keep the same id
@@ -438,7 +443,7 @@ export class RawKernel implements Kernel.IKernel {
         return false;
     }
 
-    /* 
+    /*
     Messages are handled async so there is a possibility that the kernel might be
     disposed or restarted during handling. Throw an error here if our message that
     we are handling is no longer valid.

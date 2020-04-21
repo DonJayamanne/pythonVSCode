@@ -11,11 +11,13 @@ import { Event, EventEmitter } from 'vscode';
 import { InterpreterUri } from '../../common/installer/types';
 import { traceInfo, traceWarning } from '../../common/logger';
 import { IFileSystem, TemporaryFile } from '../../common/platform/types';
-import { IPythonExecutionFactory } from '../../common/process/types';
+import { IPythonExecutionFactory, ObservableExecutionResult } from '../../common/process/types';
 import { createDeferred, Deferred } from '../../common/utils/async';
 import * as localize from '../../common/utils/localize';
 import { isResource, noop } from '../../common/utils/misc';
 import { IJupyterKernelSpec } from '../types';
+import { KernelDaemon } from './kernelDaemon';
+import { KernelLauncherDaemon } from './kernelLauncherDaemon';
 import { IKernelConnection, IKernelFinder, IKernelLauncher, IKernelProcess } from './types';
 
 // Launches and disposes a kernel process given a kernelspec and a resource or python interpreter.
@@ -42,7 +44,9 @@ class KernelProcess implements IKernelProcess {
     public get connection(): Readonly<IKernelConnection> {
         return this._connection;
     }
-
+    private readonly kernelLauncherDaemon: KernelLauncherDaemon;
+    private launchedOnce?: boolean;
+    private kernelDaemon?: KernelDaemon;
     constructor(
         private executionFactory: IPythonExecutionFactory,
         private file: IFileSystem,
@@ -51,9 +55,20 @@ class KernelProcess implements IKernelProcess {
         private _interpreter: InterpreterUri
     ) {
         this.readyPromise = createDeferred<void>();
+        this.kernelLauncherDaemon = new KernelLauncherDaemon(this.executionFactory);
     }
-
+    public interrupt() {
+        this.kernelDaemon?.interrupt().catch(traceWarning.bind('Failed to interrupt Kernel Daemon')); // NOSONAR
+    }
+    public kill() {
+        this.kernelDaemon?.kill().catch(traceWarning.bind('Failed to kill Kernel Daemon')); // NOSONAR
+    }
     public async launch(): Promise<void> {
+        if (this.launchedOnce) {
+            throw new Error('Launch cannot be called more than once');
+        }
+        this.launchedOnce = true;
+
         this.connectionFile = await this.file.createTemporaryFile('.json');
 
         const resource = isResource(this._interpreter) ? this._interpreter : undefined;
@@ -69,9 +84,21 @@ class KernelProcess implements IKernelProcess {
         args[4] = this.connectionFile.filePath;
         args.splice(0, 1);
 
-        const executionService = await this.executionFactory.create({ resource, pythonPath });
-        const exeObs = executionService.execObservable(args, {});
-
+        let exeObs: ObservableExecutionResult<string>;
+        if (!pythonPath) {
+            const { observableResult, daemon } = await this.kernelLauncherDaemon.launch(
+                resource,
+                args,
+                this._kernelSpec
+            );
+            this.kernelDaemon = daemon;
+            exeObs = observableResult;
+            // console.log('wait');
+        } else {
+            const executionService = await this.executionFactory.create({ resource, pythonPath });
+            exeObs = executionService.execObservable(args, {});
+        }
+        this.readyPromise.resolve();
         if (exeObs.proc) {
             exeObs.proc!.on('exit', (exitCode) => {
                 traceInfo('KernelProcess Exit', `Exit - ${exitCode}`);
@@ -101,8 +128,12 @@ class KernelProcess implements IKernelProcess {
         this._process = exeObs.proc;
     }
 
-    public dispose() {
+    public async dispose(): Promise<void> {
         try {
+            if (this.kernelDaemon) {
+                await this.kernelDaemon?.kill().catch(noop);
+                this.kernelDaemon.dispose();
+            }
             this._process?.kill();
             this.connectionFile?.dispose();
         } catch {
@@ -149,7 +180,7 @@ export class KernelLauncher implements IKernelLauncher {
 
     private async getKernelConnection(): Promise<IKernelConnection> {
         const getPorts = promisify(portfinder.getPorts);
-        const ports = await getPorts(5, { host: '127.0.0.1', port: 9000 });
+        const ports = await getPorts(5, { host: '127.0.0.1', port: 9100 });
 
         return {
             version: 1,

@@ -16,7 +16,7 @@ import {
 import { EXTENSION_ROOT_DIR } from '../../../constants';
 import { IEnvironmentActivationService } from '../../../interpreter/activation/types';
 import { IInterpreterService, PythonInterpreter } from '../../../interpreter/contracts';
-import { JupyterCommands, PythonDaemonModule } from '../../constants';
+import { JupyterCommands, JupyterDaemonModule } from '../../constants';
 import { IJupyterCommand, IJupyterCommandFactory } from '../../types';
 
 // JupyterCommand objects represent some process that can be launched that should be guaranteed to work because it
@@ -88,7 +88,7 @@ class InterpreterJupyterCommand implements IJupyterCommand {
             // We don't want too many daemons (we don't want one for each of the users interpreter on their machine).
             if (isActiveInterpreter) {
                 const svc = await pythonExecutionFactory.createDaemon({
-                    daemonModule: PythonDaemonModule,
+                    daemonModule: JupyterDaemonModule,
                     pythonPath: interpreter!.path
                 });
 

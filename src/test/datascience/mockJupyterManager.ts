@@ -21,7 +21,8 @@ import {
     ExecutionResult,
     IProcessServiceFactory,
     IPythonExecutionFactory,
-    Output
+    Output,
+    IPythonDaemonExecutionService
 } from '../../client/common/process/types';
 import { IConfigurationService, IInstaller, Product } from '../../client/common/types';
 import { EXTENSION_ROOT_DIR } from '../../client/constants';
@@ -253,7 +254,7 @@ export class MockJupyterManager implements IJupyterSessionManager {
                     })
                 )
             )
-            .returns(() => Promise.resolve(pythonService));
+            .returns(() => Promise.resolve((pythonService as unknown) as IPythonDaemonExecutionService));
         this.pythonExecutionFactory
             .setup((f) =>
                 f.createActivatedEnvironment(

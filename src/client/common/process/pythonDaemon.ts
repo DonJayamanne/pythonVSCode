@@ -227,10 +227,10 @@ export class PythonDaemonExecutionService implements IPythonDaemonExecutionServi
         // tslint:disable-next-line: no-any
         return Object.keys(options).every((item) => daemonSupportedSpawnOptions.indexOf(item as any) >= 0);
     }
-    private sendRequestWithoutArgs<R, E, RO>(type: RequestType0<R, E, RO>): Thenable<R> {
+    protected sendRequestWithoutArgs<R, E, RO>(type: RequestType0<R, E, RO>): Thenable<R> {
         return Promise.race([this.connection.sendRequest(type), this.connectionClosedDeferred.promise]);
     }
-    private sendRequest<P, R, E, RO>(type: RequestType<P, R, E, RO>, params?: P): Thenable<R> {
+    protected sendRequest<P, R, E, RO>(type: RequestType<P, R, E, RO>, params?: P): Thenable<R> {
         // Throw an error if the connection has been closed.
         return Promise.race([this.connection.sendRequest(type, params), this.connectionClosedDeferred.promise]);
     }

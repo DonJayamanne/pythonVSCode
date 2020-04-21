@@ -16,7 +16,7 @@ import { noop } from '../../../common/utils/misc';
 import { EXTENSION_ROOT_DIR } from '../../../constants';
 import { IInterpreterService, PythonInterpreter } from '../../../interpreter/contracts';
 import { sendTelemetryEvent } from '../../../telemetry';
-import { JUPYTER_OUTPUT_CHANNEL, PythonDaemonModule, Telemetry } from '../../constants';
+import { JUPYTER_OUTPUT_CHANNEL, JupyterDaemonModule, Telemetry } from '../../constants';
 import { IJupyterInterpreterDependencyManager, IJupyterSubCommandExecutionService } from '../../types';
 import { JupyterServerInfo } from '../jupyterConnection';
 import { JupyterInstallError } from '../jupyterInstallError';
@@ -111,7 +111,7 @@ export class JupyterInterpreterSubCommandExecutionService
             )
         );
         const executionService = await this.pythonExecutionFactory.createDaemon({
-            daemonModule: PythonDaemonModule,
+            daemonModule: JupyterDaemonModule,
             pythonPath: interpreter.path
         });
         return executionService.execModuleObservable('jupyter', ['notebook'].concat(notebookArgs), options);
@@ -120,7 +120,7 @@ export class JupyterInterpreterSubCommandExecutionService
     public async getRunningJupyterServers(token?: CancellationToken): Promise<JupyterServerInfo[] | undefined> {
         const interpreter = await this.getSelectedInterpreterAndThrowIfNotAvailable(token);
         const daemon = await this.pythonExecutionFactory.createDaemon({
-            daemonModule: PythonDaemonModule,
+            daemonModule: JupyterDaemonModule,
             pythonPath: interpreter.path
         });
 
@@ -146,7 +146,7 @@ export class JupyterInterpreterSubCommandExecutionService
         }
 
         const daemon = await this.pythonExecutionFactory.createDaemon({
-            daemonModule: PythonDaemonModule,
+            daemonModule: JupyterDaemonModule,
             pythonPath: interpreter.path
         });
         // Wait for the nbconvert to finish
@@ -178,7 +178,7 @@ export class JupyterInterpreterSubCommandExecutionService
     public async getKernelSpecs(token?: CancellationToken): Promise<JupyterKernelSpec[]> {
         const interpreter = await this.getSelectedInterpreterAndThrowIfNotAvailable(token);
         const daemon = await this.pythonExecutionFactory.createDaemon({
-            daemonModule: PythonDaemonModule,
+            daemonModule: JupyterDaemonModule,
             pythonPath: interpreter.path
         });
         if (Cancellation.isCanceled(token)) {

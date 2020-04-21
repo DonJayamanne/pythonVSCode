@@ -3,9 +3,11 @@
 import { Kernel, KernelMessage, ServerConnection, Session } from '@jupyterlab/services';
 import { ISignal, Signal } from '@phosphor/signaling';
 import * as uuid from 'uuid/v4';
+import { IDisposable } from '../../common/types';
 import { IKernelProcess } from '../kernel-launcher/types';
 import { IJMPConnection } from '../types';
 import { RawKernel } from './rawKernel';
+import { noop } from '../../common/utils/misc';
 
 /*
 RawSession class implements a jupyterlab ISession object
@@ -22,7 +24,7 @@ export class RawSession implements Session.ISession {
     private _clientID: string;
     private _kernel: RawKernel;
     private _statusChanged = new Signal<this, Kernel.Status>(this);
-
+    private readonly disposables: IDisposable[] = [];
     // RawSession owns the lifetime of the kernel process and will dispose it
     constructor(connection: IJMPConnection, private kernelProcess: IKernelProcess) {
         // Unique ID for this session instance
@@ -34,14 +36,15 @@ export class RawSession implements Session.ISession {
         // Connect our kernel and hook up status changes
         this._kernel = new RawKernel(connection, this._clientID);
         this._kernel.statusChanged.connect(this.onKernelStatus, this);
+        this._kernel.interrupted(this.kernelProcess.interrupt, this.kernelProcess, this.disposables);
     }
 
     public dispose() {
         if (!this.isDisposed) {
             this._kernel.dispose();
-            this.kernelProcess.dispose();
+            this.kernelProcess.dispose().catch(noop);
         }
-
+        this.disposables.forEach((d) => d.dispose());
         this.isDisposed = true;
     }
 
@@ -61,7 +64,8 @@ export class RawSession implements Session.ISession {
     }
 
     // Shutdown our session and kernel
-    public shutdown(): Promise<void> {
+    public async shutdown(): Promise<void> {
+        await this.kernelProcess.dispose().catch(noop);
         this.dispose();
         // Normally the server session has to shutdown here with an await on a rest call
         // but we just have a local connection, so dispose and resolve

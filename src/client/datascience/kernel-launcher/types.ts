@@ -2,9 +2,9 @@
 // Licensed under the MIT License.
 'use strict';
 
-import { IDisposable } from 'monaco-editor';
 import { Event } from 'vscode';
 import { InterpreterUri } from '../../common/installer/types';
+import { IAsyncDisposable } from '../../common/types';
 import { IJupyterKernelSpec } from '../types';
 
 export const IKernelLauncher = Symbol('IKernelLauncher');
@@ -25,12 +25,14 @@ export interface IKernelConnection {
     transport: 'tcp' | 'ipc';
 }
 
-export interface IKernelProcess extends IDisposable {
+export interface IKernelProcess extends IAsyncDisposable {
     readonly connection: Readonly<IKernelConnection>;
     ready: Promise<void>;
     readonly kernelSpec: Readonly<IJupyterKernelSpec>;
     exited: Event<number | null>;
-    dispose(): void;
+    dispose(): Promise<void>;
+    interrupt(): void;
+    kill(): void;
     launch(interpreter: InterpreterUri, kernelSpec: IJupyterKernelSpec): Promise<void>;
 }
 

@@ -10,7 +10,7 @@ import { IPythonExecutionFactory } from '../common/process/types';
 import { IDisposableRegistry } from '../common/types';
 import { debounceAsync, swallowExceptions } from '../common/utils/decorators';
 import { sendTelemetryEvent } from '../telemetry';
-import { PythonDaemonModule, Telemetry } from './constants';
+import { JupyterDaemonModule, Telemetry } from './constants';
 import { ActiveEditorContextService } from './context/activeEditorContext';
 import { JupyterInterpreterService } from './jupyter/interpreter/jupyterInterpreterService';
 import { INotebookEditor, INotebookEditorProvider } from './types';
@@ -54,6 +54,6 @@ export class Activation implements IExtensionSingleActivationService {
         if (!interpreter) {
             return;
         }
-        await this.factory.createDaemon({ daemonModule: PythonDaemonModule, pythonPath: interpreter.path });
+        await this.factory.createDaemon({ daemonModule: JupyterDaemonModule, pythonPath: interpreter.path });
     }
 }
