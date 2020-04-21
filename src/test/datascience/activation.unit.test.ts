@@ -69,7 +69,9 @@ suite('Data Science - Activation', () => {
 
         verify(executionFactory.createDaemon(anything())).once();
         verify(
-            executionFactory.createDaemon(deepEqual({ daemonModule: JupyterDaemonModule, pythonPath: interpreter.path }))
+            executionFactory.createDaemon(
+                deepEqual({ daemonModule: JupyterDaemonModule, pythonPath: interpreter.path })
+            )
         ).once();
     }
 
@@ -85,7 +87,9 @@ suite('Data Science - Activation', () => {
         await fakeTimer.wait();
 
         verify(
-            executionFactory.createDaemon(deepEqual({ daemonModule: JupyterDaemonModule, pythonPath: interpreter.path }))
+            executionFactory.createDaemon(
+                deepEqual({ daemonModule: JupyterDaemonModule, pythonPath: interpreter.path })
+            )
         ).twice();
     });
     test('Changing interpreter without opening a notebook does not result in a daemon being created', async () => {
