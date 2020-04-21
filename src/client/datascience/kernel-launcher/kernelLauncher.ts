@@ -57,8 +57,10 @@ class KernelProcess implements IKernelProcess {
         this.readyPromise = createDeferred<void>();
         this.kernelLauncherDaemon = new KernelLauncherDaemon(this.executionFactory);
     }
-    public interrupt() {
-        this.kernelDaemon?.interrupt().catch(traceWarning.bind('Failed to interrupt Kernel Daemon')); // NOSONAR
+    public async interrupt(): Promise<void> {
+        if (this.kernelDaemon) {
+            await this.kernelDaemon?.interrupt();
+        }
     }
     public kill() {
         this.kernelDaemon?.kill().catch(traceWarning.bind('Failed to kill Kernel Daemon')); // NOSONAR

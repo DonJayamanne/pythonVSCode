@@ -3,11 +3,10 @@
 import { Kernel, KernelMessage, ServerConnection, Session } from '@jupyterlab/services';
 import { ISignal, Signal } from '@phosphor/signaling';
 import * as uuid from 'uuid/v4';
-import { IDisposable } from '../../common/types';
+import { noop } from '../../common/utils/misc';
 import { IKernelProcess } from '../kernel-launcher/types';
 import { IJMPConnection } from '../types';
 import { RawKernel } from './rawKernel';
-import { noop } from '../../common/utils/misc';
 
 /*
 RawSession class implements a jupyterlab ISession object
@@ -24,7 +23,6 @@ export class RawSession implements Session.ISession {
     private _clientID: string;
     private _kernel: RawKernel;
     private _statusChanged = new Signal<this, Kernel.Status>(this);
-    private readonly disposables: IDisposable[] = [];
     // RawSession owns the lifetime of the kernel process and will dispose it
     constructor(connection: IJMPConnection, private kernelProcess: IKernelProcess) {
         // Unique ID for this session instance
@@ -34,9 +32,8 @@ export class RawSession implements Session.ISession {
         this._clientID = uuid();
 
         // Connect our kernel and hook up status changes
-        this._kernel = new RawKernel(connection, this._clientID);
+        this._kernel = new RawKernel(connection, this._clientID, this.kernelProcess.interrupt.bind(this.kernelProcess));
         this._kernel.statusChanged.connect(this.onKernelStatus, this);
-        this._kernel.interrupted(this.kernelProcess.interrupt, this.kernelProcess, this.disposables);
     }
 
     public dispose() {
@@ -44,7 +41,6 @@ export class RawSession implements Session.ISession {
             this._kernel.dispose();
             this.kernelProcess.dispose().catch(noop);
         }
-        this.disposables.forEach((d) => d.dispose());
         this.isDisposed = true;
     }
 

@@ -31,7 +31,7 @@ export interface IKernelProcess extends IAsyncDisposable {
     readonly kernelSpec: Readonly<IJupyterKernelSpec>;
     exited: Event<number | null>;
     dispose(): Promise<void>;
-    interrupt(): void;
+    interrupt(): Promise<void>;
     kill(): void;
     launch(interpreter: InterpreterUri, kernelSpec: IJupyterKernelSpec): Promise<void>;
 }

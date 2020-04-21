@@ -4,8 +4,10 @@
 import json
 import logging
 import os
-import subprocess
+import signal
 import sys
+import subprocess
+import threading
 from vscode_datascience_helpers.daemon.daemon_python import (
     error_decorator,
     PythonDaemon as BasePythonDaemon,
@@ -20,6 +22,7 @@ from vscode_datascience_helpers.kernel_launcher import launch_kernel
 class PythonDaemon(JupyterDaemon):
     def __init__(self, rx, tx):
         super().__init__(rx, tx)
+        self.killing_kernel = False
         self.log.info("DataScience Kernel Launcher Daemon init")
 
     def close(self):
@@ -70,6 +73,11 @@ class PythonDaemon(JupyterDaemon):
 
     @error_decorator
     def m_exec_module_observable(self, module_name, args=None, cwd=None, env=None):
+        thread_args = (module_name, args, cwd, env)
+        self.kernel_thread = threading.Thread(target=self.exec_module_observable_in_background, args=thread_args, daemon=True)
+        self.kernel_thread.start()
+
+    def exec_module_observable_in_background(self, module_name, args=None, cwd=None, env=None):
         self.log.info(
             "Exec in DS Kernel Launcher Daemon (observable) %s with args %s", module_name, args
         )
@@ -107,7 +115,7 @@ class PythonDaemon(JupyterDaemon):
         sys.stdout.flush()
         sys.stderr.flush()
 
-        if self.killing_kernel is None:
+        if not self.killing_kernel:
             # Somethign is wrong, lets kill this daemon.
             sys.exit(exit_code)
 

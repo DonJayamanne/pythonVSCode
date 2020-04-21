@@ -6,7 +6,6 @@ import { ISignal, Signal } from '@phosphor/signaling';
 // tslint:disable-next-line: no-require-imports
 import cloneDeep = require('lodash/cloneDeep');
 import * as uuid from 'uuid/v4';
-import { EventEmitter } from 'vscode';
 import { traceError } from '../../common/logger';
 import { IJMPConnection } from '../types';
 import { RawFuture } from './rawFuture';
@@ -89,12 +88,12 @@ export class RawKernel implements Kernel.IKernel {
         string,
         RawFuture<KernelMessage.IShellControlMessage, KernelMessage.IShellControlMessage>
     >();
-    private readonly _interrupted = new EventEmitter<void>();
-    public get interrupted() {
-        return this._interrupted.event;
-    }
 
-    constructor(jmpConnection: IJMPConnection, clientId: string) {
+    constructor(
+        jmpConnection: IJMPConnection,
+        clientId: string,
+        private readonly kernelInterrupter: () => Promise<void>
+    ) {
         // clientID is controlled by the session as we keep the same id
         this._clientId = clientId;
         this._id = uuid();
@@ -273,8 +272,8 @@ export class RawKernel implements Kernel.IKernel {
     public reconnect(): Promise<void> {
         throw new Error('Not yet implemented');
     }
-    public interrupt(): Promise<void> {
-        throw new Error('Not yet implemented');
+    public async interrupt(): Promise<void> {
+        await this.kernelInterrupter();
     }
     public restart(): Promise<void> {
         throw new Error('Not yet implemented');

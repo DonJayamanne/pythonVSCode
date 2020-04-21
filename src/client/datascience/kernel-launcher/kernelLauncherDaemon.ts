@@ -34,6 +34,7 @@ export class KernelLauncherDaemon implements IDisposable {
             daemonModule: KernelLauncherDaemonModule,
             pythonPath: pythonPath,
             daemonClass: KernelDaemon,
+            dedicated: true,
             resource
         });
         // const args = kernelSpec.argv.slice();
