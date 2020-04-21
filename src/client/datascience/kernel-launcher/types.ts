@@ -2,10 +2,6 @@
 // Licensed under the MIT License.
 'use strict';
 
-<<<<<<< HEAD
-=======
-import { IDisposable } from 'monaco-editor';
->>>>>>> refactorDaemon
 import { Event } from 'vscode';
 import { InterpreterUri } from '../../common/installer/types';
 import { IAsyncDisposable } from '../../common/types';
