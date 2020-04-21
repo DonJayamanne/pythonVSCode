@@ -31,7 +31,7 @@ import { noop } from '../../../client/common/utils/misc';
 import { Architecture } from '../../../client/common/utils/platform';
 import { parsePythonVersion } from '../../../client/common/utils/version';
 import { EXTENSION_ROOT_DIR } from '../../../client/constants';
-import { PythonDaemonModule } from '../../../client/datascience/constants';
+import { JupyterDaemonModule } from '../../../client/datascience/constants';
 import { isPythonVersion, PYTHON_PATH, waitForCondition } from '../../common';
 import { createTemporaryFile } from '../../utils/fs';
 use(chaiPromised);
@@ -90,7 +90,7 @@ suite('Daemon - Python Daemon Pool', () => {
         });
         const options = {
             pythonPath: fullyQualifiedPythonPath,
-            daemonModule: PythonDaemonModule,
+            daemonModule: JupyterDaemonModule,
             daemonCount: 2,
             observableDaemonCount: 1
         };

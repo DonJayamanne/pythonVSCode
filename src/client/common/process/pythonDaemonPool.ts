@@ -20,13 +20,13 @@ import { StopWatch } from '../utils/stopWatch';
 import { ProcessService } from './proc';
 import { PythonDaemonExecutionService } from './pythonDaemon';
 import {
-    DaemonExecutionFactoryCreationOptions,
     ExecutionResult,
     InterpreterInfomation,
     IProcessLogger,
     IPythonDaemonExecutionService,
     IPythonExecutionService,
     ObservableExecutionResult,
+    PooledDaemonExecutionFactoryCreationOptions,
     PythonExecutionInfo,
     SpawnOptions
 } from './types';
@@ -42,7 +42,7 @@ export class PythonDaemonExecutionServicePool implements IPythonDaemonExecutionS
     constructor(
         private readonly logger: IProcessLogger,
         private readonly disposables: IDisposableRegistry,
-        private readonly options: DaemonExecutionFactoryCreationOptions,
+        private readonly options: PooledDaemonExecutionFactoryCreationOptions,
         private readonly pythonExecutionService: IPythonExecutionService,
         private readonly activatedEnvVariables?: NodeJS.ProcessEnv,
         private readonly timeoutWaitingForDaemon: number = 1_000
