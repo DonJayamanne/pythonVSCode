@@ -14,9 +14,10 @@ import { IFileSystem, TemporaryFile } from '../../common/platform/types';
 import { IPythonExecutionFactory, ObservableExecutionResult } from '../../common/process/types';
 import { createDeferred, Deferred } from '../../common/utils/async';
 import * as localize from '../../common/utils/localize';
-import { isResource, noop } from '../../common/utils/misc';
+import { noop } from '../../common/utils/misc';
 import { IJupyterKernelSpec } from '../types';
 import { KernelDaemon } from './kernelDaemon';
+import { findIndexOfConnectionFile } from './kernelFinder';
 import { KernelLauncherDaemon } from './kernelLauncherDaemon';
 import { IKernelConnection, IKernelFinder, IKernelLauncher, IKernelProcess } from './types';
 
@@ -51,8 +52,7 @@ class KernelProcess implements IKernelProcess {
         private executionFactory: IPythonExecutionFactory,
         private file: IFileSystem,
         private _connection: IKernelConnection,
-        private _kernelSpec: IJupyterKernelSpec,
-        private _interpreter: InterpreterUri
+        private _kernelSpec: IJupyterKernelSpec
     ) {
         this.readyPromise = createDeferred<void>();
         this.kernelLauncherDaemon = new KernelLauncherDaemon(this.executionFactory);
@@ -72,10 +72,6 @@ class KernelProcess implements IKernelProcess {
         this.launchedOnce = true;
 
         this.connectionFile = await this.file.createTemporaryFile('.json');
-
-        const resource = isResource(this._interpreter) ? this._interpreter : undefined;
-        const pythonPath = isResource(this._interpreter) ? undefined : this._interpreter.path;
-
         const args = [...this._kernelSpec.argv];
         await this.file.writeFile(this.connectionFile.filePath, JSON.stringify(this._connection), {
             encoding: 'utf-8',
@@ -83,9 +79,14 @@ class KernelProcess implements IKernelProcess {
         });
 
         // Inclide the conenction file in the arguments and remove the first argument which should be python
-        args[4] = this.connectionFile.filePath;
+        const indexOfConnectionFile = findIndexOfConnectionFile(this._kernelSpec);
+        if (indexOfConnectionFile === -1) {
+            throw new Error(`Connection file not found in kernelspec json args, ${args.join(' ')}`);
+        }
+        args[indexOfConnectionFile] = this.connectionFile.filePath;
         args.splice(0, 1);
 
+<<<<<<< HEAD
         let exeObs: ObservableExecutionResult<string>;
         if (!pythonPath) {
             const { observableResult, daemon } = await this.kernelLauncherDaemon.launch(
@@ -101,6 +102,14 @@ class KernelProcess implements IKernelProcess {
             exeObs = executionService.execObservable(args, {});
         }
         this.readyPromise.resolve();
+=======
+        const executionService = await this.executionFactory.create({
+            resource: undefined,
+            pythonPath: this._kernelSpec.path
+        });
+        const exeObs = executionService.execObservable(args, {});
+
+>>>>>>> refactorDaemon
         if (exeObs.proc) {
             exeObs.proc!.on('exit', (exitCode) => {
                 traceInfo('KernelProcess Exit', `Exit - ${exitCode}`);
@@ -169,13 +178,7 @@ export class KernelLauncher implements IKernelLauncher {
         }
 
         const connection = await this.getKernelConnection();
-        const kernelProcess = new KernelProcess(
-            this.executionFactory,
-            this.file,
-            connection,
-            kernelSpec,
-            interpreterUri
-        );
+        const kernelProcess = new KernelProcess(this.executionFactory, this.file, connection, kernelSpec);
         await kernelProcess.launch();
         return kernelProcess;
     }

@@ -19,13 +19,13 @@ import { PythonDaemonExecutionService } from './pythonDaemon';
 import { DaemonExecutionFactoryCreationOptions, IPythonDaemonExecutionService, IPythonExecutionService } from './types';
 
 export class PythonDaemonFactory {
-    private readonly envVariables: NodeJS.ProcessEnv;
-    private readonly pythonPath: string;
+    protected readonly envVariables: NodeJS.ProcessEnv;
+    protected readonly pythonPath: string;
     constructor(
         protected readonly disposables: IDisposableRegistry,
-        private readonly options: DaemonExecutionFactoryCreationOptions,
-        private readonly pythonExecutionService: IPythonExecutionService,
-        private readonly activatedEnvVariables?: NodeJS.ProcessEnv
+        protected readonly options: DaemonExecutionFactoryCreationOptions,
+        protected readonly pythonExecutionService: IPythonExecutionService,
+        protected readonly activatedEnvVariables?: NodeJS.ProcessEnv
     ) {
         if (!options.pythonPath) {
             throw new Error('options.pythonPath is empty when it shoud not be');
@@ -50,7 +50,7 @@ export class PythonDaemonFactory {
         this.envVariables[PYTHON_WARNINGS] = 'ignore';
     }
     @traceDecorators.error('Failed to create daemon')
-    public async createDaemonServices<T extends IPythonDaemonExecutionService>(): Promise<T> {
+    public async createDaemonService<T extends IPythonDaemonExecutionService>(): Promise<T> {
         const loggingArgs: string[] = [
             '-v',
             '--v',
@@ -111,7 +111,7 @@ export class PythonDaemonFactory {
      * @memberof PythonDaemonExecutionServicePool
      */
     @traceDecorators.error('Pinging Daemon Failed')
-    private async testDaemon(connection: MessageConnection) {
+    protected async testDaemon(connection: MessageConnection) {
         // If we don't get a reply to the ping in 5 seconds assume it will never work. Bomb out.
         // At this point there should be some information logged in stderr of the daemon process.
         const fail = createDeferred<{ pong: string }>();

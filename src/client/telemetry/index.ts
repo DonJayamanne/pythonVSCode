@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 // tslint:disable:no-reference no-any import-name no-any function-name
 /// <reference path="./vscode-extension-telemetry.d.ts" />
-import { JSONObject } from '@phosphor/coreutils';
+import type { JSONObject } from '@phosphor/coreutils';
 import { basename as pathBasename, sep as pathSep } from 'path';
 import * as stackTrace from 'stack-trace';
 import TelemetryReporter from 'vscode-extension-telemetry';
@@ -1974,6 +1974,10 @@ export interface IEventNamePropertyMapping {
         // Whether we timedout getting the source of the script (fetching script source in extension code).
         timedout: boolean;
     };
+    /**
+     * Telemetry event sent when an ipywidget version that is not supported is used & we have trapped this and warned the user abou it.
+     */
+    [Telemetry.IPyWidgetWidgetVersionNotSupportedLoadFailure]: { moduleHash: string; moduleVersion: string };
     /**
      * Telemetry event sent when an loading of 3rd party ipywidget JS scripts from 3rd party source has been disabled.
      */

@@ -1,7 +1,8 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 'use strict';
-import { Kernel } from '@jupyterlab/services';
+import type { Kernel } from '@jupyterlab/services';
+import type { JSONObject } from '@phosphor/coreutils';
 import * as path from 'path';
 import { CancellationToken } from 'vscode';
 import { createPromiseFromCancellation } from '../../../common/cancellation';
@@ -18,6 +19,8 @@ export class JupyterKernelSpec implements IJupyterKernelSpec {
     public display_name: string;
     public readonly env?: Record<string, string | undefined>;
     public argv: string[];
+    public readonly env?: JSONObject;
+
     // tslint:disable-next-line: no-any
     public metadata?: Record<string, any> & { interpreter?: Partial<PythonInterpreter> };
     constructor(specModel: Kernel.ISpecModel, file?: string) {

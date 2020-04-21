@@ -2,6 +2,10 @@
 // Licensed under the MIT License.
 'use strict';
 
+<<<<<<< HEAD
+=======
+import { IDisposable } from 'monaco-editor';
+>>>>>>> refactorDaemon
 import { Event } from 'vscode';
 import { InterpreterUri } from '../../common/installer/types';
 import { IAsyncDisposable } from '../../common/types';
@@ -30,7 +34,6 @@ export interface IKernelProcess extends IAsyncDisposable {
     ready: Promise<void>;
     readonly kernelSpec: Readonly<IJupyterKernelSpec>;
     exited: Event<number | null>;
-    dispose(): Promise<void>;
     interrupt(): Promise<void>;
     kill(): void;
     launch(interpreter: InterpreterUri, kernelSpec: IJupyterKernelSpec): Promise<void>;

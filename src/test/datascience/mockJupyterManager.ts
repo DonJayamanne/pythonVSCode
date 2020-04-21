@@ -20,6 +20,7 @@ import { ProductInstaller } from '../../client/common/installer/productInstaller
 import {
     ExecutionResult,
     IProcessServiceFactory,
+    IPythonDaemonExecutionService,
     IPythonExecutionFactory,
     Output,
     IPythonDaemonExecutionService
