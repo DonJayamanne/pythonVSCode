@@ -17,7 +17,6 @@ export class JupyterKernelSpec implements IJupyterKernelSpec {
     public path: string;
     public specFile: string | undefined;
     public display_name: string;
-    public readonly env?: Record<string, string | undefined>;
     public argv: string[];
     public readonly env?: JSONObject;
 
