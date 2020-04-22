@@ -6,7 +6,7 @@
 import { inject, injectable } from 'inversify';
 import { IExtensionSingleActivationService } from '../activation/types';
 import '../common/extensions';
-import { IPythonExecutionFactory } from '../common/process/types';
+import { IPythonExecutionFactory, IPythonDaemonExecutionService } from '../common/process/types';
 import { IDisposableRegistry } from '../common/types';
 import { debounceAsync, swallowExceptions } from '../common/utils/decorators';
 import { sendTelemetryEvent } from '../telemetry';
@@ -54,6 +54,9 @@ export class Activation implements IExtensionSingleActivationService {
         if (!interpreter) {
             return;
         }
-        await this.factory.createDaemon({ daemonModule: JupyterDaemonModule, pythonPath: interpreter.path });
+        await this.factory.createDaemon<IPythonDaemonExecutionService>({
+            daemonModule: JupyterDaemonModule,
+            pythonPath: interpreter.path
+        });
     }
 }

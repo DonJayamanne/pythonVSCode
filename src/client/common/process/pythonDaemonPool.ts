@@ -176,7 +176,7 @@ export class PythonDaemonExecutionServicePool extends PythonDaemonFactory implem
      * @memberof PythonDaemonExecutionServicePool
      */
     private async addDaemonService(type: DaemonType) {
-        const daemon = await this.createDaemonService();
+        const daemon = await this.createDaemonService<IPythonDaemonExecutionService>();
         const pool = type === 'StandardDaemon' ? this.daemons : this.observableDaemons;
         pool.push(daemon);
     }

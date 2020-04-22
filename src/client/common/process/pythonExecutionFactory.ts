@@ -126,7 +126,7 @@ export class PythonExecutionFactory implements IPythonExecutionFactory {
             promise = (this.daemonsPerPythonService.get(daemonPoolKey) as unknown) as Promise<T>;
             if (!promise) {
                 promise = start();
-                this.daemonsPerPythonService.set(daemonPoolKey, promise);
+                this.daemonsPerPythonService.set(daemonPoolKey, promise as Promise<IPythonDaemonExecutionService>);
             }
         }
         return promise.catch((ex) => {

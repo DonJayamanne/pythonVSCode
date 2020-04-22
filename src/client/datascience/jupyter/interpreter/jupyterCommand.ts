@@ -11,7 +11,8 @@ import {
     IProcessServiceFactory,
     IPythonExecutionFactory,
     IPythonExecutionService,
-    ObservableExecutionResult
+    ObservableExecutionResult,
+    IPythonDaemonExecutionService
 } from '../../../common/process/types';
 import { EXTENSION_ROOT_DIR } from '../../../constants';
 import { IEnvironmentActivationService } from '../../../interpreter/activation/types';
@@ -87,7 +88,7 @@ class InterpreterJupyterCommand implements IJupyterCommand {
             // Create a daemon only if the interpreter is the same as the current interpreter.
             // We don't want too many daemons (we don't want one for each of the users interpreter on their machine).
             if (isActiveInterpreter) {
-                const svc = await pythonExecutionFactory.createDaemon({
+                const svc = await pythonExecutionFactory.createDaemon<IPythonDaemonExecutionService>({
                     daemonModule: JupyterDaemonModule,
                     pythonPath: interpreter!.path
                 });
