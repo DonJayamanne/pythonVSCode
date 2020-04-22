@@ -9,7 +9,12 @@ import { CancellationToken } from 'vscode';
 import { Cancellation } from '../../../common/cancellation';
 import { traceError, traceInfo, traceWarning } from '../../../common/logger';
 import { IFileSystem } from '../../../common/platform/types';
-import { IPythonExecutionFactory, ObservableExecutionResult, SpawnOptions } from '../../../common/process/types';
+import {
+    IPythonDaemonExecutionService,
+    IPythonExecutionFactory,
+    ObservableExecutionResult,
+    SpawnOptions
+} from '../../../common/process/types';
 import { IOutputChannel, IPathUtils, Product } from '../../../common/types';
 import { DataScience } from '../../../common/utils/localize';
 import { noop } from '../../../common/utils/misc';
@@ -110,7 +115,7 @@ export class JupyterInterpreterSubCommandExecutionService
                 notebookArgs.join(' ')
             )
         );
-        const executionService = await this.pythonExecutionFactory.createDaemon({
+        const executionService = await this.pythonExecutionFactory.createDaemon<IPythonDaemonExecutionService>({
             daemonModule: JupyterDaemonModule,
             pythonPath: interpreter.path
         });
@@ -119,7 +124,7 @@ export class JupyterInterpreterSubCommandExecutionService
 
     public async getRunningJupyterServers(token?: CancellationToken): Promise<JupyterServerInfo[] | undefined> {
         const interpreter = await this.getSelectedInterpreterAndThrowIfNotAvailable(token);
-        const daemon = await this.pythonExecutionFactory.createDaemon({
+        const daemon = await this.pythonExecutionFactory.createDaemon<IPythonDaemonExecutionService>({
             daemonModule: JupyterDaemonModule,
             pythonPath: interpreter.path
         });
@@ -145,7 +150,7 @@ export class JupyterInterpreterSubCommandExecutionService
             throw new Error(DataScience.jupyterNbConvertNotSupported());
         }
 
-        const daemon = await this.pythonExecutionFactory.createDaemon({
+        const daemon = await this.pythonExecutionFactory.createDaemon<IPythonDaemonExecutionService>({
             daemonModule: JupyterDaemonModule,
             pythonPath: interpreter.path
         });
@@ -177,7 +182,7 @@ export class JupyterInterpreterSubCommandExecutionService
 
     public async getKernelSpecs(token?: CancellationToken): Promise<JupyterKernelSpec[]> {
         const interpreter = await this.getSelectedInterpreterAndThrowIfNotAvailable(token);
-        const daemon = await this.pythonExecutionFactory.createDaemon({
+        const daemon = await this.pythonExecutionFactory.createDaemon<IPythonDaemonExecutionService>({
             daemonModule: JupyterDaemonModule,
             pythonPath: interpreter.path
         });

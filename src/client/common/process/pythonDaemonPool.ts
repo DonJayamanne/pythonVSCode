@@ -38,6 +38,7 @@ export class PythonDaemonExecutionServicePool extends PythonDaemonFactory implem
         this.disposables.push(this);
     }
     public async initialize() {
+        // If `daemonCount` is not in optoins, then we are not initializing a pool of daemons.
         if (!('daemonCount' in this.options)) {
             return;
         }
@@ -175,7 +176,7 @@ export class PythonDaemonExecutionServicePool extends PythonDaemonFactory implem
      * @memberof PythonDaemonExecutionServicePool
      */
     private async addDaemonService(type: DaemonType) {
-        const daemon = await this.createDaemonService();
+        const daemon = await this.createDaemonService<IPythonDaemonExecutionService>();
         const pool = type === 'StandardDaemon' ? this.daemons : this.observableDaemons;
         pool.push(daemon);
     }

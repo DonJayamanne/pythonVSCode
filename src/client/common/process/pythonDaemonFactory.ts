@@ -13,8 +13,9 @@ import {
 import { EXTENSION_ROOT_DIR } from '../../constants';
 import { PYTHON_WARNINGS } from '../constants';
 import { traceDecorators, traceError } from '../logger';
-import { IDisposableRegistry } from '../types';
+import { IDisposable, IDisposableRegistry } from '../types';
 import { createDeferred } from '../utils/async';
+import { BasePythonDaemon } from './baseDaemon';
 import { PythonDaemonExecutionService } from './pythonDaemon';
 import { DaemonExecutionFactoryCreationOptions, IPythonDaemonExecutionService, IPythonExecutionService } from './types';
 
@@ -50,12 +51,14 @@ export class PythonDaemonFactory {
         this.envVariables[PYTHON_WARNINGS] = 'ignore';
     }
     @traceDecorators.error('Failed to create daemon')
-    public async createDaemonService<T extends IPythonDaemonExecutionService>(): Promise<T> {
+    public async createDaemonService<T extends IPythonDaemonExecutionService | IDisposable>(): Promise<T> {
+        // const loggingArgs: string[] = ['-v']; // Log information messages or greater (see daemon.__main__.py for options).
         const loggingArgs: string[] = [
             '-v',
             '--v',
             '--log-file=/Users/donjayamanne/Desktop/Development/vsc/pythonVSCode/daaemon.log'
         ]; // Log information messages or greater (see daemon.__main__.py for options).
+
         const args = (this.options.daemonModule ? [`--daemon-module=${this.options.daemonModule}`] : []).concat(
             loggingArgs
         );
@@ -84,11 +87,11 @@ export class PythonDaemonFactory {
 
             const cls = this.options.daemonClass ?? PythonDaemonExecutionService;
             const instance = new cls(this.pythonExecutionService, this.pythonPath, daemonProc.proc, connection);
-            if (instance instanceof PythonDaemonExecutionService) {
+            if (instance instanceof BasePythonDaemon) {
                 this.disposables.push(instance);
                 return (instance as unknown) as T;
             }
-            throw new Error(`Daemon class ${cls.name} must inherit PythonDaemonExecutionService.`);
+            throw new Error(`Daemon class ${cls.name} must inherit BasePythonDaemon.`);
         } catch (ex) {
             traceError('Failed to start the Daemon, StdErr: ', stdError);
             traceError('Failed to start the Daemon, ProcEndEx', procEndEx || ex);

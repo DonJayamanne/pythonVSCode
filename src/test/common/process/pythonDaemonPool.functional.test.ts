@@ -50,11 +50,11 @@ suite('Daemon - Python Daemon Pool', () => {
     let pythonDaemonPool: PythonDaemonExecutionServicePool;
     let pythonExecutionService: IPythonExecutionService;
     let disposables: IDisposable[] = [];
-    let createDaemonServicesSpy: sinon.SinonSpy<[], Promise<IPythonDaemonExecutionService>>;
+    let createDaemonServicesSpy: sinon.SinonSpy<[], Promise<IPythonDaemonExecutionService | IDisposable>>;
     let logger: IProcessLogger;
     class DaemonPool extends PythonDaemonExecutionServicePool {
         // tslint:disable-next-line: no-unnecessary-override
-        public createDaemonService<T extends IPythonDaemonExecutionService>(): Promise<T> {
+        public createDaemonService<T extends IPythonDaemonExecutionService | IDisposable>(): Promise<T> {
             return super.createDaemonService();
         }
     }

@@ -141,7 +141,9 @@ export interface IPythonExecutionFactory {
      * @returns {(Promise<IPythonDaemonExecutionService>)}
      * @memberof IPythonExecutionFactory
      */
-    createDaemon<T extends IPythonDaemonExecutionService>(options: DaemonExecutionFactoryCreationOptions): Promise<T>;
+    createDaemon<T extends IPythonDaemonExecutionService | IDisposable>(
+        options: DaemonExecutionFactoryCreationOptions
+    ): Promise<T>;
     createActivatedEnvironment(options: ExecutionFactoryCreateWithEnvironmentOptions): Promise<IPythonExecutionService>;
     createCondaExecutionService(
         pythonPath: string,
