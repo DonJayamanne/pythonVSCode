@@ -13,7 +13,7 @@ import { sendTelemetryEvent } from '../../telemetry';
 import { EventName } from '../../telemetry/constants';
 import { traceError } from '../logger';
 import { IFileSystem } from '../platform/types';
-import { IConfigurationService, IDisposableRegistry } from '../types';
+import { IConfigurationService, IDisposable, IDisposableRegistry } from '../types';
 import { ProcessService } from './proc';
 import { PythonDaemonFactory } from './pythonDaemonFactory';
 import { PythonDaemonExecutionServicePool } from './pythonDaemonPool';
@@ -64,7 +64,7 @@ export class PythonExecutionFactory implements IPythonExecutionFactory {
         );
     }
 
-    public async createDaemon<T extends IPythonDaemonExecutionService>(
+    public async createDaemon<T extends IPythonDaemonExecutionService | IDisposable>(
         options: DaemonExecutionFactoryCreationOptions
     ): Promise<T> {
         const pythonPath = options.pythonPath
