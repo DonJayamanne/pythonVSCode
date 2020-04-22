@@ -8,10 +8,12 @@ import * as portfinder from 'portfinder';
 import { promisify } from 'util';
 import * as uuid from 'uuid/v4';
 import { Event, EventEmitter } from 'vscode';
+import { PYTHON_LANGUAGE } from '../../common/constants';
 import { InterpreterUri } from '../../common/installer/types';
 import { traceInfo, traceWarning } from '../../common/logger';
 import { IFileSystem, TemporaryFile } from '../../common/platform/types';
-import { IPythonExecutionFactory, ObservableExecutionResult } from '../../common/process/types';
+import { IProcessServiceFactory, IPythonExecutionFactory, ObservableExecutionResult } from '../../common/process/types';
+import { Resource } from '../../common/types';
 import { createDeferred, Deferred } from '../../common/utils/async';
 import * as localize from '../../common/utils/localize';
 import { noop } from '../../common/utils/misc';
@@ -49,13 +51,14 @@ class KernelProcess implements IKernelProcess {
     private launchedOnce?: boolean;
     private kernelDaemon?: KernelDaemon;
     constructor(
-        private executionFactory: IPythonExecutionFactory,
+        private pythonExecutionFactory: IPythonExecutionFactory,
+        private processExecutionFactory: IProcessServiceFactory,
         private file: IFileSystem,
         private _connection: IKernelConnection,
         private _kernelSpec: IJupyterKernelSpec
     ) {
         this.readyPromise = createDeferred<void>();
-        this.kernelLauncherDaemon = new KernelLauncherDaemon(this.executionFactory);
+        this.kernelLauncherDaemon = new KernelLauncherDaemon(this.pythonExecutionFactory);
     }
     public async interrupt(): Promise<void> {
         if (this.kernelDaemon) {
@@ -85,12 +88,12 @@ class KernelProcess implements IKernelProcess {
         }
         args[indexOfConnectionFile] = this.connectionFile.filePath;
         // First part of argument is always the executable.
-        const pythonPath = this._kernelSpec.metadata?.interpreter?.path || args[0];
+        const executable = this._kernelSpec.metadata?.interpreter?.path || args[0];
         args.shift();
 
-<<<<<<< HEAD
         let exeObs: ObservableExecutionResult<string>;
-        if (!pythonPath) {
+        const resource: Resource = undefined;
+        if (executable && this._kernelSpec.language.toLowerCase() === PYTHON_LANGUAGE.toLowerCase()) {
             const { observableResult, daemon } = await this.kernelLauncherDaemon.launch(
                 resource,
                 args,
@@ -98,20 +101,13 @@ class KernelProcess implements IKernelProcess {
             );
             this.kernelDaemon = daemon;
             exeObs = observableResult;
-            // console.log('wait');
         } else {
-            const executionService = await this.executionFactory.create({ resource, pythonPath });
-            exeObs = executionService.execObservable(args, {});
+            const executionService = await this.processExecutionFactory.create(resource);
+            // tslint:disable-next-line: no-any
+            const env = this._kernelSpec.env as any;
+            exeObs = executionService.execObservable(executable, args, { env });
         }
-        this.readyPromise.resolve();
-=======
-        const executionService = await this.executionFactory.create({
-            resource: undefined,
-            pythonPath
-        });
-        const exeObs = executionService.execObservable(args, {});
 
->>>>>>> refactorDaemon
         if (exeObs.proc) {
             exeObs.proc!.on('exit', (exitCode) => {
                 traceInfo('KernelProcess Exit', `Exit - ${exitCode}`);

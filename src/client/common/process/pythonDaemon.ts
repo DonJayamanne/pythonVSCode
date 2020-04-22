@@ -41,14 +41,14 @@ export class DaemonError extends Error {
     }
 }
 export class PythonDaemonExecutionService implements IPythonDaemonExecutionService {
-    private connectionClosedMessage: string = '';
-    private outputObservale = new Subject<Output<string>>();
-    // tslint:disable-next-line: no-any
-    private readonly connectionClosedDeferred: Deferred<any>;
-    private disposables: IDisposable[] = [];
     public get isAlive(): boolean {
         return this.connectionClosedMessage === '';
     }
+    protected outputObservale = new Subject<Output<string>>();
+    private connectionClosedMessage: string = '';
+    // tslint:disable-next-line: no-any
+    private readonly connectionClosedDeferred: Deferred<any>;
+    private disposables: IDisposable[] = [];
     private disposed = false;
     constructor(
         protected readonly pythonExecutionService: IPythonExecutionService,
