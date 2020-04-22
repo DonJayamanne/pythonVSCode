@@ -88,8 +88,6 @@ export class PythonExecutionFactory implements IPythonExecutionFactory {
             return (activatedProcPromise! as unknown) as T;
         }
 
-        // If `dedicated` exists in options, then this is a dedicated daemon, and not one that goes into the pool.
-        const createDedicatedDaemon = !isDaemonPoolCreationOption(options);
         // Ensure we do not start multiple daemons for the same interpreter.
         // Cache the promise.
         const start = async (): Promise<T> => {
@@ -122,15 +120,15 @@ export class PythonExecutionFactory implements IPythonExecutionFactory {
 
         let promise: Promise<T>;
 
-        if (createDedicatedDaemon) {
-            promise = start();
-        } else {
+        if (isDaemonPoolCreationOption(options)) {
             // Ensure we do not create multiple daemon pools for the same python interpreter.
             promise = (this.daemonsPerPythonService.get(daemonPoolKey) as unknown) as Promise<T>;
             if (!promise) {
                 promise = start();
                 this.daemonsPerPythonService.set(daemonPoolKey, promise as Promise<IPythonDaemonExecutionService>);
             }
+        } else {
+            promise = start();
         }
         return promise.catch((ex) => {
             // Ok, we failed to create the daemon (or failed to start).

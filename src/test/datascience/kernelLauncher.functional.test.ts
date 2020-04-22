@@ -6,7 +6,7 @@ import { assert } from 'chai';
 import { Uri } from 'vscode';
 
 import { IFileSystem } from '../../client/common/platform/types';
-import { IPythonExecutionFactory } from '../../client/common/process/types';
+import { IProcessServiceFactory, IPythonExecutionFactory } from '../../client/common/process/types';
 import { Resource } from '../../client/common/types';
 import { Architecture } from '../../client/common/utils/platform';
 import { JupyterZMQBinariesNotFoundError } from '../../client/datascience/jupyter/jupyterZMQBinariesNotFoundError';
@@ -28,8 +28,9 @@ suite('Kernel Launcher', () => {
         ioc.registerDataScienceTypes();
         const finder = ioc.serviceContainer.get<IKernelFinder>(IKernelFinder);
         const executionFactory = ioc.serviceContainer.get<IPythonExecutionFactory>(IPythonExecutionFactory);
+        const processExecutionFactory = ioc.serviceContainer.get<IProcessServiceFactory>(IProcessServiceFactory);
         const file = ioc.serviceContainer.get<IFileSystem>(IFileSystem);
-        kernelLauncher = new KernelLauncher(finder, executionFactory, file);
+        kernelLauncher = new KernelLauncher(finder, executionFactory, processExecutionFactory, file);
 
         pythonInterpreter = {
             path: PYTHON_PATH,

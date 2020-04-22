@@ -22,8 +22,7 @@ import {
     IProcessServiceFactory,
     IPythonDaemonExecutionService,
     IPythonExecutionFactory,
-    Output,
-    IPythonDaemonExecutionService
+    Output
 } from '../../client/common/process/types';
 import { IConfigurationService, IInstaller, Product } from '../../client/common/types';
 import { EXTENSION_ROOT_DIR } from '../../client/constants';
