@@ -12,10 +12,16 @@ import { Architecture } from '../../client/common/utils/platform';
 import { KernelFinder } from '../../client/datascience/kernel-launcher/kernelFinder';
 import { IKernelFinder } from '../../client/datascience/kernel-launcher/types';
 import { IJupyterKernelSpec } from '../../client/datascience/types';
-import { IInterpreterService, InterpreterType, PythonInterpreter } from '../../client/interpreter/contracts';
+import {
+    IInterpreterLocatorService,
+    IInterpreterService,
+    InterpreterType,
+    PythonInterpreter
+} from '../../client/interpreter/contracts';
 
 suite('Kernel Finder', () => {
     let interpreterService: typemoq.IMock<IInterpreterService>;
+    let interpreterLocator: typemoq.IMock<IInterpreterLocatorService>;
     let fileSystem: typemoq.IMock<IFileSystem>;
     let platformService: typemoq.IMock<IPlatformService>;
     let pathUtils: typemoq.IMock<IPathUtils>;
@@ -28,10 +34,11 @@ suite('Kernel Finder', () => {
     const kernel: IJupyterKernelSpec = {
         name: 'testKernel',
         language: 'python',
-        path: '',
+        path: '<python path>',
         display_name: 'Python 3',
         metadata: {},
-        argv: ['<python path>', '-m', 'ipykernel_launcher', '-f', '<connection_file>']
+        env: {},
+        argv: ['<python path>', '-m', 'ipykernel_launcher', '-f', '{connection_file}']
     };
 
     function setupFileSystem() {
@@ -39,16 +46,21 @@ suite('Kernel Finder', () => {
             .setup((fs) => fs.writeFile(typemoq.It.isAnyString(), typemoq.It.isAnyString()))
             .returns(() => Promise.resolve());
         fileSystem.setup((fs) => fs.getSubDirectories(typemoq.It.isAnyString())).returns(() => Promise.resolve(['']));
+        fileSystem
+            .setup((fs) => fs.search(typemoq.It.isAnyString(), typemoq.It.isAnyString()))
+            .returns((param: string) => Promise.resolve([param]));
     }
 
     setup(() => {
         interpreterService = typemoq.Mock.ofType<IInterpreterService>();
         interpreterService
-            .setup((is) => is.getInterpreters(typemoq.It.isAny()))
-            .returns(() => Promise.resolve(interpreters));
-        interpreterService
             .setup((is) => is.getActiveInterpreter(typemoq.It.isAny()))
             .returns(() => Promise.resolve(activeInterpreter));
+
+        interpreterLocator = typemoq.Mock.ofType<IInterpreterLocatorService>();
+        interpreterLocator
+            .setup((il) => il.getInterpreters(typemoq.It.isAny(), typemoq.It.isAny()))
+            .returns(() => Promise.resolve(interpreters));
 
         fileSystem = typemoq.Mock.ofType<IFileSystem>();
         platformService = typemoq.Mock.ofType<IPlatformService>();
@@ -84,6 +96,7 @@ suite('Kernel Finder', () => {
 
         kernelFinder = new KernelFinder(
             interpreterService.object,
+            interpreterLocator.object,
             platformService.object,
             fileSystem.object,
             pathUtils.object,
@@ -112,6 +125,8 @@ suite('Kernel Finder', () => {
                 return Promise.resolve(JSON.stringify(kernel));
             });
         const spec = await kernelFinder.findKernelSpec(resource, kernelName);
+        // tslint:disable-next-line: no-any
+        delete (spec as any).specFile;
         assert.deepEqual(spec, kernel);
         fileSystem.reset();
     });
@@ -130,6 +145,8 @@ suite('Kernel Finder', () => {
                 return Promise.resolve(JSON.stringify(kernel));
             });
         const spec = await kernelFinder.findKernelSpec(activeInterpreter, kernelName);
+        // tslint:disable-next-line: no-any
+        delete (spec as any).specFile;
         assert.deepEqual(spec, kernel);
         fileSystem.reset();
     });
@@ -148,6 +165,8 @@ suite('Kernel Finder', () => {
                 return Promise.resolve(JSON.stringify(kernel));
             });
         const spec = await kernelFinder.findKernelSpec(activeInterpreter, kernelName);
+        // tslint:disable-next-line: no-any
+        delete (spec as any).specFile;
         assert.deepEqual(spec, kernel);
         fileSystem.reset();
     });
@@ -197,7 +216,11 @@ suite('Kernel Finder', () => {
 
         // get the same kernel, but from cache
         const spec2 = await kernelFinder.findKernelSpec(resource, spec.name);
-        assert.deepEqual(spec, spec2);
+        // tslint:disable-next-line: no-any
+        delete (spec as any).specFile;
+        // tslint:disable-next-line: no-any
+        delete (spec2 as any).specFile;
+        assert.deepEqual(JSON.parse(JSON.stringify(spec)), JSON.parse(JSON.stringify(spec2)));
 
         fileSystem.verifyAll();
         fileSystem.reset();
