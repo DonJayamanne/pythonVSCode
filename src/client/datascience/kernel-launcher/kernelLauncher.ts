@@ -18,7 +18,7 @@ import { createDeferred, Deferred } from '../../common/utils/async';
 import * as localize from '../../common/utils/localize';
 import { noop } from '../../common/utils/misc';
 import { IJupyterKernelSpec } from '../types';
-import { KernelDaemon } from './kernelDaemon';
+import { IKernelDaemon } from './kernelDaemon';
 import { findIndexOfConnectionFile } from './kernelFinder';
 import { KernelLauncherDaemon } from './kernelLauncherDaemon';
 import { IKernelConnection, IKernelFinder, IKernelLauncher, IKernelProcess } from './types';
@@ -49,7 +49,7 @@ class KernelProcess implements IKernelProcess {
     }
     private readonly kernelLauncherDaemon: KernelLauncherDaemon;
     private launchedOnce?: boolean;
-    private kernelDaemon?: KernelDaemon;
+    private kernelDaemon?: IKernelDaemon;
     constructor(
         private pythonExecutionFactory: IPythonExecutionFactory,
         private processExecutionFactory: IProcessServiceFactory,
@@ -158,7 +158,8 @@ class KernelProcess implements IKernelProcess {
 export class KernelLauncher implements IKernelLauncher {
     constructor(
         @inject(IKernelFinder) private kernelFinder: IKernelFinder,
-        @inject(IPythonExecutionFactory) private executionFactory: IPythonExecutionFactory,
+        @inject(IPythonExecutionFactory) private pythonExecutionFactory: IPythonExecutionFactory,
+        @inject(IProcessServiceFactory) private processExecutionFactory: IProcessServiceFactory,
         @inject(IFileSystem) private file: IFileSystem
     ) {}
 
@@ -176,7 +177,13 @@ export class KernelLauncher implements IKernelLauncher {
         }
 
         const connection = await this.getKernelConnection();
-        const kernelProcess = new KernelProcess(this.executionFactory, this.file, connection, kernelSpec);
+        const kernelProcess = new KernelProcess(
+            this.pythonExecutionFactory,
+            this.processExecutionFactory,
+            this.file,
+            connection,
+            kernelSpec
+        );
         await kernelProcess.launch();
         return kernelProcess;
     }

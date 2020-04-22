@@ -11,7 +11,7 @@ import { Resource } from '../../common/types';
 import { noop } from '../../common/utils/misc';
 import { KernelLauncherDaemonModule } from '../constants';
 import { IJupyterKernelSpec } from '../types';
-import { KernelDaemon } from './kernelDaemon';
+import { IKernelDaemon, KernelDaemon } from './kernelDaemon';
 
 /**
  * Responsible for execution of jupyter sub commands using a single/global interpreter set aside for launching jupyter server.
@@ -28,9 +28,9 @@ export class KernelLauncherDaemon implements IDisposable {
         resource: Resource,
         args: string[],
         kernelSpec: IJupyterKernelSpec
-    ): Promise<{ observableResult: ObservableExecutionResult<string>; daemon: KernelDaemon }> {
+    ): Promise<{ observableResult: ObservableExecutionResult<string>; daemon: IKernelDaemon }> {
         const pythonPath = kernelSpec.argv[0];
-        const daemon = await this.pythonExecutionFactory.createDaemon<KernelDaemon>({
+        const daemon = await this.pythonExecutionFactory.createDaemon<IKernelDaemon>({
             daemonModule: KernelLauncherDaemonModule,
             pythonPath: pythonPath,
             daemonClass: KernelDaemon,
@@ -52,7 +52,7 @@ export class KernelLauncherDaemon implements IDisposable {
             env: kernelSpec.env as any
         };
 
-        const observableResult = daemon.execModuleObservable(moduleName, args, options);
+        const observableResult = await daemon.start(moduleName, args, options);
         if (observableResult.proc) {
             this.processesToDispose.push(observableResult.proc);
         }
