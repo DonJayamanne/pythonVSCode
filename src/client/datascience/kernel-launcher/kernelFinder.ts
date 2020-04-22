@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 'use strict';
 
+import { Kernel } from '@jupyterlab/services';
 import { inject, injectable, named } from 'inversify';
 import * as path from 'path';
 import { InterpreterUri } from '../../common/installer/types';
@@ -15,6 +16,7 @@ import {
     KNOWN_PATH_SERVICE,
     PythonInterpreter
 } from '../../interpreter/contracts';
+import { JupyterKernelSpec } from '../jupyter/kernels/jupyterKernelSpec';
 import { IJupyterKernelSpec } from '../types';
 import { IKernelFinder } from './types';
 
@@ -176,7 +178,6 @@ export class KernelFinder implements IKernelFinder {
                     const kernelJsonFile = path.join(paths[i], searchResults[i][0], 'kernel.json');
                     const kernelJson = JSON.parse(await this.file.readFile(kernelJsonFile));
                     const kernelSpec: IJupyterKernelSpec = new JupyterKernelSpec(kernelJson, kernelJsonFile);
-                    kernelSpec.name = searchResults[i][0];
                     this.cache.push(kernelSpec);
                     return kernelSpec;
                 } catch (e) {
@@ -196,7 +197,6 @@ export class KernelFinder implements IKernelFinder {
         const defaultSpec: Kernel.ISpecModel = {
             name: `python_defaultSpec_${Date.now()}`,
             language: 'python',
-            path: '<path to kernel spec.json>',
             display_name: this.activeInterpreter?.displayName ? this.activeInterpreter.displayName : 'Python 3',
             metadata: {},
             argv: [

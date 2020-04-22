@@ -34,10 +34,11 @@ suite('Kernel Finder', () => {
     const kernel: IJupyterKernelSpec = {
         name: 'testKernel',
         language: 'python',
-        path: '',
+        path: '<python path>',
         display_name: 'Python 3',
         metadata: {},
-        argv: ['<python path>', '-m', 'ipykernel_launcher', '-f', '<connection_file>']
+        env: {},
+        argv: ['<python path>', '-m', 'ipykernel_launcher', '-f', '{connection_file}']
     };
 
     function setupFileSystem() {
@@ -124,6 +125,8 @@ suite('Kernel Finder', () => {
                 return Promise.resolve(JSON.stringify(kernel));
             });
         const spec = await kernelFinder.findKernelSpec(resource, kernelName);
+        // tslint:disable-next-line: no-any
+        delete (spec as any).specFile;
         assert.deepEqual(spec, kernel);
         fileSystem.reset();
     });
@@ -142,6 +145,8 @@ suite('Kernel Finder', () => {
                 return Promise.resolve(JSON.stringify(kernel));
             });
         const spec = await kernelFinder.findKernelSpec(activeInterpreter, kernelName);
+        // tslint:disable-next-line: no-any
+        delete (spec as any).specFile;
         assert.deepEqual(spec, kernel);
         fileSystem.reset();
     });
@@ -160,6 +165,8 @@ suite('Kernel Finder', () => {
                 return Promise.resolve(JSON.stringify(kernel));
             });
         const spec = await kernelFinder.findKernelSpec(activeInterpreter, kernelName);
+        // tslint:disable-next-line: no-any
+        delete (spec as any).specFile;
         assert.deepEqual(spec, kernel);
         fileSystem.reset();
     });
@@ -209,7 +216,11 @@ suite('Kernel Finder', () => {
 
         // get the same kernel, but from cache
         const spec2 = await kernelFinder.findKernelSpec(resource, spec.name);
-        assert.deepEqual(spec, spec2);
+        // tslint:disable-next-line: no-any
+        delete (spec as any).specFile;
+        // tslint:disable-next-line: no-any
+        delete (spec2 as any).specFile;
+        assert.deepEqual(JSON.parse(JSON.stringify(spec)), JSON.parse(JSON.stringify(spec2)));
 
         fileSystem.verifyAll();
         fileSystem.reset();
