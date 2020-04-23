@@ -9,10 +9,10 @@ import {
     ExecutionResult,
     IProcessService,
     IProcessServiceFactory,
+    IPythonDaemonExecutionService,
     IPythonExecutionFactory,
     IPythonExecutionService,
-    ObservableExecutionResult,
-    IPythonDaemonExecutionService
+    ObservableExecutionResult
 } from '../../../common/process/types';
 import { EXTENSION_ROOT_DIR } from '../../../constants';
 import { IEnvironmentActivationService } from '../../../interpreter/activation/types';
