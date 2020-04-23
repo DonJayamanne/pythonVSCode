@@ -9,7 +9,7 @@ import { promisify } from 'util';
 import * as uuid from 'uuid/v4';
 import { Event, EventEmitter } from 'vscode';
 import { PYTHON_LANGUAGE } from '../../common/constants';
-import { InterpreterUri } from '../../common/installer/types';
+import { WrappedError } from '../../common/errors/errorUtils';
 import { traceError, traceInfo, traceWarning } from '../../common/logger';
 import { IFileSystem, TemporaryFile } from '../../common/platform/types';
 import { IProcessServiceFactory, IPythonExecutionFactory, ObservableExecutionResult } from '../../common/process/types';
@@ -17,12 +17,13 @@ import { Resource } from '../../common/types';
 import { createDeferred, Deferred } from '../../common/utils/async';
 import * as localize from '../../common/utils/localize';
 import { noop } from '../../common/utils/misc';
+import { captureTelemetry } from '../../telemetry';
+import { Telemetry } from '../constants';
 import { IJupyterKernelSpec } from '../types';
 import { IKernelDaemon } from './kernelDaemon';
 import { findIndexOfConnectionFile } from './kernelFinder';
 import { KernelLauncherDaemon } from './kernelLauncherDaemon';
 import { IKernelConnection, IKernelFinder, IKernelLauncher, IKernelProcess } from './types';
-import { WrappedError } from '../../common/errors/errorUtils';
 
 // Launches and disposes a kernel process given a kernelspec and a resource or python interpreter.
 // Exposes connection information and the process itself.
@@ -105,9 +106,7 @@ class KernelProcess implements IKernelProcess {
             exeObs = observableResult;
         } else {
             const executionService = await this.processExecutionFactory.create(resource);
-            // tslint:disable-next-line: no-any
-            const env = this._kernelSpec.env as any;
-            exeObs = executionService.execObservable(executable, args, { env });
+            exeObs = executionService.execObservable(executable, args, { env: this._kernelSpec.env });
         }
 
         if (exeObs.proc) {
@@ -181,14 +180,12 @@ export class KernelLauncher implements IKernelLauncher {
         @inject(IFileSystem) private file: IFileSystem
     ) {}
 
-    public async launch(
-        interpreterUri: InterpreterUri,
-        kernelName?: string | IJupyterKernelSpec
-    ): Promise<IKernelProcess> {
+    @captureTelemetry(Telemetry.KernelLauncherPerf)
+    public async launch(resource: Resource, kernelName?: string | IJupyterKernelSpec): Promise<IKernelProcess> {
         let kernelSpec: IJupyterKernelSpec;
         if (!kernelName || typeof kernelName === 'string') {
             // string or undefined
-            kernelSpec = await this.kernelFinder.findKernelSpec(interpreterUri, kernelName);
+            kernelSpec = await this.kernelFinder.findKernelSpec(resource, kernelName);
         } else {
             // IJupyterKernelSpec
             kernelSpec = kernelName;
