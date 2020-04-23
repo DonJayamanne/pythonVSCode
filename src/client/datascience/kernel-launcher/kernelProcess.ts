@@ -31,7 +31,7 @@ export class KernelProcess implements IKernelProcess {
         return this.exitEvent.event;
     }
     public get kernelSpec(): Readonly<IJupyterKernelSpec> {
-        return this._kernelSpec;
+        return this.originalKernelSpec;
     }
     public get connection(): Readonly<IKernelConnection> {
         return this._connection;
@@ -47,6 +47,7 @@ export class KernelProcess implements IKernelProcess {
     private launchedOnce?: boolean;
     private kernelDaemon?: IPythonKernelDaemon;
     private readonly _kernelSpec: IJupyterKernelSpec;
+    private readonly originalKernelSpec: IJupyterKernelSpec;
     constructor(
         private readonly pythonExecutionFactory: IPythonExecutionFactory,
         private readonly processExecutionFactory: IProcessServiceFactory,
@@ -54,6 +55,7 @@ export class KernelProcess implements IKernelProcess {
         private readonly _connection: IKernelConnection,
         kernelSpec: IJupyterKernelSpec
     ) {
+        this.originalKernelSpec = kernelSpec;
         this._kernelSpec = cloneDeep(kernelSpec);
         this.readyPromise = createDeferred<void>();
     }
@@ -130,7 +132,7 @@ export class KernelProcess implements IKernelProcess {
             flag: 'w'
         });
 
-        // Inclide the conenction file in the arguments and remove the first argument which should be python
+        // Update the args in the kernelspec to include the conenction file.
         const indexOfConnectionFile = findIndexOfConnectionFile(this._kernelSpec);
         if (indexOfConnectionFile === -1) {
             throw new Error(`Connection file not found in kernelspec json args, ${this._kernelSpec.argv.join(' ')}`);
