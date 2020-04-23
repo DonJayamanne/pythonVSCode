@@ -8,13 +8,16 @@ import * as portfinder from 'portfinder';
 import { promisify } from 'util';
 import * as uuid from 'uuid/v4';
 import { Event, EventEmitter } from 'vscode';
-import { InterpreterUri } from '../../common/installer/types';
 import { traceInfo, traceWarning } from '../../common/logger';
 import { IFileSystem, TemporaryFile } from '../../common/platform/types';
 import { IPythonExecutionFactory } from '../../common/process/types';
+import { Resource } from '../../common/types';
 import { createDeferred, Deferred } from '../../common/utils/async';
 import * as localize from '../../common/utils/localize';
 import { noop } from '../../common/utils/misc';
+import { IInterpreterService } from '../../interpreter/contracts';
+import { captureTelemetry } from '../../telemetry';
+import { Telemetry } from '../constants';
 import { IJupyterKernelSpec } from '../types';
 import { findIndexOfConnectionFile } from './kernelFinder';
 import { IKernelConnection, IKernelFinder, IKernelLauncher, IKernelProcess } from './types';
@@ -46,6 +49,7 @@ class KernelProcess implements IKernelProcess {
 
     constructor(
         private executionFactory: IPythonExecutionFactory,
+        private interpreterService: IInterpreterService,
         private file: IFileSystem,
         private _connection: IKernelConnection,
         private _kernelSpec: IJupyterKernelSpec
@@ -71,11 +75,17 @@ class KernelProcess implements IKernelProcess {
         const pythonPath = this._kernelSpec.metadata?.interpreter?.path || args[0];
         args.shift();
 
-        const executionService = await this.executionFactory.create({
+        // Use that to find the matching interpeter.
+        const matchingInterpreter = await this.interpreterService.getInterpreterDetails(pythonPath);
+
+        // Use that to create an execution service with the correct environment.
+        const executionService = await this.executionFactory.createActivatedEnvironment({
             resource: undefined,
-            pythonPath
+            interpreter: matchingInterpreter
         });
-        const exeObs = executionService.execObservable(args, {});
+
+        // Then launch that process, also merging in the environment in the kernelspec
+        const exeObs = executionService.execObservable(args, { extraVariables: this._kernelSpec.env });
 
         if (exeObs.proc) {
             exeObs.proc!.on('exit', (exitCode) => {
@@ -124,24 +134,29 @@ export class KernelLauncher implements IKernelLauncher {
     constructor(
         @inject(IKernelFinder) private kernelFinder: IKernelFinder,
         @inject(IPythonExecutionFactory) private executionFactory: IPythonExecutionFactory,
+        @inject(IInterpreterService) private interpreterService: IInterpreterService,
         @inject(IFileSystem) private file: IFileSystem
     ) {}
 
-    public async launch(
-        interpreterUri: InterpreterUri,
-        kernelName?: string | IJupyterKernelSpec
-    ): Promise<IKernelProcess> {
+    @captureTelemetry(Telemetry.KernelLauncherPerf)
+    public async launch(resource: Resource, kernelName?: string | IJupyterKernelSpec): Promise<IKernelProcess> {
         let kernelSpec: IJupyterKernelSpec;
         if (!kernelName || typeof kernelName === 'string') {
             // string or undefined
-            kernelSpec = await this.kernelFinder.findKernelSpec(interpreterUri, kernelName);
+            kernelSpec = await this.kernelFinder.findKernelSpec(resource, kernelName);
         } else {
             // IJupyterKernelSpec
             kernelSpec = kernelName;
         }
 
         const connection = await this.getKernelConnection();
-        const kernelProcess = new KernelProcess(this.executionFactory, this.file, connection, kernelSpec);
+        const kernelProcess = new KernelProcess(
+            this.executionFactory,
+            this.interpreterService,
+            this.file,
+            connection,
+            kernelSpec
+        );
         await kernelProcess.launch();
         return kernelProcess;
     }

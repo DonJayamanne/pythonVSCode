@@ -3,6 +3,7 @@
 'use strict';
 
 import * as assert from 'assert';
+import { expect } from 'chai';
 import * as typemoq from 'typemoq';
 
 import { Uri } from 'vscode';
@@ -125,9 +126,7 @@ suite('Kernel Finder', () => {
                 return Promise.resolve(JSON.stringify(kernel));
             });
         const spec = await kernelFinder.findKernelSpec(resource, kernelName);
-        // tslint:disable-next-line: no-any
-        delete (spec as any).specFile;
-        assert.deepEqual(spec, kernel);
+        expect(spec).to.deep.include(kernel);
         fileSystem.reset();
     });
 
@@ -145,9 +144,7 @@ suite('Kernel Finder', () => {
                 return Promise.resolve(JSON.stringify(kernel));
             });
         const spec = await kernelFinder.findKernelSpec(activeInterpreter, kernelName);
-        // tslint:disable-next-line: no-any
-        delete (spec as any).specFile;
-        assert.deepEqual(spec, kernel);
+        expect(spec).to.deep.include(kernel);
         fileSystem.reset();
     });
 
@@ -165,9 +162,7 @@ suite('Kernel Finder', () => {
                 return Promise.resolve(JSON.stringify(kernel));
             });
         const spec = await kernelFinder.findKernelSpec(activeInterpreter, kernelName);
-        // tslint:disable-next-line: no-any
-        delete (spec as any).specFile;
-        assert.deepEqual(spec, kernel);
+        expect(spec).to.deep.include(kernel);
         fileSystem.reset();
     });
 
@@ -216,11 +211,7 @@ suite('Kernel Finder', () => {
 
         // get the same kernel, but from cache
         const spec2 = await kernelFinder.findKernelSpec(resource, spec.name);
-        // tslint:disable-next-line: no-any
-        delete (spec as any).specFile;
-        // tslint:disable-next-line: no-any
-        delete (spec2 as any).specFile;
-        assert.deepEqual(JSON.parse(JSON.stringify(spec)), JSON.parse(JSON.stringify(spec2)));
+        expect(spec).to.deep.include(spec2);
 
         fileSystem.verifyAll();
         fileSystem.reset();

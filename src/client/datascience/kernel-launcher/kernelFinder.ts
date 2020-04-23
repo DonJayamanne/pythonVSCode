@@ -5,17 +5,17 @@
 import { Kernel } from '@jupyterlab/services';
 import { inject, injectable, named } from 'inversify';
 import * as path from 'path';
-import { InterpreterUri } from '../../common/installer/types';
 import { traceError, traceInfo } from '../../common/logger';
 import { IFileSystem, IPlatformService } from '../../common/platform/types';
 import { IExtensionContext, IPathUtils, Resource } from '../../common/types';
-import { isResource } from '../../common/utils/misc';
 import {
     IInterpreterLocatorService,
     IInterpreterService,
     KNOWN_PATH_SERVICE,
     PythonInterpreter
 } from '../../interpreter/contracts';
+import { captureTelemetry } from '../../telemetry';
+import { Telemetry } from '../constants';
 import { JupyterKernelSpec } from '../jupyter/kernels/jupyterKernelSpec';
 import { IJupyterKernelSpec } from '../types';
 import { IKernelFinder } from './types';
@@ -54,11 +54,10 @@ export class KernelFinder implements IKernelFinder {
         @inject(IExtensionContext) private readonly context: IExtensionContext
     ) {}
 
-    public async findKernelSpec(interpreterUri: InterpreterUri, kernelName?: string): Promise<IJupyterKernelSpec> {
+    @captureTelemetry(Telemetry.KernelFinderPerf)
+    public async findKernelSpec(resource: Resource, kernelName?: string): Promise<IJupyterKernelSpec> {
         this.cache = await this.readCache();
         let foundKernel: IJupyterKernelSpec | undefined;
-        const resource = isResource(interpreterUri) ? interpreterUri : undefined;
-        const notebookInterpreter = isResource(interpreterUri) ? undefined : interpreterUri;
 
         if (kernelName) {
             let kernelSpec = this.cache.find((ks) => ks.name === kernelName);
@@ -67,13 +66,10 @@ export class KernelFinder implements IKernelFinder {
                 return kernelSpec;
             }
 
-            if (!notebookInterpreter) {
-                kernelSpec = await this.getKernelSpecFromActiveInterpreter(resource, kernelName);
-            }
+            kernelSpec = await this.getKernelSpecFromActiveInterpreter(resource, kernelName);
 
             if (kernelSpec) {
-                // tslint:disable-next-line: no-floating-promises
-                this.writeCache(this.cache);
+                this.writeCache(this.cache).ignoreErrors();
                 return kernelSpec;
             }
 
@@ -94,8 +90,7 @@ export class KernelFinder implements IKernelFinder {
             foundKernel = await this.getDefaultKernelSpec(resource);
         }
 
-        // tslint:disable-next-line: no-floating-promises
-        this.writeCache(this.cache);
+        this.writeCache(this.cache).ignoreErrors();
         return foundKernel;
     }
 
@@ -206,6 +201,7 @@ export class KernelFinder implements IKernelFinder {
                 '-f',
                 connectionFilePlaceholder
             ],
+            env: {},
             resources: {}
         };
         const kernelSpec = new JupyterKernelSpec(defaultSpec);
