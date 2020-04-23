@@ -16,7 +16,7 @@ import { IProcessServiceFactory, IPythonExecutionFactory, ObservableExecutionRes
 import { Resource } from '../../common/types';
 import { createDeferred, Deferred } from '../../common/utils/async';
 import * as localize from '../../common/utils/localize';
-import { noop } from '../../common/utils/misc';
+import { noop, swallowExceptions } from '../../common/utils/misc';
 import { captureTelemetry } from '../../telemetry';
 import { Telemetry } from '../constants';
 import { IJupyterKernelSpec } from '../types';
@@ -155,16 +155,12 @@ class KernelProcess implements IKernelProcess {
     }
 
     public async dispose(): Promise<void> {
-        try {
-            if (this.kernelDaemon) {
-                await this.kernelDaemon?.kill().catch(noop);
-                this.kernelDaemon.dispose();
-            }
-            this._process?.kill();
-            this.connectionFile?.dispose();
-        } catch {
-            noop();
+        if (this.kernelDaemon) {
+            await this.kernelDaemon.kill().catch(noop);
+            swallowExceptions(() => this.kernelDaemon?.dispose());
         }
+        swallowExceptions(() => this._process?.kill());
+        swallowExceptions(() => this.connectionFile?.dispose());
     }
 }
 
