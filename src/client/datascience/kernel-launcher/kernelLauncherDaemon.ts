@@ -3,7 +3,7 @@
 
 'use strict';
 
-import { ChildProcess, SpawnOptions } from 'child_process';
+import { ChildProcess } from 'child_process';
 import { inject, injectable } from 'inversify';
 import { IDisposable } from 'monaco-editor';
 import { IPythonExecutionFactory, ObservableExecutionResult } from '../../common/process/types';
