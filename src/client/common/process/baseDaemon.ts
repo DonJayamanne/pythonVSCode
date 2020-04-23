@@ -40,6 +40,9 @@ export abstract class BasePythonDaemon {
     }
     protected outputObservale = new Subject<Output<string>>();
     private connectionClosedMessage: string = '';
+    protected get closed() {
+        return this.connectionClosedDeferred.promise;
+    }
     // tslint:disable-next-line: no-any
     private readonly connectionClosedDeferred: Deferred<any>;
     private disposables: IDisposable[] = [];

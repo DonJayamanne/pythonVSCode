@@ -5,7 +5,7 @@
 
 import { ChildProcess } from 'child_process';
 import { Subject } from 'rxjs/Subject';
-import { MessageConnection, RequestType0 } from 'vscode-jsonrpc';
+import { MessageConnection, NotificationType, RequestType0 } from 'vscode-jsonrpc';
 import { BasePythonDaemon } from '../../common/process/baseDaemon';
 import {
     IPythonExecutionService,
@@ -45,16 +45,30 @@ export class KernelDaemon extends BasePythonDaemon implements IKernelDaemon {
         options: SpawnOptions
     ): Promise<ObservableExecutionResult<string>> {
         const subject = new Subject<Output<string>>();
-
-        this.outputObservale.subscribe((out) => {
-            if (out.source === 'stderr' && options.throwOnStdErr) {
-                subject.error(new StdErrError(out.out));
-            } else if (out.source === 'stderr' && options.mergeStdOutErr) {
-                subject.next({ source: 'stdout', out: out.out });
-            } else {
-                subject.next(out);
-            }
+        // Message from daemon when kernel dies.
+        const KernelDiedNotification = new NotificationType<{ exit_code: string; reason?: string }, void>(
+            'kernel_died'
+        );
+        this.connection.onNotification(KernelDiedNotification, (output) => {
+            subject.error(new Error(`Kernel died with exit code ${output.exit_code}. ${output.reason}`));
         });
+
+        this.outputObservale.subscribe(
+            (out) => {
+                if (out.source === 'stderr' && options.throwOnStdErr) {
+                    subject.error(new StdErrError(out.out));
+                } else if (out.source === 'stderr' && options.mergeStdOutErr) {
+                    subject.next({ source: 'stdout', out: out.out });
+                } else {
+                    subject.next(out);
+                }
+            },
+            subject.error.bind(subject),
+            subject.complete.bind(subject)
+        );
+
+        // If the daemon dies, then kernel is also dead.
+        this.closed.catch(subject.error.bind(subject));
 
         // No need of the output here, we'll tap into the output coming from daemon `this.outputObservale`.
         // This is required because execModule will never end.

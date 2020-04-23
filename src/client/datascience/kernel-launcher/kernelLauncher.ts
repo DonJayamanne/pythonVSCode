@@ -10,7 +10,7 @@ import * as uuid from 'uuid/v4';
 import { Event, EventEmitter } from 'vscode';
 import { PYTHON_LANGUAGE } from '../../common/constants';
 import { InterpreterUri } from '../../common/installer/types';
-import { traceInfo, traceWarning } from '../../common/logger';
+import { traceError, traceInfo, traceWarning } from '../../common/logger';
 import { IFileSystem, TemporaryFile } from '../../common/platform/types';
 import { IProcessServiceFactory, IPythonExecutionFactory, ObservableExecutionResult } from '../../common/process/types';
 import { Resource } from '../../common/types';
@@ -22,6 +22,7 @@ import { IKernelDaemon } from './kernelDaemon';
 import { findIndexOfConnectionFile } from './kernelFinder';
 import { KernelLauncherDaemon } from './kernelLauncherDaemon';
 import { IKernelConnection, IKernelFinder, IKernelLauncher, IKernelProcess } from './types';
+import { WrappedError } from '../../common/errors/errorUtils';
 
 // Launches and disposes a kernel process given a kernelspec and a resource or python interpreter.
 // Exposes connection information and the process itself.
@@ -87,6 +88,7 @@ class KernelProcess implements IKernelProcess {
             throw new Error(`Connection file not found in kernelspec json args, ${args.join(' ')}`);
         }
         args[indexOfConnectionFile] = this.connectionFile.filePath;
+        // args[indexOfConnectionFile] = '/Users/donjayamanne/Desktop/Development/vsc/pythonVSCode/wow.json';
         // First part of argument is always the executable.
         const executable = this._kernelSpec.metadata?.interpreter?.path || args[0];
         args.shift();
@@ -120,20 +122,36 @@ class KernelProcess implements IKernelProcess {
             traceInfo('KernelProcess failed to launch');
             this.readyPromise.reject(new Error(localize.DataScience.rawKernelProcessNotStarted()));
         }
-        exeObs.out.subscribe((output) => {
-            if (output.source === 'stderr') {
-                traceWarning(`StdErr from Kernel Process ${output.out}`);
-            } else {
-                // Search for --existing this is the message that will indicate that our kernel is actually
-                // up and started from stdout
-                //    To connect another client to this kernel, use:
-                //    --existing /var/folders/q7/cn8fg6s94fgdcl0h7rbxldf00000gn/T/tmp-16231TOL2dgBoWET1.json
-                if (!this.readyPromise.completed && output.out.includes('--existing')) {
-                    this.readyPromise.resolve();
+        let stdout = '';
+        let stderr = '';
+        exeObs.out.subscribe(
+            (output) => {
+                if (output.source === 'stderr') {
+                    stderr += output.out;
+                    traceWarning(`StdErr from Kernel Process ${output.out}`);
+                } else {
+                    stdout += output.out;
+                    // Search for --existing this is the message that will indicate that our kernel is actually
+                    // up and started from stdout
+                    //    To connect another client to this kernel, use:
+                    //    --existing /var/folders/q7/cn8fg6s94fgdcl0h7rbxldf00000gn/T/tmp-16231TOL2dgBoWET1.json
+                    if (!this.readyPromise.completed && stdout.includes('--existing')) {
+                        this.readyPromise.resolve();
+                    }
+                    traceInfo(output.out);
                 }
-                traceInfo(output.out);
+            },
+            (error) => {
+                if (this.readyPromise.completed) {
+                    traceInfo('KernelProcess Error', error, stderr);
+                } else {
+                    traceError('Kernel died before it could start', error, stderr);
+                    const errorMessage = `${localize.DataScience.rawKernelProcessExitBeforeConnect()}. Error = ${error}, stderr = ${stderr}`;
+                    const errorToWrap = error instanceof Error ? error : new Error(error);
+                    this.readyPromise.reject(new WrappedError(errorMessage, errorToWrap));
+                }
             }
-        });
+        );
         this._process = exeObs.proc;
     }
 

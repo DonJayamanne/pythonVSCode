@@ -68,7 +68,7 @@ export type ExecutionFactoryCreationOptions = {
 export function isDaemonPoolCreationOption(
     options: PooledDaemonExecutionFactoryCreationOptions | DedicatedDaemonExecutionFactoryCreationOptions
 ): options is PooledDaemonExecutionFactoryCreationOptions {
-    if ('dedicated' in options && typeof options.dedicated === 'boolean') {
+    if ('dedicated' in options && options.dedicated === true) {
         return false;
     } else {
         return true;

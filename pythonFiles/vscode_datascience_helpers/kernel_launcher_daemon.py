@@ -73,16 +73,51 @@ class PythonDaemon(JupyterDaemon):
                 self.kernel = None
 
     @error_decorator
-    def m_exec_module_observable(self, module_name, args=None, cwd=None, env=None):
-        thread_args = (module_name, args, cwd, env)
-        self.kernel_thread = threading.Thread(
-            target=self.exec_module_observable_in_background,
-            args=thread_args,
-            daemon=True,
+    def m_exec_module(self, module_name, args=[], cwd=None, env=None):
+        """Override default behavior to run the ipykernel module in a background thread."""
+        args = [] if args is None else args
+        self.log.info(
+            "Exec module in DS Kernel Launcher Daemon %s with args %s",
+            module_name,
+            args,
         )
-        self.kernel_thread.start()
 
-    def exec_module_observable_in_background(
+        def start_kernel():
+            thread_args = (module_name, args, cwd, env)
+            self._exec_module_observable_in_background(module_name, args, cwd, env)
+
+        return self._execute_and_capture_output(start_kernel)
+
+    def _read_stderr_in_background(self):
+        while self.kernel.poll() is None:
+            stderr_output = self.kernel.stderr.readline()
+            if stderr_output:
+                sys.stderr.write(stderr_output)
+                sys.stderr.flush()
+
+    def _read_stdout_in_background(self):
+        while self.kernel.poll() is None:
+            stdout_output = self.kernel.stdout.readline()
+            if stdout_output:
+                sys.stdout.write(stdout_output)
+                sys.stdout.flush()
+
+    def _monitor_kernel(self):
+        while self.kernel.poll() is None:
+            pass
+
+        exit_code = self.kernel.poll()
+        std_err = self.kernel.stderr.read()
+        if std_err:
+            std_err = std_err.decode()
+        self.log.warn("Kernel has exited with exit code %s, %s", exit_code, std_err)
+        sys.stdout.flush()
+        sys.stderr.flush()
+        self._endpoint.notify(
+            "kernel_died", {"exit_code": exit_code, "reason": std_err}
+        )
+
+    def _exec_module_observable_in_background(
         self, module_name, args=None, cwd=None, env=None
     ):
         self.log.info(
@@ -90,47 +125,31 @@ class PythonDaemon(JupyterDaemon):
             module_name,
             args,
         )
+        self._endpoint.notify("ENVS", os.environ.copy())
         args = [] if args is None else args
         cmd = [sys.executable, "-m", module_name] + args
+        # For some reason kernel does not start on mac with `independent=False`
+        # As we are incontrol of the kernel, we can safely set this.
         proc = launch_kernel(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd, env=env
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            cwd=cwd,
+            env=env,
+            independent=True,
         )
+        self.log.info(
+            "Exec in DS Kernel Launcher Daemon (observable) %s with args %s",
+            subprocess.PIPE,
+            subprocess.PIPE,
+        )
+
         self.kernel = proc
         self.log.info("Kernel launched, with PID %s", proc.pid)
 
-        while proc.poll() is None:
-            stdout_output = proc.stdout.read(1)
-            if stdout_output:
-                self.log.debug(
-                    "subprocess output for, %s with args %s, has stdout_output %s",
-                    module_name,
-                    stdout_output.decode("utf-8"),
-                    stdout_output,
-                )
-                sys.stdout.buffer.write(stdout_output)
-            stderr_output = proc.stdout.read(1)
-            if stderr_output:
-                self.log.debug(
-                    "subprocess output for, %s with args %s, has stderr_output %s",
-                    module_name,
-                    stderr_output.decode("utf-8"),
-                    stderr_output,
-                )
-                sys.stderr.buffer.write(stderr_output)
-
-        exit_code = proc.poll()
-        self.log.warn(
-            "subprocess output for, %s with args %s, has exited with exit code %s",
-            module_name,
-            args,
-            exit_code,
-        )
-        sys.stdout.flush()
-        sys.stderr.flush()
-
-        if not self.killing_kernel:
-            # Somethign is wrong, lets kill this daemon.
-            sys.exit(exit_code)
+        threading.Thread(target=self._read_stdout_in_background, daemon=True,).start()
+        threading.Thread(target=self._read_stderr_in_background, daemon=True,).start()
+        threading.Thread(target=self._monitor_kernel, daemon=True,).start()
 
     def signal_kernel(self, signum):
         """Sends a signal to the process group of the kernel (this
