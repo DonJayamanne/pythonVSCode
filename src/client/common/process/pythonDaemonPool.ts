@@ -38,8 +38,8 @@ export class PythonDaemonExecutionServicePool extends PythonDaemonFactory implem
         this.disposables.push(this);
     }
     public async initialize() {
-        // If `daemonCount` is not in optoins, then we are not initializing a pool of daemons.
-        if (!('daemonCount' in this.options)) {
+        // If `dedicated` is in optoins, then we are not initializing a pool of daemons.
+        if ('dedicated' in this.options) {
             return;
         }
         const promises = Promise.all(
