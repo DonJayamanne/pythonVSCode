@@ -47,12 +47,7 @@ export class KernelLauncherDaemon implements IDisposable {
                 `Unsupported KernelSpec file. args must be [<pythonPath>, '-m', <moduleName>, arg1, arg2, ..]. Provied ${providedArgs}`
             );
         }
-        const options: SpawnOptions = {
-            // tslint:disable-next-line: no-any
-            env: kernelSpec.env as any
-        };
-
-        const observableResult = await daemon.start(moduleName, args, options);
+        const observableResult = await daemon.start(moduleName, args, { env: kernelSpec.env });
         if (observableResult.proc) {
             this.processesToDispose.push(observableResult.proc);
         }
