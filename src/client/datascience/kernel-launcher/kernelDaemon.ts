@@ -14,15 +14,9 @@ import {
     SpawnOptions,
     StdErrError
 } from '../../common/process/types';
-import { IDisposable } from '../../common/types';
+import { IPythonKernelDaemon, PythonKernelDiedError } from './types';
 
-export interface IKernelDaemon extends IDisposable {
-    interrupt(): Promise<void>;
-    kill(): Promise<void>;
-    start(moduleName: string, args: string[], options: SpawnOptions): Promise<ObservableExecutionResult<string>>;
-}
-
-export class KernelDaemon extends BasePythonDaemon implements IKernelDaemon {
+export class PythonKernelDaemon extends BasePythonDaemon implements IPythonKernelDaemon {
     constructor(
         pythonExecutionService: IPythonExecutionService,
         pythonPath: string,
@@ -50,9 +44,14 @@ export class KernelDaemon extends BasePythonDaemon implements IKernelDaemon {
             'kernel_died'
         );
         this.connection.onNotification(KernelDiedNotification, (output) => {
-            subject.error(new Error(`Kernel died with exit code ${output.exit_code}. ${output.reason}`));
+            subject.error(
+                new PythonKernelDiedError({ exitCode: parseInt(output.exit_code, 10), reason: output.reason })
+            );
         });
 
+        // All output messages from daemon from here on are considered to be coming from the kernel.
+        // This is because the kernel is a long running process and that will be the only code in the daemon
+        // sptting stuff into stdout/stderr.
         this.outputObservale.subscribe(
             (out) => {
                 if (out.source === 'stderr' && options.throwOnStdErr) {
@@ -68,7 +67,7 @@ export class KernelDaemon extends BasePythonDaemon implements IKernelDaemon {
         );
 
         // If the daemon dies, then kernel is also dead.
-        this.closed.catch(subject.error.bind(subject));
+        this.closed.catch((error) => subject.error(new PythonKernelDiedError({ error })));
 
         // No need of the output here, we'll tap into the output coming from daemon `this.outputObservale`.
         // This is required because execModule will never end.

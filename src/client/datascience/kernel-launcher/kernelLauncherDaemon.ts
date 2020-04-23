@@ -11,34 +11,32 @@ import { Resource } from '../../common/types';
 import { noop } from '../../common/utils/misc';
 import { KernelLauncherDaemonModule } from '../constants';
 import { IJupyterKernelSpec } from '../types';
-import { IKernelDaemon, KernelDaemon } from './kernelDaemon';
+import { PythonKernelDaemon } from './kernelDaemon';
+import { IPythonKernelDaemon } from './types';
 
 /**
- * Responsible for execution of jupyter sub commands using a single/global interpreter set aside for launching jupyter server.
- *
- * @export
- * @class JupyterCommandFinderInterpreterExecutionService
- * @implements {IJupyterSubCommandExecutionService}
+ * Launches a Python kernel in a daemon.
+ * We need a daemon for the sole purposes of being able to interrupt kernels in Windows.
+ * (Else we don't need a kernel).
  */
 @injectable()
-export class KernelLauncherDaemon implements IDisposable {
+export class PythonKernelLauncherDaemon implements IDisposable {
     private readonly processesToDispose: ChildProcess[] = [];
     constructor(@inject(IPythonExecutionFactory) private readonly pythonExecutionFactory: IPythonExecutionFactory) {}
     public async launch(
         resource: Resource,
-        args: string[],
         kernelSpec: IJupyterKernelSpec
-    ): Promise<{ observableResult: ObservableExecutionResult<string>; daemon: IKernelDaemon }> {
+    ): Promise<{ observableResult: ObservableExecutionResult<string>; daemon: IPythonKernelDaemon }> {
         const pythonPath = kernelSpec.argv[0];
-        const daemon = await this.pythonExecutionFactory.createDaemon<IKernelDaemon>({
+        const daemon = await this.pythonExecutionFactory.createDaemon<IPythonKernelDaemon>({
             daemonModule: KernelLauncherDaemonModule,
             pythonPath: pythonPath,
-            daemonClass: KernelDaemon,
+            daemonClass: PythonKernelDaemon,
             dedicated: true,
             resource
         });
-        // const args = kernelSpec.argv.slice();
-        // args.shift(); // Remove executable.
+        const args = kernelSpec.argv.slice();
+        args.shift(); // Remove executable.
         args.shift(); // Remove `-m`.
         const moduleName = args.shift();
         if (!moduleName) {

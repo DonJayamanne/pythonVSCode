@@ -2,9 +2,11 @@
 // Licensed under the MIT License.
 'use strict';
 
+import { SpawnOptions } from 'child_process';
 import { Event } from 'vscode';
 import { InterpreterUri } from '../../common/installer/types';
-import { IAsyncDisposable } from '../../common/types';
+import { ObservableExecutionResult } from '../../common/process/types';
+import { IAsyncDisposable, IDisposable } from '../../common/types';
 import { IJupyterKernelSpec } from '../types';
 
 export const IKernelLauncher = Symbol('IKernelLauncher');
@@ -27,15 +29,49 @@ export interface IKernelConnection {
 
 export interface IKernelProcess extends IAsyncDisposable {
     readonly connection: Readonly<IKernelConnection>;
-    ready: Promise<void>;
+    /**
+     * This promise is resolved when the launched process is ready to get JMP messages
+     */
+    readonly ready: Promise<void>;
     readonly kernelSpec: Readonly<IJupyterKernelSpec>;
-    exited: Event<number | null>;
+    /**
+     * This event is triggered if the process is exited
+     */
+    readonly exited: Event<number | null>;
     interrupt(): Promise<void>;
-    kill(): void;
-    launch(interpreter: InterpreterUri, kernelSpec: IJupyterKernelSpec): Promise<void>;
 }
 
 export const IKernelFinder = Symbol('IKernelFinder');
 export interface IKernelFinder {
     findKernelSpec(interpreterUri: InterpreterUri, kernelName?: string): Promise<IJupyterKernelSpec>;
+}
+
+/**
+ * The daemon responsbile for the Python Kernel.
+ */
+export interface IPythonKernelDaemon extends IDisposable {
+    interrupt(): Promise<void>;
+    kill(): Promise<void>;
+    start(moduleName: string, args: string[], options: SpawnOptions): Promise<ObservableExecutionResult<string>>;
+}
+
+export class PythonKernelDiedError extends Error {
+    public readonly exitCode: number;
+    public readonly reason?: string;
+    constructor(options: { exitCode: number; reason?: string } | { error: Error }) {
+        const message =
+            'exitCode' in options
+                ? `Kernel died with exit code ${options.exitCode}. ${options.reason}`
+                : `Kernel died ${options.error.message}`;
+        super(message);
+        if ('exitCode' in options) {
+            this.exitCode = options.exitCode;
+            this.reason = options.reason;
+        } else {
+            this.exitCode = -1;
+            this.reason = options.error.message;
+            this.stack = options.error.stack;
+            this.name = options.error.name;
+        }
+    }
 }
