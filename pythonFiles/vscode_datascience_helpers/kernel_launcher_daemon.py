@@ -125,7 +125,6 @@ class PythonDaemon(JupyterDaemon):
             module_name,
             args,
         )
-        self._endpoint.notify("ENVS", os.environ.copy())
         args = [] if args is None else args
         cmd = [sys.executable, "-m", module_name] + args
         # For some reason kernel does not start on mac with `independent=False`
