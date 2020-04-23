@@ -201,7 +201,7 @@ export class KernelLauncher implements IKernelLauncher {
 
     private async getKernelConnection(): Promise<IKernelConnection> {
         const getPorts = promisify(portfinder.getPorts);
-        const ports = await getPorts(5, { host: '127.0.0.1', port: 9100 });
+        const ports = await getPorts(5, { host: '127.0.0.1', port: 9000 });
 
         return {
             version: 1,
