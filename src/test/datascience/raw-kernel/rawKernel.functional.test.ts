@@ -244,7 +244,7 @@ suite('DataScience raw kernel tests', () => {
 
         // If the interrupt doesn't work, then test will timeout as execution will sleep for `300s`.
         // Hence timeout is a test failure.
-        const longCellExecutionRequest = createExecutionMessage('import time\ntime.sleep(300)');
+        const longCellExecutionRequest = createExecutionMessage('import time\nfor i in range(300):\n    time.sleep(1)');
 
         const subscription = messageObservable.subscribe((m) => {
             if ((m.parent_header as any).msg_id !== longCellExecutionRequest.header.msg_id) {
