@@ -8,12 +8,11 @@ import { promisify } from 'util';
 import * as uuid from 'uuid/v4';
 import { IFileSystem } from '../../common/platform/types';
 import { IProcessServiceFactory, IPythonExecutionFactory } from '../../common/process/types';
-import { Resource } from '../../common/types';
 import { captureTelemetry } from '../../telemetry';
 import { Telemetry } from '../constants';
 import { IJupyterKernelSpec } from '../types';
 import { KernelProcess } from './kernelProcess';
-import { IKernelConnection, IKernelFinder, IKernelLauncher, IKernelProcess } from './types';
+import { IKernelConnection, IKernelLauncher, IKernelProcess } from './types';
 
 // Launches and returns a kernel process given a resource or python interpreter.
 // If the given interpreter is undefined, it will try to use the selected interpreter.
@@ -21,23 +20,13 @@ import { IKernelConnection, IKernelFinder, IKernelLauncher, IKernelProcess } fro
 @injectable()
 export class KernelLauncher implements IKernelLauncher {
     constructor(
-        @inject(IKernelFinder) private kernelFinder: IKernelFinder,
         @inject(IPythonExecutionFactory) private pythonExecutionFactory: IPythonExecutionFactory,
         @inject(IProcessServiceFactory) private processExecutionFactory: IProcessServiceFactory,
         @inject(IFileSystem) private file: IFileSystem
     ) {}
 
     @captureTelemetry(Telemetry.KernelLauncherPerf)
-    public async launch(resource: Resource, kernelName?: string | IJupyterKernelSpec): Promise<IKernelProcess> {
-        let kernelSpec: IJupyterKernelSpec;
-        if (!kernelName || typeof kernelName === 'string') {
-            // string or undefined
-            kernelSpec = await this.kernelFinder.findKernelSpec(resource, kernelName);
-        } else {
-            // IJupyterKernelSpec
-            kernelSpec = kernelName;
-        }
-
+    public async launch(kernelSpec: IJupyterKernelSpec): Promise<IKernelProcess> {
         const connection = await this.getKernelConnection();
         const kernelProcess = new KernelProcess(
             this.pythonExecutionFactory,

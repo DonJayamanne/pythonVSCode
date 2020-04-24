@@ -3,7 +3,7 @@
 'use strict';
 
 import { SpawnOptions } from 'child_process';
-import { Event } from 'vscode';
+import { CancellationToken, Event } from 'vscode';
 import { InterpreterUri } from '../../common/installer/types';
 import { ObservableExecutionResult } from '../../common/process/types';
 import { IAsyncDisposable, IDisposable } from '../../common/types';
@@ -11,7 +11,7 @@ import { IJupyterKernelSpec } from '../types';
 
 export const IKernelLauncher = Symbol('IKernelLauncher');
 export interface IKernelLauncher {
-    launch(interpreterUri: InterpreterUri, kernelName?: string | IJupyterKernelSpec): Promise<IKernelProcess>;
+    launch(kernelSpec: IJupyterKernelSpec): Promise<IKernelProcess>;
 }
 
 export interface IKernelConnection {
@@ -43,7 +43,11 @@ export interface IKernelProcess extends IAsyncDisposable {
 
 export const IKernelFinder = Symbol('IKernelFinder');
 export interface IKernelFinder {
-    findKernelSpec(interpreterUri: InterpreterUri, kernelName?: string): Promise<IJupyterKernelSpec>;
+    findKernelSpec(
+        interpreterUri: InterpreterUri,
+        kernelName?: string,
+        cancelToken?: CancellationToken
+    ): Promise<IJupyterKernelSpec>;
 }
 
 /**
