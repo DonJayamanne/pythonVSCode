@@ -149,9 +149,19 @@ class PythonDaemon(JupyterDaemon):
         self.kernel = proc
         self.log.info("Kernel launched, with PID %s", proc.pid)
 
-        threading.Thread(target=self._read_stdout_in_background, daemon=True, name="kerne_stdout_reader").start()
-        threading.Thread(target=self._read_stderr_in_background, daemon=True, name="kerne_stderr_reader").start()
-        threading.Thread(target=self._monitor_kernel, daemon=True, name="kerne_monitor").start()
+        threading.Thread(
+            target=self._read_stdout_in_background,
+            daemon=True,
+            name="kerne_stdout_reader",
+        ).start()
+        threading.Thread(
+            target=self._read_stderr_in_background,
+            daemon=True,
+            name="kerne_stderr_reader",
+        ).start()
+        threading.Thread(
+            target=self._monitor_kernel, daemon=True, name="kerne_monitor"
+        ).start()
 
     def signal_kernel(self, signum):
         """Sends a signal to the process group of the kernel (this

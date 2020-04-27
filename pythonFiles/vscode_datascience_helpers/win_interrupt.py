@@ -1,3 +1,4 @@
+# No changes to original code.
 # Original source borrowed from https://github.com/jupyter/jupyter_client/blob/master/jupyter_client/win_interrupt.py.
 
 """Use a Windows event to interrupt a child process like SIGINT.
@@ -33,9 +34,7 @@ def create_interrupt_event():
     sa.lpSecurityDescriptor = 0
     sa.bInheritHandle = 1
 
-    return ctypes.windll.kernel32.CreateEventA(
-        sa_p, False, False, ""
-    )
+    return ctypes.windll.kernel32.CreateEventA(sa_p, False, False, "")
 
 
 def send_interrupt(interrupt_handle):
