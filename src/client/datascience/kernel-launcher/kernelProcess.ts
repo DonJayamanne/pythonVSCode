@@ -10,7 +10,7 @@ import { traceError, traceInfo, traceWarning } from '../../common/logger';
 import { IFileSystem, TemporaryFile } from '../../common/platform/types';
 import { IProcessServiceFactory, IPythonExecutionFactory, ObservableExecutionResult } from '../../common/process/types';
 import { Resource } from '../../common/types';
-import { createDeferred, Deferred } from '../../common/utils/async';
+import { createDeferred, Deferred, sleep } from '../../common/utils/async';
 import * as localize from '../../common/utils/localize';
 import { noop, swallowExceptions } from '../../common/utils/misc';
 import { IJupyterKernelSpec } from '../types';
@@ -73,6 +73,12 @@ export class KernelProcess implements IKernelProcess {
         await this.createAndUpdateConnectionFile();
 
         const exeObs = await this.launchAsObservable();
+
+        sleep(1_000)
+            .then(() => {
+                this.readyPromise.resolve();
+            })
+            .catch(noop);
 
         let stdout = '';
         let stderr = '';

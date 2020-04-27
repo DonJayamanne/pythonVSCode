@@ -45,7 +45,8 @@ export class PythonKernelLauncherDaemon implements IDisposable {
                 `Unsupported KernelSpec file. args must be [<pythonPath>, '-m', <moduleName>, arg1, arg2, ..]. Provied ${providedArgs}`
             );
         }
-        const observableResult = await daemon.start(moduleName, args, { env: kernelSpec.env });
+        const env = kernelSpec.env && Object.keys(kernelSpec.env).length > 0 ? kernelSpec.env : undefined;
+        const observableResult = await daemon.start(moduleName, args, { env });
         if (observableResult.proc) {
             this.processesToDispose.push(observableResult.proc);
         }
