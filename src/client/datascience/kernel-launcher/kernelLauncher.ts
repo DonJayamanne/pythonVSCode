@@ -14,11 +14,14 @@ import { IJupyterKernelSpec } from '../types';
 import { KernelProcess } from './kernelProcess';
 import { IKernelConnection, IKernelLauncher, IKernelProcess } from './types';
 
+const PortToStartFrom = 9_000;
+
 // Launches and returns a kernel process given a resource or python interpreter.
 // If the given interpreter is undefined, it will try to use the selected interpreter.
 // If the selected interpreter doesn't have a kernel, it will find a kernel on disk and use that.
 @injectable()
 export class KernelLauncher implements IKernelLauncher {
+    private static nextFreePortToTryAndUse = PortToStartFrom;
     constructor(
         @inject(IPythonExecutionFactory) private pythonExecutionFactory: IPythonExecutionFactory,
         @inject(IProcessServiceFactory) private processExecutionFactory: IProcessServiceFactory,
@@ -41,7 +44,13 @@ export class KernelLauncher implements IKernelLauncher {
 
     private async getKernelConnection(): Promise<IKernelConnection> {
         const getPorts = promisify(portfinder.getPorts);
-        const ports = await getPorts(5, { host: '127.0.0.1', port: 9000 });
+        // Ports may have been freed, hence start from begining.
+        const port =
+            KernelLauncher.nextFreePortToTryAndUse > PortToStartFrom + 1_000
+                ? PortToStartFrom
+                : KernelLauncher.nextFreePortToTryAndUse;
+        const ports = await getPorts(5, { host: '127.0.0.1', port });
+        KernelLauncher.nextFreePortToTryAndUse = Math.max(...ports);
 
         return {
             version: 1,
