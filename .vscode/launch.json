@@ -16,7 +16,7 @@
             "outFiles": [
                 "${workspaceFolder}/out/**/*"
             ],
-            // "preLaunchTask": "Compile",
+            "preLaunchTask": "Compile",
             "skipFiles": [
                 "<node_internals>/**"
             ],
@@ -239,14 +239,14 @@
                 "--ui=tdd",
                 "--recursive",
                 "--colors",
-                "--grep", "Kernel Finder",
+                "--grep", "<suite name>",
                 "--timeout=300000",
                 "--fast"
             ],
             "outFiles": [
                 "${workspaceFolder}/out/**/*.js"
             ],
-            // "preLaunchTask": "Compile",
+            "preLaunchTask": "Compile",
             "skipFiles": [
                 "<node_internals>/**"
             ]

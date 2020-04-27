@@ -144,7 +144,6 @@ export class KernelProcess implements IKernelProcess {
             throw new Error(`Connection file not found in kernelspec json args, ${this._kernelSpec.argv.join(' ')}`);
         }
         this._kernelSpec.argv[indexOfConnectionFile] = this.connectionFile.filePath;
-        // args[indexOfConnectionFile] = '/Users/donjayamanne/Desktop/Development/vsc/pythonVSCode/wow.json';
     }
 
     private async launchAsObservable() {
