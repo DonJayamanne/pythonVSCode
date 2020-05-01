@@ -3172,7 +3172,7 @@
         "socket.io": "^2.3.0",
         "source-map-support": "^0.5.12",
         "style-loader": "^0.23.1",
-        "styled-jsx": "^3.1.0",
+        "styled-jsx": "^3.2.5",
         "svg-inline-loader": "^0.8.0",
         "svg-inline-react": "^3.1.0",
         "terser-webpack-plugin": "^2.3.2",
