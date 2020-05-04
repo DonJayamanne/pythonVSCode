@@ -3147,7 +3147,7 @@
         "postcss-loader": "^3.0.0",
         "prettier": "^2.0.2",
         "range-inclusive": "^1.0.2",
-        "raw-loader": "^0.5.1",
+        "raw-loader": "^4.0.1",
         "react": "^16.5.2",
         "react-data-grid": "^6.0.2-0",
         "react-dev-utils": "^5.0.2",
