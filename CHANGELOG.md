@@ -80,6 +80,8 @@
    ([#11579](https://github.com/Microsoft/vscode-python/issues/11579))
 1. When VS quits, make sure to save contents of notebook for next reopen.
    ([#11557](https://github.com/Microsoft/vscode-python/issues/11557))   
+1. Fix scrolling when clicking in the interactive window to not jump around.
+   ([#11554](https://github.com/Microsoft/vscode-python/issues/11554))
 
 ### Code Health
 
