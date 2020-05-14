@@ -49,7 +49,7 @@ import { IServiceContainer, IServiceManager } from './ioc/types';
 import { getLanguageConfiguration } from './language/languageConfiguration';
 import { LinterCommands } from './linters/linterCommands';
 import { registerTypes as lintersRegisterTypes } from './linters/serviceRegistry';
-import { addOutputChannelLogging } from './logging';
+import { addOutputChannelLogging, setLoggingLevel } from './logging';
 import { PythonCodeActionProvider } from './providers/codeActionProvider/pythonCodeActionProvider';
 import { PythonFormattingEditProvider } from './providers/formatProvider';
 import { ReplProvider } from './providers/replProvider';
@@ -117,6 +117,12 @@ async function activateLegacy(
     commonRegisterTerminalTypes(serviceManager);
     debugConfigurationRegisterTypes(serviceManager);
 
+    const configuration = serviceManager.get<IConfigurationService>(IConfigurationService);
+    // We should start logging using the log level as soon as possible, so set it as soon as we can access the level.
+    // `IConfigurationService` may depend any of the registered types, so doing it after all registrations are finished.
+    // XXX Move this *after* abExperiments is activated?
+    setLoggingLevel(configuration.getSettings().logging.level);
+
     const abExperiments = serviceContainer.get<IExperimentsManager>(IExperimentsManager);
     await abExperiments.activate();
 
@@ -124,7 +130,6 @@ async function activateLegacy(
     // To ensure we can register types based on experiments.
     dataScienceRegisterTypes(serviceManager);
 
-    const configuration = serviceManager.get<IConfigurationService>(IConfigurationService);
     const languageServerType = configuration.getSettings().languageServer;
 
     // Language feature registrations.
