@@ -3157,7 +3157,7 @@
         "bootstrap-less": "^3.3.8",
         "brfs": "^2.0.2",
         "cache-loader": "^4.1.0",
-        "canvas": "^2.6.0",
+        "canvas": "^2.6.1",
         "chai": "^4.1.2",
         "chai-arrays": "^2.0.0",
         "chai-as-promised": "^7.1.1",
