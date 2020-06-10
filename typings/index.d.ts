@@ -1,12 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-
-// Added to allow compilation of backbone types pulled in from ipywidgets (@jupyterlab/widgets).
-declare module JQuery {
-    type TriggeredEvent = any;
-}
-
 declare module '@phosphor/coreutils' {
     export class PromiseDelegate<T> {
         /**
@@ -71,7 +65,7 @@ declare module '@phosphor/coreutils' {
     /**
      * A type definition for a JSON array.
      */
-    export interface JSONArray extends Array<JSONValue> { }
+    export interface JSONArray extends Array<JSONValue> {}
     /**
      * A type definition for a readonly JSON object.
      */
@@ -81,7 +75,7 @@ declare module '@phosphor/coreutils' {
     /**
      * A type definition for a readonly JSON array.
      */
-    export interface ReadonlyJSONArray extends ReadonlyArray<ReadonlyJSONValue> { }
+    export interface ReadonlyJSONArray extends ReadonlyArray<ReadonlyJSONValue> {}
     /**
      * A type alias for a readonly JSON value.
      */
