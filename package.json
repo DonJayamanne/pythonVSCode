@@ -3210,7 +3210,7 @@
         "@jupyter-widgets/output": "^2.0.1",
         "@nteract/transform-dataresource": "^4.3.5",
         "@nteract/transform-geojson": "^3.2.3",
-        "@nteract/transform-model-debug": "^3.2.3",
+        "@nteract/transform-model-debug": "^5.0.1",
         "@nteract/transform-plotly": "^6.0.0",
         "@nteract/transform-vega": "^6.0.3",
         "@nteract/transforms": "^4.4.7",
