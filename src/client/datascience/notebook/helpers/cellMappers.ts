@@ -77,6 +77,18 @@ export function findMappedNotebookCell(source: ICell, cells: NotebookCell[]): No
 export function findMappedNotebookCellModel(source: NotebookCell, cells: readonly ICell[]): ICell {
     // If so, then we have a problem.
     const found = cells.filter((cell) => cell.id === getOriginalCellId(source));
+    if (found.length === 0) {
+        // tslint:disable-next-line: no-console
+        console.error(`ICell not found, for CellId = ${getOriginalCellId(source)} in ${source}`);
+        // tslint:disable-next-line: no-console
+        console.error(`ICell not found, for CellId = ${getOriginalCellId(source)} in ${source}`);
+        // tslint:disable-next-line: no-console
+        console.error(`ICell not found, for CellId = ${getOriginalCellId(source)} in ${source}`);
+        // tslint:disable-next-line: no-console
+        console.error(`ICell not found, for CellId = ${getOriginalCellId(source)} in ${source}`);
+        // tslint:disable-next-line: no-console
+        console.error(`ICell not found, for CellId = ${getOriginalCellId(source)} in ${source}`);
+    }
     // assert.ok(found.length, `ICell not found, for CellId = ${getOriginalCellId(source)} in ${source}`);
 
     return found[0];
