@@ -236,6 +236,8 @@ export class NotebookExecutionService implements INotebookExecutionService {
         cell.metadata.runStartTime = new Date().getTime();
         this.contentProvider.notifyChangesToDocument(document);
 
+        const cellModel = findMappedNotebookCellModel(cell, model.cells);
+
         let subscription: Subscription | undefined;
         let modelClearedEventHandler: IDisposable | undefined;
         try {
@@ -264,8 +266,6 @@ export class NotebookExecutionService implements INotebookExecutionService {
                         .flatMap((item) => (item.data.outputs as unknown) as nbformat.IOutput[])
                         .filter((output) => !hasTransientOutputForAnotherCell(output));
 
-                    const notebookCellModel = findMappedNotebookCellModel(cell, model.cells);
-
                     // Set execution count, all messages should have it
                     if (
                         cells.length &&
@@ -273,12 +273,12 @@ export class NotebookExecutionService implements INotebookExecutionService {
                         typeof cells[0].data.execution_count === 'number'
                     ) {
                         const executionCount = cells[0].data.execution_count as number;
-                        if (updateCellExecutionCount(model, cell, notebookCellModel, executionCount)) {
+                        if (updateCellExecutionCount(model, cell, cellModel, executionCount)) {
                             this.contentProvider.notifyChangesToDocument(document);
                         }
                     }
 
-                    if (updateCellOutput(model, cell, notebookCellModel, rawCellOutput)) {
+                    if (updateCellOutput(model, cell, cellModel, rawCellOutput)) {
                         this.contentProvider.notifyChangesToDocument(document);
                     }
                 },
@@ -296,7 +296,6 @@ export class NotebookExecutionService implements INotebookExecutionService {
                     cell.metadata.statusMessage = '';
 
                     // Update metadata in our model.
-                    const cellModel = findMappedNotebookCellModel(cell, model.cells);
                     updateCellExecutionTimes(
                         model,
                         cellModel,
