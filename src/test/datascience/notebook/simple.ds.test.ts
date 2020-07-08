@@ -15,10 +15,10 @@ import { canRunTests, closeNotebooksAndCleanUpAfterTests } from './helper';
 
 // tslint:disable: no-any no-invalid-this
 suite('DataScience - VSCode Notebook - Errors in Execution', function () {
-    this.timeout(15_000);
+    this.timeout(65_000);
     let api: IExtensionTestApi;
     suiteSetup(async function () {
-        this.timeout(15_000);
+        this.timeout(65_000);
         api = await initialize();
         if (!(await canRunTests())) {
             return this.skip();
