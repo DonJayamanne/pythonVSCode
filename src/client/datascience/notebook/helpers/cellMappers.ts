@@ -13,6 +13,7 @@
 
 import * as assert from 'assert';
 import type { NotebookCell, NotebookDocument } from 'vscode-proposed';
+import { traceVerbose } from '../../../common/logger';
 import { ICell, INotebookModel } from '../../types';
 
 /*
@@ -29,8 +30,7 @@ export function mapVSCNotebookCellToCellModel(vscCell: NotebookCell, cell: ICell
     if (!cellMapsByNotebookDocument.has(vscCell.notebook)) {
         cellMapsByNotebookDocument.set(vscCell.notebook, new Map<VSCodeCellUri, ICellId>());
     }
-    // tslint:disable-next-line: no-console
-    console.error(`Mapping VSCodeCell ${vscCell.uri.toString()} to ${cell.id}`);
+    traceVerbose(`Mapping NotebookCell ${vscCell.uri.toString()} to ICell ${cell.id}`);
     cellMapsByNotebookDocument.get(vscCell.notebook)!.set(vscCell.uri.toString(), cell.id);
     mapOfCellsToNotebookCells.set(cell, vscCell.uri.toString());
 }
