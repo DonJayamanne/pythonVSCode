@@ -16,7 +16,7 @@ import {
     NotebookCellOutputsChangeEvent,
     NotebookCellsChangeEvent
 } from '../../../common/application/types';
-import { traceError } from '../../../common/logger';
+import { traceWarning } from '../../../common/logger';
 import { sendTelemetryEvent } from '../../../telemetry';
 import { VSCodeNativeTelemetry } from '../../constants';
 import { VSCodeNotebookModel } from '../../notebookStorage/vscNotebookModel';
@@ -165,11 +165,11 @@ function handleCellInsertions(cells: NotebookCell[], insertionStart: number, mod
 function handleCellDeletes(deletedItems: NotebookCell[], model: VSCodeNotebookModel) {
     deletedItems.forEach((cell) => {
         try {
-            const cellModel = findMappedNotebookCellModel(cell, model.cells);
+            const cellModel = findMappedNotebookCellModel(cell, model.cells, true);
             model.deleteCell(cellModel);
         } catch (ex) {
             // If cell doesn't exist, then nothing to delete.
-            traceError('Unable to delete cell as it does not exist in the model', ex);
+            traceWarning('Unable to delete cell as it does not exist in the model', ex);
         }
     });
     sendTelemetryEvent(VSCodeNativeTelemetry.DeleteCell);
