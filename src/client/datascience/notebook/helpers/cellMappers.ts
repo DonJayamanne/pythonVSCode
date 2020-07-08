@@ -29,6 +29,8 @@ export function mapVSCNotebookCellToCellModel(vscCell: NotebookCell, cell: ICell
     if (!cellMapsByNotebookDocument.has(vscCell.notebook)) {
         cellMapsByNotebookDocument.set(vscCell.notebook, new Map<VSCodeCellUri, ICellId>());
     }
+    // tslint:disable-next-line: no-console
+    console.error(`Mapping VSCodeCell ${vscCell.uri.toString()} to ${cell.id}`);
     cellMapsByNotebookDocument.get(vscCell.notebook)!.set(vscCell.uri.toString(), cell.id);
     mapOfCellsToNotebookCells.set(cell, vscCell.uri.toString());
 }
@@ -78,16 +80,13 @@ export function findMappedNotebookCellModel(source: NotebookCell, cells: readonl
     // If so, then we have a problem.
     const found = cells.filter((cell) => cell.id === getOriginalCellId(source));
     if (found.length === 0) {
-        // tslint:disable-next-line: no-console
-        console.error(`ICell not found, for CellId = ${getOriginalCellId(source)} in ${source}`);
-        // tslint:disable-next-line: no-console
-        console.error(`ICell not found, for CellId = ${getOriginalCellId(source)} in ${source}`);
-        // tslint:disable-next-line: no-console
-        console.error(`ICell not found, for CellId = ${getOriginalCellId(source)} in ${source}`);
-        // tslint:disable-next-line: no-console
-        console.error(`ICell not found, for CellId = ${getOriginalCellId(source)} in ${source}`);
-        // tslint:disable-next-line: no-console
-        console.error(`ICell not found, for CellId = ${getOriginalCellId(source)} in ${source}`);
+        // tslint:disable: no-console
+        console.error(
+            `ICell not found, for CellId = ${getOriginalCellId(
+                source
+            )} in ${source.uri.toString()}, all cell ids ${cells.map((cell) => cell.id).join(', ')}`,
+            new Error('')
+        );
     }
     // assert.ok(found.length, `ICell not found, for CellId = ${getOriginalCellId(source)} in ${source}`);
 

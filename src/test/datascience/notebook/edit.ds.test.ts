@@ -59,6 +59,8 @@ suite('DataScience - VSCode Notebook (Edit)', function () {
         suite(isUntitled ? 'Untitled Notebook' : 'Existing Notebook', () => {
             let model: INotebookModel;
             setup(async () => {
+                // tslint:disable: no-console
+                console.error('StartSetup');
                 sinon.restore();
 
                 // Don't use same file (due to dirty handling, we might save in dirty.)
@@ -71,8 +73,13 @@ suite('DataScience - VSCode Notebook (Edit)', function () {
 
                 editedEvent = createEventHandler(editorProvider.activeEditor!, 'modified', disposables);
                 changedEvent = createEventHandler(editorProvider.activeEditor!.model!, 'changed', disposables);
+                console.error('EndSetup');
             });
-            teardown(() => closeNotebooksAndCleanUpAfterTests(disposables));
+            teardown(async () => {
+                console.error('StartTeardown');
+                await closeNotebooksAndCleanUpAfterTests(disposables);
+                console.error('EndTeardown');
+            });
             async function assertTextInCell(cell: ICell, text: string) {
                 await waitForCondition(
                     async () => (cell.data.source as string[]).join('') === splitMultilineString(text).join(''),
@@ -239,6 +246,8 @@ suite('DataScience - VSCode Notebook (Edit)', function () {
                 await changedEvent.assertFired();
             });
             test('Copy & paste (code cell)', async () => {
+                // tslint:disable: no-console
+                console.error('Start**');
                 await deleteAllCellsAndWait();
                 await insertPythonCellAndWait('HELLO');
 
@@ -248,13 +257,14 @@ suite('DataScience - VSCode Notebook (Edit)', function () {
                 await commands.executeCommand('notebook.cell.paste');
 
                 await waitForCondition(async () => model.cells.length === 2, 5_000, 'Not pasted');
-                assert.lengthOf(model.cells, 2);
                 assertCodeCell(0, 'HELLO');
                 assertCodeCell(1, 'HELLO');
                 await editedEvent.assertFired();
                 await changedEvent.assertFired();
+                console.error('End**');
             });
             test('Copy & paste (markdown cell)', async () => {
+                console.error('Start**');
                 await deleteAllCellsAndWait();
                 await insertMarkdownCellAndWait('HELLO');
 
@@ -269,6 +279,7 @@ suite('DataScience - VSCode Notebook (Edit)', function () {
                 assertMarkdownCell(1, 'HELLO');
                 await editedEvent.assertFired();
                 await changedEvent.assertFired();
+                console.error('End**');
             });
             test('Copy & paste above', async () => {
                 await deleteAllCellsAndWait();
