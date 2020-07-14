@@ -107,6 +107,8 @@ import { ServerPreload } from './jupyter/serverPreload';
 import { JupyterServerSelector } from './jupyter/serverSelector';
 import { JupyterDebugService } from './jupyterDebugService';
 import { JupyterUriProviderRegistration } from './jupyterUriProviderRegistration';
+import { JupyterViewIntegration } from './jupyterViews/integration';
+import { registerTypes as registerJupyterViewTypes } from './jupyterViews/serviceRegistry';
 import { KernelDaemonPool } from './kernel-launcher/kernelDaemonPool';
 import { KernelDaemonPreWarmer } from './kernel-launcher/kernelDaemonPreWarmer';
 import { KernelFinder } from './kernel-launcher/kernelFinder';
@@ -248,6 +250,7 @@ export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.addSingleton<IExtensionSingleActivationService>(IExtensionSingleActivationService, NativeEditorViewTracker);
     serviceManager.addSingleton<IExtensionSingleActivationService>(IExtensionSingleActivationService, NotebookUsageTracker);
     serviceManager.addSingleton<IExtensionSingleActivationService>(IExtensionSingleActivationService, TrustCommandHandler);
+    serviceManager.addSingleton<IExtensionSingleActivationService>(IExtensionSingleActivationService, JupyterViewIntegration);
     serviceManager.addSingleton<IInteractiveWindowListener>(IInteractiveWindowListener, DataScienceSurveyBannerLogger);
     serviceManager.addSingleton<IInteractiveWindowProvider>(IInteractiveWindowProvider, InteractiveWindowProvider);
     serviceManager.addSingleton<IJupyterDebugger>(IJupyterDebugger, JupyterDebugger, undefined, [ICellHashListener]);
@@ -309,6 +312,7 @@ export function registerTypes(serviceManager: IServiceManager) {
 
     registerGatherTypes(serviceManager);
     registerNotebookTypes(serviceManager);
+    registerJupyterViewTypes(serviceManager);
 }
 
 export function registerGatherTypes(serviceManager: IServiceManager) {

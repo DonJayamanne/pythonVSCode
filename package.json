@@ -3132,6 +3132,47 @@
                     "name": "Python",
                     "when": "testsDiscovered"
                 }
+            ],
+            "jupyter": [
+                {
+                    "contextualTitle": "Kernels",
+                    "icon": "resources/dark/server.svg",
+                    "id": "kernels",
+                    "name": "Kernels"
+                },
+                {
+                    "contextualTitle": "Session",
+                    "icon": "resources/dark/server.svg",
+                    "id": "session",
+                    "name": "Session"
+                },
+                {
+                    "contextualTitle": "Notebook Metadata",
+                    "icon": "resources/dark/server.svg",
+                    "id": "metadata",
+                    "name": "Notebook Metadata"
+                },
+                {
+                    "contextualTitle": "Variables",
+                    "icon": "resources/dark/server.svg",
+                    "id": "variables",
+                    "name": "Variables"
+                },
+                {
+                    "contextualTitle": "Cell Metadata",
+                    "icon": "resources/dark/server.svg",
+                    "id": "cellMetadata",
+                    "name": "Cell Metadata"
+                }
+            ]
+        },
+        "viewsContainers": {
+            "activitybar": [
+                {
+                    "icon": "resources/dark/server.svg",
+                    "id": "jupyter",
+                    "title": "Jupyter"
+                }
             ]
         },
         "notebookOutputRenderer": [

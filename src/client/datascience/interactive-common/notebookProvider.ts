@@ -95,12 +95,12 @@ export class NotebookProvider implements INotebookProvider {
     }
 
     public async getOrCreateNotebook(options: GetNotebookOptions): Promise<INotebook | undefined> {
-        const rawKernel = await this.rawNotebookProvider.supported();
-
-        // Check our own promise cache
+        // Check our own promise cache.
         if (this.notebooks.get(options.identity.fsPath)) {
             return this.notebooks.get(options.identity.fsPath)!!;
         }
+
+        const rawKernel = await this.rawNotebookProvider.supported();
 
         // Check to see if our provider already has this notebook
         const notebook = rawKernel
