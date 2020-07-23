@@ -344,7 +344,6 @@ def main():
                                     tests = unittest.TestSuite([m])
                                     break
                         except Exception as err:
-                            errorMessage = traceback.format_exception()
                             pass
                 if tests is None:
                     tests = suite
