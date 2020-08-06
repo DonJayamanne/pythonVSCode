@@ -368,13 +368,14 @@ import {
 import { ShebangCodeLensProvider } from '../../client/interpreter/display/shebangCodeLensProvider';
 import { InterpreterHelper } from '../../client/interpreter/helpers';
 import { InterpreterVersionService } from '../../client/interpreter/interpreterVersion';
+import { IInterpreterHashProviderFactory } from '../../client/interpreter/locators/types';
 import { registerInterpreterTypes } from '../../client/interpreter/serviceRegistry';
 import { VirtualEnvironmentManager } from '../../client/interpreter/virtualEnvs';
 import { IVirtualEnvironmentManager } from '../../client/interpreter/virtualEnvs/types';
 import { ProposePylanceBanner } from '../../client/languageServices/proposeLanguageServerBanner';
 import { CacheableLocatorPromiseCache } from '../../client/pythonEnvironments/discovery/locators/services/cacheableLocatorService';
 import { InterpreterType, PythonInterpreter } from '../../client/pythonEnvironments/info';
-import { registerForIOC } from '../../client/pythonEnvironments/legacyIOC';
+import { InterpreterHashProviderFactoryProxy, registerForIOC } from '../../client/pythonEnvironments/legacyIOC';
 import { CodeExecutionHelper } from '../../client/terminals/codeExecution/helper';
 import { ICodeExecutionHelper } from '../../client/terminals/types';
 import { MockOutputChannel } from '../mockClasses';
@@ -593,7 +594,10 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
         this.serviceManager.addSingleton<ExportUtil>(ExportUtil, ExportUtil);
         this.serviceManager.addSingleton<ExportCommands>(ExportCommands, ExportCommands);
         this.serviceManager.addSingleton<IExportManagerFilePicker>(IExportManagerFilePicker, ExportManagerFilePicker);
-
+        this.serviceManager.addSingleton<IInterpreterHashProviderFactory>(
+            IInterpreterHashProviderFactory,
+            InterpreterHashProviderFactoryProxy
+        );
         this.serviceManager.addSingleton<INotebookModelFactory>(INotebookModelFactory, NotebookModelFactory);
         this.serviceManager.addSingleton<IMountedWebViewFactory>(IMountedWebViewFactory, MountedWebViewFactory);
         this.registerFileSystemTypes();

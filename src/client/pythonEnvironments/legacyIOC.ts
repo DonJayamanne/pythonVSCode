@@ -194,7 +194,7 @@ class InterpreterLocatorProgressServiceProxy implements IInterpreterLocatorProgr
 }
 
 @injectable()
-class InterpreterHashProviderFactoryProxy implements IInterpreterHashProviderFactory {
+export class InterpreterHashProviderFactoryProxy implements IInterpreterHashProviderFactory {
     private readonly impl: IInterpreterHashProviderFactory;
     constructor(
         @inject(IConfigurationService) configService: IConfigurationService,
