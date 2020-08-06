@@ -192,14 +192,6 @@
                 "command": "notebook.cell.delete"
             },
             {
-                "mac": "Z",
-                "win": "Z",
-                "linux": "Z",
-                "key": "Z",
-                "when": "notebookEditorFocused && !inputFocus && notebookViewType == jupyter-notebook",
-                "command": "undo"
-            },
-            {
                 "mac": "C",
                 "win": "C",
                 "linux": "C",
