@@ -3629,7 +3629,7 @@
         "dedent": "^0.7.0",
         "deemon": "^1.4.0",
         "del": "^3.0.0",
-        "download": "^7.0.0",
+        "download": "^8.0.0",
         "enzyme": "^3.7.0",
         "enzyme-adapter-react-16": "^1.6.0",
         "eslint": "^7.2.0",
