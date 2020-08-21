@@ -33,12 +33,13 @@ const store = createStore(skipDefault, baseTheme, testMode, postOffice);
 
 // Wire up a connected react control for our NativeEditor
 const ConnectedNativeEditor = getConnectedNativeEditor();
-import { initializeIPYWidgets, wow } from '../ipywidgets/main';
+// import { initializeIPYWidgets } from '../ipywidgets/main';
 // tslint:disable-next-line: no-console
-console.log(wow);
+// console.log(wow);
 // setTimeout(() => {
-// tslint:disable-next-line: no-any
-const init = initializeIPYWidgets || (window as any).initializeIPYWidgets;
+// tslint:disable
+// const init = initializeIPYWidgets || (window as any).initializeIPYWidgets;
+const init = (window as any).initializeIPYWidgets;
 if (init) {
     // tslint:disable-next-line: no-console
     console.error('Initialized WidgetManager');

@@ -28,7 +28,8 @@ const widgetManagerPromise = createDeferred<WidgetManager | undefined>();
 export function getWidgetManager(): Promise<WidgetManager | undefined> {
     return widgetManagerPromise.promise;
 }
-// tslint:disable: no-any
+// tslint:disable
+(window as any).getWidgetManager = getWidgetManager;
 
 export class WidgetManager implements IIPyWidgetManager, IMessageHandler {
     public static get instance(): Observable<WidgetManager | undefined> {

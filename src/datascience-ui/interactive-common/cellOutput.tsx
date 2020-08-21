@@ -10,7 +10,6 @@ import '../../client/common/extensions';
 import { Identifiers } from '../../client/datascience/constants';
 import { CellState } from '../../client/datascience/types';
 import { ClassType } from '../../client/ioc/types';
-import { getWidgetManager } from '../ipywidgets';
 import { Image, ImageName } from '../react-common/image';
 import { ImageButton } from '../react-common/imageButton';
 import { getLocString } from '../react-common/locReactSide';
@@ -599,7 +598,11 @@ export class CellOutput extends React.Component<ICellOutputProps> {
     private async createWidgetView(widgetData: nbformat.IMimeBundle & { model_id: string; version_major: number }) {
         // const wm = await this.getWidgetManager();
         // tslint:disable
-        const wm = await getWidgetManager();
+        while (!(window as any).getWidgetManager) {
+            console.error(`Not found ${(window as any).getWidgetManager}`);
+            await new Promise((r) => setTimeout(r, 100));
+        }
+        const wm = await (window as any).getWidgetManager();
         if (!wm) {
             console.error('NO Widget Manager');
             return;
