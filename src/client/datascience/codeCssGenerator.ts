@@ -4,7 +4,7 @@
 import type { JSONArray, JSONObject } from '@phosphor/coreutils';
 import { inject, injectable } from 'inversify';
 import { parse } from 'jsonc-parser';
-import * as monacoEditor from 'monaco-editor/esm/vs/editor/editor.api';
+import type * as monacoEditor from 'monaco-editor/esm/vs/editor/editor.api';
 import * as path from 'path';
 import { IWorkspaceService } from '../common/application/types';
 import { traceError, traceInfo, traceWarning } from '../common/logger';

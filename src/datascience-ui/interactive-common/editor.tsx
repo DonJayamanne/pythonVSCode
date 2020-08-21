@@ -1,28 +1,28 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 'use strict';
-import * as monacoEditor from 'monaco-editor/esm/vs/editor/editor.api';
+import type * as monacoEditor from 'monaco-editor/esm/vs/editor/editor.api';
 import * as React from 'react';
 
-import { noop } from '../../client/common/utils/misc';
+// import { noop } from '../../client/common/utils/misc';
 import { IKeyboardEvent } from '../react-common/event';
 import { MonacoEditor } from '../react-common/monacoEditor';
 import { IMonacoModelContentChangeEvent } from '../react-common/monacoHelpers';
 import { InputHistory } from './inputHistory';
 import { CursorPos, IFont } from './mainState';
 
-const stickiness = monacoEditor.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges;
+// const stickiness = monacoEditor.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges;
 
-// we need a separate decoration for glyph margin, since we do not want it on each line of a multi line statement.
-const TOP_STACK_FRAME_MARGIN: monacoEditor.editor.IModelDecorationOptions = {
-    glyphMarginClassName: 'codicon codicon-debug-stackframe',
-    stickiness
-};
-const TOP_STACK_FRAME_DECORATION: monacoEditor.editor.IModelDecorationOptions = {
-    isWholeLine: true,
-    className: 'debug-top-stack-frame-line',
-    stickiness
-};
+// // we need a separate decoration for glyph margin, since we do not want it on each line of a multi line statement.
+// const TOP_STACK_FRAME_MARGIN: monacoEditor.editor.IModelDecorationOptions = {
+//     glyphMarginClassName: 'codicon codicon-debug-stackframe',
+//     stickiness
+// };
+// const TOP_STACK_FRAME_DECORATION: monacoEditor.editor.IModelDecorationOptions = {
+//     isWholeLine: true,
+//     className: 'debug-top-stack-frame-line',
+//     stickiness
+// };
 
 // tslint:disable-next-line: import-name
 export interface IEditorProps {
@@ -72,8 +72,8 @@ export class Editor extends React.Component<IEditorProps> {
         if (this.modelRef) {
             if (prevProps.ipLocation !== this.props.ipLocation) {
                 if (this.props.ipLocation) {
-                    const newDecorations = this.createIpDelta();
-                    this.decorationIds = this.modelRef.deltaDecorations(this.decorationIds, newDecorations);
+                    // const newDecorations = this.createIpDelta();
+                    // this.decorationIds = this.modelRef.deltaDecorations(this.decorationIds, newDecorations);
                 } else if (this.decorationIds.length) {
                     this.decorationIds = this.modelRef.deltaDecorations(this.decorationIds, []);
                 }
@@ -90,8 +90,9 @@ export class Editor extends React.Component<IEditorProps> {
 
     public render() {
         const classes = this.props.readOnly ? 'editor-area' : 'editor-area editor-area-editable';
-        const renderEditor = this.renderMonacoEditor;
-        return <div className={classes}>{renderEditor()}</div>;
+        // const renderEditor = this.renderMonacoEditor;
+        // return <div className={classes}>{renderEditor()}</div>;
+        return <div className={classes}></div>;
     }
 
     public giveFocus(cursorPos: CursorPos | monacoEditor.IPosition) {
@@ -107,107 +108,107 @@ export class Editor extends React.Component<IEditorProps> {
         return '';
     }
 
-    private createIpDelta(): monacoEditor.editor.IModelDeltaDecoration[] {
-        const result: monacoEditor.editor.IModelDeltaDecoration[] = [];
-        if (this.props.ipLocation) {
-            const columnUntilEOLRange = new monacoEditor.Range(
-                this.props.ipLocation,
-                1,
-                this.props.ipLocation,
-                1 << 30
-            );
-            const range = new monacoEditor.Range(this.props.ipLocation, 1, this.props.ipLocation, 2);
+    // private createIpDelta(): monacoEditor.editor.IModelDeltaDecoration[] {
+    //     const result: monacoEditor.editor.IModelDeltaDecoration[] = [];
+    //     if (this.props.ipLocation) {
+    //         const columnUntilEOLRange = new monacoEditor.Range(
+    //             this.props.ipLocation,
+    //             1,
+    //             this.props.ipLocation,
+    //             1 << 30
+    //         );
+    //         const range = new monacoEditor.Range(this.props.ipLocation, 1, this.props.ipLocation, 2);
 
-            result.push({
-                options: TOP_STACK_FRAME_MARGIN,
-                range
-            });
+    //         result.push({
+    //             options: TOP_STACK_FRAME_MARGIN,
+    //             range
+    //         });
 
-            result.push({
-                options: TOP_STACK_FRAME_DECORATION,
-                range: columnUntilEOLRange
-            });
-        }
-        return result;
-    }
+    //         result.push({
+    //             options: TOP_STACK_FRAME_DECORATION,
+    //             range: columnUntilEOLRange
+    //         });
+    //     }
+    //     return result;
+    // }
 
-    private renderMonacoEditor = (): JSX.Element => {
-        const readOnly = this.props.readOnly;
-        const options: monacoEditor.editor.IEditorConstructionOptions = {
-            minimap: {
-                enabled: false
-            },
-            glyphMargin: false,
-            wordWrap: 'on',
-            scrollBeyondLastLine: false,
-            scrollbar: {
-                vertical: 'hidden',
-                horizontal: 'hidden'
-            },
-            lineNumbers: this.props.showLineNumbers ? 'on' : 'off',
-            renderLineHighlight: 'none',
-            highlightActiveIndentGuide: false,
-            renderIndentGuides: false,
-            overviewRulerBorder: false,
-            overviewRulerLanes: 0,
-            hideCursorInOverviewRuler: true,
-            folding: false,
-            readOnly: readOnly,
-            occurrencesHighlight: false,
-            selectionHighlight: false,
-            lineDecorationsWidth: 0,
-            contextmenu: false,
-            matchBrackets: false,
-            fontSize: this.props.font.size,
-            fontFamily: this.props.font.family,
-            ...this.props.editorOptions
-        };
+    // private renderMonacoEditor = (): JSX.Element => {
+    //     const readOnly = this.props.readOnly;
+    //     const options: monacoEditor.editor.IEditorConstructionOptions = {
+    //         minimap: {
+    //             enabled: false
+    //         },
+    //         glyphMargin: false,
+    //         wordWrap: 'on',
+    //         scrollBeyondLastLine: false,
+    //         scrollbar: {
+    //             vertical: 'hidden',
+    //             horizontal: 'hidden'
+    //         },
+    //         lineNumbers: this.props.showLineNumbers ? 'on' : 'off',
+    //         renderLineHighlight: 'none',
+    //         highlightActiveIndentGuide: false,
+    //         renderIndentGuides: false,
+    //         overviewRulerBorder: false,
+    //         overviewRulerLanes: 0,
+    //         hideCursorInOverviewRuler: true,
+    //         folding: false,
+    //         readOnly: readOnly,
+    //         occurrencesHighlight: false,
+    //         selectionHighlight: false,
+    //         lineDecorationsWidth: 0,
+    //         contextmenu: false,
+    //         matchBrackets: false,
+    //         fontSize: this.props.font.size,
+    //         fontFamily: this.props.font.family,
+    //         ...this.props.editorOptions
+    //     };
 
-        return (
-            <MonacoEditor
-                measureWidthClassName={this.props.editorMeasureClassName}
-                testMode={this.props.testMode}
-                value={this.props.content}
-                outermostParentClass={this.props.outermostParentClass}
-                theme={this.props.monacoTheme ? this.props.monacoTheme : 'vs'}
-                language={this.props.language}
-                editorMounted={this.editorDidMount}
-                modelChanged={this.props.onChange}
-                options={options}
-                version={this.props.version}
-                openLink={this.props.openLink}
-                ref={this.monacoRef}
-                hasFocus={this.props.hasFocus}
-                cursorPos={this.props.cursorPos}
-            />
-        );
-    };
+    //     return (
+    //         <MonacoEditor
+    //             measureWidthClassName={this.props.editorMeasureClassName}
+    //             testMode={this.props.testMode}
+    //             value={this.props.content}
+    //             outermostParentClass={this.props.outermostParentClass}
+    //             theme={this.props.monacoTheme ? this.props.monacoTheme : 'vs'}
+    //             language={this.props.language}
+    //             editorMounted={this.editorDidMount}
+    //             modelChanged={this.props.onChange}
+    //             options={options}
+    //             version={this.props.version}
+    //             openLink={this.props.openLink}
+    //             ref={this.monacoRef}
+    //             hasFocus={this.props.hasFocus}
+    //             cursorPos={this.props.cursorPos}
+    //         />
+    //     );
+    // };
 
-    private editorDidMount = (editor: monacoEditor.editor.IStandaloneCodeEditor) => {
-        this.editorRef = editor;
-        const model = editor.getModel();
-        this.modelRef = model;
+    // private editorDidMount = (editor: monacoEditor.editor.IStandaloneCodeEditor) => {
+    //     this.editorRef = editor;
+    //     const model = editor.getModel();
+    //     this.modelRef = model;
 
-        // Disable undo/redo on the model if asked
-        // tslint:disable: no-any
-        if (this.props.disableUndoStack && (model as any).undo && (model as any).redo) {
-            (model as any).undo = noop;
-            (model as any).redo = noop;
-        }
+    //     // Disable undo/redo on the model if asked
+    //     // tslint:disable: no-any
+    //     if (this.props.disableUndoStack && (model as any).undo && (model as any).redo) {
+    //         (model as any).undo = noop;
+    //         (model as any).redo = noop;
+    //     }
 
-        // List for key up/down events if not read only
-        if (!this.props.readOnly) {
-            this.subscriptions.push(editor.onKeyDown(this.onKeyDown));
-            this.subscriptions.push(editor.onKeyUp(this.onKeyUp));
-        }
+    //     // List for key up/down events if not read only
+    //     if (!this.props.readOnly) {
+    //         this.subscriptions.push(editor.onKeyDown(this.onKeyDown));
+    //         this.subscriptions.push(editor.onKeyUp(this.onKeyUp));
+    //     }
 
-        // Indicate we're ready
-        this.props.onCreated(this.props.content, model!.id);
+    //     // Indicate we're ready
+    //     this.props.onCreated(this.props.content, model!.id);
 
-        // Track focus changes
-        this.subscriptions.push(editor.onDidFocusEditorWidget(this.props.focused ? this.props.focused : noop));
-        this.subscriptions.push(editor.onDidBlurEditorWidget(this.props.unfocused ? this.props.unfocused : noop));
-    };
+    //     // Track focus changes
+    //     this.subscriptions.push(editor.onDidFocusEditorWidget(this.props.focused ? this.props.focused : noop));
+    //     this.subscriptions.push(editor.onDidBlurEditorWidget(this.props.unfocused ? this.props.unfocused : noop));
+    // };
 
     // tslint:disable-next-line: cyclomatic-complexity
     private onKeyDown = (e: monacoEditor.IKeyboardEvent) => {
@@ -261,12 +262,12 @@ export class Editor extends React.Component<IEditorProps> {
         }
     };
 
-    private onKeyUp = (e: monacoEditor.IKeyboardEvent) => {
-        if (e.shiftKey && e.keyCode === monacoEditor.KeyCode.Enter) {
-            // Shift enter was hit
-            e.stopPropagation();
-            e.preventDefault();
-        }
+    private onKeyUp = (_e: monacoEditor.IKeyboardEvent) => {
+        // if (e.shiftKey && e.keyCode === monacoEditor.KeyCode.Enter) {
+        //     // Shift enter was hit
+        //     e.stopPropagation();
+        //     e.preventDefault();
+        // }
     };
 
     private clear = () => {

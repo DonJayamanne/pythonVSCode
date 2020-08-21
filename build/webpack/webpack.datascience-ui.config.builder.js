@@ -25,7 +25,7 @@ function getEntry(bundle) {
         case 'notebook':
             return {
                 nativeEditor: ['babel-polyfill', `./src/datascience-ui/native-editor/index.tsx`],
-                interactiveWindow: ['babel-polyfill', `./src/datascience-ui/history-react/index.tsx`]
+                // interactiveWindow: ['babel-polyfill', `./src/datascience-ui/history-react/index.tsx`]
             };
         case 'renderers':
             return {
@@ -51,15 +51,15 @@ function getPlugins(bundle) {
             memoryLimit: 9096
         })
     ];
-    if (isProdBuild) {
-        plugins.push(...common.getDefaultPlugins(bundle));
-    }
+    // if (isProdBuild) {
+    plugins.push(...common.getDefaultPlugins(bundle));
+    // }
     switch (bundle) {
         case 'notebook':
             plugins.push(
-                new MonacoWebpackPlugin({
-                    languages: [] // force to empty so onigasm will be used
-                }),
+                // new MonacoWebpackPlugin({
+                //     languages: [] // force to empty so onigasm will be used
+                // }),
                 new HtmlWebpackPlugin({
                     template: path.join(__dirname, '/nativeOrInteractivePicker.html'),
                     chunks: [],
@@ -67,7 +67,7 @@ function getPlugins(bundle) {
                 }),
                 new HtmlWebpackPlugin({
                     template: 'src/datascience-ui/native-editor/index.html',
-                    chunks: ['monaco', 'commons', 'nativeEditor'],
+                    // chunks: ['monaco', 'commons', 'nativeEditor'],
                     filename: 'index.nativeEditor.html'
                 }),
                 new HtmlWebpackPlugin({
@@ -175,52 +175,52 @@ function buildConfiguration(bundle) {
                     // Even though nteract has been split up, some of them are large as nteract alone is large.
                     // This will ensure nteract (just some of the nteract) goes into a separate bundle.
                     // Webpack will bundle others separately when loading them asynchronously using `await import(...)`
-                    nteract: {
-                        name: 'nteract',
-                        chunks: 'all',
-                        minChunks: 2,
-                        test(module, _chunks) {
-                            // `module.resource` contains the absolute path of the file on disk.
-                            // Look for `node_modules/monaco...`.
-                            const path = require('path');
-                            return (
-                                module.resource &&
-                                module.resource.includes(`${path.sep}node_modules${path.sep}@nteract`)
-                            );
-                        }
-                    },
-                    // Bundling `plotly` with nteract isn't the best option, as this plotly alone is 6mb.
-                    // This will ensure it is in a seprate bundle, hence small files for SSH scenarios.
-                    plotly: {
-                        name: 'plotly',
-                        chunks: 'all',
-                        minChunks: 1,
-                        test(module, _chunks) {
-                            // `module.resource` contains the absolute path of the file on disk.
-                            // Look for `node_modules/monaco...`.
-                            const path = require('path');
-                            return (
-                                module.resource && module.resource.includes(`${path.sep}node_modules${path.sep}plotly`)
-                            );
-                        }
-                    },
-                    // Monaco is a monster. For SSH again, we pull this into a seprate bundle.
-                    // This is only a solution for SSH.
-                    // Ideal solution would be to dynamically load monaoc `await import`, that way it will benefit UX and SSH.
-                    // This solution doesn't improve UX, as we still need to wait for monaco to load.
-                    monaco: {
-                        name: 'monaco',
-                        chunks: 'all',
-                        minChunks: 1,
-                        test(module, _chunks) {
-                            // `module.resource` contains the absolute path of the file on disk.
-                            // Look for `node_modules/monaco...`.
-                            const path = require('path');
-                            return (
-                                module.resource && module.resource.includes(`${path.sep}node_modules${path.sep}monaco`)
-                            );
-                        }
-                    }
+                    // nteract: {
+                    //     name: 'nteract',
+                    //     chunks: 'all',
+                    //     minChunks: 2,
+                    //     test(module, _chunks) {
+                    //         // `module.resource` contains the absolute path of the file on disk.
+                    //         // Look for `node_modules/monaco...`.
+                    //         const path = require('path');
+                    //         return (
+                    //             module.resource &&
+                    //             module.resource.includes(`${path.sep}node_modules${path.sep}@nteract`)
+                    //         );
+                    //     }
+                    // },
+                    // // Bundling `plotly` with nteract isn't the best option, as this plotly alone is 6mb.
+                    // // This will ensure it is in a seprate bundle, hence small files for SSH scenarios.
+                    // plotly: {
+                    //     name: 'plotly',
+                    //     chunks: 'all',
+                    //     minChunks: 1,
+                    //     test(module, _chunks) {
+                    //         // `module.resource` contains the absolute path of the file on disk.
+                    //         // Look for `node_modules/monaco...`.
+                    //         const path = require('path');
+                    //         return (
+                    //             module.resource && module.resource.includes(`${path.sep}node_modules${path.sep}plotly`)
+                    //         );
+                    //     }
+                    // },
+                    // // Monaco is a monster. For SSH again, we pull this into a seprate bundle.
+                    // // This is only a solution for SSH.
+                    // // Ideal solution would be to dynamically load monaoc `await import`, that way it will benefit UX and SSH.
+                    // // This solution doesn't improve UX, as we still need to wait for monaco to load.
+                    // monaco: {
+                    //     name: 'monaco',
+                    //     chunks: 'all',
+                    //     minChunks: 1,
+                    //     test(module, _chunks) {
+                    //         // `module.resource` contains the absolute path of the file on disk.
+                    //         // Look for `node_modules/monaco...`.
+                    //         const path = require('path');
+                    //         return (
+                    //             module.resource && module.resource.includes(`${path.sep}node_modules${path.sep}monaco`)
+                    //         );
+                    //     }
+                    // }
                 }
             },
             chunkIds: 'named'
