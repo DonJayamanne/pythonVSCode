@@ -24,6 +24,10 @@ import { IMessageHandler, PostOffice } from '../react-common/postOffice';
 import { create as createKernel } from './kernel';
 import { IIPyWidgetManager, IJupyterLabWidgetManager, IJupyterLabWidgetManagerCtor } from './types';
 
+const widgetManagerPromise = createDeferred<WidgetManager | undefined>();
+export function getWidgetManager(): Promise<WidgetManager | undefined> {
+    return widgetManagerPromise.promise;
+}
 // tslint:disable: no-any
 
 export class WidgetManager implements IIPyWidgetManager, IMessageHandler {
@@ -57,6 +61,8 @@ export class WidgetManager implements IIPyWidgetManager, IMessageHandler {
             successHandler(className: string, moduleName: string, moduleVersion: string): void;
         }
     ) {
+        // tslint:disable-next-line: no-console
+        console.error('Constructed WidgetManager');
         // tslint:disable-next-line: no-any
         this.postOffice.addHandler(this);
 
@@ -179,6 +185,7 @@ export class WidgetManager implements IIPyWidgetManager, IMessageHandler {
             console.log('6.initializeKernelAndWidgetManager');
             // Tell the observable about our new manager
             WidgetManager._instance.next(this);
+            widgetManagerPromise.resolve(this);
         } catch (ex) {
             console.log('7.initializeKernelAndWidgetManager');
             // tslint:disable-next-line: no-console

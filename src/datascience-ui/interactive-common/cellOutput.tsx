@@ -10,7 +10,7 @@ import '../../client/common/extensions';
 import { Identifiers } from '../../client/datascience/constants';
 import { CellState } from '../../client/datascience/types';
 import { ClassType } from '../../client/ioc/types';
-import { WidgetManager } from '../ipywidgets';
+import { getWidgetManager } from '../ipywidgets';
 import { Image, ImageName } from '../react-common/image';
 import { ImageButton } from '../react-common/imageButton';
 import { getLocString } from '../react-common/locReactSide';
@@ -74,7 +74,7 @@ export class CellOutput extends React.Component<ICellOutputProps> {
     private static ansiToHtmlClass_ctor: ClassType<any> | undefined;
     private ipyWidgetRef: React.RefObject<HTMLDivElement>;
     private renderedViews = new Map<string, Promise<Widget | undefined>>();
-    private widgetManager: WidgetManager | undefined;
+    // private widgetManager: WidgetManager | undefined;
     // tslint:disable-next-line: no-any
     constructor(prop: ICellOutputProps) {
         super(prop);
@@ -565,47 +565,49 @@ export class CellOutput extends React.Component<ICellOutputProps> {
         }
     }
 
-    private async getWidgetManager(): Promise<WidgetManager | undefined> {
-        if (!this.widgetManager) {
-            const wm: WidgetManager | undefined = await new Promise((resolve) => {
-                // tslint:disable
-                const mgr: typeof WidgetManager | undefined = WidgetManager; // || (window as any).GlobalWidgetManager;
-                if (mgr) {
-                    console.error('WidgetManager registered globally.');
-                    mgr.instance.subscribe(resolve as any);
-                    // mgr.instance2.then(resolve);
-                } else {
-                    console.error('WidgetManager not registered globally.');
-                    resolve(undefined);
-                }
-                // WidgetManager.instance.subscribe(resolve)
-            });
-            this.widgetManager = wm as any;
-            if (wm) {
-                console.error('Got WidgetManager.');
-                const oldDispose = (wm as any).dispose.bind(wm);
-                (wm as any).dispose = () => {
-                    this.renderedViews.clear();
-                    this.widgetManager = undefined;
-                    return oldDispose();
-                };
-            } else {
-                console.error('No Got WidgetManager.');
-            }
-        }
-        return this.widgetManager;
-    }
+    // private async getWidgetManager(): Promise<WidgetManager | undefined> {
+    //     if (!this.widgetManager) {
+    //         const wm: WidgetManager | undefined = await new Promise((resolve) => {
+    //             // tslint:disable
+    //             const mgr: typeof WidgetManager | undefined = WidgetManager; // || (window as any).GlobalWidgetManager;
+    //             if (mgr) {
+    //                 console.error('WidgetManager registered globally.');
+    //                 mgr.instance.subscribe(resolve as any);
+    //                 // mgr.instance2.then(resolve);
+    //             } else {
+    //                 console.error('WidgetManager not registered globally.');
+    //                 resolve(undefined);
+    //             }
+    //             // WidgetManager.instance.subscribe(resolve)
+    //         });
+    //         this.widgetManager = wm as any;
+    //         if (wm) {
+    //             console.error('Got WidgetManager.');
+    //             const oldDispose = (wm as any).dispose.bind(wm);
+    //             (wm as any).dispose = () => {
+    //                 this.renderedViews.clear();
+    //                 this.widgetManager = undefined;
+    //                 return oldDispose();
+    //             };
+    //         } else {
+    //             console.error('No Got WidgetManager.');
+    //         }
+    //     }
+    //     return this.widgetManager;
+    // }
 
     private async createWidgetView(widgetData: nbformat.IMimeBundle & { model_id: string; version_major: number }) {
-        const wm = await this.getWidgetManager();
+        // const wm = await this.getWidgetManager();
+        // tslint:disable
+        const wm = await getWidgetManager();
         if (!wm) {
-            // tslint:disable
             console.error('NO Widget Manager');
             return;
         }
         const element = this.ipyWidgetRef.current!;
         try {
-            return await (wm as any)?.renderWidget(widgetData, element);
+            console.error('Rendering widget');
+            return await wm.renderWidget(widgetData, element);
         } catch (ex) {
             this.props.widgetFailed(ex);
         }

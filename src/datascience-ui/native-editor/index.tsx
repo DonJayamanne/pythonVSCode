@@ -13,7 +13,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
 
-import { WidgetManagerComponent } from '../ipywidgets/container';
+// import { WidgetManagerComponent } from '../ipywidgets/container';
 import { IVsCodeApi, PostOffice } from '../react-common/postOffice';
 import { detectBaseTheme } from '../react-common/themeDetector';
 import { getConnectedNativeEditor } from './nativeEditor';
@@ -33,26 +33,26 @@ const store = createStore(skipDefault, baseTheme, testMode, postOffice);
 
 // Wire up a connected react control for our NativeEditor
 const ConnectedNativeEditor = getConnectedNativeEditor();
-// import { initializeIPYWidgets, wow } from '../ipywidgets/main';
-// // tslint:disable-next-line: no-console
-// console.log(wow);
-// // setTimeout(() => {
-// // tslint:disable-next-line: no-any
-// const init = initializeIPYWidgets || (window as any).initializeIPYWidgets;
-// if (init) {
-//     // tslint:disable-next-line: no-console
-//     console.error('Initialized WidgetManager');
-//     init('rootWidget', document.getElementById('rootWidget2')!, postOffice, store);
-// } else {
-//     // tslint:disable-next-line: no-console
-//     console.error('Not Initialized WidgetManager');
-// }
+import { initializeIPYWidgets, wow } from '../ipywidgets/main';
+// tslint:disable-next-line: no-console
+console.log(wow);
+// setTimeout(() => {
+// tslint:disable-next-line: no-any
+const init = initializeIPYWidgets || (window as any).initializeIPYWidgets;
+if (init) {
+    // tslint:disable-next-line: no-console
+    console.error('Initialized WidgetManager');
+    init('rootWidget2', document.getElementById('rootWidget')!, postOffice, store);
+} else {
+    // tslint:disable-next-line: no-console
+    console.error('Not Initialized WidgetManager');
+}
 // }, 5_000);
 // Stick them all together
 ReactDOM.render(
     <Provider store={store}>
         <ConnectedNativeEditor />
-        <WidgetManagerComponent postOffice={postOffice} widgetContainerId={'rootWidget'} store={store} />
+        {/* <WidgetManagerComponent postOffice={postOffice} widgetContainerId={'rootWidget'} store={store} /> */}
     </Provider>,
     document.getElementById('root') as HTMLElement
 );
