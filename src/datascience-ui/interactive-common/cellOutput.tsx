@@ -23,7 +23,7 @@ const ansiToHtml = require('ansi-to-html');
 
 // tslint:disable-next-line: no-require-imports no-var-requires
 const cloneDeep = require('lodash/cloneDeep');
-import { Widget } from '@phosphor/widgets';
+import type { Widget } from '@phosphor/widgets';
 import { noop } from '../../client/common/utils/misc';
 import { WIDGET_MIMETYPE } from '../../client/datascience/ipywidgets/constants';
 import { concatMultilineString } from '../common';
@@ -565,19 +565,32 @@ export class CellOutput extends React.Component<ICellOutputProps> {
         }
     }
 
-    private async getWidgetManager() {
+    private async getWidgetManager(): Promise<WidgetManager | undefined> {
         if (!this.widgetManager) {
-            const wm: WidgetManager | undefined = await new Promise((resolve) =>
-                WidgetManager.instance.subscribe(resolve)
-            );
-            this.widgetManager = wm;
+            const wm: WidgetManager | undefined = await new Promise((resolve) => {
+                // tslint:disable
+                const mgr: typeof WidgetManager | undefined = WidgetManager; // || (window as any).GlobalWidgetManager;
+                if (mgr) {
+                    console.error('WidgetManager registered globally.');
+                    mgr.instance.subscribe(resolve as any);
+                    // mgr.instance2.then(resolve);
+                } else {
+                    console.error('WidgetManager not registered globally.');
+                    resolve(undefined);
+                }
+                // WidgetManager.instance.subscribe(resolve)
+            });
+            this.widgetManager = wm as any;
             if (wm) {
-                const oldDispose = wm.dispose.bind(wm);
-                wm.dispose = () => {
+                console.error('Got WidgetManager.');
+                const oldDispose = (wm as any).dispose.bind(wm);
+                (wm as any).dispose = () => {
                     this.renderedViews.clear();
                     this.widgetManager = undefined;
                     return oldDispose();
                 };
+            } else {
+                console.error('No Got WidgetManager.');
             }
         }
         return this.widgetManager;
@@ -585,9 +598,14 @@ export class CellOutput extends React.Component<ICellOutputProps> {
 
     private async createWidgetView(widgetData: nbformat.IMimeBundle & { model_id: string; version_major: number }) {
         const wm = await this.getWidgetManager();
+        if (!wm) {
+            // tslint:disable
+            console.error('NO Widget Manager');
+            return;
+        }
         const element = this.ipyWidgetRef.current!;
         try {
-            return await wm?.renderWidget(widgetData, element);
+            return await (wm as any)?.renderWidget(widgetData, element);
         } catch (ex) {
             this.props.widgetFailed(ex);
         }

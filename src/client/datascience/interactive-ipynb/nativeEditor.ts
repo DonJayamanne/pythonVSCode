@@ -209,6 +209,7 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
             [
                 path.join(nativeEditorDir, 'require.js'),
                 path.join(nativeEditorDir, 'ipywidgets.js'),
+                // path.join(nativeEditorDir, 'myipywidgets.js'),
                 // path.join(nativeEditorDir, 'monaco.bundle.js'),
                 path.join(nativeEditorDir, 'vendors~nativeEditor.bundle.js'),
                 path.join(nativeEditorDir, 'nativeEditor.js')

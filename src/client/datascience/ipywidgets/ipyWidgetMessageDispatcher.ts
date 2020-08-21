@@ -216,7 +216,7 @@ export class IPyWidgetMessageDispatcher implements IIPyWidgetMessageDispatcher {
             return;
         }
         if (!this.sentKernelOptions) {
-            this.sentKernelOptions = true;
+            // this.sentKernelOptions = true;
             this.raisePostMessage(IPyWidgetMessages.IPyWidgets_kernelOptions, this.kernelSocketInfo.options);
         }
     }

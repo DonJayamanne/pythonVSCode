@@ -27,7 +27,11 @@ function getEntry(bundle) {
                 nativeEditor: ['babel-polyfill', `./src/datascience-ui/native-editor/index.tsx`],
                 // interactiveWindow: ['babel-polyfill', `./src/datascience-ui/history-react/index.tsx`]
             };
-        case 'renderers':
+            case 'myipywidgets':
+                return {
+                    myipywidgets: [`./src/datascience-ui/ipywidgets/main.tsx`]
+                };
+            case 'renderers':
             return {
                 renderers: ['babel-polyfill', `./src/datascience-ui/renderers/index.tsx`]
             };
@@ -77,7 +81,15 @@ function getPlugins(bundle) {
                 })
             );
             break;
-        case 'renderers': {
+            case 'myipywidgets':
+                plugins.push(
+                    new HtmlWebpackPlugin({
+                        template: 'src/datascience-ui/native-editor/index.html',
+                        filename: 'index.myipywidgets.html'
+                    })
+                );
+                break;
+            case 'renderers': {
             const definePlugin = new webpack.DefinePlugin({
                 'process.env': {
                     NODE_ENV: JSON.stringify('production')
@@ -331,9 +343,13 @@ function buildConfiguration(bundle) {
     if (bundle === 'renderers') {
         delete config.optimization;
     }
+    if (bundle === 'myipywidgets') {
+        delete config.optimization;
+    }
     return config;
 }
 
 exports.notebooks = buildConfiguration('notebook');
+exports.myipywidgets = buildConfiguration('myipywidgets');
 exports.viewers = buildConfiguration('viewers');
 exports.renderers = buildConfiguration('renderers');

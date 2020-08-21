@@ -45,6 +45,7 @@ export class WidgetManager implements IIPyWidgetManager, IMessageHandler {
      * @memberof WidgetManager
      */
     private modelIdsToBeDisplayed = new Map<string, Deferred<void>>();
+    private initialized?: boolean;
     constructor(
         private readonly widgetContainer: HTMLElement,
         private readonly postOffice: PostOffice,
@@ -72,14 +73,17 @@ export class WidgetManager implements IIPyWidgetManager, IMessageHandler {
     }
     public handleMessage(message: string, payload?: any) {
         if (message === IPyWidgetMessages.IPyWidgets_kernelOptions) {
-            this.initializeKernelAndWidgetManager(payload);
+            if (!this.initialized) {
+                this.initialized = true;
+                this.initializeKernelAndWidgetManager(payload);
+            }
         } else if (message === IPyWidgetMessages.IPyWidgets_onRestartKernel) {
-            // Kernel was restarted.
-            this.manager?.dispose(); // NOSONAR
-            this.manager = undefined;
-            this.proxyKernel?.dispose(); // NOSONAR
-            this.proxyKernel = undefined;
-            WidgetManager._instance.next(undefined);
+            // // Kernel was restarted.
+            // this.manager?.dispose(); // NOSONAR
+            // this.manager = undefined;
+            // this.proxyKernel?.dispose(); // NOSONAR
+            // this.proxyKernel = undefined;
+            // WidgetManager._instance.next(undefined);
         } else if (!this.proxyKernel) {
             this.pendingMessages.push({ message, payload });
         }
@@ -141,22 +145,28 @@ export class WidgetManager implements IIPyWidgetManager, IMessageHandler {
         return this.manager.display_view(data, view, { node: ele });
     }
     private initializeKernelAndWidgetManager(options: KernelSocketOptions) {
+        // tslint:disable
+        console.log('1.initializeKernelAndWidgetManager');
         if (this.proxyKernel && fastDeepEqual(options, this.options)) {
+            console.log('2.initializeKernelAndWidgetManager');
             return;
         }
         this.proxyKernel?.dispose(); // NOSONAR
         this.proxyKernel = createKernel(options, this.postOffice, this.pendingMessages);
         this.pendingMessages = [];
+        console.log('3.initializeKernelAndWidgetManager');
 
         // Dispose any existing managers.
         this.manager?.dispose(); // NOSONAR
         try {
+            console.log('4.initializeKernelAndWidgetManager');
             // The JupyterLabWidgetManager will be exposed in the global variable `window.ipywidgets.main` (check webpack config - src/ipywidgets/webpack.config.js).
             // tslint:disable-next-line: no-any
             const JupyterLabWidgetManager = (window as any).vscIPyWidgets.WidgetManager as IJupyterLabWidgetManagerCtor;
             if (!JupyterLabWidgetManager) {
                 throw new Error('JupyterLabWidgetManadger not defined. Please include/check ipywidgets.js file');
             }
+            console.log('5.initializeKernelAndWidgetManager');
             // Create the real manager and point it at our proxy kernel.
             this.manager = new JupyterLabWidgetManager(this.proxyKernel, this.widgetContainer, this.scriptLoader);
 
@@ -166,9 +176,11 @@ export class WidgetManager implements IIPyWidgetManager, IMessageHandler {
             // Listen for unhandled IO pub so we can forward to the extension
             this.manager.onUnhandledIOPubMessage.connect(this.handleUnhanldedIOPubMessage.bind(this));
 
+            console.log('6.initializeKernelAndWidgetManager');
             // Tell the observable about our new manager
             WidgetManager._instance.next(this);
         } catch (ex) {
+            console.log('7.initializeKernelAndWidgetManager');
             // tslint:disable-next-line: no-console
             console.error('Failed to initialize WidgetManager', ex);
         }

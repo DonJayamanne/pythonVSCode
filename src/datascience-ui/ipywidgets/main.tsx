@@ -2,9 +2,11 @@
 // Licensed under the MIT License.
 
 'use strict';
+// This must be on top, do not change. Required by webpack.
+import '../common/main';
+// This must be on top, do not change. Required by webpack.
 
 import * as isonline from 'is-online';
-import * as React from 'react';
 import { Store } from 'redux';
 import '../../client/common/extensions';
 import { createDeferred, Deferred } from '../../client/common/utils/async';
@@ -12,9 +14,9 @@ import {
     IInteractiveWindowMapping,
     IPyWidgetMessages
 } from '../../client/datascience/interactive-common/interactiveWindowTypes';
-import { WidgetScriptSource } from '../../client/datascience/ipywidgets/types';
+import type { WidgetScriptSource } from '../../client/datascience/ipywidgets/types';
 import { SharedMessages } from '../../client/datascience/messages';
-import { IDataScienceExtraSettings } from '../../client/datascience/types';
+import type { IDataScienceExtraSettings } from '../../client/datascience/types';
 import {
     CommonAction,
     CommonActionType,
@@ -22,8 +24,8 @@ import {
     LoadIPyWidgetClassLoadAction,
     NotifyIPyWidgeWidgetVersionNotSupportedAction
 } from '../interactive-common/redux/reducers/types';
-import { IStore } from '../interactive-common/redux/store';
-import { PostOffice } from '../react-common/postOffice';
+import type { IStore } from '../interactive-common/redux/store';
+import type { PostOffice } from '../react-common/postOffice';
 import { warnAboutWidgetVersionsThatAreNotSupported } from './incompatibleWidgetHandler';
 import { WidgetManager } from './manager';
 import { registerScripts } from './requirejsRegistry';
@@ -34,7 +36,7 @@ type Props = {
     store: Store<IStore> & { dispatch: unknown };
 };
 
-export class WidgetManagerComponent extends React.Component<Props> {
+class WidgetManagerComponent {
     private readonly widgetManager: WidgetManager;
     private readonly widgetSourceRequests = new Map<
         string,
@@ -42,7 +44,7 @@ export class WidgetManagerComponent extends React.Component<Props> {
     >();
     private readonly registeredWidgetSources = new Map<string, WidgetScriptSource>();
     private timedoutWaitingForWidgetsToGetLoaded?: boolean;
-    private widgetsCanLoadFromCDN: boolean = false;
+    private widgetsCanLoadFromCDN: boolean = true;
     private readonly loaderSettings = {
         // Total time to wait for a script to load. This includes ipywidgets making a request to extension for a Uri of a widget,
         // then extension replying back with the Uri (max 5 seconds round trip time).
@@ -58,8 +60,8 @@ export class WidgetManagerComponent extends React.Component<Props> {
         loadWidgetScript: this.loadWidgetScript.bind(this),
         successHandler: this.handleLoadSuccess.bind(this)
     };
-    constructor(props: Props) {
-        super(props);
+    constructor(private readonly props: Props) {
+        // super(props);
         this.widgetManager = new WidgetManager(
             document.getElementById(this.props.widgetContainerId)!,
             this.props.postOffice,
@@ -208,10 +210,10 @@ export class WidgetManagerComponent extends React.Component<Props> {
      * Or check local FS then fall back to CDN (depending on the order defined by the user).
      */
     private loadWidgetScript(moduleName: string, moduleVersion: string): Promise<void> {
-        // tslint:disable-next-line: no-console
-        console.log(`Fetch IPyWidget source for ${moduleName}`);
         let request = this.widgetSourceRequests.get(moduleName);
         if (!request) {
+            // tslint:disable-next-line: no-console
+            console.log(`2.Fetch IPyWidget source for ${moduleName}`);
             request = {
                 deferred: createDeferred<void>(),
                 timer: undefined
@@ -278,3 +280,21 @@ export class WidgetManagerComponent extends React.Component<Props> {
         this.props.store.dispatch(this.createLoadSuccessAction(className, moduleName, moduleVersion));
     }
 }
+
+// tslint:disable
+export function initializeIPYWidgets(
+    widgetContainerId: string,
+    container: HTMLElement,
+    postOffice: PostOffice,
+    store: Store<IStore> & { dispatch: unknown }
+) {
+    // ReactDOM.render(
+    //     React.createElement(WidgetManagerComponent, { postOffice, widgetContainerId, store }, null),
+    //     container
+    // );
+    const m = new WidgetManagerComponent({ postOffice, widgetContainerId, store });
+    (container as any).m = m;
+}
+export const wow = '1234';
+(window as any).initializeIPYWidgets = initializeIPYWidgets;
+console.log('Registered initializeIPYWidgets');
