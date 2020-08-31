@@ -6,11 +6,7 @@
 import { inject, injectable, named } from 'inversify';
 import { Memento } from 'vscode';
 import { IDisposableRegistry, IMemento, WORKSPACE_MEMENTO } from '../common/types';
-import {
-    IInteractiveWindowProvider,
-    INotebookAndInteractiveWindowUsageTracker,
-    INotebookEditorProvider
-} from './types';
+import { INotebookAndInteractiveWindowUsageTracker, INotebookEditorProvider } from './types';
 
 const LastNotebookOpenedTimeKey = 'last-notebook-start-time';
 const LastInteractiveWindowStartTimeKey = 'last-interactive-window-start-time';
@@ -28,18 +24,12 @@ export class NotebookAndInteractiveWindowUsageTracker implements INotebookAndInt
     constructor(
         @inject(IMemento) @named(WORKSPACE_MEMENTO) private mementoStorage: Memento,
         @inject(INotebookEditorProvider) private readonly notebookEditorProvider: INotebookEditorProvider,
-        @inject(IInteractiveWindowProvider) private readonly interactiveWindowProvider: IInteractiveWindowProvider,
         @inject(IDisposableRegistry) private readonly disposables: IDisposableRegistry
     ) {}
     public async startTracking(): Promise<void> {
         this.disposables.push(
             this.notebookEditorProvider.onDidOpenNotebookEditor(() =>
                 this.mementoStorage.update(LastNotebookOpenedTimeKey, Date.now())
-            )
-        );
-        this.disposables.push(
-            this.interactiveWindowProvider.onDidChangeActiveInteractiveWindow(() =>
-                this.mementoStorage.update(LastInteractiveWindowStartTimeKey, Date.now())
             )
         );
     }

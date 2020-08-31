@@ -1,19 +1,15 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { inject, injectable, optional } from 'inversify';
+import { inject, injectable } from 'inversify';
 import { ConfigurationChangeEvent, Disposable, Event, EventEmitter, FileSystemWatcher, Uri } from 'vscode';
-import { IServiceContainer } from '../../ioc/types';
 import { sendFileCreationTelemetry } from '../../telemetry/envFileTelemetry';
 import { IWorkspaceService } from '../application/types';
-import { traceVerbose } from '../logger';
 import { IPlatformService } from '../platform/types';
 import { IConfigurationService, ICurrentProcess, IDisposableRegistry } from '../types';
-import { InMemoryInterpreterSpecificCache } from '../utils/cacheUtils';
-import { clearCachedResourceSpecificIngterpreterData } from '../utils/decorators';
 import { EnvironmentVariables, IEnvironmentVariablesProvider, IEnvironmentVariablesService } from './types';
 
-const CACHE_DURATION = 60 * 60 * 1000;
+// const CACHE_DURATION = 60 * 60 * 1000;
 @injectable()
 export class EnvironmentVariablesProvider implements IEnvironmentVariablesProvider, Disposable {
     public trackedWorkspaceFolders = new Set<string>();
@@ -26,9 +22,7 @@ export class EnvironmentVariablesProvider implements IEnvironmentVariablesProvid
         @inject(IPlatformService) private platformService: IPlatformService,
         @inject(IWorkspaceService) private workspaceService: IWorkspaceService,
         @inject(IConfigurationService) private readonly configurationService: IConfigurationService,
-        @inject(ICurrentProcess) private process: ICurrentProcess,
-        @inject(IServiceContainer) private serviceContainer: IServiceContainer,
-        @optional() private cacheDuration: number = CACHE_DURATION
+        @inject(ICurrentProcess) private process: ICurrentProcess
     ) {
         disposableRegistry.push(this);
         this.changeEventEmitter = new EventEmitter();
@@ -50,20 +44,8 @@ export class EnvironmentVariablesProvider implements IEnvironmentVariablesProvid
     }
 
     public async getEnvironmentVariables(resource?: Uri): Promise<EnvironmentVariables> {
-        // Cache resource specific interpreter data
-        const cacheStore = new InMemoryInterpreterSpecificCache(
-            'getEnvironmentVariables',
-            this.cacheDuration,
-            [resource],
-            this.serviceContainer
-        );
-        if (cacheStore.hasData) {
-            traceVerbose(`Cached data exists getEnvironmentVariables, ${resource ? resource.fsPath : '<No Resource>'}`);
-            return Promise.resolve(cacheStore.data) as Promise<EnvironmentVariables>;
-        }
-        const promise = this._getEnvironmentVariables(resource);
-        promise.then((result) => (cacheStore.data = result)).ignoreErrors();
-        return promise;
+        // TODO: We need to cache this.
+        return this._getEnvironmentVariables(resource);
     }
     public async _getEnvironmentVariables(resource?: Uri): Promise<EnvironmentVariables> {
         let mergedVars = await this.getCustomEnvironmentVariables(resource);
@@ -122,16 +104,6 @@ export class EnvironmentVariablesProvider implements IEnvironmentVariablesProvid
     }
 
     private onEnvironmentFileChanged(workspaceFolderUri?: Uri) {
-        clearCachedResourceSpecificIngterpreterData(
-            'getEnvironmentVariables',
-            workspaceFolderUri,
-            this.serviceContainer
-        );
-        clearCachedResourceSpecificIngterpreterData(
-            'CustomEnvironmentVariables',
-            workspaceFolderUri,
-            this.serviceContainer
-        );
         this.changeEventEmitter.fire(workspaceFolderUri);
     }
 }

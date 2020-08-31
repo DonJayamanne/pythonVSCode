@@ -7,7 +7,6 @@ import { Request as RequestResult } from 'request';
 import {
     CancellationToken,
     ConfigurationTarget,
-    DiagnosticSeverity,
     Disposable,
     DocumentSymbolProvider,
     Event,
@@ -17,7 +16,6 @@ import {
     Uri,
     WorkspaceEdit
 } from 'vscode';
-import { LanguageServerType } from '../activation/types';
 import { LogLevel } from '../logging/levels';
 import { CommandsWithoutArgs } from './application/commands';
 import { ExtensionChannels } from './insidersBuild/types';
@@ -82,23 +80,6 @@ export enum ProductType {
 }
 
 export enum Product {
-    pytest = 1,
-    nosetest = 2,
-    pylint = 3,
-    flake8 = 4,
-    pycodestyle = 5,
-    pylama = 6,
-    prospector = 7,
-    pydocstyle = 8,
-    yapf = 9,
-    autopep8 = 10,
-    mypy = 11,
-    unittest = 12,
-    ctags = 13,
-    rope = 14,
-    isort = 15,
-    black = 16,
-    bandit = 17,
     jupyter = 18,
     ipykernel = 19,
     notebook = 20,
@@ -159,148 +140,18 @@ export interface ICurrentProcess {
 }
 
 export interface IPythonSettings {
-    readonly pythonPath: string;
-    readonly venvPath: string;
-    readonly venvFolders: string[];
-    readonly condaPath: string;
-    readonly pipenvPath: string;
-    readonly poetryPath: string;
-    readonly insidersChannel: ExtensionChannels;
-    readonly downloadLanguageServer: boolean;
-    readonly showStartPage: boolean;
-    readonly jediPath: string;
-    readonly jediMemoryLimit: number;
-    readonly devOptions: string[];
-    readonly linting: ILintingSettings;
-    readonly formatting: IFormattingSettings;
-    readonly testing: ITestingSettings;
-    readonly autoComplete: IAutoCompleteSettings;
-    readonly terminal: ITerminalSettings;
-    readonly sortImports: ISortImportSettings;
-    readonly workspaceSymbols: IWorkspaceSymbolSettings;
     readonly envFile: string;
-    readonly disableInstallationChecks: boolean;
-    readonly globalModuleInstallation: boolean;
-    readonly analysis: IAnalysisSettings;
-    readonly autoUpdateLanguageServer: boolean;
+    readonly insidersChannel: ExtensionChannels;
     readonly datascience: IDataScienceSettings;
     readonly onDidChange: Event<void>;
     readonly experiments: IExperiments;
-    readonly languageServer: LanguageServerType;
-    readonly defaultInterpreterPath: string;
     readonly logging: ILoggingSettings;
 }
-export interface ISortImportSettings {
-    readonly path: string;
-    readonly args: string[];
-}
-
-export interface ITestingSettings {
-    readonly promptToConfigure: boolean;
-    readonly debugPort: number;
-    readonly nosetestsEnabled: boolean;
-    nosetestPath: string;
-    nosetestArgs: string[];
-    readonly pytestEnabled: boolean;
-    pytestPath: string;
-    pytestArgs: string[];
-    readonly unittestEnabled: boolean;
-    unittestArgs: string[];
-    cwd?: string;
-    readonly autoTestDiscoverOnSaveEnabled: boolean;
-}
-export interface IPylintCategorySeverity {
-    readonly convention: DiagnosticSeverity;
-    readonly refactor: DiagnosticSeverity;
-    readonly warning: DiagnosticSeverity;
-    readonly error: DiagnosticSeverity;
-    readonly fatal: DiagnosticSeverity;
-}
-export interface IPycodestyleCategorySeverity {
-    readonly W: DiagnosticSeverity;
-    readonly E: DiagnosticSeverity;
-}
-// tslint:disable-next-line:interface-name
-export interface Flake8CategorySeverity {
-    readonly F: DiagnosticSeverity;
-    readonly E: DiagnosticSeverity;
-    readonly W: DiagnosticSeverity;
-}
-export interface IMypyCategorySeverity {
-    readonly error: DiagnosticSeverity;
-    readonly note: DiagnosticSeverity;
-}
-
 export type LoggingLevelSettingType = 'off' | 'error' | 'warn' | 'info' | 'debug';
 
 export interface ILoggingSettings {
     readonly level: LogLevel | 'off';
 }
-export interface ILintingSettings {
-    readonly enabled: boolean;
-    readonly ignorePatterns: string[];
-    readonly prospectorEnabled: boolean;
-    readonly prospectorArgs: string[];
-    readonly pylintEnabled: boolean;
-    readonly pylintArgs: string[];
-    readonly pycodestyleEnabled: boolean;
-    readonly pycodestyleArgs: string[];
-    readonly pylamaEnabled: boolean;
-    readonly pylamaArgs: string[];
-    readonly flake8Enabled: boolean;
-    readonly flake8Args: string[];
-    readonly pydocstyleEnabled: boolean;
-    readonly pydocstyleArgs: string[];
-    readonly lintOnSave: boolean;
-    readonly maxNumberOfProblems: number;
-    readonly pylintCategorySeverity: IPylintCategorySeverity;
-    readonly pycodestyleCategorySeverity: IPycodestyleCategorySeverity;
-    readonly flake8CategorySeverity: Flake8CategorySeverity;
-    readonly mypyCategorySeverity: IMypyCategorySeverity;
-    prospectorPath: string;
-    pylintPath: string;
-    pycodestylePath: string;
-    pylamaPath: string;
-    flake8Path: string;
-    pydocstylePath: string;
-    mypyEnabled: boolean;
-    mypyArgs: string[];
-    mypyPath: string;
-    banditEnabled: boolean;
-    banditArgs: string[];
-    banditPath: string;
-    readonly pylintUseMinimalCheckers: boolean;
-}
-export interface IFormattingSettings {
-    readonly provider: string;
-    autopep8Path: string;
-    readonly autopep8Args: string[];
-    blackPath: string;
-    readonly blackArgs: string[];
-    yapfPath: string;
-    readonly yapfArgs: string[];
-}
-export interface IAutoCompleteSettings {
-    readonly addBrackets: boolean;
-    readonly extraPaths: string[];
-    readonly showAdvancedMembers: boolean;
-    readonly typeshedPaths: string[];
-}
-export interface IWorkspaceSymbolSettings {
-    readonly enabled: boolean;
-    tagFilePath: string;
-    readonly rebuildOnStart: boolean;
-    readonly rebuildOnFileSave: boolean;
-    readonly ctagsPath: string;
-    readonly exclusionPatterns: string[];
-}
-export interface ITerminalSettings {
-    readonly executeInFileDir: boolean;
-    readonly launchArgs: string[];
-    readonly activateEnvironment: boolean;
-    readonly activateEnvInCurrentTerminal: boolean;
-}
-
 export interface IExperiments {
     /**
      * Return `true` if experiments are enabled, else `false`.
@@ -315,27 +166,6 @@ export interface IExperiments {
      */
     readonly optOutFrom: string[];
 }
-
-export enum AnalysisSettingsLogLevel {
-    Information = 'Information',
-    Error = 'Error',
-    Warning = 'Warning'
-}
-
-export type LanguageServerDownloadChannels = 'stable' | 'beta' | 'daily';
-export interface IAnalysisSettings {
-    readonly downloadChannel?: LanguageServerDownloadChannels;
-    readonly openFilesOnly: boolean;
-    readonly typeshedPaths: string[];
-    readonly cacheFolderPath: string | null;
-    readonly errors: string[];
-    readonly warnings: string[];
-    readonly information: string[];
-    readonly disabled: string[];
-    readonly traceLogging: boolean;
-    readonly logLevel: AnalysisSettingsLogLevel;
-}
-
 export interface IVariableQuery {
     language: string;
     query: string;

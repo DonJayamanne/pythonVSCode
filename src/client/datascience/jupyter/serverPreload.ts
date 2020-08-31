@@ -5,13 +5,7 @@ import { inject, injectable } from 'inversify';
 import { IExtensionSingleActivationService } from '../../activation/types';
 import { traceError, traceInfo } from '../../common/logger';
 import { IConfigurationService } from '../../common/types';
-import {
-    IInteractiveWindow,
-    IInteractiveWindowProvider,
-    INotebookAndInteractiveWindowUsageTracker,
-    INotebookEditorProvider,
-    INotebookProvider
-} from '../types';
+import { INotebookAndInteractiveWindowUsageTracker, INotebookEditorProvider, INotebookProvider } from '../types';
 
 @injectable()
 export class ServerPreload implements IExtensionSingleActivationService {
@@ -19,12 +13,10 @@ export class ServerPreload implements IExtensionSingleActivationService {
         @inject(INotebookAndInteractiveWindowUsageTracker)
         private readonly tracker: INotebookAndInteractiveWindowUsageTracker,
         @inject(INotebookEditorProvider) private notebookEditorProvider: INotebookEditorProvider,
-        @inject(IInteractiveWindowProvider) private interactiveProvider: IInteractiveWindowProvider,
         @inject(IConfigurationService) private configService: IConfigurationService,
         @inject(INotebookProvider) private notebookProvider: INotebookProvider
     ) {
         this.notebookEditorProvider.onDidOpenNotebookEditor(this.onDidOpenNotebook.bind(this));
-        this.interactiveProvider.onDidChangeActiveInteractiveWindow(this.onDidOpenOrCloseInteractive.bind(this));
     }
     public activate(): Promise<void> {
         // This is the list of things that should cause us to start a local server
@@ -81,11 +73,5 @@ export class ServerPreload implements IExtensionSingleActivationService {
     private onDidOpenNotebook() {
         // Automatically start a server whenever we open a notebook
         this.createServerIfNecessary().ignoreErrors();
-    }
-
-    private onDidOpenOrCloseInteractive(interactive: IInteractiveWindow | undefined) {
-        if (interactive) {
-            this.createServerIfNecessary().ignoreErrors();
-        }
     }
 }

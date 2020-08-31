@@ -20,7 +20,7 @@ export class JupyterInterpreterSelectionCommand implements IExtensionSingleActiv
     ) {}
     public async activate(): Promise<void> {
         this.disposables.push(
-            this.cmdManager.registerCommand('python.datascience.selectJupyterInterpreter', () => {
+            this.cmdManager.registerCommand('jupyter.datascience.selectJupyterInterpreter', () => {
                 sendTelemetryEvent(Telemetry.SelectJupyterInterpreterCommand);
                 this.service.selectInterpreter().ignoreErrors();
             })

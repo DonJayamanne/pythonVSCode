@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 import { injectable } from 'inversify';
-import { EnvironmentType, PythonEnvironment } from '.';
+import { PythonEnvironment } from '.';
 import { createWorkerPool, IWorkerPool, QueuePosition } from '../../common/utils/workerPool';
 import { shellExecute } from '../common/externalDependencies';
 import { buildPythonExecInfo } from '../exec';
@@ -38,16 +38,12 @@ async function buildEnvironmentInfo(interpreterPath: string): Promise<PythonEnvi
             build: interpreterInfo.version.build,
             prerelease: interpreterInfo.version.prerelease
         },
-        sysVersion: interpreterInfo.sysVersion,
-        architecture: interpreterInfo.architecture,
+        // sysVersion: interpreterInfo.sysVersion,
+        // architecture: interpreterInfo.architecture,
         sysPrefix: interpreterInfo.sysPrefix,
-        pipEnvWorkspaceFolder: interpreterInfo.pipEnvWorkspaceFolder,
-        companyDisplayName: '',
+        // pipEnvWorkspaceFolder: interpreterInfo.pipEnvWorkspaceFolder,
         displayName: '',
-        envType: EnvironmentType.Unknown, // Code to handle This will be added later.
-        envName: '',
-        envPath: '',
-        cachedEntry: false
+        // envType: EnvironmentType.Unknown, // Code to handle This will be added later.
     };
 }
 
@@ -58,7 +54,9 @@ export class EnvironmentInfoService implements IEnvironmentInfoService {
     // session. There are definitely cases where this will change. But a simple reload should address
     // those.
     private readonly cache: Map<string, PythonEnvironment> = new Map<string, PythonEnvironment>();
+
     private readonly workerPool: IWorkerPool<string, PythonEnvironment | undefined>;
+
     public constructor() {
         this.workerPool = createWorkerPool<string, PythonEnvironment | undefined>(buildEnvironmentInfo);
     }

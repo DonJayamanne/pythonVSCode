@@ -8,14 +8,11 @@ import { Uri } from 'vscode';
 import { ICommandManager } from '../../common/application/types';
 import { IDisposable } from '../../common/types';
 import { Commands } from '../constants';
-import {
-    getDisplayNameOrNameOfKernelConnection,
-    kernelConnectionMetadataHasKernelModel
-} from '../jupyter/kernels/helpers';
+import { kernelConnectionMetadataHasKernelModel } from '../jupyter/kernels/helpers';
 import { KernelSelector } from '../jupyter/kernels/kernelSelector';
 import { KernelSwitcher } from '../jupyter/kernels/kernelSwitcher';
 import { KernelConnectionMetadata } from '../jupyter/kernels/types';
-import { IInteractiveWindowProvider, INotebookEditorProvider, INotebookProvider, ISwitchKernelOptions } from '../types';
+import { INotebookEditorProvider, INotebookProvider, ISwitchKernelOptions } from '../types';
 
 @injectable()
 export class NotebookCommands implements IDisposable {
@@ -23,7 +20,6 @@ export class NotebookCommands implements IDisposable {
     constructor(
         @inject(ICommandManager) private readonly commandManager: ICommandManager,
         @inject(INotebookEditorProvider) private notebookEditorProvider: INotebookEditorProvider,
-        @inject(IInteractiveWindowProvider) private interactiveWindowProvider: IInteractiveWindowProvider,
         @inject(INotebookProvider) private readonly notebookProvider: INotebookProvider,
         @inject(KernelSelector) private readonly kernelSelector: KernelSelector,
         @inject(KernelSwitcher) private readonly kernelSwitcher: KernelSwitcher
@@ -71,15 +67,9 @@ export class NotebookCommands implements IDisposable {
                           this.notebookEditorProvider.activeEditor.model.metadata?.kernelspec?.display_name ||
                           this.notebookEditorProvider.activeEditor.model.metadata?.kernelspec?.name
                   }
-                : {
-                      identity: this.interactiveWindowProvider.activeWindow?.identity,
-                      resource: this.interactiveWindowProvider.activeWindow?.owner,
-                      currentKernelDisplayName: getDisplayNameOrNameOfKernelConnection(
-                          this.interactiveWindowProvider.activeWindow?.notebook?.getKernelConnection()
-                      )
-                  };
+                : undefined;
         }
-        if (options.identity) {
+        if (options?.identity) {
             // Make sure we have a connection or we can't get remote kernels.
             const connection = await this.notebookProvider.connect({ getOnly: false, disableUI: false });
 

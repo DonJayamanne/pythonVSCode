@@ -9,6 +9,7 @@ import { inject, injectable } from 'inversify';
 import * as path from 'path';
 import * as uuid from 'uuid/v4';
 import { CancellationToken, CancellationTokenSource } from 'vscode';
+import { IEnvironmentActivationService } from '../../../api/types';
 import { Cancellation, wrapCancellationTokens } from '../../../common/cancellation';
 import { PYTHON_LANGUAGE, PYTHON_WARNINGS } from '../../../common/constants';
 import '../../../common/extensions';
@@ -18,7 +19,6 @@ import { IPythonExecutionFactory } from '../../../common/process/types';
 import { ReadWrite } from '../../../common/types';
 import { sleep } from '../../../common/utils/async';
 import { noop } from '../../../common/utils/misc';
-import { IEnvironmentActivationService } from '../../../interpreter/activation/types';
 import { IInterpreterService } from '../../../interpreter/contracts';
 import { PythonEnvironment } from '../../../pythonEnvironments/info';
 import { captureTelemetry, sendTelemetryEvent } from '../../../telemetry';
@@ -51,11 +51,7 @@ const NamedRegexp = require('named-js-regexp') as typeof import('named-js-regexp
  */
 function isInterpreter(item: nbformat.IKernelspecMetadata | PythonEnvironment): item is PythonEnvironment {
     // Interpreters will not have a `display_name` property, but have `path` and `type` properties.
-    return (
-        !!(item as PythonEnvironment).path &&
-        !!(item as PythonEnvironment).envType &&
-        !(item as nbformat.IKernelspecMetadata).display_name
-    );
+    return !!(item as PythonEnvironment).path && !(item as nbformat.IKernelspecMetadata).display_name;
 }
 
 /**

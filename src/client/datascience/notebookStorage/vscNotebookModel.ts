@@ -6,7 +6,6 @@ import { Memento, Uri } from 'vscode';
 import { NotebookDocument } from '../../../../types/vscode-proposed';
 import { IVSCodeNotebook } from '../../common/application/types';
 import { ICryptoUtils } from '../../common/types';
-import { NotebookModelChange } from '../interactive-common/interactiveWindowTypes';
 import {
     createCellFromVSCNotebookCell,
     getNotebookMetadata,
@@ -135,7 +134,8 @@ export class VSCodeNotebookModel extends BaseNotebookModel {
         return sortObjectPropertiesRecursively(json);
     }
 
-    protected handleRedo(change: NotebookModelChange): boolean {
+    // tslint:disable-next-line: no-any
+    protected handleRedo(change: any): boolean {
         super.handleRedo(change);
         return true;
     }

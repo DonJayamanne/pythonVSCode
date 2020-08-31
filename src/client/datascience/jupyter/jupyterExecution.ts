@@ -79,7 +79,7 @@ export class JupyterExecutionBase implements IJupyterExecution {
                     // When config changes happen, recreate our commands.
                     this.onSettingsChanged();
                 }
-                if (e.affectsConfiguration('python.dataScience.jupyterServerURI', undefined)) {
+                if (e.affectsConfiguration('jupyter.datascience.jupyterServerURI', undefined)) {
                     // When server URI changes, clear our pending URI timeouts
                     this.clearTimeouts();
                 }

@@ -18,14 +18,14 @@
     "python.command.python.discoverTests.title": "Descobrir Testes Unitários",
     "python.command.python.execSelectionInTerminal.title": "Executar Seleção/Linha no Terminal",
     "python.command.python.execSelectionInDjangoShell.title": "Executar Seleção/Linha no Django Shell",
-    "python.command.python.goToPythonObject.title": "Ir para Objeto Python",
+    "python.command.python.goToPythonObject.title": "Ir para Objeto Jupyter",
     "python.command.python.setLinter.title": "Selecionar Linter",
     "python.command.python.enableLinting.title": "Habilitar Linting",
     "python.command.python.runLinting.title": "Executar Linting",
-    "python.snippet.launch.standard.label": "Python: Arquivo Atual",
-    "python.snippet.launch.module.label": "Python: Módulo",
-    "python.snippet.launch.django.label": "Python: Django",
-    "python.snippet.launch.flask.label": "Python: Flask",
-    "python.snippet.launch.pyramid.label": "Python: Aplicação Pyramid",
-    "python.snippet.launch.attach.label": "Python: Anexar"
+    "python.snippet.launch.standard.label": "Jupyter: Arquivo Atual",
+    "python.snippet.launch.module.label": "Jupyter: Módulo",
+    "python.snippet.launch.django.label": "Jupyter: Django",
+    "python.snippet.launch.flask.label": "Jupyter: Flask",
+    "python.snippet.launch.pyramid.label": "Jupyter: Aplicação Pyramid",
+    "python.snippet.launch.attach.label": "Jupyter: Anexar"
 }

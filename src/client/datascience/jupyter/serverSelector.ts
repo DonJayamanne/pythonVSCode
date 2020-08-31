@@ -140,7 +140,7 @@ export class JupyterServerSelector {
         // Reload if there's a change
         if (previousValue !== Settings.JupyterServerLocalLaunch) {
             this.cmdManager
-                .executeCommand('python.reloadVSCode', DataScience.reloadAfterChangingJupyterServerConnection())
+                .executeCommand('jupyter.reloadVSCode', DataScience.reloadAfterChangingJupyterServerConnection())
                 .then(noop, noop);
         }
     }
@@ -158,7 +158,7 @@ export class JupyterServerSelector {
         // Reload if there's a change
         if (previousValue !== userURI) {
             this.cmdManager
-                .executeCommand('python.reloadVSCode', DataScience.reloadAfterChangingJupyterServerConnection())
+                .executeCommand('jupyter.reloadVSCode', DataScience.reloadAfterChangingJupyterServerConnection())
                 .then(noop, noop);
         }
     }

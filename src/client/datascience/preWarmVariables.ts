@@ -5,10 +5,10 @@
 
 import { inject, injectable } from 'inversify';
 import { IExtensionSingleActivationService } from '../activation/types';
+import { IEnvironmentActivationService } from '../api/types';
 import '../common/extensions';
 import { IDisposableRegistry } from '../common/types';
 import { noop } from '../common/utils/misc';
-import { IEnvironmentActivationService } from '../interpreter/activation/types';
 import { JupyterInterpreterService } from './jupyter/interpreter/jupyterInterpreterService';
 
 @injectable()

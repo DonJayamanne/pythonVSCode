@@ -156,11 +156,6 @@ export interface IPythonExecutionFactory {
         options: DaemonExecutionFactoryCreationOptions
     ): Promise<T | IPythonExecutionService>;
     createActivatedEnvironment(options: ExecutionFactoryCreateWithEnvironmentOptions): Promise<IPythonExecutionService>;
-    createCondaExecutionService(
-        pythonPath: string,
-        processService?: IProcessService,
-        resource?: Uri
-    ): Promise<IPythonExecutionService | undefined>;
 }
 export const IPythonExecutionService = Symbol('IPythonExecutionService');
 

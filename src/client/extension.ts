@@ -29,7 +29,8 @@ const stopWatch = new StopWatch();
 
 import { ProgressLocation, ProgressOptions, window } from 'vscode';
 
-import { buildApi, IExtensionApi } from './api';
+import { PythonApiService } from './api/interpeterService';
+import { PythonApi } from './api/types';
 import { IApplicationShell } from './common/application/types';
 import { traceError } from './common/logger';
 import { IAsyncDisposableRegistry, IExtensionContext } from './common/types';
@@ -38,7 +39,6 @@ import { Common } from './common/utils/localize';
 import { activateComponents } from './extensionActivation';
 import { initializeComponents, initializeGlobals } from './extensionInit';
 import { IServiceContainer } from './ioc/types';
-import { sendErrorTelemetry, sendStartupTelemetry } from './startupTelemetry';
 
 durations.codeLoadingTime = stopWatch.elapsedTime;
 
@@ -51,24 +51,26 @@ let activatedServiceContainer: IServiceContainer | undefined;
 /////////////////////////////
 // public functions
 
-export async function activate(context: IExtensionContext): Promise<IExtensionApi> {
-    let api: IExtensionApi;
-    let ready: Promise<void>;
-    let serviceContainer: IServiceContainer;
+export async function activate(context: IExtensionContext) {
     try {
-        [api, ready, serviceContainer] = await activateUnsafe(context, stopWatch, durations);
+        const { serviceContainer } = await activateUnsafe(context, stopWatch, durations);
+        let registered = false;
+        return {
+            registerPythonApi: (pythonApi: PythonApi) => {
+                if (registered) {
+                    return;
+                }
+                registered = true;
+                const proxyInterpreterService = serviceContainer.get<PythonApiService>(PythonApiService);
+                proxyInterpreterService.registerRealService(pythonApi);
+            }
+        };
     } catch (ex) {
         // We want to completely handle the error
         // before notifying VS Code.
-        await handleError(ex, durations);
+        await handleError(ex);
         throw ex; // re-raise
     }
-    // Send the "success" telemetry only if activation did not fail.
-    // Otherwise Telemetry is send via the error handler.
-    sendStartupTelemetry(ready, durations, stopWatch, serviceContainer)
-        // Run in the background.
-        .ignoreErrors();
-    return api;
 }
 
 export function deactivate(): Thenable<void> {
@@ -91,7 +93,7 @@ async function activateUnsafe(
     context: IExtensionContext,
     startupStopWatch: StopWatch,
     startupDurations: Record<string, number>
-): Promise<[IExtensionApi, Promise<void>, IServiceContainer]> {
+): Promise<{ activationPromise: Promise<void>; serviceContainer: IServiceContainer }> {
     const activationDeferred = createDeferred<void>();
     displayProgress(activationDeferred.promise);
     startupDurations.startActivateTime = startupStopWatch.elapsedTime;
@@ -109,9 +111,7 @@ async function activateUnsafe(
 
     startupDurations.endActivateTime = startupStopWatch.elapsedTime;
     activationDeferred.resolve();
-
-    const api = buildApi(activationPromise, serviceManager, serviceContainer);
-    return [api, activationPromise, serviceContainer];
+    return { activationPromise, serviceContainer };
 }
 
 // tslint:disable-next-line:no-any
@@ -123,12 +123,11 @@ function displayProgress(promise: Promise<any>) {
 /////////////////////////////
 // error handling
 
-async function handleError(ex: Error, startupDurations: Record<string, number>) {
+async function handleError(ex: Error) {
     notifyUser(
         "Extension activation failed, run the 'Developer: Toggle Developer Tools' command for more information."
     );
     traceError('extension activation failed', ex);
-    await sendErrorTelemetry(ex, startupDurations, activatedServiceContainer);
 }
 
 interface IAppShell {

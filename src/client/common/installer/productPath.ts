@@ -8,10 +8,7 @@
 import { inject, injectable } from 'inversify';
 import * as path from 'path';
 import { Uri } from 'vscode';
-import { IFormatterHelper } from '../../formatters/types';
 import { IServiceContainer } from '../../ioc/types';
-import { ILinterManager } from '../../linters/types';
-import { ITestsHelper } from '../../testing/common/types';
 import { IConfigurationService, IInstaller, ModuleNamePurpose, Product } from '../types';
 import { IProductPathService } from './types';
 
@@ -40,68 +37,6 @@ export abstract class BaseProductPathsService implements IProductPathService {
         return (
             typeof moduleName === 'string' && moduleName.length > 0 && path.basename(executableName) === executableName
         );
-    }
-}
-
-@injectable()
-export class CTagsProductPathService extends BaseProductPathsService {
-    constructor(@inject(IServiceContainer) serviceContainer: IServiceContainer) {
-        super(serviceContainer);
-    }
-    public getExecutableNameFromSettings(_: Product, resource?: Uri): string {
-        const settings = this.configService.getSettings(resource);
-        return settings.workspaceSymbols.ctagsPath;
-    }
-}
-
-@injectable()
-export class FormatterProductPathService extends BaseProductPathsService {
-    constructor(@inject(IServiceContainer) serviceContainer: IServiceContainer) {
-        super(serviceContainer);
-    }
-    public getExecutableNameFromSettings(product: Product, resource?: Uri): string {
-        const settings = this.configService.getSettings(resource);
-        const formatHelper = this.serviceContainer.get<IFormatterHelper>(IFormatterHelper);
-        const settingsPropNames = formatHelper.getSettingsPropertyNames(product);
-        return settings.formatting[settingsPropNames.pathName] as string;
-    }
-}
-
-@injectable()
-export class LinterProductPathService extends BaseProductPathsService {
-    constructor(@inject(IServiceContainer) serviceContainer: IServiceContainer) {
-        super(serviceContainer);
-    }
-    public getExecutableNameFromSettings(product: Product, resource?: Uri): string {
-        const linterManager = this.serviceContainer.get<ILinterManager>(ILinterManager);
-        return linterManager.getLinterInfo(product).pathName(resource);
-    }
-}
-
-@injectable()
-export class TestFrameworkProductPathService extends BaseProductPathsService {
-    constructor(@inject(IServiceContainer) serviceContainer: IServiceContainer) {
-        super(serviceContainer);
-    }
-    public getExecutableNameFromSettings(product: Product, resource?: Uri): string {
-        const testHelper = this.serviceContainer.get<ITestsHelper>(ITestsHelper);
-        const settingsPropNames = testHelper.getSettingsPropertyNames(product);
-        if (!settingsPropNames.pathName) {
-            // E.g. in the case of UnitTests we don't allow customizing the paths.
-            return this.productInstaller.translateProductToModuleName(product, ModuleNamePurpose.run);
-        }
-        const settings = this.configService.getSettings(resource);
-        return settings.testing[settingsPropNames.pathName] as string;
-    }
-}
-
-@injectable()
-export class RefactoringLibraryProductPathService extends BaseProductPathsService {
-    constructor(@inject(IServiceContainer) serviceContainer: IServiceContainer) {
-        super(serviceContainer);
-    }
-    public getExecutableNameFromSettings(product: Product, _?: Uri): string {
-        return this.productInstaller.translateProductToModuleName(product, ModuleNamePurpose.run);
     }
 }
 

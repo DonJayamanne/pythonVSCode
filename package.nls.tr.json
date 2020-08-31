@@ -19,15 +19,15 @@
     "python.command.python.discoveringTests.title": "Testler Keşfediliyor...",
     "python.command.python.execSelectionInTerminal.title": "Seçimi/Satırı Terminalde Çalıştır",
     "python.command.python.execSelectionInDjangoShell.title": "Seçimi/Satırı Django Shell'inde Çalıştır",
-    "python.command.python.goToPythonObject.title": "Python Nesnesine Git",
+    "python.command.python.goToPythonObject.title": "Jupyter Nesnesine Git",
     "python.command.python.setLinter.title": "Bir Linter Seç",
     "python.command.python.enableLinting.title": "Linting'i Aktifleştir",
     "python.command.python.runLinting.title": "Linter Çalıştır",
-    "python.snippet.launch.standard.label": "Python: Geçerli Dosya",
-    "python.snippet.launch.module.label": "Python: Modül",
+    "python.snippet.launch.standard.label": "Jupyter: Geçerli Dosya",
+    "python.snippet.launch.module.label": "Jupyter: Modül",
     "python.snippet.launch.module.default": "modül-adını-yazın",
-    "python.snippet.launch.attach.label": "Python: Remote Attach",
-    "python.snippet.launch.django.label": "Python: Django",
-    "python.snippet.launch.flask.label": "Python: Flask",
-    "python.snippet.launch.pyramid.label": "Python: Pyramid Uygulaması"
+    "python.snippet.launch.attach.label": "Jupyter: Remote Attach",
+    "python.snippet.launch.django.label": "Jupyter: Django",
+    "python.snippet.launch.flask.label": "Jupyter: Flask",
+    "python.snippet.launch.pyramid.label": "Jupyter: Pyramid Uygulaması"
 }

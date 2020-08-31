@@ -2,33 +2,9 @@
 // Licensed under the MIT License.
 
 import { SemVer } from 'semver';
+import { PythonVersion } from '../../api/types';
 import '../../common/extensions'; // For string.splitLines()
 import { getVersion as getPythonVersionCommand } from '../../common/process/internal/python';
-
-/**
- * A representation of a Python runtime's version.
- *
- * @prop raw - the original version string
- * @prop major - the "major" version
- * @prop minor - the "minor" version
- * @prop patch - the "patch" (or "micro") version
- * @prop build - the build ID of the executable
- * @prop prerelease - identifies a tag in the release process (e.g. beta 1)
- */
-// Note that this is currently compatible with SemVer objects,
-// but we may change it to match the format of sys.version_info.
-export type PythonVersion = {
-    raw: string;
-    major: number;
-    minor: number;
-    patch: number;
-    // Eventually it may be useful to match what sys.version_info
-    // provides for the remainder here:
-    // * releaseLevel: 'alpha' | 'beta' | 'candidate' | 'final';
-    // * serial: number;
-    build: string[];
-    prerelease: string[];
-};
 
 /**
  * Convert a Python version string.
@@ -71,6 +47,7 @@ export function parsePythonVersion(raw: string): PythonVersion | undefined {
     }
     const numberParts = `${versionParts[0]}.${versionParts[1]}.${versionParts[2]}`;
     const rawVersion = versionParts.length === 4 ? `${numberParts}-${versionParts[3]}` : numberParts;
+    // eslint-disable-next-line consistent-return
     return new SemVer(rawVersion);
 }
 

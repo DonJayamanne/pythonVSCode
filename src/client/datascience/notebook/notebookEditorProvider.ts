@@ -75,15 +75,6 @@ export class NotebookEditorProvider implements INotebookEditorProvider {
         this.disposables.push(
             this.vscodeNotebook.onDidChangeActiveNotebookEditor(this.onDidChangeActiveVsCodeNotebookEditor, this)
         );
-        this.disposables.push(
-            this.commandManager.registerCommand(Commands.OpenNotebookInPreviewEditor, async (uri?: Uri) => {
-                if (uri) {
-                    setSharedProperty('ds_notebookeditor', 'native');
-                    captureTelemetry(Telemetry.OpenNotebook, { scope: 'command' }, false);
-                    this.open(uri).ignoreErrors();
-                }
-            })
-        );
     }
 
     public async open(file: Uri): Promise<INotebookEditor> {

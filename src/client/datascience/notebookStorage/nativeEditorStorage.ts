@@ -13,14 +13,7 @@ import { sendTelemetryEvent } from '../../telemetry';
 import { Identifiers, KnownNotebookLanguages, Telemetry } from '../constants';
 import { InvalidNotebookFileError } from '../jupyter/invalidNotebookFileError';
 import { INotebookModelFactory } from '../notebookStorage/types';
-import {
-    CellState,
-    IDataScienceFileSystem,
-    IJupyterExecution,
-    INotebookModel,
-    INotebookStorage,
-    ITrustService
-} from '../types';
+import { CellState, IDataScienceFileSystem, IJupyterExecution, INotebookModel, INotebookStorage } from '../types';
 
 // tslint:disable-next-line:no-require-imports no-var-requires
 import detectIndent = require('detect-indent');
@@ -62,7 +55,6 @@ export class NativeEditorStorage implements INotebookStorage {
         @inject(IExtensionContext) private context: IExtensionContext,
         @inject(IMemento) @named(GLOBAL_MEMENTO) private globalStorage: Memento,
         @inject(IMemento) @named(WORKSPACE_MEMENTO) private localStorage: Memento,
-        @inject(ITrustService) private trustService: ITrustService,
         @inject(INotebookModelFactory) private readonly factory: INotebookModelFactory
     ) {}
     private static isUntitledFile(file: Uri) {
@@ -100,9 +92,9 @@ export class NativeEditorStorage implements INotebookStorage {
     public async save(model: INotebookModel, _cancellation: CancellationToken): Promise<void> {
         const contents = model.getContent();
         const parallelize = [this.fs.writeFile(model.file, contents)];
-        if (model.isTrusted) {
-            parallelize.push(this.trustService.trustNotebook(model.file, contents));
-        }
+        // if (model.isTrusted) {
+        //     parallelize.push(this.trustService.trustNotebook(model.file, contents));
+        // }
         await Promise.all(parallelize);
         model.update({
             source: 'user',
@@ -115,9 +107,9 @@ export class NativeEditorStorage implements INotebookStorage {
     public async saveAs(model: INotebookModel, file: Uri): Promise<void> {
         const contents = model.getContent();
         const parallelize = [this.fs.writeFile(file, contents)];
-        if (model.isTrusted) {
-            parallelize.push(this.trustService.trustNotebook(file, contents));
-        }
+        // if (model.isTrusted) {
+        //     parallelize.push(this.trustService.trustNotebook(file, contents));
+        // }
         await Promise.all(parallelize);
         if (model instanceof VSCodeNotebookModel) {
             return;
@@ -188,7 +180,7 @@ export class NativeEditorStorage implements INotebookStorage {
     }
 
     private async writeToStorage(
-        owningFile: Uri | undefined,
+        _owningFile: Uri | undefined,
         filePath: string,
         contents?: string,
         cancelToken?: CancellationToken
@@ -198,9 +190,9 @@ export class NativeEditorStorage implements INotebookStorage {
                 if (contents) {
                     await this.fs.createLocalDirectory(path.dirname(filePath));
                     if (!cancelToken?.isCancellationRequested) {
-                        if (owningFile) {
-                            this.trustService.trustNotebook(owningFile, contents).ignoreErrors();
-                        }
+                        // if (owningFile) {
+                        //     this.trustService.trustNotebook(owningFile, contents).ignoreErrors();
+                        // }
                         await this.fs.writeLocalFile(filePath, contents);
                     }
                 } else {
@@ -378,10 +370,10 @@ export class NativeEditorStorage implements INotebookStorage {
         // If no contents or untitled, this is a newly created file
         // If dirty, that means it's been edited before in our extension
         if (contents !== undefined && !isUntitledFile(file) && !isInitiallyDirty && !model.isTrusted) {
-            const isNotebookTrusted = await this.trustService.isNotebookTrusted(file, model.getContent());
-            if (isNotebookTrusted) {
-                model.trust();
-            }
+            // const isNotebookTrusted = await this.trustService.isNotebookTrusted(file, model.getContent());
+            // if (isNotebookTrusted) {
+            model.trust();
+            // }
         } else {
             model.trust();
         }

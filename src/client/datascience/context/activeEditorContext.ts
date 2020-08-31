@@ -15,15 +15,7 @@ import { traceError } from '../../common/logger';
 import { IDisposable, IDisposableRegistry, IExperimentsManager } from '../../common/types';
 import { setSharedProperty } from '../../telemetry';
 import { EditorContexts } from '../constants';
-import {
-    IInteractiveWindow,
-    IInteractiveWindowProvider,
-    INotebook,
-    INotebookEditor,
-    INotebookEditorProvider,
-    INotebookProvider,
-    ITrustService
-} from '../types';
+import { INotebook, INotebookEditor, INotebookEditorProvider, INotebookProvider } from '../types';
 
 @injectable()
 export class ActiveEditorContextService implements IExtensionSingleActivationService, IDisposable {
@@ -39,14 +31,12 @@ export class ActiveEditorContextService implements IExtensionSingleActivationSer
     private isNotebookTrusted: ContextKey;
     private isPythonFileActive: boolean = false;
     constructor(
-        @inject(IInteractiveWindowProvider) private readonly interactiveProvider: IInteractiveWindowProvider,
         @inject(INotebookEditorProvider) private readonly notebookEditorProvider: INotebookEditorProvider,
         @inject(IDocumentManager) private readonly docManager: IDocumentManager,
         @inject(ICommandManager) private readonly commandManager: ICommandManager,
         @inject(IDisposableRegistry) disposables: IDisposableRegistry,
         @inject(IExperimentsManager) private readonly experiments: IExperimentsManager,
-        @inject(INotebookProvider) private readonly notebookProvider: INotebookProvider,
-        @inject(ITrustService) private readonly trustService: ITrustService
+        @inject(INotebookProvider) private readonly notebookProvider: INotebookProvider
     ) {
         disposables.push(this);
         this.nativeContext = new ContextKey(EditorContexts.IsNativeActive, this.commandManager);
@@ -77,17 +67,12 @@ export class ActiveEditorContextService implements IExtensionSingleActivationSer
     public async activate(): Promise<void> {
         this.docManager.onDidChangeActiveTextEditor(this.onDidChangeActiveTextEditor, this, this.disposables);
         this.notebookProvider.onSessionStatusChanged(this.onDidKernelStatusChange, this, this.disposables);
-        this.interactiveProvider.onDidChangeActiveInteractiveWindow(
-            this.onDidChangeActiveInteractiveWindow,
-            this,
-            this.disposables
-        );
         this.notebookEditorProvider.onDidChangeActiveNotebookEditor(
             this.onDidChangeActiveNotebookEditor,
             this,
             this.disposables
         );
-        this.trustService.onDidSetNotebookTrust(this.onDidSetNotebookTrust, this, this.disposables);
+        // this.trustService.onDidSetNotebookTrust(this.onDidSetNotebookTrust, this, this.disposables);
 
         // Do we already have python file opened.
         if (this.docManager.activeTextEditor?.document.languageId === PYTHON_LANGUAGE) {
@@ -102,10 +87,6 @@ export class ActiveEditorContextService implements IExtensionSingleActivationSer
         this.hasNativeNotebookCells
             .set((this.notebookEditorProvider.activeEditor?.model?.cells?.length || 0) > 0)
             .ignoreErrors();
-    }
-    private onDidChangeActiveInteractiveWindow(e?: IInteractiveWindow) {
-        this.interactiveContext.set(!!e).ignoreErrors();
-        this.updateMergedContexts();
     }
     private onDidChangeActiveNotebookEditor(e?: INotebookEditor) {
         // This will ensure all subsequent telemetry will get the context of whether it is a custom/native/old notebook editor.
@@ -153,11 +134,11 @@ export class ActiveEditorContextService implements IExtensionSingleActivationSer
         this.updateMergedContexts();
     }
     // When trust service says trust has changed, update context with whether the currently active notebook is trusted
-    private onDidSetNotebookTrust() {
-        if (this.notebookEditorProvider.activeEditor?.model !== undefined) {
-            this.isNotebookTrusted.set(this.notebookEditorProvider.activeEditor?.model?.isTrusted).ignoreErrors();
-        }
-    }
+    // private onDidSetNotebookTrust() {
+    //     if (this.notebookEditorProvider.activeEditor?.model !== undefined) {
+    //         this.isNotebookTrusted.set(this.notebookEditorProvider.activeEditor?.model?.isTrusted).ignoreErrors();
+    //     }
+    // }
     private updateMergedContexts() {
         this.interactiveOrNativeContext
             .set(this.nativeContext.value === true && this.interactiveContext.value === true)
