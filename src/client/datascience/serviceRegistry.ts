@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 'use strict';
 import { IExtensionSingleActivationService } from '../activation/types';
-import { PythonApiService } from '../api/interpeterService';
+import { PythonApiService } from '../api/pythonApi';
 import { IEnvironmentActivationService, IInterpreterService } from '../api/types';
 import { FileSystemPathUtils } from '../common/platform/fs-paths';
 import { IFileSystemPathUtils } from '../common/platform/types';

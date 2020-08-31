@@ -29,7 +29,7 @@ const stopWatch = new StopWatch();
 
 import { ProgressLocation, ProgressOptions, window } from 'vscode';
 
-import { PythonApiService } from './api/interpeterService';
+import { PythonApiService } from './api/pythonApi';
 import { PythonApi } from './api/types';
 import { IApplicationShell } from './common/application/types';
 import { traceError } from './common/logger';

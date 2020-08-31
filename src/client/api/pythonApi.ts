@@ -1,3 +1,4 @@
+import { SpawnOptions } from 'child_process';
 import { inject, injectable } from 'inversify';
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
@@ -7,7 +8,13 @@ import { IApplicationShell } from '../common/application/types';
 import { IDisposableRegistry, IExtensions, Resource } from '../common/types';
 import { createDeferred, Deferred } from '../common/utils/async';
 import { noop } from '../common/utils/misc';
-import { IEnvironmentActivationService, IInterpreterService, PythonApi, PythonEnvironment } from './types';
+import {
+    IEnvironmentActivationService,
+    IInterpreterService,
+    PythonApi,
+    PythonEnvironment,
+    PythonExecutionInfo
+} from './types';
 
 @injectable()
 export class PythonApiService implements IInterpreterService, IEnvironmentActivationService {
@@ -24,6 +31,21 @@ export class PythonApiService implements IInterpreterService, IEnvironmentActiva
         @inject(IApplicationShell) private readonly appShell: IApplicationShell,
         @inject(IDisposableRegistry) private readonly disposables: IDisposableRegistry
     ) {}
+    public async getExecutionDetails(options: {
+        args: string[];
+        options: SpawnOptions;
+        moduleName?: string | undefined;
+    }): Promise<{
+        execDetails: PythonExecutionInfo;
+        execObservableDetails: PythonExecutionInfo;
+        execModuleDetails?: PythonExecutionInfo;
+        execModuleObservableDetails?: PythonExecutionInfo;
+    }> {
+        await this.initialize();
+        const svc = await this.realService!.promise;
+        // eslint-disable-next-line consistent-return
+        return svc.getExecutionDetails(options);
+    }
 
     public async getActivatedEnvironmentVariables(
         resource: Resource,
@@ -36,7 +58,7 @@ export class PythonApiService implements IInterpreterService, IEnvironmentActiva
         }
         const svc = await this.realService!.promise;
         // eslint-disable-next-line consistent-return
-        return svc.getActivatedEnvironmentVariables(interpreter.path, resource);
+        return svc.getActivatedEnvironmentVariables({ pythonPath: interpreter.path, resource });
     }
 
     public registerRealService(realService: PythonApi): void {
