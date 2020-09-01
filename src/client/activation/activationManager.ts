@@ -8,10 +8,8 @@ import { TextDocument } from 'vscode';
 import { IActiveResourceService, IDocumentManager, IWorkspaceService } from '../common/application/types';
 import { PYTHON_LANGUAGE } from '../common/constants';
 import { traceDecorators } from '../common/logger';
-import { IFileSystem } from '../common/platform/types';
 import { IDisposable, Resource } from '../common/types';
 import { Deferred } from '../common/utils/async';
-import { sendActivationTelemetry } from '../telemetry/envFileTelemetry';
 import { IExtensionActivationManager, IExtensionSingleActivationService } from './types';
 
 @injectable()
@@ -25,7 +23,6 @@ export class ExtensionActivationManager implements IExtensionActivationManager {
         private readonly singleActivationServices: IExtensionSingleActivationService[],
         @inject(IDocumentManager) private readonly documentManager: IDocumentManager,
         @inject(IWorkspaceService) private readonly workspaceService: IWorkspaceService,
-        @inject(IFileSystem) private readonly fileSystem: IFileSystem,
         @inject(IActiveResourceService) private readonly activeResourceService: IActiveResourceService
     ) {}
 
@@ -54,8 +51,6 @@ export class ExtensionActivationManager implements IExtensionActivationManager {
             return;
         }
         this.activatedWorkspaces.add(key);
-
-        await sendActivationTelemetry(this.fileSystem, this.workspaceService, resource);
     }
     public async initialize() {
         this.addHandlers();

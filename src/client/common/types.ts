@@ -375,13 +375,6 @@ export type DeprecatedFeatureInfo = {
     setting?: DeprecatedSettingAndValue;
 };
 
-export const IFeatureDeprecationManager = Symbol('IFeatureDeprecationManager');
-
-export interface IFeatureDeprecationManager extends Disposable {
-    initialize(): void;
-    registerDeprecation(deprecatedInfo: DeprecatedFeatureInfo): void;
-}
-
 export const IEditorUtils = Symbol('IEditorUtils');
 export interface IEditorUtils {
     getWorkspaceEditsFromPatch(originalContents: string, patch: string, uri: Uri): WorkspaceEdit;

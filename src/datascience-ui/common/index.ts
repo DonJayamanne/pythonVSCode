@@ -47,48 +47,6 @@ export function splitMultilineString(source: nbformat.MultilineString): string[]
     return [];
 }
 
-export function removeLinesFromFrontAndBack(code: string): string {
-    const lines = code.splitLines({ trim: false, removeEmptyEntries: false });
-    let foundNonEmptyLine = false;
-    let lastNonEmptyLine = -1;
-    let result: string[] = [];
-    parseForComments(
-        lines,
-        (_s, i) => {
-            result.push(lines[i]);
-            lastNonEmptyLine = i;
-        },
-        (s, i) => {
-            const trimmed = s.trim();
-            if (foundNonEmptyLine || trimmed) {
-                result.push(lines[i]);
-                foundNonEmptyLine = true;
-            }
-            if (trimmed) {
-                lastNonEmptyLine = i;
-            }
-        }
-    );
-
-    // Remove empty lines off the bottom too
-    if (lastNonEmptyLine < lines.length - 1) {
-        result = result.slice(0, result.length - (lines.length - 1 - lastNonEmptyLine));
-    }
-
-    return result.join('\n');
-}
-
-// Strip out comment lines from code
-export function stripComments(str: string): string {
-    let result: string = '';
-    parseForComments(
-        str.splitLines({ trim: false, removeEmptyEntries: false }),
-        (_s) => noop,
-        (s) => (result = result.concat(`${s}\n`))
-    );
-    return result;
-}
-
 // Took this from jupyter/notebook
 // https://github.com/jupyter/notebook/blob/b8b66332e2023e83d2ee04f83d8814f567e01a4e/notebook/static/base/js/utils.js
 // Remove characters that are overridden by backspace characters
