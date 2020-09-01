@@ -6,8 +6,7 @@ import { Observable } from 'rxjs/Observable';
 import { CancellationToken, Uri } from 'vscode';
 
 import { Newable } from '../../ioc/types';
-import { PythonExecInfo } from '../../pythonEnvironments/exec';
-import { InterpreterInformation, PythonEnvironment } from '../../pythonEnvironments/info';
+import { PythonEnvironment } from '../../pythonEnvironments/info';
 import { ExecutionInfo, IDisposable } from '../types';
 import { EnvironmentVariables } from '../variables/types';
 
@@ -160,15 +159,13 @@ export interface IPythonExecutionFactory {
 export const IPythonExecutionService = Symbol('IPythonExecutionService');
 
 export interface IPythonExecutionService {
-    getInterpreterInformation(): Promise<InterpreterInformation | undefined>;
-    getExecutablePath(): Promise<string>;
     isModuleInstalled(moduleName: string): Promise<boolean>;
-    getExecutionInfo(pythonArgs?: string[]): PythonExecInfo;
 
     execObservable(args: string[], options: SpawnOptions): ObservableExecutionResult<string>;
     execModuleObservable(moduleName: string, args: string[], options: SpawnOptions): ObservableExecutionResult<string>;
 
     exec(args: string[], options: SpawnOptions): Promise<ExecutionResult<string>>;
+    // execCode(code: string, options: SpawnOptions): Promise<ExecutionResult<string>>;
     execModule(moduleName: string, args: string[], options: SpawnOptions): Promise<ExecutionResult<string>>;
 }
 

@@ -360,12 +360,10 @@ export class KernelService {
         }
         if (!kernel) {
             // Possible user doesn't have kernelspec installed.
-            kernel = await this.getKernelSpecFromStdOut(await execService.getExecutablePath(), output.stdout).catch(
-                (ex) => {
-                    traceError('Failed to get kernelspec from stdout', ex);
-                    return undefined;
-                }
-            );
+            kernel = await this.getKernelSpecFromStdOut(interpreter.path, output.stdout).catch((ex) => {
+                traceError('Failed to get kernelspec from stdout', ex);
+                return undefined;
+            });
         }
         if (!kernel) {
             const error = `Kernel not created with the name ${name}, display_name ${interpreter.displayName}. Output is ${output.stdout}`;

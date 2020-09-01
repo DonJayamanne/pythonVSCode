@@ -2,11 +2,10 @@
 // Licensed under the MIT License.
 
 import { inject, injectable } from 'inversify';
-import { ConfigurationTarget, Uri, WorkspaceConfiguration } from 'vscode';
+import { ConfigurationTarget, Uri } from 'vscode';
 import { IServiceContainer } from '../../ioc/types';
 import { IWorkspaceService } from '../application/types';
 import { PythonSettings } from '../configSettings';
-import { isUnitTestExecution } from '../constants';
 import { DeprecatePythonPath } from '../experiments/groups';
 import { IConfigurationService, IExperimentsManager, IInterpreterPathService, IPythonSettings } from '../types';
 
@@ -62,7 +61,6 @@ export class ConfigurationService implements IConfigurationService {
             }
         } else {
             await configSection.update(setting, value, configTarget);
-            await this.verifySetting(configSection, configTarget, setting, value);
         }
     }
 
@@ -77,37 +75,5 @@ export class ConfigurationService implements IConfigurationService {
 
     public isTestExecution(): boolean {
         return process.env.VSC_PYTHON_CI_TEST === '1';
-    }
-
-    private async verifySetting(
-        configSection: WorkspaceConfiguration,
-        target: ConfigurationTarget,
-        settingName: string,
-        value?: {}
-    ): Promise<void> {
-        if (this.isTestExecution() && !isUnitTestExecution()) {
-            let retries = 0;
-            do {
-                const setting = configSection.inspect(settingName);
-                if (!setting && value === undefined) {
-                    break; // Both are unset
-                }
-                if (setting && value !== undefined) {
-                    // Both specified
-                    const actual =
-                        target === ConfigurationTarget.Global
-                            ? setting.globalValue
-                            : target === ConfigurationTarget.Workspace
-                            ? setting.workspaceValue
-                            : setting.workspaceFolderValue;
-                    if (actual === value) {
-                        break;
-                    }
-                }
-                // Wait for settings to get refreshed.
-                await new Promise((resolve) => setTimeout(resolve, 250));
-                retries += 1;
-            } while (retries < 20);
-        }
     }
 }

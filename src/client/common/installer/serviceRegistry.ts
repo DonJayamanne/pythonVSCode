@@ -3,8 +3,6 @@
 'use strict';
 
 import { IServiceManager } from '../../ioc/types';
-import { IWebPanelProvider } from '../application/types';
-import { WebPanelProvider } from '../application/webPanels/webPanelProvider';
 import { ProductType } from '../types';
 import { InsidersBuildInstaller, StableBuildInstaller } from './extensionBuildInstaller';
 import { DataScienceProductPathService } from './productPath';
@@ -33,6 +31,5 @@ export function registerTypes(serviceManager: IServiceManager) {
         DataScienceProductPathService,
         ProductType.DataScience
     );
-    serviceManager.addSingleton<IWebPanelProvider>(IWebPanelProvider, WebPanelProvider);
     serviceManager.addSingleton<IProductService>(IProductService, ProductService);
 }

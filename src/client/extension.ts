@@ -37,7 +37,7 @@ import { IAsyncDisposableRegistry, IExtensionContext } from './common/types';
 import { createDeferred } from './common/utils/async';
 import { Common } from './common/utils/localize';
 import { activateComponents } from './extensionActivation';
-import { initializeComponents, initializeGlobals } from './extensionInit';
+import { initializeGlobals } from './extensionInit';
 import { IServiceContainer } from './ioc/types';
 
 durations.codeLoadingTime = stopWatch.elapsedTime;
@@ -103,7 +103,6 @@ async function activateUnsafe(
 
     const [serviceManager, serviceContainer] = initializeGlobals(context);
     activatedServiceContainer = serviceContainer;
-    initializeComponents(context, serviceManager, serviceContainer);
     const { activationPromise } = await activateComponents(context, serviceManager, serviceContainer);
 
     //===============================================
