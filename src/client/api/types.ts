@@ -47,16 +47,24 @@ export interface IInterpreterService {
     getInterpreters(resource: Resource): Promise<PythonEnvironment[]>;
     getActiveInterpreter(resource: Resource): Promise<PythonEnvironment | undefined>;
     getInterpreterDetails(pythonPath: string): Promise<PythonEnvironment | undefined>;
-    getExecutionDetails(options: {
-        args: string[];
-        moduleName?: string;
-        options: SpawnOptions;
-    }): Promise<{
-        execDetails: PythonExecutionInfo;
-        execObservableDetails: PythonExecutionInfo;
-        execModuleDetails?: PythonExecutionInfo;
-        execModuleObservableDetails?: PythonExecutionInfo;
-    }>;
+    getExecutionDetails(
+        options:
+            | {
+                  args: string[];
+                  moduleName: string;
+                  options: SpawnOptions;
+              }
+            | {
+                  args: string[];
+                  fileName: string;
+                  options: SpawnOptions;
+              }
+            | {
+                  args: string[];
+                  code?: string;
+                  options: SpawnOptions;
+              }
+    ): Promise<PythonExecutionInfo>;
 }
 
 export type PythonExecutionInfo = {
@@ -73,14 +81,22 @@ export type PythonApi = {
         pythonPath: string;
         resource?: Uri;
     }): Promise<NodeJS.ProcessEnv | undefined>;
-    getExecutionDetails(options: {
-        args: string[];
-        options: SpawnOptions;
-        moduleName?: string;
-    }): Promise<{
-        execDetails: PythonExecutionInfo;
-        execObservableDetails: PythonExecutionInfo;
-        execModuleDetails?: PythonExecutionInfo;
-        execModuleObservableDetails?: PythonExecutionInfo;
-    }>;
+    getExecutionDetails(
+        options:
+            | {
+                  args: string[];
+                  moduleName: string;
+                  options: SpawnOptions;
+              }
+            | {
+                  args: string[];
+                  fileName: string;
+                  options: SpawnOptions;
+              }
+            | {
+                  args: string[];
+                  code?: string;
+                  options: SpawnOptions;
+              }
+    ): Promise<PythonExecutionInfo>;
 };

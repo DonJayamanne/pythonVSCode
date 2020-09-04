@@ -30,16 +30,24 @@ export class PythonApiService implements IInterpreterService, IEnvironmentActiva
         @inject(IExtensions) private readonly extensions: IExtensions,
         @inject(IApplicationShell) private readonly appShell: IApplicationShell
     ) {}
-    public async getExecutionDetails(options: {
-        args: string[];
-        options: SpawnOptions;
-        moduleName?: string | undefined;
-    }): Promise<{
-        execDetails: PythonExecutionInfo;
-        execObservableDetails: PythonExecutionInfo;
-        execModuleDetails?: PythonExecutionInfo;
-        execModuleObservableDetails?: PythonExecutionInfo;
-    }> {
+    public async getExecutionDetails(
+        options:
+            | {
+                  args: string[];
+                  moduleName: string;
+                  options: SpawnOptions;
+              }
+            | {
+                  args: string[];
+                  fileName: string;
+                  options: SpawnOptions;
+              }
+            | {
+                  args: string[];
+                  code?: string;
+                  options: SpawnOptions;
+              }
+    ): Promise<PythonExecutionInfo> {
         await this.initialize();
         const svc = await this.realService!.promise;
         // eslint-disable-next-line consistent-return
