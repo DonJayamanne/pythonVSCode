@@ -40,7 +40,7 @@ export class JupyterCommandLineSelector {
     }
 
     private async onDidChangeConfiguration(e: ConfigurationChangeEvent) {
-        if (e.affectsConfiguration('python.dataScience.jupyterCommandLineArguments')) {
+        if (e.affectsConfiguration('jupyter.datascience.jupyterCommandLineArguments')) {
             const reload = DataScience.jupyterCommandLineReloadAnswer();
             const item = await this.appShell.showInformationMessage(
                 DataScience.jupyterCommandLineReloadQuestion(),

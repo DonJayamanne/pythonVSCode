@@ -6,18 +6,17 @@ import { Memento, Uri } from 'vscode';
 import { NotebookDocument } from '../../../../types/vscode-proposed';
 import { IVSCodeNotebook } from '../../common/application/types';
 import { ICryptoUtils } from '../../common/types';
-import { NotebookModelChange } from '../interactive-common/interactiveWindowTypes';
 import {
     createCellFromVSCNotebookCell,
+    createNBFormatCellFromVSCNotebookCell,
     getNotebookMetadata,
     updateVSCNotebookAfterTrustingNotebook
 } from '../notebook/helpers/helpers';
-import { ICell } from '../types';
 import { BaseNotebookModel } from './baseModel';
 
 // https://github.com/microsoft/vscode-python/issues/13155
 // tslint:disable-next-line: no-any
-function sortObjectPropertiesRecursively(obj: any): any {
+export function sortObjectPropertiesRecursively(obj: any): any {
     if (Array.isArray(obj)) {
         return obj.map(sortObjectPropertiesRecursively);
     }
@@ -41,18 +40,6 @@ export class VSCodeNotebookModel extends BaseNotebookModel {
     public get isDirty(): boolean {
         return this.document?.isDirty === true;
     }
-    public get cells(): ICell[] {
-        // Possible the document has been closed/disposed
-        if (this.isDisposed) {
-            return [];
-        }
-
-        // When a notebook is not trusted, return original cells.
-        // This is because the VSCode NotebookDocument object will not have any output in the cells.
-        return this.document && this.isTrusted
-            ? this.document.cells.map((cell) => createCellFromVSCNotebookCell(cell, this))
-            : this._cells;
-    }
     public get isDisposed() {
         // Possible the document has been closed/disposed
         if (
@@ -64,8 +51,6 @@ export class VSCodeNotebookModel extends BaseNotebookModel {
         }
         return this._isDisposed === true;
     }
-
-    private document?: NotebookDocument;
     public get notebookContentWithoutCells(): Partial<nbformat.INotebookContent> {
         return {
             ...this.notebookJson,
@@ -76,10 +61,11 @@ export class VSCodeNotebookModel extends BaseNotebookModel {
         return this.document ? this.document.isUntitled : super.isUntitled;
     }
 
+    private document?: NotebookDocument;
+
     constructor(
         isTrusted: boolean,
         file: Uri,
-        cells: ICell[],
         globalMemento: Memento,
         crypto: ICryptoUtils,
         json: Partial<nbformat.INotebookContent> = {},
@@ -87,7 +73,7 @@ export class VSCodeNotebookModel extends BaseNotebookModel {
         pythonNumber: number = 3,
         private readonly vscodeNotebook?: IVSCodeNotebook
     ) {
-        super(isTrusted, file, cells, globalMemento, crypto, json, indentAmount, pythonNumber);
+        super(isTrusted, file, globalMemento, crypto, json, indentAmount, pythonNumber);
     }
     /**
      * Unfortunately Notebook models are created early, well before a VSC Notebook Document is created.
@@ -99,11 +85,16 @@ export class VSCodeNotebookModel extends BaseNotebookModel {
     public trust() {
         super.trust();
         if (this.document) {
-            updateVSCNotebookAfterTrustingNotebook(this.document, this._cells);
-            // We don't need old cells.
-            this._cells = [];
+            updateVSCNotebookAfterTrustingNotebook(this.document, this.notebookJson.cells || []);
         }
     }
+    protected getICells() {
+        return this.document ? this.document.cells.map((cell) => createCellFromVSCNotebookCell(cell, this)) : [];
+    }
+    protected getJupyterCells(): nbformat.ICell[] | undefined {
+        return this.document ? this.document.cells.map(createNBFormatCellFromVSCNotebookCell) : [];
+    }
+
     protected generateNotebookJson() {
         const json = super.generateNotebookJson();
         if (this.document && this.isTrusted) {
@@ -133,10 +124,5 @@ export class VSCodeNotebookModel extends BaseNotebookModel {
         // Jupyter (Python) seems to sort them alphabetically.
         // We should do the same to minimize changes to content when saving ipynb.
         return sortObjectPropertiesRecursively(json);
-    }
-
-    protected handleRedo(change: NotebookModelChange): boolean {
-        super.handleRedo(change);
-        return true;
     }
 }

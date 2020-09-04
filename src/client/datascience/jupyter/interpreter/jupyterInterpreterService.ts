@@ -184,7 +184,7 @@ export class JupyterInterpreterService {
 
             // First see if we can get interpreter details
             const interpreter = await Promise.race([
-                this.interpreterService.getInterpreterDetails(pythonPath, undefined),
+                this.interpreterService.getInterpreterDetails(pythonPath),
                 resolveToUndefinedWhenCancelled
             ]);
             if (interpreter) {

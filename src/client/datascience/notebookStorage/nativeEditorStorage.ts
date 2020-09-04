@@ -3,28 +3,19 @@ import { inject, injectable, named } from 'inversify';
 import * as path from 'path';
 import * as uuid from 'uuid/v4';
 import { CancellationToken, Memento, Uri } from 'vscode';
-import { createCodeCell } from '../../../datascience-ui/common/cellFactory';
 import { traceError } from '../../common/logger';
 import { isFileNotFoundError } from '../../common/platform/errors';
 
 import { GLOBAL_MEMENTO, ICryptoUtils, IExtensionContext, IMemento, WORKSPACE_MEMENTO } from '../../common/types';
 import { isUntitledFile, noop } from '../../common/utils/misc';
 import { sendTelemetryEvent } from '../../telemetry';
-import { Identifiers, KnownNotebookLanguages, Telemetry } from '../constants';
+import { KnownNotebookLanguages, Telemetry } from '../constants';
 import { InvalidNotebookFileError } from '../jupyter/invalidNotebookFileError';
 import { INotebookModelFactory } from '../notebookStorage/types';
-import {
-    CellState,
-    IDataScienceFileSystem,
-    IJupyterExecution,
-    INotebookModel,
-    INotebookStorage,
-    ITrustService
-} from '../types';
+import { IDataScienceFileSystem, IJupyterExecution, INotebookModel, INotebookStorage, ITrustService } from '../types';
 
 // tslint:disable-next-line:no-require-imports no-var-requires
 import detectIndent = require('detect-indent');
-import { VSCodeNotebookModel } from './vscNotebookModel';
 
 export const KeyPrefix = 'notebook-storage-';
 const NotebookTransferKey = 'notebook-transfered';
@@ -101,35 +92,18 @@ export class NativeEditorStorage implements INotebookStorage {
         const contents = model.getContent();
         const parallelize = [this.fs.writeFile(model.file, contents)];
         if (model.isTrusted) {
-            parallelize.push(this.trustService.trustNotebook(model.file, contents));
+            parallelize.push(this.trustService.trustNotebook(model.file, model.getRawContent()));
         }
         await Promise.all(parallelize);
-        model.update({
-            source: 'user',
-            kind: 'save',
-            oldDirty: model.isDirty,
-            newDirty: false
-        });
     }
 
     public async saveAs(model: INotebookModel, file: Uri): Promise<void> {
         const contents = model.getContent();
         const parallelize = [this.fs.writeFile(file, contents)];
         if (model.isTrusted) {
-            parallelize.push(this.trustService.trustNotebook(file, contents));
+            parallelize.push(this.trustService.trustNotebook(file, model.getRawContent()));
         }
         await Promise.all(parallelize);
-        if (model instanceof VSCodeNotebookModel) {
-            return;
-        }
-        model.update({
-            source: 'user',
-            kind: 'saveAs',
-            oldDirty: model.isDirty,
-            newDirty: false,
-            target: file,
-            sourceUri: model.file
-        });
     }
     public async backup(model: INotebookModel, cancellation: CancellationToken, backupId?: string): Promise<void> {
         // If we are already backing up, save this request replacing any other previous requests
@@ -178,7 +152,7 @@ export class NativeEditorStorage implements INotebookStorage {
         // Keep track of the time when this data was saved.
         // This way when we retrieve the data we can compare it against last modified date of the file.
         const specialContents = contents ? JSON.stringify({ contents, lastModifiedTimeMs: Date.now() }) : undefined;
-        return this.writeToStorage(model.file, filePath, specialContents, cancelToken);
+        return this.writeToStorage(model, filePath, specialContents, cancelToken);
     }
 
     private async clearHotExit(file: Uri, backupId?: string): Promise<void> {
@@ -188,7 +162,7 @@ export class NativeEditorStorage implements INotebookStorage {
     }
 
     private async writeToStorage(
-        owningFile: Uri | undefined,
+        model: INotebookModel | undefined,
         filePath: string,
         contents?: string,
         cancelToken?: CancellationToken
@@ -198,8 +172,8 @@ export class NativeEditorStorage implements INotebookStorage {
                 if (contents) {
                     await this.fs.createLocalDirectory(path.dirname(filePath));
                     if (!cancelToken?.isCancellationRequested) {
-                        if (owningFile) {
-                            this.trustService.trustNotebook(owningFile, contents).ignoreErrors();
+                        if (model) {
+                            this.trustService.trustNotebook(model.file, model.getRawContent()).ignoreErrors();
                         }
                         await this.fs.writeLocalFile(filePath, contents);
                     }
@@ -299,20 +273,10 @@ export class NativeEditorStorage implements INotebookStorage {
             // May not exist at this time. Should always have a single cell though
             traceError(`Failed to load notebook file ${file.toString()}`, ex);
             return this.factory.createModel(
-                { trusted: true, file, cells: [], crypto: this.crypto, globalMemento: this.globalStorage },
+                { trusted: true, file, crypto: this.crypto, globalMemento: this.globalStorage },
                 forVSCodeNotebook
             );
         }
-    }
-
-    private createEmptyCell(id: string) {
-        return {
-            id,
-            line: 0,
-            file: Identifiers.EmptyFileName,
-            state: CellState.finished,
-            data: createCodeCell()
-        };
     }
 
     private async loadContents(
@@ -338,33 +302,12 @@ export class NativeEditorStorage implements INotebookStorage {
             this.sendLanguageTelemetry(json);
         }
 
-        // Extract cells from the json
-        const cells = json ? (json.cells as (nbformat.ICodeCell | nbformat.IRawCell | nbformat.IMarkdownCell)[]) : [];
-
-        // Remap the ids
-        const remapped = cells.map((c, index) => {
-            return {
-                id: `NotebookImport#${index}`,
-                file: Identifiers.EmptyFileName,
-                line: 0,
-                state: CellState.finished,
-                data: c
-            };
-        });
-
-        if (!forVSCodeNotebook) {
-            // Make sure at least one
-            if (remapped.length === 0) {
-                remapped.splice(0, 0, this.createEmptyCell(uuid()));
-            }
-        }
         const pythonNumber = json ? await this.extractPythonMainVersion(json) : 3;
 
         const model = this.factory.createModel(
             {
                 trusted: isUntitledFile(file) || json === undefined,
                 file,
-                cells: remapped,
                 notebookJson: json,
                 indentAmount,
                 pythonNumber,
@@ -378,14 +321,13 @@ export class NativeEditorStorage implements INotebookStorage {
         // If no contents or untitled, this is a newly created file
         // If dirty, that means it's been edited before in our extension
         if (contents !== undefined && !isUntitledFile(file) && !isInitiallyDirty && !model.isTrusted) {
-            const isNotebookTrusted = await this.trustService.isNotebookTrusted(file, model.getContent());
+            const isNotebookTrusted = await this.trustService.isNotebookTrusted(file, model.getRawContent());
             if (isNotebookTrusted) {
                 model.trust();
             }
         } else {
             model.trust();
         }
-
         return model;
     }
 

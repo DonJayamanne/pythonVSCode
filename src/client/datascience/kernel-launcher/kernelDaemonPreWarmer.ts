@@ -4,12 +4,10 @@
 'use strict';
 
 import { inject, injectable } from 'inversify';
-import { IExtensionActivationService } from '../../activation/types';
 import '../../common/extensions';
-import { IConfigurationService, IDisposableRegistry, Resource } from '../../common/types';
+import { IConfigurationService, IDisposableRegistry } from '../../common/types';
 import { swallowExceptions } from '../../common/utils/decorators';
 import {
-    IInteractiveWindowProvider,
     INotebookAndInteractiveWindowUsageTracker,
     INotebookEditorProvider,
     IRawNotebookSupportedService
@@ -17,10 +15,9 @@ import {
 import { KernelDaemonPool } from './kernelDaemonPool';
 
 @injectable()
-export class KernelDaemonPreWarmer implements IExtensionActivationService {
+export class KernelDaemonPreWarmer {
     constructor(
         @inject(INotebookEditorProvider) private readonly notebookEditorProvider: INotebookEditorProvider,
-        @inject(IInteractiveWindowProvider) private interactiveProvider: IInteractiveWindowProvider,
         @inject(IDisposableRegistry) private readonly disposables: IDisposableRegistry,
         @inject(INotebookAndInteractiveWindowUsageTracker)
         private readonly usageTracker: INotebookAndInteractiveWindowUsageTracker,
@@ -28,7 +25,7 @@ export class KernelDaemonPreWarmer implements IExtensionActivationService {
         @inject(IRawNotebookSupportedService) private readonly rawNotebookSupported: IRawNotebookSupportedService,
         @inject(IConfigurationService) private readonly configService: IConfigurationService
     ) {}
-    public async activate(_resource: Resource): Promise<void> {
+    public async activate(): Promise<void> {
         // Check to see if raw notebooks are supported
         // If not, don't bother with prewarming
         // Also respect the disable autostart setting to not do any prewarming for the user
@@ -40,10 +37,7 @@ export class KernelDaemonPreWarmer implements IExtensionActivationService {
         }
 
         this.disposables.push(this.notebookEditorProvider.onDidOpenNotebookEditor(this.preWarmKernelDaemonPool, this));
-        this.disposables.push(
-            this.interactiveProvider.onDidChangeActiveInteractiveWindow(this.preWarmKernelDaemonPool, this)
-        );
-        if (this.notebookEditorProvider.editors.length > 0 || this.interactiveProvider.windows.length > 0) {
+        if (this.notebookEditorProvider.editors.length > 0) {
             await this.preWarmKernelDaemonPool();
         }
         await this.preWarmDaemonPoolIfNecesary();

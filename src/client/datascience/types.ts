@@ -10,7 +10,6 @@ import { Observable } from 'rxjs/Observable';
 import {
     CancellationToken,
     CodeLens,
-    CodeLensProvider,
     DebugConfiguration,
     DebugSession,
     Disposable,
@@ -32,7 +31,6 @@ import { IAsyncDisposable, IDataScienceSettings, IDisposable, InteractiveWindowM
 import { StopWatch } from '../common/utils/stopWatch';
 import { PythonEnvironment } from '../pythonEnvironments/info';
 import { JupyterCommands } from './constants';
-import { IDataViewerDataProvider } from './data-viewing/types';
 import { NotebookModelChange } from './interactive-common/interactiveWindowTypes';
 import { JupyterServerInfo } from './jupyter/jupyterConnection';
 import { JupyterInstallError } from './jupyter/jupyterInstallError';
@@ -632,12 +630,6 @@ export interface IPostOffice {
     listen(message: string, listener: (args: any[] | undefined) => void): void;
 }
 
-// Wraps the vscode CodeLensProvider base class
-export const IDataScienceCodeLensProvider = Symbol('IDataScienceCodeLensProvider');
-export interface IDataScienceCodeLensProvider extends CodeLensProvider {
-    getCodeWatcher(document: TextDocument): ICodeWatcher | undefined;
-}
-
 // Wraps the Code Watcher API
 export const ICodeWatcher = Symbol('ICodeWatcher');
 export interface ICodeWatcher {
@@ -833,88 +825,6 @@ export interface IDataScienceExtraSettings extends IDataScienceSettings {
     gatherIsInstalled: boolean;
 }
 
-// Get variables from the currently running active Jupyter server
-// Note: This definition is used implicitly by getJupyterVariableValue.py file
-// Changes here may need to be reflected there as well
-export interface IJupyterVariable {
-    name: string;
-    value: string | undefined;
-    executionCount?: number;
-    supportsDataExplorer: boolean;
-    type: string;
-    size: number;
-    shape: string;
-    count: number;
-    truncated: boolean;
-    columns?: { key: string; type: string }[];
-    rowCount?: number;
-    indexColumn?: string;
-}
-
-export const IJupyterVariableDataProvider = Symbol('IJupyterVariableDataProvider');
-export interface IJupyterVariableDataProvider extends IDataViewerDataProvider {
-    setDependencies(variable: IJupyterVariable, notebook: INotebook): void;
-}
-
-export const IJupyterVariableDataProviderFactory = Symbol('IJupyterVariableDataProviderFactory');
-export interface IJupyterVariableDataProviderFactory {
-    create(variable: IJupyterVariable, notebook: INotebook): Promise<IJupyterVariableDataProvider>;
-}
-
-export const IJupyterVariables = Symbol('IJupyterVariables');
-export interface IJupyterVariables {
-    readonly refreshRequired: Event<void>;
-    getVariables(notebook: INotebook, request: IJupyterVariablesRequest): Promise<IJupyterVariablesResponse>;
-    getDataFrameInfo(targetVariable: IJupyterVariable, notebook: INotebook): Promise<IJupyterVariable>;
-    getDataFrameRows(
-        targetVariable: IJupyterVariable,
-        notebook: INotebook,
-        start: number,
-        end: number
-    ): Promise<JSONObject>;
-    getMatchingVariable(
-        notebook: INotebook,
-        name: string,
-        cancelToken?: CancellationToken
-    ): Promise<IJupyterVariable | undefined>;
-}
-
-export interface IConditionalJupyterVariables extends IJupyterVariables {
-    readonly active: boolean;
-}
-
-// Request for variables
-export interface IJupyterVariablesRequest {
-    executionCount: number;
-    refreshCount: number;
-    sortColumn: string;
-    sortAscending: boolean;
-    startIndex: number;
-    pageSize: number;
-}
-
-// Response to a request
-export interface IJupyterVariablesResponse {
-    executionCount: number;
-    totalCount: number;
-    pageStartIndex: number;
-    pageResponse: IJupyterVariable[];
-    refreshCount: number;
-}
-
-export const IPlotViewerProvider = Symbol('IPlotViewerProvider');
-export interface IPlotViewerProvider {
-    showPlot(imageHtml: string): Promise<void>;
-}
-export const IPlotViewer = Symbol('IPlotViewer');
-
-export interface IPlotViewer extends IDisposable {
-    closed: Event<IPlotViewer>;
-    removed: Event<number>;
-    addPlot(imageHtml: string): Promise<void>;
-    show(): Promise<void>;
-}
-
 export interface ISourceMapMapping {
     line: number;
     endLine: number;
@@ -1084,8 +994,8 @@ export interface INotebookModel {
     readonly isDisposed: boolean;
     readonly metadata: INotebookMetadataLive | undefined;
     readonly isTrusted: boolean;
+    getRawContent(): nbformat.INotebookContent;
     getContent(): string;
-    update(change: NotebookModelChange): void;
     /**
      * Dispose of the Notebook model.
      *
@@ -1362,8 +1272,8 @@ export interface IDigestStorage {
 export const ITrustService = Symbol('ITrustService');
 export interface ITrustService {
     readonly onDidSetNotebookTrust: Event<void>;
-    isNotebookTrusted(uri: Uri, notebookContents: string): Promise<boolean>;
-    trustNotebook(uri: Uri, notebookContents: string): Promise<void>;
+    isNotebookTrusted(uri: Uri, notebookContents: nbformat.INotebookContent): Promise<boolean>;
+    trustNotebook(uri: Uri, notebookContents: nbformat.INotebookContent): Promise<void>;
 }
 
 export const IDataScienceFileSystem = Symbol('IDataScienceFileSystem');

@@ -4,6 +4,7 @@
 import { SpawnOptions } from 'child_process';
 import { inject, injectable } from 'inversify';
 import * as path from 'path';
+import { IEnvironmentActivationService } from '../../../api/types';
 import { traceError } from '../../../common/logger';
 import {
     ExecutionResult,
@@ -15,7 +16,6 @@ import {
     ObservableExecutionResult
 } from '../../../common/process/types';
 import { EXTENSION_ROOT_DIR } from '../../../constants';
-import { IEnvironmentActivationService } from '../../../interpreter/activation/types';
 import { IInterpreterService } from '../../../interpreter/contracts';
 import { PythonEnvironment } from '../../../pythonEnvironments/info';
 import { JupyterCommands, JupyterDaemonModule } from '../../constants';

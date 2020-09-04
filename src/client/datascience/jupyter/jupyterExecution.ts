@@ -13,7 +13,6 @@ import { IConfigurationService, IDisposableRegistry, IOutputChannel } from '../.
 import * as localize from '../../common/utils/localize';
 import { noop } from '../../common/utils/misc';
 import { StopWatch } from '../../common/utils/stopWatch';
-import { IInterpreterService } from '../../interpreter/contracts';
 import { IServiceContainer } from '../../ioc/types';
 import { PythonEnvironment } from '../../pythonEnvironments/info';
 import { captureTelemetry, sendTelemetryEvent } from '../../telemetry';
@@ -54,7 +53,6 @@ export class JupyterExecutionBase implements IJupyterExecution {
 
     constructor(
         _liveShare: ILiveShareApi,
-        private readonly interpreterService: IInterpreterService,
         private readonly disposableRegistry: IDisposableRegistry,
         private readonly workspace: IWorkspaceService,
         private readonly configuration: IConfigurationService,
@@ -70,16 +68,15 @@ export class JupyterExecutionBase implements IJupyterExecution {
         this.jupyterPickerRegistration = serviceContainer.get<IJupyterUriProviderRegistration>(
             IJupyterUriProviderRegistration
         );
-        this.disposableRegistry.push(this.interpreterService.onDidChangeInterpreter(() => this.onSettingsChanged()));
         this.disposableRegistry.push(this);
 
         if (workspace) {
             const disposable = workspace.onDidChangeConfiguration((e) => {
-                if (e.affectsConfiguration('python.dataScience', undefined)) {
+                if (e.affectsConfiguration('jupyter.dataScience', undefined)) {
                     // When config changes happen, recreate our commands.
                     this.onSettingsChanged();
                 }
-                if (e.affectsConfiguration('python.dataScience.jupyterServerURI', undefined)) {
+                if (e.affectsConfiguration('jupyter.datascience.jupyterServerURI', undefined)) {
                     // When server URI changes, clear our pending URI timeouts
                     this.clearTimeouts();
                 }

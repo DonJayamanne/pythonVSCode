@@ -35,14 +35,14 @@ export function buildPythonExecInfo(python: string | string[], pythonArgs?: stri
             python: [...python],
             // It isn't necessarily the last item but our supported
             // cases it currently is.
-            pythonExecutable: python[python.length - 1],
+            pythonExecutable: python[python.length - 1]
         };
     }
     return {
         command: python,
         args: pythonArgs || [],
         python: [python],
-        pythonExecutable: python,
+        pythonExecutable: python
     };
 }
 

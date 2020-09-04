@@ -3,18 +3,17 @@
 'use strict';
 import type { JSONObject } from '@phosphor/coreutils';
 import { inject, injectable } from 'inversify';
-import * as vscode from 'vscode';
 import { ICommandManager, IDocumentManager, IWorkspaceService } from '../common/application/types';
-import { PYTHON_ALLFILES, PYTHON_LANGUAGE } from '../common/constants';
+import { PYTHON_LANGUAGE } from '../common/constants';
 import { ContextKey } from '../common/contextKey';
 import '../common/extensions';
-import { IConfigurationService, IDisposable, IDisposableRegistry, IExtensionContext } from '../common/types';
+import { IConfigurationService, IDisposable, IDisposableRegistry } from '../common/types';
 import { debounceAsync, swallowExceptions } from '../common/utils/decorators';
 import { sendTelemetryEvent } from '../telemetry';
 import { hasCells } from './cellFactory';
 import { CommandRegistry } from './commands/commandRegistry';
 import { EditorContexts, Telemetry } from './constants';
-import { IDataScience, IDataScienceCodeLensProvider } from './types';
+import { IDataScience } from './types';
 
 @injectable()
 export class DataScience implements IDataScience {
@@ -24,8 +23,6 @@ export class DataScience implements IDataScience {
     constructor(
         @inject(ICommandManager) private commandManager: ICommandManager,
         @inject(IDisposableRegistry) private disposableRegistry: IDisposableRegistry,
-        @inject(IExtensionContext) private extensionContext: IExtensionContext,
-        @inject(IDataScienceCodeLensProvider) private dataScienceCodeLensProvider: IDataScienceCodeLensProvider,
         @inject(IConfigurationService) private configuration: IConfigurationService,
         @inject(IDocumentManager) private documentManager: IDocumentManager,
         @inject(IWorkspaceService) private workspace: IWorkspaceService,
@@ -41,9 +38,9 @@ export class DataScience implements IDataScience {
     public async activate(): Promise<void> {
         this.commandRegistry.register();
 
-        this.extensionContext.subscriptions.push(
-            vscode.languages.registerCodeLensProvider(PYTHON_ALLFILES, this.dataScienceCodeLensProvider)
-        );
+        // this.extensionContext.subscriptions.push(
+        //     vscode.languages.registerCodeLensProvider(PYTHON_ALLFILES, this.dataScienceCodeLensProvider)
+        // );
 
         // Set our initial settings and sign up for changes
         this.onSettingsChanged();

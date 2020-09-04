@@ -5,10 +5,8 @@
 
 import { inject, injectable } from 'inversify';
 import { QuickPickItem, QuickPickOptions, Uri } from 'vscode';
-import { getLocString } from '../../../datascience-ui/react-common/locReactSide';
 import { ICommandNameArgumentTypeMapping } from '../../common/application/commands';
 import { IApplicationShell, ICommandManager } from '../../common/application/types';
-
 import { IDisposable } from '../../common/types';
 import { DataScience } from '../../common/utils/localize';
 import { isUri } from '../../common/utils/misc';
@@ -143,7 +141,7 @@ export class ExportCommands implements IDisposable {
             ignoreFocusOut: false,
             matchOnDescription: true,
             matchOnDetail: true,
-            placeHolder: getLocString('DataScience.exportAsQuickPickPlaceholder', 'Export As...')
+            placeHolder: DataScience.exportAsQuickPickPlaceholder()
         };
 
         return this.applicationShell.showQuickPick(items, options);

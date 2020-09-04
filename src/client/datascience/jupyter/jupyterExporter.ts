@@ -59,7 +59,7 @@ export class JupyterExporter implements INotebookExporter {
         try {
             // tslint:disable-next-line: no-any
             const contents = JSON.stringify(notebook);
-            await this.trustService.trustNotebook(Uri.file(file), contents);
+            await this.trustService.trustNotebook(Uri.file(file), notebook!);
             await this.fileSystem.writeFile(Uri.file(file), contents);
             if (!showOpenPrompt) {
                 return;
@@ -264,6 +264,7 @@ export class JupyterExporter implements INotebookExporter {
     private extractPythonMainVersion = async (): Promise<number> => {
         // Use the active interpreter
         const usableInterpreter = await this.jupyterExecution.getUsableJupyterPython();
+
         return usableInterpreter && usableInterpreter.version ? usableInterpreter.version.major : 3;
     };
 }

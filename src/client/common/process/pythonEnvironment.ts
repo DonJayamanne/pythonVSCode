@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { CondaEnvironmentInfo } from '../../pythonEnvironments/discovery/locators/services/conda';
 import { buildPythonExecInfo, PythonExecInfo } from '../../pythonEnvironments/exec';
 import { InterpreterInformation } from '../../pythonEnvironments/info';
 import { getExecutablePath } from '../../pythonEnvironments/info/executable';
@@ -100,59 +99,6 @@ export function createPythonEnv(
 ): PythonEnvironment {
     const deps = createDeps(
         async (filename) => fs.fileExists(filename),
-        // We use the default: [pythonPath].
-        undefined,
-        undefined,
-        (file, args, opts) => procs.exec(file, args, opts),
-        (command, opts) => procs.shellExec(command, opts)
-    );
-    return new PythonEnvironment(pythonPath, deps);
-}
-
-export function createCondaEnv(
-    condaFile: string,
-    condaInfo: CondaEnvironmentInfo,
-    pythonPath: string,
-    // These are used to generate the deps.
-    procs: IProcessService,
-    fs: IFileSystem
-): PythonEnvironment {
-    const runArgs = ['run'];
-    if (condaInfo.name === '') {
-        runArgs.push('-p', condaInfo.path);
-    } else {
-        runArgs.push('-n', condaInfo.name);
-    }
-    const pythonArgv = [condaFile, ...runArgs, 'python'];
-    const deps = createDeps(
-        async (filename) => fs.fileExists(filename),
-        pythonArgv,
-        // tslint:disable-next-line:no-suspicious-comment
-        // TODO: Use pythonArgv here once 'conda run' can be
-        // run without buffering output.
-        // See https://github.com/microsoft/vscode-python/issues/8473.
-        undefined,
-        (file, args, opts) => procs.exec(file, args, opts),
-        (command, opts) => procs.shellExec(command, opts)
-    );
-    return new PythonEnvironment(pythonPath, deps);
-}
-
-export function createWindowsStoreEnv(
-    pythonPath: string,
-    // These are used to generate the deps.
-    procs: IProcessService
-): PythonEnvironment {
-    const deps = createDeps(
-        /**
-         * With windows store python apps, we have generally use the
-         * symlinked python executable.  The actual file is not accessible
-         * by the user due to permission issues (& rest of exension fails
-         * when using that executable).  Hence lets not resolve the
-         * executable using sys.executable for windows store python
-         * interpreters.
-         */
-        async (_f: string) => true,
         // We use the default: [pythonPath].
         undefined,
         undefined,

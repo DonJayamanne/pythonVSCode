@@ -13,7 +13,6 @@ import {
     IDisposableRegistry,
     IOutputChannel
 } from '../../common/types';
-import { IInterpreterService } from '../../interpreter/contracts';
 import { IServiceContainer } from '../../ioc/types';
 import { PythonEnvironment } from '../../pythonEnvironments/info';
 import { JUPYTER_OUTPUT_CHANNEL } from '../constants';
@@ -30,7 +29,6 @@ interface IJupyterExecutionInterface extends IRoleBasedObject, IJupyterExecution
 type JupyterExecutionClassType = {
     new (
         liveShare: ILiveShareApi,
-        interpreterService: IInterpreterService,
         disposableRegistry: IDisposableRegistry,
         asyncRegistry: IAsyncDisposableRegistry,
         fileSystem: IDataScienceFileSystem,
@@ -55,7 +53,6 @@ export class JupyterExecutionFactory implements IJupyterExecution, IAsyncDisposa
 
     constructor(
         @inject(ILiveShareApi) liveShare: ILiveShareApi,
-        @inject(IInterpreterService) interpreterService: IInterpreterService,
         @inject(IDisposableRegistry) disposableRegistry: IDisposableRegistry,
         @inject(IAsyncDisposableRegistry) asyncRegistry: IAsyncDisposableRegistry,
         @inject(IDataScienceFileSystem) fs: IDataScienceFileSystem,
@@ -73,7 +70,6 @@ export class JupyterExecutionFactory implements IJupyterExecution, IAsyncDisposa
             HostJupyterExecution,
             GuestJupyterExecution,
             liveShare,
-            interpreterService,
             disposableRegistry,
             asyncRegistry,
             fs,

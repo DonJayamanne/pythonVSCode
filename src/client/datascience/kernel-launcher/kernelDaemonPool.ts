@@ -14,7 +14,7 @@ import { IEnvironmentVariablesProvider } from '../../common/variables/types';
 import { IInterpreterService } from '../../interpreter/contracts';
 import { PythonEnvironment } from '../../pythonEnvironments/info';
 import { KernelLauncherDaemonModule } from '../constants';
-import { IDataScienceFileSystem, IJupyterKernelSpec, IKernelDependencyService } from '../types';
+import { IJupyterKernelSpec, IKernelDependencyService } from '../types';
 import { PythonKernelDaemon } from './kernelDaemon';
 import { IPythonKernelDaemon } from './types';
 
@@ -39,7 +39,6 @@ export class KernelDaemonPool implements IDisposable {
     constructor(
         @inject(IWorkspaceService) private readonly workspaceService: IWorkspaceService,
         @inject(IEnvironmentVariablesProvider) private readonly envVars: IEnvironmentVariablesProvider,
-        @inject(IDataScienceFileSystem) private readonly fs: IDataScienceFileSystem,
         @inject(IInterpreterService) private readonly interrpeterService: IInterpreterService,
         @inject(IPythonExecutionFactory) private readonly pythonExecutionFactory: IPythonExecutionFactory,
         @inject(IKernelDependencyService) private readonly kernelDependencyService: IKernelDependencyService
@@ -50,7 +49,6 @@ export class KernelDaemonPool implements IDisposable {
         }
         this.initialized = true;
         this.envVars.onDidEnvironmentVariablesChange(this.onDidEnvironmentVariablesChange.bind(this));
-        this.interrpeterService.onDidChangeInterpreter(this.onDidChangeInterpreter.bind(this));
         const promises: Promise<void>[] = [];
         if (this.workspaceService.hasWorkspaceFolders) {
             promises.push(
@@ -160,50 +158,6 @@ export class KernelDaemonPool implements IDisposable {
             key,
             workspaceFolderIdentifier,
             workspaceResource: resource
-        });
-    }
-    private async onDidChangeInterpreter() {
-        // Get a list of all unique workspaces
-        const uniqueResourcesWithKernels = new Map<string, IKernelDaemonInfo>();
-        this.daemonPool.forEach((item) => {
-            uniqueResourcesWithKernels.set(item.workspaceFolderIdentifier, item);
-        });
-
-        // Key = workspace identifier, and value is interpreter path.
-        const currentInterpreterInEachWorksapce = new Map<string, string>();
-        // Get interpreters for each workspace.
-        await Promise.all(
-            Array.from(uniqueResourcesWithKernels.entries()).map(async (item) => {
-                const resource = item[1].workspaceResource;
-                try {
-                    const interpreter = await this.interrpeterService.getActiveInterpreter(resource);
-                    if (!interpreter) {
-                        return;
-                    }
-                    currentInterpreterInEachWorksapce.set(item[1].key, interpreter.path);
-                } catch (ex) {
-                    traceError(`Failed to get interpreter information for workspace ${resource?.fsPath}`);
-                }
-            })
-        );
-
-        // Go through all interpreters for each workspace.
-        // If we have a daemon with an interpreter thats not the same as the current interpreter for that workspace
-        // then kill that daemon, as its no longer valid.
-        this.daemonPool = this.daemonPool.filter((item) => {
-            const interpreterForWorkspace = currentInterpreterInEachWorksapce.get(item.key);
-            if (!interpreterForWorkspace || !this.fs.areLocalPathsSame(interpreterForWorkspace, item.interpreterPath)) {
-                item.daemon
-                    .then((d) => {
-                        if ('dispose' in d) {
-                            d.dispose();
-                        }
-                    })
-                    .catch(noop);
-                return false;
-            }
-
-            return true;
         });
     }
 }

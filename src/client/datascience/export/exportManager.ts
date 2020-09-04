@@ -1,7 +1,6 @@
 import { inject, injectable, named } from 'inversify';
-import { CancellationToken } from 'monaco-editor';
 import * as path from 'path';
-import { Uri } from 'vscode';
+import { CancellationToken, Uri } from 'vscode';
 import { IApplicationShell } from '../../common/application/types';
 import { traceError } from '../../common/logger';
 import { TemporaryDirectory } from '../../common/platform/types';
@@ -105,12 +104,6 @@ export class ExportManager implements IExportManager {
     }
 
     private async exportToFormat(source: Uri, target: Uri, format: ExportFormat, cancelToken: CancellationToken) {
-        if (format === ExportFormat.pdf) {
-            // When exporting to PDF we need to remove any SVG output. This is due to an error
-            // with nbconvert and a dependency of its called InkScape.
-            await this.exportUtil.removeSvgs(source);
-        }
-
         switch (format) {
             case ExportFormat.python:
                 await this.exportToPython.export(source, target, cancelToken);

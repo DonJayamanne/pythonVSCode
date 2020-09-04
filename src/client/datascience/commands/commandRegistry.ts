@@ -6,22 +6,13 @@
 import { inject, injectable, multiInject, named, optional } from 'inversify';
 import { CodeLens, ConfigurationTarget, env, Range, Uri } from 'vscode';
 import { ICommandNameArgumentTypeMapping } from '../../common/application/commands';
-import { IApplicationShell, ICommandManager, IDebugService, IDocumentManager } from '../../common/application/types';
-import { Commands as coreCommands } from '../../common/constants';
-
-import { IStartPage } from '../../common/startPage/types';
+import { IApplicationShell, ICommandManager, IDocumentManager } from '../../common/application/types';
 import { IConfigurationService, IDisposable, IOutputChannel } from '../../common/types';
 import { DataScience } from '../../common/utils/localize';
 import { noop } from '../../common/utils/misc';
 import { captureTelemetry, sendTelemetryEvent } from '../../telemetry';
 import { Commands, JUPYTER_OUTPUT_CHANNEL, Telemetry } from '../constants';
-import {
-    ICodeWatcher,
-    IDataScienceCodeLensProvider,
-    IDataScienceCommandListener,
-    IDataScienceFileSystem,
-    INotebookEditorProvider
-} from '../types';
+import { ICodeWatcher, IDataScienceCommandListener, INotebookEditorProvider } from '../types';
 import { JupyterCommandLineSelectorCommand } from './commandLineSelector';
 import { ExportCommands } from './exportCommands';
 import { NotebookCommands } from './notebookCommands';
@@ -32,7 +23,6 @@ export class CommandRegistry implements IDisposable {
     private readonly disposables: IDisposable[] = [];
     constructor(
         @inject(IDocumentManager) private documentManager: IDocumentManager,
-        @inject(IDataScienceCodeLensProvider) private dataScienceCodeLensProvider: IDataScienceCodeLensProvider,
         @multiInject(IDataScienceCommandListener)
         @optional()
         private commandListeners: IDataScienceCommandListener[] | undefined,
@@ -42,13 +32,10 @@ export class CommandRegistry implements IDisposable {
         @inject(JupyterCommandLineSelectorCommand)
         private readonly commandLineCommand: JupyterCommandLineSelectorCommand,
         @inject(INotebookEditorProvider) private notebookEditorProvider: INotebookEditorProvider,
-        @inject(IDebugService) private debugService: IDebugService,
         @inject(IConfigurationService) private configService: IConfigurationService,
         @inject(IApplicationShell) private appShell: IApplicationShell,
         @inject(IOutputChannel) @named(JUPYTER_OUTPUT_CHANNEL) private jupyterOutput: IOutputChannel,
-        @inject(IStartPage) private startPage: IStartPage,
-        @inject(ExportCommands) private readonly exportCommand: ExportCommands,
-        @inject(IDataScienceFileSystem) private readonly fs: IDataScienceFileSystem
+        @inject(ExportCommands) private readonly exportCommand: ExportCommands // @inject(IDataScienceFileSystem) private readonly fs: IDataScienceFileSystem
     ) {
         this.disposables.push(this.serverSelectedCommand);
         this.disposables.push(this.notebookCommands);
@@ -88,9 +75,6 @@ export class CommandRegistry implements IDisposable {
         this.registerCommand(Commands.AddCellBelow, this.addCellBelow);
         this.registerCommand(Commands.RunCurrentCellAndAddBelow, this.runCurrentCellAndAddBelow);
         this.registerCommand(Commands.DebugCell, this.debugCell);
-        this.registerCommand(Commands.DebugStepOver, this.debugStepOver);
-        this.registerCommand(Commands.DebugContinue, this.debugContinue);
-        this.registerCommand(Commands.DebugStop, this.debugStop);
         this.registerCommand(Commands.DebugCurrentCellPalette, this.debugCurrentCellFromCursor);
         this.registerCommand(Commands.CreateNewNotebook, this.createNewNotebook);
         this.registerCommand(Commands.ViewJupyterOutput, this.viewJupyterOutput);
@@ -100,7 +84,6 @@ export class CommandRegistry implements IDisposable {
             Commands.EnableLoadingWidgetsFrom3rdPartySource,
             this.enableLoadingWidgetScriptsFromThirdParty
         );
-        this.registerCommand(coreCommands.OpenStartPage, this.openStartPage);
         if (this.commandListeners) {
             this.commandListeners.forEach((listener: IDataScienceCommandListener) => {
                 listener.register(this.commandManager);
@@ -119,17 +102,17 @@ export class CommandRegistry implements IDisposable {
         this.disposables.push(disposable);
     }
 
-    private getCodeWatcher(file: Uri | undefined): ICodeWatcher | undefined {
-        if (file) {
-            const possibleDocuments = this.documentManager.textDocuments.filter((d) =>
-                this.fs.arePathsSame(d.uri, file)
-            );
-            if (possibleDocuments && possibleDocuments.length === 1) {
-                return this.dataScienceCodeLensProvider.getCodeWatcher(possibleDocuments[0]);
-            } else if (possibleDocuments && possibleDocuments.length > 1) {
-                throw new Error(DataScience.documentMismatch().format(file.fsPath));
-            }
-        }
+    private getCodeWatcher(_file: Uri | undefined): ICodeWatcher | undefined {
+        // if (file) {
+        //     const possibleDocuments = this.documentManager.textDocuments.filter((d) =>
+        //         this.fs.arePathsSame(d.uri, file)
+        //     );
+        //     if (possibleDocuments && possibleDocuments.length === 1) {
+        //         return this.dataScienceCodeLensProvider.getCodeWatcher(possibleDocuments[0]);
+        //     } else if (possibleDocuments && possibleDocuments.length > 1) {
+        //         throw new Error(DataScience.documentMismatch().format(file.fsPath));
+        //     }
+        // }
 
         return undefined;
     }
@@ -287,30 +270,6 @@ export class CommandRegistry implements IDisposable {
         }
     }
 
-    @captureTelemetry(Telemetry.DebugStepOver)
-    private async debugStepOver(): Promise<void> {
-        // Make sure that we are in debug mode
-        if (this.debugService.activeDebugSession) {
-            this.commandManager.executeCommand('workbench.action.debug.stepOver');
-        }
-    }
-
-    @captureTelemetry(Telemetry.DebugStop)
-    private async debugStop(): Promise<void> {
-        // Make sure that we are in debug mode
-        if (this.debugService.activeDebugSession) {
-            this.commandManager.executeCommand('workbench.action.debug.stop');
-        }
-    }
-
-    @captureTelemetry(Telemetry.DebugContinue)
-    private async debugContinue(): Promise<void> {
-        // Make sure that we are in debug mode
-        if (this.debugService.activeDebugSession) {
-            this.commandManager.executeCommand('workbench.action.debug.continue');
-        }
-    }
-
     @captureTelemetry(Telemetry.AddCellBelow)
     private async addCellBelow(): Promise<void> {
         await this.getCurrentCodeWatcher()?.addEmptyCellToBottom();
@@ -422,11 +381,6 @@ export class CommandRegistry implements IDisposable {
         await this.notebookEditorProvider.createNew();
     }
 
-    private async openStartPage(): Promise<void> {
-        sendTelemetryEvent(Telemetry.StartPageOpenedFromCommandPalette);
-        return this.startPage.open();
-    }
-
     private viewJupyterOutput() {
         this.jupyterOutput.show(true);
     }
@@ -455,7 +409,7 @@ export class CommandRegistry implements IDisposable {
         }
 
         // Ask our code lens provider to find the matching code watcher for the current document
-        return this.dataScienceCodeLensProvider.getCodeWatcher(activeEditor.document);
+        // return this.dataScienceCodeLensProvider.getCodeWatcher(activeEditor.document);
     }
 
     private reportGatherQuality(val: string) {
@@ -464,6 +418,6 @@ export class CommandRegistry implements IDisposable {
     }
 
     private openPythonExtensionPage() {
-        env.openExternal(Uri.parse(`https://marketplace.visualstudio.com/items?itemName=ms-python.python`));
+        env.openExternal(Uri.parse(`https://marketplace.visualstudio.com/items?itemName=ms-python.jupyter`));
     }
 }

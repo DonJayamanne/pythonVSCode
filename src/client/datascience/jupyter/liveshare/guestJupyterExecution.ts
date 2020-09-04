@@ -14,7 +14,6 @@ import {
     IOutputChannel
 } from '../../../common/types';
 import * as localize from '../../../common/utils/localize';
-import { IInterpreterService } from '../../../interpreter/contracts';
 import { IServiceContainer } from '../../../ioc/types';
 import { PythonEnvironment } from '../../../pythonEnvironments/info';
 import { LiveShare, LiveShareCommands } from '../../constants';
@@ -36,7 +35,6 @@ export class GuestJupyterExecution extends LiveShareParticipantGuest(
 
     constructor(
         liveShare: ILiveShareApi,
-        interpreterService: IInterpreterService,
         disposableRegistry: IDisposableRegistry,
         asyncRegistry: IAsyncDisposableRegistry,
         fs: IDataScienceFileSystem,
@@ -50,7 +48,6 @@ export class GuestJupyterExecution extends LiveShareParticipantGuest(
     ) {
         super(
             liveShare,
-            interpreterService,
             disposableRegistry,
             workspace,
             configuration,

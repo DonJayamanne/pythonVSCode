@@ -838,8 +838,6 @@ export interface ITerminalManager {
     createTerminal(options: TerminalOptions): Terminal;
 }
 
-export const IDebugService = Symbol('IDebugManager');
-
 export interface IDebugService {
     /**
      * The currently active [debug session](#DebugSession) or `undefined`. The active debug session is the one

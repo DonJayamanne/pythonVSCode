@@ -63,8 +63,7 @@ export class TrustCommandHandler implements IExtensionSingleActivationService {
             case DataScience.trustNotebook():
                 // Update model trust
                 model.trust();
-                const contents = model.getContent();
-                await this.trustService.trustNotebook(model.file, contents);
+                await this.trustService.trustNotebook(model.file, model.getRawContent());
                 sendTelemetryEvent(Telemetry.TrustNotebook);
                 break;
             case DataScience.doNotTrustNotebook():

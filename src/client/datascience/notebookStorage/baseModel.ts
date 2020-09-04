@@ -6,7 +6,6 @@ import { sha256 } from 'hash.js';
 import { Event, EventEmitter, Memento, Uri } from 'vscode';
 import { ICryptoUtils } from '../../common/types';
 import { isUntitledFile } from '../../common/utils/misc';
-import { pruneCell } from '../common';
 import { NotebookModelChange } from '../interactive-common/interactiveWindowTypes';
 import {
     getInterpreterFromKernelConnectionMetadata,
@@ -143,9 +142,6 @@ export abstract class BaseNotebookModel implements INotebookModel {
     public get isUntitled(): boolean {
         return isUntitledFile(this.file);
     }
-    public get cells(): ICell[] {
-        return this._cells;
-    }
     public get onDidEdit(): Event<NotebookModelChange> {
         return this._editEventEmitter.event;
     }
@@ -171,7 +167,6 @@ export abstract class BaseNotebookModel implements INotebookModel {
     constructor(
         protected _isTrusted: boolean,
         protected _file: Uri,
-        protected _cells: ICell[],
         protected globalMemento: Memento,
         private crypto: ICryptoUtils,
         protected notebookJson: Partial<nbformat.INotebookContent> = {},
@@ -181,92 +176,49 @@ export abstract class BaseNotebookModel implements INotebookModel {
         this.ensureNotebookJson();
         this.kernelId = this.getStoredKernelId();
     }
+    public get cells(): readonly Readonly<ICell>[] {
+        // Possible the document has been closed/disposed
+        if (this.isDisposed) {
+            return [];
+        }
+        return this.getICells();
+    }
     public dispose() {
         this._isDisposed = true;
         this._disposed.fire();
     }
-    public update(change: NotebookModelChange): void {
-        this.handleModelChange(change);
-    }
-
     public getContent(): string {
-        return this.generateNotebookContent();
+        const json = this.generateNotebookJson();
+        return JSON.stringify(json, null, this.indentAmount);
+    }
+    public getRawContent(): nbformat.INotebookContent {
+        return this.generateNotebookJson();
     }
     public trust() {
         this._isTrusted = true;
     }
-    protected handleUndo(_change: NotebookModelChange): boolean {
-        return false;
-    }
-    protected handleRedo(change: NotebookModelChange): boolean {
-        let changed = false;
-        switch (change.kind) {
-            case 'version':
-                changed = this.updateVersionInfo(change.kernelConnection);
-                break;
-            default:
-                break;
-        }
-
-        return changed;
-    }
-    protected generateNotebookJson() {
+    protected generateNotebookJson(): nbformat.INotebookContent {
         // Make sure we have some
         this.ensureNotebookJson();
 
         // Reuse our original json except for the cells.
         const json = { ...this.notebookJson };
-        json.cells = this.cells.map((c) => pruneCell(c.data));
-        return json;
+        json.cells = this.getJupyterCells(); //     this.cells.map((c) => pruneCell(c.data));
+        // tslint:disable-next-line: no-any
+        return json as any;
     }
-
-    private handleModelChange(change: NotebookModelChange) {
-        const oldDirty = this.isDirty;
-        let changed = false;
-
-        switch (change.source) {
-            case 'redo':
-            case 'user':
-                changed = this.handleRedo(change);
-                break;
-            case 'undo':
-                changed = this.handleUndo(change);
-                break;
-            default:
-                break;
-        }
-
-        // Forward onto our listeners if necessary
-        if (changed || this.isDirty !== oldDirty) {
-            this._changedEmitter.fire({ ...change, newDirty: this.isDirty, oldDirty, model: this });
-        }
-        // Slightly different for the event we send to VS code. Skip version and file changes. Only send user events.
-        if ((changed || this.isDirty !== oldDirty) && change.kind !== 'version' && change.source === 'user') {
-            this._editEventEmitter.fire(change);
-        }
+    protected getJupyterCells(): nbformat.ICell[] | undefined {
+        return [];
     }
-    // tslint:disable-next-line: cyclomatic-complexity
-    private updateVersionInfo(kernelConnection: KernelConnectionMetadata | undefined): boolean {
-        const { changed, kernelId } = updateNotebookMetadata(this.notebookJson.metadata, kernelConnection);
-        if (kernelId) {
-            this.kernelId = kernelId;
-        }
-        // Update our kernel id in our global storage too
-        this.setStoredKernelId(kernelId);
-
-        return changed;
+    protected getICells(): ICell[] {
+        return [];
     }
-
     private ensureNotebookJson() {
         if (!this.notebookJson || !this.notebookJson.metadata) {
             this.notebookJson = getDefaultNotebookContent(this.pythonNumber);
         }
     }
 
-    private generateNotebookContent(): string {
-        const json = this.generateNotebookJson();
-        return JSON.stringify(json, null, this.indentAmount);
-    }
     private getStoredKernelId(): string | undefined {
         // Stored as a list so we don't take up too much space
         const list: KernelIdListEntry[] = this.globalMemento.get<KernelIdListEntry[]>(ActiveKernelIdList, []);
@@ -276,25 +228,5 @@ export abstract class BaseNotebookModel implements INotebookModel {
             const entry = list.find((l) => l.fileHash === fileHash);
             return entry?.kernelId;
         }
-    }
-    private setStoredKernelId(id: string | undefined) {
-        const list: KernelIdListEntry[] = this.globalMemento.get<KernelIdListEntry[]>(ActiveKernelIdList, []);
-        const fileHash = this.crypto.createHash(this._file.toString(), 'string');
-        const index = list.findIndex((l) => l.fileHash === fileHash);
-        // Always remove old spot (we'll push on the back for new ones)
-        if (index >= 0) {
-            list.splice(index, 1);
-        }
-
-        // If adding a new one, push
-        if (id) {
-            list.push({ fileHash, kernelId: id });
-        }
-
-        // Prune list if too big
-        while (list.length > MaximumKernelIdListSize) {
-            list.shift();
-        }
-        return this.globalMemento.update(ActiveKernelIdList, list);
     }
 }

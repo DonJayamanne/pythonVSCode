@@ -17,7 +17,6 @@ import {
     IOutputChannel
 } from '../../../common/types';
 import { noop } from '../../../common/utils/misc';
-import { IInterpreterService } from '../../../interpreter/contracts';
 import { IServiceContainer } from '../../../ioc/types';
 import { LiveShare, LiveShareCommands } from '../../constants';
 import {
@@ -46,7 +45,6 @@ export class HostJupyterExecution
     private _id = uuid();
     constructor(
         liveShare: ILiveShareApi,
-        interpreterService: IInterpreterService,
         disposableRegistry: IDisposableRegistry,
         asyncRegistry: IAsyncDisposableRegistry,
         fs: IDataScienceFileSystem,
@@ -60,7 +58,6 @@ export class HostJupyterExecution
     ) {
         super(
             liveShare,
-            interpreterService,
             disposableRegistry,
             workspace,
             configService,

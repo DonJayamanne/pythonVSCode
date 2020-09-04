@@ -41,7 +41,7 @@ export class KernelDependencyService implements IKernelDependencyService {
             token
         });
         const message = DataScience.libraryRequiredToLaunchJupyterKernelNotInstalledInterpreter().format(
-            interpreter.displayName || interpreter.envName || interpreter.path,
+            interpreter.displayName || interpreter.path,
             ProductNames.get(Product.ipykernel)!
         );
         const installerToken = wrapCancellationTokens(token);

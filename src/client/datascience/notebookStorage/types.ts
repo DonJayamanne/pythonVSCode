@@ -4,7 +4,7 @@
 import { nbformat } from '@jupyterlab/coreutils/lib/nbformat';
 import { Memento, Uri } from 'vscode';
 import { ICryptoUtils } from '../../common/types';
-import { ICell, INotebookModel } from '../types';
+import { INotebookModel } from '../types';
 
 export const INotebookModelFactory = Symbol('INotebookModelFactory');
 export interface INotebookModelFactory {
@@ -12,7 +12,6 @@ export interface INotebookModelFactory {
         options: {
             trusted: boolean;
             file: Uri;
-            cells: ICell[];
             notebookJson?: Partial<nbformat.INotebookContent>;
             indentAmount?: string;
             pythonNumber?: number;

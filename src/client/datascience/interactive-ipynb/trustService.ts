@@ -1,7 +1,9 @@
+import { nbformat } from '@jupyterlab/coreutils';
 import { createHmac } from 'crypto';
 import { inject, injectable } from 'inversify';
 import { EventEmitter, Uri } from 'vscode';
 import { IConfigurationService } from '../../common/types';
+import { sortObjectPropertiesRecursively } from '../notebookStorage/vscNotebookModel';
 import { IDigestStorage, ITrustService } from '../types';
 
 @injectable()
@@ -25,7 +27,7 @@ export class TrustService implements ITrustService {
      * Once a notebook is loaded in an untrusted state, no code will be executed and no
      * markdown will be rendered until notebook as a whole is marked trusted
      */
-    public async isNotebookTrusted(uri: Uri, notebookContents: string) {
+    public async isNotebookTrusted(uri: Uri, notebookContents: nbformat.INotebookContent) {
         if (this.alwaysTrustNotebooks) {
             return true; // Skip check if user manually overrode our trust checking
         }
@@ -39,7 +41,7 @@ export class TrustService implements ITrustService {
      * It will add a new trusted checkpoint to the local database if it's safe to do so
      * I.e. if the notebook has already been trusted by the user
      */
-    public async trustNotebook(uri: Uri, notebookContents: string) {
+    public async trustNotebook(uri: Uri, notebookContents: nbformat.INotebookContent) {
         if (!this.alwaysTrustNotebooks) {
             // Only update digest store if the user wants us to check trust
             const digest = await this.computeDigest(notebookContents);
@@ -48,9 +50,9 @@ export class TrustService implements ITrustService {
         }
     }
 
-    private async computeDigest(notebookContents: string) {
+    private async computeDigest(notebookContents: nbformat.INotebookContent) {
         const hmac = createHmac('sha256', await this.digestStorage.key);
-        hmac.update(notebookContents);
+        hmac.update(JSON.stringify(sortObjectPropertiesRecursively(notebookContents)));
         return hmac.digest('hex');
     }
 }

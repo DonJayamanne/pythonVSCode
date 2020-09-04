@@ -14,7 +14,6 @@ import type {
     NotebookKernel,
     NotebookKernelProvider
 } from 'vscode-proposed';
-import { UseProposedApi } from '../constants';
 import { IDisposableRegistry } from '../types';
 import {
     IApplicationEnvironment,
@@ -68,9 +67,6 @@ export class VSCodeNotebook implements IVSCodeNotebook {
               >().event;
     }
     public get activeNotebookEditor(): NotebookEditor | undefined {
-        if (!this.useProposedApi) {
-            return;
-        }
         return this.notebook.activeNotebookEditor;
     }
     private get notebook() {
@@ -88,11 +84,10 @@ export class VSCodeNotebook implements IVSCodeNotebook {
     private readonly canUseNotebookApi?: boolean;
     private readonly handledCellChanges = new WeakSet<VSCNotebookCellsChangeEvent>();
     constructor(
-        @inject(UseProposedApi) private readonly useProposedApi: boolean,
         @inject(IDisposableRegistry) private readonly disposables: IDisposableRegistry,
         @inject(IApplicationEnvironment) readonly env: IApplicationEnvironment
     ) {
-        if (this.useProposedApi && this.env.channel === 'insiders') {
+        if (this.env.channel === 'insiders') {
             this.addEventHandlers();
             this.canUseNotebookApi = true;
         }
