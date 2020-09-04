@@ -22,7 +22,6 @@ export class PreWarmActivatedJupyterEnvironmentVariables implements IExtensionSi
         this.disposables.push(
             this.jupyterInterpreterService.onDidChangeInterpreter(() => this.preWarmInterpreterVariables().catch(noop))
         );
-        this.preWarmInterpreterVariables().ignoreErrors();
     }
 
     private async preWarmInterpreterVariables() {

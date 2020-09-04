@@ -7,11 +7,7 @@ import { inject, injectable } from 'inversify';
 import '../../common/extensions';
 import { IConfigurationService, IDisposableRegistry } from '../../common/types';
 import { swallowExceptions } from '../../common/utils/decorators';
-import {
-    INotebookAndInteractiveWindowUsageTracker,
-    INotebookEditorProvider,
-    IRawNotebookSupportedService
-} from '../types';
+import { INotebookEditorProvider, IRawNotebookSupportedService } from '../types';
 import { KernelDaemonPool } from './kernelDaemonPool';
 
 @injectable()
@@ -19,9 +15,10 @@ export class KernelDaemonPreWarmer {
     constructor(
         @inject(INotebookEditorProvider) private readonly notebookEditorProvider: INotebookEditorProvider,
         @inject(IDisposableRegistry) private readonly disposables: IDisposableRegistry,
-        @inject(INotebookAndInteractiveWindowUsageTracker)
-        private readonly usageTracker: INotebookAndInteractiveWindowUsageTracker,
-        @inject(KernelDaemonPool) private readonly kernelDaemonPool: KernelDaemonPool,
+        // @inject(INotebookAndInteractiveWindowUsageTracker)
+        // private readonly usageTracker: INotebookAndInteractiveWindowUsageTracker,
+        @inject(KernelDaemonPool)
+        private readonly kernelDaemonPool: KernelDaemonPool,
         @inject(IRawNotebookSupportedService) private readonly rawNotebookSupported: IRawNotebookSupportedService,
         @inject(IConfigurationService) private readonly configService: IConfigurationService
     ) {}
@@ -40,27 +37,27 @@ export class KernelDaemonPreWarmer {
         if (this.notebookEditorProvider.editors.length > 0) {
             await this.preWarmKernelDaemonPool();
         }
-        await this.preWarmDaemonPoolIfNecesary();
+        // await this.preWarmDaemonPoolIfNecesary();
     }
-    private async preWarmDaemonPoolIfNecesary() {
-        if (
-            this.shouldPreWarmDaemonPool(this.usageTracker.lastInteractiveWindowOpened) ||
-            this.shouldPreWarmDaemonPool(this.usageTracker.lastNotebookOpened)
-        ) {
-            await this.preWarmKernelDaemonPool();
-        }
-    }
+    // private async preWarmDaemonPoolIfNecesary() {
+    //     if (
+    //         this.shouldPreWarmDaemonPool(this.usageTracker.lastInteractiveWindowOpened) ||
+    //         this.shouldPreWarmDaemonPool(this.usageTracker.lastNotebookOpened)
+    //     ) {
+    //         await this.preWarmKernelDaemonPool();
+    //     }
+    // }
     @swallowExceptions('PreWarmKernelDaemon')
     private async preWarmKernelDaemonPool() {
         await this.kernelDaemonPool.preWarmKernelDaemons();
     }
-    private shouldPreWarmDaemonPool(lastTime?: Date) {
-        if (!lastTime) {
-            return false;
-        }
-        const currentTime = new Date();
-        const diff = currentTime.getTime() - lastTime.getTime();
-        const diffInDays = Math.floor(diff / (24 * 3600 * 1000));
-        return diffInDays <= 7;
-    }
+    // private shouldPreWarmDaemonPool(lastTime?: Date) {
+    //     if (!lastTime) {
+    //         return false;
+    //     }
+    //     const currentTime = new Date();
+    //     const diff = currentTime.getTime() - lastTime.getTime();
+    //     const diffInDays = Math.floor(diff / (24 * 3600 * 1000));
+    //     return diffInDays <= 7;
+    // }
 }

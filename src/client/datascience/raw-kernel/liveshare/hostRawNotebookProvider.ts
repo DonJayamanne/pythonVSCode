@@ -167,9 +167,7 @@ export class HostRawNotebookProvider
             );
 
             // Interpreter is optional, but we must have a kernel spec for a raw launch
-            if (!kernelConnectionMetadata?.kernelSpec) {
-                notebookPromise.reject('Failed to find a kernelspec to use for ipykernel launch');
-            } else {
+            if (kernelConnectionMetadata) {
                 await rawSession.connect(kernelConnectionMetadata, launchTimeout, cancelToken);
 
                 // Get the execution info for our notebook

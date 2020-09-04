@@ -31,6 +31,9 @@ import { ExportFormat, IExport, IExportManager, IExportManagerFilePicker } from 
 import { NotebookProvider } from './interactive-common/notebookProvider';
 import { NotebookServerProvider } from './interactive-common/notebookServerProvider';
 import { NotebookUsageTracker } from './interactive-common/notebookUsageTracker';
+import { DigestStorage } from './interactive-ipynb/digestStorage';
+import { TrustCommandHandler } from './interactive-ipynb/trustCommandHandler';
+import { TrustService } from './interactive-ipynb/trustService';
 import { JupyterCommandLineSelector } from './jupyter/commandLineSelector';
 import { JupyterCommandFactory } from './jupyter/interpreter/jupyterCommand';
 import { JupyterInterpreterDependencyService } from './jupyter/interpreter/jupyterInterpreterDependencyService';
@@ -80,6 +83,7 @@ import {
     IDataScience,
     IDataScienceErrorHandler,
     IDataScienceFileSystem,
+    IDigestStorage,
     IJupyterCommandFactory,
     IJupyterExecution,
     IJupyterInterpreterDependencyManager,
@@ -100,7 +104,8 @@ import {
     INotebookStorage,
     IRawNotebookProvider,
     IRawNotebookSupportedService,
-    IStatusProvider
+    IStatusProvider,
+    ITrustService
 } from './types';
 
 // README: Did you make sure "dataScienceIocContainer.ts" has also been updated appropriately?
@@ -119,6 +124,8 @@ export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.add<IExtensionSingleActivationService>(IExtensionSingleActivationService, NotebookEditorCompatibilitySupport);
     serviceManager.add<NotebookEditorCompatibilitySupport>(NotebookEditorCompatibilitySupport, NotebookEditorCompatibilitySupport);
 
+    serviceManager.addSingleton<ITrustService>(ITrustService, TrustService);
+    serviceManager.addSingleton<IDigestStorage>(IDigestStorage, DigestStorage);
     serviceManager.addSingleton<INotebookModelFactory>(INotebookModelFactory, NotebookModelFactory);
     serviceManager.addSingleton<IDataScienceErrorHandler>(IDataScienceErrorHandler, DataScienceErrorHandler);
     serviceManager.add<IJupyterCommandFactory>(IJupyterCommandFactory, JupyterCommandFactory);
@@ -136,6 +143,7 @@ export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.addSingleton<CellOutputMimeTypeTracker>(CellOutputMimeTypeTracker, CellOutputMimeTypeTracker, undefined, [IExtensionSingleActivationService, INotebookExecutionLogger]);
     serviceManager.addSingleton<CommandRegistry>(CommandRegistry, CommandRegistry);
     serviceManager.addSingleton<IDataScience>(IDataScience, DataScience);
+    serviceManager.addSingleton<IExtensionSingleActivationService>(IExtensionSingleActivationService, TrustCommandHandler);
     serviceManager.addSingleton<IExtensionSingleActivationService>(IExtensionSingleActivationService, Activation);
     serviceManager.addSingleton<IExtensionSingleActivationService>(IExtensionSingleActivationService, JupyterInterpreterSelectionCommand);
     serviceManager.addSingleton<IExtensionSingleActivationService>(IExtensionSingleActivationService, PreWarmActivatedJupyterEnvironmentVariables);

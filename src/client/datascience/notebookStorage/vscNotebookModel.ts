@@ -92,7 +92,9 @@ export class VSCodeNotebookModel extends BaseNotebookModel {
         return this.document ? this.document.cells.map((cell) => createCellFromVSCNotebookCell(cell, this)) : [];
     }
     protected getJupyterCells(): nbformat.ICell[] | undefined {
-        return this.document ? this.document.cells.map(createNBFormatCellFromVSCNotebookCell) : [];
+        return this.document && this.isTrusted
+            ? this.document.cells.map(createNBFormatCellFromVSCNotebookCell)
+            : this.notebookJson.cells || [];
     }
 
     protected generateNotebookJson() {

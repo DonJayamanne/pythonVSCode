@@ -93,8 +93,9 @@ export function updateKernelInNotebookMetadata(
  * Converts a NotebookModel into VSCode friendly format.
  */
 export function notebookModelToVSCNotebookData(model: VSCodeNotebookModel): NotebookData {
-    const cells = model.cells
-        .map(createVSCNotebookCellDataFromCell.bind(undefined, model))
+    const cells = model
+        .getRawContent()
+        .cells.map(createVSCNotebookCellFromCell.bind(undefined, model))
         .filter((item) => !!item)
         .map((item) => item!);
 
