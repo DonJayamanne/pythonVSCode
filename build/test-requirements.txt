@@ -7,7 +7,7 @@ black ; python_version>='3.6'
 yapf
 pylint
 pycodestyle
-prospector==1.2.0 # Last version of prospector with Python 2.7 support
+prospector==1.3.0 # Last version of prospector with Python 2.7 support
 pydocstyle
 nose
 pytest < 6.0.0; python_version > '2.7' # Tests do not support pytest 6 yet.
