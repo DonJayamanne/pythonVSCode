@@ -489,7 +489,6 @@
     "src/test/mocks/vsc/strings.ts",
     "src/test/mocks/vsc/telemetryReporter.ts",
     "src/test/mocks/vsc/uri.ts",
-    "src/test/multiRootTest.ts",
     "src/test/performance/load.perf.test.ts",
     "src/test/performanceTest.ts",
     "src/test/providers/codeActionsProvider.test.ts",

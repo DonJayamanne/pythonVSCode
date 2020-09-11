@@ -20,7 +20,6 @@
 # 'pythonUnitTests'
 # 'pythonInternalTools'
 # 'testSingleWorkspace'
-# 'testMultiWorkspace'
 # 'testDebugger'
 # 'testFunctional'
 # 'testPerformance'
@@ -211,32 +210,7 @@ steps:
     displayName: 'Install DEBUGPY wheels'
     condition: and(eq(variables['NeedsPythonTestReqs'], 'true'), eq(variables['PythonVersion'], '3.7'))
 
-  # Run the Python unit tests in our codebase. Produces a JUnit-style log file that
-  # will be uploaded after all tests are complete.
-  #
-  # This task only runs if the string 'pythonUnitTests' exists in variable `TestsToRun`.
-  #
-  # Example command line (windows pwsh):
-  # > python -m pip install -m -U pip
-  # > python -m pip install -U -r build/test-requirements.txt
-  # > python pythonFiles/tests/run_all.py --color=yes --junit-xml=python-tests-junit.xml
-  - bash: |
-      python pythonFiles/tests/run_all.py --color=no --junit-xml=$COMMON_TESTRESULTSDIRECTORY/python-tests-junit.xml
-    displayName: 'Python unittests'
-    condition: and(succeeded(), contains(variables['TestsToRun'], 'pythonUnitTests'))
-
-  # Upload the test results to Azure DevOps to facilitate test reporting in their UX.
-  - task: PublishTestResults@2
-    displayName: 'Publish Python unittests results'
-    condition: contains(variables['TestsToRun'], 'pythonUnitTests')
-    inputs:
-      testResultsFiles: 'python-tests-junit.xml'
-      searchFolder: '$(Common.TestResultsDirectory)'
-      testRunTitle: 'pythonUnitTests-$(Agent.Os)-Py$(pythonVersion)'
-      buildPlatform: '$(Agent.Os)-Py$(pythonVersion)'
-      buildConfiguration: 'UnitTests'
-
-  # Run the Python IPython tests in our codebase. Produces a JUnit-style log file that
+    # Run the Python IPython tests in our codebase. Produces a JUnit-style log file that
   # will be uploaded after all tests are complete.
   #
   # This task only runs if the string 'pythonIPythonTests' exists in variable `TestsToRun`.
@@ -457,29 +431,6 @@ steps:
     inputs:
       testResultsFiles: '$(MOCHA_FILE)'
       testRunTitle: 'singleWorkspace-$(Agent.Os)-Py$(pythonVersion)'
-      buildPlatform: '$(Agent.Os)-Py$(pythonVersion)'
-      buildConfiguration: 'SystemTests'
-
-  # Run the multi-workspace tests.
-  #
-  # This task only runs if the string 'testMultiWorkspace' exists in variable `TestsToRun`.
-  #
-  # Example command line (windows pwsh):
-  # > npm run testMultiWorkspace
-  - script: |
-      npm run testMultiWorkspace
-    displayName: 'Run multi-workspace tests'
-    condition: and(succeeded(), contains(variables['TestsToRun'], 'testMultiWorkspace'))
-    env:
-      DISPLAY: :10
-
-  # Upload the test results to Azure DevOps to facilitate test reporting in their UX.
-  - task: PublishTestResults@2
-    displayName: 'Publish multi-workspace tests results'
-    condition: contains(variables['TestsToRun'], 'testMultiWorkspace')
-    inputs:
-      testResultsFiles: '$(MOCHA_FILE)'
-      testRunTitle: 'multiWorkspace-$(Agent.Os)-Py$(pythonVersion)'
       buildPlatform: '$(Agent.Os)-Py$(pythonVersion)'
       buildConfiguration: 'SystemTests'
 

@@ -128,7 +128,6 @@ You can also run the tests from the command-line (after compiling):
 
 ```shell
 npm run testSingleWorkspace  # will launch the VSC UI
-npm run testMultiWorkspace  # will launch the VSC UI
 ```
 
 #### Customising the Test Run

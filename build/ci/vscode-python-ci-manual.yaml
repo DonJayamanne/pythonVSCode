@@ -30,7 +30,7 @@ stages:
               # with mocks
               # focused on small units (i.e. functions)
               # and tightly controlled dependencies
-              TestsToRun: 'testUnitTests, pythonUnitTests, pythonInternalTools, pythonIPythonTests'
+              TestsToRun: 'testUnitTests, pythonIPythonTests'
               NeedsPythonTestReqs: true
               NeedsIPythonReqs: true
             'Functional':
@@ -44,17 +44,6 @@ stages:
               # focused on integration
               TestsToRun: 'testSingleWorkspace'
               NeedsPythonTestReqs: true
-            'Multi Workspace':
-              # no mocks, with vscode
-              # focused on integration
-              TestsToRun: 'testMultiWorkspace'
-              NeedsPythonTestReqs: true
-            'Venv':
-              TestsToRun: 'venvTests'
-              NeedsPythonTestReqs: true
-              NeedsIPythonReqs: true
-              # This is for the venvTests to use, not needed if you don't run venv tests...
-              PYTHON_VIRTUAL_ENVS_LOCATION: './src/tmp/envPaths.json'
             'Debugger':
               TestsToRun: 'testDebugger'
               NeedsPythonTestReqs: true
@@ -77,7 +66,7 @@ stages:
             'Unit':
               PythonVersion: '3.6'
               # Note: "pythonInternalTools" tests are 3.7+.
-              TestsToRun: 'testUnitTests, pythonUnitTests, pythonIPythonTests'
+              TestsToRun: 'testUnitTests, pythonIPythonTests'
               NeedsPythonTestReqs: true
               NeedsIPythonReqs: true
             'Functional':
@@ -104,7 +93,7 @@ stages:
             'Unit':
               PythonVersion: '3.5'
               # Note: "pythonInternalTools" tests are 3.7+.
-              TestsToRun: 'testUnitTests, pythonUnitTests, pythonIPythonTests'
+              TestsToRun: 'testUnitTests, pythonIPythonTests'
               NeedsPythonTestReqs: true
               NeedsIPythonReqs: true
             'Functional':
@@ -116,12 +105,6 @@ stages:
               PythonVersion: '3.5'
               TestsToRun: 'testSingleWorkspace'
               NeedsPythonTestReqs: true
-            'Venv':
-              PythonVersion: '3.5'
-              TestsToRun: 'venvTests'
-              NeedsPythonTestReqs: true
-              NeedsIPythonReqs: true
-              PYTHON_VIRTUAL_ENVS_LOCATION: './src/tmp/envPaths.json'
             'Debugger':
               PythonVersion: '3.5'
               TestsToRun: 'testDebugger'
@@ -141,7 +124,7 @@ stages:
         strategy:
           matrix:
             'Unit':
-              TestsToRun: 'testUnitTests, pythonUnitTests, pythonInternalTools, pythonIPythonTests'
+              TestsToRun: 'testUnitTests, pythonIPythonTests'
               NeedsPythonTestReqs: true
               NeedsIPythonReqs: true
             'Functional':
@@ -151,14 +134,6 @@ stages:
             'Single Workspace':
               TestsToRun: 'testSingleWorkspace'
               NeedsPythonTestReqs: true
-            'Multi Workspace':
-              TestsToRun: 'testMultiWorkspace'
-              NeedsPythonTestReqs: true
-            'Venv':
-              TestsToRun: 'venvTests'
-              NeedsPythonTestReqs: true
-              NeedsIPythonReqs: true
-              PYTHON_VIRTUAL_ENVS_LOCATION: './src/tmp/envPaths.json'
             'Debugger':
               TestsToRun: 'testDebugger'
               NeedsPythonTestReqs: true
@@ -181,7 +156,7 @@ stages:
             'Unit':
               PythonVersion: '3.5'
               # Note: "pythonInternalTools" tests are 3.7+.
-              TestsToRun: 'testUnitTests, pythonUnitTests, pythonIPythonTests'
+              TestsToRun: 'testUnitTests, pythonIPythonTests'
               NeedsPythonTestReqs: true
               NeedsIPythonReqs: true
             'Functional':
@@ -193,12 +168,6 @@ stages:
               PythonVersion: '3.5'
               TestsToRun: 'testSingleWorkspace'
               NeedsPythonTestReqs: true
-            'Venv':
-              PythonVersion: '3.5'
-              TestsToRun: 'venvTests'
-              NeedsPythonTestReqs: true
-              NeedsIPythonReqs: true
-              PYTHON_VIRTUAL_ENVS_LOCATION: './src/tmp/envPaths.json'
             'Debugger':
               PythonVersion: '3.5'
               TestsToRun: 'testDebugger'
@@ -218,7 +187,7 @@ stages:
         strategy:
           matrix:
             'Unit':
-              TestsToRun: 'testUnitTests, pythonUnitTests, pythonInternalTools, pythonIPythonTests'
+              TestsToRun: 'testUnitTests, pythonIPythonTests'
               NeedsPythonTestReqs: true
               NeedsIPythonReqs: true
             'Functional':
@@ -228,14 +197,6 @@ stages:
             'Single Workspace':
               TestsToRun: 'testSingleWorkspace'
               NeedsPythonTestReqs: true
-            'Multi Workspace':
-              TestsToRun: 'testMultiWorkspace'
-              NeedsPythonTestReqs: true
-            'Venv':
-              TestsToRun: 'venvTests'
-              NeedsPythonTestReqs: true
-              NeedsIPythonReqs: true
-              PYTHON_VIRTUAL_ENVS_LOCATION: './src/tmp/envPaths.json'
             'Debugger':
               TestsToRun: 'testDebugger'
               NeedsPythonTestReqs: true
@@ -258,7 +219,7 @@ stages:
             'Unit':
               PythonVersion: '3.5'
               # Note: "pythonInternalTools" tests are 3.7+.
-              TestsToRun: 'testUnitTests, pythonUnitTests, pythonIPythonTests'
+              TestsToRun: 'testUnitTests, pythonIPythonTests'
               NeedsPythonTestReqs: true
               NeedsIPythonReqs: true
             'Functional':
@@ -270,12 +231,6 @@ stages:
               PythonVersion: '3.5'
               TestsToRun: 'testSingleWorkspace'
               NeedsPythonTestReqs: true
-            'Venv':
-              PythonVersion: '3.5'
-              TestsToRun: 'venvTests'
-              NeedsPythonTestReqs: true
-              NeedsIPythonReqs: true
-              PYTHON_VIRTUAL_ENVS_LOCATION: './src/tmp/envPaths.json'
             'Debugger':
               PythonVersion: '3.5'
               TestsToRun: 'testDebugger'

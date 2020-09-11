@@ -64,7 +64,6 @@ src/test/fixtures.ts
 src/test/index.ts
 src/test/initialize.ts
 src/test/mockClasses.ts
-src/test/multiRootTest.ts
 src/test/performanceTest.ts
 src/test/proc.ts
 src/test/serviceRegistry.ts
@@ -319,7 +318,6 @@ src/test/common/variables/envVarsService.test.ts
 src/test/common/variables/envVarsService.unit.test.ts
 src/test/common/variables/serviceRegistry.unit.test.ts
 src/test/common/variables/environmentVariablesProvider.unit.test.ts
-src/test/common/variables/envVarsProvider.multiroot.test.ts
 src/test/common/nuget/nugetService.unit.test.ts
 src/test/common/nuget/azureBobStoreRepository.functional.test.ts
 src/test/common/nuget/nugetRepository.unit.test.ts
@@ -346,7 +344,6 @@ src/test/common/process/pythonToolService.unit.test.ts
 src/test/common/process/proc.observable.test.ts
 src/test/common/process/currentProcess.test.ts
 src/test/common/process/serviceRegistry.unit.test.ts
-src/test/common/process/pythonProc.simple.multiroot.test.ts
 src/test/common/process/execFactory.test.ts
 src/test/common/process/pythonEnvironment.unit.test.ts
 src/test/common/process/logger.unit.test.ts
@@ -435,7 +432,6 @@ src/test/linters/lint.args.test.ts
 src/test/linters/linterCommands.unit.test.ts
 src/test/linters/lint.functional.test.ts
 src/test/linters/linterManager.unit.test.ts
-src/test/linters/lint.multiroot.test.ts
 
 src/test/application/diagnostics/checks/macPythonInterpreter.unit.test.ts
 src/test/application/diagnostics/checks/upgradeCodeRunner.unit.test.ts

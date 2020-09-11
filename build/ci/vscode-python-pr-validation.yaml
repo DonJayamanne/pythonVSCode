@@ -43,7 +43,7 @@ stages:
               NeedsPythonTestReqs: false
               NeedsIPythonReqs: false
             'Unit':
-              TestsToRun: 'pythonUnitTests, pythonInternalTools, pythonIPythonTests'
+              TestsToRun: 'pythonIPythonTests'
               NeedsPythonTestReqs: true
               NeedsIPythonReqs: true
             'Functional':
@@ -51,84 +51,79 @@ stages:
               NeedsPythonTestReqs: true
               NeedsPythonFunctionalReqs: true
               SplitFunctionalTests: false
-            'Single Workspace':
-              TestsToRun: 'testSingleWorkspace'
-              NeedsPythonTestReqs: true
+            # 'Single Workspace':
+            #   TestsToRun: 'testSingleWorkspace'
+            #   NeedsPythonTestReqs: true
             'DataScience':
               TestsToRun: 'testDataScience'
               NeedsPythonTestReqs: true
               NeedsPythonFunctionalReqs: true
-            'Smoke':
-              TestsToRun: 'testSmoke'
-              NeedsPythonTestReqs: true
-              NeedsIPythonReqs: true
+            # 'Smoke':
+            #   TestsToRun: 'testSmoke'
+            #   NeedsPythonTestReqs: true
+            #   NeedsIPythonReqs: true
         pool:
           vmImage: 'ubuntu-16.04'
         steps:
           - template: templates/test_phases.yml
 
-      - job: 'Py27'
-        dependsOn: []
-        strategy:
-          matrix:
-            'Unit':
-              PythonVersion: '2.7'
-              # Note: "pythonInternalTools" tests are 3.7+.
-              TestsToRun: 'pythonUnitTests'
-              NeedsPythonTestReqs: true
-            'Functional':
-              PythonVersion: '2.7'
-              TestsToRun: 'testfunctional'
-              NeedsPythonTestReqs: true
-              NeedsPythonFunctionalReqs: true
-        pool:
-          vmImage: 'ubuntu-16.04'
-        steps:
-          - template: templates/test_phases.yml
+    #   - job: 'Py27'
+    #     dependsOn: []
+    #     strategy:
+    #       matrix:
+    #         'Functional':
+    #           PythonVersion: '2.7'
+    #           TestsToRun: 'testfunctional'
+    #           NeedsPythonTestReqs: true
+    #           NeedsPythonFunctionalReqs: true
+    #     pool:
+    #       vmImage: 'ubuntu-16.04'
+    #     steps:
+    #       - template: templates/test_phases.yml
 
-  - stage: Mac
-    dependsOn: []
-    jobs:
-      - job: 'Py3x'
-        dependsOn: []
-        strategy:
-          matrix:
-            # This gives us our best functional coverage for the OS.
-            'Functional+Single':
-              TestsToRun: 'testfunctional, testSingleWorkspace'
-              NeedsPythonTestReqs: true
-              NeedsPythonFunctionalReqs: true
-        pool:
-          vmImage: '$(vmImageMacOS)'
-        steps:
-          - template: templates/test_phases.yml
+#   - stage: Mac
+#     dependsOn: []
+#     jobs:
+#       - job: 'Py3x'
+#         dependsOn: []
+#         strategy:
+#           matrix:
+#             # This gives us our best functional coverage for the OS.
+#             'Functional+Single':
+#               TestsToRun: 'testfunctional, testSingleWorkspace'
+#               NeedsPythonTestReqs: true
+#               NeedsPythonFunctionalReqs: true
+#         pool:
+#           vmImage: '$(vmImageMacOS)'
+#         steps:
+#           - template: templates/test_phases.yml
 
-  - stage: Windows
-    dependsOn: []
-    jobs:
-      - job: 'Py3x'
-        dependsOn: []
-        timeoutInMinutes: 90
-        strategy:
-          matrix:
-            # This gives us our best functional coverage for the OS.
-            'Functional':
-              TestsToRun: 'testfunctional'
-              NeedsPythonTestReqs: true
-              NeedsPythonFunctionalReqs: true
-            'Single Workspace':
-              TestsToRun: 'testSingleWorkspace'
-              NeedsPythonTestReqs: true
-        pool:
-          vmImage: 'vs2017-win2016'
-        steps:
-          - template: templates/test_phases.yml
+#   - stage: Windows
+#     dependsOn: []
+#     jobs:
+#       - job: 'Py3x'
+#         dependsOn: []
+#         timeoutInMinutes: 90
+#         strategy:
+#           matrix:
+#             # This gives us our best functional coverage for the OS.
+#             'Functional':
+#               TestsToRun: 'testfunctional'
+#               NeedsPythonTestReqs: true
+#               NeedsPythonFunctionalReqs: true
+#             'Single Workspace':
+#               TestsToRun: 'testSingleWorkspace'
+#               NeedsPythonTestReqs: true
+#         pool:
+#           vmImage: 'vs2017-win2016'
+#         steps:
+#           - template: templates/test_phases.yml
 
   - stage: Reports
     dependsOn:
       - Linux
-      - Mac
-      - Windows
+    #   - Mac
+    #   - Windows
     condition: always()
     jobs:
       - template: templates/jobs/coverage.yml
