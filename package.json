@@ -7,19 +7,19 @@
         "usingNewInterpreterStorage": true
     },
     "languageServerVersion": "0.5.30",
-    "publisher": "ms-python",
+    "publisher": "ms-ai-tools",
     "enableProposedApi": true,
     "author": {
         "name": "Microsoft Corporation"
     },
     "license": "MIT",
-    "homepage": "https://github.com/Microsoft/vscode-python",
+    "homepage": "https://github.com/Microsoft/vscode-jupyter",
     "repository": {
         "type": "git",
-        "url": "https://github.com/Microsoft/vscode-python"
+        "url": "https://github.com/Microsoft/vscode-jupyter"
     },
     "bugs": {
-        "url": "https://github.com/Microsoft/vscode-python/issues"
+        "url": "https://github.com/Microsoft/vscode-jupyter/issues"
     },
     "qna": "https://stackoverflow.com/questions/tagged/visual-studio-code+python",
     "icon": "icon.png",
@@ -2112,7 +2112,7 @@
                             "All"
                         ]
                     },
-                    "description": "List of experiment to opt into. If empty, user is assigned the default experiment groups. See https://github.com/microsoft/vscode-python/wiki/Experiments for more details.",
+                    "description": "List of experiment to opt into. If empty, user is assigned the default experiment groups. See https://github.com/microsoft/vscode-jupyter/wiki/Experiments for more details.",
                     "scope": "machine"
                 },
                 "python.experiments.optOutFrom": {
@@ -2137,7 +2137,7 @@
                             "All"
                         ]
                     },
-                    "description": "List of experiment to opt out of. If empty, user is assigned the default experiment groups. See https://github.com/microsoft/vscode-python/wiki/Experiments for more details.",
+                    "description": "List of experiment to opt out of. If empty, user is assigned the default experiment groups. See https://github.com/microsoft/vscode-jupyter/wiki/Experiments for more details.",
                     "scope": "machine"
                 },
                 "python.dataScience.allowImportFromNotebook": {
@@ -3436,7 +3436,7 @@
         ]
     },
     "scripts": {
-        "package": "gulp clean && gulp prePublishBundle && vsce package -o ms-python-insiders.vsix",
+        "package": "gulp clean && gulp prePublishBundle && vsce package -o ms-ai-tools-jupyter-insiders.vsix",
         "compile": "tsc -watch -p ./",
         "compiled": "deemon npm run compile",
         "kill-compiled": "deemon --kill npm run compile",

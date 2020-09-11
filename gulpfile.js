@@ -27,7 +27,7 @@ const glob = require('glob');
 const _ = require('lodash');
 const nativeDependencyChecker = require('node-has-native-dependencies');
 const flat = require('flat');
-const argv = require('yargs').argv;
+const { argv } = require('yargs');
 const os = require('os');
 const rmrf = require('rimraf');
 
@@ -190,14 +190,14 @@ async function updateBuildNumber(args) {
         const packageJson = JSON.parse(packageJsonContents);
 
         // Change version number
-        const versionParts = packageJson['version'].split('.');
+        const versionParts = packageJson.version.split('.');
         const buildNumberPortion =
             versionParts.length > 2 ? versionParts[2].replace(/(\d+)/, args.buildNumber) : args.buildNumber;
         const newVersion =
             versionParts.length > 1
                 ? `${versionParts[0]}.${versionParts[1]}.${buildNumberPortion}`
-                : packageJson['version'];
-        packageJson['version'] = newVersion;
+                : packageJson.version;
+        packageJson.version = newVersion;
 
         // Write back to the package json
         await fsExtra.writeFile('package.json', JSON.stringify(packageJson, null, 4), 'utf-8');
@@ -409,9 +409,9 @@ function uploadExtension(uploadBlobName) {
         );
 }
 
-gulp.task('uploadDeveloperExtension', () => uploadExtension('ms-python-insiders.vsix'));
+gulp.task('uploadDeveloperExtension', () => uploadExtension('ms-ai-tools-jupyter-insiders.vsix'));
 gulp.task('uploadReleaseExtension', () =>
-    uploadExtension(`ms-python-${process.env.TRAVIS_BRANCH || process.env.BUILD_SOURCEBRANCHNAME}.vsix`)
+    uploadExtension(`ms-ai-tools-jupyter-${process.env.TRAVIS_BRANCH || process.env.BUILD_SOURCEBRANCHNAME}.vsix`)
 );
 
 function spawnAsync(command, args, env, rejectOnStdErr = false) {
@@ -540,7 +540,7 @@ async function checkDatascienceDependencies() {
      * @returns
      */
     function processModule(module) {
-        const name = module.name;
+        const { name } = module;
 
         if (!name.includes('/node_modules')) {
             processReasons(module.reasons);
@@ -576,7 +576,7 @@ async function checkDatascienceDependencies() {
         if (!origin || !origin.name) {
             return;
         }
-        const name = origin.name;
+        const { name } = origin;
         if (!name.includes('/node_modules')) {
             processReasons(origin.reasons);
             return;
@@ -686,7 +686,7 @@ let configuration;
  * @param {hygieneOptions} options
  */
 function getLinter(options) {
-    configuration = configuration ? configuration : tslint.Configuration.findConfiguration(null, '.');
+    configuration = configuration || tslint.Configuration.findConfiguration(null, '.');
     const program = tslint.Linter.createProgram('./tsconfig.json');
     const linter = new tslint.Linter({ formatter: 'json' }, program);
     return { linter, configuration };
@@ -729,10 +729,9 @@ const hygiene = (options, done) => {
                     // Good indent.
                 } else if (/^[\t]+.*/.test(line)) {
                     console.error(
-                        file.relative +
-                            '(' +
-                            (i + 1) +
-                            ',1): Bad whitespace indentation (use 4 spaces instead of tabs or other)'
+                        `${file.relative}(${
+                            i + 1
+                        },1): Bad whitespace indentation (use 4 spaces instead of tabs or other)`
                     );
                     errorCount++;
                 }
@@ -741,8 +740,14 @@ const hygiene = (options, done) => {
         this.emit('data', file);
     });
 
-    const formatOptions = { verify: true, tsconfig: true, tslint: true, editorconfig: true, tsfmt: true };
-    const formatting = es.map(function (file, cb) {
+    const formatOptions = {
+        verify: true,
+        tsconfig: true,
+        tslint: true,
+        editorconfig: true,
+        tsfmt: true
+    };
+    const formatting = es.map((file, cb) => {
         tsfmt
             .processString(file.path, file.contents.toString('utf8'), formatOptions)
             .then((result) => {
@@ -795,9 +800,8 @@ const hygiene = (options, done) => {
                         console.error(message);
                         reportedLinterFailures.push(message);
                         return true;
-                    } else {
-                        return false;
                     }
+                    return false;
                 })
                 .filter((reported) => reported === true).length > 0
         );
@@ -842,7 +846,7 @@ const hygiene = (options, done) => {
     const tsc = function () {
         function customReporter() {
             return {
-                error: function (error, typescript) {
+                error(error, typescript) {
                     const fullFilename = error.fullFilename || '';
                     const relativeFilename = error.relativeFilename || '';
                     if (tsFiles.findIndex((file) => fullFilename === file || relativeFilename === file) === -1) {
@@ -851,7 +855,7 @@ const hygiene = (options, done) => {
                     console.error(`Error: ${error.message}`);
                     errorCount += 1;
                 },
-                finish: function () {
+                finish() {
                     // forget the summary.
                     console.log('Finished compilation');
                 }
@@ -879,13 +883,13 @@ const hygiene = (options, done) => {
     if (!options.skipLinter) {
         result = result.pipe(tsl);
     }
-    let totalTime = 0;
+    const totalTime = 0;
     result = result
         .pipe(tscFilesTracker)
         .pipe(sourcemaps.init())
         .pipe(tsc())
         .pipe(
-            sourcemaps.mapSources(function (sourcePath, file) {
+            sourcemaps.mapSources((sourcePath, file) => {
                 let tsFileName = path.basename(file.path).replace(/js$/, 'ts');
                 const qualifiedSourcePath = path.dirname(file.path).replace('out/', 'src/').replace('out\\', 'src\\');
                 if (!fs.existsSync(path.join(qualifiedSourcePath, tsFileName))) {
@@ -972,7 +976,7 @@ function exitHandler(options, ex) {
  */
 function run(options, done) {
     done = done || noop;
-    options = options ? options : {};
+    options = options || {};
     options.exitOnError = typeof options.exitOnError === 'undefined' ? isCI : options.exitOnError;
     process.once('unhandledRejection', (reason, p) => {
         console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
@@ -981,14 +985,14 @@ function run(options, done) {
 
     // Clear screen each time
     console.log('\x1Bc');
-    const startMessage = `Hygiene starting`;
+    const startMessage = 'Hygiene starting';
     console.log(colors.blue(startMessage));
 
     hygiene(options, done);
 }
 
 function git(args) {
-    let result = cp.spawnSync('git', args, { encoding: 'utf-8' });
+    const result = cp.spawnSync('git', args, { encoding: 'utf-8' });
     return result.output.join('\n');
 }
 
@@ -1021,8 +1025,8 @@ function getModifiedFilesSync() {
 
         const repo = process.env.TRAVIS_REPO_SLUG || getAzureDevOpsVarValue('Build.Repository.Name');
         const originOrUpstream =
-            repo.toUpperCase() === 'MICROSOFT/VSCODE-PYTHON' ||
-            repo.toUpperCase() === 'VSCODE-PYTHON-DATASCIENCE/VSCODE-PYTHON'
+            repo.toUpperCase() === 'MICROSOFT/VSCODE-JUPYTER' ||
+            repo.toUpperCase() === 'VSCODE-JUPYTER-DATASCIENCE/VSCODE-JUPYTER'
                 ? 'origin'
                 : 'upstream';
 
@@ -1046,16 +1050,13 @@ function getModifiedFilesSync() {
             .filter((l) => l.length > 0)
             .map((l) => l.trim().replace(/\//g, path.sep))
             .map((l) => path.join(__dirname, l));
-    } else {
-        const out = cp.execSync('git status -u -s', { encoding: 'utf8' });
-        return out
-            .split(/\r?\n/)
-            .filter((l) => !!l)
-            .filter(
-                (l) => _.intersection(['M', 'A', 'R', 'C', 'U', '?'], l.substring(0, 2).trim().split('')).length > 0
-            )
-            .map((l) => path.join(__dirname, l.substring(2).trim().replace(/\//g, path.sep)));
     }
+    const out = cp.execSync('git status -u -s', { encoding: 'utf8' });
+    return out
+        .split(/\r?\n/)
+        .filter((l) => !!l)
+        .filter((l) => _.intersection(['M', 'A', 'R', 'C', 'U', '?'], l.substring(0, 2).trim().split('')).length > 0)
+        .map((l) => path.join(__dirname, l.substring(2).trim().replace(/\//g, path.sep)));
 }
 
 function getDifferentFromMainFilesSync() {

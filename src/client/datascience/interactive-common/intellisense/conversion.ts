@@ -150,7 +150,7 @@ function convertToVSCodeRange(range: monacoEditor.IRange | undefined): vscode.Ra
 }
 
 // Something very fishy. If the monacoEditor.languages.CompletionItemKind is included here, we get this error on startup
-// Activating extension `ms-python.python` failed:  Unexpected token {
+// Activating extension `ms-ai-tools.jupyter` failed:  Unexpected token {
 // extensionHostProcess.js:457
 // Here is the error stack:  f:\vscode-python\node_modules\monaco-editor\esm\vs\editor\editor.api.js:5
 // import { EDITOR_DEFAULTS } from './common/config/editorOptions.js';

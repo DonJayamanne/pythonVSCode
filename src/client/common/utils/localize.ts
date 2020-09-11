@@ -809,7 +809,7 @@ export namespace DataScience {
     );
     export const jupyterDebuggerOutputParseError = localize(
         'DataScience.jupyterDebuggerOutputParseError',
-        'Unable to parse {0} output, please log an issue with https://github.com/microsoft/vscode-python'
+        'Unable to parse {0} output, please log an issue with https://github.com/microsoft/vscode-jupyter'
     );
     export const jupyterDebuggerPortNotAvailableError = localize(
         'DataScience.jupyterDebuggerPortNotAvailableError',

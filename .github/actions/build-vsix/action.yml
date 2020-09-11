@@ -4,7 +4,7 @@ description: "Build the extension's VSIX"
 outputs:
   path:
     description: 'Path to the VSIX'
-    value: 'ms-python-insiders.vsix'
+    value: 'ms-ai-tools-jupyter-insiders.vsix'
 
 runs:
   using: 'composite'

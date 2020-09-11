@@ -2,11 +2,11 @@
 
 ---
 
-| `release` branch                                                                                                                                                                            | `main` branch                                                                                                                                                                         | Nightly CI                                                                                                                                                                                         | coverage (`main` branch)                                                                                                               |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| [![Build Status](https://dev.azure.com/ms/vscode-python/_apis/build/status/CI?branchName=release)](https://dev.azure.com/ms/vscode-python/_build/latest?definitionId=88&branchName=release) | [![Build Status](https://dev.azure.com/ms/vscode-python/_apis/build/status/CI?branchName=main)](https://dev.azure.com/ms/vscode-python/_build/latest?definitionId=88&branchName=main) | [![Build Status](https://dev.azure.com/ms/vscode-python/_apis/build/status/Nightly%20Build?branchName=main)](https://dev.azure.com/ms/vscode-python/_build/latest?definitionId=85&branchName=main) | [![codecov](https://codecov.io/gh/microsoft/vscode-python/branch/main/graph/badge.svg)](https://codecov.io/gh/microsoft/vscode-python) |
+| `release` branch                                                                                                                                                                              | `main` branch                                                                                                                                                                           | Nightly CI                                                                                                                                                                                           | coverage (`main` branch)                                                                                                                 |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| [![Build Status](https://dev.azure.com/ms/vscode-jupyter/_apis/build/status/CI?branchName=release)](https://dev.azure.com/ms/vscode-jupyter/_build/latest?definitionId=88&branchName=release) | [![Build Status](https://dev.azure.com/ms/vscode-jupyter/_apis/build/status/CI?branchName=main)](https://dev.azure.com/ms/vscode-jupyter/_build/latest?definitionId=88&branchName=main) | [![Build Status](https://dev.azure.com/ms/vscode-jupyter/_apis/build/status/Nightly%20Build?branchName=main)](https://dev.azure.com/ms/vscode-jupyter/_build/latest?definitionId=85&branchName=main) | [![codecov](https://codecov.io/gh/microsoft/vscode-jupyter/branch/main/graph/badge.svg)](https://codecov.io/gh/microsoft/vscode-jupyter) |
 
-[[Development build](https://pvsc.blob.core.windows.net/extension-builds/ms-python-insiders.vsix)]
+[[Development build](https://pvsc.blob.core.windows.net/extension-builds/ms-ai-tools-jupyter-insiders.vsix)]
 
 ---
 
@@ -29,8 +29,8 @@
 ### Setup
 
 ```shell
-git clone https://github.com/microsoft/vscode-python
-cd vscode-python
+git clone https://github.com/microsoft/vscode-jupyter
+cd vscode-jupyter
 npm ci
 python3 -m venv .venv
 # Activate the virtual environment as appropriate for your shell, For example, on bash it's ...
@@ -71,7 +71,7 @@ TypeScript errors and warnings will be displayed in the `Problems` window of Vis
 
 ### Run dev build and validate your changes
 
-To test changes, open the `vscode-python` folder in VSCode, and select the workspace titled `vscode-python`.
+To test changes, open the `vscode-jupyter` folder in VSCode, and select the workspace titled `vscode-jupyter`.
 Then, open the debug panel by clicking the `Run and Debug` icon on the sidebar, select the `Extension`
 option from the top menu, and click start. A new window will launch with the title
 `[Extension Development Host]`.
@@ -161,7 +161,7 @@ be matched against suite and test "names" to be run. By default all tests
 are run.
 
 For example, to run only the tests in the `Sorting` suite (from
-[`src/test/format/extension.sort.test.ts`](https://github.com/Microsoft/vscode-python/blob/84f9c7a174111/src/test/format/extension.sort.test.ts))
+[`src/test/format/extension.sort.test.ts`](https://github.com/Microsoft/vscode-jupyter/blob/84f9c7a174111/src/test/format/extension.sort.test.ts))
 you would set the value to `Sorting`. To run the `ProcessService` and
 `ProcessService Observable` tests which relate to `stderr` handling, you might
 use the value `ProcessService.*stderr`.
@@ -171,7 +171,7 @@ Be sure to escape any grep-sensitive characters in your suite name.
 In some rare cases in the "system" tests the `VSC_PYTHON_CI_TEST_GREP`
 environment variable is ignored. If that happens then you will need to
 temporarily modify the `const grep =` line in
-[`src/test/index.ts`](https://github.com/Microsoft/vscode-python/blob/84f9c7a174111/src/test/index.ts#L64).
+[`src/test/index.ts`](https://github.com/Microsoft/vscode-jupyter/blob/84f9c7a174111/src/test/index.ts#L64).
 
 _Launching from VSCode_
 
@@ -223,10 +223,10 @@ From there use the `Extension + Debugger` launch option.
 
 ### Coding Standards
 
-Information on our coding standards can be found [here](https://github.com/Microsoft/vscode-python/blob/main/CODING_STANDARDS.md).
+Information on our coding standards can be found [here](https://github.com/Microsoft/vscode-jupyter/blob/main/CODING_STANDARDS.md).
 We have CI tests to ensure the code committed will adhere to the above coding standards. \*You can run this locally by executing the command `npx gulp precommit` or use the `precommit` Task.
 
-Messages displayed to the user must be localized using/created constants from/in the [localize.ts](https://github.com/Microsoft/vscode-python/blob/main/src/client/common/utils/localize.ts) file.
+Messages displayed to the user must be localized using/created constants from/in the [localize.ts](https://github.com/Microsoft/vscode-jupyter/blob/main/src/client/common/utils/localize.ts) file.
 
 ## Development process
 
@@ -254,14 +254,14 @@ than the next sprint from when it was submitted (see
 ### Release cycle
 
 Planning is done as one week sprints. We start a sprint every Thursday.
-All [P0](https://github.com/Microsoft/vscode-python/labels/P0) issues are expected
+All [P0](https://github.com/Microsoft/vscode-jupyter/labels/P0) issues are expected
 to be fixed in the current sprint, else the next release will be blocked.
-[P1](https://github.com/Microsoft/vscode-python/labels/P1) issues are a
+[P1](https://github.com/Microsoft/vscode-jupyter/labels/P1) issues are a
 top-priority and we try to close before the next release. All other issues are
 considered best-effort for that sprint.
 
 The extension aims to do a new release once a month. A
-[release plan](https://github.com/Microsoft/vscode-python/labels/release%20plan)
+[release plan](https://github.com/Microsoft/vscode-jupyter/labels/release%20plan)
 is created for each release to help track anything that requires a
 person to do (long-term this project aims to automate as much of the
 development process as possible).
@@ -270,7 +270,7 @@ All development is actively done in the `main` branch of the
 repository. This allows us to have a
 [development build](#development-build) which is expected to be stable at
 all times. Once we reach a release candidate, it becomes
-our [release branch](https://github.com/microsoft/vscode-python/branches).
+our [release branch](https://github.com/microsoft/vscode-jupyter/branches).
 At that point only what is in the release branch will make it into the next
 release.
 
@@ -279,7 +279,7 @@ release.
 #### Classifying issues
 
 To help actively track what stage
-[issues](https://github.com/Microsoft/vscode-python/issues)
+[issues](https://github.com/Microsoft/vscode-jupyter/issues)
 are at, various labels are used. The following label types are expected to
 be set on all open issues (otherwise the issue is not considered triaged):
 
@@ -300,7 +300,7 @@ have a merged fix and verify that the fix did in fact work. The other is to try 
 ### Pull requests
 
 Key details that all pull requests are expected to handle should be
-in the [pull request template](https://github.com/Microsoft/vscode-python/blob/main/.github/PULL_REQUEST_TEMPLATE.md). We do expect CI to be passing for a pull request before we will consider merging it.
+in the [pull request template](https://github.com/Microsoft/vscode-jupyter/blob/main/.github/PULL_REQUEST_TEMPLATE.md). We do expect CI to be passing for a pull request before we will consider merging it.
 
 ### Versioning
 
@@ -316,12 +316,12 @@ For example the first release made in 2020 is `2020.1.<build number>`.
 ## Releasing
 
 Overall steps for releasing are covered in the
-[release plan](https://github.com/Microsoft/vscode-python/labels/release%20plan)
-([template](https://github.com/Microsoft/vscode-python/blob/main/.github/release_plan.md)).
+[release plan](https://github.com/Microsoft/vscode-jupyter/labels/release%20plan)
+([template](https://github.com/Microsoft/vscode-jupyter/blob/main/.github/release_plan.md)).
 
 ### Building a release
 
-To create a release _build_, follow the steps outlined in the [release plan](https://github.com/Microsoft/vscode-python/labels/release%20plan) (which has a [template](https://github.com/Microsoft/vscode-python/blob/main/.github/release_plan.md)).
+To create a release _build_, follow the steps outlined in the [release plan](https://github.com/Microsoft/vscode-jupyter/labels/release%20plan) (which has a [template](https://github.com/Microsoft/vscode-jupyter/blob/main/.github/release_plan.md)).
 
 ## Local Build
 
@@ -329,7 +329,7 @@ Steps to build the extension on your machine once you've cloned the repo:
 
 ```bash
 > npm install -g vsce
-# Perform the next steps in the vscode-python folder.
+# Perform the next steps in the vscode-jupyter folder.
 > npm ci
 > python3 -m pip --disable-pip-version-check install -t ./pythonFiles/lib/python --no-cache-dir --implementation py --no-deps --upgrade -r requirements.txt
 # For python 3.6 and lower use this command to install the debugger
@@ -341,7 +341,7 @@ Steps to build the extension on your machine once you've cloned the repo:
 > npm run package # This step takes around 10 minutes.
 ```
 
-Resulting in a `ms-python-insiders.vsix` file in your `vscode-python` folder.
+Resulting in a `ms-ai-tools-jupyter-insiders.vsix` file in your `vscode-jupyter` folder.
 
 ⚠️ If you made changes to `package.json`, run `npm install` (instead of `npm ci`) to update `package-lock.json` and install dependencies all at once.
 
@@ -350,9 +350,9 @@ Resulting in a `ms-python-insiders.vsix` file in your `vscode-python` folder.
 If you would like to use the latest version of the extension as committed to `main` that has passed our test suite, then you may set the `"python.insidersChannel"` setting to `"daily"` or `"weekly"` based on how often you would like the extension to check for updates.
 
 You may also download and install the extension manually from the following
-[location](https://pvsc.blob.core.windows.net/extension-builds/ms-python-insiders.vsix).
+[location](https://pvsc.blob.core.windows.net/extension-builds/ms-ai-tools-jupyter-insiders.vsix).
 Once you have downloaded the
-[ms-python-insiders.vsix](https://pvsc.blob.core.windows.net/extension-builds/ms-python-insiders.vsix)
+[ms-ai-tools-jupyter-insiders.vsix](https://pvsc.blob.core.windows.net/extension-builds/ms-ai-tools-jupyter-insiders.vsix)
 file, please follow the instructions on
 [this page](https://code.visualstudio.com/docs/editor/extension-gallery#_install-from-a-vsix)
 to install the extension. Do note that the manual install will not automatically update to newer builds unless you set the `"python.insidersChannel"` setting (it will get replaced with released versions from the Marketplace once they are newer than the version install manually).

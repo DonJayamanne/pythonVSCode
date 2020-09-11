@@ -15,8 +15,8 @@ env:
   CACHE_PIP_DEPS: cache-pip
   # Key for the cache created at the end of the the 'Cache ./pythonFiles/lib/python' step.
   CACHE_PYTHONFILES: cache-pvsc-pythonFiles
-  ARTIFACT_NAME_VSIX: ms-python-release-vsix
-  VSIX_NAME: ms-python-release.vsix
+  ARTIFACT_NAME_VSIX: ms-ai-tools-jupyter-release-vsix
+  VSIX_NAME: ms-ai-tools-jupyter-release.vsix
   COVERAGE_REPORTS: tests-coverage-reports
   TEST_RESULTS_DIRECTORY: .
 
@@ -24,7 +24,7 @@ jobs:
   build-vsix:
     name: Build VSIX
     runs-on: ubuntu-latest
-    if: github.repository == 'microsoft/vscode-python'
+    if: github.repository == 'microsoft/vscode-jupyter'
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -67,7 +67,7 @@ jobs:
     # will be caught when we merge back into 'main'.
     name: Lint
     runs-on: ubuntu-latest
-    if: github.repository == 'microsoft/vscode-python'
+    if: github.repository == 'microsoft/vscode-jupyter'
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -101,7 +101,7 @@ jobs:
     name: Tests
     # The value of runs-on is the OS of the current job (specified in the strategy matrix below) instead of being hardcoded.
     runs-on: ${{ matrix.os }}
-    if: github.repository == 'microsoft/vscode-python'
+    if: github.repository == 'microsoft/vscode-jupyter'
     strategy:
       fail-fast: false
       matrix:
@@ -113,7 +113,7 @@ jobs:
         test-suite: [ts-unit, python-unit, venv, single-workspace, multi-workspace, debugger, functional]
     env:
       # Something in Node 12.16.0 breaks the TS debug adapter, and ubuntu-latest bundles Node 12.16.1.
-      # We can remove this when we switch over to the python-based DA in https://github.com/microsoft/vscode-python/issues/7136.
+      # We can remove this when we switch over to the python-based DA in https://github.com/microsoft/vscode-jupyter/issues/7136.
       # See https://github.com/microsoft/ptvsd/issues/2068
       # At this point pinning is only needed for consistency. We no longer have TS debug adapter.
       NODE_VERSION: 12.15.0
@@ -322,7 +322,7 @@ jobs:
     name: Smoke tests
     # The value of runs-on is the OS of the current job (specified in the strategy matrix below) instead of being hardcoded.
     runs-on: ${{ matrix.os }}
-    if: github.repository == 'microsoft/vscode-python'
+    if: github.repository == 'microsoft/vscode-jupyter'
     needs: [build-vsix]
     strategy:
       fail-fast: false

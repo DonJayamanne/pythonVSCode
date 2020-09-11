@@ -1,20 +1,20 @@
 {
 	"name": "ms-ai-tools-test",
 	"displayName": "AI Tools Test Extension",
-	"description": "Extension for testing the API for talking to the ms-python.python extension",
+	"description": "Extension for testing the API for talking to the ms-ai-tools.jupyter extension",
 	"version": "0.0.1",
-	"publisher": "ms-python",
+	"publisher": "ms-ai-tools",
 	"engines": {
 		"vscode": "^1.32.0"
 	},
 	"license": "MIT",
-	"homepage": "https://github.com/Microsoft/vscode-python",
+	"homepage": "https://github.com/Microsoft/vscode-jupyter",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/Microsoft/vscode-python"
+		"url": "https://github.com/Microsoft/vscode-jupyter"
 	},
 	"bugs": {
-		"url": "https://github.com/Microsoft/vscode-python/issues"
+		"url": "https://github.com/Microsoft/vscode-jupyter/issues"
 	},
 	"qna": "https://stackoverflow.com/questions/tagged/visual-studio-code+python",
 	"categories": [
@@ -23,7 +23,11 @@
 	"activationEvents": [],
 	"main": "./dist/extension",
 	"contributes": {
-		"pythonRemoteServerProvider": [ {"id": "RemoteServerPickerExample"} ]
+		"pythonRemoteServerProvider": [
+			{
+				"id": "RemoteServerPickerExample"
+			}
+		]
 	},
 	"scripts": {
 		"vscode:prepublish": "webpack --mode production",

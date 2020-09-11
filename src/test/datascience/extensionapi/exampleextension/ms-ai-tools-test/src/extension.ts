@@ -6,7 +6,7 @@ import { IPythonExtensionApi } from './typings/python';
 
 // Register our URI picker
 export async function activate(_context: vscode.ExtensionContext) {
-    const python = vscode.extensions.getExtension<IPythonExtensionApi>('ms-python.python');
+    const python = vscode.extensions.getExtension<IPythonExtensionApi>('ms-ai-tools.jupyter');
     if (python) {
         if (!python.isActive) {
             await python.activate();

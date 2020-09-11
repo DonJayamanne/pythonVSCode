@@ -13,7 +13,8 @@ import { IFileDownloader, IOutputChannel } from '../types';
 import { ExtensionChannels } from '../utils/localize';
 import { IExtensionBuildInstaller } from './types';
 
-export const developmentBuildUri = 'https://pvsc.blob.core.windows.net/extension-builds/ms-python-insiders.vsix';
+export const developmentBuildUri =
+    'https://pvsc.blob.core.windows.net/extension-builds/ms-ai-tools-jupyter-insiders.vsix';
 export const vsixFileExtension = '.vsix';
 
 @injectable()

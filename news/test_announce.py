@@ -114,7 +114,7 @@ def test_entry_markdown():
     markdown = ann.entry_markdown(ann.NewsEntry(42, "Hello, world!", None))
     assert "42" in markdown
     assert "Hello, world!" in markdown
-    assert "https://github.com/Microsoft/vscode-python/issues/42" in markdown
+    assert "https://github.com/Microsoft/vscode-jupyter/issues/42" in markdown
 
 
 def test_changelog_markdown():
@@ -138,10 +138,10 @@ def test_changelog_markdown():
     assert "Fix 1" in markdown
     assert "2" in markdown
     assert "Enhancement 1" in markdown
-    assert "https://github.com/Microsoft/vscode-python/issues/2" in markdown
+    assert "https://github.com/Microsoft/vscode-jupyter/issues/2" in markdown
     assert "3" in markdown
     assert "Fix 2" in markdown
-    assert "https://github.com/Microsoft/vscode-python/issues/3" in markdown
+    assert "https://github.com/Microsoft/vscode-jupyter/issues/3" in markdown
     assert "4" in markdown
     assert "Enhancement 2" in markdown
 

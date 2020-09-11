@@ -96,7 +96,7 @@ def entry_markdown(entry):
     enumerated_item = "1. "
     indent = " " * len(enumerated_item)
     issue_url = (
-        f"https://github.com/Microsoft/vscode-python/issues/{entry.issue_number}"
+        f"https://github.com/Microsoft/vscode-jupyter/issues/{entry.issue_number}"
     )
     issue_md = f"([#{entry.issue_number}]({issue_url}))"
     entry_lines = entry.description.strip().splitlines()

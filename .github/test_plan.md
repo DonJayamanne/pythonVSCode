@@ -86,7 +86,7 @@ os.remove('survey2017.zip')
     -   [ ] [`Create Terminal`](https://code.visualstudio.com/docs/python/environments#_activating-an-environment-in-the-terminal) works
         -   [ ] `"python.terminal.activateEnvironment": false` deactivates automatically running the activation script in the terminal
     -   [ ] After the language server downloads it is able to complete its analysis of the environment w/o requiring a restart
--   [ ] (Linux/macOS until [`-m` is supported](https://github.com/Microsoft/vscode-python/issues/978)) Detected the virtual environment created by [pipenv](https://docs.pipenv.org/)
+-   [ ] (Linux/macOS until [`-m` is supported](https://github.com/Microsoft/vscode-jupyter/issues/978)) Detected the virtual environment created by [pipenv](https://docs.pipenv.org/)
     -   [ ] Appropriate suffix label specified in status bar (e.g. `(pipenv)`)
     -   [ ] Prompt to install Pylint uses `pipenv install --dev`
     -   [ ] [`Create Terminal`](https://code.visualstudio.com/docs/python/environments#_activating-an-environment-in-the-terminal) works
@@ -234,7 +234,7 @@ def foo():pass
 
 ### [Debugging](https://code.visualstudio.com/docs/python/debugging)
 
--   [ ] [Configurations](https://code.visualstudio.com/docs/python/debugging#_debugging-specific-app-types) work (see [`package.json`](https://github.com/Microsoft/vscode-python/blob/main/package.json) and the `"configurationSnippets"` section for all of the possible configurations)
+-   [ ] [Configurations](https://code.visualstudio.com/docs/python/debugging#_debugging-specific-app-types) work (see [`package.json`](https://github.com/Microsoft/vscode-jupyter/blob/main/package.json) and the `"configurationSnippets"` section for all of the possible configurations)
 -   [ ] Running code from start to finish w/ no special debugging options (e.g. no breakpoints)
 -   [ ] Breakpoint-like things
     -   [ ] Breakpoint
