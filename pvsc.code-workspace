@@ -13,6 +13,10 @@
         {
             "path": "../vscode-notebook-renderers",
             "name": "vscode-notebook-renderers"
+        },
+        {
+            "name": "vscode-python",
+            "path": "../vscode-python"
         }
     ],
     "settings": {
@@ -34,13 +38,32 @@
             {
                 "type": "extensionHost",
                 "request": "launch",
-                "name": "Python + Renderer Extension",
+                "name": "Python + Jupyter Extension",
                 "args": [
                     "--enable-proposed-api",
+                    "--extensionDevelopmentPath=${workspaceFolder:vscode-python}",
+                    "--extensionDevelopmentPath=${workspaceFolder:vscode-jupyter}"
+                ],
+                "outFiles": [
+                    "${workspaceFolder:vscode-python}/out/**/*.js",
+                    "!${workspaceFolder:vscode-python}/**/node_modules**/*",
+                    "${workspaceFolder:vscode-jupyter}/out/**/*.js",
+                    "!${workspaceFolder:vscode-jupyter}/**/node_modules**/*"
+                ]
+            },
+            {
+                "type": "extensionHost",
+                "request": "launch",
+                "name": "Python + Jupyter + Renderer Extension",
+                "args": [
+                    "--enable-proposed-api",
+                    "--extensionDevelopmentPath=${workspaceFolder:vscode-python}",
                     "--extensionDevelopmentPath=${workspaceFolder:vscode-jupyter}",
                     "--extensionDevelopmentPath=${workspaceFolder:vscode-notebook-renderers}"
                 ],
                 "outFiles": [
+                    "${workspaceFolder:vscode-python}/out/**/*.js",
+                    "!${workspaceFolder:vscode-python}/**/node_modules**/*",
                     "${workspaceFolder:vscode-jupyter}/out/**/*.js",
                     "!${workspaceFolder:vscode-jupyter}/**/node_modules**/*",
                     "${workspaceFolder:vscode-notebook-renderers}/out/**/*.js",
