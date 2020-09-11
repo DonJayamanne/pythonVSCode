@@ -19,12 +19,11 @@ import { JupyterKernelSpec } from '../../client/datascience/jupyter/kernels/jupy
 import { KernelFinder } from '../../client/datascience/kernel-launcher/kernelFinder';
 import { IKernelFinder } from '../../client/datascience/kernel-launcher/types';
 import { IDataScienceFileSystem, IJupyterKernelSpec } from '../../client/datascience/types';
-import { IInterpreterLocatorService, IInterpreterService } from '../../client/interpreter/contracts';
+import { IInterpreterService } from '../../client/interpreter/contracts';
 import { EnvironmentType, PythonEnvironment } from '../../client/pythonEnvironments/info';
 
 suite('Kernel Finder', () => {
     let interpreterService: typemoq.IMock<IInterpreterService>;
-    let interpreterLocator: typemoq.IMock<IInterpreterLocatorService>;
     let fileSystem: typemoq.IMock<IDataScienceFileSystem>;
     let platformService: typemoq.IMock<IPlatformService>;
     let pathUtils: typemoq.IMock<IPathUtils>;
@@ -139,9 +138,8 @@ suite('Kernel Finder', () => {
                 .returns(() => Promise.resolve(activeInterpreter));
 
             // Set our workspace interpreters
-            interpreterLocator = typemoq.Mock.ofType<IInterpreterLocatorService>();
-            interpreterLocator
-                .setup((il) => il.getInterpreters(typemoq.It.isAny(), typemoq.It.isAny()))
+            interpreterService
+                .setup((il) => il.getInterpreters(typemoq.It.isAny()))
                 .returns(() => Promise.resolve(interpreters));
 
             activeKernelA = {
@@ -321,7 +319,6 @@ suite('Kernel Finder', () => {
 
             kernelFinder = new KernelFinder(
                 interpreterService.object,
-                interpreterLocator.object,
                 platformService.object,
                 fileSystem.object,
                 pathUtils.object,
@@ -369,10 +366,8 @@ suite('Kernel Finder', () => {
             interpreterService
                 .setup((is) => is.getInterpreterDetails(typemoq.It.isAny()))
                 .returns(() => Promise.resolve(activeInterpreter));
-
-            interpreterLocator = typemoq.Mock.ofType<IInterpreterLocatorService>();
-            interpreterLocator
-                .setup((il) => il.getInterpreters(typemoq.It.isAny(), typemoq.It.isAny()))
+            interpreterService
+                .setup((il) => il.getInterpreters(typemoq.It.isAny()))
                 .returns(() => Promise.resolve(interpreters));
 
             fileSystem = typemoq.Mock.ofType<IDataScienceFileSystem>();
@@ -404,7 +399,6 @@ suite('Kernel Finder', () => {
 
             kernelFinder = new KernelFinder(
                 interpreterService.object,
-                interpreterLocator.object,
                 platformService.object,
                 fileSystem.object,
                 pathUtils.object,

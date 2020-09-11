@@ -3,7 +3,7 @@
 'use strict';
 
 import type { nbformat } from '@jupyterlab/coreutils';
-import { inject, injectable, named } from 'inversify';
+import { inject, injectable } from 'inversify';
 import * as path from 'path';
 import { CancellationToken, CancellationTokenSource } from 'vscode';
 import { IWorkspaceService } from '../../common/application/types';
@@ -13,7 +13,7 @@ import { IPlatformService } from '../../common/platform/types';
 import { IPythonExecutionFactory } from '../../common/process/types';
 import { IExtensionContext, IInstaller, InstallerResponse, IPathUtils, Product, Resource } from '../../common/types';
 import { IEnvironmentVariablesProvider } from '../../common/variables/types';
-import { IInterpreterLocatorService, IInterpreterService, KNOWN_PATH_SERVICE } from '../../interpreter/contracts';
+import { IInterpreterService } from '../../interpreter/contracts';
 import { captureTelemetry } from '../../telemetry';
 import { getRealPath } from '../common';
 import { Telemetry } from '../constants';
@@ -50,9 +50,6 @@ export class KernelFinder implements IKernelFinder {
 
     constructor(
         @inject(IInterpreterService) private interpreterService: IInterpreterService,
-        @inject(IInterpreterLocatorService)
-        @named(KNOWN_PATH_SERVICE)
-        private readonly interpreterLocator: IInterpreterLocatorService,
         @inject(IPlatformService) private platformService: IPlatformService,
         @inject(IDataScienceFileSystem) private fs: IDataScienceFileSystem,
         @inject(IPathUtils) private readonly pathUtils: IPathUtils,
@@ -217,7 +214,7 @@ export class KernelFinder implements IKernelFinder {
     }
 
     private async getInterpreterPaths(resource: Resource): Promise<string[]> {
-        const interpreters = await this.interpreterLocator.getInterpreters(resource, { ignoreCache: false });
+        const interpreters = await this.interpreterService.getInterpreters(resource);
         const interpreterPrefixPaths = interpreters.map((interpreter) => interpreter.sysPrefix);
         // We can get many duplicates here, so de-dupe the list
         const uniqueInterpreterPrefixPaths = [...new Set(interpreterPrefixPaths)];
