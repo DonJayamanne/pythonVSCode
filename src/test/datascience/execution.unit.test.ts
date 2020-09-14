@@ -38,7 +38,6 @@ import {
     IPathUtils,
     Product
 } from '../../client/common/types';
-import { Architecture } from '../../client/common/utils/platform';
 import { EXTENSION_ROOT_DIR } from '../../client/constants';
 import { DataScienceFileSystem } from '../../client/datascience/dataScienceFileSystem';
 import { JupyterInterpreterDependencyService } from '../../client/datascience/jupyter/interpreter/jupyterInterpreterDependencyService';
@@ -58,7 +57,7 @@ import {
 import { IEnvironmentActivationService } from '../../client/interpreter/activation/types';
 import { IInterpreterService } from '../../client/interpreter/contracts';
 import { ServiceContainer } from '../../client/ioc/container';
-import { EnvironmentType, PythonEnvironment } from '../../client/pythonEnvironments/info';
+import { PythonEnvironment } from '../../client/pythonEnvironments/info';
 import { getOSType, OSType } from '../common';
 import { noop } from '../core';
 import { MockOutputChannel } from '../mockClasses';
@@ -109,36 +108,28 @@ suite('Jupyter Execution', async () => {
         path: '/foo/bar/python.exe',
         version: new SemVer('3.6.6-final'),
         sysVersion: '1.0.0.0',
-        sysPrefix: 'Python',
-        envType: EnvironmentType.Unknown,
-        architecture: Architecture.x64
+        sysPrefix: 'Python'
     };
 
     const missingKernelPython: PythonEnvironment = {
         path: '/foo/baz/python.exe',
         version: new SemVer('3.1.1-final'),
         sysVersion: '1.0.0.0',
-        sysPrefix: 'Python',
-        envType: EnvironmentType.Unknown,
-        architecture: Architecture.x64
+        sysPrefix: 'Python'
     };
 
     const missingNotebookPython: PythonEnvironment = {
         path: '/bar/baz/python.exe',
         version: new SemVer('2.1.1-final'),
         sysVersion: '1.0.0.0',
-        sysPrefix: 'Python',
-        envType: EnvironmentType.Unknown,
-        architecture: Architecture.x64
+        sysPrefix: 'Python'
     };
 
     const missingNotebookPython2: PythonEnvironment = {
         path: '/two/baz/python.exe',
         version: new SemVer('2.1.1'),
         sysVersion: '1.0.0.0',
-        sysPrefix: 'Python',
-        envType: EnvironmentType.Unknown,
-        architecture: Architecture.x64
+        sysPrefix: 'Python'
     };
 
     let workingKernelSpec: string;

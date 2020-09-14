@@ -2,10 +2,9 @@
 // Licensed under the MIT License.
 
 import { InterpreterInformation } from '.';
+import { parsePythonVersion } from '../../../test/interpreters/pythonVersion';
 import { interpreterInfo as getInterpreterInfoCommand, PythonEnvInfo } from '../../common/process/internal/scripts';
-import { Architecture } from '../../common/utils/platform';
 import { copyPythonExecInfo, PythonExecInfo } from '../exec';
-import { parsePythonVersion } from './pythonVersion';
 
 /**
  * Compose full interpreter information based on the given data.
@@ -18,7 +17,6 @@ import { parsePythonVersion } from './pythonVersion';
 export function extractInterpreterInfo(python: string, raw: PythonEnvInfo): InterpreterInformation {
     const rawVersion = `${raw.versionInfo.slice(0, 3).join('.')}-${raw.versionInfo[3]}`;
     return {
-        architecture: raw.is64Bit ? Architecture.x64 : Architecture.x86,
         path: python,
         version: parsePythonVersion(rawVersion),
         sysVersion: raw.sysVersion,

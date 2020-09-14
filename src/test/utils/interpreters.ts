@@ -3,8 +3,7 @@
 
 'use strict';
 
-import { Architecture } from '../../client/common/utils/platform';
-import { EnvironmentType, PythonEnvironment } from '../../client/pythonEnvironments/info';
+import { PythonEnvironment } from '../../client/pythonEnvironments/info';
 
 /**
  * Creates a PythonInterpreter object for testing purposes, with unique name, version and path.
@@ -18,11 +17,9 @@ export function createPythonInterpreter(info?: Partial<PythonEnvironment>): Pyth
     const rnd = new Date().getTime().toString();
     return {
         displayName: `Something${rnd}`,
-        architecture: Architecture.Unknown,
         path: `somePath${rnd}`,
         sysPrefix: `someSysPrefix${rnd}`,
         sysVersion: `1.1.1`,
-        envType: EnvironmentType.Unknown,
         ...(info || {})
     };
 }

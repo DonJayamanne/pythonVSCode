@@ -24,7 +24,6 @@ import { ExportFormat } from '../datascience/export/types';
 import { DebugConfigurationType } from '../debugger/extension/types';
 import { ConsoleType, TriggerType } from '../debugger/types';
 import { LinterId } from '../linters/types';
-import { EnvironmentType } from '../pythonEnvironments/info';
 import { EventName, PlatformErrors } from './constants';
 import { LinterTrigger } from './types';
 
@@ -982,12 +981,6 @@ export interface IEventNamePropertyMapping {
          * @type {string}
          */
         pythonVersion?: string;
-        /**
-         * The type of the interpreter used
-         *
-         * @type {EnvironmentType}
-         */
-        interpreterType: EnvironmentType;
     };
     /**
      * Telemetry event sent when getting activation commands for terminal when interpreter is not specified
@@ -1011,12 +1004,6 @@ export interface IEventNamePropertyMapping {
          * @type {string}
          */
         pythonVersion?: string;
-        /**
-         * The type of the interpreter used
-         *
-         * @type {EnvironmentType}
-         */
-        interpreterType: EnvironmentType;
     };
     [EventName.PYTHON_INTERPRETER_AUTO_SELECTION]: {
         /**
@@ -1447,12 +1434,6 @@ export interface IEventNamePropertyMapping {
          * @type {string}
          */
         pythonVersion?: string;
-        /**
-         * The Python interpreter type: Conda, Virtualenv, Venv, Pipenv etc.
-         *
-         * @type {EnvironmentType}
-         */
-        interpreterType?: EnvironmentType;
     };
     /**
      * Telemetry sent when building workspace symbols

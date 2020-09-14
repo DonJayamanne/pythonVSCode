@@ -24,7 +24,6 @@ import { IPythonExecutionFactory } from '../../client/common/process/types';
 import { Product } from '../../client/common/types';
 import { createDeferred, waitForPromise } from '../../client/common/utils/async';
 import { noop } from '../../client/common/utils/misc';
-import { Architecture } from '../../client/common/utils/platform';
 import { getDefaultInteractiveIdentity } from '../../client/datascience/interactive-window/identity';
 import { getMessageForLibrariesNotInstalled } from '../../client/datascience/jupyter/interpreter/jupyterInterpreterDependencyService';
 import { JupyterExecutionFactory } from '../../client/datascience/jupyter/jupyterExecutionFactory';
@@ -45,7 +44,7 @@ import {
     InterruptResult
 } from '../../client/datascience/types';
 import { IInterpreterService } from '../../client/interpreter/contracts';
-import { EnvironmentType, PythonEnvironment } from '../../client/pythonEnvironments/info';
+import { PythonEnvironment } from '../../client/pythonEnvironments/info';
 import { concatMultilineString } from '../../datascience-ui/common';
 import { generateTestState, ICellViewModel } from '../../datascience-ui/interactive-common/mainState';
 import { sleep } from '../core';
@@ -695,9 +694,7 @@ suite('DataScience notebook tests', () => {
                         path: '/foo/bar/baz/python.exe',
                         version: new SemVer('3.6.6-final'),
                         sysVersion: '1.0.0.0',
-                        sysPrefix: 'Python',
-                        envType: EnvironmentType.Unknown,
-                        architecture: Architecture.x64
+                        sysPrefix: 'Python'
                     };
 
                     // Add interpreter into mock jupyter service and set it as active

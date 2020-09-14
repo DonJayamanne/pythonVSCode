@@ -3,25 +3,7 @@
 
 'use strict';
 
-import { Architecture } from '../../common/utils/platform';
 import { PythonVersion } from './pythonVersion';
-
-/**
- * The supported Python environment types.
- */
-export enum EnvironmentType {
-    Unknown = 'Unknown',
-    Conda = 'Conda',
-    VirtualEnv = 'VirtualEnv',
-    Pipenv = 'PipEnv',
-    Pyenv = 'Pyenv',
-    Venv = 'Venv',
-    WindowsStore = 'WindowsStore',
-    Poetry = 'Poetry',
-    VirtualEnvWrapper = 'VirtualEnvWrapper',
-    Global = 'Global',
-    System = 'System'
-}
 
 type ReleaseLevel = 'alpha' | 'beta' | 'candidate' | 'final' | 'unknown';
 
@@ -46,7 +28,6 @@ export type InterpreterInformation = {
     path: string;
     version?: PythonVersion;
     sysVersion?: string;
-    architecture: Architecture;
     sysPrefix: string;
 };
 
@@ -64,7 +45,4 @@ export type InterpreterInformation = {
 // and doesn't really belong here.
 export type PythonEnvironment = InterpreterInformation & {
     displayName?: string;
-    envType: EnvironmentType;
-    envName?: string;
-    envPath?: string;
 };

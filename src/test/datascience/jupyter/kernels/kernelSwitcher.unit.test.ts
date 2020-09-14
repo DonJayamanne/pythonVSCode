@@ -12,7 +12,6 @@ import { PythonSettings } from '../../../../client/common/configSettings';
 import { ConfigurationService } from '../../../../client/common/configuration/service';
 import { IConfigurationService, IPythonSettings } from '../../../../client/common/types';
 import { Common } from '../../../../client/common/utils/localize';
-import { Architecture } from '../../../../client/common/utils/platform';
 import { EXTENSION_ROOT_DIR } from '../../../../client/constants';
 import { JupyterSessionStartError } from '../../../../client/datascience/baseJupyterSession';
 import { NotebookProvider } from '../../../../client/datascience/interactive-common/notebookProvider';
@@ -22,7 +21,7 @@ import { KernelSelector } from '../../../../client/datascience/jupyter/kernels/k
 import { KernelSwitcher } from '../../../../client/datascience/jupyter/kernels/kernelSwitcher';
 import { KernelConnectionMetadata, LiveKernelModel } from '../../../../client/datascience/jupyter/kernels/types';
 import { IJupyterConnection, IJupyterKernelSpec, INotebook } from '../../../../client/datascience/types';
-import { EnvironmentType, PythonEnvironment } from '../../../../client/pythonEnvironments/info';
+import { PythonEnvironment } from '../../../../client/pythonEnvironments/info';
 import { noop } from '../../../core';
 
 // tslint:disable: max-func-body-length no-any
@@ -49,8 +48,6 @@ suite('DataScience - Kernel Switcher', () => {
         };
         selectedInterpreter = {
             path: '',
-            envType: EnvironmentType.Conda,
-            architecture: Architecture.Unknown,
             sysPrefix: '',
             sysVersion: ''
         };

@@ -14,7 +14,6 @@ import { PYTHON_LANGUAGE } from '../../../../client/common/constants';
 import { PythonExecutionFactory } from '../../../../client/common/process/pythonExecutionFactory';
 import { IPythonExecutionFactory, IPythonExecutionService } from '../../../../client/common/process/types';
 import { ReadWrite } from '../../../../client/common/types';
-import { Architecture } from '../../../../client/common/utils/platform';
 import { DataScienceFileSystem } from '../../../../client/datascience/dataScienceFileSystem';
 import { JupyterSessionManager } from '../../../../client/datascience/jupyter/jupyterSessionManager';
 import { JupyterKernelSpec } from '../../../../client/datascience/jupyter/kernels/jupyterKernelSpec';
@@ -29,7 +28,7 @@ import {
 } from '../../../../client/datascience/types';
 import { IEnvironmentActivationService } from '../../../../client/interpreter/activation/types';
 import { IInterpreterService } from '../../../../client/interpreter/contracts';
-import { EnvironmentType, PythonEnvironment } from '../../../../client/pythonEnvironments/info';
+import { PythonEnvironment } from '../../../../client/pythonEnvironments/info';
 import { FakeClock } from '../../../common';
 
 // tslint:disable-next-line: max-func-body-length
@@ -125,8 +124,7 @@ suite('DataScience - KernelService', () => {
         const interpreter: PythonEnvironment = {
             path: 'some Path',
             displayName: 'Hello World',
-            envName: 'Hello',
-            envType: EnvironmentType.Conda
+            envName: 'Hello'
             // tslint:disable-next-line: no-any
         } as any;
 
@@ -148,8 +146,7 @@ suite('DataScience - KernelService', () => {
         const interpreter: PythonEnvironment = {
             path: 'some Path',
             displayName: 'Hello World',
-            envName: 'Hello',
-            envType: EnvironmentType.Conda
+            envName: 'Hello'
             // tslint:disable-next-line: no-any
         } as any;
 
@@ -228,9 +225,7 @@ suite('DataScience - KernelService', () => {
             displayName: 'Disp2',
             path: 'myPath2',
             sysPrefix: 'xyz',
-            envType: EnvironmentType.Conda,
-            sysVersion: '',
-            architecture: Architecture.Unknown
+            sysVersion: ''
         };
 
         const matchingKernel = await kernelService.findMatchingKernelSpec(interpreter, instance(sessionManager));
@@ -278,7 +273,6 @@ suite('DataScience - KernelService', () => {
         assert.equal(matchingKernel?.display_name, 'disp2');
         assert.equal(matchingKernel?.name, 'K2');
         assert.equal(matchingKernel?.metadata?.interpreter?.path, 'Some Path2');
-        assert.equal(matchingKernel?.metadata?.interpreter?.envName, 'MyEnvName2');
         assert.equal(matchingKernel?.language, PYTHON_LANGUAGE);
     });
     test('Should return a matching spec from a jupyter process for a given interpreter', async () => {
@@ -313,9 +307,7 @@ suite('DataScience - KernelService', () => {
             displayName: 'disp2',
             path: 'Some Path2',
             sysPrefix: 'xyz',
-            envType: EnvironmentType.Conda,
-            sysVersion: '',
-            architecture: Architecture.Unknown
+            sysVersion: ''
         };
 
         const matchingKernel = await kernelService.findMatchingKernelSpec(interpreter, undefined);
@@ -324,7 +316,6 @@ suite('DataScience - KernelService', () => {
         assert.equal(matchingKernel?.display_name, 'disp2');
         assert.equal(matchingKernel?.name, 'K2');
         assert.equal(matchingKernel?.metadata?.interpreter?.path, 'Some Path2');
-        assert.equal(matchingKernel?.metadata?.interpreter?.envName, 'MyEnvName2');
         assert.equal(matchingKernel?.language, PYTHON_LANGUAGE);
         assert.deepEqual(matchingKernel?.metadata, kernelSpecs[1].metadata);
     });
@@ -336,11 +327,9 @@ suite('DataScience - KernelService', () => {
         >;
         let fakeTimer: FakeClock;
         const interpreter: PythonEnvironment = {
-            architecture: Architecture.Unknown,
             path: path.join('interpreter', 'python'),
             sysPrefix: '',
             sysVersion: '',
-            envType: EnvironmentType.Conda,
             displayName: 'Hello'
         };
         // Marked as readonly, to ensure we do not update this in tests.
@@ -354,8 +343,7 @@ suite('DataScience - KernelService', () => {
             metadata: {
                 something: '1',
                 interpreter: {
-                    path: interpreter.path,
-                    type: interpreter.envType
+                    path: interpreter.path
                 }
             }
         };
@@ -382,11 +370,9 @@ suite('DataScience - KernelService', () => {
 
         test('Fail if interpreter does not have a display name', async () => {
             const invalidInterpreter: PythonEnvironment = {
-                architecture: Architecture.Unknown,
                 path: '',
                 sysPrefix: '',
-                sysVersion: '',
-                envType: EnvironmentType.Conda
+                sysVersion: ''
             };
 
             const promise = kernelService.registerKernel(invalidInterpreter);

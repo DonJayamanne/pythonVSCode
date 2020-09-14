@@ -25,8 +25,8 @@ import { IDisposable } from '../../../client/common/types';
 import { Architecture } from '../../../client/common/utils/platform';
 import { EXTENSION_ROOT_DIR } from '../../../client/constants';
 import { PythonVersionInfo } from '../../../client/pythonEnvironments/info';
-import { parsePythonVersion } from '../../../client/pythonEnvironments/info/pythonVersion';
 import { isPythonVersion, PYTHON_PATH } from '../../common';
+import { parsePythonVersion } from '../../interpreters/pythonVersion';
 import { createTemporaryFile } from '../../utils/fs';
 use(chaiPromised);
 

@@ -10,7 +10,6 @@ import { IApplicationShell } from '../../../../client/common/application/types';
 import { ProductInstaller } from '../../../../client/common/installer/productInstaller';
 import { IInstaller, InstallerResponse, Product } from '../../../../client/common/types';
 import { DataScience } from '../../../../client/common/utils/localize';
-import { Architecture } from '../../../../client/common/utils/platform';
 import {
     InterpreterJupyterKernelSpecCommand,
     JupyterCommandFactory
@@ -20,7 +19,7 @@ import {
     JupyterInterpreterDependencyService
 } from '../../../../client/datascience/jupyter/interpreter/jupyterInterpreterDependencyService';
 import { IJupyterCommand, IJupyterCommandFactory } from '../../../../client/datascience/types';
-import { EnvironmentType, PythonEnvironment } from '../../../../client/pythonEnvironments/info';
+import { PythonEnvironment } from '../../../../client/pythonEnvironments/info';
 
 // tslint:disable: max-func-body-length no-any
 
@@ -32,10 +31,8 @@ suite('DataScience - Jupyter Interpreter Configuration', () => {
     let command: IJupyterCommand;
     const pythonInterpreter: PythonEnvironment = {
         path: '',
-        architecture: Architecture.Unknown,
         sysPrefix: '',
-        sysVersion: '',
-        envType: EnvironmentType.Unknown
+        sysVersion: ''
     };
     setup(() => {
         appShell = mock(ApplicationShell);

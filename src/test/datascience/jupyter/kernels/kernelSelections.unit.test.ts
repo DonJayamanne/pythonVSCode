@@ -9,7 +9,6 @@ import { PYTHON_LANGUAGE } from '../../../../client/common/constants';
 import { PathUtils } from '../../../../client/common/platform/pathUtils';
 import { IPathUtils } from '../../../../client/common/types';
 import * as localize from '../../../../client/common/utils/localize';
-import { Architecture } from '../../../../client/common/utils/platform';
 import { DataScienceFileSystem } from '../../../../client/datascience/dataScienceFileSystem';
 import { JupyterSessionManager } from '../../../../client/datascience/jupyter/jupyterSessionManager';
 import { KernelSelectionProvider } from '../../../../client/datascience/jupyter/kernels/kernelSelections';
@@ -23,7 +22,6 @@ import {
     IJupyterSessionManager
 } from '../../../../client/datascience/types';
 import { IInterpreterQuickPickItem, IInterpreterSelector } from '../../../../client/interpreter/configuration/types';
-import { EnvironmentType } from '../../../../client/pythonEnvironments/info';
 
 // tslint:disable-next-line: max-func-body-length
 suite('DataScience - KernelSelections', () => {
@@ -92,11 +90,9 @@ suite('DataScience - KernelSelections', () => {
         {
             label: 'Hello1',
             interpreter: {
-                architecture: Architecture.Unknown,
                 path: 'p1',
                 sysPrefix: '',
                 sysVersion: '',
-                envType: EnvironmentType.Conda,
                 displayName: 'Hello1'
             },
             path: 'p1',
@@ -106,11 +102,9 @@ suite('DataScience - KernelSelections', () => {
         {
             label: 'Hello1',
             interpreter: {
-                architecture: Architecture.Unknown,
                 path: 'p2',
                 sysPrefix: '',
                 sysVersion: '',
-                envType: EnvironmentType.Conda,
                 displayName: 'Hello2'
             },
             path: 'p1',
@@ -120,11 +114,9 @@ suite('DataScience - KernelSelections', () => {
         {
             label: 'Hello1',
             interpreter: {
-                architecture: Architecture.Unknown,
                 path: 'p3',
                 sysPrefix: '',
                 sysVersion: '',
-                envType: EnvironmentType.Conda,
                 displayName: 'Hello3'
             },
             path: 'p1',

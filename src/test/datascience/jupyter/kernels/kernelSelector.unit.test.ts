@@ -15,7 +15,6 @@ import { PYTHON_LANGUAGE } from '../../../../client/common/constants';
 import { Resource } from '../../../../client/common/types';
 import * as localize from '../../../../client/common/utils/localize';
 import { noop } from '../../../../client/common/utils/misc';
-import { Architecture } from '../../../../client/common/utils/platform';
 import { StopWatch } from '../../../../client/common/utils/stopWatch';
 import { JupyterSessionManager } from '../../../../client/datascience/jupyter/jupyterSessionManager';
 import { JupyterSessionManagerFactory } from '../../../../client/datascience/jupyter/jupyterSessionManagerFactory';
@@ -33,7 +32,7 @@ import {
 import { IKernelFinder } from '../../../../client/datascience/kernel-launcher/types';
 import { IJupyterSessionManager } from '../../../../client/datascience/types';
 import { IInterpreterService } from '../../../../client/interpreter/contracts';
-import { EnvironmentType, PythonEnvironment } from '../../../../client/pythonEnvironments/info';
+import { PythonEnvironment } from '../../../../client/pythonEnvironments/info';
 
 // tslint:disable: max-func-body-length no-unused-expression no-any
 
@@ -57,11 +56,9 @@ suite('DataScience - KernelSelector', () => {
     };
     const interpreter: PythonEnvironment = {
         displayName: 'Something',
-        architecture: Architecture.Unknown,
         path: 'somePath',
         sysPrefix: '',
         sysVersion: '',
-        envType: EnvironmentType.Conda,
         version: { raw: '3.7.1.1', major: 3, minor: 7, patch: 1, build: ['1'], prerelease: [] }
     };
 

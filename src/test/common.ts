@@ -275,7 +275,8 @@ export function isOs(...OSes: OSType[]): boolean {
     return true;
 }
 
-export function getOSType(platform: string = process.platform): OSType {
+export function getOSType(): OSType {
+    const platform: string = process.platform;
     if (/^win/.test(platform)) {
         return OSType.Windows;
     } else if (/^darwin/.test(platform)) {
@@ -685,8 +686,16 @@ export class TestEventHandler<T extends void | any = any> implements IDisposable
 export function createEventHandler<T, K extends keyof T>(
     obj: T,
     eventName: K,
-    dispoables: IDisposable[] = []
+    disposables: IDisposable[] = []
 ): T[K] extends Event<infer TArgs> ? TestEventHandler<TArgs> : TestEventHandler<void> {
     // tslint:disable-next-line: no-any
-    return new TestEventHandler(obj[eventName] as any, eventName as string, dispoables) as any;
+    return new TestEventHandler(obj[eventName] as any, eventName as string, disposables) as any;
+}
+
+export function arePathsSame(path1: string, path2: string) {
+    if (getOSType() === OSType.Windows) {
+        return path1.toLowerCase() === path2.toLowerCase();
+    } else {
+        return path1 === path2;
+    }
 }

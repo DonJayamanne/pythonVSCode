@@ -33,7 +33,12 @@
         "@typescript-eslint/no-empty-interface": "off",
         "@typescript-eslint/no-non-null-assertion": "off",
         "no-unused-vars": "off",
-        "@typescript-eslint/no-unused-vars": "error",
+        "@typescript-eslint/no-unused-vars": [
+            "error",
+            {
+                "argsIgnorePattern": "^_"
+            }
+        ],
         "no-use-before-define": "off",
         "@typescript-eslint/no-use-before-define": [
             "error",
@@ -87,6 +92,7 @@
         "no-control-regex": "off",
         "function-paren-newline": "off",
         "consistent-return": "off",
+        "class-methods-use-this": "off",
         "no-extend-native": "off",
         "no-multi-str": "off",
         "no-param-reassign": "off",

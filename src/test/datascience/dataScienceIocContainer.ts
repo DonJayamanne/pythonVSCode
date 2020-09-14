@@ -151,7 +151,6 @@ import {
 import { sleep } from '../../client/common/utils/async';
 import { noop } from '../../client/common/utils/misc';
 import { IMultiStepInputFactory, MultiStepInputFactory } from '../../client/common/utils/multiStepInput';
-import { Architecture } from '../../client/common/utils/platform';
 import { EnvironmentVariablesService } from '../../client/common/variables/environment';
 import { EnvironmentVariablesProvider } from '../../client/common/variables/environmentVariablesProvider';
 import { IEnvironmentVariablesProvider, IEnvironmentVariablesService } from '../../client/common/variables/types';
@@ -306,7 +305,7 @@ import {
 import { ProtocolParser } from '../../client/debugger/extension/helpers/protocolParser';
 import { IProtocolParser } from '../../client/debugger/extension/types';
 import { IInterpreterService } from '../../client/interpreter/contracts';
-import { EnvironmentType, PythonEnvironment } from '../../client/pythonEnvironments/info';
+import { PythonEnvironment } from '../../client/pythonEnvironments/info';
 import { CodeExecutionHelper } from '../../client/terminals/codeExecution/helper';
 import { ICodeExecutionHelper } from '../../client/terminals/types';
 import { MockOutputChannel } from '../mockClasses';
@@ -379,18 +378,14 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
         version: new SemVer('3.6.6-final'),
         sysVersion: '1.0.0.0',
         sysPrefix: 'Python',
-        displayName: 'Python',
-        envType: EnvironmentType.Unknown,
-        architecture: Architecture.x64
+        displayName: 'Python'
     };
     private workingPython2: PythonEnvironment = {
         path: '/foo/baz/python.exe',
         version: new SemVer('3.6.7-final'),
         sysVersion: '1.0.0.0',
         sysPrefix: 'Python',
-        displayName: 'Python',
-        envType: EnvironmentType.Unknown,
-        architecture: Architecture.x64
+        displayName: 'Python'
     };
 
     private webPanelProvider = mock(WebviewPanelProvider);

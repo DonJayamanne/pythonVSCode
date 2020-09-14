@@ -6,12 +6,11 @@ import { anything, instance, mock, verify, when } from 'ts-mockito';
 import * as typemoq from 'typemoq';
 import { IApplicationShell } from '../../../client/common/application/types';
 import { IConfigurationService, IDataScienceSettings, IPythonSettings } from '../../../client/common/types';
-import { Architecture } from '../../../client/common/utils/platform';
 import { NotebookServerProvider } from '../../../client/datascience/interactive-common/notebookServerProvider';
 import { ProgressReporter } from '../../../client/datascience/progress/progressReporter';
 import { IJupyterExecution, INotebookServer } from '../../../client/datascience/types';
 import { IInterpreterService } from '../../../client/interpreter/contracts';
-import { EnvironmentType, PythonEnvironment } from '../../../client/pythonEnvironments/info';
+import { PythonEnvironment } from '../../../client/pythonEnvironments/info';
 
 // tslint:disable:no-any
 function createTypeMoq<T>(tag: string): typemoq.IMock<T> {
@@ -37,9 +36,7 @@ suite('DataScience - NotebookServerProvider', () => {
         path: '/foo/bar/python.exe',
         version: new SemVer('3.6.6-final'),
         sysVersion: '1.0.0.0',
-        sysPrefix: 'Python',
-        envType: EnvironmentType.Unknown,
-        architecture: Architecture.x64
+        sysPrefix: 'Python'
     };
 
     setup(() => {

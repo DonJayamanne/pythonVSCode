@@ -6,6 +6,7 @@
     "extends": ["tslint-eslint-rules", "tslint-microsoft-contrib", "tslint-plugin-prettier", "tslint-config-prettier"],
     "rules": {
         "prettier": true,
+        "no-single-line-block-comment": false,
         "messages-must-be-localized": true,
         "no-unused-expression": true,
         "no-duplicate-variable": true,

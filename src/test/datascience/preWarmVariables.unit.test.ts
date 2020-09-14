@@ -7,11 +7,10 @@ import { anything, instance, mock, verify, when } from 'ts-mockito';
 import { EventEmitter } from 'vscode';
 import { IExtensionSingleActivationService } from '../../client/activation/types';
 import { createDeferred } from '../../client/common/utils/async';
-import { Architecture } from '../../client/common/utils/platform';
 import { JupyterInterpreterService } from '../../client/datascience/jupyter/interpreter/jupyterInterpreterService';
 import { PreWarmActivatedJupyterEnvironmentVariables } from '../../client/datascience/preWarmVariables';
 import { IEnvironmentActivationService } from '../../client/interpreter/activation/types';
-import { EnvironmentType, PythonEnvironment } from '../../client/pythonEnvironments/info';
+import { PythonEnvironment } from '../../client/pythonEnvironments/info';
 import { sleep } from '../core';
 
 suite('DataScience - PreWarm Env Vars', () => {
@@ -22,11 +21,9 @@ suite('DataScience - PreWarm Env Vars', () => {
     let interpreter: PythonEnvironment;
     setup(() => {
         interpreter = {
-            architecture: Architecture.Unknown,
             path: '',
             sysPrefix: '',
-            sysVersion: '',
-            envType: EnvironmentType.Conda
+            sysVersion: ''
         };
         onDidChangeInterpreter = new EventEmitter<PythonEnvironment>();
         envActivationService = mock<IEnvironmentActivationService>();

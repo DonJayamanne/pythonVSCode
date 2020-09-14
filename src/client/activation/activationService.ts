@@ -288,7 +288,7 @@ export class LanguageServerExtensionActivationService
             workspacePathNameForGlobalWorkspaces
         );
         interpreter = interpreter ? interpreter : await this.interpreterService.getActiveInterpreter(resource);
-        const interperterPortion = interpreter ? `${interpreter.path}-${interpreter.envName}` : '';
+        const interperterPortion = interpreter ? `${interpreter.path}` : '';
         return `${resourcePortion}-${interperterPortion}`;
     }
 

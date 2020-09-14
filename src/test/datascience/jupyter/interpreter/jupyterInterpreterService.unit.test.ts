@@ -6,7 +6,6 @@
 import { assert } from 'chai';
 import { anyString, anything, instance, mock, verify, when } from 'ts-mockito';
 import { Memento } from 'vscode';
-import { Architecture } from '../../../../client/common/utils/platform';
 import {
     JupyterInterpreterDependencyResponse,
     JupyterInterpreterDependencyService
@@ -16,7 +15,7 @@ import { JupyterInterpreterSelector } from '../../../../client/datascience/jupyt
 import { JupyterInterpreterService } from '../../../../client/datascience/jupyter/interpreter/jupyterInterpreterService';
 import { JupyterInterpreterStateStore } from '../../../../client/datascience/jupyter/interpreter/jupyterInterpreterStateStore';
 import { IInterpreterService } from '../../../../client/interpreter/contracts';
-import { EnvironmentType, PythonEnvironment } from '../../../../client/pythonEnvironments/info';
+import { PythonEnvironment } from '../../../../client/pythonEnvironments/info';
 import { MockMemento } from '../../../mocks/mementos';
 import { createPythonInterpreter } from '../../../utils/interpreters';
 
@@ -34,17 +33,13 @@ suite('DataScience - Jupyter Interpreter Service', () => {
     const selectedJupyterInterpreter = createPythonInterpreter({ displayName: 'JupyterInterpreter' });
     const pythonInterpreter: PythonEnvironment = {
         path: 'some path',
-        architecture: Architecture.Unknown,
         sysPrefix: '',
-        sysVersion: '',
-        envType: EnvironmentType.Unknown
+        sysVersion: ''
     };
     const secondPythonInterpreter: PythonEnvironment = {
         path: 'second interpreter path',
-        architecture: Architecture.Unknown,
         sysPrefix: '',
-        sysVersion: '',
-        envType: EnvironmentType.Unknown
+        sysVersion: ''
     };
 
     setup(() => {

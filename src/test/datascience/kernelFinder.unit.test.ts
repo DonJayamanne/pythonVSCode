@@ -20,7 +20,7 @@ import { KernelFinder } from '../../client/datascience/kernel-launcher/kernelFin
 import { IKernelFinder } from '../../client/datascience/kernel-launcher/types';
 import { IDataScienceFileSystem, IJupyterKernelSpec } from '../../client/datascience/types';
 import { IInterpreterService } from '../../client/interpreter/contracts';
-import { EnvironmentType, PythonEnvironment } from '../../client/pythonEnvironments/info';
+import { PythonEnvironment } from '../../client/pythonEnvironments/info';
 
 suite('Kernel Finder', () => {
     let interpreterService: typemoq.IMock<IInterpreterService>;
@@ -111,20 +111,14 @@ suite('Kernel Finder', () => {
                 path: context.object.globalStoragePath,
                 displayName: 'activeInterpreter',
                 sysPrefix: 'active',
-                envName: '1',
-                sysVersion: '3.1.1.1',
-                architecture: Architecture.x64,
-                envType: EnvironmentType.Unknown
+                sysVersion: '3.1.1.1'
             };
             interpreters = [];
             for (let i = 0; i < 2; i += 1) {
                 interpreters.push({
                     path: `${context.object.globalStoragePath}_${i}`,
                     sysPrefix: `Interpreter${i}`,
-                    envName: '1',
-                    sysVersion: '3.1.1.1',
-                    architecture: Architecture.x64,
-                    envType: EnvironmentType.Unknown
+                    sysVersion: '3.1.1.1'
                 });
             }
 
@@ -376,19 +370,13 @@ suite('Kernel Finder', () => {
                 path: context.object.globalStoragePath,
                 displayName: 'activeInterpreter',
                 sysPrefix: '1',
-                envName: '1',
-                sysVersion: '3.1.1.1',
-                architecture: Architecture.x64,
-                envType: EnvironmentType.Unknown
+                sysVersion: '3.1.1.1'
             };
             for (let i = 0; i < 10; i += 1) {
                 interpreters.push({
                     path: `${context.object.globalStoragePath}_${i}`,
                     sysPrefix: '1',
-                    envName: '1',
-                    sysVersion: '3.1.1.1',
-                    architecture: Architecture.x64,
-                    envType: EnvironmentType.Unknown
+                    sysVersion: '3.1.1.1'
                 });
             }
             interpreters.push(activeInterpreter);
@@ -450,8 +438,7 @@ suite('Kernel Finder', () => {
                 sysPrefix: '1',
                 envName: '1',
                 sysVersion: '3.1.1.1',
-                architecture: Architecture.x64,
-                envType: EnvironmentType.Unknown
+                architecture: Architecture.x64
             };
             // Record a second call to getActiveInterpreter, will play after the first
             interpreterService

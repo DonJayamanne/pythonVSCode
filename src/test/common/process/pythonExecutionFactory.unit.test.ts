@@ -26,12 +26,11 @@ import {
     IPythonExecutionService
 } from '../../../client/common/process/types';
 import { IConfigurationService, IDisposableRegistry } from '../../../client/common/types';
-import { Architecture } from '../../../client/common/utils/platform';
 import { IEnvironmentActivationService } from '../../../client/interpreter/activation/types';
 import { IInterpreterService } from '../../../client/interpreter/contracts';
 import { IWindowsStoreInterpreter } from '../../../client/interpreter/locators/types';
 import { ServiceContainer } from '../../../client/ioc/container';
-import { EnvironmentType, PythonEnvironment } from '../../../client/pythonEnvironments/info';
+import { PythonEnvironment } from '../../../client/pythonEnvironments/info';
 
 // tslint:disable:no-any max-func-body-length chai-vague-errors
 
@@ -39,9 +38,7 @@ const pythonInterpreter: PythonEnvironment = {
     path: '/foo/bar/python.exe',
     version: new SemVer('3.6.6-final'),
     sysVersion: '1.0.0.0',
-    sysPrefix: 'Python',
-    envType: EnvironmentType.Unknown,
-    architecture: Architecture.x64
+    sysPrefix: 'Python'
 };
 
 function title(resource?: Uri, interpreter?: PythonEnvironment) {
