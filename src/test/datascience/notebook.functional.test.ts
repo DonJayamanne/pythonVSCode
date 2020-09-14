@@ -560,12 +560,6 @@ suite('DataScience notebook tests', () => {
                     // Rewire our data we use to search for processes
                     @injectable()
                     class EmptyInterpreterService implements IInterpreterService {
-                        public get hasInterpreters(): Promise<boolean> {
-                            return Promise.resolve(true);
-                        }
-                        public onDidChangeInterpreterConfiguration(): Disposable {
-                            return { dispose: noop };
-                        }
                         public onDidChangeInterpreter(
                             _listener: (e: void) => any,
                             _thisArgs?: any,
@@ -577,25 +571,10 @@ suite('DataScience notebook tests', () => {
                         public getInterpreters(_resource?: Uri): Promise<PythonEnvironment[]> {
                             return Promise.resolve([]);
                         }
-                        public autoSetInterpreter(): Promise<void> {
-                            throw new Error('Method not implemented');
-                        }
                         public getActiveInterpreter(_resource?: Uri): Promise<PythonEnvironment | undefined> {
                             return Promise.resolve(undefined);
                         }
                         public getInterpreterDetails(_pythonPath: string, _resoure?: Uri): Promise<PythonEnvironment> {
-                            throw new Error('Method not implemented');
-                        }
-                        public refresh(_resource: Uri): Promise<void> {
-                            throw new Error('Method not implemented');
-                        }
-                        public initialize(): void {
-                            throw new Error('Method not implemented');
-                        }
-                        public getDisplayName(_interpreter: Partial<PythonEnvironment>): Promise<string> {
-                            throw new Error('Method not implemented');
-                        }
-                        public shouldAutoSetInterpreter(): Promise<boolean> {
                             throw new Error('Method not implemented');
                         }
                     }

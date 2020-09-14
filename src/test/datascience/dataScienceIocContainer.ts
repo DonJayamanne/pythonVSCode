@@ -304,10 +304,17 @@ import {
 } from '../../client/datascience/types';
 import { ProtocolParser } from '../../client/debugger/extension/helpers/protocolParser';
 import { IProtocolParser } from '../../client/debugger/extension/types';
+import { IEnvironmentActivationService } from '../../client/interpreter/activation/types';
+import { IInterpreterSelector } from '../../client/interpreter/configuration/types';
 import { IInterpreterService } from '../../client/interpreter/contracts';
+import { IWindowsStoreInterpreter } from '../../client/interpreter/locators/types';
 import { PythonEnvironment } from '../../client/pythonEnvironments/info';
 import { CodeExecutionHelper } from '../../client/terminals/codeExecution/helper';
 import { ICodeExecutionHelper } from '../../client/terminals/types';
+import { EnvironmentActivationService } from '../interpreters/envActivation';
+import { InterpreterService } from '../interpreters/interpreterService';
+import { InterpreterSelector } from '../interpreters/selector';
+import { WindowsStoreInterpreter } from '../interpreters/winStoreInterpreter';
 import { MockOutputChannel } from '../mockClasses';
 import { UnitTestIocContainer } from '../testing/serviceRegistry';
 import { MockCommandManager } from './mockCommandManager';
@@ -905,6 +912,16 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
             this.serviceManager.addSingletonInstance<KernelService>(KernelService, instance(this.kernelServiceMock));
         } else {
             this.serviceManager.addSingleton<IInstaller>(IInstaller, ProductInstaller);
+            this.serviceManager.addSingleton<IInterpreterService>(IInterpreterService, InterpreterService);
+            this.serviceManager.addSingleton<IInterpreterSelector>(IInterpreterSelector, InterpreterSelector);
+            this.serviceManager.addSingleton<IWindowsStoreInterpreter>(
+                IWindowsStoreInterpreter,
+                WindowsStoreInterpreter
+            );
+            this.serviceManager.addSingleton<IEnvironmentActivationService>(
+                IEnvironmentActivationService,
+                EnvironmentActivationService
+            );
             this.serviceManager.addSingleton<KernelService>(KernelService, KernelService);
             this.serviceManager.addSingleton<IProcessServiceFactory>(IProcessServiceFactory, ProcessServiceFactory);
             this.serviceManager.addSingleton<IPythonExecutionFactory>(IPythonExecutionFactory, PythonExecutionFactory);
@@ -975,7 +992,7 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
         when(this.applicationShell.onDidChangeWindowState).thenReturn(eventCallback);
         when(this.applicationShell.withProgress(anything(), anything())).thenCall((_o, c) => c());
 
-        const interpreterManager = this.serviceContainer.get<IInterpreterService>(IInterpreterService);
+        const interpreterManager = this.serviceContainer.get<InterpreterService>(IInterpreterService);
         interpreterManager.initialize();
 
         if (this.mockJupyter) {

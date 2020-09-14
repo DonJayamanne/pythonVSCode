@@ -134,8 +134,4 @@ export class InterpreterService implements IInterpreterService {
     public getInterpreterDetails(pythonPath: string, resource?: Uri): Promise<undefined | PythonEnvironment> {
         return this.api.getApi().then((api) => api.getInterpreterDetails(pythonPath, resource));
     }
-
-    public initialize(): void {
-        // Noop.
-    }
 }
