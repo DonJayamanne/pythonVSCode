@@ -29,7 +29,7 @@ import {
 import { IKernelFinder } from '../../../client/datascience/kernel-launcher/types';
 import { NativeEditorProvider } from '../../../client/datascience/notebookStorage/nativeEditorProvider';
 import { IInteractiveWindowProvider, INotebookEditorProvider } from '../../../client/datascience/types';
-import { InterpreterService } from '../../../client/interpreter/interpreterService';
+import { IInterpreterService } from '../../../client/interpreter/contracts';
 import { EnvironmentType } from '../../../client/pythonEnvironments/info';
 
 // tslint:disable: max-func-body-length no-any
@@ -118,7 +118,7 @@ suite('DataScience - Notebook Commands', () => {
                 ).thenResolve(remoteSelections);
                 const appShell = mock(ApplicationShell);
                 const dependencyService = mock(KernelDependencyService);
-                const interpreterService = mock(InterpreterService);
+                const interpreterService = mock<IInterpreterService>();
                 const kernelFinder = mock<IKernelFinder>();
                 const jupyterSessionManagerFactory = mock(JupyterSessionManagerFactory);
                 const dummySessionEvent = new EventEmitter<Kernel.IKernelConnection>();

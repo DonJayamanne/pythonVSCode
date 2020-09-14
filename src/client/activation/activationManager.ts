@@ -5,15 +5,13 @@
 
 import { inject, injectable, multiInject } from 'inversify';
 import { TextDocument } from 'vscode';
-import { IApplicationDiagnostics } from '../application/types';
 import { IActiveResourceService, IDocumentManager, IWorkspaceService } from '../common/application/types';
-import { DEFAULT_INTERPRETER_SETTING, PYTHON_LANGUAGE } from '../common/constants';
+import { PYTHON_LANGUAGE } from '../common/constants';
 import { DeprecatePythonPath } from '../common/experiments/groups';
 import { traceDecorators } from '../common/logger';
 import { IFileSystem } from '../common/platform/types';
 import { IDisposable, IExperimentsManager, IInterpreterPathService, Resource } from '../common/types';
-import { createDeferred, Deferred } from '../common/utils/async';
-import { IInterpreterAutoSelectionService, IInterpreterSecurityService } from '../interpreter/autoSelection/types';
+import { Deferred } from '../common/utils/async';
 import { IInterpreterService } from '../interpreter/contracts';
 import { sendActivationTelemetry } from '../telemetry/envFileTelemetry';
 import { IExtensionActivationManager, IExtensionActivationService, IExtensionSingleActivationService } from './types';
@@ -30,14 +28,11 @@ export class ExtensionActivationManager implements IExtensionActivationManager {
         private readonly singleActivationServices: IExtensionSingleActivationService[],
         @inject(IDocumentManager) private readonly documentManager: IDocumentManager,
         @inject(IInterpreterService) private readonly interpreterService: IInterpreterService,
-        @inject(IInterpreterAutoSelectionService) private readonly autoSelection: IInterpreterAutoSelectionService,
-        @inject(IApplicationDiagnostics) private readonly appDiagnostics: IApplicationDiagnostics,
         @inject(IWorkspaceService) private readonly workspaceService: IWorkspaceService,
         @inject(IFileSystem) private readonly fileSystem: IFileSystem,
         @inject(IActiveResourceService) private readonly activeResourceService: IActiveResourceService,
         @inject(IExperimentsManager) private readonly experiments: IExperimentsManager,
-        @inject(IInterpreterPathService) private readonly interpreterPathService: IInterpreterPathService,
-        @inject(IInterpreterSecurityService) private readonly interpreterSecurityService: IInterpreterSecurityService
+        @inject(IInterpreterPathService) private readonly interpreterPathService: IInterpreterPathService
     ) {}
 
     public dispose() {
@@ -57,7 +52,6 @@ export class ExtensionActivationManager implements IExtensionActivationManager {
             Promise.all(this.singleActivationServices.map((item) => item.activate())),
             this.activateWorkspace(this.activeResourceService.getActiveResource())
         ]);
-        await this.autoSelection.autoSelectInterpreter(undefined);
     }
     @traceDecorators.error('Failed to activate a workspace')
     public async activateWorkspace(resource: Resource) {
@@ -77,10 +71,7 @@ export class ExtensionActivationManager implements IExtensionActivationManager {
 
         await sendActivationTelemetry(this.fileSystem, this.workspaceService, resource);
 
-        await this.autoSelection.autoSelectInterpreter(resource);
-        await this.evaluateAutoSelectedInterpreterSafety(resource);
         await Promise.all(this.activationServices.map((item) => item.activate(resource)));
-        await this.appDiagnostics.performPreStartupHealthCheck(resource);
     }
     public async initialize() {
         this.addHandlers();
@@ -102,37 +93,8 @@ export class ExtensionActivationManager implements IExtensionActivationManager {
         this.activateWorkspace(folder ? folder.uri : undefined).ignoreErrors();
     }
 
-    public async evaluateAutoSelectedInterpreterSafety(resource: Resource) {
-        if (this.experiments.inExperiment(DeprecatePythonPath.experiment)) {
-            const workspaceKey = this.getWorkspaceKey(resource);
-            const interpreterSettingValue = this.interpreterPathService.get(resource);
-            if (interpreterSettingValue.length === 0 || interpreterSettingValue === DEFAULT_INTERPRETER_SETTING) {
-                // Setting is not set, extension will use the autoselected value. Make sure it's safe.
-                const interpreter = this.autoSelection.getAutoSelectedInterpreter(resource);
-                if (interpreter) {
-                    const isInterpreterSetForWorkspace = createDeferred<void>();
-                    this.isInterpreterSetForWorkspacePromises.set(workspaceKey, isInterpreterSetForWorkspace);
-                    await Promise.race([
-                        isInterpreterSetForWorkspace.promise,
-                        this.interpreterSecurityService.evaluateAndRecordInterpreterSafety(interpreter, resource)
-                    ]);
-                }
-            } else {
-                // Resolve any concurrent calls waiting on the promise
-                if (this.isInterpreterSetForWorkspacePromises.has(workspaceKey)) {
-                    this.isInterpreterSetForWorkspacePromises.get(workspaceKey)!.resolve();
-                    this.isInterpreterSetForWorkspacePromises.delete(workspaceKey);
-                }
-            }
-        }
-        this.experiments.sendTelemetryIfInExperiment(DeprecatePythonPath.control);
-    }
-
     protected addHandlers() {
         this.disposables.push(this.workspaceService.onDidChangeWorkspaceFolders(this.onWorkspaceFoldersChanged, this));
-        this.disposables.push(
-            this.interpreterPathService.onDidChange((i) => this.evaluateAutoSelectedInterpreterSafety(i.uri))
-        );
     }
     protected addRemoveDocOpenedHandlers() {
         if (this.hasMultipleWorkspaces()) {

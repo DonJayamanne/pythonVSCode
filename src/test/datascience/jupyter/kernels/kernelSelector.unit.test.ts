@@ -33,7 +33,6 @@ import {
 import { IKernelFinder } from '../../../../client/datascience/kernel-launcher/types';
 import { IJupyterSessionManager } from '../../../../client/datascience/types';
 import { IInterpreterService } from '../../../../client/interpreter/contracts';
-import { InterpreterService } from '../../../../client/interpreter/interpreterService';
 import { EnvironmentType, PythonEnvironment } from '../../../../client/pythonEnvironments/info';
 
 // tslint:disable: max-func-body-length no-unused-expression no-any
@@ -72,7 +71,7 @@ suite('DataScience - KernelSelector', () => {
         kernelSelectionProvider = mock(KernelSelectionProvider);
         appShell = mock(ApplicationShell);
         dependencyService = mock(KernelDependencyService);
-        interpreterService = mock(InterpreterService);
+        interpreterService = mock<IInterpreterService>();
         kernelFinder = mock<IKernelFinder>();
         const jupyterSessionManagerFactory = mock(JupyterSessionManagerFactory);
         const dummySessionEvent = new EventEmitter<Kernel.IKernelConnection>();

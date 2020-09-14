@@ -21,7 +21,6 @@ import { EXTENSION_ROOT_DIR } from '../../../../client/constants';
 import { DebugAdapterDescriptorFactory } from '../../../../client/debugger/extension/adapter/factory';
 import { IDebugAdapterDescriptorFactory } from '../../../../client/debugger/extension/types';
 import { IInterpreterService } from '../../../../client/interpreter/contracts';
-import { InterpreterService } from '../../../../client/interpreter/interpreterService';
 import { EnvironmentType } from '../../../../client/pythonEnvironments/info';
 import { clearTelemetryReporter } from '../../../../client/telemetry';
 import { EventName } from '../../../../client/telemetry/constants';
@@ -71,7 +70,7 @@ suite('Debugging - Adapter Factory', () => {
             // tslint:disable-next-line: no-any
         } as any) as IPythonSettings);
 
-        interpreterService = mock(InterpreterService);
+        interpreterService = mock<IInterpreterService>();
         appShell = mock(ApplicationShell);
 
         when(interpreterService.getInterpreterDetails(pythonPath)).thenResolve(interpreter);

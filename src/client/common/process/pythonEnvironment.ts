@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { CondaEnvironmentInfo } from '../../pythonEnvironments/discovery/locators/services/conda';
 import { buildPythonExecInfo, PythonExecInfo } from '../../pythonEnvironments/exec';
 import { InterpreterInformation } from '../../pythonEnvironments/info';
 import { getExecutablePath } from '../../pythonEnvironments/info/executable';
@@ -111,7 +110,10 @@ export function createPythonEnv(
 
 export function createCondaEnv(
     condaFile: string,
-    condaInfo: CondaEnvironmentInfo,
+    condaInfo: {
+        name: string;
+        path: string;
+    },
     pythonPath: string,
     // These are used to generate the deps.
     procs: IProcessService,

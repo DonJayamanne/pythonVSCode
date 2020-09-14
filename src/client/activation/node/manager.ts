@@ -4,7 +4,6 @@ import '../../common/extensions';
 
 import { inject, injectable, named } from 'inversify';
 
-import { ICommandManager } from '../../common/application/types';
 import { traceDecorators } from '../../common/logger';
 import { IConfigurationService, IDisposable, IExperimentsManager, Resource } from '../../common/types';
 import { debounceSync } from '../../common/utils/decorators';
@@ -12,7 +11,6 @@ import { IServiceContainer } from '../../ioc/types';
 import { PythonEnvironment } from '../../pythonEnvironments/info';
 import { captureTelemetry } from '../../telemetry';
 import { EventName } from '../../telemetry/constants';
-import { Commands } from '../commands';
 import { LanguageClientMiddleware } from '../languageClientMiddleware';
 import {
     ILanguageServerAnalysisOptions,
@@ -40,15 +38,8 @@ export class NodeLanguageServerManager implements ILanguageServerManager {
         @inject(ILanguageServerFolderService)
         private readonly folderService: ILanguageServerFolderService,
         @inject(IExperimentsManager) private readonly experimentsManager: IExperimentsManager,
-        @inject(IConfigurationService) private readonly configService: IConfigurationService,
-        @inject(ICommandManager) commandManager: ICommandManager
-    ) {
-        this.disposables.push(
-            commandManager.registerCommand(Commands.RestartLS, () => {
-                this.restartLanguageServer().ignoreErrors();
-            })
-        );
-    }
+        @inject(IConfigurationService) private readonly configService: IConfigurationService
+    ) {}
 
     private static versionTelemetryProps(instance: NodeLanguageServerManager) {
         return {

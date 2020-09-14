@@ -43,7 +43,6 @@ import {
     ITrustService
 } from '../../../client/datascience/types';
 import { IInterpreterService } from '../../../client/interpreter/contracts';
-import { InterpreterService } from '../../../client/interpreter/interpreterService';
 import { concatMultilineString } from '../../../datascience-ui/common';
 import { createEmptyCell } from '../../../datascience-ui/interactive-common/mainState';
 import { MockMemento } from '../../mocks/mementos';
@@ -254,7 +253,7 @@ suite('DataScience - Native Editor Storage', () => {
         fileSystem = typemoq.Mock.ofType<IDataScienceFileSystem>();
         docManager = mock(DocumentManager);
         workspace = mock(WorkspaceService);
-        interpreterService = mock(InterpreterService);
+        interpreterService = mock<IInterpreterService>();
         webPanelProvider = mock(WebviewPanelProvider);
         executionProvider = mock(JupyterExecutionFactory);
         trustService = mock(TrustService);

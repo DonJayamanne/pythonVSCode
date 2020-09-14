@@ -11,7 +11,6 @@ import { IWidgetScriptSourceProvider } from '../../../client/datascience/ipywidg
 import { JupyterNotebookBase } from '../../../client/datascience/jupyter/jupyterNotebook';
 import { IDataScienceFileSystem, ILocalResourceUriConverter, INotebook } from '../../../client/datascience/types';
 import { IInterpreterService } from '../../../client/interpreter/contracts';
-import { InterpreterService } from '../../../client/interpreter/interpreterService';
 
 // tslint:disable: max-func-body-length no-any
 suite('DataScience - ipywidget - Local Widget Script Source', () => {
@@ -28,7 +27,7 @@ suite('DataScience - ipywidget - Local Widget Script Source', () => {
         notebook = mock(JupyterNotebookBase);
         resourceConverter = mock<ILocalResourceUriConverter>();
         fs = mock(DataScienceFileSystem);
-        interpreterService = mock(InterpreterService);
+        interpreterService = mock<IInterpreterService>();
         when(resourceConverter.asWebviewUri(anything())).thenCall((uri) => Promise.resolve(asVSCodeUri(uri)));
         scriptSourceProvider = new LocalWidgetScriptSourceProvider(
             instance(notebook),

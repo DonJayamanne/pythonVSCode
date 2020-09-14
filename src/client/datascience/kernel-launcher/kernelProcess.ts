@@ -107,7 +107,6 @@ export class KernelProcess implements IKernelProcess {
                 }
             }
         );
-
         // Don't return until our heartbeat channel is open for connections
         return this.waitForHeartbeat();
     }

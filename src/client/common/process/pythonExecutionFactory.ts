@@ -1,16 +1,11 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 import { inject, injectable } from 'inversify';
-import { gte } from 'semver';
-
-import { Uri } from 'vscode';
 import { IPlatformService } from '../../common/platform/types';
 import { IEnvironmentActivationService } from '../../interpreter/activation/types';
-import { ICondaService, IInterpreterService } from '../../interpreter/contracts';
+import { IInterpreterService } from '../../interpreter/contracts';
 import { IWindowsStoreInterpreter } from '../../interpreter/locators/types';
 import { IServiceContainer } from '../../ioc/types';
-import { CondaEnvironmentInfo } from '../../pythonEnvironments/discovery/locators/services/conda';
-import { WindowsStoreInterpreter } from '../../pythonEnvironments/discovery/locators/services/windowsStoreInterpreter';
 import { sendTelemetryEvent } from '../../telemetry';
 import { EventName } from '../../telemetry/constants';
 import { traceError } from '../logger';
@@ -49,9 +44,8 @@ export class PythonExecutionFactory implements IPythonExecutionFactory {
         @inject(IEnvironmentActivationService) private readonly activationHelper: IEnvironmentActivationService,
         @inject(IProcessServiceFactory) private readonly processServiceFactory: IProcessServiceFactory,
         @inject(IConfigurationService) private readonly configService: IConfigurationService,
-        @inject(ICondaService) private readonly condaService: ICondaService,
         @inject(IBufferDecoder) private readonly decoder: IBufferDecoder,
-        @inject(WindowsStoreInterpreter) private readonly windowsStoreInterpreter: IWindowsStoreInterpreter,
+        @inject(IWindowsStoreInterpreter) private readonly windowsStoreInterpreter: IWindowsStoreInterpreter,
         @inject(IPlatformService) private readonly platformService: IPlatformService
     ) {
         // Acquire other objects here so that if we are called during dispose they are available.
@@ -71,7 +65,7 @@ export class PythonExecutionFactory implements IPythonExecutionFactory {
             processService,
             this.fileSystem,
             undefined,
-            this.windowsStoreInterpreter.isWindowsStoreInterpreter(pythonPath)
+            await this.windowsStoreInterpreter.isWindowsStoreInterpreter(pythonPath)
         );
     }
 
@@ -174,47 +168,19 @@ export class PythonExecutionFactory implements IPythonExecutionFactory {
 
         return createPythonService(pythonPath, processService, this.fileSystem);
     }
-    // Not using this function for now because there are breaking issues with conda run (conda 4.8, PVSC 2020.1).
-    // See https://github.com/microsoft/vscode-python/issues/9490
-    public async createCondaExecutionService(
-        pythonPath: string,
-        processService?: IProcessService,
-        resource?: Uri
-    ): Promise<IPythonExecutionService | undefined> {
-        const processServicePromise = processService
-            ? Promise.resolve(processService)
-            : this.processServiceFactory.create(resource);
-        const [condaVersion, condaEnvironment, condaFile, procService] = await Promise.all([
-            this.condaService.getCondaVersion(),
-            this.condaService.getCondaEnvironment(pythonPath),
-            this.condaService.getCondaFile(),
-            processServicePromise
-        ]);
-
-        if (condaVersion && gte(condaVersion, CONDA_RUN_VERSION) && condaEnvironment && condaFile && procService) {
-            // Add logging to the newly created process service
-            if (!processService) {
-                procService.on('exec', this.logger.logProcess.bind(this.logger));
-                this.disposables.push(procService);
-            }
-            return createPythonService(
-                pythonPath,
-                procService,
-                this.fileSystem,
-                // This is what causes a CondaEnvironment to be returned:
-                [condaFile, condaEnvironment]
-            );
-        }
-
-        return Promise.resolve(undefined);
-    }
 }
 
 function createPythonService(
     pythonPath: string,
     procService: IProcessService,
     fs: IFileSystem,
-    conda?: [string, CondaEnvironmentInfo],
+    conda?: [
+        string,
+        {
+            name: string;
+            path: string;
+        }
+    ],
     isWindowsStore?: boolean
 ): IPythonExecutionService {
     let env = createPythonEnv(pythonPath, procService, fs);

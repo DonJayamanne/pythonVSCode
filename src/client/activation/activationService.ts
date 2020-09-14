@@ -5,8 +5,6 @@ import '../common/extensions';
 import { inject, injectable } from 'inversify';
 import { ConfigurationChangeEvent, Disposable, OutputChannel, Uri } from 'vscode';
 
-import { LSNotSupportedDiagnosticServiceId } from '../application/diagnostics/checks/lsNotSupported';
-import { IDiagnosticsService } from '../application/diagnostics/types';
 import {
     IApplicationEnvironment,
     IApplicationShell,
@@ -26,13 +24,13 @@ import {
 } from '../common/types';
 import { swallowExceptions } from '../common/utils/decorators';
 import { LanguageService } from '../common/utils/localize';
-import { noop } from '../common/utils/misc';
+// import { noop } from '../common/utils/misc';
 import { IInterpreterService } from '../interpreter/contracts';
 import { IServiceContainer } from '../ioc/types';
 import { PythonEnvironment } from '../pythonEnvironments/info';
 import { sendTelemetryEvent } from '../telemetry';
 import { EventName } from '../telemetry/constants';
-import { Commands } from './commands';
+// import { Commands } from './commands';
 import { LanguageServerChangeHandler } from './common/languageServerChangeHandler';
 import { RefCountedLanguageServer } from './refCountedLanguageServer';
 import {
@@ -70,15 +68,15 @@ export class LanguageServerExtensionActivationService
         this.interpreterService = this.serviceContainer.get<IInterpreterService>(IInterpreterService);
         this.output = this.serviceContainer.get<OutputChannel>(IOutputChannel, STANDARD_OUTPUT_CHANNEL);
 
-        const commandManager = this.serviceContainer.get<ICommandManager>(ICommandManager);
+        // const commandManager = this.serviceContainer.get<ICommandManager>(ICommandManager);
         const disposables = serviceContainer.get<IDisposableRegistry>(IDisposableRegistry);
         disposables.push(this);
         disposables.push(this.workspaceService.onDidChangeConfiguration(this.onDidChangeConfiguration.bind(this)));
         disposables.push(this.workspaceService.onDidChangeWorkspaceFolders(this.onWorkspaceFoldersChanged, this));
         disposables.push(this.interpreterService.onDidChangeInterpreter(this.onDidChangeInterpreter.bind(this)));
-        disposables.push(
-            commandManager.registerCommand(Commands.ClearAnalyisCache, this.onClearAnalysisCaches.bind(this))
-        );
+        // disposables.push(
+        //     commandManager.registerCommand(Commands.ClearAnalyisCache, this.onClearAnalysisCaches.bind(this))
+        // );
 
         this.languageServerChangeHandler = new LanguageServerChangeHandler(
             this.getCurrentLanguageServerType(),
@@ -216,21 +214,6 @@ export class LanguageServerExtensionActivationService
         key: string
     ): Promise<RefCountedLanguageServer> {
         let serverType = this.getCurrentLanguageServerType();
-        if (serverType === LanguageServerType.Microsoft) {
-            const lsNotSupportedDiagnosticService = this.serviceContainer.get<IDiagnosticsService>(
-                IDiagnosticsService,
-                LSNotSupportedDiagnosticServiceId
-            );
-            const diagnostic = await lsNotSupportedDiagnosticService.diagnose(undefined);
-            lsNotSupportedDiagnosticService.handle(diagnostic).ignoreErrors();
-            if (diagnostic.length) {
-                sendTelemetryEvent(EventName.PYTHON_LANGUAGE_SERVER_PLATFORM_SUPPORTED, undefined, {
-                    supported: false
-                });
-                serverType = LanguageServerType.Jedi;
-            }
-        }
-
         this.sendTelemetryForChosenLanguageServer(serverType).ignoreErrors();
 
         await this.logStartup(serverType);
@@ -309,8 +292,8 @@ export class LanguageServerExtensionActivationService
         return `${resourcePortion}-${interperterPortion}`;
     }
 
-    private async onClearAnalysisCaches() {
-        const values = await Promise.all([...this.cache.values()]);
-        values.forEach((v) => (v.clearAnalysisCache ? v.clearAnalysisCache() : noop()));
-    }
+    // private async onClearAnalysisCaches() {
+    //     const values = await Promise.all([...this.cache.values()]);
+    //     values.forEach((v) => (v.clearAnalysisCache ? v.clearAnalysisCache() : noop()));
+    // }
 }

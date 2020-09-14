@@ -14,7 +14,6 @@ import {
 } from 'vscode';
 import { LanguageServerType } from '../activation/types';
 import '../common/extensions';
-import { IInterpreterAutoSeletionProxyService, IInterpreterSecurityService } from '../interpreter/autoSelection/types';
 import { LogLevel } from '../logging/levels';
 import { sendTelemetryEvent } from '../telemetry';
 import { EventName } from '../telemetry/constants';
@@ -126,11 +125,9 @@ export class PythonSettings implements IPythonSettings {
 
     constructor(
         workspaceFolder: Resource,
-        private readonly interpreterAutoSelectionService: IInterpreterAutoSeletionProxyService,
         workspace?: IWorkspaceService,
         private readonly experimentsManager?: IExperimentsManager,
-        private readonly interpreterPathService?: IInterpreterPathService,
-        private readonly interpreterSecurityService?: IInterpreterSecurityService
+        private readonly interpreterPathService?: IInterpreterPathService
     ) {
         this.workspace = workspace || new WorkspaceService();
         this.workspaceRoot = workspaceFolder;
@@ -139,11 +136,9 @@ export class PythonSettings implements IPythonSettings {
     // tslint:disable-next-line:function-name
     public static getInstance(
         resource: Uri | undefined,
-        interpreterAutoSelectionService: IInterpreterAutoSeletionProxyService,
         workspace?: IWorkspaceService,
         experimentsManager?: IExperimentsManager,
-        interpreterPathService?: IInterpreterPathService,
-        interpreterSecurityService?: IInterpreterSecurityService
+        interpreterPathService?: IInterpreterPathService
     ): PythonSettings {
         workspace = workspace || new WorkspaceService();
         const workspaceFolderUri = PythonSettings.getSettingsUriAndTarget(resource, workspace).uri;
@@ -152,11 +147,9 @@ export class PythonSettings implements IPythonSettings {
         if (!PythonSettings.pythonSettings.has(workspaceFolderKey)) {
             const settings = new PythonSettings(
                 workspaceFolderUri,
-                interpreterAutoSelectionService,
                 workspace,
                 experimentsManager,
-                interpreterPathService,
-                interpreterSecurityService
+                interpreterPathService
             );
             PythonSettings.pythonSettings.set(workspaceFolderKey, settings);
             // Pass null to avoid VSC from complaining about not passing in a value.
@@ -577,12 +570,6 @@ export class PythonSettings implements IPythonSettings {
         };
         this.disposables.push(this.workspace.onDidChangeWorkspaceFolders(this.onWorkspaceFoldersChanged, this));
         this.disposables.push(
-            this.interpreterAutoSelectionService.onDidChangeAutoSelectedInterpreter(onDidChange.bind(this))
-        );
-        if (this.interpreterSecurityService) {
-            this.disposables.push(this.interpreterSecurityService.onDidChangeSafeInterpreters(onDidChange.bind(this)));
-        }
-        this.disposables.push(
             this.workspace.onDidChangeConfiguration((event: ConfigurationChangeEvent) => {
                 if (event.affectsConfiguration('python')) {
                     onDidChange();
@@ -622,30 +609,6 @@ export class PythonSettings implements IPythonSettings {
                 ? this.interpreterPathService.get(this.workspaceRoot)
                 : pythonSettings.get<string>('pythonPath')
         )!;
-        if (!process.env.CI_DISABLE_AUTO_SELECTION && (this.pythonPath.length === 0 || this.pythonPath === 'python')) {
-            const autoSelectedPythonInterpreter = this.interpreterAutoSelectionService.getAutoSelectedInterpreter(
-                this.workspaceRoot
-            );
-            if (inExperiment && this.interpreterSecurityService) {
-                if (
-                    autoSelectedPythonInterpreter &&
-                    this.interpreterSecurityService.isSafe(autoSelectedPythonInterpreter) &&
-                    this.workspaceRoot
-                ) {
-                    this.pythonPath = autoSelectedPythonInterpreter.path;
-                    this.interpreterAutoSelectionService
-                        .setWorkspaceInterpreter(this.workspaceRoot, autoSelectedPythonInterpreter)
-                        .ignoreErrors();
-                }
-            } else {
-                if (autoSelectedPythonInterpreter && this.workspaceRoot) {
-                    this.pythonPath = autoSelectedPythonInterpreter.path;
-                    this.interpreterAutoSelectionService
-                        .setWorkspaceInterpreter(this.workspaceRoot, autoSelectedPythonInterpreter)
-                        .ignoreErrors();
-                }
-            }
-        }
         if (inExperiment && this.pythonPath === DEFAULT_INTERPRETER_SETTING) {
             // If no interpreter is selected, set pythonPath to an empty string.
             // This is to ensure that we ask users to select an interpreter in case auto selected interpreter is not safe to select

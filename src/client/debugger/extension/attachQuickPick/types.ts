@@ -17,11 +17,6 @@ export interface IAttachProcessProvider {
     getAttachItems(): Promise<IAttachItem[]>;
 }
 
-export const IAttachProcessProviderFactory = Symbol('IAttachProcessProviderFactory');
-export interface IAttachProcessProviderFactory {
-    registerCommands(): void;
-}
-
 export interface IAttachPicker {
     showQuickPick(): Promise<string>;
 }

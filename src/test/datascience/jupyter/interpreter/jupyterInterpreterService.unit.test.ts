@@ -16,7 +16,6 @@ import { JupyterInterpreterSelector } from '../../../../client/datascience/jupyt
 import { JupyterInterpreterService } from '../../../../client/datascience/jupyter/interpreter/jupyterInterpreterService';
 import { JupyterInterpreterStateStore } from '../../../../client/datascience/jupyter/interpreter/jupyterInterpreterStateStore';
 import { IInterpreterService } from '../../../../client/interpreter/contracts';
-import { InterpreterService } from '../../../../client/interpreter/interpreterService';
 import { EnvironmentType, PythonEnvironment } from '../../../../client/pythonEnvironments/info';
 import { MockMemento } from '../../../mocks/mementos';
 import { createPythonInterpreter } from '../../../utils/interpreters';
@@ -51,7 +50,7 @@ suite('DataScience - Jupyter Interpreter Service', () => {
     setup(() => {
         interpreterSelector = mock(JupyterInterpreterSelector);
         interpreterConfiguration = mock(JupyterInterpreterDependencyService);
-        interpreterService = mock(InterpreterService);
+        interpreterService = mock<IInterpreterService>();
         memento = mock(MockMemento);
         interpreterSelectionState = mock(JupyterInterpreterStateStore);
         oldVersionCacheStateStore = mock(JupyterInterpreterOldCacheStateStore);

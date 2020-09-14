@@ -44,7 +44,7 @@ import {
     INotebookProvider,
     InterruptResult
 } from '../../client/datascience/types';
-import { IInterpreterService, IKnownSearchPathsForInterpreters } from '../../client/interpreter/contracts';
+import { IInterpreterService } from '../../client/interpreter/contracts';
 import { EnvironmentType, PythonEnvironment } from '../../client/pythonEnvironments/info';
 import { concatMultilineString } from '../../datascience-ui/common';
 import { generateTestState, ICellViewModel } from '../../datascience-ui/interactive-common/mainState';
@@ -574,13 +574,7 @@ suite('DataScience notebook tests', () => {
                         ): Disposable {
                             return { dispose: noop };
                         }
-                        public onDidChangeInterpreterInformation(
-                            _listener: (e: PythonEnvironment) => any,
-                            _thisArgs?: any,
-                            _disposables?: Disposable[]
-                        ): Disposable {
-                            return { dispose: noop };
-                        }
+
                         public getInterpreters(_resource?: Uri): Promise<PythonEnvironment[]> {
                             return Promise.resolve([]);
                         }
@@ -606,17 +600,7 @@ suite('DataScience notebook tests', () => {
                             throw new Error('Method not implemented');
                         }
                     }
-                    @injectable()
-                    class EmptyPathService implements IKnownSearchPathsForInterpreters {
-                        public getSearchPaths(): string[] {
-                            return [];
-                        }
-                    }
                     ioc.serviceManager.rebind<IInterpreterService>(IInterpreterService, EmptyInterpreterService);
-                    ioc.serviceManager.rebind<IKnownSearchPathsForInterpreters>(
-                        IKnownSearchPathsForInterpreters,
-                        EmptyPathService
-                    );
                     await createNotebook(undefined, undefined, true);
                 } else {
                     // tslint:disable-next-line: no-invalid-this

@@ -24,7 +24,6 @@ import { ICell, IDataScienceFileSystem, INotebookProvider } from '../../client/d
 import { IInterpreterService } from '../../client/interpreter/contracts';
 import { createEmptyCell, generateTestCells } from '../../datascience-ui/interactive-common/mainState';
 import { generateReverseChange, IMonacoTextModel } from '../../datascience-ui/react-common/monacoHelpers';
-import { MockAutoSelectionService } from '../mocks/autoSelector';
 import { MockLanguageServerCache } from './mockLanguageServerCache';
 
 // tslint:disable:no-any unified-signatures
@@ -57,7 +56,7 @@ suite('DataScience Intellisense Unit Tests', () => {
         public fireChangeEvent() {
             this.changed.fire();
         }
-    })(undefined, new MockAutoSelectionService());
+    })(undefined);
 
     setup(async () => {
         languageServerCache = new MockLanguageServerCache();

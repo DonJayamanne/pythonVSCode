@@ -3,10 +3,8 @@
 
 'use strict';
 
-import { inject, injectable, named } from 'inversify';
+import { inject, injectable } from 'inversify';
 import { CancellationToken, Uri, WorkspaceFolder } from 'vscode';
-import { InvalidPythonPathInDebuggerServiceId } from '../../../../application/diagnostics/checks/invalidPythonPathInDebugger';
-import { IDiagnosticsService, IInvalidPythonPathInDebuggerService } from '../../../../application/diagnostics/types';
 import { IDocumentManager, IWorkspaceService } from '../../../../common/application/types';
 import { IPlatformService } from '../../../../common/platform/types';
 import { IConfigurationService } from '../../../../common/types';
@@ -20,9 +18,6 @@ export class LaunchConfigurationResolver extends BaseConfigurationResolver<Launc
     constructor(
         @inject(IWorkspaceService) workspaceService: IWorkspaceService,
         @inject(IDocumentManager) documentManager: IDocumentManager,
-        @inject(IDiagnosticsService)
-        @named(InvalidPythonPathInDebuggerServiceId)
-        private readonly invalidPythonPathInDebuggerService: IInvalidPythonPathInDebuggerService,
         @inject(IPlatformService) platformService: IPlatformService,
         @inject(IConfigurationService) configurationService: IConfigurationService,
         @inject(IDebugEnvironmentVariablesService) private readonly debugEnvHelper: IDebugEnvironmentVariablesService
@@ -50,11 +45,6 @@ export class LaunchConfigurationResolver extends BaseConfigurationResolver<Launc
         }
 
         await this.provideLaunchDefaults(workspaceFolder, config);
-
-        const isValid = await this.validateLaunchConfiguration(folder, config);
-        if (!isValid) {
-            return;
-        }
 
         const dbgConfig = debugConfiguration;
         if (Array.isArray(dbgConfig.debugOptions)) {
@@ -153,17 +143,5 @@ export class LaunchConfigurationResolver extends BaseConfigurationResolver<Launc
             debugConfiguration.pathMappings = pathMappings.length > 0 ? pathMappings : undefined;
         }
         this.sendTelemetry(debugConfiguration.request as 'launch' | 'test', debugConfiguration);
-    }
-
-    protected async validateLaunchConfiguration(
-        folder: WorkspaceFolder | undefined,
-        debugConfiguration: LaunchRequestArguments
-    ): Promise<boolean> {
-        const diagnosticService = this.invalidPythonPathInDebuggerService;
-        return diagnosticService.validatePythonPath(
-            debugConfiguration.pythonPath,
-            this.pythonPathSource,
-            folder ? folder.uri : undefined
-        );
     }
 }

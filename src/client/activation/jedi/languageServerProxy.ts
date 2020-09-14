@@ -14,13 +14,10 @@ import { DeprecatePythonPath } from '../../common/experiments/groups';
 import { traceDecorators, traceError } from '../../common/logger';
 import { IConfigurationService, IExperimentsManager, IInterpreterPathService, Resource } from '../../common/types';
 import { createDeferred, Deferred, sleep } from '../../common/utils/async';
-import { swallowExceptions } from '../../common/utils/decorators';
 import { noop } from '../../common/utils/misc';
-import { LanguageServerSymbolProvider } from '../../providers/symbolProvider';
 import { PythonEnvironment } from '../../pythonEnvironments/info';
 import { captureTelemetry, sendTelemetryEvent } from '../../telemetry';
 import { EventName } from '../../telemetry/constants';
-import { ITestManagementService } from '../../testing/types';
 import { FileBasedCancellationStrategy } from '../common/cancellationUtils';
 import { LanguageClientMiddleware } from '../languageClientMiddleware';
 import { ProgressReporting } from '../progress';
@@ -29,15 +26,19 @@ import { ILanguageClientFactory, ILanguageServerProxy } from '../types';
 @injectable()
 export class JediLanguageServerProxy implements ILanguageServerProxy {
     public languageClient: LanguageClient | undefined;
+
     private startupCompleted: Deferred<void>;
+
     private cancellationStrategy: FileBasedCancellationStrategy | undefined;
+
     private readonly disposables: Disposable[] = [];
-    private disposed: boolean = false;
+
+    private disposed = false;
+
     private lsVersion: string | undefined;
 
     constructor(
         @inject(ILanguageClientFactory) private readonly factory: ILanguageClientFactory,
-        @inject(ITestManagementService) private readonly testManager: ITestManagementService,
         @inject(IConfigurationService) private readonly configurationService: IConfigurationService,
         @inject(IExperimentsManager) private readonly experiments: IExperimentsManager,
         @inject(IInterpreterPathService) private readonly interpreterPathService: IInterpreterPathService
@@ -130,7 +131,6 @@ export class JediLanguageServerProxy implements ILanguageServerProxy {
                     sendTelemetryEvent(eventName, telemetryEvent.Measurements, formattedProperties);
                 });
             }
-            await this.registerTestServices();
         } else {
             await this.startupCompleted.promise;
         }
@@ -154,13 +154,5 @@ export class JediLanguageServerProxy implements ILanguageServerProxy {
             await this.languageClient.onReady();
         }
         this.startupCompleted.resolve();
-    }
-
-    @swallowExceptions('Activating Unit Tests Manager for Jedi language server')
-    protected async registerTestServices() {
-        if (!this.languageClient) {
-            throw new Error('languageClient not initialized');
-        }
-        await this.testManager.activate(new LanguageServerSymbolProvider(this.languageClient));
     }
 }

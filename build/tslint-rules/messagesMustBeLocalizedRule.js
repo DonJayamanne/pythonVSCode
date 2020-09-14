@@ -21,7 +21,7 @@ const methodNames = [
 // TODO: Ideally we would not ignore any files.
 const ignoredFiles = util.getListOfFiles('unlocalizedFiles.json');
 const ignoredPrefix = path.normalize('src/test');
-const failureMessage = 'Messages must be localized in the Python Extension (use src/client/common/utils/localize.ts)';
+const failureMessage = 'Messages must be localized in the Jupyter Extension (use src/client/common/utils/localize.ts)';
 class NoStringLiteralsInMessages extends baseRuleWalker.BaseRuleWalker {
     visitCallExpression(node) {
         if (!this.shouldIgnoreNode(node)) {

@@ -14,7 +14,6 @@ import { CodeCssGenerator } from '../../client/datascience/codeCssGenerator';
 import { DataScienceFileSystem } from '../../client/datascience/dataScienceFileSystem';
 import { ThemeFinder } from '../../client/datascience/themeFinder';
 import { IThemeFinder } from '../../client/datascience/types';
-import { MockAutoSelectionService } from '../mocks/autoSelector';
 
 // tslint:disable:max-func-body-length
 suite('Theme colors', () => {
@@ -25,7 +24,7 @@ suite('Theme colors', () => {
     let workspaceConfig: TypeMoq.IMock<WorkspaceConfiguration>;
     let cssGenerator: CodeCssGenerator;
     let configService: TypeMoq.IMock<IConfigurationService>;
-    const settings: PythonSettings = new PythonSettings(undefined, new MockAutoSelectionService());
+    const settings: PythonSettings = new PythonSettings(undefined);
 
     setup(() => {
         extensions = new Extensions();

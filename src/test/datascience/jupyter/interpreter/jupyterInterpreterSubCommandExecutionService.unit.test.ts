@@ -30,7 +30,6 @@ import { JupyterInterpreterSubCommandExecutionService } from '../../../../client
 import { JupyterServerInfo } from '../../../../client/datascience/jupyter/jupyterConnection';
 import { IDataScienceFileSystem } from '../../../../client/datascience/types';
 import { IInterpreterService } from '../../../../client/interpreter/contracts';
-import { InterpreterService } from '../../../../client/interpreter/interpreterService';
 import { MockOutputChannel } from '../../../mockClasses';
 import { createPythonInterpreter } from '../../../utils/interpreters';
 use(chaiPromise);
@@ -48,7 +47,7 @@ suite('DataScience - Jupyter InterpreterSubCommandExecutionService', () => {
     const activePythonInterpreter = createPythonInterpreter({ displayName: 'activePythonInterpreter' });
     let notebookStartResult: ObservableExecutionResult<string>;
     setup(() => {
-        interperterService = mock(InterpreterService);
+        interperterService = mock<IInterpreterService>();
         jupyterInterpreter = mock(JupyterInterpreterService);
         jupyterDependencyService = mock(JupyterInterpreterDependencyService);
         fs = mock(DataScienceFileSystem);

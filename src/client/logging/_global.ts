@@ -24,7 +24,7 @@ initialize();
  *   it.  When running tests on CI, we might not want this behavior, as
  *   it'll pollute the test output with logging (as mentioned this is
  *   optional).  Messages logged using our logger will be prefixed with
- *   `Python Extension: ....` for console window.  This way, its easy
+ *   `Jupyter Extension: ....` for console window.  This way, its easy
  *   to identify messages specific to the python extension.
  * - Monkey patch the console.log and similar methods to send messages
  *   to the file logger.  When running UI tests or similar, and we want

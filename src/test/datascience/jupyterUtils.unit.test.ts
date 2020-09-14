@@ -13,7 +13,6 @@ import { DataScienceFileSystem } from '../../client/datascience/dataScienceFileS
 import { CellHashProvider } from '../../client/datascience/editor-integration/cellhashprovider';
 import { expandWorkingDir } from '../../client/datascience/jupyter/jupyterUtils';
 import { createEmptyCell } from '../../datascience-ui/interactive-common/mainState';
-import { MockAutoSelectionService } from '../mocks/autoSelector';
 import { MockDocument } from './mockDocument';
 import { MockDocumentManager } from './mockDocumentManager';
 import { MockPythonSettings } from './mockPythonSettings';
@@ -24,7 +23,7 @@ suite('DataScience JupyterUtils', () => {
     const debugService = mock(DebugService);
     const fileSystem = mock(DataScienceFileSystem);
     const docManager = new MockDocumentManager();
-    const dummySettings = new MockPythonSettings(undefined, new MockAutoSelectionService());
+    const dummySettings = new MockPythonSettings(undefined);
     when(configService.getSettings(anything())).thenReturn(dummySettings);
     when(fileSystem.getDisplayName(anything())).thenCall((a) => `${a}tastic`);
     when(fileSystem.areLocalPathsSame(anything(), anything())).thenCall((a, b) =>

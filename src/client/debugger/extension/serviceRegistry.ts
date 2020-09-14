@@ -6,16 +6,12 @@
 import { IExtensionSingleActivationService } from '../../activation/types';
 import { IServiceManager } from '../../ioc/types';
 import { AttachRequestArguments, LaunchRequestArguments } from '../types';
-import { DebugAdapterActivator } from './adapter/activator';
 import { DebugAdapterDescriptorFactory } from './adapter/factory';
 import { DebugSessionLoggingFactory } from './adapter/logging';
 import { OutdatedDebuggerPromptFactory } from './adapter/outdatedDebuggerPrompt';
-import { AttachProcessProviderFactory } from './attachQuickPick/factory';
-import { IAttachProcessProviderFactory } from './attachQuickPick/types';
 import { DebuggerBanner } from './banner';
 import { PythonDebugConfigurationService } from './configuration/debugConfigurationService';
 import { LaunchJsonCompletionProvider } from './configuration/launch.json/completionProvider';
-import { InterpreterPathCommand } from './configuration/launch.json/interpreterPathCommand';
 import { LaunchJsonUpdaterService } from './configuration/launch.json/updaterService';
 import { DjangoLaunchDebugConfigurationProvider } from './configuration/providers/djangoLaunch';
 import { FileLaunchDebugConfigurationProvider } from './configuration/providers/fileLaunch';
@@ -46,10 +42,6 @@ export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.addSingleton<IExtensionSingleActivationService>(
         IExtensionSingleActivationService,
         LaunchJsonCompletionProvider
-    );
-    serviceManager.addSingleton<IExtensionSingleActivationService>(
-        IExtensionSingleActivationService,
-        InterpreterPathCommand
     );
     serviceManager.addSingleton<IExtensionSingleActivationService>(
         IExtensionSingleActivationService,
@@ -115,10 +107,6 @@ export function registerTypes(serviceManager: IServiceManager) {
         IDebugEnvironmentVariablesService,
         DebugEnvironmentVariablesHelper
     );
-    serviceManager.addSingleton<IExtensionSingleActivationService>(
-        IExtensionSingleActivationService,
-        DebugAdapterActivator
-    );
     serviceManager.addSingleton<IDebugAdapterDescriptorFactory>(
         IDebugAdapterDescriptorFactory,
         DebugAdapterDescriptorFactory
@@ -127,9 +115,5 @@ export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.addSingleton<IOutdatedDebuggerPromptFactory>(
         IOutdatedDebuggerPromptFactory,
         OutdatedDebuggerPromptFactory
-    );
-    serviceManager.addSingleton<IAttachProcessProviderFactory>(
-        IAttachProcessProviderFactory,
-        AttachProcessProviderFactory
     );
 }

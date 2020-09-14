@@ -12,9 +12,8 @@ import { coerce, SemVer } from 'semver';
 import { ConfigurationTarget, Event, TextDocument, Uri } from 'vscode';
 import { IExtensionApi } from '../client/api';
 import { IProcessService } from '../client/common/process/types';
-import { IDisposable, IPythonSettings, Resource } from '../client/common/types';
+import { IDisposable, IPythonSettings } from '../client/common/types';
 import { IServiceContainer, IServiceManager } from '../client/ioc/types';
-import { PythonEnvironment } from '../client/pythonEnvironments/info';
 import { EXTENSION_ROOT_DIR_FOR_TESTS, IS_MULTI_ROOT_TEST, IS_PERF_TEST, IS_SMOKE_TEST } from './constants';
 import { noop, sleep } from './core';
 
@@ -159,26 +158,8 @@ function getWorkspaceRoot() {
 }
 
 export function getExtensionSettings(resource: Uri | undefined): IPythonSettings {
-    const vscode = require('vscode') as typeof import('vscode');
-    class AutoSelectionService {
-        get onDidChangeAutoSelectedInterpreter(): Event<void> {
-            return new vscode.EventEmitter<void>().event;
-        }
-        public autoSelectInterpreter(_resource: Resource): Promise<void> {
-            return Promise.resolve();
-        }
-        public getAutoSelectedInterpreter(_resource: Resource): PythonEnvironment | undefined {
-            return;
-        }
-        public async setWorkspaceInterpreter(
-            _resource: Uri,
-            _interpreter: PythonEnvironment | undefined
-        ): Promise<void> {
-            return;
-        }
-    }
     const pythonSettings = require('../client/common/configSettings') as typeof import('../client/common/configSettings');
-    return pythonSettings.PythonSettings.getInstance(resource, new AutoSelectionService());
+    return pythonSettings.PythonSettings.getInstance(resource);
 }
 export function retryAsync(this: any, wrapped: Function, retryCount: number = 2) {
     return async (...args: any[]) => {

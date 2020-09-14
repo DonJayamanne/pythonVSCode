@@ -31,7 +31,6 @@ import {
 } from '../../../client/datascience/types';
 import { IServiceContainer } from '../../../client/ioc/types';
 import { ICodeExecutionHelper } from '../../../client/terminals/types';
-import { MockAutoSelectionService } from '../../mocks/autoSelector';
 import { MockDocumentManager } from '../mockDocumentManager';
 import { MockPythonSettings } from '../mockPythonSettings';
 import { MockEditor } from '../mockTextEditor';
@@ -77,7 +76,7 @@ suite('DataScience Code Watcher Unit Tests', () => {
     let debugLocationTracker: TypeMoq.IMock<IDebugLocationTracker>;
     let vscodeNotebook: TypeMoq.IMock<IVSCodeNotebook>;
     const contexts: Map<string, boolean> = new Map<string, boolean>();
-    const pythonSettings = new MockPythonSettings(undefined, new MockAutoSelectionService());
+    const pythonSettings = new MockPythonSettings(undefined);
     const disposables: Disposable[] = [];
 
     setup(() => {

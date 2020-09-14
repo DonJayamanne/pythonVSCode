@@ -27,10 +27,8 @@ import {
     IJupyterSubCommandExecutionService,
     KernelInterpreterDependencyResponse
 } from '../../../../client/datascience/types';
-import { EnvironmentActivationService } from '../../../../client/interpreter/activation/service';
 import { IEnvironmentActivationService } from '../../../../client/interpreter/activation/types';
 import { IInterpreterService } from '../../../../client/interpreter/contracts';
-import { InterpreterService } from '../../../../client/interpreter/interpreterService';
 import { EnvironmentType, PythonEnvironment } from '../../../../client/pythonEnvironments/info';
 import { FakeClock } from '../../../common';
 
@@ -47,10 +45,10 @@ suite('DataScience - KernelService', () => {
     let jupyterInterpreterExecutionService: IJupyterSubCommandExecutionService;
 
     function initialize() {
-        interperterService = mock(InterpreterService);
+        interperterService = mock<IInterpreterService>();
         fs = mock(DataScienceFileSystem);
         sessionManager = mock(JupyterSessionManager);
-        activationHelper = mock(EnvironmentActivationService);
+        activationHelper = mock<IEnvironmentActivationService>();
         execFactory = mock(PythonExecutionFactory);
         execService = mock<IPythonExecutionService>();
         dependencyService = mock(KernelDependencyService);

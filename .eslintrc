@@ -5,7 +5,9 @@
         "mocha": true
     },
     "parser": "@typescript-eslint/parser",
-    "plugins": ["@typescript-eslint"],
+    "plugins": [
+        "@typescript-eslint"
+    ],
     "extends": [
         "airbnb",
         "plugin:@typescript-eslint/recommended",
@@ -25,7 +27,9 @@
         "no-dupe-class-members": "off",
         "@typescript-eslint/no-dupe-class-members": "error",
         "no-empty-function": "off",
-        "@typescript-eslint/no-empty-function": ["error"],
+        "@typescript-eslint/no-empty-function": [
+            "error"
+        ],
         "@typescript-eslint/no-empty-interface": "off",
         "@typescript-eslint/no-non-null-assertion": "off",
         "no-unused-vars": "off",
@@ -48,7 +52,10 @@
         "import/no-unresolved": [
             "error",
             {
-                "ignore": ["monaco-editor", "vscode"]
+                "ignore": [
+                    "monaco-editor",
+                    "vscode"
+                ]
             }
         ],
         "import/prefer-default-export": "off",
@@ -78,12 +85,15 @@
         ],
         "no-console": "off",
         "no-control-regex": "off",
+        "function-paren-newline": "off",
+        "consistent-return": "off",
         "no-extend-native": "off",
         "no-multi-str": "off",
         "no-param-reassign": "off",
         "no-prototype-builtins": "off",
         "no-template-curly-in-string": "off",
         "no-underscore-dangle": "off",
+        "comma-dangle": "off",
         "no-useless-escape": "off",
         "no-void": [
             "error",
@@ -95,7 +105,9 @@
         "react/jsx-filename-extension": [
             1,
             {
-                "extensions": [".tsx"]
+                "extensions": [
+                    ".tsx"
+                ]
             }
         ],
         "strict": "off"

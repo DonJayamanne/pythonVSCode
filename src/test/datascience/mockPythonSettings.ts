@@ -1,28 +1,15 @@
 import { IWorkspaceService } from '../../client/common/application/types';
 import { PythonSettings } from '../../client/common/configSettings';
 import { IExperimentsManager, IInterpreterPathService, Resource } from '../../client/common/types';
-import {
-    IInterpreterAutoSeletionProxyService,
-    IInterpreterSecurityService
-} from '../../client/interpreter/autoSelection/types';
 
 export class MockPythonSettings extends PythonSettings {
     constructor(
         workspaceFolder: Resource,
-        interpreterAutoSelectionService: IInterpreterAutoSeletionProxyService,
         workspace?: IWorkspaceService,
         experimentsManager?: IExperimentsManager,
-        interpreterPathService?: IInterpreterPathService,
-        interpreterSecurityService?: IInterpreterSecurityService
+        interpreterPathService?: IInterpreterPathService
     ) {
-        super(
-            workspaceFolder,
-            interpreterAutoSelectionService,
-            workspace,
-            experimentsManager,
-            interpreterPathService,
-            interpreterSecurityService
-        );
+        super(workspaceFolder, workspace, experimentsManager, interpreterPathService);
     }
 
     public fireChangeEvent() {

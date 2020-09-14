@@ -10,7 +10,6 @@ import { createDeferred } from '../../client/common/utils/async';
 import { Architecture } from '../../client/common/utils/platform';
 import { JupyterInterpreterService } from '../../client/datascience/jupyter/interpreter/jupyterInterpreterService';
 import { PreWarmActivatedJupyterEnvironmentVariables } from '../../client/datascience/preWarmVariables';
-import { EnvironmentActivationService } from '../../client/interpreter/activation/service';
 import { IEnvironmentActivationService } from '../../client/interpreter/activation/types';
 import { EnvironmentType, PythonEnvironment } from '../../client/pythonEnvironments/info';
 import { sleep } from '../core';
@@ -30,7 +29,7 @@ suite('DataScience - PreWarm Env Vars', () => {
             envType: EnvironmentType.Conda
         };
         onDidChangeInterpreter = new EventEmitter<PythonEnvironment>();
-        envActivationService = mock(EnvironmentActivationService);
+        envActivationService = mock<IEnvironmentActivationService>();
         jupyterInterpreter = mock(JupyterInterpreterService);
         when(jupyterInterpreter.onDidChangeInterpreter).thenReturn(onDidChangeInterpreter.event);
         activationService = new PreWarmActivatedJupyterEnvironmentVariables(

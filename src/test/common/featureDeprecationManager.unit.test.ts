@@ -7,7 +7,7 @@
 
 import { expect } from 'chai';
 import * as TypeMoq from 'typemoq';
-import { Disposable, WorkspaceConfiguration } from 'vscode';
+import { WorkspaceConfiguration } from 'vscode';
 import { IApplicationShell, ICommandManager, IWorkspaceService } from '../../client/common/application/types';
 import { FeatureDeprecationManager } from '../../client/common/featureDeprecationManager';
 import { DeprecatedSettingAndValue, IPersistentState, IPersistentStateFactory } from '../../client/common/types';
@@ -40,18 +40,7 @@ suite('Feature Deprecation Manager Tests', () => {
                         resolve('Learn More');
                     })
             );
-        const cmdDisposable: TypeMoq.IMock<Disposable> = TypeMoq.Mock.ofType<Disposable>();
         const cmdManager: TypeMoq.IMock<ICommandManager> = TypeMoq.Mock.ofType<ICommandManager>();
-        cmdManager
-            .setup((c) =>
-                c.registerCommand(
-                    TypeMoq.It.isValue('python.buildWorkspaceSymbols'),
-                    TypeMoq.It.isAny(),
-                    TypeMoq.It.isAny()
-                )
-            )
-            .returns(() => cmdDisposable.object)
-            .verifiable(TypeMoq.Times.atLeastOnce());
         const workspaceConfig: TypeMoq.IMock<WorkspaceConfiguration> = TypeMoq.Mock.ofType<WorkspaceConfiguration>();
         workspaceConfig
             .setup((ws) => ws.has(TypeMoq.It.isAnyString()))

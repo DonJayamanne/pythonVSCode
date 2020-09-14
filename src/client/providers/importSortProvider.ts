@@ -2,18 +2,12 @@ import { inject, injectable } from 'inversify';
 import { EOL } from 'os';
 import * as path from 'path';
 import { CancellationToken, CancellationTokenSource, TextDocument, Uri, WorkspaceEdit } from 'vscode';
-import { IApplicationShell, ICommandManager, IDocumentManager } from '../common/application/types';
-import { Commands, PYTHON_LANGUAGE, STANDARD_OUTPUT_CHANNEL } from '../common/constants';
+import { IApplicationShell, IDocumentManager } from '../common/application/types';
+import { PYTHON_LANGUAGE, STANDARD_OUTPUT_CHANNEL } from '../common/constants';
 import { traceError } from '../common/logger';
 import * as internalScripts from '../common/process/internal/scripts';
 import { IProcessServiceFactory, IPythonExecutionFactory, ObservableExecutionResult } from '../common/process/types';
-import {
-    IConfigurationService,
-    IDisposableRegistry,
-    IEditorUtils,
-    IOutputChannel,
-    IPersistentStateFactory
-} from '../common/types';
+import { IConfigurationService, IEditorUtils, IOutputChannel, IPersistentStateFactory } from '../common/types';
 import { createDeferred, createDeferredFromPromise, Deferred } from '../common/utils/async';
 import { Common, Diagnostics } from '../common/utils/localize';
 import { noop } from '../common/utils/misc';
@@ -90,11 +84,7 @@ export class SortImportsEditingProvider implements ISortImportsEditingProvider {
             : undefined;
     }
 
-    public registerCommands() {
-        const cmdManager = this.serviceContainer.get<ICommandManager>(ICommandManager);
-        const disposable = cmdManager.registerCommand(Commands.Sort_Imports, this.sortImports, this);
-        this.serviceContainer.get<IDisposableRegistry>(IDisposableRegistry).push(disposable);
-    }
+    public registerCommands() {}
 
     public async sortImports(uri?: Uri): Promise<void> {
         if (!uri) {

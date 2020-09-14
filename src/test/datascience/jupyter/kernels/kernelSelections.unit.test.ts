@@ -22,7 +22,6 @@ import {
     IJupyterKernelSpec,
     IJupyterSessionManager
 } from '../../../../client/datascience/types';
-import { InterpreterSelector } from '../../../../client/interpreter/configuration/interpreterSelector/interpreterSelector';
 import { IInterpreterQuickPickItem, IInterpreterSelector } from '../../../../client/interpreter/configuration/types';
 import { EnvironmentType } from '../../../../client/pythonEnvironments/info';
 
@@ -135,7 +134,7 @@ suite('DataScience - KernelSelections', () => {
     ];
 
     setup(() => {
-        interpreterSelector = mock(InterpreterSelector);
+        interpreterSelector = mock<IInterpreterSelector>();
         sessionManager = mock(JupyterSessionManager);
         kernelService = mock(KernelService);
         kernelFinder = mock<IKernelFinder>();

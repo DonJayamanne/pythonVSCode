@@ -85,7 +85,7 @@ The extension is available in multiple languages: `de`, `en`, `es`, `fa`, `fr`, 
 
 ## Data and telemetry
 
-The Microsoft Python Extension for Visual Studio Code collects usage
+The Microsoft Jupyter Extension for Visual Studio Code collects usage
 data and sends it to Microsoft to help improve our products and
 services. Read our
 [privacy statement](https://privacy.microsoft.com/privacystatement) to

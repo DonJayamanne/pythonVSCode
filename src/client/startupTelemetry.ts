@@ -3,24 +3,8 @@
 
 import { IWorkspaceService } from './common/application/types';
 import { isTestExecution } from './common/constants';
-import { DeprecatePythonPath } from './common/experiments/groups';
 import { traceError } from './common/logger';
-import { ITerminalHelper } from './common/terminal/types';
-import {
-    IConfigurationService,
-    IExperimentsManager,
-    IInterpreterPathService,
-    InspectInterpreterSettingType,
-    Resource
-} from './common/types';
-import {
-    AutoSelectionRule,
-    IInterpreterAutoSelectionRule,
-    IInterpreterAutoSelectionService
-} from './interpreter/autoSelection/types';
-import { ICondaService, IInterpreterService } from './interpreter/contracts';
 import { IServiceContainer } from './ioc/types';
-import { PythonEnvironment } from './pythonEnvironments/info';
 import { sendTelemetryEvent } from './telemetry';
 import { EventName } from './telemetry/constants';
 import { EditorLoadTelemetry } from './telemetry/types';
@@ -71,42 +55,6 @@ export async function sendErrorTelemetry(
     }
 }
 
-function isUsingGlobalInterpreterInWorkspace(currentPythonPath: string, serviceContainer: IServiceContainer): boolean {
-    const service = serviceContainer.get<IInterpreterAutoSelectionService>(IInterpreterAutoSelectionService);
-    const globalInterpreter = service.getAutoSelectedInterpreter(undefined);
-    if (!globalInterpreter) {
-        return false;
-    }
-    return currentPythonPath === globalInterpreter.path;
-}
-
-export function hasUserDefinedPythonPath(resource: Resource, serviceContainer: IServiceContainer) {
-    const abExperiments = serviceContainer.get<IExperimentsManager>(IExperimentsManager);
-    const workspaceService = serviceContainer.get<IWorkspaceService>(IWorkspaceService);
-    const interpreterPathService = serviceContainer.get<IInterpreterPathService>(IInterpreterPathService);
-    let settings: InspectInterpreterSettingType;
-    if (abExperiments.inExperiment(DeprecatePythonPath.experiment)) {
-        settings = interpreterPathService.inspect(resource);
-    } else {
-        settings = workspaceService.getConfiguration('python', resource)!.inspect<string>('pythonPath')!;
-    }
-    abExperiments.sendTelemetryIfInExperiment(DeprecatePythonPath.control);
-    return (settings.workspaceFolderValue && settings.workspaceFolderValue !== 'python') ||
-        (settings.workspaceValue && settings.workspaceValue !== 'python') ||
-        (settings.globalValue && settings.globalValue !== 'python')
-        ? true
-        : false;
-}
-
-function getPreferredWorkspaceInterpreter(resource: Resource, serviceContainer: IServiceContainer) {
-    const workspaceInterpreterSelector = serviceContainer.get<IInterpreterAutoSelectionRule>(
-        IInterpreterAutoSelectionRule,
-        AutoSelectionRule.workspaceVirtualEnvs
-    );
-    const interpreter = workspaceInterpreterSelector.getPreviouslyAutoSelectedInterpreter(resource);
-    return interpreter ? interpreter.path : undefined;
-}
-
 async function getActivationTelemetryProps(serviceContainer: IServiceContainer): Promise<EditorLoadTelemetry> {
     // tslint:disable-next-line:no-suspicious-comment
     // TODO: Not all of this data is showing up in the database...
@@ -114,45 +62,9 @@ async function getActivationTelemetryProps(serviceContainer: IServiceContainer):
     // TODO: If any one of these parts fails we send no info.  We should
     // be able to partially populate as much as possible instead
     // (through granular try-catch statements).
-    const terminalHelper = serviceContainer.get<ITerminalHelper>(ITerminalHelper);
-    const terminalShellType = terminalHelper.identifyTerminalShell();
-    const condaLocator = serviceContainer.get<ICondaService>(ICondaService);
-    const interpreterService = serviceContainer.get<IInterpreterService>(IInterpreterService);
     const workspaceService = serviceContainer.get<IWorkspaceService>(IWorkspaceService);
-    const configurationService = serviceContainer.get<IConfigurationService>(IConfigurationService);
-    const mainWorkspaceUri = workspaceService.hasWorkspaceFolders
-        ? workspaceService.workspaceFolders![0].uri
-        : undefined;
-    const settings = configurationService.getSettings(mainWorkspaceUri);
-    const [condaVersion, interpreter, interpreters] = await Promise.all([
-        condaLocator
-            .getCondaVersion()
-            .then((ver) => (ver ? ver.raw : ''))
-            .catch<string>(() => ''),
-        interpreterService.getActiveInterpreter().catch<PythonEnvironment | undefined>(() => undefined),
-        interpreterService.getInterpreters(mainWorkspaceUri).catch<PythonEnvironment[]>(() => [])
-    ]);
     const workspaceFolderCount = workspaceService.hasWorkspaceFolders ? workspaceService.workspaceFolders!.length : 0;
-    const pythonVersion = interpreter && interpreter.version ? interpreter.version.raw : undefined;
-    const interpreterType = interpreter ? interpreter.envType : undefined;
-    const usingUserDefinedInterpreter = hasUserDefinedPythonPath(mainWorkspaceUri, serviceContainer);
-    const preferredWorkspaceInterpreter = getPreferredWorkspaceInterpreter(mainWorkspaceUri, serviceContainer);
-    const usingGlobalInterpreter = isUsingGlobalInterpreterInWorkspace(settings.pythonPath, serviceContainer);
-    const usingAutoSelectedWorkspaceInterpreter = preferredWorkspaceInterpreter
-        ? settings.pythonPath === getPreferredWorkspaceInterpreter(mainWorkspaceUri, serviceContainer)
-        : false;
-    const hasPython3 =
-        interpreters!.filter((item) => (item && item.version ? item.version.major === 3 : false)).length > 0;
-
     return {
-        condaVersion,
-        terminal: terminalShellType,
-        pythonVersion,
-        interpreterType,
-        workspaceFolderCount,
-        hasPython3,
-        usingUserDefinedInterpreter,
-        usingAutoSelectedWorkspaceInterpreter,
-        usingGlobalInterpreter
+        workspaceFolderCount
     };
 }

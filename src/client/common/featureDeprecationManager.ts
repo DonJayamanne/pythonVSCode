@@ -118,7 +118,7 @@ export class FeatureDeprecationManager implements IFeatureDeprecationManager {
 
         if (notify) {
             this.notifyDeprecation(deprecatedInfo).catch((ex) =>
-                traceVerbose('Python Extension: notifyDeprecation', ex)
+                traceVerbose('Jupyter Extension: notifyDeprecation', ex)
             );
         }
     }

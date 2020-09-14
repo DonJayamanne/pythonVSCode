@@ -391,7 +391,7 @@ ${args.defaultStyle ? DefaultCssVars[args.defaultStyle] : ''}
 
             return [];
         } catch (e) {
-            traceError('Python Extension: Error reading custom theme', e);
+            traceError('Jupyter Extension: Error reading custom theme', e);
             return [];
         }
     };

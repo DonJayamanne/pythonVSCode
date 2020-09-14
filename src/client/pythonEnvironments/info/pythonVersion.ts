@@ -3,7 +3,6 @@
 
 import { SemVer } from 'semver';
 import '../../common/extensions'; // For string.splitLines()
-import { getVersion as getPythonVersionCommand } from '../../common/process/internal/python';
 
 /**
  * A representation of a Python runtime's version.
@@ -72,42 +71,4 @@ export function parsePythonVersion(raw: string): PythonVersion | undefined {
     const numberParts = `${versionParts[0]}.${versionParts[1]}.${versionParts[2]}`;
     const rawVersion = versionParts.length === 4 ? `${numberParts}-${versionParts[3]}` : numberParts;
     return new SemVer(rawVersion);
-}
-
-/**
- * Determine if the given versions are the same.
- *
- * @param version1 - one of the two versions to compare
- * @param version2 - one of the two versions to compare
- */
-export function areSameVersion(version1?: PythonVersion, version2?: PythonVersion): boolean {
-    if (!version1 || !version2) {
-        return false;
-    }
-    return version1.raw === version2.raw;
-}
-
-type ExecResult = {
-    stdout: string;
-};
-type ExecFunc = (command: string, args: string[]) => Promise<ExecResult>;
-
-/**
- * Get the version string of the given Python executable by running it.
- *
- * Effectively, we look up `sys.version`.
- *
- * @param pythonPath - the Python executable to exec
- * @param defaultValue - the value to return if anything goes wrong
- * @param exec - the function to call to run the Python executable
- */
-export async function getPythonVersion(pythonPath: string, defaultValue: string, exec: ExecFunc): Promise<string> {
-    const [args, parse] = getPythonVersionCommand();
-    // It may make sense eventually to use buildPythonExecInfo() here
-    // instead of using pythonPath and args directly.  That would allow
-    // buildPythonExecInfo() to assume any burden of flexibility.
-    return exec(pythonPath, args)
-        .then((result) => parse(result.stdout).splitLines()[0])
-        .then((version) => (version.length === 0 ? defaultValue : version))
-        .catch(() => defaultValue);
 }

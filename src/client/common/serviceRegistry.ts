@@ -71,28 +71,6 @@ import { PathUtils } from './platform/pathUtils';
 import { CurrentProcess } from './process/currentProcess';
 import { ProcessLogger } from './process/logger';
 import { IProcessLogger } from './process/types';
-import { TerminalActivator } from './terminal/activator';
-import { PowershellTerminalActivationFailedHandler } from './terminal/activator/powershellFailedHandler';
-import { Bash } from './terminal/environmentActivationProviders/bash';
-import { CommandPromptAndPowerShell } from './terminal/environmentActivationProviders/commandPrompt';
-import { CondaActivationCommandProvider } from './terminal/environmentActivationProviders/condaActivationProvider';
-import { PipEnvActivationCommandProvider } from './terminal/environmentActivationProviders/pipEnvActivationProvider';
-import { PyEnvActivationCommandProvider } from './terminal/environmentActivationProviders/pyenvActivationProvider';
-import { TerminalServiceFactory } from './terminal/factory';
-import { TerminalHelper } from './terminal/helper';
-import { SettingsShellDetector } from './terminal/shellDetectors/settingsShellDetector';
-import { TerminalNameShellDetector } from './terminal/shellDetectors/terminalNameShellDetector';
-import { UserEnvironmentShellDetector } from './terminal/shellDetectors/userEnvironmentShellDetector';
-import { VSCEnvironmentShellDetector } from './terminal/shellDetectors/vscEnvironmentShellDetector';
-import {
-    IShellDetector,
-    ITerminalActivationCommandProvider,
-    ITerminalActivationHandler,
-    ITerminalActivator,
-    ITerminalHelper,
-    ITerminalServiceFactory,
-    TerminalActivationProviders
-} from './terminal/types';
 import {
     IAsyncDisposableRegistry,
     IBrowserService,
@@ -121,7 +99,6 @@ export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.addSingleton<IExtensions>(IExtensions, Extensions);
     serviceManager.addSingleton<IRandom>(IRandom, Random);
     serviceManager.addSingleton<IPersistentStateFactory>(IPersistentStateFactory, PersistentStateFactory);
-    serviceManager.addSingleton<ITerminalServiceFactory>(ITerminalServiceFactory, TerminalServiceFactory);
     serviceManager.addSingleton<IPathUtils>(IPathUtils, PathUtils);
     serviceManager.addSingleton<IApplicationShell>(IApplicationShell, ApplicationShell);
     serviceManager.addSingleton<IVSCodeNotebook>(IVSCodeNotebook, VSCodeNotebook);
@@ -142,42 +119,11 @@ export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.addSingleton<IFileDownloader>(IFileDownloader, FileDownloader);
     serviceManager.addSingleton<IEditorUtils>(IEditorUtils, EditorUtils);
     serviceManager.addSingleton<INugetService>(INugetService, NugetService);
-    serviceManager.addSingleton<ITerminalActivator>(ITerminalActivator, TerminalActivator);
-    serviceManager.addSingleton<ITerminalActivationHandler>(
-        ITerminalActivationHandler,
-        PowershellTerminalActivationFailedHandler
-    );
     serviceManager.addSingleton<ILiveShareApi>(ILiveShareApi, LiveShareApi);
     serviceManager.addSingleton<ICryptoUtils>(ICryptoUtils, CryptoUtils);
     serviceManager.addSingleton<IExperimentsManager>(IExperimentsManager, ExperimentsManager);
     serviceManager.addSingleton<IExperimentService>(IExperimentService, ExperimentService);
 
-    serviceManager.addSingleton<ITerminalHelper>(ITerminalHelper, TerminalHelper);
-    serviceManager.addSingleton<ITerminalActivationCommandProvider>(
-        ITerminalActivationCommandProvider,
-        Bash,
-        TerminalActivationProviders.bashCShellFish
-    );
-    serviceManager.addSingleton<ITerminalActivationCommandProvider>(
-        ITerminalActivationCommandProvider,
-        CommandPromptAndPowerShell,
-        TerminalActivationProviders.commandPromptAndPowerShell
-    );
-    serviceManager.addSingleton<ITerminalActivationCommandProvider>(
-        ITerminalActivationCommandProvider,
-        PyEnvActivationCommandProvider,
-        TerminalActivationProviders.pyenv
-    );
-    serviceManager.addSingleton<ITerminalActivationCommandProvider>(
-        ITerminalActivationCommandProvider,
-        CondaActivationCommandProvider,
-        TerminalActivationProviders.conda
-    );
-    serviceManager.addSingleton<ITerminalActivationCommandProvider>(
-        ITerminalActivationCommandProvider,
-        PipEnvActivationCommandProvider,
-        TerminalActivationProviders.pipenv
-    );
     serviceManager.addSingleton<IFeatureDeprecationManager>(IFeatureDeprecationManager, FeatureDeprecationManager);
 
     serviceManager.addSingleton<IAsyncDisposableRegistry>(IAsyncDisposableRegistry, AsyncDisposableRegistry);
@@ -185,10 +131,6 @@ export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.addSingleton<IImportTracker>(IImportTracker, ImportTracker);
     serviceManager.addBinding(IImportTracker, IExtensionSingleActivationService);
     serviceManager.addBinding(IImportTracker, INotebookExecutionLogger);
-    serviceManager.addSingleton<IShellDetector>(IShellDetector, TerminalNameShellDetector);
-    serviceManager.addSingleton<IShellDetector>(IShellDetector, SettingsShellDetector);
-    serviceManager.addSingleton<IShellDetector>(IShellDetector, UserEnvironmentShellDetector);
-    serviceManager.addSingleton<IShellDetector>(IShellDetector, VSCEnvironmentShellDetector);
     serviceManager.addSingleton<IInsiderExtensionPrompt>(IInsiderExtensionPrompt, InsidersExtensionPrompt);
     serviceManager.addSingleton<IExtensionSingleActivationService>(
         IExtensionSingleActivationService,

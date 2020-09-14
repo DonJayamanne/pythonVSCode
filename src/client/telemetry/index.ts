@@ -11,7 +11,6 @@ import { DiagnosticCodes } from '../application/diagnostics/constants';
 import { IWorkspaceService } from '../common/application/types';
 import { AppinsightsKey, isTestExecution, isUnitTestExecution, PVSC_EXTENSION_ID } from '../common/constants';
 import { traceError, traceInfo } from '../common/logger';
-import { TerminalShellType } from '../common/terminal/types';
 import { Architecture } from '../common/utils/platform';
 import { StopWatch } from '../common/utils/stopWatch';
 import {
@@ -24,12 +23,10 @@ import {
 import { ExportFormat } from '../datascience/export/types';
 import { DebugConfigurationType } from '../debugger/extension/types';
 import { ConsoleType, TriggerType } from '../debugger/types';
-import { AutoSelectionRule } from '../interpreter/autoSelection/types';
 import { LinterId } from '../linters/types';
 import { EnvironmentType } from '../pythonEnvironments/info';
-import { TestProvider } from '../testing/common/types';
 import { EventName, PlatformErrors } from './constants';
-import { LinterTrigger, TestTool } from './types';
+import { LinterTrigger } from './types';
 
 // tslint:disable: no-any
 
@@ -672,43 +669,9 @@ export interface IEventNamePropertyMapping {
      */
     [EventName.EDITOR_LOAD]: {
         /**
-         * The conda version if selected
-         */
-        condaVersion: string | undefined;
-        /**
-         * The python interpreter version if selected
-         */
-        pythonVersion: string | undefined;
-        /**
-         * The type of interpreter (conda, virtualenv, pipenv etc.)
-         */
-        interpreterType: EnvironmentType | undefined;
-        /**
-         * The type of terminal shell created: powershell, cmd, zsh, bash etc.
-         *
-         * @type {TerminalShellType}
-         */
-        terminal: TerminalShellType;
-        /**
          * Number of workspace folders opened
          */
         workspaceFolderCount: number;
-        /**
-         * If interpreters found for the main workspace contains a python3 interpreter
-         */
-        hasPython3: boolean;
-        /**
-         * If user has defined an interpreter in settings.json
-         */
-        usingUserDefinedInterpreter: boolean;
-        /**
-         * If interpreter is auto selected for the workspace
-         */
-        usingAutoSelectedWorkspaceInterpreter: boolean;
-        /**
-         * If global interpreter is being used
-         */
-        usingGlobalInterpreter: boolean;
     };
     /**
      * Telemetry event sent when substituting Environment variables to calculate value of variables
@@ -1014,12 +977,6 @@ export interface IEventNamePropertyMapping {
          */
         failed?: boolean;
         /**
-         * The type of terminal shell to activate
-         *
-         * @type {TerminalShellType}
-         */
-        terminal: TerminalShellType;
-        /**
          * The Python interpreter version of the active interpreter for the resource
          *
          * @type {string}
@@ -1049,12 +1006,6 @@ export interface IEventNamePropertyMapping {
          */
         failed?: boolean;
         /**
-         * The type of terminal shell to activate
-         *
-         * @type {TerminalShellType}
-         */
-        terminal: TerminalShellType;
-        /**
          * The Python interpreter version of the interpreter for the resource
          *
          * @type {string}
@@ -1068,12 +1019,6 @@ export interface IEventNamePropertyMapping {
         interpreterType: EnvironmentType;
     };
     [EventName.PYTHON_INTERPRETER_AUTO_SELECTION]: {
-        /**
-         * The rule used to auto-select the interpreter
-         *
-         * @type {AutoSelectionRule}
-         */
-        rule?: AutoSelectionRule;
         /**
          * If cached interpreter no longer exists or is invalid
          *
@@ -1483,31 +1428,6 @@ export interface IEventNamePropertyMapping {
      */
     [EventName.SYMBOL]: never | undefined;
     /**
-     * Telemetry event sent if and when user configure tests command. This command can be trigerred from multiple places in the extension. (Command palette, prompt etc.)
-     */
-    [EventName.UNITTEST_CONFIGURE]: never | undefined;
-    /**
-     * Telemetry event sent when user chooses a test framework in the Quickpick displayed for enabling and configuring test framework
-     */
-    [EventName.UNITTEST_CONFIGURING]: {
-        /**
-         * Name of the test framework to configure
-         */
-        tool?: TestTool;
-        /**
-         * Carries the source which triggered configuration of tests
-         *
-         * @type {('ui' | 'commandpalette')}
-         */
-        trigger: 'ui' | 'commandpalette';
-        /**
-         * Carries `true` if configuring test framework failed, `false` otherwise
-         *
-         * @type {boolean}
-         */
-        failed: boolean;
-    };
-    /**
      * Telemetry event sent when the extension is activated, if an active terminal is present and
      * the `python.terminal.activateEnvInCurrentTerminal` setting is set to `true`.
      */
@@ -1522,18 +1442,6 @@ export interface IEventNamePropertyMapping {
      */
     [EventName.TERMINAL_CREATE]: {
         /**
-         * The type of terminal shell created: powershell, cmd, zsh, bash etc.
-         *
-         * @type {TerminalShellType}
-         */
-        terminal?: TerminalShellType;
-        /**
-         * The source which triggered creation of terminal
-         *
-         * @type {'commandpalette'}
-         */
-        triggeredBy?: 'commandpalette';
-        /**
          * The default Python interpreter version to be used in terminal, inferred from resource's 'settings.json'
          *
          * @type {string}
@@ -1546,114 +1454,6 @@ export interface IEventNamePropertyMapping {
          */
         interpreterType?: EnvironmentType;
     };
-    /**
-     * Telemetry event sent with details about discovering tests
-     */
-    [EventName.UNITTEST_DISCOVER]: {
-        /**
-         * The test framework used to discover tests
-         *
-         * @type {TestTool}
-         */
-        tool: TestTool;
-        /**
-         * Carries the source which triggered discovering of tests
-         *
-         * @type {('ui' | 'commandpalette')}
-         */
-        trigger: 'ui' | 'commandpalette';
-        /**
-         * Carries `true` if discovering tests failed, `false` otherwise
-         *
-         * @type {boolean}
-         */
-        failed: boolean;
-    };
-    /**
-     * Telemetry event is sent if we are doing test discovery using python code
-     */
-    [EventName.UNITTEST_DISCOVER_WITH_PYCODE]: never | undefined;
-    /**
-     * Telemetry event sent when user clicks a file, function, or suite in test explorer.
-     */
-    [EventName.UNITTEST_NAVIGATE]: {
-        /**
-         * Carries `true` if user clicks a file, `false` otherwise
-         *
-         * @type {boolean}
-         */
-        byFile?: boolean;
-        /**
-         * Carries `true` if user clicks a function, `false` otherwise
-         *
-         * @type {boolean}
-         */
-        byFunction?: boolean;
-        /**
-         * Carries `true` if user clicks a suite, `false` otherwise
-         *
-         * @type {boolean}
-         */
-        bySuite?: boolean;
-        /**
-         * Carries `true` if we are changing focus to the suite/file/function, `false` otherwise
-         *
-         * @type {boolean}
-         */
-        focus_code?: boolean;
-    };
-    /**
-     * Tracks number of workspace folders shown in test explorer
-     */
-    [EventName.UNITTEST_EXPLORER_WORK_SPACE_COUNT]: { count: number };
-    /**
-     * Telemetry event sent with details about running the tests, what is being run, what framework is being used etc.
-     */
-    [EventName.UNITTEST_RUN]: {
-        /**
-         * Framework being used to run tests
-         */
-        tool: TestTool;
-        /**
-         * Carries info what is being run
-         */
-        scope: 'currentFile' | 'all' | 'file' | 'class' | 'function' | 'failed';
-        /**
-         * Carries `true` if debugging, `false` otherwise
-         */
-        debugging: boolean;
-        /**
-         * Carries what triggered the execution of the tests
-         */
-        triggerSource: 'ui' | 'codelens' | 'commandpalette' | 'auto' | 'testExplorer';
-        /**
-         * Carries `true` if running tests failed, `false` otherwise
-         */
-        failed: boolean;
-    };
-    /**
-     * Telemetry event sent when cancelling running or discovering tests
-     */
-    [EventName.UNITTEST_STOP]: never | undefined;
-    /**
-     * Telemetry event sent when disabling all test frameworks
-     */
-    [EventName.UNITTEST_DISABLE]: never | undefined;
-    /**
-     * Telemetry event sent when viewing Python test log output
-     */
-    [EventName.UNITTEST_VIEW_OUTPUT]: never | undefined;
-    /**
-     * Tracks which testing framework has been enabled by the user.
-     * Telemetry is sent when settings have been modified by the user.
-     * Values sent include:
-     * unittest -   If this value is `true`, then unittest has been enabled by the user.
-     * pytest   -   If this value is `true`, then pytest has been enabled by the user.
-     * nosetest -   If this value is `true`, then nose has been enabled by the user.
-     * @type {(never | undefined)}
-     * @memberof IEventNamePropertyMapping
-     */
-    [EventName.UNITTEST_ENABLED]: Partial<Record<TestProvider, undefined | boolean>>;
     /**
      * Telemetry sent when building workspace symbols
      */
@@ -1934,12 +1734,6 @@ export interface IEventNamePropertyMapping {
          * @type {boolean}
          */
         isPossiblyCondaEnv: boolean;
-        /**
-         * The type of terminal shell created: powershell, cmd, zsh, bash etc.
-         *
-         * @type {TerminalShellType}
-         */
-        terminal: TerminalShellType;
     };
     /**
      * Telemetry event sent once done searching for kernel spec and interpreter for a local connection.

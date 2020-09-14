@@ -1,14 +1,10 @@
 import * as vscode from 'vscode';
-import { Commands } from '../common/constants';
 import { getTextEditsFromPatch } from '../common/editor';
 import { traceError } from '../common/logger';
 import { IPythonExecutionFactory } from '../common/process/types';
 import { IInstaller, Product } from '../common/types';
-import { StopWatch } from '../common/utils/stopWatch';
 import { IServiceContainer } from '../ioc/types';
 import { RefactorProxy } from '../refactor/proxy';
-import { sendTelemetryWhenDone } from '../telemetry';
-import { EventName } from '../telemetry/constants';
 
 type RenameResponse = {
     results: [{ diff: string }];
@@ -16,37 +12,8 @@ type RenameResponse = {
 
 let installer: IInstaller;
 
-export function activateSimplePythonRefactorProvider(
-    context: vscode.ExtensionContext,
-    outputChannel: vscode.OutputChannel,
-    serviceContainer: IServiceContainer
-) {
+export function activateSimplePythonRefactorProvider(serviceContainer: IServiceContainer) {
     installer = serviceContainer.get<IInstaller>(IInstaller);
-    let disposable = vscode.commands.registerCommand(Commands.Refactor_Extract_Variable, () => {
-        const stopWatch = new StopWatch();
-        const promise = extractVariable(
-            vscode.window.activeTextEditor!,
-            vscode.window.activeTextEditor!.selection,
-            outputChannel,
-            serviceContainer
-            // tslint:disable-next-line:no-empty
-        ).catch(() => {});
-        sendTelemetryWhenDone(EventName.REFACTOR_EXTRACT_VAR, promise, stopWatch);
-    });
-    context.subscriptions.push(disposable);
-
-    disposable = vscode.commands.registerCommand(Commands.Refactor_Extract_Method, () => {
-        const stopWatch = new StopWatch();
-        const promise = extractMethod(
-            vscode.window.activeTextEditor!,
-            vscode.window.activeTextEditor!.selection,
-            outputChannel,
-            serviceContainer
-            // tslint:disable-next-line:no-empty
-        ).catch(() => {});
-        sendTelemetryWhenDone(EventName.REFACTOR_EXTRACT_FUNCTION, promise, stopWatch);
-    });
-    context.subscriptions.push(disposable);
 }
 
 // Exported for unit testing

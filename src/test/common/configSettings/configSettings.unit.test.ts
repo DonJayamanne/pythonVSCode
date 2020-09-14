@@ -29,7 +29,6 @@ import {
 } from '../../../client/common/types';
 import { noop } from '../../../client/common/utils/misc';
 import * as EnvFileTelemetry from '../../../client/telemetry/envFileTelemetry';
-import { MockAutoSelectionService } from '../../mocks/autoSelector';
 
 // tslint:disable-next-line:max-func-body-length
 suite('Python Settings', async () => {
@@ -48,8 +47,8 @@ suite('Python Settings', async () => {
     setup(() => {
         sinon.stub(EnvFileTelemetry, 'sendSettingTelemetry').returns();
         config = TypeMoq.Mock.ofType<WorkspaceConfiguration>(undefined, TypeMoq.MockBehavior.Loose);
-        expected = new CustomPythonSettings(undefined, new MockAutoSelectionService());
-        settings = new CustomPythonSettings(undefined, new MockAutoSelectionService());
+        expected = new CustomPythonSettings(undefined);
+        settings = new CustomPythonSettings(undefined);
         expected.defaultInterpreterPath = 'python';
     });
 

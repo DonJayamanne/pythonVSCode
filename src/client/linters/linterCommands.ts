@@ -3,8 +3,7 @@
 'use strict';
 
 import { DiagnosticCollection, Disposable, QuickPickOptions, Uri } from 'vscode';
-import { IApplicationShell, ICommandManager, IDocumentManager } from '../common/application/types';
-import { Commands } from '../common/constants';
+import { IApplicationShell, IDocumentManager } from '../common/application/types';
 import { IDisposable } from '../common/types';
 import { Linters } from '../common/utils/localize';
 import { IServiceContainer } from '../ioc/types';
@@ -22,11 +21,6 @@ export class LinterCommands implements IDisposable {
         this.linterManager = this.serviceContainer.get<ILinterManager>(ILinterManager);
         this.appShell = this.serviceContainer.get<IApplicationShell>(IApplicationShell);
         this.documentManager = this.serviceContainer.get<IDocumentManager>(IDocumentManager);
-
-        const commandManager = this.serviceContainer.get<ICommandManager>(ICommandManager);
-        commandManager.registerCommand(Commands.Set_Linter, this.setLinterAsync.bind(this));
-        commandManager.registerCommand(Commands.Enable_Linter, this.enableLintingAsync.bind(this));
-        commandManager.registerCommand(Commands.Run_Linter, this.runLinting.bind(this));
     }
     public dispose() {
         this.disposables.forEach((disposable) => disposable.dispose());

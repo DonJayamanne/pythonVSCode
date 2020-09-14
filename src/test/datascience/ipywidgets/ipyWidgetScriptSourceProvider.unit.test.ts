@@ -21,7 +21,7 @@ import { LocalWidgetScriptSourceProvider } from '../../../client/datascience/ipy
 import { RemoteWidgetScriptSourceProvider } from '../../../client/datascience/ipywidgets/remoteWidgetScriptSourceProvider';
 import { JupyterNotebookBase } from '../../../client/datascience/jupyter/jupyterNotebook';
 import { IJupyterConnection, ILocalResourceUriConverter, INotebook } from '../../../client/datascience/types';
-import { InterpreterService } from '../../../client/interpreter/interpreterService';
+import { IInterpreterService } from '../../../client/interpreter/contracts';
 
 // tslint:disable: no-any no-invalid-this
 
@@ -44,7 +44,7 @@ suite('DataScience - ipywidget - Widget Script Source Provider', () => {
         const httpClient = mock(HttpClient);
         const resourceConverter = mock<ILocalResourceUriConverter>();
         const fs = mock(DataScienceFileSystem);
-        const interpreterService = mock(InterpreterService);
+        const interpreterService = mock<IInterpreterService>();
         const stateFactory = mock(PersistentStateFactory);
         userSelectedOkOrDoNotShowAgainInPrompt = mock<PersistentState<boolean>>();
 

@@ -11,10 +11,6 @@ import { PythonSettings } from '../../../client/common/configSettings';
 import { ConfigurationService } from '../../../client/common/configuration/service';
 import { DeprecatePythonPath } from '../../../client/common/experiments/groups';
 import { IExperimentsManager, IInterpreterPathService } from '../../../client/common/types';
-import {
-    IInterpreterAutoSeletionProxyService,
-    IInterpreterSecurityService
-} from '../../../client/interpreter/autoSelection/types';
 import { IServiceContainer } from '../../../client/ioc/types';
 
 suite('Configuration Service', () => {
@@ -23,11 +19,9 @@ suite('Configuration Service', () => {
     let interpreterPathService: TypeMoq.IMock<IInterpreterPathService>;
     let experimentsManager: TypeMoq.IMock<IExperimentsManager>;
     let serviceContainer: TypeMoq.IMock<IServiceContainer>;
-    let interpreterSecurityService: TypeMoq.IMock<IInterpreterSecurityService>;
     let configService: ConfigurationService;
     setup(() => {
         workspaceService = TypeMoq.Mock.ofType<IWorkspaceService>();
-        interpreterSecurityService = TypeMoq.Mock.ofType<IInterpreterSecurityService>();
         workspaceService
             .setup((w) => w.getWorkspaceFolder(resource))
             .returns(() => ({
@@ -56,15 +50,6 @@ suite('Configuration Service', () => {
     }
 
     test('Fetching settings goes as expected', () => {
-        const interpreterAutoSelectionProxyService = TypeMoq.Mock.ofType<IInterpreterAutoSeletionProxyService>();
-        serviceContainer
-            .setup((s) => s.get(IInterpreterSecurityService))
-            .returns(() => interpreterSecurityService.object)
-            .verifiable(TypeMoq.Times.once());
-        serviceContainer
-            .setup((s) => s.get(IInterpreterAutoSeletionProxyService))
-            .returns(() => interpreterAutoSelectionProxyService.object)
-            .verifiable(TypeMoq.Times.once());
         const settings = configService.getSettings();
         expect(settings).to.be.instanceOf(PythonSettings);
     });

@@ -1,6 +1,6 @@
 {
-    "name": "python",
-    "displayName": "Python",
+    "name": "jupyter",
+    "displayName": "Jupyter",
     "description": "Linting, Debugging (multi-threaded, remote), Intellisense, Jupyter Notebooks, code formatting, refactoring, unit tests, snippets, and more.",
     "version": "2020.9.0-dev",
     "featureFlags": {
@@ -51,44 +51,15 @@
     "activationEvents": [
         "onLanguage:python",
         "onLanguage:jupyter",
-        "onDebugResolve:python",
-        "onCommand:python.execInTerminal",
-        "onCommand:python.sortImports",
-        "onCommand:python.runtests",
-        "onCommand:python.debugtests",
-        "onCommand:python.setInterpreter",
-        "onCommand:python.setShebangInterpreter",
-        "onCommand:python.viewTestUI",
-        "onCommand:python.viewLanguageServerOutput",
-        "onCommand:python.viewTestOutput",
-        "onCommand:python.viewOutput",
         "onCommand:python.datascience.viewJupyterOutput",
         "onCommand:python.datascience.export",
         "onCommand:python.datascience.exportAsPythonScript",
         "onCommand:python.datascience.exportToHTML",
         "onCommand:python.datascience.exportToPDF",
-        "onCommand:python.selectAndRunTestMethod",
-        "onCommand:python.selectAndDebugTestMethod",
-        "onCommand:python.selectAndRunTestFile",
-        "onCommand:python.runCurrentTestFile",
-        "onCommand:python.runFailedTests",
-        "onCommand:python.execSelectionInTerminal",
-        "onCommand:python.execSelectionInDjangoShell",
-        "onCommand:python.buildWorkspaceSymbols",
-        "onCommand:python.startREPL",
-        "onCommand:python.goToPythonObject",
-        "onCommand:python.setLinter",
-        "onCommand:python.enableLinting",
-        "onCommand:python.createTerminal",
-        "onCommand:python.discoverTests",
-        "onCommand:python.configureTests",
         "onCommand:python.switchOffInsidersChannel",
         "onCommand:python.switchToDailyChannel",
         "onCommand:python.switchToWeeklyChannel",
-        "onCommand:python.clearWorkspaceInterpreter",
-        "onCommand:python.resetInterpreterSecurityStorage",
         "onCommand:python.datascience.createnewnotebook",
-        "onCommand:python.startPage.open",
         "onCommand:python.datascience.createnewinteractive",
         "onCommand:python.datascience.importnotebook",
         "onCommand:python.datascience.importnotebookfile",
@@ -100,9 +71,7 @@
         "onCommand:python.datascience.selectJupyterInterpreter",
         "onCommand:python.datascience.selectjupytercommandline",
         "onCommand:python.enableSourceMapSupport",
-        "onNotebookEditor:jupyter-notebook",
-        "workspaceContains:mspythonconfig.json",
-        "workspaceContains:pyproject.toml"
+        "onNotebookEditor:jupyter-notebook"
     ],
     "main": "./out/client/extension",
     "contributes": {
@@ -303,87 +272,6 @@
                 "category": "Python"
             },
             {
-                "command": "python.sortImports",
-                "title": "%python.command.python.sortImports.title%",
-                "category": "Python Refactor"
-            },
-            {
-                "command": "python.startREPL",
-                "title": "%python.command.python.startREPL.title%",
-                "category": "Python"
-            },
-            {
-                "command": "python.createTerminal",
-                "title": "%python.command.python.createTerminal.title%",
-                "category": "Python"
-            },
-            {
-                "command": "python.buildWorkspaceSymbols",
-                "title": "%python.command.python.buildWorkspaceSymbols.title%",
-                "category": "Python"
-            },
-            {
-                "command": "python.openTestNodeInEditor",
-                "title": "Open",
-                "icon": {
-                    "light": "resources/light/open-file.svg",
-                    "dark": "resources/dark/open-file.svg"
-                }
-            },
-            {
-                "command": "python.runTestNode",
-                "title": "Run",
-                "icon": {
-                    "light": "resources/light/start.svg",
-                    "dark": "resources/dark/start.svg"
-                }
-            },
-            {
-                "command": "python.debugTestNode",
-                "title": "Debug",
-                "icon": {
-                    "light": "resources/light/debug.svg",
-                    "dark": "resources/dark/debug.svg"
-                }
-            },
-            {
-                "command": "python.runtests",
-                "title": "%python.command.python.runtests.title%",
-                "category": "Python",
-                "icon": {
-                    "light": "resources/light/run-tests.svg",
-                    "dark": "resources/dark/run-tests.svg"
-                }
-            },
-            {
-                "command": "python.debugtests",
-                "title": "%python.command.python.debugtests.title%",
-                "category": "Python",
-                "icon": {
-                    "light": "resources/light/debug.svg",
-                    "dark": "resources/dark/debug.svg"
-                }
-            },
-            {
-                "command": "python.execInTerminal",
-                "title": "%python.command.python.execInTerminal.title%",
-                "category": "Python"
-            },
-            {
-                "command": "python.execInTerminal-icon",
-                "title": "%python.command.python.execInTerminal.title%",
-                "category": "Python",
-                "icon": {
-                    "light": "resources/light/run-file.svg",
-                    "dark": "resources/dark/run-file.svg"
-                }
-            },
-            {
-                "command": "python.setInterpreter",
-                "title": "%python.command.python.setInterpreter.title%",
-                "category": "Python"
-            },
-            {
                 "command": "python.switchOffInsidersChannel",
                 "title": "%python.command.python.switchOffInsidersChannel.title%",
                 "category": "Python"
@@ -397,35 +285,6 @@
                 "command": "python.switchToWeeklyChannel",
                 "title": "%python.command.python.switchToWeeklyChannel.title%",
                 "category": "Python"
-            },
-            {
-                "command": "python.clearWorkspaceInterpreter",
-                "title": "%python.command.python.clearWorkspaceInterpreter.title%",
-                "category": "Python"
-            },
-            {
-                "command": "python.resetInterpreterSecurityStorage",
-                "title": "%python.command.python.resetInterpreterSecurityStorage.title%",
-                "category": "Python"
-            },
-            {
-                "command": "python.refactorExtractVariable",
-                "title": "%python.command.python.refactorExtractVariable.title%",
-                "category": "Python Refactor"
-            },
-            {
-                "command": "python.refactorExtractMethod",
-                "title": "%python.command.python.refactorExtractMethod.title%",
-                "category": "Python Refactor"
-            },
-            {
-                "command": "python.viewTestOutput",
-                "title": "%python.command.python.viewTestOutput.title%",
-                "category": "Python",
-                "icon": {
-                    "light": "resources/light/repl.svg",
-                    "dark": "resources/dark/repl.svg"
-                }
             },
             {
                 "command": "python.datascience.viewJupyterOutput",
@@ -460,112 +319,6 @@
             {
                 "command": "python.datascience.selectJupyterInterpreter",
                 "title": "%python.command.python.datascience.selectJupyterInterpreter.title%",
-                "category": "Python"
-            },
-            {
-                "command": "python.viewLanguageServerOutput",
-                "title": "%python.command.python.viewLanguageServerOutput.title%",
-                "category": "Python",
-                "enablement": "python.hasLanguageServerOutputChannel"
-            },
-            {
-                "command": "python.viewOutput",
-                "title": "%python.command.python.viewOutput.title%",
-                "category": "Python",
-                "icon": {
-                    "light": "resources/light/repl.svg",
-                    "dark": "resources/dark/repl.svg"
-                }
-            },
-            {
-                "command": "python.selectAndRunTestMethod",
-                "title": "%python.command.python.selectAndRunTestMethod.title%",
-                "category": "Python"
-            },
-            {
-                "command": "python.selectAndDebugTestMethod",
-                "title": "%python.command.python.selectAndDebugTestMethod.title%",
-                "category": "Python"
-            },
-            {
-                "command": "python.selectAndRunTestFile",
-                "title": "%python.command.python.selectAndRunTestFile.title%",
-                "category": "Python"
-            },
-            {
-                "command": "python.runCurrentTestFile",
-                "title": "%python.command.python.runCurrentTestFile.title%",
-                "category": "Python"
-            },
-            {
-                "command": "python.runFailedTests",
-                "title": "%python.command.python.runFailedTests.title%",
-                "category": "Python",
-                "icon": {
-                    "light": "resources/light/run-failed-tests.svg",
-                    "dark": "resources/dark/run-failed-tests.svg"
-                }
-            },
-            {
-                "command": "python.discoverTests",
-                "title": "%python.command.python.discoverTests.title%",
-                "category": "Python",
-                "icon": {
-                    "light": "resources/light/refresh.svg",
-                    "dark": "resources/dark/refresh.svg"
-                }
-            },
-            {
-                "command": "python.discoveringTests",
-                "title": "%python.command.python.discoveringTests.title%",
-                "category": "Python",
-                "icon": {
-                    "light": "resources/light/discovering-tests.svg",
-                    "dark": "resources/dark/discovering-tests.svg"
-                }
-            },
-            {
-                "command": "python.stopTests",
-                "title": "%python.command.python.stopTests.title%",
-                "category": "Python",
-                "icon": {
-                    "light": "resources/light/stop.svg",
-                    "dark": "resources/dark/stop.svg"
-                }
-            },
-            {
-                "command": "python.configureTests",
-                "title": "%python.command.python.configureTests.title%",
-                "category": "Python"
-            },
-            {
-                "command": "python.execSelectionInTerminal",
-                "title": "%python.command.python.execSelectionInTerminal.title%",
-                "category": "Python"
-            },
-            {
-                "command": "python.execSelectionInDjangoShell",
-                "title": "%python.command.python.execSelectionInDjangoShell.title%",
-                "category": "Python"
-            },
-            {
-                "command": "python.goToPythonObject",
-                "title": "%python.command.python.goToPythonObject.title%",
-                "category": "Python"
-            },
-            {
-                "command": "python.setLinter",
-                "title": "%python.command.python.setLinter.title%",
-                "category": "Python"
-            },
-            {
-                "command": "python.enableLinting",
-                "title": "%python.command.python.enableLinting.title%",
-                "category": "Python"
-            },
-            {
-                "command": "python.runLinting",
-                "title": "%python.command.python.runLinting.title%",
                 "category": "Python"
             },
             {
@@ -906,11 +659,6 @@
                 "category": "Python"
             },
             {
-                "command": "python.analysis.clearCache",
-                "title": "%python.command.python.analysis.clearCache.title%",
-                "category": "Python"
-            },
-            {
                 "command": "python.datascience.switchKernel",
                 "title": "%DataScience.selectKernel%",
                 "category": "Python",
@@ -925,53 +673,10 @@
                 "command": "python.datascience.latestExtension",
                 "title": "DataScience.latestExtension",
                 "category": "Python"
-            },
-            {
-                "command": "python.analysis.restartLanguageServer",
-                "title": "%python.command.python.analysis.restartLanguageServer.title%",
-                "category": "Python"
             }
         ],
         "menus": {
             "editor/context": [
-                {
-                    "command": "python.refactorExtractVariable",
-                    "title": "Refactor: Extract Variable",
-                    "group": "Refactor",
-                    "when": "editorHasSelection && editorLangId == python && !notebookEditorFocused"
-                },
-                {
-                    "command": "python.refactorExtractMethod",
-                    "title": "Refactor: Extract Method",
-                    "group": "Refactor",
-                    "when": "editorHasSelection && editorLangId == python && !notebookEditorFocused"
-                },
-                {
-                    "command": "python.sortImports",
-                    "title": "Refactor: Sort Imports",
-                    "group": "Refactor",
-                    "when": "editorLangId == python && !notebookEditorFocused"
-                },
-                {
-                    "command": "python.execSelectionInTerminal",
-                    "group": "Python",
-                    "when": "editorFocus && editorLangId == python"
-                },
-                {
-                    "command": "python.execSelectionInDjangoShell",
-                    "group": "Python",
-                    "when": "editorHasSelection && editorLangId == python && python.isDjangoProject"
-                },
-                {
-                    "when": "resourceLangId == python",
-                    "command": "python.execInTerminal",
-                    "group": "Python"
-                },
-                {
-                    "when": "resourceLangId == python",
-                    "command": "python.runCurrentTestFile",
-                    "group": "Python"
-                },
                 {
                     "when": "editorFocus && editorLangId == python && python.datascience.hascodecells && python.datascience.featureenabled && !notebookEditorFocused",
                     "command": "python.datascience.runallcells",
@@ -1025,12 +730,6 @@
             ],
             "editor/title": [
                 {
-                    "command": "python.execInTerminal-icon",
-                    "title": "%python.command.python.execInTerminal.title%",
-                    "group": "navigation",
-                    "when": "resourceLangId == python && python.showPlayIcon"
-                },
-                {
                     "command": "python.datascience.notebookeditor.restartkernel",
                     "title": "%python.command.python.datascience.restartkernel.title%",
                     "group": "navigation",
@@ -1050,21 +749,6 @@
                 }
             ],
             "explorer/context": [
-                {
-                    "when": "resourceLangId == python && !busyTests && !notebookEditorFocused",
-                    "command": "python.runtests",
-                    "group": "Python"
-                },
-                {
-                    "when": "resourceLangId == python && !busyTests && !notebookEditorFocused",
-                    "command": "python.debugtests",
-                    "group": "Python"
-                },
-                {
-                    "when": "resourceLangId == python",
-                    "command": "python.execInTerminal",
-                    "group": "Python"
-                },
                 {
                     "when": "resourceLangId == python && python.datascience.featureenabled && !notebookEditorFocused",
                     "command": "python.datascience.runFileInteractive",
@@ -1122,49 +806,6 @@
                     "title": "%python.command.python.switchToWeeklyChannel.title%",
                     "category": "Python",
                     "when": "config.python.insidersChannel != 'weekly'"
-                },
-                {
-                    "command": "python.clearWorkspaceInterpreter",
-                    "title": "%python.command.python.clearWorkspaceInterpreter.title%",
-                    "category": "Python"
-                },
-                {
-                    "command": "python.resetInterpreterSecurityStorage",
-                    "title": "%python.command.python.resetInterpreterSecurityStorage.title%",
-                    "category": "Python"
-                },
-                {
-                    "command": "python.viewOutput",
-                    "title": "%python.command.python.viewOutput.title%",
-                    "category": "Python"
-                },
-                {
-                    "command": "python.runTestNode",
-                    "title": "Run",
-                    "category": "Python",
-                    "when": "config.noExists"
-                },
-                {
-                    "command": "python.discoveringTests",
-                    "category": "Python",
-                    "when": "config.noExists"
-                },
-                {
-                    "command": "python.stopTests",
-                    "category": "Python",
-                    "when": "config.noExists"
-                },
-                {
-                    "command": "python.debugTestNode",
-                    "title": "Debug",
-                    "category": "Python",
-                    "when": "config.noExists"
-                },
-                {
-                    "command": "python.openTestNodeInEditor",
-                    "title": "Open",
-                    "category": "Python",
-                    "when": "config.noExists"
                 },
                 {
                     "command": "python.datascience.insertCellBelowPosition",
@@ -1512,11 +1153,6 @@
                     "category": "Python"
                 },
                 {
-                    "command": "python.startPage.open",
-                    "title": "%python.command.python.startPage.open.title%",
-                    "category": "Python"
-                },
-                {
                     "command": "python.datascience.runtoline",
                     "category": "Python",
                     "when": "config.noExists"
@@ -1554,105 +1190,6 @@
                     "title": "%DataScience.notebookExportAs%",
                     "category": "Python",
                     "when": "false"
-                }
-            ],
-            "view/title": [
-                {
-                    "command": "python.debugtests",
-                    "when": "view == python_tests && !busyTests",
-                    "group": "navigation@3"
-                },
-                {
-                    "command": "python.runtests",
-                    "when": "view == python_tests && !busyTests",
-                    "group": "navigation@1"
-                },
-                {
-                    "command": "python.stopTests",
-                    "when": "view == python_tests && busyTests",
-                    "group": "navigation@1"
-                },
-                {
-                    "command": "python.discoverTests",
-                    "when": "view == python_tests && !busyTests",
-                    "group": "navigation@4"
-                },
-                {
-                    "command": "python.discoveringTests",
-                    "when": "view == python_tests && discoveringTests",
-                    "group": "navigation@4"
-                },
-                {
-                    "command": "python.runFailedTests",
-                    "when": "view == python_tests && hasFailedTests && !busyTests",
-                    "group": "navigation@2"
-                },
-                {
-                    "command": "python.viewTestOutput",
-                    "when": "view == python_tests",
-                    "group": "navigation@5"
-                }
-            ],
-            "view/item/context": [
-                {
-                    "command": "python.runtests",
-                    "when": "view == python_tests && viewItem == testWorkspaceFolder && !busyTests",
-                    "group": "inline@0"
-                },
-                {
-                    "command": "python.debugtests",
-                    "when": "view == python_tests && viewItem == testWorkspaceFolder && !busyTests",
-                    "group": "inline@1"
-                },
-                {
-                    "command": "python.discoverTests",
-                    "when": "view == python_tests && viewItem == testWorkspaceFolder && !busyTests",
-                    "group": "inline@2"
-                },
-                {
-                    "command": "python.openTestNodeInEditor",
-                    "when": "view == python_tests && viewItem == function",
-                    "group": "inline@2"
-                },
-                {
-                    "command": "python.debugTestNode",
-                    "when": "view == python_tests && viewItem == function && !busyTests",
-                    "group": "inline@1"
-                },
-                {
-                    "command": "python.runTestNode",
-                    "when": "view == python_tests && viewItem == function && !busyTests",
-                    "group": "inline@0"
-                },
-                {
-                    "command": "python.openTestNodeInEditor",
-                    "when": "view == python_tests && viewItem == file",
-                    "group": "inline@2"
-                },
-                {
-                    "command": "python.debugTestNode",
-                    "when": "view == python_tests && viewItem == file && !busyTests",
-                    "group": "inline@1"
-                },
-                {
-                    "command": "python.runTestNode",
-                    "when": "view == python_tests && viewItem == file && !busyTests",
-                    "group": "inline@0"
-                },
-                {
-                    "command": "python.openTestNodeInEditor",
-                    "when": "view == python_tests && viewItem == suite",
-                    "group": "inline@2"
-                },
-                {
-                    "command": "python.debugTestNode",
-                    "when": "view == python_tests && viewItem == suite && !busyTests",
-                    "group": "inline@1"
-                },
-                {
-                    "command": "python.runTestNode",
-                    "when": "view == python_tests && viewItem == suite && !busyTests",
-                    "group": "inline@0"
                 }
             ]
         },
@@ -2209,7 +1746,7 @@
                 "python.dataScience.jupyterCommandLineArguments": {
                     "type": "array",
                     "default": [],
-                    "description": "When a Notebook Editor or Interactive Window Jupyter server is started, these arguments will be passed to it. By default this list is generated by the Python Extension.",
+                    "description": "When a Notebook Editor or Interactive Window Jupyter server is started, these arguments will be passed to it. By default this list is generated by the Jupyter Extension.",
                     "scope": "resource"
                 },
                 "python.dataScience.notebookFileRoot": {
@@ -3386,15 +2923,6 @@
                 "url": "./schemas/conda-meta.json"
             }
         ],
-        "views": {
-            "test": [
-                {
-                    "id": "python_tests",
-                    "name": "Python",
-                    "when": "testsDiscovered"
-                }
-            ]
-        },
         "notebookOutputRenderer": [
             {
                 "id": "jupyter-notebook-renderer",
