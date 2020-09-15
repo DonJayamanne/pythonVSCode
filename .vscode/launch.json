@@ -33,7 +33,7 @@
             }
         },
         {
-            "name": "Extension (DS UI in Browser)",
+            "name": "Extension (UI in Browser)",
             "type": "extensionHost",
             "request": "launch",
             "runtimeExecutable": "${execPath}",
@@ -74,23 +74,6 @@
             "preLaunchTask": "Compile"
         },
         {
-            "name": "Python: Current File with iPython",
-            "type": "python",
-            "request": "launch",
-            "module": "IPython",
-            "console": "integratedTerminal",
-            "args": [
-                "${file}"
-            ] // Additional args should be prefixed with a '--' first.
-        },
-        {
-            "name": "Python: Current File",
-            "type": "python",
-            "request": "launch",
-            "program": "${file}",
-            "console": "integratedTerminal"
-        },
-        {
             "name": "Tests (Debugger, VS Code, *.test.ts)",
             "type": "extensionHost",
             "request": "launch",
@@ -124,9 +107,11 @@
             "request": "launch",
             "runtimeExecutable": "${execPath}",
             "args": [
-                "${workspaceFolder}/src/testMultiRootWkspc/smokeTests",
+                "${workspaceFolder:vscode-jupyter}/src/testMultiRootWkspc/smokeTests",
                 "--disable-extensions",
-                "--extensionDevelopmentPath=${workspaceFolder}",
+                "--enable-proposed-api",
+                "--extensionDevelopmentPath=${workspaceFolder:vscode-python}",
+                "--extensionDevelopmentPath=${workspaceFolder:vscode-jupyter}",
                 "--extensionTestsPath=${workspaceFolder}/out/test"
             ],
             "env": {
@@ -135,8 +120,10 @@
             "stopOnEntry": false,
             "sourceMaps": true,
             "outFiles": [
-                "${workspaceFolder}/out/**/*.js",
-                "!${workspaceFolder}/**/node_modules**/*"
+                "${workspaceFolder:vscode-python}/out/**/*.js",
+                "!${workspaceFolder:vscode-python}/**/node_modules**/*",
+                "${workspaceFolder:vscode-jupyter}/out/**/*.js",
+                "!${workspaceFolder:vscode-jupyter}/**/node_modules**/*"
             ],
             "preLaunchTask": "Compile",
             "skipFiles": [
@@ -149,10 +136,12 @@
             "request": "launch",
             "runtimeExecutable": "${execPath}",
             "args": [
-                "${workspaceFolder}/src/test",
+                "${workspaceFolder:vscode-jupyter}/src/test",
                 "--disable-extensions",
-                "--extensionDevelopmentPath=${workspaceFolder}",
-                "--extensionTestsPath=${workspaceFolder}/out/test"
+                "--enable-proposed-api",
+                "--extensionDevelopmentPath=${workspaceFolder:vscode-python}",
+                "--extensionDevelopmentPath=${workspaceFolder:vscode-jupyter}",
+                "--extensionTestsPath=${workspaceFolder:vscode-jupyter}/out/test"
             ],
             "env": {
                 "VSC_PYTHON_CI_TEST_GREP": "" // Modify this to run a subset of the single workspace tests
@@ -160,8 +149,10 @@
             "stopOnEntry": false,
             "sourceMaps": true,
             "outFiles": [
-                "${workspaceFolder}/out/**/*.js",
-                "!${workspaceFolder}/**/node_modules**/*"
+                "${workspaceFolder:vscode-python}/out/**/*.js",
+                "!${workspaceFolder:vscode-python}/**/node_modules**/*",
+                "${workspaceFolder:vscode-jupyter}/out/**/*.js",
+                "!${workspaceFolder:vscode-jupyter}/**/node_modules**/*"
             ],
             "preLaunchTask": "Compile",
             "skipFiles": [
@@ -194,16 +185,17 @@
             ]
         },
         {
-            "name": "Tests (DataScience, *.ds.test.ts)",
+            "name": "Tests (Notebook, *.ds.test.ts)",
             "type": "extensionHost",
             "request": "launch",
             "runtimeExecutable": "${execPath}",
             "args": [
-                "${workspaceFolder}/src/test/datascience",
+                "${workspaceFolder:vscode-jupyter}/src/test/datascience",
                 "--disable-extensions",
                 "--enable-proposed-api",
-                "--extensionDevelopmentPath=${workspaceFolder}",
-                "--extensionTestsPath=${workspaceFolder}/out/test"
+                "--extensionDevelopmentPath=${workspaceFolder:vscode-python}",
+                "--extensionDevelopmentPath=${workspaceFolder:vscode-jupyter}",
+                "--extensionTestsPath=${workspaceFolder:vscode-jupyter}/out/test"
             ],
             "env": {
                 "VSC_PYTHON_CI_TEST_GREP": "", // Modify this to run a subset of the single workspace tests
@@ -214,8 +206,10 @@
             "stopOnEntry": false,
             "sourceMaps": true,
             "outFiles": [
-                "${workspaceFolder}/out/**/*.js",
-                "!${workspaceFolder}/**/node_modules**/*"
+                "${workspaceFolder:vscode-python}/out/**/*.js",
+                "!${workspaceFolder:vscode-python}/**/node_modules**/*",
+                "${workspaceFolder:vscode-jupyter}/out/**/*.js",
+                "!${workspaceFolder:vscode-jupyter}/**/node_modules**/*"
             ],
             "preLaunchTask": "Compile",
             "skipFiles": [
@@ -286,7 +280,7 @@
                 "--ui=tdd",
                 "--recursive",
                 "--colors",
-                // "--grep", "<suite>",
+                // "--grep", "<suite name>",
                 "--timeout=300000",
                 "--exit"
             ],
@@ -306,7 +300,7 @@
                 "${workspaceFolder}/out/**/*.js",
                 "!${workspaceFolder}/**/node_modules**/*"
             ],
-            "preLaunchTask": "Compile",
+            // "preLaunchTask": "Compile",
             "skipFiles": [
                 "<node_internals>/**"
             ]
@@ -369,13 +363,21 @@
             "type": "pwa-node"
         },
         {
+            "name": "Python: Current File with iPython",
+            "type": "python",
+            "request": "launch",
+            "module": "IPython",
+            "console": "integratedTerminal",
+            "args": [
+                "${file}"
+            ] // Additional args should be prefixed with a '--' first.
+        },
+        {
             "name": "Python: Current File",
             "type": "python",
-            "justMyCode": true,
             "request": "launch",
             "program": "${file}",
-            "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}"
+            "console": "integratedTerminal"
         }
     ]
 }
