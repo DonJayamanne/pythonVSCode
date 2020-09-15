@@ -1388,6 +1388,7 @@ export interface IDataScienceFileSystem {
     createTemporaryLocalFile(fileExtension: string, mode?: number): Promise<TemporaryFile>;
     deleteLocalDirectory(dirname: string): Promise<void>;
     deleteLocalFile(path: string): Promise<void>;
+    ensureLocalDir(path: string): Promise<void>;
     getDisplayName(path: string): string;
     getFileHash(path: string): Promise<string>;
     localDirectoryExists(dirname: string): Promise<boolean>;

@@ -89,6 +89,10 @@ export class DataScienceFileSystem implements IDataScienceFileSystem {
         });
     }
 
+    public async ensureLocalDir(path: string): Promise<void> {
+        return fs.ensureDir(path);
+    }
+
     public getDisplayName(filename: string, cwd?: string): string {
         return this.fsPathUtils.getDisplayName(filename, cwd);
     }
