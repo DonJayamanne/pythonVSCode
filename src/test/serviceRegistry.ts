@@ -12,8 +12,7 @@ import { IS_WINDOWS } from '../client/common/platform/constants';
 import { convertStat, FileSystem, FileSystemUtils, RawFileSystem } from '../client/common/platform/fileSystem';
 import { PathUtils } from '../client/common/platform/pathUtils';
 import { PlatformService } from '../client/common/platform/platformService';
-import { RegistryImplementation } from '../client/common/platform/registry';
-import { FileStat, FileType, IFileSystem, IPlatformService, IRegistry } from '../client/common/platform/types';
+import { FileStat, FileType, IFileSystem, IPlatformService } from '../client/common/platform/types';
 import { BufferDecoder } from '../client/common/process/decoder';
 import { ProcessService } from '../client/common/process/proc';
 import { PythonExecutionFactory } from '../client/common/process/pythonExecutionFactory';
@@ -257,10 +256,6 @@ export class IocContainer {
         );
     }
 
-    public registerMockInterpreterTypes() {
-        // this.serviceManager.addSingleton<IInterpreterService>(IInterpreterService, InterpreterService);
-        this.serviceManager.addSingleton<IRegistry>(IRegistry, RegistryImplementation);
-    }
 
     public registerMockProcess() {
         this.serviceManager.addSingletonInstance<boolean>(IsWindows, IS_WINDOWS);

@@ -13,7 +13,6 @@ import {
     ObservableExecutionResult,
     SpawnOptions
 } from '../../client/common/process/types';
-import { Architecture } from '../../client/common/utils/platform';
 import { buildPythonExecInfo } from '../../client/pythonEnvironments/exec';
 import { InterpreterInformation } from '../../client/pythonEnvironments/info';
 
@@ -30,8 +29,7 @@ export class MockPythonExecutionService implements IPythonExecutionService {
             path: '',
             version: new SemVer('3.6.0-beta'),
             sysVersion: '1.0',
-            sysPrefix: '1.0',
-            architecture: Architecture.x64
+            sysPrefix: '1.0'
         });
     }
 

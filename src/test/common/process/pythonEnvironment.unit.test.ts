@@ -15,7 +15,6 @@ import {
     createWindowsStoreEnv
 } from '../../../client/common/process/pythonEnvironment';
 import { IProcessService, StdErrError } from '../../../client/common/process/types';
-import { Architecture } from '../../../client/common/utils/platform';
 import { EXTENSION_ROOT_DIR_FOR_TESTS } from '../../constants';
 
 const isolated = path.join(EXTENSION_ROOT_DIR_FOR_TESTS, 'pythonFiles', 'pyvsc-run-isolated.py');
@@ -36,8 +35,7 @@ suite('PythonEnvironment', () => {
         const json = {
             versionInfo: [3, 7, 5, 'candidate'],
             sysPrefix: '/path/of/sysprefix/versions/3.7.5rc1',
-            version: '3.7.5rc1 (default, Oct 18 2019, 14:48:48) \n[Clang 11.0.0 (clang-1100.0.33.8)]',
-            is64Bit: true
+            version: '3.7.5rc1 (default, Oct 18 2019, 14:48:48) \n[Clang 11.0.0 (clang-1100.0.33.8)]'
         };
 
         processService
@@ -47,7 +45,6 @@ suite('PythonEnvironment', () => {
 
         const result = await env.getInterpreterInformation();
         const expectedResult = {
-            architecture: Architecture.x64,
             path: pythonPath,
             version: new SemVer('3.7.5-candidate'),
             sysPrefix: json.sysPrefix,
@@ -61,8 +58,7 @@ suite('PythonEnvironment', () => {
         const json = {
             versionInfo: [3, 7, 5],
             sysPrefix: '/path/of/sysprefix/versions/3.7.5rc1',
-            version: '3.7.5rc1 (default, Oct 18 2019, 14:48:48) \n[Clang 11.0.0 (clang-1100.0.33.8)]',
-            is64Bit: true
+            version: '3.7.5rc1 (default, Oct 18 2019, 14:48:48) \n[Clang 11.0.0 (clang-1100.0.33.8)]'
         };
 
         processService
@@ -72,7 +68,6 @@ suite('PythonEnvironment', () => {
 
         const result = await env.getInterpreterInformation();
         const expectedResult = {
-            architecture: Architecture.x64,
             path: pythonPath,
             version: new SemVer('3.7.5'),
             sysPrefix: json.sysPrefix,
@@ -89,8 +84,7 @@ suite('PythonEnvironment', () => {
         const json = {
             versionInfo: [3, 7, 5, 'candidate'],
             sysPrefix: '/path/of/sysprefix/versions/3.7.5rc1',
-            version: '3.7.5rc1 (default, Oct 18 2019, 14:48:48) \n[Clang 11.0.0 (clang-1100.0.33.8)]',
-            is64Bit: false
+            version: '3.7.5rc1 (default, Oct 18 2019, 14:48:48) \n[Clang 11.0.0 (clang-1100.0.33.8)]'
         };
 
         processService
@@ -100,7 +94,6 @@ suite('PythonEnvironment', () => {
 
         const result = await env.getInterpreterInformation();
         const expectedResult = {
-            architecture: Architecture.x86,
             path: pythonPath,
             version: new SemVer('3.7.5-candidate'),
             sysPrefix: json.sysPrefix,

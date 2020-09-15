@@ -5,21 +5,7 @@ import * as fs from 'fs';
 import * as fsextra from 'fs-extra';
 import { SemVer } from 'semver';
 import * as vscode from 'vscode';
-import { Architecture, OSType } from '../utils/platform';
-
-//===========================
-// registry
-
-export enum RegistryHive {
-    HKCU,
-    HKLM
-}
-
-export const IRegistry = Symbol('IRegistry');
-export interface IRegistry {
-    getKeys(key: string, hive: RegistryHive, arch?: Architecture): Promise<string[]>;
-    getValue(key: string, hive: RegistryHive, arch?: Architecture, name?: string): Promise<string | undefined | null>;
-}
+import { OSType } from '../utils/platform';
 
 //===========================
 // platform

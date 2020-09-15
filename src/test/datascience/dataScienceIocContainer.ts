@@ -107,8 +107,6 @@ import { BrowserService } from '../../client/common/net/browser';
 import { HttpClient } from '../../client/common/net/httpClient';
 import { IS_WINDOWS } from '../../client/common/platform/constants';
 import { PathUtils } from '../../client/common/platform/pathUtils';
-import { RegistryImplementation } from '../../client/common/platform/registry';
-import { IRegistry } from '../../client/common/platform/types';
 import { CurrentProcess } from '../../client/common/process/currentProcess';
 import { BufferDecoder } from '../../client/common/process/decoder';
 import { ProcessLogger } from '../../client/common/process/logger';
@@ -857,7 +855,6 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
 
         const currentProcess = new CurrentProcess();
         this.serviceManager.addSingletonInstance<ICurrentProcess>(ICurrentProcess, currentProcess);
-        this.serviceManager.addSingleton<IRegistry>(IRegistry, RegistryImplementation);
 
         this.serviceManager.addSingleton<JupyterInterpreterStateStore>(
             JupyterInterpreterStateStore,

@@ -45,7 +45,6 @@ export type PythonEnvInfo = {
     versionInfo: PythonVersionInfo;
     sysPrefix: string;
     sysVersion: string;
-    is64Bit: boolean;
 };
 
 export function interpreterInfo(): [string[], (out: string) => PythonEnvInfo] {

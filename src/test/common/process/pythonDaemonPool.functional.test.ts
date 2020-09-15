@@ -28,7 +28,6 @@ import {
 import { IDisposable } from '../../../client/common/types';
 import { sleep } from '../../../client/common/utils/async';
 import { noop } from '../../../client/common/utils/misc';
-import { Architecture } from '../../../client/common/utils/platform';
 import { EXTENSION_ROOT_DIR } from '../../../client/constants';
 import { JupyterDaemonModule } from '../../../client/datascience/constants';
 import { PythonVersionInfo } from '../../../client/pythonEnvironments/info';
@@ -137,7 +136,6 @@ suite('Daemon - Python Daemon Pool', () => {
             versionInfo: PythonVersionInfo;
             sysPrefix: string;
             sysVersion: string;
-            is64Bit: boolean;
         };
         const json: InterpreterInfo = JSON.parse(
             spawnSync(fullyQualifiedPythonPath, [path.join(EXTENSION_ROOT_DIR, 'pythonFiles', 'interpreterInfo.py')])
@@ -149,7 +147,6 @@ suite('Daemon - Python Daemon Pool', () => {
                 ? `${json.versionInfo.slice(0, 3).join('.')}-${json.versionInfo[3]}`
                 : json.versionInfo.join('.');
         const expectedVersion = {
-            architecture: json.is64Bit ? Architecture.x64 : Architecture.x86,
             path: fullyQualifiedPythonPath,
             version: parsePythonVersion(versionValue),
             sysVersion: json.sysVersion,

@@ -191,8 +191,7 @@ class PythonDaemon(MethodDispatcher):
         return {
             "versionInfo": tuple(sys.version_info),
             "sysPrefix": sys.prefix,
-            "version": sys.version,
-            "is64Bit": sys.maxsize > 2 ** 32,
+            "version": sys.version
         }
 
     def m_is_module_installed(self, module_name=None):

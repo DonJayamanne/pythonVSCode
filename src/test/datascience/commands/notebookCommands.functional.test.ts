@@ -8,7 +8,6 @@ import { ApplicationShell } from '../../../client/common/application/application
 import { CommandManager } from '../../../client/common/application/commandManager';
 import { ICommandManager } from '../../../client/common/application/types';
 import { ConfigurationService } from '../../../client/common/configuration/service';
-import { Architecture } from '../../../client/common/utils/platform';
 import { NotebookCommands } from '../../../client/datascience/commands/notebookCommands';
 import { Commands } from '../../../client/datascience/constants';
 import { NotebookProvider } from '../../../client/datascience/interactive-common/notebookProvider';
@@ -57,7 +56,6 @@ suite('DataScience - Notebook Commands', () => {
     };
     const selectedInterpreter = {
         path: '',
-        architecture: Architecture.Unknown,
         sysPrefix: '',
         sysVersion: ''
     };

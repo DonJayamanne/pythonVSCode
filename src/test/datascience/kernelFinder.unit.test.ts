@@ -12,7 +12,6 @@ import { IWorkspaceService } from '../../client/common/application/types';
 import { IPlatformService } from '../../client/common/platform/types';
 import { PythonExecutionFactory } from '../../client/common/process/pythonExecutionFactory';
 import { IExtensionContext, IInstaller, IPathUtils, Resource } from '../../client/common/types';
-import { Architecture } from '../../client/common/utils/platform';
 import { IEnvironmentVariablesProvider } from '../../client/common/variables/types';
 import { defaultKernelSpecName } from '../../client/datascience/jupyter/kernels/helpers';
 import { JupyterKernelSpec } from '../../client/datascience/jupyter/kernels/jupyterKernelSpec';
@@ -437,8 +436,7 @@ suite('Kernel Finder', () => {
                 displayName: 'activeInterpreter2',
                 sysPrefix: '1',
                 envName: '1',
-                sysVersion: '3.1.1.1',
-                architecture: Architecture.x64
+                sysVersion: '3.1.1.1'
             };
             // Record a second call to getActiveInterpreter, will play after the first
             interpreterService

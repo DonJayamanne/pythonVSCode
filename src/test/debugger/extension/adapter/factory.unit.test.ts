@@ -16,7 +16,6 @@ import { ApplicationShell } from '../../../../client/common/application/applicat
 import { IApplicationShell } from '../../../../client/common/application/types';
 import { ConfigurationService } from '../../../../client/common/configuration/service';
 import { IPythonSettings } from '../../../../client/common/types';
-import { Architecture } from '../../../../client/common/utils/platform';
 import { EXTENSION_ROOT_DIR } from '../../../../client/constants';
 import { DebugAdapterDescriptorFactory } from '../../../../client/debugger/extension/adapter/factory';
 import { IDebugAdapterDescriptorFactory } from '../../../../client/debugger/extension/types';
@@ -36,7 +35,6 @@ suite('Debugging - Adapter Factory', () => {
     const debugAdapterPath = path.join(EXTENSION_ROOT_DIR, 'pythonFiles', 'lib', 'python', 'debugpy', 'adapter');
     const pythonPath = path.join('path', 'to', 'python', 'interpreter');
     const interpreter = {
-        architecture: Architecture.Unknown,
         path: pythonPath,
         sysPrefix: '',
         sysVersion: '',

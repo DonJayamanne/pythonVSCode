@@ -22,7 +22,6 @@ import { IPlatformService } from '../../../client/common/platform/types';
 import { PythonDaemonExecutionService } from '../../../client/common/process/pythonDaemon';
 import { IPythonExecutionService } from '../../../client/common/process/types';
 import { IDisposable } from '../../../client/common/types';
-import { Architecture } from '../../../client/common/utils/platform';
 import { EXTENSION_ROOT_DIR } from '../../../client/constants';
 import { PythonVersionInfo } from '../../../client/pythonEnvironments/info';
 import { isPythonVersion, PYTHON_PATH } from '../../common';
@@ -114,7 +113,6 @@ suite('Daemon', () => {
             versionInfo: PythonVersionInfo;
             sysPrefix: string;
             sysVersion: string;
-            is64Bit: boolean;
         };
         const json: InterpreterInfo = JSON.parse(
             spawnSync(fullyQualifiedPythonPath, [path.join(EXTENSION_ROOT_DIR, 'pythonFiles', 'interpreterInfo.py')])
@@ -126,7 +124,6 @@ suite('Daemon', () => {
                 ? `${json.versionInfo.slice(0, 3).join('.')}-${json.versionInfo[3]}`
                 : json.versionInfo.join('.');
         const expectedVersion = {
-            architecture: json.is64Bit ? Architecture.x64 : Architecture.x86,
             path: fullyQualifiedPythonPath,
             version: parsePythonVersion(versionValue),
             sysVersion: json.sysVersion,
