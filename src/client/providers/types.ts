@@ -9,5 +9,4 @@ export const ISortImportsEditingProvider = Symbol('ISortImportsEditingProvider')
 export interface ISortImportsEditingProvider {
     provideDocumentSortImportsEdits(uri: Uri, token?: CancellationToken): Promise<WorkspaceEdit | undefined>;
     sortImports(uri?: Uri): Promise<void>;
-    registerCommands(): void;
 }

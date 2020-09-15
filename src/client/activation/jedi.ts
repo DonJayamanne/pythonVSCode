@@ -80,7 +80,6 @@ export class JediExtensionActivator implements ILanguageServerActivator {
         this.objectDefinitionProvider = new PythonObjectDefinitionProvider(jediFactory);
         this.symbolProvider = new JediSymbolProvider(serviceContainer, jediFactory);
         this.signatureProvider = new PythonSignatureProvider(jediFactory);
-
     }
 
     public deactivate() {

@@ -51,10 +51,7 @@ const NamedRegexp = require('named-js-regexp') as typeof import('named-js-regexp
  */
 function isInterpreter(item: nbformat.IKernelspecMetadata | PythonEnvironment): item is PythonEnvironment {
     // Interpreters will not have a `display_name` property, but have `path` and `type` properties.
-    return (
-        !!(item as PythonEnvironment).path &&
-        !(item as nbformat.IKernelspecMetadata).display_name
-    );
+    return !!(item as PythonEnvironment).path && !(item as nbformat.IKernelspecMetadata).display_name;
 }
 
 /**

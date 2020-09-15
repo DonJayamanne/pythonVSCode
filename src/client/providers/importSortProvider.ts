@@ -84,8 +84,6 @@ export class SortImportsEditingProvider implements ISortImportsEditingProvider {
             : undefined;
     }
 
-    public registerCommands() {}
-
     public async sortImports(uri?: Uri): Promise<void> {
         if (!uri) {
             const activeEditor = this.documentManager.activeTextEditor;

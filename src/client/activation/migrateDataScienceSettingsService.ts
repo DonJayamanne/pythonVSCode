@@ -3,15 +3,15 @@
 
 'use strict';
 
-import * as path from 'path';
 import { inject, injectable } from 'inversify';
+import * as path from 'path';
 import { IApplicationEnvironment, IWorkspaceService } from '../common/application/types';
 import { traceError } from '../common/logger';
 import { Resource } from '../common/types';
 import { swallowExceptions } from '../common/utils/decorators';
+import { IDataScienceFileSystem } from '../datascience/types';
 import { traceDecorators } from '../logging';
 import { IExtensionActivationService } from './types';
-import { IDataScienceFileSystem } from '../datascience/types';
 
 @injectable()
 export class MigrateDataScienceSettingsService implements IExtensionActivationService {
@@ -19,15 +19,29 @@ export class MigrateDataScienceSettingsService implements IExtensionActivationSe
         @inject(IDataScienceFileSystem) private readonly fs: IDataScienceFileSystem,
         @inject(IApplicationEnvironment) private readonly application: IApplicationEnvironment,
         @inject(IWorkspaceService) private readonly workspace: IWorkspaceService
-    ) { }
+    ) {}
+
     public async activate(resource: Resource): Promise<void> {
         this.updateSettings(resource).ignoreErrors();
     }
+
+    @swallowExceptions('Failed to update settings.json')
+    public async fixSettingInFile(filePath: string): Promise<string> {
+        let fileContents = await this.fs.readLocalFile(filePath);
+        fileContents = fileContents.replace(
+            /"python\.dataScience\.(.*?)":/g,
+            (_match, capture) => `"jupyter.${capture}":`
+        );
+        await this.fs.writeLocalFile(filePath, fileContents);
+        return fileContents;
+    }
+
     @traceDecorators.error('Failed to update test settings')
     private async updateSettings(resource: Resource): Promise<void> {
         const filesToBeFixed = await this.getFilesToBeFixed(resource);
         await Promise.all(filesToBeFixed.map((file) => this.fixSettingInFile(file)));
     }
+
     private getSettingsFiles(resource: Resource): string[] {
         const settingsFiles: string[] = [];
         if (this.application.userSettingsFile) {
@@ -39,6 +53,7 @@ export class MigrateDataScienceSettingsService implements IExtensionActivationSe
         }
         return settingsFiles;
     }
+
     private async getFilesToBeFixed(resource: Resource): Promise<string[]> {
         const files = this.getSettingsFiles(resource);
         const result = await Promise.all(
@@ -48,16 +63,6 @@ export class MigrateDataScienceSettingsService implements IExtensionActivationSe
             })
         );
         return result.filter((item) => item.needsFixing).map((item) => item.file);
-    }
-    @swallowExceptions('Failed to update settings.json')
-    public async fixSettingInFile(filePath: string): Promise<string> {
-        let fileContents = await this.fs.readLocalFile(filePath);
-        fileContents = fileContents.replace(
-            /"python\.dataScience\.(.*?)":/g,
-            (_match, capture) => `"jupyter.${capture}":`
-        );
-        await this.fs.writeLocalFile(filePath, fileContents);
-        return fileContents;
     }
 
     private async doesFileNeedToBeFixed(filePath: string): Promise<boolean> {

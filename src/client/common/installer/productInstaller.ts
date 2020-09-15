@@ -69,12 +69,11 @@ export abstract class BaseInstaller {
     }
 
     public async install(
-        _product: Product,
-        _resource?: InterpreterUri,
-        _cancel?: CancellationToken
+        product: Product,
+        resource?: InterpreterUri,
+        cancel?: CancellationToken
     ): Promise<InstallerResponse> {
-        // TODO:
-        return InstallerResponse.Ignore;
+        return this.serviceContainer.get<IPythonInstaller>(IPythonInstaller).install(product, resource, cancel);
     }
 
     public async isInstalled(product: Product, resource?: InterpreterUri): Promise<boolean | undefined> {

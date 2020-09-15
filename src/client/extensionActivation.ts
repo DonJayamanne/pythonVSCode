@@ -48,7 +48,6 @@ import { PythonCodeActionProvider } from './providers/codeActionProvider/pythonC
 import { PythonFormattingEditProvider } from './providers/formatProvider';
 import { registerTypes as providersRegisterTypes } from './providers/serviceRegistry';
 import { activateSimplePythonRefactorProvider } from './providers/simpleRefactorProvider';
-import { ISortImportsEditingProvider } from './providers/types';
 import { setExtensionInstallTelemetryProperties } from './telemetry/extensionInstallTelemetry';
 import { registerTypes as commonRegisterTerminalTypes } from './terminals/serviceRegistry';
 
@@ -146,9 +145,6 @@ async function activateLegacy(
     const pythonSettings = configuration.getSettings();
 
     activateSimplePythonRefactorProvider(serviceContainer);
-
-    const sortImports = serviceContainer.get<ISortImportsEditingProvider>(ISortImportsEditingProvider);
-    sortImports.registerCommands();
 
     // Activate data science features
     const dataScience = serviceManager.get<IDataScience>(IDataScience);
