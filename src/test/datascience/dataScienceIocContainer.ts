@@ -907,6 +907,19 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
             when(this.kernelServiceMock.searchAndRegisterKernel(anything(), anything())).thenResolve(undefined);
             when(this.kernelServiceMock.getKernelSpecs(anything(), anything())).thenResolve([]);
             this.serviceManager.addSingletonInstance<KernelService>(KernelService, instance(this.kernelServiceMock));
+
+            this.serviceManager.addSingletonInstance<IInterpreterSelector>(
+                IInterpreterSelector,
+                instance(mock(InterpreterSelector))
+            );
+            this.serviceManager.addSingletonInstance<IWindowsStoreInterpreter>(
+                IWindowsStoreInterpreter,
+                instance(mock(WindowsStoreInterpreter))
+            );
+            this.serviceManager.addSingletonInstance<IEnvironmentActivationService>(
+                IEnvironmentActivationService,
+                instance(mock(EnvironmentActivationService))
+            );
         } else {
             this.serviceManager.addSingleton<IInstaller>(IInstaller, ProductInstaller);
             this.serviceManager.addSingleton<IInterpreterService>(IInterpreterService, InterpreterService);

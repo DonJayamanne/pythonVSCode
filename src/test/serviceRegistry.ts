@@ -256,7 +256,6 @@ export class IocContainer {
         );
     }
 
-
     public registerMockProcess() {
         this.serviceManager.addSingletonInstance<boolean>(IsWindows, IS_WINDOWS);
 
