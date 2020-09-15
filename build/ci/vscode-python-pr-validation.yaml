@@ -51,13 +51,10 @@ stages:
               NeedsPythonTestReqs: true
               NeedsPythonFunctionalReqs: true
               SplitFunctionalTests: false
-            # 'Single Workspace':
-            #   TestsToRun: 'testSingleWorkspace'
+            # 'DataScience':
+            #   TestsToRun: 'testDataScience'
             #   NeedsPythonTestReqs: true
-            'DataScience':
-              TestsToRun: 'testDataScience'
-              NeedsPythonTestReqs: true
-              NeedsPythonFunctionalReqs: true
+            #   NeedsPythonFunctionalReqs: true
             # 'Smoke':
             #   TestsToRun: 'testSmoke'
             #   NeedsPythonTestReqs: true
@@ -119,11 +116,11 @@ stages:
 #         steps:
 #           - template: templates/test_phases.yml
 
-  - stage: Reports
-    dependsOn:
-      - Linux
-    #   - Mac
-    #   - Windows
-    condition: always()
-    jobs:
-      - template: templates/jobs/coverage.yml
+#   - stage: Reports
+#     dependsOn:
+#       - Linux
+#     #   - Mac
+#     #   - Windows
+#     condition: always()
+#     jobs:
+#       - template: templates/jobs/coverage.yml

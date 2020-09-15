@@ -44,9 +44,6 @@ stages:
               # focused on integration
               TestsToRun: 'testSingleWorkspace'
               NeedsPythonTestReqs: true
-            'Debugger':
-              TestsToRun: 'testDebugger'
-              NeedsPythonTestReqs: true
             'Smoke':
               TestsToRun: 'testSmoke'
               NeedsPythonTestReqs: true
@@ -104,10 +101,6 @@ stages:
             'Single Workspace':
               PythonVersion: '3.5'
               TestsToRun: 'testSingleWorkspace'
-              NeedsPythonTestReqs: true
-            'Debugger':
-              PythonVersion: '3.5'
-              TestsToRun: 'testDebugger'
               NeedsPythonTestReqs: true
           #maxParallel: 3
         pool:

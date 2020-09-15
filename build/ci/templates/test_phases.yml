@@ -98,8 +98,8 @@ steps:
   # > python -m pip --disable-pip-version-check install -t ./pythonFiles/lib/python --no-cache-dir --implementation py --no-deps --upgrade -r requirements.txt
   - bash: |
       python -m pip install --upgrade -r build/test-requirements.txt
-      python -m pip --disable-pip-version-check install -t ./pythonFiles/lib/python --no-cache-dir --implementation py --no-deps --upgrade -r requirements.txt
-      python -m pip --disable-pip-version-check install -t ./pythonFiles/lib/python --no-cache-dir --implementation py --no-deps --upgrade --pre debugpy
+    #   python -m pip --disable-pip-version-check install -t ./pythonFiles/lib/python --no-cache-dir --implementation py --no-deps --upgrade -r requirements.txt
+    #   python -m pip --disable-pip-version-check install -t ./pythonFiles/lib/python --no-cache-dir --implementation py --no-deps --upgrade --pre debugpy
     displayName: 'pip install system test requirements'
     condition: and(succeeded(), eq(variables['NeedsPythonTestReqs'], 'true'))
 
@@ -203,13 +203,6 @@ steps:
     displayName: 'pip install jupyter'
     condition: and(succeeded(), eq(variables['NeedsIPythonReqs'], 'true'), contains(variables['TestsToRun'], 'testSmoke'))
 
-  - bash: |
-      python -m pip --disable-pip-version-check install -r build/debugger-install-requirements.txt
-      python ./pythonFiles/install_debugpy.py
-    failOnStderr: true
-    displayName: 'Install DEBUGPY wheels'
-    condition: and(eq(variables['NeedsPythonTestReqs'], 'true'), eq(variables['PythonVersion'], '3.7'))
-
     # Run the Python IPython tests in our codebase. Produces a JUnit-style log file that
   # will be uploaded after all tests are complete.
   #
@@ -257,95 +250,6 @@ steps:
       testRunTitle: 'news-$(Agent.Os)-Py$(pythonVersion)'
       buildPlatform: '$(Agent.Os)-Py$(pythonVersion)'
       buildConfiguration: 'UnitTests'
-
-  # Venv tests: Prepare the various virtual environments and record their details into the
-  # JSON file that venvTests require to run.
-  #
-  # This task only runs if the string 'venvTests' exists in variable 'TestsToRun'
-  #
-  # This task has a bunch of steps, all of which are to fill the `EnvPath` struct found in
-  # the file:
-  # `src/test/common/terminals/environmentActionProviders/terminalActivation.testvirtualenvs.ts`
-  #
-  # Example command line (windows pwsh):
-  # // This is done in powershell. Copy/paste the code below.
-  - pwsh: |
-      # venv/bin or venv\\Scripts (windows)?
-      $environmentExecutableFolder = 'bin'
-      if ($Env:AGENT_OS -match '.*Windows.*') {
-        $environmentExecutableFolder = 'Scripts'
-      }
-
-      # pipenv
-      python -m pip install pipenv
-      python -m pipenv run python build/ci/addEnvPath.py $(PYTHON_VIRTUAL_ENVS_LOCATION) pipenvPath
-
-      # venv
-      # what happens when running under Python 2.7?
-      python -m venv .venv
-      & ".venv/$environmentExecutableFolder/python" ./build/ci/addEnvPath.py $(PYTHON_VIRTUAL_ENVS_LOCATION) venvPath
-
-      # virtualenv
-      python -m pip install virtualenv
-      python -m virtualenv .virtualenv
-      & ".virtualenv/$environmentExecutableFolder/python" ./build/ci/addEnvPath.py $(PYTHON_VIRTUAL_ENVS_LOCATION) virtualEnvPath
-
-      # conda
-
-      # 1. For `terminalActivation.testvirtualenvs.test.ts`
-
-      $condaExecPath = Join-Path -Path $Env:CONDA -ChildPath $environmentExecutableFolder | Join-Path -ChildPath conda
-      if( '$(Agent.Os)' -match '.*Windows.*' ){
-          $condaPythonPath = Join-Path -Path $Env:CONDA -ChildPath python
-      } else{
-          $condaPythonPath = Join-Path -Path $Env:CONDA -ChildPath $environmentExecutableFolder | Join-Path -ChildPath python
-          & $condaPythonPath ./build/ci/addEnvPath.py $(PYTHON_VIRTUAL_ENVS_LOCATION) condaExecPath $condaExecPath
-      }
-      & $condaPythonPath ./build/ci/addEnvPath.py $(PYTHON_VIRTUAL_ENVS_LOCATION) condaPath
-
-      # 2. For `interpreterLocatorService.testvirtualenvs.ts`
-
-      & $condaExecPath create -n "test_env1" -y python
-      & $condaExecPath create -p "./test_env2" -y python
-      & $condaExecPath create -p "$Env:HOME/test_env3" -y python
-
-      # Set the TEST_FILES_SUFFIX
-      Write-Host '##vso[task.setvariable variable=TEST_FILES_SUFFIX;]testvirtualenvs'
-
-    displayName: 'Prepare Venv-Test Environment'
-    condition: and(succeeded(), contains(variables['TestsToRun'], 'venvTests'))
-
-  # Run the virtual environment based tests.
-  # This set of tests is simply using the `testSingleWorkspace` set of tests, but
-  # with the environment variable `TEST_FILES_SUFFIX` set to `testvirtualenvs`, which
-  # got set in the Prepare Venv-Test Environment task above.
-  # **Note**: Azure DevOps tasks set environment variables via a specially formatted
-  # string sent to stdout.
-  #
-  # This task only runs if the string 'venvTests' exists in variable 'TestsToRun'
-  #
-  # Example command line (windows pwsh):
-  # > $Env:TEST_FILES_SUFFIX=testvirtualenvs
-  # > npm run testSingleWorkspace
-  - script: |
-      cat $PYTHON_VIRTUAL_ENVS_LOCATION
-
-      npm run testSingleWorkspace
-
-    displayName: 'Run Venv-Tests'
-    condition: and(succeeded(), contains(variables['TestsToRun'], 'venvTests'))
-    env:
-      DISPLAY: :10
-
-  # Upload the test results to Azure DevOps to facilitate test reporting in their UX.
-  - task: PublishTestResults@2
-    displayName: 'Publish Venv-Tests results'
-    condition: contains(variables['TestsToRun'], 'venvTests')
-    inputs:
-      testResultsFiles: '$(MOCHA_FILE)'
-      testRunTitle: 'venvTest-$(Agent.Os)-Py$(pythonVersion)'
-      buildPlatform: '$(Agent.Os)-Py$(pythonVersion)'
-      buildConfiguration: 'SystemTests'
 
   # Set the CI_PYTHON_PATH variable that forces VS Code system tests to use
   # the specified Python interpreter.
@@ -431,29 +335,6 @@ steps:
     inputs:
       testResultsFiles: '$(MOCHA_FILE)'
       testRunTitle: 'singleWorkspace-$(Agent.Os)-Py$(pythonVersion)'
-      buildPlatform: '$(Agent.Os)-Py$(pythonVersion)'
-      buildConfiguration: 'SystemTests'
-
-  # Run the debugger integration tests.
-  #
-  # This task only runs if the string 'testDebugger' exists in variable `TestsToRun`.
-  #
-  # Example command line (windows pwsh):
-  # > npm run testDebugger
-  - script: |
-      npm run testDebugger
-    displayName: 'Run debugger tests'
-    condition: and(succeeded(), contains(variables['TestsToRun'], 'testDebugger'))
-    env:
-      DISPLAY: :10
-
-  # Upload the test results to Azure DevOps to facilitate test reporting in their UX.
-  - task: PublishTestResults@2
-    displayName: 'Publish debugger tests results'
-    condition: contains(variables['TestsToRun'], 'testDebugger')
-    inputs:
-      testResultsFiles: '$(MOCHA_FILE)'
-      testRunTitle: 'debugger-$(Agent.Os)-Py$(pythonVersion)'
       buildPlatform: '$(Agent.Os)-Py$(pythonVersion)'
       buildConfiguration: 'SystemTests'
 

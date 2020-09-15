@@ -2986,7 +2986,6 @@
         "test:functional:cover": "npm run test:functional",
         "test:functional:split": "node ./build/ci/scripts/runFunctionalTests.js",
         "test:cover:report": "nyc --nycrc-path build/.nycrc  report --reporter=text --reporter=html --reporter=text-summary --reporter=cobertura",
-        "testDebugger": "node ./out/test/testBootstrap.js ./out/test/debuggerTest.js",
         "testSingleWorkspace": "node ./out/test/testBootstrap.js ./out/test/standardTest.js",
         "preTestJediLSP": "node ./out/test/languageServers/jedi/lspSetup.js",
         "testJediLSP": "node ./out/test/languageServers/jedi/lspSetup.js && cross-env CODE_TESTS_WORKSPACE=src/test VSC_PYTHON_CI_TEST_GREP='Language Server:' node ./out/test/testBootstrap.js ./out/test/standardTest.js && node ./out/test/languageServers/jedi/lspTeardown.js",

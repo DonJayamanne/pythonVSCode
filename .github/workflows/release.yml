@@ -298,14 +298,6 @@ jobs:
           run: npm run testSingleWorkspace
         if: matrix.test-suite == 'single-workspace'
 
-      - name: Run debugger tests
-        env:
-          CI_PYTHON_VERSION: ${{matrix.python}}
-        uses: GabrielBB/xvfb-action@v1.4
-        with:
-          run: npm run testDebugger
-        if: matrix.test-suite == 'debugger'
-
       - name: Run functional tests
         run: npm run test:functional
         if: matrix.test-suite == 'functional'
