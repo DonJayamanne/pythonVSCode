@@ -124,6 +124,11 @@ export function getKernelConnectionLanguage(kernelConnection?: KernelConnectionM
     if (!kernelConnection) {
         return;
     }
+    // Language is python when starting with Python Interpreter
+    if (kernelConnection.kind === 'startUsingPythonInterpreter') {
+        return PYTHON_LANGUAGE;
+    }
+
     const model = kernelConnectionMetadataHasKernelModel(kernelConnection) ? kernelConnection.kernelModel : undefined;
     const kernelSpec = kernelConnectionMetadataHasKernelSpec(kernelConnection)
         ? kernelConnection.kernelSpec

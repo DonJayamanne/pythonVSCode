@@ -16,11 +16,7 @@ import { NativeEditor } from '../../client/datascience/interactive-ipynb/nativeE
 import { JupyterInterpreterService } from '../../client/datascience/jupyter/interpreter/jupyterInterpreterService';
 import { KernelDaemonPreWarmer } from '../../client/datascience/kernel-launcher/kernelDaemonPreWarmer';
 import { NativeEditorProvider } from '../../client/datascience/notebookStorage/nativeEditorProvider';
-import {
-    INotebookAndInteractiveWindowUsageTracker,
-    INotebookEditor,
-    INotebookEditorProvider
-} from '../../client/datascience/types';
+import { INotebookCreationTracker, INotebookEditor, INotebookEditorProvider } from '../../client/datascience/types';
 import { PythonEnvironment } from '../../client/pythonEnvironments/info';
 import { FakeClock } from '../common';
 import { createPythonInterpreter } from '../utils/interpreters';
@@ -40,7 +36,7 @@ suite('DataScience - Activation', () => {
         fakeTimer = new FakeClock();
         openedEventEmitter = new EventEmitter<INotebookEditor>();
         interpreterEventEmitter = new EventEmitter<PythonEnvironment>();
-        const tracker = mock<INotebookAndInteractiveWindowUsageTracker>();
+        const tracker = mock<INotebookCreationTracker>();
 
         notebookEditorProvider = mock(NativeEditorProvider);
         jupyterInterpreterService = mock(JupyterInterpreterService);
