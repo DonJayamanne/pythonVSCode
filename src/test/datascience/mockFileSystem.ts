@@ -20,6 +20,9 @@ export class MockFileSystem extends DataScienceFileSystem {
         }
         return super.readLocalFile(filePath);
     }
+    public async writeLocalFile(filePath: string, contents: string): Promise<void> {
+        this.contentOverloads.set(filePath, contents);
+    }
     public async readFile(filePath: Uri): Promise<string> {
         const contents = this.contentOverloads.get(filePath.fsPath);
         if (contents) {

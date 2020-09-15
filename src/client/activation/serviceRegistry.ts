@@ -74,6 +74,7 @@ import {
     IPlatformData,
     LanguageServerType
 } from './types';
+import { MigrateDataScienceSettingsService } from './migrateDataScienceSettingsService';
 
 // tslint:disable-next-line: max-func-body-length
 export function registerTypes(serviceManager: IServiceManager, languageServerType: LanguageServerType) {
@@ -81,6 +82,7 @@ export function registerTypes(serviceManager: IServiceManager, languageServerTyp
     serviceManager.addBinding(ILanguageServerCache, IExtensionActivationService);
     serviceManager.addSingleton<ILanguageServerExtension>(ILanguageServerExtension, LanguageServerExtension);
     serviceManager.add<IExtensionActivationManager>(IExtensionActivationManager, ExtensionActivationManager);
+    serviceManager.addSingleton<IExtensionActivationService>(IExtensionActivationService, MigrateDataScienceSettingsService);
 
     serviceManager.addSingleton<IPythonExtensionBanner>(
         IPythonExtensionBanner,
