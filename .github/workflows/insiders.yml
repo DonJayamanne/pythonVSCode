@@ -19,6 +19,7 @@ env:
   ARTIFACT_NAME_VSIX: ms-ai-tools-jupyter-insiders-vsix
   VSIX_NAME: ms-ai-tools-jupyter-insiders.vsix
   COVERAGE_REPORTS: tests-coverage-reports
+  VSC_PYTHON_FORCE_LOGGING: true # Enable this to turn on console output for the logger
   TEST_RESULTS_DIRECTORY: .
 
 jobs:
