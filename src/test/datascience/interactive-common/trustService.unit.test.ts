@@ -13,6 +13,7 @@ import { IExtensionContext } from '../../../client/common/types';
 import { DataScienceFileSystem } from '../../../client/datascience/dataScienceFileSystem';
 import { DigestStorage } from '../../../client/datascience/interactive-ipynb/digestStorage';
 import { TrustService } from '../../../client/datascience/interactive-ipynb/trustService';
+import { MockMemento } from '../../mocks/mementos';
 
 suite('DataScience - TrustService', () => {
     let trustService: TrustService;
@@ -23,6 +24,8 @@ suite('DataScience - TrustService', () => {
         const fileSystem = mock(DataScienceFileSystem);
         const context = typemoq.Mock.ofType<IExtensionContext>();
         context.setup((c) => c.globalStoragePath).returns(() => os.tmpdir());
+        const globalState = new MockMemento();
+        context.setup((c) => c.globalState).returns(() => globalState);
         when(configService.getSettings()).thenCall(() => {
             // tslint:disable-next-line: no-any
             return { alwaysTrustNotebooks } as any;

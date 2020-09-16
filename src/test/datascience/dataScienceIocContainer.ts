@@ -268,6 +268,7 @@ import { IEnvironmentActivationService } from '../../client/interpreter/activati
 import { IInterpreterSelector } from '../../client/interpreter/configuration/types';
 import { IInterpreterService } from '../../client/interpreter/contracts';
 import { IWindowsStoreInterpreter } from '../../client/interpreter/locators/types';
+import { trustDirectoryMigrated } from '../../client/migration/migrateDigestStorage';
 import { PythonEnvironment } from '../../client/pythonEnvironments/info';
 import { CodeExecutionHelper } from '../../client/terminals/codeExecution/helper';
 import { ICodeExecutionHelper } from '../../client/terminals/types';
@@ -276,6 +277,7 @@ import { InterpreterService } from '../interpreters/interpreterService';
 import { InterpreterSelector } from '../interpreters/selector';
 import { WindowsStoreInterpreter } from '../interpreters/winStoreInterpreter';
 import { MockOutputChannel } from '../mockClasses';
+import { MockMemento } from '../mocks/mementos';
 import { UnitTestIocContainer } from '../testing/serviceRegistry';
 import { MockCommandManager } from './mockCommandManager';
 import { MockCustomEditorService } from './mockCustomEditorService';
@@ -576,6 +578,9 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
         );
         const mockExtensionContext = TypeMoq.Mock.ofType<IExtensionContext>();
         mockExtensionContext.setup((m) => m.globalStoragePath).returns(() => os.tmpdir());
+        const globalState = new MockMemento();
+        globalState.update(trustDirectoryMigrated, true);
+        mockExtensionContext.setup((m) => m.globalState).returns(() => globalState);
         mockExtensionContext.setup((m) => m.extensionPath).returns(() => this.extensionRootPath || os.tmpdir());
         this.serviceManager.addSingletonInstance<IExtensionContext>(IExtensionContext, mockExtensionContext.object);
 

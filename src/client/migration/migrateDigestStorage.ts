@@ -1,7 +1,9 @@
 import * as path from 'path';
+import { traceInfo } from '../common/logger';
 import { IExtensionContext } from '../common/types';
-import { swallowExceptions } from '../common/utils/decorators';
 import { IDataScienceFileSystem } from '../datascience/types';
+
+export const trustDirectoryMigrated = 'trustDirectoryMigrated';
 
 export class MigrateDigestStorage {
     private currentExtensionStorageDir: string;
@@ -20,7 +22,6 @@ export class MigrateDigestStorage {
     /**
      * Copy, then delete, pythonExtensionStorage/nbsecret if it exists
      */
-    @swallowExceptions('Migrate trusted notebooks nbsecret keyfile')
     public async migrateKey() {
         const trustKeyMigrated = 'trustKeyMigrated';
         if (!this.extensionContext.globalState.get(trustKeyMigrated)) {
@@ -29,6 +30,8 @@ export class MigrateDigestStorage {
                 const nbsecret = path.join(this.pythonExtensionStorageDir, 'nbsecret');
                 await this.fs.copyLocal(nbsecret, path.join(this.currentExtensionStorageDir, 'nbsecret'));
                 this.fs.deleteLocalFile(nbsecret).ignoreErrors();
+            } catch (e) {
+                traceInfo('Encountered error while migrating trusted notebooks nbsecret keyfile', e);
             } finally {
                 await this.extensionContext.globalState.update(trustKeyMigrated, true);
             }
@@ -38,15 +41,15 @@ export class MigrateDigestStorage {
     /**
      * Copy, then delete, pythonExtensionStorage/nbsignatures if it exists
      */
-    @swallowExceptions('Migrate trusted notebooks nbsignatures directory')
     public async migrateDir() {
-        const trustDirectoryMigrated = 'trustDirectoryMigrated';
         if (!this.extensionContext.globalState.get(trustDirectoryMigrated)) {
             try {
                 await this.ensuredDir;
                 const nbsignatures = path.join(this.pythonExtensionStorageDir, 'nbsignatures');
                 await this.fs.copyLocal(nbsignatures, path.join(this.currentExtensionStorageDir, 'nbsignatures'));
                 this.fs.deleteLocalDirectory(nbsignatures).ignoreErrors();
+            } catch (e) {
+                traceInfo('Encountered error while migrating trusted notebooks nbsignatures directory', e);
             } finally {
                 await this.extensionContext.globalState.update(trustDirectoryMigrated, true);
             }
