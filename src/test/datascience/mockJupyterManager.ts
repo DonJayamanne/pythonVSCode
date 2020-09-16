@@ -24,7 +24,7 @@ import {
     IPythonExecutionFactory,
     Output
 } from '../../client/common/process/types';
-import { IConfigurationService, IInstaller, Product } from '../../client/common/types';
+import { IInstaller, Product } from '../../client/common/types';
 import { EXTENSION_ROOT_DIR } from '../../client/constants';
 import { generateCells } from '../../client/datascience/cellFactory';
 import { CellMatcher } from '../../client/datascience/cellMatcher';
@@ -122,11 +122,6 @@ export class MockJupyterManager implements IJupyterSessionManager {
                 }
                 return Promise.reject('Unknown interpreter');
             });
-        // Listen to configuration changes like the real interpreter service does so that we fire our settings changed event
-        const configService = serviceManager.get<IConfigurationService>(IConfigurationService);
-        if (configService && configService !== null) {
-            configService.getSettings(undefined).onDidChange(this.onConfigChanged.bind(this, configService));
-        }
 
         // Stick our services into the service manager
         serviceManager.addSingletonInstance<IInterpreterService>(IInterpreterService, this.interpreterService.object);
@@ -472,20 +467,6 @@ export class MockJupyterManager implements IJupyterSessionManager {
             data.outputs = [...data.outputs];
         }
         cell.data = data;
-    }
-
-    private onConfigChanged(_configService: IConfigurationService) {
-        // tslint:disable-next-line: no-suspicious-comment
-        // TODO: We can't watch this from our own settings. Need to have an event on the python API
-        // https://github.com/microsoft/vscode-jupyter/issues/54
-        // const pythonPath = configService.getSettings().pythonPath;
-        // if (this.activeInterpreter === undefined || pythonPath !== this.activeInterpreter.path) {
-        //     this.activeInterpreter = this.installedInterpreters.filter((f) => f.path === pythonPath)[0];
-        //     if (!this.activeInterpreter) {
-        //         this.activeInterpreter = this.installedInterpreters[0];
-        //     }
-        //     this.changedInterpreterEvent.fire();
-        // }
     }
 
     private createNewSession(): MockJupyterSession {
