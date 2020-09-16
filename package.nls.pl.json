@@ -32,7 +32,6 @@
     "jupyter.command.jupyter.selectjupyteruri.title": "Podaj identyfikator URI serwera Jupyter",
     "jupyter.command.jupyter.importnotebook.title": "Importuj notatnik Jupyter",
     "jupyter.command.jupyter.importnotebookonfile.title": "Importuj notatnik Jupyter",
-    "jupyter.command.jupyter.enableSourceMapSupport.title": "Włącz obsługę map źródłowych do debugowania rozszerzeń",
     "jupyter.command.jupyter.exportoutputasnotebook.title": "Eksportuj okno IPython jako notatnik Jupyter",
     "jupyter.command.jupyter.exportfileasnotebook.title": "Eksportuj bieżący plik Pythona jako notatnik Jupytera",
     "jupyter.command.jupyter.exportfileandoutputasnotebook.title": "Eksportuj bieżący plik Pythona i jego wyniki jako notatnik Jupytera",

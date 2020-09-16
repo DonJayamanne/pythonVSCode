@@ -20,7 +20,6 @@ const spawn = require('cross-spawn');
 const colors = require('colors/safe');
 const path = require('path');
 const del = require('del');
-const sourcemaps = require('gulp-sourcemaps');
 const fs = require('fs-extra');
 const fsExtra = require('fs-extra');
 const glob = require('glob');
@@ -295,12 +294,6 @@ function getAllowedWarningsForWebPack(buildConfig) {
             throw new Error('Unknown WebPack Configuration');
     }
 }
-gulp.task('renameSourceMaps', async () => {
-    // By default source maps will be disabled in the extension.
-    // Users will need to use the command `python.enableSourceMapSupport` to enable source maps.
-    const extensionSourceMap = path.join(__dirname, 'out', 'client', 'extension.js.map');
-    await fs.rename(extensionSourceMap, `${extensionSourceMap}.disabled`);
-});
 
 gulp.task('verifyBundle', async () => {
     const matches = await glob.sync(path.join(__dirname, '*.vsix'));
@@ -311,7 +304,7 @@ gulp.task('verifyBundle', async () => {
     }
 });
 
-gulp.task('prePublishBundle', gulp.series('webpack', 'renameSourceMaps'));
+gulp.task('prePublishBundle', gulp.series('webpack'));
 gulp.task('checkDependencies', gulp.series('checkNativeDependencies', 'check-datascience-dependencies'));
 gulp.task('prePublishNonBundle', gulp.series('compile', 'compile-webviews'));
 
@@ -883,27 +876,9 @@ const hygiene = (options, done) => {
     if (!options.skipLinter) {
         result = result.pipe(tsl);
     }
-    const totalTime = 0;
     result = result
         .pipe(tscFilesTracker)
-        .pipe(sourcemaps.init())
         .pipe(tsc())
-        .pipe(
-            sourcemaps.mapSources((sourcePath, file) => {
-                let tsFileName = path.basename(file.path).replace(/js$/, 'ts');
-                const qualifiedSourcePath = path.dirname(file.path).replace('out/', 'src/').replace('out\\', 'src\\');
-                if (!fs.existsSync(path.join(qualifiedSourcePath, tsFileName))) {
-                    const tsxFileName = path.basename(file.path).replace(/js$/, 'tsx');
-                    if (!fs.existsSync(path.join(qualifiedSourcePath, tsxFileName))) {
-                        console.error(`ERROR: (source-maps) ${file.path}[1,1]: Source file not found`);
-                    } else {
-                        tsFileName = tsxFileName;
-                    }
-                }
-                return path.join(path.relative(path.dirname(file.path), qualifiedSourcePath), tsFileName);
-            })
-        )
-        .pipe(sourcemaps.write('.', { includeContent: false }))
         .pipe(gulp.dest(dest))
         .pipe(
             es.through(null, function () {

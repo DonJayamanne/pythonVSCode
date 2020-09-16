@@ -1844,7 +1844,6 @@
         "stack-trace": "0.0.10",
         "string-argv": "^0.3.1",
         "strip-ansi": "^5.2.0",
-        "sudo-prompt": "^8.2.0",
         "svg-to-pdfkit": "^0.1.8",
         "tcp-port-used": "^1.0.1",
         "tmp": "^0.0.29",

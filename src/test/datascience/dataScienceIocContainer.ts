@@ -56,8 +56,6 @@ import {
     UseVSCodeNotebookEditorApi
 } from '../../client/common/constants';
 import { CryptoUtils } from '../../client/common/crypto';
-import { DotNetCompatibilityService } from '../../client/common/dotnet/compatibilityService';
-import { IDotNetCompatibilityService } from '../../client/common/dotnet/types';
 import { LocalZMQKernel } from '../../client/common/experiments/groups';
 import { ExperimentsManager } from '../../client/common/experiments/manager';
 import { ExperimentService } from '../../client/common/experiments/service';
@@ -65,7 +63,6 @@ import { ProductInstaller } from '../../client/common/installer/productInstaller
 import { DataScienceProductPathService } from '../../client/common/installer/productPath';
 import { ProductService } from '../../client/common/installer/productService';
 import { IProductPathService, IProductService } from '../../client/common/installer/types';
-import { InterpreterPathService } from '../../client/common/interpreterPathService';
 import { traceError, traceInfo } from '../../client/common/logger';
 import { BrowserService } from '../../client/common/net/browser';
 import { HttpClient } from '../../client/common/net/httpClient';
@@ -96,7 +93,6 @@ import {
     IExtensions,
     IHttpClient,
     IInstaller,
-    IInterpreterPathService,
     IJupyterSettings,
     IMemento,
     IOutputChannel,
@@ -508,7 +504,6 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
         this.serviceManager.addSingleton<IThemeFinder>(IThemeFinder, ThemeFinder);
         this.serviceManager.addSingleton<ICodeCssGenerator>(ICodeCssGenerator, CodeCssGenerator);
         this.serviceManager.addSingleton<IStatusProvider>(IStatusProvider, StatusProvider);
-        this.serviceManager.addSingleton<IInterpreterPathService>(IInterpreterPathService, InterpreterPathService);
         this.serviceManager.addSingleton<IBrowserService>(IBrowserService, BrowserService);
         this.serviceManager.addSingletonInstance<IAsyncDisposableRegistry>(
             IAsyncDisposableRegistry,
@@ -653,14 +648,6 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
             token: new CancellationTokenSource().token
         });
         this.serviceManager.addSingletonInstance<ProgressReporter>(ProgressReporter, instance(progressReporter));
-
-        // Don't check for dot net compatibility
-        const dotNetCompability = mock(DotNetCompatibilityService);
-        when(dotNetCompability.isSupported()).thenResolve(true);
-        this.serviceManager.addSingletonInstance<IDotNetCompatibilityService>(
-            IDotNetCompatibilityService,
-            instance(dotNetCompability)
-        );
 
         // Turn off experiments.
         const experimentManager = mock(ExperimentsManager);

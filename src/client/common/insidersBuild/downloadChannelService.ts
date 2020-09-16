@@ -33,7 +33,7 @@ export class ExtensionChannelService implements IExtensionChannelService {
             .inspect<ExtensionChannels>(insidersChannelSetting);
         if (!settings) {
             throw new Error(
-                `WorkspaceConfiguration.inspect returns 'undefined' for setting 'python.${insidersChannelSetting}'`
+                `WorkspaceConfiguration.inspect returns 'undefined' for setting 'jupyter.${insidersChannelSetting}'`
             );
         }
         return !settings.globalValue;

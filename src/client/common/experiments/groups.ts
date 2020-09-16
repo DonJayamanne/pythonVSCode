@@ -64,14 +64,6 @@ export enum EnableIPyWidgets {
 }
 
 /*
- * Experiment to check whether the extension should deprecate `python.pythonPath` setting
- */
-export enum DeprecatePythonPath {
-    control = 'DeprecatePythonPath - control',
-    experiment = 'DeprecatePythonPath - experiment'
-}
-
-/*
  * Experiment to turn on custom editor or VS Code Native Notebook API support.
  */
 export enum NotebookEditorSupport {

@@ -9,7 +9,6 @@ import { ConfigurationTarget, Uri, WorkspaceConfiguration } from 'vscode';
 import { IWorkspaceService } from '../../../client/common/application/types';
 import { JupyterSettings } from '../../../client/common/configSettings';
 import { ConfigurationService } from '../../../client/common/configuration/service';
-import { DeprecatePythonPath } from '../../../client/common/experiments/groups';
 import { IExperimentsManager, IInterpreterPathService } from '../../../client/common/types';
 import { IServiceContainer } from '../../../client/ioc/types';
 
@@ -32,9 +31,6 @@ suite('Configuration Service', () => {
         interpreterPathService = TypeMoq.Mock.ofType<IInterpreterPathService>();
         serviceContainer = TypeMoq.Mock.ofType<IServiceContainer>();
         experimentsManager = TypeMoq.Mock.ofType<IExperimentsManager>();
-        experimentsManager
-            .setup((e) => e.sendTelemetryIfInExperiment(DeprecatePythonPath.control))
-            .returns(() => undefined);
         serviceContainer.setup((s) => s.get(IWorkspaceService)).returns(() => workspaceService.object);
         serviceContainer.setup((s) => s.get(IInterpreterPathService)).returns(() => interpreterPathService.object);
         serviceContainer.setup((s) => s.get(IExperimentsManager)).returns(() => experimentsManager.object);
@@ -55,7 +51,6 @@ suite('Configuration Service', () => {
     });
 
     test('Do not update global settings if global value is already equal to the new value', async () => {
-        experimentsManager.setup((e) => e.inExperiment(DeprecatePythonPath.experiment)).returns(() => false);
         const workspaceConfig = setupConfigProvider();
         // tslint:disable-next-line: no-any
         workspaceConfig.setup((w) => w.inspect('setting')).returns(() => ({ globalValue: 'globalValue' } as any));
@@ -70,7 +65,6 @@ suite('Configuration Service', () => {
     });
 
     test('Update global settings if global value is not equal to the new value', async () => {
-        experimentsManager.setup((e) => e.inExperiment(DeprecatePythonPath.experiment)).returns(() => false);
         const workspaceConfig = setupConfigProvider();
         // tslint:disable-next-line: no-any
         workspaceConfig.setup((w) => w.inspect('setting')).returns(() => ({ globalValue: 'globalValue' } as any));
@@ -85,7 +79,6 @@ suite('Configuration Service', () => {
     });
 
     test('Do not update workspace settings if workspace value is already equal to the new value', async () => {
-        experimentsManager.setup((e) => e.inExperiment(DeprecatePythonPath.experiment)).returns(() => false);
         const workspaceConfig = setupConfigProvider();
         // tslint:disable-next-line: no-any
         workspaceConfig.setup((w) => w.inspect('setting')).returns(() => ({ workspaceValue: 'workspaceValue' } as any));
@@ -100,7 +93,6 @@ suite('Configuration Service', () => {
     });
 
     test('Update workspace settings if workspace value is not equal to the new value', async () => {
-        experimentsManager.setup((e) => e.inExperiment(DeprecatePythonPath.experiment)).returns(() => false);
         const workspaceConfig = setupConfigProvider();
         // tslint:disable-next-line: no-any
         workspaceConfig.setup((w) => w.inspect('setting')).returns(() => ({ workspaceValue: 'workspaceValue' } as any));
@@ -115,7 +107,6 @@ suite('Configuration Service', () => {
     });
 
     test('Do not update workspace folder settings if workspace folder value is already equal to the new value', async () => {
-        experimentsManager.setup((e) => e.inExperiment(DeprecatePythonPath.experiment)).returns(() => false);
         const workspaceConfig = setupConfigProvider();
         workspaceConfig
             .setup((w) => w.inspect('setting'))
@@ -137,7 +128,6 @@ suite('Configuration Service', () => {
     });
 
     test('Update workspace folder settings if workspace folder value is not equal to the new value', async () => {
-        experimentsManager.setup((e) => e.inExperiment(DeprecatePythonPath.experiment)).returns(() => false);
         const workspaceConfig = setupConfigProvider();
         workspaceConfig
             .setup((w) => w.inspect('setting'))

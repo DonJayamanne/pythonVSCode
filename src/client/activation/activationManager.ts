@@ -7,10 +7,9 @@ import { inject, injectable, multiInject, optional } from 'inversify';
 import { TextDocument } from 'vscode';
 import { IActiveResourceService, IDocumentManager, IWorkspaceService } from '../common/application/types';
 import { PYTHON_LANGUAGE } from '../common/constants';
-import { DeprecatePythonPath } from '../common/experiments/groups';
 import { traceDecorators } from '../common/logger';
 import { IFileSystem } from '../common/platform/types';
-import { IDisposable, IExperimentsManager, IInterpreterPathService, Resource } from '../common/types';
+import { IDisposable, Resource } from '../common/types';
 import { Deferred } from '../common/utils/async';
 import { IInterpreterService } from '../interpreter/contracts';
 import { sendActivationTelemetry } from '../telemetry/envFileTelemetry';
@@ -32,9 +31,7 @@ export class ExtensionActivationManager implements IExtensionActivationManager {
         @inject(IInterpreterService) private readonly interpreterService: IInterpreterService,
         @inject(IWorkspaceService) private readonly workspaceService: IWorkspaceService,
         @inject(IFileSystem) private readonly fileSystem: IFileSystem,
-        @inject(IActiveResourceService) private readonly activeResourceService: IActiveResourceService,
-        @inject(IExperimentsManager) private readonly experiments: IExperimentsManager,
-        @inject(IInterpreterPathService) private readonly interpreterPathService: IInterpreterPathService
+        @inject(IActiveResourceService) private readonly activeResourceService: IActiveResourceService
     ) {}
 
     public dispose() {
@@ -62,11 +59,6 @@ export class ExtensionActivationManager implements IExtensionActivationManager {
             return;
         }
         this.activatedWorkspaces.add(key);
-
-        if (this.experiments.inExperiment(DeprecatePythonPath.experiment)) {
-            await this.interpreterPathService.copyOldInterpreterStorageValuesToNew(resource);
-        }
-        this.experiments.sendTelemetryIfInExperiment(DeprecatePythonPath.control);
 
         // Get latest interpreter list in the background.
         this.interpreterService.getInterpreters(resource).ignoreErrors();

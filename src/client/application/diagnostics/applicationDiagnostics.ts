@@ -10,7 +10,7 @@ import { traceError, traceInfo, traceWarning } from '../../common/logger';
 import { IOutputChannel, Resource } from '../../common/types';
 import { IServiceContainer } from '../../ioc/types';
 import { IApplicationDiagnostics } from '../types';
-import { IDiagnostic, IDiagnosticsService, ISourceMapSupportService } from './types';
+import { IDiagnostic, IDiagnosticsService } from './types';
 
 @injectable()
 export class ApplicationDiagnostics implements IApplicationDiagnostics {
@@ -18,9 +18,6 @@ export class ApplicationDiagnostics implements IApplicationDiagnostics {
         @inject(IServiceContainer) private readonly serviceContainer: IServiceContainer,
         @inject(IOutputChannel) @named(STANDARD_OUTPUT_CHANNEL) private readonly outputChannel: IOutputChannel
     ) {}
-    public register() {
-        this.serviceContainer.get<ISourceMapSupportService>(ISourceMapSupportService).register();
-    }
     public async performPreStartupHealthCheck(resource: Resource): Promise<void> {
         // When testing, do not perform health checks, as modal dialogs can be displayed.
         if (isTestExecution()) {

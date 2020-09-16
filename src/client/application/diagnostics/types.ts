@@ -55,9 +55,3 @@ export interface IDiagnosticCommand {
 }
 
 export type IDiagnosticMessageOnCloseHandler = (response?: string) => void;
-
-export const ISourceMapSupportService = Symbol('ISourceMapSupportService');
-export interface ISourceMapSupportService {
-    register(): void;
-    enable(): Promise<void>;
-}

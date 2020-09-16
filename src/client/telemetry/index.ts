@@ -753,17 +753,6 @@ export interface IEventNamePropertyMapping {
     };
     [EventName.HASHED_PACKAGE_PERF]: never | undefined;
     /**
-     * Telemetry event sent when installing modules
-     */
-    [EventName.PYTHON_INSTALL_PACKAGE]: {
-        /**
-         * The name of the module. (pipenv, Conda etc.)
-         *
-         * @type {string}
-         */
-        installer: string;
-    };
-    /**
      * Telemetry event sent after fetching the OS version
      */
     [EventName.PLATFORM_INFO]: {
@@ -788,53 +777,6 @@ export interface IEventNamePropertyMapping {
          * Carries `true` if play button icon is not shown (because code runner is installed), `false` otherwise
          */
         disabled: boolean;
-    };
-    /**
-     * Telemetry event sent when 'Select Interpreter' command is invoked.
-     */
-    [EventName.SELECT_INTERPRETER]: never | undefined;
-    /**
-     * Telemetry event sent when 'Enter interpreter path' button is clicked.
-     */
-    [EventName.SELECT_INTERPRETER_ENTER_BUTTON]: never | undefined;
-    /**
-     * Telemetry event sent with details about what choice user made to input the interpreter path.
-     */
-    [EventName.SELECT_INTERPRETER_ENTER_CHOICE]: {
-        /**
-         * Carries 'enter' if user chose to enter the path to executable.
-         * Carries 'browse' if user chose to browse for the path to the executable.
-         */
-        choice: 'enter' | 'browse';
-    };
-    /**
-     * Telemetry event sent with details after updating the python interpreter
-     */
-    [EventName.PYTHON_INTERPRETER]: {
-        /**
-         * Carries the source which triggered the update
-         *
-         * @type {('ui' | 'shebang' | 'load')}
-         */
-        trigger: 'ui' | 'shebang' | 'load';
-        /**
-         * Carries `true` if updating python interpreter failed
-         *
-         * @type {boolean}
-         */
-        failed: boolean;
-        /**
-         * The python version of the interpreter
-         *
-         * @type {string}
-         */
-        pythonVersion?: string;
-        /**
-         * The version of pip module installed in the python interpreter
-         *
-         * @type {string}
-         */
-        pipVersion?: string;
     };
     [EventName.PYTHON_INTERPRETER_ACTIVATION_ENVIRONMENT_VARIABLES]: {
         /**
@@ -863,142 +805,6 @@ export interface IEventNamePropertyMapping {
          */
         activatedByWrapper?: boolean;
     };
-    /**
-     * Telemetry event sent when getting activation commands for active interpreter
-     */
-    [EventName.PYTHON_INTERPRETER_ACTIVATION_FOR_RUNNING_CODE]: {
-        /**
-         * Carries `true` if activation commands exists for interpreter, `false` otherwise
-         *
-         * @type {boolean}
-         */
-        hasCommands?: boolean;
-        /**
-         * Carries `true` if fetching activation commands for interpreter failed, `false` otherwise
-         *
-         * @type {boolean}
-         */
-        failed?: boolean;
-        /**
-         * The Python interpreter version of the active interpreter for the resource
-         *
-         * @type {string}
-         */
-        pythonVersion?: string;
-    };
-    /**
-     * Telemetry event sent when getting activation commands for terminal when interpreter is not specified
-     */
-    [EventName.PYTHON_INTERPRETER_ACTIVATION_FOR_TERMINAL]: {
-        /**
-         * Carries `true` if activation commands exists for terminal, `false` otherwise
-         *
-         * @type {boolean}
-         */
-        hasCommands?: boolean;
-        /**
-         * Carries `true` if fetching activation commands for terminal failed, `false` otherwise
-         *
-         * @type {boolean}
-         */
-        failed?: boolean;
-        /**
-         * The Python interpreter version of the interpreter for the resource
-         *
-         * @type {string}
-         */
-        pythonVersion?: string;
-    };
-    [EventName.PYTHON_INTERPRETER_AUTO_SELECTION]: {
-        /**
-         * If cached interpreter no longer exists or is invalid
-         *
-         * @type {boolean}
-         */
-        interpreterMissing?: boolean;
-        /**
-         * Carries `true` if next rule is identified for autoselecting interpreter
-         *
-         * @type {boolean}
-         */
-        identified?: boolean;
-        /**
-         * Carries `true` if cached interpreter is updated to use the current interpreter, `false` otherwise
-         *
-         * @type {boolean}
-         */
-        updated?: boolean;
-    };
-    /**
-     * Sends information regarding discovered python environments (virtualenv, conda, pipenv etc.)
-     */
-    [EventName.PYTHON_INTERPRETER_DISCOVERY]: {
-        /**
-         * Name of the locator
-         */
-        locator: string;
-        /**
-         * The number of the interpreters returned by locator
-         */
-        interpreters?: number;
-    };
-    /**
-     * Telemetry event sent when pipenv interpreter discovery is executed.
-     */
-    [EventName.PIPENV_INTERPRETER_DISCOVERY]: never | undefined;
-    /**
-     * Telemetry event sent with details when user clicks the prompt with the following message
-     * `Prompt message` :- 'We noticed you're using a conda environment. If you are experiencing issues with this environment in the integrated terminal, we suggest the "terminal.integrated.inheritEnv" setting to be changed to false. Would you like to update this setting?'
-     */
-    [EventName.CONDA_INHERIT_ENV_PROMPT]: {
-        /**
-         * `Yes` When 'Yes' option is selected
-         * `No` When 'No' option is selected
-         * `More info` When 'More Info' option is selected
-         */
-        selection: 'Yes' | 'No' | 'More Info' | undefined;
-    };
-    /**
-     * Telemetry event sent with details when user clicks the prompt with the following message
-     * `Prompt message` :- 'We found a Python environment in this workspace. Do you want to select it to start up the features in the Python extension? Only accept if you trust this environment.'
-     */
-    [EventName.UNSAFE_INTERPRETER_PROMPT]: {
-        /**
-         * `Yes` When 'Yes' option is selected
-         * `No` When 'No' option is selected
-         * `Learn more` When 'More Info' option is selected
-         * `Do not show again` When 'Do not show again' option is selected
-         */
-        selection: 'Yes' | 'No' | 'Learn more' | 'Do not show again' | undefined;
-    };
-    /**
-     * Telemetry event sent with details when user clicks a button in the virtual environment prompt.
-     * `Prompt message` :- 'We noticed a new virtual environment has been created. Do you want to select it for the workspace folder?'
-     */
-    [EventName.PYTHON_INTERPRETER_ACTIVATE_ENVIRONMENT_PROMPT]: {
-        /**
-         * `Yes` When 'Yes' option is selected
-         * `No` When 'No' option is selected
-         * `Ignore` When 'Do not show again' option is clicked
-         *
-         * @type {('Yes' | 'No' | 'Ignore' | undefined)}
-         */
-        selection: 'Yes' | 'No' | 'Ignore' | undefined;
-    };
-    /**
-     * Telemetry event sent with details when the user clicks a button in the "Python is not installed" prompt.
-     * * `Prompt message` :- 'Python is not installed. Please download and install Python before using the extension.'
-     */
-    [EventName.PYTHON_NOT_INSTALLED_PROMPT]: {
-        /**
-         * `Download` When the 'Download' option is clicked
-         * `Ignore` When the prompt is dismissed
-         *
-         * @type {('Download' | 'Ignore' | undefined)}
-         */
-        selection: 'Download' | 'Ignore' | undefined;
-    };
-
     /**
      * Telemetry event sent with details when user clicks a button in the following prompt
      * `Prompt message` :- 'We noticed you are using Visual Studio Code Insiders. Would you like to use the Insiders build of the Python extension?'
@@ -1532,34 +1338,6 @@ export interface IEventNamePropertyMapping {
     restart - Whether to restart the Jedi Process (i.e. memory > limit).
     */
     [EventName.JEDI_MEMORY]: { mem_use: number; limit: number; isUserDefinedLimit: boolean; restart: boolean };
-    /*
-    Telemetry event sent to provide information on whether we have successfully identify the type of shell used.
-    This information is useful in determining how well we identify shells on users machines.
-    This impacts executing code in terminals and activation of environments in terminal.
-    So, the better this works, the better it is for the user.
-    failed - If true, indicates we have failed to identify the shell. Note this impacts impacts ability to activate environments in the terminal & code.
-    shellIdentificationSource - How was the shell identified. One of 'terminalName' | 'settings' | 'environment' | 'default'
-                                If terminalName, then this means we identified the type of the shell based on the name of the terminal.
-                                If settings, then this means we identified the type of the shell based on user settings in VS Code.
-                                If environment, then this means we identified the type of the shell based on their environment (env variables, etc).
-                                    I.e. their default OS Shell.
-                                If default, then we reverted to OS defaults (cmd on windows, and bash on the rest).
-                                    This is the worst case scenario.
-                                    I.e. we could not identify the shell at all.
-    terminalProvided - If true, we used the terminal provided to detec the shell. If not provided, we use the default shell on user machine.
-    hasCustomShell - If undefined (not set), we didn't check.
-                     If true, user has customzied their shell in VSC Settings.
-    hasShellInEnv - If undefined (not set), we didn't check.
-                    If true, user has a shell in their environment.
-                    If false, user does not have a shell in their environment.
-    */
-    [EventName.TERMINAL_SHELL_IDENTIFICATION]: {
-        failed: boolean;
-        terminalProvided: boolean;
-        shellIdentificationSource: 'terminalName' | 'settings' | 'environment' | 'default' | 'vscode';
-        hasCustomShell: undefined | boolean;
-        hasShellInEnv: undefined | boolean;
-    };
     /**
      * Telemetry event sent when getting environment variables for an activated environment has failed.
      *
