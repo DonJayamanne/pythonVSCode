@@ -4,7 +4,7 @@
 'use strict';
 
 import { inject, injectable } from 'inversify';
-import { NotebookDocument } from 'vscode';
+import { NotebookCell, NotebookDocument } from '../../../../types/vscode-proposed';
 import { IExtensionActivationService } from '../../activation/types';
 import { IVSCodeNotebook } from '../../common/application/types';
 import { PYTHON_LANGUAGE } from '../../common/constants';
@@ -78,7 +78,7 @@ export class KernelDaemonPreWarmer implements IExtensionActivationService {
     private async onDidOpenNotebookDocument(doc: NotebookDocument): Promise<void> {
         if (
             doc.languages.includes(PYTHON_LANGUAGE) ||
-            doc.cells.some((cell) => {
+            doc.cells.some((cell: NotebookCell) => {
                 return cell.language === PYTHON_LANGUAGE;
             })
         ) {
