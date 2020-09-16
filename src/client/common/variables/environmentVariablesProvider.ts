@@ -3,14 +3,12 @@
 import { inject, injectable, optional } from 'inversify';
 import * as path from 'path';
 import { ConfigurationChangeEvent, Disposable, Event, EventEmitter, FileSystemWatcher, Uri } from 'vscode';
-import { IServiceContainer } from '../../ioc/types';
 import { sendFileCreationTelemetry } from '../../telemetry/envFileTelemetry';
 import { IWorkspaceService } from '../application/types';
 import { traceVerbose } from '../logger';
 import { IPlatformService } from '../platform/types';
 import { ICurrentProcess, IDisposableRegistry } from '../types';
-import { InMemoryInterpreterSpecificCache } from '../utils/cacheUtils';
-import { clearCachedResourceSpecificIngterpreterData } from '../utils/decorators';
+import { InMemoryCache } from '../utils/cacheUtils';
 import { EnvironmentVariables, IEnvironmentVariablesProvider, IEnvironmentVariablesService } from './types';
 
 const CACHE_DURATION = 60 * 60 * 1000;
@@ -26,7 +24,6 @@ export class EnvironmentVariablesProvider implements IEnvironmentVariablesProvid
         @inject(IPlatformService) private platformService: IPlatformService,
         @inject(IWorkspaceService) private workspaceService: IWorkspaceService,
         @inject(ICurrentProcess) private process: ICurrentProcess,
-        @inject(IServiceContainer) private serviceContainer: IServiceContainer,
         @optional() private cacheDuration: number = CACHE_DURATION
     ) {
         disposableRegistry.push(this);
@@ -50,18 +47,15 @@ export class EnvironmentVariablesProvider implements IEnvironmentVariablesProvid
 
     public async getEnvironmentVariables(resource?: Uri): Promise<EnvironmentVariables> {
         // Cache resource specific interpreter data
-        const cacheStore = new InMemoryInterpreterSpecificCache(
-            'getEnvironmentVariables',
-            this.cacheDuration,
-            [resource],
-            this.serviceContainer
-        );
-        if (cacheStore.hasData) {
+        const key = this.workspaceService.getWorkspaceFolderIdentifier(resource);
+        const cacheStoreIndexedByWorkspaceFolder = new InMemoryCache<EnvironmentVariables>(this.cacheDuration, key);
+
+        if (cacheStoreIndexedByWorkspaceFolder.hasData && cacheStoreIndexedByWorkspaceFolder.data) {
             traceVerbose(`Cached data exists getEnvironmentVariables, ${resource ? resource.fsPath : '<No Resource>'}`);
-            return Promise.resolve(cacheStore.data) as Promise<EnvironmentVariables>;
+            return cacheStoreIndexedByWorkspaceFolder.data!;
         }
         const promise = this._getEnvironmentVariables(resource);
-        promise.then((result) => (cacheStore.data = result)).ignoreErrors();
+        promise.then((result) => (cacheStoreIndexedByWorkspaceFolder.data = result)).ignoreErrors();
         return promise;
     }
     public async _getEnvironmentVariables(resource?: Uri): Promise<EnvironmentVariables> {
@@ -125,16 +119,9 @@ export class EnvironmentVariablesProvider implements IEnvironmentVariablesProvid
     }
 
     private onEnvironmentFileChanged(workspaceFolderUri?: Uri) {
-        clearCachedResourceSpecificIngterpreterData(
-            'getEnvironmentVariables',
-            workspaceFolderUri,
-            this.serviceContainer
-        );
-        clearCachedResourceSpecificIngterpreterData(
-            'CustomEnvironmentVariables',
-            workspaceFolderUri,
-            this.serviceContainer
-        );
+        const key = this.workspaceService.getWorkspaceFolderIdentifier(workspaceFolderUri);
+        new InMemoryCache<EnvironmentVariables>(this.cacheDuration, `$getEnvironmentVariables-${key}`).clear();
+
         this.changeEventEmitter.fire(workspaceFolderUri);
     }
 }

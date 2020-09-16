@@ -2,12 +2,10 @@
 
 import { ProgressLocation, ProgressOptions, window } from 'vscode';
 import '../../common/extensions';
-import { IServiceContainer } from '../../ioc/types';
 import { isTestExecution } from '../constants';
 import { traceError, traceVerbose } from '../logger';
-import { Resource } from '../types';
 import { createDeferred, Deferred } from './async';
-import { getCacheKeyFromFunctionArgs, getGlobalCacheStore, InMemoryInterpreterSpecificCache } from './cacheUtils';
+import { DataWithExpiry, getCacheKeyFromFunctionArgs, getGlobalCacheStore } from './cacheUtils';
 import { TraceInfo, tracing } from './misc';
 
 // tslint:disable-next-line:no-require-imports no-var-requires
@@ -127,18 +125,6 @@ export function makeDebounceAsyncDecorator(wait?: number) {
     };
 }
 
-type VSCodeType = typeof import('vscode');
-
-export function clearCachedResourceSpecificIngterpreterData(
-    key: string,
-    resource: Resource,
-    serviceContainer: IServiceContainer,
-    vscode: VSCodeType = require('vscode')
-) {
-    const cacheStore = new InMemoryInterpreterSpecificCache(key, 0, [resource], serviceContainer, vscode);
-    cacheStore.clear();
-}
-
 type PromiseFunctionWithAnyArgs = (...any: any) => Promise<any>;
 const cacheStoreForMethods = getGlobalCacheStore();
 export function cache(expiryDurationMs: number) {
@@ -156,15 +142,13 @@ export function cache(expiryDurationMs: number) {
             }
             const key = getCacheKeyFromFunctionArgs(keyPrefix, args);
             const cachedItem = cacheStoreForMethods.get(key);
-            if (cachedItem && cachedItem.expiry > Date.now()) {
+            if (cachedItem && !cachedItem.expired) {
                 traceVerbose(`Cached data exists ${key}`);
                 return Promise.resolve(cachedItem.data);
             }
             const promise = originalMethod.apply(this, args) as Promise<any>;
             promise
-                .then((result) =>
-                    cacheStoreForMethods.set(key, { data: result, expiry: Date.now() + expiryDurationMs })
-                )
+                .then((result) => cacheStoreForMethods.set(key, new DataWithExpiry(expiryDurationMs, result)))
                 .ignoreErrors();
             return promise;
         };
