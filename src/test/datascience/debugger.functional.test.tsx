@@ -338,7 +338,7 @@ suite('DataScience Debugger tests', () => {
                 const done = history.window.debugCode(code, targetUri, 0, docManager.activeTextEditor);
                 await waitForPromise(
                     Promise.race([done, breakPromise.promise]),
-                    ioc.getSettings().datascience.jupyterLaunchTimeout * 2 // Give restarts a chance
+                    ioc.getSettings().jupyterLaunchTimeout * 2 // Give restarts a chance
                 );
                 assert.ok(breakPromise.resolved, 'Breakpoint event did not fire');
                 assert.ok(!lastErrorMessage, `Error occurred ${lastErrorMessage}`);

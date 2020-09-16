@@ -11,7 +11,7 @@ import { createDeferred } from '../../client/common/utils/async';
 import { RegExpValues } from '../../client/datascience/constants';
 import { SharedMessages } from '../../client/datascience/messages';
 import { IPlotViewerMapping, PlotViewerMessages } from '../../client/datascience/plotting/types';
-import { IDataScienceExtraSettings } from '../../client/datascience/types';
+import { IJupyterExtraSettings } from '../../client/datascience/types';
 import { storeLocStrings } from '../react-common/locReactSide';
 import { IMessageHandler, PostOffice } from '../react-common/postOffice';
 import { getDefaultSettings } from '../react-common/settingsReactSide';
@@ -43,7 +43,7 @@ interface IMainPanelState {
     currentImage: number;
     tool: Tool;
     forceDark?: boolean;
-    settings?: IDataScienceExtraSettings;
+    settings?: IJupyterExtraSettings;
 }
 
 const PanKeyboardSize = 10;
@@ -143,7 +143,7 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
 
     private updateSettings(content: string) {
         const newSettingsJSON = JSON.parse(content);
-        const newSettings = newSettingsJSON as IDataScienceExtraSettings;
+        const newSettings = newSettingsJSON as IJupyterExtraSettings;
         this.setState({
             settings: newSettings
         });

@@ -8,9 +8,9 @@ import { anything, instance, mock, verify, when } from 'ts-mockito';
 import { EventEmitter } from 'vscode';
 import { ApplicationShell } from '../../../../client/common/application/applicationShell';
 import { IApplicationShell } from '../../../../client/common/application/types';
-import { PythonSettings } from '../../../../client/common/configSettings';
+import { JupyterSettings } from '../../../../client/common/configSettings';
 import { ConfigurationService } from '../../../../client/common/configuration/service';
-import { IConfigurationService, IPythonSettings } from '../../../../client/common/types';
+import { IConfigurationService, IWatchableJupyterSettings } from '../../../../client/common/types';
 import { Common } from '../../../../client/common/utils/localize';
 import { EXTENSION_ROOT_DIR } from '../../../../client/constants';
 import { JupyterSessionStartError } from '../../../../client/datascience/baseJupyterSession';
@@ -34,11 +34,11 @@ suite('DataScience - Kernel Switcher', () => {
     let connection: IJupyterConnection;
     let currentKernel: IJupyterKernelSpec | LiveKernelModel;
     let selectedInterpreter: PythonEnvironment;
-    let settings: IPythonSettings;
+    let settings: IWatchableJupyterSettings;
     let newKernelConnection: KernelConnectionMetadata;
     setup(() => {
         connection = mock<IJupyterConnection>();
-        settings = mock(PythonSettings);
+        settings = mock(JupyterSettings);
         currentKernel = {
             lastActivityTime: new Date(),
             name: 'CurrentKernel',
@@ -64,7 +64,6 @@ suite('DataScience - Kernel Switcher', () => {
         when(notebookProvider.type).thenReturn('jupyter');
 
         // tslint:disable-next-line: no-any
-        when(settings.datascience).thenReturn({} as any);
         when(notebook.connection).thenReturn(instance(connection));
         when(configService.getSettings(anything())).thenReturn(instance(settings));
         kernelSwitcher = new KernelSwitcher(

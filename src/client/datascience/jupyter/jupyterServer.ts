@@ -99,7 +99,7 @@ export class JupyterServerBase implements INotebookServer {
             launchInfo.connectionInfo.rootDirectory,
             cancelToken
         );
-        const idleTimeout = this.configService.getSettings().datascience.jupyterLaunchTimeout;
+        const idleTimeout = this.configService.getSettings().jupyterLaunchTimeout;
         // The wait for idle should throw if we can't connect.
         await session.waitForIdle(idleTimeout);
         // If that works, save this session for the next notebook to use

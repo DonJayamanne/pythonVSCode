@@ -452,7 +452,7 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
 
                 // Bail on the rest of our cells if one comes back with an error
                 if (
-                    this.configuration.getSettings(this.owningResource).datascience.stopOnError &&
+                    this.configuration.getSettings(this.owningResource).stopOnError &&
                     resultCell &&
                     resultCell.state === CellState.error
                 ) {

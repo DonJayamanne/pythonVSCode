@@ -10,7 +10,7 @@ export class TrustService implements ITrustService {
         return this._onDidSetNotebookTrust.event;
     }
     private get alwaysTrustNotebooks() {
-        return this.configService.getSettings().datascience.alwaysTrustNotebooks;
+        return this.configService.getSettings().alwaysTrustNotebooks;
     }
     protected readonly _onDidSetNotebookTrust = new EventEmitter<void>();
     constructor(

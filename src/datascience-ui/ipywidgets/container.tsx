@@ -14,7 +14,7 @@ import {
 } from '../../client/datascience/interactive-common/interactiveWindowTypes';
 import { WidgetScriptSource } from '../../client/datascience/ipywidgets/types';
 import { SharedMessages } from '../../client/datascience/messages';
-import { IDataScienceExtraSettings } from '../../client/datascience/types';
+import { IJupyterExtraSettings } from '../../client/datascience/types';
 import {
     CommonAction,
     CommonActionType,
@@ -70,7 +70,7 @@ export class WidgetManagerComponent extends React.Component<Props> {
             // tslint:disable-next-line: no-any
             handleMessage: (type: string, payload?: any) => {
                 if (type === SharedMessages.UpdateSettings) {
-                    const settings = JSON.parse(payload) as IDataScienceExtraSettings;
+                    const settings = JSON.parse(payload) as IJupyterExtraSettings;
                     this.widgetsCanLoadFromCDN = settings.widgetScriptSources.length > 0;
                 } else if (type === IPyWidgetMessages.IPyWidgets_WidgetScriptSourceResponse) {
                     this.registerScriptSourceInRequirejs(payload as WidgetScriptSource);

@@ -9,7 +9,7 @@ import {
     ILoadAllCells,
     NotebookModelChange
 } from '../../../../client/datascience/interactive-common/interactiveWindowTypes';
-import { ICell, IDataScienceExtraSettings } from '../../../../client/datascience/types';
+import { ICell, IJupyterExtraSettings } from '../../../../client/datascience/types';
 import { splitMultilineString } from '../../../common';
 import {
     createCellVM,
@@ -31,7 +31,7 @@ import { Execution } from './execution';
 import { Movement } from './movement';
 
 export namespace Creation {
-    function prepareCellVM(cell: ICell, hasBeenRun: boolean, settings?: IDataScienceExtraSettings): ICellViewModel {
+    function prepareCellVM(cell: ICell, hasBeenRun: boolean, settings?: IJupyterExtraSettings): ICellViewModel {
         const cellVM: ICellViewModel = createCellVM(cell, settings, true, false);
 
         // Set initial cell visibility and collapse

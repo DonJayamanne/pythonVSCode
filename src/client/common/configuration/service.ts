@@ -5,10 +5,9 @@ import { inject, injectable } from 'inversify';
 import { ConfigurationTarget, Uri, WorkspaceConfiguration } from 'vscode';
 import { IServiceContainer } from '../../ioc/types';
 import { IWorkspaceService } from '../application/types';
-import { PythonSettings } from '../configSettings';
+import { JupyterSettings } from '../configSettings';
 import { isUnitTestExecution } from '../constants';
-import { DeprecatePythonPath } from '../experiments/groups';
-import { IConfigurationService, IExperimentsManager, IInterpreterPathService, IPythonSettings } from '../types';
+import { IConfigurationService, IWatchableJupyterSettings } from '../types';
 
 @injectable()
 export class ConfigurationService implements IConfigurationService {
@@ -16,10 +15,8 @@ export class ConfigurationService implements IConfigurationService {
     constructor(@inject(IServiceContainer) private readonly serviceContainer: IServiceContainer) {
         this.workspaceService = this.serviceContainer.get<IWorkspaceService>(IWorkspaceService);
     }
-    public getSettings(resource?: Uri): IPythonSettings {
-        const interpreterPathService = this.serviceContainer.get<IInterpreterPathService>(IInterpreterPathService);
-        const experiments = this.serviceContainer.get<IExperimentsManager>(IExperimentsManager);
-        return PythonSettings.getInstance(resource, this.workspaceService, experiments, interpreterPathService);
+    public getSettings(resource?: Uri): IWatchableJupyterSettings {
+        return JupyterSettings.getInstance(resource, this.workspaceService);
     }
 
     public async updateSectionSetting(
@@ -29,25 +26,16 @@ export class ConfigurationService implements IConfigurationService {
         resource?: Uri,
         configTarget?: ConfigurationTarget
     ): Promise<void> {
-        const experiments = this.serviceContainer.get<IExperimentsManager>(IExperimentsManager);
-        const interpreterPathService = this.serviceContainer.get<IInterpreterPathService>(IInterpreterPathService);
-        const inExperiment = experiments.inExperiment(DeprecatePythonPath.experiment);
-        experiments.sendTelemetryIfInExperiment(DeprecatePythonPath.control);
         const defaultSetting = {
             uri: resource,
             target: configTarget || ConfigurationTarget.WorkspaceFolder
         };
         let settingsInfo = defaultSetting;
-        if (section === 'python' && configTarget !== ConfigurationTarget.Global) {
-            settingsInfo = PythonSettings.getSettingsUriAndTarget(resource, this.workspaceService);
+        if (section === 'jupyter' && configTarget !== ConfigurationTarget.Global) {
+            settingsInfo = JupyterSettings.getSettingsUriAndTarget(resource, this.workspaceService);
         }
-        configTarget = configTarget ? configTarget : settingsInfo.target;
-
         const configSection = this.workspaceService.getConfiguration(section, settingsInfo.uri);
-        const currentValue =
-            inExperiment && section === 'python' && setting === 'pythonPath'
-                ? interpreterPathService.inspect(settingsInfo.uri)
-                : configSection.inspect(setting);
+        const currentValue = configSection.inspect(setting);
 
         if (
             currentValue !== undefined &&
@@ -57,13 +45,8 @@ export class ConfigurationService implements IConfigurationService {
         ) {
             return;
         }
-        if (section === 'python' && setting === 'pythonPath') {
-            if (inExperiment) {
-                // tslint:disable-next-line: no-any
-                await interpreterPathService.update(settingsInfo.uri, configTarget, value as any);
-            }
-        } else {
-            await configSection.update(setting, value, configTarget);
+        await configSection.update(setting, value, configTarget);
+        if (configTarget) {
             await this.verifySetting(configSection, configTarget, setting, value);
         }
     }
@@ -74,11 +57,11 @@ export class ConfigurationService implements IConfigurationService {
         resource?: Uri,
         configTarget?: ConfigurationTarget
     ): Promise<void> {
-        return this.updateSectionSetting('python', setting, value, resource, configTarget);
+        return this.updateSectionSetting('jupyter', setting, value, resource, configTarget);
     }
 
     public isTestExecution(): boolean {
-        return process.env.VSC_PYTHON_CI_TEST === '1';
+        return process.env.VSC_JUPYTER_CI_TEST === '1';
     }
 
     private async verifySetting(

@@ -120,7 +120,7 @@ suite('DataScience - VSCode Notebook - Restart/Interrupt/Cancel/Errors (slow)', 
         await waitForTextOutputInVSCode(cell, '1', 0, false, 15_000); // Wait for 15 seconds for it to start (possibly kernel is still starting).
 
         // Restart the kernel.
-        const restartPromise = commands.executeCommand('python.datascience.notebookeditor.restartkernel');
+        const restartPromise = commands.executeCommand('jupyter.notebookeditor.restartkernel');
 
         await waitForCondition(async () => assertVSCCellIsNotRunning(cell), 15_000, 'Execution not cancelled');
 

@@ -346,8 +346,7 @@ export class JupyterPasswordConnect implements IJupyterPasswordConnect {
     }
 
     private async makeRequest(url: string, options: nodeFetch.RequestInit): Promise<nodeFetch.Response> {
-        const allowUnauthorized = this.configService.getSettings(undefined).datascience
-            .allowUnauthorizedRemoteConnection;
+        const allowUnauthorized = this.configService.getSettings(undefined).allowUnauthorizedRemoteConnection;
 
         // Try once and see if it fails with unauthorized.
         try {

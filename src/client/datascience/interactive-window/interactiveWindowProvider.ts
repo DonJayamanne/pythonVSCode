@@ -217,7 +217,7 @@ export class InteractiveWindowProvider implements IInteractiveWindowProvider, IA
     }
 
     private async getInteractiveMode(resource: Resource): Promise<InteractiveWindowMode> {
-        let result = this.configService.getSettings(resource).datascience.interactiveWindowMode;
+        let result = this.configService.getSettings(resource).interactiveWindowMode;
 
         // Ask user if still at default value and they're opening a second file.
         if (

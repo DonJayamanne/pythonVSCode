@@ -3,7 +3,7 @@
 
 'use strict';
 
-import { inject, injectable, multiInject } from 'inversify';
+import { inject, injectable, multiInject, optional } from 'inversify';
 import { TextDocument } from 'vscode';
 import { IActiveResourceService, IDocumentManager, IWorkspaceService } from '../common/application/types';
 import { PYTHON_LANGUAGE } from '../common/constants';
@@ -23,7 +23,9 @@ export class ExtensionActivationManager implements IExtensionActivationManager {
     private readonly disposables: IDisposable[] = [];
     private docOpenedHandler?: IDisposable;
     constructor(
-        @multiInject(IExtensionActivationService) private readonly activationServices: IExtensionActivationService[],
+        @multiInject(IExtensionActivationService)
+        @optional()
+        private readonly activationServices: IExtensionActivationService[],
         @multiInject(IExtensionSingleActivationService)
         private readonly singleActivationServices: IExtensionSingleActivationService[],
         @inject(IDocumentManager) private readonly documentManager: IDocumentManager,
@@ -71,7 +73,9 @@ export class ExtensionActivationManager implements IExtensionActivationManager {
 
         await sendActivationTelemetry(this.fileSystem, this.workspaceService, resource);
 
-        await Promise.all(this.activationServices.map((item) => item.activate(resource)));
+        if (this.activationServices) {
+            await Promise.all(this.activationServices.map((item) => item.activate(resource)));
+        }
     }
     public async initialize() {
         this.addHandlers();

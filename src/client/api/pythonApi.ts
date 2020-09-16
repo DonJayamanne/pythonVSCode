@@ -23,7 +23,7 @@ import { IInterpreterQuickPickItem, IInterpreterSelector } from '../interpreter/
 import { IInterpreterService } from '../interpreter/contracts';
 import { IWindowsStoreInterpreter } from '../interpreter/locators/types';
 import { PythonEnvironment } from '../pythonEnvironments/info';
-import { IPythonInstaller, PythonApi } from './types';
+import { IPythonApiProvider, IPythonInstaller, PythonApi } from './types';
 
 @injectable()
 export class PythonApiProvider {
@@ -70,7 +70,7 @@ export class PythonApiProvider {
 
 @injectable()
 export class WindowsStoreInterpreter implements IWindowsStoreInterpreter {
-    constructor(@inject(PythonApiProvider) private readonly api: PythonApiProvider) {}
+    constructor(@inject(IPythonApiProvider) private readonly api: IPythonApiProvider) {}
 
     public isWindowsStoreInterpreter(pythonPath: string): Promise<boolean> {
         return this.api.getApi().then((api) => api.isWindowsStoreInterpreter(pythonPath));
@@ -79,7 +79,7 @@ export class WindowsStoreInterpreter implements IWindowsStoreInterpreter {
 
 @injectable()
 export class PythonInstaller implements IPythonInstaller {
-    constructor(@inject(PythonApiProvider) private readonly api: PythonApiProvider) {}
+    constructor(@inject(IPythonApiProvider) private readonly api: IPythonApiProvider) {}
 
     public install(
         product: Product,
@@ -93,7 +93,7 @@ export class PythonInstaller implements IPythonInstaller {
 // tslint:disable-next-line: max-classes-per-file
 @injectable()
 export class EnvironmentActivationService implements IEnvironmentActivationService {
-    constructor(@inject(PythonApiProvider) private readonly api: PythonApiProvider) {}
+    constructor(@inject(IPythonApiProvider) private readonly api: IPythonApiProvider) {}
 
     public async getActivatedEnvironmentVariables(
         resource: Resource,
@@ -106,7 +106,7 @@ export class EnvironmentActivationService implements IEnvironmentActivationServi
 // tslint:disable-next-line: max-classes-per-file
 @injectable()
 export class InterpreterSelector implements IInterpreterSelector {
-    constructor(@inject(PythonApiProvider) private readonly api: PythonApiProvider) {}
+    constructor(@inject(IPythonApiProvider) private readonly api: IPythonApiProvider) {}
 
     public async getSuggestions(resource: Resource): Promise<IInterpreterQuickPickItem[]> {
         return this.api.getApi().then((api) => api.getSuggestions(resource));
@@ -117,7 +117,7 @@ export class InterpreterSelector implements IInterpreterSelector {
 export class InterpreterService implements IInterpreterService {
     private readonly didChangeInterpreter = new EventEmitter<void>();
 
-    constructor(@inject(PythonApiProvider) private readonly api: PythonApiProvider) {}
+    constructor(@inject(IPythonApiProvider) private readonly api: IPythonApiProvider) {}
 
     public get onDidChangeInterpreter(): Event<void> {
         return this.didChangeInterpreter.event;

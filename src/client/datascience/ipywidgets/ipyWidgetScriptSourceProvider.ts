@@ -43,7 +43,7 @@ export class IPyWidgetScriptSourceProvider implements IWidgetScriptSourceProvide
     private configurationPromise?: Deferred<void>;
     private get configuredScriptSources(): readonly WidgetCDNs[] {
         const settings = this.configurationSettings.getSettings(undefined);
-        return settings.datascience.widgetScriptSources;
+        return settings.widgetScriptSources;
     }
     private readonly userConfiguredCDNAtLeastOnce: IPersistentState<boolean>;
     private readonly neverWarnAboutScriptsNotFoundOnCDN: IPersistentState<boolean>;
@@ -142,7 +142,7 @@ export class IPyWidgetScriptSourceProvider implements IWidgetScriptSourceProvide
     }
 
     private onSettingsChagned(e: ConfigurationChangeEvent) {
-        if (e.affectsConfiguration('python.dataScience.widgetScriptSources')) {
+        if (e.affectsConfiguration('jupyter.widgetScriptSources')) {
             this.rebuildProviders();
         }
     }
@@ -235,7 +235,7 @@ export class IPyWidgetScriptSourceProvider implements IWidgetScriptSourceProvide
         this.configurationPromise.resolve();
     }
     private async updateScriptSources(scriptSources: WidgetCDNs[]) {
-        const targetSetting = 'dataScience.widgetScriptSources';
+        const targetSetting = 'widgetScriptSources';
         await this.configurationSettings.updateSetting(
             targetSetting,
             scriptSources,

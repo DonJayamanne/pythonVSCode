@@ -3,7 +3,7 @@
 'use strict';
 import '../common/extensions';
 
-import { IDataScienceSettings } from '../common/types';
+import { IJupyterSettings } from '../common/types';
 import { noop } from '../common/utils/misc';
 import { RegExpValues } from './constants';
 
@@ -16,7 +16,7 @@ export class CellMatcher {
     private defaultCellMarker: string;
     private defaultCellMarkerExec: RegExp;
 
-    constructor(settings?: IDataScienceSettings) {
+    constructor(settings?: IJupyterSettings) {
         this.codeMatchRegEx = this.createRegExp(
             settings ? settings.codeRegularExpression : undefined,
             RegExpValues.PythonCellMarker

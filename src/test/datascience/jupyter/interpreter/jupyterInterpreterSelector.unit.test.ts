@@ -8,9 +8,8 @@ import { anything, capture, instance, mock, verify, when } from 'ts-mockito';
 import { ApplicationShell } from '../../../../client/common/application/applicationShell';
 import { IApplicationShell, IWorkspaceService } from '../../../../client/common/application/types';
 import { WorkspaceService } from '../../../../client/common/application/workspace';
-import { PythonSettings } from '../../../../client/common/configSettings';
 import { PathUtils } from '../../../../client/common/platform/pathUtils';
-import { IDataScienceSettings, IPathUtils } from '../../../../client/common/types';
+import { IPathUtils } from '../../../../client/common/types';
 import { JupyterInterpreterSelector } from '../../../../client/datascience/jupyter/interpreter/jupyterInterpreterSelector';
 import { JupyterInterpreterStateStore } from '../../../../client/datascience/jupyter/interpreter/jupyterInterpreterStateStore';
 import { IInterpreterSelector } from '../../../../client/interpreter/configuration/types';
@@ -22,7 +21,6 @@ suite('DataScience - Jupyter Interpreter Picker', () => {
     let interpreterSelectionState: JupyterInterpreterStateStore;
     let workspace: IWorkspaceService;
     let pathUtils: IPathUtils;
-    let dsSettings: IDataScienceSettings;
 
     setup(() => {
         interpreterSelector = mock<IInterpreterSelector>();
@@ -30,10 +28,7 @@ suite('DataScience - Jupyter Interpreter Picker', () => {
         appShell = mock(ApplicationShell);
         workspace = mock(WorkspaceService);
         pathUtils = mock(PathUtils);
-        const pythonSettings = mock(PythonSettings);
         // tslint:disable-next-line: no-any
-        dsSettings = {} as any;
-        when(pythonSettings.datascience).thenReturn(dsSettings);
         picker = new JupyterInterpreterSelector(
             instance(interpreterSelector),
             instance(appShell),

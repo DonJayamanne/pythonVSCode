@@ -5,7 +5,7 @@ import { SemVer } from 'semver';
 import { anything, instance, mock, verify, when } from 'ts-mockito';
 import * as typemoq from 'typemoq';
 import { IApplicationShell } from '../../../client/common/application/types';
-import { IConfigurationService, IDataScienceSettings, IPythonSettings } from '../../../client/common/types';
+import { IConfigurationService, IWatchableJupyterSettings } from '../../../client/common/types';
 import { NotebookServerProvider } from '../../../client/datascience/interactive-common/notebookServerProvider';
 import { ProgressReporter } from '../../../client/datascience/progress/progressReporter';
 import { IJupyterExecution, INotebookServer } from '../../../client/datascience/types';
@@ -30,8 +30,7 @@ suite('DataScience - NotebookServerProvider', () => {
     let jupyterExecution: IJupyterExecution;
     let applicationShell: IApplicationShell;
     let interpreterService: IInterpreterService;
-    let pythonSettings: IPythonSettings;
-    let dataScienceSettings: IDataScienceSettings;
+    let pythonSettings: IWatchableJupyterSettings;
     const workingPython: PythonEnvironment = {
         path: '/foo/bar/python.exe',
         version: new SemVer('3.6.6-final'),
@@ -47,11 +46,8 @@ suite('DataScience - NotebookServerProvider', () => {
         interpreterService = mock<IInterpreterService>();
 
         // Set up our settings
-        pythonSettings = mock<IPythonSettings>();
-        dataScienceSettings = mock<IDataScienceSettings>();
-        when(pythonSettings.datascience).thenReturn(instance(dataScienceSettings));
-        when(dataScienceSettings.jupyterServerURI).thenReturn('local');
-        when(dataScienceSettings.useDefaultConfigForJupyter).thenReturn(true);
+        pythonSettings = mock<IWatchableJupyterSettings>();
+        when(pythonSettings.jupyterServerURI).thenReturn('local');
         when(configurationService.getSettings(anything())).thenReturn(instance(pythonSettings));
 
         // Create the server provider

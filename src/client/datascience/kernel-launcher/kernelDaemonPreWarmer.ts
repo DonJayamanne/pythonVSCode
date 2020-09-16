@@ -5,7 +5,6 @@
 
 import { inject, injectable } from 'inversify';
 import { NotebookCell, NotebookDocument } from '../../../../types/vscode-proposed';
-import { IExtensionActivationService } from '../../activation/types';
 import { IVSCodeNotebook } from '../../common/application/types';
 import { PYTHON_LANGUAGE } from '../../common/constants';
 import '../../common/extensions';
@@ -21,7 +20,7 @@ import {
 import { KernelDaemonPool } from './kernelDaemonPool';
 
 @injectable()
-export class KernelDaemonPreWarmer implements IExtensionActivationService {
+export class KernelDaemonPreWarmer {
     constructor(
         @inject(INotebookEditorProvider) private readonly notebookEditorProvider: INotebookEditorProvider,
         @inject(IInteractiveWindowProvider) private interactiveProvider: IInteractiveWindowProvider,
@@ -39,7 +38,7 @@ export class KernelDaemonPreWarmer implements IExtensionActivationService {
         // Also respect the disable autostart setting to not do any prewarming for the user
         if (
             !(await this.rawNotebookSupported.supported()) ||
-            this.configService.getSettings().datascience.disableJupyterAutoStart
+            this.configService.getSettings().disableJupyterAutoStart
         ) {
             return;
         }

@@ -24,7 +24,7 @@ suite('Common Commands ReloadCommand', () => {
     });
 
     test('Confirm command handler is added', async () => {
-        verify(cmdManager.registerCommand('python.reloadVSCode', anything(), anything())).once();
+        verify(cmdManager.registerCommand('jupyter.reloadVSCode', anything(), anything())).once();
     });
     test('Display prompt to reload VS Code with message passed into command', async () => {
         const message = 'Hello World!';

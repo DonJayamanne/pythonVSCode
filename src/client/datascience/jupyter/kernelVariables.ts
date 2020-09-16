@@ -259,7 +259,7 @@ export class KernelVariables implements IJupyterVariables {
         if (!result) {
             let query = this.configService
                 .getSettings(notebook.resource)
-                .datascience.variableQueries.find((v) => v.language === language);
+                .variableQueries.find((v) => v.language === language);
             if (!query && language === PYTHON_LANGUAGE) {
                 query = Settings.DefaultVariableQuery;
             }
@@ -319,8 +319,8 @@ export class KernelVariables implements IJupyterVariables {
             };
         }
 
-        const exclusionList = this.configService.getSettings(notebook.resource).datascience.variableExplorerExclude
-            ? this.configService.getSettings().datascience.variableExplorerExclude?.split(';')
+        const exclusionList = this.configService.getSettings(notebook.resource).variableExplorerExclude
+            ? this.configService.getSettings().variableExplorerExclude?.split(';')
             : [];
 
         const result: IJupyterVariablesResponse = {

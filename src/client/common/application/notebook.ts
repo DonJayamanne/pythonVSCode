@@ -71,7 +71,11 @@ export class VSCodeNotebook implements IVSCodeNotebook {
         if (!this.useProposedApi) {
             return;
         }
-        return this.notebook.activeNotebookEditor;
+        try {
+            return this.notebook.activeNotebookEditor;
+        } catch {
+            return undefined;
+        }
     }
     private get notebook() {
         if (!this._notebook) {

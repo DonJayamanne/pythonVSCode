@@ -3,9 +3,8 @@
 
 'use strict';
 
-import { DiagnosticSeverity, Uri } from 'vscode';
+import { DiagnosticSeverity } from 'vscode';
 import { Resource } from '../../common/types';
-import { PythonPathSource } from '../../debugger/extension/types';
 import { DiagnosticCodes } from './constants';
 
 export enum DiagnosticScope {
@@ -57,11 +56,6 @@ export interface IDiagnosticCommand {
 
 export type IDiagnosticMessageOnCloseHandler = (response?: string) => void;
 
-export const IInvalidPythonPathInDebuggerService = Symbol('IInvalidPythonPathInDebuggerService');
-
-export interface IInvalidPythonPathInDebuggerService extends IDiagnosticsService {
-    validatePythonPath(pythonPath?: string, pythonPathSource?: PythonPathSource, resource?: Uri): Promise<boolean>;
-}
 export const ISourceMapSupportService = Symbol('ISourceMapSupportService');
 export interface ISourceMapSupportService {
     register(): void;

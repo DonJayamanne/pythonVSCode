@@ -17,7 +17,7 @@ export async function calculateWorkingDirectory(
     let workingDir: string | undefined;
     // For a local launch calculate the working directory that we should switch into
     const settings = configService.getSettings(undefined);
-    const fileRoot = settings.datascience.notebookFileRoot;
+    const fileRoot = settings.notebookFileRoot;
 
     // If we don't have a workspace open the notebookFileRoot seems to often have a random location in it (we use ${workspaceRoot} as default)
     // so only do this setting if we actually have a valid workspace open

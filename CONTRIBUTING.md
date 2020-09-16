@@ -138,7 +138,7 @@ running from the command line or launching from within VSCode, though the
 mechanism used to specify them changes a little.
 
 -   Setting `CI_PYTHON_PATH` lets you change the version of python the tests are executed with
--   Setting `VSC_PYTHON_CI_TEST_GREP` lets you filter the tests by name
+-   Setting `VSC_JUPYTER_CI_TEST_GREP` lets you filter the tests by name
 
 _`CI_PYTHON_PATH`_
 
@@ -153,7 +153,7 @@ you specify isn't on `$PATH` then be sure to use an absolute path.
 
 This is also the mechanism for testing against other versions of Python.
 
-_`VSC_PYTHON_CI_TEST_GREP`_
+_`VSC_JUPYTER_CI_TEST_GREP`_
 
 This environment variable allows providing a regular expression which will
 be matched against suite and test "names" to be run. By default all tests
@@ -167,7 +167,7 @@ use the value `ProcessService.*stderr`.
 
 Be sure to escape any grep-sensitive characters in your suite name.
 
-In some rare cases in the "system" tests the `VSC_PYTHON_CI_TEST_GREP`
+In some rare cases in the "system" tests the `VSC_JUPYTER_CI_TEST_GREP`
 environment variable is ignored. If that happens then you will need to
 temporarily modify the `const grep =` line in
 [`src/test/index.ts`](https://github.com/Microsoft/vscode-jupyter/blob/84f9c7a174111/src/test/index.ts#L64).
@@ -192,7 +192,7 @@ on your system, however most systems support a syntax like the following for
 setting a single variable for a subprocess:
 
 ```shell
-VSC_PYTHON_CI_TEST_GREP=Sorting npm run testSingleWorkspace
+VSC_JUPYTER_CI_TEST_GREP=Sorting npm run testSingleWorkspace
 ```
 
 ### Testing Python Scripts

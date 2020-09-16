@@ -21,7 +21,7 @@ export const multirootPath = path.join(__dirname, '..', '..', 'src', 'testMultiR
 const workspace3Uri = vscode.Uri.file(path.join(multirootPath, 'workspace3'));
 
 //First thing to be executed.
-process.env.VSC_PYTHON_CI_TEST = '1';
+process.env.VSC_JUPYTER_CI_TEST = '1';
 
 // Ability to use custom python environments for testing
 export async function initializePython() {
@@ -39,7 +39,7 @@ export async function initialize(): Promise<IExtensionTestApi> {
         // When running smoke tests, we won't have access to these.
         const configSettings = await import('../client/common/configSettings');
         // Dispose any cached python settings (used only in test env).
-        configSettings.PythonSettings.dispose();
+        configSettings.JupyterSettings.dispose();
     }
     // tslint:disable-next-line:no-any
     return (api as any) as IExtensionTestApi;
@@ -59,7 +59,7 @@ export async function initializeTest(): Promise<any> {
         // When running smoke tests, we won't have access to these.
         const configSettings = await import('../client/common/configSettings');
         // Dispose any cached python settings (used only in test env).
-        configSettings.PythonSettings.dispose();
+        configSettings.JupyterSettings.dispose();
     }
 }
 export async function closeActiveWindows(): Promise<void> {

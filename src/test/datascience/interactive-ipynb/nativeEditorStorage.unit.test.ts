@@ -20,7 +20,7 @@ import {
 import { WebviewPanel } from '../../../client/common/application/webviewPanels/webviewPanel';
 import { WebviewPanelProvider } from '../../../client/common/application/webviewPanels/webviewPanelProvider';
 import { WorkspaceService } from '../../../client/common/application/workspace';
-import { PythonSettings } from '../../../client/common/configSettings';
+import { JupyterSettings } from '../../../client/common/configSettings';
 import { ConfigurationService } from '../../../client/common/configuration/service';
 import { CryptoUtils } from '../../../client/common/crypto';
 import { IConfigurationService, ICryptoUtils, IDisposable, IExtensionContext } from '../../../client/common/types';
@@ -257,7 +257,7 @@ suite('DataScience - Native Editor Storage', () => {
         webPanelProvider = mock(WebviewPanelProvider);
         executionProvider = mock(JupyterExecutionFactory);
         trustService = mock(TrustService);
-        const settings = mock(PythonSettings);
+        const settings = mock(JupyterSettings);
         const settingsChangedEvent = new EventEmitter<void>();
 
         context

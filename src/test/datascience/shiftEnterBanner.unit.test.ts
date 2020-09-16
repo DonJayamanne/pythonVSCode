@@ -9,10 +9,9 @@ import * as typemoq from 'typemoq';
 import { IApplicationShell } from '../../client/common/application/types';
 import {
     IConfigurationService,
-    IDataScienceSettings,
     IPersistentState,
     IPersistentStateFactory,
-    IPythonSettings
+    IWatchableJupyterSettings
 } from '../../client/common/types';
 import { Telemetry } from '../../client/datascience/constants';
 import { InteractiveShiftEnterBanner, InteractiveShiftEnterStateKeys } from '../../client/datascience/shiftEnterBanner';
@@ -21,7 +20,7 @@ import { clearTelemetryReporter } from '../../client/telemetry';
 
 suite('Interactive Shift Enter Banner', () => {
     const oldValueOfVSC_PYTHON_UNIT_TEST = process.env.VSC_PYTHON_UNIT_TEST;
-    const oldValueOfVSC_PYTHON_CI_TEST = process.env.VSC_PYTHON_CI_TEST;
+    const oldValueOfVSC_JUPYTER_CI_TEST = process.env.VSC_JUPYTER_CI_TEST;
     let appShell: typemoq.IMock<IApplicationShell>;
     let jupyterExecution: typemoq.IMock<IJupyterExecution>;
     let config: typemoq.IMock<IConfigurationService>;
@@ -40,7 +39,7 @@ suite('Interactive Shift Enter Banner', () => {
     setup(() => {
         clearTelemetryReporter();
         process.env.VSC_PYTHON_UNIT_TEST = undefined;
-        process.env.VSC_PYTHON_CI_TEST = undefined;
+        process.env.VSC_JUPYTER_CI_TEST = undefined;
         appShell = typemoq.Mock.ofType<IApplicationShell>();
         jupyterExecution = typemoq.Mock.ofType<IJupyterExecution>();
         config = typemoq.Mock.ofType<IConfigurationService>();
@@ -50,7 +49,7 @@ suite('Interactive Shift Enter Banner', () => {
 
     teardown(() => {
         process.env.VSC_PYTHON_UNIT_TEST = oldValueOfVSC_PYTHON_UNIT_TEST;
-        process.env.VSC_PYTHON_CI_TEST = oldValueOfVSC_PYTHON_CI_TEST;
+        process.env.VSC_JUPYTER_CI_TEST = oldValueOfVSC_JUPYTER_CI_TEST;
         Reporter.properties = [];
         Reporter.eventNames = [];
         Reporter.measures = [];
@@ -156,12 +155,9 @@ function loadBanner(
         });
 
     // Config settings
-    const pythonSettings = typemoq.Mock.ofType<IPythonSettings>();
-    const dataScienceSettings = typemoq.Mock.ofType<IDataScienceSettings>();
-    dataScienceSettings.setup((d) => d.enabled).returns(() => true);
+    const dataScienceSettings = typemoq.Mock.ofType<IWatchableJupyterSettings>();
     dataScienceSettings.setup((d) => d.sendSelectionToInteractiveWindow).returns(() => false);
-    pythonSettings.setup((p) => p.datascience).returns(() => dataScienceSettings.object);
-    config.setup((c) => c.getSettings(typemoq.It.isAny())).returns(() => pythonSettings.object);
+    config.setup((c) => c.getSettings(typemoq.It.isAny())).returns(() => dataScienceSettings.object);
 
     // Config Jupyter
     jupyterExecution

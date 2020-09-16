@@ -3,8 +3,8 @@
 
 import { anything, instance, mock, verify, when } from 'ts-mockito';
 import { IVSCodeNotebook } from '../../../client/common/application/types';
-import { PythonSettings } from '../../../client/common/configSettings';
-import { IConfigurationService, IExperimentsManager, IPythonSettings } from '../../../client/common/types';
+import { JupyterSettings } from '../../../client/common/configSettings';
+import { IConfigurationService, IExperimentsManager, IWatchableJupyterSettings } from '../../../client/common/types';
 import { KernelDaemonPool } from '../../../client/datascience/kernel-launcher/kernelDaemonPool';
 import { KernelDaemonPreWarmer } from '../../../client/datascience/kernel-launcher/kernelDaemonPreWarmer';
 import {
@@ -23,7 +23,7 @@ suite('DataScience - Kernel Daemon Pool PreWarmer', () => {
     let rawNotebookSupported: IRawNotebookSupportedService;
     let configService: IConfigurationService;
     let daemonPool: KernelDaemonPool;
-    let settings: IPythonSettings;
+    let settings: IWatchableJupyterSettings;
     let vscodeNotebook: IVSCodeNotebook;
     setup(() => {
         notebookEditorProvider = mock<INotebookEditorProvider>();
@@ -37,10 +37,9 @@ suite('DataScience - Kernel Daemon Pool PreWarmer', () => {
         when(experiment.inExperiment(anything())).thenReturn(true);
 
         // Set up our config settings
-        settings = mock(PythonSettings);
+        settings = mock(JupyterSettings);
         when(configService.getSettings()).thenReturn(instance(settings));
         // tslint:disable-next-line: no-any
-        when(settings.datascience).thenReturn({} as any);
 
         prewarmer = new KernelDaemonPreWarmer(
             instance(notebookEditorProvider),

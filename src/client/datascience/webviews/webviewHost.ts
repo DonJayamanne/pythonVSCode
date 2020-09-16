@@ -14,7 +14,7 @@ import * as localize from '../../common/utils/localize';
 import { captureTelemetry } from '../../telemetry';
 import { DefaultTheme, GatherExtension, Telemetry } from '../constants';
 import { CssMessages, IGetCssRequest, IGetMonacoThemeRequest, SharedMessages } from '../messages';
-import { ICodeCssGenerator, IDataScienceExtraSettings, IThemeFinder } from '../types';
+import { ICodeCssGenerator, IJupyterExtraSettings, IThemeFinder } from '../types';
 
 @injectable() // For some reason this is necessary to get the class hierarchy to work.
 export abstract class WebviewHost<IMapping> implements IDisposable {
@@ -99,15 +99,16 @@ export abstract class WebviewHost<IMapping> implements IDisposable {
         }
     }
 
-    protected async generateDataScienceExtraSettings(): Promise<IDataScienceExtraSettings> {
+    protected async generateDataScienceExtraSettings(): Promise<IJupyterExtraSettings> {
         const resource = this.owningResource;
         const editor = this.workspaceService.getConfiguration('editor');
         const workbench = this.workspaceService.getConfiguration('workbench');
         const theme = !workbench ? DefaultTheme : workbench.get<string>('colorTheme', DefaultTheme);
         const ext = extensions.getExtension(GatherExtension);
+        const sendableSettings = JSON.parse(JSON.stringify(this.configService.getSettings(resource)));
 
         return {
-            ...this.configService.getSettings(resource).datascience,
+            ...sendableSettings,
             extraSettings: {
                 editor: {
                     cursor: this.getValue(editor, 'cursorStyle', 'line'),
@@ -224,7 +225,7 @@ export abstract class WebviewHost<IMapping> implements IDisposable {
             event.affectsConfiguration('editor.scrollbar.horizontalScrollbarSize') ||
             event.affectsConfiguration('files.autoSave') ||
             event.affectsConfiguration('files.autoSaveDelay') ||
-            event.affectsConfiguration('python.dataScience.widgetScriptSources')
+            event.affectsConfiguration('jupyter.widgetScriptSources')
         ) {
             // See if the theme changed
             const newSettings = await this.generateDataScienceExtraSettings();

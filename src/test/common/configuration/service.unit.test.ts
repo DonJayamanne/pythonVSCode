@@ -7,7 +7,7 @@ import { expect } from 'chai';
 import * as TypeMoq from 'typemoq';
 import { ConfigurationTarget, Uri, WorkspaceConfiguration } from 'vscode';
 import { IWorkspaceService } from '../../../client/common/application/types';
-import { PythonSettings } from '../../../client/common/configSettings';
+import { JupyterSettings } from '../../../client/common/configSettings';
 import { ConfigurationService } from '../../../client/common/configuration/service';
 import { DeprecatePythonPath } from '../../../client/common/experiments/groups';
 import { IExperimentsManager, IInterpreterPathService } from '../../../client/common/types';
@@ -44,14 +44,14 @@ suite('Configuration Service', () => {
     function setupConfigProvider(): TypeMoq.IMock<WorkspaceConfiguration> {
         const workspaceConfig = TypeMoq.Mock.ofType<WorkspaceConfiguration>();
         workspaceService
-            .setup((w) => w.getConfiguration(TypeMoq.It.isValue('python'), TypeMoq.It.isValue(resource)))
+            .setup((w) => w.getConfiguration(TypeMoq.It.isValue('jupyter'), TypeMoq.It.isValue(resource)))
             .returns(() => workspaceConfig.object);
         return workspaceConfig;
     }
 
     test('Fetching settings goes as expected', () => {
         const settings = configService.getSettings();
-        expect(settings).to.be.instanceOf(PythonSettings);
+        expect(settings).to.be.instanceOf(JupyterSettings);
     });
 
     test('Do not update global settings if global value is already equal to the new value', async () => {
@@ -156,26 +156,5 @@ suite('Configuration Service', () => {
         );
 
         workspaceConfig.verifyAll();
-    });
-
-    test('If in Deprecate PythonPath experiment & setting to update is `python.pythonPath`, update settings using new API if stored value is not equal to the new value', async () => {
-        experimentsManager.setup((e) => e.inExperiment(DeprecatePythonPath.experiment)).returns(() => true);
-        interpreterPathService
-            .setup((w) => w.inspect(resource))
-            // tslint:disable-next-line: no-any
-            .returns(() => ({ workspaceFolderValue: 'workspaceFolderValue' } as any));
-        interpreterPathService
-            .setup((w) => w.update(resource, ConfigurationTarget.WorkspaceFolder, 'newWorkspaceFolderValue'))
-            .returns(() => Promise.resolve())
-            .verifiable(TypeMoq.Times.once());
-
-        await configService.updateSetting(
-            'pythonPath',
-            'newWorkspaceFolderValue',
-            resource,
-            ConfigurationTarget.WorkspaceFolder
-        );
-
-        interpreterPathService.verifyAll();
     });
 });

@@ -19,7 +19,7 @@ import {
 
 import { IDocumentManager } from '../../common/application/types';
 
-import { IConfigurationService, IDataScienceSettings, IDisposable, Resource } from '../../common/types';
+import { IConfigurationService, IDisposable, IJupyterSettings, Resource } from '../../common/types';
 import * as localize from '../../common/utils/localize';
 import { StopWatch } from '../../common/utils/stopWatch';
 import { captureTelemetry, sendTelemetryEvent } from '../../telemetry';
@@ -61,7 +61,7 @@ export class CodeWatcher implements ICodeWatcher {
     private version: number = -1;
     private codeLenses: CodeLens[] = [];
     private cells: ICellRange[] = [];
-    private cachedSettings: IDataScienceSettings | undefined;
+    private cachedSettings: IJupyterSettings | undefined;
     private codeLensUpdatedEvent: EventEmitter<void> = new EventEmitter<void>();
     private updateRequiredDisposable: IDisposable | undefined;
     private closeDocumentDisposable: IDisposable | undefined;
@@ -83,7 +83,7 @@ export class CodeWatcher implements ICodeWatcher {
         this.version = document.version;
 
         // Get document cells here. Make a copy of our settings.
-        this.cachedSettings = JSON.parse(JSON.stringify(this.configService.getSettings(document.uri).datascience));
+        this.cachedSettings = JSON.parse(JSON.stringify(this.configService.getSettings(document.uri)));
 
         // Use the factory to generate our new code lenses.
         this.codeLenses = this.codeLensFactory.createCodeLenses(document);
@@ -108,7 +108,7 @@ export class CodeWatcher implements ICodeWatcher {
         return this.version;
     }
 
-    public getCachedSettings(): IDataScienceSettings | undefined {
+    public getCachedSettings(): IJupyterSettings | undefined {
         return this.cachedSettings;
     }
 
@@ -299,8 +299,7 @@ export class CodeWatcher implements ICodeWatcher {
         // Run the cell clicked. Advance if the cursor is inside this cell and we're allowed to
         const advance =
             range.contains(this.documentManager.activeTextEditor.selection.start) &&
-            this.configService.getSettings(this.documentManager.activeTextEditor.document.uri).datascience
-                .enableAutoMoveToNextCell;
+            this.configService.getSettings(this.documentManager.activeTextEditor.document.uri).enableAutoMoveToNextCell;
         return this.runMatchingCell(range, advance);
     }
 
@@ -722,7 +721,7 @@ export class CodeWatcher implements ICodeWatcher {
         if (cell.cell_type === toCellType) {
             return;
         }
-        const cellMatcher = new CellMatcher(this.configService.getSettings(editor.document.uri).datascience);
+        const cellMatcher = new CellMatcher(this.configService.getSettings(editor.document.uri));
         const definitionLine = editor.document.lineAt(cell.range.start.line);
         const definitionText = editor.document.getText(definitionLine.range);
 
@@ -950,9 +949,7 @@ export class CodeWatcher implements ICodeWatcher {
     }
 
     private getDefaultCellMarker(resource: Resource): string {
-        return (
-            this.configService.getSettings(resource).datascience.defaultCellMarker || Identifiers.DefaultCodeCellMarker
-        );
+        return this.configService.getSettings(resource).defaultCellMarker || Identifiers.DefaultCodeCellMarker;
     }
 
     private onCodeLensFactoryUpdated(): void {

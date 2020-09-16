@@ -30,7 +30,7 @@ export class KernelSwitcher {
         const settings = this.configService.getSettings(notebook.resource);
         const isLocalConnection =
             notebook.connection?.localLaunch ??
-            settings.datascience.jupyterServerURI.toLowerCase() === Settings.JupyterServerLocalLaunch;
+            settings.jupyterServerURI.toLowerCase() === Settings.JupyterServerLocalLaunch;
         if (!isLocalConnection) {
             await this.switchToKernel(notebook, kernel);
             return;
@@ -82,7 +82,7 @@ export class KernelSwitcher {
             // Change the kernel. A status update should fire that changes our display
             await notebook.setKernelConnection(
                 newKernelConnection,
-                this.configService.getSettings(notebook.resource).datascience.jupyterLaunchTimeout
+                this.configService.getSettings(notebook.resource).jupyterLaunchTimeout
             );
         };
 

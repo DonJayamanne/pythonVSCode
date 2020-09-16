@@ -399,7 +399,7 @@ export class MockLiveShareApi implements ILiveShareTestingApi {
             this.internalApi = new MockLiveShare(role);
             this.externalProxy = new LiveShareProxy(
                 this.appShell,
-                this.config.getSettings().datascience.liveShareConnectionTimeout,
+                this.config.getSettings().liveShareConnectionTimeout,
                 this.internalApi
             );
             this.internalApi.onDidChangeSession(this.onInternalSessionChanged, this);

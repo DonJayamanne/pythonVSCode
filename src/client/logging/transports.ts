@@ -78,7 +78,7 @@ export function getConsoleTransport(formatter: logform.Format): Transport {
     });
 }
 
-class PythonOutputChannelTransport extends Transport {
+class JupyterOutputChannelTransport extends Transport {
     // tslint:disable-next-line: no-any
     constructor(private readonly channel: OutputChannel, options?: any) {
         super(options);
@@ -93,9 +93,9 @@ class PythonOutputChannelTransport extends Transport {
     }
 }
 
-// Create a Python output channel targeting transport that can be added to a winston logger.
-export function getPythonOutputChannelTransport(channel: OutputChannel, formatter: logform.Format) {
-    return new PythonOutputChannelTransport(channel, {
+// Create a Jupyter output channel targeting transport that can be added to a winston logger.
+export function getJupyterOutputChannelTransport(channel: OutputChannel, formatter: logform.Format) {
+    return new JupyterOutputChannelTransport(channel, {
         // We minimize customization.
         format: formatter
     });

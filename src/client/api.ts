@@ -5,8 +5,7 @@
 
 import { Event } from 'vscode';
 import { NotebookCell } from 'vscode-proposed';
-import { PythonApiProvider } from './api/pythonApi';
-import { PythonApi } from './api/types';
+import { IPythonApiProvider, PythonApi } from './api/types';
 import { isTestExecution } from './common/constants';
 import { traceError } from './common/logger';
 import { IDataViewerDataProvider, IDataViewerFactory } from './datascience/data-viewing/types';
@@ -60,7 +59,7 @@ export function buildApi(
                 return;
             }
             registered = true;
-            const apiProvider = serviceContainer.get<PythonApiProvider>(PythonApiProvider);
+            const apiProvider = serviceContainer.get<IPythonApiProvider>(IPythonApiProvider);
             apiProvider.setApi(pythonApi);
         },
         async showDataViewer(dataProvider: IDataViewerDataProvider, title: string): Promise<void> {

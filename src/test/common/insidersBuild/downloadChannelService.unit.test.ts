@@ -70,7 +70,7 @@ suite('Download channel service', () => {
         const workspaceConfig = TypeMoq.Mock.ofType<WorkspaceConfiguration>();
         const settings = { globalValue: 'off' };
 
-        when(workspaceService.getConfiguration('python')).thenReturn(workspaceConfig.object);
+        when(workspaceService.getConfiguration('jupyter')).thenReturn(workspaceConfig.object);
         workspaceConfig
             .setup((c) => c.inspect<ExtensionChannels>(insidersChannelSetting))
             .returns(() => settings as any)
@@ -83,7 +83,7 @@ suite('Download channel service', () => {
         const workspaceConfig = TypeMoq.Mock.ofType<WorkspaceConfiguration>();
         const settings = { globalValue: undefined };
 
-        when(workspaceService.getConfiguration('python')).thenReturn(workspaceConfig.object);
+        when(workspaceService.getConfiguration('jupyter')).thenReturn(workspaceConfig.object);
         workspaceConfig
             .setup((c) => c.inspect<ExtensionChannels>(insidersChannelSetting))
             .returns(() => settings as any)
@@ -96,7 +96,7 @@ suite('Download channel service', () => {
         const workspaceConfig = TypeMoq.Mock.ofType<WorkspaceConfiguration>();
         const settings = undefined;
 
-        when(workspaceService.getConfiguration('python')).thenReturn(workspaceConfig.object);
+        when(workspaceService.getConfiguration('jupyter')).thenReturn(workspaceConfig.object);
         workspaceConfig
             .setup((c) => c.inspect<ExtensionChannels>(insidersChannelSetting))
             .returns(() => settings as any)
@@ -130,7 +130,7 @@ suite('Download channel service', () => {
         const event = TypeMoq.Mock.ofType<ConfigurationChangeEvent>();
         const settings = { insidersChannel: 'off' };
         event
-            .setup((e) => e.affectsConfiguration(`python.${insidersChannelSetting}`))
+            .setup((e) => e.affectsConfiguration(`jupyter.${insidersChannelSetting}`))
             .returns(() => true)
             .verifiable(TypeMoq.Times.once());
         when(configService.getSettings()).thenReturn(settings as any);
@@ -150,7 +150,7 @@ suite('Download channel service', () => {
         const event = TypeMoq.Mock.ofType<ConfigurationChangeEvent>();
         const settings = { insidersChannel: 'off' };
         event
-            .setup((e) => e.affectsConfiguration(`python.${insidersChannelSetting}`))
+            .setup((e) => e.affectsConfiguration(`jupyter.${insidersChannelSetting}`))
             .returns(() => false)
             .verifiable(TypeMoq.Times.once());
         when(configService.getSettings()).thenReturn(settings as any);

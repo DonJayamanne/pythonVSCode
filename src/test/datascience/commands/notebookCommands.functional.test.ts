@@ -132,7 +132,7 @@ suite('DataScience - Notebook Commands', () => {
 
                 const configService = mock(ConfigurationService);
                 // tslint:disable-next-line: no-http-string
-                const settings = { datascience: { jupyterServerURI: isLocalConnection ? 'local' : 'http://foobar' } };
+                const settings = { jupyterServerURI: isLocalConnection ? 'local' : 'http://foobar' };
                 when(configService.getSettings(anything())).thenReturn(settings as any);
 
                 const kernelSelector = new KernelSelector(

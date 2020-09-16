@@ -464,7 +464,7 @@ export abstract class InteractiveBase extends WebviewPanelHost<IInteractiveWindo
 
             try {
                 const settings = this.configuration.getSettings(this.owningResource);
-                const interruptTimeout = settings.datascience.jupyterInterruptTimeout;
+                const interruptTimeout = settings.jupyterInterruptTimeout;
 
                 const result = await this._notebook.interruptKernel(interruptTimeout);
                 status.dispose();
@@ -580,7 +580,7 @@ export abstract class InteractiveBase extends WebviewPanelHost<IInteractiveWindo
             this._notebook && !this.perceivedJupyterStartupTelemetryCaptured ? new StopWatch() : undefined;
         let result = true;
         // Do not execute or render empty code cells
-        const cellMatcher = new CellMatcher(this.configService.getSettings(this.owningResource).datascience);
+        const cellMatcher = new CellMatcher(this.configService.getSettings(this.owningResource));
         if (cellMatcher.stripFirstMarker(code).length === 0) {
             return result;
         }
@@ -677,7 +677,7 @@ export abstract class InteractiveBase extends WebviewPanelHost<IInteractiveWindo
                         this.sendCellsToWebView(combined);
 
                         // Any errors will move our result to false (if allowed)
-                        if (this.configuration.getSettings(owningResource).datascience.stopOnError) {
+                        if (this.configuration.getSettings(owningResource).stopOnError) {
                             result = result && cells.find((c) => c.state === CellState.error) === undefined;
                         }
                     },
@@ -926,13 +926,12 @@ export abstract class InteractiveBase extends WebviewPanelHost<IInteractiveWindo
 
     private async shouldAskForRestart(): Promise<boolean> {
         const settings = this.configuration.getSettings(this.owningResource);
-        return settings && settings.datascience && settings.datascience.askForKernelRestart === true;
+        return settings && settings.askForKernelRestart === true;
     }
 
     private async disableAskForRestart(): Promise<void> {
         const settings = this.configuration.getSettings(this.owningResource);
-        if (settings && settings.datascience) {
-            settings.datascience.askForKernelRestart = false;
+        if (settings) {
             this.configuration
                 .updateSetting('dataScience.askForKernelRestart', false, undefined, ConfigurationTarget.Global)
                 .ignoreErrors();
@@ -941,13 +940,12 @@ export abstract class InteractiveBase extends WebviewPanelHost<IInteractiveWindo
 
     private async shouldAskForLargeData(): Promise<boolean> {
         const settings = this.configuration.getSettings(this.owningResource);
-        return settings && settings.datascience && settings.datascience.askForLargeDataFrames === true;
+        return settings && settings.askForLargeDataFrames === true;
     }
 
     private async disableAskForLargeData(): Promise<void> {
         const settings = this.configuration.getSettings(this.owningResource);
-        if (settings && settings.datascience) {
-            settings.datascience.askForLargeDataFrames = false;
+        if (settings) {
             this.configuration
                 .updateSetting('dataScience.askForLargeDataFrames', false, undefined, ConfigurationTarget.Global)
                 .ignoreErrors();
@@ -1302,7 +1300,7 @@ export abstract class InteractiveBase extends WebviewPanelHost<IInteractiveWindo
             const line = editor.selection.start.line;
             const revealLine = line + 1;
             const defaultCellMarker =
-                this.configService.getSettings(this.owningResource).datascience.defaultCellMarker ||
+                this.configService.getSettings(this.owningResource).defaultCellMarker ||
                 Identifiers.DefaultCodeCellMarker;
             let newCode = `${source}${os.EOL}`;
             if (hasCellsAlready) {

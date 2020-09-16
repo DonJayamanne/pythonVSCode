@@ -5,7 +5,7 @@ import { min } from 'lodash';
 // tslint:disable-next-line: no-require-imports no-var-requires
 const cloneDeep = require('lodash/cloneDeep');
 
-import { CellState, ICell, IDataScienceExtraSettings } from '../../../../client/datascience/types';
+import { CellState, ICell, IJupyterExtraSettings } from '../../../../client/datascience/types';
 import { arePathsSame } from '../../../react-common/arePathsSame';
 import { detectBaseTheme } from '../../../react-common/themeDetector';
 import { DebugState, ICellViewModel, IMainState } from '../../mainState';
@@ -14,7 +14,7 @@ import { CommonActionType, CommonReducerArg } from './types';
 const StackLimit = 10;
 
 export namespace Helpers {
-    export function computeKnownDark(settings?: IDataScienceExtraSettings): boolean {
+    export function computeKnownDark(settings?: IJupyterExtraSettings): boolean {
         const ignore = settings?.ignoreVscodeTheme ? true : false;
         const baseTheme = ignore ? 'vscode-light' : detectBaseTheme();
         return baseTheme !== 'vscode-light';

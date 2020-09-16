@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 'use strict';
 import { CssMessages } from '../../../../client/datascience/messages';
-import { IDataScienceExtraSettings } from '../../../../client/datascience/types';
+import { IJupyterExtraSettings } from '../../../../client/datascience/types';
 import { getSelectedAndFocusedInfo, IMainState } from '../../../interactive-common/mainState';
 import { postActionToExtension } from '../../../interactive-common/redux/helpers';
 import { Helpers } from '../../../interactive-common/redux/reducers/helpers';
@@ -213,7 +213,7 @@ export namespace Effects {
     export function updateSettings(arg: NativeEditorReducerArg<string>): IMainState {
         // String arg should be the IDataScienceExtraSettings
         const newSettingsJSON = JSON.parse(arg.payload.data);
-        const newSettings = <IDataScienceExtraSettings>newSettingsJSON;
+        const newSettings = <IJupyterExtraSettings>newSettingsJSON;
         const newEditorOptions = computeEditorOptions(newSettings);
         const newFontFamily = newSettings.extraSettings
             ? newSettings.extraSettings.editor.fontFamily

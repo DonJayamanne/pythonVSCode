@@ -185,7 +185,7 @@ export class InteractiveWindowCommandListener implements IDataScienceCommandList
             if (activeEditor && this.fileSystem.arePathsSame(activeEditor.document.uri, file)) {
                 const cells = generateCellsFromDocument(
                     activeEditor.document,
-                    this.configuration.getSettings(activeEditor.document.uri).datascience
+                    this.configuration.getSettings(activeEditor.document.uri)
                 );
                 if (cells) {
                     const filtersKey = localize.DataScience.exportDialogFilter();
@@ -202,7 +202,7 @@ export class InteractiveWindowCommandListener implements IDataScienceCommandList
                             if (uri) {
                                 let directoryChange;
                                 const settings = this.configuration.getSettings(activeEditor.document.uri);
-                                if (settings.datascience.changeDirOnImportExport) {
+                                if (settings.changeDirOnImportExport) {
                                     directoryChange = uri;
                                 }
 
@@ -342,7 +342,7 @@ export class InteractiveWindowCommandListener implements IDataScienceCommandList
             );
             // Then save them to the file
             let directoryChange;
-            if (settings.datascience.changeDirOnImportExport) {
+            if (settings.changeDirOnImportExport) {
                 directoryChange = file;
             }
             const notebookJson = await this.jupyterExporter.translateToNotebook(cells, directoryChange?.fsPath);

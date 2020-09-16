@@ -268,13 +268,12 @@ export class NotebookEditor implements INotebookEditor {
     }
     private async shouldAskForRestart(): Promise<boolean> {
         const settings = this.configurationService.getSettings(this.file);
-        return settings && settings.datascience && settings.datascience.askForKernelRestart === true;
+        return settings && settings.askForKernelRestart === true;
     }
 
     private async disableAskForRestart(): Promise<void> {
         const settings = this.configurationService.getSettings(this.file);
-        if (settings && settings.datascience) {
-            settings.datascience.askForKernelRestart = false;
+        if (settings) {
             this.configurationService
                 .updateSetting('dataScience.askForKernelRestart', false, undefined, ConfigurationTarget.Global)
                 .ignoreErrors();

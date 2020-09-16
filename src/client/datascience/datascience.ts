@@ -69,12 +69,14 @@ export class DataScience implements IDataScience {
 
     private onSettingsChanged = () => {
         const settings = this.configuration.getSettings(undefined);
-        const enabled = settings.datascience.enabled;
         let editorContext = new ContextKey(EditorContexts.DataScienceEnabled, this.commandManager);
-        editorContext.set(enabled).catch();
-        const ownsSelection = settings.datascience.sendSelectionToInteractiveWindow;
+        // tslint:disable-next-line: no-suspicious-comment
+        // TODO: Remove the DataScienceEnabled context. Not necessary
+        // https://github.com/microsoft/vscode-jupyter/issues/52
+        editorContext.set(true).catch();
+        const ownsSelection = settings.sendSelectionToInteractiveWindow;
         editorContext = new ContextKey(EditorContexts.OwnsSelection, this.commandManager);
-        editorContext.set(ownsSelection && enabled).catch();
+        editorContext.set(ownsSelection).catch();
     };
 
     private onChangedActiveTextEditor() {
@@ -85,7 +87,7 @@ export class DataScience implements IDataScience {
         if (activeEditor && activeEditor.document.languageId === PYTHON_LANGUAGE) {
             // Inform the editor context that we have cells, fire and forget is ok on the promise here
             // as we don't care to wait for this context to be set and we can't do anything if it fails
-            editorContext.set(hasCells(activeEditor.document, this.configuration.getSettings().datascience)).catch();
+            editorContext.set(hasCells(activeEditor.document, this.configuration.getSettings())).catch();
         } else {
             editorContext.set(false).catch();
         }
@@ -96,17 +98,17 @@ export class DataScience implements IDataScience {
     private async sendSettingsTelemetry(): Promise<void> {
         // Get our current settings. This is what we want to send.
         // tslint:disable-next-line:no-any
-        const settings = this.configuration.getSettings().datascience as any;
+        const settings = this.configuration.getSettings() as any;
 
         // Translate all of the 'string' based settings into known values or not.
-        const pythonConfig = this.workspace.getConfiguration('python');
+        const pythonConfig = this.workspace.getConfiguration('jupyter');
         if (pythonConfig) {
             const keys = Object.keys(settings);
             const resultSettings: JSONObject = {};
             for (const k of keys) {
                 const currentValue = settings[k];
                 if (typeof currentValue === 'string' && k !== 'interactiveWindowMode') {
-                    const inspectResult = pythonConfig.inspect<string>(`dataScience.${k}`);
+                    const inspectResult = pythonConfig.inspect<string>(`${k}`);
                     if (inspectResult && inspectResult.defaultValue !== currentValue) {
                         resultSettings[k] = 'non-default';
                     } else {

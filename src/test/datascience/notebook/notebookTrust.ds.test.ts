@@ -13,7 +13,7 @@ import * as uuid from 'uuid/v4';
 import { Uri } from 'vscode';
 import { NotebookDocument } from '../../../../types/vscode-proposed';
 import { IVSCodeNotebook } from '../../../client/common/application/types';
-import { IConfigurationService, IDataScienceSettings, IDisposable } from '../../../client/common/types';
+import { IConfigurationService, IDisposable, IJupyterSettings } from '../../../client/common/types';
 import { INotebookEditorProvider } from '../../../client/datascience/types';
 import { splitMultilineString } from '../../../datascience-ui/common';
 import { IExtensionTestApi } from '../../common';
@@ -44,16 +44,16 @@ suite('DataScience - VSCode Notebook - (Trust)', function () {
         }
     });
     let oldTrustSetting: boolean;
-    let dsSettings: IDataScienceSettings;
+    let dsSettings: IJupyterSettings;
     suiteSetup(() => {
         const configService = api.serviceContainer.get<IConfigurationService>(IConfigurationService);
-        dsSettings = configService.getSettings(testIPynb).datascience;
+        dsSettings = configService.getSettings(testIPynb);
         oldTrustSetting = dsSettings.alwaysTrustNotebooks;
-        dsSettings.alwaysTrustNotebooks = false;
+        (<any>dsSettings).alwaysTrustNotebooks = false;
     });
     setup(async () => {
         sinon.restore();
-        dsSettings.alwaysTrustNotebooks = false;
+        (<any>dsSettings).alwaysTrustNotebooks = false;
         // Don't use same file (due to dirty handling, we might save in dirty.)
         // Cuz we won't save to file, hence extension will backup in dirty file and when u re-open it will open from dirty.
         testIPynb = Uri.file(await createTemporaryNotebook(templateIPynb, disposables));
@@ -63,7 +63,7 @@ suite('DataScience - VSCode Notebook - (Trust)', function () {
         await fs.writeFile(testIPynb.fsPath, JSON.stringify(nb, undefined, 4));
     });
     teardown(async () => closeNotebooksAndCleanUpAfterTests(disposables));
-    suiteTeardown(() => (dsSettings.alwaysTrustNotebooks = oldTrustSetting === true));
+    suiteTeardown(() => ((<any>dsSettings).alwaysTrustNotebooks = oldTrustSetting === true));
 
     function assertDocumentTrust(document: NotebookDocument, trusted: boolean) {
         assert.equal(document.metadata.cellEditable, trusted);

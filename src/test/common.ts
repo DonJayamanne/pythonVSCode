@@ -12,7 +12,7 @@ import { coerce, SemVer } from 'semver';
 import { ConfigurationTarget, Event, TextDocument, Uri } from 'vscode';
 import { IExtensionApi } from '../client/api';
 import { IProcessService } from '../client/common/process/types';
-import { IDisposable, IPythonSettings } from '../client/common/types';
+import { IDisposable, IJupyterSettings } from '../client/common/types';
 import { IServiceContainer, IServiceManager } from '../client/ioc/types';
 import { EXTENSION_ROOT_DIR_FOR_TESTS, IS_MULTI_ROOT_TEST, IS_PERF_TEST, IS_SMOKE_TEST } from './constants';
 import { noop, sleep } from './core';
@@ -67,7 +67,7 @@ export type PythonSettingKeys =
 async function disposePythonSettings() {
     if (!IS_SMOKE_TEST) {
         const configSettings = await import('../client/common/configSettings');
-        configSettings.PythonSettings.dispose();
+        configSettings.JupyterSettings.dispose();
     }
 }
 
@@ -157,9 +157,9 @@ function getWorkspaceRoot() {
     return workspaceFolder ? workspaceFolder.uri : vscode.workspace.workspaceFolders[0].uri;
 }
 
-export function getExtensionSettings(resource: Uri | undefined): IPythonSettings {
+export function getExtensionSettings(resource: Uri | undefined): IJupyterSettings {
     const pythonSettings = require('../client/common/configSettings') as typeof import('../client/common/configSettings');
-    return pythonSettings.PythonSettings.getInstance(resource);
+    return pythonSettings.JupyterSettings.getInstance(resource);
 }
 export function retryAsync(this: any, wrapped: Function, retryCount: number = 2) {
     return async (...args: any[]) => {

@@ -60,7 +60,7 @@ export class JupyterImporter implements INotebookImporter {
         // If the user has requested it, add a cd command to the imported file so that relative paths still work
         const settings = this.configuration.getSettings();
         let directoryChange: string | undefined;
-        if (settings.datascience.changeDirOnImportExport) {
+        if (settings.changeDirOnImportExport) {
             directoryChange = await this.calculateDirectoryChange(sourceFile);
         }
 
@@ -94,7 +94,7 @@ export class JupyterImporter implements INotebookImporter {
     };
 
     private get defaultCellMarker(): string {
-        return this.configuration.getSettings().datascience.defaultCellMarker || Identifiers.DefaultCodeCellMarker;
+        return this.configuration.getSettings().defaultCellMarker || Identifiers.DefaultCodeCellMarker;
     }
 
     private addIPythonImport = (pythonOutput: string): string => {

@@ -3,7 +3,7 @@
 'use strict';
 import { isEmpty, isNil } from 'lodash';
 import * as React from 'react';
-import { IDataScienceExtraSettings } from '../../client/datascience/types';
+import { IJupyterExtraSettings } from '../../client/datascience/types';
 import { Image, ImageName } from '../react-common/image';
 import { getLocString } from '../react-common/locReactSide';
 import { IFont, IServerState, ServerStatus } from './mainState';
@@ -16,7 +16,7 @@ export interface IJupyterInfoProps {
     kernel: IServerState;
     isNotebookTrusted?: boolean;
     shouldShowTrustMessage: boolean;
-    settings?: IDataScienceExtraSettings | undefined;
+    settings?: IJupyterExtraSettings | undefined;
     selectServer(): void;
     launchNotebookTrustPrompt?(): void; // Native editor-specific
     selectKernel(): void;

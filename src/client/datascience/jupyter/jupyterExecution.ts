@@ -79,7 +79,7 @@ export class JupyterExecutionBase implements IJupyterExecution {
                     // When config changes happen, recreate our commands.
                     this.onSettingsChanged();
                 }
-                if (e.affectsConfiguration('python.dataScience.jupyterServerURI', undefined)) {
+                if (e.affectsConfiguration('jupyter.jupyterServerURI', undefined)) {
                     // When server URI changes, clear our pending URI timeouts
                     this.clearTimeouts();
                 }
@@ -173,7 +173,7 @@ export class JupyterExecutionBase implements IJupyterExecution {
 
             // Try to connect to our jupyter process. Check our setting for the number of tries
             let tryCount = 1;
-            const maxTries = this.configuration.getSettings(undefined).datascience.jupyterLaunchRetries;
+            const maxTries = this.configuration.getSettings(undefined).jupyterLaunchRetries;
             const stopWatch = new StopWatch();
             while (tryCount <= maxTries && !this.disposed) {
                 try {
@@ -373,7 +373,7 @@ export class JupyterExecutionBase implements IJupyterExecution {
 
             const connection = await this.startNotebookServer(
                 useDefaultConfig,
-                this.configuration.getSettings(undefined).datascience.jupyterCommandLineArguments,
+                this.configuration.getSettings(undefined).jupyterCommandLineArguments,
                 workingDirectory,
                 cancelToken
             );

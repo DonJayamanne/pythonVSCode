@@ -196,8 +196,8 @@ export class NotebookServerProvider implements IJupyterServerProvider {
     private getNotebookServerOptions(): INotebookServerOptions {
         // Since there's one server per session, don't use a resource to figure out these settings
         const settings = this.configuration.getSettings(undefined);
-        let serverURI: string | undefined = settings.datascience.jupyterServerURI;
-        const useDefaultConfig: boolean | undefined = settings.datascience.useDefaultConfigForJupyter;
+        let serverURI: string | undefined = settings.jupyterServerURI;
+        const useDefaultConfig: boolean | undefined = settings.useDefaultConfigForJupyter;
 
         // For the local case pass in our URI as undefined, that way connect doesn't have to check the setting
         if (serverURI.toLowerCase() === Settings.JupyterServerLocalLaunch) {

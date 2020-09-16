@@ -68,7 +68,7 @@ function getCDNPrefix(cdn?: WidgetCDNs): string | undefined {
 export class CDNWidgetScriptSourceProvider implements IWidgetScriptSourceProvider {
     private get cdnProviders(): readonly WidgetCDNs[] {
         const settings = this.configurationSettings.getSettings(undefined);
-        return settings.datascience.widgetScriptSources;
+        return settings.widgetScriptSources;
     }
     private cache = new Map<string, WidgetScriptSource>();
     constructor(

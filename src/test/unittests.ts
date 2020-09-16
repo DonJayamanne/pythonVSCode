@@ -20,7 +20,7 @@ if ((Reflect as any).metadata === undefined) {
     require('reflect-metadata');
 }
 
-process.env.VSC_PYTHON_CI_TEST = '1';
+process.env.VSC_JUPYTER_CI_TEST = '1';
 process.env.VSC_PYTHON_UNIT_TEST = '1';
 process.env.NODE_ENV = 'production'; // Make sure react is using production bits or we can run out of memory.
 

@@ -4,7 +4,6 @@
 'use strict';
 
 import * as Redux from 'redux';
-import { StartPageMessages } from '../../../client/common/startPage/types';
 import {
     IInteractiveWindowMapping,
     InteractiveWindowMessages
@@ -23,8 +22,7 @@ const AllowedMessages = [
     ...Object.values(InteractiveWindowMessages),
     ...Object.values(CssMessages),
     ...Object.values(SharedMessages),
-    ...Object.values(CommonActionType),
-    ...Object.values(StartPageMessages)
+    ...Object.values(CommonActionType)
 ];
 export function isAllowedMessage(message: string) {
     // tslint:disable-next-line: no-any

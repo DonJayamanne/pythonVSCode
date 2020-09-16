@@ -45,7 +45,7 @@ suite('JupyterPasswordConnect', () => {
             allowUnauthorizedRemoteConnection: secure
             // tslint:disable-next-line: no-any
         } as any;
-        when(configService.getSettings(anything())).thenReturn({ datascience: dsSettings } as any);
+        when(configService.getSettings(anything())).thenReturn(dsSettings as any);
         when(configService.updateSetting('dataScience.jupyterServerURI', anything(), anything(), anything())).thenCall(
             (_a1, _a2, _a3, _a4) => {
                 return Promise.resolve();
@@ -231,8 +231,8 @@ suite('JupyterPasswordConnect', () => {
             allowUnauthorizedRemoteConnection: false
             // tslint:disable-next-line: no-any
         } as any;
-        when(configService.getSettings(anything())).thenReturn({ datascience: dsSettings } as any);
-        when(configService.updateSetting('dataScience.jupyterServerURI', anything(), anything(), anything())).thenCall(
+        when(configService.getSettings(anything())).thenReturn(dsSettings as any);
+        when(configService.updateSetting('jupyterServerURI', anything(), anything(), anything())).thenCall(
             (_a1, _a2, _a3, _a4) => {
                 return Promise.resolve();
             }

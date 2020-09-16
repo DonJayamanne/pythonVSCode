@@ -106,8 +106,8 @@ export class Decorator implements IExtensionSingleActivationService, IDisposable
             this.cellSeparatorType &&
             this.activeCellBottom
         ) {
-            const settings = this.configuration.getSettings(editor.document.uri).datascience;
-            if (settings.decorateCells && settings.enabled) {
+            const settings = this.configuration.getSettings(editor.document.uri);
+            if (settings.decorateCells) {
                 // Find all of the cells
                 const cells = generateCellRangesFromDocument(editor.document, settings);
 

@@ -19,16 +19,16 @@ suite('Common Utils - Decorators', function () {
     this.retries(3);
     suite('Cache Decorator', () => {
         const oldValueOfVSC_PYTHON_UNIT_TEST = process.env.VSC_PYTHON_UNIT_TEST;
-        const oldValueOfVSC_PYTHON_CI_TEST = process.env.VSC_PYTHON_CI_TEST;
+        const oldValueOfVSC_JUPYTER_CI_TEST = process.env.VSC_JUPYTER_CI_TEST;
 
         setup(() => {
             process.env.VSC_PYTHON_UNIT_TEST = undefined;
-            process.env.VSC_PYTHON_CI_TEST = undefined;
+            process.env.VSC_JUPYTER_CI_TEST = undefined;
         });
 
         teardown(() => {
             process.env.VSC_PYTHON_UNIT_TEST = oldValueOfVSC_PYTHON_UNIT_TEST;
-            process.env.VSC_PYTHON_CI_TEST = oldValueOfVSC_PYTHON_CI_TEST;
+            process.env.VSC_JUPYTER_CI_TEST = oldValueOfVSC_JUPYTER_CI_TEST;
             clearCache();
         });
         class TestClass {

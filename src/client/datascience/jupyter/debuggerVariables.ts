@@ -270,8 +270,8 @@ export class DebuggerVariables implements IConditionalJupyterVariables, DebugAda
     }
 
     private updateVariables(resource: Resource, variablesResponse: DebugProtocol.VariablesResponse) {
-        const exclusionList = this.configService.getSettings(resource).datascience.variableExplorerExclude
-            ? this.configService.getSettings().datascience.variableExplorerExclude?.split(';')
+        const exclusionList = this.configService.getSettings(resource).variableExplorerExclude
+            ? this.configService.getSettings().variableExplorerExclude?.split(';')
             : [];
 
         const allowedVariables = variablesResponse.body.variables.filter((v) => {

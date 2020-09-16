@@ -169,9 +169,8 @@ export async function closeNotebooksAndCleanUpAfterTests(disposables: IDisposabl
     await shutdownAllNotebooks();
     if (typeof oldValueFor_alwaysTrustNotebooks === 'boolean') {
         const api = await initialize();
-        const dsSettings = api.serviceContainer.get<IConfigurationService>(IConfigurationService).getSettings()
-            .datascience;
-        dsSettings.alwaysTrustNotebooks = oldValueFor_alwaysTrustNotebooks;
+        const dsSettings = api.serviceContainer.get<IConfigurationService>(IConfigurationService).getSettings();
+        (<any>dsSettings).alwaysTrustNotebooks = oldValueFor_alwaysTrustNotebooks;
         oldValueFor_alwaysTrustNotebooks = undefined;
     }
 
@@ -184,11 +183,11 @@ export async function closeNotebooks(disposables: IDisposable[] = []) {
 
 export async function trustAllNotebooks() {
     const api = await initialize();
-    const dsSettings = api.serviceContainer.get<IConfigurationService>(IConfigurationService).getSettings().datascience;
+    const dsSettings = api.serviceContainer.get<IConfigurationService>(IConfigurationService).getSettings();
     if (oldValueFor_alwaysTrustNotebooks !== undefined) {
         oldValueFor_alwaysTrustNotebooks = dsSettings.alwaysTrustNotebooks;
     }
-    dsSettings.alwaysTrustNotebooks = true;
+    (<any>dsSettings).alwaysTrustNotebooks = true;
 }
 export async function startJupyter(closeInitialEditor: boolean) {
     const { editorProvider, vscodeNotebook } = await getServices();

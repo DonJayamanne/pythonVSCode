@@ -10,7 +10,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 
 import { Identifiers } from '../../client/datascience/constants';
-import { CellState, IDataScienceExtraSettings } from '../../client/datascience/types';
+import { CellState, IJupyterExtraSettings } from '../../client/datascience/types';
 import { CellInput } from '../interactive-common/cellInput';
 import { CellOutput } from '../interactive-common/cellOutput';
 import { CollapseButton } from '../interactive-common/collapseButton';
@@ -41,7 +41,7 @@ interface IInteractiveCellBaseProps {
     editExecutionCount?: string;
     editorMeasureClassName?: string;
     font: IFont;
-    settings: IDataScienceExtraSettings;
+    settings: IJupyterExtraSettings;
     focusPending: number;
 }
 

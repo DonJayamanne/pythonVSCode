@@ -10,7 +10,7 @@ import { ClipboardService } from '../../../client/common/application/clipboard';
 import { CommandManager } from '../../../client/common/application/commandManager';
 import { IClipboard, ICommandManager } from '../../../client/common/application/types';
 import { ConfigurationService } from '../../../client/common/configuration/service';
-import { IDataScienceSettings } from '../../../client/common/types';
+import { IJupyterSettings } from '../../../client/common/types';
 import { DataScience } from '../../../client/common/utils/localize';
 import { noop } from '../../../client/common/utils/misc';
 import { MultiStepInput, MultiStepInputFactory } from '../../../client/common/utils/multiStepInput';
@@ -22,11 +22,11 @@ import { MockMemento } from '../../mocks/mementos';
 import { MockInputBox } from '../mockInputBox';
 import { MockQuickPick } from '../mockQuickPick';
 
-// tslint:disable: max-func-body-length
+// tslint:disable: max-func-body-length no-any
 suite('DataScience - Jupyter Server URI Selector', () => {
     let quickPick: MockQuickPick | undefined;
     let cmdManager: ICommandManager;
-    let dsSettings: IDataScienceSettings;
+    let dsSettings: IJupyterSettings;
     let clipboard: IClipboard;
 
     function createDataScienceObject(
@@ -52,7 +52,7 @@ suite('DataScience - Jupyter Server URI Selector', () => {
         when(applicationShell.createInputBox()).thenReturn(input);
         const multiStepFactory = new MultiStepInputFactory(instance(applicationShell));
         // tslint:disable-next-line: no-any
-        when(configService.getSettings(anything())).thenReturn({ datascience: dsSettings } as any);
+        when(configService.getSettings(anything())).thenReturn(dsSettings as any);
         when(configService.updateSetting('dataScience.jupyterServerURI', anything(), anything(), anything())).thenCall(
             (_a1, a2, _a3, _a4) => {
                 updateCallback(a2);
@@ -176,7 +176,7 @@ suite('DataScience - Jupyter Server URI Selector', () => {
     test('Remote server uri (do not reload VSCode if there is no change in settings)', async () => {
         let value = '';
         const ds = createDataScienceObject('$(server) Existing', 'http://localhost:1111', (v) => (value = v));
-        dsSettings.jupyterServerURI = 'http://localhost:1111';
+        (<any>dsSettings).jupyterServerURI = 'http://localhost:1111';
         await ds.selectJupyterURI(true);
         assert.equal(value, 'http://localhost:1111', 'Already running should end up with the user inputed value');
         verify(cmdManager.executeCommand(anything(), anything())).never();

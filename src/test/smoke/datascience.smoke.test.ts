@@ -45,7 +45,7 @@ suite('Smoke Test: Interactive Window', () => {
         // Wait for code lenses to get detected.
         await sleep(1_000);
 
-        await vscode.commands.executeCommand<void>('python.datascience.runallcells', textDocument.uri);
+        await vscode.commands.executeCommand<void>('jupyter.runallcells', textDocument.uri);
         const checkIfFileHasBeenCreated = () => fs.pathExists(outputFile);
         await waitForCondition(checkIfFileHasBeenCreated, timeoutForCellToRun, `"${outputFile}" file not created`);
     }).timeout(timeoutForCellToRun);
@@ -74,7 +74,7 @@ suite('Smoke Test: Interactive Window', () => {
         // Unfortunately there's no way to know for sure it has completely loaded.
         await sleep(15_000);
 
-        await vscode.commands.executeCommand<void>('python.datascience.notebookeditor.runallcells');
+        await vscode.commands.executeCommand<void>('jupyter.notebookeditor.runallcells');
         const checkIfFileHasBeenCreated = () => fs.pathExists(outputFile);
         await waitForCondition(checkIfFileHasBeenCreated, timeoutForCellToRun, `"${outputFile}" file not created`);
 

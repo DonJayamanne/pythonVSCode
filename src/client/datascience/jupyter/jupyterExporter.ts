@@ -50,7 +50,7 @@ export class JupyterExporter implements INotebookExporter {
     public async exportToFile(cells: ICell[], file: string, showOpenPrompt: boolean = true): Promise<void> {
         let directoryChange;
         const settings = this.configService.getSettings();
-        if (settings.datascience.changeDirOnImportExport) {
+        if (settings.changeDirOnImportExport) {
             directoryChange = file;
         }
 
@@ -95,7 +95,7 @@ export class JupyterExporter implements INotebookExporter {
         kernelSpec?: nbformat.IKernelspecMetadata
     ): Promise<nbformat.INotebookContent | undefined> {
         // If requested, add in a change directory cell to fix relative paths
-        if (changeDirectory && this.configService.getSettings().datascience.changeDirOnImportExport) {
+        if (changeDirectory && this.configService.getSettings().changeDirOnImportExport) {
             cells = await this.addDirectoryChangeCell(cells, changeDirectory);
         }
 
@@ -121,7 +121,7 @@ export class JupyterExporter implements INotebookExporter {
         };
 
         // Create an object for matching cell definitions
-        const matcher = new CellMatcher(this.configService.getSettings().datascience);
+        const matcher = new CellMatcher(this.configService.getSettings());
 
         // Combine this into a JSON object
         return {

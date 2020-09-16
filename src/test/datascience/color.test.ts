@@ -7,13 +7,13 @@ import { WorkspaceConfiguration } from 'vscode';
 
 import { Extensions } from '../../client/common/application/extensions';
 import { IWorkspaceService } from '../../client/common/application/types';
-import { PythonSettings } from '../../client/common/configSettings';
 import { CurrentProcess } from '../../client/common/process/currentProcess';
 import { IConfigurationService } from '../../client/common/types';
 import { CodeCssGenerator } from '../../client/datascience/codeCssGenerator';
 import { DataScienceFileSystem } from '../../client/datascience/dataScienceFileSystem';
 import { ThemeFinder } from '../../client/datascience/themeFinder';
 import { IThemeFinder } from '../../client/datascience/types';
+import { MockJupyterSettings } from './mockJupyterSettings';
 
 // tslint:disable:max-func-body-length
 suite('Theme colors', () => {
@@ -24,7 +24,7 @@ suite('Theme colors', () => {
     let workspaceConfig: TypeMoq.IMock<WorkspaceConfiguration>;
     let cssGenerator: CodeCssGenerator;
     let configService: TypeMoq.IMock<IConfigurationService>;
-    const settings: PythonSettings = new PythonSettings(undefined);
+    const settings: MockJupyterSettings = new MockJupyterSettings(undefined);
 
     setup(() => {
         extensions = new Extensions();
@@ -49,12 +49,11 @@ suite('Theme colors', () => {
                 return d;
             });
 
-        settings.datascience = {
+        settings.assign({
             allowImportFromNotebook: true,
             alwaysTrustNotebooks: true,
             jupyterLaunchTimeout: 20000,
             jupyterLaunchRetries: 3,
-            enabled: true,
             jupyterServerURI: 'local',
             notebookFileRoot: 'WORKSPACE',
             changeDirOnImportExport: true,
@@ -78,7 +77,7 @@ suite('Theme colors', () => {
             jupyterCommandLineArguments: [],
             widgetScriptSources: [],
             interactiveWindowMode: 'single'
-        };
+        });
         configService = TypeMoq.Mock.ofType<IConfigurationService>();
         configService.setup((x) => x.getSettings(TypeMoq.It.isAny())).returns(() => settings);
 

@@ -8,7 +8,7 @@ import { Range, TextDocument, Uri } from 'vscode';
 
 import { parseForComments } from '../../datascience-ui/common';
 import { createCodeCell, createMarkdownCell } from '../../datascience-ui/common/cellFactory';
-import { IDataScienceSettings, Resource } from '../common/types';
+import { IJupyterSettings, Resource } from '../common/types';
 import { noop } from '../common/utils/misc';
 import { CellMatcher } from './cellMatcher';
 import { Identifiers } from './constants';
@@ -49,7 +49,7 @@ export function getCellResource(cell: ICell): Resource {
 }
 
 export function generateCells(
-    settings: IDataScienceSettings | undefined,
+    settings: IJupyterSettings | undefined,
     code: string,
     file: string,
     line: number,
@@ -97,7 +97,7 @@ export function generateCells(
     }
 }
 
-export function hasCells(document: TextDocument, settings?: IDataScienceSettings): boolean {
+export function hasCells(document: TextDocument, settings?: IJupyterSettings): boolean {
     const matcher = new CellMatcher(settings);
     for (let index = 0; index < document.lineCount; index += 1) {
         const line = document.lineAt(index);
@@ -109,7 +109,7 @@ export function hasCells(document: TextDocument, settings?: IDataScienceSettings
     return false;
 }
 
-export function generateCellsFromString(source: string, settings?: IDataScienceSettings): ICell[] {
+export function generateCellsFromString(source: string, settings?: IJupyterSettings): ICell[] {
     const lines: string[] = source.splitLines({ trim: false, removeEmptyEntries: false });
 
     // Find all the lines that start a cell
@@ -150,7 +150,7 @@ export function generateCellsFromString(source: string, settings?: IDataScienceS
     );
 }
 
-export function generateCellRangesFromDocument(document: TextDocument, settings?: IDataScienceSettings): ICellRange[] {
+export function generateCellRangesFromDocument(document: TextDocument, settings?: IJupyterSettings): ICellRange[] {
     // Implmentation of getCells here based on Don's Jupyter extension work
     const matcher = new CellMatcher(settings);
     const cells: ICellRange[] = [];
@@ -182,7 +182,7 @@ export function generateCellRangesFromDocument(document: TextDocument, settings?
     return cells;
 }
 
-export function generateCellsFromDocument(document: TextDocument, settings?: IDataScienceSettings): ICell[] {
+export function generateCellsFromDocument(document: TextDocument, settings?: IJupyterSettings): ICell[] {
     const ranges = generateCellRangesFromDocument(document, settings);
 
     // For each one, get its text and turn it into a cell

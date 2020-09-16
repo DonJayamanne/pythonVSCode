@@ -191,14 +191,14 @@ export class GatherListener implements IInteractiveWindowListener {
             sendTelemetryEvent(Telemetry.GatherException, undefined, { exceptionType: 'gather' });
             const newline = '\n';
             const defaultCellMarker =
-                this.configService.getSettings().datascience.defaultCellMarker || Identifiers.DefaultCodeCellMarker;
+                this.configService.getSettings().defaultCellMarker || Identifiers.DefaultCodeCellMarker;
             slicedProgram = defaultCellMarker + newline + localize.DataScience.gatherError() + newline + (e as string);
         }
 
         if (!slicedProgram) {
             sendTelemetryEvent(Telemetry.GatherCompleted, this.gatherTimer?.elapsedTime, { result: 'err' });
         } else {
-            const gatherToScript: boolean = this.configService.getSettings().datascience.gatherToScript || toScript;
+            const gatherToScript: boolean = this.configService.getSettings().gatherToScript || toScript;
 
             if (gatherToScript) {
                 await this.showFile(slicedProgram, cell.file);
@@ -282,7 +282,7 @@ export class GatherListener implements IInteractiveWindowListener {
 
     private async showFile(slicedProgram: string, filename: string) {
         const defaultCellMarker =
-            this.configService.getSettings().datascience.defaultCellMarker || Identifiers.DefaultCodeCellMarker;
+            this.configService.getSettings().defaultCellMarker || Identifiers.DefaultCodeCellMarker;
 
         if (slicedProgram) {
             // Remove all cell definitions and newlines

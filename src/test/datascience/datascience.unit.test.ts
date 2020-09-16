@@ -10,9 +10,9 @@ import { CommandManager } from '../../client/common/application/commandManager';
 import { DocumentManager } from '../../client/common/application/documentManager';
 import { IDocumentManager, IWorkspaceService } from '../../client/common/application/types';
 import { WorkspaceService } from '../../client/common/application/workspace';
-import { PythonSettings } from '../../client/common/configSettings';
+import { JupyterSettings } from '../../client/common/configSettings';
 import { ConfigurationService } from '../../client/common/configuration/service';
-import { IConfigurationService, IPythonSettings } from '../../client/common/types';
+import { IConfigurationService, IWatchableJupyterSettings } from '../../client/common/types';
 import { CommandRegistry } from '../../client/datascience/commands/commandRegistry';
 import { pruneCell } from '../../client/datascience/common';
 import { DataScience } from '../../client/datascience/datascience';
@@ -28,7 +28,7 @@ suite('DataScience Tests', () => {
     let docManager: IDocumentManager;
     let workspaceService: IWorkspaceService;
     let cmdRegistry: CommandRegistry;
-    let settings: IPythonSettings;
+    let settings: IWatchableJupyterSettings;
     let onDidChangeSettings: sinon.SinonStub;
     let onDidChangeActiveTextEditor: sinon.SinonStub;
     setup(() => {
@@ -38,7 +38,7 @@ suite('DataScience Tests', () => {
         workspaceService = mock(WorkspaceService);
         cmdRegistry = mock(CommandRegistry);
         docManager = mock(DocumentManager);
-        settings = mock(PythonSettings);
+        settings = mock(JupyterSettings);
 
         dataScience = new DataScience(
             instance(cmdManager),
@@ -58,7 +58,6 @@ suite('DataScience Tests', () => {
         when(configService.getSettings(anything())).thenReturn(instance(settings));
         when(settings.onDidChange).thenReturn(onDidChangeSettings);
         // tslint:disable-next-line: no-any
-        when(settings.datascience).thenReturn({} as any);
         when(docManager.onDidChangeActiveTextEditor).thenReturn(onDidChangeActiveTextEditor);
     });
 

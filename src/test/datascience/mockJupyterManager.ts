@@ -474,15 +474,18 @@ export class MockJupyterManager implements IJupyterSessionManager {
         cell.data = data;
     }
 
-    private onConfigChanged(configService: IConfigurationService) {
-        const pythonPath = configService.getSettings().pythonPath;
-        if (this.activeInterpreter === undefined || pythonPath !== this.activeInterpreter.path) {
-            this.activeInterpreter = this.installedInterpreters.filter((f) => f.path === pythonPath)[0];
-            if (!this.activeInterpreter) {
-                this.activeInterpreter = this.installedInterpreters[0];
-            }
-            this.changedInterpreterEvent.fire();
-        }
+    private onConfigChanged(_configService: IConfigurationService) {
+        // tslint:disable-next-line: no-suspicious-comment
+        // TODO: We can't watch this from our own settings. Need to have an event on the python API
+        // https://github.com/microsoft/vscode-jupyter/issues/54
+        // const pythonPath = configService.getSettings().pythonPath;
+        // if (this.activeInterpreter === undefined || pythonPath !== this.activeInterpreter.path) {
+        //     this.activeInterpreter = this.installedInterpreters.filter((f) => f.path === pythonPath)[0];
+        //     if (!this.activeInterpreter) {
+        //         this.activeInterpreter = this.installedInterpreters[0];
+        //     }
+        //     this.changedInterpreterEvent.fire();
+        // }
     }
 
     private createNewSession(): MockJupyterSession {

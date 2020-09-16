@@ -7,10 +7,10 @@ import { inject, injectable } from 'inversify';
 import { ConfigurationChangeEvent, ConfigurationTarget, Event, EventEmitter } from 'vscode';
 import { IWorkspaceService } from '../application/types';
 import { traceDecorators } from '../logger';
-import { IConfigurationService, IDisposable, IDisposableRegistry, IPythonSettings } from '../types';
+import { IConfigurationService, IDisposable, IDisposableRegistry, IJupyterSettings } from '../types';
 import { ExtensionChannels, IExtensionChannelService } from './types';
 
-export const insidersChannelSetting: keyof IPythonSettings = 'insidersChannel';
+export const insidersChannelSetting: keyof IJupyterSettings = 'insidersChannel';
 
 @injectable()
 export class ExtensionChannelService implements IExtensionChannelService {
@@ -29,7 +29,7 @@ export class ExtensionChannelService implements IExtensionChannelService {
 
     public get isChannelUsingDefaultConfiguration(): boolean {
         const settings = this.workspaceService
-            .getConfiguration('python')
+            .getConfiguration('jupyter')
             .inspect<ExtensionChannels>(insidersChannelSetting);
         if (!settings) {
             throw new Error(
@@ -49,7 +49,7 @@ export class ExtensionChannelService implements IExtensionChannelService {
     }
 
     public async onDidChangeConfiguration(event: ConfigurationChangeEvent) {
-        if (event.affectsConfiguration(`python.${insidersChannelSetting}`)) {
+        if (event.affectsConfiguration(`jupyter.${insidersChannelSetting}`)) {
             const settings = this.configService.getSettings();
             this._onDidChannelChange.fire(settings.insidersChannel);
         }

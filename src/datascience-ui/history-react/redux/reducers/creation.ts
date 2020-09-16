@@ -6,7 +6,7 @@ import {
     IFinishCell,
     InteractiveWindowMessages
 } from '../../../../client/datascience/interactive-common/interactiveWindowTypes';
-import { ICell, IDataScienceExtraSettings } from '../../../../client/datascience/types';
+import { ICell, IJupyterExtraSettings } from '../../../../client/datascience/types';
 import { removeLinesFromFrontAndBack } from '../../../common';
 import { createCellVM, extractInputText, ICellViewModel, IMainState } from '../../../interactive-common/mainState';
 import { postActionToExtension } from '../../../interactive-common/redux/helpers';
@@ -23,7 +23,7 @@ export namespace Creation {
         return true;
     }
 
-    function extractInputBlockText(cellVM: ICellViewModel, settings?: IDataScienceExtraSettings) {
+    function extractInputBlockText(cellVM: ICellViewModel, settings?: IJupyterExtraSettings) {
         // Use the base function first
         const text = extractInputText(cellVM, settings);
 
@@ -33,7 +33,7 @@ export namespace Creation {
 
     export function alterCellVM(
         cellVM: ICellViewModel,
-        settings?: IDataScienceExtraSettings,
+        settings?: IJupyterExtraSettings,
         visible?: boolean,
         expanded?: boolean
     ): ICellViewModel {

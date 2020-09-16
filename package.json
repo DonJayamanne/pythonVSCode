@@ -21,7 +21,7 @@
     "bugs": {
         "url": "https://github.com/Microsoft/vscode-jupyter/issues"
     },
-    "qna": "https://stackoverflow.com/questions/tagged/visual-studio-code+python",
+    "qna": "https://stackoverflow.com/questions/tagged/visual-studio-code+jupyter",
     "icon": "icon.png",
     "galleryBanner": {
         "color": "#1e415e",
@@ -31,17 +31,14 @@
         "vscode": "^1.48.0"
     },
     "keywords": [
-        "python",
-        "django",
-        "unittest",
-        "multi-root ready"
+        "jupyter",
+        "notebook",
+        "ipynb",
+        "multi-root ready",
+        "python"
     ],
     "categories": [
         "Programming Languages",
-        "Debuggers",
-        "Linters",
-        "Snippets",
-        "Formatters",
         "Other",
         "Extension Packs",
         "Data Science",
@@ -51,61 +48,49 @@
     "activationEvents": [
         "onLanguage:python",
         "onLanguage:jupyter",
-        "onCommand:python.datascience.viewJupyterOutput",
-        "onCommand:python.datascience.export",
-        "onCommand:python.datascience.exportAsPythonScript",
-        "onCommand:python.datascience.exportToHTML",
-        "onCommand:python.datascience.exportToPDF",
-        "onCommand:python.switchOffInsidersChannel",
-        "onCommand:python.switchToDailyChannel",
-        "onCommand:python.switchToWeeklyChannel",
-        "onCommand:python.datascience.createnewnotebook",
-        "onCommand:python.datascience.createnewinteractive",
-        "onCommand:python.datascience.importnotebook",
-        "onCommand:python.datascience.importnotebookfile",
-        "onCommand:python.datascience.opennotebook",
-        "onCommand:python.datascience.opennotebookInPreviewEditor",
-        "onCommand:python.datascience.selectjupyteruri",
-        "onCommand:python.datascience.exportfileasnotebook",
-        "onCommand:python.datascience.exportfileandoutputasnotebook",
-        "onCommand:python.datascience.selectJupyterInterpreter",
-        "onCommand:python.datascience.selectjupytercommandline",
-        "onCommand:python.enableSourceMapSupport",
+        "onCommand:jupyter.viewJupyterOutput",
+        "onCommand:jupyter.export",
+        "onCommand:jupyter.exportAsPythonScript",
+        "onCommand:jupyter.exportToHTML",
+        "onCommand:jupyter.exportToPDF",
+        "onCommand:jupyter.switchOffInsidersChannel",
+        "onCommand:jupyter.switchToDailyChannel",
+        "onCommand:jupyter.switchToWeeklyChannel",
+        "onCommand:jupyter.createnewnotebook",
+        "onCommand:jupyter.createnewinteractive",
+        "onCommand:jupyter.importnotebook",
+        "onCommand:jupyter.importnotebookfile",
+        "onCommand:jupyter.opennotebook",
+        "onCommand:jupyter.opennotebookInPreviewEditor",
+        "onCommand:jupyter.selectjupyteruri",
+        "onCommand:jupyter.exportfileasnotebook",
+        "onCommand:jupyter.exportfileandoutputasnotebook",
+        "onCommand:jupyter.selectJupyterInterpreter",
+        "onCommand:jupyter.selectjupytercommandline",
         "onNotebookEditor:jupyter-notebook"
     ],
     "main": "./out/client/extension",
     "contributes": {
-        "snippets": [
-            {
-                "language": "python",
-                "path": "./snippets/python.json"
-            }
-        ],
         "keybindings": [
             {
-                "command": "python.execSelectionInTerminal",
+                "command": "jupyter.execSelectionInteractive",
                 "key": "shift+enter",
-                "when": "editorTextFocus && editorLangId == python && !findInputFocussed && !replaceInputFocussed && !python.datascience.ownsSelection && !notebookEditorFocused"
+                "when": "editorTextFocus && editorLangId == python && !findInputFocussed && !replaceInputFocussed && jupyter.ownsSelection && jupyter.featureenabled && !notebookEditorFocused"
             },
             {
-                "command": "python.datascience.execSelectionInteractive",
+                "command": "jupyter.runcurrentcelladvance",
                 "key": "shift+enter",
-                "when": "editorTextFocus && editorLangId == python && !findInputFocussed && !replaceInputFocussed && python.datascience.ownsSelection && python.datascience.featureenabled && !notebookEditorFocused"
+                "when": "editorTextFocus && !editorHasSelection && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
             },
             {
-                "command": "python.datascience.runcurrentcelladvance",
-                "key": "shift+enter",
-                "when": "editorTextFocus && !editorHasSelection && python.datascience.hascodecells && python.datascience.featureenabled && !notebookEditorFocused"
-            },
-            {
-                "command": "python.datascience.runcurrentcell",
+                "command": "jupyter.runcurrentcell",
                 "key": "ctrl+enter",
-                "when": "editorTextFocus && !editorHasSelection && python.datascience.hascodecells && python.datascience.featureenabled && !notebookEditorFocused"
+                "when": "editorTextFocus && !editorHasSelection && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
             },
             {
-                "command": "python.datascience.runcurrentcellandaddbelow",
+                "command": "jupyter.runcurrentcellandaddbelow",
                 "key": "alt+enter",
-                "when": "editorTextFocus && !editorHasSelection && python.datascience.hascodecells && python.datascience.featureenabled && !notebookEditorFocused"
+                "when": "editorTextFocus && !editorHasSelection && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
             },
             {
                 "mac": "F",
@@ -195,1414 +180,1005 @@
                 "command": "notebook.cell.split"
             },
             {
-                "command": "python.datascience.insertCellBelowPosition",
+                "command": "jupyter.insertCellBelowPosition",
                 "key": "ctrl+; s",
-                "when": "editorTextFocus && python.datascience.hascodecells && python.datascience.featureenabled && !notebookEditorFocused"
+                "when": "editorTextFocus && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
             },
             {
-                "command": "python.datascience.insertCellBelow",
+                "command": "jupyter.insertCellBelow",
                 "key": "ctrl+; b",
-                "when": "editorTextFocus && python.datascience.hascodecells && python.datascience.featureenabled && !notebookEditorFocused"
+                "when": "editorTextFocus && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
             },
             {
-                "command": "python.datascience.insertCellAbove",
+                "command": "jupyter.insertCellAbove",
                 "key": "ctrl+; a",
-                "when": "editorTextFocus && python.datascience.hascodecells && python.datascience.featureenabled && !notebookEditorFocused"
+                "when": "editorTextFocus && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
             },
             {
-                "command": "python.datascience.deleteCells",
+                "command": "jupyter.deleteCells",
                 "key": "ctrl+; x",
-                "when": "editorTextFocus && python.datascience.hascodecells && python.datascience.featureenabled && !notebookEditorFocused"
+                "when": "editorTextFocus && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
             },
             {
-                "command": "python.datascience.extendSelectionByCellAbove",
+                "command": "jupyter.extendSelectionByCellAbove",
                 "key": "ctrl+alt+shift+[",
-                "when": "editorTextFocus && python.datascience.hascodecells && python.datascience.featureenabled && !notebookEditorFocused"
+                "when": "editorTextFocus && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
             },
             {
-                "command": "python.datascience.extendSelectionByCellBelow",
+                "command": "jupyter.extendSelectionByCellBelow",
                 "key": "ctrl+alt+shift+]",
-                "when": "editorTextFocus && python.datascience.hascodecells && python.datascience.featureenabled && !notebookEditorFocused"
+                "when": "editorTextFocus && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
             },
             {
-                "command": "python.datascience.moveCellsUp",
+                "command": "jupyter.moveCellsUp",
                 "key": "ctrl+; u",
-                "when": "editorTextFocus && python.datascience.hascodecells && python.datascience.featureenabled && !notebookEditorFocused"
+                "when": "editorTextFocus && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
             },
             {
-                "command": "python.datascience.moveCellsDown",
+                "command": "jupyter.moveCellsDown",
                 "key": "ctrl+; d",
-                "when": "editorTextFocus && python.datascience.hascodecells && python.datascience.featureenabled && !notebookEditorFocused"
+                "when": "editorTextFocus && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
             },
             {
-                "command": "python.datascience.changeCellToMarkdown",
+                "command": "jupyter.changeCellToMarkdown",
                 "key": "ctrl+; m",
-                "when": "editorTextFocus && python.datascience.hascodecells && python.datascience.featureenabled && !notebookEditorFocused"
+                "when": "editorTextFocus && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
             },
             {
-                "command": "python.datascience.changeCellToCode",
+                "command": "jupyter.changeCellToCode",
                 "key": "ctrl+; c",
-                "when": "editorTextFocus && python.datascience.hascodecells && python.datascience.featureenabled && !notebookEditorFocused"
+                "when": "editorTextFocus && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
             },
             {
-                "command": "python.datascience.gotoNextCellInFile",
+                "command": "jupyter.gotoNextCellInFile",
                 "key": "ctrl+alt+]",
-                "when": "editorTextFocus && python.datascience.hascodecells && python.datascience.featureenabled && !notebookEditorFocused"
+                "when": "editorTextFocus && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
             },
             {
-                "command": "python.datascience.gotoPrevCellInFile",
+                "command": "jupyter.gotoPrevCellInFile",
                 "key": "ctrl+alt+[",
-                "when": "editorTextFocus && python.datascience.hascodecells && python.datascience.featureenabled && !notebookEditorFocused"
+                "when": "editorTextFocus && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
             },
             {
-                "command": "python.datascience.selectCellContents",
+                "command": "jupyter.selectCellContents",
                 "key": "ctrl+alt+\\",
-                "when": "editorTextFocus && python.datascience.hascodecells && python.datascience.featureenabled && !notebookEditorFocused"
+                "when": "editorTextFocus && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
             },
             {
-                "command": "python.datascience.selectCell",
+                "command": "jupyter.selectCell",
                 "key": "ctrl+alt+shift+\\",
-                "when": "editorTextFocus && python.datascience.hascodecells && python.datascience.featureenabled && !notebookEditorFocused"
+                "when": "editorTextFocus && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
             }
         ],
         "commands": [
             {
-                "command": "python.enableSourceMapSupport",
-                "title": "%python.command.python.enableSourceMapSupport.title%",
-                "category": "Python"
+                "command": "jupyter.switchOffInsidersChannel",
+                "title": "%jupyter.command.jupyter.switchOffInsidersChannel.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.switchOffInsidersChannel",
-                "title": "%python.command.python.switchOffInsidersChannel.title%",
-                "category": "Python"
+                "command": "jupyter.switchToDailyChannel",
+                "title": "%jupyter.command.jupyter.switchToDailyChannel.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.switchToDailyChannel",
-                "title": "%python.command.python.switchToDailyChannel.title%",
-                "category": "Python"
+                "command": "jupyter.switchToWeeklyChannel",
+                "title": "%jupyter.command.jupyter.switchToWeeklyChannel.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.switchToWeeklyChannel",
-                "title": "%python.command.python.switchToWeeklyChannel.title%",
-                "category": "Python"
+                "command": "jupyter.viewJupyterOutput",
+                "title": "%jupyter.command.jupyter.viewJupyterOutput.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.viewJupyterOutput",
-                "title": "%python.command.python.datascience.viewJupyterOutput.title%",
-                "category": "Python"
-            },
-            {
-                "command": "python.datascience.export",
+                "command": "jupyter.export",
                 "title": "%DataScience.notebookExportAs%",
-                "category": "Python",
+                "category": "Jupyter",
                 "icon": {
                     "light": "resources/light/export_to_python.svg",
                     "dark": "resources/dark/export_to_python.svg"
                 },
-                "enablement": "notebookViewType == jupyter-notebook && python.datascience.isnotebooktrusted"
+                "enablement": "notebookViewType == jupyter-notebook && jupyter.isnotebooktrusted"
             },
             {
-                "command": "python.datascience.exportAsPythonScript",
-                "title": "%python.command.python.datascience.exportAsPythonScript.title%",
-                "category": "Python"
+                "command": "jupyter.exportAsPythonScript",
+                "title": "%jupyter.command.jupyter.exportAsPythonScript.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.exportToHTML",
-                "title": "%python.command.python.datascience.exportToHTML.title%",
-                "category": "Python"
+                "command": "jupyter.exportToHTML",
+                "title": "%jupyter.command.jupyter.exportToHTML.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.exportToPDF",
-                "title": "%python.command.python.datascience.exportToPDF.title%",
-                "category": "Python"
+                "command": "jupyter.exportToPDF",
+                "title": "%jupyter.command.jupyter.exportToPDF.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.selectJupyterInterpreter",
-                "title": "%python.command.python.datascience.selectJupyterInterpreter.title%",
-                "category": "Python"
+                "command": "jupyter.selectJupyterInterpreter",
+                "title": "%jupyter.command.jupyter.selectJupyterInterpreter.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.runcurrentcell",
-                "title": "%python.command.python.datascience.runcurrentcell.title%",
-                "category": "Python"
+                "command": "jupyter.runcurrentcell",
+                "title": "%jupyter.command.jupyter.runcurrentcell.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.debugcell",
-                "title": "%python.command.python.datascience.debugcell.title%",
-                "category": "Python"
+                "command": "jupyter.debugcell",
+                "title": "%jupyter.command.jupyter.debugcell.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.debugstepover",
-                "title": "%python.command.python.datascience.debugstepover.title%",
-                "category": "Python"
+                "command": "jupyter.debugstepover",
+                "title": "%jupyter.command.jupyter.debugstepover.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.debugstop",
-                "title": "%python.command.python.datascience.debugstop.title%",
-                "category": "Python"
+                "command": "jupyter.debugstop",
+                "title": "%jupyter.command.jupyter.debugstop.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.debugcontinue",
-                "title": "%python.command.python.datascience.debugcontinue.title%",
-                "category": "Python"
+                "command": "jupyter.debugcontinue",
+                "title": "%jupyter.command.jupyter.debugcontinue.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.insertCellBelowPosition",
-                "title": "%python.command.python.datascience.insertCellBelowPosition.title%",
-                "category": "Python"
+                "command": "jupyter.insertCellBelowPosition",
+                "title": "%jupyter.command.jupyter.insertCellBelowPosition.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.insertCellBelow",
-                "title": "%python.command.python.datascience.insertCellBelow.title%",
-                "category": "Python"
+                "command": "jupyter.insertCellBelow",
+                "title": "%jupyter.command.jupyter.insertCellBelow.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.insertCellAbove",
-                "title": "%python.command.python.datascience.insertCellAbove.title%",
-                "category": "Python"
+                "command": "jupyter.insertCellAbove",
+                "title": "%jupyter.command.jupyter.insertCellAbove.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.deleteCells",
-                "title": "%python.command.python.datascience.deleteCells.title%",
-                "category": "Python"
+                "command": "jupyter.deleteCells",
+                "title": "%jupyter.command.jupyter.deleteCells.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.selectCell",
-                "title": "%python.command.python.datascience.selectCell.title%",
-                "category": "Python"
+                "command": "jupyter.selectCell",
+                "title": "%jupyter.command.jupyter.selectCell.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.selectCellContents",
-                "title": "%python.command.python.datascience.selectCellContents.title%",
-                "category": "Python"
+                "command": "jupyter.selectCellContents",
+                "title": "%jupyter.command.jupyter.selectCellContents.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.extendSelectionByCellAbove",
-                "title": "%python.command.python.datascience.extendSelectionByCellAbove.title%",
-                "category": "Python"
+                "command": "jupyter.extendSelectionByCellAbove",
+                "title": "%jupyter.command.jupyter.extendSelectionByCellAbove.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.extendSelectionByCellBelow",
-                "title": "%python.command.python.datascience.extendSelectionByCellBelow.title%",
-                "category": "Python"
+                "command": "jupyter.extendSelectionByCellBelow",
+                "title": "%jupyter.command.jupyter.extendSelectionByCellBelow.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.moveCellsUp",
-                "title": "%python.command.python.datascience.moveCellsUp.title%",
-                "category": "Python"
+                "command": "jupyter.moveCellsUp",
+                "title": "%jupyter.command.jupyter.moveCellsUp.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.moveCellsDown",
-                "title": "%python.command.python.datascience.moveCellsDown.title%",
-                "category": "Python"
+                "command": "jupyter.moveCellsDown",
+                "title": "%jupyter.command.jupyter.moveCellsDown.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.changeCellToMarkdown",
-                "title": "%python.command.python.datascience.changeCellToMarkdown.title%",
-                "category": "Python"
+                "command": "jupyter.changeCellToMarkdown",
+                "title": "%jupyter.command.jupyter.changeCellToMarkdown.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.changeCellToCode",
-                "title": "%python.command.python.datascience.changeCellToCode.title%",
-                "category": "Python"
+                "command": "jupyter.changeCellToCode",
+                "title": "%jupyter.command.jupyter.changeCellToCode.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.gotoNextCellInFile",
-                "title": "%python.command.python.datascience.gotoNextCellInFile.title%",
-                "category": "Python"
+                "command": "jupyter.gotoNextCellInFile",
+                "title": "%jupyter.command.jupyter.gotoNextCellInFile.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.gotoPrevCellInFile",
-                "title": "%python.command.python.datascience.gotoPrevCellInFile.title%",
-                "category": "Python"
+                "command": "jupyter.gotoPrevCellInFile",
+                "title": "%jupyter.command.jupyter.gotoPrevCellInFile.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.runcurrentcelladvance",
-                "title": "%python.command.python.datascience.runcurrentcelladvance.title%",
-                "category": "Python"
+                "command": "jupyter.runcurrentcelladvance",
+                "title": "%jupyter.command.jupyter.runcurrentcelladvance.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.runcurrentcellandallbelow.palette",
-                "title": "%python.command.python.datascience.runcurrentcellandallbelow.palette.title%",
-                "category": "Python"
+                "command": "jupyter.runcurrentcellandallbelow.palette",
+                "title": "%jupyter.command.jupyter.runcurrentcellandallbelow.palette.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.runallcellsabove.palette",
-                "title": "%python.command.python.datascience.runallcellsabove.palette.title%",
-                "category": "Python"
+                "command": "jupyter.runallcellsabove.palette",
+                "title": "%jupyter.command.jupyter.runallcellsabove.palette.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.debugcurrentcell.palette",
-                "title": "%python.command.python.datascience.debugcurrentcell.palette.title%",
-                "category": "Python"
+                "command": "jupyter.debugcurrentcell.palette",
+                "title": "%jupyter.command.jupyter.debugcurrentcell.palette.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.execSelectionInteractive",
-                "title": "%python.command.python.datascience.execSelectionInteractive.title%",
-                "category": "Python"
+                "command": "jupyter.execSelectionInteractive",
+                "title": "%jupyter.command.jupyter.execSelectionInteractive.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.createnewinteractive",
-                "title": "%python.command.python.datascience.createnewinteractive.title%",
-                "category": "Python"
+                "command": "jupyter.createnewinteractive",
+                "title": "%jupyter.command.jupyter.createnewinteractive.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.runFileInteractive",
-                "title": "%python.command.python.datascience.runFileInteractive.title%",
-                "category": "Python"
+                "command": "jupyter.runFileInteractive",
+                "title": "%jupyter.command.jupyter.runFileInteractive.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.debugFileInteractive",
-                "title": "%python.command.python.datascience.debugFileInteractive.title%",
-                "category": "Python"
+                "command": "jupyter.debugFileInteractive",
+                "title": "%jupyter.command.jupyter.debugFileInteractive.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.runallcells",
-                "title": "%python.command.python.datascience.runallcells.title%",
-                "category": "Python"
+                "command": "jupyter.runallcells",
+                "title": "%jupyter.command.jupyter.runallcells.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.runallcellsabove",
-                "title": "%python.command.python.datascience.runallcellsabove.title%",
-                "category": "Python"
+                "command": "jupyter.runallcellsabove",
+                "title": "%jupyter.command.jupyter.runallcellsabove.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.runcellandallbelow",
-                "title": "%python.command.python.datascience.runcellandallbelow.title%",
-                "category": "Python"
+                "command": "jupyter.runcellandallbelow",
+                "title": "%jupyter.command.jupyter.runcellandallbelow.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.runcell",
-                "title": "%python.command.python.datascience.runcell.title%",
-                "category": "Python"
+                "command": "jupyter.runcell",
+                "title": "%jupyter.command.jupyter.runcell.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.runtoline",
-                "title": "%python.command.python.datascience.runtoline.title%",
-                "category": "Python"
+                "command": "jupyter.runtoline",
+                "title": "%jupyter.command.jupyter.runtoline.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.runfromline",
-                "title": "%python.command.python.datascience.runfromline.title%",
-                "category": "Python"
+                "command": "jupyter.runfromline",
+                "title": "%jupyter.command.jupyter.runfromline.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.selectjupyteruri",
-                "title": "%python.command.python.datascience.selectjupyteruri.title%",
-                "category": "Python",
-                "when": "python.datascience.featureenabled"
+                "command": "jupyter.selectjupyteruri",
+                "title": "%jupyter.command.jupyter.selectjupyteruri.title%",
+                "category": "Jupyter",
+                "when": "jupyter.featureenabled"
             },
             {
-                "command": "python.datascience.selectjupytercommandline",
-                "title": "%python.command.python.datascience.selectjupytercommandline.title%",
-                "category": "Python",
-                "when": "python.datascience.featureenabled"
+                "command": "jupyter.selectjupytercommandline",
+                "title": "%jupyter.command.jupyter.selectjupytercommandline.title%",
+                "category": "Jupyter",
+                "when": "jupyter.featureenabled"
             },
             {
-                "command": "python.datascience.importnotebook",
-                "title": "%python.command.python.datascience.importnotebook.title%",
-                "category": "Python"
+                "command": "jupyter.importnotebook",
+                "title": "%jupyter.command.jupyter.importnotebook.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.importnotebookfile",
-                "title": "%python.command.python.datascience.importnotebookfile.title%",
-                "category": "Python"
+                "command": "jupyter.importnotebookfile",
+                "title": "%jupyter.command.jupyter.importnotebookfile.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.opennotebook",
-                "title": "%python.command.python.datascience.opennotebook.title%",
-                "category": "Python"
+                "command": "jupyter.opennotebook",
+                "title": "%jupyter.command.jupyter.opennotebook.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.opennotebookInPreviewEditor",
-                "title": "%python.command.python.datascience.opennotebookInPreviewEditor.title%",
-                "category": "Python"
+                "command": "jupyter.opennotebookInPreviewEditor",
+                "title": "%jupyter.command.jupyter.opennotebookInPreviewEditor.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.exportoutputasnotebook",
-                "title": "%python.command.python.datascience.exportoutputasnotebook.title%",
-                "category": "Python"
+                "command": "jupyter.exportoutputasnotebook",
+                "title": "%jupyter.command.jupyter.exportoutputasnotebook.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.exportfileasnotebook",
-                "title": "%python.command.python.datascience.exportfileasnotebook.title%",
-                "category": "Python"
+                "command": "jupyter.exportfileasnotebook",
+                "title": "%jupyter.command.jupyter.exportfileasnotebook.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.exportfileandoutputasnotebook",
-                "title": "%python.command.python.datascience.exportfileandoutputasnotebook.title%",
-                "category": "Python"
+                "command": "jupyter.exportfileandoutputasnotebook",
+                "title": "%jupyter.command.jupyter.exportfileandoutputasnotebook.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.undocells",
-                "title": "%python.command.python.datascience.undocells.title%",
-                "category": "Python"
+                "command": "jupyter.undocells",
+                "title": "%jupyter.command.jupyter.undocells.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.redocells",
-                "title": "%python.command.python.datascience.redocells.title%",
-                "category": "Python"
+                "command": "jupyter.redocells",
+                "title": "%jupyter.command.jupyter.redocells.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.notebookeditor.undocells",
-                "title": "%python.command.python.datascience.undocells.title%",
-                "category": "Python"
+                "command": "jupyter.notebookeditor.undocells",
+                "title": "%jupyter.command.jupyter.undocells.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.notebookeditor.redocells",
-                "title": "%python.command.python.datascience.redocells.title%",
-                "category": "Python"
+                "command": "jupyter.notebookeditor.redocells",
+                "title": "%jupyter.command.jupyter.redocells.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.removeallcells",
-                "title": "%python.command.python.datascience.removeallcells.title%",
-                "category": "Python"
+                "command": "jupyter.removeallcells",
+                "title": "%jupyter.command.jupyter.removeallcells.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.interruptkernel",
-                "title": "%python.command.python.datascience.interruptkernel.title%",
-                "category": "Python"
+                "command": "jupyter.interruptkernel",
+                "title": "%jupyter.command.jupyter.interruptkernel.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.restartkernel",
-                "title": "%python.command.python.datascience.restartkernel.title%",
-                "category": "Python"
+                "command": "jupyter.restartkernel",
+                "title": "%jupyter.command.jupyter.restartkernel.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.notebookeditor.removeallcells",
-                "title": "%python.command.python.datascience.notebookeditor.removeallcells.title%",
-                "category": "Python"
+                "command": "jupyter.notebookeditor.removeallcells",
+                "title": "%jupyter.command.jupyter.notebookeditor.removeallcells.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.notebookeditor.interruptkernel",
-                "title": "%python.command.python.datascience.interruptkernel.title%",
-                "category": "Python"
+                "command": "jupyter.notebookeditor.interruptkernel",
+                "title": "%jupyter.command.jupyter.interruptkernel.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.notebookeditor.restartkernel",
-                "title": "%python.command.python.datascience.restartkernel.title%",
-                "category": "Python",
+                "command": "jupyter.notebookeditor.restartkernel",
+                "title": "%jupyter.command.jupyter.restartkernel.title%",
+                "category": "Jupyter",
                 "icon": {
                     "light": "resources/light/restart-kernel.svg",
                     "dark": "resources/dark/restart-kernel.svg"
                 },
-                "enablement": "python.datascience.notebookeditor.canrestartNotebookkernel"
+                "enablement": "jupyter.notebookeditor.canrestartNotebookkernel"
             },
             {
-                "command": "python.datascience.notebookeditor.trust",
+                "command": "jupyter.notebookeditor.trust",
                 "title": "%DataScience.trustNotebookCommandTitle%",
-                "category": "Python",
+                "category": "Jupyter",
                 "icon": {
                     "light": "resources/light/un-trusted.svg",
                     "dark": "resources/dark/un-trusted.svg"
                 },
-                "enablement": "notebookViewType == jupyter-notebook && !python.datascience.isnotebooktrusted && python.datascience.trustfeatureenabled"
+                "enablement": "notebookViewType == jupyter-notebook && !jupyter.isnotebooktrusted && jupyter.trustfeatureenabled"
             },
             {
-                "command": "python.datascience.notebookeditor.runallcells",
-                "title": "%python.command.python.datascience.notebookeditor.runallcells.title%",
-                "category": "Python"
+                "command": "jupyter.notebookeditor.runallcells",
+                "title": "%jupyter.command.jupyter.notebookeditor.runallcells.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.notebookeditor.runselectedcell",
-                "title": "%python.command.python.datascience.notebookeditor.runselectedcell.title%",
-                "category": "Python"
+                "command": "jupyter.notebookeditor.runselectedcell",
+                "title": "%jupyter.command.jupyter.notebookeditor.runselectedcell.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.notebookeditor.addcellbelow",
-                "title": "%python.command.python.datascience.notebookeditor.addcellbelow.title%",
-                "category": "Python"
+                "command": "jupyter.notebookeditor.addcellbelow",
+                "title": "%jupyter.command.jupyter.notebookeditor.addcellbelow.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.notebookeditor.removeallcells",
-                "title": "%python.command.python.datascience.notebookeditor.removeallcells.title%",
-                "category": "Python"
+                "command": "jupyter.notebookeditor.removeallcells",
+                "title": "%jupyter.command.jupyter.notebookeditor.removeallcells.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.notebookeditor.expandallcells",
-                "title": "%python.command.python.datascience.notebookeditor.expandallcells.title%",
-                "category": "Python"
+                "command": "jupyter.notebookeditor.expandallcells",
+                "title": "%jupyter.command.jupyter.notebookeditor.expandallcells.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.notebookeditor.collapseallcells",
-                "title": "%python.command.python.datascience.notebookeditor.collapseallcells.title%",
-                "category": "Python"
+                "command": "jupyter.notebookeditor.collapseallcells",
+                "title": "%jupyter.command.jupyter.notebookeditor.collapseallcells.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.expandallcells",
-                "title": "%python.command.python.datascience.expandallcells.title%",
-                "category": "Python"
+                "command": "jupyter.expandallcells",
+                "title": "%jupyter.command.jupyter.expandallcells.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.collapseallcells",
-                "title": "%python.command.python.datascience.collapseallcells.title%",
-                "category": "Python"
+                "command": "jupyter.collapseallcells",
+                "title": "%jupyter.command.jupyter.collapseallcells.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.addcellbelow",
-                "title": "%python.command.python.datascience.addcellbelow.title%",
-                "category": "Python"
+                "command": "jupyter.addcellbelow",
+                "title": "%jupyter.command.jupyter.addcellbelow.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.createnewnotebook",
-                "title": "%python.command.python.datascience.createnewnotebook.title%",
-                "category": "Python"
+                "command": "jupyter.createnewnotebook",
+                "title": "%jupyter.command.jupyter.createnewnotebook.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.startPage.open",
-                "title": "%python.command.python.startPage.open.title%",
-                "category": "Python"
+                "command": "jupyter.scrolltocell",
+                "title": "%jupyter.command.jupyter.scrolltocell.title%",
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.scrolltocell",
-                "title": "%python.command.python.datascience.scrolltocell.title%",
-                "category": "Python"
-            },
-            {
-                "command": "python.datascience.switchKernel",
+                "command": "jupyter.switchKernel",
                 "title": "%DataScience.selectKernel%",
-                "category": "Python",
-                "enablement": "python.datascience.isnativeactive"
+                "category": "Jupyter",
+                "enablement": "jupyter.isnativeactive"
             },
             {
-                "command": "python.datascience.gatherquality",
+                "command": "jupyter.gatherquality",
                 "title": "DataScience.gatherQuality",
-                "category": "Python"
+                "category": "Jupyter"
             },
             {
-                "command": "python.datascience.latestExtension",
+                "command": "jupyter.latestExtension",
                 "title": "DataScience.latestExtension",
-                "category": "Python"
+                "category": "Jupyter"
             }
         ],
         "menus": {
             "editor/context": [
                 {
-                    "when": "editorFocus && editorLangId == python && python.datascience.hascodecells && python.datascience.featureenabled && !notebookEditorFocused",
-                    "command": "python.datascience.runallcells",
-                    "group": "Python2"
+                    "when": "editorFocus && editorLangId == python && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused",
+                    "command": "jupyter.runallcells",
+                    "group": "Jupyter2"
                 },
                 {
-                    "when": "editorFocus && editorLangId == python && python.datascience.hascodecells && python.datascience.featureenabled && !notebookEditorFocused",
-                    "command": "python.datascience.runcurrentcell",
-                    "group": "Python2"
+                    "when": "editorFocus && editorLangId == python && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused",
+                    "command": "jupyter.runcurrentcell",
+                    "group": "Jupyter2"
                 },
                 {
-                    "when": "editorFocus && editorLangId == python && python.datascience.hascodecells && python.datascience.featureenabled && !notebookEditorFocused",
-                    "command": "python.datascience.runcurrentcelladvance",
-                    "group": "Python2"
+                    "when": "editorFocus && editorLangId == python && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused",
+                    "command": "jupyter.runcurrentcelladvance",
+                    "group": "Jupyter2"
                 },
                 {
-                    "command": "python.datascience.runFileInteractive",
-                    "group": "Python2",
-                    "when": "editorFocus && editorLangId == python && python.datascience.featureenabled && !notebookEditorFocused"
+                    "command": "jupyter.runFileInteractive",
+                    "group": "Jupyter2",
+                    "when": "editorFocus && editorLangId == python && jupyter.featureenabled && !notebookEditorFocused"
                 },
                 {
-                    "command": "python.datascience.runfromline",
-                    "group": "Python2",
-                    "when": "editorFocus && editorLangId == python && python.datascience.ownsSelection && python.datascience.featureenabled && !notebookEditorFocused"
+                    "command": "jupyter.runfromline",
+                    "group": "Jupyter2",
+                    "when": "editorFocus && editorLangId == python && jupyter.ownsSelection && jupyter.featureenabled && !notebookEditorFocused"
                 },
                 {
-                    "command": "python.datascience.runtoline",
-                    "group": "Python2",
-                    "when": "editorFocus && editorLangId == python && python.datascience.ownsSelection && python.datascience.featureenabled && !notebookEditorFocused"
+                    "command": "jupyter.runtoline",
+                    "group": "Jupyter2",
+                    "when": "editorFocus && editorLangId == python && jupyter.ownsSelection && jupyter.featureenabled && !notebookEditorFocused"
                 },
                 {
-                    "command": "python.datascience.execSelectionInteractive",
-                    "group": "Python2",
-                    "when": "editorFocus && editorLangId == python && python.datascience.featureenabled && python.datascience.ownsSelection && !notebookEditorFocused"
+                    "command": "jupyter.execSelectionInteractive",
+                    "group": "Jupyter2",
+                    "when": "editorFocus && editorLangId == python && jupyter.featureenabled && jupyter.ownsSelection && !notebookEditorFocused"
                 },
                 {
-                    "when": "editorFocus && editorLangId == python && resourceLangId == jupyter && python.datascience.featureenabled && !notebookEditorFocused",
-                    "command": "python.datascience.importnotebook",
-                    "group": "Python3@1"
+                    "when": "editorFocus && editorLangId == python && resourceLangId == jupyter && jupyter.featureenabled && !notebookEditorFocused",
+                    "command": "jupyter.importnotebook",
+                    "group": "Jupyter3@1"
                 },
                 {
-                    "when": "editorFocus && editorLangId == python && python.datascience.hascodecells && python.datascience.featureenabled && !notebookEditorFocused",
-                    "command": "python.datascience.exportfileasnotebook",
-                    "group": "Python3@2"
+                    "when": "editorFocus && editorLangId == python && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused",
+                    "command": "jupyter.exportfileasnotebook",
+                    "group": "Jupyter3@2"
                 },
                 {
-                    "when": "editorFocus && editorLangId == python && python.datascience.hascodecells && python.datascience.featureenabled && !notebookEditorFocused",
-                    "command": "python.datascience.exportfileandoutputasnotebook",
-                    "group": "Python3@3"
+                    "when": "editorFocus && editorLangId == python && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused",
+                    "command": "jupyter.exportfileandoutputasnotebook",
+                    "group": "Jupyter3@3"
                 }
             ],
             "editor/title": [
                 {
-                    "command": "python.datascience.notebookeditor.restartkernel",
-                    "title": "%python.command.python.datascience.restartkernel.title%",
+                    "command": "jupyter.notebookeditor.restartkernel",
+                    "title": "%jupyter.command.jupyter.restartkernel.title%",
                     "group": "navigation",
                     "when": "resourceLangId == jupyter && notebookViewType == 'jupyter-notebook'"
                 },
                 {
-                    "command": "python.datascience.notebookeditor.trust",
+                    "command": "jupyter.notebookeditor.trust",
                     "title": "%DataScience.trustNotebookCommandTitle%",
                     "group": "navigation@1",
-                    "when": "resourceLangId == jupyter && notebookViewType == 'jupyter-notebook' && !python.datascience.isnotebooktrusted && python.datascience.trustfeatureenabled"
+                    "when": "resourceLangId == jupyter && notebookViewType == 'jupyter-notebook' && !jupyter.isnotebooktrusted && jupyter.trustfeatureenabled"
                 },
                 {
-                    "command": "python.datascience.export",
+                    "command": "jupyter.export",
                     "title": "%DataScience.notebookExportAs%",
                     "group": "navigation",
-                    "when": "resourceLangId == jupyter && notebookViewType == 'jupyter-notebook' && python.datascience.isnotebooktrusted"
+                    "when": "resourceLangId == jupyter && notebookViewType == 'jupyter-notebook' && jupyter.isnotebooktrusted"
                 }
             ],
             "explorer/context": [
                 {
-                    "when": "resourceLangId == python && python.datascience.featureenabled && !notebookEditorFocused",
-                    "command": "python.datascience.runFileInteractive",
-                    "group": "Python2"
+                    "when": "resourceLangId == python && jupyter.featureenabled && !notebookEditorFocused",
+                    "command": "jupyter.runFileInteractive",
+                    "group": "Jupyter2"
                 },
                 {
                     "when": "resourceLangId == jupyter",
-                    "command": "python.datascience.opennotebook",
-                    "group": "Python"
+                    "command": "jupyter.opennotebook",
+                    "group": "Jupyter"
                 },
                 {
-                    "when": "resourceLangId == jupyter && python.vscode.channel == 'insiders'",
-                    "command": "python.datascience.opennotebookInPreviewEditor",
-                    "group": "Python"
+                    "when": "resourceLangId == jupyter && jupyter.vscode.channel == 'insiders'",
+                    "command": "jupyter.opennotebookInPreviewEditor",
+                    "group": "Jupyter"
                 },
                 {
                     "when": "resourceLangId == jupyter",
-                    "command": "python.datascience.importnotebookfile",
-                    "group": "Python"
+                    "command": "jupyter.importnotebookfile",
+                    "group": "Jupyter"
                 }
             ],
             "commandPalette": [
                 {
-                    "command": "python.datascience.exportAsPythonScript",
-                    "title": "%python.command.python.datascience.exportAsPythonScript.title%",
-                    "category": "Python",
-                    "when": "python.datascience.isnativeactive && python.datascience.featureenabled && python.datascience.isnotebooktrusted"
+                    "command": "jupyter.exportAsPythonScript",
+                    "title": "%jupyter.command.jupyter.exportAsPythonScript.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.isnativeactive && jupyter.featureenabled && jupyter.isnotebooktrusted"
                 },
                 {
-                    "command": "python.datascience.exportToHTML",
-                    "title": "%python.command.python.datascience.exportToHTML.title%",
-                    "category": "Python",
-                    "when": "python.datascience.isnativeactive && python.datascience.featureenabled && python.datascience.isnotebooktrusted"
+                    "command": "jupyter.exportToHTML",
+                    "title": "%jupyter.command.jupyter.exportToHTML.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.isnativeactive && jupyter.featureenabled && jupyter.isnotebooktrusted"
                 },
                 {
-                    "command": "python.datascience.exportToPDF",
-                    "title": "%python.command.python.datascience.exportToPDF.title%",
-                    "category": "Python",
-                    "when": "python.datascience.isnativeactive && python.datascience.featureenabled && python.datascience.isnotebooktrusted"
+                    "command": "jupyter.exportToPDF",
+                    "title": "%jupyter.command.jupyter.exportToPDF.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.isnativeactive && jupyter.featureenabled && jupyter.isnotebooktrusted"
                 },
                 {
-                    "command": "python.switchOffInsidersChannel",
-                    "title": "%python.command.python.switchOffInsidersChannel.title%",
-                    "category": "Python",
-                    "when": "config.python.insidersChannel != 'default'"
+                    "command": "jupyter.switchOffInsidersChannel",
+                    "title": "%jupyter.command.jupyter.switchOffInsidersChannel.title%",
+                    "category": "Jupyter",
+                    "when": "config.jupyter.insidersChannel != 'default'"
                 },
                 {
-                    "command": "python.switchToDailyChannel",
-                    "title": "%python.command.python.switchToDailyChannel.title%",
-                    "category": "Python",
-                    "when": "config.python.insidersChannel != 'daily'"
+                    "command": "jupyter.switchToDailyChannel",
+                    "title": "%jupyter.command.jupyter.switchToDailyChannel.title%",
+                    "category": "Jupyter",
+                    "when": "config.jupyter.insidersChannel != 'daily'"
                 },
                 {
-                    "command": "python.switchToWeeklyChannel",
-                    "title": "%python.command.python.switchToWeeklyChannel.title%",
-                    "category": "Python",
-                    "when": "config.python.insidersChannel != 'weekly'"
+                    "command": "jupyter.switchToWeeklyChannel",
+                    "title": "%jupyter.command.jupyter.switchToWeeklyChannel.title%",
+                    "category": "Jupyter",
+                    "when": "config.jupyter.insidersChannel != 'weekly'"
                 },
                 {
-                    "command": "python.datascience.insertCellBelowPosition",
-                    "title": "%python.command.python.datascience.insertCellBelowPosition.title%",
-                    "category": "Python",
-                    "when": "python.datascience.hascodecells && python.datascience.featureenabled && !notebookEditorFocused"
+                    "command": "jupyter.insertCellBelowPosition",
+                    "title": "%jupyter.command.jupyter.insertCellBelowPosition.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
                 },
                 {
-                    "command": "python.datascience.insertCellBelow",
-                    "title": "%python.command.python.datascience.insertCellBelow.title%",
-                    "category": "Python",
-                    "when": "python.datascience.hascodecells && python.datascience.featureenabled && !notebookEditorFocused"
+                    "command": "jupyter.insertCellBelow",
+                    "title": "%jupyter.command.jupyter.insertCellBelow.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
                 },
                 {
-                    "command": "python.datascience.insertCellAbove",
-                    "title": "%python.command.python.datascience.insertCellAbove.title%",
-                    "category": "Python",
-                    "when": "python.datascience.hascodecells && python.datascience.featureenabled && !notebookEditorFocused"
+                    "command": "jupyter.insertCellAbove",
+                    "title": "%jupyter.command.jupyter.insertCellAbove.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
                 },
                 {
-                    "command": "python.datascience.deleteCells",
-                    "title": "%python.command.python.datascience.deleteCells.title%",
-                    "category": "Python",
-                    "when": "python.datascience.hascodecells && python.datascience.featureenabled && !notebookEditorFocused"
+                    "command": "jupyter.deleteCells",
+                    "title": "%jupyter.command.jupyter.deleteCells.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
                 },
                 {
-                    "command": "python.datascience.selectCell",
-                    "title": "%python.command.python.datascience.selectCell.title%",
-                    "category": "Python",
-                    "when": "python.datascience.hascodecells && python.datascience.featureenabled && !notebookEditorFocused"
+                    "command": "jupyter.selectCell",
+                    "title": "%jupyter.command.jupyter.selectCell.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
                 },
                 {
-                    "command": "python.datascience.selectCellContents",
-                    "title": "%python.command.python.datascience.selectCellContents.title%",
-                    "category": "Python",
-                    "when": "python.datascience.hascodecells && python.datascience.featureenabled && !notebookEditorFocused"
+                    "command": "jupyter.selectCellContents",
+                    "title": "%jupyter.command.jupyter.selectCellContents.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
                 },
                 {
-                    "command": "python.datascience.extendSelectionByCellAbove",
-                    "title": "%python.command.python.datascience.extendSelectionByCellAbove.title%",
-                    "category": "Python",
-                    "when": "python.datascience.hascodecells && python.datascience.featureenabled && !notebookEditorFocused"
+                    "command": "jupyter.extendSelectionByCellAbove",
+                    "title": "%jupyter.command.jupyter.extendSelectionByCellAbove.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
                 },
                 {
-                    "command": "python.datascience.extendSelectionByCellBelow",
-                    "title": "%python.command.python.datascience.extendSelectionByCellBelow.title%",
-                    "category": "Python",
-                    "when": "python.datascience.hascodecells && python.datascience.featureenabled && !notebookEditorFocused"
+                    "command": "jupyter.extendSelectionByCellBelow",
+                    "title": "%jupyter.command.jupyter.extendSelectionByCellBelow.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
                 },
                 {
-                    "command": "python.datascience.moveCellsUp",
-                    "title": "%python.command.python.datascience.moveCellsUp.title%",
-                    "category": "Python",
-                    "when": "python.datascience.hascodecells && python.datascience.featureenabled && !notebookEditorFocused"
+                    "command": "jupyter.moveCellsUp",
+                    "title": "%jupyter.command.jupyter.moveCellsUp.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
                 },
                 {
-                    "command": "python.datascience.moveCellsDown",
-                    "title": "%python.command.python.datascience.moveCellsDown.title%",
-                    "category": "Python",
-                    "when": "python.datascience.hascodecells && python.datascience.featureenabled && !notebookEditorFocused"
+                    "command": "jupyter.moveCellsDown",
+                    "title": "%jupyter.command.jupyter.moveCellsDown.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
                 },
                 {
-                    "command": "python.datascience.changeCellToMarkdown",
-                    "title": "%python.command.python.datascience.changeCellToMarkdown.title%",
-                    "category": "Python",
-                    "when": "python.datascience.hascodecells && python.datascience.featureenabled && !notebookEditorFocused"
+                    "command": "jupyter.changeCellToMarkdown",
+                    "title": "%jupyter.command.jupyter.changeCellToMarkdown.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
                 },
                 {
-                    "command": "python.datascience.changeCellToCode",
-                    "title": "%python.command.python.datascience.changeCellToCode.title%",
-                    "category": "Python",
-                    "when": "python.datascience.hascodecells && python.datascience.featureenabled && !notebookEditorFocused"
+                    "command": "jupyter.changeCellToCode",
+                    "title": "%jupyter.command.jupyter.changeCellToCode.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
                 },
                 {
-                    "command": "python.datascience.gotoNextCellInFile",
-                    "title": "%python.command.python.datascience.gotoNextCellInFile.title%",
-                    "category": "Python",
-                    "when": "python.datascience.hascodecells && python.datascience.featureenabled && !notebookEditorFocused"
+                    "command": "jupyter.gotoNextCellInFile",
+                    "title": "%jupyter.command.jupyter.gotoNextCellInFile.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
                 },
                 {
-                    "command": "python.datascience.gotoPrevCellInFile",
-                    "title": "%python.command.python.datascience.gotoPrevCellInFile.title%",
-                    "category": "Python",
-                    "when": "python.datascience.hascodecells && python.datascience.featureenabled && !notebookEditorFocused"
+                    "command": "jupyter.gotoPrevCellInFile",
+                    "title": "%jupyter.command.jupyter.gotoPrevCellInFile.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
                 },
                 {
-                    "command": "python.datascience.runcurrentcell",
-                    "title": "%python.command.python.datascience.runcurrentcell.title%",
-                    "category": "Python",
-                    "when": "python.datascience.hascodecells && python.datascience.featureenabled && python.datascience.ispythonornativeactive"
+                    "command": "jupyter.runcurrentcell",
+                    "title": "%jupyter.command.jupyter.runcurrentcell.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.hascodecells && jupyter.featureenabled && jupyter.ispythonornativeactive"
                 },
                 {
-                    "command": "python.datascience.runcurrentcelladvance",
-                    "title": "%python.command.python.datascience.runcurrentcelladvance.title%",
-                    "category": "Python",
-                    "when": "python.datascience.hascodecells && python.datascience.featureenabled && python.datascience.ispythonornativeactive"
+                    "command": "jupyter.runcurrentcelladvance",
+                    "title": "%jupyter.command.jupyter.runcurrentcelladvance.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.hascodecells && jupyter.featureenabled && jupyter.ispythonornativeactive"
                 },
                 {
-                    "command": "python.datascience.runcurrentcellandallbelow.palette",
-                    "title": "%python.command.python.datascience.runcurrentcellandallbelow.palette.title%",
-                    "category": "Python",
-                    "when": "python.datascience.hascodecells && python.datascience.featureenabled && python.datascience.ispythonornativeactive"
+                    "command": "jupyter.runcurrentcellandallbelow.palette",
+                    "title": "%jupyter.command.jupyter.runcurrentcellandallbelow.palette.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.hascodecells && jupyter.featureenabled && jupyter.ispythonornativeactive"
                 },
                 {
-                    "command": "python.datascience.runallcellsabove.palette",
-                    "title": "%python.command.python.datascience.runallcellsabove.palette.title%",
-                    "category": "Python",
-                    "when": "python.datascience.hascodecells && python.datascience.featureenabled && python.datascience.ispythonornativeactive"
+                    "command": "jupyter.runallcellsabove.palette",
+                    "title": "%jupyter.command.jupyter.runallcellsabove.palette.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.hascodecells && jupyter.featureenabled && jupyter.ispythonornativeactive"
                 },
                 {
-                    "command": "python.datascience.debugcurrentcell.palette",
-                    "title": "%python.command.python.datascience.debugcurrentcell.palette.title%",
-                    "category": "Python",
-                    "when": "editorLangId == python && python.datascience.hascodecells && python.datascience.featureenabled"
+                    "command": "jupyter.debugcurrentcell.palette",
+                    "title": "%jupyter.command.jupyter.debugcurrentcell.palette.title%",
+                    "category": "Jupyter",
+                    "when": "editorLangId == python && jupyter.hascodecells && jupyter.featureenabled"
                 },
                 {
-                    "command": "python.datascience.createnewinteractive",
-                    "title": "%python.command.python.datascience.createnewinteractive.title%",
-                    "category": "Python",
-                    "when": "python.datascience.featureenabled"
+                    "command": "jupyter.createnewinteractive",
+                    "title": "%jupyter.command.jupyter.createnewinteractive.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.featureenabled"
                 },
                 {
-                    "command": "python.datascience.runallcells",
-                    "title": "%python.command.python.datascience.runallcells.title%",
-                    "category": "Python",
-                    "when": "python.datascience.hascodecells && python.datascience.featureenabled && python.datascience.ispythonornativeactive"
+                    "command": "jupyter.runallcells",
+                    "title": "%jupyter.command.jupyter.runallcells.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.hascodecells && jupyter.featureenabled && jupyter.ispythonornativeactive"
                 },
                 {
-                    "command": "python.datascience.scrolltocell",
-                    "title": "%python.command.python.datascience.scrolltocell.title%",
-                    "category": "Python",
+                    "command": "jupyter.scrolltocell",
+                    "title": "%jupyter.command.jupyter.scrolltocell.title%",
+                    "category": "Jupyter",
                     "when": "false"
                 },
                 {
-                    "command": "python.datascience.debugcell",
-                    "title": "%python.command.python.datascience.debugcell.title%",
-                    "category": "Python",
+                    "command": "jupyter.debugcell",
+                    "title": "%jupyter.command.jupyter.debugcell.title%",
+                    "category": "Jupyter",
                     "when": "config.noExists"
                 },
                 {
-                    "command": "python.datascience.runcell",
-                    "title": "%python.command.python.datascience.runcell.title%",
-                    "category": "Python",
+                    "command": "jupyter.runcell",
+                    "title": "%jupyter.command.jupyter.runcell.title%",
+                    "category": "Jupyter",
                     "when": "config.noExists"
                 },
                 {
-                    "command": "python.datascience.runFileInteractive",
-                    "title": "%python.command.python.datascience.runFileInteractive.title%",
-                    "category": "Python",
-                    "when": "editorLangId == python && python.datascience.featureenabled && !notebookEditorFocused"
+                    "command": "jupyter.runFileInteractive",
+                    "title": "%jupyter.command.jupyter.runFileInteractive.title%",
+                    "category": "Jupyter",
+                    "when": "editorLangId == python && jupyter.featureenabled && !notebookEditorFocused"
                 },
                 {
-                    "command": "python.datascience.debugFileInteractive",
-                    "title": "%python.command.python.datascience.debugFileInteractive.title%",
-                    "category": "Python",
-                    "when": "editorLangId == python && python.datascience.featureenabled && !notebookEditorFocused"
+                    "command": "jupyter.debugFileInteractive",
+                    "title": "%jupyter.command.jupyter.debugFileInteractive.title%",
+                    "category": "Jupyter",
+                    "when": "editorLangId == python && jupyter.featureenabled && !notebookEditorFocused"
                 },
                 {
-                    "command": "python.datascience.importnotebook",
-                    "title": "%python.command.python.datascience.importnotebook.title%",
-                    "category": "Python"
+                    "command": "jupyter.importnotebook",
+                    "title": "%jupyter.command.jupyter.importnotebook.title%",
+                    "category": "Jupyter"
                 },
                 {
-                    "command": "python.datascience.opennotebook",
-                    "title": "%python.command.python.datascience.opennotebook.title%",
-                    "category": "Python"
+                    "command": "jupyter.opennotebook",
+                    "title": "%jupyter.command.jupyter.opennotebook.title%",
+                    "category": "Jupyter"
                 },
                 {
-                    "command": "python.datascience.exportfileasnotebook",
-                    "title": "%python.command.python.datascience.exportfileasnotebook.title%",
-                    "category": "Python",
-                    "when": "python.datascience.hascodecells && python.datascience.featureenabled && python.datascience.ispythonorinteractiveeactive && !notebookEditorFocused"
+                    "command": "jupyter.exportfileasnotebook",
+                    "title": "%jupyter.command.jupyter.exportfileasnotebook.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.hascodecells && jupyter.featureenabled && jupyter.ispythonorinteractiveeactive && !notebookEditorFocused"
                 },
                 {
-                    "command": "python.datascience.exportfileandoutputasnotebook",
-                    "title": "%python.command.python.datascience.exportfileandoutputasnotebook.title%",
-                    "category": "Python",
-                    "when": "python.datascience.hascodecells && python.datascience.featureenabled && python.datascience.ispythonorinteractiveeactive && !notebookEditorFocused"
+                    "command": "jupyter.exportfileandoutputasnotebook",
+                    "title": "%jupyter.command.jupyter.exportfileandoutputasnotebook.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.hascodecells && jupyter.featureenabled && jupyter.ispythonorinteractiveeactive && !notebookEditorFocused"
                 },
                 {
-                    "command": "python.datascience.undocells",
-                    "title": "%python.command.python.datascience.undocells.title%",
-                    "category": "Python",
-                    "when": "python.datascience.haveinteractivecells && python.datascience.featureenabled && python.datascience.ispythonorinteractiveeactive && !notebookEditorFocused"
+                    "command": "jupyter.undocells",
+                    "title": "%jupyter.command.jupyter.undocells.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.haveinteractivecells && jupyter.featureenabled && jupyter.ispythonorinteractiveeactive && !notebookEditorFocused"
                 },
                 {
-                    "command": "python.datascience.redocells",
-                    "title": "%python.command.python.datascience.redocells.title%",
-                    "category": "Python",
-                    "when": "python.datascience.haveredoablecells && python.datascience.featureenabled && python.datascience.ispythonorinteractiveornativeeactive && !notebookEditorFocused"
+                    "command": "jupyter.redocells",
+                    "title": "%jupyter.command.jupyter.redocells.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.haveredoablecells && jupyter.featureenabled && jupyter.ispythonorinteractiveornativeeactive && !notebookEditorFocused"
                 },
                 {
-                    "command": "python.datascience.removeallcells",
-                    "title": "%python.command.python.datascience.removeallcells.title%",
-                    "category": "Python",
-                    "when": "python.datascience.haveinteractivecells && python.datascience.featureenabled && python.datascience.ispythonorinteractiveeactive"
+                    "command": "jupyter.removeallcells",
+                    "title": "%jupyter.command.jupyter.removeallcells.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.haveinteractivecells && jupyter.featureenabled && jupyter.ispythonorinteractiveeactive"
                 },
                 {
-                    "command": "python.datascience.interruptkernel",
-                    "title": "%python.command.python.datascience.interruptkernel.title%",
-                    "category": "Python",
-                    "when": "python.datascience.haveinteractive && python.datascience.featureenabled && python.datascience.ispythonorinteractiveeactive"
+                    "command": "jupyter.interruptkernel",
+                    "title": "%jupyter.command.jupyter.interruptkernel.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.haveinteractive && jupyter.featureenabled && jupyter.ispythonorinteractiveeactive"
                 },
                 {
-                    "command": "python.datascience.restartkernel",
-                    "title": "%python.command.python.datascience.restartkernel.title%",
-                    "category": "Python",
-                    "when": "python.datascience.haveinteractive && python.datascience.featureenabled && python.datascience.ispythonorinteractiveeactive"
+                    "command": "jupyter.restartkernel",
+                    "title": "%jupyter.command.jupyter.restartkernel.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.haveinteractive && jupyter.featureenabled && jupyter.ispythonorinteractiveeactive"
                 },
                 {
-                    "command": "python.datascience.notebookeditor.undocells",
-                    "title": "%python.command.python.datascience.undocells.title%",
-                    "category": "Python",
-                    "when": "python.datascience.haveinteractivecells && python.datascience.featureenabled && python.datascience.isnativeactive && !notebookEditorFocused && python.datascience.isnotebooktrusted"
+                    "command": "jupyter.notebookeditor.undocells",
+                    "title": "%jupyter.command.jupyter.undocells.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.haveinteractivecells && jupyter.featureenabled && jupyter.isnativeactive && !notebookEditorFocused && jupyter.isnotebooktrusted"
                 },
                 {
-                    "command": "python.datascience.notebookeditor.redocells",
-                    "title": "%python.command.python.datascience.redocells.title%",
-                    "category": "Python",
-                    "when": "python.datascience.havenativeredoablecells && python.datascience.featureenabled && python.datascience.isnativeactive && !notebookEditorFocused&& python.datascience.isnotebooktrusted"
+                    "command": "jupyter.notebookeditor.redocells",
+                    "title": "%jupyter.command.jupyter.redocells.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.havenativeredoablecells && jupyter.featureenabled && jupyter.isnativeactive && !notebookEditorFocused&& jupyter.isnotebooktrusted"
                 },
                 {
-                    "command": "python.datascience.notebookeditor.removeallcells",
-                    "title": "%python.command.python.datascience.notebookeditor.removeallcells.title%",
-                    "category": "Python",
-                    "when": "python.datascience.havenativecells && python.datascience.featureenabled && python.datascience.isnativeactive && python.datascience.isnotebooktrusted"
+                    "command": "jupyter.notebookeditor.removeallcells",
+                    "title": "%jupyter.command.jupyter.notebookeditor.removeallcells.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.havenativecells && jupyter.featureenabled && jupyter.isnativeactive && jupyter.isnotebooktrusted"
                 },
                 {
-                    "command": "python.datascience.notebookeditor.interruptkernel",
-                    "title": "%python.command.python.datascience.interruptkernel.title%",
-                    "category": "Python",
-                    "when": "python.datascience.isnativeactive && python.datascience.featureenabled && python.datascience.isnotebooktrusted"
+                    "command": "jupyter.notebookeditor.interruptkernel",
+                    "title": "%jupyter.command.jupyter.interruptkernel.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.isnativeactive && jupyter.featureenabled && jupyter.isnotebooktrusted"
                 },
                 {
-                    "command": "python.datascience.notebookeditor.restartkernel",
-                    "title": "%python.command.python.datascience.restartkernel.title%",
-                    "category": "Python",
-                    "when": "python.datascience.isnativeactive && python.datascience.featureenabled && python.datascience.isnotebooktrusted"
+                    "command": "jupyter.notebookeditor.restartkernel",
+                    "title": "%jupyter.command.jupyter.restartkernel.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.isnativeactive && jupyter.featureenabled && jupyter.isnotebooktrusted"
                 },
                 {
-                    "command": "python.datascience.notebookeditor.trust",
+                    "command": "jupyter.notebookeditor.trust",
                     "title": "%DataScience.trustNotebookCommandTitle%",
-                    "category": "Python",
-                    "when": "python.datascience.featureenabled && notebookEditorFocused && !python.datascience.isnotebooktrusted && python.datascience.trustfeatureenabled"
+                    "category": "Jupyter",
+                    "when": "jupyter.featureenabled && notebookEditorFocused && !jupyter.isnotebooktrusted && jupyter.trustfeatureenabled"
                 },
                 {
-                    "command": "python.datascience.notebookeditor.runallcells",
-                    "title": "%python.command.python.datascience.notebookeditor.runallcells.title%",
-                    "category": "Python",
-                    "when": "python.datascience.isnativeactive && python.datascience.featureenabled && python.datascience.isnotebooktrusted"
+                    "command": "jupyter.notebookeditor.runallcells",
+                    "title": "%jupyter.command.jupyter.notebookeditor.runallcells.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.isnativeactive && jupyter.featureenabled && jupyter.isnotebooktrusted"
                 },
                 {
-                    "command": "python.datascience.notebookeditor.runselectedcell",
-                    "title": "%python.command.python.datascience.notebookeditor.runselectedcell.title%",
-                    "category": "Python",
-                    "when": "python.datascience.isnativeactive && python.datascience.featureenabled && python.datascience.havecellselected && !notebookEditorFocused && python.datascience.isnotebooktrusted"
+                    "command": "jupyter.notebookeditor.runselectedcell",
+                    "title": "%jupyter.command.jupyter.notebookeditor.runselectedcell.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.isnativeactive && jupyter.featureenabled && jupyter.havecellselected && !notebookEditorFocused && jupyter.isnotebooktrusted"
                 },
                 {
-                    "command": "python.datascience.notebookeditor.runselectedcell",
-                    "title": "%python.command.python.datascience.notebookeditor.runselectedcell.title%",
-                    "category": "Python",
-                    "when": "python.datascience.isnativeactive && python.datascience.featureenabled && notebookEditorFocused && python.datascience.isnotebooktrusted"
+                    "command": "jupyter.notebookeditor.runselectedcell",
+                    "title": "%jupyter.command.jupyter.notebookeditor.runselectedcell.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.isnativeactive && jupyter.featureenabled && notebookEditorFocused && jupyter.isnotebooktrusted"
                 },
                 {
-                    "command": "python.datascience.notebookeditor.addcellbelow",
-                    "title": "%python.command.python.datascience.notebookeditor.addcellbelow.title%",
-                    "category": "Python",
-                    "when": "python.datascience.isnativeactive && python.datascience.featureenabled && python.datascience.isnotebooktrusted"
+                    "command": "jupyter.notebookeditor.addcellbelow",
+                    "title": "%jupyter.command.jupyter.notebookeditor.addcellbelow.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.isnativeactive && jupyter.featureenabled && jupyter.isnotebooktrusted"
                 },
                 {
-                    "command": "python.datascience.notebookeditor.removeallcells",
-                    "title": "%python.command.python.datascience.removeallcells.title%",
-                    "category": "Python",
-                    "when": "python.datascience.featureenabled && notebookEditorFocused"
+                    "command": "jupyter.notebookeditor.removeallcells",
+                    "title": "%jupyter.command.jupyter.removeallcells.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.featureenabled && notebookEditorFocused"
                 },
                 {
-                    "command": "python.datascience.notebookeditor.expandallcells",
-                    "title": "%python.command.python.datascience.expandallcells.title%",
-                    "category": "Python",
-                    "when": "python.datascience.featureenabled && notebookEditorFocused"
+                    "command": "jupyter.notebookeditor.expandallcells",
+                    "title": "%jupyter.command.jupyter.expandallcells.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.featureenabled && notebookEditorFocused"
                 },
                 {
-                    "command": "python.datascience.notebookeditor.collapseallcells",
-                    "title": "%python.command.python.datascience.collapseallcells.title%",
-                    "category": "Python",
-                    "when": "python.datascience.featureenabled && notebookEditorFocused"
+                    "command": "jupyter.notebookeditor.collapseallcells",
+                    "title": "%jupyter.command.jupyter.collapseallcells.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.featureenabled && notebookEditorFocused"
                 },
                 {
-                    "command": "python.datascience.expandallcells",
-                    "title": "%python.command.python.datascience.expandallcells.title%",
-                    "category": "Python",
-                    "when": "python.datascience.isinteractiveactive && python.datascience.featureenabled"
+                    "command": "jupyter.expandallcells",
+                    "title": "%jupyter.command.jupyter.expandallcells.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.isinteractiveactive && jupyter.featureenabled"
                 },
                 {
-                    "command": "python.datascience.collapseallcells",
-                    "title": "%python.command.python.datascience.collapseallcells.title%",
-                    "category": "Python",
-                    "when": "python.datascience.isinteractiveactive && python.datascience.featureenabled"
+                    "command": "jupyter.collapseallcells",
+                    "title": "%jupyter.command.jupyter.collapseallcells.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.isinteractiveactive && jupyter.featureenabled"
                 },
                 {
-                    "command": "python.datascience.exportoutputasnotebook",
-                    "title": "%python.command.python.datascience.exportoutputasnotebook.title%",
-                    "category": "Python",
-                    "when": "python.datascience.isinteractiveactive && python.datascience.featureenabled"
+                    "command": "jupyter.exportoutputasnotebook",
+                    "title": "%jupyter.command.jupyter.exportoutputasnotebook.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.isinteractiveactive && jupyter.featureenabled"
                 },
                 {
-                    "command": "python.datascience.runcellandallbelow",
-                    "category": "Python",
+                    "command": "jupyter.runcellandallbelow",
+                    "category": "Jupyter",
                     "when": "config.noExists"
                 },
                 {
-                    "command": "python.datascience.runallcellsabove",
-                    "category": "Python",
+                    "command": "jupyter.runallcellsabove",
+                    "category": "Jupyter",
                     "when": "config.noExists"
                 },
                 {
-                    "command": "python.datascience.debugcontinue",
-                    "category": "Python",
+                    "command": "jupyter.debugcontinue",
+                    "category": "Jupyter",
                     "when": "config.noExists"
                 },
                 {
-                    "command": "python.datascience.debugstop",
-                    "category": "Python",
+                    "command": "jupyter.debugstop",
+                    "category": "Jupyter",
                     "when": "config.noExists"
                 },
                 {
-                    "command": "python.datascience.debugstepover",
-                    "category": "Python",
+                    "command": "jupyter.debugstepover",
+                    "category": "Jupyter",
                     "when": "config.noExists"
                 },
                 {
-                    "command": "python.datascience.debugcell",
-                    "category": "Python",
+                    "command": "jupyter.debugcell",
+                    "category": "Jupyter",
                     "when": "config.noExists"
                 },
                 {
-                    "command": "python.datascience.addcellbelow",
-                    "title": "%python.command.python.datascience.addcellbelow.title%",
-                    "category": "Python",
-                    "when": "python.datascience.hascodecells && python.datascience.featureenabled && python.datascience.ispythonornativeactive"
+                    "command": "jupyter.addcellbelow",
+                    "title": "%jupyter.command.jupyter.addcellbelow.title%",
+                    "category": "Jupyter",
+                    "when": "jupyter.hascodecells && jupyter.featureenabled && jupyter.ispythonornativeactive"
                 },
                 {
-                    "command": "python.datascience.createnewnotebook",
-                    "title": "%python.command.python.datascience.createnewnotebook.title%",
-                    "category": "Python"
+                    "command": "jupyter.createnewnotebook",
+                    "title": "%jupyter.command.jupyter.createnewnotebook.title%",
+                    "category": "Jupyter"
                 },
                 {
-                    "command": "python.datascience.runtoline",
-                    "category": "Python",
+                    "command": "jupyter.runtoline",
+                    "category": "Jupyter",
                     "when": "config.noExists"
                 },
                 {
-                    "command": "python.datascience.runfromline",
-                    "category": "Python",
+                    "command": "jupyter.runfromline",
+                    "category": "Jupyter",
                     "when": "config.noExists"
                 },
                 {
-                    "command": "python.datascience.execSelectionInteractive",
-                    "category": "Python",
-                    "when": "editorLangId == python && python.datascience.featureenabled && !notebookEditorFocused"
+                    "command": "jupyter.execSelectionInteractive",
+                    "category": "Jupyter",
+                    "when": "editorLangId == python && jupyter.featureenabled && !notebookEditorFocused"
                 },
                 {
-                    "command": "python.datascience.switchKernel",
+                    "command": "jupyter.switchKernel",
                     "title": "%DataScience.selectKernel%",
-                    "category": "Python",
-                    "when": "python.datascience.isnativeactive"
+                    "category": "Jupyter",
+                    "when": "jupyter.isnativeactive"
                 },
                 {
-                    "command": "python.datascience.gatherquality",
+                    "command": "jupyter.gatherquality",
                     "title": "%DataScience.gatherQuality%",
-                    "category": "Python",
+                    "category": "Jupyter",
                     "when": "false"
                 },
                 {
-                    "command": "python.datascience.latestExtension",
+                    "command": "jupyter.latestExtension",
                     "title": "%DataScience.latestExtension%",
-                    "category": "Python",
+                    "category": "Jupyter",
                     "when": "false"
                 },
                 {
-                    "command": "python.datascience.export",
+                    "command": "jupyter.export",
                     "title": "%DataScience.notebookExportAs%",
-                    "category": "Python",
+                    "category": "Jupyter",
                     "when": "false"
                 }
             ]
         },
-        "breakpoints": [
-            {
-                "language": "python"
-            },
-            {
-                "language": "html"
-            },
-            {
-                "language": "jinja"
-            }
-        ],
-        "debuggers": [
-            {
-                "type": "python",
-                "label": "Python",
-                "languages": [
-                    "python"
-                ],
-                "variables": {
-                    "pickProcess": "python.pickLocalProcess"
-                },
-                "configurationSnippets": [],
-                "configurationAttributes": {
-                    "launch": {
-                        "properties": {
-                            "module": {
-                                "type": "string",
-                                "description": "Name of the module to be debugged.",
-                                "default": ""
-                            },
-                            "program": {
-                                "type": "string",
-                                "description": "Absolute path to the program.",
-                                "default": "${file}"
-                            },
-                            "pythonPath": {
-                                "type": "string",
-                                "description": "Path (fully qualified) to python executable. Defaults to the value in settings",
-                                "default": "${command:python.interpreterPath}"
-                            },
-                            "pythonArgs": {
-                                "type": "array",
-                                "description": "Command-line arguments passed to the Python interpreter. To pass arguments to the debug target, use \"args\".",
-                                "default": [],
-                                "items": {
-                                    "type": "string"
-                                }
-                            },
-                            "args": {
-                                "type": "array",
-                                "description": "Command line arguments passed to the program",
-                                "default": [],
-                                "items": {
-                                    "type": "string"
-                                }
-                            },
-                            "stopOnEntry": {
-                                "type": "boolean",
-                                "description": "Automatically stop after launch.",
-                                "default": false
-                            },
-                            "showReturnValue": {
-                                "type": "boolean",
-                                "description": "Show return value of functions when stepping.",
-                                "default": true
-                            },
-                            "console": {
-                                "enum": [
-                                    "internalConsole",
-                                    "integratedTerminal",
-                                    "externalTerminal"
-                                ],
-                                "description": "Where to launch the debug target: internal console, integrated terminal, or external terminal.",
-                                "default": "integratedTerminal"
-                            },
-                            "cwd": {
-                                "type": "string",
-                                "description": "Absolute path to the working directory of the program being debugged. Default is the root directory of the file (leave empty).",
-                                "default": "${workspaceFolder}"
-                            },
-                            "env": {
-                                "type": "object",
-                                "description": "Environment variables defined as a key value pair. Property ends up being the Environment Variable and the value of the property ends up being the value of the Env Variable.",
-                                "default": {},
-                                "additionalProperties": {
-                                    "type": "string"
-                                }
-                            },
-                            "envFile": {
-                                "type": "string",
-                                "description": "Absolute path to a file containing environment variable definitions.",
-                                "default": "${workspaceFolder}/.env"
-                            },
-                            "port": {
-                                "type": "number",
-                                "description": "Debug port (default is 0, resulting in the use of a dynamic port).",
-                                "default": 0
-                            },
-                            "host": {
-                                "type": "string",
-                                "description": "IP address of the of the local debug server (default is localhost).",
-                                "default": "localhost"
-                            },
-                            "pathMappings": {
-                                "type": "array",
-                                "label": "Path mappings.",
-                                "items": {
-                                    "type": "object",
-                                    "label": "Path mapping",
-                                    "required": [
-                                        "localRoot",
-                                        "remoteRoot"
-                                    ],
-                                    "properties": {
-                                        "localRoot": {
-                                            "type": "string",
-                                            "label": "Local source root.",
-                                            "default": "${workspaceFolder}"
-                                        },
-                                        "remoteRoot": {
-                                            "type": "string",
-                                            "label": "Remote source root.",
-                                            "default": ""
-                                        }
-                                    }
-                                },
-                                "default": []
-                            },
-                            "logToFile": {
-                                "type": "boolean",
-                                "description": "Enable logging of debugger events to a log file.",
-                                "default": false
-                            },
-                            "redirectOutput": {
-                                "type": "boolean",
-                                "description": "Redirect output.",
-                                "default": true
-                            },
-                            "justMyCode": {
-                                "type": "boolean",
-                                "description": "Debug only user-written code.",
-                                "default": true
-                            },
-                            "gevent": {
-                                "type": "boolean",
-                                "description": "Enable debugging of gevent monkey-patched code.",
-                                "default": false
-                            },
-                            "django": {
-                                "type": "boolean",
-                                "description": "Django debugging.",
-                                "default": false
-                            },
-                            "jinja": {
-                                "enum": [
-                                    true,
-                                    false,
-                                    null
-                                ],
-                                "description": "Jinja template debugging (e.g. Flask).",
-                                "default": null
-                            },
-                            "sudo": {
-                                "type": "boolean",
-                                "description": "Running debug program under elevated permissions (on Unix).",
-                                "default": false
-                            },
-                            "pyramid": {
-                                "type": "boolean",
-                                "description": "Whether debugging Pyramid applications",
-                                "default": false
-                            },
-                            "subProcess": {
-                                "type": "boolean",
-                                "description": "Whether to enable Sub Process debugging",
-                                "default": false
-                            }
-                        }
-                    },
-                    "test": {
-                        "properties": {
-                            "pythonPath": {
-                                "type": "string",
-                                "description": "Path (fully qualified) to python executable. Defaults to the value in settings",
-                                "default": "${command:python.interpreterPath}"
-                            },
-                            "stopOnEntry": {
-                                "type": "boolean",
-                                "description": "Automatically stop after launch.",
-                                "default": false
-                            },
-                            "showReturnValue": {
-                                "type": "boolean",
-                                "description": "Show return value of functions when stepping.",
-                                "default": true
-                            },
-                            "console": {
-                                "enum": [
-                                    "internalConsole",
-                                    "integratedTerminal",
-                                    "externalTerminal"
-                                ],
-                                "description": "Where to launch the debug target: internal console, integrated terminal, or external terminal.",
-                                "default": "internalConsole"
-                            },
-                            "cwd": {
-                                "type": "string",
-                                "description": "Absolute path to the working directory of the program being debugged. Default is the root directory of the file (leave empty).",
-                                "default": "${workspaceFolder}"
-                            },
-                            "env": {
-                                "type": "object",
-                                "description": "Environment variables defined as a key value pair. Property ends up being the Environment Variable and the value of the property ends up being the value of the Env Variable.",
-                                "default": {},
-                                "additionalProperties": {
-                                    "type": "string"
-                                }
-                            },
-                            "envFile": {
-                                "type": "string",
-                                "description": "Absolute path to a file containing environment variable definitions.",
-                                "default": "${workspaceFolder}/.env"
-                            },
-                            "redirectOutput": {
-                                "type": "boolean",
-                                "description": "Redirect output.",
-                                "default": true
-                            },
-                            "justMyCode": {
-                                "type": "boolean",
-                                "description": "Debug only user-written code.",
-                                "default": true
-                            }
-                        }
-                    },
-                    "attach": {
-                        "properties": {
-                            "connect": {
-                                "type": "object",
-                                "label": "Attach by connecting to debugpy over a socket.",
-                                "properties": {
-                                    "port": {
-                                        "type": "number",
-                                        "description": "Port to connect to."
-                                    },
-                                    "host": {
-                                        "type": "string",
-                                        "description": "Hostname or IP address to connect to.",
-                                        "default": "127.0.0.1"
-                                    }
-                                },
-                                "required": [
-                                    "port"
-                                ]
-                            },
-                            "listen": {
-                                "type": "object",
-                                "label": "Attach by listening for incoming socket connection from debugpy",
-                                "properties": {
-                                    "port": {
-                                        "type": "number",
-                                        "description": "Port to listen on."
-                                    },
-                                    "host": {
-                                        "type": "string",
-                                        "description": "Hostname or IP address of the interface to listen on.",
-                                        "default": "127.0.0.1"
-                                    }
-                                },
-                                "required": [
-                                    "port"
-                                ]
-                            },
-                            "port": {
-                                "type": "number",
-                                "description": "Port to connect to."
-                            },
-                            "host": {
-                                "type": "string",
-                                "description": "Hostname or IP address to connect to.",
-                                "default": "127.0.0.1"
-                            },
-                            "pathMappings": {
-                                "type": "array",
-                                "label": "Path mappings.",
-                                "items": {
-                                    "type": "object",
-                                    "label": "Path mapping",
-                                    "required": [
-                                        "localRoot",
-                                        "remoteRoot"
-                                    ],
-                                    "properties": {
-                                        "localRoot": {
-                                            "type": "string",
-                                            "label": "Local source root.",
-                                            "default": "${workspaceFolder}"
-                                        },
-                                        "remoteRoot": {
-                                            "type": "string",
-                                            "label": "Remote source root.",
-                                            "default": ""
-                                        }
-                                    }
-                                },
-                                "default": []
-                            },
-                            "logToFile": {
-                                "type": "boolean",
-                                "description": "Enable logging of debugger events to a log file.",
-                                "default": false
-                            },
-                            "redirectOutput": {
-                                "type": "boolean",
-                                "description": "Redirect output.",
-                                "default": true
-                            },
-                            "justMyCode": {
-                                "type": "boolean",
-                                "description": "Debug only user-written code.",
-                                "default": true
-                            },
-                            "django": {
-                                "type": "boolean",
-                                "description": "Django debugging.",
-                                "default": false
-                            },
-                            "jinja": {
-                                "enum": [
-                                    true,
-                                    false,
-                                    null
-                                ],
-                                "description": "Jinja template debugging (e.g. Flask).",
-                                "default": null
-                            },
-                            "subProcess": {
-                                "type": "boolean",
-                                "description": "Whether to enable Sub Process debugging",
-                                "default": false
-                            },
-                            "showReturnValue": {
-                                "type": "boolean",
-                                "description": "Show return value of functions when stepping.",
-                                "default": true
-                            },
-                            "processId": {
-                                "anyOf": [
-                                    {
-                                        "enum": [
-                                            "${command:pickProcess}"
-                                        ],
-                                        "description": "Use process picker to select a process to attach, or Process ID as integer.",
-                                        "default": "${command:pickProcess}"
-                                    },
-                                    {
-                                        "type": "integer",
-                                        "description": "ID of the local process to attach to."
-                                    }
-                                ]
-                            }
-                        }
-                    }
-                }
-            }
-        ],
         "configuration": {
             "type": "object",
-            "title": "Python",
+            "title": "Jupyter",
             "properties": {
-                "python.diagnostics.sourceMapsEnabled": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Enable source map support for meaningful stack traces in error logs.",
-                    "scope": "application"
-                },
-                "python.autoComplete.addBrackets": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Automatically add brackets for functions.",
-                    "scope": "resource"
-                },
-                "python.autoComplete.extraPaths": {
-                    "type": "array",
-                    "default": [],
-                    "description": "List of paths to libraries and the like that need to be imported by auto complete engine. E.g. when using Google App SDK, the paths are not in system path, hence need to be added into this list.",
-                    "scope": "resource"
-                },
-                "python.autoComplete.showAdvancedMembers": {
+                "jupyter.experiments.enabled": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Controls appearance of methods with double underscores in the completion list.",
-                    "scope": "resource"
+                    "description": "Enables/disables A/B tests.",
+                    "scope": "machine"
                 },
-                "python.autoComplete.typeshedPaths": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "default": [],
-                    "description": "Specifies paths to local typeshed repository clone(s) for the Python language server.",
-                    "scope": "resource"
-                },
-                "python.autoUpdateLanguageServer": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Automatically update the language server.",
-                    "scope": "application"
-                },
-                "python.logging.level": {
+                "jupyter.logging.level": {
                     "type": "string",
                     "default": "error",
                     "enum": [
@@ -1615,36 +1191,15 @@
                     "description": "The logging level the extension logs at, defaults to 'error'",
                     "scope": "machine"
                 },
-                "python.experiments.enabled": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Enables/disables A/B tests.",
-                    "scope": "machine"
-                },
-                "python.defaultInterpreterPath": {
-                    "type": "string",
-                    "default": "python",
-                    "description": "Path to Python, you can use a custom version of Python by modifying this setting to include the full path.",
-                    "scope": "machine"
-                },
-                "python.experiments.optInto": {
+                "jupyter.experiments.optInto": {
                     "type": "array",
                     "default": [],
                     "items": {
                         "enum": [
-                            "AlwaysDisplayTestExplorer - experiment",
-                            "ShowExtensionSurveyPrompt - enabled",
-                            "Reload - experiment",
-                            "AA_testing - experiment",
                             "LocalZMQKernel - experiment",
                             "NativeNotebook - experiment",
                             "CustomEditorSupport - experiment",
-                            "UseTerminalToGetActivatedEnvVars - experiment",
-                            "CollectLSRequestTiming - experiment",
-                            "CollectNodeLSRequestTiming - experiment",
-                            "DeprecatePythonPath - experiment",
                             "RunByLine - experiment",
-                            "tryPylance",
                             "jediLSP",
                             "All"
                         ]
@@ -1652,24 +1207,15 @@
                     "description": "List of experiment to opt into. If empty, user is assigned the default experiment groups. See https://github.com/microsoft/vscode-jupyter/wiki/Experiments for more details.",
                     "scope": "machine"
                 },
-                "python.experiments.optOutFrom": {
+                "jupyter.experiments.optOutFrom": {
                     "type": "array",
                     "default": [],
                     "items": {
                         "enum": [
-                            "AlwaysDisplayTestExplorer - experiment",
-                            "ShowExtensionSurveyPrompt - enabled",
-                            "Reload - experiment",
-                            "AA_testing - experiment",
                             "LocalZMQKernel - experiment",
                             "NativeNotebook - experiment",
                             "CustomEditorSupport - experiment",
-                            "UseTerminalToGetActivatedEnvVars - experiment",
-                            "CollectLSRequestTiming - experiment",
-                            "CollectNodeLSRequestTiming - experiment",
-                            "DeprecatePythonPath - experiment",
                             "RunByLine - experiment",
-                            "tryPylance",
                             "jediLSP",
                             "All"
                         ]
@@ -1677,13 +1223,13 @@
                     "description": "List of experiment to opt out of. If empty, user is assigned the default experiment groups. See https://github.com/microsoft/vscode-jupyter/wiki/Experiments for more details.",
                     "scope": "machine"
                 },
-                "python.dataScience.allowImportFromNotebook": {
+                "jupyter.allowImportFromNotebook": {
                     "type": "boolean",
                     "default": true,
                     "description": "Allows a user to import a jupyter notebook into a python file anytime one is opened.",
                     "scope": "resource"
                 },
-                "python.dataScience.widgetScriptSources": {
+                "jupyter.widgetScriptSources": {
                     "type": "array",
                     "default": [],
                     "items": {
@@ -1701,309 +1247,303 @@
                     "markdownDescription": "Defines the location and order of the sources where scripts files for Widgets are downloaded from (e.g. ipywidgest, bqplot, beakerx, ipyleaflet, etc). Not selecting any of these could result in widgets not rendering or function correctly. See [here](https://aka.ms/PVSCIPyWidgets) for more information. Once updated you will need to restart the Kernel.",
                     "scope": "machine"
                 },
-                "python.dataScience.askForLargeDataFrames": {
+                "jupyter.askForLargeDataFrames": {
                     "type": "boolean",
                     "default": true,
                     "description": "Warn the user before trying to open really large data frames.",
                     "scope": "application"
                 },
-                "python.dataScience.askForKernelRestart": {
+                "jupyter.askForKernelRestart": {
                     "type": "boolean",
                     "default": true,
                     "description": "Warn the user before restarting a kernel.",
                     "scope": "application"
                 },
-                "python.dataScience.enabled": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Enable the experimental data science features in the python extension.",
-                    "scope": "resource"
-                },
-                "python.dataScience.exportWithOutputEnabled": {
+                "jupyter.exportWithOutputEnabled": {
                     "type": "boolean",
                     "default": false,
                     "description": "Enable exporting a python file into a jupyter notebook and run all cells when doing so.",
                     "scope": "resource"
                 },
-                "python.dataScience.jupyterLaunchTimeout": {
+                "jupyter.jupyterLaunchTimeout": {
                     "type": "number",
                     "default": 60000,
                     "description": "Amount of time (in ms) to wait for the Jupyter Notebook server to start.",
                     "scope": "resource"
                 },
-                "python.dataScience.jupyterLaunchRetries": {
+                "jupyter.jupyterLaunchRetries": {
                     "type": "number",
                     "default": 3,
                     "description": "Number of times to attempt to connect to the Jupyter Notebook",
                     "scope": "resource"
                 },
-                "python.dataScience.jupyterServerURI": {
+                "jupyter.jupyterServerURI": {
                     "type": "string",
                     "default": "local",
                     "description": "When a Notebook Editor or Interactive Window session is started, create the kernel on the specified Jupyter server. Select 'local' to create a new Jupyter server on this local machine.",
                     "scope": "resource"
                 },
-                "python.dataScience.jupyterCommandLineArguments": {
+                "jupyter.jupyterCommandLineArguments": {
                     "type": "array",
                     "default": [],
                     "description": "When a Notebook Editor or Interactive Window Jupyter server is started, these arguments will be passed to it. By default this list is generated by the Jupyter Extension.",
                     "scope": "resource"
                 },
-                "python.dataScience.notebookFileRoot": {
+                "jupyter.notebookFileRoot": {
                     "type": "string",
                     "default": "${fileDirname}",
                     "description": "Set the root directory for loading files for the Python Interactive window.",
                     "scope": "resource"
                 },
-                "python.dataScience.searchForJupyter": {
+                "jupyter.searchForJupyter": {
                     "type": "boolean",
                     "default": true,
                     "description": "Search all installed Python interpreters for a Jupyter installation when starting the Python Interactive window",
                     "scope": "resource"
                 },
-                "python.dataScience.changeDirOnImportExport": {
+                "jupyter.changeDirOnImportExport": {
                     "type": "boolean",
                     "default": false,
                     "description": "When importing or exporting a Jupyter Notebook add a directory change command to allow relative path loading to work.",
                     "scope": "resource"
                 },
-                "python.dataScience.useDefaultConfigForJupyter": {
+                "jupyter.useDefaultConfigForJupyter": {
                     "type": "boolean",
                     "default": true,
                     "description": "When running Jupyter locally, create a default empty Jupyter config for the Python Interactive window",
                     "scope": "resource"
                 },
-                "python.dataScience.jupyterInterruptTimeout": {
+                "jupyter.jupyterInterruptTimeout": {
                     "type": "number",
                     "default": 10000,
                     "description": "Amount of time (in ms) to wait for an interrupt before asking to restart the Jupyter kernel.",
                     "scope": "resource"
                 },
-                "python.dataScience.allowInput": {
+                "jupyter.allowInput": {
                     "type": "boolean",
                     "default": true,
                     "description": "Allow the inputting of python code directly into the Python Interactive window"
                 },
-                "python.dataScience.showCellInputCode": {
+                "jupyter.showCellInputCode": {
                     "type": "boolean",
                     "default": true,
                     "description": "Show cell input code.",
                     "scope": "resource"
                 },
-                "python.dataScience.collapseCellInputCodeByDefault": {
+                "jupyter.collapseCellInputCodeByDefault": {
                     "type": "boolean",
                     "default": true,
                     "description": "Collapse cell input code by default.",
                     "scope": "resource"
                 },
-                "python.dataScience.maxOutputSize": {
+                "jupyter.maxOutputSize": {
                     "type": "number",
                     "default": 400,
                     "description": "Maximum size (in pixels) of text output in the Notebook Editor before a scrollbar appears. First enable scrolling for cell outputs in settings.",
                     "scope": "resource"
                 },
-                "python.dataScience.alwaysScrollOnNewCell": {
+                "jupyter.alwaysScrollOnNewCell": {
                     "type": "boolean",
                     "default": false,
                     "description": "Automatically scroll the interactive window to show the output of the last statement executed. If false, the interactive window will only automatically scroll if the bottom of the prior cell is visible.",
                     "scope": "resource"
                 },
-                "python.dataScience.showKernelSelectionOnInteractiveWindow": {
+                "jupyter.showKernelSelectionOnInteractiveWindow": {
                     "type": "boolean",
                     "default": false,
                     "description": "When set to true, enables the kernel selector in the Interactive Window. By default, the Interactive Window will use your Python Interpreters kernel.",
                     "scope": "resource"
                 },
-                "python.dataScience.enableScrollingForCellOutputs": {
+                "jupyter.enableScrollingForCellOutputs": {
                     "type": "boolean",
                     "default": true,
                     "description": "Enables scrolling for large cell outputs in the Notebook Editor. This setting does not apply to the Python Interactive Window.",
                     "scope": "resource"
                 },
-                "python.dataScience.errorBackgroundColor": {
+                "jupyter.errorBackgroundColor": {
                     "type": "string",
                     "default": "#FFFFFF",
                     "description": "Background color (in hex) for exception messages in the Python Interactive window.",
                     "scope": "resource",
                     "deprecationMessage": "No longer necessary as the theme colors are used for error messages"
                 },
-                "python.dataScience.sendSelectionToInteractiveWindow": {
+                "jupyter.sendSelectionToInteractiveWindow": {
                     "type": "boolean",
                     "default": false,
                     "description": "Determines if selected code in a python file will go to the terminal or the Python Interactive window when hitting shift+enter",
                     "scope": "resource"
                 },
-                "python.dataScience.showJupyterVariableExplorer": {
+                "jupyter.showJupyterVariableExplorer": {
                     "type": "boolean",
                     "default": true,
                     "description": "Show the variable explorer in the Python Interactive window.",
                     "deprecationMessage": "This setting no longer applies. It is ignored.",
                     "scope": "resource"
                 },
-                "python.dataScience.variableExplorerExclude": {
+                "jupyter.variableExplorerExclude": {
                     "type": "string",
                     "default": "module;function;builtin_function_or_method",
                     "description": "Types to exclude from showing in the Python Interactive variable explorer",
                     "scope": "resource"
                 },
-                "python.dataScience.codeRegularExpression": {
+                "jupyter.codeRegularExpression": {
                     "type": "string",
                     "default": "^(#\\s*%%|#\\s*\\<codecell\\>|#\\s*In\\[\\d*?\\]|#\\s*In\\[ \\])",
                     "description": "Regular expression used to identify code cells. All code until the next match is considered part of this cell. \nDefaults to '^(#\\s*%%|#\\s*\\<codecell\\>|#\\s*In\\[\\d*?\\]|#\\s*In\\[ \\])' if left blank",
                     "scope": "resource"
                 },
-                "python.dataScience.defaultCellMarker": {
+                "jupyter.defaultCellMarker": {
                     "type": "string",
                     "default": "# %%",
                     "description": "Cell marker used for delineating a cell in a python file.",
                     "scope": "resource"
                 },
-                "python.dataScience.markdownRegularExpression": {
+                "jupyter.markdownRegularExpression": {
                     "type": "string",
                     "default": "^(#\\s*%%\\s*\\[markdown\\]|#\\s*\\<markdowncell\\>)",
                     "description": "Regular expression used to identify markdown cells. All comments after this expression are considered part of the markdown. \nDefaults to '^(#\\s*%%\\s*\\[markdown\\]|#\\s*\\<markdowncell\\>)' if left blank",
                     "scope": "resource"
                 },
-                "python.dataScience.allowLiveShare": {
+                "jupyter.allowLiveShare": {
                     "type": "boolean",
                     "default": true,
                     "description": "Allow the Python Interactive window to be shared during a Live Share session",
                     "scope": "resource"
                 },
-                "python.dataScience.ignoreVscodeTheme": {
+                "jupyter.ignoreVscodeTheme": {
                     "type": "boolean",
                     "default": false,
                     "description": "Don't use the VS Code theme in the Python Interactive window (requires reload of VS Code). This forces the Python Interactive window to use 'Light +(default light)' and disables matplotlib defaults.",
                     "scope": "resource"
                 },
-                "python.dataScience.themeMatplotlibPlots": {
+                "jupyter.themeMatplotlibPlots": {
                     "type": "boolean",
                     "default": false,
                     "description": "In the Python Interactive window and Notebook Editor theme matplotlib outputs to match the VS Code editor theme.",
                     "scope": "resource"
                 },
-                "python.dataScience.liveShareConnectionTimeout": {
+                "jupyter.liveShareConnectionTimeout": {
                     "type": "number",
                     "default": 1000,
                     "description": "Amount of time to wait for guest connections to verify they have the Python extension installed.",
                     "scope": "application"
                 },
-                "python.dataScience.decorateCells": {
+                "jupyter.decorateCells": {
                     "type": "boolean",
                     "default": true,
                     "description": "Draw a highlight behind the currently active cell.",
                     "scope": "resource"
                 },
-                "python.dataScience.enableCellCodeLens": {
+                "jupyter.enableCellCodeLens": {
                     "type": "boolean",
                     "default": true,
                     "description": "Enables code lens for 'cells' in a python file.",
                     "scope": "resource"
                 },
-                "python.dataScience.enableAutoMoveToNextCell": {
+                "jupyter.enableAutoMoveToNextCell": {
                     "type": "boolean",
                     "default": true,
                     "description": "Enables moving to the next cell when clicking on a 'Run Cell' code lens.",
                     "scope": "resource"
                 },
-                "python.dataScience.autoPreviewNotebooksInInteractivePane": {
+                "jupyter.autoPreviewNotebooksInInteractivePane": {
                     "type": "boolean",
                     "deprecationMessage": "No longer supported. Notebooks open directly in their own editor now.",
                     "default": false,
                     "description": "When opening ipynb files, automatically preview the contents in the Python Interactive window.",
                     "scope": "resource"
                 },
-                "python.dataScience.useNotebookEditor": {
+                "jupyter.useNotebookEditor": {
                     "type": "boolean",
                     "default": true,
                     "description": "Automatically open .ipynb files in the Notebook Editor.",
                     "scope": "resource"
                 },
-                "python.dataScience.allowUnauthorizedRemoteConnection": {
+                "jupyter.allowUnauthorizedRemoteConnection": {
                     "type": "boolean",
                     "default": false,
                     "description": "Allow for connecting the Python Interactive window to a https Jupyter server that does not have valid certificates. This can be a security risk, so only use for known and trusted servers.",
                     "scope": "resource"
                 },
-                "python.dataScience.enablePlotViewer": {
+                "jupyter.enablePlotViewer": {
                     "type": "boolean",
                     "default": true,
                     "description": "Modify plot output so that it can be expanded into a plot viewer window.",
                     "scope": "resource"
                 },
-                "python.dataScience.gatherToScript": {
+                "jupyter.gatherToScript": {
                     "type": "boolean",
                     "default": false,
                     "description": "Gather code to a python script rather than a notebook.",
                     "scope": "resource"
                 },
-                "python.dataScience.gatherSpecPath": {
+                "jupyter.gatherSpecPath": {
                     "type": "string",
                     "default": "",
                     "description": "This setting specifies a folder that contains additional or replacement spec files used for analysis.",
                     "scope": "resource"
                 },
-                "python.dataScience.codeLenses": {
+                "jupyter.codeLenses": {
                     "type": "string",
-                    "default": "python.datascience.runcell,  python.datascience.runallcellsabove, python.datascience.debugcell",
-                    "description": "Set of commands to put as code lens above a cell. Defaults to 'python.datascience.runcell,  python.datascience.runallcellsabove, python.datascience.debugcell'",
+                    "default": "jupyter.runcell,  jupyter.runallcellsabove, jupyter.debugcell",
+                    "description": "Set of commands to put as code lens above a cell. Defaults to 'jupyter.runcell,  jupyter.runallcellsabove, jupyter.debugcell'",
                     "scope": "resource"
                 },
-                "python.dataScience.debugCodeLenses": {
+                "jupyter.debugCodeLenses": {
                     "type": "string",
-                    "default": "python.datascience.debugcontinue, python.datascience.debugstop, python.datascience.debugstepover",
+                    "default": "jupyter.debugcontinue, jupyter.debugstop, jupyter.debugstepover",
                     "description": "Set of debug commands to put as code lens above a cell while debugging.",
                     "scope": "resource"
                 },
-                "python.dataScience.debugpyDistPath": {
+                "jupyter.debugpyDistPath": {
                     "type": "string",
                     "default": "",
                     "description": "Path to debugpy bits for debugging cells.",
                     "scope": "resource"
                 },
-                "python.dataScience.stopOnFirstLineWhileDebugging": {
+                "jupyter.stopOnFirstLineWhileDebugging": {
                     "type": "boolean",
                     "default": true,
                     "description": "When debugging a cell, stop on the first line.",
                     "scope": "resource"
                 },
-                "python.dataScience.remoteDebuggerPort": {
+                "jupyter.remoteDebuggerPort": {
                     "type": "number",
                     "default": -1,
                     "description": "When debugging a cell, open this port on the remote box. If -1 is specified, a random port between 8889 and 9000 will be attempted.",
                     "scope": "resource"
                 },
-                "python.dataScience.disableJupyterAutoStart": {
+                "jupyter.disableJupyterAutoStart": {
                     "type": "boolean",
                     "default": false,
                     "description": "When true, disables Jupyter from being automatically started for you. You must instead run a cell to start Jupyter.",
                     "scope": "resource"
                 },
-                "python.dataScience.textOutputLimit": {
+                "jupyter.textOutputLimit": {
                     "type": "number",
                     "default": 20000,
                     "description": "Limit the amount of text in Python Interactive cell text output to this value. 0 to allow any amount of characters.",
                     "scope": "resource"
                 },
-                "python.dataScience.colorizeInputBox": {
+                "jupyter.colorizeInputBox": {
                     "type": "boolean",
                     "default": true,
                     "description": "Whether or not to use the theme's peek color as the background for the input box.",
                     "scope": "resource"
                 },
-                "python.dataScience.stopOnError": {
+                "jupyter.stopOnError": {
                     "type": "boolean",
                     "default": true,
                     "description": "Stop running cells if a cell throws an exception.",
                     "scope": "resource"
                 },
-                "python.dataScience.addGotoCodeLenses": {
+                "jupyter.addGotoCodeLenses": {
                     "type": "boolean",
                     "default": true,
                     "description": "After running a cell, add a 'Goto' code lens on the cell. Note, disabling all code lenses disables this code lens as well.",
                     "scope": "resource"
                 },
-                "python.dataScience.variableQueries": {
+                "jupyter.variableQueries": {
                     "type": "array",
                     "description": "Language to query mapping for returning the list of active variables in a Jupyter kernel. Used by the Variable Explorer in both the Interactive Window and Notebooks. Example: \n'[\n{\n   \"language\": \"python\",\n   \"query\": \"%who_ls\",\n  \"parseExpr\": \"'(\\\\w+)'\"\n}\n]'",
                     "scope": "machine",
@@ -2022,7 +1562,7 @@
                         ]
                     ]
                 },
-                "python.dataScience.interactiveWindowMode": {
+                "jupyter.interactiveWindowMode": {
                     "type": "string",
                     "enum": [
                         "perFile",
@@ -2033,775 +1573,38 @@
                     "description": "Behavior of the Python Interactive Window. 'perFile' will create a new interactive window for every file that runs a cell. 'single' allows a single window. 'multiple' allows the creation of multiple.",
                     "default": "multiple"
                 },
-                "python.disableInstallationCheck": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Whether to check if Python is installed (also warn when using the macOS-installed Python).",
-                    "scope": "resource"
-                },
-                "python.envFile": {
-                    "type": "string",
-                    "description": "Absolute path to a file containing environment variable definitions.",
-                    "default": "${workspaceFolder}/.env",
-                    "scope": "resource"
-                },
-                "python.formatting.autopep8Args": {
-                    "type": "array",
-                    "description": "Arguments passed in. Each argument is a separate item in the array.",
-                    "default": [],
-                    "items": {
-                        "type": "string"
-                    },
-                    "scope": "resource"
-                },
-                "python.formatting.autopep8Path": {
-                    "type": "string",
-                    "default": "autopep8",
-                    "description": "Path to autopep8, you can use a custom version of autopep8 by modifying this setting to include the full path.",
-                    "scope": "resource"
-                },
-                "python.formatting.provider": {
-                    "type": "string",
-                    "default": "autopep8",
-                    "description": "Provider for formatting. Possible options include 'autopep8', 'black', and 'yapf'.",
-                    "enum": [
-                        "autopep8",
-                        "black",
-                        "yapf",
-                        "none"
-                    ],
-                    "scope": "resource"
-                },
-                "python.formatting.blackArgs": {
-                    "type": "array",
-                    "description": "Arguments passed in. Each argument is a separate item in the array.",
-                    "default": [],
-                    "items": {
-                        "type": "string"
-                    },
-                    "scope": "resource"
-                },
-                "python.formatting.blackPath": {
-                    "type": "string",
-                    "default": "black",
-                    "description": "Path to Black, you can use a custom version of Black by modifying this setting to include the full path.",
-                    "scope": "resource"
-                },
-                "python.formatting.yapfArgs": {
-                    "type": "array",
-                    "description": "Arguments passed in. Each argument is a separate item in the array.",
-                    "default": [],
-                    "items": {
-                        "type": "string"
-                    },
-                    "scope": "resource"
-                },
-                "python.formatting.yapfPath": {
-                    "type": "string",
-                    "default": "yapf",
-                    "description": "Path to yapf, you can use a custom version of yapf by modifying this setting to include the full path.",
-                    "scope": "resource"
-                },
-                "python.globalModuleInstallation": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Whether to install Python modules globally when not using an environment.",
-                    "scope": "resource"
-                },
-                "python.jediMemoryLimit": {
-                    "type": "number",
-                    "default": 0,
-                    "description": "Memory limit for the Jedi completion engine in megabytes. Zero (default) means 1024 MB. -1 means unlimited (disable memory limit check)",
-                    "scope": "resource"
-                },
-                "python.jediPath": {
-                    "type": "string",
-                    "default": "",
-                    "description": "Path to directory containing the Jedi library (this path will contain the 'Jedi' sub directory). Note: since Jedi depends on Parso, if using this setting you will need to ensure a suitable version of Parso is available.",
-                    "scope": "resource"
-                },
-                "python.languageServer": {
-                    "type": "string",
-                    "enum": [
-                        "Jedi",
-                        "Pylance",
-                        "Microsoft",
-                        "None"
-                    ],
-                    "default": "Jedi",
-                    "description": "Defines type of the language server.",
-                    "scope": "window"
-                },
-                "python.analysis.diagnosticPublishDelay": {
-                    "type": "integer",
-                    "default": 1000,
-                    "description": "Delay before diagnostic messages are transferred to the problems list (in milliseconds).",
-                    "scope": "resource"
-                },
-                "python.analysis.errors": {
-                    "type": "array",
-                    "default": [],
-                    "items": {
-                        "type": "string"
-                    },
-                    "description": "List of diagnostics messages to be shown as errors.",
-                    "scope": "resource"
-                },
-                "python.analysis.warnings": {
-                    "type": "array",
-                    "default": [],
-                    "items": {
-                        "type": "string"
-                    },
-                    "description": "List of diagnostics messages to be shown as warnings.",
-                    "scope": "resource"
-                },
-                "python.analysis.information": {
-                    "type": "array",
-                    "default": [],
-                    "items": {
-                        "type": "string"
-                    },
-                    "description": "List of diagnostics messages to be shown as information.",
-                    "scope": "resource"
-                },
-                "python.analysis.disabled": {
-                    "type": "array",
-                    "default": [],
-                    "items": {
-                        "type": "string"
-                    },
-                    "description": "List of suppressed diagnostic messages.",
-                    "scope": "resource"
-                },
-                "python.analysis.typeshedPaths": {
-                    "type": "array",
-                    "default": [],
-                    "items": {
-                        "type": "string"
-                    },
-                    "description": "Paths to Typeshed stub folders. Default is Typeshed installed with the language server. Change requires restart.",
-                    "scope": "resource"
-                },
-                "python.analysis.cacheFolderPath": {
-                    "type": "string",
-                    "description": "Path to a writable folder where analyzer can cache its data. Change requires restart.",
-                    "scope": "resource"
-                },
-                "python.analysis.memory.keepLibraryAst": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Allows code analysis to keep parser trees in memory. Increases memory consumption but may improve performance with large library analysis.",
-                    "scope": "resource"
-                },
-                "python.analysis.logLevel": {
-                    "type": "string",
-                    "enum": [
-                        "Error",
-                        "Warning",
-                        "Information",
-                        "Trace"
-                    ],
-                    "default": "Error",
-                    "description": "Defines type of log messages language server writes into the output window.",
-                    "scope": "resource"
-                },
-                "python.analysis.symbolsHierarchyDepthLimit": {
-                    "type": "integer",
-                    "default": 10,
-                    "description": "Limits depth of the symbol tree in the document outline.",
-                    "scope": "resource"
-                },
-                "python.linting.enabled": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Whether to lint Python files.",
-                    "scope": "resource"
-                },
-                "python.linting.flake8Args": {
-                    "type": "array",
-                    "description": "Arguments passed in. Each argument is a separate item in the array.",
-                    "default": [],
-                    "items": {
-                        "type": "string"
-                    },
-                    "scope": "resource"
-                },
-                "python.linting.flake8CategorySeverity.E": {
-                    "type": "string",
-                    "default": "Error",
-                    "description": "Severity of Flake8 message type 'E'.",
-                    "enum": [
-                        "Hint",
-                        "Error",
-                        "Information",
-                        "Warning"
-                    ],
-                    "scope": "resource"
-                },
-                "python.linting.flake8CategorySeverity.F": {
-                    "type": "string",
-                    "default": "Error",
-                    "description": "Severity of Flake8 message type 'F'.",
-                    "enum": [
-                        "Hint",
-                        "Error",
-                        "Information",
-                        "Warning"
-                    ],
-                    "scope": "resource"
-                },
-                "python.linting.flake8CategorySeverity.W": {
-                    "type": "string",
-                    "default": "Warning",
-                    "description": "Severity of Flake8 message type 'W'.",
-                    "enum": [
-                        "Hint",
-                        "Error",
-                        "Information",
-                        "Warning"
-                    ],
-                    "scope": "resource"
-                },
-                "python.linting.flake8Enabled": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Whether to lint Python files using flake8",
-                    "scope": "resource"
-                },
-                "python.linting.flake8Path": {
-                    "type": "string",
-                    "default": "flake8",
-                    "description": "Path to flake8, you can use a custom version of flake8 by modifying this setting to include the full path.",
-                    "scope": "resource"
-                },
-                "python.linting.ignorePatterns": {
-                    "type": "array",
-                    "description": "Patterns used to exclude files or folders from being linted.",
-                    "default": [
-                        ".vscode/*.py",
-                        "**/site-packages/**/*.py"
-                    ],
-                    "items": {
-                        "type": "string"
-                    },
-                    "scope": "resource"
-                },
-                "python.linting.lintOnSave": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Whether to lint Python files when saved.",
-                    "scope": "resource"
-                },
-                "python.linting.maxNumberOfProblems": {
-                    "type": "number",
-                    "default": 100,
-                    "description": "Controls the maximum number of problems produced by the server.",
-                    "scope": "resource"
-                },
-                "python.linting.banditArgs": {
-                    "type": "array",
-                    "description": "Arguments passed in. Each argument is a separate item in the array.",
-                    "default": [],
-                    "items": {
-                        "type": "string"
-                    },
-                    "scope": "resource"
-                },
-                "python.linting.banditEnabled": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Whether to lint Python files using bandit.",
-                    "scope": "resource"
-                },
-                "python.linting.banditPath": {
-                    "type": "string",
-                    "default": "bandit",
-                    "description": "Path to bandit, you can use a custom version of bandit by modifying this setting to include the full path.",
-                    "scope": "resource"
-                },
-                "python.linting.mypyArgs": {
-                    "type": "array",
-                    "description": "Arguments passed in. Each argument is a separate item in the array.",
-                    "default": [
-                        "--ignore-missing-imports",
-                        "--follow-imports=silent",
-                        "--show-column-numbers"
-                    ],
-                    "items": {
-                        "type": "string"
-                    },
-                    "scope": "resource"
-                },
-                "python.linting.mypyCategorySeverity.error": {
-                    "type": "string",
-                    "default": "Error",
-                    "description": "Severity of Mypy message type 'Error'.",
-                    "enum": [
-                        "Hint",
-                        "Error",
-                        "Information",
-                        "Warning"
-                    ],
-                    "scope": "resource"
-                },
-                "python.linting.mypyCategorySeverity.note": {
-                    "type": "string",
-                    "default": "Information",
-                    "description": "Severity of Mypy message type 'Note'.",
-                    "enum": [
-                        "Hint",
-                        "Error",
-                        "Information",
-                        "Warning"
-                    ],
-                    "scope": "resource"
-                },
-                "python.linting.mypyEnabled": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Whether to lint Python files using mypy.",
-                    "scope": "resource"
-                },
-                "python.linting.mypyPath": {
-                    "type": "string",
-                    "default": "mypy",
-                    "description": "Path to mypy, you can use a custom version of mypy by modifying this setting to include the full path.",
-                    "scope": "resource"
-                },
-                "python.linting.pycodestyleArgs": {
-                    "type": "array",
-                    "description": "Arguments passed in. Each argument is a separate item in the array.",
-                    "default": [],
-                    "items": {
-                        "type": "string"
-                    },
-                    "scope": "resource"
-                },
-                "python.linting.pycodestyleCategorySeverity.E": {
-                    "type": "string",
-                    "default": "Error",
-                    "description": "Severity of pycodestyle message type 'E'.",
-                    "enum": [
-                        "Hint",
-                        "Error",
-                        "Information",
-                        "Warning"
-                    ],
-                    "scope": "resource"
-                },
-                "python.linting.pycodestyleCategorySeverity.W": {
-                    "type": "string",
-                    "default": "Warning",
-                    "description": "Severity of pycodestyle message type 'W'.",
-                    "enum": [
-                        "Hint",
-                        "Error",
-                        "Information",
-                        "Warning"
-                    ],
-                    "scope": "resource"
-                },
-                "python.linting.pycodestyleEnabled": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Whether to lint Python files using pycodestyle",
-                    "scope": "resource"
-                },
-                "python.linting.pycodestylePath": {
-                    "type": "string",
-                    "default": "pycodestyle",
-                    "description": "Path to pycodestyle, you can use a custom version of pycodestyle by modifying this setting to include the full path.",
-                    "scope": "resource"
-                },
-                "python.linting.prospectorArgs": {
-                    "type": "array",
-                    "description": "Arguments passed in. Each argument is a separate item in the array.",
-                    "default": [],
-                    "items": {
-                        "type": "string"
-                    },
-                    "scope": "resource"
-                },
-                "python.linting.prospectorEnabled": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Whether to lint Python files using prospector.",
-                    "scope": "resource"
-                },
-                "python.linting.prospectorPath": {
-                    "type": "string",
-                    "default": "prospector",
-                    "description": "Path to Prospector, you can use a custom version of prospector by modifying this setting to include the full path.",
-                    "scope": "resource"
-                },
-                "python.linting.pydocstyleArgs": {
-                    "type": "array",
-                    "description": "Arguments passed in. Each argument is a separate item in the array.",
-                    "default": [],
-                    "items": {
-                        "type": "string"
-                    },
-                    "scope": "resource"
-                },
-                "python.linting.pydocstyleEnabled": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Whether to lint Python files using pydocstyle",
-                    "scope": "resource"
-                },
-                "python.linting.pydocstylePath": {
-                    "type": "string",
-                    "default": "pydocstyle",
-                    "description": "Path to pydocstyle, you can use a custom version of pydocstyle by modifying this setting to include the full path.",
-                    "scope": "resource"
-                },
-                "python.linting.pylamaArgs": {
-                    "type": "array",
-                    "description": "Arguments passed in. Each argument is a separate item in the array.",
-                    "default": [],
-                    "items": {
-                        "type": "string"
-                    },
-                    "scope": "resource"
-                },
-                "python.linting.pylamaEnabled": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Whether to lint Python files using pylama.",
-                    "scope": "resource"
-                },
-                "python.linting.pylamaPath": {
-                    "type": "string",
-                    "default": "pylama",
-                    "description": "Path to pylama, you can use a custom version of pylama by modifying this setting to include the full path.",
-                    "scope": "resource"
-                },
-                "python.linting.pylintArgs": {
-                    "type": "array",
-                    "description": "Arguments passed in. Each argument is a separate item in the array.",
-                    "default": [],
-                    "items": {
-                        "type": "string"
-                    },
-                    "scope": "resource"
-                },
-                "python.linting.pylintCategorySeverity.convention": {
-                    "type": "string",
-                    "default": "Information",
-                    "description": "Severity of Pylint message type 'Convention/C'.",
-                    "enum": [
-                        "Hint",
-                        "Error",
-                        "Information",
-                        "Warning"
-                    ],
-                    "scope": "resource"
-                },
-                "python.linting.pylintCategorySeverity.error": {
-                    "type": "string",
-                    "default": "Error",
-                    "description": "Severity of Pylint message type 'Error/E'.",
-                    "enum": [
-                        "Hint",
-                        "Error",
-                        "Information",
-                        "Warning"
-                    ],
-                    "scope": "resource"
-                },
-                "python.linting.pylintCategorySeverity.fatal": {
-                    "type": "string",
-                    "default": "Error",
-                    "description": "Severity of Pylint message type 'Fatal/F'.",
-                    "enum": [
-                        "Hint",
-                        "Error",
-                        "Information",
-                        "Warning"
-                    ],
-                    "scope": "resource"
-                },
-                "python.linting.pylintCategorySeverity.refactor": {
-                    "type": "string",
-                    "default": "Hint",
-                    "description": "Severity of Pylint message type 'Refactor/R'.",
-                    "enum": [
-                        "Hint",
-                        "Error",
-                        "Information",
-                        "Warning"
-                    ],
-                    "scope": "resource"
-                },
-                "python.linting.pylintCategorySeverity.warning": {
-                    "type": "string",
-                    "default": "Warning",
-                    "description": "Severity of Pylint message type 'Warning/W'.",
-                    "enum": [
-                        "Hint",
-                        "Error",
-                        "Information",
-                        "Warning"
-                    ],
-                    "scope": "resource"
-                },
-                "python.linting.pylintEnabled": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Whether to lint Python files using pylint.",
-                    "scope": "resource"
-                },
-                "python.linting.pylintPath": {
-                    "type": "string",
-                    "default": "pylint",
-                    "description": "Path to Pylint, you can use a custom version of pylint by modifying this setting to include the full path.",
-                    "scope": "resource"
-                },
-                "python.linting.pylintUseMinimalCheckers": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Whether to run Pylint with minimal set of rules.",
-                    "scope": "resource"
-                },
-                "python.pythonPath": {
-                    "type": "string",
-                    "default": "python",
-                    "description": "Path to Python, you can use a custom version of Python by modifying this setting to include the full path.",
-                    "scope": "resource"
-                },
-                "python.condaPath": {
-                    "type": "string",
-                    "default": "",
-                    "description": "Path to the conda executable to use for activation (version 4.4+).",
-                    "scope": "resource"
-                },
-                "python.pipenvPath": {
-                    "type": "string",
-                    "default": "pipenv",
-                    "description": "Path to the pipenv executable to use for activation.",
-                    "scope": "resource"
-                },
-                "python.poetryPath": {
-                    "type": "string",
-                    "default": "poetry",
-                    "description": "Path to the poetry executable.",
-                    "scope": "resource"
-                },
-                "python.sortImports.args": {
-                    "type": "array",
-                    "description": "Arguments passed in. Each argument is a separate item in the array.",
-                    "default": [],
-                    "items": {
-                        "type": "string"
-                    },
-                    "scope": "resource"
-                },
-                "python.sortImports.path": {
-                    "type": "string",
-                    "description": "Path to isort script, default using inner version",
-                    "default": "",
-                    "scope": "resource"
-                },
-                "python.terminal.activateEnvironment": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Activate Python Environment in Terminal created using the Extension.",
-                    "scope": "resource"
-                },
-                "python.terminal.executeInFileDir": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "When executing a file in the terminal, whether to use execute in the file's directory, instead of the current open folder.",
-                    "scope": "resource"
-                },
-                "python.terminal.launchArgs": {
-                    "type": "array",
-                    "default": [],
-                    "description": "Python launch arguments to use when executing a file in the terminal.",
-                    "scope": "resource"
-                },
-                "python.terminal.activateEnvInCurrentTerminal": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Activate Python Environment in the current Terminal on load of the Extension.",
-                    "scope": "resource"
-                },
-                "python.testing.cwd": {
-                    "type": "string",
-                    "default": null,
-                    "description": "Optional working directory for tests.",
-                    "scope": "resource"
-                },
-                "python.testing.debugPort": {
-                    "type": "number",
-                    "default": 3000,
-                    "description": "Port number used for debugging of tests.",
-                    "scope": "resource"
-                },
-                "python.testing.nosetestArgs": {
-                    "type": "array",
-                    "description": "Arguments passed in. Each argument is a separate item in the array.",
-                    "default": [],
-                    "items": {
-                        "type": "string"
-                    },
-                    "scope": "resource"
-                },
-                "python.testing.nosetestsEnabled": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Enable testing using nosetests.",
-                    "scope": "resource"
-                },
-                "python.testing.nosetestPath": {
-                    "type": "string",
-                    "default": "nosetests",
-                    "description": "Path to nosetests, you can use a custom version of nosetests by modifying this setting to include the full path.",
-                    "scope": "resource"
-                },
-                "python.testing.promptToConfigure": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Prompt to configure a test framework if potential tests directories are discovered.",
-                    "scope": "resource"
-                },
-                "python.testing.pytestArgs": {
-                    "type": "array",
-                    "description": "Arguments passed in. Each argument is a separate item in the array.",
-                    "default": [],
-                    "items": {
-                        "type": "string"
-                    },
-                    "scope": "resource"
-                },
-                "python.testing.pytestEnabled": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Enable testing using pytest.",
-                    "scope": "resource"
-                },
-                "python.testing.pytestPath": {
-                    "type": "string",
-                    "default": "pytest",
-                    "description": "Path to pytest (pytest), you can use a custom version of pytest by modifying this setting to include the full path.",
-                    "scope": "resource"
-                },
-                "python.testing.unittestArgs": {
-                    "type": "array",
-                    "description": "Arguments passed in. Each argument is a separate item in the array.",
-                    "default": [
-                        "-v",
-                        "-s",
-                        ".",
-                        "-p",
-                        "*test*.py"
-                    ],
-                    "items": {
-                        "type": "string"
-                    },
-                    "scope": "resource"
-                },
-                "python.testing.unittestEnabled": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Enable testing using unittest.",
-                    "scope": "resource"
-                },
-                "python.testing.autoTestDiscoverOnSaveEnabled": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Enable auto run test discovery when saving a test file.",
-                    "scope": "resource"
-                },
-                "python.venvFolders": {
-                    "type": "array",
-                    "default": [],
-                    "description": "Folders in your home directory to look into for virtual environments (supports pyenv, direnv and virtualenvwrapper by default).",
-                    "scope": "resource",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "python.venvPath": {
-                    "type": "string",
-                    "default": "",
-                    "description": "Path to folder with a list of Virtual Environments (e.g. ~/.pyenv, ~/Envs, ~/.virtualenvs).",
-                    "scope": "resource"
-                },
-                "python.workspaceSymbols.ctagsPath": {
-                    "type": "string",
-                    "default": "ctags",
-                    "description": "Fully qualified path to the ctags executable (else leave as ctags, assuming it is in current path).",
-                    "scope": "resource"
-                },
-                "python.workspaceSymbols.enabled": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Set to 'true' to enable ctags to provide Workspace Symbols.",
-                    "scope": "resource"
-                },
-                "python.workspaceSymbols.exclusionPatterns": {
-                    "type": "array",
-                    "default": [
-                        "**/site-packages/**"
-                    ],
-                    "items": {
-                        "type": "string"
-                    },
-                    "description": "Pattern used to exclude files and folders from ctags See http://ctags.sourceforge.net/ctags.html.",
-                    "scope": "resource"
-                },
-                "python.workspaceSymbols.rebuildOnFileSave": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Whether to re-build the tags file on when changes made to python files are saved.",
-                    "scope": "resource"
-                },
-                "python.workspaceSymbols.rebuildOnStart": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Whether to re-build the tags file on start (defaults to true).",
-                    "scope": "resource"
-                },
-                "python.workspaceSymbols.tagFilePath": {
-                    "type": "string",
-                    "default": "${workspaceFolder}/.vscode/tags",
-                    "description": "Fully qualified path to tag file (exuberant ctag file), used to provide workspace symbols.",
-                    "scope": "resource"
-                },
-                "python.dataScience.magicCommandsAsComments": {
+                "jupyter.magicCommandsAsComments": {
                     "type": "boolean",
                     "default": false,
                     "description": "Uncomment shell assignments (#!), line magic (#!%) and cell magic (#!%%) when parsing code cells.",
                     "scope": "resource"
                 },
-                "python.dataScience.runMagicCommands": {
+                "jupyter.runMagicCommands": {
                     "type": "string",
                     "default": "",
                     "deprecationMessage": "This setting has been deprecated in favor of 'runStartupCommands'.",
                     "description": "A series of Python instructions or iPython magic commands separated by '\\n' that will be executed when the interactive window loads.",
                     "scope": "application"
                 },
-                "python.dataScience.runStartupCommands": {
+                "jupyter.runStartupCommands": {
                     "type": "array",
                     "default": "",
                     "description": "A series of Python instructions or iPython magic commands. Can be either an array of strings or a single string with commands separated by '\\n'. Commands will be silently executed whenever the interactive window loads. For instance, set this to '%load_ext autoreload\\n%autoreload 2' to automatically reload changes made to imported files without having to restart the interactive session.",
                     "scope": "application"
                 },
-                "python.dataScience.debugJustMyCode": {
+                "jupyter.debugJustMyCode": {
                     "type": "boolean",
                     "default": true,
                     "description": "When debugging, debug just my code.",
                     "scope": "resource"
                 },
-                "python.dataScience.alwaysTrustNotebooks": {
+                "jupyter.alwaysTrustNotebooks": {
                     "type": "boolean",
                     "default": false,
                     "markdownDescription": "Enabling this setting will automatically trust any opened notebook and therefore display markdown and render code cells. You will no longer be prompted to trust individual notebooks and harmful code could automatically run. \n\n[Learn more.](https://aka.ms/trusted-notebooks)",
                     "scope": "machine"
                 },
-                "python.insidersChannel": {
+                "jupyter.insidersChannel": {
                     "type": "string",
                     "default": "off",
                     "description": "Set to \"weekly\" or \"daily\" to automatically download and install the latest Insiders builds of the python extension, which include upcoming features and bug fixes.",
@@ -2810,12 +1613,6 @@
                         "weekly",
                         "daily"
                     ],
-                    "scope": "application"
-                },
-                "python.showStartPage": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Show the Python Start Page when a new update is released.",
                     "scope": "application"
                 }
             }
@@ -2988,9 +1785,9 @@
         "test:cover:report": "nyc --nycrc-path build/.nycrc  report --reporter=text --reporter=html --reporter=text-summary --reporter=cobertura",
         "testSingleWorkspace": "node ./out/test/testBootstrap.js ./out/test/standardTest.js",
         "preTestJediLSP": "node ./out/test/languageServers/jedi/lspSetup.js",
-        "testJediLSP": "node ./out/test/languageServers/jedi/lspSetup.js && cross-env CODE_TESTS_WORKSPACE=src/test VSC_PYTHON_CI_TEST_GREP='Language Server:' node ./out/test/testBootstrap.js ./out/test/standardTest.js && node ./out/test/languageServers/jedi/lspTeardown.js",
+        "testJediLSP": "node ./out/test/languageServers/jedi/lspSetup.js && cross-env CODE_TESTS_WORKSPACE=src/test VSC_JUPYTER_CI_TEST_GREP='Language Server:' node ./out/test/testBootstrap.js ./out/test/standardTest.js && node ./out/test/languageServers/jedi/lspTeardown.js",
         "pretestDataScience": "node ./out/test/datascience/dsTestSetup.js",
-        "testDataScience": "cross-env CODE_TESTS_WORKSPACE=src/test/datascience VSC_PYTHON_CI_TEST_VSC_CHANNEL=insiders TEST_FILES_SUFFIX=ds.test VSC_PYTHON_FORCE_LOGGING=1 VSC_PYTHON_LOAD_EXPERIMENTS_FROM_FILE=true node ./out/test/testBootstrap.js ./out/test/standardTest.js",
+        "testDataScience": "cross-env CODE_TESTS_WORKSPACE=src/test/datascience VSC_JUPYTER_CI_TEST_VSC_CHANNEL=insiders TEST_FILES_SUFFIX=ds.test VSC_PYTHON_FORCE_LOGGING=1 VSC_PYTHON_LOAD_EXPERIMENTS_FROM_FILE=true node ./out/test/testBootstrap.js ./out/test/standardTest.js",
         "testPerformance": "node ./out/test/testBootstrap.js ./out/test/performanceTest.js",
         "testSmoke": "node ./out/test/smokeTest.js",
         "lint-staged": "node gulpfile.js",
@@ -3030,7 +1827,7 @@
         "md5": "^2.2.1",
         "minimatch": "^3.0.4",
         "named-js-regexp": "^1.3.3",
-        "node-fetch": "^2.6.0",
+        "node-fetch": "^2.6.1",
         "node-stream-zip": "^1.6.0",
         "onigasm": "^2.2.2",
         "pdfkit": "^0.11.0",

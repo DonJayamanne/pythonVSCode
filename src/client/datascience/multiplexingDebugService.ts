@@ -4,7 +4,6 @@ import { inject, injectable, named } from 'inversify';
 import {
     Breakpoint,
     BreakpointsChangeEvent,
-    DebugAdapterDescriptorFactory,
     DebugAdapterTrackerFactory,
     DebugConfiguration,
     DebugConfigurationProvider,
@@ -88,14 +87,6 @@ export class MultiplexingDebugService implements IJupyterDebugService {
     public registerDebugConfigurationProvider(debugType: string, provider: DebugConfigurationProvider): Disposable {
         const d1 = this.vscodeDebugService.registerDebugConfigurationProvider(debugType, provider);
         const d2 = this.jupyterDebugService.registerDebugConfigurationProvider(debugType, provider);
-        return this.combineDisposables(d1, d2);
-    }
-    public registerDebugAdapterDescriptorFactory(
-        debugType: string,
-        factory: DebugAdapterDescriptorFactory
-    ): Disposable {
-        const d1 = this.vscodeDebugService.registerDebugAdapterDescriptorFactory(debugType, factory);
-        const d2 = this.jupyterDebugService.registerDebugAdapterDescriptorFactory(debugType, factory);
         return this.combineDisposables(d1, d2);
     }
     public registerDebugAdapterTrackerFactory(debugType: string, factory: DebugAdapterTrackerFactory): Disposable {

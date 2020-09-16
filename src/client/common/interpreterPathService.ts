@@ -7,7 +7,7 @@ import * as fs from 'fs-extra';
 import { inject, injectable } from 'inversify';
 import { ConfigurationChangeEvent, ConfigurationTarget, Event, EventEmitter, Uri } from 'vscode';
 import { IWorkspaceService } from './application/types';
-import { PythonSettings } from './configSettings';
+import { JupyterSettings } from './configSettings';
 import { isTestExecution } from './constants';
 import { traceError } from './logger';
 import { FileSystemPaths } from './platform/fs-paths';
@@ -19,14 +19,12 @@ import {
     InterpreterConfigurationScope,
     IPersistentState,
     IPersistentStateFactory,
-    IPythonSettings,
     Resource
 } from './types';
 
 export const workspaceKeysForWhichTheCopyIsDone_Key = 'workspaceKeysForWhichTheCopyIsDone_Key';
 export const workspaceFolderKeysForWhichTheCopyIsDone_Key = 'workspaceFolderKeysForWhichTheCopyIsDone_Key';
 export const isGlobalSettingCopiedKey = 'isGlobalSettingCopiedKey';
-export const defaultInterpreterPathSetting: keyof IPythonSettings = 'defaultInterpreterPath';
 const CI_PYTHON_PATH = getCIPythonPath();
 
 export function getCIPythonPath(): string {
@@ -52,13 +50,15 @@ export class InterpreterPathService implements IInterpreterPathService {
     }
 
     public async onDidChangeConfiguration(event: ConfigurationChangeEvent) {
-        if (event.affectsConfiguration(`python.${defaultInterpreterPathSetting}`)) {
+        // tslint:disable-next-line: no-suspicious-comment
+        // TODO: Double check this. Should go away when we use the Python API though
+        if (event.affectsConfiguration(`python.defaultInterpreterPath`)) {
             this._didChangeInterpreterEmitter.fire({ uri: undefined, configTarget: ConfigurationTarget.Global });
         }
     }
 
     public inspect(resource: Resource): InspectInterpreterSettingType {
-        resource = PythonSettings.getSettingsUriAndTarget(resource, this.workspaceService).uri;
+        resource = JupyterSettings.getSettingsUriAndTarget(resource, this.workspaceService).uri;
         let workspaceFolderSetting: IPersistentState<string | undefined> | undefined;
         let workspaceSetting: IPersistentState<string | undefined> | undefined;
         if (resource) {
@@ -95,7 +95,7 @@ export class InterpreterPathService implements IInterpreterPathService {
         configTarget: ConfigurationTarget,
         pythonPath: string | undefined
     ): Promise<void> {
-        resource = PythonSettings.getSettingsUriAndTarget(resource, this.workspaceService).uri;
+        resource = JupyterSettings.getSettingsUriAndTarget(resource, this.workspaceService).uri;
         if (configTarget === ConfigurationTarget.Global) {
             const pythonConfig = this.workspaceService.getConfiguration('python');
             const globalValue = pythonConfig.inspect<string>('defaultInterpreterPath')!.globalValue;
@@ -140,7 +140,7 @@ export class InterpreterPathService implements IInterpreterPathService {
     }
 
     public async copyOldInterpreterStorageValuesToNew(resource: Resource): Promise<void> {
-        resource = PythonSettings.getSettingsUriAndTarget(resource, this.workspaceService).uri;
+        resource = JupyterSettings.getSettingsUriAndTarget(resource, this.workspaceService).uri;
         const oldSettings = this.workspaceService.getConfiguration('python', resource).inspect<string>('pythonPath')!;
         await Promise.all([
             this._copyWorkspaceFolderValueToNewStorage(resource, oldSettings.workspaceFolderValue),

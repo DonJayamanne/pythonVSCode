@@ -7,7 +7,6 @@ import { IDisposable } from 'monaco-editor';
 import { Disposable } from 'vscode';
 
 import { nbformat } from '@jupyterlab/coreutils';
-import { LanguageServerType } from '../../client/activation/types';
 import { createDeferred } from '../../client/common/utils/async';
 import { InteractiveWindowMessages } from '../../client/datascience/interactive-common/interactiveWindowTypes';
 import { INotebookEditorProvider } from '../../client/datascience/types';
@@ -22,7 +21,7 @@ import { addMockData, enterEditorKey, getInteractiveEditor, getNativeEditor, typ
 import { ITestNativeEditorProvider } from './testNativeEditorProvider';
 
 // tslint:disable:max-func-body-length trailing-comma no-any no-multiline-string
-[LanguageServerType.Microsoft, LanguageServerType.Node].forEach((languageServerType) => {
+['Microsoft', 'Node'].forEach((languageServerType) => {
     suite(`DataScience Intellisense tests with ${languageServerType} LanguageServer mocked`, () => {
         const disposables: Disposable[] = [];
         let ioc: DataScienceIocContainer;
@@ -36,7 +35,7 @@ import { ITestNativeEditorProvider } from './testNativeEditorProvider';
 
         setup(async () => {
             ioc = new DataScienceIocContainer();
-            ioc.registerDataScienceTypes(false, languageServerType);
+            ioc.registerDataScienceTypes(false);
             return ioc.activate();
         });
 
@@ -250,8 +249,11 @@ import { ITestNativeEditorProvider } from './testNativeEditorProvider';
                 const oldActive = await interpreterService.getActiveInterpreter(undefined);
                 const interpreters = await interpreterService.getInterpreters(undefined);
                 if (interpreters.length > 1 && oldActive) {
-                    const firstOther = interpreters.filter((i) => i.path !== oldActive.path);
-                    ioc.forceSettingsChanged(undefined, firstOther[0].path);
+                    //const firstOther = interpreters.filter((i) => i.path !== oldActive.path);
+
+                    // tslint:disable-next-line: no-suspicious-comment
+                    // TODO: Need to be able to change the interpreter too in the python API
+                    //ioc.forceSettingsChanged(undefined, firstOther[0].path);
                     const active = await interpreterService.getActiveInterpreter(undefined);
                     assert.notDeepEqual(active, oldActive, 'Should have changed interpreter');
                 }

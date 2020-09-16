@@ -75,12 +75,12 @@ suite('DataScience - VSCode Notebook (Editor Provider)', function () {
         assert.isOk(vscodeNotebook.activeNotebookEditor);
     });
     test('Create empty notebook using command', async () => {
-        await commandManager.executeCommand('python.datascience.createnewnotebook');
+        await commandManager.executeCommand('jupyter.createnewnotebook');
 
         assert.isOk(vscodeNotebook.activeNotebookEditor);
     });
     test('Create empty notebook using command & our editor is created', async () => {
-        await commandManager.executeCommand('python.datascience.createnewnotebook');
+        await commandManager.executeCommand('jupyter.createnewnotebook');
 
         await waitForCondition(async () => !!editorProvider.activeEditor, 2_000, 'Editor not created');
     });
@@ -240,7 +240,7 @@ suite('DataScience - VSCode Notebook (Editor Provider)', function () {
         await notebookClosed.assertFired();
     });
     test('Closing nb should close our notebook editors as related resources', async () => {
-        await commandManager.executeCommand('python.datascience.createnewnotebook');
+        await commandManager.executeCommand('jupyter.createnewnotebook');
         await waitForCondition(async () => !!editorProvider.activeEditor, 2_000, 'Editor not created');
 
         const editorClosed = createEventHandler(editorProvider.activeEditor!, 'closed', disposables);

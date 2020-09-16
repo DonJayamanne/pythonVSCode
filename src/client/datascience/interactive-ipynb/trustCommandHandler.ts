@@ -31,7 +31,7 @@ export class TrustCommandHandler implements IExtensionSingleActivationService {
         this.activateInBackground().ignoreErrors();
     }
     public async activateInBackground(): Promise<void> {
-        const context = new ContextKey('python.datascience.trustfeatureenabled', this.commandManager);
+        const context = new ContextKey('jupyter.trustfeatureenabled', this.commandManager);
         context.set(true).ignoreErrors();
         this.disposables.push(this.commandManager.registerCommand(Commands.TrustNotebook, this.onTrustNotebook, this));
     }
@@ -57,7 +57,7 @@ export class TrustCommandHandler implements IExtensionSingleActivationService {
 
         switch (selection) {
             case DataScience.trustAllNotebooks():
-                commands.executeCommand('workbench.action.openSettings', 'python.dataScience.alwaysTrustNotebooks');
+                commands.executeCommand('workbench.action.openSettings', 'jupyter.alwaysTrustNotebooks');
                 sendTelemetryEvent(Telemetry.TrustAllNotebooks);
                 break;
             case DataScience.trustNotebook():

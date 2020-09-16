@@ -89,7 +89,7 @@ export class JupyterDebugger implements IJupyterDebugger, ICellHashListener {
             (c) => this.debugService.startDebugging(undefined, c),
             notebook,
             {
-                justMyCode: settings.datascience.debugJustMyCode
+                justMyCode: settings.debugJustMyCode
             },
             false
         );
@@ -251,7 +251,7 @@ export class JupyterDebugger implements IJupyterDebugger, ICellHashListener {
 
         // Add the settings path first as it takes precedence over the ptvsd extension path
         // tslint:disable-next-line:no-multiline-string
-        let settingsPath = this.configService.getSettings(notebook.resource).datascience.debugpyDistPath;
+        let settingsPath = this.configService.getSettings(notebook.resource).debugpyDistPath;
         // Escape windows path chars so they end up in the source escaped
         if (settingsPath) {
             if (this.platform.isWindows) {
@@ -499,7 +499,7 @@ export class JupyterDebugger implements IJupyterDebugger, ICellHashListener {
         // We actually need a token. This isn't supported at the moment
         throw new JupyterDebuggerRemoteNotSupported();
 
-        //         let portNumber = this.configService.getSettings().datascience.remoteDebuggerPort;
+        //         let portNumber = this.configService.getSettings().remoteDebuggerPort;
         //         if (!portNumber) {
         //             portNumber = -1;
         //         }

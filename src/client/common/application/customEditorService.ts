@@ -70,7 +70,7 @@ export class CustomEditorService implements ICustomEditorService {
             path.join(EXTENSION_ROOT_DIR, 'package.json'),
             JSON.stringify(improved, null, 4)
         );
-        this.commandManager.executeCommand('python.reloadVSCode', DataScience.reloadCustomEditor());
+        this.commandManager.executeCommand('jupyter.reloadVSCode', DataScience.reloadCustomEditor());
     }
     private async removeCustomEditors() {
         // Note, to put it back, use the shipped version. This packageJson is required into the product
@@ -80,6 +80,6 @@ export class CustomEditorService implements ICustomEditorService {
             path.join(EXTENSION_ROOT_DIR, 'package.json'),
             JSON.stringify(original, null, 4)
         );
-        this.commandManager.executeCommand('python.reloadVSCode', DataScience.reloadCustomEditor());
+        this.commandManager.executeCommand('jupyter.reloadVSCode', DataScience.reloadCustomEditor());
     }
 }

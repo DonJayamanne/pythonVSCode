@@ -8,7 +8,8 @@
             "request": "launch",
             "runtimeExecutable": "${execPath}",
             "args": [
-                "--extensionDevelopmentPath=${workspaceFolder}"
+                "--extensionDevelopmentPath=${workspaceFolder}",
+                "--enable-proposed-api"
             ],
             "stopOnEntry": false,
             "smartStep": true,
@@ -115,7 +116,7 @@
                 "--extensionTestsPath=${workspaceFolder}/out/test"
             ],
             "env": {
-                "VSC_PYTHON_CI_TEST_GREP": "Smoke Test"
+                "VSC_JUPYTER_CI_TEST_GREP": "Smoke Test"
             },
             "stopOnEntry": false,
             "sourceMaps": true,
@@ -144,7 +145,7 @@
                 "--extensionTestsPath=${workspaceFolder:vscode-jupyter}/out/test"
             ],
             "env": {
-                "VSC_PYTHON_CI_TEST_GREP": "" // Modify this to run a subset of the single workspace tests
+                "VSC_JUPYTER_CI_TEST_GREP": "" // Modify this to run a subset of the single workspace tests
             },
             "stopOnEntry": false,
             "sourceMaps": true,
@@ -171,7 +172,7 @@
                 "--extensionTestsPath=${workspaceFolder}/out/test"
             ],
             "env": {
-                "VSC_PYTHON_CI_TEST_GREP": "Language Server:"
+                "VSC_JUPYTER_CI_TEST_GREP": "Language Server:"
             },
             "stopOnEntry": false,
             "sourceMaps": true,
@@ -198,8 +199,8 @@
                 "--extensionTestsPath=${workspaceFolder:vscode-jupyter}/out/test"
             ],
             "env": {
-                "VSC_PYTHON_CI_TEST_GREP": "", // Modify this to run a subset of the single workspace tests
-                "VSC_PYTHON_CI_TEST_INVERT_GREP": "", // Initialize this to invert the grep (exclude tests with value defined in grep).
+                "VSC_JUPYTER_CI_TEST_GREP": "", // Modify this to run a subset of the single workspace tests
+                "VSC_JUPYTER_CI_TEST_INVERT_GREP": "", // Initialize this to invert the grep (exclude tests with value defined in grep).
                 "VSC_PYTHON_LOAD_EXPERIMENTS_FROM_FILE": "true",
                 "TEST_FILES_SUFFIX": "ds.test"
             },
@@ -288,7 +289,7 @@
                 // Remove `X` prefix to test with real browser to host DS ui (for DS functional tests).
                 "XVSC_PYTHON_DS_UI_BROWSER": "1",
                 // Remove `X` prefix to test with real python (for DS functional tests).
-                "VSCODE_PYTHON_ROLLING": "1",
+                "XVSCODE_PYTHON_ROLLING": "1",
                 // Remove 'X' to turn on all logging in the debug output
                 "XVSC_PYTHON_FORCE_LOGGING": "1",
                 // Remove `X` prefix and update path to test with real python interpreter (for DS functional tests).

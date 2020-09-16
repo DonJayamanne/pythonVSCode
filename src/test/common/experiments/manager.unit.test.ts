@@ -11,7 +11,7 @@ import { anything, instance, mock, verify, when } from 'ts-mockito';
 import * as TypeMoq from 'typemoq';
 import { ApplicationEnvironment } from '../../../client/common/application/applicationEnvironment';
 import { IApplicationEnvironment } from '../../../client/common/application/types';
-import { PythonSettings } from '../../../client/common/configSettings';
+import { JupyterSettings } from '../../../client/common/configSettings';
 import { ConfigurationService } from '../../../client/common/configuration/service';
 import { CryptoUtils } from '../../../client/common/crypto';
 import { NotebookEditorSupport } from '../../../client/common/experiments/groups';
@@ -65,7 +65,7 @@ suite('A/B experiments', () => {
         output = TypeMoq.Mock.ofType<IOutputChannel>();
         configurationService = mock(ConfigurationService);
         experiments = TypeMoq.Mock.ofType<IExperiments>();
-        const settings = mock(PythonSettings);
+        const settings = mock(JupyterSettings);
         when(settings.experiments).thenReturn(experiments.object);
         experiments.setup((e) => e.optInto).returns(() => []);
         experiments.setup((e) => e.optOutFrom).returns(() => []);

@@ -23,7 +23,7 @@ export class LiveShareApi implements ILiveShareApi {
         @inject(IApplicationShell) private appShell: IApplicationShell
     ) {
         const disposable = workspace.onDidChangeConfiguration((e) => {
-            if (e.affectsConfiguration('python.dataScience', undefined)) {
+            if (e.affectsConfiguration('jupyter', undefined)) {
                 // When config changes happen, recreate our commands.
                 this.onSettingsChanged();
             }
@@ -45,10 +45,10 @@ export class LiveShareApi implements ILiveShareApi {
     }
 
     private onSettingsChanged() {
-        const supported = this.configService.getSettings().datascience.allowLiveShare;
+        const supported = this.configService.getSettings().allowLiveShare;
         if (supported !== this.supported) {
             this.supported = supported ? true : false;
-            const liveShareTimeout = this.configService.getSettings().datascience.liveShareConnectionTimeout;
+            const liveShareTimeout = this.configService.getSettings().liveShareConnectionTimeout;
             this.apiPromise = supported
                 ? vsls
                       .getApi()

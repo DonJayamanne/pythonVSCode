@@ -209,7 +209,7 @@ export class HostJupyterServer extends LiveShareParticipantHost(JupyterServerBas
             if (changedKernel && possibleSession && info.kernelConnectionMetadata) {
                 await possibleSession.changeKernel(
                     info.kernelConnectionMetadata,
-                    this.configService.getSettings(resource).datascience.jupyterLaunchTimeout
+                    this.configService.getSettings(resource).jupyterLaunchTimeout
                 );
             }
 
@@ -247,7 +247,7 @@ export class HostJupyterServer extends LiveShareParticipantHost(JupyterServerBas
 
                 // Wait for it to be ready
                 traceInfo(`Waiting for idle (session) ${this.id}`);
-                const idleTimeout = configService.getSettings().datascience.jupyterLaunchTimeout;
+                const idleTimeout = configService.getSettings().jupyterLaunchTimeout;
                 await notebook.waitForIdle(idleTimeout);
 
                 // Run initial setup

@@ -22,7 +22,6 @@ import * as download from 'download';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as request from 'request';
-import { LanguageServerType } from '../client/activation/types';
 import { EXTENSION_ROOT_DIR, PVSC_EXTENSION_ID } from '../client/common/constants';
 import { unzip } from './common';
 import { initializeLogger } from './testLogger';
@@ -52,8 +51,6 @@ class TestRunner {
         const languageServerLogFiles: string[] = [];
 
         for (let i = 0; i < timesToLoadEachVersion; i += 1) {
-            await this.enableLanguageServer(false);
-
             const devLogFile = path.join(logFilesPath, `dev_loadtimes${i}.txt`);
             console.log(`Start Performance Tests: Counter ${i}, for Dev version with Jedi`);
             await this.capturePerfTimes(Version.Dev, devLogFile);
@@ -63,23 +60,10 @@ class TestRunner {
             console.log(`Start Performance Tests: Counter ${i}, for Release version with Jedi`);
             await this.capturePerfTimes(Version.Release, releaseLogFile);
             releaseLogFiles.push(releaseLogFile);
-
-            // Language server.
-            await this.enableLanguageServer(true);
-            const languageServerLogFile = path.join(logFilesPath, `languageServer_loadtimes${i}.txt`);
-            console.log(`Start Performance Tests: Counter ${i}, for Release version with language server`);
-            await this.capturePerfTimes(Version.Release, languageServerLogFile);
-            languageServerLogFiles.push(languageServerLogFile);
         }
 
         console.log('Compare Performance Results');
         await this.runPerfTest(devLogFiles, releaseLogFiles, languageServerLogFiles);
-    }
-    private async enableLanguageServer(enable: boolean) {
-        const settings = `{ "python.languageServer": "${
-            enable ? LanguageServerType.Microsoft : LanguageServerType.Jedi
-        }" }`;
-        await fs.writeFile(path.join(EXTENSION_ROOT_DIR, 'src', 'test', 'performance', 'settings.json'), settings);
     }
 
     private async capturePerfTimes(version: Version, logFile: string) {

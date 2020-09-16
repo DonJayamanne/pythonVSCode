@@ -19,7 +19,7 @@ import {
     IRowsResponse
 } from '../../client/datascience/data-viewing/types';
 import { SharedMessages } from '../../client/datascience/messages';
-import { IDataScienceExtraSettings } from '../../client/datascience/types';
+import { IJupyterExtraSettings } from '../../client/datascience/types';
 import { getLocString, storeLocStrings } from '../react-common/locReactSide';
 import { IMessageHandler, PostOffice } from '../react-common/postOffice';
 import { Progress } from '../react-common/progress';
@@ -44,7 +44,7 @@ interface IMainPanelState {
     filters: {};
     indexColumn: string;
     styleReady: boolean;
-    settings?: IDataScienceExtraSettings;
+    settings?: IJupyterExtraSettings;
 }
 
 export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState> implements IMessageHandler {
@@ -170,7 +170,7 @@ export class MainPanel extends React.Component<IMainPanelProps, IMainPanelState>
 
     private updateSettings(content: string) {
         const newSettingsJSON = JSON.parse(content);
-        const newSettings = newSettingsJSON as IDataScienceExtraSettings;
+        const newSettings = newSettingsJSON as IJupyterExtraSettings;
         this.setState({
             settings: newSettings
         });

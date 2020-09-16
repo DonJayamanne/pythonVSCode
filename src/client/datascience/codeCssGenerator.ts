@@ -119,7 +119,7 @@ export class CodeCssGenerator implements ICodeCssGenerator {
         let result = defaultT;
         try {
             // First compute our current theme.
-            const ignoreTheme = this.configService.getSettings(resource).datascience.ignoreVscodeTheme ? true : false;
+            const ignoreTheme = this.configService.getSettings(resource).ignoreVscodeTheme ? true : false;
             theme = ignoreTheme ? DefaultTheme : theme;
             const editor = this.workspaceService.getConfiguration('editor', undefined);
             const fontFamily = editor

@@ -9,7 +9,7 @@ import * as path from 'path';
 import { Readable } from 'stream';
 import { anything, instance, mock, verify, when } from 'ts-mockito';
 import { EventEmitter, Uri } from 'vscode';
-import { PythonSettings } from '../../../client/common/configSettings';
+import { JupyterSettings } from '../../../client/common/configSettings';
 import { ConfigurationService } from '../../../client/common/configuration/service';
 import { HttpClient } from '../../../client/common/net/httpClient';
 import { IConfigurationService, IHttpClient, WidgetCDNs } from '../../../client/common/types';
@@ -40,7 +40,7 @@ suite('DataScience - ipywidget - CDN', () => {
     let notebook: INotebook;
     let configService: IConfigurationService;
     let httpClient: IHttpClient;
-    let settings: PythonSettings;
+    let settings: JupyterSettings;
     let fileSystem: IDataScienceFileSystem;
     let webviewUriConverter: ILocalResourceUriConverter;
     let tempFileCount = 0;
@@ -56,7 +56,7 @@ suite('DataScience - ipywidget - CDN', () => {
         httpClient = mock(HttpClient);
         fileSystem = mock(DataScienceFileSystem);
         webviewUriConverter = mock(IPyWidgetScriptSource);
-        settings = { datascience: { widgetScriptSources: [] } } as any;
+        settings = { widgetScriptSources: [] } as any;
         when(configService.getSettings(anything())).thenReturn(settings as any);
         when(httpClient.downloadFile(anything())).thenCall(request);
         when(fileSystem.localFileExists(anything())).thenCall((f) => fs.pathExists(f));
@@ -147,7 +147,7 @@ suite('DataScience - ipywidget - CDN', () => {
                 verify(httpClient.exists(anything())).never();
             });
             function updateCDNSettings(...values: WidgetCDNs[]) {
-                settings.datascience.widgetScriptSources = values;
+                settings.widgetScriptSources = values;
             }
             (['unpkg.com', 'jsdelivr.com'] as WidgetCDNs[]).forEach((cdn) => {
                 suite(cdn, () => {

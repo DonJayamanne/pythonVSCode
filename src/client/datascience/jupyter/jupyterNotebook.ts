@@ -279,7 +279,7 @@ export class JupyterNotebookBase implements INotebook {
             // When we start our notebook initial, change to our workspace or user specified root directory
             await this.updateWorkingDirectoryAndPath();
 
-            const settings = this.configService.getSettings(this.resource).datascience;
+            const settings = this.configService.getSettings(this.resource);
             if (settings && settings.themeMatplotlibPlots) {
                 // We're theming matplotlibs, so we have to setup our default state.
                 await this.initializeMatplotlib(cancelToken);
@@ -567,7 +567,7 @@ export class JupyterNotebookBase implements INotebook {
             await this.initializeMatplotlib();
         }
 
-        const settings = this.configService.getSettings(this.resource).datascience;
+        const settings = this.configService.getSettings(this.resource);
         if (settings.themeMatplotlibPlots && !settings.ignoreVscodeTheme) {
             // Reset the matplotlib style based on if dark or not.
             await this.executeSilently(
@@ -721,7 +721,7 @@ export class JupyterNotebookBase implements INotebook {
     }
 
     private async initializeMatplotlib(cancelToken?: CancellationToken): Promise<void> {
-        const settings = this.configService.getSettings(this.resource).datascience;
+        const settings = this.configService.getSettings(this.resource);
         if (settings && settings.themeMatplotlibPlots) {
             const matplobInit =
                 !settings || settings.enablePlotViewer
@@ -807,14 +807,7 @@ export class JupyterNotebookBase implements INotebook {
         // If we have a session, execute the code now.
         if (this.session) {
             // Generate our cells ahead of time
-            const cells = generateCells(
-                this.configService.getSettings(this.resource).datascience,
-                code,
-                file,
-                line,
-                true,
-                id
-            );
+            const cells = generateCells(this.configService.getSettings(this.resource), code, file, line, true, id);
 
             // Might have more than one (markdown might be split)
             if (cells.length > 1) {
@@ -850,7 +843,7 @@ export class JupyterNotebookBase implements INotebook {
     ): Kernel.IShellFuture<KernelMessage.IExecuteRequestMsg, KernelMessage.IExecuteReplyMsg> | undefined => {
         //traceInfo(`Executing code in jupyter : ${code}`);
         try {
-            const cellMatcher = new CellMatcher(this.configService.getSettings(this.resource).datascience);
+            const cellMatcher = new CellMatcher(this.configService.getSettings(this.resource));
             return this.session
                 ? this.session.requestExecute(
                       {
@@ -1401,7 +1394,7 @@ export class JupyterNotebookBase implements INotebook {
         cell.state = CellState.error;
 
         // In the error scenario, we want to stop all other pending cells.
-        if (this.configService.getSettings(this.resource).datascience.stopOnError) {
+        if (this.configService.getSettings(this.resource).stopOnError) {
             this.pendingCellSubscriptions.forEach((c) => {
                 if (c.cell.id !== cell.id) {
                     c.cancel();
@@ -1413,7 +1406,7 @@ export class JupyterNotebookBase implements INotebook {
     // We have a set limit for the number of output text characters that we display by default
     // trim down strings to that limit, assuming at this point we have compressed down to a single string
     private trimOutput(outputString: string): string {
-        const outputLimit = this.configService.getSettings(this.resource).datascience.textOutputLimit;
+        const outputLimit = this.configService.getSettings(this.resource).textOutputLimit;
 
         if (!outputLimit || outputLimit === 0 || outputString.length <= outputLimit) {
             return outputString;

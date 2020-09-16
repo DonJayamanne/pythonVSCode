@@ -15,12 +15,10 @@ import { CommandManager } from './application/commandManager';
 import { ReloadVSCodeCommandHandler } from './application/commands/reloadCommand';
 import { CustomEditorService } from './application/customEditorService';
 import { DebugService } from './application/debugService';
-import { DebugSessionTelemetry } from './application/debugSessionTelemetry';
 import { DocumentManager } from './application/documentManager';
 import { Extensions } from './application/extensions';
 import { LanguageService } from './application/languageService';
 import { VSCodeNotebook } from './application/notebook';
-import { TerminalManager } from './application/terminalManager';
 import {
     IActiveResourceService,
     IApplicationEnvironment,
@@ -32,7 +30,6 @@ import {
     IDocumentManager,
     ILanguageService,
     ILiveShareApi,
-    ITerminalManager,
     IVSCodeNotebook,
     IWorkspaceService
 } from './application/types';
@@ -110,7 +107,6 @@ export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.addSingleton<IWorkspaceService>(IWorkspaceService, WorkspaceService);
     serviceManager.addSingleton<IProcessLogger>(IProcessLogger, ProcessLogger);
     serviceManager.addSingleton<IDocumentManager>(IDocumentManager, DocumentManager);
-    serviceManager.addSingleton<ITerminalManager>(ITerminalManager, TerminalManager);
     serviceManager.addSingleton<IDebugService>(IDebugService, DebugService);
     serviceManager.addSingleton<IApplicationEnvironment>(IApplicationEnvironment, ApplicationEnvironment);
     serviceManager.addSingleton<ILanguageService>(ILanguageService, LanguageService);
@@ -155,10 +151,6 @@ export function registerTypes(serviceManager: IServiceManager) {
         IExtensionChannelRule,
         ExtensionInsidersWeeklyChannelRule,
         ExtensionChannel.weekly
-    );
-    serviceManager.addSingleton<IExtensionSingleActivationService>(
-        IExtensionSingleActivationService,
-        DebugSessionTelemetry
     );
     serviceManager.addSingleton<ICustomEditorService>(ICustomEditorService, CustomEditorService);
 }

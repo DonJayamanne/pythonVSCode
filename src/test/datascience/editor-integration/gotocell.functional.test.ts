@@ -12,7 +12,7 @@ import { range } from 'lodash';
 import { IDocumentManager } from '../../../client/common/application/types';
 import { EXTENSION_ROOT_DIR } from '../../../client/common/constants';
 import { traceError } from '../../../client/common/logger';
-import { IDataScienceSettings } from '../../../client/common/types';
+import { IJupyterSettings } from '../../../client/common/types';
 import * as CellFactory from '../../../client/datascience/cellFactory';
 import { Commands } from '../../../client/datascience/constants';
 import { InteractiveWindowMessages } from '../../../client/datascience/interactive-common/interactiveWindowTypes';
@@ -278,10 +278,7 @@ suite('DataScience gotocell tests', () => {
         // Override the function that generates cell ranges. We want to count how many times this is called
         let generateCount = 0;
         const oldGenerateRanges = (CellFactory as any).generateCellRangesFromDocument;
-        (CellFactory as any).generateCellRangesFromDocument = (
-            document: TextDocument,
-            settings?: IDataScienceSettings
-        ) => {
+        (CellFactory as any).generateCellRangesFromDocument = (document: TextDocument, settings?: IJupyterSettings) => {
             generateCount = generateCount + 1;
             return oldGenerateRanges(document, settings);
         };

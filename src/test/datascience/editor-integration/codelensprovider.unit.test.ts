@@ -10,7 +10,7 @@ import {
     IDocumentManager,
     IVSCodeNotebook
 } from '../../../client/common/application/types';
-import { IConfigurationService, IDataScienceSettings, IPythonSettings } from '../../../client/common/types';
+import { IConfigurationService, IWatchableJupyterSettings } from '../../../client/common/types';
 import { DataScienceCodeLensProvider } from '../../../client/datascience/editor-integration/codelensprovider';
 import {
     ICodeWatcher,
@@ -25,8 +25,7 @@ suite('DataScienceCodeLensProvider Unit Tests', () => {
     let serviceContainer: TypeMoq.IMock<IServiceContainer>;
     let configurationService: TypeMoq.IMock<IConfigurationService>;
     let codeLensProvider: IDataScienceCodeLensProvider;
-    let dataScienceSettings: TypeMoq.IMock<IDataScienceSettings>;
-    let pythonSettings: TypeMoq.IMock<IPythonSettings>;
+    let pythonSettings: TypeMoq.IMock<IWatchableJupyterSettings>;
     let documentManager: TypeMoq.IMock<IDocumentManager>;
     let commandManager: TypeMoq.IMock<ICommandManager>;
     let debugService: TypeMoq.IMock<IDebugService>;
@@ -44,12 +43,9 @@ suite('DataScienceCodeLensProvider Unit Tests', () => {
         commandManager = TypeMoq.Mock.ofType<ICommandManager>();
         debugService = TypeMoq.Mock.ofType<IDebugService>();
         debugLocationTracker = TypeMoq.Mock.ofType<IDebugLocationTracker>();
-        pythonSettings = TypeMoq.Mock.ofType<IPythonSettings>();
-        dataScienceSettings = TypeMoq.Mock.ofType<IDataScienceSettings>();
+        pythonSettings = TypeMoq.Mock.ofType<IWatchableJupyterSettings>();
         fileSystem = TypeMoq.Mock.ofType<IDataScienceFileSystem>();
         vscodeNotebook = TypeMoq.Mock.ofType<IVSCodeNotebook>();
-        dataScienceSettings.setup((d) => d.enabled).returns(() => true);
-        pythonSettings.setup((p) => p.datascience).returns(() => dataScienceSettings.object);
         configurationService.setup((c) => c.getSettings(TypeMoq.It.isAny())).returns(() => pythonSettings.object);
         vscodeNotebook.setup((c) => c.activeNotebookEditor).returns(() => undefined);
         commandManager

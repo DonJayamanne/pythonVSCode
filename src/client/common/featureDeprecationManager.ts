@@ -105,13 +105,13 @@ export class FeatureDeprecationManager implements IFeatureDeprecationManager {
                     return;
                 }
                 notify = this.isDeprecatedSettingAndValueUsed(
-                    this.workspace.getConfiguration('python', workspaceFolder.uri),
+                    this.workspace.getConfiguration('jupyter', workspaceFolder.uri),
                     deprecatedInfo.setting!
                 );
             });
         } else {
             notify = this.isDeprecatedSettingAndValueUsed(
-                this.workspace.getConfiguration('python'),
+                this.workspace.getConfiguration('jupyter'),
                 deprecatedInfo.setting!
             );
         }

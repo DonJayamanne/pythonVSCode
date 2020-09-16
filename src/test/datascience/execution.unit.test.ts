@@ -15,7 +15,6 @@ import { CancellationTokenSource, ConfigurationChangeEvent, Disposable, EventEmi
 import { ApplicationShell } from '../../client/common/application/applicationShell';
 import { IApplicationShell, IWorkspaceService } from '../../client/common/application/types';
 import { WorkspaceService } from '../../client/common/application/workspace';
-import { PythonSettings } from '../../client/common/configSettings';
 import { ConfigurationService } from '../../client/common/configuration/service';
 import { PYTHON_LANGUAGE } from '../../client/common/constants';
 import { PersistentState, PersistentStateFactory } from '../../client/common/persistentState';
@@ -62,6 +61,7 @@ import { getOSType, OSType } from '../common';
 import { noop } from '../core';
 import { MockOutputChannel } from '../mockClasses';
 import { MockJupyterServer } from './mockJupyterServer';
+import { MockJupyterSettings } from './mockJupyterSettings';
 
 // tslint:disable:no-any no-http-string no-multiline-string max-func-body-length
 class DisposableRegistry implements IAsyncDisposableRegistry {
@@ -99,7 +99,7 @@ suite('Jupyter Execution', async () => {
     const disposableRegistry = new DisposableRegistry();
     const dummyEvent = new EventEmitter<void>();
     const configChangeEvent = new EventEmitter<ConfigurationChangeEvent>();
-    const pythonSettings = new PythonSettings(undefined);
+    const pythonSettings = new MockJupyterSettings(undefined);
     const jupyterOnPath = getOSType() === OSType.Windows ? '/foo/bar/jupyter.exe' : '/foo/bar/jupyter';
     let ipykernelInstallCount = 0;
     let kernelSelector: KernelSelector;
@@ -863,12 +863,11 @@ suite('Jupyter Execution', async () => {
         );
 
         // Setup default settings
-        pythonSettings.datascience = {
+        pythonSettings.assign({
             allowImportFromNotebook: true,
             alwaysTrustNotebooks: true,
             jupyterLaunchTimeout: 10,
             jupyterLaunchRetries: 3,
-            enabled: true,
             jupyterServerURI: 'local',
             // tslint:disable-next-line: no-invalid-template-strings
             notebookFileRoot: '${fileDirname}',
@@ -894,7 +893,7 @@ suite('Jupyter Execution', async () => {
             jupyterCommandLineArguments: [],
             widgetScriptSources: [],
             interactiveWindowMode: 'single'
-        };
+        });
 
         // Service container also needs to generate jupyter servers. However we can't use a mock as that messes up returning
         // this object from a promise

@@ -32,7 +32,7 @@ import {
 import { IServiceContainer } from '../../../client/ioc/types';
 import { ICodeExecutionHelper } from '../../../client/terminals/types';
 import { MockDocumentManager } from '../mockDocumentManager';
-import { MockPythonSettings } from '../mockPythonSettings';
+import { MockJupyterSettings } from '../mockJupyterSettings';
 import { MockEditor } from '../mockTextEditor';
 import { createDocument } from './helpers';
 
@@ -76,7 +76,7 @@ suite('DataScience Code Watcher Unit Tests', () => {
     let debugLocationTracker: TypeMoq.IMock<IDebugLocationTracker>;
     let vscodeNotebook: TypeMoq.IMock<IVSCodeNotebook>;
     const contexts: Map<string, boolean> = new Map<string, boolean>();
-    const pythonSettings = new MockPythonSettings(undefined);
+    const jupyterSettings = new MockJupyterSettings(undefined);
     const disposables: Disposable[] = [];
 
     setup(() => {
@@ -94,12 +94,11 @@ suite('DataScience Code Watcher Unit Tests', () => {
         vscodeNotebook = TypeMoq.Mock.ofType<IVSCodeNotebook>();
 
         // Setup default settings
-        pythonSettings.datascience = {
+        jupyterSettings.assign({
             allowImportFromNotebook: true,
             alwaysTrustNotebooks: true,
             jupyterLaunchTimeout: 20000,
             jupyterLaunchRetries: 3,
-            enabled: true,
             jupyterServerURI: 'local',
             notebookFileRoot: 'WORKSPACE',
             changeDirOnImportExport: true,
@@ -124,7 +123,7 @@ suite('DataScience Code Watcher Unit Tests', () => {
             jupyterCommandLineArguments: [],
             widgetScriptSources: [],
             interactiveWindowMode: 'single'
-        };
+        });
         debugService.setup((d) => d.activeDebugSession).returns(() => undefined);
         vscodeNotebook.setup((d) => d.activeNotebookEditor).returns(() => undefined);
 
@@ -135,7 +134,7 @@ suite('DataScience Code Watcher Unit Tests', () => {
         fileSystem.setup((f) => f.arePathsSame(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => true);
 
         // Setup config service
-        configService.setup((c) => c.getSettings(TypeMoq.It.isAny())).returns(() => pythonSettings);
+        configService.setup((c) => c.getSettings(TypeMoq.It.isAny())).returns(() => jupyterSettings);
 
         const dummyEvent = new EventEmitter<{ identity: Uri; notebook: INotebook }>();
         const notebookProvider = mock(NotebookProvider);
@@ -363,8 +362,8 @@ fourth line
 
 # <mymarkdown>
 # fifth line`;
-        pythonSettings.datascience.codeRegularExpression = '(#\\s*\\<foobar\\>|#\\s*\\<baz\\>)';
-        pythonSettings.datascience.markdownRegularExpression = '(#\\s*\\<markdowncell\\>|#\\s*\\<mymarkdown\\>)';
+        jupyterSettings.codeRegularExpression = '(#\\s*\\<foobar\\>|#\\s*\\<baz\\>)';
+        jupyterSettings.markdownRegularExpression = '(#\\s*\\<markdowncell\\>|#\\s*\\<mymarkdown\\>)';
 
         const document = createDocument(inputText, fileName, version, TypeMoq.Times.atLeastOnce(), true);
 
@@ -400,8 +399,8 @@ fourth line
 
 # <mymarkdown>
 # fifth line`;
-        pythonSettings.datascience.codeRegularExpression = '# * code cell)';
-        pythonSettings.datascience.markdownRegularExpression = '(#\\s*\\<markdowncell\\>|#\\s*\\<mymarkdown\\>)';
+        jupyterSettings.codeRegularExpression = '# * code cell)';
+        jupyterSettings.markdownRegularExpression = '(#\\s*\\<markdowncell\\>|#\\s*\\<mymarkdown\\>)';
 
         const document = createDocument(inputText, fileName, version, TypeMoq.Times.atLeastOnce(), true);
 
@@ -932,8 +931,8 @@ testing2`;
         expect(contexts.get(EditorContexts.HasCodeCells)).to.be.equal(true, 'Code cells context not set');
 
         // Change settings
-        pythonSettings.datascience.codeRegularExpression = '#%%%.*dude';
-        pythonSettings.fireChangeEvent();
+        jupyterSettings.codeRegularExpression = '#%%%.*dude';
+        jupyterSettings.fireChangeEvent();
         result = codeLensProvider.provideCodeLenses(document.object, tokenSource.token);
         expect(result, 'result not okay').to.be.ok;
         codeLens = result as CodeLens[];
@@ -942,8 +941,8 @@ testing2`;
         expect(contexts.get(EditorContexts.HasCodeCells)).to.be.equal(false, 'Code cells context not set');
 
         // Change settings to empty
-        pythonSettings.datascience.codeRegularExpression = '';
-        pythonSettings.fireChangeEvent();
+        jupyterSettings.codeRegularExpression = '';
+        jupyterSettings.fireChangeEvent();
         result = codeLensProvider.provideCodeLenses(document.object, tokenSource.token);
         expect(result, 'result not okay').to.be.ok;
         codeLens = result as CodeLens[];

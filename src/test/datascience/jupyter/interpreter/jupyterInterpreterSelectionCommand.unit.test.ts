@@ -31,18 +31,18 @@ suite('DataScience - Jupyter Interpreter Command', () => {
     });
     test('Activation should register command', async () => {
         const disposable = mock(Disposable);
-        when(commandManager.registerCommand('python.datascience.selectJupyterInterpreter', anything())).thenReturn(
+        when(commandManager.registerCommand('jupyter.selectJupyterInterpreter', anything())).thenReturn(
             instance(disposable)
         );
 
         await interpreterCommand.activate();
 
-        verify(commandManager.registerCommand('python.datascience.selectJupyterInterpreter', anything())).once();
+        verify(commandManager.registerCommand('jupyter.selectJupyterInterpreter', anything())).once();
     });
     test('Command handler must be jupyter interpreter selection', async () => {
         const disposable = mock(Disposable);
         let handler: Function | undefined;
-        when(commandManager.registerCommand('python.datascience.selectJupyterInterpreter', anything())).thenCall(
+        when(commandManager.registerCommand('jupyter.selectJupyterInterpreter', anything())).thenCall(
             (_, cb: Function) => {
                 handler = cb;
                 return instance(disposable);
@@ -51,7 +51,7 @@ suite('DataScience - Jupyter Interpreter Command', () => {
 
         await interpreterCommand.activate();
 
-        verify(commandManager.registerCommand('python.datascience.selectJupyterInterpreter', anything())).once();
+        verify(commandManager.registerCommand('jupyter.selectJupyterInterpreter', anything())).once();
         assert.isFunction(handler);
 
         // Invoking handler must select jupyter interpreter.

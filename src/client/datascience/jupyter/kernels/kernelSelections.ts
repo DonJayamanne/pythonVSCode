@@ -177,19 +177,21 @@ export class InterpreterKernelSelectionListProvider
         _cancelToken?: CancellationToken
     ): Promise<IKernelSpecQuickPickItem<PythonKernelConnectionMetadata>[]> {
         const items = await this.interpreterSelector.getSuggestions(resource);
-        return items.map((item) => {
-            return {
-                ...item,
-                // We don't want descriptions.
-                description: '',
-                selection: {
-                    kernelModel: undefined,
-                    interpreter: item.interpreter,
-                    kernelSpec: undefined,
-                    kind: 'startUsingPythonInterpreter'
-                }
-            };
-        });
+        return items
+            ? items.map((item) => {
+                  return {
+                      ...item,
+                      // We don't want descriptions.
+                      description: '',
+                      selection: {
+                          kernelModel: undefined,
+                          interpreter: item.interpreter,
+                          kernelSpec: undefined,
+                          kind: 'startUsingPythonInterpreter'
+                      }
+                  };
+              })
+            : [];
     }
 }
 

@@ -131,7 +131,7 @@ export class CommandRegistry implements IDisposable {
     }
 
     private enableLoadingWidgetScriptsFromThirdParty(): void {
-        if (this.configService.getSettings(undefined).datascience.widgetScriptSources.length > 0) {
+        if (this.configService.getSettings(undefined).widgetScriptSources.length > 0) {
             return;
         }
         // Update the setting and once updated, notify user to restart kernel.

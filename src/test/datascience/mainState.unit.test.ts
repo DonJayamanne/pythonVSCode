@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 'use strict';
 import { assert } from 'chai';
-import { IDataScienceSettings } from '../../client/common/types';
+import { IJupyterSettings } from '../../client/common/types';
 import {
     createEmptyCell,
     CursorPos,
@@ -12,7 +12,7 @@ import {
 } from '../../datascience-ui/interactive-common/mainState';
 import { defaultDataScienceSettings } from './helpers';
 
-// tslint:disable: max-func-body-length
+// tslint:disable: max-func-body-length no-any
 suite('DataScience MainState', () => {
     function cloneVM(cvm: ICellViewModel, newCode: string, debugging?: boolean): ICellViewModel {
         const result = {
@@ -34,8 +34,8 @@ suite('DataScience MainState', () => {
     }
 
     test('ExtractInputText', () => {
-        const settings: IDataScienceSettings = defaultDataScienceSettings();
-        settings.stopOnFirstLineWhileDebugging = true;
+        const settings: IJupyterSettings = defaultDataScienceSettings();
+        (<any>settings).stopOnFirstLineWhileDebugging = true;
         const cvm: ICellViewModel = {
             cell: createEmptyCell('1', null),
             inputBlockCollapseNeeded: false,

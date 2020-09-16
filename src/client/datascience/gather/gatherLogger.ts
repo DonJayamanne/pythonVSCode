@@ -39,7 +39,7 @@ export class GatherLogger implements IGatherLogger {
                 const cloneCell: IVscCell = cloneDeep(vscCell);
 
                 // Strip first line marker. We can't do this at JupyterServer.executeCodeObservable because it messes up hashing
-                const cellMatcher = new CellMatcher(this.configService.getSettings().datascience);
+                const cellMatcher = new CellMatcher(this.configService.getSettings());
                 cloneCell.data.source = cellMatcher.stripFirstMarker(concatMultilineString(vscCell.data.source));
 
                 try {

@@ -20,10 +20,10 @@ import {
     ICryptoUtils,
     IExperimentsManager,
     IHttpClient,
+    IJupyterSettings,
     IOutputChannel,
     IPersistentState,
-    IPersistentStateFactory,
-    IPythonSettings
+    IPersistentStateFactory
 } from '../types';
 import { sleep } from '../utils/async';
 import { swallowExceptions } from '../utils/decorators';
@@ -88,7 +88,7 @@ export class ExperimentsManager implements IExperimentsManager {
      */
     private isDownloadedStorageValid: IPersistentState<boolean>;
     private activatedOnce: boolean = false;
-    private settings!: IPythonSettings;
+    private settings!: IJupyterSettings;
     constructor(
         @inject(IPersistentStateFactory) private readonly persistentStateFactory: IPersistentStateFactory,
         @inject(IHttpClient) private readonly httpClient: IHttpClient,

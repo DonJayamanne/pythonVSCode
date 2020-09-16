@@ -10,7 +10,6 @@ import * as uuid from 'uuid/v4';
 import { EventEmitter, Uri } from 'vscode';
 import { ApplicationShell } from '../../client/common/application/applicationShell';
 import { IApplicationShell } from '../../client/common/application/types';
-import { PythonSettings } from '../../client/common/configSettings';
 import { ConfigurationService } from '../../client/common/configuration/service';
 import { IConfigurationService, IDisposable } from '../../client/common/types';
 import * as localize from '../../client/common/utils/localize';
@@ -39,6 +38,7 @@ import { IInterpreterService } from '../../client/interpreter/contracts';
 import { ServiceContainer } from '../../client/ioc/container';
 import { MockCommandManager } from './mockCommandManager';
 import { MockDocumentManager } from './mockDocumentManager';
+import { MockJupyterSettings } from './mockJupyterSettings';
 import { MockStatusProvider } from './mockStatusProvider';
 
 // tslint:disable:no-any no-http-string no-multiline-string max-func-body-length
@@ -59,7 +59,7 @@ suite('Interactive window command listener', async () => {
     const fileSystem = mock(DataScienceFileSystem);
     const serviceContainer = mock(ServiceContainer);
     const dummyEvent = new EventEmitter<void>();
-    const pythonSettings = new PythonSettings(undefined);
+    const pythonSettings = new MockJupyterSettings(undefined);
     const disposableRegistry: IDisposable[] = [];
     const interactiveWindowProvider = mock(InteractiveWindowProvider);
     const dataScienceErrorHandler = mock(DataScienceErrorHandler);
@@ -117,12 +117,11 @@ suite('Interactive window command listener', async () => {
         when(configService.getSettings(anything())).thenReturn(pythonSettings);
 
         // Setup default settings
-        pythonSettings.datascience = {
+        pythonSettings.assign({
             allowImportFromNotebook: true,
             alwaysTrustNotebooks: true,
             jupyterLaunchTimeout: 10,
             jupyterLaunchRetries: 3,
-            enabled: true,
             jupyterServerURI: '',
             changeDirOnImportExport: false,
             // tslint:disable-next-line: no-invalid-template-strings
@@ -147,7 +146,7 @@ suite('Interactive window command listener', async () => {
             jupyterCommandLineArguments: [],
             widgetScriptSources: [],
             interactiveWindowMode: 'single'
-        };
+        });
 
         // We also need a file system
         const tempFile = {

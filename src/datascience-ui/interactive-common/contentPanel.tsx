@@ -4,7 +4,7 @@
 import * as React from 'react';
 
 import * as fastDeepEqual from 'fast-deep-equal';
-import { IDataScienceExtraSettings } from '../../client/datascience/types';
+import { IJupyterExtraSettings } from '../../client/datascience/types';
 import { InputHistory } from './inputHistory';
 import { ICellViewModel } from './mainState';
 
@@ -18,7 +18,7 @@ export interface IContentPanelProps {
     cellVMs: ICellViewModel[];
     history?: InputHistory;
     testMode?: boolean;
-    settings?: IDataScienceExtraSettings;
+    settings?: IJupyterExtraSettings;
     codeTheme: string;
     submittedText: boolean;
     skipNextScroll: boolean;

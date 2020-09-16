@@ -148,10 +148,7 @@ export class CodeLensFactory implements ICodeLensFactory, IInteractiveWindowList
 
         // If the document version doesn't match, our cell ranges are out of date
         if (cache.cachedDocumentVersion !== document.version) {
-            cache.cellRanges = generateCellRangesFromDocument(
-                document,
-                this.configService.getSettings(document.uri).datascience
-            );
+            cache.cellRanges = generateCellRangesFromDocument(document, this.configService.getSettings(document.uri));
 
             // Because we have all new ranges, we need to recompute ALL of our code lenses.
             cache.documentLenses = [];
@@ -195,7 +192,7 @@ export class CodeLensFactory implements ICodeLensFactory, IInteractiveWindowList
             needUpdate &&
             cache.gotoCellLens.length === 0 &&
             cache.cellRanges.length &&
-            this.configService.getSettings(document.uri).datascience.addGotoCodeLenses
+            this.configService.getSettings(document.uri).addGotoCodeLenses
         ) {
             const hashes = this.getHashes();
             if (hashes && hashes.length) {
@@ -305,7 +302,7 @@ export class CodeLensFactory implements ICodeLensFactory, IInteractiveWindowList
     private enumerateCommands(resource: Resource): string[] {
         let fullCommandList: string[];
         // Add our non-debug commands
-        const commands = this.configService.getSettings(resource).datascience.codeLenses;
+        const commands = this.configService.getSettings(resource).codeLenses;
         if (commands) {
             fullCommandList = commands.split(',').map((s) => s.trim());
         } else {
@@ -313,7 +310,7 @@ export class CodeLensFactory implements ICodeLensFactory, IInteractiveWindowList
         }
 
         // Add our debug commands
-        const debugCommands = this.configService.getSettings(resource).datascience.debugCodeLenses;
+        const debugCommands = this.configService.getSettings(resource).debugCodeLenses;
         if (debugCommands) {
             fullCommandList = fullCommandList.concat(debugCommands.split(',').map((s) => s.trim()));
         } else {

@@ -96,10 +96,7 @@ export class InteractiveShiftEnterBanner implements IPythonExtensionBanner {
     public async shouldShowBanner(): Promise<boolean> {
         const settings = this.configuration.getSettings();
         return Promise.resolve(
-            this.enabled &&
-                !this.disabledInCurrentSession &&
-                !settings.datascience.sendSelectionToInteractiveWindow &&
-                settings.datascience.enabled
+            this.enabled && !this.disabledInCurrentSession && !settings.sendSelectionToInteractiveWindow
         );
     }
 

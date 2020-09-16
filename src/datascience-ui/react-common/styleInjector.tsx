@@ -4,14 +4,14 @@
 import * as React from 'react';
 
 import { CssMessages, IGetCssResponse, SharedMessages } from '../../client/datascience/messages';
-import { IDataScienceExtraSettings } from '../../client/datascience/types';
+import { IJupyterExtraSettings } from '../../client/datascience/types';
 import { IMessageHandler, PostOffice } from './postOffice';
 import { detectBaseTheme } from './themeDetector';
 
 export interface IStyleInjectorProps {
     expectingDark: boolean;
     postOffice: PostOffice;
-    settings: IDataScienceExtraSettings;
+    settings: IJupyterExtraSettings;
     darkChanged?(newDark: boolean): void;
     onReady?(): void;
 }
@@ -104,7 +104,7 @@ export class StyleInjector extends React.Component<IStyleInjectorProps, IStyleIn
     private updateSettings(payload: any) {
         if (payload) {
             const newSettings = JSON.parse(payload as string);
-            const dsSettings = newSettings as IDataScienceExtraSettings;
+            const dsSettings = newSettings as IJupyterExtraSettings;
             if (dsSettings && dsSettings.extraSettings && dsSettings.extraSettings.theme !== this.state.theme) {
                 // User changed the current theme. Rerender
                 this.props.postOffice.sendUnsafeMessage(CssMessages.GetCssRequest, { isDark: this.computeKnownDark() });

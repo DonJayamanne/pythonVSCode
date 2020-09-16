@@ -30,8 +30,7 @@ interface ICommandNameWithoutArgumentTypeMapping {
     ['workbench.action.closeActiveEditor']: [];
     ['editor.action.formatDocument']: [];
     ['editor.action.rename']: [];
-    ['python.datascience.selectJupyterInterpreter']: [];
-    [Commands.Enable_SourceMap_Support]: [];
+    ['jupyter.selectJupyterInterpreter']: [];
     [DSCommands.RunCurrentCell]: [];
     [DSCommands.RunCurrentCellAdvance]: [];
     [DSCommands.ExecSelectionInInteractiveWindow]: [];
@@ -70,8 +69,8 @@ export interface ICommandNameArgumentTypeMapping extends ICommandNameWithoutArgu
     ['workbench.extensions.installExtension']: [Uri | 'ms-ai-tools.jupyter'];
     ['workbench.action.files.openFolder']: [];
     ['workbench.action.openWorkspace']: [];
-    ['setContext']: [string, boolean] | ['python.vscode.channel', Channel];
-    ['python.reloadVSCode']: [string];
+    ['setContext']: [string, boolean] | ['jupyter.vscode.channel', Channel];
+    ['jupyter.reloadVSCode']: [string];
     ['revealLine']: [{ lineNumber: number; at: 'top' | 'center' | 'bottom' }];
     ['python._loadLanguageServerExtension']: {}[];
     ['python.SelectAndInsertDebugConfiguration']: [TextDocument, Position, CancellationToken];
@@ -81,7 +80,6 @@ export interface ICommandNameArgumentTypeMapping extends ICommandNameWithoutArgu
     ['notebook.cell.insertCodeCellBelow']: [];
     ['notebook.undo']: [];
     ['notebook.redo']: [];
-    ['python.viewLanguageServerOutput']: [];
     ['vscode.open']: [Uri];
     ['workbench.action.files.saveAs']: [Uri];
     ['workbench.action.files.save']: [Uri];

@@ -29,7 +29,7 @@ import { ServerStatus } from '../../datascience-ui/interactive-common/mainState'
 import { ICommandManager, IDebugService } from '../common/application/types';
 import { FileStat, TemporaryFile } from '../common/platform/types';
 import { ExecutionResult, ObservableExecutionResult, SpawnOptions } from '../common/process/types';
-import { IAsyncDisposable, IDataScienceSettings, IDisposable, InteractiveWindowMode, Resource } from '../common/types';
+import { IAsyncDisposable, IDisposable, IJupyterSettings, InteractiveWindowMode, Resource } from '../common/types';
 import { StopWatch } from '../common/utils/stopWatch';
 import { PythonEnvironment } from '../pythonEnvironments/info';
 import { JupyterCommands } from './constants';
@@ -657,7 +657,7 @@ export interface ICodeWatcher {
     setDocument(document: TextDocument): void;
     getVersion(): number;
     getCodeLenses(): CodeLens[];
-    getCachedSettings(): IDataScienceSettings | undefined;
+    getCachedSettings(): IJupyterSettings | undefined;
     runAllCells(): Promise<void>;
     runCell(range: Range): Promise<void>;
     debugCell(range: Range): Promise<void>;
@@ -799,7 +799,7 @@ export type FileSettings = {
     autoSave: 'afterDelay' | 'off' | 'onFocusChange' | 'onWindowChange';
 };
 
-export interface IDataScienceExtraSettings extends IDataScienceSettings {
+export interface IJupyterExtraSettings extends IJupyterSettings {
     extraSettings: {
         editor: {
             cursor: string;

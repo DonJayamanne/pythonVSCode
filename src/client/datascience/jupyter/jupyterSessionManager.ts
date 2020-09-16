@@ -183,10 +183,10 @@ export class JupyterSessionManager implements IJupyterSessionManager {
             this.restartSessionCreatedEvent.fire.bind(this.restartSessionCreatedEvent),
             this.restartSessionUsedEvent.fire.bind(this.restartSessionUsedEvent),
             workingDirectory,
-            this.configService.getSettings().datascience.jupyterLaunchTimeout
+            this.configService.getSettings().jupyterLaunchTimeout
         );
         try {
-            await session.connect(this.configService.getSettings().datascience.jupyterLaunchTimeout, cancelToken);
+            await session.connect(this.configService.getSettings().jupyterLaunchTimeout, cancelToken);
         } finally {
             if (!session.isConnected) {
                 await session.dispose();
@@ -299,8 +299,7 @@ export class JupyterSessionManager implements IJupyterSessionManager {
             serverSettings = { ...serverSettings, token: connInfo.token };
         }
 
-        const allowUnauthorized = this.configService.getSettings(undefined).datascience
-            .allowUnauthorizedRemoteConnection;
+        const allowUnauthorized = this.configService.getSettings(undefined).allowUnauthorizedRemoteConnection;
         // If this is an https connection and we want to allow unauthorized connections set that option on our agent
         // we don't need to save the agent as the previous behaviour is just to create a temporary default agent when not specified
         if (connInfo.baseUrl.startsWith('https') && allowUnauthorized) {

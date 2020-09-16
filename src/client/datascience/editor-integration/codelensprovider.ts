@@ -7,7 +7,7 @@ import * as vscode from 'vscode';
 import { ICommandManager, IDebugService, IDocumentManager, IVSCodeNotebook } from '../../common/application/types';
 import { ContextKey } from '../../common/contextKey';
 
-import { IConfigurationService, IDataScienceSettings, IDisposable, IDisposableRegistry } from '../../common/types';
+import { IConfigurationService, IDisposable, IDisposableRegistry, IJupyterSettings } from '../../common/types';
 import { StopWatch } from '../../common/utils/stopWatch';
 import { IServiceContainer } from '../../ioc/types';
 import { sendTelemetryEvent } from '../../telemetry';
@@ -54,8 +54,12 @@ export class DataScienceCodeLensProvider implements IDataScienceCodeLensProvider
     // CodeLensProvider interface
     // Some implementation based on DonJayamanne's jupyter extension work
     public provideCodeLenses(document: vscode.TextDocument, _token: vscode.CancellationToken): vscode.CodeLens[] {
-        if (this.vsCodeNotebook.activeNotebookEditor) {
-            return [];
+        try {
+            if (this.vsCodeNotebook.activeNotebookEditor) {
+                return [];
+            }
+        } catch {
+            // If vscodenote book fails, just ignore
         }
         // Get the list of code lens for this document.
         return this.getCodeLensTimed(document);
@@ -63,11 +67,7 @@ export class DataScienceCodeLensProvider implements IDataScienceCodeLensProvider
 
     // IDataScienceCodeLensProvider interface
     public getCodeWatcher(document: vscode.TextDocument): ICodeWatcher | undefined {
-        return this.matchWatcher(
-            document.fileName,
-            document.version,
-            this.configuration.getSettings(document.uri).datascience
-        );
+        return this.matchWatcher(document.fileName, document.version, this.configuration.getSettings(document.uri));
     }
 
     private onDebugLocationUpdated() {
@@ -101,7 +101,7 @@ export class DataScienceCodeLensProvider implements IDataScienceCodeLensProvider
 
         // Don't provide any code lenses if we have not enabled data science
         const settings = this.configuration.getSettings(document.uri);
-        if (!settings.datascience.enabled || !settings.datascience.enableCellCodeLens) {
+        if (!settings.enableCellCodeLens) {
             // Clear out any existing code watchers, providecodelenses is called on settings change
             // so we don't need to watch the settings change specifically here
             if (this.activeCodeWatchers.length > 0) {
@@ -153,7 +153,7 @@ export class DataScienceCodeLensProvider implements IDataScienceCodeLensProvider
         const codeWatcher: ICodeWatcher | undefined = this.matchWatcher(
             document.fileName,
             document.version,
-            this.configuration.getSettings(document.uri).datascience
+            this.configuration.getSettings(document.uri)
         );
         if (codeWatcher) {
             return codeWatcher.getCodeLenses();
@@ -164,7 +164,7 @@ export class DataScienceCodeLensProvider implements IDataScienceCodeLensProvider
         return newCodeWatcher.getCodeLenses();
     }
 
-    private matchWatcher(fileName: string, version: number, settings: IDataScienceSettings): ICodeWatcher | undefined {
+    private matchWatcher(fileName: string, version: number, settings: IJupyterSettings): ICodeWatcher | undefined {
         const index = this.activeCodeWatchers.findIndex(
             (item) => item.uri && this.fs.areLocalPathsSame(item.uri.fsPath, fileName)
         );

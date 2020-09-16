@@ -43,7 +43,7 @@ export class KernelProvider implements IKernelProvider {
 
         this.disposeOldKernel(uri);
 
-        const waitForIdleTimeout = this.configService.getSettings(uri).datascience.jupyterLaunchTimeout;
+        const waitForIdleTimeout = this.configService.getSettings(uri).jupyterLaunchTimeout;
         const kernel = new Kernel(
             uri,
             options.metadata,

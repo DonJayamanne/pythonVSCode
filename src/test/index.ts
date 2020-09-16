@@ -55,13 +55,13 @@ process.on('unhandledRejection', (ex: any, _a) => {
  * @returns {SetupOptions}
  */
 function configure(): SetupOptions {
-    process.env.VSC_PYTHON_CI_TEST = '1';
+    process.env.VSC_JUPYTER_CI_TEST = '1';
     process.env.IS_MULTI_ROOT_TEST = IS_MULTI_ROOT_TEST.toString();
 
     // Check for a grep setting. Might be running a subset of the tests
-    const defaultGrep = process.env.VSC_PYTHON_CI_TEST_GREP;
+    const defaultGrep = process.env.VSC_JUPYTER_CI_TEST_GREP;
     // Check whether to invert the grep (i.e. test everything that doesn't include the grep).
-    const invert = (process.env.VSC_PYTHON_CI_TEST_INVERT_GREP || '').length > 0;
+    const invert = (process.env.VSC_JUPYTER_CI_TEST_INVERT_GREP || '').length > 0;
 
     // If running on CI server and we're running the debugger tests, then ensure we only run debug tests.
     // We do this to ensure we only run debugger test, as debugger tests are very flaky on CI.
