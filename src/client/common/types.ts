@@ -77,8 +77,7 @@ export enum ProductType {
     Formatter = 'Formatter',
     TestFramework = 'TestFramework',
     RefactoringLibrary = 'RefactoringLibrary',
-    WorkspaceSymbols = 'WorkspaceSymbols',
-    DataScience = 'DataScience'
+    WorkspaceSymbols = 'WorkspaceSymbols'
 }
 
 export enum Product {
@@ -98,13 +97,7 @@ export enum Product {
     rope = 14,
     isort = 15,
     black = 16,
-    bandit = 17,
-    jupyter = 18,
-    ipykernel = 19,
-    notebook = 20,
-    kernelspec = 21,
-    nbconvert = 22,
-    pandas = 23
+    bandit = 17
 }
 
 export enum ModuleNamePurpose {
@@ -527,8 +520,6 @@ export interface IPythonExtensionBanner {
     showBanner(): Promise<void>;
 }
 export const BANNER_NAME_PROPOSE_LS: string = 'ProposePylance';
-export const BANNER_NAME_DS_SURVEY: string = 'DSSurveyBanner';
-export const BANNER_NAME_INTERACTIVE_SHIFTENTER: string = 'InteractiveShiftEnterBanner';
 
 export type DeprecatedSettingAndValue = {
     setting: string;
@@ -655,4 +646,64 @@ export interface IInterpreterPathService {
     inspect(resource: Resource): InspectInterpreterSettingType;
     update(resource: Resource, configTarget: ConfigurationTarget, value: string | undefined): Promise<void>;
     copyOldInterpreterStorageValuesToNew(resource: Uri | undefined): Promise<void>;
+}
+
+export interface IDataScienceSettings {
+    allowImportFromNotebook: boolean;
+    alwaysTrustNotebooks: boolean;
+    enabled: boolean;
+    jupyterInterruptTimeout: number;
+    jupyterLaunchTimeout: number;
+    jupyterLaunchRetries: number;
+    jupyterServerURI: string;
+    notebookFileRoot: string;
+    changeDirOnImportExport: boolean;
+    useDefaultConfigForJupyter: boolean;
+    searchForJupyter: boolean;
+    allowInput: boolean;
+    showCellInputCode: boolean;
+    collapseCellInputCodeByDefault: boolean;
+    maxOutputSize: number;
+    enableScrollingForCellOutputs: boolean;
+    gatherToScript?: boolean;
+    gatherSpecPath?: string;
+    sendSelectionToInteractiveWindow: boolean;
+    markdownRegularExpression: string;
+    codeRegularExpression: string;
+    allowLiveShare?: boolean;
+    errorBackgroundColor: string;
+    ignoreVscodeTheme?: boolean;
+    variableExplorerExclude?: string;
+    liveShareConnectionTimeout?: number;
+    decorateCells?: boolean;
+    enableCellCodeLens?: boolean;
+    askForLargeDataFrames?: boolean;
+    enableAutoMoveToNextCell?: boolean;
+    allowUnauthorizedRemoteConnection?: boolean;
+    askForKernelRestart?: boolean;
+    enablePlotViewer?: boolean;
+    codeLenses?: string;
+    debugCodeLenses?: string;
+    debugpyDistPath?: string;
+    stopOnFirstLineWhileDebugging?: boolean;
+    textOutputLimit?: number;
+    magicCommandsAsComments?: boolean;
+    stopOnError?: boolean;
+    remoteDebuggerPort?: number;
+    colorizeInputBox?: boolean;
+    addGotoCodeLenses?: boolean;
+    useNotebookEditor?: boolean;
+    runMagicCommands?: string;
+    runStartupCommands: string | string[];
+    debugJustMyCode: boolean;
+    defaultCellMarker?: string;
+    verboseLogging?: boolean;
+    themeMatplotlibPlots?: boolean;
+    useWebViewServer?: boolean;
+    variableQueries: IVariableQuery[];
+    disableJupyterAutoStart?: boolean;
+    jupyterCommandLineArguments: string[];
+    widgetScriptSources: WidgetCDNs[];
+    alwaysScrollOnNewCell?: boolean;
+    interactiveWindowMode: InteractiveWindowMode;
 }
