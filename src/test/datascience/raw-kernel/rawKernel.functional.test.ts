@@ -59,9 +59,7 @@ suite('DataScience raw kernel tests', () => {
         connectionInfo.control_port = startPort + 4;
 
         // Find our jupyter interpreter
-        // tslint:disable-next-line: no-suspicious-comment
-        // TODO: How to get current python path from python extension
-        const interpreter = await ioc.get<IInterpreterService>(IInterpreterService).getInterpreterDetails('python');
+        const interpreter = await ioc.get<IInterpreterService>(IInterpreterService).getActiveInterpreter(undefined);
         assert.ok(interpreter, 'No jupyter interpreter found');
         // Start our kernel
         const kernelSpec: IJupyterKernelSpec = {
