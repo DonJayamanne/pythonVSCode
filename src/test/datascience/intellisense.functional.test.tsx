@@ -13,6 +13,7 @@ import { INotebookEditorProvider } from '../../client/datascience/types';
 import { IInterpreterService } from '../../client/interpreter/contracts';
 import { MonacoEditor } from '../../datascience-ui/react-common/monacoEditor';
 import { noop } from '../core';
+import { InterpreterService } from '../interpreters/interpreterService';
 import { DataScienceIocContainer } from './dataScienceIocContainer';
 import { takeSnapshot, writeDiffSnapshot } from './helpers';
 import * as InteractiveHelpers from './interactiveWindowTestHelpers';
@@ -249,11 +250,9 @@ import { ITestNativeEditorProvider } from './testNativeEditorProvider';
                 const oldActive = await interpreterService.getActiveInterpreter(undefined);
                 const interpreters = await interpreterService.getInterpreters(undefined);
                 if (interpreters.length > 1 && oldActive) {
-                    //const firstOther = interpreters.filter((i) => i.path !== oldActive.path);
+                    const firstOther = interpreters.filter((i) => i.path !== oldActive.path);
 
-                    // tslint:disable-next-line: no-suspicious-comment
-                    // TODO: Need to be able to change the interpreter too in the python API
-                    //ioc.forceSettingsChanged(undefined, firstOther[0].path);
+                    ioc.get<InterpreterService>(IInterpreterService).updateInterpreter(undefined, firstOther[0].path);
                     const active = await interpreterService.getActiveInterpreter(undefined);
                     assert.notDeepEqual(active, oldActive, 'Should have changed interpreter');
                 }

@@ -28,6 +28,7 @@ import { InteractivePanel } from '../../datascience-ui/history-react/interactive
 import { IKeyboardEvent } from '../../datascience-ui/react-common/event';
 import { ImageButton } from '../../datascience-ui/react-common/imageButton';
 import { MonacoEditor } from '../../datascience-ui/react-common/monacoEditor';
+import { InterpreterService } from '../interpreters/interpreterService';
 import { DataScienceIocContainer } from './dataScienceIocContainer';
 import { createDocument } from './editor-integration/helpers';
 import { defaultDataScienceSettings, takeSnapshot, writeDiffSnapshot } from './helpers';
@@ -711,11 +712,10 @@ for i in range(0, 100):
                 ioc.addResourceToFolder(secondUri, path.join(EXTENSION_ROOT_DIR, 'src', 'test', 'datascience2'));
 
                 // tslint:disable-next-line: no-suspicious-comment
-                // TODO: Need to be able to change the current interpreter using the python API
-                // ioc.forceSettingsChanged(
-                //     secondUri,
-                //     interpreters.filter((i) => i.path !== activeInterpreter?.path)[0].path
-                // );
+                ioc.get<InterpreterService>(IInterpreterService).updateInterpreter(
+                    secondUri,
+                    interpreters.filter((i) => i.path !== activeInterpreter?.path)[0].path
+                );
 
                 // Then open a second time and make sure it uses this new path
                 const secondPath = await interpreterService.getActiveInterpreter(secondUri);
@@ -725,7 +725,7 @@ for i in range(0, 100):
                 assert.notEqual(
                     newWindow.notebook!.getMatchingInterpreter()?.path,
                     activeInterpreter?.path,
-                    'Active intrepreter used to launch second notebook when it should not have'
+                    'Active interpreter used to launch second notebook when it should not have'
                 );
                 verifyHtmlOnCell(ioc.getWrapper('interactive'), 'InteractiveCell', '<span>1</span>', CellPosition.Last);
             } else {

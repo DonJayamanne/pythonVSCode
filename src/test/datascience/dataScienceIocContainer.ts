@@ -876,9 +876,6 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
         when(this.applicationShell.onDidChangeWindowState).thenReturn(eventCallback);
         when(this.applicationShell.withProgress(anything(), anything())).thenCall((_o, c) => c());
 
-        const interpreterManager = this.serviceContainer.get<InterpreterService>(IInterpreterService);
-        interpreterManager.initialize();
-
         if (this.mockJupyter) {
             this.addInterpreter(this.workingPython2, SupportedCommands.all);
             this.addInterpreter(this.workingPython, SupportedCommands.all);
@@ -1069,7 +1066,7 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
         panel.attach(options);
         return panel;
     }
-    private forceSettingsChanged(resource: Resource, _newPath: string, partial: Partial<IJupyterSettings>) {
+    private forceSettingsChanged(resource: Resource, newPath: string, partial: Partial<IJupyterSettings>) {
         // tslint:disable-next-line: no-suspicious-comment
         // TODO: Python path will not be updated by this code so tests are unlikely to pass
         const settings = this.getSettings(resource) as MockJupyterSettings;
@@ -1091,6 +1088,7 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
                 return true;
             }
         });
+        this.get<InterpreterService>(IInterpreterService).updateInterpreter(resource, newPath);
     }
 
     private generateJupyterSettings() {

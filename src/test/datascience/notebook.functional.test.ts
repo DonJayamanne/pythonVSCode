@@ -48,6 +48,7 @@ import { PythonEnvironment } from '../../client/pythonEnvironments/info';
 import { concatMultilineString } from '../../datascience-ui/common';
 import { generateTestState, ICellViewModel } from '../../datascience-ui/interactive-common/mainState';
 import { sleep } from '../core';
+import { InterpreterService } from '../interpreters/interpreterService';
 import { DataScienceIocContainer } from './dataScienceIocContainer';
 import { takeSnapshot, writeDiffSnapshot } from './helpers';
 import { SupportedCommands } from './mockJupyterManager';
@@ -815,9 +816,7 @@ suite('DataScience notebook tests', () => {
                 }
 
                 // Force a settings changed so that all of the cached data is cleared
-                // tslint:disable-next-line: no-suspicious-comment
-                // TODO: Need a way to force cache data to clear
-                // ioc.forceSettingsChanged(undefined, '/usr/bin/test3/python');
+                ioc.get<InterpreterService>(IInterpreterService).updateInterpreter(undefined, 'bogus');
 
                 assert.ok(
                     await testCancelableMethod(
