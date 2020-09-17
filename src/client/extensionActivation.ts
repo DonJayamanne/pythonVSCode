@@ -31,7 +31,6 @@ import { registerTypes as variableRegisterTypes } from './common/variables/servi
 import { JUPYTER_OUTPUT_CHANNEL } from './datascience/constants';
 import { registerTypes as dataScienceRegisterTypes } from './datascience/serviceRegistry';
 import { IDataScience } from './datascience/types';
-import { registerTypes as debugConfigurationRegisterTypes } from './debugger/extension/serviceRegistry';
 import { IServiceContainer, IServiceManager } from './ioc/types';
 import { addOutputChannelLogging, setLoggingLevel } from './logging';
 import { setExtensionInstallTelemetryProperties } from './telemetry/extensionInstallTelemetry';
@@ -86,7 +85,6 @@ async function activateLegacy(
     variableRegisterTypes(serviceManager);
     installerRegisterTypes(serviceManager);
     commonRegisterTerminalTypes(serviceManager);
-    debugConfigurationRegisterTypes(serviceManager);
 
     const configuration = serviceManager.get<IConfigurationService>(IConfigurationService);
     // We should start logging using the log level as soon as possible, so set it as soon as we can access the level.

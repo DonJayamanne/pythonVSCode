@@ -23,7 +23,7 @@ import { IInterpreterQuickPickItem, IInterpreterSelector } from '../interpreter/
 import { IInterpreterService } from '../interpreter/contracts';
 import { IWindowsStoreInterpreter } from '../interpreter/locators/types';
 import { PythonEnvironment } from '../pythonEnvironments/info';
-import { IPythonApiProvider, IPythonInstaller, PythonApi } from './types';
+import { IPythonApiProvider, IPythonDebuggerPathProvider, IPythonInstaller, PythonApi } from './types';
 
 @injectable()
 export class PythonApiProvider {
@@ -70,46 +70,58 @@ export class PythonApiProvider {
 
 @injectable()
 export class WindowsStoreInterpreter implements IWindowsStoreInterpreter {
-    constructor(@inject(IPythonApiProvider) private readonly api: IPythonApiProvider) {}
+    constructor(@inject(IPythonApiProvider) private readonly apiProvider: IPythonApiProvider) {}
 
     public isWindowsStoreInterpreter(pythonPath: string): Promise<boolean> {
-        return this.api.getApi().then((api) => api.isWindowsStoreInterpreter(pythonPath));
+        return this.apiProvider.getApi().then((api) => api.isWindowsStoreInterpreter(pythonPath));
     }
 }
 
 @injectable()
+export class PythonDebuggerPathProvider implements IPythonDebuggerPathProvider {
+    constructor(@inject(IPythonApiProvider) private readonly apiProvider: IPythonApiProvider) {}
+
+    public getDebuggerPath(): Promise<string> {
+        return this.apiProvider.getApi().then((api) => api.getDebuggerPath());
+    }
+}
+
+// tslint:disable: max-classes-per-file
+@injectable()
 export class PythonInstaller implements IPythonInstaller {
-    constructor(@inject(IPythonApiProvider) private readonly api: IPythonApiProvider) {}
+    constructor(@inject(IPythonApiProvider) private readonly apiProvider: IPythonApiProvider) {}
 
     public install(
         product: Product,
         resource?: InterpreterUri,
         cancel?: CancellationToken
     ): Promise<InstallerResponse> {
-        return this.api.getApi().then((api) => api.install(product, resource, cancel));
+        return this.apiProvider.getApi().then((api) => api.install(product, resource, cancel));
     }
 }
 
 // tslint:disable-next-line: max-classes-per-file
 @injectable()
 export class EnvironmentActivationService implements IEnvironmentActivationService {
-    constructor(@inject(IPythonApiProvider) private readonly api: IPythonApiProvider) {}
+    constructor(@inject(IPythonApiProvider) private readonly apiProvider: IPythonApiProvider) {}
 
     public async getActivatedEnvironmentVariables(
         resource: Resource,
         interpreter?: PythonEnvironment
     ): Promise<NodeJS.ProcessEnv | undefined> {
-        return this.api.getApi().then((api) => api.getActivatedEnvironmentVariables(resource, interpreter, true));
+        return this.apiProvider
+            .getApi()
+            .then((api) => api.getActivatedEnvironmentVariables(resource, interpreter, true));
     }
 }
 
 // tslint:disable-next-line: max-classes-per-file
 @injectable()
 export class InterpreterSelector implements IInterpreterSelector {
-    constructor(@inject(IPythonApiProvider) private readonly api: IPythonApiProvider) {}
+    constructor(@inject(IPythonApiProvider) private readonly apiProvider: IPythonApiProvider) {}
 
     public async getSuggestions(resource: Resource): Promise<IInterpreterQuickPickItem[]> {
-        return this.api.getApi().then((api) => api.getSuggestions(resource));
+        return this.apiProvider.getApi().then((api) => api.getSuggestions(resource));
     }
 }
 // tslint:disable-next-line: max-classes-per-file
@@ -117,21 +129,21 @@ export class InterpreterSelector implements IInterpreterSelector {
 export class InterpreterService implements IInterpreterService {
     private readonly didChangeInterpreter = new EventEmitter<void>();
 
-    constructor(@inject(IPythonApiProvider) private readonly api: IPythonApiProvider) {}
+    constructor(@inject(IPythonApiProvider) private readonly apiProvider: IPythonApiProvider) {}
 
     public get onDidChangeInterpreter(): Event<void> {
         return this.didChangeInterpreter.event;
     }
 
     public getInterpreters(resource?: Uri): Promise<PythonEnvironment[]> {
-        return this.api.getApi().then((api) => api.getInterpreters(resource));
+        return this.apiProvider.getApi().then((api) => api.getInterpreters(resource));
     }
 
     public getActiveInterpreter(resource?: Uri): Promise<PythonEnvironment | undefined> {
-        return this.api.getApi().then((api) => api.getActiveInterpreter(resource));
+        return this.apiProvider.getApi().then((api) => api.getActiveInterpreter(resource));
     }
 
     public getInterpreterDetails(pythonPath: string, resource?: Uri): Promise<undefined | PythonEnvironment> {
-        return this.api.getApi().then((api) => api.getInterpreterDetails(pythonPath, resource));
+        return this.apiProvider.getApi().then((api) => api.getInterpreterDetails(pythonPath, resource));
     }
 }

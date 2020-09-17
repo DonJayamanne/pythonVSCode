@@ -67,10 +67,6 @@ export class PythonFixture extends CleanupFixture {
         return this.spawn(filename, ...args);
     }
 
-    public runModule(name: string, ...args: string[]): Proc {
-        return this.spawn('-m', name, ...args);
-    }
-
     private spawn(...args: string[]) {
         const proc = spawn(this.python, ...args);
         this.addCleanup(async () => {

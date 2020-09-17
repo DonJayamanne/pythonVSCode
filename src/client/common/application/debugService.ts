@@ -8,7 +8,6 @@ import {
     Breakpoint,
     BreakpointsChangeEvent,
     debug,
-    DebugAdapterDescriptorFactory,
     DebugConfiguration,
     DebugConsole,
     DebugSession,
@@ -17,7 +16,6 @@ import {
     Event,
     WorkspaceFolder
 } from 'vscode';
-import { noop } from '../utils/misc';
 import { IDebugService } from './types';
 
 @injectable()
@@ -67,14 +65,5 @@ export class DebugService implements IDebugService {
     }
     public removeBreakpoints(breakpoints: Breakpoint[]): void {
         debug.removeBreakpoints(breakpoints);
-    }
-    public registerDebugAdapterDescriptorFactory(
-        _debugType: string,
-        _factory: DebugAdapterDescriptorFactory
-    ): Disposable {
-        // Not supported in the jupyter extension as the python extension is the only one allowed to do this.
-        // tslint:disable-next-line: no-suspicious-comment
-        // TODO: Do we need this in the jupyter extension?
-        return { dispose: noop };
     }
 }

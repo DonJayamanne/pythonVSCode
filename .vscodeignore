@@ -102,6 +102,7 @@ pythonFiles/**/*.pyc
 pythonFiles/lib/**/*.dist-info/**
 pythonFiles/lib/**/*.egg-info/**
 pythonFiles/lib/python/bin/**
+pythonFiles/lib/python/debugpy/**
 pythonFiles/tests/**
 scripts/**
 src/**

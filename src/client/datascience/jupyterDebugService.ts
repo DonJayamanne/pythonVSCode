@@ -26,7 +26,6 @@ import { IDisposable, IDisposableRegistry } from '../common/types';
 import { createDeferred } from '../common/utils/async';
 import { noop } from '../common/utils/misc';
 import { EXTENSION_ROOT_DIR } from '../constants';
-import { DebugAdapterDescriptorFactory } from '../debugger/extension/adapter/factory';
 import { IProtocolParser } from '../debugger/extension/types';
 import { IJupyterDebugService } from './types';
 
@@ -139,16 +138,6 @@ export class JupyterDebugService implements IJupyterDebugService, IDisposable {
         };
     }
 
-    public registerDebugAdapterDescriptorFactory(
-        _debugType: string,
-        _factory: DebugAdapterDescriptorFactory
-    ): Disposable {
-        return {
-            dispose: () => {
-                noop();
-            }
-        };
-    }
     public registerDebugAdapterTrackerFactory(_debugType: string, provider: DebugAdapterTrackerFactory): Disposable {
         this.debugAdapterTrackerFactories.push(provider);
         return {

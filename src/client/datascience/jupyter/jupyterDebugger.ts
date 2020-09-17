@@ -3,18 +3,17 @@
 'use strict';
 import type { nbformat } from '@jupyterlab/coreutils';
 import { inject, injectable, named } from 'inversify';
-import * as path from 'path';
 import * as uuid from 'uuid/v4';
 import { DebugConfiguration, Disposable } from 'vscode';
 import * as vsls from 'vsls/vscode';
 import { concatMultilineString } from '../../../datascience-ui/common';
 import { ServerStatus } from '../../../datascience-ui/interactive-common/mainState';
+import { IPythonDebuggerPathProvider } from '../../api/types';
 import { IApplicationShell } from '../../common/application/types';
 import { traceError, traceInfo, traceWarning } from '../../common/logger';
 import { IPlatformService } from '../../common/platform/types';
 import { IConfigurationService, Version } from '../../common/types';
 import * as localize from '../../common/utils/localize';
-import { EXTENSION_ROOT_DIR } from '../../constants';
 import { captureTelemetry, sendTelemetryEvent } from '../../telemetry';
 import { traceCellResults } from '../common';
 import { Identifiers, Telemetry } from '../constants';
@@ -47,6 +46,7 @@ export class JupyterDebugger implements IJupyterDebugger, ICellHashListener {
     private runningByLine: boolean = false;
     constructor(
         @inject(IApplicationShell) private appShell: IApplicationShell,
+        @inject(IPythonDebuggerPathProvider) private readonly debuggerPathProvider: IPythonDebuggerPathProvider,
         @inject(IConfigurationService) private configService: IConfigurationService,
         @inject(IJupyterDebugService)
         @named(Identifiers.MULTIPLEXING_DEBUGSERVICE)
@@ -232,20 +232,6 @@ export class JupyterDebugger implements IJupyterDebugger, ICellHashListener {
         return result;
     }
 
-    /**
-     * Gets the path to debugger.
-     * Temporary hack to check if python >= 3.7 and if experiments is enabled, then use new debugger, else old.
-     * (temporary to hard-code and use these in here).
-     * The old debugger will soon go away into oblivion...
-     * @private
-     * @param {INotebook} _notebook
-     * @returns {Promise<string>}
-     * @memberof JupyterDebugger
-     */
-    private async getDebuggerPath(_notebook: INotebook): Promise<string> {
-        // We are here so this is NOT python 3.7, return debugger without wheels
-        return path.join(EXTENSION_ROOT_DIR, 'pythonFiles', 'lib', 'python');
-    }
     private async calculateDebuggerPathList(notebook: INotebook): Promise<string | undefined> {
         const extraPaths: string[] = [];
 
@@ -267,7 +253,7 @@ export class JupyterDebugger implements IJupyterDebugger, ICellHashListener {
         // this path.
         const connectionInfo = notebook.connection;
         if (connectionInfo && connectionInfo.localLaunch) {
-            let localPath = await this.getDebuggerPath(notebook);
+            let localPath = await this.debuggerPathProvider.getDebuggerPath();
             if (this.platform.isWindows) {
                 localPath = localPath.replace(/\\/g, '\\\\');
             }

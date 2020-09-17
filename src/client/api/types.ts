@@ -51,9 +51,18 @@ export type PythonApi = {
      * Retrieve interpreter path selected for Jupyter server from Python memento storage
      */
     getInterpreterPathSelectedForJupyterServer(): Promise<string | undefined>;
+    /**
+     * Returns path to where `debugpy` is. In python extension this is `/pythonFiles/lib/python`.
+     */
+    getDebuggerPath(): Promise<string>;
 };
 
 export const IPythonInstaller = Symbol('IPythonInstaller');
 export interface IPythonInstaller {
     install(product: Product, resource?: InterpreterUri, cancel?: CancellationToken): Promise<InstallerResponse>;
+}
+
+export const IPythonDebuggerPathProvider = Symbol('IPythonDebuggerPathProvider');
+export interface IPythonDebuggerPathProvider {
+    getDebuggerPath(): Promise<string>;
 }
