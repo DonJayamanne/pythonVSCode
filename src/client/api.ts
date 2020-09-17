@@ -11,6 +11,7 @@ import { JupyterExtensionIntegration } from './datascience/api/jupyterIntegratio
 import { getDebugpyLauncherArgs, getDebugpyPackagePath } from './debugger/extension/adapter/remoteLaunchers';
 import { IInterpreterService } from './interpreter/contracts';
 import { IServiceContainer, IServiceManager } from './ioc/types';
+import { JupyterExtensionIntegration } from './jupyter/jupyterIntegration';
 
 /*
  * Do not introduce any breaking changes to this API.
