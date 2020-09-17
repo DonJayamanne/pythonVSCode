@@ -5,17 +5,9 @@
 import { IServiceManager } from '../../ioc/types';
 import { IWebviewPanelProvider } from '../application/types';
 import { WebviewPanelProvider } from '../application/webviewPanels/webviewPanelProvider';
-import { ProductType } from '../types';
 import { InsidersBuildInstaller, StableBuildInstaller } from './extensionBuildInstaller';
 import { DataScienceProductPathService } from './productPath';
-import { ProductService } from './productService';
-import {
-    IExtensionBuildInstaller,
-    INSIDERS_INSTALLER,
-    IProductPathService,
-    IProductService,
-    STABLE_INSTALLER
-} from './types';
+import { IExtensionBuildInstaller, INSIDERS_INSTALLER, IProductPathService, STABLE_INSTALLER } from './types';
 
 export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.addSingleton<IExtensionBuildInstaller>(
@@ -29,11 +21,6 @@ export function registerTypes(serviceManager: IServiceManager) {
         INSIDERS_INSTALLER
     );
 
-    serviceManager.addSingleton<IProductService>(IProductService, ProductService);
-    serviceManager.addSingleton<IProductPathService>(
-        IProductPathService,
-        DataScienceProductPathService,
-        ProductType.DataScience
-    );
+    serviceManager.addSingleton<IProductPathService>(IProductPathService, DataScienceProductPathService);
     serviceManager.addSingleton<IWebviewPanelProvider>(IWebviewPanelProvider, WebviewPanelProvider);
 }

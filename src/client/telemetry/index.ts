@@ -333,24 +333,6 @@ export interface ISharedPropertyMapping {
 // Map all events to their properties
 export interface IEventNamePropertyMapping {
     /**
-     * Telemetry event sent when providing completion items for the given position and document.
-     */
-    [EventName.COMPLETION]: never | undefined;
-    /**
-     * Telemetry event sent with details 'python.autoComplete.addBrackets' setting
-     */
-    [EventName.COMPLETION_ADD_BRACKETS]: {
-        /**
-         * Carries boolean `true` if 'python.autoComplete.addBrackets' is set to true, `false` otherwise
-         */
-        enabled: boolean;
-    };
-    /**
-     * Telemetry is sent when providing definitions for python code, particularly when [go to definition](https://code.visualstudio.com/docs/editor/editingevolved#_go-to-definition)
-     * and peek definition features are used.
-     */
-    [EventName.DEFINITION]: never | undefined;
-    /**
      * Telemetry event sent with details of actions when invoking a diagnostic command
      */
     [EventName.DIAGNOSTICS_ACTION]: {
@@ -408,79 +390,6 @@ export interface IEventNamePropertyMapping {
         hasCustomEnvPath: boolean;
     };
     /**
-     * Telemetry Event sent when user sends code to be executed in the terminal.
-     *
-     */
-    [EventName.EXECUTION_CODE]: {
-        /**
-         * Whether the user executed a file in the terminal or just the selected text.
-         *
-         * @type {('file' | 'selection')}
-         */
-        scope: 'file' | 'selection';
-        /**
-         * How was the code executed (through the command or by clicking the `Run File` icon).
-         *
-         * @type {('command' | 'icon')}
-         */
-        trigger?: 'command' | 'icon';
-    };
-    /**
-     * Telemetry Event sent when user executes code against Django Shell.
-     * Values sent:
-     * scope
-     *
-     */
-    [EventName.EXECUTION_DJANGO]: {
-        /**
-         * If `file`, then the file was executed in the django shell.
-         * If `selection`, then the selected text was sent to the django shell.
-         *
-         * @type {('file' | 'selection')}
-         */
-        scope: 'file' | 'selection';
-    };
-    /**
-     * Telemetry event sent with details when formatting a document
-     */
-    [EventName.FORMAT]: {
-        /**
-         * Tool being used to format
-         */
-        tool: 'autopep8' | 'black' | 'yapf';
-        /**
-         * If arguments for formatter is provided in resource settings
-         */
-        hasCustomArgs: boolean;
-        /**
-         * Carries `true` when formatting a selection of text, `false` otherwise
-         */
-        formatSelection: boolean;
-    };
-    /**
-     * Telemetry event sent with the value of setting 'Format on type'
-     */
-    [EventName.FORMAT_ON_TYPE]: {
-        /**
-         * Carries `true` if format on type is enabled, `false` otherwise
-         *
-         * @type {boolean}
-         */
-        enabled: boolean;
-    };
-    /**
-     * Telemetry event sent when sorting imports using formatter
-     */
-    [EventName.FORMAT_SORT_IMPORTS]: never | undefined;
-    /**
-     * Telemetry event sent when Go to Python object command is executed
-     */
-    [EventName.GO_TO_OBJECT_DEFINITION]: never | undefined;
-    /**
-     * Telemetry event sent when providing a hover for the given position and document for interactive window using Jedi.
-     */
-    [EventName.HOVER_DEFINITION]: never | undefined;
-    /**
      * Telemetry event sent with details when tracking imports
      */
     [EventName.HASHED_PACKAGE_NAME]: {
@@ -531,15 +440,6 @@ export interface IEventNamePropertyMapping {
          * @type {string}
          */
         osVersion?: string;
-    };
-    /**
-     * Telemetry is sent with details about the play run file icon
-     */
-    [EventName.PLAY_BUTTON_ICON_DISABLED]: {
-        /**
-         * Carries `true` if play button icon is not shown (because code runner is installed), `false` otherwise
-         */
-        disabled: boolean;
     };
     [EventName.PYTHON_INTERPRETER_ACTIVATION_ENVIRONMENT_VARIABLES]: {
         /**
@@ -594,105 +494,6 @@ export interface IEventNamePropertyMapping {
         selection: 'Reload' | undefined;
     };
     /**
-     * Telemetry event sent with details after attempting to download LS
-     */
-    [EventName.PYTHON_LANGUAGE_SERVER_DOWNLOADED]: {
-        /**
-         * Whether LS downloading succeeds
-         */
-        success: boolean;
-        /**
-         * Version of LS downloaded
-         */
-        lsVersion?: string;
-        /**
-         * Whether download uri starts with `https:` or not
-         */
-        usedSSL?: boolean;
-
-        /**
-         * Name of LS downloaded
-         */
-        lsName?: string;
-    };
-    /**
-     * Telemetry event sent when LS is started for workspace (workspace folder in case of multi-root)
-     */
-    [EventName.PYTHON_LANGUAGE_SERVER_ENABLED]: {
-        lsVersion?: string;
-    };
-    /**
-     * Telemetry event sent with details when downloading or extracting LS fails
-     */
-    [EventName.PYTHON_LANGUAGE_SERVER_ERROR]: {
-        /**
-         * The error associated with initializing language server
-         */
-        error: string;
-    };
-    /**
-     * Telemetry event sent with details after attempting to extract LS
-     */
-    [EventName.PYTHON_LANGUAGE_SERVER_EXTRACTED]: {
-        /**
-         * Whether LS extracting succeeds
-         */
-        success: boolean;
-        /**
-         * Version of LS extracted
-         */
-        lsVersion?: string;
-        /**
-         * Whether download uri starts with `https:` or not
-         */
-        usedSSL?: boolean;
-        /**
-         * Package name of LS extracted
-         */
-        lsName?: string;
-    };
-    /**
-     * Telemetry event sent if azure blob packages are being listed
-     */
-    [EventName.PYTHON_LANGUAGE_SERVER_LIST_BLOB_STORE_PACKAGES]: never | undefined;
-    /**
-     * Tracks if LS is supported on platform or not
-     */
-    [EventName.PYTHON_LANGUAGE_SERVER_PLATFORM_SUPPORTED]: {
-        /**
-         * Carries `true` if LS is supported, `false` otherwise
-         *
-         * @type {boolean}
-         */
-        supported: boolean;
-        /**
-         * If checking support for LS failed
-         *
-         * @type {'UnknownError'}
-         */
-        failureType?: 'UnknownError';
-    };
-    /**
-     * Telemetry event sent when LS is ready to start
-     */
-    [EventName.PYTHON_LANGUAGE_SERVER_READY]: {
-        lsVersion?: string;
-    };
-    /**
-     * Telemetry event sent when starting LS
-     */
-    [EventName.PYTHON_LANGUAGE_SERVER_STARTUP]: {
-        lsVersion?: string;
-    };
-    /**
-     * Telemetry sent from language server (details of telemetry sent can be provided by LS team)
-     */
-    [EventName.PYTHON_LANGUAGE_SERVER_TELEMETRY]: any;
-    /**
-     * Telemetry sent when the client makes a request to the language server
-     */
-    [EventName.PYTHON_LANGUAGE_SERVER_REQUEST]: any;
-    /**
      * Telemetry event sent with details when inExperiment() API is called
      */
     [EventName.PYTHON_EXPERIMENTS]: {
@@ -735,42 +536,6 @@ export interface IEventNamePropertyMapping {
         error?: string;
     };
     /**
-     * Telemetry event sent when LS is started for workspace (workspace folder in case of multi-root)
-     */
-    [EventName.LANGUAGE_SERVER_ENABLED]: {
-        lsVersion?: string;
-    };
-    /**
-     * Telemetry event sent when Node.js server is ready to start
-     */
-    [EventName.LANGUAGE_SERVER_READY]: {
-        lsVersion?: string;
-    };
-    /**
-     * Telemetry event sent when starting Node.js server
-     */
-    [EventName.LANGUAGE_SERVER_STARTUP]: {
-        lsVersion?: string;
-    };
-    /**
-     * Telemetry sent from Node.js server (details of telemetry sent can be provided by LS team)
-     */
-    [EventName.LANGUAGE_SERVER_TELEMETRY]: any;
-    /**
-     * Telemetry sent when the client makes a request to the Node.js server
-     */
-    [EventName.LANGUAGE_SERVER_REQUEST]: any;
-    /**
-     * Telemetry sent on user response to 'Try Pylance' prompt.
-     */
-    [EventName.LANGUAGE_SERVER_TRY_PYLANCE]: {
-        /**
-         * User response to the prompt.
-         * @type {string}
-         */
-        userAction: string;
-    };
-    /**
      * When user clicks a button in the python extension survey prompt, this telemetry event is sent with details
      */
     [EventName.EXTENSION_SURVEY_PROMPT]: {
@@ -780,14 +545,6 @@ export interface IEventNamePropertyMapping {
         selection: 'Yes' | 'Maybe later' | 'Do not show again' | undefined;
     };
     /**
-     * Telemetry event sent when the Python interpreter tip is shown on activation for new users.
-     */
-    [EventName.ACTIVATION_TIP_PROMPT]: never | undefined;
-    /**
-     * Telemetry event sent when the feedback survey prompt is shown on activation for new users, and they click on the survey link.
-     */
-    [EventName.ACTIVATION_SURVEY_PROMPT]: never | undefined;
-    /**
      * Telemetry sent back when join mailing list prompt is shown.
      */
     [EventName.JOIN_MAILING_LIST_PROMPT]: {
@@ -796,63 +553,6 @@ export interface IEventNamePropertyMapping {
          */
         selection: 'Yes' | 'No' | undefined;
     };
-    /**
-     * Telemetry event sent when 'Extract Method' command is invoked
-     */
-    [EventName.REFACTOR_EXTRACT_FUNCTION]: never | undefined;
-    /**
-     * Telemetry event sent when 'Extract Variable' command is invoked
-     */
-    [EventName.REFACTOR_EXTRACT_VAR]: never | undefined;
-    /**
-     * Telemetry event sent when providing an edit that describes changes to rename a symbol to a different name
-     */
-    [EventName.REFACTOR_RENAME]: never | undefined;
-    /**
-     * Telemetry event sent when providing a set of project-wide references for the given position and document
-     */
-    [EventName.REFERENCE]: never | undefined;
-    /**
-     * Telemetry event sent when starting REPL
-     */
-    [EventName.REPL]: never | undefined;
-    /**
-     * Telemetry event sent when providing help for the signature at the given position and document.
-     */
-    [EventName.SIGNATURE]: never | undefined;
-    /**
-     * Telemetry event sent when providing document symbol information for Jedi autocomplete intellisense
-     */
-    [EventName.SYMBOL]: never | undefined;
-    /**
-     * Telemetry event sent when the extension is activated, if an active terminal is present and
-     * the `python.terminal.activateEnvInCurrentTerminal` setting is set to `true`.
-     */
-    [EventName.ACTIVATE_ENV_IN_CURRENT_TERMINAL]: {
-        /**
-         * Carries boolean `true` if an active terminal is present (terminal is visible), `false` otherwise
-         */
-        isTerminalVisible?: boolean;
-    };
-    /**
-     * Telemetry event sent with details when a terminal is created
-     */
-    [EventName.TERMINAL_CREATE]: {
-        /**
-         * The default Python interpreter version to be used in terminal, inferred from resource's 'settings.json'
-         *
-         * @type {string}
-         */
-        pythonVersion?: string;
-    };
-    /**
-     * Telemetry sent when building workspace symbols
-     */
-    [EventName.WORKSPACE_SYMBOLS_BUILD]: never | undefined;
-    /**
-     * Telemetry sent when providing workspace symbols doing Project-wide search for a symbol matching the given query string
-     */
-    [EventName.WORKSPACE_SYMBOLS_GO_TO]: never | undefined;
     // Data Science
     [Telemetry.AddCellBelow]: never | undefined;
     [Telemetry.CodeLensAverageAcquisitionTime]: never | undefined;
@@ -1076,28 +776,6 @@ export interface IEventNamePropertyMapping {
     [NativeMouseCommandTelemetry.SelectKernel]: never | undefined;
     [NativeMouseCommandTelemetry.SelectServer]: never | undefined;
     [NativeMouseCommandTelemetry.ToggleVariableExplorer]: never | undefined;
-    /*
-    Telemetry event sent with details of Jedi Memory usage.
-    mem_use - Memory usage of Process in kb.
-    limit - Upper bound for memory usage of Jedi process.
-    isUserDefinedLimit - Whether the user has configfured the upper bound limit.
-    restart - Whether to restart the Jedi Process (i.e. memory > limit).
-    */
-    [EventName.JEDI_MEMORY]: { mem_use: number; limit: number; isUserDefinedLimit: boolean; restart: boolean };
-    /**
-     * Telemetry event sent when getting environment variables for an activated environment has failed.
-     *
-     * @type {(undefined | never)}
-     * @memberof IEventNamePropertyMapping
-     */
-    [EventName.ACTIVATE_ENV_TO_GET_ENV_VARS_FAILED]: {
-        /**
-         * Whether the activation commands contain the name `conda`.
-         *
-         * @type {boolean}
-         */
-        isPossiblyCondaEnv: boolean;
-    };
     /**
      * Telemetry event sent once done searching for kernel spec and interpreter for a local connection.
      *

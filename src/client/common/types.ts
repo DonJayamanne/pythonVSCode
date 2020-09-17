@@ -8,7 +8,6 @@ import {
     CancellationToken,
     ConfigurationTarget,
     Disposable,
-    DocumentSymbolProvider,
     Event,
     Extension,
     ExtensionContext,
@@ -23,8 +22,6 @@ import { InterpreterUri } from './installer/types';
 import { EnvironmentVariables } from './variables/types';
 export const IOutputChannel = Symbol('IOutputChannel');
 export interface IOutputChannel extends OutputChannel {}
-export const IDocumentSymbolProvider = Symbol('IDocumentSymbolProvider');
-export interface IDocumentSymbolProvider extends DocumentSymbolProvider {}
 export const IsWindows = Symbol('IS_WINDOWS');
 export const IDisposableRegistry = Symbol('IDisposableRegistry');
 export type IDisposableRegistry = Disposable[];
@@ -70,33 +67,7 @@ export enum InstallerResponse {
     Ignore
 }
 
-export enum ProductType {
-    Linter = 'Linter',
-    Formatter = 'Formatter',
-    TestFramework = 'TestFramework',
-    RefactoringLibrary = 'RefactoringLibrary',
-    WorkspaceSymbols = 'WorkspaceSymbols',
-    DataScience = 'DataScience'
-}
-
 export enum Product {
-    pytest = 1,
-    nosetest = 2,
-    pylint = 3,
-    flake8 = 4,
-    pycodestyle = 5,
-    pylama = 6,
-    prospector = 7,
-    pydocstyle = 8,
-    yapf = 9,
-    autopep8 = 10,
-    mypy = 11,
-    unittest = 12,
-    ctags = 13,
-    rope = 14,
-    isort = 15,
-    black = 16,
-    bandit = 17,
     jupyter = 18,
     ipykernel = 19,
     notebook = 20,
@@ -512,15 +483,3 @@ export type InspectInterpreterSettingType = {
     workspaceValue?: string;
     workspaceFolderValue?: string;
 };
-
-/**
- * Interface used to access current Interpreter Path
- */
-export const IInterpreterPathService = Symbol('IInterpreterPathService');
-export interface IInterpreterPathService {
-    onDidChange: Event<InterpreterConfigurationScope>;
-    get(resource: Resource): string;
-    inspect(resource: Resource): InspectInterpreterSettingType;
-    update(resource: Resource, configTarget: ConfigurationTarget, value: string | undefined): Promise<void>;
-    copyOldInterpreterStorageValuesToNew(resource: Uri | undefined): Promise<void>;
-}

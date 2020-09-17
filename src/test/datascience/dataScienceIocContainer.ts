@@ -62,8 +62,7 @@ import { ExperimentsManager } from '../../client/common/experiments/manager';
 import { ExperimentService } from '../../client/common/experiments/service';
 import { ProductInstaller } from '../../client/common/installer/productInstaller';
 import { DataScienceProductPathService } from '../../client/common/installer/productPath';
-import { ProductService } from '../../client/common/installer/productService';
-import { IProductPathService, IProductService } from '../../client/common/installer/types';
+import { IProductPathService } from '../../client/common/installer/types';
 import { traceError, traceInfo } from '../../client/common/logger';
 import { BrowserService } from '../../client/common/net/browser';
 import { HttpClient } from '../../client/common/net/httpClient';
@@ -101,7 +100,6 @@ import {
     IPersistentStateFactory,
     IsWindows,
     IWatchableJupyterSettings,
-    ProductType,
     Resource,
     WORKSPACE_MEMENTO
 } from '../../client/common/types';
@@ -632,15 +630,10 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
         this.serviceManager.addSingleton<KernelSwitcher>(KernelSwitcher, KernelSwitcher);
         this.serviceManager.addSingleton<IKernelDependencyService>(IKernelDependencyService, KernelDependencyService);
         this.serviceManager.addSingleton<INotebookCreationTracker>(INotebookCreationTracker, NotebookCreationTracker);
-        this.serviceManager.addSingleton<IProductService>(IProductService, ProductService);
         this.serviceManager.addSingleton<KernelDaemonPool>(KernelDaemonPool, KernelDaemonPool);
         this.serviceManager.addSingleton<KernelDaemonPreWarmer>(KernelDaemonPreWarmer, KernelDaemonPreWarmer);
         this.serviceManager.addSingleton<IVSCodeNotebook>(IVSCodeNotebook, VSCodeNotebook);
-        this.serviceManager.addSingleton<IProductPathService>(
-            IProductPathService,
-            DataScienceProductPathService,
-            ProductType.DataScience
-        );
+        this.serviceManager.addSingleton<IProductPathService>(IProductPathService, DataScienceProductPathService);
         this.serviceManager.addSingleton<IMultiStepInputFactory>(IMultiStepInputFactory, MultiStepInputFactory);
 
         // No need of reporting progress.

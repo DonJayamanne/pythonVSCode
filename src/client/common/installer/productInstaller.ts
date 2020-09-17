@@ -25,7 +25,7 @@ import {
 import { isResource } from '../utils/misc';
 import { StopWatch } from '../utils/stopWatch';
 import { ProductNames } from './productNames';
-import { InterpreterUri, IProductPathService, IProductService } from './types';
+import { InterpreterUri, IProductPathService } from './types';
 
 export { Product } from '../types';
 
@@ -37,13 +37,11 @@ export abstract class BaseInstaller {
     protected readonly appShell: IApplicationShell;
     protected readonly configService: IConfigurationService;
     private readonly workspaceService: IWorkspaceService;
-    private readonly productService: IProductService;
 
     constructor(protected serviceContainer: IServiceContainer, protected outputChannel: OutputChannel) {
         this.appShell = serviceContainer.get<IApplicationShell>(IApplicationShell);
         this.configService = serviceContainer.get<IConfigurationService>(IConfigurationService);
         this.workspaceService = serviceContainer.get<IWorkspaceService>(IWorkspaceService);
-        this.productService = serviceContainer.get<IProductService>(IProductService);
     }
 
     public promptToInstall(
@@ -77,9 +75,6 @@ export abstract class BaseInstaller {
     }
 
     public async isInstalled(product: Product, resource?: InterpreterUri): Promise<boolean | undefined> {
-        if (product === Product.unittest) {
-            return true;
-        }
         // User may have customized the module name or provided the fully qualified path.
         const interpreter = isResource(resource) ? undefined : resource;
         const uri = isResource(resource) ? resource : undefined;
@@ -106,13 +101,11 @@ export abstract class BaseInstaller {
         cancel?: CancellationToken
     ): Promise<InstallerResponse>;
     protected getExecutableNameFromSettings(product: Product, resource?: Uri): string {
-        const productType = this.productService.getProductType(product);
-        const productPathService = this.serviceContainer.get<IProductPathService>(IProductPathService, productType);
+        const productPathService = this.serviceContainer.get<IProductPathService>(IProductPathService);
         return productPathService.getExecutableNameFromSettings(product, resource);
     }
     protected isExecutableAModule(product: Product, resource?: Uri): Boolean {
-        const productType = this.productService.getProductType(product);
-        const productPathService = this.serviceContainer.get<IProductPathService>(IProductPathService, productType);
+        const productPathService = this.serviceContainer.get<IProductPathService>(IProductPathService);
         return productPathService.isExecutableAModule(product, resource);
     }
 }

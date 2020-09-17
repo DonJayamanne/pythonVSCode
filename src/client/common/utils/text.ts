@@ -3,35 +3,8 @@
 
 'use strict';
 
-import { Position, Range, TextDocument } from 'vscode';
+import { Position, Range } from 'vscode';
 import { isNumber } from './sysTypes';
-
-export function getWindowsLineEndingCount(document: TextDocument, offset: Number) {
-    //const eolPattern = new RegExp('\r\n', 'g');
-    const eolPattern = /\r\n/g;
-    const readBlock = 1024;
-    let count = 0;
-    let offsetDiff = offset.valueOf();
-
-    // In order to prevent the one-time loading of large files from taking up too much memory
-    for (let pos = 0; pos < offset; pos += readBlock) {
-        const startAt = document.positionAt(pos);
-
-        let endAt: Position;
-        if (offsetDiff >= readBlock) {
-            endAt = document.positionAt(pos + readBlock);
-            offsetDiff = offsetDiff - readBlock;
-        } else {
-            endAt = document.positionAt(pos + offsetDiff);
-        }
-
-        const text = document.getText(new Range(startAt, endAt!));
-        const cr = text.match(eolPattern);
-
-        count += cr ? cr.length : 0;
-    }
-    return count;
-}
 
 /**
  * Return the range represented by the given string.

@@ -3,14 +3,9 @@
 
 import { Uri } from 'vscode';
 import { PythonEnvironment } from '../../pythonEnvironments/info';
-import { Product, ProductType, Resource } from '../types';
+import { Product, Resource } from '../types';
 
 export type InterpreterUri = Resource | PythonEnvironment;
-
-export const IProductService = Symbol('IProductService');
-export interface IProductService {
-    getProductType(product: Product): ProductType;
-}
 export const IProductPathService = Symbol('IProductPathService');
 export interface IProductPathService {
     getExecutableNameFromSettings(product: Product, resource?: Uri): string;

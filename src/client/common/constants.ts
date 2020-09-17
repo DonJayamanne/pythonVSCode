@@ -22,15 +22,9 @@ export namespace Commands {
     export const SwitchToInsidersWeekly = 'jupyter.switchToWeeklyChannel';
 }
 export namespace Octicons {
-    export const Test_Pass = '$(check)';
-    export const Test_Fail = '$(alert)';
-    export const Test_Error = '$(x)';
-    export const Test_Skip = '$(circle-slash)';
     export const Downloading = '$(cloud-download)';
     export const Installing = '$(desktop-download)';
 }
-
-export const Button_Text_Tests_View_Output = 'View Output';
 
 export namespace Text {
     export const CodeLensRunUnitTest = 'Run Test';

@@ -41,7 +41,6 @@ import { IEnvironmentActivationService } from '../client/interpreter/activation/
 import { ServiceContainer } from '../client/ioc/container';
 import { ServiceManager } from '../client/ioc/serviceManager';
 import { IServiceContainer, IServiceManager } from '../client/ioc/types';
-import { TEST_OUTPUT_CHANNEL } from '../client/testing/common/constants';
 import { MockOutputChannel } from './mockClasses';
 import { MockMemento } from './mocks/mementos';
 import { MockProcessService } from './mocks/proc';
@@ -176,9 +175,6 @@ export class IocContainer {
             stdOutputChannel,
             STANDARD_OUTPUT_CHANNEL
         );
-        const testOutputChannel = new MockOutputChannel('Python Test - UnitTests');
-        this.disposables.push(testOutputChannel);
-        this.serviceManager.addSingletonInstance<OutputChannel>(IOutputChannel, testOutputChannel, TEST_OUTPUT_CHANNEL);
     }
     public async dispose(): Promise<void> {
         for (const disposable of this.disposables) {

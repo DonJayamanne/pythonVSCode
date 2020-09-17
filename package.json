@@ -1619,62 +1619,6 @@
         },
         "languages": [
             {
-                "id": "pip-requirements",
-                "aliases": [
-                    "pip requirements",
-                    "requirements.txt"
-                ],
-                "filenames": [
-                    "requirements.txt",
-                    "constraints.txt",
-                    "requirements.in"
-                ],
-                "filenamePatterns": [
-                    "*-requirements.txt",
-                    "requirements-*.txt",
-                    "constraints-*.txt",
-                    "*-constraints.txt",
-                    "*-requirements.in",
-                    "requirements-*.in"
-                ],
-                "configuration": "./languages/pip-requirements.json"
-            },
-            {
-                "id": "yaml",
-                "filenames": [
-                    ".condarc"
-                ]
-            },
-            {
-                "id": "toml",
-                "filenames": [
-                    "poetry.lock",
-                    "Pipfile"
-                ]
-            },
-            {
-                "id": "json",
-                "filenames": [
-                    "Pipfile.lock"
-                ]
-            },
-            {
-                "id": "ini",
-                "filenames": [
-                    ".flake8"
-                ]
-            },
-            {
-                "id": "jinja",
-                "extensions": [
-                    ".jinja2",
-                    ".j2"
-                ],
-                "aliases": [
-                    "Jinja"
-                ]
-            },
-            {
                 "id": "jupyter",
                 "aliases": [
                     "Jupyter",
@@ -1683,41 +1627,6 @@
                 "extensions": [
                     ".ipynb"
                 ]
-            }
-        ],
-        "grammars": [
-            {
-                "language": "pip-requirements",
-                "scopeName": "source.pip-requirements",
-                "path": "./syntaxes/pip-requirements.tmLanguage.json"
-            }
-        ],
-        "jsonValidation": [
-            {
-                "fileMatch": ".condarc",
-                "url": "./schemas/condarc.json"
-            },
-            {
-                "fileMatch": "environment.yml",
-                "url": "./schemas/conda-environment.json"
-            },
-            {
-                "fileMatch": "meta.yaml",
-                "url": "./schemas/conda-meta.json"
-            }
-        ],
-        "yamlValidation": [
-            {
-                "fileMatch": ".condarc",
-                "url": "./schemas/condarc.json"
-            },
-            {
-                "fileMatch": "environment.yml",
-                "url": "./schemas/conda-environment.json"
-            },
-            {
-                "fileMatch": "meta.yaml",
-                "url": "./schemas/conda-meta.json"
             }
         ],
         "notebookOutputRenderer": [
