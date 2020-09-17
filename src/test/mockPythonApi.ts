@@ -47,4 +47,7 @@ export class MockPythonApi implements PythonApi {
     ): Promise<InstallerResponse> {
         return InstallerResponse.Ignore;
     }
+    public async getInterpreterPathSelectedForJupyterServer() {
+        return undefined;
+    }
 }
