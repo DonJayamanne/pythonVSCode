@@ -27,7 +27,8 @@ import {
     IJupyterSessionManagerFactory,
     IKernelDependencyService,
     INotebookMetadataLive,
-    INotebookProviderConnection
+    INotebookProviderConnection,
+    KernelInterpreterDependencyResponse
 } from '../../types';
 import { createDefaultKernelSpec, getDisplayNameOrNameOfKernelConnection } from './helpers';
 import { KernelSelectionProvider } from './kernelSelections';
@@ -503,6 +504,8 @@ export class KernelSelector implements IKernelSelectionUsage {
         if (!kernelSpec && !activeInterpreter) {
             return;
         } else if (!kernelSpec && activeInterpreter) {
+            await this.installDependenciesIntoInterpreter(activeInterpreter, ignoreDependencyCheck, cancelToken);
+
             // Return current interpreter.
             return {
                 kind: 'startUsingPythonInterpreter',
@@ -511,6 +514,11 @@ export class KernelSelector implements IKernelSelectionUsage {
         } else if (kernelSpec) {
             // Locate the interpreter that matches our kernelspec
             const interpreter = await this.kernelService.findMatchingInterpreter(kernelSpec, cancelToken);
+
+            if (interpreter) {
+                await this.installDependenciesIntoInterpreter(interpreter, ignoreDependencyCheck, cancelToken);
+            }
+
             return { kind: 'startUsingKernelSpec', kernelSpec, interpreter };
         }
     }
@@ -542,6 +550,25 @@ export class KernelSelector implements IKernelSelectionUsage {
     private async useInterpreterAndDefaultKernel(interpreter: PythonEnvironment): Promise<KernelConnectionMetadata> {
         const kernelSpec = createDefaultKernelSpec(interpreter.displayName);
         return { kernelSpec, interpreter, kind: 'startUsingPythonInterpreter' };
+    }
+
+    // If we need to install our dependencies now (for non-native scenarios)
+    // then install ipykernel into the interpreter or throw error
+    private async installDependenciesIntoInterpreter(
+        interpreter: PythonEnvironment,
+        ignoreDependencyCheck?: boolean,
+        cancelToken?: CancellationToken
+    ) {
+        if (!ignoreDependencyCheck) {
+            if (
+                (await this.kernelDependencyService.installMissingDependencies(interpreter, cancelToken)) !==
+                KernelInterpreterDependencyResponse.ok
+            ) {
+                throw new Error(
+                    localize.DataScience.ipykernelNotInstalled().format(interpreter.displayName || interpreter.path)
+                );
+            }
+        }
     }
 
     /**

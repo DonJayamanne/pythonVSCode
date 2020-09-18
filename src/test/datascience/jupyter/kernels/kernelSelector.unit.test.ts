@@ -30,7 +30,7 @@ import {
     LiveKernelModel
 } from '../../../../client/datascience/jupyter/kernels/types';
 import { IKernelFinder } from '../../../../client/datascience/kernel-launcher/types';
-import { IJupyterSessionManager } from '../../../../client/datascience/types';
+import { IJupyterSessionManager, KernelInterpreterDependencyResponse } from '../../../../client/datascience/types';
 import { IInterpreterService } from '../../../../client/interpreter/contracts';
 import { PythonEnvironment } from '../../../../client/pythonEnvironments/info';
 
@@ -68,6 +68,9 @@ suite('DataScience - KernelSelector', () => {
         kernelSelectionProvider = mock(KernelSelectionProvider);
         appShell = mock(ApplicationShell);
         dependencyService = mock(KernelDependencyService);
+        when(dependencyService.installMissingDependencies(anything(), anything())).thenResolve(
+            KernelInterpreterDependencyResponse.ok
+        );
         interpreterService = mock<IInterpreterService>();
         kernelFinder = mock<IKernelFinder>();
         const jupyterSessionManagerFactory = mock(JupyterSessionManagerFactory);
