@@ -123,7 +123,6 @@ export namespace CodeLensCommands {
 
 export namespace EditorContexts {
     export const HasCodeCells = 'jupyter.hascodecells';
-    export const DataScienceEnabled = 'jupyter.featureenabled';
     export const HaveInteractiveCells = 'jupyter.haveinteractivecells';
     export const HaveRedoableCells = 'jupyter.haveredoablecells';
     export const HaveInteractive = 'jupyter.haveinteractive';

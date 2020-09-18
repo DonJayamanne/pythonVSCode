@@ -75,22 +75,22 @@
             {
                 "command": "jupyter.execSelectionInteractive",
                 "key": "shift+enter",
-                "when": "editorTextFocus && editorLangId == python && !findInputFocussed && !replaceInputFocussed && jupyter.ownsSelection && jupyter.featureenabled && !notebookEditorFocused"
+                "when": "editorTextFocus && editorLangId == python && !findInputFocussed && !replaceInputFocussed && jupyter.ownsSelection && !notebookEditorFocused"
             },
             {
                 "command": "jupyter.runcurrentcelladvance",
                 "key": "shift+enter",
-                "when": "editorTextFocus && !editorHasSelection && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
+                "when": "editorTextFocus && !editorHasSelection && jupyter.hascodecells && !notebookEditorFocused"
             },
             {
                 "command": "jupyter.runcurrentcell",
                 "key": "ctrl+enter",
-                "when": "editorTextFocus && !editorHasSelection && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
+                "when": "editorTextFocus && !editorHasSelection && jupyter.hascodecells && !notebookEditorFocused"
             },
             {
                 "command": "jupyter.runcurrentcellandaddbelow",
                 "key": "alt+enter",
-                "when": "editorTextFocus && !editorHasSelection && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
+                "when": "editorTextFocus && !editorHasSelection && jupyter.hascodecells && !notebookEditorFocused"
             },
             {
                 "mac": "F",
@@ -182,72 +182,72 @@
             {
                 "command": "jupyter.insertCellBelowPosition",
                 "key": "ctrl+; s",
-                "when": "editorTextFocus && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
+                "when": "editorTextFocus && jupyter.hascodecells && !notebookEditorFocused"
             },
             {
                 "command": "jupyter.insertCellBelow",
                 "key": "ctrl+; b",
-                "when": "editorTextFocus && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
+                "when": "editorTextFocus && jupyter.hascodecells && !notebookEditorFocused"
             },
             {
                 "command": "jupyter.insertCellAbove",
                 "key": "ctrl+; a",
-                "when": "editorTextFocus && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
+                "when": "editorTextFocus && jupyter.hascodecells && !notebookEditorFocused"
             },
             {
                 "command": "jupyter.deleteCells",
                 "key": "ctrl+; x",
-                "when": "editorTextFocus && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
+                "when": "editorTextFocus && jupyter.hascodecells && !notebookEditorFocused"
             },
             {
                 "command": "jupyter.extendSelectionByCellAbove",
                 "key": "ctrl+alt+shift+[",
-                "when": "editorTextFocus && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
+                "when": "editorTextFocus && jupyter.hascodecells && !notebookEditorFocused"
             },
             {
                 "command": "jupyter.extendSelectionByCellBelow",
                 "key": "ctrl+alt+shift+]",
-                "when": "editorTextFocus && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
+                "when": "editorTextFocus && jupyter.hascodecells && !notebookEditorFocused"
             },
             {
                 "command": "jupyter.moveCellsUp",
                 "key": "ctrl+; u",
-                "when": "editorTextFocus && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
+                "when": "editorTextFocus && jupyter.hascodecells && !notebookEditorFocused"
             },
             {
                 "command": "jupyter.moveCellsDown",
                 "key": "ctrl+; d",
-                "when": "editorTextFocus && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
+                "when": "editorTextFocus && jupyter.hascodecells && !notebookEditorFocused"
             },
             {
                 "command": "jupyter.changeCellToMarkdown",
                 "key": "ctrl+; m",
-                "when": "editorTextFocus && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
+                "when": "editorTextFocus && jupyter.hascodecells && !notebookEditorFocused"
             },
             {
                 "command": "jupyter.changeCellToCode",
                 "key": "ctrl+; c",
-                "when": "editorTextFocus && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
+                "when": "editorTextFocus && jupyter.hascodecells && !notebookEditorFocused"
             },
             {
                 "command": "jupyter.gotoNextCellInFile",
                 "key": "ctrl+alt+]",
-                "when": "editorTextFocus && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
+                "when": "editorTextFocus && jupyter.hascodecells && !notebookEditorFocused"
             },
             {
                 "command": "jupyter.gotoPrevCellInFile",
                 "key": "ctrl+alt+[",
-                "when": "editorTextFocus && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
+                "when": "editorTextFocus && jupyter.hascodecells && !notebookEditorFocused"
             },
             {
                 "command": "jupyter.selectCellContents",
                 "key": "ctrl+alt+\\",
-                "when": "editorTextFocus && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
+                "when": "editorTextFocus && jupyter.hascodecells && !notebookEditorFocused"
             },
             {
                 "command": "jupyter.selectCell",
                 "key": "ctrl+alt+shift+\\",
-                "when": "editorTextFocus && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
+                "when": "editorTextFocus && jupyter.hascodecells && !notebookEditorFocused"
             }
         ],
         "commands": [
@@ -653,52 +653,52 @@
         "menus": {
             "editor/context": [
                 {
-                    "when": "editorFocus && editorLangId == python && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused",
+                    "when": "editorFocus && editorLangId == python && jupyter.hascodecells && !notebookEditorFocused",
                     "command": "jupyter.runallcells",
                     "group": "Jupyter2"
                 },
                 {
-                    "when": "editorFocus && editorLangId == python && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused",
+                    "when": "editorFocus && editorLangId == python && jupyter.hascodecells && !notebookEditorFocused",
                     "command": "jupyter.runcurrentcell",
                     "group": "Jupyter2"
                 },
                 {
-                    "when": "editorFocus && editorLangId == python && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused",
+                    "when": "editorFocus && editorLangId == python && jupyter.hascodecells && !notebookEditorFocused",
                     "command": "jupyter.runcurrentcelladvance",
                     "group": "Jupyter2"
                 },
                 {
                     "command": "jupyter.runFileInteractive",
                     "group": "Jupyter2",
-                    "when": "editorFocus && editorLangId == python && jupyter.featureenabled && !notebookEditorFocused"
+                    "when": "editorFocus && editorLangId == python && !notebookEditorFocused"
                 },
                 {
                     "command": "jupyter.runfromline",
                     "group": "Jupyter2",
-                    "when": "editorFocus && editorLangId == python && jupyter.ownsSelection && jupyter.featureenabled && !notebookEditorFocused"
+                    "when": "editorFocus && editorLangId == python && jupyter.ownsSelection && !notebookEditorFocused"
                 },
                 {
                     "command": "jupyter.runtoline",
                     "group": "Jupyter2",
-                    "when": "editorFocus && editorLangId == python && jupyter.ownsSelection && jupyter.featureenabled && !notebookEditorFocused"
+                    "when": "editorFocus && editorLangId == python && jupyter.ownsSelection && !notebookEditorFocused"
                 },
                 {
                     "command": "jupyter.execSelectionInteractive",
                     "group": "Jupyter2",
-                    "when": "editorFocus && editorLangId == python && jupyter.featureenabled && jupyter.ownsSelection && !notebookEditorFocused"
+                    "when": "editorFocus && editorLangId == python && jupyter.ownsSelection && !notebookEditorFocused"
                 },
                 {
-                    "when": "editorFocus && editorLangId == python && resourceLangId == jupyter && jupyter.featureenabled && !notebookEditorFocused",
+                    "when": "editorFocus && editorLangId == python && resourceLangId == jupyter && !notebookEditorFocused",
                     "command": "jupyter.importnotebook",
                     "group": "Jupyter3@1"
                 },
                 {
-                    "when": "editorFocus && editorLangId == python && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused",
+                    "when": "editorFocus && editorLangId == python && jupyter.hascodecells && !notebookEditorFocused",
                     "command": "jupyter.exportfileasnotebook",
                     "group": "Jupyter3@2"
                 },
                 {
-                    "when": "editorFocus && editorLangId == python && jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused",
+                    "when": "editorFocus && editorLangId == python && jupyter.hascodecells && !notebookEditorFocused",
                     "command": "jupyter.exportfileandoutputasnotebook",
                     "group": "Jupyter3@3"
                 }
@@ -725,7 +725,7 @@
             ],
             "explorer/context": [
                 {
-                    "when": "resourceLangId == python && jupyter.featureenabled && !notebookEditorFocused",
+                    "when": "resourceLangId == python && !notebookEditorFocused",
                     "command": "jupyter.runFileInteractive",
                     "group": "Jupyter2"
                 },
@@ -750,19 +750,19 @@
                     "command": "jupyter.exportAsPythonScript",
                     "title": "%jupyter.command.jupyter.exportAsPythonScript.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.isnativeactive && jupyter.featureenabled && jupyter.isnotebooktrusted"
+                    "when": "jupyter.isnativeactive && jupyter.isnotebooktrusted"
                 },
                 {
                     "command": "jupyter.exportToHTML",
                     "title": "%jupyter.command.jupyter.exportToHTML.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.isnativeactive && jupyter.featureenabled && jupyter.isnotebooktrusted"
+                    "when": "jupyter.isnativeactive && jupyter.isnotebooktrusted"
                 },
                 {
                     "command": "jupyter.exportToPDF",
                     "title": "%jupyter.command.jupyter.exportToPDF.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.isnativeactive && jupyter.featureenabled && jupyter.isnotebooktrusted"
+                    "when": "jupyter.isnativeactive && jupyter.isnotebooktrusted"
                 },
                 {
                     "command": "jupyter.switchOffInsidersChannel",
@@ -786,115 +786,115 @@
                     "command": "jupyter.insertCellBelowPosition",
                     "title": "%jupyter.command.jupyter.insertCellBelowPosition.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
+                    "when": "jupyter.hascodecells && !notebookEditorFocused"
                 },
                 {
                     "command": "jupyter.insertCellBelow",
                     "title": "%jupyter.command.jupyter.insertCellBelow.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
+                    "when": "jupyter.hascodecells && !notebookEditorFocused"
                 },
                 {
                     "command": "jupyter.insertCellAbove",
                     "title": "%jupyter.command.jupyter.insertCellAbove.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
+                    "when": "jupyter.hascodecells && !notebookEditorFocused"
                 },
                 {
                     "command": "jupyter.deleteCells",
                     "title": "%jupyter.command.jupyter.deleteCells.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
+                    "when": "jupyter.hascodecells && !notebookEditorFocused"
                 },
                 {
                     "command": "jupyter.selectCell",
                     "title": "%jupyter.command.jupyter.selectCell.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
+                    "when": "jupyter.hascodecells && !notebookEditorFocused"
                 },
                 {
                     "command": "jupyter.selectCellContents",
                     "title": "%jupyter.command.jupyter.selectCellContents.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
+                    "when": "jupyter.hascodecells && !notebookEditorFocused"
                 },
                 {
                     "command": "jupyter.extendSelectionByCellAbove",
                     "title": "%jupyter.command.jupyter.extendSelectionByCellAbove.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
+                    "when": "jupyter.hascodecells && !notebookEditorFocused"
                 },
                 {
                     "command": "jupyter.extendSelectionByCellBelow",
                     "title": "%jupyter.command.jupyter.extendSelectionByCellBelow.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
+                    "when": "jupyter.hascodecells && !notebookEditorFocused"
                 },
                 {
                     "command": "jupyter.moveCellsUp",
                     "title": "%jupyter.command.jupyter.moveCellsUp.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
+                    "when": "jupyter.hascodecells && !notebookEditorFocused"
                 },
                 {
                     "command": "jupyter.moveCellsDown",
                     "title": "%jupyter.command.jupyter.moveCellsDown.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
+                    "when": "jupyter.hascodecells && !notebookEditorFocused"
                 },
                 {
                     "command": "jupyter.changeCellToMarkdown",
                     "title": "%jupyter.command.jupyter.changeCellToMarkdown.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
+                    "when": "jupyter.hascodecells && !notebookEditorFocused"
                 },
                 {
                     "command": "jupyter.changeCellToCode",
                     "title": "%jupyter.command.jupyter.changeCellToCode.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
+                    "when": "jupyter.hascodecells && !notebookEditorFocused"
                 },
                 {
                     "command": "jupyter.gotoNextCellInFile",
                     "title": "%jupyter.command.jupyter.gotoNextCellInFile.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
+                    "when": "jupyter.hascodecells && !notebookEditorFocused"
                 },
                 {
                     "command": "jupyter.gotoPrevCellInFile",
                     "title": "%jupyter.command.jupyter.gotoPrevCellInFile.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.hascodecells && jupyter.featureenabled && !notebookEditorFocused"
+                    "when": "jupyter.hascodecells && !notebookEditorFocused"
                 },
                 {
                     "command": "jupyter.runcurrentcell",
                     "title": "%jupyter.command.jupyter.runcurrentcell.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.hascodecells && jupyter.featureenabled && jupyter.ispythonornativeactive"
+                    "when": "jupyter.hascodecells && jupyter.ispythonornativeactive"
                 },
                 {
                     "command": "jupyter.runcurrentcelladvance",
                     "title": "%jupyter.command.jupyter.runcurrentcelladvance.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.hascodecells && jupyter.featureenabled && jupyter.ispythonornativeactive"
+                    "when": "jupyter.hascodecells && jupyter.ispythonornativeactive"
                 },
                 {
                     "command": "jupyter.runcurrentcellandallbelow.palette",
                     "title": "%jupyter.command.jupyter.runcurrentcellandallbelow.palette.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.hascodecells && jupyter.featureenabled && jupyter.ispythonornativeactive"
+                    "when": "jupyter.hascodecells && jupyter.ispythonornativeactive"
                 },
                 {
                     "command": "jupyter.runallcellsabove.palette",
                     "title": "%jupyter.command.jupyter.runallcellsabove.palette.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.hascodecells && jupyter.featureenabled && jupyter.ispythonornativeactive"
+                    "when": "jupyter.hascodecells && jupyter.ispythonornativeactive"
                 },
                 {
                     "command": "jupyter.debugcurrentcell.palette",
                     "title": "%jupyter.command.jupyter.debugcurrentcell.palette.title%",
                     "category": "Jupyter",
-                    "when": "editorLangId == python && jupyter.hascodecells && jupyter.featureenabled"
+                    "when": "editorLangId == python && jupyter.hascodecells"
                 },
                 {
                     "command": "jupyter.createnewinteractive",
@@ -906,7 +906,7 @@
                     "command": "jupyter.runallcells",
                     "title": "%jupyter.command.jupyter.runallcells.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.hascodecells && jupyter.featureenabled && jupyter.ispythonornativeactive"
+                    "when": "jupyter.hascodecells && jupyter.ispythonornativeactive"
                 },
                 {
                     "command": "jupyter.scrolltocell",
@@ -930,13 +930,13 @@
                     "command": "jupyter.runFileInteractive",
                     "title": "%jupyter.command.jupyter.runFileInteractive.title%",
                     "category": "Jupyter",
-                    "when": "editorLangId == python && jupyter.featureenabled && !notebookEditorFocused"
+                    "when": "editorLangId == python && !notebookEditorFocused"
                 },
                 {
                     "command": "jupyter.debugFileInteractive",
                     "title": "%jupyter.command.jupyter.debugFileInteractive.title%",
                     "category": "Jupyter",
-                    "when": "editorLangId == python && jupyter.featureenabled && !notebookEditorFocused"
+                    "when": "editorLangId == python && !notebookEditorFocused"
                 },
                 {
                     "command": "jupyter.importnotebook",
@@ -952,73 +952,73 @@
                     "command": "jupyter.exportfileasnotebook",
                     "title": "%jupyter.command.jupyter.exportfileasnotebook.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.hascodecells && jupyter.featureenabled && jupyter.ispythonorinteractiveeactive && !notebookEditorFocused"
+                    "when": "jupyter.hascodecells && jupyter.ispythonorinteractiveeactive && !notebookEditorFocused"
                 },
                 {
                     "command": "jupyter.exportfileandoutputasnotebook",
                     "title": "%jupyter.command.jupyter.exportfileandoutputasnotebook.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.hascodecells && jupyter.featureenabled && jupyter.ispythonorinteractiveeactive && !notebookEditorFocused"
+                    "when": "jupyter.hascodecells && jupyter.ispythonorinteractiveeactive && !notebookEditorFocused"
                 },
                 {
                     "command": "jupyter.undocells",
                     "title": "%jupyter.command.jupyter.undocells.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.haveinteractivecells && jupyter.featureenabled && jupyter.ispythonorinteractiveeactive && !notebookEditorFocused"
+                    "when": "jupyter.haveinteractivecells && jupyter.ispythonorinteractiveeactive && !notebookEditorFocused"
                 },
                 {
                     "command": "jupyter.redocells",
                     "title": "%jupyter.command.jupyter.redocells.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.haveredoablecells && jupyter.featureenabled && jupyter.ispythonorinteractiveornativeeactive && !notebookEditorFocused"
+                    "when": "jupyter.haveredoablecells && jupyter.ispythonorinteractiveornativeeactive && !notebookEditorFocused"
                 },
                 {
                     "command": "jupyter.removeallcells",
                     "title": "%jupyter.command.jupyter.removeallcells.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.haveinteractivecells && jupyter.featureenabled && jupyter.ispythonorinteractiveeactive"
+                    "when": "jupyter.haveinteractivecells && jupyter.ispythonorinteractiveeactive"
                 },
                 {
                     "command": "jupyter.interruptkernel",
                     "title": "%jupyter.command.jupyter.interruptkernel.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.haveinteractive && jupyter.featureenabled && jupyter.ispythonorinteractiveeactive"
+                    "when": "jupyter.haveinteractive && jupyter.ispythonorinteractiveeactive"
                 },
                 {
                     "command": "jupyter.restartkernel",
                     "title": "%jupyter.command.jupyter.restartkernel.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.haveinteractive && jupyter.featureenabled && jupyter.ispythonorinteractiveeactive"
+                    "when": "jupyter.haveinteractive && jupyter.ispythonorinteractiveeactive"
                 },
                 {
                     "command": "jupyter.notebookeditor.undocells",
                     "title": "%jupyter.command.jupyter.undocells.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.haveinteractivecells && jupyter.featureenabled && jupyter.isnativeactive && !notebookEditorFocused && jupyter.isnotebooktrusted"
+                    "when": "jupyter.haveinteractivecells && jupyter.isnativeactive && !notebookEditorFocused && jupyter.isnotebooktrusted"
                 },
                 {
                     "command": "jupyter.notebookeditor.redocells",
                     "title": "%jupyter.command.jupyter.redocells.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.havenativeredoablecells && jupyter.featureenabled && jupyter.isnativeactive && !notebookEditorFocused&& jupyter.isnotebooktrusted"
+                    "when": "jupyter.havenativeredoablecells && jupyter.isnativeactive && !notebookEditorFocused&& jupyter.isnotebooktrusted"
                 },
                 {
                     "command": "jupyter.notebookeditor.removeallcells",
                     "title": "%jupyter.command.jupyter.notebookeditor.removeallcells.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.havenativecells && jupyter.featureenabled && jupyter.isnativeactive && jupyter.isnotebooktrusted"
+                    "when": "jupyter.havenativecells && jupyter.isnativeactive && jupyter.isnotebooktrusted"
                 },
                 {
                     "command": "jupyter.notebookeditor.interruptkernel",
                     "title": "%jupyter.command.jupyter.interruptkernel.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.isnativeactive && jupyter.featureenabled && jupyter.isnotebooktrusted"
+                    "when": "jupyter.isnativeactive && jupyter.isnotebooktrusted"
                 },
                 {
                     "command": "jupyter.notebookeditor.restartkernel",
                     "title": "%jupyter.command.jupyter.restartkernel.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.isnativeactive && jupyter.featureenabled && jupyter.isnotebooktrusted"
+                    "when": "jupyter.isnativeactive && jupyter.isnotebooktrusted"
                 },
                 {
                     "command": "jupyter.notebookeditor.trust",
@@ -1030,25 +1030,25 @@
                     "command": "jupyter.notebookeditor.runallcells",
                     "title": "%jupyter.command.jupyter.notebookeditor.runallcells.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.isnativeactive && jupyter.featureenabled && jupyter.isnotebooktrusted"
+                    "when": "jupyter.isnativeactive && jupyter.isnotebooktrusted"
                 },
                 {
                     "command": "jupyter.notebookeditor.runselectedcell",
                     "title": "%jupyter.command.jupyter.notebookeditor.runselectedcell.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.isnativeactive && jupyter.featureenabled && jupyter.havecellselected && !notebookEditorFocused && jupyter.isnotebooktrusted"
+                    "when": "jupyter.isnativeactive && jupyter.havecellselected && !notebookEditorFocused && jupyter.isnotebooktrusted"
                 },
                 {
                     "command": "jupyter.notebookeditor.runselectedcell",
                     "title": "%jupyter.command.jupyter.notebookeditor.runselectedcell.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.isnativeactive && jupyter.featureenabled && notebookEditorFocused && jupyter.isnotebooktrusted"
+                    "when": "jupyter.isnativeactive && notebookEditorFocused && jupyter.isnotebooktrusted"
                 },
                 {
                     "command": "jupyter.notebookeditor.addcellbelow",
                     "title": "%jupyter.command.jupyter.notebookeditor.addcellbelow.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.isnativeactive && jupyter.featureenabled && jupyter.isnotebooktrusted"
+                    "when": "jupyter.isnativeactive && jupyter.isnotebooktrusted"
                 },
                 {
                     "command": "jupyter.notebookeditor.removeallcells",
@@ -1072,19 +1072,19 @@
                     "command": "jupyter.expandallcells",
                     "title": "%jupyter.command.jupyter.expandallcells.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.isinteractiveactive && jupyter.featureenabled"
+                    "when": "jupyter.isinteractiveactive"
                 },
                 {
                     "command": "jupyter.collapseallcells",
                     "title": "%jupyter.command.jupyter.collapseallcells.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.isinteractiveactive && jupyter.featureenabled"
+                    "when": "jupyter.isinteractiveactive"
                 },
                 {
                     "command": "jupyter.exportoutputasnotebook",
                     "title": "%jupyter.command.jupyter.exportoutputasnotebook.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.isinteractiveactive && jupyter.featureenabled"
+                    "when": "jupyter.isinteractiveactive"
                 },
                 {
                     "command": "jupyter.runcellandallbelow",
@@ -1120,7 +1120,7 @@
                     "command": "jupyter.addcellbelow",
                     "title": "%jupyter.command.jupyter.addcellbelow.title%",
                     "category": "Jupyter",
-                    "when": "jupyter.hascodecells && jupyter.featureenabled && jupyter.ispythonornativeactive"
+                    "when": "jupyter.hascodecells && jupyter.ispythonornativeactive"
                 },
                 {
                     "command": "jupyter.createnewnotebook",
@@ -1140,7 +1140,7 @@
                 {
                     "command": "jupyter.execSelectionInteractive",
                     "category": "Jupyter",
-                    "when": "editorLangId == python && jupyter.featureenabled && !notebookEditorFocused"
+                    "when": "editorLangId == python && !notebookEditorFocused"
                 },
                 {
                     "command": "jupyter.switchKernel",
