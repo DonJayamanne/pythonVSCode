@@ -50,7 +50,7 @@ export type PythonApi = {
     /**
      * Retrieve interpreter path selected for Jupyter server from Python memento storage
      */
-    getInterpreterPathSelectedForJupyterServer(): Promise<string | undefined>;
+    getInterpreterPathSelectedForJupyterServer(): string | undefined;
     /**
      * Returns path to where `debugpy` is. In python extension this is `/pythonFiles/lib/python`.
      */
