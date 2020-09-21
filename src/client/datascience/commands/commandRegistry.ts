@@ -136,12 +136,7 @@ export class CommandRegistry implements IDisposable {
         }
         // Update the setting and once updated, notify user to restart kernel.
         this.configService
-            .updateSetting(
-                'dataScience.widgetScriptSources',
-                ['jsdelivr.com', 'unpkg.com'],
-                undefined,
-                ConfigurationTarget.Global
-            )
+            .updateSetting('widgetScriptSources', ['jsdelivr.com', 'unpkg.com'], undefined, ConfigurationTarget.Global)
             .then(() => {
                 // Let user know they'll need to restart the kernel.
                 this.appShell

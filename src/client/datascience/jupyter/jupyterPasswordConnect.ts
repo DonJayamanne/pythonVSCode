@@ -367,7 +367,7 @@ export class JupyterPasswordConnect implements IJupyterPasswordConnect {
                 if (value === enableOption) {
                     sendTelemetryEvent(Telemetry.SelfCertsMessageEnabled);
                     await this.configService.updateSetting(
-                        'dataScience.allowUnauthorizedRemoteConnection',
+                        'allowUnauthorizedRemoteConnection',
                         true,
                         undefined,
                         ConfigurationTarget.Workspace

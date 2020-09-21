@@ -275,7 +275,7 @@ export class NotebookEditor implements INotebookEditor {
         const settings = this.configurationService.getSettings(this.file);
         if (settings) {
             this.configurationService
-                .updateSetting('dataScience.askForKernelRestart', false, undefined, ConfigurationTarget.Global)
+                .updateSetting('askForKernelRestart', false, undefined, ConfigurationTarget.Global)
                 .ignoreErrors();
         }
     }

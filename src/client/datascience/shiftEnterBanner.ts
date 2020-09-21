@@ -103,7 +103,7 @@ export class InteractiveShiftEnterBanner implements IPythonExtensionBanner {
     @captureTelemetry(Telemetry.DisableInteractiveShiftEnter)
     public async disableInteractiveShiftEnter(): Promise<void> {
         await this.configuration.updateSetting(
-            'dataScience.sendSelectionToInteractiveWindow',
+            'sendSelectionToInteractiveWindow',
             false,
             undefined,
             ConfigurationTarget.Global
@@ -114,7 +114,7 @@ export class InteractiveShiftEnterBanner implements IPythonExtensionBanner {
     @captureTelemetry(Telemetry.EnableInteractiveShiftEnter)
     public async enableInteractiveShiftEnter(): Promise<void> {
         await this.configuration.updateSetting(
-            'dataScience.sendSelectionToInteractiveWindow',
+            'sendSelectionToInteractiveWindow',
             true,
             undefined,
             ConfigurationTarget.Global

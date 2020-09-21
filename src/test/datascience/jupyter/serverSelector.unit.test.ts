@@ -53,7 +53,7 @@ suite('DataScience - Jupyter Server URI Selector', () => {
         const multiStepFactory = new MultiStepInputFactory(instance(applicationShell));
         // tslint:disable-next-line: no-any
         when(configService.getSettings(anything())).thenReturn(dsSettings as any);
-        when(configService.updateSetting('dataScience.jupyterServerURI', anything(), anything(), anything())).thenCall(
+        when(configService.updateSetting('jupyterServerURI', anything(), anything(), anything())).thenCall(
             (_a1, a2, _a3, _a4) => {
                 updateCallback(a2);
                 return Promise.resolve();

@@ -180,7 +180,7 @@ function loadBanner(
     config
         .setup((c) =>
             c.updateSetting(
-                typemoq.It.isValue('dataScience.sendSelectionToInteractiveWindow'),
+                typemoq.It.isValue('sendSelectionToInteractiveWindow'),
                 typemoq.It.isAny(),
                 typemoq.It.isAny(),
                 typemoq.It.isAny()

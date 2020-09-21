@@ -94,7 +94,7 @@ export class JupyterCommandLineSelector {
         }
         const split = parseArgsStringToArgv(val);
         await this.configuration.updateSetting(
-            'dataScience.jupyterCommandLineArguments',
+            'jupyterCommandLineArguments',
             split,
             undefined,
             ConfigurationTarget.Workspace

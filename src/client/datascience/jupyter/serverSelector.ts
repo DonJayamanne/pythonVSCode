@@ -131,7 +131,7 @@ export class JupyterServerSelector {
     private async setJupyterURIToLocal(): Promise<void> {
         const previousValue = this.configuration.getSettings(undefined).jupyterServerURI;
         await this.configuration.updateSetting(
-            'dataScience.jupyterServerURI',
+            'jupyterServerURI',
             Settings.JupyterServerLocalLaunch,
             undefined,
             ConfigurationTarget.Workspace
@@ -148,12 +148,7 @@ export class JupyterServerSelector {
     @captureTelemetry(Telemetry.SetJupyterURIToUserSpecified)
     private async setJupyterURIToRemote(userURI: string): Promise<void> {
         const previousValue = this.configuration.getSettings(undefined).jupyterServerURI;
-        await this.configuration.updateSetting(
-            'dataScience.jupyterServerURI',
-            userURI,
-            undefined,
-            ConfigurationTarget.Workspace
-        );
+        await this.configuration.updateSetting('jupyterServerURI', userURI, undefined, ConfigurationTarget.Workspace);
 
         // Reload if there's a change
         if (previousValue !== userURI) {

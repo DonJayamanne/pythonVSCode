@@ -243,7 +243,7 @@ export class InteractiveWindowProvider implements IInteractiveWindowProvider, IA
                     result = 'perFile';
                     firstWindow.changeMode(result);
                     await this.configService.updateSetting(
-                        'dataScience.interactiveWindowMode',
+                        'interactiveWindowMode',
                         result,
                         resource,
                         ConfigurationTarget.Global

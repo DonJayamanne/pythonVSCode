@@ -933,7 +933,7 @@ export abstract class InteractiveBase extends WebviewPanelHost<IInteractiveWindo
         const settings = this.configuration.getSettings(this.owningResource);
         if (settings) {
             this.configuration
-                .updateSetting('dataScience.askForKernelRestart', false, undefined, ConfigurationTarget.Global)
+                .updateSetting('askForKernelRestart', false, undefined, ConfigurationTarget.Global)
                 .ignoreErrors();
         }
     }
@@ -947,7 +947,7 @@ export abstract class InteractiveBase extends WebviewPanelHost<IInteractiveWindo
         const settings = this.configuration.getSettings(this.owningResource);
         if (settings) {
             this.configuration
-                .updateSetting('dataScience.askForLargeDataFrames', false, undefined, ConfigurationTarget.Global)
+                .updateSetting('askForLargeDataFrames', false, undefined, ConfigurationTarget.Global)
                 .ignoreErrors();
         }
     }

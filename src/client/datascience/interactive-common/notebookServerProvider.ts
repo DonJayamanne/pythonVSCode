@@ -144,7 +144,7 @@ export class NotebookServerProvider implements IJupyterServerProvider {
                             sendTelemetryEvent(Telemetry.SelfCertsMessageEnabled);
                             this.configuration
                                 .updateSetting(
-                                    'dataScience.allowUnauthorizedRemoteConnection',
+                                    'allowUnauthorizedRemoteConnection',
                                     true,
                                     undefined,
                                     ConfigurationTarget.Workspace
