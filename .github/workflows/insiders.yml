@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - temp
 
 env:
   PYTHON_VERSION: 3.8
@@ -140,17 +141,85 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Cache pip files
+      # 1. Cache Python Dependencies.
+      # Caching (https://github.com/actions/cache/blob/main/examples.md#python---pip
+      - name: Cache
         uses: actions/cache@v2
+        if: startsWith(runner.os, 'Linux')
         with:
           path: ~/.cache/pip
-          key: ${{runner.os}}-${{env.CACHE_PIP_DEPS}}-${{env.PYTHON_VERSION}}-${{hashFiles('requirements.txt')}}-${{hashFiles('build/debugger-install-requirements.txt')}}
+          key: ${{ runner.os }}-pip-${{env.PYTHON_VERSION}}-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{env.PYTHON_VERSION}}-
 
-      - name: Cache npm files
-        uses: actions/cache@v2
+      - uses: actions/cache@v2
+        if: startsWith(runner.os, 'macOS')
+        with:
+          path: ~/Library/Caches/pip
+          key: ${{ runner.os }}-pip-${{env.PYTHON_VERSION}}-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{env.PYTHON_VERSION}}-
+
+      - uses: actions/cache@v2
+        if: startsWith(runner.os, 'Windows')
+        with:
+          path: ~\AppData\Local\pip\Cache
+          key: ${{ runner.os }}-pip-${{env.PYTHON_VERSION}}-${{ hashFiles('requirements.txt') }}
+            restore-keys: |
+              ${{ runner.os }}-pip-${{env.PYTHON_VERSION}}-
+
+      # 2. Install Python Dependencies.
+
+      # For faster/better builds of sdists.
+      - run: python -m pip install wheel
+        shell: bash
+
+      - run: python -m pip --disable-pip-version-check install -t ./pythonFiles/lib/python --no-cache-dir --implementation py --no-deps --upgrade -r requirements.txt
+        shell: bash
+
+      # debugpy is not shipped, only installed for local tests.
+      # In production, we get debugpy from python extension.
+      - run: |
+          python -m pip --disable-pip-version-check install -r build debugger-install-requirements.txt
+          python ./pythonFiles/install_debugpy.py
+        shell: bash
+
+      - name: Install functional test requirements
+        run: |
+          python -m pip install numpy
+          python -m pip install --upgrade -r ./build/functional-test-requirements.txt
+          python -m pip install --upgrade -r ./build/conda-functional-requirements.txt
+        # if: ${{ inputs.install_functional_test_dependencies == 'true' }}
+
+
+      # 3. Caching of npm packages (https://github.com/actions/cache/blob/main/examples.md#node---npm)
+      - uses: actions/cache@v2
+        if: startsWith(runner.os, 'Windows') != true
         with:
           path: ~/.npm
-          key: ${{runner.os}}-${{env.CACHE_NPM_DEPS}}-${{hashFiles('package-lock.json')}}
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Get npm cache directory
+        if: startsWith(runner.os, 'Windows') != true
+        id: npm-cache
+        run: |
+          echo "::set-output name=dir::$(npm config get cache)"
+      - uses: actions/cache@v2
+        if: startsWith(runner.os, 'Windows')
+        with:
+          path: ${{ steps.npm-cache.outputs.dir }}
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      # 4. Install npm Dependencies.
+
+      - run: npm ci --prefer-offline
+        shell: bash
+
+      # End Setup
 
       - name: Cache compiled TS files
         # Use an id for this step so that its cache-hit output can be accessed and checked in the next step.
@@ -160,8 +229,8 @@ jobs:
           path: ./out
           key: ${{runner.os}}-${{env.CACHE_OUT_DIRECTORY}}-${{hashFiles('src/**')}}
 
-      - name: Install dependencies (npm ci)
-        run: npm ci
+      # - name: Install dependencies (npm ci)
+      #   run: npm ci
 
       - name: Compile if not cached
         run: npx gulp prePublishNonBundle
