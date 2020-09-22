@@ -128,7 +128,7 @@ jobs:
       matrix:
         # We're not running CI on macOS for now because it's one less matrix entry to lower the number of runners used,
         # macOS runners are expensive, and we assume that Ubuntu is enough to cover the UNIX case.
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
         # Run the tests on the oldest and most recent versions of Python.
         python: [2.7, 3.8]
         test-suite: [ts-unit, python-unit, venv, single-workspace, multi-workspace, debugger, functional]
@@ -159,7 +159,8 @@ jobs:
       # Caching (https://github.com/actions/cache/blob/main/examples.md#python---pip
       - name: Cache
         uses: actions/cache@v2
-        if: startsWith(runner.os, 'Linux')
+        # if: startsWith(runner.os, 'Linux')
+        if: matrix.test-suite == 'functional' && matrix.os == 'ubuntu-latest'
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{env.PYTHON_VERSION}}-${{ hashFiles('requirements.txt') }}
@@ -167,7 +168,7 @@ jobs:
             ${{ runner.os }}-pip-${{env.PYTHON_VERSION}}-
 
       - uses: actions/cache@v2
-        if: startsWith(runner.os, 'macOS')
+        if: matrix.test-suite == 'functional' && matrix.os == 'macos-latest'
         with:
           path: ~/Library/Caches/pip
           key: ${{ runner.os }}-pip-${{env.PYTHON_VERSION}}-${{ hashFiles('requirements.txt') }}
@@ -175,7 +176,8 @@ jobs:
             ${{ runner.os }}-pip-${{env.PYTHON_VERSION}}-
 
       - uses: actions/cache@v2
-        if: startsWith(runner.os, 'Windows')
+        # if: startsWith(runner.os, 'Windows')
+        if: matrix.test-suite == 'functional' && matrix.os == 'windows-latest'
         with:
           path: ~\AppData\Local\pip\Cache
           key: ${{ runner.os }}-pip-${{env.PYTHON_VERSION}}-${{ hashFiles('requirements.txt') }}
@@ -186,10 +188,12 @@ jobs:
 
       # For faster/better builds of sdists.
       - run: python -m pip install wheel
+        if: matrix.test-suite == 'functional'
         shell: bash
 
       - run: python -m pip --disable-pip-version-check install -t ./pythonFiles/lib/python --no-cache-dir --implementation py --no-deps --upgrade -r requirements.txt
         shell: bash
+        if: matrix.test-suite == 'functional'
 
       # debugpy is not shipped, only installed for local tests.
       # In production, we get debugpy from python extension.
@@ -197,8 +201,10 @@ jobs:
           python -m pip --disable-pip-version-check install -r build/debugger-install-requirements.txt
           python ./pythonFiles/install_debugpy.py
         shell: bash
+        if: matrix.test-suite == 'functional'
 
       - name: Install functional test requirements
+        if: matrix.test-suite == 'functional'
         run: |
           python -m pip install numpy
           python -m pip install --upgrade -r ./build/functional-test-requirements.txt
