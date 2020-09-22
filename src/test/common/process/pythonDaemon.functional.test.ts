@@ -24,8 +24,8 @@ import { IPythonExecutionService } from '../../../client/common/process/types';
 import { IDisposable } from '../../../client/common/types';
 import { EXTENSION_ROOT_DIR } from '../../../client/constants';
 import { PythonVersionInfo } from '../../../client/pythonEnvironments/info';
+import { parsePythonVersion } from '../../../client/pythonEnvironments/info/pythonVersion';
 import { isPythonVersion, PYTHON_PATH } from '../../common';
-import { parsePythonVersion } from '../../interpreters/pythonVersion';
 import { createTemporaryFile } from '../../utils/fs';
 use(chaiPromised);
 

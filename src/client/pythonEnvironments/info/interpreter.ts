@@ -2,9 +2,9 @@
 // Licensed under the MIT License.
 
 import { InterpreterInformation } from '.';
-import { parsePythonVersion } from '../../../test/interpreters/pythonVersion';
 import { interpreterInfo as getInterpreterInfoCommand, PythonEnvInfo } from '../../common/process/internal/scripts';
 import { copyPythonExecInfo, PythonExecInfo } from '../exec';
+import { parsePythonVersion } from './pythonVersion';
 
 /**
  * Compose full interpreter information based on the given data.

@@ -292,14 +292,13 @@ jobs:
       # debugpy  & Jedi LS is not shipped, only installed for local tests.
       # In production, we get debugpy & LS from python extension.
       - name: Install functional test requirements
+        #   python -m pip --disable-pip-version-check install -t ./pythonFiles/lib/python --no-cache-dir --implementation py --no-deps --upgrade -r requirements.txt
         run: |
-          python -m pip --disable-pip-version-check install -t ./pythonFiles/lib/python --no-cache-dir --implementation py --no-deps --upgrade -r requirements.txt
           python -m pip --disable-pip-version-check install -r build/debugger-install-requirements.txt
           python ./pythonFiles/install_debugpy.py
           python -m pip install numpy
           python -m pip install --upgrade -r build/test-requirements.txt
           python -m pip install --upgrade -r ./build/ipython-test-requirements.txt
-          python -m pip install --upgrade -r ./build/functional-test-requirements.txt
           python -m pip install --upgrade -r ./build/conda-functional-requirements.txt
 
       - name: Install dependencies (npm ci)
