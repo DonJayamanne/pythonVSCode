@@ -122,19 +122,35 @@ jobs:
     name: Type Script Tests
     # The value of runs-on is the OS of the current job (specified in the strategy matrix below) instead of being hardcoded.
     runs-on: ${{ matrix.os }}
-    if: github.repository == 'microsoft/vscode-jupyter'
+    # if: github.repository == 'microsoft/vscode-jupyter'
     strategy:
       fail-fast: false
       matrix:
         # We're not running CI on macOS for now because it's one less matrix entry to lower the number of runners used,
         # macOS runners are expensive, and we assume that Ubuntu is enough to cover the UNIX case.
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
         test-suite: [ts-unit]
     env:
       NODE_VERSION: 12.15.0
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+
+      - name: Use Python ${{env.PYTHON_VERSION}}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{env.PYTHON_VERSION}}
+
+      - name: Upgrade pip
+        run: python -m pip install -U pip
+
+      - name: Install Dependencies
+        uses: ./.github/actions/install-dependencies
+        id: install-dependencies
+        with:
+          install_python_dependencies: true
+          install_npm_dependencies: true
+
 
       - name: Cache npm files
         uses: actions/cache@v2
