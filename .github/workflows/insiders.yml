@@ -8,6 +8,7 @@ on:
 
 env:
   PYTHON_VERSION: 3.8
+  NODE_VERSION: 12.15.0
   MOCHA_REPORTER_JUNIT: true # Use the mocha-multi-reporters and send output to both console (spec) and JUnit (mocha-junit-reporter). Also enables a reporter which exits the process running the tests if it haven't already.
   CACHE_NPM_DEPS: cache-npm
   CACHE_OUT_DIRECTORY: cache-out-directory
@@ -141,6 +142,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Use Node ${{env.NODE_VERSION}}
+        uses: actions/setup-node@v2.1.1
+        with:
+          node-version: ${{env.NODE_VERSION}}
+
+      - name: Use Python ${{env.PYTHON_VERSION}}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{env.PYTHON_VERSION}}
+
+      - name: Upgrade pip
+        run: python -m pip install -U pip
+
       # 1. Cache Python Dependencies.
       # Caching (https://github.com/actions/cache/blob/main/examples.md#python---pip
       - name: Cache
@@ -189,9 +203,8 @@ jobs:
           python -m pip install numpy
           python -m pip install --upgrade -r ./build/functional-test-requirements.txt
           python -m pip install --upgrade -r ./build/conda-functional-requirements.txt
+
         # if: ${{ inputs.install_functional_test_dependencies == 'true' }}
-
-
       # 3. Caching of npm packages (https://github.com/actions/cache/blob/main/examples.md#node---npm)
       - uses: actions/cache@v2
         if: startsWith(runner.os, 'Windows') != true
