@@ -130,14 +130,9 @@ jobs:
         # macOS runners are expensive, and we assume that Ubuntu is enough to cover the UNIX case.
         os: [ubuntu-latest, windows-latest, macos-latest]
         # Run the tests on the oldest and most recent versions of Python.
-        python: [2.7, 3.8]
+        python: [3.8]
+        # python: [2.7, 3.8]
         test-suite: [ts-unit, python-unit, venv, single-workspace, multi-workspace, debugger, functional]
-    env:
-      # Something in Node 12.16.0 breaks the TS debug adapter, and ubuntu-latest bundles Node 12.16.1.
-      # We can remove this when we switch over to the python-based DA in https://github.com/microsoft/vscode-python/issues/7136.
-      # See https://github.com/microsoft/ptvsd/issues/2068
-      # At this point pinning is only needed for consistency. We no longer have TS debug adapter.
-      NODE_VERSION: 12.15.0
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -147,10 +142,10 @@ jobs:
         with:
           node-version: ${{env.NODE_VERSION}}
 
-      - name: Use Python ${{env.PYTHON_VERSION}}
+      - name: Use Python ${{matrix.python}}
         uses: actions/setup-python@v2
         with:
-          python-version: ${{env.PYTHON_VERSION}}
+          python-version: ${{matrix.python}}
 
       - name: Upgrade pip
         run: python -m pip install -U pip
@@ -199,20 +194,15 @@ jobs:
 
       # debugpy is not shipped, only installed for local tests.
       # In production, we get debugpy from python extension.
-      - run: |
-          python -m pip --disable-pip-version-check install -r build/debugger-install-requirements.txt
-          python ./pythonFiles/install_debugpy.py
-        shell: bash
-        if: matrix.test-suite == 'functional'
-
       - name: Install functional test requirements
         if: matrix.test-suite == 'functional'
         run: |
+          python -m pip --disable-pip-version-check install -r build/debugger-install-requirements.txt
+          python ./pythonFiles/install_debugpy.py
           python -m pip install numpy
           python -m pip install --upgrade -r ./build/functional-test-requirements.txt
           python -m pip install --upgrade -r ./build/conda-functional-requirements.txt
 
-        # if: ${{ inputs.install_functional_test_dependencies == 'true' }}
       # 3. Caching of npm packages (https://github.com/actions/cache/blob/main/examples.md#node---npm)
       - name: Cache npm on linux/mac
         uses: actions/cache@v2
@@ -258,16 +248,6 @@ jobs:
       - name: Compile if not cached
         run: npx gulp prePublishNonBundle
         if: steps.out-cache.outputs.cache-hit == false
-
-      - name: Use Python ${{matrix.python}}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{matrix.python}}
-
-      - name: Use Node ${{env.NODE_VERSION}}
-        uses: actions/setup-node@v2.1.1
-        with:
-          node-version: ${{env.NODE_VERSION}}
 
       - name: Install Python requirements
         run: |
@@ -436,6 +416,14 @@ jobs:
       - name: Run functional tests
         run: npm run test:functional
         if: matrix.test-suite == 'functional'
+
+      - name: Run functional tests with Python
+        run: npm run test:functional
+        if: matrix.test-suite == 'functional'
+        env:
+            VSCODE_PYTHON_ROLLING: 1
+            VSC_PYTHON_FORCE_LOGGING: 1
+            CI_PYTHON_PATH: python
 
   smoke-tests:
     name: Smoke tests
