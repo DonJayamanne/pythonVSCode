@@ -213,7 +213,7 @@ jobs:
         # if: ${{ inputs.install_functional_test_dependencies == 'true' }}
       # 3. Caching of npm packages (https://github.com/actions/cache/blob/main/examples.md#node---npm)
       - uses: actions/cache@v2
-        if: startsWith(runner.os, 'Windows') != true
+        if: matrix.os != 'windows-latest'
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
@@ -221,12 +221,12 @@ jobs:
             ${{ runner.os }}-node-
 
       - name: Get npm cache directory
-        if: startsWith(runner.os, 'Windows') != true
+        if: matrix.os == 'windows-latest'
         id: npm-cache
         run: |
           echo "::set-output name=dir::$(npm config get cache)"
       - uses: actions/cache@v2
-        if: startsWith(runner.os, 'Windows')
+        if: matrix.os == 'windows-latest'
         with:
           path: ${{ steps.npm-cache.outputs.dir }}
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
