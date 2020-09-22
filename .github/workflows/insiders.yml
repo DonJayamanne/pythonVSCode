@@ -165,8 +165,8 @@ jobs:
         with:
           path: ~\AppData\Local\pip\Cache
           key: ${{ runner.os }}-pip-${{env.PYTHON_VERSION}}-${{ hashFiles('requirements.txt') }}
-            restore-keys: |
-              ${{ runner.os }}-pip-${{env.PYTHON_VERSION}}-
+          restore-keys: |
+            ${{ runner.os }}-pip-${{env.PYTHON_VERSION}}-
 
       # 2. Install Python Dependencies.
 
