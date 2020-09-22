@@ -38,29 +38,64 @@
             {
                 "type": "extensionHost",
                 "request": "launch",
-                "name": "Python + Jupyter Extension",
+                "name": "Jupyter + Python Extension",
                 "args": [
                     "--enable-proposed-api",
                     "--extensionDevelopmentPath=${workspaceFolder:vscode-python}",
                     "--extensionDevelopmentPath=${workspaceFolder:vscode-jupyter}"
                 ],
+                "stopOnEntry": false,
+                "sourceMaps": true,
                 "outFiles": [
                     "${workspaceFolder:vscode-python}/out/**/*.js",
                     "!${workspaceFolder:vscode-python}/**/node_modules**/*",
                     "${workspaceFolder:vscode-jupyter}/out/**/*.js",
                     "!${workspaceFolder:vscode-jupyter}/**/node_modules**/*"
+                ],
+                "skipFiles": [
+                    "<node_internals>/**"
                 ]
             },
             {
                 "type": "extensionHost",
                 "request": "launch",
-                "name": "Python + Jupyter + Renderer Extension",
+                "name": "Jupyter + Python Smoke Tests",
+                "args": [
+                    "${workspaceFolder:vscode-jupyter}/src/testMultiRootWkspc/smokeTests",
+                    "--enable-proposed-api",
+                    "--extensionDevelopmentPath=${workspaceFolder:vscode-python}",
+                    "--extensionDevelopmentPath=${workspaceFolder:vscode-jupyter}",
+                    "--extensionTestsPath=${workspaceFolder:vscode-jupyter}/out/test"
+                ],
+                "env": {
+                    "CI_PYTHON_PATH": "<PythonPath>",
+                    "VSC_PYTHON_SMOKE_TEST": "1",
+                    "VSC_JUPYTER_CI_TEST_GREP": "Smoke Test"
+                },
+                "stopOnEntry": false,
+                "sourceMaps": true,
+                "outFiles": [
+                    "${workspaceFolder:vscode-python}/out/**/*.js",
+                    "!${workspaceFolder:vscode-python}/**/node_modules**/*",
+                    "${workspaceFolder:vscode-jupyter}/out/**/*.js",
+                    "!${workspaceFolder:vscode-jupyter}/**/node_modules**/*"
+                ],
+                "skipFiles": [
+                    "<node_internals>/**"
+                ]
+            },
+            {
+                "type": "extensionHost",
+                "request": "launch",
+                "name": "Jupyter + Python + Renderer Extension",
                 "args": [
                     "--enable-proposed-api",
                     "--extensionDevelopmentPath=${workspaceFolder:vscode-python}",
                     "--extensionDevelopmentPath=${workspaceFolder:vscode-jupyter}",
                     "--extensionDevelopmentPath=${workspaceFolder:vscode-notebook-renderers}"
                 ],
+                "stopOnEntry": false,
+                "sourceMaps": true,
                 "outFiles": [
                     "${workspaceFolder:vscode-python}/out/**/*.js",
                     "!${workspaceFolder:vscode-python}/**/node_modules**/*",
@@ -68,6 +103,9 @@
                     "!${workspaceFolder:vscode-jupyter}/**/node_modules**/*",
                     "${workspaceFolder:vscode-notebook-renderers}/out/**/*.js",
                     "!${workspaceFolder:vscode-notebook-renderers}/**/node_modules**/*"
+                ],
+                "skipFiles": [
+                    "<node_internals>/**"
                 ]
             }
         ],

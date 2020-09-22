@@ -109,13 +109,14 @@
             "runtimeExecutable": "${execPath}",
             "args": [
                 "${workspaceFolder:vscode-jupyter}/src/testMultiRootWkspc/smokeTests",
-                "--disable-extensions",
                 "--enable-proposed-api",
                 "--extensionDevelopmentPath=${workspaceFolder:vscode-python}",
                 "--extensionDevelopmentPath=${workspaceFolder:vscode-jupyter}",
-                "--extensionTestsPath=${workspaceFolder}/out/test"
+                "--extensionTestsPath=${workspaceFolder:vscode-jupyter}/out/test"
             ],
             "env": {
+                "CI_PYTHON_PATH": "<Python Path>",
+                "VSC_PYTHON_SMOKE_TEST": "1",
                 "VSC_JUPYTER_CI_TEST_GREP": "Smoke Test"
             },
             "stopOnEntry": false,
