@@ -157,7 +157,7 @@ jobs:
 
       # 1. Cache Python Dependencies.
       # Caching (https://github.com/actions/cache/blob/main/examples.md#python---pip
-      - name: Cache
+      - name: Cache pip on linux
         uses: actions/cache@v2
         # if: startsWith(runner.os, 'Linux')
         if: matrix.test-suite == 'functional' && matrix.os == 'ubuntu-latest'
@@ -167,7 +167,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-${{env.PYTHON_VERSION}}-
 
-      - uses: actions/cache@v2
+      - name: Cache pip on mac
+        uses: actions/cache@v2
         if: matrix.test-suite == 'functional' && matrix.os == 'macos-latest'
         with:
           path: ~/Library/Caches/pip
@@ -175,7 +176,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-${{env.PYTHON_VERSION}}-
 
-      - uses: actions/cache@v2
+      - name: Cache pip on windows
+        uses: actions/cache@v2
         # if: startsWith(runner.os, 'Windows')
         if: matrix.test-suite == 'functional' && matrix.os == 'windows-latest'
         with:
@@ -212,7 +214,8 @@ jobs:
 
         # if: ${{ inputs.install_functional_test_dependencies == 'true' }}
       # 3. Caching of npm packages (https://github.com/actions/cache/blob/main/examples.md#node---npm)
-      - uses: actions/cache@v2
+      - name: Cache npm on linux/mac
+        uses: actions/cache@v2
         if: matrix.os != 'windows-latest'
         with:
           path: ~/.npm
@@ -225,7 +228,8 @@ jobs:
         id: npm-cache
         run: |
           echo "::set-output name=dir::$(npm config get cache)"
-      - uses: actions/cache@v2
+      - name: Cache npm on windows
+        uses: actions/cache@v2
         if: matrix.os == 'windows-latest'
         with:
           path: ${{ steps.npm-cache.outputs.dir }}
