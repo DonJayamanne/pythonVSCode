@@ -194,7 +194,7 @@ jobs:
       # debugpy is not shipped, only installed for local tests.
       # In production, we get debugpy from python extension.
       - run: |
-          python -m pip --disable-pip-version-check install -r build debugger-install-requirements.txt
+          python -m pip --disable-pip-version-check install -r build/debugger-install-requirements.txt
           python ./pythonFiles/install_debugpy.py
         shell: bash
 
