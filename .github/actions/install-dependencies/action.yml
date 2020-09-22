@@ -14,7 +14,8 @@ runs:
   steps:
     # 1. Cache Python Dependencies.
     # Caching (https://github.com/actions/cache/blob/main/examples.md#python---pip
-    - uses: actions/cache@v2
+    - name: Cache
+      uses: actions/cache@v2
       if: ${{ startsWith(runner.os, 'Linux') && inputs.install_python_dependencies == 'true' }}
       with:
         path: ~/.cache/pip
