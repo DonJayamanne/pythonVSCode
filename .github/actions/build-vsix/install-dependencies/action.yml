@@ -1,0 +1,94 @@
+name: 'Install Dependencies'
+description: "Install Python, Node Dependencies"
+
+inputs:
+    install_python_dependencies:
+      description: 'Install Core (shipped with extension) Python dependencies'
+      default: 'false'
+    install_npm_dependencies:
+      description: 'Install NPM dependencies dependencies'
+      default: 'false'
+
+runs:
+  using: 'composite'
+  steps:
+    # 1. Cache Python Dependencies.
+    # Caching (https://github.com/actions/cache/blob/main/examples.md#python---pip
+    - uses: actions/cache@v2
+      if: ${{ startsWith(runner.os, 'Linux') && inputs.install_python_dependencies == 'true' }}
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - uses: actions/cache@v2
+      if: ${{ startsWith(runner.os, 'macOS') && inputs.install_python_dependencies == 'true' }}
+      with:
+        path: ~/Library/Caches/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - uses: actions/cache@v2
+      if: ${{ startsWith(runner.os, 'Windows') && inputs.install_python_dependencies == 'true' }}
+      with:
+        path: ~\AppData\Local\pip\Cache
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+    # 2. Install Python Dependencies.
+
+    # For faster/better builds of sdists.
+    - run: python -m pip install wheel
+      shell: bash
+      if: ${{ inputs.install_python_dependencies == 'true' }}
+
+    - run: python -m pip --disable-pip-version-check install -t ./pythonFiles/lib/python --no-cache-dir --implementation py --no-deps --upgrade -r requirements.txt
+      shell: bash
+      if: ${{ inputs.install_python_dependencies == 'true' }}
+
+    # debugpy is not shipped, only installed for local tests.
+    # In production, we get debugpy from python extension.
+    - run: |
+        python -m pip --disable-pip-version-check install -r build debugger-install-requirements.txt
+        python ./pythonFiles/install_debugpy.py
+      shell: bash
+      if: ${{ inputs.install_functional_test_dependencies == 'true' }}
+
+    - name: Install functional test requirements
+      run: |
+        python -m pip install numpy
+        python -m pip install --upgrade -r ./build/functional-test-requirements.txt
+        python -m pip install --upgrade -r ./build/conda-functional-requirements.txt
+      if: ${{ inputs.install_functional_test_dependencies == 'true' }}
+
+
+    # 3. Caching of npm packages (https://github.com/actions/cache/blob/main/examples.md#node---npm)
+    - uses: actions/cache@v2
+      if: ${{ startsWith(runner.os, 'Windows') != true && inputs.install_npm_dependencies == 'true' }}
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    - name: Get npm cache directory
+      if: ${{ startsWith(runner.os, 'Windows') = true && inputs.install_npm_dependencies == 'true' }}
+      id: npm-cache
+      run: |
+        echo "::set-output name=dir::$(npm config get cache)"
+    - uses: actions/cache@v2
+      if: ${{ startsWith(runner.os, 'Windows') = true && inputs.install_npm_dependencies == 'true' }}
+      with:
+        path: ${{ steps.npm-cache.outputs.dir }}
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    # 4. Install npm Dependencies.
+
+    - run: npm ci --prefer-offline
+      shell: bash
+      if: ${{ inputs.install_npm_dependencies == 'true' }}
