@@ -2,12 +2,12 @@ name: 'Install Dependencies'
 description: "Install Python, Node Dependencies"
 
 inputs:
-    install_python_dependencies:
-      description: 'Install Core (shipped with extension) Python dependencies'
-      default: 'false'
-    install_npm_dependencies:
-      description: 'Install NPM dependencies dependencies'
-      default: 'false'
+  install_python_dependencies:
+    description: 'Install Core (shipped with extension) Python dependencies'
+    default: 'false'
+  install_npm_dependencies:
+    description: 'Install NPM dependencies dependencies'
+    default: 'false'
 
 runs:
   using: 'composite'
