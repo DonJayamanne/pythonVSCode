@@ -83,7 +83,8 @@ import {
     typeCode,
     verifyCellIndex,
     verifyCellSource,
-    verifyHtmlOnCell
+    verifyHtmlOnCell,
+    verifyServerStatus
 } from './testHelpers';
 import { ITestNativeEditorProvider } from './testNativeEditorProvider';
 
@@ -714,6 +715,8 @@ df.head()`;
 
                         // Make sure it has a server
                         assert.ok(editor.editor.notebook, 'Notebook did not start with a server');
+                        // Make sure it does have a name though
+                        verifyServerStatus(editor.mount.wrapper, 'local');
                     } else {
                         context.skip();
                     }
@@ -734,6 +737,9 @@ df.head()`;
 
                         // Make sure it does not have a server
                         assert.notOk(editor.editor.notebook, 'Notebook should not start with a server');
+
+                        // Make sure it does have a name though
+                        verifyServerStatus(editor.mount.wrapper, 'local');
                     } else {
                         context.skip();
                     }

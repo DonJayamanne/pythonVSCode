@@ -52,7 +52,7 @@ import { captureTelemetry, sendTelemetryEvent } from '../../telemetry';
 import { generateCellRangesFromDocument } from '../cellFactory';
 import { CellMatcher } from '../cellMatcher';
 import { addToUriList, translateKernelLanguageToMonaco } from '../common';
-import { Commands, Identifiers, Telemetry } from '../constants';
+import { Commands, Identifiers, Settings, Telemetry } from '../constants';
 import { ColumnWarningSize, IDataViewerFactory } from '../data-viewing/types';
 import {
     IAddedSysInfo,
@@ -223,14 +223,11 @@ export abstract class InteractiveBase extends WebviewPanelHost<IInteractiveWindo
 
         // When the variable service requests a refresh, refresh our variable list
         this.disposables.push(this.jupyterVariables.refreshRequired(this.refreshVariables.bind(this)));
-    }
 
-    public async show(preserveFocus: boolean = true): Promise<void> {
-        // Verify a server that matches us hasn't started already
-        this.createNotebookIfProviderConnectionExists().ignoreErrors();
-
-        // Show our web panel.
-        return super.show(preserveFocus);
+        // If we have already auto started our server then we can go ahead and try to create a notebook on construction
+        setTimeout(() => {
+            this.createNotebookIfProviderConnectionExists().ignoreErrors();
+        }, 0);
     }
 
     // tslint:disable-next-line: no-any no-empty cyclomatic-complexity max-func-body-length
@@ -617,7 +614,7 @@ export abstract class InteractiveBase extends WebviewPanelHost<IInteractiveWindo
             await this.ensureDarkSet();
 
             // Then show our webpanel
-            await this.show();
+            await this.show(true);
 
             // Add our sys info if necessary
             if (file !== Identifiers.EmptyFileName) {
@@ -872,7 +869,52 @@ export abstract class InteractiveBase extends WebviewPanelHost<IInteractiveWindo
             } catch (e) {
                 this.errorHandler.handleError(e).ignoreErrors();
             }
+        } else {
+            // Just send a kernel update so it shows something
+            this.postMessage(InteractiveWindowMessages.UpdateKernel, {
+                jupyterServerStatus: ServerStatus.NotStarted,
+                serverName: await this.getServerDisplayName(undefined),
+                kernelName: '',
+                language: PYTHON_LANGUAGE
+            }).ignoreErrors();
         }
+    }
+
+    protected async getServerDisplayName(serverConnection: INotebookProviderConnection | undefined): Promise<string> {
+        // If we don't have a server connection, make one if remote. We need the remote connection in order
+        // to compute the display name. However only do this if the user is allowing auto start.
+        if (
+            !serverConnection &&
+            this.configService.getSettings(this.owningResource).jupyterServerURI !==
+                Settings.JupyterServerLocalLaunch &&
+            !this.configService.getSettings(this.owningResource).disableJupyterAutoStart
+        ) {
+            serverConnection = await this.notebookProvider.connect({ disableUI: true });
+        }
+        const serverUri = this.configService.getSettings().jupyterServerURI;
+        let displayName =
+            serverConnection?.displayName ||
+            (!serverConnection?.localLaunch ? serverConnection?.url : undefined) ||
+            (serverUri === Settings.JupyterServerLocalLaunch || !serverUri
+                ? localize.DataScience.localJupyterServer()
+                : localize.DataScience.serverNotStarted());
+
+        if (serverConnection) {
+            // Determine the connection URI of the connected server to display
+            if (serverConnection.localLaunch) {
+                displayName = localize.DataScience.localJupyterServer();
+            } else {
+                // Log this remote URI into our MRU list
+                addToUriList(
+                    this.globalStorage,
+                    !isNil(serverConnection.url) ? serverConnection.url : serverConnection.displayName,
+                    Date.now(),
+                    serverConnection.displayName
+                );
+            }
+        }
+
+        return displayName;
     }
 
     private combineData(
@@ -1159,27 +1201,6 @@ export abstract class InteractiveBase extends WebviewPanelHost<IInteractiveWindo
         return notebook;
     }
 
-    private getServerUri(serverConnection: INotebookProviderConnection | undefined): string {
-        let localizedUri = '';
-
-        if (serverConnection) {
-            // Determine the connection URI of the connected server to display
-            if (serverConnection.localLaunch) {
-                localizedUri = localize.DataScience.localJupyterServer();
-            } else {
-                // Log this remote URI into our MRU list
-                addToUriList(
-                    this.globalStorage,
-                    !isNil(serverConnection.url) ? serverConnection.url : serverConnection.displayName,
-                    Date.now(),
-                    serverConnection.displayName
-                );
-            }
-        }
-
-        return localizedUri;
-    }
-
     private async listenToNotebookEvents(notebook: INotebook): Promise<void> {
         const statusChangeHandler = async (status: ServerStatus) => {
             const connectionMetadata = notebook.getKernelConnection();
@@ -1187,8 +1208,8 @@ export abstract class InteractiveBase extends WebviewPanelHost<IInteractiveWindo
 
             await this.postMessage(InteractiveWindowMessages.UpdateKernel, {
                 jupyterServerStatus: status,
-                localizedUri: this.getServerUri(notebook.connection),
-                displayName: name,
+                serverName: await this.getServerDisplayName(notebook.connection),
+                kernelName: name,
                 language: translateKernelLanguageToMonaco(
                     getKernelConnectionLanguage(connectionMetadata) || PYTHON_LANGUAGE
                 )
@@ -1210,8 +1231,8 @@ export abstract class InteractiveBase extends WebviewPanelHost<IInteractiveWindo
             // While waiting make the notebook look busy
             this.postMessage(InteractiveWindowMessages.UpdateKernel, {
                 jupyterServerStatus: ServerStatus.Busy,
-                localizedUri: this.getServerUri(serverConnection),
-                displayName: '',
+                serverName: await this.getServerDisplayName(serverConnection),
+                kernelName: '',
                 language: PYTHON_LANGUAGE
             }).ignoreErrors();
 
@@ -1239,8 +1260,8 @@ export abstract class InteractiveBase extends WebviewPanelHost<IInteractiveWindo
             // No notebook, send update to UI anyway
             this.postMessage(InteractiveWindowMessages.UpdateKernel, {
                 jupyterServerStatus: ServerStatus.NotStarted,
-                localizedUri: '',
-                displayName: getDisplayNameOrNameOfKernelConnection(data.kernelConnection),
+                serverName: await this.getServerDisplayName(undefined),
+                kernelName: getDisplayNameOrNameOfKernelConnection(data.kernelConnection),
                 language: translateKernelLanguageToMonaco(
                     getKernelConnectionLanguage(data.kernelConnection) || PYTHON_LANGUAGE
                 )

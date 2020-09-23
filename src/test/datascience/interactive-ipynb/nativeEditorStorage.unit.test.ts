@@ -424,7 +424,7 @@ suite('DataScience - Native Editor Storage', () => {
     }
 
     test('Create new editor and add some cells', async () => {
-        model = await storage.getOrCreateModel(baseUri);
+        model = await storage.getOrCreateModel({ file: baseUri });
         insertCell(0, '1');
         const cells = model.cells;
         expect(cells).to.be.lengthOf(4);
@@ -433,7 +433,7 @@ suite('DataScience - Native Editor Storage', () => {
     });
 
     test('Move cells around', async () => {
-        model = await storage.getOrCreateModel(baseUri);
+        model = await storage.getOrCreateModel({ file: baseUri });
         swapCells('NotebookImport#0', 'NotebookImport#1');
         const cells = model.cells;
         expect(cells).to.be.lengthOf(3);
@@ -442,7 +442,7 @@ suite('DataScience - Native Editor Storage', () => {
     });
 
     test('Edit/delete cells', async () => {
-        model = await storage.getOrCreateModel(baseUri);
+        model = await storage.getOrCreateModel({ file: baseUri });
         expect(model.isDirty).to.be.equal(false, 'Editor should not be dirty');
         editCell(
             [
@@ -482,7 +482,7 @@ suite('DataScience - Native Editor Storage', () => {
     test('Editing a file and closing will keep contents', async () => {
         await filesConfig?.update('autoSave', 'off');
 
-        model = await storage.getOrCreateModel(baseUri);
+        model = await storage.getOrCreateModel({ file: baseUri });
         expect(model.isDirty).to.be.equal(false, 'Editor should not be dirty');
         editCell(
             [
@@ -511,7 +511,7 @@ suite('DataScience - Native Editor Storage', () => {
 
         // Recreate
         storage = createStorage();
-        model = await storage.getOrCreateModel(baseUri);
+        model = await storage.getOrCreateModel({ file: baseUri });
 
         const cells = model.cells;
         expect(cells).to.be.lengthOf(3);
@@ -521,7 +521,7 @@ suite('DataScience - Native Editor Storage', () => {
     });
 
     test('Editing a new file and closing will keep contents', async () => {
-        model = await storage.getOrCreateModel(untiledUri, undefined, true);
+        model = await storage.getOrCreateModel({ file: untiledUri, skipLoadingDirtyContents: true });
         expect(model.isDirty).to.be.equal(false, 'Editor should not be dirty');
         insertCell(0, 'a=1');
 
@@ -530,7 +530,7 @@ suite('DataScience - Native Editor Storage', () => {
 
         // Recreate
         storage = createStorage();
-        model = await storage.getOrCreateModel(untiledUri);
+        model = await storage.getOrCreateModel({ file: untiledUri });
 
         const cells = model.cells;
         expect(cells).to.be.lengthOf(2);
@@ -549,7 +549,7 @@ suite('DataScience - Native Editor Storage', () => {
 
         // Put the regular file into the local storage
         await localMemento.update(`notebook-storage-${file.toString()}`, differentFile);
-        model = await storage.getOrCreateModel(file);
+        model = await storage.getOrCreateModel({ file });
 
         // It should load with that value
         const cells = model.cells;
@@ -570,7 +570,7 @@ suite('DataScience - Native Editor Storage', () => {
             contents: differentFile,
             lastModifiedTimeMs: Date.now()
         });
-        model = await storage.getOrCreateModel(file);
+        model = await storage.getOrCreateModel({ file });
 
         // It should load with that value
         const cells = model.cells;
@@ -600,7 +600,7 @@ suite('DataScience - Native Editor Storage', () => {
             lastModifiedTimeMs: Date.now()
         });
 
-        model = await storage.getOrCreateModel(file);
+        model = await storage.getOrCreateModel({ file });
 
         // It should load with that value
         const cells = model.cells;

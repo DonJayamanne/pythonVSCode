@@ -243,7 +243,7 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
         this.previouslyNotTrusted = !this._model.isTrusted;
     }
 
-    public async show(preserveFocus?: boolean) {
+    public async show(preserveFocus: boolean = true) {
         await this.loadPromise;
         return super.show(preserveFocus);
     }
@@ -754,8 +754,8 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
             if (!this.notebook && metadata?.kernelspec) {
                 this.postMessage(InteractiveWindowMessages.UpdateKernel, {
                     jupyterServerStatus: ServerStatus.NotStarted,
-                    localizedUri: '',
-                    displayName: metadata.kernelspec.display_name ?? metadata.kernelspec.name,
+                    serverName: await this.getServerDisplayName(undefined),
+                    kernelName: metadata.kernelspec.display_name ?? metadata.kernelspec.name,
                     language: translateKernelLanguageToMonaco(
                         (metadata.kernelspec.language as string) ?? PYTHON_LANGUAGE
                     )
