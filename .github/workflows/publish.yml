@@ -1,0 +1,96 @@
+name: Publish Extension
+
+on:
+  push:
+    branches:
+      - ci
+      - 'release'
+      - 'release/*'
+      - 'release-*'
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Publish to VSCode marketplace?'
+        required: true
+        default: 'no'
+
+env:
+  PYTHON_VERSION: 3.8
+  VSIX_NAME: ms-ai-tools-jupyter-release.vsix
+  VSIX_NAME_UPLOADED_TO_BLOB: ms-ai-tools-jupyter-release.vsix
+  VSIX_NAME_TO_PUBLISH: ms-ai-tools-jupyter-release.vsix
+
+jobs:
+  publish:
+    name: Publish to marketplace
+    runs-on: ubuntu-latest
+    # Extra careful to ensure this happens only in main branch.
+    # if: github.repository == 'microsoft/vscode-jupyter' && startsWith(github.ref, 'refs/heads/release') && contains(github.event.inputs.confirmation, 'yes')
+    # if: contains(github.event.inputs.confirmation, 'yes')
+    # needs: [tests, smoke-tests, build-vsix]
+    # needs: [build-vsix]
+    env:
+      BLOB_CONTAINER_NAME: extension-builds-jupyter
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Use Python ${{env.PYTHON_VERSION}}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{env.PYTHON_VERSION}}
+
+      - name: Use Node ${{env.NODE_VERSION}}
+        uses: actions/setup-node@v2.1.1
+        with:
+          node-version: ${{env.NODE_VERSION}}
+
+      - name: Azure Login
+        uses: azure/login@v1.1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Download VSIX
+        run: az storage blob download --file ${{env.VSIX_NAME_TO_PUBLISH}} --account-name pvsc --container-name ${{env.BLOB_CONTAINER_NAME}} --name ${{ env.VSIX_NAME_UPLOADED_TO_BLOB }}
+
+      # # - name: Publish
+      # #   run: vsce_ publish --packagePath ${{env.VSIX_NAME_TO_PUBLISH_}} --pat ${{secrets.VSCE_TOKEN_}} --noVerify
+
+      - name: Extract Extension
+        shell: bash
+        run: |
+          python -c "import zipfile;zip=zipfile.ZipFile('${{env.VSIX_NAME_TO_PUBLISH}}', 'r');zip.extractall('tmp')"
+
+      - name: Fix Change log
+        run: |
+          node build/ci/scripts/stripChangeLog.js
+        shell: bash
+
+      - name: Get Version
+        id: version
+        run: |
+          echo ::set-output name=version::$(node -p -e "require('./tmp/extension/package.json').version")
+        shell: bash
+
+      - name: Print version
+        run: |
+          echo ${{steps.version.outputs.version}}
+        shell: bash
+
+      - uses: pCYSl5EDgo/cat@master
+        id: changelog
+        with:
+          path: CHANGELOG.md
+
+      - name: Create GH Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: steps.version.PACKAGE_VERSION
+          release_name: Release ${{steps.version.outputs.version}}
+          body_path: tmp/extension/CHANGELOG.md
+          draft: true
+          prerelease: false
