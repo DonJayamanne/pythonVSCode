@@ -9,14 +9,12 @@ import * as vsls from 'vsls/vscode';
 import { concatMultilineString } from '../../../datascience-ui/common';
 import { ServerStatus } from '../../../datascience-ui/interactive-common/mainState';
 import { IPythonDebuggerPathProvider } from '../../api/types';
-import { IApplicationShell } from '../../common/application/types';
-import { traceError, traceInfo, traceWarning } from '../../common/logger';
+import { traceInfo, traceWarning } from '../../common/logger';
 import { IPlatformService } from '../../common/platform/types';
-import { IConfigurationService, Version } from '../../common/types';
+import { IConfigurationService } from '../../common/types';
 import * as localize from '../../common/utils/localize';
-import { captureTelemetry, sendTelemetryEvent } from '../../telemetry';
 import { traceCellResults } from '../common';
-import { Identifiers, Telemetry } from '../constants';
+import { Identifiers } from '../constants';
 import {
     CellState,
     ICell,
@@ -32,11 +30,8 @@ import { JupyterDebuggerNotInstalledError } from './jupyterDebuggerNotInstalledE
 import { JupyterDebuggerRemoteNotSupported } from './jupyterDebuggerRemoteNotSupported';
 import { ILiveShareHasRole } from './liveshare/types';
 
-const pythonShellCommand = `_sysexec = sys.executable\r\n_quoted_sysexec = '"' + _sysexec + '"'\r\n!{_quoted_sysexec}`;
-
 @injectable()
 export class JupyterDebugger implements IJupyterDebugger, ICellHashListener {
-    private requiredDebugpyVersion: Version = { major: 1, minor: 0, patch: 0, build: [], prerelease: [], raw: '' };
     private configs: Map<string, DebugConfiguration> = new Map<string, DebugConfiguration>();
     private readonly debuggerPackage: string;
     private readonly enableDebuggerCode: string;
@@ -45,7 +40,6 @@ export class JupyterDebugger implements IJupyterDebugger, ICellHashListener {
     private readonly tracingDisableCode: string;
     private runningByLine: boolean = false;
     constructor(
-        @inject(IApplicationShell) private appShell: IApplicationShell,
         @inject(IPythonDebuggerPathProvider) private readonly debuggerPathProvider: IPythonDebuggerPathProvider,
         @inject(IConfigurationService) private configService: IConfigurationService,
         @inject(IJupyterDebugService)
@@ -171,7 +165,7 @@ export class JupyterDebugger implements IJupyterDebugger, ICellHashListener {
 
     private async connect(
         notebook: INotebook,
-        runByLine: boolean,
+        _runByLine: boolean,
         extraConfig: Partial<DebugConfiguration>
     ): Promise<DebugConfiguration | undefined> {
         // If we already have configuration, we're already attached, don't do it again.
@@ -187,15 +181,6 @@ export class JupyterDebugger implements IJupyterDebugger, ICellHashListener {
 
         // Append any specific debugger paths that we have
         await this.appendDebuggerPaths(notebook);
-
-        // Check the version of debugger that we have already installed
-        const debuggerVersion = await this.debuggerCheck(notebook);
-        const requiredVersion = this.requiredDebugpyVersion;
-
-        // If we don't have debugger installed or the version is too old then we need to install it
-        if (!debuggerVersion || !this.debuggerMeetsRequirement(debuggerVersion, requiredVersion)) {
-            await this.promptToInstallDebugger(notebook, debuggerVersion, runByLine);
-        }
 
         // Connect local or remote based on what type of notebook we're talking to
         result = {
@@ -305,120 +290,6 @@ export class JupyterDebugger implements IJupyterDebugger, ICellHashListener {
 
     private executeSilently(notebook: INotebook, code: string): Promise<ICell[]> {
         return notebook.execute(code, Identifiers.EmptyFileName, 0, uuid(), undefined, true);
-    }
-
-    private async debuggerCheck(notebook: INotebook): Promise<Version | undefined> {
-        // We don't want to actually import the debugger to check version so run
-        // python instead. If we import an old version it's hard to get rid of on
-        // an 'upgrade needed' scenario
-        // tslint:disable-next-line:no-multiline-string
-        const debuggerPathList = await this.calculateDebuggerPathList(notebook);
-
-        let code;
-        if (debuggerPathList) {
-            code = `import sys\r\n${pythonShellCommand} -c "import sys;sys.path.extend([${debuggerPathList}]);sys.path;import ${this.debuggerPackage};print(${this.debuggerPackage}.__version__)"`;
-        } else {
-            code = `import sys\r\n${pythonShellCommand} -c "import ${this.debuggerPackage};print(${this.debuggerPackage}.__version__)"`;
-        }
-
-        const debuggerVersionResults = await this.executeSilently(notebook, code);
-        const purpose = 'parseDebugpyVersionInfo';
-        return this.parseVersionInfo(debuggerVersionResults, purpose);
-    }
-
-    private parseVersionInfo(
-        cells: ICell[],
-        purpose: 'parseDebugpyVersionInfo' | 'pythonVersionInfo'
-    ): Version | undefined {
-        if (cells.length < 1 || cells[0].state !== CellState.finished) {
-            traceCellResults(purpose, cells);
-            return undefined;
-        }
-
-        const targetCell = cells[0];
-
-        const outputString = this.extractOutput(targetCell);
-
-        if (outputString) {
-            // Pull out the version number, note that we can't use SemVer here as python packages don't follow it
-            const packageVersionRegex = /([0-9]+).([0-9]+).([0-9a-zA-Z]+)/;
-            const packageVersionMatch = packageVersionRegex.exec(outputString);
-
-            if (packageVersionMatch) {
-                const major = parseInt(packageVersionMatch[1], 10);
-                const minor = parseInt(packageVersionMatch[2], 10);
-                const patch = parseInt(packageVersionMatch[3], 10);
-                return {
-                    major,
-                    minor,
-                    patch,
-                    build: [],
-                    prerelease: [],
-                    raw: `${major}.${minor}.${patch}`
-                };
-            }
-        }
-
-        traceCellResults(purpose, cells);
-
-        return undefined;
-    }
-
-    // Check to see if the we have the required version of debugger to support debugging
-    private debuggerMeetsRequirement(version: Version, required: Version): boolean {
-        return version.major > required.major || (version.major === required.major && version.minor >= required.minor);
-    }
-
-    @captureTelemetry(Telemetry.DebugpyPromptToInstall)
-    private async promptToInstallDebugger(
-        notebook: INotebook,
-        oldVersion: Version | undefined,
-        runByLine: boolean
-    ): Promise<void> {
-        const updateMessage = runByLine
-            ? localize.DataScience.jupyterDebuggerInstallUpdateRunByLine().format(this.debuggerPackage)
-            : localize.DataScience.jupyterDebuggerInstallUpdate().format(this.debuggerPackage);
-        const newMessage = runByLine
-            ? localize.DataScience.jupyterDebuggerInstallNewRunByLine().format(this.debuggerPackage)
-            : localize.DataScience.jupyterDebuggerInstallNew().format(this.debuggerPackage);
-        const promptMessage = oldVersion ? updateMessage : newMessage;
-        const result = await this.appShell.showInformationMessage(
-            promptMessage,
-            localize.DataScience.jupyterDebuggerInstallYes(),
-            localize.DataScience.jupyterDebuggerInstallNo()
-        );
-
-        if (result === localize.DataScience.jupyterDebuggerInstallYes()) {
-            await this.installDebugger(notebook);
-        } else {
-            // If they don't want to install, throw so we exit out of debugging
-            sendTelemetryEvent(Telemetry.DebugpyInstallCancelled);
-            throw new JupyterDebuggerNotInstalledError(this.debuggerPackage);
-        }
-    }
-
-    private async installDebugger(notebook: INotebook): Promise<void> {
-        // tslint:disable-next-line:no-multiline-string
-        const debuggerInstallResults = await this.executeSilently(
-            notebook,
-            `import sys\r\n${pythonShellCommand} -m pip install -U ${this.debuggerPackage}`
-        );
-        traceInfo(`Installing ${this.debuggerPackage}`);
-
-        if (debuggerInstallResults.length > 0) {
-            const installResultsString = this.extractOutput(debuggerInstallResults[0]);
-
-            if (installResultsString && installResultsString.includes('Successfully installed')) {
-                sendTelemetryEvent(Telemetry.DebugpySuccessfullyInstalled);
-                traceInfo(`${this.debuggerPackage} successfully installed`);
-                return;
-            }
-        }
-        traceCellResults(`Installing ${this.debuggerPackage}`, debuggerInstallResults);
-        sendTelemetryEvent(Telemetry.DebugpyInstallFailed);
-        traceError(`Failed to install ${this.debuggerPackage}`);
-        // Failed to install debugger, throw to exit debugging
-        throw new JupyterDebuggerNotInstalledError(this.debuggerPackage);
     }
 
     // Pull our connection info out from the cells returned by enable_attach
