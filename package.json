@@ -1962,10 +1962,5 @@
         "webpack-fix-default-import-plugin": "^1.0.3",
         "why-is-node-running": "^2.0.3",
         "yargs": "^15.3.1"
-    },
-    "__metadata": {
-        "id": "f1f59ae4-9318-4f3c-a9b5-81b2eaa5f8a5",
-        "publisherDisplayName": "Microsoft",
-        "publisherId": "998b010b-e2af-44a5-a6cd-0b5fd3b9b6f8"
     }
 }
