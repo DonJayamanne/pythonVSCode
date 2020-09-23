@@ -311,9 +311,15 @@ jobs:
           python -m pip install --upgrade -r build/test-requirements.txt
           python -m pip install --upgrade -r ./build/ipython-test-requirements.txt
           python -m pip install --upgrade -r ./build/conda-functional-requirements.txt
+        # This step is slow.
+        # If running the placeholder suite & not required to run any tests, then don't install python dependencies.
+        if: matrix.test-suite != 'test-based-on-commit-message' || contains(github.event.pull_request.body, '[x] Run ')
 
       - name: Install dependencies (npm ci)
         run: npm ci --prefer-offline
+        # This step is slow.
+        # If running the placeholder suite & not required to run any tests, then don't install python dependencies.
+        if: matrix.test-suite != 'test-based-on-commit-message' || contains(github.event.pull_request.body, '[x] Run ')
 
       # Run the Python and IPython tests in our codebase.
       - name: Run Python and IPython unit tests
@@ -322,9 +328,9 @@ jobs:
           python -m IPython pythonFiles/tests/run_all.py
         if: matrix.test-suite == 'python-unit'
 
-      - name: Compile if not cached
-        run: npx gulp prePublishNonBundle
-        if: steps.out-cache.outputs.cache-hit == false
+    #   - name: Compile if not cached
+    #     run: npx gulp prePublishNonBundle
+    #     if: steps.out-cache.outputs.cache-hit == false
 
       - name: Run functional tests
         run: npm run test:functional
