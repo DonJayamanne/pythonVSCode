@@ -1,6 +1,6 @@
-# Troubleshooting Jupyter issues in the Python Interactive Window or Notebook Editor
+# Troubleshooting Jupyter issues in the Interactive Window or Notebook Editor
 
-This document is intended to help troubleshoot problems with starting Jupyter in the Python Interactive Window or Notebook Editor.
+This document is intended to help troubleshoot problems with starting Jupyter in the Interactive Window or Notebook Editor.
 
 ---
 

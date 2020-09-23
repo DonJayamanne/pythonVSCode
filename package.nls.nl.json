@@ -109,7 +109,6 @@
     "DataScience.restartKernelAfterInterruptMessage": "Het onderbreken van de kernel duurde te lang. Wil je de kernel in plaats daarvan herstarten? Alle variabelen zullen verloren gaan.",
     "DataScience.pythonInterruptFailedHeader": "Toetsenbord-interrupt liet de kernel crashen. Kernel herstart.",
     "DataScience.sysInfoURILabel": "Jupyter-server URI: ",
-    "Common.loadingPythonExtension": "Python-extensie aan het laden...",
     "debug.selectConfigurationTitle": "Een debug-configuratie selecteren",
     "debug.selectConfigurationPlaceholder": "Debug-configuratie",
     "debug.debugFileConfigurationLabel": "Python-bestand",

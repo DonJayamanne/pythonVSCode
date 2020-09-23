@@ -18,7 +18,7 @@ export namespace Common {
     export const ok = localize('Common.ok', 'Ok');
     export const gotIt = localize('Common.gotIt', 'Got it!');
     export const install = localize('Common.install', 'Install');
-    export const loadingExtension = localize('Common.loadingPythonExtension', 'Python extension loading...');
+    export const loadingExtension = localize('Common.loadingExtension', 'Jupyter extension loading...');
     export const openOutputPanel = localize('Common.openOutputPanel', 'Show output');
     export const noIWillDoItLater = localize('Common.noIWillDoItLater', 'No, I will do it later');
     export const notNow = localize('Common.notNow', 'Not now');
@@ -148,15 +148,15 @@ export namespace DataScience {
         '{0} (From {1} extension)'
     );
     export const unknownPackage = localize('DataScience.unknownPackage', 'unknown');
-    export const interactiveWindowTitle = localize('DataScience.interactiveWindowTitle', 'Python Interactive');
+    export const interactiveWindowTitle = localize('DataScience.interactiveWindowTitle', 'Interactive');
     export const interactiveWindowTitleFormat = localize(
         'DataScience.interactiveWindowTitleFormat',
-        'Python Interactive - {0}'
+        'Interactive - {0}'
     );
 
     export const interactiveWindowModeBannerTitle = localize(
         'DataScience.interactiveWindowModeBannerTitle',
-        'Do you want to open a new Python Interactive window for this file? [More Information](command:workbench.action.openSettings?%5B%22jupyter.interactiveWindowMode%22%5D).'
+        'Do you want to open a new Interactive window for this file? [More Information](command:workbench.action.openSettings?%5B%22jupyter.interactiveWindowMode%22%5D).'
     );
 
     export const interactiveWindowModeBannerSwitchYes = localize(
@@ -506,7 +506,7 @@ export namespace DataScience {
     );
     export const pythonInteractiveCreateFailed = localize(
         'DataScience.pythonInteractiveCreateFailed',
-        "Failure to create a 'Python Interactive' window. Try reinstalling the Python extension."
+        "Failure to create a 'Interactive' window. Try reinstalling the Python extension."
     );
     export const jupyterGetVariablesExecutionError = localize(
         'DataScience.jupyterGetVariablesExecutionError',

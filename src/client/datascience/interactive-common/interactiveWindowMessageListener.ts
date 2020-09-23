@@ -13,7 +13,7 @@ import { InteractiveWindowMessages, InteractiveWindowRemoteMessages } from './in
 
 // tslint:disable:no-any
 
-// This class listens to messages that come from the local Python Interactive window
+// This class listens to messages that come from the local Interactive window
 export class InteractiveWindowMessageListener implements IWebviewPanelMessageListener {
     private postOffice: PostOffice;
     private disposedCallback: () => void;

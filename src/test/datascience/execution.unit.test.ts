@@ -446,7 +446,7 @@ suite('Jupyter Execution', async () => {
         setupPythonServiceWithFunc(
             service,
             'ipykernel',
-            ['install', '--user', '--name', /\w+-\w+-\w+-\w+-\w+/, '--display-name', `'Python Interactive'`],
+            ['install', '--user', '--name', /\w+-\w+-\w+-\w+-\w+/, '--display-name', `'Interactive'`],
             () => {
                 ipykernelInstallCount += 1;
                 const kernelSpecs = createKernelSpecs([
@@ -596,7 +596,7 @@ suite('Jupyter Execution', async () => {
                 '--name',
                 /\w+-\w+-\w+-\w+-\w+/,
                 '--display-name',
-                `'Python Interactive'`
+                `'Interactive'`
             ],
             () => {
                 ipykernelInstallCount += 1;

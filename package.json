@@ -1289,13 +1289,13 @@
                 "jupyter.notebookFileRoot": {
                     "type": "string",
                     "default": "${fileDirname}",
-                    "description": "Set the root directory for loading files for the Python Interactive window.",
+                    "description": "Set the root directory for loading files for the Interactive window.",
                     "scope": "resource"
                 },
                 "jupyter.searchForJupyter": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Search all installed Python interpreters for a Jupyter installation when starting the Python Interactive window",
+                    "description": "Search all installed Python interpreters for a Jupyter installation when starting the Interactive window",
                     "scope": "resource"
                 },
                 "jupyter.changeDirOnImportExport": {
@@ -1307,7 +1307,7 @@
                 "jupyter.useDefaultConfigForJupyter": {
                     "type": "boolean",
                     "default": true,
-                    "description": "When running Jupyter locally, create a default empty Jupyter config for the Python Interactive window",
+                    "description": "When running Jupyter locally, create a default empty Jupyter config for the Interactive window",
                     "scope": "resource"
                 },
                 "jupyter.jupyterInterruptTimeout": {
@@ -1319,7 +1319,7 @@
                 "jupyter.allowInput": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Allow the inputting of python code directly into the Python Interactive window"
+                    "description": "Allow the inputting of python code directly into the Interactive window"
                 },
                 "jupyter.showCellInputCode": {
                     "type": "boolean",
@@ -1354,33 +1354,33 @@
                 "jupyter.enableScrollingForCellOutputs": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Enables scrolling for large cell outputs in the Notebook Editor. This setting does not apply to the Python Interactive Window.",
+                    "description": "Enables scrolling for large cell outputs in the Notebook Editor. This setting does not apply to the Interactive Window.",
                     "scope": "resource"
                 },
                 "jupyter.errorBackgroundColor": {
                     "type": "string",
                     "default": "#FFFFFF",
-                    "description": "Background color (in hex) for exception messages in the Python Interactive window.",
+                    "description": "Background color (in hex) for exception messages in the Interactive window.",
                     "scope": "resource",
                     "deprecationMessage": "No longer necessary as the theme colors are used for error messages"
                 },
                 "jupyter.sendSelectionToInteractiveWindow": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Determines if selected code in a python file will go to the terminal or the Python Interactive window when hitting shift+enter",
+                    "description": "Determines if selected code in a python file will go to the terminal or the Interactive window when hitting shift+enter",
                     "scope": "resource"
                 },
                 "jupyter.showJupyterVariableExplorer": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Show the variable explorer in the Python Interactive window.",
+                    "description": "Show the variable explorer in the Interactive window.",
                     "deprecationMessage": "This setting no longer applies. It is ignored.",
                     "scope": "resource"
                 },
                 "jupyter.variableExplorerExclude": {
                     "type": "string",
                     "default": "module;function;builtin_function_or_method",
-                    "description": "Types to exclude from showing in the Python Interactive variable explorer",
+                    "description": "Types to exclude from showing in the Interactive variable explorer",
                     "scope": "resource"
                 },
                 "jupyter.codeRegularExpression": {
@@ -1404,19 +1404,19 @@
                 "jupyter.allowLiveShare": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Allow the Python Interactive window to be shared during a Live Share session",
+                    "description": "Allow the Interactive window to be shared during a Live Share session",
                     "scope": "resource"
                 },
                 "jupyter.ignoreVscodeTheme": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Don't use the VS Code theme in the Python Interactive window (requires reload of VS Code). This forces the Python Interactive window to use 'Light +(default light)' and disables matplotlib defaults.",
+                    "description": "Don't use the VS Code theme in the Interactive window (requires reload of VS Code). This forces the Interactive window to use 'Light +(default light)' and disables matplotlib defaults.",
                     "scope": "resource"
                 },
                 "jupyter.themeMatplotlibPlots": {
                     "type": "boolean",
                     "default": false,
-                    "description": "In the Python Interactive window and Notebook Editor theme matplotlib outputs to match the VS Code editor theme.",
+                    "description": "In the Interactive window and Notebook Editor theme matplotlib outputs to match the VS Code editor theme.",
                     "scope": "resource"
                 },
                 "jupyter.liveShareConnectionTimeout": {
@@ -1447,7 +1447,7 @@
                     "type": "boolean",
                     "deprecationMessage": "No longer supported. Notebooks open directly in their own editor now.",
                     "default": false,
-                    "description": "When opening ipynb files, automatically preview the contents in the Python Interactive window.",
+                    "description": "When opening ipynb files, automatically preview the contents in the Interactive window.",
                     "scope": "resource"
                 },
                 "jupyter.useNotebookEditor": {
@@ -1459,7 +1459,7 @@
                 "jupyter.allowUnauthorizedRemoteConnection": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Allow for connecting the Python Interactive window to a https Jupyter server that does not have valid certificates. This can be a security risk, so only use for known and trusted servers.",
+                    "description": "Allow for connecting the Interactive window to a https Jupyter server that does not have valid certificates. This can be a security risk, so only use for known and trusted servers.",
                     "scope": "resource"
                 },
                 "jupyter.enablePlotViewer": {
@@ -1519,7 +1519,7 @@
                 "jupyter.textOutputLimit": {
                     "type": "number",
                     "default": 20000,
-                    "description": "Limit the amount of text in Python Interactive cell text output to this value. 0 to allow any amount of characters.",
+                    "description": "Limit the amount of text in Interactive cell text output to this value. 0 to allow any amount of characters.",
                     "scope": "resource"
                 },
                 "jupyter.colorizeInputBox": {
@@ -1567,7 +1567,7 @@
                         "multiple"
                     ],
                     "scope": "resource",
-                    "description": "Behavior of the Python Interactive Window. 'perFile' will create a new interactive window for every file that runs a cell. 'single' allows a single window. 'multiple' allows the creation of multiple.",
+                    "description": "Behavior of the Interactive Window. 'perFile' will create a new interactive window for every file that runs a cell. 'single' allows a single window. 'multiple' allows the creation of multiple.",
                     "default": "multiple"
                 },
                 "jupyter.magicCommandsAsComments": {

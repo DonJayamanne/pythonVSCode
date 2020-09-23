@@ -525,7 +525,7 @@ def test_failure():
         1. Test the `Restart iPython kernel` command. Kernel should be restarted and you should see a status output message for the kernel restart
         1. Use the expand all input and collapse all input commands to collapse all cell inputs
 -   [ ] Verify theming works
-    1. Start Python Interactive window
+    1. Start Interactive window
     1. Add a cell with some comments
     1. Switch VS Code theme to something else
     1. Check that the cell you just added updates the comment color
@@ -533,7 +533,7 @@ def test_failure():
     1. Check that the cell switches colors
     1. Check that the buttons on the top change to their appropriate 'light' or 'dark' versions
     1. Enable the 'ignoreVscodeTheme' setting
-    1. Close the Python Interactive window and reopen it. The theme in just the 'Python Interactive' window should be light
+    1. Close the Interactive window and reopen it. The theme in just the 'Interactive' window should be light
     1. Switch to a dark theme. Make sure the interactive window remains in the light theme.
 -   [ ] Verify code lenses
     1. Check that `Run Cell` `Run Above` and `Run Below` all do the correct thing
@@ -542,7 +542,7 @@ def test_failure():
     1. If run on the last cell of the file `Run Current Cell And Advance` should create a new empty cell and advance to it
 -   [ ] Verify command palette commands
     1. Close the Interactive Window then pick `Python: Show Interactive Window`
-    1. Restart the kernel and pick `Python: Run Current File In Python Interactive Window` it should run the whole file again
+    1. Restart the kernel and pick `Python: Run Current File In Interactive Window` it should run the whole file again
 -   [ ] Verify shift-enter
     1. Move to the top cell in the .py file
     1. Shift-enter should run each cell and advance to the next
