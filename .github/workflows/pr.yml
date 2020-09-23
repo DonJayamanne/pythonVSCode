@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - main
+      - cijupyter
   check_run:
     types: [rerequested, requested_action]
 
@@ -194,16 +195,20 @@ jobs:
     name: Tests (with Python)
     # The value of runs-on is the OS of the current job (specified in the strategy matrix below) instead of being hardcoded.
     runs-on: ${{ matrix.os }}
-    if: github.repository == 'microsoft/vscode-jupyter'
+    # if: github.repository == 'microsoft/vscode-jupyter'
     strategy:
       fail-fast: false
       matrix:
         # We're not running CI on macOS for now because it's one less matrix entry to lower the number of runners used,
         # macOS runners are expensive, and we assume that Ubuntu is enough to cover the UNIX case.
         os: [ubuntu-latest]
-        # python: [3.6, 3.7, 3.8]
-        python: [3.8]
-        test-suite: [python-unit, functional]
+        python: [3.8] # Use flaky tests to run against more versions of Python.
+        # python-unit: Python tests
+        # functional: Tests with mocked VS Code, & mocked Python)
+        # functional-with-jupyter: Tests with mocked VS Code & real jupyter
+        # single-workspace: Tests with VS Code
+        # integration: Tests with VS Code, Python extension & real Jupyter
+        test-suite: [python-unit, functional, test-based-on-pr-body]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -294,7 +299,6 @@ jobs:
       # debugpy is not shipped, only installed for local tests.
       # In production, we get debugpy & LS from python extension.
       - name: Install functional test requirements
-        #   python -m pip --disable-pip-version-check install -t ./pythonFiles/lib/python --no-cache-dir --implementation py --no-deps --upgrade -r requirements.txt
         run: |
           python -m pip --disable-pip-version-check install -r build/debugger-install-requirements.txt
           python ./pythonFiles/install_debugpy.py
@@ -302,21 +306,15 @@ jobs:
           python -m pip install --upgrade -r build/test-requirements.txt
           python -m pip install --upgrade -r ./build/ipython-test-requirements.txt
           python -m pip install --upgrade -r ./build/conda-functional-requirements.txt
+        # This step is slow.
+        # If running the placeholder suite & not required to run any tests, then don't install python dependencies.
+        if: matrix.test-suite != 'test-based-on-pr-body' || contains(github.event.pull_request.body, '[x] Run ')
 
       - name: Install dependencies (npm ci)
         run: npm ci --prefer-offline
-
-      - name: Compile if not cached
-        run: npx gulp prePublishNonBundle
-        if: steps.out-cache.outputs.cache-hit == false
-
-      #   # Upload unit test coverage reports for later use in the "reports" job.
-      #   - name: Upload unit test coverage reports
-      #     uses: actions/upload-artifact@v1
-      #     with:
-      #       name: ${{runner.os}}-${{env.COVERAGE_REPORTS}}
-      #       path: .nyc_output
-      #     if: matrix.test-suite == 'ts-unit' && startsWith(matrix.python, 3.)
+        # This step is slow.
+        # If running the placeholder suite & not required to run any tests, then don't install python dependencies.
+        if: matrix.test-suite != 'test-based-on-pr-body' || contains(github.event.pull_request.body, '[x] Run ')
 
       # Run the Python and IPython tests in our codebase.
       - name: Run Python and IPython unit tests
@@ -325,24 +323,38 @@ jobs:
           python -m IPython pythonFiles/tests/run_all.py
         if: matrix.test-suite == 'python-unit'
 
+      - name: Compile if not cached
+        run: npx gulp prePublishNonBundle
+        if: steps.out-cache.outputs.cache-hit == false
+
+      - name: Run functional tests
+        run: npm run test:functional
+        if: matrix.test-suite == 'functional'
+
       - name: Run single-workspace tests
         env:
           CI_PYTHON_VERSION: ${{matrix.python}}
         uses: GabrielBB/xvfb-action@v1.4
         with:
           run: npm run testSingleWorkspace
-        if: matrix.test-suite == 'single-workspace'
-
-      - name: Run functional tests
-        run: npm run test:functional
-        if: matrix.test-suite == 'functional'
+        if: matrix.test-suite == 'single-workspace' || (matrix.test-suite == 'test-based-on-pr-body' && github.event_name == 'pull_request' && contains(github.event.pull_request.body, '[x] Run single-workspace test'))
 
       - name: Run functional tests with Jupyter
         run: npm run test:functional
         env:
           VSCODE_PYTHON_ROLLING: 1
           VSC_PYTHON_FORCE_LOGGING: 1
-        if: matrix.test-suite == 'functional-with-jupyter'
+        if: matrix.test-suite == 'functional-with-jupyter' || (matrix.test-suite == 'test-based-on-pr-body' && github.event_name == 'pull_request' && contains(github.event.pull_request.body, '[x] Run functional-with-jupyter test'))
+
+      - name: Run DataScience tests with VSCode & Jupyter
+        uses: GabrielBB/xvfb-action@v1.4
+        with:
+          run: npm run test:testDataScience
+        env:
+          VSCODE_PYTHON_ROLLING: 1
+          VSC_PYTHON_FORCE_LOGGING: 1
+        if: matrix.test-suite == 'integration' || (matrix.test-suite == 'test-based-on-pr-body' && github.event_name == 'pull_request' && contains(github.event.pull_request.body, '[x] Run integration test'))
+
 #   smoke-tests:
 #     name: Smoke tests
 #     # The value of runs-on is the OS of the current job (specified in the strategy matrix below) instead of being hardcoded.
@@ -413,71 +425,3 @@ jobs:
 #         uses: GabrielBB/xvfb-action@v1.4
 #         with:
 #           run: node --no-force-async-hooks-checks ./out/test/smokeTest.js
-
-#   coverage:
-#     name: Coverage reports upload
-#     runs-on: ubuntu-latest
-#     if: github.repository == 'microsoft/vscode-jupyter'
-#     needs: [tests, smoke-tests]
-#     steps:
-#       - name: Checkout
-#         uses: actions/checkout@v2
-
-#       - name: Cache npm files
-#         uses: actions/cache@v2
-#         with:
-#           path: ~/.npm
-#           key: ${{runner.os}}-${{env.CACHE_NPM_DEPS}}-${{hashFiles('package-lock.json')}}
-
-#       - name: Install dependencies (npm ci)
-#         run: npm ci --prefer-offline
-
-#       # It isn't possible to specify a regex for artifact names, so we have to download each artifact manually.
-#       # The name pattern is ${{runner.os}}-${{env.COVERAGE_REPORTS}}, and possible values for runner.os are `Linux`, `Windows`, or `macOS`.
-#       # See https://help.github.com/en/actions/reference/contexts-and-expression-syntax-for-github-actions#runner-context
-#       - name: Download Ubuntu test coverage artifacts
-#         uses: actions/download-artifact@v1
-#         with:
-#           name: Linux-${{env.COVERAGE_REPORTS}}
-
-#       - name: Extract Ubuntu coverage artifacts to ./nyc_output
-#         run: |
-#           mkdir .nyc_output
-#           mv Linux-${{env.COVERAGE_REPORTS}}/* .nyc_output
-#           rm -r Linux-${{env.COVERAGE_REPORTS}}
-
-#       - name: Generate coverage reports
-#         run: npm run test:cover:report
-#         continue-on-error: true
-
-#       - name: Upload coverage to codecov
-#         uses: codecov/codecov-action@v1
-#         with:
-#           token: ${{ secrets.CODECOV_TOKEN }}
-#           file: ./coverage/cobertura-coverage.xml
-
-#   upload:
-#     name: Upload VSIX to Azure Blob Storage
-#     runs-on: ubuntu-latest
-#     if: github.repository == 'microsoft/vscode-jupyter'
-#     needs: [tests, smoke-tests, build-vsix]
-#     env:
-#       BLOB_CONTAINER_NAME: extension-builds
-#       BLOB_NAME: ms-ai-tools-jupyter-gha-insiders.vsix # So named to avoid clobbering Azure Pipelines upload.
-
-#     steps:
-#       - name: Download VSIX
-#         uses: actions/download-artifact@v2
-#         with:
-#           name: ${{ env.ARTIFACT_NAME_VSIX }}
-
-#       - name: Azure Login
-#         uses: azure/login@v1
-#         with:
-#           creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-#       - name: Upload to Blob Storage
-#         run: az storage blob upload --file ${{ env.VSIX_NAME }} --account-name pvsc --container-name ${{ env.BLOB_CONTAINER_NAME }} --name ${{ env.BLOB_NAME }} --auth-mode login
-
-#       - name: Get URL to uploaded VSIX
-#         run: az storage blob url --account-name pvsc --container-name ${{ env.BLOB_CONTAINER_NAME }} --name ${{ env.BLOB_NAME }} --auth-mode login
