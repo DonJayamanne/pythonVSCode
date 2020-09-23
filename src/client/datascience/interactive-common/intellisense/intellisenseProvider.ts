@@ -22,6 +22,7 @@ import {
 import { CancellationToken } from 'vscode-jsonrpc';
 import * as vscodeLanguageClient from 'vscode-languageclient/node';
 import { concatMultilineString } from '../../../../datascience-ui/common';
+import { ILanguageServerProvider } from '../../../api/types';
 import { IWorkspaceService } from '../../../common/application/types';
 import { CancellationError } from '../../../common/cancellation';
 import { traceError, traceWarning } from '../../../common/logger';
@@ -30,7 +31,8 @@ import { Resource } from '../../../common/types';
 import { createDeferred, Deferred, sleep, waitForPromise } from '../../../common/utils/async';
 import { noop } from '../../../common/utils/misc';
 import { HiddenFileFormatString } from '../../../constants';
-//import { PythonEnvironment } from '../../../pythonEnvironments/info';
+import { IInterpreterService } from '../../../interpreter/contracts';
+import { PythonEnvironment } from '../../../pythonEnvironments/info';
 import { sendTelemetryWhenDone } from '../../../telemetry';
 import { Identifiers, Settings, Telemetry } from '../../constants';
 import {
@@ -63,6 +65,7 @@ import {
     convertToVSCodeCompletionItem
 } from './conversion';
 import { IntellisenseDocument } from './intellisenseDocument';
+import { LanguageServerWrapper } from './languageServerWrapper';
 
 // These regexes are used to get the text from jupyter output by recognizing escape charactor \x1b
 const DocStringRegex = /\x1b\[1;31mDocstring:\x1b\[0m\s+([\s\S]*?)\r?\n\x1b\[1;31m/;
@@ -99,20 +102,26 @@ export class IntellisenseProvider implements IInteractiveWindowListener {
     private notebookType: 'interactive' | 'native' = 'interactive';
     private potentialResource: Uri | undefined;
     private sentOpenDocument: boolean = false;
-    //private resource: Resource;
-    //private interpreter: PythonEnvironment | undefined;
+    private languageServer: LanguageServerWrapper | undefined;
+    private resource: Resource;
+    private interpreter: PythonEnvironment | undefined;
 
     constructor(
         @inject(IWorkspaceService) private workspaceService: IWorkspaceService,
         @inject(IDataScienceFileSystem) private fs: IDataScienceFileSystem,
         @inject(INotebookProvider) private notebookProvider: INotebookProvider,
-        //@inject(IInterpreterService) private interpreterService: IInterpreterService,
+        @inject(IInterpreterService) private interpreterService: IInterpreterService,
+        @inject(ILanguageServerProvider) private languageServerProvider: ILanguageServerProvider,
         @inject(IJupyterVariables) @named(Identifiers.ALL_VARIABLES) private variableProvider: IJupyterVariables
     ) {}
 
     public dispose() {
         if (this.temporaryFile) {
             this.temporaryFile.dispose();
+        }
+        if (this.languageServer) {
+            this.languageServer.dispose();
+            this.languageServer = undefined;
         }
     }
 
@@ -190,64 +199,63 @@ export class IntellisenseProvider implements IInteractiveWindowListener {
         return this.documentPromise.promise;
     }
 
-    protected async getLanguageServer(_token: CancellationToken): Promise<any> {
-        return undefined;
-
-        // tslint:disable-next-line: no-suspicious-comment
-        // TODO: We need an API to get this from the python extension (or some other way to compute intellisense from within old school notebooks)
-        // https://github.com/microsoft/vscode-jupyter/issues/53
+    protected async getLanguageServer(token: CancellationToken): Promise<LanguageServerWrapper | undefined> {
         // Resource should be our potential resource if its set. Otherwise workspace root
-        // const resource =
-        //     this.potentialResource ||
-        //     (this.workspaceService.rootPath ? Uri.parse(this.workspaceService.rootPath) : undefined);
+        const resource =
+            this.potentialResource ||
+            (this.workspaceService.rootPath ? Uri.parse(this.workspaceService.rootPath) : undefined);
 
-        // // Interpreter should be the interpreter currently active in the notebook
-        // const activeNotebook = await this.getNotebook(token);
-        // const interpreter = activeNotebook
-        //     ? activeNotebook.getMatchingInterpreter()
-        //     : await this.interpreterService.getActiveInterpreter(resource);
+        // Interpreter should be the interpreter currently active in the notebook
+        const activeNotebook = await this.getNotebook(token);
+        const interpreter = activeNotebook
+            ? activeNotebook.getMatchingInterpreter()
+            : await this.interpreterService.getActiveInterpreter(resource);
 
-        // const newPath = resource;
-        // const oldPath = this.resource;
+        const newPath = resource;
+        const oldPath = this.resource;
 
-        // // See if the resource or the interpreter are different
-        // if (
-        //     (newPath && !oldPath) ||
-        //     (newPath && oldPath && !this.fs.arePathsSame(newPath, oldPath)) ||
-        //     interpreter?.path !== this.interpreter?.path ||
-        //     // this.languageServer === undefined
-        // ) {
-        //     this.resource = resource;
-        //     this.interpreter = interpreter;
+        // See if the resource or the interpreter are different
+        if (
+            (newPath && !oldPath) ||
+            (newPath && oldPath && !this.fs.arePathsSame(newPath, oldPath)) ||
+            interpreter?.path !== this.interpreter?.path ||
+            this.languageServer === undefined
+        ) {
+            this.resource = resource;
+            this.interpreter = interpreter;
 
-        //     // Get an instance of the language server (so we ref count it )
-        //     try {
-        //         const languageServer = await this.languageServerCache.get(resource, interpreter);
+            // Get an instance of the language server (so we ref count it )
+            try {
+                const languageServer = await LanguageServerWrapper.create(
+                    this.languageServerProvider,
+                    resource,
+                    interpreter
+                );
 
-        //         // Dispose of our old language service
-        //         this.languageServer?.dispose();
+                // Dispose of our old language service
+                this.languageServer?.dispose();
 
-        //         // This new language server does not know about our document, so tell it.
-        //         const document = await this.getDocument();
-        //         if (document && languageServer.handleOpen && languageServer.handleChanges) {
-        //             // If we already sent an open document, that means we need to send both the open and
-        //             // the new changes
-        //             if (this.sentOpenDocument) {
-        //                 languageServer.handleOpen(document);
-        //                 languageServer.handleChanges(document, document.getFullContentChanges());
-        //             } else {
-        //                 this.sentOpenDocument = true;
-        //                 languageServer.handleOpen(document);
-        //             }
-        //         }
+                // This new language server does not know about our document, so tell it.
+                const document = await this.getDocument();
+                if (document && languageServer) {
+                    // If we already sent an open document, that means we need to send both the open and
+                    // the new changes
+                    if (this.sentOpenDocument) {
+                        languageServer.sendOpen(document);
+                        languageServer.sendChanges(document, document.getFullContentChanges());
+                    } else {
+                        this.sentOpenDocument = true;
+                        languageServer.sendOpen(document);
+                    }
+                }
 
-        //         // Save the ref.
-        //         this.languageServer = languageServer;
-        //     } catch (e) {
-        //         traceError(e);
-        //     }
-        // }
-        // return this.languageServer;
+                // Save the ref.
+                this.languageServer = languageServer;
+            } catch (e) {
+                traceError(e);
+            }
+        }
+        return this.languageServer;
     }
 
     protected async provideCompletionItems(
@@ -349,7 +357,7 @@ export class IntellisenseProvider implements IInteractiveWindowListener {
         token: CancellationToken
     ): Promise<monacoEditor.languages.CompletionItem> {
         const [languageServer, document] = await Promise.all([this.getLanguageServer(token), this.getDocument()]);
-        if (languageServer && languageServer.resolveCompletionItem && document) {
+        if (languageServer && document) {
             const vscodeCompItem: CompletionItem = convertToVSCodeCompletionItem(item);
 
             // Needed by Jedi in completionSource.ts to resolve the item
@@ -375,12 +383,12 @@ export class IntellisenseProvider implements IInteractiveWindowListener {
         if (document) {
             // Broadcast an update to the language server
             const languageServer = await this.getLanguageServer(CancellationToken.None);
-            if (languageServer && languageServer.handleChanges && languageServer.handleOpen) {
+            if (languageServer) {
                 if (!this.sentOpenDocument) {
                     this.sentOpenDocument = true;
-                    return languageServer.handleOpen(document);
+                    return languageServer.sendOpen(document);
                 } else {
-                    return languageServer.handleChanges(document, changes);
+                    return languageServer.sendChanges(document, changes);
                 }
             }
         }

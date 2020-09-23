@@ -28,7 +28,7 @@ import { KernelDaemonPool } from '../../client/datascience/kernel-launcher/kerne
 
 import { promisify } from 'util';
 import { IExtensionSingleActivationService } from '../../client/activation/types';
-import { IPythonDebuggerPathProvider } from '../../client/api/types';
+import { ILanguageServerProvider, IPythonDebuggerPathProvider } from '../../client/api/types';
 import { ApplicationEnvironment } from '../../client/common/application/applicationEnvironment';
 import { ApplicationShell } from '../../client/common/application/applicationShell';
 import { VSCodeNotebook } from '../../client/common/application/notebook';
@@ -284,6 +284,7 @@ import { MockFileSystem } from './mockFileSystem';
 import { MockJupyterManager, SupportedCommands } from './mockJupyterManager';
 import { MockJupyterManagerFactory } from './mockJupyterManagerFactory';
 import { MockJupyterSettings } from './mockJupyterSettings';
+import { MockLanguageServerProvider } from './mockLanguageServerProvider';
 import { MockLiveShareApi } from './mockLiveShare';
 import { MockWorkspaceConfiguration } from './mockWorkspaceConfig';
 import { MockWorkspaceFolder } from './mockWorkspaceFolder';
@@ -825,6 +826,7 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
                 return;
             }
         };
+        this.serviceManager.addSingleton<ILanguageServerProvider>(ILanguageServerProvider, MockLanguageServerProvider);
 
         when(this.applicationShell.showErrorMessage(anyString())).thenReturn(Promise.resolve(''));
         when(this.applicationShell.showErrorMessage(anyString(), anything())).thenReturn(Promise.resolve(''));

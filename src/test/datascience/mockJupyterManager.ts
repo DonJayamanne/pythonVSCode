@@ -43,6 +43,7 @@ import { IServiceManager } from '../../client/ioc/types';
 import { PythonEnvironment } from '../../client/pythonEnvironments/info';
 import { concatMultilineString } from '../../datascience-ui/common';
 import { noop, sleep } from '../core';
+import { InterpreterService } from '../interpreters/interpreterService';
 import { MockJupyterSession } from './mockJupyterSession';
 import { MockProcessService } from './mockProcessService';
 import { MockPythonService } from './mockPythonService';
@@ -85,7 +86,7 @@ export class MockJupyterManager implements IJupyterSessionManager {
     private pythonExecutionFactory = this.createTypeMoq<IPythonExecutionFactory>('Python Exec Factory');
     private processServiceFactory = this.createTypeMoq<IProcessServiceFactory>('Process Exec Factory');
     private processService: MockProcessService = new MockProcessService();
-    private interpreterService = this.createTypeMoq<IInterpreterService>('Interpreter Service');
+    private interpreterService = this.createTypeMoq<InterpreterService>('Interpreter Service');
     private changedInterpreterEvent: EventEmitter<void> = new EventEmitter<void>();
     private installedInterpreters: PythonEnvironment[] = [];
     private pythonServices: MockPythonService[] = [];
@@ -121,6 +122,14 @@ export class MockJupyterManager implements IJupyterSessionManager {
                     return Promise.resolve(found);
                 }
                 return Promise.reject('Unknown interpreter');
+            });
+        this.interpreterService
+            .setup((i) => i.updateInterpreter(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+            .returns((_r, p) => {
+                const found = this.installedInterpreters.find((i) => i.path === p);
+                if (found) {
+                    this.activeInterpreter = found;
+                }
             });
 
         // Stick our services into the service manager

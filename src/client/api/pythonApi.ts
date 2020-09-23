@@ -23,8 +23,16 @@ import { IInterpreterQuickPickItem, IInterpreterSelector } from '../interpreter/
 import { IInterpreterService } from '../interpreter/contracts';
 import { IWindowsStoreInterpreter } from '../interpreter/locators/types';
 import { PythonEnvironment } from '../pythonEnvironments/info';
-import { IPythonApiProvider, IPythonDebuggerPathProvider, IPythonInstaller, PythonApi } from './types';
+import {
+    ILanguageServer,
+    ILanguageServerProvider,
+    IPythonApiProvider,
+    IPythonDebuggerPathProvider,
+    IPythonInstaller,
+    PythonApi
+} from './types';
 
+// tslint:disable: max-classes-per-file
 @injectable()
 export class PythonApiProvider {
     private readonly api = createDeferred<PythonApi>();
@@ -65,6 +73,15 @@ export class PythonApiProvider {
             await pythonExtension.activate();
         }
         pythonExtension.exports.jupyter.registerHooks();
+    }
+}
+
+@injectable()
+export class LanguageServerProvider implements ILanguageServerProvider {
+    constructor(@inject(IPythonApiProvider) private readonly apiProvider: IPythonApiProvider) {}
+
+    public getLanguageServer(resource?: InterpreterUri): Promise<ILanguageServer | undefined> {
+        return this.apiProvider.getApi().then((api) => api.getLanguageServer(resource));
     }
 }
 

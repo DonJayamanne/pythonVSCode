@@ -12,12 +12,13 @@ import {
     EnvironmentActivationService,
     InterpreterSelector,
     InterpreterService,
+    LanguageServerProvider,
     PythonApiProvider,
     PythonDebuggerPathProvider,
     PythonInstaller,
     WindowsStoreInterpreter
 } from './pythonApi';
-import { IPythonApiProvider, IPythonDebuggerPathProvider, IPythonInstaller } from './types';
+import { ILanguageServerProvider, IPythonApiProvider, IPythonDebuggerPathProvider, IPythonInstaller } from './types';
 
 export function registerTypes(serviceManager: IServiceManager): void {
     serviceManager.addSingleton<IPythonApiProvider>(IPythonApiProvider, PythonApiProvider);
@@ -25,6 +26,7 @@ export function registerTypes(serviceManager: IServiceManager): void {
     serviceManager.addSingleton<IInterpreterSelector>(IInterpreterSelector, InterpreterSelector);
     serviceManager.addSingleton<IWindowsStoreInterpreter>(IWindowsStoreInterpreter, WindowsStoreInterpreter);
     serviceManager.addSingleton<IPythonDebuggerPathProvider>(IPythonDebuggerPathProvider, PythonDebuggerPathProvider);
+    serviceManager.addSingleton<ILanguageServerProvider>(ILanguageServerProvider, LanguageServerProvider);
     serviceManager.addSingleton<IEnvironmentActivationService>(
         IEnvironmentActivationService,
         EnvironmentActivationService
