@@ -288,8 +288,8 @@ jobs:
 
       # For faster/better builds of sdists.
       - run: python -m pip install wheel
-        if: startsWith(matrix.test-suite, 'functional')
         shell: bash
+        if: matrix.test-suite != 'test-based-on-pr-body' || contains(github.event.pull_request.body, '[x] Run ')
 
       # debugpy is not shipped, only installed for local tests.
       # In production, we get debugpy from python extension.
@@ -334,14 +334,14 @@ jobs:
         uses: GabrielBB/xvfb-action@v1.4
         with:
           run: npm run testSingleWorkspace
-        if: matrix.test-suite == 'single-workspace' || (matrix.test-suite == 'test-based-on-pr-body' && github.event_name == 'pull_request' && contains(github.event.pull_request.body, '[x] Run single-workspace test'))
+        if: matrix.test-suite == 'single-workspace' || (matrix.test-suite == 'test-based-on-pr-body' && contains(github.event.pull_request.body, '[x] Run single-workspace test'))
 
       - name: Run functional tests with Jupyter
         run: npm run test:functional
         env:
           VSCODE_PYTHON_ROLLING: 1
           VSC_PYTHON_FORCE_LOGGING: 1
-        if: matrix.test-suite == 'functional-with-jupyter' || (matrix.test-suite == 'test-based-on-pr-body' && github.event_name == 'pull_request' && contains(github.event.pull_request.body, '[x] Run functional-with-jupyter test'))
+        if: matrix.test-suite == 'functional-with-jupyter' || (matrix.test-suite == 'test-based-on-pr-body' && contains(github.event.pull_request.body, '[x] Run functional-with-jupyter test'))
 
       - name: Run DataScience tests with VSCode & Jupyter
         uses: GabrielBB/xvfb-action@v1.4
@@ -350,7 +350,7 @@ jobs:
         env:
           VSCODE_PYTHON_ROLLING: 1
           VSC_PYTHON_FORCE_LOGGING: 1
-        if: matrix.test-suite == 'integration' || (matrix.test-suite == 'test-based-on-pr-body' && github.event_name == 'pull_request' && contains(github.event.pull_request.body, '[x] Run vscode test'))
+        if: matrix.test-suite == 'integration' || (matrix.test-suite == 'test-based-on-pr-body' && contains(github.event.pull_request.body, '[x] Run vscode test'))
 
 #   smoke-tests:
 #     name: Smoke tests
