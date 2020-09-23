@@ -31,7 +31,7 @@ import {
 } from '../../../client/datascience/types';
 import { createEventHandler, waitForCondition } from '../../common';
 import { EXTENSION_ROOT_DIR_FOR_TESTS } from '../../constants';
-import { closeActiveWindows, initialize } from '../../initialize';
+import { closeActiveWindows, initialize, isInsiders } from '../../initialize';
 const vscodeNotebookEnums = require('vscode') as typeof import('vscode-proposed');
 
 async function getServices() {
@@ -138,6 +138,9 @@ export function disposeAllDisposables(disposables: IDisposable[]) {
 }
 
 export async function canRunTests() {
+    if (!isInsiders()) {
+        return false;
+    }
     const api = await initialize();
     const appEnv = api.serviceContainer.get<IApplicationEnvironment>(IApplicationEnvironment);
     return appEnv.extensionChannel !== 'stable';
@@ -164,6 +167,9 @@ export async function shutdownAllNotebooks() {
 
 let oldValueFor_alwaysTrustNotebooks: undefined | boolean;
 export async function closeNotebooksAndCleanUpAfterTests(disposables: IDisposable[] = []) {
+    if (!isInsiders()) {
+        return false;
+    }
     await closeActiveWindows();
     disposeAllDisposables(disposables);
     await shutdownAllNotebooks();
@@ -177,6 +183,9 @@ export async function closeNotebooksAndCleanUpAfterTests(disposables: IDisposabl
     sinon.restore();
 }
 export async function closeNotebooks(disposables: IDisposable[] = []) {
+    if (!isInsiders()) {
+        return false;
+    }
     await closeActiveWindows();
     disposeAllDisposables(disposables);
 }

@@ -16,22 +16,26 @@ initializeLogger();
 // tslint:disable:no-console
 
 /*
-This is a simple work around for tests tasks not completing on Azure Pipelines.
-What's been happening is, the tests run however for some readon the Node propcess (VS Code) does not exit.
+This is a simple work around for tests tasks not completing on CI.
+What's been happening is, the tests run however for some reason the Node process (VS Code) does not exit.
 Here's what we've tried thus far:
 * Dispose all timers
 * Close all open streams/sockets.
 * Use `process.exit` and use the VSC commands to close itself.
 
 Final solution:
-* Start a node.js procecss
+* Start a node.js process
     * This process will start a socket server
-    * This procecss will start the tests in a separate procecss (spawn)
+    * This process will start the tests in a separate process (spawn)
 * When the tests have completed,
     * Send a message to the socket server with a flag (true/false whether tests passed/failed)
-* Socket server (main procecss) will receive the test status flag.
+* Socket server (main process) will receive the test status flag.
     * This will kill the spawned process
-    * This main process will kill itself with exit code 0 if tests pass succesfully, else 1.
+    * This main process will kill itself with exit code 0 if tests pass successfully, else 1.
+
+Usage:
+* Original code `node xyz.js`
+* Updated code `node testBootstrap.js xyz.js`
 */
 
 const testFile = process.argv[2];

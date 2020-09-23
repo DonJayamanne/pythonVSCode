@@ -14,7 +14,7 @@ if ((Reflect as any).metadata === undefined) {
 import * as glob from 'glob';
 import * as Mocha from 'mocha';
 import * as path from 'path';
-import { IS_CI_SERVER_TEST_DEBUGGER, MOCHA_REPORTER_JUNIT } from './ciConstants';
+import { IS_CI_SERVER_TEST_DEBUGGER } from './ciConstants';
 import {
     IS_MULTI_ROOT_TEST,
     IS_SMOKE_TEST,
@@ -82,17 +82,17 @@ function configure(): SetupOptions {
         exit: true
     };
 
-    // If the `MOCHA_REPORTER_JUNIT` env var is true, set up the CI reporter for
+    // Set up the CI reporter for
     // reporting to both the console (spec) and to a JUnit XML file. The xml file
     // written to is `test-report.xml` in the root folder by default, but can be
     // changed by setting env var `MOCHA_FILE` (we do this in our CI).
-    if (MOCHA_REPORTER_JUNIT) {
-        options.reporter = 'mocha-multi-reporters';
-        const reporterPath = path.join(__dirname, 'common', 'exitCIAfterTestReporter.js');
-        options.reporterOptions = {
-            reporterEnabled: `spec,mocha-junit-reporter,${reporterPath}`
-        };
-    }
+    // Another reason for doing this is to setup the `exitCIAfterTestReporter.js`.
+    // Without that the smoke tests process doesn't exit after the tests complete.
+    options.reporter = 'mocha-multi-reporters';
+    const reporterPath = path.join(__dirname, 'common', 'exitCIAfterTestReporter.js');
+    options.reporterOptions = {
+        reporterEnabled: `spec,mocha-junit-reporter,${reporterPath}`
+    };
 
     // Linux: prevent a weird NPE when mocha on Linux requires the window size from the TTY.
     // Since we are not running in a tty environment, we just implement the method statically.
@@ -148,8 +148,8 @@ export async function run(): Promise<void> {
         reactHelpers.setUpDomEnvironment();
     }
 
-    // Ignore `ds.test.js` test files when running other tests.
-    const ignoreGlob = options.testFilesSuffix.toLowerCase() === 'ds.test' ? [] : ['**/**.ds.test.js'];
+    // Ignore `vscode.test.js` test files when running other tests.
+    const ignoreGlob = options.testFilesSuffix.toLowerCase() === 'vscode.test' ? [] : ['**/**.vscode.test.js'];
     const testFiles = await new Promise<string[]>((resolve, reject) => {
         glob(
             `**/**.${options.testFilesSuffix}.js`,

@@ -3,7 +3,7 @@
 
 'use strict';
 
-// tslint:disable:no-require-imports no-var-requires
+// tslint:disable:no-require-imports no-var-requires no-any
 import { nbformat } from '@jupyterlab/coreutils';
 import { assert } from 'chai';
 import * as fs from 'fs-extra';
@@ -36,24 +36,22 @@ suite('DataScience - VSCode Notebook - (Trust)', function () {
     let api: IExtensionTestApi;
     let testIPynb: Uri;
     const disposables: IDisposable[] = [];
+    let oldTrustSetting: boolean;
+    let dsSettings: IJupyterSettings;
     suiteSetup(async function () {
         this.timeout(15_000);
         api = await initialize();
         if (!(await canRunTests())) {
             return this.skip();
         }
-    });
-    let oldTrustSetting: boolean;
-    let dsSettings: IJupyterSettings;
-    suiteSetup(() => {
         const configService = api.serviceContainer.get<IConfigurationService>(IConfigurationService);
         dsSettings = configService.getSettings(testIPynb);
         oldTrustSetting = dsSettings.alwaysTrustNotebooks;
-        (<any>dsSettings).alwaysTrustNotebooks = false;
+        (dsSettings as any).alwaysTrustNotebooks = false;
     });
     setup(async () => {
         sinon.restore();
-        (<any>dsSettings).alwaysTrustNotebooks = false;
+        (dsSettings as any).alwaysTrustNotebooks = false;
         // Don't use same file (due to dirty handling, we might save in dirty.)
         // Cuz we won't save to file, hence extension will backup in dirty file and when u re-open it will open from dirty.
         testIPynb = Uri.file(await createTemporaryNotebook(templateIPynb, disposables));
@@ -63,7 +61,11 @@ suite('DataScience - VSCode Notebook - (Trust)', function () {
         await fs.writeFile(testIPynb.fsPath, JSON.stringify(nb, undefined, 4));
     });
     teardown(async () => closeNotebooksAndCleanUpAfterTests(disposables));
-    suiteTeardown(() => ((<any>dsSettings).alwaysTrustNotebooks = oldTrustSetting === true));
+    suiteTeardown(() => {
+        if (typeof oldTrustSetting === 'boolean') {
+            (dsSettings as any).alwaysTrustNotebooks = oldTrustSetting === true;
+        }
+    });
 
     function assertDocumentTrust(document: NotebookDocument, trusted: boolean) {
         assert.equal(document.metadata.cellEditable, trusted);
@@ -89,7 +91,7 @@ suite('DataScience - VSCode Notebook - (Trust)', function () {
         const editorProvider = api.serviceContainer.get<INotebookEditorProvider>(INotebookEditorProvider);
         const model = (await editorProvider.open(testIPynb))!.model!;
 
-        const document = api.serviceContainer.get<IVSCodeNotebook>(IVSCodeNotebook).activeNotebookEditor!.document;
+        const { document } = api.serviceContainer.get<IVSCodeNotebook>(IVSCodeNotebook).activeNotebookEditor!;
         assert.equal(model.isTrusted, false);
         assertDocumentTrust(document, false);
 

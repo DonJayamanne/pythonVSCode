@@ -19,6 +19,9 @@ export async function initializePython() {
     await setPythonPathInWorkspaceRoot(PYTHON_PATH);
 }
 
+export function isInsiders() {
+    return vscode.env.appName.indexOf('Insider') > 0;
+}
 // tslint:disable-next-line:no-any
 export async function initialize(): Promise<IExtensionTestApi> {
     await initializePython();
@@ -32,6 +35,7 @@ export async function initialize(): Promise<IExtensionTestApi> {
     // tslint:disable-next-line:no-any
     return (api as any) as IExtensionTestApi;
 }
+
 export async function activateExtension() {
     const extension = vscode.extensions.getExtension<IExtensionApi>(PVSC_EXTENSION_ID_FOR_TESTS)!;
     const api = await extension.activate();

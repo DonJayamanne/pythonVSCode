@@ -52,7 +52,7 @@ stages:
               NeedsPythonFunctionalReqs: true
               SplitFunctionalTests: false
             # 'DataScience':
-            #   TestsToRun: 'testDataScience'
+            #   TestsToRun: 'testVSCode'
             #   NeedsPythonTestReqs: true
             #   NeedsPythonFunctionalReqs: true
             # 'Smoke':

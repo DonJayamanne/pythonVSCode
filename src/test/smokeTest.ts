@@ -1,8 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-'use strict';
-
 // tslint:disable:no-console no-require-imports no-var-requires
 
 // Must always be on top to setup expected env.
@@ -10,7 +8,6 @@ process.env.VSC_PYTHON_SMOKE_TEST = '1';
 
 import { spawn } from 'child_process';
 import * as fs from 'fs-extra';
-import * as glob from 'glob';
 import * as path from 'path';
 import { unzip } from './common';
 import { EXTENSION_ROOT_DIR_FOR_TESTS, SMOKE_TEST_EXTENSIONS_DIR } from './constants';
@@ -82,9 +79,7 @@ class TestRunner {
     }
 
     private async extractLatestExtension(targetDir: string): Promise<void> {
-        const extensionFile = await new Promise<string>((resolve, reject) =>
-            glob('*.vsix', (ex, files) => (ex ? reject(ex) : resolve(files[0])))
-        );
+        const extensionFile = path.join(EXTENSION_ROOT_DIR_FOR_TESTS, process.env.VSIX_NAME!);
         await unzip(extensionFile, targetDir);
     }
 }

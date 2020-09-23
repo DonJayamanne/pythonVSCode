@@ -29,7 +29,7 @@ export class NotebookCreationTracker implements INotebookCreationTracker {
         @inject(IDisposableRegistry) private readonly disposables: IDisposableRegistry
     ) {}
     public async startTracking(): Promise<void> {
-        this.disposables.push(this.notebookProvider.onNotebookCreated(this.notebookCreated));
+        this.disposables.push(this.notebookProvider.onNotebookCreated(this.notebookCreated, this));
     }
 
     // Callback for when a notebook is created by the notebook provider
