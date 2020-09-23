@@ -20,7 +20,7 @@ export class MigrateDigestStorage {
     }
 
     /**
-     * Copy, then delete, pythonExtensionStorage/nbsecret if it exists
+     * Copy pythonExtensionStorage/nbsecret if it exists
      */
     public async migrateKey() {
         const trustKeyMigrated = 'trustKeyMigrated';
@@ -29,7 +29,6 @@ export class MigrateDigestStorage {
                 await this.ensuredDir;
                 const nbsecret = path.join(this.pythonExtensionStorageDir, 'nbsecret');
                 await this.fs.copyLocal(nbsecret, path.join(this.currentExtensionStorageDir, 'nbsecret'));
-                this.fs.deleteLocalFile(nbsecret).ignoreErrors();
             } catch (e) {
                 traceInfo('Encountered error while migrating trusted notebooks nbsecret keyfile', e);
             } finally {
@@ -39,7 +38,7 @@ export class MigrateDigestStorage {
     }
 
     /**
-     * Copy, then delete, pythonExtensionStorage/nbsignatures if it exists
+     * Copy pythonExtensionStorage/nbsignatures if it exists
      */
     public async migrateDir() {
         if (!this.extensionContext.globalState.get(trustDirectoryMigrated)) {
@@ -47,7 +46,6 @@ export class MigrateDigestStorage {
                 await this.ensuredDir;
                 const nbsignatures = path.join(this.pythonExtensionStorageDir, 'nbsignatures');
                 await this.fs.copyLocal(nbsignatures, path.join(this.currentExtensionStorageDir, 'nbsignatures'));
-                this.fs.deleteLocalDirectory(nbsignatures).ignoreErrors();
             } catch (e) {
                 traceInfo('Encountered error while migrating trusted notebooks nbsignatures directory', e);
             } finally {
