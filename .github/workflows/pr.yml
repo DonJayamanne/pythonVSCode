@@ -137,7 +137,7 @@ jobs:
   ts_tests:
     name: Type Script Tests
     runs-on: ${{ matrix.os }}
-    if: github.repository == 'microsoft/vscode-jupyter'
+    # if: github.repository == 'microsoft/vscode-jupyter'
     strategy:
       fail-fast: false
       matrix:
