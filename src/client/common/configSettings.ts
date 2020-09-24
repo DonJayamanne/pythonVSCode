@@ -87,9 +87,7 @@ export class JupyterSettings implements IWatchableJupyterSettings {
     public runStartupCommands: string | string[] = [];
     public debugJustMyCode: boolean = false;
     public defaultCellMarker: string = '';
-    public verboseLogging: boolean = false;
     public themeMatplotlibPlots: boolean = false;
-    public useWebViewServer: boolean = false;
     public variableQueries: IVariableQuery[] = [];
     public disableJupyterAutoStart: boolean = false;
     public jupyterCommandLineArguments: string[] = [];
@@ -97,6 +95,10 @@ export class JupyterSettings implements IWatchableJupyterSettings {
     public alwaysScrollOnNewCell: boolean = false;
     public showKernelSelectionOnInteractiveWindow: boolean = false;
     public interactiveWindowMode: InteractiveWindowMode = 'multiple';
+    // Hidden settings not surfaced in package.json
+    public disableZMQSupport: boolean = false;
+    public useWebViewServer: boolean = false;
+    public verboseLogging: boolean = false;
     // Privates should start with _ so that they are not read from the settings.json
     private _changeEmitter = new EventEmitter<void>();
     private _workspaceRoot: Resource;

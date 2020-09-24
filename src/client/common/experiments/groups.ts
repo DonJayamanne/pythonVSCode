@@ -16,12 +16,6 @@ export enum WebAppReload {
     experiment = 'Reload - experiment'
 }
 
-// Experiment to use a local ZMQ kernel connection as opposed to starting a Jupyter server locally
-export enum LocalZMQKernel {
-    control = 'LocalZMQKernel - control',
-    experiment = 'LocalZMQKernel - experiment'
-}
-
 // Experiment for supporting run by line in data science notebooks
 export enum RunByLine {
     control = 'RunByLine - control',
@@ -55,12 +49,6 @@ export enum CollectLSRequestTiming {
 export enum CollectNodeLSRequestTiming {
     control = 'CollectNodeLSRequestTiming - control',
     experiment = 'CollectNodeLSRequestTiming - experiment'
-}
-
-// Determine if ipywidgets is enabled or not
-export enum EnableIPyWidgets {
-    control = 'EnableIPyWidgets - control',
-    experiment = 'EnableIPyWidgets - experiment'
 }
 
 /*

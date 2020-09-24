@@ -5,7 +5,6 @@ import { assert } from 'chai';
 import * as sinon from 'sinon';
 import * as TypeMoq from 'typemoq';
 import { IDocumentManager } from '../../client/common/application/types';
-import { LocalZMQKernel } from '../../client/common/experiments/groups';
 import { JupyterInterpreterSubCommandExecutionService } from '../../client/datascience/jupyter/interpreter/jupyterInterpreterSubCommandExecutionService';
 import { JupyterInstallError } from '../../client/datascience/jupyter/jupyterInstallError';
 import { ICodeWatcher, IInteractiveWindowProvider, IJupyterExecution } from '../../client/datascience/types';
@@ -45,7 +44,7 @@ suite('DataScience Error Handler Functional Tests', () => {
 
     test('Jupyter not installed', async () => {
         // Turn off raw kernel for this test as it's testing jupyter install state
-        ioc.setExperimentState(LocalZMQKernel.experiment, false);
+        ioc.forceDataScienceSettingsChanged({ disableZMQSupport: true });
         ioc.addDocument('#%%\ntesting', 'test.py');
 
         const cw = ioc.serviceManager.get<ICodeWatcher>(ICodeWatcher);

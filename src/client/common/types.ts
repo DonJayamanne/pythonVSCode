@@ -188,6 +188,7 @@ export interface IJupyterSettings {
     readonly alwaysScrollOnNewCell: boolean;
     readonly showKernelSelectionOnInteractiveWindow: boolean;
     readonly interactiveWindowMode: InteractiveWindowMode;
+    readonly disableZMQSupport: boolean;
 }
 
 export interface IWatchableJupyterSettings extends IJupyterSettings {

@@ -12,7 +12,6 @@ import {
     LoadIPyWidgetClassLoadAction,
     NotifyIPyWidgeWidgetVersionNotSupportedAction
 } from '../../../datascience-ui/interactive-common/redux/reducers/types';
-import { EnableIPyWidgets } from '../../common/experiments/groups';
 import { traceError, traceInfo } from '../../common/logger';
 import { IDisposableRegistry, IExperimentsManager, IOutputChannel } from '../../common/types';
 import * as localize from '../../common/utils/localize';
@@ -43,7 +42,6 @@ export class IPyWidgetHandler implements IInteractiveWindowListener {
     }>();
     // tslint:disable-next-line: no-require-imports
     private hashFn = require('hash.js').sha256;
-    private enabled = false;
 
     constructor(
         @inject(INotebookProvider) notebookProvider: INotebookProvider,
@@ -60,8 +58,6 @@ export class IPyWidgetHandler implements IInteractiveWindowListener {
                 }
             })
         );
-
-        this.enabled = experimentsManager.inExperiment(EnableIPyWidgets.experiment);
     }
 
     public dispose() {
@@ -153,7 +149,7 @@ export class IPyWidgetHandler implements IInteractiveWindowListener {
         }
     }
     private getIPyWidgetMessageDispatcher() {
-        if (!this.notebookIdentity || !this.enabled) {
+        if (!this.notebookIdentity) {
             return;
         }
         if (!this.ipyWidgetMessageDispatcher) {
