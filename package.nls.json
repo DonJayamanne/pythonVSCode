@@ -113,6 +113,8 @@
     "jupyter.command.jupyter.scrolltocell.title": "Scroll Cell Into View",
     "jupyter.command.jupyter.createnewnotebook.title": "Create New Blank Jupyter Notebook",
     "jupyter.command.jupyter.selectJupyterInterpreter.title": "Select Interpreter to start Jupyter server",
+    "jupyter.command.jupyter.enableDebugLogging.title": "Enable Debug Logging",
+    "jupyter.command.jupyter.resetLoggingLevel.title": "Reset Logging Level",
     "Datascience.currentlySelectedJupyterInterpreterForPlaceholder": "current: {0}",
     "jupyter.command.jupyter.analysis.clearCache.title": "Clear Module Analysis Cache",
     "jupyter.command.jupyter.analysis.restartLanguageServer.title": "Restart Language Server",

@@ -646,6 +646,16 @@
                 "command": "jupyter.latestExtension",
                 "title": "DataScience.latestExtension",
                 "category": "Jupyter"
+            },
+            {
+                "command": "jupyter.enableDebugLogging",
+                "title": "%jupyter.command.jupyter.enableDebugLogging.title%",
+                "category": "Jupyter"
+            },
+            {
+                "command": "jupyter.resetLoggingLevel",
+                "title": "%jupyter.command.jupyter.resetLoggingLevel.title%",
+                "category": "Jupyter"
             }
         ],
         "menus": {
@@ -1162,6 +1172,18 @@
                     "title": "%DataScience.notebookExportAs%",
                     "category": "Jupyter",
                     "when": "false"
+                },
+                {
+                    "command": "jupyter.resetLoggingLevel",
+                    "title": "%jupyter.command.jupyter.resetLoggingLevel.title%",
+                    "category": "Jupyter",
+                    "when": "config.jupyter.logging.level != error"
+                },
+                {
+                    "command": "jupyter.enableDebugLogging",
+                    "title": "%jupyter.command.jupyter.enableDebugLogging.title%",
+                    "category": "Jupyter",
+                    "when": "config.jupyter.logging.level != debug"
                 }
             ]
         },

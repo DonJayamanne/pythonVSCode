@@ -11,6 +11,7 @@ import { IApplicationShell, ICommandManager, IDebugService, IDocumentManager } f
 import { IConfigurationService, IDisposable, IOutputChannel } from '../../common/types';
 import { DataScience } from '../../common/utils/localize';
 import { noop } from '../../common/utils/misc';
+import { LogLevel } from '../../logging/levels';
 import { captureTelemetry, sendTelemetryEvent } from '../../telemetry';
 import { Commands, JUPYTER_OUTPUT_CHANNEL, Telemetry } from '../constants';
 import {
@@ -93,6 +94,8 @@ export class CommandRegistry implements IDisposable {
         this.registerCommand(Commands.ViewJupyterOutput, this.viewJupyterOutput);
         this.registerCommand(Commands.GatherQuality, this.reportGatherQuality);
         this.registerCommand(Commands.LatestExtension, this.openPythonExtensionPage);
+        this.registerCommand(Commands.EnableDebugLogging, this.enableDebugLogging);
+        this.registerCommand(Commands.ResetLoggingLevel, this.resetLoggingLevel);
         this.registerCommand(
             Commands.EnableLoadingWidgetsFrom3rdPartySource,
             this.enableLoadingWidgetScriptsFromThirdParty
@@ -128,6 +131,22 @@ export class CommandRegistry implements IDisposable {
         }
 
         return undefined;
+    }
+
+    private async enableDebugLogging() {
+        const previousValue = this.configService.getSettings().logging.level;
+        if (previousValue !== LogLevel.Debug) {
+            await this.configService.updateSetting('logging.level', 'debug', undefined, ConfigurationTarget.Global);
+            this.commandManager.executeCommand('jupyter.reloadVSCode', DataScience.reloadRequired()).then(noop, noop);
+        }
+    }
+
+    private async resetLoggingLevel() {
+        const previousValue = this.configService.getSettings().logging.level;
+        if (previousValue !== LogLevel.Error) {
+            await this.configService.updateSetting('logging.level', 'error', undefined, ConfigurationTarget.Global);
+            this.commandManager.executeCommand('jupyter.reloadVSCode', DataScience.reloadRequired()).then(noop, noop);
+        }
     }
 
     private enableLoadingWidgetScriptsFromThirdParty(): void {
