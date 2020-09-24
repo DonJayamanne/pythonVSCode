@@ -8,4 +8,4 @@
 # Note: This pulls in Jedi too but the pypi version.
 git+git://github.com/vscode-python/jedi-language-server@42823a2598d4b6369e9273c5ad237a48c5d67553
 # DS Python daemon
-python-jsonrpc-server==0.2.0
+python-jsonrpc-server==0.4.0
