@@ -11,8 +11,8 @@
             "path": "src/ipywidgets"
         },
         {
-            "path": "../vscode-notebook-renderers",
-            "name": "vscode-notebook-renderers"
+            "name": "vscode-notebook-renderers",
+            "path": "../vscode-notebook-renderers"
         },
         {
             "name": "vscode-python",

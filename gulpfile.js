@@ -128,10 +128,6 @@ gulp.task('compile-notebooks', async () => {
     await buildWebPackForDevOrProduction('./build/webpack/webpack.datascience-ui-notebooks.config.js');
 });
 
-gulp.task('compile-renderers', async () => {
-    await buildWebPackForDevOrProduction('./build/webpack/webpack.datascience-ui-renderers.config.js');
-});
-
 gulp.task('compile-viewers', async () => {
     await buildWebPackForDevOrProduction('./build/webpack/webpack.datascience-ui-viewers.config.js');
 });
@@ -175,7 +171,6 @@ gulp.task('webpack', async () => {
     await buildWebPackForDevOrProduction('./build/webpack/webpack.datascience-ui-notebooks.config.js', 'production');
     await buildWebPackForDevOrProduction('./build/webpack/webpack.datascience-ui-viewers.config.js', 'production');
     await buildWebPackForDevOrProduction('./build/webpack/webpack.extension.config.js', 'extension');
-    await buildWebPackForDevOrProduction('./build/webpack/webpack.datascience-ui-renderers.config.js', 'production');
 });
 
 gulp.task('updateBuildNumber', async () => {

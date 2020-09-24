@@ -27,10 +27,6 @@ function getEntry(bundle) {
                 nativeEditor: ['babel-polyfill', `./src/datascience-ui/native-editor/index.tsx`],
                 interactiveWindow: ['babel-polyfill', `./src/datascience-ui/history-react/index.tsx`]
             };
-        case 'renderers':
-            return {
-                renderers: ['babel-polyfill', `./src/datascience-ui/renderers/index.tsx`]
-            };
         case 'viewers':
             return {
                 plotViewer: ['babel-polyfill', `./src/datascience-ui/plot/index.tsx`],
@@ -76,16 +72,6 @@ function getPlugins(bundle) {
                 })
             );
             break;
-        case 'renderers': {
-            const definePlugin = new webpack.DefinePlugin({
-                'process.env': {
-                    NODE_ENV: JSON.stringify('production')
-                }
-            });
-
-            plugins.push(...(isProdBuild ? [definePlugin] : []));
-            break;
-        }
         case 'viewers': {
             const definePlugin = new webpack.DefinePlugin({
                 'process.env': {
@@ -321,12 +307,8 @@ function buildConfiguration(bundle) {
         }
     };
 
-    if (bundle === 'renderers') {
-        delete config.optimization;
-    }
     return config;
 }
 
 exports.notebooks = buildConfiguration('notebook');
 exports.viewers = buildConfiguration('viewers');
-exports.renderers = buildConfiguration('renderers');

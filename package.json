@@ -1646,33 +1646,6 @@
                 ]
             }
         ],
-        "notebookOutputRenderer": [
-            {
-                "id": "jupyter-notebook-renderer",
-                "entrypoint": "./out/datascience-ui/renderers/renderers.js",
-                "displayName": "Jupyter Notebook Renderer",
-                "mimeTypes": [
-                    "application/geo+json",
-                    "application/vdom.v1+json",
-                    "application/vnd.dataresource+json",
-                    "application/vnd.plotly.v1+json",
-                    "application/vnd.vega.v2+json",
-                    "application/vnd.vega.v3+json",
-                    "application/vnd.vega.v4+json",
-                    "application/vnd.vega.v5+json",
-                    "application/vnd.vegalite.v1+json",
-                    "application/vnd.vegalite.v2+json",
-                    "application/vnd.vegalite.v3+json",
-                    "application/vnd.vegalite.v4+json",
-                    "application/x-nteract-model-debug+json",
-                    "image/gif",
-                    "image/png",
-                    "image/jpeg",
-                    "text/latex",
-                    "text/vnd.plotly.v1+html"
-                ]
-            }
-        ],
         "notebookProvider": [
             {
                 "viewType": "jupyter-notebook",
@@ -1859,7 +1832,6 @@
         "@types/untildify": "^3.0.0",
         "@types/uuid": "^3.4.3",
         "@types/vscode": "^1.47.0",
-        "@types/vscode-notebook-renderer": "^1.48.0",
         "@types/webpack-bundle-analyzer": "^2.13.0",
         "@types/winreg": "^1.2.30",
         "@types/ws": "^6.0.1",
