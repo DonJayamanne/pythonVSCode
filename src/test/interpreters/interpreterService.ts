@@ -2,9 +2,10 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { injectable } from 'inversify';
+import { inject, injectable } from 'inversify';
 import { Event, EventEmitter, Uri } from 'vscode';
 import { getInterpreterInfo } from '.';
+import { IPythonExtensionChecker } from '../../client/api/types';
 import { Resource } from '../../client/common/types';
 import { IInterpreterService } from '../../client/interpreter/contracts';
 import { PythonEnvironment } from '../../client/pythonEnvironments/info';
@@ -12,15 +13,16 @@ import { PythonEnvironment } from '../../client/pythonEnvironments/info';
 let interpretersCache: Promise<PythonEnvironment[]> | undefined;
 @injectable()
 export class InterpreterService implements IInterpreterService {
-    public readonly didChangeInterpreter = new EventEmitter<void>();
-
     public get onDidChangeInterpreter(): Event<void> {
         return this.didChangeInterpreter.event;
     }
+    public readonly didChangeInterpreter = new EventEmitter<void>();
 
     private readonly customInterpretersPerUri = new Map<string, string>();
+    constructor(@inject(IPythonExtensionChecker) private readonly extensionChecker: IPythonExtensionChecker) {}
 
     public async getInterpreters(_resource?: Uri): Promise<PythonEnvironment[]> {
+        this.validatePythonExtension();
         if (interpretersCache) {
             return interpretersCache;
         }
@@ -29,6 +31,7 @@ export class InterpreterService implements IInterpreterService {
     }
 
     public async getActiveInterpreter(resource?: Uri): Promise<PythonEnvironment | undefined> {
+        this.validatePythonExtension();
         const pythonPath = this.customInterpretersPerUri.has(resource?.fsPath || '')
             ? this.customInterpretersPerUri.get(resource?.fsPath || '')!
             : process.env.CI_PYTHON_PATH || 'python';
@@ -36,6 +39,7 @@ export class InterpreterService implements IInterpreterService {
     }
 
     public async getInterpreterDetails(pythonPath: string, _resource?: Uri): Promise<undefined | PythonEnvironment> {
+        this.validatePythonExtension();
         return getInterpreterInfo(pythonPath);
     }
 
@@ -44,6 +48,12 @@ export class InterpreterService implements IInterpreterService {
             this.customInterpretersPerUri.set(resource?.fsPath || '', pythonPath);
         }
         this.didChangeInterpreter.fire();
+    }
+
+    private validatePythonExtension() {
+        if (!this.extensionChecker.isPythonExtensionInstalled) {
+            throw new Error('Python extension should be installed when using interpreter service.');
+        }
     }
 }
 

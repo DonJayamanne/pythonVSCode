@@ -6,6 +6,7 @@ import { ChildProcess } from 'child_process';
 import * as tcpPortUsed from 'tcp-port-used';
 import * as tmp from 'tmp';
 import { Event, EventEmitter } from 'vscode';
+import { IPythonExtensionChecker } from '../../api/types';
 import { traceError, traceInfo, traceWarning } from '../../common/logger';
 import { IProcessServiceFactory, ObservableExecutionResult } from '../../common/process/types';
 import { Resource } from '../../common/types';
@@ -53,7 +54,8 @@ export class KernelProcess implements IKernelProcess {
         private readonly _connection: IKernelConnection,
         kernelConnectionMetadata: KernelSpecConnectionMetadata | PythonKernelConnectionMetadata,
         private readonly fs: IDataScienceFileSystem,
-        private readonly resource: Resource
+        private readonly resource: Resource,
+        private readonly extensionChecker: IPythonExtensionChecker
     ) {
         this._kernelConnectionMetadata = kernelConnectionMetadata;
     }
@@ -246,7 +248,9 @@ export class KernelProcess implements IKernelProcess {
 
     private async launchAsObservable(workingDirectory: string) {
         let exeObs: ObservableExecutionResult<string> | undefined;
-        if (this.isPythonKernel) {
+
+        // Use a daemon only if the python extension is available. It requires the active interpreter
+        if (this.isPythonKernel && this.extensionChecker.isPythonExtensionInstalled) {
             this.pythonKernelLauncher = new PythonKernelLauncherDaemon(this.daemonPool);
             const kernelDaemonLaunch = await this.pythonKernelLauncher.launch(
                 this.resource,

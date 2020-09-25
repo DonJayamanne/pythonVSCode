@@ -4,6 +4,7 @@ import type { Kernel } from '@jupyterlab/services/lib/kernel/kernel';
 import { assert } from 'chai';
 import { anything, capture, instance, mock, verify, when } from 'ts-mockito';
 import { EventEmitter, Uri } from 'vscode';
+import { PythonExtensionChecker } from '../../../client/api/pythonApi';
 import { ApplicationShell } from '../../../client/common/application/applicationShell';
 import { CommandManager } from '../../../client/common/application/commandManager';
 import { ICommandManager } from '../../../client/common/application/types';
@@ -134,6 +135,8 @@ suite('DataScience - Notebook Commands', () => {
                 // tslint:disable-next-line: no-http-string
                 const settings = { jupyterServerURI: isLocalConnection ? 'local' : 'http://foobar' };
                 when(configService.getSettings(anything())).thenReturn(settings as any);
+                const extensionChecker = mock(PythonExtensionChecker);
+                when(extensionChecker.isPythonExtensionInstalled).thenReturn(true);
 
                 const kernelSelector = new KernelSelector(
                     instance(kernelSelectionProvider),
@@ -144,7 +147,8 @@ suite('DataScience - Notebook Commands', () => {
                     instance(kernelFinder),
                     instance(jupyterSessionManagerFactory),
                     instance(configService),
-                    []
+                    [],
+                    instance(extensionChecker)
                 );
 
                 const kernelSwitcher = new KernelSwitcher(

@@ -139,6 +139,15 @@ export namespace ExtensionSurveyBanner {
 }
 
 export namespace DataScience {
+    export const pythonExtensionRequired = localize(
+        'DataScience.pythonExtensionRequired',
+        'The Python extension is required to perform that task. Click Yes to open Python extension installation page.'
+    );
+
+    export const pythonInstalledReloadPromptMessage = localize(
+        'DataScience.pythonInstalledReloadPromptMessage',
+        'Python extension is now installed. Reload window to activate?'
+    );
     export const unknownServerUri = localize(
         'DataScience.unknownServerUri',
         'Server URI cannot be used. Did you uninstall an extension that provided a Jupyter server connection?'

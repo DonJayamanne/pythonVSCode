@@ -225,6 +225,45 @@ suite('DataScience Native Editor', () => {
                     verifyHtmlOnCell(mount.wrapper, 'NativeCell', '1', 1);
                 });
 
+                runMountedTest('Simple text with no python', async () => {
+                    ioc.forceDataScienceSettingsChanged({ disableJupyterAutoStart: true });
+                    ioc.setPythonExtensionState(false);
+
+                    // Create an editor so something is listening to messages
+                    const { mount } = await createNewEditor(ioc);
+
+                    // Add a cell into the UI and wait for it to render if running real tests
+                    await addCell(mount, 'a=1\na', ioc.isRawKernel);
+
+                    if (ioc.isRawKernel) {
+                        verifyHtmlOnCell(mount.wrapper, 'NativeCell', '1', 1);
+                    }
+                    assert.notOk(
+                        ioc.attemptedPythonExtension,
+                        'Python extension installation should not happen on simple open'
+                    );
+                });
+
+                runMountedTest('Export with no python', async () => {
+                    ioc.forceDataScienceSettingsChanged({ disableJupyterAutoStart: true });
+                    ioc.setPythonExtensionState(false);
+
+                    // Create an editor so something is listening to messages
+                    const { mount } = await createNewEditor(ioc);
+
+                    // Add a cell into the UI and wait for it to render
+                    await addCell(mount, 'a=1\na', ioc.isRawKernel);
+
+                    const exportButton = findButton(mount.wrapper, NativeEditor, 9);
+                    exportButton!.simulate('click');
+
+                    // Give it some time
+                    await sleep(100);
+
+                    // Should have asked to install
+                    assert.ok(ioc.attemptedPythonExtension, 'Python extension installation should happen on export');
+                });
+
                 runMountedTest('Invalid session still runs', async (context) => {
                     if (ioc.mockJupyter) {
                         // Can only do this with the mock. Have to force the first call to waitForIdle on the

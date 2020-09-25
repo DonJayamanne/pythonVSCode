@@ -5,6 +5,7 @@ import { assert } from 'chai';
 import { noop } from 'jquery';
 import * as portfinder from 'portfinder';
 import * as uuid from 'uuid/v4';
+import { IPythonExtensionChecker } from '../../../client/api/types';
 import { IProcessServiceFactory } from '../../../client/common/process/types';
 import { createDeferred, sleep } from '../../../client/common/utils/async';
 import { KernelDaemonPool } from '../../../client/datascience/kernel-launcher/kernelDaemonPool';
@@ -80,7 +81,8 @@ suite('DataScience raw kernel tests', () => {
             connectionInfo as any,
             { kernelSpec, interpreter, kind: 'startUsingKernelSpec' },
             ioc.get<IDataScienceFileSystem>(IDataScienceFileSystem),
-            undefined
+            undefined,
+            ioc.get<IPythonExtensionChecker>(IPythonExtensionChecker)
         );
         await kernelProcess.launch(process.cwd());
         return createRawKernel(kernelProcess, uuid());

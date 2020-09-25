@@ -53,7 +53,8 @@ export function getDefaultSettings(): IJupyterExtraSettings {
                 fontFamily: "Consolas, 'Courier New', monospace"
             },
             theme: 'Default Dark+',
-            useCustomEditorApi: false
+            useCustomEditorApi: false,
+            hasPythonExtension: true
         },
         intellisenseOptions: {
             quickSuggestions: {

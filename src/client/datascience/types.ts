@@ -817,6 +817,7 @@ export interface IJupyterExtraSettings extends IJupyterSettings {
         };
         theme: string;
         useCustomEditorApi: boolean;
+        hasPythonExtension: boolean;
     };
     intellisenseOptions: {
         quickSuggestions: {

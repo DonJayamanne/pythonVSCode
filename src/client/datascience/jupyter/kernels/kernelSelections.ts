@@ -6,6 +6,7 @@
 import { inject, injectable } from 'inversify';
 import * as path from 'path';
 import { CancellationToken, EventEmitter } from 'vscode';
+import { IPythonExtensionChecker } from '../../../api/types';
 import { traceError } from '../../../common/logger';
 import { IPathUtils, Resource } from '../../../common/types';
 import { createDeferredFromPromise } from '../../../common/utils/async';
@@ -218,7 +219,8 @@ export class KernelSelectionProvider {
         @inject(IInterpreterSelector) private readonly interpreterSelector: IInterpreterSelector,
         @inject(IDataScienceFileSystem) private readonly fs: IDataScienceFileSystem,
         @inject(IPathUtils) private readonly pathUtils: IPathUtils,
-        @inject(IKernelFinder) private readonly kernelFinder: IKernelFinder
+        @inject(IKernelFinder) private readonly kernelFinder: IKernelFinder,
+        @inject(IPythonExtensionChecker) private readonly extensionChecker: IPythonExtensionChecker
     ) {}
     /**
      * Gets a selection of kernel specs from a remote session.
@@ -298,9 +300,12 @@ export class KernelSelectionProvider {
                 default:
                     break;
             }
-            const interpretersPromise = new InterpreterKernelSelectionListProvider(
-                this.interpreterSelector
-            ).getKernelSelections(resource, cancelToken);
+            const interpretersPromise = this.extensionChecker.isPythonExtensionInstalled
+                ? new InterpreterKernelSelectionListProvider(this.interpreterSelector).getKernelSelections(
+                      resource,
+                      cancelToken
+                  )
+                : Promise.resolve([]);
 
             // tslint:disable-next-line: prefer-const
             let [installedKernels, interpreters] = await Promise.all([installedKernelsPromise, interpretersPromise]);

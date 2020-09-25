@@ -23,6 +23,7 @@ import { requestExecute } from './raw-kernel/rawKernelTestHelpers';
 
 // Chai as promised is not part of this file
 import * as chaiAsPromised from 'chai-as-promised';
+import { IPythonExtensionChecker } from '../../client/api/types';
 use(chaiAsPromised);
 
 suite('DataScience - Kernel Launcher', () => {
@@ -45,7 +46,8 @@ suite('DataScience - Kernel Launcher', () => {
         const processServiceFactory = ioc.get<IProcessServiceFactory>(IProcessServiceFactory);
         const daemonPool = ioc.get<KernelDaemonPool>(KernelDaemonPool);
         const fileSystem = ioc.get<IDataScienceFileSystem>(IDataScienceFileSystem);
-        kernelLauncher = new KernelLauncher(processServiceFactory, fileSystem, daemonPool);
+        const extensionChecker = ioc.get<IPythonExtensionChecker>(IPythonExtensionChecker);
+        kernelLauncher = new KernelLauncher(processServiceFactory, fileSystem, daemonPool, extensionChecker);
         await ioc.activate();
         if (!ioc.mockJupyter) {
             pythonInterpreter = await ioc.getJupyterCapableInterpreter();

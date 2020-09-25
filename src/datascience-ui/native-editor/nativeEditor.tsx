@@ -369,7 +369,8 @@ ${buildSettingsCss(this.props.settings)}`}</style>
                         useCustomEditorApi={this.props.settings?.extraSettings.useCustomEditorApi}
                         runningByLine={cellVM.runningByLine}
                         supportsRunByLine={
-                            this.props.settings?.variableOptions?.enableDuringDebugger
+                            this.props.settings?.variableOptions?.enableDuringDebugger &&
+                            this.props.settings?.extraSettings.hasPythonExtension
                                 ? otherCellRunningByLine === undefined
                                 : false
                         }

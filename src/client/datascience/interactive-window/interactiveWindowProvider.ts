@@ -5,6 +5,7 @@ import { inject, injectable, named } from 'inversify';
 import * as uuid from 'uuid/v4';
 import { ConfigurationTarget, Event, EventEmitter, Memento, Uri } from 'vscode';
 import * as vsls from 'vsls/vscode';
+import { IPythonExtensionChecker } from '../../api/types';
 
 import {
     IApplicationShell,
@@ -197,7 +198,8 @@ export class InteractiveWindowProvider implements IInteractiveWindowProvider, IA
             resource,
             mode,
             title,
-            this.serviceContainer.get<KernelSelector>(KernelSelector)
+            this.serviceContainer.get<KernelSelector>(KernelSelector),
+            this.serviceContainer.get<IPythonExtensionChecker>(IPythonExtensionChecker)
         );
         this._windows.push(result);
 

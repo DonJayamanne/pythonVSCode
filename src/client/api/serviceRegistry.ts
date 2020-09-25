@@ -15,13 +15,21 @@ import {
     LanguageServerProvider,
     PythonApiProvider,
     PythonDebuggerPathProvider,
+    PythonExtensionChecker,
     PythonInstaller,
     WindowsStoreInterpreter
 } from './pythonApi';
-import { ILanguageServerProvider, IPythonApiProvider, IPythonDebuggerPathProvider, IPythonInstaller } from './types';
+import {
+    ILanguageServerProvider,
+    IPythonApiProvider,
+    IPythonDebuggerPathProvider,
+    IPythonExtensionChecker,
+    IPythonInstaller
+} from './types';
 
 export function registerTypes(serviceManager: IServiceManager): void {
     serviceManager.addSingleton<IPythonApiProvider>(IPythonApiProvider, PythonApiProvider);
+    serviceManager.addSingleton<IPythonExtensionChecker>(IPythonExtensionChecker, PythonExtensionChecker);
     serviceManager.addSingleton<IInterpreterService>(IInterpreterService, InterpreterService);
     serviceManager.addSingleton<IInterpreterSelector>(IInterpreterSelector, InterpreterSelector);
     serviceManager.addSingleton<IWindowsStoreInterpreter>(IWindowsStoreInterpreter, WindowsStoreInterpreter);

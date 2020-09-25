@@ -369,12 +369,7 @@ export class CellExecution {
     }
 
     private addToCellData(
-        output:
-            | nbformat.IUnrecognizedOutput
-            | nbformat.IExecuteResult
-            | nbformat.IDisplayData
-            | nbformat.IStream
-            | nbformat.IError,
+        output: nbformat.IExecuteResult | nbformat.IDisplayData | nbformat.IStream | nbformat.IError,
         clearState: RefBool
     ) {
         const converted = cellOutputToVSCCellOutput(output);
@@ -437,6 +432,7 @@ export class CellExecution {
                             output_type: 'stream',
                             // tslint:disable-next-line: no-any
                             text: escape((o.data as any)['text/plain'].toString()),
+                            name: 'stdout',
                             metadata: {},
                             execution_count: reply.execution_count
                         },

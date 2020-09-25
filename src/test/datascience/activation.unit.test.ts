@@ -6,6 +6,7 @@
 import { anything, deepEqual, instance, mock, verify, when } from 'ts-mockito';
 import { EventEmitter } from 'vscode';
 import { IExtensionSingleActivationService } from '../../client/activation/types';
+import { PythonExtensionChecker } from '../../client/api/pythonApi';
 import { PythonExecutionFactory } from '../../client/common/process/pythonExecutionFactory';
 import { IPythonExecutionFactory } from '../../client/common/process/types';
 import { sleep } from '../../client/common/utils/async';
@@ -48,6 +49,8 @@ suite('DataScience - Activation', () => {
         when(executionFactory.createDaemon(anything())).thenResolve();
         when(contextService.activate()).thenResolve();
         when(daemonPool.activate(anything())).thenResolve();
+        const extensionChecker = mock(PythonExtensionChecker);
+        when(extensionChecker.isPythonExtensionInstalled).thenReturn(true);
         activator = new Activation(
             instance(notebookEditorProvider),
             instance(jupyterInterpreterService),
@@ -55,7 +58,8 @@ suite('DataScience - Activation', () => {
             [],
             instance(contextService),
             instance(daemonPool),
-            instance(tracker)
+            instance(tracker),
+            instance(extensionChecker)
         );
         when(jupyterInterpreterService.getSelectedInterpreter()).thenResolve(interpreter);
         when(jupyterInterpreterService.getSelectedInterpreter(anything())).thenResolve(interpreter);

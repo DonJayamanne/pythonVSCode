@@ -5,6 +5,7 @@
 
 import { inject, injectable, multiInject, optional } from 'inversify';
 import { TextDocument } from 'vscode';
+import { IPythonExtensionChecker } from '../api/types';
 import { IActiveResourceService, IDocumentManager, IWorkspaceService } from '../common/application/types';
 import { PYTHON_LANGUAGE } from '../common/constants';
 import { traceDecorators } from '../common/logger';
@@ -31,7 +32,8 @@ export class ExtensionActivationManager implements IExtensionActivationManager {
         @inject(IInterpreterService) private readonly interpreterService: IInterpreterService,
         @inject(IWorkspaceService) private readonly workspaceService: IWorkspaceService,
         @inject(IFileSystem) private readonly fileSystem: IFileSystem,
-        @inject(IActiveResourceService) private readonly activeResourceService: IActiveResourceService
+        @inject(IActiveResourceService) private readonly activeResourceService: IActiveResourceService,
+        @inject(IPythonExtensionChecker) private readonly extensionChecker: IPythonExtensionChecker
     ) {}
 
     public dispose() {
@@ -61,7 +63,9 @@ export class ExtensionActivationManager implements IExtensionActivationManager {
         this.activatedWorkspaces.add(key);
 
         // Get latest interpreter list in the background.
-        this.interpreterService.getInterpreters(resource).ignoreErrors();
+        if (this.extensionChecker.isPythonExtensionInstalled) {
+            this.interpreterService.getInterpreters(resource).ignoreErrors();
+        }
 
         await sendActivationTelemetry(this.fileSystem, this.workspaceService, resource);
 

@@ -57,7 +57,6 @@ suite('DataScienceCodeLensProvider Unit Tests', () => {
             .returns((a, b) => {
                 return a.toLowerCase() === b.toLowerCase();
             });
-
         codeLensProvider = new DataScienceCodeLensProvider(
             serviceContainer.object,
             debugLocationTracker.object,

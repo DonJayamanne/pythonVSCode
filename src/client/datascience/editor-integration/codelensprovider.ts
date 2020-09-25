@@ -61,6 +61,7 @@ export class DataScienceCodeLensProvider implements IDataScienceCodeLensProvider
         } catch {
             // If vscodenote book fails, just ignore
         }
+
         // Get the list of code lens for this document.
         return this.getCodeLensTimed(document);
     }

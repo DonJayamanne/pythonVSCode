@@ -1199,12 +1199,7 @@ export class JupyterNotebookBase implements INotebook {
 
     private addToCellData = (
         cell: ICell,
-        output:
-            | nbformat.IUnrecognizedOutput
-            | nbformat.IExecuteResult
-            | nbformat.IDisplayData
-            | nbformat.IStream
-            | nbformat.IError,
+        output: nbformat.IExecuteResult | nbformat.IDisplayData | nbformat.IStream | nbformat.IError,
         clearState: RefBool
     ) => {
         const data: nbformat.ICodeCell = cell.data as nbformat.ICodeCell;
@@ -1266,6 +1261,7 @@ export class JupyterNotebookBase implements INotebook {
                             // Mark as stream output so the text is formatted because it likely has ansi codes in it.
                             output_type: 'stream',
                             text: data,
+                            name: 'stdout',
                             metadata: {},
                             execution_count: reply.execution_count
                         },

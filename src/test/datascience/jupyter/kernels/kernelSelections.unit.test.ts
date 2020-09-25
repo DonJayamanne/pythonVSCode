@@ -5,6 +5,7 @@
 
 import { assert } from 'chai';
 import { anything, instance, mock, verify, when } from 'ts-mockito';
+import { PythonExtensionChecker } from '../../../../client/api/pythonApi';
 import { PYTHON_LANGUAGE } from '../../../../client/common/constants';
 import { PathUtils } from '../../../../client/common/platform/pathUtils';
 import { IPathUtils } from '../../../../client/common/types';
@@ -134,12 +135,15 @@ suite('DataScience - KernelSelections', () => {
         pathUtils = mock(PathUtils);
         when(pathUtils.getDisplayName(anything())).thenReturn('<user friendly path>');
         when(pathUtils.getDisplayName(anything(), anything())).thenReturn('<user friendly path>');
+        const extensionChecker = mock(PythonExtensionChecker);
+        when(extensionChecker.isPythonExtensionInstalled).thenReturn(true);
         kernelSelectionProvider = new KernelSelectionProvider(
             instance(kernelService),
             instance(interpreterSelector),
             instance(fs),
             instance(pathUtils),
-            instance(kernelFinder)
+            instance(kernelFinder),
+            instance(extensionChecker)
         );
     });
 

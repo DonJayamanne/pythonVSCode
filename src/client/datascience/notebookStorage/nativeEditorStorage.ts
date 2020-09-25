@@ -25,6 +25,7 @@ import {
 
 // tslint:disable-next-line:no-require-imports no-var-requires
 import detectIndent = require('detect-indent');
+import { IPythonExtensionChecker } from '../../api/types';
 import { VSCodeNotebookModel } from './vscNotebookModel';
 
 export const KeyPrefix = 'notebook-storage-';
@@ -64,7 +65,8 @@ export class NativeEditorStorage implements INotebookStorage {
         @inject(IMemento) @named(GLOBAL_MEMENTO) private globalStorage: Memento,
         @inject(IMemento) @named(WORKSPACE_MEMENTO) private localStorage: Memento,
         @inject(ITrustService) private trustService: ITrustService,
-        @inject(INotebookModelFactory) private readonly factory: INotebookModelFactory
+        @inject(INotebookModelFactory) private readonly factory: INotebookModelFactory,
+        @inject(IPythonExtensionChecker) private readonly extensionChecker: IPythonExtensionChecker
     ) {}
     private static isUntitledFile(file: Uri) {
         return isUntitledFile(file);
@@ -210,9 +212,13 @@ export class NativeEditorStorage implements INotebookStorage {
             // tslint:disable-next-line: no-any
             return (notebookData.metadata.language_info.codemirror_mode as any).version;
         }
-        // Use the active interpreter
-        const usableInterpreter = await this.jupyterExecution.getUsableJupyterPython();
-        return usableInterpreter && usableInterpreter.version ? usableInterpreter.version.major : 3;
+        // Use the active interpreter if allowed
+        if (this.extensionChecker.isPythonExtensionInstalled) {
+            const usableInterpreter = await this.jupyterExecution.getUsableJupyterPython();
+            return usableInterpreter && usableInterpreter.version ? usableInterpreter.version.major : 3;
+        }
+
+        return 3;
     }
 
     private sendLanguageTelemetry(notebookJson: Partial<nbformat.INotebookContent>) {

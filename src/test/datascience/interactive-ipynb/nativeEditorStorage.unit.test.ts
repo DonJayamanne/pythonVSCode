@@ -10,6 +10,7 @@ import * as typemoq from 'typemoq';
 import { ConfigurationChangeEvent, EventEmitter, FileType, TextEditor, Uri } from 'vscode';
 
 import { CancellationToken } from 'vscode-jsonrpc';
+import { PythonExtensionChecker } from '../../../client/api/pythonApi';
 import { DocumentManager } from '../../../client/common/application/documentManager';
 import {
     IDocumentManager,
@@ -345,6 +346,8 @@ suite('DataScience - Native Editor Storage', () => {
     });
 
     function createStorage() {
+        const extensionChecker = mock(PythonExtensionChecker);
+        when(extensionChecker.isPythonExtensionInstalled).thenReturn(true);
         const notebookStorage = new NativeEditorStorage(
             instance(executionProvider),
             fileSystem.object, // Use typemoq so can save values in returns
@@ -353,7 +356,8 @@ suite('DataScience - Native Editor Storage', () => {
             globalMemento,
             localMemento,
             instance(trustService),
-            new NotebookModelFactory(false)
+            new NotebookModelFactory(false),
+            instance(extensionChecker)
         );
 
         return new NotebookStorageProvider(notebookStorage, [], instance(workspace));

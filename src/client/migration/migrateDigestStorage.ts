@@ -1,6 +1,7 @@
 import * as path from 'path';
 import { traceInfo } from '../common/logger';
 import { IExtensionContext } from '../common/types';
+import { PythonExtension } from '../datascience/constants';
 import { IDataScienceFileSystem } from '../datascience/types';
 
 export const trustDirectoryMigrated = 'trustDirectoryMigrated';
@@ -14,7 +15,7 @@ export class MigrateDigestStorage {
         this.currentExtensionStorageDir = this.extensionContext.globalStoragePath;
         this.pythonExtensionStorageDir = path.join(
             path.resolve(this.currentExtensionStorageDir, '..'),
-            'ms-python.python'
+            PythonExtension
         );
         this.ensuredDir = this.fs.ensureLocalDir(this.currentExtensionStorageDir);
     }

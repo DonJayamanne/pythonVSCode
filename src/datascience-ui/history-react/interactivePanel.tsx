@@ -223,7 +223,11 @@ ${buildSettingsCss(this.props.settings)}`}</style>
     }
 
     private renderKernelSelection() {
-        if (this.props.kernel.serverName === getLocString('DataScience.localJupyterServer', 'local')) {
+        // Skip showing the kernel picker when local and python extension is installed (as it interferes with the interpreter picker)
+        if (
+            this.props.kernel.serverName === getLocString('DataScience.localJupyterServer', 'local') &&
+            this.props.settings?.extraSettings.hasPythonExtension
+        ) {
             return;
         }
 

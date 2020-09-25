@@ -4,6 +4,7 @@ import { expect } from 'chai';
 import { anything, instance, mock, when } from 'ts-mockito';
 import * as typemoq from 'typemoq';
 import * as vscode from 'vscode';
+import { PythonExtensionChecker } from '../../../client/api/pythonApi';
 import { IWorkspaceService } from '../../../client/common/application/types';
 import { IDisposableRegistry, IJupyterSettings } from '../../../client/common/types';
 import { NotebookProvider } from '../../../client/datascience/interactive-common/notebookProvider';
@@ -43,12 +44,15 @@ suite('DataScience - NotebookProvider', () => {
         when(dataScienceSettings.jupyterServerURI).thenReturn('local');
         when(dataScienceSettings.useDefaultConfigForJupyter).thenReturn(true);
         when(rawNotebookProvider.supported).thenReturn(() => Promise.resolve(false));
+        const extensionChecker = mock(PythonExtensionChecker);
+        when(extensionChecker.isPythonExtensionInstalled).thenReturn(true);
 
         notebookProvider = new NotebookProvider(
             instance(disposableRegistry),
             instance(rawNotebookProvider),
             instance(jupyterNotebookProvider),
-            instance(workspaceService)
+            instance(workspaceService),
+            instance(extensionChecker)
         );
     });
 

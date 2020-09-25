@@ -5,6 +5,7 @@
 
 import { inject, injectable } from 'inversify';
 import { IExtensionSingleActivationService } from '../activation/types';
+import { IPythonExtensionChecker } from '../api/types';
 import '../common/extensions';
 import { IPythonDaemonExecutionService, IPythonExecutionFactory } from '../common/process/types';
 import { IDisposableRegistry } from '../common/types';
@@ -27,7 +28,8 @@ export class Activation implements IExtensionSingleActivationService {
         @inject(ActiveEditorContextService) private readonly contextService: ActiveEditorContextService,
         @inject(KernelDaemonPreWarmer) private readonly daemonPoolPrewarmer: KernelDaemonPreWarmer,
         @inject(INotebookCreationTracker)
-        private readonly tracker: INotebookCreationTracker
+        private readonly tracker: INotebookCreationTracker,
+        @inject(IPythonExtensionChecker) private readonly extensionChecker: IPythonExtensionChecker
     ) {}
     public async activate(): Promise<void> {
         this.disposables.push(this.notebookEditorProvider.onDidOpenNotebookEditor(this.onDidOpenNotebookEditor, this));
@@ -42,8 +44,11 @@ export class Activation implements IExtensionSingleActivationService {
         this.PreWarmDaemonPool().ignoreErrors();
         setSharedProperty('ds_notebookeditor', e.type);
         sendTelemetryEvent(Telemetry.OpenNotebookAll);
-        // Warm up our selected interpreter for the extension
-        this.jupyterInterpreterService.setInitialInterpreter().ignoreErrors();
+
+        if (this.extensionChecker.isPythonExtensionInstalled) {
+            // Warm up our selected interpreter for the extension
+            this.jupyterInterpreterService.setInitialInterpreter().ignoreErrors();
+        }
     }
 
     private onDidChangeInterpreter() {
@@ -57,6 +62,10 @@ export class Activation implements IExtensionSingleActivationService {
     @debounceAsync(500)
     @swallowExceptions('Failed to pre-warm daemon pool')
     private async PreWarmDaemonPool() {
+        if (!this.extensionChecker.isPythonExtensionInstalled) {
+            // Skip prewarm if no python extension
+            return;
+        }
         const interpreter = await this.jupyterInterpreterService.getSelectedInterpreter();
         if (!interpreter) {
             return;

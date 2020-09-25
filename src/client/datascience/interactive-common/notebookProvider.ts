@@ -6,6 +6,7 @@
 import { inject, injectable } from 'inversify';
 import { EventEmitter, Uri } from 'vscode';
 import { ServerStatus } from '../../../datascience-ui/interactive-common/mainState';
+import { IPythonExtensionChecker } from '../../api/types';
 import { IWorkspaceService } from '../../common/application/types';
 import { traceWarning } from '../../common/logger';
 import { IDisposableRegistry, Resource } from '../../common/types';
@@ -43,7 +44,8 @@ export class NotebookProvider implements INotebookProvider {
         @inject(IDisposableRegistry) private readonly disposables: IDisposableRegistry,
         @inject(IRawNotebookProvider) private readonly rawNotebookProvider: IRawNotebookProvider,
         @inject(IJupyterNotebookProvider) private readonly jupyterNotebookProvider: IJupyterNotebookProvider,
-        @inject(IWorkspaceService) private readonly workspaceService: IWorkspaceService
+        @inject(IWorkspaceService) private readonly workspaceService: IWorkspaceService,
+        @inject(IPythonExtensionChecker) private readonly extensionChecker: IPythonExtensionChecker
     ) {
         this.rawNotebookProvider
             .supported()
@@ -78,11 +80,13 @@ export class NotebookProvider implements INotebookProvider {
                 ...options,
                 onConnectionMade: this.fireConnectionMade.bind(this)
             });
-        } else {
+        } else if (this.extensionChecker.isPythonExtensionInstalled) {
             return this.jupyterNotebookProvider.connect({
                 ...options,
                 onConnectionMade: this.fireConnectionMade.bind(this)
             });
+        } else if (!options.getOnly) {
+            await this.extensionChecker.installPythonExtension();
         }
     }
     public disposeAssociatedNotebook(options: { identity: Uri }) {

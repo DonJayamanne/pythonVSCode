@@ -22,7 +22,7 @@ import {
 import { CancellationToken } from 'vscode-jsonrpc';
 import * as vscodeLanguageClient from 'vscode-languageclient/node';
 import { concatMultilineString } from '../../../../datascience-ui/common';
-import { ILanguageServerProvider } from '../../../api/types';
+import { ILanguageServerProvider, IPythonExtensionChecker } from '../../../api/types';
 import { IWorkspaceService } from '../../../common/application/types';
 import { CancellationError } from '../../../common/cancellation';
 import { traceError, traceWarning } from '../../../common/logger';
@@ -112,7 +112,8 @@ export class IntellisenseProvider implements IInteractiveWindowListener {
         @inject(INotebookProvider) private notebookProvider: INotebookProvider,
         @inject(IInterpreterService) private interpreterService: IInterpreterService,
         @inject(ILanguageServerProvider) private languageServerProvider: ILanguageServerProvider,
-        @inject(IJupyterVariables) @named(Identifiers.ALL_VARIABLES) private variableProvider: IJupyterVariables
+        @inject(IJupyterVariables) @named(Identifiers.ALL_VARIABLES) private variableProvider: IJupyterVariables,
+        @inject(IPythonExtensionChecker) private extensionChecker: IPythonExtensionChecker
     ) {}
 
     public dispose() {
@@ -200,6 +201,11 @@ export class IntellisenseProvider implements IInteractiveWindowListener {
     }
 
     protected async getLanguageServer(token: CancellationToken): Promise<LanguageServerWrapper | undefined> {
+        // If no python extension, we can't have a language server (yet)
+        if (!this.extensionChecker.isPythonExtensionInstalled) {
+            return undefined;
+        }
+
         // Resource should be our potential resource if its set. Otherwise workspace root
         const resource =
             this.potentialResource ||

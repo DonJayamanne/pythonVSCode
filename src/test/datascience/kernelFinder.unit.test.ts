@@ -8,6 +8,7 @@ import { anything, instance, mock, when } from 'ts-mockito';
 import * as typemoq from 'typemoq';
 
 import { Uri } from 'vscode';
+import { PythonExtensionChecker } from '../../client/api/pythonApi';
 import { IWorkspaceService } from '../../client/common/application/types';
 import { IPlatformService } from '../../client/common/platform/types';
 import { PythonExecutionFactory } from '../../client/common/process/pythonExecutionFactory';
@@ -305,6 +306,8 @@ suite('Kernel Finder', () => {
                 });
 
             const executionFactory = mock(PythonExecutionFactory);
+            const extensionChecker = mock(PythonExtensionChecker);
+            when(extensionChecker.isPythonExtensionInstalled).thenReturn(true);
 
             kernelFinder = new KernelFinder(
                 interpreterService.object,
@@ -314,7 +317,8 @@ suite('Kernel Finder', () => {
                 context.object,
                 instance(workspaceService),
                 instance(executionFactory),
-                envVarsProvider.object
+                envVarsProvider.object,
+                instance(extensionChecker)
             );
         });
 
@@ -378,6 +382,8 @@ suite('Kernel Finder', () => {
 
             workspaceService = mock<IWorkspaceService>();
             const executionFactory = mock(PythonExecutionFactory);
+            const extensionChecker = mock(PythonExtensionChecker);
+            when(extensionChecker.isPythonExtensionInstalled).thenReturn(true);
 
             kernelFinder = new KernelFinder(
                 interpreterService.object,
@@ -387,7 +393,8 @@ suite('Kernel Finder', () => {
                 context.object,
                 instance(workspaceService),
                 instance(executionFactory),
-                envVarsProvider.object
+                envVarsProvider.object,
+                instance(extensionChecker)
             );
         });
 

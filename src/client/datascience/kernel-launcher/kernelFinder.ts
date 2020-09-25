@@ -6,6 +6,7 @@ import type { nbformat } from '@jupyterlab/coreutils';
 import { inject, injectable } from 'inversify';
 import * as path from 'path';
 import { CancellationToken } from 'vscode';
+import { IPythonExtensionChecker } from '../../api/types';
 import { IWorkspaceService } from '../../common/application/types';
 import { traceError, traceInfo } from '../../common/logger';
 import { IPlatformService } from '../../common/platform/types';
@@ -13,6 +14,7 @@ import { IPythonExecutionFactory } from '../../common/process/types';
 import { IExtensionContext, IPathUtils, Resource } from '../../common/types';
 import { IEnvironmentVariablesProvider } from '../../common/variables/types';
 import { IInterpreterService } from '../../interpreter/contracts';
+import { PythonEnvironment } from '../../pythonEnvironments/info';
 import { captureTelemetry } from '../../telemetry';
 import { getRealPath } from '../common';
 import { Telemetry } from '../constants';
@@ -54,7 +56,8 @@ export class KernelFinder implements IKernelFinder {
         @inject(IExtensionContext) private readonly context: IExtensionContext,
         @inject(IWorkspaceService) private readonly workspaceService: IWorkspaceService,
         @inject(IPythonExecutionFactory) private readonly exeFactory: IPythonExecutionFactory,
-        @inject(IEnvironmentVariablesProvider) private readonly envVarsProvider: IEnvironmentVariablesProvider
+        @inject(IEnvironmentVariablesProvider) private readonly envVarsProvider: IEnvironmentVariablesProvider,
+        @inject(IPythonExtensionChecker) private readonly extensionChecker: IPythonExtensionChecker
     ) {}
     @captureTelemetry(Telemetry.KernelFinderPerf)
     public async findKernelSpec(
@@ -198,21 +201,23 @@ export class KernelFinder implements IKernelFinder {
     }
 
     private async getActiveInterpreterPath(resource: Resource): Promise<string[]> {
-        const activeInterpreter = await this.interpreterService.getActiveInterpreter(resource);
+        const activeInterpreter = await this.getActiveInterpreter(resource);
 
         if (activeInterpreter) {
             return [path.join(activeInterpreter.sysPrefix, 'share', 'jupyter', 'kernels')];
         }
-
         return [];
     }
 
     private async getInterpreterPaths(resource: Resource): Promise<string[]> {
-        const interpreters = await this.interpreterService.getInterpreters(resource);
-        const interpreterPrefixPaths = interpreters.map((interpreter) => interpreter.sysPrefix);
-        // We can get many duplicates here, so de-dupe the list
-        const uniqueInterpreterPrefixPaths = [...new Set(interpreterPrefixPaths)];
-        return uniqueInterpreterPrefixPaths.map((prefixPath) => path.join(prefixPath, baseKernelPath));
+        if (this.extensionChecker.isPythonExtensionInstalled) {
+            const interpreters = await this.interpreterService.getInterpreters(resource);
+            const interpreterPrefixPaths = interpreters.map((interpreter) => interpreter.sysPrefix);
+            // We can get many duplicates here, so de-dupe the list
+            const uniqueInterpreterPrefixPaths = [...new Set(interpreterPrefixPaths)];
+            return uniqueInterpreterPrefixPaths.map((prefixPath) => path.join(prefixPath, baseKernelPath));
+        }
+        return [];
     }
 
     // Find any paths associated with the JUPYTER_PATH env var. Can be a list of dirs.
@@ -229,7 +234,7 @@ export class KernelFinder implements IKernelFinder {
 
         if (jupyterPathVars.length > 0) {
             if (this.platformService.isWindows) {
-                const activeInterpreter = await this.interpreterService.getActiveInterpreter();
+                const activeInterpreter = await this.getActiveInterpreter();
                 if (activeInterpreter) {
                     jupyterPathVars.forEach(async (jupyterPath) => {
                         const jupyterWinPath = await getRealPath(
@@ -255,12 +260,19 @@ export class KernelFinder implements IKernelFinder {
         return paths;
     }
 
+    private async getActiveInterpreter(resource?: Resource): Promise<PythonEnvironment | undefined> {
+        if (this.extensionChecker.isPythonExtensionInstalled) {
+            return this.interpreterService.getActiveInterpreter(resource);
+        }
+        return undefined;
+    }
+
     private async getDiskPaths(): Promise<string[]> {
         // Paths specified in JUPYTER_PATH are supposed to come first in searching
         const paths: string[] = await this.getJupyterPathPaths();
 
         if (this.platformService.isWindows) {
-            const activeInterpreter = await this.interpreterService.getActiveInterpreter();
+            const activeInterpreter = await this.getActiveInterpreter();
             if (activeInterpreter) {
                 const winPath = await getRealPath(
                     this.fs,
