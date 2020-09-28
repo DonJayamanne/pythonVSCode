@@ -9,6 +9,12 @@ jobs:
     # if: github.repository == 'microsoft/vscode-python' && github.event.labels.length == 0
     if: github.event.labels.length == 0 && github.event.assignees.length == 0
     steps:
+      - name: Print day and week
+        run: |
+          echo ${{github.event.labels}}
+          echo ${{github.event.labels.length}}
+          echo ${{github.event.assignees.length}}
+        shell: bash
       - uses: actions/checkout@v2
       - name: Day of week
         id: day
@@ -30,9 +36,6 @@ jobs:
           echo ${{steps.day.outputs.number}}
           echo ${{steps.week.outputs.odd}}
           echo ${{steps.hour.outputs.hour}}
-          echo ${{github.event.labels}}
-          echo ${{github.event.labels.length}}
-          echo ${{github.event.assignees.length}}
         shell: bash
       - name: Even late friday (David)
         if: steps.week.outputs.odd == 0 && steps.day.outputs.number == 5 && steps.hour.outputs.hour >= 16
