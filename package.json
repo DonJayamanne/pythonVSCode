@@ -1215,10 +1215,9 @@
                     "default": [],
                     "items": {
                         "enum": [
-                            "NativeNotebook - experiment",
-                            "CustomEditorSupport - experiment",
-                            "RunByLine - experiment",
-                            "jediLSP",
+                            "NativeNotebook",
+                            "CustomEditor",
+                            "RunByLine",
                             "All"
                         ]
                     },
@@ -1230,10 +1229,9 @@
                     "default": [],
                     "items": {
                         "enum": [
-                            "NativeNotebook - experiment",
-                            "CustomEditorSupport - experiment",
-                            "RunByLine - experiment",
-                            "jediLSP",
+                            "NativeNotebook",
+                            "CustomEditor",
+                            "RunByLine",
                             "All"
                         ]
                     },

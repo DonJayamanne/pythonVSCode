@@ -10,7 +10,7 @@ import { IExtensionSingleActivationService } from '../../activation/types';
 import { ICommandManager, IDocumentManager } from '../../common/application/types';
 import { PYTHON_LANGUAGE } from '../../common/constants';
 import { ContextKey } from '../../common/contextKey';
-import { NotebookEditorSupport } from '../../common/experiments/groups';
+import { Experiments } from '../../common/experiments/groups';
 import { traceError } from '../../common/logger';
 import { IDisposable, IDisposableRegistry, IExperimentService } from '../../common/types';
 import { setSharedProperty } from '../../telemetry';
@@ -94,9 +94,7 @@ export class ActiveEditorContextService implements IExtensionSingleActivationSer
         if (this.docManager.activeTextEditor?.document.languageId === PYTHON_LANGUAGE) {
             this.onDidChangeActiveTextEditor(this.docManager.activeTextEditor);
         }
-        this.inNativeNotebookExperiment = await this.experimentService.inExperiment(
-            NotebookEditorSupport.nativeNotebookExperiment
-        );
+        this.inNativeNotebookExperiment = await this.experimentService.inExperiment(Experiments.NativeNotebook);
     }
 
     private updateNativeNotebookCellContext() {

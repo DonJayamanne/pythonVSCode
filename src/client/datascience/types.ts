@@ -838,10 +838,6 @@ export interface IJupyterExtraSettings extends IJupyterSettings {
         enableDuringDebugger: boolean;
     };
 
-    webviewExperiments: {
-        removeKernelToolbarInInteractiveWindow: boolean;
-    };
-
     gatherIsInstalled: boolean;
 }
 

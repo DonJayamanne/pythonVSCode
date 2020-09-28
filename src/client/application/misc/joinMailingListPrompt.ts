@@ -5,7 +5,7 @@ import { inject, injectable } from 'inversify';
 import * as querystring from 'querystring';
 import { IExtensionSingleActivationService } from '../../activation/types';
 import { IApplicationEnvironment, IApplicationShell } from '../../common/application/types';
-import { JoinMailingListPromptVariants } from '../../common/experiments/groups';
+import { Experiments } from '../../common/experiments/groups';
 import { IBrowserService, IExperimentService, IPersistentState, IPersistentStateFactory } from '../../common/types';
 import { swallowExceptions } from '../../common/utils/decorators';
 import { Common } from '../../common/utils/localize';
@@ -34,12 +34,12 @@ export class JoinMailingListPrompt implements IExtensionSingleActivationService 
         }
 
         let promptContent: string | undefined;
-        if (await this.experiments.inExperiment(JoinMailingListPromptVariants.variant1)) {
-            promptContent = await this.experiments.getExperimentValue<string>(JoinMailingListPromptVariants.variant1);
-        } else if (await this.experiments.inExperiment(JoinMailingListPromptVariants.variant2)) {
-            promptContent = await this.experiments.getExperimentValue<string>(JoinMailingListPromptVariants.variant2);
-        } else if (await this.experiments.inExperiment(JoinMailingListPromptVariants.variant3)) {
-            promptContent = await this.experiments.getExperimentValue<string>(JoinMailingListPromptVariants.variant3);
+        if (await this.experiments.inExperiment(Experiments.MailingListVariant1)) {
+            promptContent = await this.experiments.getExperimentValue<string>(Experiments.MailingListVariant1);
+        } else if (await this.experiments.inExperiment(Experiments.MailingListVariant2)) {
+            promptContent = await this.experiments.getExperimentValue<string>(Experiments.MailingListVariant2);
+        } else if (await this.experiments.inExperiment(Experiments.MailingListVariant3)) {
+            promptContent = await this.experiments.getExperimentValue<string>(Experiments.MailingListVariant3);
         } else {
             // Not in any experiment, so no content to show.
             promptContent = undefined;

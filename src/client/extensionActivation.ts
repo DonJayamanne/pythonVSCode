@@ -12,7 +12,7 @@ import { registerTypes as registerApiTypes } from './api/serviceRegistry';
 import { registerTypes as appRegisterTypes } from './application/serviceRegistry';
 import { IApplicationEnvironment, IApplicationShell, ICommandManager } from './common/application/types';
 import { STANDARD_OUTPUT_CHANNEL, UseProposedApi } from './common/constants';
-import { NotebookEditorSupport } from './common/experiments/groups';
+import { Experiments } from './common/experiments/groups';
 import { registerTypes as installerRegisterTypes } from './common/installer/serviceRegistry';
 import { registerTypes as platformRegisterTypes } from './common/platform/serviceRegistry';
 import { IFileSystem } from './common/platform/types';
@@ -95,10 +95,8 @@ async function activateLegacy(
     // Load the two data science experiments that we need to register types
     // Await here to keep the register method sync
     const experimentService = serviceContainer.get<IExperimentService>(IExperimentService);
-    let useVSCodeNotebookAPI = await experimentService.inExperiment(NotebookEditorSupport.nativeNotebookExperiment);
-    let inCustomEditorApiExperiment = await experimentService.inExperiment(
-        NotebookEditorSupport.customEditorExperiment
-    );
+    let useVSCodeNotebookAPI = await experimentService.inExperiment(Experiments.NativeNotebook);
+    let inCustomEditorApiExperiment = await experimentService.inExperiment(Experiments.CustomEditor);
 
     // These should be mutually exclusive, but if someone opts into both, notify them and disable both
     if (useVSCodeNotebookAPI && inCustomEditorApiExperiment) {

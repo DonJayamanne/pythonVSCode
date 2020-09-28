@@ -6,7 +6,7 @@ import { inject, injectable, named } from 'inversify';
 
 import { Event, EventEmitter } from 'vscode';
 import { ServerStatus } from '../../../datascience-ui/interactive-common/mainState';
-import { RunByLine } from '../../common/experiments/groups';
+import { Experiments } from '../../common/experiments/groups';
 import { IDisposableRegistry, IExperimentService } from '../../common/types';
 import { captureTelemetry } from '../../telemetry';
 import { Identifiers, Telemetry } from '../constants';
@@ -74,7 +74,7 @@ export class JupyterVariables implements IJupyterVariables {
 
     private async getVariableHandler(notebook: INotebook): Promise<IJupyterVariables> {
         if (this.runByLineEnabled === undefined) {
-            this.runByLineEnabled = await this.experimentsService.inExperiment(RunByLine.experiment);
+            this.runByLineEnabled = await this.experimentsService.inExperiment(Experiments.RunByLine);
         }
         if (!this.runByLineEnabled) {
             return this.oldVariables;

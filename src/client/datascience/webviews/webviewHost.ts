@@ -31,8 +31,7 @@ export abstract class WebviewHost<IMapping> implements IDisposable {
         @unmanaged() protected themeFinder: IThemeFinder,
         @unmanaged() protected workspaceService: IWorkspaceService,
         @unmanaged() protected readonly useCustomEditorApi: boolean,
-        @unmanaged() private readonly enableVariablesDuringDebugging: Promise<boolean>,
-        @unmanaged() private readonly hideKernelToolbarInInteractiveWindow: Promise<boolean>
+        @unmanaged() private readonly enableVariablesDuringDebugging: Promise<boolean>
     ) {
         // Listen for settings changes from vscode.
         this._disposables.push(this.workspaceService.onDidChangeConfiguration(this.onPossibleSettingsChange, this));
@@ -147,9 +146,6 @@ export abstract class WebviewHost<IMapping> implements IDisposable {
             },
             variableOptions: {
                 enableDuringDebugger: await this.enableVariablesDuringDebugging
-            },
-            webviewExperiments: {
-                removeKernelToolbarInInteractiveWindow: await this.hideKernelToolbarInInteractiveWindow
             },
             gatherIsInstalled: ext ? true : false
         };

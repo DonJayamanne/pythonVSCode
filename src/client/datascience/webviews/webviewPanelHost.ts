@@ -50,8 +50,7 @@ export abstract class WebviewPanelHost<IMapping> extends WebviewHost<IMapping> i
         @unmanaged() private _title: string,
         @unmanaged() private viewColumn: ViewColumn,
         @unmanaged() protected readonly useCustomEditorApi: boolean,
-        @unmanaged() enableVariablesDuringDebugging: Promise<boolean>,
-        @unmanaged() hideKernelToolbarInInteractiveWindow: Promise<boolean>
+        @unmanaged() enableVariablesDuringDebugging: Promise<boolean>
     ) {
         super(
             configService,
@@ -59,8 +58,7 @@ export abstract class WebviewPanelHost<IMapping> extends WebviewHost<IMapping> i
             themeFinder,
             workspaceService,
             useCustomEditorApi,
-            enableVariablesDuringDebugging,
-            hideKernelToolbarInInteractiveWindow
+            enableVariablesDuringDebugging
         );
 
         // Create our message listener for our web panel.

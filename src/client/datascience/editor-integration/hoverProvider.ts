@@ -6,7 +6,7 @@ import { inject, injectable, named } from 'inversify';
 import * as vscode from 'vscode';
 import { Cancellation } from '../../common/cancellation';
 import { PYTHON } from '../../common/constants';
-import { RunByLine } from '../../common/experiments/groups';
+import { Experiments } from '../../common/experiments/groups';
 import { traceError } from '../../common/logger';
 
 import { IExperimentService } from '../../common/types';
@@ -36,7 +36,7 @@ export class HoverProvider implements INotebookExecutionLogger, vscode.HoverProv
         @inject(IInteractiveWindowProvider) private interactiveProvider: IInteractiveWindowProvider,
         @inject(IDataScienceFileSystem) private readonly fs: IDataScienceFileSystem
     ) {
-        this.enabledPromise = experimentService.inExperiment(RunByLine.experiment).catch((reason) => {
+        this.enabledPromise = experimentService.inExperiment(Experiments.RunByLine).catch((reason) => {
             traceError(`Failed to load run by line experiment ${reason}`);
             return false;
         });

@@ -74,9 +74,6 @@ export function getDefaultSettings(): IJupyterExtraSettings {
         variableOptions: {
             enableDuringDebugger: false
         },
-        webviewExperiments: {
-            removeKernelToolbarInInteractiveWindow: false
-        },
         gatherIsInstalled: false,
         runStartupCommands: '',
         debugJustMyCode: true,

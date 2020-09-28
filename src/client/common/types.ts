@@ -17,6 +17,7 @@ import {
 } from 'vscode';
 import { LogLevel } from '../logging/levels';
 import { CommandsWithoutArgs } from './application/commands';
+import { Experiments } from './experiments/groups';
 import { ExtensionChannels } from './insidersBuild/types';
 import { InterpreterUri } from './installer/types';
 import { EnvironmentVariables } from './variables/types';
@@ -34,14 +35,6 @@ export interface IPersistentState<T> {
     readonly value: T;
     updateValue(value: T): Promise<void>;
 }
-export type Version = {
-    raw: string;
-    major: number;
-    minor: number;
-    patch: number;
-    build: string[];
-    prerelease: string[];
-};
 
 export type ReadWrite<T> = {
     -readonly [P in keyof T]: T[P];
@@ -180,7 +173,6 @@ export interface IJupyterSettings {
     readonly defaultCellMarker: string;
     readonly verboseLogging: boolean;
     readonly themeMatplotlibPlots: boolean;
-    readonly useWebViewServer: boolean;
     readonly variableQueries: IVariableQuery[];
     readonly disableJupyterAutoStart: boolean;
     readonly jupyterCommandLineArguments: string[];
@@ -214,25 +206,6 @@ export interface IExperiments {
      * Experiments user requested to opt out from manually
      */
     readonly optOutFrom: string[];
-}
-
-export enum AnalysisSettingsLogLevel {
-    Information = 'Information',
-    Error = 'Error',
-    Warning = 'Warning'
-}
-
-export type LanguageServerDownloadChannels = 'stable' | 'beta' | 'daily';
-export interface IAnalysisSettings {
-    readonly downloadChannel?: LanguageServerDownloadChannels;
-    readonly typeshedPaths: string[];
-    readonly cacheFolderPath: string | null;
-    readonly errors: string[];
-    readonly warnings: string[];
-    readonly information: string[];
-    readonly disabled: string[];
-    readonly traceLogging: boolean;
-    readonly logLevel: AnalysisSettingsLogLevel;
 }
 
 export interface IVariableQuery {
@@ -366,7 +339,6 @@ export interface IPythonExtensionBanner {
     readonly enabled: boolean;
     showBanner(): Promise<void>;
 }
-export const BANNER_NAME_PROPOSE_LS: string = 'ProposePylance';
 export const BANNER_NAME_DS_SURVEY: string = 'DSSurveyBanner';
 export const BANNER_NAME_INTERACTIVE_SHIFTENTER: string = 'InteractiveShiftEnterBanner';
 
@@ -434,29 +406,11 @@ export interface IAsyncDisposableRegistry extends IAsyncDisposable {
     push(disposable: IDisposable | IAsyncDisposable): void;
 }
 
-/* ABExperiments field carries the identity, and the range of the experiment,
- where the experiment is valid for users falling between the number 'min' and 'max'
- More details: https://en.wikipedia.org/wiki/A/B_testing
-*/
-export type ABExperiments = {
-    name: string; // Name of the experiment
-    salt: string; // Salt string for the experiment
-    min: number; // Lower limit for the experiment
-    max: number; // Upper limit for the experiment
-}[];
-
 /**
  * Experiment service leveraging VS Code's experiment framework.
  */
 export const IExperimentService = Symbol('IExperimentService');
 export interface IExperimentService {
-    inExperiment(experimentName: string): Promise<boolean>;
+    inExperiment(experimentName: Experiments): Promise<boolean>;
     getExperimentValue<T extends boolean | number | string>(experimentName: string): Promise<T | undefined>;
 }
-
-export type InterpreterConfigurationScope = { uri: Resource; configTarget: ConfigurationTarget };
-export type InspectInterpreterSettingType = {
-    globalValue?: string;
-    workspaceValue?: string;
-    workspaceFolderValue?: string;
-};

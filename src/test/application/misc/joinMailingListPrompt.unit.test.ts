@@ -8,7 +8,7 @@ import { anything, instance, mock, verify, when } from 'ts-mockito';
 import { JoinMailingListPrompt } from '../../../client/application/misc/joinMailingListPrompt';
 import { ApplicationShell } from '../../../client/common/application/applicationShell';
 import { IApplicationEnvironment, IApplicationShell } from '../../../client/common/application/types';
-import { JoinMailingListPromptVariants } from '../../../client/common/experiments/groups';
+import { Experiments } from '../../../client/common/experiments/groups';
 import { ExperimentService } from '../../../client/common/experiments/service';
 import { BrowserService } from '../../../client/common/net/browser';
 import { PersistentState, PersistentStateFactory } from '../../../client/common/persistentState';
@@ -67,10 +67,10 @@ suite('Interpreters - Interpreter Selection Tip', () => {
     });
     test('Show prompt if in variant 1 experiment', async () => {
         when(storage.value).thenReturn(false);
-        when(experimentService.inExperiment(JoinMailingListPromptVariants.variant1)).thenResolve(true);
-        when(experimentService.inExperiment(JoinMailingListPromptVariants.variant2)).thenResolve(false);
-        when(experimentService.inExperiment(JoinMailingListPromptVariants.variant3)).thenResolve(false);
-        when(experimentService.getExperimentValue(JoinMailingListPromptVariants.variant1)).thenResolve('Sample value');
+        when(experimentService.inExperiment(Experiments.MailingListVariant1)).thenResolve(true);
+        when(experimentService.inExperiment(Experiments.MailingListVariant2)).thenResolve(false);
+        when(experimentService.inExperiment(Experiments.MailingListVariant3)).thenResolve(false);
+        when(experimentService.getExperimentValue(Experiments.MailingListVariant1)).thenResolve('Sample value');
 
         await joinMailingList.activate();
 
@@ -79,10 +79,10 @@ suite('Interpreters - Interpreter Selection Tip', () => {
     });
     test('Show prompt if in variant 2 experiment', async () => {
         when(storage.value).thenReturn(false);
-        when(experimentService.inExperiment(JoinMailingListPromptVariants.variant1)).thenResolve(false);
-        when(experimentService.inExperiment(JoinMailingListPromptVariants.variant2)).thenResolve(true);
-        when(experimentService.inExperiment(JoinMailingListPromptVariants.variant3)).thenResolve(false);
-        when(experimentService.getExperimentValue(JoinMailingListPromptVariants.variant2)).thenResolve('Sample value');
+        when(experimentService.inExperiment(Experiments.MailingListVariant1)).thenResolve(false);
+        when(experimentService.inExperiment(Experiments.MailingListVariant2)).thenResolve(true);
+        when(experimentService.inExperiment(Experiments.MailingListVariant3)).thenResolve(false);
+        when(experimentService.getExperimentValue(Experiments.MailingListVariant2)).thenResolve('Sample value');
 
         await joinMailingList.activate();
 
@@ -91,10 +91,10 @@ suite('Interpreters - Interpreter Selection Tip', () => {
     });
     test('Show prompt if in variant 3 experiment', async () => {
         when(storage.value).thenReturn(false);
-        when(experimentService.inExperiment(JoinMailingListPromptVariants.variant1)).thenResolve(false);
-        when(experimentService.inExperiment(JoinMailingListPromptVariants.variant2)).thenResolve(false);
-        when(experimentService.inExperiment(JoinMailingListPromptVariants.variant3)).thenResolve(true);
-        when(experimentService.getExperimentValue(JoinMailingListPromptVariants.variant3)).thenResolve('Sample value');
+        when(experimentService.inExperiment(Experiments.MailingListVariant1)).thenResolve(false);
+        when(experimentService.inExperiment(Experiments.MailingListVariant2)).thenResolve(false);
+        when(experimentService.inExperiment(Experiments.MailingListVariant3)).thenResolve(true);
+        when(experimentService.getExperimentValue(Experiments.MailingListVariant3)).thenResolve('Sample value');
 
         await joinMailingList.activate();
 
@@ -103,8 +103,8 @@ suite('Interpreters - Interpreter Selection Tip', () => {
     });
     test('Show any variant, but user clicks "Yes"', async () => {
         when(storage.value).thenReturn(false);
-        when(experimentService.inExperiment(JoinMailingListPromptVariants.variant1)).thenResolve(true);
-        when(experimentService.getExperimentValue(JoinMailingListPromptVariants.variant1)).thenResolve('Sample value');
+        when(experimentService.inExperiment(Experiments.MailingListVariant1)).thenResolve(true);
+        when(experimentService.getExperimentValue(Experiments.MailingListVariant1)).thenResolve('Sample value');
 
         when(appShell.showInformationMessage(anything(), Common.bannerLabelYes(), Common.bannerLabelNo())).thenResolve(
             // tslint:disable-next-line: no-any
@@ -121,8 +121,8 @@ suite('Interpreters - Interpreter Selection Tip', () => {
     });
     test('Show any variant, but user clicks "No"', async () => {
         when(storage.value).thenReturn(false);
-        when(experimentService.inExperiment(JoinMailingListPromptVariants.variant1)).thenResolve(true);
-        when(experimentService.getExperimentValue(JoinMailingListPromptVariants.variant1)).thenResolve('Sample value');
+        when(experimentService.inExperiment(Experiments.MailingListVariant1)).thenResolve(true);
+        when(experimentService.getExperimentValue(Experiments.MailingListVariant1)).thenResolve('Sample value');
 
         when(appShell.showInformationMessage(anything(), Common.bannerLabelYes(), Common.bannerLabelNo())).thenResolve(
             // tslint:disable-next-line: no-any
@@ -138,8 +138,8 @@ suite('Interpreters - Interpreter Selection Tip', () => {
     });
     test('Show any variant, but user clicks close', async () => {
         when(storage.value).thenReturn(false);
-        when(experimentService.inExperiment(JoinMailingListPromptVariants.variant1)).thenResolve(true);
-        when(experimentService.getExperimentValue(JoinMailingListPromptVariants.variant1)).thenResolve('Sample value');
+        when(experimentService.inExperiment(Experiments.MailingListVariant1)).thenResolve(true);
+        when(experimentService.getExperimentValue(Experiments.MailingListVariant1)).thenResolve('Sample value');
 
         when(appShell.showInformationMessage(anything(), Common.bannerLabelYes(), Common.bannerLabelNo())).thenResolve(
             undefined

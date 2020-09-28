@@ -158,7 +158,8 @@ suite('Experimentation service', () => {
     });
 
     suite('In-experiment check', () => {
-        const experiment = 'Test Experiment - experiment';
+        // tslint:disable-next-line: no-any
+        const experiment: any = 'Test Experiment - experiment';
         let telemetryEvents: { eventName: string; properties: object }[] = [];
         let isCachedFlightEnabledStub: sinon.SinonStub;
         let sendTelemetryEventStub: sinon.SinonStub;

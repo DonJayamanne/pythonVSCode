@@ -19,6 +19,7 @@ import {
     IOutputChannel
 } from '../types';
 import { Experiments } from '../utils/localize';
+import { Experiments as ExperimentGroups } from './groups';
 import { ExperimentationTelemetry } from './telemetry';
 
 const EXP_MEMENTO_KEY = 'VSCode.ABExp.FeatureData';
@@ -78,7 +79,7 @@ export class ExperimentService implements IExperimentService {
         this.logExperiments();
     }
 
-    public async inExperiment(experiment: string): Promise<boolean> {
+    public async inExperiment(experiment: ExperimentGroups): Promise<boolean> {
         if (!this.experimentationService) {
             return false;
         }

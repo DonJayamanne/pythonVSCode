@@ -97,7 +97,6 @@ export class JupyterSettings implements IWatchableJupyterSettings {
     public interactiveWindowMode: InteractiveWindowMode = 'multiple';
     // Hidden settings not surfaced in package.json
     public disableZMQSupport: boolean = false;
-    public useWebViewServer: boolean = false;
     public verboseLogging: boolean = false;
     // Privates should start with _ so that they are not read from the settings.json
     private _changeEmitter = new EventEmitter<void>();

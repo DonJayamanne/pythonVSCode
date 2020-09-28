@@ -34,7 +34,7 @@ import {
 } from '../../common/application/types';
 import { CancellationError } from '../../common/cancellation';
 import { EXTENSION_ROOT_DIR, isTestExecution, PYTHON_LANGUAGE } from '../../common/constants';
-import { RemoveKernelToolbarInInteractiveWindow, RunByLine } from '../../common/experiments/groups';
+import { Experiments } from '../../common/experiments/groups';
 import { traceError, traceInfo, traceWarning } from '../../common/logger';
 
 import { isNil } from 'lodash';
@@ -180,8 +180,7 @@ export abstract class InteractiveBase extends WebviewPanelHost<IInteractiveWindo
             title,
             viewColumn,
             useCustomEditorApi,
-            expService.inExperiment(RunByLine.experiment),
-            expService.inExperiment(RemoveKernelToolbarInInteractiveWindow.experiment)
+            expService.inExperiment(Experiments.RunByLine)
         );
 
         // Create our unique id. We use this to skip messages we send to other interactive windows

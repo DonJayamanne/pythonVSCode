@@ -10,7 +10,7 @@ import { CancellationToken } from 'vscode-jsonrpc';
 
 import { expect } from 'chai';
 import { IApplicationShell, IDocumentManager } from '../../client/common/application/types';
-import { RunByLine } from '../../client/common/experiments/groups';
+import { Experiments } from '../../client/common/experiments/groups';
 import { createDeferred, waitForPromise } from '../../client/common/utils/async';
 import { noop } from '../../client/common/utils/misc';
 import { EXTENSION_ROOT_DIR } from '../../client/constants';
@@ -296,7 +296,7 @@ suite('DataScience Debugger tests', () => {
     runInteractiveTest(
         'Check variables',
         async () => {
-            ioc.setExperimentState(RunByLine.experiment, true);
+            ioc.setExperimentState(Experiments.RunByLine, true);
             await debugCell('interactive', '#%%\nx = [4, 6]\nx = 5', undefined, undefined, false, () => {
                 const targetResult = {
                     name: 'x',
@@ -389,7 +389,7 @@ suite('DataScience Debugger tests', () => {
             assert.equal(ImageButtons.length, 5, 'Cell buttons wrong number');
         },
         () => {
-            ioc.setExperimentState(RunByLine.experiment, true);
+            ioc.setExperimentState(Experiments.RunByLine, true);
             return createIOC();
         }
     );
@@ -441,7 +441,7 @@ suite('DataScience Debugger tests', () => {
             expect(runByLineButtonProps.disabled).to.equal(false, 'Run by line button not active in break mode');
         },
         () => {
-            ioc.setExperimentState(RunByLine.experiment, true);
+            ioc.setExperimentState(Experiments.RunByLine, true);
             return createIOC();
         }
     );
