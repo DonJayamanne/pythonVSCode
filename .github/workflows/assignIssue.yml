@@ -15,53 +15,87 @@ jobs:
         run: |
           echo ::set-output name=number::$(node -p -e "new Date().getDay()")
         shell: bash
+      - name: Hour of day
+        id: hour
+        run: |
+          echo ::set-output name=hour::$(node -p -e "(new Date().getUTCHours() - 7)%24")
+        shell: bash
       - name: Week Number
         id: week
         run: |
-          echo ::set-output name=number::$(node .github/workflows/week.js)
+          echo ::set-output name=odd::$(node .github/workflows/week.js)
         shell: bash
       - name: Print day and week
         run: |
           echo ${{steps.day.outputs.number}}
-          echo ${{steps.week.outputs.number}}
+          echo ${{steps.week.outputs.odd}}
+          echo ${{steps.hour.outputs.hour}}
         shell: bash
-      - name: Assign to @David (sat, sun, mon - odd week)
-        if: steps.day.outputs.number == 6 || steps.day.outputs.number == 0 || steps.day.outputs.number == 1
+      - name: Even late friday (David)
+        if: steps.week.outputs.odd == 0 && steps.day.outputs.number == 5 && steps.hour.outputs.hour >= 16
         uses: actions/github@v1.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           args: assign DonJayamanne
-      - name: Assign to @Joyce (sat, sun, mon - even week)
-        if: steps.day.outputs.number == 6 || steps.day.outputs.number == 0 || steps.day.outputs.number == 1
+      - name: Odd late friday (Joyce)
+        if: steps.week.outputs.odd == 1 && steps.day.outputs.number == 5 && steps.hour.outputs.hour >= 16
         uses: actions/github@v1.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           args: assign DonJayamanne
-      - name: Assign to @Rich (tues)
-        if: steps.day.outputs.number == 2
+      - name: Odd weekends (David)
+        if: steps.week.outputs.odd == 1 && (steps.day.outputs.number == 6 || steps.day.outputs.number == 0)
         uses: actions/github@v1.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           args: assign DonJayamanne
-      - name: Assign to @Ian (wed)
-        if: steps.day.outputs.number == 3
+      - name: Even weekends (Joyce)
+        if: steps.week.outputs.odd == 0 && (steps.day.outputs.number == 6 || steps.day.outputs.number == 0)
         uses: actions/github@v1.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           args: assign DonJayamanne
-      - name: Assign to @DonJayamanne
-        if: steps.day.outputs.number == 4
+      - name: Odd Monday (David)
+        if: steps.week.outputs.odd == 1 && steps.day.outputs.number == 1 && steps.hour.outputs.hour < 16
         uses: actions/github@v1.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           args: assign DonJayamanne
-      - name: Assign to @Claudia (fri)
-        if: steps.day.outputs.number == 5
+      - name: Even Monday (Joyce)
+        if: steps.week.outputs.odd == 0 && steps.day.outputs.number == 1 && steps.hour.outputs.hour < 16
+        uses: actions/github@v1.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          args: assign DonJayamanne
+      - name: Tuesday (Rich)
+        if: (steps.day.outputs.number == 1 && steps.hour.outputs.hour >= 16) || (steps.day.outputs.number == 2 && steps.hour.outputs.hour < 16)
+        uses: actions/github@v1.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          args: assign DonJayamanne
+      - name: Wednesday (Ian)
+        if: (steps.day.outputs.number == 2 && steps.hour.outputs.hour >= 16) || (steps.day.outputs.number == 3 && steps.hour.outputs.hour < 16)
+        uses: actions/github@v1.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          args: assign DonJayamanne
+      - name: Thursday (Don)
+        if: (steps.day.outputs.number == 3 && steps.hour.outputs.hour >= 16) || (steps.day.outputs.number == 4 && steps.hour.outputs.hour < 16)
+        uses: actions/github@v1.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          args: assign DonJayamanne
+      - name: Friday (Claudia)
+        if: (steps.day.outputs.number == 4 && steps.hour.outputs.hour >= 16) || (steps.day.outputs.number == 5 && steps.hour.outputs.hour < 16)
         uses: actions/github@v1.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

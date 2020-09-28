@@ -25,4 +25,4 @@ function getWeekNumber(d) {
     // Calculate full weeks to nearest Thursday
     return Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
 }
-console.log(getWeekNumber(new Date()));
+console.log(getWeekNumber(new Date()) % 2);
