@@ -11,9 +11,8 @@ jobs:
     steps:
       - name: Print day and week
         run: |
-          echo ${{github.event.labels}}
-          echo ${{github.event.labels.length}}
-          echo ${{github.event.assignees.length}}
+          echo ${{github.event.issues.labels.length}}
+          echo ${{github.event.issues.assignees.length}}
         shell: bash
       - uses: actions/checkout@v2
       - name: Day of week
