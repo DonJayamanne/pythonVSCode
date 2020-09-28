@@ -6,8 +6,8 @@ jobs:
   applyTriageLabel:
     name: Apply Triage Label
     runs-on: ubuntu-latest
-    # if: github.repository == 'microsoft/vscode-python' && github.event.labels.length === 0
-    if: github.event.labels.length === 0
+    # if: github.repository == 'microsoft/vscode-python' && github.event.labels.length == 0
+    if: github.event.labels.length == 0
     steps:
       - uses: actions/checkout@v2
       - name: Day of week
@@ -26,42 +26,42 @@ jobs:
           echo ${{steps.week.outputs.number}}
         shell: bash
       - name: Assign to @David (sat, sun, mon - odd week)
-        if: steps.day.outputs.number === 6 || steps.day.outputs.number === 0 || steps.day.outputs.number === 1
+        if: steps.day.outputs.number == 6 || steps.day.outputs.number == 0 || steps.day.outputs.number == 1
         uses: actions/github@v1.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           args: assign @DonJayamanne
       - name: Assign to @Joyce (sat, sun, mon - even week)
-        if: steps.day.outputs.number === 6 || steps.day.outputs.number === 0 || steps.day.outputs.number === 1
+        if: steps.day.outputs.number == 6 || steps.day.outputs.number == 0 || steps.day.outputs.number == 1
         uses: actions/github@v1.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           args: assign @DonJayamanne
       - name: Assign to @Rich (tues)
-        if: steps.day.outputs.number === 2
+        if: steps.day.outputs.number == 2
         uses: actions/github@v1.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           args: assign @DonJayamanne
       - name: Assign to @Ian (wed)
-        if: steps.day.outputs.number === 3
+        if: steps.day.outputs.number == 3
         uses: actions/github@v1.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           args: assign @DonJayamanne
       - name: Assign to @DonJayamanne
-        if: steps.day.outputs.number === 4
+        if: steps.day.outputs.number == 4
         uses: actions/github@v1.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           args: assign @DonJayamanne
       - name: Assign to @Claudia (fri)
-        if: steps.day.outputs.number === 5
+        if: steps.day.outputs.number == 5
         uses: actions/github@v1.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
