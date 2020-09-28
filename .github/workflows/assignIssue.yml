@@ -7,7 +7,7 @@ jobs:
     name: Apply Triage Label
     runs-on: ubuntu-latest
     # if: github.repository == 'microsoft/vscode-python' && github.event.labels.length == 0
-    if: github.event.labels.length == 0
+    if: github.event.labels.length == 0 && github.event.labels.assignees.length == 0
     steps:
       - uses: actions/checkout@v2
       - name: Day of week
