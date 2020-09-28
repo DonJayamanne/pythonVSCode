@@ -7,12 +7,30 @@ jobs:
     name: Apply Triage Label
     runs-on: ubuntu-latest
     # if: github.repository == 'microsoft/vscode-python' && github.event.labels.length == 0
-    if: github.event.issue.labels.length == 0 && github.event.issue.assignees.length == 0
     steps:
-      - name: Print day and week
+      - name: Debug
         run: |
           echo "${{github.event.issue.labels.length}}"
           echo "${{github.event.issue.assignees.length}}"
+        shell: bash
+      - name: Labels Count
+        id: labels
+        env:
+            ISSUE_LABELS: ${{toJson(github.event.issue.labels))}}
+        run: |
+          echo ::set-output name=count::$(node -p -e "JSON.parse(process.env.ISSUE_LABELS).length")
+        shell: bash
+      - name: Assignees Count
+        id: assignees
+        env:
+            ISSUE_ASSIGNEES: ${{toJson(github.event.issue.assignees))}}
+        run: |
+          echo ::set-output name=count::$(node -p -e "JSON.parse(process.env.ISSUE_ASSIGNEES).length")
+        shell: bash
+      - name: Print labels and assignees
+        run: |
+          echo ${{steps.labels.outputs.count}}
+          echo ${{steps.assignees.outputs.count}}
         shell: bash
       - uses: actions/checkout@v2
       - name: Day of week
