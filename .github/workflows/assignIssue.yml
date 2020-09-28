@@ -16,14 +16,14 @@ jobs:
       - name: Labels Count
         id: labels
         env:
-            ISSUE_LABELS: ${{toJson(github.event.issue.labels))}}
+            ISSUE_LABELS: ${{toJson(github.event.issue.labels)}}
         run: |
           echo ::set-output name=count::$(node -p -e "JSON.parse(process.env.ISSUE_LABELS).length")
         shell: bash
       - name: Assignees Count
         id: assignees
         env:
-            ISSUE_ASSIGNEES: ${{toJson(github.event.issue.assignees))}}
+            ISSUE_ASSIGNEES: ${{toJson(github.event.issue.assignees)}}
         run: |
           echo ::set-output name=count::$(node -p -e "JSON.parse(process.env.ISSUE_ASSIGNEES).length")
         shell: bash
