@@ -12,7 +12,7 @@
     "python.linting.banditEnabled": false,
     "python.formatting.provider": "yapf",
     "python.pythonPath": "python",
-    "python.experiments.optInto": [
+    "jupyter.experiments.optInto": [
         "NativeNotebookEditor"
     ],
     // Do not set this to "Microsoft", else it will result in LS being downloaded on CI

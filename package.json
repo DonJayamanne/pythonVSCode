@@ -1231,9 +1231,10 @@
                     "default": [],
                     "items": {
                         "enum": [
-                            "NativeNotebook",
+                            "NativeNotebookEditor",
                             "CustomEditor",
                             "RunByLine",
+                            "jediLSP",
                             "All"
                         ]
                     },
@@ -1245,7 +1246,7 @@
                     "default": [],
                     "items": {
                         "enum": [
-                            "NativeNotebook",
+                            "NativeNotebookEditor",
                             "CustomEditor",
                             "RunByLine",
                             "All"
