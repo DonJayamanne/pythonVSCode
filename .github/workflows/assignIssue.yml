@@ -27,10 +27,19 @@ jobs:
         run: |
           echo ::set-output name=count::$(node -p -e "JSON.parse(process.env.ISSUE_ASSIGNEES).length")
         shell: bash
+      - name: Should we proceed
+        id: proceed
+        env:
+            ISSUE_LABELS: ${{toJson(github.event.issue.labels)}}
+            ISSUE_ASSIGNEES: ${{toJson(github.event.issue.assignees)}}
+        run: |
+          echo ::set-output name=result::$(node -p -e "JSON.parse(process.env.ISSUE_ASSIGNEES).length === 0 && JSON.parse(process.env.ISSUE_LABELS).length === 0 ? 1 : 0")
+        shell: bash
       - name: Print labels and assignees
         run: |
           echo ${{steps.labels.outputs.count}}
           echo ${{steps.assignees.outputs.count}}
+          echo ${{steps.proceed.outputs.result}}
         shell: bash
       - uses: actions/checkout@v2
       - name: Day of week
