@@ -9,13 +9,13 @@ import { ConfigurationTarget, Uri, WorkspaceConfiguration } from 'vscode';
 import { IWorkspaceService } from '../../../client/common/application/types';
 import { JupyterSettings } from '../../../client/common/configSettings';
 import { ConfigurationService } from '../../../client/common/configuration/service';
-import { IExperimentsManager } from '../../../client/common/types';
+import { IExperimentService } from '../../../client/common/types';
 import { IServiceContainer } from '../../../client/ioc/types';
 
 suite('Configuration Service', () => {
     const resource = Uri.parse('a');
     let workspaceService: TypeMoq.IMock<IWorkspaceService>;
-    let experimentsManager: TypeMoq.IMock<IExperimentsManager>;
+    let experimentService: TypeMoq.IMock<IExperimentService>;
     let serviceContainer: TypeMoq.IMock<IServiceContainer>;
     let configService: ConfigurationService;
     setup(() => {
@@ -28,9 +28,9 @@ suite('Configuration Service', () => {
                 name: '0'
             }));
         serviceContainer = TypeMoq.Mock.ofType<IServiceContainer>();
-        experimentsManager = TypeMoq.Mock.ofType<IExperimentsManager>();
+        experimentService = TypeMoq.Mock.ofType<IExperimentService>();
         serviceContainer.setup((s) => s.get(IWorkspaceService)).returns(() => workspaceService.object);
-        serviceContainer.setup((s) => s.get(IExperimentsManager)).returns(() => experimentsManager.object);
+        serviceContainer.setup((s) => s.get(IExperimentService)).returns(() => experimentService.object);
         configService = new ConfigurationService(serviceContainer.object);
     });
 

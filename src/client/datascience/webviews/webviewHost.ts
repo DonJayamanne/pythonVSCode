@@ -31,7 +31,7 @@ export abstract class WebviewHost<IMapping> implements IDisposable {
         @unmanaged() protected themeFinder: IThemeFinder,
         @unmanaged() protected workspaceService: IWorkspaceService,
         @unmanaged() protected readonly useCustomEditorApi: boolean,
-        @unmanaged() private readonly enableVariablesDuringDebugging: boolean,
+        @unmanaged() private readonly enableVariablesDuringDebugging: Promise<boolean>,
         @unmanaged() private readonly hideKernelToolbarInInteractiveWindow: Promise<boolean>
     ) {
         // Listen for settings changes from vscode.
@@ -146,7 +146,7 @@ export abstract class WebviewHost<IMapping> implements IDisposable {
                 parameterHintsEnabled: this.getValue(editor, 'parameterHints.enabled', true)
             },
             variableOptions: {
-                enableDuringDebugger: this.enableVariablesDuringDebugging
+                enableDuringDebugger: await this.enableVariablesDuringDebugging
             },
             webviewExperiments: {
                 removeKernelToolbarInInteractiveWindow: await this.hideKernelToolbarInInteractiveWindow

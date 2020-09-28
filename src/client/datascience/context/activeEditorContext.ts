@@ -12,7 +12,7 @@ import { PYTHON_LANGUAGE } from '../../common/constants';
 import { ContextKey } from '../../common/contextKey';
 import { NotebookEditorSupport } from '../../common/experiments/groups';
 import { traceError } from '../../common/logger';
-import { IDisposable, IDisposableRegistry, IExperimentsManager } from '../../common/types';
+import { IDisposable, IDisposableRegistry, IExperimentService } from '../../common/types';
 import { setSharedProperty } from '../../telemetry';
 import { EditorContexts } from '../constants';
 import {
@@ -38,13 +38,14 @@ export class ActiveEditorContextService implements IExtensionSingleActivationSer
     private hasNativeNotebookCells: ContextKey;
     private isNotebookTrusted: ContextKey;
     private isPythonFileActive: boolean = false;
+    private inNativeNotebookExperiment: boolean = false;
     constructor(
         @inject(IInteractiveWindowProvider) private readonly interactiveProvider: IInteractiveWindowProvider,
         @inject(INotebookEditorProvider) private readonly notebookEditorProvider: INotebookEditorProvider,
         @inject(IDocumentManager) private readonly docManager: IDocumentManager,
         @inject(ICommandManager) private readonly commandManager: ICommandManager,
         @inject(IDisposableRegistry) disposables: IDisposableRegistry,
-        @inject(IExperimentsManager) private readonly experiments: IExperimentsManager,
+        @inject(IExperimentService) private readonly experimentService: IExperimentService,
         @inject(INotebookProvider) private readonly notebookProvider: INotebookProvider,
         @inject(ITrustService) private readonly trustService: ITrustService
     ) {
@@ -93,10 +94,13 @@ export class ActiveEditorContextService implements IExtensionSingleActivationSer
         if (this.docManager.activeTextEditor?.document.languageId === PYTHON_LANGUAGE) {
             this.onDidChangeActiveTextEditor(this.docManager.activeTextEditor);
         }
+        this.inNativeNotebookExperiment = await this.experimentService.inExperiment(
+            NotebookEditorSupport.nativeNotebookExperiment
+        );
     }
 
     private updateNativeNotebookCellContext() {
-        if (!this.experiments.inExperiment(NotebookEditorSupport.nativeNotebookExperiment)) {
+        if (!this.inNativeNotebookExperiment) {
             return;
         }
         this.hasNativeNotebookCells

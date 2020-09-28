@@ -3,10 +3,8 @@
 'use strict';
 import { IExtensionSingleActivationService } from '../activation/types';
 import { UseCustomEditorApi, UseVSCodeNotebookEditorApi } from '../common/constants';
-import { NotebookEditorSupport } from '../common/experiments/groups';
 import { FileSystemPathUtils } from '../common/platform/fs-paths';
 import { IFileSystemPathUtils } from '../common/platform/types';
-import { IExperimentsManager } from '../common/types';
 import { ProtocolParser } from '../debugger/extension/helpers/protocolParser';
 import { IProtocolParser } from '../debugger/extension/types';
 import { IServiceManager } from '../ioc/types';
@@ -184,10 +182,7 @@ import {
 // README: Did you make sure "dataScienceIocContainer.ts" has also been updated appropriately?
 
 // tslint:disable-next-line: max-func-body-length
-export function registerTypes(serviceManager: IServiceManager) {
-    const experiments = serviceManager.get<IExperimentsManager>(IExperimentsManager);
-    const useVSCodeNotebookAPI = experiments.inExperiment(NotebookEditorSupport.nativeNotebookExperiment);
-    const inCustomEditorApiExperiment = experiments.inExperiment(NotebookEditorSupport.customEditorExperiment);
+export function registerTypes(serviceManager: IServiceManager, useVSCodeNotebookAPI: boolean, inCustomEditorApiExperiment: boolean) {
     const usingCustomEditor = inCustomEditorApiExperiment;
     serviceManager.addSingletonInstance<boolean>(UseCustomEditorApi, usingCustomEditor);
     serviceManager.addSingletonInstance<boolean>(UseVSCodeNotebookEditorApi, useVSCodeNotebookAPI);

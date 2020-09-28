@@ -12,7 +12,7 @@ import {
 } from '../../common/application/types';
 import { NotebookEditorSupport } from '../../common/experiments/groups';
 import { traceError } from '../../common/logger';
-import { IDisposableRegistry, IExperimentsManager, IExtensionContext } from '../../common/types';
+import { IDisposableRegistry, IExperimentService, IExtensionContext } from '../../common/types';
 import { DataScience } from '../../common/utils/localize';
 import { noop } from '../../common/utils/misc';
 import { JupyterNotebookView } from './constants';
@@ -31,7 +31,7 @@ const EditorAssociationUpdatedKey = 'EditorAssociationUpdatedToUseNotebooks';
 export class NotebookIntegration implements IExtensionSingleActivationService {
     constructor(
         @inject(IVSCodeNotebook) private readonly vscNotebook: IVSCodeNotebook,
-        @inject(IExperimentsManager) private readonly experiment: IExperimentsManager,
+        @inject(IExperimentService) private readonly experimentService: IExperimentService,
         @inject(IDisposableRegistry) private readonly disposables: IDisposableRegistry,
         @inject(INotebookContentProvider) private readonly notebookContentProvider: INotebookContentProvider,
         @inject(VSCodeKernelPickerProvider) private readonly kernelProvider: VSCodeKernelPickerProvider,
@@ -44,7 +44,7 @@ export class NotebookIntegration implements IExtensionSingleActivationService {
         // This condition is temporary.
         // If user belongs to the experiment, then make the necessary changes to package.json.
         // Once the API is final, we won't need to modify the package.json.
-        if (this.experiment.inExperiment(NotebookEditorSupport.nativeNotebookExperiment)) {
+        if (await this.experimentService.inExperiment(NotebookEditorSupport.nativeNotebookExperiment)) {
             await this.enableNotebooks();
         } else {
             // Possible user was in experiment, then they opted out. In this case we need to revert the changes made to the settings file.
@@ -83,7 +83,7 @@ export class NotebookIntegration implements IExtensionSingleActivationService {
         } catch (ex) {
             // If something goes wrong, and we're not in Insiders & not using the NativeEditor experiment, then swallow errors.
             traceError('Failed to register VS Code Notebook API', ex);
-            if (this.experiment.inExperiment(NotebookEditorSupport.nativeNotebookExperiment)) {
+            if (await this.experimentService.inExperiment(NotebookEditorSupport.nativeNotebookExperiment)) {
                 throw ex;
             }
         }

@@ -914,6 +914,10 @@ export namespace DataScience {
         'DataScience.ipykernelNotInstalled',
         'IPyKernel not installed into interpreter {0}'
     );
+    export const illegalEditorConfig = localize(
+        'DataScience.illegalEditorConfig',
+        'CustomEditor and NativeNotebook experiments cannot be turned on together'
+    );
 }
 
 export namespace DebugConfigStrings {

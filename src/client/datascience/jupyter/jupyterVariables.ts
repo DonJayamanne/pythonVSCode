@@ -7,7 +7,7 @@ import { inject, injectable, named } from 'inversify';
 import { Event, EventEmitter } from 'vscode';
 import { ServerStatus } from '../../../datascience-ui/interactive-common/mainState';
 import { RunByLine } from '../../common/experiments/groups';
-import { IDisposableRegistry, IExperimentsManager } from '../../common/types';
+import { IDisposableRegistry, IExperimentService } from '../../common/types';
 import { captureTelemetry } from '../../telemetry';
 import { Identifiers, Telemetry } from '../constants';
 import {
@@ -26,10 +26,11 @@ import {
 @injectable()
 export class JupyterVariables implements IJupyterVariables {
     private refreshEventEmitter = new EventEmitter<void>();
+    private runByLineEnabled: boolean | undefined;
 
     constructor(
         @inject(IDisposableRegistry) disposableRegistry: IDisposableRegistry,
-        @inject(IExperimentsManager) private experimentsManager: IExperimentsManager,
+        @inject(IExperimentService) private experimentsService: IExperimentService,
         @inject(IJupyterVariables) @named(Identifiers.OLD_VARIABLES) private oldVariables: IJupyterVariables,
         @inject(IJupyterVariables) @named(Identifiers.KERNEL_VARIABLES) private kernelVariables: IJupyterVariables,
         @inject(IJupyterVariables)
@@ -51,15 +52,15 @@ export class JupyterVariables implements IJupyterVariables {
         notebook: INotebook,
         request: IJupyterVariablesRequest
     ): Promise<IJupyterVariablesResponse> {
-        return this.getVariableHandler(notebook).getVariables(notebook, request);
+        return (await this.getVariableHandler(notebook)).getVariables(notebook, request);
     }
 
-    public getMatchingVariable(notebook: INotebook, name: string): Promise<IJupyterVariable | undefined> {
-        return this.getVariableHandler(notebook).getMatchingVariable(notebook, name);
+    public async getMatchingVariable(notebook: INotebook, name: string): Promise<IJupyterVariable | undefined> {
+        return (await this.getVariableHandler(notebook)).getMatchingVariable(notebook, name);
     }
 
     public async getDataFrameInfo(targetVariable: IJupyterVariable, notebook: INotebook): Promise<IJupyterVariable> {
-        return this.getVariableHandler(notebook).getDataFrameInfo(targetVariable, notebook);
+        return (await this.getVariableHandler(notebook)).getDataFrameInfo(targetVariable, notebook);
     }
 
     public async getDataFrameRows(
@@ -68,11 +69,14 @@ export class JupyterVariables implements IJupyterVariables {
         start: number,
         end: number
     ): Promise<JSONObject> {
-        return this.getVariableHandler(notebook).getDataFrameRows(targetVariable, notebook, start, end);
+        return (await this.getVariableHandler(notebook)).getDataFrameRows(targetVariable, notebook, start, end);
     }
 
-    private getVariableHandler(notebook: INotebook): IJupyterVariables {
-        if (!this.experimentsManager.inExperiment(RunByLine.experiment)) {
+    private async getVariableHandler(notebook: INotebook): Promise<IJupyterVariables> {
+        if (this.runByLineEnabled === undefined) {
+            this.runByLineEnabled = await this.experimentsService.inExperiment(RunByLine.experiment);
+        }
+        if (!this.runByLineEnabled) {
             return this.oldVariables;
         }
         if (this.debuggerVariables.active && notebook.status === ServerStatus.Busy) {

@@ -13,7 +13,7 @@ import {
     NotifyIPyWidgeWidgetVersionNotSupportedAction
 } from '../../../datascience-ui/interactive-common/redux/reducers/types';
 import { traceError, traceInfo } from '../../common/logger';
-import { IDisposableRegistry, IExperimentsManager, IOutputChannel } from '../../common/types';
+import { IDisposableRegistry, IOutputChannel } from '../../common/types';
 import * as localize from '../../common/utils/localize';
 import { sendTelemetryEvent } from '../../telemetry';
 import { JUPYTER_OUTPUT_CHANNEL, Telemetry } from '../constants';
@@ -48,7 +48,6 @@ export class IPyWidgetHandler implements IInteractiveWindowListener {
         @inject(IDisposableRegistry) private readonly disposables: IDisposableRegistry,
         @inject(IPyWidgetMessageDispatcherFactory)
         private readonly widgetMessageDispatcherFactory: IPyWidgetMessageDispatcherFactory,
-        @inject(IExperimentsManager) readonly experimentsManager: IExperimentsManager,
         @inject(IOutputChannel) @named(JUPYTER_OUTPUT_CHANNEL) private jupyterOutput: IOutputChannel
     ) {
         disposables.push(

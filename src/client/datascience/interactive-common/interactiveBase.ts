@@ -38,12 +38,7 @@ import { RemoveKernelToolbarInInteractiveWindow, RunByLine } from '../../common/
 import { traceError, traceInfo, traceWarning } from '../../common/logger';
 
 import { isNil } from 'lodash';
-import {
-    IConfigurationService,
-    IDisposableRegistry,
-    IExperimentService,
-    IExperimentsManager
-} from '../../common/types';
+import { IConfigurationService, IDisposableRegistry, IExperimentService } from '../../common/types';
 import { createDeferred, Deferred } from '../../common/utils/async';
 import * as localize from '../../common/utils/localize';
 import { isUntitledFile, noop } from '../../common/utils/misc';
@@ -168,7 +163,6 @@ export abstract class InteractiveBase extends WebviewPanelHost<IInteractiveWindo
         scripts: string[],
         title: string,
         viewColumn: ViewColumn,
-        experimentsManager: IExperimentsManager,
         private readonly notebookProvider: INotebookProvider,
         useCustomEditorApi: boolean,
         expService: IExperimentService,
@@ -186,7 +180,7 @@ export abstract class InteractiveBase extends WebviewPanelHost<IInteractiveWindo
             title,
             viewColumn,
             useCustomEditorApi,
-            experimentsManager.inExperiment(RunByLine.experiment),
+            expService.inExperiment(RunByLine.experiment),
             expService.inExperiment(RemoveKernelToolbarInInteractiveWindow.experiment)
         );
 

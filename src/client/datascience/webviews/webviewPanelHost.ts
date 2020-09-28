@@ -50,7 +50,7 @@ export abstract class WebviewPanelHost<IMapping> extends WebviewHost<IMapping> i
         @unmanaged() private _title: string,
         @unmanaged() private viewColumn: ViewColumn,
         @unmanaged() protected readonly useCustomEditorApi: boolean,
-        @unmanaged() enableVariablesDuringDebugging: boolean,
+        @unmanaged() enableVariablesDuringDebugging: Promise<boolean>,
         @unmanaged() hideKernelToolbarInInteractiveWindow: Promise<boolean>
     ) {
         super(

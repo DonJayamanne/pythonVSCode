@@ -5,7 +5,7 @@ import { anything, instance, mock, verify, when } from 'ts-mockito';
 import { PythonExtensionChecker } from '../../../client/api/pythonApi';
 import { IVSCodeNotebook } from '../../../client/common/application/types';
 import { JupyterSettings } from '../../../client/common/configSettings';
-import { IConfigurationService, IExperimentsManager, IWatchableJupyterSettings } from '../../../client/common/types';
+import { IConfigurationService, IExperimentService, IWatchableJupyterSettings } from '../../../client/common/types';
 import { KernelDaemonPool } from '../../../client/datascience/kernel-launcher/kernelDaemonPool';
 import { KernelDaemonPreWarmer } from '../../../client/datascience/kernel-launcher/kernelDaemonPreWarmer';
 import {
@@ -35,8 +35,8 @@ suite('DataScience - Kernel Daemon Pool PreWarmer', () => {
         rawNotebookSupported = mock<IRawNotebookSupportedService>();
         configService = mock<IConfigurationService>();
         vscodeNotebook = mock<IVSCodeNotebook>();
-        const experiment = mock<IExperimentsManager>();
-        when(experiment.inExperiment(anything())).thenReturn(true);
+        const experimentService = mock<IExperimentService>();
+        when(experimentService.inExperiment(anything())).thenResolve(true);
         extensionChecker = mock(PythonExtensionChecker);
         when(extensionChecker.isPythonExtensionInstalled).thenReturn(true);
 

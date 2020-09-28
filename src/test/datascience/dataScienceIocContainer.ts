@@ -58,7 +58,6 @@ import {
     UseVSCodeNotebookEditorApi
 } from '../../client/common/constants';
 import { CryptoUtils } from '../../client/common/crypto';
-import { ExperimentsManager } from '../../client/common/experiments/manager';
 import { ExperimentService } from '../../client/common/experiments/service';
 import { ProductInstaller } from '../../client/common/installer/productInstaller';
 import { DataScienceProductPathService } from '../../client/common/installer/productPath';
@@ -88,7 +87,6 @@ import {
     ICurrentProcess,
     IDisposable,
     IExperimentService,
-    IExperimentsManager,
     IExtensionContext,
     IExtensions,
     IHttpClient,
@@ -503,6 +501,16 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
             instance(extensionChecker)
         );
 
+        // Adjust all experiments to be on by default
+        when(experimentService.inExperiment(anything())).thenCall((exp) => {
+            const setState = this.experimentState.get(exp);
+            if (setState === undefined) {
+                // All experiments on by default
+                return Promise.resolve(true);
+            }
+            return Promise.resolve(setState);
+        });
+
         this.serviceManager.addSingleton<IApplicationEnvironment>(IApplicationEnvironment, ApplicationEnvironment);
         this.serviceManager.add<INotebookImporter>(INotebookImporter, JupyterImporter);
         this.serviceManager.add<INotebookExporter>(INotebookExporter, JupyterExporter);
@@ -657,19 +665,6 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
             token: new CancellationTokenSource().token
         });
         this.serviceManager.addSingletonInstance<ProgressReporter>(ProgressReporter, instance(progressReporter));
-
-        // Turn off experiments.
-        const experimentManager = mock(ExperimentsManager);
-        when(experimentManager.inExperiment(anything())).thenCall((exp) => {
-            const setState = this.experimentState.get(exp);
-            if (setState === undefined) {
-                // All experiments on by default
-                return true;
-            }
-            return setState;
-        });
-        when(experimentManager.activate()).thenResolve();
-        this.serviceManager.addSingletonInstance<IExperimentsManager>(IExperimentsManager, instance(experimentManager));
 
         // Setup our command list
         this.commandManager.registerCommand('setContext', (name: string, value: boolean) => {

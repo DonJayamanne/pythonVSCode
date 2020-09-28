@@ -117,7 +117,7 @@ export class ExperimentService implements IExperimentService {
 
         experiments.features.forEach((exp) => {
             // Filter out experiments groups that are not from the Python extension.
-            if (exp.toLowerCase().startsWith('python')) {
+            if (exp.toLowerCase().startsWith('python') || exp.toLowerCase().startsWith('jupyter')) {
                 this.output.appendLine(Experiments.inGroup().format(exp));
             }
         });

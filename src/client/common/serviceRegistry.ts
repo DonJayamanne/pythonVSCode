@@ -38,7 +38,6 @@ import { AsyncDisposableRegistry } from './asyncDisposableRegistry';
 import { ConfigurationService } from './configuration/service';
 import { CryptoUtils } from './crypto';
 import { EditorUtils } from './editor';
-import { ExperimentsManager } from './experiments/manager';
 import { ExperimentService } from './experiments/service';
 import { FeatureDeprecationManager } from './featureDeprecationManager';
 import {
@@ -72,7 +71,6 @@ import {
     ICryptoUtils,
     ICurrentProcess,
     IEditorUtils,
-    IExperimentsManager,
     IExtensions,
     IFeatureDeprecationManager,
     IInstaller,
@@ -112,7 +110,6 @@ export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.addSingleton<IEditorUtils>(IEditorUtils, EditorUtils);
     serviceManager.addSingleton<ILiveShareApi>(ILiveShareApi, LiveShareApi);
     serviceManager.addSingleton<ICryptoUtils>(ICryptoUtils, CryptoUtils);
-    serviceManager.addSingleton<IExperimentsManager>(IExperimentsManager, ExperimentsManager);
     serviceManager.addSingleton<IExperimentService>(IExperimentService, ExperimentService);
 
     serviceManager.addSingleton<IFeatureDeprecationManager>(IFeatureDeprecationManager, FeatureDeprecationManager);
