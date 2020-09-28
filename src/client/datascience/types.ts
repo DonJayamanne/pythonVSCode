@@ -1405,3 +1405,8 @@ export interface ISwitchKernelOptions {
     resource: Resource;
     currentKernelDisplayName: string | undefined;
 }
+
+export const IDebugLoggingManager = Symbol('IDebugLoggingManager');
+export interface IDebugLoggingManager {
+    initialize(): Promise<void>;
+}

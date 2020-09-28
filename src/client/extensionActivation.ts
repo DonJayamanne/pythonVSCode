@@ -30,9 +30,10 @@ import { noop } from './common/utils/misc';
 import { registerTypes as variableRegisterTypes } from './common/variables/serviceRegistry';
 import { JUPYTER_OUTPUT_CHANNEL } from './datascience/constants';
 import { registerTypes as dataScienceRegisterTypes } from './datascience/serviceRegistry';
-import { IDataScience } from './datascience/types';
+import { IDataScience, IDebugLoggingManager } from './datascience/types';
 import { IServiceContainer, IServiceManager } from './ioc/types';
 import { addOutputChannelLogging, setLoggingLevel } from './logging';
+import { registerLoggerTypes } from './logging/serviceRegistry';
 import { setExtensionInstallTelemetryProperties } from './telemetry/extensionInstallTelemetry';
 import { registerTypes as commonRegisterTerminalTypes } from './terminals/serviceRegistry';
 
@@ -67,6 +68,11 @@ async function activateLegacy(
     addOutputChannelLogging(standardOutputChannel);
     serviceManager.addSingletonInstance<OutputChannel>(IOutputChannel, standardOutputChannel, STANDARD_OUTPUT_CHANNEL);
     serviceManager.addSingletonInstance<OutputChannel>(IOutputChannel, jupyterOutputChannel, JUPYTER_OUTPUT_CHANNEL);
+
+    // Initialize logging to file if necessary as early as possible
+    registerLoggerTypes(serviceManager);
+    const debugLoggingManager = serviceManager.get<IDebugLoggingManager>(IDebugLoggingManager);
+    await debugLoggingManager.initialize();
 
     // Core registrations (non-feature specific).
     registerApiTypes(serviceManager);

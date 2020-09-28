@@ -9,7 +9,7 @@ import { getFormatter } from './formatters';
 import { LogLevel, resolveLevelName } from './levels';
 import { configureLogger, createLogger, getPreDefinedConfiguration, logToAll } from './logger';
 import { createTracingDecorator, LogInfo, TraceOptions, tracing as _tracing } from './trace';
-import { getJupyterOutputChannelTransport } from './transports';
+import { getFileTransport, getJupyterOutputChannelTransport } from './transports';
 import { Arguments } from './util';
 
 const globalLogger = createLogger();
@@ -55,6 +55,12 @@ export function setLoggingLevel(level: LogLevel | 'off') {
             globalLogger.level = levelName;
         }
     }
+}
+
+export function addLogfile(logfile: string) {
+    const formatter = getFormatter();
+    const transport = getFileTransport(logfile, formatter);
+    globalLogger.add(transport);
 }
 
 // Register the output channel transport the logger will log into.

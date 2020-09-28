@@ -9,9 +9,7 @@ import { ImportTracker } from '../telemetry/importTracker';
 import { IImportTracker } from '../telemetry/types';
 import { ActiveResourceService } from './application/activeResource';
 import { ApplicationEnvironment } from './application/applicationEnvironment';
-import { ApplicationShell } from './application/applicationShell';
 import { ClipboardService } from './application/clipboard';
-import { CommandManager } from './application/commandManager';
 import { ReloadVSCodeCommandHandler } from './application/commands/reloadCommand';
 import { CustomEditorService } from './application/customEditorService';
 import { DebugService } from './application/debugService';
@@ -22,20 +20,15 @@ import { VSCodeNotebook } from './application/notebook';
 import {
     IActiveResourceService,
     IApplicationEnvironment,
-    IApplicationShell,
     IClipboard,
-    ICommandManager,
     ICustomEditorService,
     IDebugService,
     IDocumentManager,
     ILanguageService,
     ILiveShareApi,
-    IVSCodeNotebook,
-    IWorkspaceService
+    IVSCodeNotebook
 } from './application/types';
-import { WorkspaceService } from './application/workspace';
 import { AsyncDisposableRegistry } from './asyncDisposableRegistry';
-import { ConfigurationService } from './configuration/service';
 import { CryptoUtils } from './crypto';
 import { EditorUtils } from './editor';
 import { ExperimentService } from './experiments/service';
@@ -67,7 +60,6 @@ import { IProcessLogger } from './process/types';
 import {
     IAsyncDisposableRegistry,
     IBrowserService,
-    IConfigurationService,
     ICryptoUtils,
     ICurrentProcess,
     IEditorUtils,
@@ -91,14 +83,10 @@ export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.addSingleton<IRandom>(IRandom, Random);
     serviceManager.addSingleton<IPersistentStateFactory>(IPersistentStateFactory, PersistentStateFactory);
     serviceManager.addSingleton<IPathUtils>(IPathUtils, PathUtils);
-    serviceManager.addSingleton<IApplicationShell>(IApplicationShell, ApplicationShell);
     serviceManager.addSingleton<IVSCodeNotebook>(IVSCodeNotebook, VSCodeNotebook);
     serviceManager.addSingleton<IClipboard>(IClipboard, ClipboardService);
     serviceManager.addSingleton<ICurrentProcess>(ICurrentProcess, CurrentProcess);
     serviceManager.addSingleton<IInstaller>(IInstaller, ProductInstaller);
-    serviceManager.addSingleton<ICommandManager>(ICommandManager, CommandManager);
-    serviceManager.addSingleton<IConfigurationService>(IConfigurationService, ConfigurationService);
-    serviceManager.addSingleton<IWorkspaceService>(IWorkspaceService, WorkspaceService);
     serviceManager.addSingleton<IProcessLogger>(IProcessLogger, ProcessLogger);
     serviceManager.addSingleton<IDocumentManager>(IDocumentManager, DocumentManager);
     serviceManager.addSingleton<IDebugService>(IDebugService, DebugService);

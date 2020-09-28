@@ -480,15 +480,15 @@ export class CodeLensFactory implements ICodeLensFactory, IInteractiveWindowList
 
     // tslint:disable-next-line: no-any
     private generateCodeLens(range: Range, commandName: string, title: string, args?: any[]): CodeLens {
-        return new CodeLens(range, this.generateCommand(commandName, title, args));
+        return new CodeLens(range, generateCommand(commandName, title, args));
     }
+}
 
-    // tslint:disable-next-line: no-any
-    private generateCommand(commandName: string, title: string, args?: any[]): Command {
-        return {
-            arguments: args,
-            title,
-            command: commandName
-        };
-    }
+// tslint:disable-next-line: no-any
+export function generateCommand(commandName: string, title: string, args?: any[]): Command {
+    return {
+        arguments: args,
+        title,
+        command: commandName
+    };
 }

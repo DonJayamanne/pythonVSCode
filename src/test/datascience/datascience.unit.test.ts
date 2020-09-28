@@ -23,7 +23,7 @@ import { IDataScienceCodeLensProvider } from '../../client/datascience/types';
 suite('DataScience Tests', () => {
     let dataScience: DataScience;
     let cmdManager: CommandManager;
-    let codeLensProvider: IDataScienceCodeLensProvider;
+    let dataScienceCodeLensProvider: IDataScienceCodeLensProvider;
     let configService: IConfigurationService;
     let docManager: IDocumentManager;
     let workspaceService: IWorkspaceService;
@@ -33,7 +33,7 @@ suite('DataScience Tests', () => {
     let onDidChangeActiveTextEditor: sinon.SinonStub;
     setup(() => {
         cmdManager = mock(CommandManager);
-        codeLensProvider = mock(DataScienceCodeLensProvider);
+        dataScienceCodeLensProvider = mock(DataScienceCodeLensProvider);
         configService = mock(ConfigurationService);
         workspaceService = mock(WorkspaceService);
         cmdRegistry = mock(CommandRegistry);
@@ -46,7 +46,7 @@ suite('DataScience Tests', () => {
             [] as any,
             // tslint:disable-next-line: no-any
             { subscriptions: [] } as any,
-            instance(codeLensProvider),
+            instance(dataScienceCodeLensProvider),
             instance(configService),
             instance(docManager),
             instance(workspaceService),

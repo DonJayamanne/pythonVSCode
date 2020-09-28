@@ -80,8 +80,44 @@ export namespace OutputChannelNames {
     export const jupyter = localize('OutputChannelNames.jupyter', 'Jupyter');
 }
 
+export namespace GitHubIssue {
+    export const failure = localize(
+        'GitHubIssue.Failure',
+        'We encountered an error while submitting your GitHub issue. Would you still like to report an issue?'
+    );
+    export const copyContentToClipboardAndOpenIssue = localize(
+        'GitHubIssue.copyToClipboardAndOpenIssue',
+        'Yes, copy content to clipboard and open issue'
+    );
+    export const askForIssueTitle = localize(
+        'GitHubIssue.askForIssueTitle',
+        'Please provide a descriptive title summarizing your issue.'
+    );
+    export const titlePlaceholder = localize(
+        'GitHubIssue.titlePlaceholder',
+        'E.g.: Unable to start a local kernel session'
+    );
+    export const pleaseFillThisOut = localize(
+        'GitHubIssue.pleaseFillThisOut',
+        'Please fill this section out and delete this comment before submitting an issue!'
+    );
+    export const missingFields = localize(
+        'GitHubIssue.missingFields',
+        'Please provide details of the issue you encountered before clicking Submit GitHub Issue.'
+    );
+    export const submitGitHubIssue = localize('GitHubIssue.submitGitHubIssue', '✅ Submit GitHub Issue');
+}
+
 export namespace Logging {
     export const currentWorkingDirectory = localize('Logging.CurrentWorkingDirectory', 'cwd:');
+    export const warnUserAboutDebugLoggingSetting = localize(
+        'Logging.WarnUserAboutDebugLoggingSetting',
+        'You have enabled debug logging for the Jupyter extension, which will continue to write logs to disk. Would you like to turn debug logging off?.'
+    );
+    export const bannerYesTurnOffDebugLogging = localize(
+        'Logging.YesTurnOffDebugLogging',
+        'Yes, turn off debug logging'
+    );
 }
 
 export namespace InteractiveShiftEnterBanner {

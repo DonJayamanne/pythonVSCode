@@ -139,4 +139,6 @@ export interface ICommandNameArgumentTypeMapping extends ICommandNameWithoutArgu
     [DSCommands.TrustNotebook]: [undefined | never | Uri];
     [DSCommands.NotebookEditorExpandAllCells]: [];
     [DSCommands.NotebookEditorCollapseAllCells]: [];
+    [DSCommands.CreateGitHubIssue]: [];
+    [DSCommands.SubmitGitHubIssue]: [];
 }
