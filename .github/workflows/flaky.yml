@@ -114,6 +114,10 @@ jobs:
         if: startsWith(matrix.test-suite, 'functional')
         shell: bash
 
+      # Install requirements next to extension
+      - name: Install requirements
+        run: npx gulp installPythonLibs
+
       # debugpy  & Jedi LS is not shipped, only installed for local tests.
       # In production, we get debugpy from python extension.
       - name: Install functional test requirements

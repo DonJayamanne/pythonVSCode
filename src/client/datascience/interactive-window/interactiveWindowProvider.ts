@@ -16,6 +16,7 @@ import {
     IWorkspaceService
 } from '../../common/application/types';
 import { UseCustomEditorApi } from '../../common/constants';
+import { traceInfo } from '../../common/logger';
 
 import {
     GLOBAL_MEMENTO,
@@ -329,6 +330,7 @@ export class InteractiveWindowProvider implements IInteractiveWindowProvider, IA
     }
 
     private onInteractiveWindowClosed = (interactiveWindow: IInteractiveWindow) => {
+        traceInfo(`Closing interactive window: ${interactiveWindow.title}`);
         this._windows = this._windows.filter((w) => w !== interactiveWindow);
         if (this.lastActiveInteractiveWindow === interactiveWindow) {
             this.lastActiveInteractiveWindow = this._windows[0];
