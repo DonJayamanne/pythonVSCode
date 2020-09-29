@@ -67,7 +67,7 @@
         "onCommand:jupyter.exportfileandoutputasnotebook",
         "onCommand:jupyter.selectJupyterInterpreter",
         "onCommand:jupyter.selectjupytercommandline",
-        "onNotebookEditor:jupyter-notebook"
+        "onNotebook:jupyter-notebook"
     ],
     "main": "./out/client/extension",
     "contributes": {
