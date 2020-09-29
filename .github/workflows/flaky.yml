@@ -14,6 +14,7 @@ env:
   CACHE_PIP_DEPS: cache-pip
   CI_PYTHON_PATH: python
   TEST_RESULTS_DIRECTORY: .
+  TEST_RESULTS_GLOB: '**/test-results.xml'
 
 jobs:
   tests:
@@ -156,3 +157,11 @@ jobs:
           VSCODE_PYTHON_ROLLING: 1
           VSC_PYTHON_FORCE_LOGGING: 1
         if: matrix.test-suite == 'functional-with-jupyter'
+
+      - name: Publish Test Report
+        uses: scacap/action-surefire-report@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}       
+          report_paths: ${{ env.TEST_RESULTS_GLOB }} 
+          check_name: Functional Test Report
+        if: matrix.test-suite == 'functional' || matrix.test-suite == 'functional-with-jupyter'

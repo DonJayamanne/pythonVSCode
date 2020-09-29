@@ -18,6 +18,7 @@ env:
   VSIX_NAME_UPLOADED_TO_BLOB: ms-ai-tools-jupyter-insiders.vsix
   CI_PYTHON_PATH: python
   TEST_RESULTS_DIRECTORY: .
+  TEST_RESULTS_GLOB: '**/test-results.xml'
 
 jobs:
   build-vsix:
@@ -187,6 +188,13 @@ jobs:
       - name: Run TypeScript unit tests
         run: npm run test:unittests:cover
 
+      - name: Publish Test Report
+        uses: scacap/action-surefire-report@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}       
+          report_paths: ${{ env.TEST_RESULTS_GLOB }} 
+          check_name: Ts-Unit Test Report
+
   tests:
     name: Tests (with Python)
     # The value of runs-on is the OS of the current job (specified in the strategy matrix below) instead of being hardcoded.
@@ -329,6 +337,13 @@ jobs:
           VSC_PYTHON_FORCE_LOGGING: 1
         if: matrix.test-suite == 'functional-with-jupyter'
 
+      - name: Publish Test Report
+        uses: scacap/action-surefire-report@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}       
+          report_paths: ${{ env.TEST_RESULTS_GLOB }} 
+          check_name: Functional Test Report
+        if: matrix.test-suite == 'functional' || matrix.test-suite == 'functional-with-jupyter'
 
   smoke-tests:
     name: Smoke tests
