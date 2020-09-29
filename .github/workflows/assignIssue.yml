@@ -6,40 +6,15 @@ jobs:
   applyTriageLabel:
     name: Apply Triage Label
     runs-on: ubuntu-latest
-    # if: github.repository == 'microsoft/vscode-python' && github.event.labels.length == 0
+    # if: github.repository == 'microsoft/vscode-jupyter'
     steps:
-      - name: Debug
-        run: |
-          echo "${{github.event.issue.labels.length}}"
-          echo "${{github.event.issue.assignees.length}}"
-        shell: bash
-      - name: Labels Count
-        id: labels
-        env:
-            ISSUE_LABELS: ${{toJson(github.event.issue.labels)}}
-        run: |
-          echo ::set-output name=count::$(node -p -e "JSON.parse(process.env.ISSUE_LABELS).length")
-        shell: bash
-      - name: Assignees Count
-        id: assignees
-        env:
-            ISSUE_ASSIGNEES: ${{toJson(github.event.issue.assignees)}}
-        run: |
-          echo ::set-output name=count::$(node -p -e "JSON.parse(process.env.ISSUE_ASSIGNEES).length")
-        shell: bash
       - name: Should we proceed
         id: proceed
         env:
             ISSUE_LABELS: ${{toJson(github.event.issue.labels)}}
             ISSUE_ASSIGNEES: ${{toJson(github.event.issue.assignees)}}
         run: |
-          echo ::set-output name=result::$(node -p -e "JSON.parse(process.env.ISSUE_ASSIGNEES).length === 0 && JSON.parse(process.env.ISSUE_LABELS).length === 0 ? 1 : 0")
-        shell: bash
-      - name: Print labels and assignees
-        run: |
-          echo ${{steps.labels.outputs.count}}
-          echo ${{steps.assignees.outputs.count}}
-          echo ${{steps.proceed.outputs.result}}
+          echo ::set-output name=result::$(node -p -e "JSON.parse(process.env.ISSUE_ASSIGNEES).length === 0 && JSON.parse(process.env.ISSUE_LABELS).filter(item => item.name.indexOf('data science') >= 0).length === 1 ? 1 : 0")
         shell: bash
       - uses: actions/checkout@v2
         if: steps.proceed.outputs.result == 1
@@ -61,12 +36,13 @@ jobs:
         run: |
           echo ::set-output name=odd::$(node .github/workflows/week.js)
         shell: bash
-      - name: Print day and week
+      - name: Debug
         if: steps.proceed.outputs.result == 1
         run: |
           echo ${{steps.day.outputs.number}}
           echo ${{steps.week.outputs.odd}}
           echo ${{steps.hour.outputs.hour}}
+          echo ${{steps.proceed.outputs.result}}
         shell: bash
       - name: Even late friday (David)
         if: steps.proceed.outputs.result == 1 && steps.week.outputs.odd == 0 && steps.day.outputs.number == 5 && steps.hour.outputs.hour >= 16
