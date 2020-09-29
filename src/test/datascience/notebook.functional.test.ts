@@ -180,7 +180,7 @@ suite('DataScience notebook tests', () => {
                 const error = cell.outputs[0].evalue;
                 if (error) {
                     assert.ok(error, 'Error not found when expected');
-                    assert.equal(error, errorString, 'Unexpected error found');
+                    assert.ok(error.toString().includes(errorString), 'Unexpected error found');
                 }
             }
 
@@ -716,7 +716,7 @@ suite('DataScience notebook tests', () => {
                     await server!.waitForIdle(10000);
 
                     console.log('Verifying restart');
-                    await verifyError(server, 'a', `name 'a' is not defined`);
+                    await verifyError(server, 'a', `is not defined`);
                 } catch (exc) {
                     assert.ok(
                         exc instanceof JupyterKernelPromiseFailedError,
@@ -990,7 +990,7 @@ a`,
                     mimeType: 'text/plain',
                     cellType: 'code',
                     result: `<a href=f>`,
-                    verifyValue: (d) => assert.equal(d, escape(`<a href=f>`), 'XML not escaped')
+                    verifyValue: (d) => assert.ok(d.includes(escape(`<a href=f>`)), 'XML not escaped')
                 },
                 {
                     markdownRegEx: undefined,
