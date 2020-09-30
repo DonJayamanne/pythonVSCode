@@ -186,10 +186,12 @@ jobs:
         # if: steps.out-cache.outputs.cache-hit == false
 
       - name: Run TypeScript unit tests
+        id: test_unittests
         run: npm run test:unittests:cover
 
       - name: Publish Test Report
         uses: scacap/action-surefire-report@v1
+        if: steps.test_unittests.outcome == 'failure' && failure()
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}       
           report_paths: ${{ env.TEST_RESULTS_GLOB }} 
@@ -328,10 +330,12 @@ jobs:
 
       - name: Run functional tests
         run: npm run test:functional
+        id: test_functional
         if: matrix.test-suite == 'functional'
 
       - name: Run functional tests with Jupyter
         run: npm run test:functional
+        id: test_functional_jupyter
         env:
           VSCODE_PYTHON_ROLLING: 1
           VSC_PYTHON_FORCE_LOGGING: 1
@@ -343,7 +347,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}       
           report_paths: ${{ env.TEST_RESULTS_GLOB }} 
           check_name: Functional Test Report
-        if: matrix.test-suite == 'functional' || matrix.test-suite == 'functional-with-jupyter'
+        if: (steps.test_functional.outcome == 'failure' || steps.test_functional_jupyter.outcome == 'failure') && failure()
 
   smoke-tests:
     name: Smoke tests
