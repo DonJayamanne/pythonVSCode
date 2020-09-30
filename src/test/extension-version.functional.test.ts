@@ -27,7 +27,7 @@ suite('Extension version tests', () => {
     });
 
     setup(() => {
-        applicationEnvironment = new ApplicationEnvironment(undefined as any, undefined as any, undefined as any);
+        applicationEnvironment = new ApplicationEnvironment(undefined as any, undefined as any);
         version = applicationEnvironment.packageJson.version;
     });
 

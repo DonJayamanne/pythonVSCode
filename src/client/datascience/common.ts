@@ -10,7 +10,7 @@ import { IPythonExecutionFactory } from '../common/process/types';
 import { DataScience } from '../common/utils/localize';
 import { noop } from '../common/utils/misc';
 import { Settings } from './constants';
-import { ICell, IDataScienceFileSystem } from './types';
+import { ICell, IFileSystem } from './types';
 
 // Can't figure out a better way to do this. Enumerate
 // the allowed keys of different output formats.
@@ -157,7 +157,7 @@ export function generateNewNotebookUri(
 }
 
 export async function getRealPath(
-    fs: IDataScienceFileSystem,
+    fs: IFileSystem,
     execFactory: IPythonExecutionFactory,
     pythonPath: string,
     expectedPath: string

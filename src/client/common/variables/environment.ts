@@ -3,9 +3,9 @@
 
 import { inject, injectable } from 'inversify';
 import * as path from 'path';
+import { IFileSystem } from '../../datascience/types';
 import { sendTelemetryEvent } from '../../telemetry';
 import { EventName } from '../../telemetry/constants';
-import { IFileSystem } from '../platform/types';
 import { IPathUtils } from '../types';
 import { EnvironmentVariables, IEnvironmentVariablesService } from './types';
 
@@ -22,10 +22,10 @@ export class EnvironmentVariablesService implements IEnvironmentVariablesService
         filePath?: string,
         baseVars?: EnvironmentVariables
     ): Promise<EnvironmentVariables | undefined> {
-        if (!filePath || !(await this.fs.fileExists(filePath))) {
+        if (!filePath || !(await this.fs.localFileExists(filePath))) {
             return;
         }
-        return parseEnvFile(await this.fs.readFile(filePath), baseVars);
+        return parseEnvFile(await this.fs.readLocalFile(filePath), baseVars);
     }
 
     public mergeVariables(source: EnvironmentVariables, target: EnvironmentVariables) {

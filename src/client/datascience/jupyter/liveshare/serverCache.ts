@@ -11,7 +11,7 @@ import { traceError, traceInfo } from '../../../common/logger';
 
 import { IAsyncDisposable, IConfigurationService } from '../../../common/types';
 import { sleep } from '../../../common/utils/async';
-import { IDataScienceFileSystem, INotebookServer, INotebookServerOptions } from '../../types';
+import { IFileSystem, INotebookServer, INotebookServerOptions } from '../../types';
 import { calculateWorkingDirectory } from '../../utils';
 
 interface IServerData {
@@ -29,7 +29,7 @@ export class ServerCache implements IAsyncDisposable {
     constructor(
         private configService: IConfigurationService,
         private workspace: IWorkspaceService,
-        private fs: IDataScienceFileSystem
+        private fs: IFileSystem
     ) {}
 
     public async getOrCreate(

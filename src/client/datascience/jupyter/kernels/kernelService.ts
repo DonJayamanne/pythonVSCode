@@ -27,7 +27,7 @@ import { Telemetry } from '../../constants';
 import { reportAction } from '../../progress/decorator';
 import { ReportableAction } from '../../progress/types';
 import {
-    IDataScienceFileSystem,
+    IFileSystem,
     IJupyterKernelSpec,
     IJupyterSessionManager,
     IJupyterSubCommandExecutionService,
@@ -68,7 +68,7 @@ export class KernelService {
         @inject(IPythonExecutionFactory) private readonly execFactory: IPythonExecutionFactory,
         @inject(IInterpreterService) private readonly interpreterService: IInterpreterService,
         @inject(IKernelDependencyService) private readonly kernelDependencyService: IKernelDependencyService,
-        @inject(IDataScienceFileSystem) private readonly fs: IDataScienceFileSystem,
+        @inject(IFileSystem) private readonly fs: IFileSystem,
         @inject(IEnvironmentActivationService) private readonly activationHelper: IEnvironmentActivationService
     ) {}
     /**

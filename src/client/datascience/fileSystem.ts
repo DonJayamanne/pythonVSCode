@@ -3,13 +3,13 @@ import * as glob from 'glob';
 import { injectable } from 'inversify';
 import * as tmp from 'tmp';
 import { promisify } from 'util';
-import { FileStat, FileSystem, Uri, workspace } from 'vscode';
+import * as vscode from 'vscode';
 import { traceError } from '../common/logger';
 import { createDirNotEmptyError, isFileNotFoundError } from '../common/platform/errors';
 import { convertFileType, convertStat, getHashString } from '../common/platform/fileSystem';
 import { FileSystemPathUtils } from '../common/platform/fs-paths';
 import { FileType, IFileSystemPathUtils, TemporaryFile } from '../common/platform/types';
-import { IDataScienceFileSystem } from './types';
+import { IFileSystem } from './types';
 
 const ENCODING = 'utf8';
 
@@ -17,14 +17,14 @@ const ENCODING = 'utf8';
  * File system abstraction which wraps the VS Code API.
  */
 @injectable()
-export class DataScienceFileSystem implements IDataScienceFileSystem {
-    protected vscfs: FileSystem;
+export class FileSystem implements IFileSystem {
+    protected vscfs: vscode.FileSystem;
     private globFiles: (pat: string, options?: { cwd: string; dot?: boolean }) => Promise<string[]>;
     private fsPathUtils: IFileSystemPathUtils;
     constructor() {
         this.globFiles = promisify(glob);
         this.fsPathUtils = FileSystemPathUtils.withDefaults();
-        this.vscfs = workspace.fs;
+        this.vscfs = vscode.workspace.fs;
     }
 
     public async appendLocalFile(path: string, text: string): Promise<void> {
@@ -36,7 +36,7 @@ export class DataScienceFileSystem implements IDataScienceFileSystem {
     }
 
     public async createLocalDirectory(path: string): Promise<void> {
-        await this.createDirectory(Uri.file(path));
+        await this.createDirectory(vscode.Uri.file(path));
     }
 
     public createLocalWriteStream(path: string): fs.WriteStream {
@@ -44,8 +44,8 @@ export class DataScienceFileSystem implements IDataScienceFileSystem {
     }
 
     public async copyLocal(source: string, destination: string): Promise<void> {
-        const srcUri = Uri.file(source);
-        const dstUri = Uri.file(destination);
+        const srcUri = vscode.Uri.file(source);
+        const dstUri = vscode.Uri.file(destination);
         await this.vscfs.copy(srcUri, dstUri, { overwrite: true });
     }
 
@@ -68,7 +68,7 @@ export class DataScienceFileSystem implements IDataScienceFileSystem {
     }
 
     public async deleteLocalDirectory(dirname: string) {
-        const uri = Uri.file(dirname);
+        const uri = vscode.Uri.file(dirname);
         // The "recursive" option disallows directories, even if they
         // are empty.  So we have to deal with this ourselves.
         const files = await this.vscfs.readDirectory(uri);
@@ -82,7 +82,7 @@ export class DataScienceFileSystem implements IDataScienceFileSystem {
     }
 
     public async deleteLocalFile(path: string): Promise<void> {
-        const uri = Uri.file(path);
+        const uri = vscode.Uri.file(path);
         return this.vscfs.delete(uri, {
             recursive: false,
             useTrash: false
@@ -113,13 +113,13 @@ export class DataScienceFileSystem implements IDataScienceFileSystem {
     }
 
     public async readLocalData(filename: string): Promise<Buffer> {
-        const uri = Uri.file(filename);
+        const uri = vscode.Uri.file(filename);
         const data = await this.vscfs.readFile(uri);
         return Buffer.from(data);
     }
 
     public async readLocalFile(filename: string): Promise<string> {
-        const uri = Uri.file(filename);
+        const uri = vscode.Uri.file(filename);
         return this.readFile(uri);
     }
 
@@ -137,13 +137,18 @@ export class DataScienceFileSystem implements IDataScienceFileSystem {
         return Array.isArray(found) ? found : [];
     }
 
+    public async getFiles(dir: vscode.Uri): Promise<vscode.Uri[]> {
+        const files = await this.vscfs.readDirectory(dir);
+        return files.filter((f) => f[1] === FileType.File).map((f) => vscode.Uri.file(f[0]));
+    }
+
     public async writeLocalFile(filename: string, text: string | Buffer): Promise<void> {
-        const uri = Uri.file(filename);
+        const uri = vscode.Uri.file(filename);
         return this.writeFile(uri, text);
     }
 
     // URI-based filesystem functions for interacting with files provided by VS Code
-    public arePathsSame(path1: Uri, path2: Uri): boolean {
+    public arePathsSame(path1: vscode.Uri, path2: vscode.Uri): boolean {
         if (path1.scheme === 'file' && path1.scheme === path2.scheme) {
             return this.areLocalPathsSame(path1.fsPath, path2.fsPath);
         } else {
@@ -151,34 +156,34 @@ export class DataScienceFileSystem implements IDataScienceFileSystem {
         }
     }
 
-    public async copy(source: Uri, destination: Uri): Promise<void> {
+    public async copy(source: vscode.Uri, destination: vscode.Uri): Promise<void> {
         await this.vscfs.copy(source, destination);
     }
 
-    public async createDirectory(uri: Uri): Promise<void> {
+    public async createDirectory(uri: vscode.Uri): Promise<void> {
         await this.vscfs.createDirectory(uri);
     }
 
-    public async delete(uri: Uri): Promise<void> {
+    public async delete(uri: vscode.Uri): Promise<void> {
         await this.vscfs.delete(uri);
     }
 
-    public async readFile(uri: Uri): Promise<string> {
+    public async readFile(uri: vscode.Uri): Promise<string> {
         const result = await this.vscfs.readFile(uri);
         const data = Buffer.from(result);
         return data.toString(ENCODING);
     }
 
-    public async stat(uri: Uri): Promise<FileStat> {
+    public async stat(uri: vscode.Uri): Promise<vscode.FileStat> {
         return this.vscfs.stat(uri);
     }
 
-    public async writeFile(uri: Uri, text: string | Buffer): Promise<void> {
+    public async writeFile(uri: vscode.Uri, text: string | Buffer): Promise<void> {
         const data = typeof text === 'string' ? Buffer.from(text) : text;
         return this.vscfs.writeFile(uri, data);
     }
 
-    private async lstat(filename: string): Promise<FileStat> {
+    private async lstat(filename: string): Promise<vscode.FileStat> {
         // tslint:disable-next-line: no-suspicious-comment
         // TODO https://github.com/microsoft/vscode/issues/71204 (84514)):
         //   This functionality has been requested for the VS Code API.
@@ -196,11 +201,11 @@ export class DataScienceFileSystem implements IDataScienceFileSystem {
         // matches; otherwise a mismatch results in a "false" value
         fileType?: FileType
     ): Promise<boolean> {
-        let stat: FileStat;
+        let stat: vscode.FileStat;
         try {
             // Note that we are using stat() rather than lstat().  This
             // means that any symlinks are getting resolved.
-            const uri = Uri.file(filename);
+            const uri = vscode.Uri.file(filename);
             stat = await this.stat(uri);
         } catch (err) {
             if (isFileNotFoundError(err)) {

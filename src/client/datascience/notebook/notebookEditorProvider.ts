@@ -18,7 +18,7 @@ import { IKernelProvider } from '../jupyter/kernels/types';
 import { INotebookStorageProvider } from '../notebookStorage/notebookStorageProvider';
 import { VSCodeNotebookModel } from '../notebookStorage/vscNotebookModel';
 import {
-    IDataScienceFileSystem,
+    IFileSystem,
     INotebookEditor,
     INotebookEditorProvider,
     INotebookExtensibility,
@@ -69,7 +69,7 @@ export class NotebookEditorProvider implements INotebookEditorProvider {
         @inject(IApplicationShell) private readonly appShell: IApplicationShell,
         @inject(IStatusProvider) private readonly statusProvider: IStatusProvider,
         @inject(IServiceContainer) private readonly serviceContainer: IServiceContainer,
-        @inject(IDataScienceFileSystem) private readonly fs: IDataScienceFileSystem,
+        @inject(IFileSystem) private readonly fs: IFileSystem,
         @inject(INotebookExtensibility) private readonly notebookExtensibility: INotebookExtensibility
     ) {
         this.disposables.push(this.vscodeNotebook.onDidOpenNotebookDocument(this.onDidOpenNotebookDocument, this));

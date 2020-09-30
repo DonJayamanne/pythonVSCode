@@ -21,7 +21,7 @@ import { IInterpreterService } from '../../interpreter/contracts';
 import { IServiceContainer } from '../../ioc/types';
 import { DataScienceStartupTime, JUPYTER_OUTPUT_CHANNEL } from '../constants';
 import {
-    IDataScienceFileSystem,
+    IFileSystem,
     IJupyterConnection,
     IJupyterSessionManagerFactory,
     INotebook,
@@ -48,7 +48,7 @@ type JupyterServerClassType = {
         workspaceService: IWorkspaceService,
         serviceContainer: IServiceContainer,
         appShell: IApplicationShell,
-        fs: IDataScienceFileSystem,
+        fs: IFileSystem,
         kernelSelector: KernelSelector,
         interpreterService: IInterpreterService,
         outputChannel: IOutputChannel
@@ -74,7 +74,7 @@ export class JupyterServerWrapper implements INotebookServer, ILiveShareHasRole 
         @inject(IJupyterSessionManagerFactory) sessionManager: IJupyterSessionManagerFactory,
         @inject(IWorkspaceService) workspaceService: IWorkspaceService,
         @inject(IApplicationShell) appShell: IApplicationShell,
-        @inject(IDataScienceFileSystem) fs: IDataScienceFileSystem,
+        @inject(IFileSystem) fs: IFileSystem,
         @inject(IInterpreterService) interpreterService: IInterpreterService,
         @inject(KernelSelector) kernelSelector: KernelSelector,
         @inject(IOutputChannel) @named(JUPYTER_OUTPUT_CHANNEL) jupyterOutput: IOutputChannel,

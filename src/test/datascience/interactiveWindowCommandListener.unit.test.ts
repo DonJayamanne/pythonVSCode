@@ -15,9 +15,9 @@ import { IConfigurationService, IDisposable } from '../../client/common/types';
 import * as localize from '../../client/common/utils/localize';
 import { generateCells } from '../../client/datascience/cellFactory';
 import { Commands } from '../../client/datascience/constants';
-import { DataScienceFileSystem } from '../../client/datascience/dataScienceFileSystem';
 import { DataScienceErrorHandler } from '../../client/datascience/errorHandler/errorHandler';
 import { ExportFormat, IExportManager } from '../../client/datascience/export/types';
+import { FileSystem } from '../../client/datascience/fileSystem';
 import { NotebookProvider } from '../../client/datascience/interactive-common/notebookProvider';
 import { InteractiveWindowCommandListener } from '../../client/datascience/interactive-window/interactiveWindowCommandListener';
 import { InteractiveWindowProvider } from '../../client/datascience/interactive-window/interactiveWindowProvider';
@@ -27,7 +27,7 @@ import { JupyterImporter } from '../../client/datascience/jupyter/jupyterImporte
 import { NativeEditorProvider } from '../../client/datascience/notebookStorage/nativeEditorProvider';
 import { NotebookStorageProvider } from '../../client/datascience/notebookStorage/notebookStorageProvider';
 import {
-    IDataScienceFileSystem,
+    IFileSystem,
     IInteractiveWindow,
     IJupyterExecution,
     INotebook,
@@ -56,7 +56,7 @@ function createTypeMoq<T>(tag: string): TypeMoq.IMock<T> {
 suite('Interactive window command listener', async () => {
     const interpreterService = mock<IInterpreterService>();
     const configService = mock(ConfigurationService);
-    const fileSystem = mock(DataScienceFileSystem);
+    const fileSystem = mock(FileSystem);
     const serviceContainer = mock(ServiceContainer);
     const dummyEvent = new EventEmitter<void>();
     const pythonSettings = new MockJupyterSettings(undefined);
@@ -113,7 +113,7 @@ suite('Interactive window command listener', async () => {
 
         // Service container needs logger, file system, and config service
         when(serviceContainer.get<IConfigurationService>(IConfigurationService)).thenReturn(instance(configService));
-        when(serviceContainer.get<IDataScienceFileSystem>(IDataScienceFileSystem)).thenReturn(instance(fileSystem));
+        when(serviceContainer.get<IFileSystem>(IFileSystem)).thenReturn(instance(fileSystem));
         when(configService.getSettings(anything())).thenReturn(pythonSettings);
 
         // Setup default settings

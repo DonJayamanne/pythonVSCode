@@ -34,7 +34,7 @@ import { INotebookStorageProvider } from '../notebookStorage/notebookStorageProv
 import {
     ICodeCssGenerator,
     IDataScienceErrorHandler,
-    IDataScienceFileSystem,
+    IFileSystem,
     IInteractiveWindowListener,
     IJupyterDebugger,
     IJupyterVariableDataProviderFactory,
@@ -79,7 +79,7 @@ export class NativeEditorOldWebView extends NativeEditor {
         cssGenerator: ICodeCssGenerator,
         themeFinder: IThemeFinder,
         statusProvider: IStatusProvider,
-        fs: IDataScienceFileSystem,
+        fs: IFileSystem,
         configuration: IConfigurationService,
         commandManager: ICommandManager,
         jupyterExporter: INotebookExporter,

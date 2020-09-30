@@ -7,14 +7,14 @@ import { IBrowserService } from '../../common/types';
 import * as localize from '../../common/utils/localize';
 import { sendTelemetryEvent } from '../../telemetry';
 import { Telemetry } from '../constants';
-import { IDataScienceFileSystem } from '../types';
+import { IFileSystem } from '../types';
 import { ExportFormat } from './types';
 
 @injectable()
 export class ExportFileOpener {
     constructor(
         @inject(IDocumentManager) protected readonly documentManager: IDocumentManager,
-        @inject(IDataScienceFileSystem) private readonly fs: IDataScienceFileSystem,
+        @inject(IFileSystem) private readonly fs: IFileSystem,
         @inject(IApplicationShell) private readonly applicationShell: IApplicationShell,
         @inject(IBrowserService) private readonly browserService: IBrowserService
     ) {}

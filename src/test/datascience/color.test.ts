@@ -7,10 +7,9 @@ import { WorkspaceConfiguration } from 'vscode';
 
 import { Extensions } from '../../client/common/application/extensions';
 import { IWorkspaceService } from '../../client/common/application/types';
-import { CurrentProcess } from '../../client/common/process/currentProcess';
 import { IConfigurationService } from '../../client/common/types';
 import { CodeCssGenerator } from '../../client/datascience/codeCssGenerator';
-import { DataScienceFileSystem } from '../../client/datascience/dataScienceFileSystem';
+import { FileSystem } from '../../client/datascience/fileSystem';
 import { ThemeFinder } from '../../client/datascience/themeFinder';
 import { IThemeFinder } from '../../client/datascience/types';
 import { MockJupyterSettings } from './mockJupyterSettings';
@@ -19,7 +18,6 @@ import { MockJupyterSettings } from './mockJupyterSettings';
 suite('Theme colors', () => {
     let themeFinder: ThemeFinder;
     let extensions: Extensions;
-    let currentProcess: CurrentProcess;
     let workspaceService: TypeMoq.IMock<IWorkspaceService>;
     let workspaceConfig: TypeMoq.IMock<WorkspaceConfiguration>;
     let cssGenerator: CodeCssGenerator;
@@ -28,9 +26,8 @@ suite('Theme colors', () => {
 
     setup(() => {
         extensions = new Extensions();
-        currentProcess = new CurrentProcess();
-        const fs = new DataScienceFileSystem();
-        themeFinder = new ThemeFinder(extensions, currentProcess, fs);
+        const fs = new FileSystem();
+        themeFinder = new ThemeFinder(extensions, fs);
 
         workspaceConfig = TypeMoq.Mock.ofType<WorkspaceConfiguration>();
         workspaceConfig
@@ -163,7 +160,7 @@ suite('Theme colors', () => {
             .setup((m) => m.findThemeRootJson(TypeMoq.It.isAnyString()))
             .returns(() => Promise.resolve(undefined));
 
-        const fs = new DataScienceFileSystem();
+        const fs = new FileSystem();
         cssGenerator = new CodeCssGenerator(workspaceService.object, mockThemeFinder.object, configService.object, fs);
 
         const colors = await cssGenerator.generateThemeCss(undefined, false, 'Kimbie Dark');

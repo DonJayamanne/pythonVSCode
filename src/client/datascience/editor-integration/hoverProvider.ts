@@ -15,7 +15,7 @@ import { noop } from '../../common/utils/misc';
 import { Identifiers } from '../constants';
 import {
     ICell,
-    IDataScienceFileSystem,
+    IFileSystem,
     IInteractiveWindowProvider,
     IJupyterVariables,
     INotebook,
@@ -34,7 +34,7 @@ export class HoverProvider implements INotebookExecutionLogger, vscode.HoverProv
         @inject(IExperimentService) experimentService: IExperimentService,
         @inject(IJupyterVariables) @named(Identifiers.KERNEL_VARIABLES) private variableProvider: IJupyterVariables,
         @inject(IInteractiveWindowProvider) private interactiveProvider: IInteractiveWindowProvider,
-        @inject(IDataScienceFileSystem) private readonly fs: IDataScienceFileSystem
+        @inject(IFileSystem) private readonly fs: IFileSystem
     ) {
         this.enabledPromise = experimentService.inExperiment(Experiments.RunByLine).catch((reason) => {
             traceError(`Failed to load run by line experiment ${reason}`);

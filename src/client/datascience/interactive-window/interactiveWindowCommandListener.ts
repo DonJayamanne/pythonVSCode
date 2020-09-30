@@ -23,7 +23,7 @@ import { INotebookStorageProvider } from '../notebookStorage/notebookStorageProv
 import {
     IDataScienceCommandListener,
     IDataScienceErrorHandler,
-    IDataScienceFileSystem,
+    IFileSystem,
     IInteractiveBase,
     IInteractiveWindowProvider,
     IJupyterExecution,
@@ -45,7 +45,7 @@ export class InteractiveWindowCommandListener implements IDataScienceCommandList
         @inject(INotebookProvider) private notebookProvider: INotebookProvider,
         @inject(IDocumentManager) private documentManager: IDocumentManager,
         @inject(IApplicationShell) private applicationShell: IApplicationShell,
-        @inject(IDataScienceFileSystem) private fileSystem: IDataScienceFileSystem,
+        @inject(IFileSystem) private fileSystem: IFileSystem,
         @inject(IConfigurationService) private configuration: IConfigurationService,
         @inject(IStatusProvider) private statusProvider: IStatusProvider,
         @inject(IDataScienceErrorHandler) private dataScienceErrorHandler: IDataScienceErrorHandler,

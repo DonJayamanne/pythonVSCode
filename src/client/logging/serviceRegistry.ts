@@ -4,13 +4,13 @@ import { IApplicationShell, ICommandManager, IWorkspaceService } from '../common
 import { WorkspaceService } from '../common/application/workspace';
 import { ConfigurationService } from '../common/configuration/service';
 import { IConfigurationService } from '../common/types';
-import { DataScienceFileSystem } from '../datascience/dataScienceFileSystem';
-import { IDataScienceFileSystem, IDebugLoggingManager } from '../datascience/types';
+import { FileSystem } from '../datascience/fileSystem';
+import { IDebugLoggingManager, IFileSystem } from '../datascience/types';
 import { IServiceManager } from '../ioc/types';
 import { DebugLoggingManager } from './debugLoggingManager';
 
 export function registerLoggerTypes(serviceManager: IServiceManager) {
-    serviceManager.addSingleton<IDataScienceFileSystem>(IDataScienceFileSystem, DataScienceFileSystem);
+    serviceManager.addSingleton<IFileSystem>(IFileSystem, FileSystem);
     serviceManager.addSingleton<ICommandManager>(ICommandManager, CommandManager);
     serviceManager.addSingleton<IWorkspaceService>(IWorkspaceService, WorkspaceService);
     serviceManager.addSingleton<IApplicationShell>(IApplicationShell, ApplicationShell);

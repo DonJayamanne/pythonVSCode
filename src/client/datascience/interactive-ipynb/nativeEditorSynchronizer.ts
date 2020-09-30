@@ -7,7 +7,7 @@ import { inject, injectable } from 'inversify';
 
 import { IInteractiveWindowMapping, InteractiveWindowMessages } from '../interactive-common/interactiveWindowTypes';
 import { SyncPayload } from '../interactive-common/types';
-import { IDataScienceFileSystem, INotebookEditor } from '../types';
+import { IFileSystem, INotebookEditor } from '../types';
 
 // tslint:disable: no-any
 
@@ -20,7 +20,7 @@ type UserActionNotificationCallback = <M extends IInteractiveWindowMapping, T ex
 export class NativeEditorSynchronizer {
     private registeredNotebooks = new Map<INotebookEditor, UserActionNotificationCallback>();
     private enabled = true;
-    constructor(@inject(IDataScienceFileSystem) private readonly fs: IDataScienceFileSystem) {}
+    constructor(@inject(IFileSystem) private readonly fs: IFileSystem) {}
     public notifyUserAction(message: SyncPayload, editor: INotebookEditor) {
         if (!this.enabled) {
             return;

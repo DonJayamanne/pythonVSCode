@@ -18,7 +18,7 @@ import {
     LiveShareParticipantGuest
 } from '../../jupyter/liveshare/liveShareParticipantMixin';
 import { ILiveShareParticipant } from '../../jupyter/liveshare/types';
-import { IDataScienceFileSystem, INotebook, IRawConnection, IRawNotebookProvider } from '../../types';
+import { IFileSystem, INotebook, IRawConnection, IRawNotebookProvider } from '../../types';
 import { RawConnection } from '../rawNotebookProvider';
 
 export class GuestRawNotebookProvider
@@ -36,7 +36,7 @@ export class GuestRawNotebookProvider
         private readonly configService: IConfigurationService,
         _workspaceService: IWorkspaceService,
         _appShell: IApplicationShell,
-        _fs: IDataScienceFileSystem,
+        _fs: IFileSystem,
         _serviceContainer: IServiceContainer
     ) {
         super(liveShare);

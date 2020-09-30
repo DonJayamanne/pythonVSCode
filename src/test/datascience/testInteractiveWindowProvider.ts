@@ -20,7 +20,7 @@ import { InteractiveWindowMessages } from '../../client/datascience/interactive-
 import { resetIdentity } from '../../client/datascience/interactive-window/identity';
 import { InteractiveWindow } from '../../client/datascience/interactive-window/interactiveWindow';
 import { InteractiveWindowProvider } from '../../client/datascience/interactive-window/interactiveWindowProvider';
-import { IDataScienceFileSystem, IInteractiveWindow, IInteractiveWindowProvider } from '../../client/datascience/types';
+import { IFileSystem, IInteractiveWindow, IInteractiveWindowProvider } from '../../client/datascience/types';
 import { IServiceContainer } from '../../client/ioc/types';
 import { DataScienceIocContainer } from './dataScienceIocContainer';
 import { IMountedWebView } from './mountedWebView';
@@ -46,7 +46,7 @@ export class TestInteractiveWindowProvider extends InteractiveWindowProvider imp
         @inject(IServiceContainer) private readonly container: IServiceContainer,
         @inject(IAsyncDisposableRegistry) asyncRegistry: IAsyncDisposableRegistry,
         @inject(IDisposableRegistry) disposables: IDisposableRegistry,
-        @inject(IDataScienceFileSystem) fileSystem: IDataScienceFileSystem,
+        @inject(IFileSystem) fileSystem: IFileSystem,
         @inject(IConfigurationService) configService: IConfigurationService,
         @inject(IMemento) @named(GLOBAL_MEMENTO) globalMemento: Memento,
         @inject(IApplicationShell) appShell: IApplicationShell

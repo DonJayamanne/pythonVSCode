@@ -6,7 +6,7 @@ import { assert } from 'chai';
 import { anything, instance, mock, when } from 'ts-mockito';
 import * as TypeMoq from 'typemoq';
 import * as vscode from 'vscode';
-import { DataScienceFileSystem } from '../../client/datascience/dataScienceFileSystem';
+import { FileSystem } from '../../client/datascience/fileSystem';
 import { JupyterUriProviderRegistration } from '../../client/datascience/jupyterUriProviderRegistration';
 import { IJupyterServerUri, IJupyterUriProvider, JupyterServerUriHandle } from '../../client/datascience/types';
 import { MockExtensions } from './mockExtensions';
@@ -58,7 +58,7 @@ suite('DataScience URI Picker', () => {
         let registration: JupyterUriProviderRegistration | undefined;
         const extensions = mock(MockExtensions);
         const extensionList: vscode.Extension<any>[] = [];
-        const fileSystem = mock(DataScienceFileSystem);
+        const fileSystem = mock(FileSystem);
         when(fileSystem.localFileExists(anything())).thenResolve(false);
         providerIds.forEach((id) => {
             const extension = TypeMoq.Mock.ofType<vscode.Extension<any>>();

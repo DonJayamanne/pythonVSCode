@@ -4,7 +4,7 @@
 import { inject, injectable } from 'inversify';
 import * as path from 'path';
 import { Uri } from 'vscode';
-import { IFileSystem } from '../../platform/types';
+import { IFileSystem } from '../../../datascience/types';
 import { IDisposableRegistry, IExtensionContext } from '../../types';
 import { IWebviewPanel, IWebviewPanelOptions, IWebviewPanelProvider } from '../types';
 import { WebviewPanel } from './webviewPanel';

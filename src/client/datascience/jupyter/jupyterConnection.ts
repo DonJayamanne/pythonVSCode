@@ -15,7 +15,7 @@ import { createDeferred, Deferred } from '../../common/utils/async';
 import * as localize from '../../common/utils/localize';
 import { IServiceContainer } from '../../ioc/types';
 import { RegExpValues } from '../constants';
-import { IDataScienceFileSystem, IJupyterConnection } from '../types';
+import { IFileSystem, IJupyterConnection } from '../types';
 import { JupyterConnectError } from './jupyterConnectError';
 
 // tslint:disable-next-line:no-require-imports no-var-requires no-any
@@ -38,7 +38,7 @@ export class JupyterConnectionWaiter implements IDisposable {
     private startPromise: Deferred<IJupyterConnection>;
     private launchTimeout: NodeJS.Timer | number;
     private configService: IConfigurationService;
-    private fs: IDataScienceFileSystem;
+    private fs: IFileSystem;
     private stderr: string[] = [];
     private connectionDisposed = false;
     private subscriptions: Subscription[] = [];
@@ -52,7 +52,7 @@ export class JupyterConnectionWaiter implements IDisposable {
         private cancelToken?: CancellationToken
     ) {
         this.configService = serviceContainer.get<IConfigurationService>(IConfigurationService);
-        this.fs = serviceContainer.get<IDataScienceFileSystem>(IDataScienceFileSystem);
+        this.fs = serviceContainer.get<IFileSystem>(IFileSystem);
 
         // Cancel our start promise if a cancellation occurs
         if (cancelToken) {

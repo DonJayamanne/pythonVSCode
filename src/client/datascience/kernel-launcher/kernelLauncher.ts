@@ -12,7 +12,7 @@ import { Resource } from '../../common/types';
 import { captureTelemetry } from '../../telemetry';
 import { Telemetry } from '../constants';
 import { KernelSpecConnectionMetadata, PythonKernelConnectionMetadata } from '../jupyter/kernels/types';
-import { IDataScienceFileSystem } from '../types';
+import { IFileSystem } from '../types';
 import { KernelDaemonPool } from './kernelDaemonPool';
 import { KernelProcess } from './kernelProcess';
 import { IKernelConnection, IKernelLauncher, IKernelProcess } from './types';
@@ -27,7 +27,7 @@ export class KernelLauncher implements IKernelLauncher {
     private static nextFreePortToTryAndUse = PortToStartFrom;
     constructor(
         @inject(IProcessServiceFactory) private processExecutionFactory: IProcessServiceFactory,
-        @inject(IDataScienceFileSystem) private readonly fs: IDataScienceFileSystem,
+        @inject(IFileSystem) private readonly fs: IFileSystem,
         @inject(KernelDaemonPool) private readonly daemonPool: KernelDaemonPool,
         @inject(IPythonExtensionChecker) private readonly extensionChecker: IPythonExtensionChecker
     ) {}

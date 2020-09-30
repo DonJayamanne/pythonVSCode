@@ -5,10 +5,10 @@ import { inject, injectable } from 'inversify';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { DataScience } from '../../common/utils/localize';
+import { IFileSystem } from '../../datascience/types';
 
 import { EXTENSION_ROOT_DIR, UseCustomEditorApi } from '../constants';
 import { traceError } from '../logger';
-import { IFileSystem } from '../platform/types';
 import { noop } from '../utils/misc';
 import { CustomEditorProvider, IApplicationEnvironment, ICommandManager, ICustomEditorService } from './types';
 
@@ -48,7 +48,9 @@ export class CustomEditorService implements ICustomEditorService {
     private async verifyPackageJson(): Promise<void> {
         // Double check the package json has the necessary entries for contributing a custom editor. Note
         // we have to actually read it because appEnvironment.packageJson is the webpacked version
-        const packageJson = JSON.parse(await this.fileSystem.readFile(path.join(EXTENSION_ROOT_DIR, 'package.json')));
+        const packageJson = JSON.parse(
+            await this.fileSystem.readLocalFile(path.join(EXTENSION_ROOT_DIR, 'package.json'))
+        );
         if (this.useCustomEditorApi && !packageJson.contributes?.customEditors) {
             return this.addCustomEditors(packageJson);
         } else if (!this.useCustomEditorApi && packageJson.contributes.customEditors) {
@@ -60,13 +62,15 @@ export class CustomEditorService implements ICustomEditorService {
     private async addCustomEditors(currentPackageJson: any) {
         // tslint:disable-next-line:no-require-imports no-var-requires
         const _mergeWith = require('lodash/mergeWith') as typeof import('lodash/mergeWith');
-        const improvedContents = await this.fileSystem.readFile(path.join(EXTENSION_ROOT_DIR, 'customEditor.json'));
+        const improvedContents = await this.fileSystem.readLocalFile(
+            path.join(EXTENSION_ROOT_DIR, 'customEditor.json')
+        );
         const improved = _mergeWith({ ...currentPackageJson }, JSON.parse(improvedContents), (l, r) => {
             if (Array.isArray(l) && Array.isArray(r)) {
                 return [...l, ...r];
             }
         });
-        await this.fileSystem.writeFile(
+        await this.fileSystem.writeLocalFile(
             path.join(EXTENSION_ROOT_DIR, 'package.json'),
             JSON.stringify(improved, null, 4)
         );
@@ -76,7 +80,7 @@ export class CustomEditorService implements ICustomEditorService {
         // Note, to put it back, use the shipped version. This packageJson is required into the product
         // so it's packed by webpack into the source.
         const original = { ...this.appEnvironment.packageJson };
-        await this.fileSystem.writeFile(
+        await this.fileSystem.writeLocalFile(
             path.join(EXTENSION_ROOT_DIR, 'package.json'),
             JSON.stringify(original, null, 4)
         );

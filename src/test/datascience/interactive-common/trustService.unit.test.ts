@@ -10,7 +10,7 @@ import * as typemoq from 'typemoq';
 import { Uri } from 'vscode';
 import { ConfigurationService } from '../../../client/common/configuration/service';
 import { IExtensionContext } from '../../../client/common/types';
-import { DataScienceFileSystem } from '../../../client/datascience/dataScienceFileSystem';
+import { FileSystem } from '../../../client/datascience/fileSystem';
 import { DigestStorage } from '../../../client/datascience/interactive-ipynb/digestStorage';
 import { TrustService } from '../../../client/datascience/interactive-ipynb/trustService';
 import { MockMemento } from '../../mocks/mementos';
@@ -21,7 +21,7 @@ suite('DataScience - TrustService', () => {
     setup(() => {
         alwaysTrustNotebooks = false;
         const configService = mock(ConfigurationService);
-        const fileSystem = mock(DataScienceFileSystem);
+        const fileSystem = mock(FileSystem);
         const context = typemoq.Mock.ofType<IExtensionContext>();
         context.setup((c) => c.globalStoragePath).returns(() => os.tmpdir());
         const globalState = new MockMemento();

@@ -14,7 +14,7 @@ import * as localize from '../../../common/utils/localize';
 import { noop } from '../../../common/utils/misc';
 import { IInterpreterSelector } from '../../../interpreter/configuration/types';
 import { IKernelFinder } from '../../kernel-launcher/types';
-import { IDataScienceFileSystem, IJupyterKernelSpec, IJupyterSessionManager } from '../../types';
+import { IFileSystem, IJupyterKernelSpec, IJupyterSessionManager } from '../../types';
 import { detectDefaultKernelName } from './helpers';
 import { KernelService } from './kernelService';
 import {
@@ -217,7 +217,7 @@ export class KernelSelectionProvider {
     constructor(
         @inject(KernelService) private readonly kernelService: KernelService,
         @inject(IInterpreterSelector) private readonly interpreterSelector: IInterpreterSelector,
-        @inject(IDataScienceFileSystem) private readonly fs: IDataScienceFileSystem,
+        @inject(IFileSystem) private readonly fs: IFileSystem,
         @inject(IPathUtils) private readonly pathUtils: IPathUtils,
         @inject(IKernelFinder) private readonly kernelFinder: IKernelFinder,
         @inject(IPythonExtensionChecker) private readonly extensionChecker: IPythonExtensionChecker

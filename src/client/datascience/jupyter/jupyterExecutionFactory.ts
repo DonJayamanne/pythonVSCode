@@ -17,7 +17,7 @@ import { IInterpreterService } from '../../interpreter/contracts';
 import { IServiceContainer } from '../../ioc/types';
 import { PythonEnvironment } from '../../pythonEnvironments/info';
 import { JUPYTER_OUTPUT_CHANNEL } from '../constants';
-import { IDataScienceFileSystem, IJupyterExecution, INotebookServer, INotebookServerOptions } from '../types';
+import { IFileSystem, IJupyterExecution, INotebookServer, INotebookServerOptions } from '../types';
 import { KernelSelector } from './kernels/kernelSelector';
 import { GuestJupyterExecution } from './liveshare/guestJupyterExecution';
 import { HostJupyterExecution } from './liveshare/hostJupyterExecution';
@@ -33,7 +33,7 @@ type JupyterExecutionClassType = {
         interpreterService: IInterpreterService,
         disposableRegistry: IDisposableRegistry,
         asyncRegistry: IAsyncDisposableRegistry,
-        fileSystem: IDataScienceFileSystem,
+        fileSystem: IFileSystem,
         workspace: IWorkspaceService,
         configuration: IConfigurationService,
         kernelSelector: KernelSelector,
@@ -58,7 +58,7 @@ export class JupyterExecutionFactory implements IJupyterExecution, IAsyncDisposa
         @inject(IInterpreterService) interpreterService: IInterpreterService,
         @inject(IDisposableRegistry) disposableRegistry: IDisposableRegistry,
         @inject(IAsyncDisposableRegistry) asyncRegistry: IAsyncDisposableRegistry,
-        @inject(IDataScienceFileSystem) fs: IDataScienceFileSystem,
+        @inject(IFileSystem) fs: IFileSystem,
         @inject(IWorkspaceService) workspace: IWorkspaceService,
         @inject(IConfigurationService) configuration: IConfigurationService,
         @inject(KernelSelector) kernelSelector: KernelSelector,

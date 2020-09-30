@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 import { inject, injectable } from 'inversify';
 import { IPlatformService } from '../../common/platform/types';
+import { IFileSystem } from '../../datascience/types';
 import { IEnvironmentActivationService } from '../../interpreter/activation/types';
 import { IInterpreterService } from '../../interpreter/contracts';
 import { IWindowsStoreInterpreter } from '../../interpreter/locators/types';
@@ -9,7 +10,6 @@ import { IServiceContainer } from '../../ioc/types';
 import { sendTelemetryEvent } from '../../telemetry';
 import { EventName } from '../../telemetry/constants';
 import { traceError } from '../logger';
-import { IFileSystem } from '../platform/types';
 import { IDisposable, IDisposableRegistry, Resource } from '../types';
 import { ProcessService } from './proc';
 import { PythonDaemonFactory } from './pythonDaemonFactory';

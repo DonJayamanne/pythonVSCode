@@ -14,7 +14,7 @@ import { IEnvironmentVariablesProvider } from '../../common/variables/types';
 import { IInterpreterService } from '../../interpreter/contracts';
 import { PythonEnvironment } from '../../pythonEnvironments/info';
 import { KernelLauncherDaemonModule } from '../constants';
-import { IDataScienceFileSystem, IJupyterKernelSpec, IKernelDependencyService } from '../types';
+import { IFileSystem, IJupyterKernelSpec, IKernelDependencyService } from '../types';
 import { PythonKernelDaemon } from './kernelDaemon';
 import { IPythonKernelDaemon } from './types';
 
@@ -39,7 +39,7 @@ export class KernelDaemonPool implements IDisposable {
     constructor(
         @inject(IWorkspaceService) private readonly workspaceService: IWorkspaceService,
         @inject(IEnvironmentVariablesProvider) private readonly envVars: IEnvironmentVariablesProvider,
-        @inject(IDataScienceFileSystem) private readonly fs: IDataScienceFileSystem,
+        @inject(IFileSystem) private readonly fs: IFileSystem,
         @inject(IInterpreterService) private readonly interrpeterService: IInterpreterService,
         @inject(IPythonExecutionFactory) private readonly pythonExecutionFactory: IPythonExecutionFactory,
         @inject(IKernelDependencyService) private readonly kernelDependencyService: IKernelDependencyService

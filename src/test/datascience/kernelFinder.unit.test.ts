@@ -18,13 +18,13 @@ import { defaultKernelSpecName } from '../../client/datascience/jupyter/kernels/
 import { JupyterKernelSpec } from '../../client/datascience/jupyter/kernels/jupyterKernelSpec';
 import { KernelFinder } from '../../client/datascience/kernel-launcher/kernelFinder';
 import { IKernelFinder } from '../../client/datascience/kernel-launcher/types';
-import { IDataScienceFileSystem, IJupyterKernelSpec } from '../../client/datascience/types';
+import { IFileSystem, IJupyterKernelSpec } from '../../client/datascience/types';
 import { IInterpreterService } from '../../client/interpreter/contracts';
 import { PythonEnvironment } from '../../client/pythonEnvironments/info';
 
 suite('Kernel Finder', () => {
     let interpreterService: typemoq.IMock<IInterpreterService>;
-    let fileSystem: typemoq.IMock<IDataScienceFileSystem>;
+    let fileSystem: typemoq.IMock<IFileSystem>;
     let platformService: typemoq.IMock<IPlatformService>;
     let pathUtils: typemoq.IMock<IPathUtils>;
     let context: typemoq.IMock<IExtensionContext>;
@@ -79,7 +79,7 @@ suite('Kernel Finder', () => {
 
         context = typemoq.Mock.ofType<IExtensionContext>();
         context.setup((c) => c.globalStoragePath).returns(() => './');
-        fileSystem = typemoq.Mock.ofType<IDataScienceFileSystem>();
+        fileSystem = typemoq.Mock.ofType<IFileSystem>();
 
         platformService = typemoq.Mock.ofType<IPlatformService>();
         platformService.setup((ps) => ps.isWindows).returns(() => true);
@@ -362,7 +362,7 @@ suite('Kernel Finder', () => {
                 .setup((il) => il.getInterpreters(typemoq.It.isAny()))
                 .returns(() => Promise.resolve(interpreters));
 
-            fileSystem = typemoq.Mock.ofType<IDataScienceFileSystem>();
+            fileSystem = typemoq.Mock.ofType<IFileSystem>();
 
             activeInterpreter = {
                 path: context.object.globalStoragePath,

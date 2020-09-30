@@ -14,7 +14,7 @@ import { IConfigurationService, IJupyterSettings } from '../../../client/common/
 import { Common, DataScience } from '../../../client/common/utils/localize';
 import { noop } from '../../../client/common/utils/misc';
 import { EXTENSION_ROOT_DIR } from '../../../client/constants';
-import { DataScienceFileSystem } from '../../../client/datascience/dataScienceFileSystem';
+import { FileSystem } from '../../../client/datascience/fileSystem';
 import { CDNWidgetScriptSourceProvider } from '../../../client/datascience/ipywidgets/cdnWidgetScriptSourceProvider';
 import { IPyWidgetScriptSourceProvider } from '../../../client/datascience/ipywidgets/ipyWidgetScriptSourceProvider';
 import { LocalWidgetScriptSourceProvider } from '../../../client/datascience/ipywidgets/localWidgetScriptSourceProvider';
@@ -43,7 +43,7 @@ suite('DataScience - ipywidget - Widget Script Source Provider', () => {
         when(workspaceService.onDidChangeConfiguration).thenReturn(onDidChangeWorkspaceSettings.event);
         const httpClient = mock(HttpClient);
         const resourceConverter = mock<ILocalResourceUriConverter>();
-        const fs = mock(DataScienceFileSystem);
+        const fs = mock(FileSystem);
         const interpreterService = mock<IInterpreterService>();
         const stateFactory = mock(PersistentStateFactory);
         userSelectedOkOrDoNotShowAgainInPrompt = mock<PersistentState<boolean>>();

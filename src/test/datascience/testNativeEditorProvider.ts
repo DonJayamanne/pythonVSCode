@@ -21,7 +21,7 @@ import { NativeEditorProvider } from '../../client/datascience/notebookStorage/n
 import { INotebookStorageProvider } from '../../client/datascience/notebookStorage/notebookStorageProvider';
 import {
     IDataScienceErrorHandler,
-    IDataScienceFileSystem,
+    IFileSystem,
     INotebookEditor,
     INotebookEditorProvider,
     INotebookModel,
@@ -131,7 +131,7 @@ export class TestNativeEditorProvider extends TestNativeEditorProviderMixin(Nati
         @inject(ICustomEditorService) customEditorService: ICustomEditorService,
         @inject(INotebookStorageProvider) storage: INotebookStorageProvider,
         @inject(INotebookProvider) notebookProvider: INotebookProvider,
-        @inject(IDataScienceFileSystem) fs: IDataScienceFileSystem
+        @inject(IFileSystem) fs: IFileSystem
     ) {
         super(
             serviceContainer,
@@ -156,7 +156,7 @@ export class TestNativeEditorProviderOld extends TestNativeEditorProviderMixin(N
         @inject(IWorkspaceService) workspace: IWorkspaceService,
         @inject(IConfigurationService) configuration: IConfigurationService,
         @inject(ICustomEditorService) customEditorService: ICustomEditorService,
-        @inject(IDataScienceFileSystem) fs: IDataScienceFileSystem,
+        @inject(IFileSystem) fs: IFileSystem,
         @inject(IDocumentManager) documentManager: IDocumentManager,
         @inject(ICommandManager) cmdManager: ICommandManager,
         @inject(IDataScienceErrorHandler) dataScienceErrorHandler: IDataScienceErrorHandler,

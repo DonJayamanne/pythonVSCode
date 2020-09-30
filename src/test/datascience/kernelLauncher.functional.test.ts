@@ -13,7 +13,7 @@ import { KernelDaemonPool } from '../../client/datascience/kernel-launcher/kerne
 import { KernelLauncher } from '../../client/datascience/kernel-launcher/kernelLauncher';
 import { IKernelConnection, IKernelFinder } from '../../client/datascience/kernel-launcher/types';
 import { createRawKernel } from '../../client/datascience/raw-kernel/rawKernel';
-import { IDataScienceFileSystem, IJupyterKernelSpec } from '../../client/datascience/types';
+import { IFileSystem, IJupyterKernelSpec } from '../../client/datascience/types';
 import { PythonEnvironment } from '../../client/pythonEnvironments/info';
 import { sleep, waitForCondition } from '../common';
 import { DataScienceIocContainer } from './dataScienceIocContainer';
@@ -45,7 +45,7 @@ suite('DataScience - Kernel Launcher', () => {
         kernelFinder = new MockKernelFinder(ioc.get<IKernelFinder>(IKernelFinder));
         const processServiceFactory = ioc.get<IProcessServiceFactory>(IProcessServiceFactory);
         const daemonPool = ioc.get<KernelDaemonPool>(KernelDaemonPool);
-        const fileSystem = ioc.get<IDataScienceFileSystem>(IDataScienceFileSystem);
+        const fileSystem = ioc.get<IFileSystem>(IFileSystem);
         const extensionChecker = ioc.get<IPythonExtensionChecker>(IPythonExtensionChecker);
         kernelLauncher = new KernelLauncher(processServiceFactory, fileSystem, daemonPool, extensionChecker);
         await ioc.activate();

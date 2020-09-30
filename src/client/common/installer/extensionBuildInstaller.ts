@@ -5,10 +5,10 @@
 
 import { inject, injectable, named } from 'inversify';
 import { Uri } from 'vscode';
+import { IFileSystem } from '../../datascience/types';
 import { IApplicationShell, ICommandManager } from '../application/types';
 import { Octicons, PVSC_EXTENSION_ID, STANDARD_OUTPUT_CHANNEL } from '../constants';
 import { traceDecorators } from '../logger';
-import { IFileSystem } from '../platform/types';
 import { IFileDownloader, IOutputChannel } from '../types';
 import { ExtensionChannels } from '../utils/localize';
 import { IExtensionBuildInstaller } from './types';
@@ -55,7 +55,7 @@ export class InsidersBuildInstaller implements IExtensionBuildInstaller {
             return this.cmdManager.executeCommand('workbench.extensions.installExtension', Uri.file(vsixFilePath));
         });
         this.output.appendLine(ExtensionChannels.installationCompleteMessage());
-        await this.fs.deleteFile(vsixFilePath);
+        await this.fs.deleteLocalFile(vsixFilePath);
     }
 
     @traceDecorators.error('Downloading insiders build of extension failed')

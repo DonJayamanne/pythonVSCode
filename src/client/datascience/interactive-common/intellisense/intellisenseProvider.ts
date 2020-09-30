@@ -37,7 +37,7 @@ import { sendTelemetryWhenDone } from '../../../telemetry';
 import { Identifiers, Settings, Telemetry } from '../../constants';
 import {
     ICell,
-    IDataScienceFileSystem,
+    IFileSystem,
     IInteractiveWindowListener,
     IJupyterVariables,
     INotebook,
@@ -108,7 +108,7 @@ export class IntellisenseProvider implements IInteractiveWindowListener {
 
     constructor(
         @inject(IWorkspaceService) private workspaceService: IWorkspaceService,
-        @inject(IDataScienceFileSystem) private fs: IDataScienceFileSystem,
+        @inject(IFileSystem) private fs: IFileSystem,
         @inject(INotebookProvider) private notebookProvider: INotebookProvider,
         @inject(IInterpreterService) private interpreterService: IInterpreterService,
         @inject(ILanguageServerProvider) private languageServerProvider: ILanguageServerProvider,

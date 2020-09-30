@@ -6,12 +6,12 @@ import * as uuid from 'uuid/v4';
 import { CancellationTokenSource, Uri } from 'vscode';
 import { TemporaryDirectory } from '../../common/platform/types';
 import { sleep } from '../../common/utils/async';
-import { ICell, IDataScienceFileSystem, INotebookExporter, INotebookModel, INotebookStorage } from '../types';
+import { ICell, IFileSystem, INotebookExporter, INotebookModel, INotebookStorage } from '../types';
 
 @injectable()
 export class ExportUtil {
     constructor(
-        @inject(IDataScienceFileSystem) private fs: IDataScienceFileSystem,
+        @inject(IFileSystem) private fs: IFileSystem,
         @inject(INotebookStorage) private notebookStorage: INotebookStorage,
         @inject(INotebookExporter) private jupyterExporter: INotebookExporter
     ) {}

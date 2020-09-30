@@ -13,8 +13,8 @@ import { ExportCommands } from '../../../client/datascience/commands/exportComma
 import { NotebookCommands } from '../../../client/datascience/commands/notebookCommands';
 import { JupyterServerSelectorCommand } from '../../../client/datascience/commands/serverSelector';
 import { Commands } from '../../../client/datascience/constants';
-import { DataScienceFileSystem } from '../../../client/datascience/dataScienceFileSystem';
 import { DataScienceCodeLensProvider } from '../../../client/datascience/editor-integration/codelensprovider';
+import { FileSystem } from '../../../client/datascience/fileSystem';
 import { NativeEditorProvider } from '../../../client/datascience/notebookStorage/nativeEditorProvider';
 import { MockOutputChannel } from '../../mockClasses';
 
@@ -38,7 +38,7 @@ suite('DataScience - Commands', () => {
         const configService = mock(ConfigurationService);
         const appShell = mock(ApplicationShell);
         const exportCommand = mock(ExportCommands);
-        const fileSystem = mock(DataScienceFileSystem);
+        const fileSystem = mock(FileSystem);
 
         commandRegistry = new CommandRegistry(
             documentManager,

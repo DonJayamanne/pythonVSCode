@@ -23,8 +23,8 @@ import { NotebookProvider } from '../../../client/datascience/interactive-common
 import {
     ICodeWatcher,
     IDataScienceErrorHandler,
-    IDataScienceFileSystem,
     IDebugLocationTracker,
+    IFileSystem,
     IInteractiveWindow,
     IInteractiveWindowProvider,
     INotebook
@@ -66,7 +66,7 @@ suite('DataScience Code Watcher Unit Tests', () => {
     let documentManager: TypeMoq.IMock<IDocumentManager>;
     let commandManager: TypeMoq.IMock<ICommandManager>;
     let textEditor: TypeMoq.IMock<TextEditor>;
-    let fileSystem: TypeMoq.IMock<IDataScienceFileSystem>;
+    let fileSystem: TypeMoq.IMock<IFileSystem>;
     let configService: TypeMoq.IMock<IConfigurationService>;
     let dataScienceErrorHandler: TypeMoq.IMock<IDataScienceErrorHandler>;
     let serviceContainer: TypeMoq.IMock<IServiceContainer>;
@@ -85,7 +85,7 @@ suite('DataScience Code Watcher Unit Tests', () => {
         activeInteractiveWindow = createTypeMoq<IInteractiveWindow>('history');
         documentManager = TypeMoq.Mock.ofType<IDocumentManager>();
         textEditor = TypeMoq.Mock.ofType<TextEditor>();
-        fileSystem = TypeMoq.Mock.ofType<IDataScienceFileSystem>();
+        fileSystem = TypeMoq.Mock.ofType<IFileSystem>();
         configService = TypeMoq.Mock.ofType<IConfigurationService>();
         debugLocationTracker = TypeMoq.Mock.ofType<IDebugLocationTracker>();
         helper = TypeMoq.Mock.ofType<ICodeExecutionHelper>();

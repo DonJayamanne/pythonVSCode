@@ -19,7 +19,7 @@ import {
     isPythonKernelConnection
 } from '../jupyter/kernels/helpers';
 import { KernelSpecConnectionMetadata, PythonKernelConnectionMetadata } from '../jupyter/kernels/types';
-import { IDataScienceFileSystem, IJupyterKernelSpec } from '../types';
+import { IFileSystem, IJupyterKernelSpec } from '../types';
 import { KernelDaemonPool } from './kernelDaemonPool';
 import { PythonKernelLauncherDaemon } from './kernelLauncherDaemon';
 import { IKernelConnection, IKernelProcess, IPythonKernelDaemon, PythonKernelDiedError } from './types';
@@ -53,7 +53,7 @@ export class KernelProcess implements IKernelProcess {
         private readonly daemonPool: KernelDaemonPool,
         private readonly _connection: IKernelConnection,
         kernelConnectionMetadata: KernelSpecConnectionMetadata | PythonKernelConnectionMetadata,
-        private readonly fs: IDataScienceFileSystem,
+        private readonly fs: IFileSystem,
         private readonly resource: Resource,
         private readonly extensionChecker: IPythonExtensionChecker
     ) {

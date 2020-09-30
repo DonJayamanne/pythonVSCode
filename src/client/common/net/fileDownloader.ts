@@ -3,12 +3,13 @@
 
 'use strict';
 
+import * as fs from 'fs-extra';
 import { inject, injectable } from 'inversify';
 import * as requestTypes from 'request';
 import { Progress } from 'vscode';
+import { IFileSystem } from '../../datascience/types';
 import { IApplicationShell } from '../application/types';
 import { Octicons } from '../constants';
-import { IFileSystem, WriteStream } from '../platform/types';
 import { DownloadOptions, IFileDownloader, IHttpClient } from '../types';
 import { Http } from '../utils/localize';
 import { noop } from '../utils/misc';
@@ -17,14 +18,14 @@ import { noop } from '../utils/misc';
 export class FileDownloader implements IFileDownloader {
     constructor(
         @inject(IHttpClient) private readonly httpClient: IHttpClient,
-        @inject(IFileSystem) private readonly fs: IFileSystem,
+        @inject(IFileSystem) private readonly dsfs: IFileSystem,
         @inject(IApplicationShell) private readonly appShell: IApplicationShell
     ) {}
     public async downloadFile(uri: string, options: DownloadOptions): Promise<string> {
         if (options.outputChannel) {
             options.outputChannel.appendLine(Http.downloadingFile().format(uri));
         }
-        const tempFile = await this.fs.createTemporaryFile(options.extension);
+        const tempFile = await this.dsfs.createTemporaryLocalFile(options.extension);
 
         await this.downloadFileWithStatusBarProgress(uri, options.progressMessagePrefix, tempFile.filePath).then(
             noop,
@@ -43,7 +44,7 @@ export class FileDownloader implements IFileDownloader {
     ): Promise<void> {
         await this.appShell.withProgressCustomIcon(Octicons.Downloading, async (progress) => {
             const req = await this.httpClient.downloadFile(uri);
-            const fileStream = this.fs.createWriteStream(tmpFilePath);
+            const fileStream = fs.createWriteStream(tmpFilePath);
             return this.displayDownloadProgress(uri, progress, req, fileStream, progressMessage);
         });
     }
@@ -52,7 +53,7 @@ export class FileDownloader implements IFileDownloader {
         uri: string,
         progress: Progress<{ message?: string; increment?: number }>,
         request: requestTypes.Request,
-        fileStream: WriteStream,
+        fileStream: fs.WriteStream,
         progressMessagePrefix: string
     ): Promise<void> {
         return new Promise<void>((resolve, reject) => {

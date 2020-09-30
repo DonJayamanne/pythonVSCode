@@ -26,7 +26,7 @@ import { CodeSnippets, Identifiers, Telemetry } from '../constants';
 import {
     CellState,
     ICell,
-    IDataScienceFileSystem,
+    IFileSystem,
     IJupyterSession,
     INotebook,
     INotebookCompletion,
@@ -198,7 +198,7 @@ export class JupyterNotebookBase implements INotebook {
         private getDisposedError: () => Error,
         private workspace: IWorkspaceService,
         private applicationService: IApplicationShell,
-        private fs: IDataScienceFileSystem
+        private fs: IFileSystem
     ) {
         this.sessionStartTime = Date.now();
 

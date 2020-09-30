@@ -25,7 +25,7 @@ import { IKernelLauncher } from '../kernel-launcher/types';
 import { ProgressReporter } from '../progress/progressReporter';
 import {
     ConnectNotebookProviderOptions,
-    IDataScienceFileSystem,
+    IFileSystem,
     INotebook,
     IRawConnection,
     IRawNotebookProvider,
@@ -46,7 +46,7 @@ type RawNotebookProviderClassType = {
         configService: IConfigurationService,
         workspaceService: IWorkspaceService,
         appShell: IApplicationShell,
-        fs: IDataScienceFileSystem,
+        fs: IFileSystem,
         serviceContainer: IServiceContainer,
         kernelLauncher: IKernelLauncher,
         kernelSelector: KernelSelector,
@@ -71,7 +71,7 @@ export class RawNotebookProviderWrapper implements IRawNotebookProvider, ILiveSh
         @inject(IConfigurationService) configService: IConfigurationService,
         @inject(IWorkspaceService) workspaceService: IWorkspaceService,
         @inject(IApplicationShell) appShell: IApplicationShell,
-        @inject(IDataScienceFileSystem) fs: IDataScienceFileSystem,
+        @inject(IFileSystem) fs: IFileSystem,
         @inject(IServiceContainer) serviceContainer: IServiceContainer,
         @inject(IKernelLauncher) kernelLauncher: IKernelLauncher,
         @inject(KernelSelector) kernelSelector: KernelSelector,

@@ -7,12 +7,12 @@ import * as path from 'path';
 import { IWorkspaceService } from '../common/application/types';
 
 import { IConfigurationService } from '../common/types';
-import { IDataScienceFileSystem } from './types';
+import { IFileSystem } from './types';
 
 export async function calculateWorkingDirectory(
     configService: IConfigurationService,
     workspace: IWorkspaceService,
-    fs: IDataScienceFileSystem
+    fs: IFileSystem
 ): Promise<string | undefined> {
     let workingDir: string | undefined;
     // For a local launch calculate the working directory that we should switch into

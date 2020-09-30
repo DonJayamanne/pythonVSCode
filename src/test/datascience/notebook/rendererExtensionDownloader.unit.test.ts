@@ -8,7 +8,7 @@ import { IApplicationShell, ICommandManager } from '../../../client/common/appli
 import { IFileDownloader, IOutputChannel } from '../../../client/common/types';
 import { RendererExtensionDownloadUri } from '../../../client/datascience/notebook/constants';
 import { RendererExtensionDownloader } from '../../../client/datascience/notebook/rendererExtensionDownloader';
-import { IDataScienceFileSystem } from '../../../client/datascience/types';
+import { IFileSystem } from '../../../client/datascience/types';
 import { noop } from '../../core';
 
 // tslint:disable: no-any
@@ -16,14 +16,14 @@ suite('DataScience - NativeNotebook Download Renderer Extension', () => {
     let downloader: RendererExtensionDownloader;
     let appShell: IApplicationShell;
     let output: IOutputChannel;
-    let fs: IDataScienceFileSystem;
+    let fs: IFileSystem;
     let fileDownloader: IFileDownloader;
     let cmdManager: ICommandManager;
     const downloadedFile = Uri.file('TempRendererExtensionVSIX.vsix');
     setup(() => {
         appShell = mock<IApplicationShell>();
         output = mock<IOutputChannel>();
-        fs = mock<IDataScienceFileSystem>();
+        fs = mock<IFileSystem>();
         fileDownloader = mock<IFileDownloader>();
         cmdManager = mock<ICommandManager>();
         downloader = new RendererExtensionDownloader(

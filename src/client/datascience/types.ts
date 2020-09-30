@@ -1370,8 +1370,8 @@ export interface ITrustService {
     trustNotebook(uri: Uri, notebookContents: string): Promise<void>;
 }
 
-export const IDataScienceFileSystem = Symbol('IDataScienceFileSystem');
-export interface IDataScienceFileSystem {
+export const IFileSystem = Symbol('IFileSystem');
+export interface IFileSystem {
     // Local-only filesystem utilities
     appendLocalFile(path: string, text: string): Promise<void>;
     areLocalPathsSame(path1: string, path2: string): boolean;
@@ -1399,6 +1399,7 @@ export interface IDataScienceFileSystem {
     readFile(uri: Uri): Promise<string>;
     stat(uri: Uri): Promise<FileStat>;
     writeFile(uri: Uri, text: string | Buffer): Promise<void>;
+    getFiles(dir: Uri): Promise<Uri[]>;
 }
 export interface ISwitchKernelOptions {
     identity: Resource;

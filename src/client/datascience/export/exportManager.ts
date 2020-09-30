@@ -9,7 +9,7 @@ import * as localize from '../../common/utils/localize';
 import { sendTelemetryEvent } from '../../telemetry';
 import { Telemetry } from '../constants';
 import { ProgressReporter } from '../progress/progressReporter';
-import { IDataScienceFileSystem, INotebookModel } from '../types';
+import { IFileSystem, INotebookModel } from '../types';
 import { ExportDependencyChecker } from './exportDependencyChecker';
 import { ExportFileOpener } from './exportFileOpener';
 import { ExportUtil } from './exportUtil';
@@ -21,7 +21,7 @@ export class ExportManager implements IExportManager {
         @inject(IExport) @named(ExportFormat.pdf) private readonly exportToPDF: IExport,
         @inject(IExport) @named(ExportFormat.html) private readonly exportToHTML: IExport,
         @inject(IExport) @named(ExportFormat.python) private readonly exportToPython: IExport,
-        @inject(IDataScienceFileSystem) private readonly fs: IDataScienceFileSystem,
+        @inject(IFileSystem) private readonly fs: IFileSystem,
         @inject(IExportManagerFilePicker) private readonly filePicker: IExportManagerFilePicker,
         @inject(ProgressReporter) private readonly progressReporter: ProgressReporter,
         @inject(ExportUtil) private readonly exportUtil: ExportUtil,

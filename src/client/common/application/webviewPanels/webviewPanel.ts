@@ -4,8 +4,8 @@
 import '../../extensions';
 
 import { Event, EventEmitter, Uri, WebviewOptions, WebviewPanel as vscodeWebviewPanel, window } from 'vscode';
+import { IFileSystem } from '../../../datascience/types';
 import { traceError } from '../../logger';
-import { IFileSystem } from '../../platform/types';
 import { IDisposableRegistry } from '../../types';
 import * as localize from '../../utils/localize';
 import { IWebviewPanel, IWebviewPanelOptions } from '../types';
@@ -93,7 +93,9 @@ export class WebviewPanel extends Webview implements IWebviewPanel {
     private async load() {
         try {
             if (this.panel) {
-                const localFilesExist = await Promise.all(this.panelOptions.scripts.map((s) => this.fs.fileExists(s)));
+                const localFilesExist = await Promise.all(
+                    this.panelOptions.scripts.map((s) => this.fs.localFileExists(s))
+                );
                 if (localFilesExist.every((exists) => exists === true)) {
                     // Call our special function that sticks this script inside of an html page
                     // and translates all of the paths to vscode-resource URIs

@@ -13,7 +13,7 @@ import { DataScience } from '../../common/utils/localize';
 import { noop } from '../../common/utils/misc';
 import { IServiceContainer } from '../../ioc/types';
 import { OurNotebookProvider, VSCodeNotebookProvider } from '../constants';
-import { IDataScienceFileSystem, INotebookEditorProvider } from '../types';
+import { IFileSystem, INotebookEditorProvider } from '../types';
 
 @injectable()
 export class NotebookEditorCompatibilitySupport implements IExtensionSingleActivationService {
@@ -24,7 +24,7 @@ export class NotebookEditorCompatibilitySupport implements IExtensionSingleActiv
         @inject(IApplicationShell) private readonly appShell: IApplicationShell,
         @inject(UseVSCodeNotebookEditorApi) private readonly useVSCodeNotebookEditorApi: boolean,
 
-        @inject(IDataScienceFileSystem) private readonly fs: IDataScienceFileSystem,
+        @inject(IFileSystem) private readonly fs: IFileSystem,
         @inject(IServiceContainer) private readonly serviceContainer: IServiceContainer
     ) {}
     public async activate(): Promise<void> {

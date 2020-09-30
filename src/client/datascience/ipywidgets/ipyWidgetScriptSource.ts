@@ -30,7 +30,7 @@ import {
     IPyWidgetMessages
 } from '../interactive-common/interactiveWindowTypes';
 import {
-    IDataScienceFileSystem,
+    IFileSystem,
     IInteractiveWindowListener,
     ILocalResourceUriConverter,
     INotebook,
@@ -79,7 +79,7 @@ export class IPyWidgetScriptSource implements IInteractiveWindowListener, ILocal
     constructor(
         @inject(IDisposableRegistry) disposables: IDisposableRegistry,
         @inject(INotebookProvider) private readonly notebookProvider: INotebookProvider,
-        @inject(IDataScienceFileSystem) private readonly fs: IDataScienceFileSystem,
+        @inject(IFileSystem) private readonly fs: IFileSystem,
         @inject(IInterpreterService) private readonly interpreterService: IInterpreterService,
         @inject(IConfigurationService) private readonly configurationSettings: IConfigurationService,
         @inject(IHttpClient) private readonly httpClient: IHttpClient,

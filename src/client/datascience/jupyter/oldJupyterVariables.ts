@@ -19,7 +19,7 @@ import { EXTENSION_ROOT_DIR } from '../../constants';
 import { Identifiers, Settings } from '../constants';
 import {
     ICell,
-    IDataScienceFileSystem,
+    IFileSystem,
     IJupyterVariable,
     IJupyterVariables,
     IJupyterVariablesRequest,
@@ -58,7 +58,7 @@ export class OldJupyterVariables implements IJupyterVariables {
     private refreshEventEmitter = new EventEmitter<void>();
 
     constructor(
-        @inject(IDataScienceFileSystem) private fs: IDataScienceFileSystem,
+        @inject(IFileSystem) private fs: IFileSystem,
         @inject(IConfigurationService) private configService: IConfigurationService
     ) {}
 

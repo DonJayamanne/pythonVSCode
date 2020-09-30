@@ -10,11 +10,7 @@ import { ReadWrite, Resource } from '../../../client/common/types';
 import { IEnvironmentVariablesProvider } from '../../../client/common/variables/types';
 import { KernelDaemonPool } from '../../../client/datascience/kernel-launcher/kernelDaemonPool';
 import { IPythonKernelDaemon } from '../../../client/datascience/kernel-launcher/types';
-import {
-    IDataScienceFileSystem,
-    IJupyterKernelSpec,
-    IKernelDependencyService
-} from '../../../client/datascience/types';
+import { IFileSystem, IJupyterKernelSpec, IKernelDependencyService } from '../../../client/datascience/types';
 import { IInterpreterService } from '../../../client/interpreter/contracts';
 import { PythonEnvironment } from '../../../client/pythonEnvironments/info';
 import { sleep } from '../../core';
@@ -38,7 +34,7 @@ suite('DataScience - Kernel Daemon Pool', () => {
     let kernelDependencyService: IKernelDependencyService;
     let pythonExecutionFactory: IPythonExecutionFactory;
     let envVars: IEnvironmentVariablesProvider;
-    let fs: IDataScienceFileSystem;
+    let fs: IFileSystem;
     let interpeterService: IInterpreterService;
     let kernelSpec: ReadWrite<IJupyterKernelSpec>;
     let interpretersPerWorkspace: Map<string | undefined, PythonEnvironment>;
@@ -53,7 +49,7 @@ suite('DataScience - Kernel Daemon Pool', () => {
         daemon3 = mock<IPythonKernelDaemon>();
         pythonExecutionFactory = mock<IPythonExecutionFactory>();
         envVars = mock<IEnvironmentVariablesProvider>();
-        fs = mock<IDataScienceFileSystem>();
+        fs = mock<IFileSystem>();
         interpeterService = mock<IInterpreterService>();
         interpretersPerWorkspace = new Map<string | undefined, PythonEnvironment>();
         interpretersPerWorkspace.set(workspace1.fsPath, interpreter1);

@@ -54,25 +54,21 @@ import { HttpClient } from './net/httpClient';
 import { PersistentStateFactory } from './persistentState';
 import { IS_WINDOWS } from './platform/constants';
 import { PathUtils } from './platform/pathUtils';
-import { CurrentProcess } from './process/currentProcess';
 import { ProcessLogger } from './process/logger';
 import { IProcessLogger } from './process/types';
 import {
     IAsyncDisposableRegistry,
     IBrowserService,
     ICryptoUtils,
-    ICurrentProcess,
     IEditorUtils,
     IExtensions,
     IFeatureDeprecationManager,
     IInstaller,
     IPathUtils,
     IPersistentStateFactory,
-    IRandom,
     IsWindows
 } from './types';
 import { IMultiStepInputFactory, MultiStepInputFactory } from './utils/multiStepInput';
-import { Random } from './utils/random';
 
 // tslint:disable-next-line: max-func-body-length
 export function registerTypes(serviceManager: IServiceManager) {
@@ -80,12 +76,10 @@ export function registerTypes(serviceManager: IServiceManager) {
 
     serviceManager.addSingleton<IActiveResourceService>(IActiveResourceService, ActiveResourceService);
     serviceManager.addSingleton<IExtensions>(IExtensions, Extensions);
-    serviceManager.addSingleton<IRandom>(IRandom, Random);
     serviceManager.addSingleton<IPersistentStateFactory>(IPersistentStateFactory, PersistentStateFactory);
     serviceManager.addSingleton<IPathUtils>(IPathUtils, PathUtils);
     serviceManager.addSingleton<IVSCodeNotebook>(IVSCodeNotebook, VSCodeNotebook);
     serviceManager.addSingleton<IClipboard>(IClipboard, ClipboardService);
-    serviceManager.addSingleton<ICurrentProcess>(ICurrentProcess, CurrentProcess);
     serviceManager.addSingleton<IInstaller>(IInstaller, ProductInstaller);
     serviceManager.addSingleton<IProcessLogger>(IProcessLogger, ProcessLogger);
     serviceManager.addSingleton<IDocumentManager>(IDocumentManager, DocumentManager);

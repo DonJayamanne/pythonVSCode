@@ -15,7 +15,7 @@ import { Identifiers, LiveShare, LiveShareCommands } from '../../constants';
 import { IExecuteInfo } from '../../interactive-common/interactiveWindowTypes';
 import {
     ICell,
-    IDataScienceFileSystem,
+    IFileSystem,
     IJupyterSession,
     INotebook,
     INotebookExecutionInfo,
@@ -53,7 +53,7 @@ export class HostJupyterNotebook
         getDisposedError: () => Error,
         workspace: IWorkspaceService,
         appService: IApplicationShell,
-        fs: IDataScienceFileSystem
+        fs: IFileSystem
     ) {
         super(
             liveShare,

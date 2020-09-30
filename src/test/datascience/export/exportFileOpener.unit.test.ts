@@ -10,18 +10,18 @@ import { IBrowserService, IDisposable } from '../../../client/common/types';
 import { ExportFileOpener } from '../../../client/datascience/export/exportFileOpener';
 import { ExportFormat } from '../../../client/datascience/export/types';
 import { ProgressReporter } from '../../../client/datascience/progress/progressReporter';
-import { IDataScienceFileSystem } from '../../../client/datascience/types';
+import { IFileSystem } from '../../../client/datascience/types';
 import { getLocString } from '../../../datascience-ui/react-common/locReactSide';
 
 suite('DataScience - Export File Opener', () => {
     let fileOpener: ExportFileOpener;
     let documentManager: IDocumentManager;
-    let fileSystem: IDataScienceFileSystem;
+    let fileSystem: IFileSystem;
     let applicationShell: IApplicationShell;
     let browserService: IBrowserService;
     setup(async () => {
         documentManager = mock<IDocumentManager>();
-        fileSystem = mock<IDataScienceFileSystem>();
+        fileSystem = mock<IFileSystem>();
         applicationShell = mock<IApplicationShell>();
         browserService = mock<IBrowserService>();
         const reporter = mock(ProgressReporter);

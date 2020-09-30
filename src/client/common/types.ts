@@ -20,7 +20,6 @@ import { CommandsWithoutArgs } from './application/commands';
 import { Experiments } from './experiments/groups';
 import { ExtensionChannels } from './insidersBuild/types';
 import { InterpreterUri } from './installer/types';
-import { EnvironmentVariables } from './variables/types';
 export const IOutputChannel = Symbol('IOutputChannel');
 export interface IOutputChannel extends OutputChannel {}
 export const IsWindows = Symbol('IS_WINDOWS');
@@ -108,16 +107,6 @@ export interface IPathUtils {
 export const IRandom = Symbol('IRandom');
 export interface IRandom {
     getRandomInt(min?: number, max?: number): number;
-}
-
-export const ICurrentProcess = Symbol('ICurrentProcess');
-export interface ICurrentProcess {
-    readonly env: EnvironmentVariables;
-    readonly argv: string[];
-    readonly stdout: NodeJS.WriteStream;
-    readonly stdin: NodeJS.ReadStream;
-    readonly execPath: string;
-    on(event: string | symbol, listener: Function): this;
 }
 
 export interface IJupyterSettings {

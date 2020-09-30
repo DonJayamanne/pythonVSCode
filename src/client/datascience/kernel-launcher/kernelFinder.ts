@@ -20,7 +20,7 @@ import { getRealPath } from '../common';
 import { Telemetry } from '../constants';
 import { defaultKernelSpecName } from '../jupyter/kernels/helpers';
 import { JupyterKernelSpec } from '../jupyter/kernels/jupyterKernelSpec';
-import { IDataScienceFileSystem, IJupyterKernelSpec } from '../types';
+import { IFileSystem, IJupyterKernelSpec } from '../types';
 import { IKernelFinder } from './types';
 // tslint:disable-next-line:no-require-imports no-var-requires
 const flatten = require('lodash/flatten') as typeof import('lodash/flatten');
@@ -51,7 +51,7 @@ export class KernelFinder implements IKernelFinder {
     constructor(
         @inject(IInterpreterService) private interpreterService: IInterpreterService,
         @inject(IPlatformService) private platformService: IPlatformService,
-        @inject(IDataScienceFileSystem) private fs: IDataScienceFileSystem,
+        @inject(IFileSystem) private fs: IFileSystem,
         @inject(IPathUtils) private readonly pathUtils: IPathUtils,
         @inject(IExtensionContext) private readonly context: IExtensionContext,
         @inject(IWorkspaceService) private readonly workspaceService: IWorkspaceService,

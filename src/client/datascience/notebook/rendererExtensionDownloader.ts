@@ -10,7 +10,7 @@ import { vsixFileExtension } from '../../common/installer/extensionBuildInstalle
 import { IFileDownloader, IOutputChannel } from '../../common/types';
 import { DataScienceRendererExtension } from '../../common/utils/localize';
 import { traceDecorators } from '../../logging';
-import { IDataScienceFileSystem } from '../types';
+import { IFileSystem } from '../types';
 import { RendererExtensionDownloadUri } from './constants';
 
 @injectable()
@@ -21,7 +21,7 @@ export class RendererExtensionDownloader {
         @inject(IApplicationShell) private readonly appShell: IApplicationShell,
         @inject(ICommandManager) private readonly cmdManager: ICommandManager,
         @inject(IFileDownloader) private readonly fileDownloader: IFileDownloader,
-        @inject(IDataScienceFileSystem) private readonly fs: IDataScienceFileSystem
+        @inject(IFileSystem) private readonly fs: IFileSystem
     ) {}
     @traceDecorators.error('Installing Notebook Renderer extension failed')
     public async downloadAndInstall(): Promise<void> {

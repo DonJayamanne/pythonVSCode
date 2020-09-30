@@ -25,11 +25,7 @@ import { sendTelemetryEvent } from '../../../telemetry';
 import { JUPYTER_OUTPUT_CHANNEL, JupyterDaemonModule, Telemetry } from '../../constants';
 import { reportAction } from '../../progress/decorator';
 import { ReportableAction } from '../../progress/types';
-import {
-    IDataScienceFileSystem,
-    IJupyterInterpreterDependencyManager,
-    IJupyterSubCommandExecutionService
-} from '../../types';
+import { IFileSystem, IJupyterInterpreterDependencyManager, IJupyterSubCommandExecutionService } from '../../types';
 import { JupyterServerInfo } from '../jupyterConnection';
 import { JupyterInstallError } from '../jupyterInstallError';
 import { JupyterKernelSpec, parseKernelSpecs } from '../kernels/jupyterKernelSpec';
@@ -54,7 +50,7 @@ export class JupyterInterpreterSubCommandExecutionService
         @inject(IInterpreterService) private readonly interpreterService: IInterpreterService,
         @inject(JupyterInterpreterDependencyService)
         private readonly jupyterDependencyService: JupyterInterpreterDependencyService,
-        @inject(IDataScienceFileSystem) private readonly fs: IDataScienceFileSystem,
+        @inject(IFileSystem) private readonly fs: IFileSystem,
         @inject(IPythonExecutionFactory) private readonly pythonExecutionFactory: IPythonExecutionFactory,
         @inject(IOutputChannel) @named(JUPYTER_OUTPUT_CHANNEL) private readonly jupyterOutputChannel: IOutputChannel,
         @inject(IPathUtils) private readonly pathUtils: IPathUtils

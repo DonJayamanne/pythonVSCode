@@ -13,14 +13,14 @@ import { ExportManager } from '../../../client/datascience/export/exportManager'
 import { ExportUtil } from '../../../client/datascience/export/exportUtil';
 import { ExportFormat, IExport, IExportManagerFilePicker } from '../../../client/datascience/export/types';
 import { ProgressReporter } from '../../../client/datascience/progress/progressReporter';
-import { IDataScienceFileSystem, INotebookModel } from '../../../client/datascience/types';
+import { IFileSystem, INotebookModel } from '../../../client/datascience/types';
 
 suite('DataScience - Export Manager', () => {
     let exporter: ExportManager;
     let exportPython: IExport;
     let exportHtml: IExport;
     let exportPdf: IExport;
-    let fileSystem: IDataScienceFileSystem;
+    let fileSystem: IFileSystem;
     let exportUtil: ExportUtil;
     let filePicker: IExportManagerFilePicker;
     let appShell: IApplicationShell;
@@ -31,7 +31,7 @@ suite('DataScience - Export Manager', () => {
         exportUtil = mock<ExportUtil>();
         const reporter = mock(ProgressReporter);
         filePicker = mock<IExportManagerFilePicker>();
-        fileSystem = mock<IDataScienceFileSystem>();
+        fileSystem = mock<IFileSystem>();
         exportPython = mock<IExport>();
         exportHtml = mock<IExport>();
         exportPdf = mock<IExport>();

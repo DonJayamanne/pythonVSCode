@@ -8,7 +8,7 @@ import * as path from 'path';
 import { parse } from 'semver';
 import * as vscode from 'vscode';
 import { IPlatformService } from '../platform/types';
-import { ICurrentProcess, IPathUtils } from '../types';
+import { IPathUtils } from '../types';
 import { OSType } from '../utils/platform';
 import { Channel, IApplicationEnvironment } from './types';
 
@@ -16,8 +16,7 @@ import { Channel, IApplicationEnvironment } from './types';
 export class ApplicationEnvironment implements IApplicationEnvironment {
     constructor(
         @inject(IPlatformService) private readonly platform: IPlatformService,
-        @inject(IPathUtils) private readonly pathUtils: IPathUtils,
-        @inject(ICurrentProcess) private readonly process: ICurrentProcess
+        @inject(IPathUtils) private readonly pathUtils: IPathUtils
     ) {}
 
     public get userSettingsFile(): string | undefined {
@@ -35,8 +34,8 @@ export class ApplicationEnvironment implements IApplicationEnvironment {
             case OSType.Linux:
                 return path.join(this.pathUtils.home, '.config', vscodeFolderName, 'User', 'settings.json');
             case OSType.Windows:
-                return this.process.env.APPDATA
-                    ? path.join(this.process.env.APPDATA, vscodeFolderName, 'User', 'settings.json')
+                return process.env.APPDATA
+                    ? path.join(process.env.APPDATA, vscodeFolderName, 'User', 'settings.json')
                     : undefined;
             default:
                 return;

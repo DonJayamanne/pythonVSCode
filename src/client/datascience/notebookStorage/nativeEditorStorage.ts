@@ -15,7 +15,7 @@ import { InvalidNotebookFileError } from '../jupyter/invalidNotebookFileError';
 import { INotebookModelFactory } from '../notebookStorage/types';
 import {
     CellState,
-    IDataScienceFileSystem,
+    IFileSystem,
     IJupyterExecution,
     IModelLoadOptions,
     INotebookModel,
@@ -59,7 +59,7 @@ export class NativeEditorStorage implements INotebookStorage {
 
     constructor(
         @inject(IJupyterExecution) private jupyterExecution: IJupyterExecution,
-        @inject(IDataScienceFileSystem) private fs: IDataScienceFileSystem,
+        @inject(IFileSystem) private fs: IFileSystem,
         @inject(ICryptoUtils) private crypto: ICryptoUtils,
         @inject(IExtensionContext) private context: IExtensionContext,
         @inject(IMemento) @named(GLOBAL_MEMENTO) private globalStorage: Memento,

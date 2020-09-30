@@ -21,8 +21,8 @@ import {
     ICellHash,
     ICellHashListener,
     ICellHashProvider,
-    IDataScienceFileSystem,
     IFileHashes,
+    IFileSystem,
     INotebook,
     INotebookExecutionLogger
 } from '../types';
@@ -61,7 +61,7 @@ export class CellHashProvider implements ICellHashProvider, INotebookExecutionLo
         @inject(IDocumentManager) private documentManager: IDocumentManager,
         @inject(IConfigurationService) private configService: IConfigurationService,
         @inject(IDebugService) private debugService: IDebugService,
-        @inject(IDataScienceFileSystem) private fs: IDataScienceFileSystem,
+        @inject(IFileSystem) private fs: IFileSystem,
         @multiInject(ICellHashListener) @optional() private listeners: ICellHashListener[] | undefined
     ) {
         // Watch document changes so we can update our hashes

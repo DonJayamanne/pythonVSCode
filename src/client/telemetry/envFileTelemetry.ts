@@ -4,11 +4,11 @@
 'use strict';
 
 import { IWorkspaceService } from '../common/application/types';
-import { IFileSystem } from '../common/platform/types';
 import { Resource } from '../common/types';
 import { SystemVariables } from '../common/variables/systemVariables';
 
 import { sendTelemetryEvent } from '.';
+import { IFileSystem } from '../datascience/types';
 import { EventName } from './constants';
 
 let _defaultEnvFileSetting: string | undefined;
@@ -34,7 +34,7 @@ export async function sendActivationTelemetry(
     if (shouldSendTelemetry()) {
         const systemVariables = new SystemVariables(resource, undefined, workspaceService);
         const envFilePath = systemVariables.resolveAny(defaultEnvFileSetting(workspaceService))!;
-        const envFileExists = await fileSystem.fileExists(envFilePath);
+        const envFileExists = await fileSystem.localFileExists(envFilePath);
 
         if (envFileExists) {
             sendTelemetry();

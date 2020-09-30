@@ -15,7 +15,7 @@ import { traceError } from '../../common/logger';
 
 import { IConfigurationService, IDisposable } from '../../common/types';
 import * as localize from '../../common/utils/localize';
-import { ICodeCssGenerator, IDataScienceFileSystem, IPlotViewer, IThemeFinder } from '../types';
+import { ICodeCssGenerator, IFileSystem, IPlotViewer, IThemeFinder } from '../types';
 import { WebviewPanelHost } from '../webviews/webviewPanelHost';
 import { PlotViewerMessageListener } from './plotViewerMessageListener';
 import { IExportPlotRequest, IPlotViewerMapping, PlotViewerMessages } from './types';
@@ -33,7 +33,7 @@ export class PlotViewer extends WebviewPanelHost<IPlotViewerMapping> implements 
         @inject(IThemeFinder) themeFinder: IThemeFinder,
         @inject(IWorkspaceService) workspaceService: IWorkspaceService,
         @inject(IApplicationShell) private applicationShell: IApplicationShell,
-        @inject(IDataScienceFileSystem) private fs: IDataScienceFileSystem,
+        @inject(IFileSystem) private fs: IFileSystem,
         @inject(UseCustomEditorApi) useCustomEditorApi: boolean
     ) {
         super(

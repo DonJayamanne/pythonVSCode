@@ -7,7 +7,7 @@ import { sendFileCreationTelemetry } from '../../telemetry/envFileTelemetry';
 import { IWorkspaceService } from '../application/types';
 import { traceVerbose } from '../logger';
 import { IPlatformService } from '../platform/types';
-import { ICurrentProcess, IDisposableRegistry } from '../types';
+import { IDisposableRegistry } from '../types';
 import { InMemoryCache } from '../utils/cacheUtils';
 import { EnvironmentVariables, IEnvironmentVariablesProvider, IEnvironmentVariablesService } from './types';
 
@@ -23,7 +23,6 @@ export class EnvironmentVariablesProvider implements IEnvironmentVariablesProvid
         @inject(IDisposableRegistry) disposableRegistry: Disposable[],
         @inject(IPlatformService) private platformService: IPlatformService,
         @inject(IWorkspaceService) private workspaceService: IWorkspaceService,
-        @inject(ICurrentProcess) private process: ICurrentProcess,
         @optional() private cacheDuration: number = CACHE_DURATION
     ) {
         disposableRegistry.push(this);
@@ -63,14 +62,14 @@ export class EnvironmentVariablesProvider implements IEnvironmentVariablesProvid
         if (!mergedVars) {
             mergedVars = {};
         }
-        this.envVarsService.mergeVariables(this.process.env, mergedVars!);
+        this.envVarsService.mergeVariables(process.env, mergedVars!);
         const pathVariable = this.platformService.pathVariableName;
-        const pathValue = this.process.env[pathVariable];
+        const pathValue = process.env[pathVariable];
         if (pathValue) {
             this.envVarsService.appendPath(mergedVars!, pathValue);
         }
-        if (this.process.env.PYTHONPATH) {
-            this.envVarsService.appendPythonPath(mergedVars!, this.process.env.PYTHONPATH);
+        if (process.env.PYTHONPATH) {
+            this.envVarsService.appendPythonPath(mergedVars!, process.env.PYTHONPATH);
         }
         return mergedVars;
     }
@@ -83,7 +82,7 @@ export class EnvironmentVariablesProvider implements IEnvironmentVariablesProvid
         // https://github.com/microsoft/vscode-jupyter/issues/51
         const envFile = workspaceFolderUri?.fsPath ? path.join(workspaceFolderUri.fsPath, '.env') : '.env';
         this.createFileWatcher(envFile, workspaceFolderUri);
-        return this.envVarsService.parseFile(envFile, this.process.env);
+        return this.envVarsService.parseFile(envFile, process.env);
     }
     public configurationChanged(e: ConfigurationChangeEvent) {
         this.trackedWorkspaceFolders.forEach((item) => {

@@ -32,7 +32,7 @@ import { IRoleBasedObject } from '../../jupyter/liveshare/roleBasedFactory';
 import { IKernelLauncher } from '../../kernel-launcher/types';
 import { ProgressReporter } from '../../progress/progressReporter';
 import {
-    IDataScienceFileSystem,
+    IFileSystem,
     INotebook,
     INotebookExecutionInfo,
     INotebookExecutionLogger,
@@ -58,7 +58,7 @@ export class HostRawNotebookProvider
         private configService: IConfigurationService,
         private workspaceService: IWorkspaceService,
         private appShell: IApplicationShell,
-        private fs: IDataScienceFileSystem,
+        private fs: IFileSystem,
         private serviceContainer: IServiceContainer,
         private kernelLauncher: IKernelLauncher,
         private kernelSelector: KernelSelector,

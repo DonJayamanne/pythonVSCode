@@ -22,7 +22,7 @@ import { InteractiveWindow } from '../../client/datascience/interactive-window/i
 import {
     ICodeWatcher,
     IDataScienceCommandListener,
-    IDataScienceFileSystem,
+    IFileSystem,
     IInteractiveWindowProvider,
     IJupyterExecution
 } from '../../client/datascience/types';
@@ -363,7 +363,7 @@ suite('DataScience LiveShare tests', () => {
         hostContainer.forceDataScienceSettingsChanged({ disableZMQSupport: true });
         guestContainer.forceDataScienceSettingsChanged({ disableZMQSupport: true });
 
-        const originalFileSystem = guestContainer.get<IDataScienceFileSystem>(IDataScienceFileSystem) as MockFileSystem;
+        const originalFileSystem = guestContainer.get<IFileSystem>(IFileSystem) as MockFileSystem;
 
         // Should only need mock data in host
         addMockData(hostContainer!, '#%%\na=1\na', 1);
@@ -371,11 +371,8 @@ suite('DataScience LiveShare tests', () => {
         // Remap the fileSystem so we control the write for the notebook. Have to do this
         // before the listener is created so that it uses this file system.
         let outputContents: string | undefined;
-        const fileSystem = TypeMoq.Mock.ofType<IDataScienceFileSystem>();
-        guestContainer!.serviceManager.rebindInstance<IDataScienceFileSystem>(
-            IDataScienceFileSystem,
-            fileSystem.object
-        );
+        const fileSystem = TypeMoq.Mock.ofType<IFileSystem>();
+        guestContainer!.serviceManager.rebindInstance<IFileSystem>(IFileSystem, fileSystem.object);
         fileSystem
             .setup((f) => f.writeFile(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .returns((_f, c) => {

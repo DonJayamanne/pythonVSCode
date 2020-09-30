@@ -15,12 +15,7 @@ import { IConfigurationService, IDisposableRegistry } from '../../common/types';
 import * as localize from '../../common/utils/localize';
 import { noop } from '../../common/utils/misc';
 import { CodeSnippets, Identifiers } from '../constants';
-import {
-    IDataScienceFileSystem,
-    IJupyterExecution,
-    IJupyterInterpreterDependencyManager,
-    INotebookImporter
-} from '../types';
+import { IFileSystem, IJupyterExecution, IJupyterInterpreterDependencyManager, INotebookImporter } from '../types';
 
 @injectable()
 export class JupyterImporter implements INotebookImporter {
@@ -42,7 +37,7 @@ export class JupyterImporter implements INotebookImporter {
     private templatePromise: Promise<string | undefined>;
 
     constructor(
-        @inject(IDataScienceFileSystem) private fs: IDataScienceFileSystem,
+        @inject(IFileSystem) private fs: IFileSystem,
         @inject(IDisposableRegistry) private disposableRegistry: IDisposableRegistry,
         @inject(IConfigurationService) private configuration: IConfigurationService,
         @inject(IJupyterExecution) private jupyterExecution: IJupyterExecution,

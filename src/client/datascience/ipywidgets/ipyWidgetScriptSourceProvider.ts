@@ -22,7 +22,7 @@ import { noop } from '../../common/utils/misc';
 import { IInterpreterService } from '../../interpreter/contracts';
 import { sendTelemetryEvent } from '../../telemetry';
 import { Telemetry } from '../constants';
-import { IDataScienceFileSystem, ILocalResourceUriConverter, INotebook } from '../types';
+import { IFileSystem, ILocalResourceUriConverter, INotebook } from '../types';
 import { CDNWidgetScriptSourceProvider } from './cdnWidgetScriptSourceProvider';
 import { LocalWidgetScriptSourceProvider } from './localWidgetScriptSourceProvider';
 import { RemoteWidgetScriptSourceProvider } from './remoteWidgetScriptSourceProvider';
@@ -50,7 +50,7 @@ export class IPyWidgetScriptSourceProvider implements IWidgetScriptSourceProvide
     constructor(
         private readonly notebook: INotebook,
         private readonly localResourceUriConverter: ILocalResourceUriConverter,
-        private readonly fs: IDataScienceFileSystem,
+        private readonly fs: IFileSystem,
         private readonly interpreterService: IInterpreterService,
         private readonly appShell: IApplicationShell,
         private readonly configurationSettings: IConfigurationService,

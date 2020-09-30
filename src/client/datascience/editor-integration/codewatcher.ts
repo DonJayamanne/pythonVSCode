@@ -31,7 +31,7 @@ import {
     ICodeLensFactory,
     ICodeWatcher,
     IDataScienceErrorHandler,
-    IDataScienceFileSystem,
+    IFileSystem,
     IInteractiveWindowProvider
 } from '../types';
 
@@ -68,7 +68,7 @@ export class CodeWatcher implements ICodeWatcher {
 
     constructor(
         @inject(IInteractiveWindowProvider) private interactiveWindowProvider: IInteractiveWindowProvider,
-        @inject(IDataScienceFileSystem) private fs: IDataScienceFileSystem,
+        @inject(IFileSystem) private fs: IFileSystem,
         @inject(IConfigurationService) private configService: IConfigurationService,
         @inject(IDocumentManager) private documentManager: IDocumentManager,
         @inject(ICodeExecutionHelper) private executionHelper: ICodeExecutionHelper,

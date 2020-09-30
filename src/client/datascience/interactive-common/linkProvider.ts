@@ -10,7 +10,7 @@ import { IApplicationShell, ICommandManager, IDocumentManager } from '../../comm
 
 import * as localize from '../../common/utils/localize';
 import { noop } from '../../common/utils/misc';
-import { IDataScienceFileSystem, IInteractiveWindowListener } from '../types';
+import { IFileSystem, IInteractiveWindowListener } from '../types';
 import { InteractiveWindowMessages } from './interactiveWindowTypes';
 
 const LineQueryRegex = /line=(\d+)/;
@@ -32,7 +32,7 @@ export class LinkProvider implements IInteractiveWindowListener {
     }>();
     constructor(
         @inject(IApplicationShell) private applicationShell: IApplicationShell,
-        @inject(IDataScienceFileSystem) private fs: IDataScienceFileSystem,
+        @inject(IFileSystem) private fs: IFileSystem,
         @inject(IDocumentManager) private documentManager: IDocumentManager,
         @inject(ICommandManager) private commandManager: ICommandManager
     ) {

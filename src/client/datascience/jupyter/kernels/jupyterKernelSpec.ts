@@ -10,7 +10,7 @@ import { traceInfo } from '../../../common/logger';
 import { IPythonExecutionFactory } from '../../../common/process/types';
 import { PythonEnvironment } from '../../../pythonEnvironments/info';
 import { getRealPath } from '../../common';
-import { IDataScienceFileSystem, IJupyterKernelSpec } from '../../types';
+import { IFileSystem, IJupyterKernelSpec } from '../../types';
 
 export class JupyterKernelSpec implements IJupyterKernelSpec {
     public name: string;
@@ -41,13 +41,13 @@ export class JupyterKernelSpec implements IJupyterKernelSpec {
  *
  * @export
  * @param {string} stdout
- * @param {IDataScienceFileSystem} fs
+ * @param {IFileSystem} fs
  * @param {CancellationToken} [token]
  * @returns
  */
 export async function parseKernelSpecs(
     stdout: string,
-    fs: IDataScienceFileSystem,
+    fs: IFileSystem,
     execFactory: IPythonExecutionFactory,
     token?: CancellationToken
 ) {

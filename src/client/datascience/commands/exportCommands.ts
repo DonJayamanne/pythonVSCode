@@ -16,7 +16,7 @@ import { sendTelemetryEvent } from '../../telemetry';
 import { Commands, Telemetry } from '../constants';
 import { ExportManager } from '../export/exportManager';
 import { ExportFormat, IExportManager } from '../export/types';
-import { IDataScienceFileSystem, INotebookEditorProvider, INotebookModel } from '../types';
+import { IFileSystem, INotebookEditorProvider, INotebookModel } from '../types';
 
 interface IExportQuickPickItem extends QuickPickItem {
     handler(): void;
@@ -30,7 +30,7 @@ export class ExportCommands implements IDisposable {
         @inject(IExportManager) private exportManager: ExportManager,
         @inject(IApplicationShell) private readonly applicationShell: IApplicationShell,
         @inject(INotebookEditorProvider) private readonly notebookProvider: INotebookEditorProvider,
-        @inject(IDataScienceFileSystem) private readonly fs: IDataScienceFileSystem
+        @inject(IFileSystem) private readonly fs: IFileSystem
     ) {}
     public register() {
         this.registerCommand(Commands.ExportAsPythonScript, (model) => this.export(model, ExportFormat.python));

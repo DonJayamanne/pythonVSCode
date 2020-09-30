@@ -4,47 +4,23 @@
 import * as fsextra from 'fs-extra';
 import { Container } from 'inversify';
 import * as path from 'path';
-import { anything, instance, mock, when } from 'ts-mockito';
-import * as TypeMoq from 'typemoq';
 import { Disposable, Memento, OutputChannel, Uri } from 'vscode';
 import { STANDARD_OUTPUT_CHANNEL } from '../client/common/constants';
-import { IS_WINDOWS } from '../client/common/platform/constants';
-import { convertStat, FileSystem, FileSystemUtils, RawFileSystem } from '../client/common/platform/fileSystem';
-import { PathUtils } from '../client/common/platform/pathUtils';
-import { PlatformService } from '../client/common/platform/platformService';
-import { FileStat, FileType, IFileSystem, IPlatformService } from '../client/common/platform/types';
-import { BufferDecoder } from '../client/common/process/decoder';
-import { ProcessService } from '../client/common/process/proc';
-import { PythonExecutionFactory } from '../client/common/process/pythonExecutionFactory';
-import { PythonToolExecutionService } from '../client/common/process/pythonToolService';
-import { registerTypes as processRegisterTypes } from '../client/common/process/serviceRegistry';
-import {
-    IBufferDecoder,
-    IProcessServiceFactory,
-    IPythonExecutionFactory,
-    IPythonToolExecutionService
-} from '../client/common/process/types';
-import { registerTypes as commonRegisterTypes } from '../client/common/serviceRegistry';
+import { convertStat } from '../client/common/platform/fileSystem';
+import { FileStat, FileType } from '../client/common/platform/types';
 import {
     GLOBAL_MEMENTO,
-    ICurrentProcess,
     IDisposableRegistry,
     IMemento,
     IOutputChannel,
-    IPathUtils,
-    IsWindows,
     WORKSPACE_MEMENTO
 } from '../client/common/types';
 import { createDeferred } from '../client/common/utils/async';
-import { registerTypes as variableRegisterTypes } from '../client/common/variables/serviceRegistry';
-import { IEnvironmentActivationService } from '../client/interpreter/activation/types';
 import { ServiceContainer } from '../client/ioc/container';
 import { ServiceManager } from '../client/ioc/serviceManager';
 import { IServiceContainer, IServiceManager } from '../client/ioc/types';
 import { MockOutputChannel } from './mockClasses';
 import { MockMemento } from './mocks/mementos';
-import { MockProcessService } from './mocks/proc';
-import { MockProcess } from './mocks/process';
 
 // This is necessary for unit tests and functional tests, since they
 // do not run under VS Code so they do not have access to the actual
@@ -137,14 +113,6 @@ export class FakeVSCodeFileSystemAPI {
         return fsextra.rename(src.fsPath, dest.fsPath);
     }
 }
-export class LegacyFileSystem extends FileSystem {
-    constructor() {
-        super();
-        const vscfs = new FakeVSCodeFileSystemAPI();
-        const raw = RawFileSystem.withDefaults(undefined, vscfs);
-        this.utils = FileSystemUtils.withDefaults(raw);
-    }
-}
 
 export class IocContainer {
     // This may be set (before any registration happens) to indicate
@@ -189,73 +157,5 @@ export class IocContainer {
         }
         this.disposables = [];
         this.serviceManager.dispose();
-    }
-
-    public registerCommonTypes(registerFileSystem: boolean = true) {
-        commonRegisterTypes(this.serviceManager);
-        if (registerFileSystem) {
-            this.registerFileSystemTypes();
-        }
-    }
-    public registerFileSystemTypes() {
-        this.serviceManager.addSingleton<IPlatformService>(IPlatformService, PlatformService);
-        this.serviceManager.addSingleton<IFileSystem>(
-            IFileSystem,
-            // Maybe use fake vscode.workspace.filesystem API:
-            this.useVSCodeAPI ? FileSystem : LegacyFileSystem
-        );
-    }
-    public registerProcessTypes() {
-        processRegisterTypes(this.serviceManager);
-        const mockEnvironmentActivationService = mock<IEnvironmentActivationService>();
-        when(mockEnvironmentActivationService.getActivatedEnvironmentVariables(anything())).thenResolve();
-        when(mockEnvironmentActivationService.getActivatedEnvironmentVariables(anything(), anything())).thenResolve();
-        when(
-            mockEnvironmentActivationService.getActivatedEnvironmentVariables(anything(), anything(), anything())
-        ).thenResolve();
-        this.serviceManager.addSingletonInstance<IEnvironmentActivationService>(
-            IEnvironmentActivationService,
-            instance(mockEnvironmentActivationService)
-        );
-    }
-    public registerVariableTypes() {
-        variableRegisterTypes(this.serviceManager);
-    }
-    public registerInterpreterTypes() {
-        // This method registers all interpreter types except `IInterpreterAutoSeletionProxyService` & `IEnvironmentActivationService`, as it's already registered in the constructor & registerMockProcessTypes() respectively
-        // registerInterpreterTypes(this.serviceManager);
-    }
-    public registerMockProcessTypes() {
-        this.serviceManager.addSingleton<IBufferDecoder>(IBufferDecoder, BufferDecoder);
-        const processServiceFactory = TypeMoq.Mock.ofType<IProcessServiceFactory>();
-        // tslint:disable-next-line:no-any
-        const processService = new MockProcessService(new ProcessService(new BufferDecoder(), process.env as any));
-        processServiceFactory.setup((f) => f.create(TypeMoq.It.isAny())).returns(() => Promise.resolve(processService));
-        this.serviceManager.addSingletonInstance<IProcessServiceFactory>(
-            IProcessServiceFactory,
-            processServiceFactory.object
-        );
-        this.serviceManager.addSingleton<IPythonExecutionFactory>(IPythonExecutionFactory, PythonExecutionFactory);
-        this.serviceManager.addSingleton<IPythonToolExecutionService>(
-            IPythonToolExecutionService,
-            PythonToolExecutionService
-        );
-        const mockEnvironmentActivationService = mock<IEnvironmentActivationService>();
-        when(mockEnvironmentActivationService.getActivatedEnvironmentVariables(anything())).thenResolve();
-        when(mockEnvironmentActivationService.getActivatedEnvironmentVariables(anything(), anything())).thenResolve();
-        when(
-            mockEnvironmentActivationService.getActivatedEnvironmentVariables(anything(), anything(), anything())
-        ).thenResolve();
-        this.serviceManager.rebindInstance<IEnvironmentActivationService>(
-            IEnvironmentActivationService,
-            instance(mockEnvironmentActivationService)
-        );
-    }
-
-    public registerMockProcess() {
-        this.serviceManager.addSingletonInstance<boolean>(IsWindows, IS_WINDOWS);
-
-        this.serviceManager.addSingleton<IPathUtils>(IPathUtils, PathUtils);
-        this.serviceManager.addSingleton<ICurrentProcess>(ICurrentProcess, MockProcess);
     }
 }

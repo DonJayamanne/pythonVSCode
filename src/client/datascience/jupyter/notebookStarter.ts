@@ -21,7 +21,7 @@ import { sendTelemetryEvent } from '../../telemetry';
 import { JUPYTER_OUTPUT_CHANNEL, Telemetry } from '../constants';
 import { reportAction } from '../progress/decorator';
 import { ReportableAction } from '../progress/types';
-import { IDataScienceFileSystem, IJupyterConnection, IJupyterSubCommandExecutionService } from '../types';
+import { IFileSystem, IJupyterConnection, IJupyterSubCommandExecutionService } from '../types';
 import { JupyterConnectionWaiter } from './jupyterConnection';
 import { JupyterInstallError } from './jupyterInstallError';
 
@@ -39,7 +39,7 @@ export class NotebookStarter implements Disposable {
     constructor(
         @inject(IJupyterSubCommandExecutionService)
         private readonly jupyterInterpreterService: IJupyterSubCommandExecutionService,
-        @inject(IDataScienceFileSystem) private readonly fs: IDataScienceFileSystem,
+        @inject(IFileSystem) private readonly fs: IFileSystem,
         @inject(IServiceContainer) private readonly serviceContainer: IServiceContainer,
         @inject(IOutputChannel) @named(JUPYTER_OUTPUT_CHANNEL) private readonly jupyterOutputChannel: IOutputChannel
     ) {}

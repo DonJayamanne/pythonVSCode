@@ -22,7 +22,7 @@ import {
 } from '../interactive-common/interactiveWindowTypes';
 import {
     ICell,
-    IDataScienceFileSystem,
+    IFileSystem,
     IGatherLogger,
     IGatherProvider,
     IInteractiveWindowListener,
@@ -54,7 +54,7 @@ export class GatherListener implements IInteractiveWindowListener {
         @inject(INotebookProvider) private notebookProvider: INotebookProvider,
         @inject(IConfigurationService) private configService: IConfigurationService,
         @inject(IDocumentManager) private documentManager: IDocumentManager,
-        @inject(IDataScienceFileSystem) private fs: IDataScienceFileSystem
+        @inject(IFileSystem) private fs: IFileSystem
     ) {}
 
     public dispose() {

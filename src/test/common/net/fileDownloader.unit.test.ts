@@ -11,19 +11,19 @@ import * as nock from 'nock';
 import * as path from 'path';
 import rewiremock from 'rewiremock';
 import * as sinon from 'sinon';
-import { Readable, Writable } from 'stream';
+import { Readable } from 'stream';
 import { anything, instance, mock, verify, when } from 'ts-mockito';
 import { Progress } from 'vscode';
 import { ApplicationShell } from '../../../client/common/application/applicationShell';
 import { IApplicationShell } from '../../../client/common/application/types';
 import { FileDownloader } from '../../../client/common/net/fileDownloader';
 import { HttpClient } from '../../../client/common/net/httpClient';
-import { FileSystem } from '../../../client/common/platform/fileSystem';
 import { PlatformService } from '../../../client/common/platform/platformService';
-import { IFileSystem } from '../../../client/common/platform/types';
 import { IHttpClient } from '../../../client/common/types';
 import { Http } from '../../../client/common/utils/localize';
 import { EXTENSION_ROOT_DIR } from '../../../client/constants';
+import { FileSystem } from '../../../client/datascience/fileSystem';
+import { IFileSystem } from '../../../client/datascience/types';
 import { noop } from '../../core';
 import { MockOutputChannel } from '../../mockClasses';
 const requestProgress = require('request-progress');
@@ -31,22 +31,6 @@ const request = require('request');
 
 type ProgressReporterData = { message?: string; increment?: number };
 
-/**
- * Writable stream that'll throw an error when written to.
- * (used to mimick errors thrown when writing to a file).
- *
- * @class ErroringMemoryStream
- * @extends {Writable}
- */
-class ErroringMemoryStream extends Writable {
-    constructor(private readonly errorMessage: string) {
-        super();
-    }
-    public _write(_chunk: any, _encoding: any, callback: any) {
-        super.emit('error', new Error(this.errorMessage));
-        return callback();
-    }
-}
 /**
  * Readable stream that's slow to return data.
  * (used to mimic slow file downloads).
@@ -111,7 +95,7 @@ suite('File Downloader', () => {
                 .reply(200, () => fsExtra.createReadStream(packageJsonFile));
             const progressReportStub = sinon.stub();
             const progressReporter: Progress<ProgressReporterData> = { report: progressReportStub };
-            const tmpFilePath = await fs.createTemporaryFile('.json');
+            const tmpFilePath = await fs.createTemporaryLocalFile('.json');
             when(appShell.withProgressCustomIcon(anything(), anything())).thenCall((_, cb) => cb(progressReporter));
 
             fileDownloader = new FileDownloader(instance(httpClient), fs, instance(appShell));
@@ -127,7 +111,7 @@ suite('File Downloader', () => {
             const progressReportStub = sinon.stub();
             const progressReporter: Progress<ProgressReporterData> = { report: progressReportStub };
             when(appShell.withProgressCustomIcon(anything(), anything())).thenCall((_, cb) => cb(progressReporter));
-            const tmpFilePath = await fs.createTemporaryFile('.json');
+            const tmpFilePath = await fs.createTemporaryLocalFile('.json');
 
             fileDownloader = new FileDownloader(instance(httpClient), fs, instance(appShell));
             const promise = fileDownloader.downloadFileWithStatusBarProgress(uri, 'hello', tmpFilePath.filePath);
@@ -155,26 +139,6 @@ suite('File Downloader', () => {
             // Things should fall over.
             await expect(promise).to.eventually.be.rejected;
         });
-        test('Error is throw if file stream throws an error', async () => {
-            // When downloading a uri, point it to package.json file.
-            nock('https://python.extension')
-                .get('/package.json')
-                .reply(200, () => fsExtra.createReadStream(packageJsonFile));
-            const progressReportStub = sinon.stub();
-            const progressReporter: Progress<ProgressReporterData> = { report: progressReportStub };
-            when(appShell.withProgressCustomIcon(anything(), anything())).thenCall((_, cb) => cb(progressReporter));
-            // Create a file stream that will throw an error when written to (use ErroringMemoryStream).
-            const tmpFilePath = 'bogus file';
-            const fileSystem = mock(FileSystem);
-            const fileStream = new ErroringMemoryStream('kaboom from fs');
-            when(fileSystem.createWriteStream(tmpFilePath)).thenReturn(fileStream as any);
-
-            fileDownloader = new FileDownloader(instance(httpClient), instance(fileSystem), instance(appShell));
-            const promise = fileDownloader.downloadFileWithStatusBarProgress(uri, 'hello', tmpFilePath);
-
-            // Confirm error from FS is bubbled up.
-            await expect(promise).to.eventually.be.rejectedWith('kaboom from fs');
-        });
         test('Report progress as file gets downloaded', async () => {
             const totalKb = 50;
             // When downloading a uri, point it to stream that's slow.
@@ -190,7 +154,7 @@ suite('File Downloader', () => {
             const progressReportStub = sinon.stub();
             const progressReporter: Progress<ProgressReporterData> = { report: progressReportStub };
             when(appShell.withProgressCustomIcon(anything(), anything())).thenCall((_, cb) => cb(progressReporter));
-            const tmpFilePath = await fs.createTemporaryFile('.json');
+            const tmpFilePath = await fs.createTemporaryLocalFile('.json');
             // Mock request-progress to throttle 1ms, so we can get progress messages.
             // I.e. report progress every 1ms. (however since download is delayed to 10ms,
             // we'll get progress reported every 10ms. We use 1ms, to ensure its guaranteed
@@ -235,18 +199,18 @@ suite('File Downloader', () => {
         });
         test('Create temporary file and return path to that file', async () => {
             const tmpFile = { filePath: 'my temp file', dispose: noop };
-            when(fs.createTemporaryFile('.pdf')).thenResolve(tmpFile);
+            when(fs.createTemporaryLocalFile('.pdf')).thenResolve(tmpFile);
             fileDownloader = new FileDownloader(instance(httpClient), instance(fs), instance(appShell));
 
             const file = await fileDownloader.downloadFile('file', { progressMessagePrefix: '', extension: '.pdf' });
 
-            verify(fs.createTemporaryFile('.pdf')).once();
+            verify(fs.createTemporaryLocalFile('.pdf')).once();
             assert.equal(file, 'my temp file');
         });
         test('Display progress message in output channel', async () => {
             const outputChannel = mock(MockOutputChannel);
             const tmpFile = { filePath: 'my temp file', dispose: noop };
-            when(fs.createTemporaryFile('.pdf')).thenResolve(tmpFile);
+            when(fs.createTemporaryLocalFile('.pdf')).thenResolve(tmpFile);
             fileDownloader = new FileDownloader(instance(httpClient), instance(fs), instance(appShell));
 
             await fileDownloader.downloadFile('file to download', {
@@ -259,7 +223,7 @@ suite('File Downloader', () => {
         });
         test('Display progress when downloading', async () => {
             const tmpFile = { filePath: 'my temp file', dispose: noop };
-            when(fs.createTemporaryFile('.pdf')).thenResolve(tmpFile);
+            when(fs.createTemporaryLocalFile('.pdf')).thenResolve(tmpFile);
             const statusBarProgressStub = sinon.stub(FileDownloader.prototype, 'downloadFileWithStatusBarProgress');
             statusBarProgressStub.callsFake(() => Promise.resolve());
             fileDownloader = new FileDownloader(instance(httpClient), instance(fs), instance(appShell));
@@ -271,7 +235,7 @@ suite('File Downloader', () => {
         test('Dispose temp file and bubble error thrown by status progress', async () => {
             const disposeStub = sinon.stub();
             const tmpFile = { filePath: 'my temp file', dispose: disposeStub };
-            when(fs.createTemporaryFile('.pdf')).thenResolve(tmpFile);
+            when(fs.createTemporaryLocalFile('.pdf')).thenResolve(tmpFile);
             const statusBarProgressStub = sinon.stub(FileDownloader.prototype, 'downloadFileWithStatusBarProgress');
             statusBarProgressStub.callsFake(() => Promise.reject(new Error('kaboom')));
             fileDownloader = new FileDownloader(instance(httpClient), instance(fs), instance(appShell));

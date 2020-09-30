@@ -2,7 +2,7 @@ import * as path from 'path';
 import { traceInfo } from '../common/logger';
 import { IExtensionContext } from '../common/types';
 import { PythonExtension } from '../datascience/constants';
-import { IDataScienceFileSystem } from '../datascience/types';
+import { IFileSystem } from '../datascience/types';
 
 export const trustDirectoryMigrated = 'trustDirectoryMigrated';
 
@@ -11,7 +11,7 @@ export class MigrateDigestStorage {
     private pythonExtensionStorageDir: string;
     private ensuredDir: Promise<void>;
 
-    constructor(private extensionContext: IExtensionContext, private fs: IDataScienceFileSystem) {
+    constructor(private extensionContext: IExtensionContext, private fs: IFileSystem) {
         this.currentExtensionStorageDir = this.extensionContext.globalStoragePath;
         this.pythonExtensionStorageDir = path.join(
             path.resolve(this.currentExtensionStorageDir, '..'),

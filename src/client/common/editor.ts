@@ -1,14 +1,8 @@
 import { Diff, diff_match_patch } from 'diff-match-patch';
 import { injectable } from 'inversify';
-import * as md5 from 'md5';
 import { EOL } from 'os';
-import * as path from 'path';
-import { Position, Range, TextDocument, TextEdit, Uri, WorkspaceEdit } from 'vscode';
-import { IFileSystem } from '../common/platform/types';
-import { WrappedError } from './errors/errorUtils';
-import { traceError } from './logger';
+import { Position, Range, TextEdit, Uri, WorkspaceEdit } from 'vscode';
 import { IEditorUtils } from './types';
-import { isNotebookCell } from './utils/misc';
 
 // Code borrowed from goFormat.ts (Go Extension for VS Code)
 enum EditAction {
@@ -51,120 +45,6 @@ class Edit {
                 return new TextEdit(new Range(new Position(0, 0), new Position(0, 0)), '');
         }
     }
-}
-
-export function getTextEditsFromPatch(before: string, patch: string): TextEdit[] {
-    if (patch.startsWith('---')) {
-        // Strip the first two lines
-        patch = patch.substring(patch.indexOf('@@'));
-    }
-    if (patch.length === 0) {
-        return [];
-    }
-    // Remove the text added by unified_diff
-    // # Work around missing newline (http://bugs.python.org/issue2142).
-    patch = patch.replace(/\\ No newline at end of file[\r\n]/, '');
-    // tslint:disable-next-line:no-require-imports
-    const dmp = require('diff-match-patch') as typeof import('diff-match-patch');
-    const d = new dmp.diff_match_patch();
-    const patches = patch_fromText.call(d, patch);
-    if (!Array.isArray(patches) || patches.length === 0) {
-        throw new Error('Unable to parse Patch string');
-    }
-    const textEdits: TextEdit[] = [];
-
-    // Add line feeds and build the text edits
-    patches.forEach((p) => {
-        p.diffs.forEach((diff) => {
-            diff[1] += EOL;
-        });
-        getTextEditsInternal(before, p.diffs, p.start1).forEach((edit) => textEdits.push(edit.apply()));
-    });
-
-    return textEdits;
-}
-export function getWorkspaceEditsFromPatch(
-    filePatches: string[],
-    workspaceRoot: string | undefined,
-    fs: IFileSystem
-): WorkspaceEdit {
-    const workspaceEdit = new WorkspaceEdit();
-    filePatches.forEach((patch) => {
-        const indexOfAtAt = patch.indexOf('@@');
-        if (indexOfAtAt === -1) {
-            return;
-        }
-        const fileNameLines = patch
-            .substring(0, indexOfAtAt)
-            .split(/\r?\n/g)
-            .map((line) => line.trim())
-            .filter((line) => line.length > 0 && line.toLowerCase().endsWith('.py') && line.indexOf(' a') > 0);
-
-        if (patch.startsWith('---')) {
-            // Strip the first two lines
-            patch = patch.substring(indexOfAtAt);
-        }
-        if (patch.length === 0) {
-            return;
-        }
-        // We can't find the find name
-        if (fileNameLines.length === 0) {
-            return;
-        }
-
-        let fileName = fileNameLines[0].substring(fileNameLines[0].indexOf(' a') + 3).trim();
-        fileName = workspaceRoot && !path.isAbsolute(fileName) ? path.resolve(workspaceRoot, fileName) : fileName;
-        if (!fs.fileExistsSync(fileName)) {
-            return;
-        }
-
-        // Remove the text added by unified_diff
-        // # Work around missing newline (http://bugs.python.org/issue2142).
-        patch = patch.replace(/\\ No newline at end of file[\r\n]/, '');
-
-        // tslint:disable-next-line:no-require-imports
-        const dmp = require('diff-match-patch') as typeof import('diff-match-patch');
-        const d = new dmp.diff_match_patch();
-        const patches = patch_fromText.call(d, patch);
-        if (!Array.isArray(patches) || patches.length === 0) {
-            throw new Error('Unable to parse Patch string');
-        }
-
-        const fileSource = fs.readFileSync(fileName);
-        const fileUri = Uri.file(fileName);
-
-        // Add line feeds and build the text edits
-        patches.forEach((p) => {
-            p.diffs.forEach((diff) => {
-                diff[1] += EOL;
-            });
-
-            getTextEditsInternal(fileSource, p.diffs, p.start1).forEach((edit) => {
-                switch (edit.action) {
-                    case EditAction.Delete:
-                        workspaceEdit.delete(fileUri, new Range(edit.start, edit.end));
-                        break;
-                    case EditAction.Insert:
-                        workspaceEdit.insert(fileUri, edit.start, edit.text);
-                        break;
-                    case EditAction.Replace:
-                        workspaceEdit.replace(fileUri, new Range(edit.start, edit.end), edit.text);
-                        break;
-                    default:
-                        break;
-                }
-            });
-        });
-    });
-
-    return workspaceEdit;
-}
-export function getTextEdits(before: string, after: string): TextEdit[] {
-    // tslint:disable-next-line:no-require-imports
-    const dmp = require('diff-match-patch') as typeof import('diff-match-patch');
-    const d = new dmp.diff_match_patch();
-    const diffs = d.diff_main(before, after);
-    return getTextEditsInternal(before, diffs).map((edit) => edit.apply());
 }
 function getTextEditsInternal(before: string, diffs: [number, string][], startLine: number = 0): Edit[] {
     let line = startLine;
@@ -245,31 +125,6 @@ function getTextEditsInternal(before: string, diffs: [number, string][], startLi
     }
 
     return edits;
-}
-
-export async function getTempFileWithDocumentContents(document: TextDocument, fs: IFileSystem): Promise<string> {
-    // Don't create file in temp folder since external utilities
-    // look into configuration files in the workspace and are not
-    // to find custom rules if file is saved in a random disk location.
-    // This means temp file has to be created in the same folder
-    // as the original one and then removed.
-    // Use a .tmp file extension (instead of the original extension)
-    // because the language server is watching the file system for Python
-    // file add/delete/change and we don't want this temp file to trigger it.
-
-    // tslint:disable-next-line:no-require-imports
-    let fileName = `${document.uri.fsPath}.${md5(document.uri.fsPath)}.tmp`;
-    try {
-        // When dealing with untitled notebooks, there's no original physical file, hence create a temp file.
-        if (isNotebookCell(document.uri) && !(await fs.fileExists(document.uri.fsPath))) {
-            fileName = (await fs.createTemporaryFile(`${path.basename(document.uri.fsPath)}.tmp`)).filePath;
-        }
-        await fs.writeFile(fileName, document.getText());
-    } catch (ex) {
-        traceError('Failed to create a temporary file', ex);
-        throw new WrappedError(`Failed to create a temporary file, ${ex.message}`, ex);
-    }
-    return fileName;
 }
 
 /**

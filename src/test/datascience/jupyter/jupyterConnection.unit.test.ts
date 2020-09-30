@@ -13,9 +13,9 @@ import { IConfigurationService, IJupyterSettings } from '../../../client/common/
 import { DataScience } from '../../../client/common/utils/localize';
 import { noop } from '../../../client/common/utils/misc';
 import { EXTENSION_ROOT_DIR } from '../../../client/constants';
-import { DataScienceFileSystem } from '../../../client/datascience/dataScienceFileSystem';
+import { FileSystem } from '../../../client/datascience/fileSystem';
 import { JupyterConnectionWaiter, JupyterServerInfo } from '../../../client/datascience/jupyter/jupyterConnection';
-import { IDataScienceFileSystem } from '../../../client/datascience/types';
+import { IFileSystem } from '../../../client/datascience/types';
 import { ServiceContainer } from '../../../client/ioc/container';
 import { IServiceContainer } from '../../../client/ioc/types';
 
@@ -25,7 +25,7 @@ suite('DataScience - JupyterConnection', () => {
     let launchResult: ObservableExecutionResult<string>;
     let getServerInfoStub: sinon.SinonStub<[CancellationToken | undefined], JupyterServerInfo[] | undefined>;
     let configService: IConfigurationService;
-    let fs: IDataScienceFileSystem;
+    let fs: IFileSystem;
     let serviceContainer: IServiceContainer;
     // tslint:disable-next-line: no-any
     const dsSettings: IJupyterSettings = { jupyterLaunchTimeout: 10_000 } as any;
@@ -78,13 +78,13 @@ suite('DataScience - JupyterConnection', () => {
         };
         getServerInfoStub = sinon.stub<[CancellationToken | undefined], JupyterServerInfo[] | undefined>();
         serviceContainer = mock(ServiceContainer);
-        fs = mock(DataScienceFileSystem);
+        fs = mock(FileSystem);
         configService = mock(ConfigurationService);
         const settings = mock(JupyterSettings);
         getServerInfoStub.resolves(dummyServerInfos);
         when(fs.areLocalPathsSame(anything(), anything())).thenCall((path1, path2) => path1 === path2);
         when(configService.getSettings(anything())).thenReturn(instance(settings));
-        when(serviceContainer.get<IDataScienceFileSystem>(IDataScienceFileSystem)).thenReturn(instance(fs));
+        when(serviceContainer.get<IFileSystem>(IFileSystem)).thenReturn(instance(fs));
         when(serviceContainer.get<IConfigurationService>(IConfigurationService)).thenReturn(instance(configService));
     });
 

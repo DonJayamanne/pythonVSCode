@@ -33,7 +33,7 @@ import { HostJupyterNotebook } from '../../client/datascience/jupyter/liveshare/
 import {
     CellState,
     ICell,
-    IDataScienceFileSystem,
+    IFileSystem,
     IJupyterConnection,
     IJupyterExecution,
     IJupyterKernelSpec,
@@ -625,7 +625,7 @@ suite('DataScience notebook tests', () => {
                 }
 
                 // Save to a temp file
-                const fileSystem = ioc.serviceManager.get<IDataScienceFileSystem>(IDataScienceFileSystem);
+                const fileSystem = ioc.serviceManager.get<IFileSystem>(IFileSystem);
                 const importer = ioc.serviceManager.get<INotebookImporter>(INotebookImporter);
                 const temp = await fileSystem.createTemporaryLocalFile('.ipynb');
 
@@ -1098,7 +1098,7 @@ plt.show()`,
                     'Jupyter is not outputting the path to the config'
                 );
                 const configPath = match !== null ? match[1] : '';
-                const filesystem = ioc.serviceContainer.get<IDataScienceFileSystem>(IDataScienceFileSystem);
+                const filesystem = ioc.serviceContainer.get<IFileSystem>(IFileSystem);
                 await filesystem.writeLocalFile(configPath, 'c.NotebookApp.password_required = True'); // This should make jupyter fail
                 modifiedConfig = true;
             }

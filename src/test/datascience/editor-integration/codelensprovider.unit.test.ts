@@ -15,8 +15,8 @@ import { DataScienceCodeLensProvider } from '../../../client/datascience/editor-
 import {
     ICodeWatcher,
     IDataScienceCodeLensProvider,
-    IDataScienceFileSystem,
-    IDebugLocationTracker
+    IDebugLocationTracker,
+    IFileSystem
 } from '../../../client/datascience/types';
 import { IServiceContainer } from '../../../client/ioc/types';
 
@@ -30,7 +30,7 @@ suite('DataScienceCodeLensProvider Unit Tests', () => {
     let commandManager: TypeMoq.IMock<ICommandManager>;
     let debugService: TypeMoq.IMock<IDebugService>;
     let debugLocationTracker: TypeMoq.IMock<IDebugLocationTracker>;
-    let fileSystem: TypeMoq.IMock<IDataScienceFileSystem>;
+    let fileSystem: TypeMoq.IMock<IFileSystem>;
     let tokenSource: CancellationTokenSource;
     let vscodeNotebook: TypeMoq.IMock<IVSCodeNotebook>;
     const disposables: Disposable[] = [];
@@ -44,7 +44,7 @@ suite('DataScienceCodeLensProvider Unit Tests', () => {
         debugService = TypeMoq.Mock.ofType<IDebugService>();
         debugLocationTracker = TypeMoq.Mock.ofType<IDebugLocationTracker>();
         pythonSettings = TypeMoq.Mock.ofType<IWatchableJupyterSettings>();
-        fileSystem = TypeMoq.Mock.ofType<IDataScienceFileSystem>();
+        fileSystem = TypeMoq.Mock.ofType<IFileSystem>();
         vscodeNotebook = TypeMoq.Mock.ofType<IVSCodeNotebook>();
         configurationService.setup((c) => c.getSettings(TypeMoq.It.isAny())).returns(() => pythonSettings.object);
         vscodeNotebook.setup((c) => c.activeNotebookEditor).returns(() => undefined);

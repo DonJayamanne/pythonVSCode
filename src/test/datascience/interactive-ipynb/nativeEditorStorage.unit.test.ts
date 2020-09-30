@@ -37,7 +37,7 @@ import { NativeEditorStorage } from '../../../client/datascience/notebookStorage
 import { NotebookStorageProvider } from '../../../client/datascience/notebookStorage/notebookStorageProvider';
 import {
     ICell,
-    IDataScienceFileSystem,
+    IFileSystem,
     IJupyterExecution,
     INotebookModel,
     INotebookServerOptions,
@@ -55,7 +55,7 @@ import { MockWorkspaceConfiguration } from '../mockWorkspaceConfig';
 suite('DataScience - Native Editor Storage', () => {
     let workspace: IWorkspaceService;
     let configService: IConfigurationService;
-    let fileSystem: typemoq.IMock<IDataScienceFileSystem>;
+    let fileSystem: typemoq.IMock<IFileSystem>;
     let docManager: IDocumentManager;
     let interpreterService: IInterpreterService;
     let webPanelProvider: IWebviewPanelProvider;
@@ -251,7 +251,7 @@ suite('DataScience - Native Editor Storage', () => {
         globalMemento = new MockMemento();
         localMemento = new MockMemento();
         configService = mock(ConfigurationService);
-        fileSystem = typemoq.Mock.ofType<IDataScienceFileSystem>();
+        fileSystem = typemoq.Mock.ofType<IFileSystem>();
         docManager = mock(DocumentManager);
         workspace = mock(WorkspaceService);
         interpreterService = mock<IInterpreterService>();

@@ -12,7 +12,7 @@ import { StopWatch } from '../../common/utils/stopWatch';
 import { IServiceContainer } from '../../ioc/types';
 import { sendTelemetryEvent } from '../../telemetry';
 import { CodeLensCommands, EditorContexts, Telemetry } from '../constants';
-import { ICodeWatcher, IDataScienceCodeLensProvider, IDataScienceFileSystem, IDebugLocationTracker } from '../types';
+import { ICodeWatcher, IDataScienceCodeLensProvider, IDebugLocationTracker, IFileSystem } from '../types';
 
 @injectable()
 export class DataScienceCodeLensProvider implements IDataScienceCodeLensProvider, IDisposable {
@@ -28,7 +28,7 @@ export class DataScienceCodeLensProvider implements IDataScienceCodeLensProvider
         @inject(ICommandManager) private commandManager: ICommandManager,
         @inject(IDisposableRegistry) disposableRegistry: IDisposableRegistry,
         @inject(IDebugService) private debugService: IDebugService,
-        @inject(IDataScienceFileSystem) private fs: IDataScienceFileSystem,
+        @inject(IFileSystem) private fs: IFileSystem,
         @inject(IVSCodeNotebook) private readonly vsCodeNotebook: IVSCodeNotebook
     ) {
         disposableRegistry.push(this);

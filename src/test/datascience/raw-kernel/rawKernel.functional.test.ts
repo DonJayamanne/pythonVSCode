@@ -11,7 +11,7 @@ import { createDeferred, sleep } from '../../../client/common/utils/async';
 import { KernelDaemonPool } from '../../../client/datascience/kernel-launcher/kernelDaemonPool';
 import { KernelProcess } from '../../../client/datascience/kernel-launcher/kernelProcess';
 import { createRawKernel, RawKernel } from '../../../client/datascience/raw-kernel/rawKernel';
-import { IDataScienceFileSystem, IJupyterKernelSpec } from '../../../client/datascience/types';
+import { IFileSystem, IJupyterKernelSpec } from '../../../client/datascience/types';
 import { IInterpreterService } from '../../../client/interpreter/contracts';
 import { DataScienceIocContainer } from '../dataScienceIocContainer';
 import { requestExecute, requestInspect } from './rawKernelTestHelpers';
@@ -80,7 +80,7 @@ suite('DataScience raw kernel tests', () => {
             ioc.get<KernelDaemonPool>(KernelDaemonPool),
             connectionInfo as any,
             { kernelSpec, interpreter, kind: 'startUsingKernelSpec' },
-            ioc.get<IDataScienceFileSystem>(IDataScienceFileSystem),
+            ioc.get<IFileSystem>(IFileSystem),
             undefined,
             ioc.get<IPythonExtensionChecker>(IPythonExtensionChecker)
         );

@@ -23,7 +23,7 @@ import { IInterpreterService } from '../../../interpreter/contracts';
 import { IServiceContainer } from '../../../ioc/types';
 import { Identifiers, LiveShare, LiveShareCommands, RegExpValues } from '../../constants';
 import {
-    IDataScienceFileSystem,
+    IFileSystem,
     IJupyterSession,
     IJupyterSessionManager,
     IJupyterSessionManagerFactory,
@@ -56,7 +56,7 @@ export class HostJupyterServer extends LiveShareParticipantHost(JupyterServerBas
         private workspaceService: IWorkspaceService,
         serviceContainer: IServiceContainer,
         private appService: IApplicationShell,
-        private fs: IDataScienceFileSystem,
+        private fs: IFileSystem,
         private readonly kernelSelector: KernelSelector,
         private readonly interpreterService: IInterpreterService,
         outputChannel: IOutputChannel

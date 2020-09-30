@@ -5,7 +5,7 @@ import { IApplicationShell, ICommandManager } from '../common/application/types'
 import { GLOBAL_MEMENTO, IConfigurationService, IExtensionContext, IMemento } from '../common/types';
 import { Logging } from '../common/utils/localize';
 import { Commands } from '../datascience/constants';
-import { IDataScienceFileSystem, IDebugLoggingManager } from '../datascience/types';
+import { IDebugLoggingManager, IFileSystem } from '../datascience/types';
 import { addLogfile } from './_global';
 import { LogLevel } from './levels';
 
@@ -15,7 +15,7 @@ const SEEN_DEBUG_LOG_LEVEL_ON_ACTIVATION_AT_LEAST_ONCE = 'SeenDebugLogLevelAtLea
 export class DebugLoggingManager implements IDebugLoggingManager {
     private logfilePath: string;
     constructor(
-        @inject(IDataScienceFileSystem) private filesystem: IDataScienceFileSystem,
+        @inject(IFileSystem) private filesystem: IFileSystem,
         @inject(IMemento) @named(GLOBAL_MEMENTO) private globalState: Memento,
         @inject(IApplicationShell) private appShell: IApplicationShell,
         @inject(IConfigurationService) private configService: IConfigurationService,

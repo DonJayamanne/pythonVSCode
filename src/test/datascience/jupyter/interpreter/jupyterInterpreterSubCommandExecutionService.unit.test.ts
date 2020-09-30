@@ -23,12 +23,12 @@ import { DataScience } from '../../../../client/common/utils/localize';
 import { noop } from '../../../../client/common/utils/misc';
 import { EXTENSION_ROOT_DIR } from '../../../../client/constants';
 import { JupyterDaemonModule } from '../../../../client/datascience/constants';
-import { DataScienceFileSystem } from '../../../../client/datascience/dataScienceFileSystem';
+import { FileSystem } from '../../../../client/datascience/fileSystem';
 import { JupyterInterpreterDependencyService } from '../../../../client/datascience/jupyter/interpreter/jupyterInterpreterDependencyService';
 import { JupyterInterpreterService } from '../../../../client/datascience/jupyter/interpreter/jupyterInterpreterService';
 import { JupyterInterpreterSubCommandExecutionService } from '../../../../client/datascience/jupyter/interpreter/jupyterInterpreterSubCommandExecutionService';
 import { JupyterServerInfo } from '../../../../client/datascience/jupyter/jupyterConnection';
-import { IDataScienceFileSystem } from '../../../../client/datascience/types';
+import { IFileSystem } from '../../../../client/datascience/types';
 import { IInterpreterService } from '../../../../client/interpreter/contracts';
 import { MockOutputChannel } from '../../../mockClasses';
 import { createPythonInterpreter } from '../../../utils/interpreters';
@@ -40,7 +40,7 @@ suite('DataScience - Jupyter InterpreterSubCommandExecutionService', () => {
     let jupyterInterpreter: JupyterInterpreterService;
     let interperterService: IInterpreterService;
     let jupyterDependencyService: JupyterInterpreterDependencyService;
-    let fs: IDataScienceFileSystem;
+    let fs: IFileSystem;
     let execService: IPythonDaemonExecutionService;
     let jupyterInterpreterExecutionService: JupyterInterpreterSubCommandExecutionService;
     const selectedJupyterInterpreter = createPythonInterpreter({ displayName: 'JupyterInterpreter' });
@@ -50,7 +50,7 @@ suite('DataScience - Jupyter InterpreterSubCommandExecutionService', () => {
         interperterService = mock<IInterpreterService>();
         jupyterInterpreter = mock(JupyterInterpreterService);
         jupyterDependencyService = mock(JupyterInterpreterDependencyService);
-        fs = mock(DataScienceFileSystem);
+        fs = mock(FileSystem);
         const execFactory = mock(PythonExecutionFactory);
         execService = mock<IPythonDaemonExecutionService>();
         when(

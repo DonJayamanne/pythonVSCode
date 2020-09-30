@@ -8,7 +8,7 @@ import * as localize from '../common/utils/localize';
 import { EXTENSION_ROOT_DIR } from '../constants';
 import { JupyterUriProviderWrapper } from './jupyterUriProviderWrapper';
 import {
-    IDataScienceFileSystem,
+    IFileSystem,
     IJupyterServerUri,
     IJupyterUriProvider,
     IJupyterUriProviderRegistration,
@@ -22,7 +22,7 @@ export class JupyterUriProviderRegistration implements IJupyterUriProviderRegist
 
     constructor(
         @inject(IExtensions) private readonly extensions: IExtensions,
-        @inject(IDataScienceFileSystem) private readonly fs: IDataScienceFileSystem
+        @inject(IFileSystem) private readonly fs: IFileSystem
     ) {}
 
     public async getProviders(): Promise<ReadonlyArray<IJupyterUriProvider>> {

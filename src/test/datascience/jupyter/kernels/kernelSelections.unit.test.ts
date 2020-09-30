@@ -10,14 +10,14 @@ import { PYTHON_LANGUAGE } from '../../../../client/common/constants';
 import { PathUtils } from '../../../../client/common/platform/pathUtils';
 import { IPathUtils } from '../../../../client/common/types';
 import * as localize from '../../../../client/common/utils/localize';
-import { DataScienceFileSystem } from '../../../../client/datascience/dataScienceFileSystem';
+import { FileSystem } from '../../../../client/datascience/fileSystem';
 import { JupyterSessionManager } from '../../../../client/datascience/jupyter/jupyterSessionManager';
 import { KernelSelectionProvider } from '../../../../client/datascience/jupyter/kernels/kernelSelections';
 import { KernelService } from '../../../../client/datascience/jupyter/kernels/kernelService';
 import { IKernelSpecQuickPickItem } from '../../../../client/datascience/jupyter/kernels/types';
 import { IKernelFinder } from '../../../../client/datascience/kernel-launcher/types';
 import {
-    IDataScienceFileSystem,
+    IFileSystem,
     IJupyterKernel,
     IJupyterKernelSpec,
     IJupyterSessionManager
@@ -31,7 +31,7 @@ suite('DataScience - KernelSelections', () => {
     let kernelFinder: IKernelFinder;
     let interpreterSelector: IInterpreterSelector;
     let pathUtils: IPathUtils;
-    let fs: IDataScienceFileSystem;
+    let fs: IFileSystem;
     let sessionManager: IJupyterSessionManager;
     const activePython1KernelModel = {
         lastActivityTime: new Date(2011, 11, 10, 12, 15, 0, 0),
@@ -131,7 +131,7 @@ suite('DataScience - KernelSelections', () => {
         sessionManager = mock(JupyterSessionManager);
         kernelService = mock(KernelService);
         kernelFinder = mock<IKernelFinder>();
-        fs = mock(DataScienceFileSystem);
+        fs = mock(FileSystem);
         pathUtils = mock(PathUtils);
         when(pathUtils.getDisplayName(anything())).thenReturn('<user friendly path>');
         when(pathUtils.getDisplayName(anything(), anything())).thenReturn('<user friendly path>');

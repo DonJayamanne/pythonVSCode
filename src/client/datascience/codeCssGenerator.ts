@@ -11,7 +11,7 @@ import { traceError, traceInfo, traceWarning } from '../common/logger';
 
 import { IConfigurationService, Resource } from '../common/types';
 import { DefaultTheme } from './constants';
-import { ICodeCssGenerator, IDataScienceFileSystem, IThemeFinder } from './types';
+import { ICodeCssGenerator, IFileSystem, IThemeFinder } from './types';
 
 // tslint:disable:no-any
 const DarkTheme = 'dark';
@@ -98,7 +98,7 @@ export class CodeCssGenerator implements ICodeCssGenerator {
         @inject(IWorkspaceService) private workspaceService: IWorkspaceService,
         @inject(IThemeFinder) private themeFinder: IThemeFinder,
         @inject(IConfigurationService) private configService: IConfigurationService,
-        @inject(IDataScienceFileSystem) private fs: IDataScienceFileSystem
+        @inject(IFileSystem) private fs: IFileSystem
     ) {}
 
     public generateThemeCss(resource: Resource, isDark: boolean, theme: string): Promise<string> {

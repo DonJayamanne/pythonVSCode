@@ -18,8 +18,8 @@ import {
     ICellHashProvider,
     ICellRange,
     ICodeLensFactory,
-    IDataScienceFileSystem,
     IFileHashes,
+    IFileSystem,
     IInteractiveWindowListener,
     INotebook,
     INotebookProvider
@@ -58,7 +58,7 @@ export class CodeLensFactory implements ICodeLensFactory, IInteractiveWindowList
     constructor(
         @inject(IConfigurationService) private configService: IConfigurationService,
         @inject(INotebookProvider) private notebookProvider: INotebookProvider,
-        @inject(IDataScienceFileSystem) private fs: IDataScienceFileSystem,
+        @inject(IFileSystem) private fs: IFileSystem,
         @inject(IDocumentManager) private documentManager: IDocumentManager
     ) {
         this.documentManager.onDidCloseTextDocument(this.onClosedDocument.bind(this));

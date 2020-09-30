@@ -15,13 +15,13 @@ import { HttpClient } from '../../../client/common/net/httpClient';
 import { IConfigurationService, IHttpClient, WidgetCDNs } from '../../../client/common/types';
 import { noop } from '../../../client/common/utils/misc';
 import { EXTENSION_ROOT_DIR } from '../../../client/constants';
-import { DataScienceFileSystem } from '../../../client/datascience/dataScienceFileSystem';
+import { FileSystem } from '../../../client/datascience/fileSystem';
 import { CDNWidgetScriptSourceProvider } from '../../../client/datascience/ipywidgets/cdnWidgetScriptSourceProvider';
 import { IPyWidgetScriptSource } from '../../../client/datascience/ipywidgets/ipyWidgetScriptSource';
 import { IWidgetScriptSourceProvider } from '../../../client/datascience/ipywidgets/types';
 import { JupyterNotebookBase } from '../../../client/datascience/jupyter/jupyterNotebook';
 import {
-    IDataScienceFileSystem,
+    IFileSystem,
     IJupyterConnection,
     ILocalResourceUriConverter,
     INotebook
@@ -41,7 +41,7 @@ suite('DataScience - ipywidget - CDN', () => {
     let configService: IConfigurationService;
     let httpClient: IHttpClient;
     let settings: JupyterSettings;
-    let fileSystem: IDataScienceFileSystem;
+    let fileSystem: IFileSystem;
     let webviewUriConverter: ILocalResourceUriConverter;
     let tempFileCount = 0;
     suiteSetup(function () {
@@ -54,7 +54,7 @@ suite('DataScience - ipywidget - CDN', () => {
         notebook = mock(JupyterNotebookBase);
         configService = mock(ConfigurationService);
         httpClient = mock(HttpClient);
-        fileSystem = mock(DataScienceFileSystem);
+        fileSystem = mock(FileSystem);
         webviewUriConverter = mock(IPyWidgetScriptSource);
         settings = { widgetScriptSources: [] } as any;
         when(configService.getSettings(anything())).thenReturn(settings as any);

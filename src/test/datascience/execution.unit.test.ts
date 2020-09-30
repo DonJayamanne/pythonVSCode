@@ -38,7 +38,7 @@ import {
     Product
 } from '../../client/common/types';
 import { EXTENSION_ROOT_DIR } from '../../client/constants';
-import { DataScienceFileSystem } from '../../client/datascience/dataScienceFileSystem';
+import { FileSystem } from '../../client/datascience/fileSystem';
 import { JupyterInterpreterDependencyService } from '../../client/datascience/jupyter/interpreter/jupyterInterpreterDependencyService';
 import { JupyterInterpreterOldCacheStateStore } from '../../client/datascience/jupyter/interpreter/jupyterInterpreterOldCacheStateStore';
 import { JupyterInterpreterService } from '../../client/datascience/jupyter/interpreter/jupyterInterpreterService';
@@ -48,7 +48,7 @@ import { KernelSelector } from '../../client/datascience/jupyter/kernels/kernelS
 import { NotebookStarter } from '../../client/datascience/jupyter/notebookStarter';
 import { LiveShareApi } from '../../client/datascience/liveshare/liveshare';
 import {
-    IDataScienceFileSystem,
+    IFileSystem,
     IJupyterKernelSpec,
     IJupyterSubCommandExecutionService,
     INotebookServer
@@ -92,7 +92,7 @@ suite('Jupyter Execution', async () => {
     const configService = mock(ConfigurationService);
     const application = mock(ApplicationShell);
     const processServiceFactory = mock(ProcessServiceFactory);
-    const fileSystem = mock(DataScienceFileSystem);
+    const fileSystem = mock(FileSystem);
     const activationHelper = mock<IEnvironmentActivationService>();
     const serviceContainer = mock(ServiceContainer);
     const workspaceService = mock(WorkspaceService);
@@ -849,7 +849,7 @@ suite('Jupyter Execution', async () => {
 
         // Service container needs logger, file system, and config service
         when(serviceContainer.get<IConfigurationService>(IConfigurationService)).thenReturn(instance(configService));
-        when(serviceContainer.get<IDataScienceFileSystem>(IDataScienceFileSystem)).thenReturn(instance(fileSystem));
+        when(serviceContainer.get<IFileSystem>(IFileSystem)).thenReturn(instance(fileSystem));
         when(serviceContainer.get<IWorkspaceService>(IWorkspaceService)).thenReturn(instance(workspaceService));
         when(serviceContainer.get<IApplicationShell>(IApplicationShell)).thenReturn(instance(application));
         when(configService.getSettings(anything())).thenReturn(pythonSettings);

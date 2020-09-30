@@ -12,7 +12,7 @@ import { IDisposable } from '../../common/types';
 import { INotebookIdentity, InteractiveWindowMessages } from '../interactive-common/interactiveWindowTypes';
 import {
     FileSettings,
-    IDataScienceFileSystem,
+    IFileSystem,
     IInteractiveWindowListener,
     INotebookEditor,
     INotebookEditorProvider,
@@ -46,7 +46,7 @@ export class AutoSaveService implements IInteractiveWindowListener {
         @inject(IApplicationShell) appShell: IApplicationShell,
         @inject(IDocumentManager) documentManager: IDocumentManager,
         @inject(INotebookEditorProvider) private readonly notebookEditorProvider: INotebookEditorProvider,
-        @inject(IDataScienceFileSystem) private readonly fs: IDataScienceFileSystem,
+        @inject(IFileSystem) private readonly fs: IFileSystem,
         @inject(IWorkspaceService) private readonly workspace: IWorkspaceService
     ) {
         this.workspace.onDidChangeConfiguration(this.onSettingsChanded.bind(this), this, this.disposables);

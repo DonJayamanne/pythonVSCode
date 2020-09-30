@@ -4,13 +4,13 @@
 import * as path from 'path';
 
 import { EXTENSION_ROOT_DIR } from '../../constants';
-import { IDataScienceFileSystem, IJupyterVariable } from '../types';
+import { IFileSystem, IJupyterVariable } from '../types';
 
 export class VariableScriptLoader {
     private fetchVariableShapeScript?: string;
     private filesLoaded: boolean = false;
 
-    constructor(private fs: IDataScienceFileSystem) {}
+    constructor(private fs: IFileSystem) {}
 
     public readShapeScript(targetVariable: IJupyterVariable): Promise<string | undefined> {
         return this.readScript(targetVariable, () => this.fetchVariableShapeScript);

@@ -5,7 +5,7 @@ import { CancellationToken, Uri } from 'vscode';
 import { IPythonExecutionFactory, IPythonExecutionService } from '../../common/process/types';
 import { reportAction } from '../progress/decorator';
 import { ReportableAction } from '../progress/types';
-import { IDataScienceFileSystem, IJupyterSubCommandExecutionService, INotebookImporter } from '../types';
+import { IFileSystem, IJupyterSubCommandExecutionService, INotebookImporter } from '../types';
 import { ExportFormat, IExport } from './types';
 
 @injectable()
@@ -14,7 +14,7 @@ export class ExportBase implements IExport {
         @inject(IPythonExecutionFactory) protected readonly pythonExecutionFactory: IPythonExecutionFactory,
         @inject(IJupyterSubCommandExecutionService)
         protected jupyterService: IJupyterSubCommandExecutionService,
-        @inject(IDataScienceFileSystem) protected readonly fs: IDataScienceFileSystem,
+        @inject(IFileSystem) protected readonly fs: IFileSystem,
         @inject(INotebookImporter) protected readonly importer: INotebookImporter
     ) {}
 

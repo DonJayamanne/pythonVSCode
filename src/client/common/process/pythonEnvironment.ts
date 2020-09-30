@@ -1,3 +1,4 @@
+import { IFileSystem } from '../../datascience/types';
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
@@ -6,7 +7,6 @@ import { InterpreterInformation } from '../../pythonEnvironments/info';
 import { getExecutablePath } from '../../pythonEnvironments/info/executable';
 import { getInterpreterInfo } from '../../pythonEnvironments/info/interpreter';
 import { traceError, traceInfo } from '../logger';
-import { IFileSystem } from '../platform/types';
 import * as internalPython from './internal/python';
 import { ExecutionResult, IProcessService, ShellOptions, SpawnOptions } from './types';
 
@@ -98,7 +98,7 @@ export function createPythonEnv(
     fs: IFileSystem
 ): PythonEnvironment {
     const deps = createDeps(
-        async (filename) => fs.fileExists(filename),
+        async (filename) => fs.localFileExists(filename),
         // We use the default: [pythonPath].
         undefined,
         undefined,
@@ -127,7 +127,7 @@ export function createCondaEnv(
     }
     const pythonArgv = [condaFile, ...runArgs, 'python'];
     const deps = createDeps(
-        async (filename) => fs.fileExists(filename),
+        async (filename) => fs.localFileExists(filename),
         pythonArgv,
         // tslint:disable-next-line:no-suspicious-comment
         // TODO: Use pythonArgv here once 'conda run' can be

@@ -14,13 +14,13 @@ import { PYTHON_LANGUAGE } from '../../../../client/common/constants';
 import { PythonExecutionFactory } from '../../../../client/common/process/pythonExecutionFactory';
 import { IPythonExecutionFactory, IPythonExecutionService } from '../../../../client/common/process/types';
 import { ReadWrite } from '../../../../client/common/types';
-import { DataScienceFileSystem } from '../../../../client/datascience/dataScienceFileSystem';
+import { FileSystem } from '../../../../client/datascience/fileSystem';
 import { JupyterSessionManager } from '../../../../client/datascience/jupyter/jupyterSessionManager';
 import { JupyterKernelSpec } from '../../../../client/datascience/jupyter/kernels/jupyterKernelSpec';
 import { KernelDependencyService } from '../../../../client/datascience/jupyter/kernels/kernelDependencyService';
 import { KernelService } from '../../../../client/datascience/jupyter/kernels/kernelService';
 import {
-    IDataScienceFileSystem,
+    IFileSystem,
     IJupyterKernelSpec,
     IJupyterSessionManager,
     IJupyterSubCommandExecutionService,
@@ -35,7 +35,7 @@ import { FakeClock } from '../../../common';
 suite('DataScience - KernelService', () => {
     let kernelService: KernelService;
     let interperterService: IInterpreterService;
-    let fs: IDataScienceFileSystem;
+    let fs: IFileSystem;
     let sessionManager: IJupyterSessionManager;
     let execFactory: IPythonExecutionFactory;
     let execService: IPythonExecutionService;
@@ -45,7 +45,7 @@ suite('DataScience - KernelService', () => {
 
     function initialize() {
         interperterService = mock<IInterpreterService>();
-        fs = mock(DataScienceFileSystem);
+        fs = mock(FileSystem);
         sessionManager = mock(JupyterSessionManager);
         activationHelper = mock<IEnvironmentActivationService>();
         execFactory = mock(PythonExecutionFactory);

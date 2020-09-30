@@ -15,7 +15,7 @@ import {
     getKernelPathFromKernelConnection,
     isPythonKernelConnection
 } from '../jupyter/kernels/helpers';
-import { IDataScienceFileSystem, ILocalResourceUriConverter, INotebook } from '../types';
+import { IFileSystem, ILocalResourceUriConverter, INotebook } from '../types';
 import { IWidgetScriptSourceProvider, WidgetScriptSource } from './types';
 
 /**
@@ -30,7 +30,7 @@ export class LocalWidgetScriptSourceProvider implements IWidgetScriptSourceProvi
     constructor(
         private readonly notebook: INotebook,
         private readonly localResourceUriConverter: ILocalResourceUriConverter,
-        private readonly fs: IDataScienceFileSystem,
+        private readonly fs: IFileSystem,
         private readonly interpreterService: IInterpreterService
     ) {}
     public async getWidgetScriptSource(moduleName: string): Promise<Readonly<WidgetScriptSource>> {

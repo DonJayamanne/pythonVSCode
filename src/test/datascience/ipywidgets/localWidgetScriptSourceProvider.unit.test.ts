@@ -5,11 +5,11 @@ import * as path from 'path';
 import { anything, instance, mock, verify, when } from 'ts-mockito';
 import { Uri } from 'vscode';
 import { PYTHON_LANGUAGE } from '../../../client/common/constants';
-import { DataScienceFileSystem } from '../../../client/datascience/dataScienceFileSystem';
+import { FileSystem } from '../../../client/datascience/fileSystem';
 import { LocalWidgetScriptSourceProvider } from '../../../client/datascience/ipywidgets/localWidgetScriptSourceProvider';
 import { IWidgetScriptSourceProvider } from '../../../client/datascience/ipywidgets/types';
 import { JupyterNotebookBase } from '../../../client/datascience/jupyter/jupyterNotebook';
-import { IDataScienceFileSystem, ILocalResourceUriConverter, INotebook } from '../../../client/datascience/types';
+import { IFileSystem, ILocalResourceUriConverter, INotebook } from '../../../client/datascience/types';
 import { IInterpreterService } from '../../../client/interpreter/contracts';
 
 // tslint:disable: max-func-body-length no-any
@@ -17,7 +17,7 @@ suite('DataScience - ipywidget - Local Widget Script Source', () => {
     let scriptSourceProvider: IWidgetScriptSourceProvider;
     let notebook: INotebook;
     let resourceConverter: ILocalResourceUriConverter;
-    let fs: IDataScienceFileSystem;
+    let fs: IFileSystem;
     let interpreterService: IInterpreterService;
     const filesToLookSearchFor = `*${path.sep}index.js`;
     function asVSCodeUri(uri: Uri) {
@@ -26,7 +26,7 @@ suite('DataScience - ipywidget - Local Widget Script Source', () => {
     setup(() => {
         notebook = mock(JupyterNotebookBase);
         resourceConverter = mock<ILocalResourceUriConverter>();
-        fs = mock(DataScienceFileSystem);
+        fs = mock(FileSystem);
         interpreterService = mock<IInterpreterService>();
         when(resourceConverter.asWebviewUri(anything())).thenCall((uri) => Promise.resolve(asVSCodeUri(uri)));
         scriptSourceProvider = new LocalWidgetScriptSourceProvider(

@@ -9,14 +9,14 @@ import { IApplicationEnvironment, IWorkspaceService } from '../common/applicatio
 import { traceError } from '../common/logger';
 import { Resource } from '../common/types';
 import { swallowExceptions } from '../common/utils/decorators';
-import { IDataScienceFileSystem } from '../datascience/types';
+import { IFileSystem } from '../datascience/types';
 import { traceDecorators } from '../logging';
 import { IExtensionActivationService } from './types';
 
 @injectable()
 export class MigrateDataScienceSettingsService implements IExtensionActivationService {
     constructor(
-        @inject(IDataScienceFileSystem) private readonly fs: IDataScienceFileSystem,
+        @inject(IFileSystem) private readonly fs: IFileSystem,
         @inject(IApplicationEnvironment) private readonly application: IApplicationEnvironment,
         @inject(IWorkspaceService) private readonly workspace: IWorkspaceService
     ) {}

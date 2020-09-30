@@ -21,7 +21,7 @@ import { IInterpreterService } from '../../../interpreter/contracts';
 import { IServiceContainer } from '../../../ioc/types';
 import { LiveShare, LiveShareCommands } from '../../constants';
 import {
-    IDataScienceFileSystem,
+    IFileSystem,
     IJupyterConnection,
     IJupyterExecution,
     INotebookServer,
@@ -49,7 +49,7 @@ export class HostJupyterExecution
         interpreterService: IInterpreterService,
         disposableRegistry: IDisposableRegistry,
         asyncRegistry: IAsyncDisposableRegistry,
-        fs: IDataScienceFileSystem,
+        fs: IFileSystem,
         workspace: IWorkspaceService,
         configService: IConfigurationService,
         kernelSelector: KernelSelector,

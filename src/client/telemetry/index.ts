@@ -6,7 +6,6 @@ import * as stackTrace from 'stack-trace';
 // tslint:disable-next-line: import-name
 import TelemetryReporter from 'vscode-extension-telemetry/lib/telemetryReporter';
 
-import { DiagnosticCodes } from '../application/diagnostics/constants';
 import { IWorkspaceService } from '../common/application/types';
 import { AppinsightsKey, isTestExecution, isUnitTestExecution, PVSC_EXTENSION_ID } from '../common/constants';
 import { traceError, traceInfo } from '../common/logger';
@@ -356,16 +355,6 @@ export interface IEventNamePropertyMapping {
          * @type {'switchToCommandPrompt'}
          */
         action?: 'switchToCommandPrompt';
-    };
-    /**
-     * Telemetry event sent when we are checking if we can handle the diagnostic code
-     */
-    [EventName.DIAGNOSTICS_MESSAGE]: {
-        /**
-         * Code of diagnostics message detected and displayed.
-         * @type {string}
-         */
-        code: DiagnosticCodes;
     };
     /**
      * Telemetry event sent with details just after editor loads

@@ -24,7 +24,7 @@ import { GitHubIssue } from '../common/utils/localize';
 import { Commands } from '../datascience/constants';
 import {
     IDataScienceCommandListener,
-    IDataScienceFileSystem,
+    IFileSystem,
     IInteractiveWindowProvider,
     INotebookProvider
 } from '../datascience/types';
@@ -37,7 +37,7 @@ export class GitHubIssueCommandListener implements IDataScienceCommandListener {
     private issueTextDocument: TextDocument | undefined;
     private diagnosticCollection: DiagnosticCollection;
     constructor(
-        @inject(IDataScienceFileSystem) private filesystem: IDataScienceFileSystem,
+        @inject(IFileSystem) private filesystem: IFileSystem,
         @inject(IPathUtils) private pathUtils: IPathUtils,
         @inject(IApplicationShell) private appShell: IApplicationShell,
         @inject(ICommandManager) private commandManager: ICommandManager,

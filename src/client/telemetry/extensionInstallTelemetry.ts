@@ -3,8 +3,8 @@
 
 import * as path from 'path';
 import { setSharedProperty } from '.';
-import { IFileSystem } from '../common/platform/types';
 import { EXTENSION_ROOT_DIR } from '../constants';
+import { IFileSystem } from '../datascience/types';
 
 /**
  * Sets shared telemetry property about where the extension was installed from
@@ -24,7 +24,7 @@ export async function setExtensionInstallTelemetryProperties(fs: IFileSystem) {
     // previously by the user. If we always join (<home>, .vscode, extensions), we will
     // end up looking at the wrong place, with respect to the extension that was launched.
     const fileToCheck = path.join(path.dirname(EXTENSION_ROOT_DIR), 'PythonCodingPack');
-    if (await fs.fileExists(fileToCheck)) {
+    if (await fs.localFileExists(fileToCheck)) {
         setSharedProperty('installSource', 'pythonCodingPack');
     } else {
         // We did not file the `PythonCodingPack` file, assume market place install.

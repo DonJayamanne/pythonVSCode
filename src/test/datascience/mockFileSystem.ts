@@ -3,10 +3,10 @@
 'use strict';
 
 import { Uri } from 'vscode';
-import { DataScienceFileSystem } from '../../client/datascience/dataScienceFileSystem';
+import { FileSystem } from '../../client/datascience/fileSystem';
 import { FakeVSCodeFileSystemAPI } from '../serviceRegistry';
 
-export class MockFileSystem extends DataScienceFileSystem {
+export class MockFileSystem extends FileSystem {
     private contentOverloads = new Map<string, string>();
 
     constructor() {
