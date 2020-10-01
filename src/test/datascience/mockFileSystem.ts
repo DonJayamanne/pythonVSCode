@@ -14,17 +14,17 @@ export class MockFileSystem extends FileSystem {
         this.vscfs = new FakeVSCodeFileSystemAPI();
     }
     public async readLocalFile(filePath: string): Promise<string> {
-        const contents = this.contentOverloads.get(filePath);
+        const contents = this.contentOverloads.get(this.getFileKey(filePath));
         if (contents) {
             return contents;
         }
         return super.readLocalFile(filePath);
     }
     public async writeLocalFile(filePath: string, contents: string): Promise<void> {
-        this.contentOverloads.set(filePath, contents);
+        this.contentOverloads.set(this.getFileKey(filePath), contents);
     }
     public async readFile(filePath: Uri): Promise<string> {
-        const contents = this.contentOverloads.get(filePath.fsPath);
+        const contents = this.contentOverloads.get(this.getFileKey(filePath.fsPath));
         if (contents) {
             return contents;
         }
@@ -32,5 +32,8 @@ export class MockFileSystem extends FileSystem {
     }
     public addFileContents(filePath: string, contents: string): void {
         this.contentOverloads.set(filePath, contents);
+    }
+    private getFileKey(filePath: string): string {
+        return filePath.toLowerCase();
     }
 }

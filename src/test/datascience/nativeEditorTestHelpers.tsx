@@ -44,7 +44,9 @@ export async function openEditor(
     filePath: string = '/usr/home/test.ipynb'
 ) {
     const uri = Uri.file(filePath);
-    ioc.setFileContents(uri, contents);
+    if (contents) {
+        ioc.setFileContents(uri, contents);
+    }
     return getOrCreateNativeEditor(ioc, uri);
 }
 
