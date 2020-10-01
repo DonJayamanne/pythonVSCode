@@ -126,6 +126,7 @@ jobs:
           python -m pip install --upgrade -r build/test-requirements.txt
           python -m pip install --upgrade -r ./build/ipython-test-requirements.txt
           python -m pip install --upgrade -r ./build/conda-functional-requirements.txt
+          python -m ipykernel install --user
 
       - name: Install dependencies (npm ci)
         run: npm ci --prefer-offline

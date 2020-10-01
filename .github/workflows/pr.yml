@@ -312,6 +312,7 @@ jobs:
           python -m pip install --upgrade -r build/test-requirements.txt
           python -m pip install --upgrade -r ./build/ipython-test-requirements.txt
           python -m pip install --upgrade -r ./build/conda-functional-requirements.txt
+          python -m ipykernel install --user
         # This step is slow.
         # If running the placeholder suite & not required to run any tests, then don't install python dependencies.
         if: matrix.test-suite != 'test-based-on-pr-body' || contains(github.event.pull_request.body, '[x] Run ')
