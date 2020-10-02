@@ -7,7 +7,7 @@ import * as stackTrace from 'stack-trace';
 import TelemetryReporter from 'vscode-extension-telemetry/lib/telemetryReporter';
 
 import { IWorkspaceService } from '../common/application/types';
-import { AppinsightsKey, isTestExecution, isUnitTestExecution, PVSC_EXTENSION_ID } from '../common/constants';
+import { AppinsightsKey, isTestExecution, isUnitTestExecution, JVSC_EXTENSION_ID } from '../common/constants';
 import { traceError, traceInfo } from '../common/logger';
 import { StopWatch } from '../common/utils/stopWatch';
 import {
@@ -80,7 +80,7 @@ function getTelemetryReporter() {
     if (!isTestExecution() && telemetryReporter) {
         return telemetryReporter;
     }
-    const extensionId = PVSC_EXTENSION_ID;
+    const extensionId = JVSC_EXTENSION_ID;
     // tslint:disable-next-line:no-require-imports
     const extensions = (require('vscode') as typeof import('vscode')).extensions;
     const extension = extensions.getExtension(extensionId)!;

@@ -420,7 +420,7 @@
     "DataScience.pandasTooOldForViewingFormat": "Python package 'pandas' is version {0}. Version 0.20 or greater is required for viewing data.",
     "DataScience.pandasRequiredForViewing": "Python package 'pandas' is required for viewing data.",
     "DataScience.valuesColumn": "values",
-    "DataScience.liveShareInvalid": "One or more guests in the session do not have the Python [extension](https://marketplace.visualstudio.com/itemdetails?itemName=ms-ai-tools.jupyter) installed.\r\nYour Live Share session cannot continue and will be closed.",
+    "DataScience.liveShareInvalid": "One or more guests in the session do not have the Python [extension](https://marketplace.visualstudio.com/itemdetails?itemName=ms-toolsai.jupyter) installed.\r\nYour Live Share session cannot continue and will be closed.",
     "diagnostics.updateSettings": "Yes, update settings",
     "Common.noIWillDoItLater": "No, I will do it later",
     "Common.notNow": "Not now",

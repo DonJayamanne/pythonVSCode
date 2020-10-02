@@ -1,9 +1,9 @@
 {
-	"name": "ms-ai-tools-test",
+	"name": "ms-toolsai-test",
 	"displayName": "AI Tools Test Extension",
-	"description": "Extension for testing the API for talking to the ms-ai-tools.jupyter extension",
+	"description": "Extension for testing the API for talking to the ms-toolsai.jupyter extension",
 	"version": "0.0.1",
-	"publisher": "ms-ai-tools",
+	"publisher": "ms-toolsai",
 	"engines": {
 		"vscode": "^1.32.0"
 	},
@@ -35,7 +35,7 @@
 		"webpack-dev": "webpack --mode development --watch",
 		"test-compile": "tsc -p ./",
 		"lint": "eslint . --ext .ts,.tsx",
-		"package": "npm run vscode:prepublish && vsce package -o ms-ai-tools-test.vsix"
+		"package": "npm run vscode:prepublish && vsce package -o ms-toolsai-test.vsix"
 	},
 	"devDependencies": {
 		"@types/jquery": "^3.5.0",

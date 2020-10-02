@@ -16,7 +16,7 @@ env:
   CACHE_PIP_DEPS: cache-pip
   # Key for the cache created at the end of the the 'Cache ./pythonFiles/lib/python' step.
   CACHE_PYTHONFILES: cache-pvsc-pythonFiles
-  VSIX_NAME: ms-ai-tools-jupyter-insiders-vsix
+  VSIX_NAME: ms-toolsai-jupyter-insiders.vsix
   VSIX_NAME_PYTHON: ms-python-insiders-nods.vsix
   COVERAGE_REPORTS: tests-coverage-reports
   CI_PYTHON_PATH: python
@@ -196,8 +196,8 @@ jobs:
         uses: scacap/action-surefire-report@v1
         if: steps.test_unittests.outcome == 'failure' && failure()
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}       
-          report_paths: ${{ env.TEST_RESULTS_GLOB }} 
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          report_paths: ${{ env.TEST_RESULTS_GLOB }}
           check_name: Ts-Unit Test Report
 
   tests:
@@ -360,8 +360,8 @@ jobs:
       - name: Publish Test Report
         uses: scacap/action-surefire-report@v1
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}       
-          report_paths: ${{ env.TEST_RESULTS_GLOB }} 
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          report_paths: ${{ env.TEST_RESULTS_GLOB }}
           check_name: Functional Test Report
         if: (steps.test_functional.outcome == 'failure' || steps.test_functional_jupyter.outcome == 'failure') && failure()
 

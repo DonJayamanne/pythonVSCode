@@ -15,7 +15,7 @@ import { IConfigurationService } from '../../../client/common/types';
 import { Experiments } from '../../../client/common/utils/localize';
 import * as Telemetry from '../../../client/telemetry';
 import { EventName } from '../../../client/telemetry/constants';
-import { PVSC_EXTENSION_ID_FOR_TESTS } from '../../constants';
+import { JVSC_EXTENSION_ID_FOR_TESTS } from '../../constants';
 import { MockOutputChannel } from '../../mockClasses';
 import { MockMemento } from '../../mocks/mementos';
 
@@ -52,7 +52,7 @@ suite('Experimentation service', () => {
 
     function configureApplicationEnvironment(channel: Channel, version: string) {
         when(appEnvironment.extensionChannel).thenReturn(channel);
-        when(appEnvironment.extensionName).thenReturn(PVSC_EXTENSION_ID_FOR_TESTS);
+        when(appEnvironment.extensionName).thenReturn(JVSC_EXTENSION_ID_FOR_TESTS);
         when(appEnvironment.packageJson).thenReturn({ version });
     }
 
@@ -73,7 +73,7 @@ suite('Experimentation service', () => {
 
             sinon.assert.calledWithExactly(
                 getExperimentationServiceStub,
-                PVSC_EXTENSION_ID_FOR_TESTS,
+                JVSC_EXTENSION_ID_FOR_TESTS,
                 extensionVersion,
                 tasClient.TargetPopulation.Public,
                 sinon.match.any,
@@ -97,7 +97,7 @@ suite('Experimentation service', () => {
 
             sinon.assert.calledWithExactly(
                 getExperimentationServiceStub,
-                PVSC_EXTENSION_ID_FOR_TESTS,
+                JVSC_EXTENSION_ID_FOR_TESTS,
                 extensionVersion,
                 tasClient.TargetPopulation.Insiders,
                 sinon.match.any,

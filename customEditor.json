@@ -1,11 +1,11 @@
 {
     "activationEvents": [
-        "onCustomEditor:ms-ai-tools.jupyter.notebook.ipynb"
+        "onCustomEditor:ms-toolsai.jupyter.notebook.ipynb"
     ],
     "contributes": {
         "customEditors": [
             {
-                "viewType": "ms-ai-tools.jupyter.notebook.ipynb",
+                "viewType": "ms-toolsai.jupyter.notebook.ipynb",
                 "displayName": "Jupyter Notebook",
                 "selector": [
                     {

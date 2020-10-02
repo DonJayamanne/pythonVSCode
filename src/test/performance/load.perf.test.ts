@@ -10,7 +10,7 @@ import * as fs from 'fs-extra';
 import { EOL } from 'os';
 import * as path from 'path';
 import { commands, extensions } from 'vscode';
-import { PVSC_EXTENSION_ID } from '../../client/common/constants';
+import { JVSC_EXTENSION_ID } from '../../client/common/constants';
 import { StopWatch } from '../../client/common/utils/stopWatch';
 
 const AllowedIncreaseInActivationDelayInMS = 500;
@@ -25,7 +25,7 @@ suite('Activation Times', () => {
             return;
         }
         test(`Capture Extension Activation Times (Version: ${process.env.ACTIVATION_TIMES_EXT_VERSION}, sample: ${sampleCounter})`, async () => {
-            const pythonExtension = extensions.getExtension(PVSC_EXTENSION_ID);
+            const pythonExtension = extensions.getExtension(JVSC_EXTENSION_ID);
             if (!pythonExtension) {
                 throw new Error('Python Extension not found');
             }

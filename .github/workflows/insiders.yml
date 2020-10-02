@@ -13,9 +13,9 @@ env:
   CACHE_NPM_DEPS: cache-npm
   CACHE_OUT_DIRECTORY: cache-out-directory
   CACHE_PIP_DEPS: cache-pip
-  VSIX_NAME: ms-ai-tools-jupyter-insiders.vsix
+  VSIX_NAME: ms-toolsai-jupyter-insiders.vsix
   VSIX_NAME_PYTHON: ms-python-insiders-nods.vsix
-  VSIX_NAME_UPLOADED_TO_BLOB: ms-ai-tools-jupyter-insiders.vsix
+  VSIX_NAME_UPLOADED_TO_BLOB: ms-toolsai-jupyter-insiders.vsix
   CI_PYTHON_PATH: python
   TEST_RESULTS_DIRECTORY: .
   TEST_RESULTS_GLOB: '**/test-results.xml'
@@ -193,8 +193,8 @@ jobs:
         uses: scacap/action-surefire-report@v1
         if: steps.test_unittests.outcome == 'failure' && failure()
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}       
-          report_paths: ${{ env.TEST_RESULTS_GLOB }} 
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          report_paths: ${{ env.TEST_RESULTS_GLOB }}
           check_name: Ts-Unit Test Report
 
   tests:
@@ -344,8 +344,8 @@ jobs:
       - name: Publish Test Report
         uses: scacap/action-surefire-report@v1
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}       
-          report_paths: ${{ env.TEST_RESULTS_GLOB }} 
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          report_paths: ${{ env.TEST_RESULTS_GLOB }}
           check_name: Functional Test Report
         if: (steps.test_functional.outcome == 'failure' || steps.test_functional_jupyter.outcome == 'failure') && failure()
 
@@ -393,7 +393,7 @@ jobs:
         run: az storage blob download --file ${{env.VSIX_NAME_PYTHON}} --account-name pvsc --container-name extension-builds --name ${{ env.VSIX_NAME_PYTHON }}
 
     #   - name: Download Jupyter VSIX
-    #     run: az storage blob download --file ms-ai-tools-jupyter-insiders.vsix --account-name pvsc --container-name extension-builds-jupyter --name ms-ai-tools-jupyter-insiders.vsix
+    #     run: az storage blob download --file ms-toolsai-jupyter-insiders.vsix --account-name pvsc --container-name extension-builds-jupyter --name ms-toolsai-jupyter-insiders.vsix
 
       - name: Download VSIX
         uses: actions/download-artifact@v2

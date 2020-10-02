@@ -15,9 +15,9 @@ env:
   CACHE_NPM_DEPS: cache-npm
   CACHE_OUT_DIRECTORY: cache-out-directory
   CACHE_PIP_DEPS: cache-pip
-  VSIX_NAME: ms-ai-tools-jupyter-release.vsix
+  VSIX_NAME: ms-toolsai-jupyter-release.vsix
   VSIX_NAME_PYTHON: ms-python-release-nods.vsix
-  VSIX_NAME_UPLOADED_TO_BLOB: ms-ai-tools-jupyter-release.vsix
+  VSIX_NAME_UPLOADED_TO_BLOB: ms-toolsai-jupyter-release.vsix
   CI_PYTHON_PATH: python
   TEST_RESULTS_DIRECTORY: .
 

@@ -9,7 +9,7 @@ import { getExperimentationService, IExperimentationService, TargetPopulation } 
 import { sendTelemetryEvent } from '../../telemetry';
 import { EventName } from '../../telemetry/constants';
 import { IApplicationEnvironment } from '../application/types';
-import { PVSC_EXTENSION_ID, STANDARD_OUTPUT_CHANNEL } from '../constants';
+import { JVSC_EXTENSION_ID, STANDARD_OUTPUT_CHANNEL } from '../constants';
 import {
     GLOBAL_MEMENTO,
     IConfigurationService,
@@ -69,7 +69,7 @@ export class ExperimentService implements IExperimentService {
         const telemetryReporter = new ExperimentationTelemetry();
 
         this.experimentationService = getExperimentationService(
-            PVSC_EXTENSION_ID,
+            JVSC_EXTENSION_ID,
             this.appEnvironment.packageJson.version!,
             targetPopulation,
             telemetryReporter,

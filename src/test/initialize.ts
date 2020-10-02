@@ -1,10 +1,8 @@
-// tslint:disable:no-string-literal
-
 import * as path from 'path';
 import * as vscode from 'vscode';
 import type { IExtensionApi } from '../client/api';
 import { IExtensionTestApi, PYTHON_PATH, setPythonPathInWorkspaceRoot } from './common';
-import { IS_SMOKE_TEST, PVSC_EXTENSION_ID_FOR_TESTS } from './constants';
+import { IS_SMOKE_TEST, JVSC_EXTENSION_ID_FOR_TESTS } from './constants';
 import { sleep } from './core';
 
 export * from './constants';
@@ -37,7 +35,7 @@ export async function initialize(): Promise<IExtensionTestApi> {
 }
 
 export async function activateExtension() {
-    const extension = vscode.extensions.getExtension<IExtensionApi>(PVSC_EXTENSION_ID_FOR_TESTS)!;
+    const extension = vscode.extensions.getExtension<IExtensionApi>(JVSC_EXTENSION_ID_FOR_TESTS)!;
     const api = await extension.activate();
     // Wait until its ready to use.
     await api.ready;

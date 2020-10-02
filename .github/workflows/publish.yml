@@ -15,9 +15,9 @@ on:
 
 env:
   PYTHON_VERSION: 3.8
-  VSIX_NAME: ms-ai-tools-jupyter-release.vsix
-  VSIX_NAME_UPLOADED_TO_BLOB: ms-ai-tools-jupyter-release.vsix
-  VSIX_NAME_TO_PUBLISH: ms-ai-tools-jupyter-release.vsix
+  VSIX_NAME: ms-toolsai-jupyter-release.vsix
+  VSIX_NAME_UPLOADED_TO_BLOB: ms-toolsai-jupyter-release.vsix
+  VSIX_NAME_TO_PUBLISH: ms-toolsai-jupyter-release.vsix
 
 jobs:
   publish:

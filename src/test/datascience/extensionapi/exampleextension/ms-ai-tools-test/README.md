@@ -1,6 +1,6 @@
 # AI Tools Extension
 
-This extension is used for testing the extensibility of the ms-ai-tools.jupyter extension
+This extension is used for testing the extensibility of the ms-toolsai.jupyter extension
 
 # Testing with this extension
 
@@ -13,6 +13,6 @@ You can use this extension to test the python extension's API. To do so, follow 
 1. Run npm install
 1. Run npm run package
 1. Install the VSIX created
-1. Debug or run the ms-ai-tools.jupyter package
+1. Debug or run the ms-toolsai.jupyter package
 1. Pick the 'Specify local or remote Jupyter server for connections'
 1. This extension should then load and show the 'Azure Compute' entry in the picker that opens.

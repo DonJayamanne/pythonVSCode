@@ -92,7 +92,7 @@ export class NativeEditorProvider implements INotebookEditorProvider, CustomEdit
         return [...this.openedEditors];
     }
     // Note, this constant has to match the value used in the package.json to register the webview custom editor.
-    public static readonly customEditorViewType = 'ms-ai-tools.jupyter.notebook.ipynb';
+    public static readonly customEditorViewType = 'ms-toolsai.jupyter.notebook.ipynb';
     protected readonly _onDidChangeActiveNotebookEditor = new EventEmitter<INotebookEditor | undefined>();
     protected readonly _onDidOpenNotebookEditor = new EventEmitter<INotebookEditor>();
     protected readonly _onDidEdit = new EventEmitter<CustomDocumentEditEvent>();

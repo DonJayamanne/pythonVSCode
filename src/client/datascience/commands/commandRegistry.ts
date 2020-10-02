@@ -469,6 +469,6 @@ export class CommandRegistry implements IDisposable {
     }
 
     private openPythonExtensionPage() {
-        env.openExternal(Uri.parse(`https://marketplace.visualstudio.com/items?itemName=ms-ai-tools.jupyter`));
+        env.openExternal(Uri.parse(`https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter`));
     }
 }

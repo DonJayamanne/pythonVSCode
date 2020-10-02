@@ -517,11 +517,11 @@ src/test/datascience/interactive-common/notebookProvider.unit.test.ts
 src/test/datascience/interactive-common/notebookServerProvider.unit.test.ts
 src/test/datascience/interactive-common/trustCommandHandler.unit.test.ts
 src/test/datascience/mockStatusProvider.ts
-src/test/datascience/extensionapi/exampleextension/ms-ai-tools-test/webpack.config.js
-src/test/datascience/extensionapi/exampleextension/ms-ai-tools-test/.eslintrc.js
-src/test/datascience/extensionapi/exampleextension/ms-ai-tools-test/src/typings/python.d.ts
-src/test/datascience/extensionapi/exampleextension/ms-ai-tools-test/src/extension.ts
-src/test/datascience/extensionapi/exampleextension/ms-ai-tools-test/src/serverPicker.ts
+src/test/datascience/extensionapi/exampleextension/ms-toolsai-test/webpack.config.js
+src/test/datascience/extensionapi/exampleextension/ms-toolsai-test/.eslintrc.js
+src/test/datascience/extensionapi/exampleextension/ms-toolsai-test/src/typings/python.d.ts
+src/test/datascience/extensionapi/exampleextension/ms-toolsai-test/src/extension.ts
+src/test/datascience/extensionapi/exampleextension/ms-toolsai-test/src/serverPicker.ts
 src/test/datascience/common.unit.test.ts
 src/test/datascience/testexecutionLogger.ts
 src/test/datascience/interactiveWindow.functional.test.tsx
