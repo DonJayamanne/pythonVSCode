@@ -170,3 +170,9 @@ jobs:
           check_name: Functional Test Report
         if: (steps.test_functional.outcome == 'failure' || steps.test_functional_jupyter.outcome == 'failure') && failure()
 
+      - name: Upload Functional Test Report
+        uses: actions/upload-artifact@v2
+        with:
+          name: functional-jupyter-test-result-${{ matrix.os }}-${{ matrix.python }}
+          path: ${{ env.TEST_RESULTS_GLOB }}
+        if: steps.test_functional_jupyter.outcome == 'failure' && failure()
