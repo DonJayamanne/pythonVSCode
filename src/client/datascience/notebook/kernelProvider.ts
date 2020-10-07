@@ -4,7 +4,8 @@
 import { inject, injectable } from 'inversify';
 // tslint:disable-next-line: no-require-imports
 import cloneDeep = require('lodash/cloneDeep');
-import { CancellationToken, Event, EventEmitter, Uri } from 'vscode';
+import { join } from 'path';
+import { CancellationToken, Event, EventEmitter, NotebookCommunication, Uri } from 'vscode';
 import {
     NotebookCell,
     NotebookDocument,
@@ -12,9 +13,12 @@ import {
     NotebookKernelProvider
 } from '../../../../types/vscode-proposed';
 import { IVSCodeNotebook } from '../../common/application/types';
-import { IDisposableRegistry } from '../../common/types';
+import { IDisposableRegistry, IExtensionContext } from '../../common/types';
 import { noop } from '../../common/utils/misc';
 import { IInterpreterService } from '../../interpreter/contracts';
+import { InteractiveWindowMessages } from '../interactive-common/interactiveWindowTypes';
+import { IPyWidgetMessageDispatcher } from '../ipywidgets/ipyWidgetMessageDispatcher';
+import { IPyWidgetScriptSource } from '../ipywidgets/ipyWidgetScriptSource';
 import { areKernelConnectionsEqual } from '../jupyter/kernels/helpers';
 import { KernelSelectionProvider } from '../jupyter/kernels/kernelSelections';
 import { KernelSelector } from '../jupyter/kernels/kernelSelector';
@@ -26,7 +30,22 @@ import { getNotebookMetadata, isJupyterNotebook, updateKernelInNotebookMetadata 
 
 class VSCodeNotebookKernelMetadata implements VSCNotebookKernel {
     get preloads(): Uri[] {
-        return [];
+        return [
+            // Uri.file(
+            //     // '/Users/donjayamanne/Desktop/Development/vsc/vscode-python/out/datascience-ui/notebook/require.js'
+            //     '/Users/donjayamanne/Desktop/Development/vsc/vscode-python/out/datascience-ui/notebook/ipywidgets.js'
+            // ),
+            Uri.file(join(this.context.extensionPath, 'out', 'ipywidgets', 'dist', 'ipywidgets.js'))
+            // Uri.file(join(this.context.extensionPath, 'out', 'ipywidgets', 'dist', 'ipywidgets.js'))
+        ];
+        // tslint:disable-next-line: no-console
+        // console.log([Uri.file(join(this.context.extensionPath, 'out', 'ipywidgets', 'dist', 'ipywidgets.js'))]);
+        // // return [];
+        // return [
+        //     Uri.file(
+        //         '/Users/donjayamanne/Desktop/Development/vsc/vscode-notebook-renderers/out/ipywidgets/dist/ipywidgets.js'
+        //     )
+        // ];
     }
     get id() {
         return getKernelConnectionId(this.selection);
@@ -37,7 +56,8 @@ class VSCodeNotebookKernelMetadata implements VSCNotebookKernel {
         public readonly detail: string,
         public readonly selection: Readonly<KernelConnectionMetadata>,
         public readonly isPreferred: boolean,
-        private readonly kernelProvider: IKernelProvider
+        private readonly kernelProvider: IKernelProvider,
+        private readonly context: IExtensionContext
     ) {}
     public executeCell(_: NotebookDocument, cell: NotebookCell) {
         this.kernelProvider.getOrCreate(cell.notebook.uri, { metadata: this.selection })?.executeCell(cell); // NOSONAR
@@ -60,6 +80,7 @@ export class VSCodeKernelPickerProvider implements NotebookKernelProvider {
     }
     private readonly _onDidChangeKernels = new EventEmitter<NotebookDocument | undefined>();
     private notebookKernelChangeHandled = new WeakSet<INotebook>();
+    private readonly documentDispatchers = new WeakMap<NotebookDocument, IPyWidgetMessageDispatcher>();
     constructor(
         @inject(KernelSelectionProvider) private readonly kernelSelectionProvider: KernelSelectionProvider,
         @inject(KernelSelector) private readonly kernelSelector: KernelSelector,
@@ -69,7 +90,9 @@ export class VSCodeKernelPickerProvider implements NotebookKernelProvider {
         @inject(INotebookProvider) private readonly notebookProvider: INotebookProvider,
         @inject(KernelSwitcher) private readonly kernelSwitcher: KernelSwitcher,
         @inject(IDisposableRegistry) private readonly disposables: IDisposableRegistry,
-        @inject(IInterpreterService) private readonly interpreterService: IInterpreterService
+        @inject(IInterpreterService) private readonly interpreterService: IInterpreterService,
+        @inject(IExtensionContext) private readonly context: IExtensionContext,
+        @inject(IPyWidgetScriptSource) private readonly scriptSource: IPyWidgetScriptSource
     ) {
         this.kernelSelectionProvider.onDidChangeSelections(
             (e) => {
@@ -86,6 +109,47 @@ export class VSCodeKernelPickerProvider implements NotebookKernelProvider {
         );
         this.notebook.onDidChangeActiveNotebookKernel(this.onDidChangeActiveNotebookKernel, this, disposables);
     }
+    public async resolveKernel?(
+        _kernel: VSCodeNotebookKernelMetadata,
+        document: NotebookDocument,
+        webview: NotebookCommunication,
+        _token: CancellationToken
+    ): Promise<void> {
+        if (this.documentDispatchers.has(document)) {
+            return;
+        }
+        const dispatcher = new IPyWidgetMessageDispatcher(this.notebookProvider, document.uri);
+        dispatcher.postMessage((e) => {
+            webview.postMessage(e);
+        });
+        this.scriptSource.onMessage(InteractiveWindowMessages.NotebookIdentity, { resource: document.uri });
+        this.scriptSource.postMessage((e) => {
+            webview.postMessage(e);
+        });
+        this.scriptSource.postInternalMessage((e) => {
+            if (e.message === InteractiveWindowMessages.ConvertUriForUseInWebViewRequest) {
+                this.scriptSource.onMessage(InteractiveWindowMessages.ConvertUriForUseInWebViewResponse, {
+                    request: e.payload,
+                    response: webview.asWebviewUri(e.payload)
+                });
+            }
+        });
+        webview.onDidReceiveMessage((e) => {
+            // tslint:disable-next-line: no-console
+            // console.log(`Received ${e.type || e.message || e}`);
+            dispatcher.receiveMessage({ message: e.type, payload: e.payload });
+            if (e.type) {
+                this.scriptSource.onMessage(e.type, e.payload);
+            }
+            if (e === 'Loaded') {
+                webview.postMessage({ type: '__IPYWIDGET_BACKEND_READY' });
+            }
+        });
+        this.documentDispatchers.set(document, dispatcher);
+        // webview.postMessage({ type: '__IPYWIDGET_BACKEND_READY' });
+        // existingKernel?.kernelSocket
+    }
+
     public async provideKernels(
         document: NotebookDocument,
         token: CancellationToken
@@ -114,7 +178,8 @@ export class VSCodeKernelPickerProvider implements NotebookKernelProvider {
                 kernel.detail || '',
                 kernel.selection,
                 areKernelConnectionsEqual(kernel.selection, preferredKernel),
-                this.kernelProvider
+                this.kernelProvider,
+                this.context
             );
         });
 
@@ -141,7 +206,8 @@ export class VSCodeKernelPickerProvider implements NotebookKernelProvider {
                         kernel.detail || '',
                         kernel.selection,
                         true,
-                        this.kernelProvider
+                        this.kernelProvider,
+                        this.context
                     )
                 );
             }
@@ -171,7 +237,8 @@ export class VSCodeKernelPickerProvider implements NotebookKernelProvider {
                 preferredKernel.interpreter.path,
                 preferredKernel,
                 true,
-                this.kernelProvider
+                this.kernelProvider,
+                this.context
             );
         } else if (preferredKernel.kind === 'connectToLiveKernel') {
             return new VSCodeNotebookKernelMetadata(
@@ -180,7 +247,8 @@ export class VSCodeKernelPickerProvider implements NotebookKernelProvider {
                 preferredKernel.kernelModel.name,
                 preferredKernel,
                 true,
-                this.kernelProvider
+                this.kernelProvider,
+                this.context
             );
         } else {
             return new VSCodeNotebookKernelMetadata(
@@ -189,7 +257,8 @@ export class VSCodeKernelPickerProvider implements NotebookKernelProvider {
                 preferredKernel.kernelSpec.name,
                 preferredKernel,
                 true,
-                this.kernelProvider
+                this.kernelProvider,
+                this.context
             );
         }
     }
@@ -239,6 +308,8 @@ export class VSCodeKernelPickerProvider implements NotebookKernelProvider {
         if (existingKernel && areKernelConnectionsEqual(existingKernel.metadata, selectedKernelConnectionMetadata)) {
             return;
         }
+        // Delete the old dispatcher.
+        this.documentDispatchers.delete(document);
 
         // Make this the new kernel (calling this method will associate the new kernel with this Uri).
         // Calling `getOrCreate` will ensure a kernel is created and it is mapped to the Uri provided.

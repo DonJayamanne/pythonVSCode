@@ -3414,8 +3414,15 @@
                     "image/jpeg",
                     "text/latex",
                     "text/vnd.plotly.v1+html"
-                ],
-                "viewType": "jupyter-notebook"
+                ]
+            },
+            {
+                "id": "jupyter-ipywidget-renderer",
+                "entrypoint": "./out/test/wow.js",
+                "displayName": "Jupyter IPyWidget Renderer",
+                "mimeTypes": [
+                    "application/vnd.jupyter.widget-view+json"
+                ]
             }
         ],
         "notebookProvider": [

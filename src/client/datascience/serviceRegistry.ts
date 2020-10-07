@@ -319,6 +319,7 @@ export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.addSingleton<IDataScienceFileSystem>(IDataScienceFileSystem, DataScienceFileSystem);
     serviceManager.addSingleton<IFileSystemPathUtils>(IFileSystemPathUtils, FileSystemPathUtils);
     serviceManager.addSingleton<INotebookExtensibility>(INotebookExtensibility, NotebookExtensibility);
+    serviceManager.add<IPyWidgetScriptSource>(IPyWidgetScriptSource, IPyWidgetScriptSource);
 
     registerGatherTypes(serviceManager);
     registerNotebookTypes(serviceManager);

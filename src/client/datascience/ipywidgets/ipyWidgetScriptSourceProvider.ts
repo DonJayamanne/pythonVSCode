@@ -23,7 +23,7 @@ import { IInterpreterService } from '../../interpreter/contracts';
 import { sendTelemetryEvent } from '../../telemetry';
 import { Telemetry } from '../constants';
 import { IDataScienceFileSystem, ILocalResourceUriConverter, INotebook } from '../types';
-import { CDNWidgetScriptSourceProvider } from './cdnWidgetScriptSourceProvider';
+// import { CDNWidgetScriptSourceProvider } from './cdnWidgetScriptSourceProvider';
 import { LocalWidgetScriptSourceProvider } from './localWidgetScriptSourceProvider';
 import { RemoteWidgetScriptSourceProvider } from './remoteWidgetScriptSourceProvider';
 import { IWidgetScriptSourceProvider, WidgetScriptSource } from './types';
@@ -160,16 +160,16 @@ export class IPyWidgetScriptSourceProvider implements IWidgetScriptSourceProvide
         const scriptProviders: IWidgetScriptSourceProvider[] = [];
 
         // If we're allowed to use CDN providers, then use them, and use in order of preference.
-        if (this.configuredScriptSources.length > 0) {
-            scriptProviders.push(
-                new CDNWidgetScriptSourceProvider(
-                    this.configurationSettings,
-                    this.httpClient,
-                    this.localResourceUriConverter,
-                    this.fs
-                )
-            );
-        }
+        // if (this.configuredScriptSources.length > 0) {
+        //     scriptProviders.push(
+        //         new CDNWidgetScriptSourceProvider(
+        //             this.configurationSettings,
+        //             this.httpClient,
+        //             this.localResourceUriConverter,
+        //             this.fs
+        //         )
+        //     );
+        // }
         if (this.notebook.connection && this.notebook.connection.localLaunch) {
             scriptProviders.push(
                 new LocalWidgetScriptSourceProvider(

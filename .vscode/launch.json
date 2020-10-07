@@ -12,7 +12,7 @@
             "smartStep": true,
             "sourceMaps": true,
             "outFiles": ["${workspaceFolder}/out/**/*", "!${workspaceFolder}/**/node_modules**/*"],
-            "preLaunchTask": "Compile",
+            // "preLaunchTask": "Compile",
             "skipFiles": ["<node_internals>/**"],
             "env": {
                 // Enable this to turn on redux logging during debugging
@@ -164,9 +164,9 @@
                 "--extensionTestsPath=${workspaceFolder}/out/test"
             ],
             "env": {
-                "VSC_PYTHON_CI_TEST_GREP": "", // Modify this to run a subset of the single workspace tests
+                "VSC_PYTHON_CI_TEST_GREP": "xxx", // Modify this to run a subset of the single workspace tests
                 "VSC_PYTHON_CI_TEST_INVERT_GREP": "", // Initialize this to invert the grep (exclude tests with value defined in grep).
-                "CI_PYTHON_PATH": "<PythonPath>", // Initialize this to invert the grep (exclude tests with value defined in grep).
+                "CI_PYTHON_PATH": "/Users/donjayamanne/Desktop/Development/crap/docBug/venvDS/bin/python", // Initialize this to invert the grep (exclude tests with value defined in grep).
 
                 "VSC_PYTHON_LOAD_EXPERIMENTS_FROM_FILE": "true",
                 "TEST_FILES_SUFFIX": "native.vscode.test"
@@ -174,7 +174,7 @@
             "stopOnEntry": false,
             "sourceMaps": true,
             "outFiles": ["${workspaceFolder}/out/**/*.js", "!${workspaceFolder}/**/node_modules**/*"],
-            "preLaunchTask": "Compile",
+            // "preLaunchTask": "Compile",
             "skipFiles": ["<node_internals>/**"]
         },
         {
