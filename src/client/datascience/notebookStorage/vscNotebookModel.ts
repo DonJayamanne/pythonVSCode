@@ -39,9 +39,6 @@ export function sortObjectPropertiesRecursively(obj: any): any {
 
 // Exported for test mocks
 export class VSCodeNotebookModel extends BaseNotebookModel {
-    public get trustedAfterOpening(): boolean {
-        return this._trustedAfterOpening === true;
-    }
     public get isDirty(): boolean {
         return this.document?.isDirty === true;
     }
@@ -53,7 +50,7 @@ export class VSCodeNotebookModel extends BaseNotebookModel {
 
         // When a notebook is not trusted, return original cells.
         // This is because the VSCode NotebookDocument object will not have any output in the cells.
-        return this.document && this.isTrusted && this.blowAwayOldCells
+        return this.document && this.isTrusted && this._doNotUseOldCells
             ? this.document.cells.map((cell) => createCellFromVSCNotebookCell(cell, this))
             : this._cells;
     }
@@ -77,9 +74,7 @@ export class VSCodeNotebookModel extends BaseNotebookModel {
     public get isUntitled(): boolean {
         return this.document ? this.document.isUntitled : super.isUntitled;
     }
-    private blowAwayOldCells = false;
-    private _trustedAfterOpening?: boolean;
-
+    private _doNotUseOldCells = false;
     private document?: NotebookDocument;
 
     constructor(
@@ -99,11 +94,6 @@ export class VSCodeNotebookModel extends BaseNotebookModel {
         // We cannot invoke this in base class as `cellLanguageService` is not available in base class.
         this.ensureNotebookJson();
     }
-    public onNotebookTrustedAndOpenedAgain() {
-        this.blowAwayOldCells = true;
-        this._cells = [];
-        this._trustedAfterOpening = false;
-    }
 
     /**
      * Unfortunately Notebook models are created early, well before a VSC Notebook Document is created.
@@ -112,11 +102,6 @@ export class VSCodeNotebookModel extends BaseNotebookModel {
     public associateNotebookDocument(document: NotebookDocument) {
         this.document = document;
     }
-    public trust() {
-        super.trust();
-        // this.trustNotebook().catch(noop);
-        this._trustedAfterOpening = true;
-    }
     public async trustNotebook() {
         if (this.document) {
             const editor = this.vscodeNotebook?.notebookEditors.find((item) => item.document === this.document);
@@ -124,8 +109,8 @@ export class VSCodeNotebookModel extends BaseNotebookModel {
                 await updateVSCNotebookAfterTrustingNotebook(editor, this.document, this._cells);
             }
             // We don't need old cells.
-            // this._cells = [];
-            this.onNotebookTrustedAndOpenedAgain();
+            this._doNotUseOldCells = true;
+            this._cells = [];
         }
     }
     protected getDefaultNotebookContent() {

@@ -81,13 +81,7 @@ export class NotebookContentProvider implements VSCNotebookContentProvider {
         setSharedProperty('ds_notebookeditor', 'native');
         sendTelemetryEvent(Telemetry.CellCount, undefined, { count: model.cells.length });
         const preferredLanguage = this.cellLanguageService.getPreferredLanguage(model.metadata);
-        try {
-            return notebookModelToVSCNotebookData(model, preferredLanguage);
-        } finally {
-            if (existingModel && existingModel instanceof VSCodeNotebookModel && existingModel.trustedAfterOpening) {
-                existingModel.onNotebookTrustedAndOpenedAgain();
-            }
-        }
+        return notebookModelToVSCNotebookData(model, preferredLanguage);
     }
     @captureTelemetry(Telemetry.Save, undefined, true)
     public async saveNotebook(document: NotebookDocument, cancellation: CancellationToken) {
