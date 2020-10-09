@@ -68,6 +68,7 @@ export class NotebookContentProvider implements VSCNotebookContentProvider {
             };
         }
         // If there's no backup id, then skip loading dirty contents.
+        const existingModel = this.notebookStorage.get(uri);
         const model = await this.notebookStorage.getOrCreateModel({
             file: uri,
             backupId: openContext.backupId,
@@ -80,11 +81,20 @@ export class NotebookContentProvider implements VSCNotebookContentProvider {
         setSharedProperty('ds_notebookeditor', 'native');
         sendTelemetryEvent(Telemetry.CellCount, undefined, { count: model.cells.length });
         const preferredLanguage = this.cellLanguageService.getPreferredLanguage(model.metadata);
-        return notebookModelToVSCNotebookData(model, preferredLanguage);
+        try {
+            return notebookModelToVSCNotebookData(model, preferredLanguage);
+        } finally {
+            if (existingModel && existingModel instanceof VSCodeNotebookModel && existingModel.trustedAfterOpening) {
+                existingModel.onNotebookTrustedAndOpenedAgain();
+            }
+        }
     }
     @captureTelemetry(Telemetry.Save, undefined, true)
     public async saveNotebook(document: NotebookDocument, cancellation: CancellationToken) {
         const model = await this.notebookStorage.getOrCreateModel({ file: document.uri, isNative: true });
+        if (model instanceof VSCodeNotebookModel && model.trustedAfterOpening) {
+            // Don't save the notebook, leave it as dirty & reopen the notebook.
+        }
         if (cancellation.isCancellationRequested) {
             return;
         }

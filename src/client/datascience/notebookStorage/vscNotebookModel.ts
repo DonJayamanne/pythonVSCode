@@ -6,7 +6,6 @@ import { Memento, Uri } from 'vscode';
 import { NotebookDocument } from '../../../../types/vscode-proposed';
 import { IVSCodeNotebook } from '../../common/application/types';
 import { ICryptoUtils } from '../../common/types';
-import { noop } from '../../common/utils/misc';
 import { NotebookModelChange } from '../interactive-common/interactiveWindowTypes';
 import { NotebookCellLanguageService } from '../notebook/defaultCellLanguageService';
 import {
@@ -40,6 +39,9 @@ export function sortObjectPropertiesRecursively(obj: any): any {
 
 // Exported for test mocks
 export class VSCodeNotebookModel extends BaseNotebookModel {
+    public get trustedAfterOpening(): boolean {
+        return this._trustedAfterOpening === true;
+    }
     public get isDirty(): boolean {
         return this.document?.isDirty === true;
     }
@@ -51,7 +53,7 @@ export class VSCodeNotebookModel extends BaseNotebookModel {
 
         // When a notebook is not trusted, return original cells.
         // This is because the VSCode NotebookDocument object will not have any output in the cells.
-        return this.document && this.isTrusted
+        return this.document && this.isTrusted && this.blowAwayOldCells
             ? this.document.cells.map((cell) => createCellFromVSCNotebookCell(cell, this))
             : this._cells;
     }
@@ -75,6 +77,8 @@ export class VSCodeNotebookModel extends BaseNotebookModel {
     public get isUntitled(): boolean {
         return this.document ? this.document.isUntitled : super.isUntitled;
     }
+    private blowAwayOldCells = false;
+    private _trustedAfterOpening?: boolean;
 
     private document?: NotebookDocument;
 
@@ -95,6 +99,11 @@ export class VSCodeNotebookModel extends BaseNotebookModel {
         // We cannot invoke this in base class as `cellLanguageService` is not available in base class.
         this.ensureNotebookJson();
     }
+    public onNotebookTrustedAndOpenedAgain() {
+        this.blowAwayOldCells = true;
+        this._cells = [];
+        this._trustedAfterOpening = false;
+    }
 
     /**
      * Unfortunately Notebook models are created early, well before a VSC Notebook Document is created.
@@ -105,13 +114,17 @@ export class VSCodeNotebookModel extends BaseNotebookModel {
     }
     public trust() {
         super.trust();
+        // this.trustNotebook().catch(noop);
+        this._trustedAfterOpening = true;
+    }
+    public async trustNotebook() {
         if (this.document) {
             const editor = this.vscodeNotebook?.notebookEditors.find((item) => item.document === this.document);
             if (editor) {
-                updateVSCNotebookAfterTrustingNotebook(editor, this.document, this._cells).then(noop, noop);
+                await updateVSCNotebookAfterTrustingNotebook(editor, this.document, this._cells);
             }
             // We don't need old cells.
-            this._cells = [];
+            // this._cells = [];
         }
     }
     protected getDefaultNotebookContent() {
@@ -126,10 +139,23 @@ export class VSCodeNotebookModel extends BaseNotebookModel {
                 json.metadata = metadata;
             }
         }
-        if (this.document && !this.isTrusted && Array.isArray(json.cells)) {
+        // if (this.document && !this.isTrusted && Array.isArray(json.cells)) {
+        if (Array.isArray(json.cells)) {
             // The output can contain custom metadata, we need to remove that.
             json.cells = json.cells.map((cell) => {
                 const metadata = { ...cell.metadata };
+                // tslint:disable-next-line: no-any
+                const outputs: nbformat.IOutput[] = Array.isArray(cell.outputs) ? (cell.outputs as any) : [];
+                outputs.forEach((output: nbformat.IOutput) => {
+                    if (
+                        output &&
+                        output.metadata &&
+                        typeof output.metadata === 'object' &&
+                        'vscode' in output.metadata
+                    ) {
+                        delete output.metadata.vscode;
+                    }
+                });
                 if ('vscode' in metadata) {
                     delete metadata.vscode;
                 }
