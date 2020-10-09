@@ -6,6 +6,7 @@
 import { nbformat } from '@jupyterlab/coreutils';
 import { assert, expect } from 'chai';
 import * as fs from 'fs-extra';
+import { Func } from 'mocha';
 import * as path from 'path';
 import * as sinon from 'sinon';
 import * as tmp from 'tmp';
@@ -17,9 +18,10 @@ import {
     NotebookContentProvider as VSCNotebookContentProvider,
     NotebookDocument
 } from '../../../../typings/vscode-proposed';
-import { IApplicationEnvironment, IVSCodeNotebook } from '../../../client/common/application/types';
+import { IApplicationEnvironment, IApplicationShell, IVSCodeNotebook } from '../../../client/common/application/types';
 import { MARKDOWN_LANGUAGE, PYTHON_LANGUAGE } from '../../../client/common/constants';
 import { IConfigurationService, ICryptoUtils, IDisposable } from '../../../client/common/types';
+import { createDeferred } from '../../../client/common/utils/async';
 import { noop, swallowExceptions } from '../../../client/common/utils/misc';
 import { Identifiers } from '../../../client/datascience/constants';
 import { JupyterNotebookView } from '../../../client/datascience/notebook/constants';
@@ -532,4 +534,46 @@ export function createNotebookDocument(
     });
     model.associateNotebookDocument(doc);
     return doc;
+}
+
+/**
+ * Ability to stub prompts for VS Code tests.
+ * We can confirm prompt was displayed & invoke a button click.
+ */
+export async function hijackPrompt(
+    promptType: 'showErrorMessage',
+    message: { exactMatch: string } | { endsWith: string },
+    buttonToClick?: { text?: string; clickImmediately?: boolean },
+    disposables: IDisposable[] = []
+): Promise<{ dispose: Function; displayed: Promise<boolean>; clickButton(text?: string): void }> {
+    const api = await initialize();
+    const appShell = api.serviceContainer.get<IApplicationShell>(IApplicationShell);
+    const displayed = createDeferred<boolean>();
+    const clickButton = createDeferred<string>();
+    if (buttonToClick?.clickImmediately && buttonToClick.text) {
+        clickButton.resolve(buttonToClick.text);
+    }
+    // tslint:disable-next-line: no-function-expression
+    const showErrorMessage = sinon.stub(appShell, promptType).callsFake(function (msg: string) {
+        if (
+            ('exactMatch' in message && msg === message.exactMatch) ||
+            ('endsWith' in message && msg.endsWith(message.endsWith))
+        ) {
+            displayed.resolve(true);
+            if (buttonToClick) {
+                return clickButton.promise;
+            }
+        }
+        // tslint:disable-next-line: no-any
+        return (appShell[promptType] as any).wrappedMethod.apply(appShell, arguments);
+    });
+    const disposable = { dispose: () => showErrorMessage.restore() };
+    if (disposables) {
+        disposables.push(disposable);
+    }
+    return {
+        dispose: () => showErrorMessage.restore(),
+        displayed: displayed.promise,
+        clickButton: (text?: string) => clickButton.resolve(text || buttonToClick?.text)
+    };
 }
