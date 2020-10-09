@@ -125,6 +125,7 @@ export class VSCodeNotebookModel extends BaseNotebookModel {
             }
             // We don't need old cells.
             // this._cells = [];
+            this.onNotebookTrustedAndOpenedAgain();
         }
     }
     protected getDefaultNotebookContent() {

@@ -92,9 +92,6 @@ export class NotebookContentProvider implements VSCNotebookContentProvider {
     @captureTelemetry(Telemetry.Save, undefined, true)
     public async saveNotebook(document: NotebookDocument, cancellation: CancellationToken) {
         const model = await this.notebookStorage.getOrCreateModel({ file: document.uri, isNative: true });
-        if (model instanceof VSCodeNotebookModel && model.trustedAfterOpening) {
-            // Don't save the notebook, leave it as dirty & reopen the notebook.
-        }
         if (cancellation.isCancellationRequested) {
             return;
         }
