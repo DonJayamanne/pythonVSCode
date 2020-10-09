@@ -23,7 +23,6 @@ import { InteractiveWindowCommandListener } from '../../client/datascience/inter
 import { InteractiveWindowProvider } from '../../client/datascience/interactive-window/interactiveWindowProvider';
 import { JupyterExecutionFactory } from '../../client/datascience/jupyter/jupyterExecutionFactory';
 import { JupyterExporter } from '../../client/datascience/jupyter/jupyterExporter';
-import { JupyterImporter } from '../../client/datascience/jupyter/jupyterImporter';
 import { NativeEditorProvider } from '../../client/datascience/notebookStorage/nativeEditorProvider';
 import { NotebookStorageProvider } from '../../client/datascience/notebookStorage/notebookStorageProvider';
 import {
@@ -63,7 +62,6 @@ suite('Interactive window command listener', async () => {
     const disposableRegistry: IDisposable[] = [];
     const interactiveWindowProvider = mock(InteractiveWindowProvider);
     const dataScienceErrorHandler = mock(DataScienceErrorHandler);
-    const notebookImporter = mock(JupyterImporter);
     const notebookExporter = mock(JupyterExporter);
     let applicationShell: IApplicationShell;
     let jupyterExecution: IJupyterExecution;
@@ -169,7 +167,6 @@ suite('Interactive window command listener', async () => {
         when(fileSystem.arePathsSame(anything(), anything())).thenReturn(true);
 
         when(interactiveWindowProvider.getOrCreate(anything())).thenResolve(interactiveWindow.object);
-        when(notebookImporter.importFromFile(anything())).thenResolve('imported');
         const metadata: nbformat.INotebookMetadata = {
             language_info: {
                 name: 'python',

@@ -967,28 +967,12 @@ suite('Jupyter Execution', async () => {
                 return true;
             }
         );
-        when(dependencyService.isExportSupported(anything(), anything())).thenCall(
-            async (interpreter: PythonEnvironment) => {
-                if (interpreter === missingNotebookPython) {
-                    return false;
-                }
-                return true;
-            }
-        );
         when(dependencyService.getDependenciesNotInstalled(anything(), anything())).thenCall(
             async (interpreter: PythonEnvironment) => {
                 if (interpreter === missingNotebookPython) {
                     return [Product.jupyter];
                 }
                 return [];
-            }
-        );
-        when(dependencyService.getNbConvertVersion(anything(), anything())).thenCall(
-            async (interpreter: PythonEnvironment) => {
-                if (interpreter === missingNotebookPython) {
-                    return undefined;
-                }
-                return new SemVer('1.1.1');
             }
         );
         const oldStore = mock(JupyterInterpreterOldCacheStateStore);
@@ -1038,8 +1022,6 @@ suite('Jupyter Execution', async () => {
         const jupyterExecutionFactory = createExecution(workingPython);
 
         await assert.eventually.equal(jupyterExecutionFactory.isNotebookSupported(), true, 'Notebook not supported');
-        const nbConvertVer = await jupyterExecutionFactory.getImportPackageVersion();
-        assert.isTrue(nbConvertVer?.compare('1.1.1') === 0);
         const usableInterpreter = await jupyterExecutionFactory.getUsableJupyterPython();
         assert.isOk(usableInterpreter, 'Usable interpreter not found');
         await assert.isFulfilled(jupyterExecutionFactory.connectToNotebookServer(), 'Should be able to start a server');
@@ -1054,8 +1036,6 @@ suite('Jupyter Execution', async () => {
         );
 
         await assert.eventually.equal(jupyterExecutionFactory.isNotebookSupported(), true, 'Notebook not supported');
-        const nbConvertVer = await jupyterExecutionFactory.getImportPackageVersion();
-        assert.isTrue(nbConvertVer?.compare('1.1.1') === 0);
         const usableInterpreter = await jupyterExecutionFactory.getUsableJupyterPython();
         assert.isOk(usableInterpreter, 'Usable interpreter not found');
         await assert.isFulfilled(jupyterExecutionFactory.connectToNotebookServer(), 'Should be able to start a server');
