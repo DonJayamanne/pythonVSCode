@@ -68,7 +68,6 @@ export class NotebookContentProvider implements VSCNotebookContentProvider {
             };
         }
         // If there's no backup id, then skip loading dirty contents.
-        const existingModel = this.notebookStorage.get(uri);
         const model = await this.notebookStorage.getOrCreateModel({
             file: uri,
             backupId: openContext.backupId,
