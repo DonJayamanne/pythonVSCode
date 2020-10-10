@@ -16,11 +16,13 @@ import type {
     NotebookDocumentOpenContext
 } from 'vscode-proposed';
 import { MARKDOWN_LANGUAGE } from '../../common/constants';
+import { createDeferred, Deferred } from '../../common/utils/async';
 import { DataScience } from '../../common/utils/localize';
 import { captureTelemetry, sendTelemetryEvent, setSharedProperty } from '../../telemetry';
 import { Telemetry } from '../constants';
 import { INotebookStorageProvider } from '../notebookStorage/notebookStorageProvider';
 import { VSCodeNotebookModel } from '../notebookStorage/vscNotebookModel';
+import { INotebookModel } from '../types';
 import { NotebookCellLanguageService } from './defaultCellLanguageService';
 import { notebookModelToVSCNotebookData } from './helpers/helpers';
 import { NotebookEditorCompatibilitySupport } from './notebookEditorCompatibilitySupport';
@@ -36,10 +38,11 @@ const vscodeNotebookEnums = require('vscode') as typeof import('vscode-proposed'
  */
 @injectable()
 export class NotebookContentProvider implements VSCNotebookContentProvider {
-    private notebookChanged = new EventEmitter<NotebookDocumentContentChangeEvent>();
     public get onDidChangeNotebook() {
         return this.notebookChanged.event;
     }
+    private notebookChanged = new EventEmitter<NotebookDocumentContentChangeEvent>();
+    private readonly nativeNotebookModelsWaitingToGetReloaded = new WeakMap<INotebookModel, Deferred<void>>();
     constructor(
         @inject(INotebookStorageProvider) private readonly notebookStorage: INotebookStorageProvider,
         @inject(NotebookCellLanguageService) private readonly cellLanguageService: NotebookCellLanguageService,
@@ -67,6 +70,8 @@ export class NotebookContentProvider implements VSCNotebookContentProvider {
                 metadata: { cellEditable: false, editable: false, runnable: false }
             };
         }
+        // If the model already exists & it has been trusted.
+        const existingModel = this.notebookStorage.get(uri);
         // If there's no backup id, then skip loading dirty contents.
         const model = await this.notebookStorage.getOrCreateModel({
             file: uri,
@@ -80,11 +85,38 @@ export class NotebookContentProvider implements VSCNotebookContentProvider {
         setSharedProperty('ds_notebookeditor', 'native');
         sendTelemetryEvent(Telemetry.CellCount, undefined, { count: model.cells.length });
         const preferredLanguage = this.cellLanguageService.getPreferredLanguage(model.metadata);
-        return notebookModelToVSCNotebookData(model, preferredLanguage);
+        try {
+            return notebookModelToVSCNotebookData(model, preferredLanguage);
+        } finally {
+            // Check if we're waiting in `saveNoteBook` method for document to get re-loaded after reverting it.
+            if (existingModel && existingModel instanceof VSCodeNotebookModel) {
+                const deferred = this.nativeNotebookModelsWaitingToGetReloaded.get(existingModel);
+                if (deferred) {
+                    deferred.resolve();
+                }
+                // Reset the flag.
+                existingModel.markAsReloadedAfterTrusting();
+            }
+        }
     }
     @captureTelemetry(Telemetry.Save, undefined, true)
     public async saveNotebook(document: NotebookDocument, cancellation: CancellationToken) {
         const model = await this.notebookStorage.getOrCreateModel({ file: document.uri, isNative: true });
+
+        // If we this is a model associated with a native notebook
+        // & it was trusted after the user opened the notebook, then we cannot save it.
+        // We cannot save it until we have reloaded the notebook so that we can display all the output.
+        // Save can get invoked automatically if `autosave` is enabled.
+        // Solution, wait for document to get loaded, once loaded, we can ignore this save.
+        // If we save here, then document could end up being marked as non-dirty & reverting will not work.
+        // Reverting only works for dirty files.
+        // This code is to ensure we do not run into issues due to auto save (the VSCode tests should catch any issues).
+        if (model instanceof VSCodeNotebookModel && model.trustedAfterOpeningNotebook) {
+            const deferred = createDeferred<void>();
+            this.nativeNotebookModelsWaitingToGetReloaded.set(model, deferred);
+            await deferred.promise;
+            return;
+        }
         if (cancellation.isCancellationRequested) {
             return;
         }

@@ -39,6 +39,9 @@ export function sortObjectPropertiesRecursively(obj: any): any {
 
 // Exported for test mocks
 export class VSCodeNotebookModel extends BaseNotebookModel {
+    public get trustedAfterOpeningNotebook() {
+        return this._trustedAfterOpeningNotebook === true;
+    }
     public get isDirty(): boolean {
         return this.document?.isDirty === true;
     }
@@ -74,6 +77,7 @@ export class VSCodeNotebookModel extends BaseNotebookModel {
     public get isUntitled(): boolean {
         return this.document ? this.document.isUntitled : super.isUntitled;
     }
+    private _trustedAfterOpeningNotebook? = false;
     private _doNotUseOldCells = false;
     private document?: NotebookDocument;
 
@@ -94,6 +98,9 @@ export class VSCodeNotebookModel extends BaseNotebookModel {
         // We cannot invoke this in base class as `cellLanguageService` is not available in base class.
         this.ensureNotebookJson();
     }
+    public markAsReloadedAfterTrusting() {
+        this._trustedAfterOpeningNotebook = false;
+    }
 
     /**
      * Unfortunately Notebook models are created early, well before a VSC Notebook Document is created.
@@ -111,6 +118,7 @@ export class VSCodeNotebookModel extends BaseNotebookModel {
             // We don't need old cells.
             this._doNotUseOldCells = true;
             this._cells = [];
+            this._trustedAfterOpeningNotebook = true;
         }
     }
     protected getDefaultNotebookContent() {
