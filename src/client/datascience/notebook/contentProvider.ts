@@ -92,9 +92,10 @@ export class NotebookContentProvider implements VSCNotebookContentProvider {
             if (existingModel && existingModel instanceof VSCodeNotebookModel) {
                 const deferred = this.nativeNotebookModelsWaitingToGetReloaded.get(existingModel);
                 if (deferred) {
+                    // Notify `saveNotebook` method that we have loaded the document.
                     deferred.resolve();
                 }
-                // Reset the flag.
+                // Reset the flag (if user hits revert, then we don't treat it as though we're reloading to handle trust).
                 existingModel.markAsReloadedAfterTrusting();
             }
         }
@@ -106,7 +107,7 @@ export class NotebookContentProvider implements VSCNotebookContentProvider {
         // If we this is a model associated with a native notebook
         // & it was trusted after the user opened the notebook, then we cannot save it.
         // We cannot save it until we have reloaded the notebook so that we can display all the output.
-        // Save can get invoked automatically if `autosave` is enabled.
+        // Save can get invoked automatically if `autoSave` is enabled.
         // Solution, wait for document to get loaded, once loaded, we can ignore this save.
         // If we save here, then document could end up being marked as non-dirty & reverting will not work.
         // Reverting only works for dirty files.
