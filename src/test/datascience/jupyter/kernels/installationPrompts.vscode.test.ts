@@ -18,7 +18,7 @@ import { getOSType, IExtensionTestApi, OSType, waitForCondition } from '../../..
 import { EXTENSION_ROOT_DIR_FOR_TESTS } from '../../../constants';
 import { closeActiveWindows, initialize } from '../../../initialize';
 import { openNotebook } from '../../helpers';
-import { closeNotebooksAndCleanUpAfterTests } from '../../notebook/helper';
+import { closeNotebooksAndCleanUpAfterTests, hijackPrompt } from '../../notebook/helper';
 
 // tslint:disable: no-invalid-this max-func-body-length no-function-expression no-any
 suite('DataScience Install IPyKernel (slow) (install)', () => {
@@ -87,14 +87,12 @@ suite('DataScience Install IPyKernel (slow) (install)', () => {
         disposables.push({ dispose: () => showInformationMessage.restore() });
 
         // Confirm message is displayed & we click 'Install` button.
-        sinon.stub(appShell, 'showErrorMessage').callsFake(function (message: string) {
-            if (message.endsWith(expectedPromptMessageSuffix)) {
-                promptDisplayed.resolve();
-                // User clicked ok to install it.
-                return Common.install();
-            }
-            return (appShell.showErrorMessage as any).wrappedMethod.apply(appShell, arguments);
-        });
+        const prompt = hijackPrompt(
+            'showErrorMessage',
+            { endsWith: expectedPromptMessageSuffix },
+            { text: Common.install(), clickImmediately: true },
+            disposables
+        );
 
         await openNotebook(api.serviceContainer, nbFile);
 
@@ -104,7 +102,7 @@ suite('DataScience Install IPyKernel (slow) (install)', () => {
         // The prompt should be displayed & ipykernel should get installed.
         await waitForCondition(
             async () => {
-                await Promise.all([promptDisplayed.promise, installed.promise]);
+                await Promise.all([(await prompt).displayed, installed.promise]);
                 return true;
             },
             delayForUITest,
