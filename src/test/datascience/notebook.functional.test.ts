@@ -647,6 +647,7 @@ suite('DataScience notebook tests', () => {
 
                     // Make sure we have a cell in our results
                     assert.ok(/#\s*%%/.test(results), 'No cells in returned import');
+                    assert.ok(!results.includes('tpl'), 'Formatted template with wrong arguments');
                 } finally {
                     importer.dispose();
                     temp.dispose();

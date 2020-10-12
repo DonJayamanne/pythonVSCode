@@ -4,6 +4,8 @@ updates:
     directory: /
     schedule:
       interval: daily
+    labels:
+      - 'skip news'
 
   - package-ecosystem: 'pip'
     directory: /
@@ -14,6 +16,8 @@ updates:
     directory: /news
     schedule:
       interval: monthly
+    labels:
+      - 'skip news'
   # Activate when we feel ready to keep up with frequency.
   # - package-ecosystem: 'npm'
   #   directory: /
