@@ -296,7 +296,9 @@
                 // Some tests require multiple python interpreters (do not rely on discovery for functional tests, be explicit).
                 "XCI_PYTHON_PATH2": "<Python Path>",
                 // Remove 'X' prefix to dump output for debugger. Directory has to exist prior to launch
-                "XDEBUGPY_LOG_DIR": "${workspaceRoot}/tmp/Debug_Output"
+                "XDEBUGPY_LOG_DIR": "${workspaceRoot}/tmp/Debug_Output",
+                // Remove 'X' prefix to dump webview redux action log
+                "XVSC_PYTHON_WEBVIEW_LOG_FILE": "${workspaceRoot}/test-webview.log"
             },
             "outFiles": [
                 "${workspaceFolder}/out/**/*.js",

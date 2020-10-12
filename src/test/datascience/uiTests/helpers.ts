@@ -44,11 +44,15 @@ export class BaseWebUI implements IAsyncDisposable {
     private webServer?: IWebServer;
     private browser?: playwright.ChromiumBrowser;
     public async dispose() {
-        while (this.disposables.length) {
-            this.disposables.shift()?.dispose(); // NOSONAR
+        try {
+            while (this.disposables.length) {
+                this.disposables.shift()?.dispose(); // NOSONAR
+            }
+            await this.browser?.close();
+            await this.page?.close();
+        } catch {
+            // Failure on dispose doesn't really matter.
         }
-        await this.browser?.close();
-        await this.page?.close();
     }
     public async type(text: string): Promise<void> {
         await this.page?.keyboard.type(text);

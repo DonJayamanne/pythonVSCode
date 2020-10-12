@@ -9,7 +9,6 @@ import { Experiments } from '../../client/common/experiments/groups';
 import { InteractiveWindowMessages } from '../../client/datascience/interactive-common/interactiveWindowTypes';
 import { IJupyterVariable } from '../../client/datascience/types';
 import { DataScienceIocContainer } from './dataScienceIocContainer';
-import { takeSnapshot, writeDiffSnapshot } from './helpers';
 import { addCode, getOrCreateInteractiveWindow } from './interactiveWindowTestHelpers';
 import { addCell, createNewEditor } from './nativeEditorTestHelpers';
 import { openVariableExplorer, runDoubleTest, runInteractiveTest, waitForVariablesUpdated } from './testHelpers';
@@ -24,10 +23,8 @@ const rangeInclusive = require('range-inclusive');
         const disposables: Disposable[] = [];
         let ioc: DataScienceIocContainer;
         let createdNotebook = false;
-        let snapshot: any;
 
         suiteSetup(function () {
-            snapshot = takeSnapshot();
             // These test require python, so only run with a non-mocked jupyter
             const isRollingBuild = process.env ? process.env.VSCODE_PYTHON_ROLLING !== undefined : false;
             if (!isRollingBuild) {
@@ -37,7 +34,6 @@ const rangeInclusive = require('range-inclusive');
                 this.skip();
             }
         });
-
         setup(async () => {
             ioc = new DataScienceIocContainer();
             ioc.setExperimentState(Experiments.RunByLine, runByLine);
@@ -58,12 +54,6 @@ const rangeInclusive = require('range-inclusive');
                 }
             }
             await ioc.dispose();
-        });
-
-        // Uncomment this to debug hangs on exit
-        suiteTeardown(() => {
-            //      asyncDump();
-            writeDiffSnapshot(snapshot, `Variable Explorer ${runByLine}`);
         });
 
         async function addCodeImpartial(

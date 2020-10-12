@@ -327,7 +327,7 @@ export class KernelService {
             'ipykernel',
             ['install', '--user', '--name', name, '--display-name', interpreter.displayName],
             {
-                throwOnStdErr: true,
+                throwOnStdErr: false,
                 encoding: 'utf8',
                 token: cancelToken
             }

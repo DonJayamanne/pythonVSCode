@@ -51,7 +51,6 @@ import { generateTestState, ICellViewModel } from '../../datascience-ui/interact
 import { sleep } from '../core';
 import { InterpreterService } from '../interpreters/interpreterService';
 import { DataScienceIocContainer } from './dataScienceIocContainer';
-import { takeSnapshot, writeDiffSnapshot } from './helpers';
 import { SupportedCommands } from './mockJupyterManager';
 import { MockPythonService } from './mockPythonService';
 import { createPythonService, startRemoteServer } from './remoteTestHelpers';
@@ -66,7 +65,6 @@ suite('DataScience notebook tests', () => {
             let ioc: DataScienceIocContainer;
             let modifiedConfig = false;
             const baseUri = Uri.file('foo.py');
-            let snapshot: any;
 
             // tslint:disable-next-line: no-function-expression
             setup(async function () {
@@ -80,14 +78,6 @@ suite('DataScience notebook tests', () => {
                 ioc.forceDataScienceSettingsChanged({ disableZMQSupport: !useRawKernel });
                 await ioc.activate();
                 notebookProvider = ioc.get<INotebookProvider>(INotebookProvider);
-            });
-
-            suiteSetup(() => {
-                snapshot = takeSnapshot();
-            });
-
-            suiteTeardown(() => {
-                writeDiffSnapshot(snapshot, `Notebook ${useRawKernel}`);
             });
 
             teardown(async () => {
@@ -214,10 +204,10 @@ suite('DataScience notebook tests', () => {
                         );
                         const actualMimeType = data.hasOwnProperty(mimeType) ? mimeType : 'text/plain';
                         assert.ok((data as any)[actualMimeType], `${index}: Cell mime type not correct`);
-                        verifyValue((data as any)[actualMimeType]);
+                        verifyValue(concatMultilineString((data as any)[actualMimeType]));
                     }
                     if (text) {
-                        verifyValue(text);
+                        verifyValue(concatMultilineString(text as any));
                     }
                 } else if (cellType === 'markdown') {
                     assert.equal(cells[0].data.cell_type, cellType, `${index}: Wrong type of cell returned`);
@@ -478,7 +468,7 @@ suite('DataScience notebook tests', () => {
             runTest('Remote Password', async () => {
                 const pythonService = await createPythonService(ioc);
 
-                if (pythonService && !useRawKernel && os.platform() !== 'darwin') {
+                if (pythonService && !useRawKernel && os.platform() !== 'darwin' && os.platform() !== 'linux') {
                     const configFile = path.join(
                         EXTENSION_ROOT_DIR,
                         'src',
@@ -649,8 +639,12 @@ suite('DataScience notebook tests', () => {
                     assert.ok(/#\s*%%/.test(results), 'No cells in returned import');
                     assert.ok(!results.includes('tpl'), 'Formatted template with wrong arguments');
                 } finally {
-                    importer.dispose();
-                    temp.dispose();
+                    try {
+                        importer.dispose();
+                        temp.dispose();
+                    } catch (exc) {
+                        console.log(exc);
+                    }
                 }
             });
 

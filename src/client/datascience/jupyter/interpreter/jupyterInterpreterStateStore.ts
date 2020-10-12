@@ -6,7 +6,7 @@
 import { inject, injectable, named } from 'inversify';
 import { Memento } from 'vscode';
 import { IExtensionSingleActivationService } from '../../../activation/types';
-import { IPythonApiProvider } from '../../../api/types';
+import { IPythonApiProvider, IPythonExtensionChecker } from '../../../api/types';
 import { GLOBAL_MEMENTO, IMemento } from '../../../common/types';
 import { noop } from '../../../common/utils/misc';
 
@@ -47,12 +47,13 @@ export class JupyterInterpreterStateStore {
 export class MigrateJupyterInterpreterStateService implements IExtensionSingleActivationService {
     constructor(
         @inject(IPythonApiProvider) private readonly api: IPythonApiProvider,
-        @inject(IMemento) @named(GLOBAL_MEMENTO) private readonly memento: Memento
+        @inject(IMemento) @named(GLOBAL_MEMENTO) private readonly memento: Memento,
+        @inject(IPythonExtensionChecker) private readonly checker: IPythonExtensionChecker
     ) {}
 
     // Migrate the interpreter path selected for Jupyter server from the Python extension's globalState memento
     public async activate() {
-        if (!this.memento.get(key)) {
+        if (!this.memento.get(key) && this.checker.isPythonExtensionInstalled) {
             const api = await this.api.getApi();
             const data = api.getInterpreterPathSelectedForJupyterServer();
             await this.memento.update(key, data);

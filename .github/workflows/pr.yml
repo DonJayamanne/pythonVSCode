@@ -21,7 +21,7 @@ env:
   COVERAGE_REPORTS: tests-coverage-reports
   CI_PYTHON_PATH: python
   TEST_RESULTS_DIRECTORY: .
-  TEST_RESULTS_GLOB: '**/test-results.xml'
+  TEST_RESULTS_GLOB: '**/test-results*.xml'
 
 jobs:
   build-vsix:
@@ -201,7 +201,7 @@ jobs:
           check_name: Ts-Unit Test Report
 
   tests:
-    name: Tests (with Python)
+    name: Functional Jupyter Tests
     runs-on: ${{ matrix.os }}
     if: github.repository == 'microsoft/vscode-jupyter'
     strategy:
@@ -210,13 +210,8 @@ jobs:
         # We're not running CI on macOS for now because it's one less matrix entry to lower the number of runners used,
         # macOS runners are expensive, and we assume that Ubuntu is enough to cover the UNIX case.
         os: [ubuntu-latest]
-        python: [3.8] # Use flaky tests to run against more versions of Python.
-        # python-unit: Python tests
-        # functional: Tests with mocked VS Code, & mocked Python)
-        # functional-with-jupyter: Tests with mocked VS Code & real jupyter
-        # single-workspace: Tests with VS Code
-        # vscode: Tests with VS Code, Python extension & real Jupyter
-        test-suite: [python-unit, functional, test-based-on-pr-body]
+        python: [3.8] 
+        test-suite: [group1, group2, group3, group4]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -240,7 +235,7 @@ jobs:
       # Caching (https://github.com/actions/cache/blob/main/examples.md#python---pip
       - name: Cache pip on linux
         uses: actions/cache@v2
-        if: startsWith(matrix.test-suite, 'functional') && matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-latest'
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{env.PYTHON_VERSION}}-${{ hashFiles('requirements.txt') }}-${{hashFiles('build/debugger-install-requirements.txt')}}-${{hashFiles('test-requirements.txt')}}-${{hashFiles('ipython-test-requirements.txt')}}-${{hashFiles('functional-test-requirements.txt')}}-${{hashFiles('conda-functional-requirements.txt')}}
@@ -249,7 +244,7 @@ jobs:
 
       - name: Cache pip on mac
         uses: actions/cache@v2
-        if: startsWith(matrix.test-suite, 'functional')  && matrix.os == 'macos-latest'
+        if: matrix.os == 'macos-latest'
         with:
           path: ~/Library/Caches/pip
           key: ${{ runner.os }}-pip-${{env.PYTHON_VERSION}}-${{ hashFiles('requirements.txt') }}-${{hashFiles('build/debugger-install-requirements.txt')}}-${{hashFiles('test-requirements.txt')}}-${{hashFiles('ipython-test-requirements.txt')}}-${{hashFiles('functional-test-requirements.txt')}}-${{hashFiles('conda-functional-requirements.txt')}}
@@ -258,7 +253,7 @@ jobs:
 
       - name: Cache pip on windows
         uses: actions/cache@v2
-        if: startsWith(matrix.test-suite, 'functional')  && matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-latest'
         with:
           path: ~\AppData\Local\pip\Cache
           key: ${{ runner.os }}-pip-${{env.PYTHON_VERSION}}-${{ hashFiles('requirements.txt') }}-${{hashFiles('build/debugger-install-requirements.txt')}}-${{hashFiles('test-requirements.txt')}}-${{hashFiles('ipython-test-requirements.txt')}}-${{hashFiles('functional-test-requirements.txt')}}-${{hashFiles('conda-functional-requirements.txt')}}
@@ -299,12 +294,12 @@ jobs:
       # For faster/better builds of sdists.
       - run: python -m pip install wheel
         shell: bash
-        if: matrix.test-suite != 'test-based-on-pr-body' || contains(github.event.pull_request.body, '[x] Run ')
 
       # debugpy is not shipped, only installed for local tests.
       # In production, we get debugpy from python extension.
       - name: Install functional test requirements
         run: |
+          python -m pip --disable-pip-version-check install -t ./pythonFiles/lib/python --no-cache-dir --implementation py --no-deps --upgrade -r ./requirements.txt
           python -m pip --disable-pip-version-check install -r build/debugger-install-requirements.txt
           python ./pythonFiles/install_debugpy.py
           python -m pip install numpy
@@ -314,56 +309,28 @@ jobs:
           python -m pip install --upgrade -r ./build/conda-functional-requirements.txt
           python -m ipykernel install --user
         # This step is slow.
-        # If running the placeholder suite & not required to run any tests, then don't install python dependencies.
-        if: matrix.test-suite != 'test-based-on-pr-body' || contains(github.event.pull_request.body, '[x] Run ')
 
       - name: Install dependencies (npm ci)
         run: npm ci --prefer-offline
         # This step is slow.
-        # If running the placeholder suite & not required to run any tests, then don't install python dependencies.
-        if: matrix.test-suite != 'test-based-on-pr-body' || contains(github.event.pull_request.body, '[x] Run ')
-
-      # Run the Python and IPython tests in our codebase.
-      - name: Run Python and IPython unit tests
-        run: |
-          python pythonFiles/tests/run_all.py
-          python -m IPython pythonFiles/tests/run_all.py
-        if: matrix.test-suite == 'python-unit'
 
       - name: Compile if not cached
         run: npx gulp prePublishNonBundle
-        # If running the placeholder suite & not required to run any tests, then don't compile.
-        # if: steps.out-cache.outputs.cache-hit == false && (matrix.test-suite != 'test-based-on-pr-body' || contains(github.event.pull_request.body, '[x] Run '))
-        if: matrix.test-suite != 'test-based-on-pr-body' || contains(github.event.pull_request.body, '[x] Run ')
 
       - name: Run functional tests
-        run: npm run test:functional
-        id: test_functional
-        if: matrix.test-suite == 'functional'
-
-      - name: Run single-workspace tests
-        env:
-          CI_PYTHON_VERSION: ${{matrix.python}}
-        uses: GabrielBB/xvfb-action@v1.4
-        with:
-          run: npm run testSingleWorkspace
-        if: matrix.test-suite == 'single-workspace' || (matrix.test-suite == 'test-based-on-pr-body' && contains(github.event.pull_request.body, '[x] Run single-workspace test'))
-
-      - name: Run functional tests with Jupyter
-        run: npm run test:functional -- --grep="MimeTypes"
-        id: test_functional_jupyter
+        run: npm run test:functional:parallel -- --${{matrix.test-suite}}
         env:
           VSCODE_PYTHON_ROLLING: 1
           VSC_PYTHON_FORCE_LOGGING: 1
-        if: matrix.test-suite == 'functional-with-jupyter' || (matrix.test-suite == 'test-based-on-pr-body' && contains(github.event.pull_request.body, '[x] Run functional-with-jupyter test'))
+        id: test_functional_group
 
       - name: Publish Test Report
         uses: scacap/action-surefire-report@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           report_paths: ${{ env.TEST_RESULTS_GLOB }}
-          check_name: Functional Test Report
-        if: (steps.test_functional.outcome == 'failure' || steps.test_functional_jupyter.outcome == 'failure') && failure()
+          check_name: Functional Test Report ${{matrix.test-suite}}
+        if: steps.test_functional_group.outcome == 'failure' && failure()
 
       - name: Run DataScience tests with VSCode & Jupyter
         uses: GabrielBB/xvfb-action@v1.4
