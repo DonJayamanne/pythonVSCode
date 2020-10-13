@@ -59,6 +59,8 @@
     "jupyter.command.jupyter.debugFileInteractive.title": "Debug Current File in Interactive Window",
     "jupyter.command.jupyter.runallcells.title": "Run All Cells",
     "jupyter.command.jupyter.notebookeditor.runallcells.title": "Run All Notebook Cells",
+    "jupyter.command.jupyter.notebookeditor.expandallcells.title": "Expand All Notebook Cells",
+    "jupyter.command.jupyter.notebookeditor.collapseallcells.title": "Collapse All Notebook Cells",
     "jupyter.command.jupyter.runallcellsabove.title": "Run Above",
     "jupyter.command.jupyter.runcellandallbelow.title": "Run Below",
     "jupyter.command.jupyter.runallcellsabove.palette.title": "Run Cells Above Current Cell",
