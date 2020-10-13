@@ -17,10 +17,15 @@ import { getOSType, IExtensionTestApi, OSType, waitForCondition } from '../../..
 import { EXTENSION_ROOT_DIR_FOR_TESTS } from '../../../constants';
 import { closeActiveWindows, initialize } from '../../../initialize';
 import { openNotebook } from '../../helpers';
-import { closeNotebooksAndCleanUpAfterTests, hijackPrompt, trustAllNotebooks } from '../../notebook/helper';
+import {
+    closeNotebooksAndCleanUpAfterTests,
+    hijackPrompt,
+    trustAllNotebooks,
+    waitForKernelToGetAutoSelected
+} from '../../notebook/helper';
 
 // tslint:disable: no-invalid-this max-func-body-length no-function-expression no-any
-suite('DataScience Install IPyKernel (slow) (install)', () => {
+suite('DataScience Install IPyKernel (slow) (install)xxx', () => {
     const disposables: IDisposable[] = [];
     const nbFile = path.join(EXTENSION_ROOT_DIR_FOR_TESTS, 'src/test/datascience/jupyter/kernels/nbWithKernel.ipynb');
     const executable = getOSType() === OSType.Windows ? 'Scripts/python.exe' : 'bin/python'; // If running locally on Windows box.
@@ -43,17 +48,19 @@ suite('DataScience Install IPyKernel (slow) (install)', () => {
             // Virtual env does not exist.
             return this.skip();
         }
+        return this.skip();
         await trustAllNotebooks();
         api = await initialize();
         installer = api.serviceContainer.get<IInstaller>(IInstaller);
         editorProvider = api.serviceContainer.get<INotebookEditorProvider>(INotebookEditorProvider);
+    });
 
+    setup(async () => {
         // Uninstall ipykernel from the virtual env.
         const proc = new ProcessService(new BufferDecoder());
         await proc.exec(venvPythonPath, ['-m', 'pip', 'uninstall', 'ipykernel', '--yes']);
+        return closeActiveWindows();
     });
-
-    setup(closeActiveWindows);
     teardown(() => closeNotebooksAndCleanUpAfterTests(disposables));
 
     test('Test Install IPyKernel prompt message', async () => {
@@ -92,6 +99,10 @@ suite('DataScience Install IPyKernel (slow) (install)', () => {
         );
 
         await openNotebook(api.serviceContainer, nbFile);
+        // If this is a native notebook, then wait for kernel to get selected.
+        if (editorProvider.activeEditor?.type === 'native') {
+            await waitForKernelToGetAutoSelected();
+        }
 
         // Run all cells
         editorProvider.activeEditor!.runAllCells();

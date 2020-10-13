@@ -11,10 +11,12 @@ on:
 env:
   NODE_VERSION: 12.15.0
   PYTHON_VERSION: 3.8
+  JULIA_VERSION: 1.5.2
   MOCHA_REPORTER_JUNIT: true # Use the mocha-multi-reporters and send output to both console (spec) and JUnit (mocha-junit-reporter). Also enables a reporter which exits the process running the tests if it haven't already.
   CACHE_NPM_DEPS: cache-npm
   CACHE_OUT_DIRECTORY: cache-out-directory
   CACHE_PIP_DEPS: cache-pip
+  VSC_JUPYTER_CI_RUN_NON_PYTHON_NB_TEST: 'true'
   # Key for the cache created at the end of the the 'Cache ./pythonFiles/lib/python' step.
   CACHE_PYTHONFILES: cache-pvsc-pythonFiles
   VSIX_NAME: ms-toolsai-jupyter-insiders.vsix
@@ -347,6 +349,9 @@ jobs:
     name: VS Code Tests # These tests run with Python extension & real Jupyter
     runs-on: ${{ matrix.os }}
     if: github.repository == 'microsoft/vscode-jupyter'
+    env:
+        VSCODE_PYTHON_ROLLING: 1
+        VSC_JUPYTER_CI_RUN_NON_PYTHON_NB_TEST: 1
     strategy:
       fail-fast: false
       matrix:
@@ -462,6 +467,29 @@ jobs:
       - name: Compile if not cached
         run: npx gulp prePublishNonBundle
 
+
+      # Used by tests for non-python kernels.
+      # Test are enabled via env variable `VSC_JUPYTER_CI_RUN_NON_PYTHON_NB_TEST`
+      - name: Install Julia
+        uses: julia-actions/setup-julia@v1
+        with:
+          version: ${{env.JULIA_VERSION}}
+
+      - name: Install Julia Kernel
+        run: |
+          julia -e '
+            using Pkg
+            Pkg.add("IJulia")'
+
+      # Used by tests for installation of ipykernel.
+      # Test are enabled dyanamically when
+      # 1. `CI_PYTHON_PATH2` points to the new virtual env.
+      # 2. Virtual env is located under `src/test/datascience/` and named `.venvnokernel`.
+      - name: Create virtual environment for Tests
+        run: |
+          python -m venv .venvnokernel
+        working-directory: src/test/datascience
+
       - name: Azure Login
         uses: azure/login@v1.1
         with:
@@ -479,6 +507,7 @@ jobs:
         env:
           VSCODE_PYTHON_ROLLING: 1
           VSC_PYTHON_FORCE_LOGGING: 1
+          VSC_JUPYTER_CI_RUN_NON_PYTHON_NB_TEST: 1
         id: test_vscode
         if: matrix.test-suite == 'integration'
 
@@ -490,23 +519,25 @@ jobs:
           check_name: VSCode Test Report
         if: (steps.test_vscode.outcome == 'failure' || steps.test_vscode.outcome == 'failure') && failure()
 
-      - name: Run Native Notebook with VSCode & Jupyter
-        uses: GabrielBB/xvfb-action@v1.4
-        with:
-          run: npm run testNativeNotebooksInVSCode
-        env:
-          VSCODE_PYTHON_ROLLING: 1
-          VSC_PYTHON_FORCE_LOGGING: 1
-        id: test_notebook_vscode
-        if: matrix.test-suite == 'notebook'
+    #   - name: Run Native Notebook with VSCode & Jupyter
+    #     uses: GabrielBB/xvfb-action@v1.4
+    #     with:
+    #       run: npm run testNativeNotebooksInVSCode
+    #     env:
+    #       VSCODE_PYTHON_ROLLING: 1
+    #       VSC_PYTHON_FORCE_LOGGING: 1
+    #       VSC_JUPYTER_CI_RUN_NON_PYTHON_NB_TEST: 1
+    #       VSC_JUPYTER_CI_TEST_VSC_CHANNEL: 'insiders'
+    #     id: test_notebook_vscode
+    #     if: matrix.test-suite == 'notebook'
 
-      - name: Publish Notebook Test Report
-        uses: scacap/action-surefire-report@v1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          report_paths: ${{ env.TEST_RESULTS_GLOB }}
-          check_name: Notebook Test Report
-        if: (steps.test_notebook_vscode.outcome == 'failure' || steps.test_notebook_vscode.outcome == 'failure') && failure()
+    #   - name: Publish Notebook Test Report
+    #     uses: scacap/action-surefire-report@v1
+    #     with:
+    #       github_token: ${{ secrets.GITHUB_TOKEN }}
+    #       report_paths: ${{ env.TEST_RESULTS_GLOB }}
+    #       check_name: Notebook Test Report
+    #     if: (steps.test_notebook_vscode.outcome == 'failure' || steps.test_notebook_vscode.outcome == 'failure') && failure()
 
 
 

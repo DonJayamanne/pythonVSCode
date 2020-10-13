@@ -20,6 +20,7 @@ const extensionDevelopmentPath = process.env.CODE_EXTENSIONS_PATH
 function requiresPythonExtensionToBeInstalled() {
     return process.env.TEST_FILES_SUFFIX === 'vscode.test' || process.env.TEST_FILES_SUFFIX === 'smoke.test';
 }
+
 const channel = (process.env.VSC_JUPYTER_CI_TEST_VSC_CHANNEL || '').toLowerCase().includes('insiders')
     ? 'insiders'
     : 'stable';

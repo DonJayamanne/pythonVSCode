@@ -13,7 +13,7 @@ import { initializeLogger } from './testLogger';
 
 initializeLogger();
 
-// tslint:disable:no-console
+// tslint:disable: no-console
 
 /*
 This is a simple work around for tests tasks not completing on CI.
