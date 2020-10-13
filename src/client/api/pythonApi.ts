@@ -32,6 +32,7 @@ import {
     IPythonDebuggerPathProvider,
     IPythonExtensionChecker,
     IPythonInstaller,
+    JupyterProductToInstall,
     PythonApi
 } from './types';
 
@@ -151,6 +152,15 @@ export class PythonDebuggerPathProvider implements IPythonDebuggerPathProvider {
     }
 }
 
+const ProductMapping: { [key in Product]: JupyterProductToInstall } = {
+    [Product.ipykernel]: JupyterProductToInstall.ipykernel,
+    [Product.jupyter]: JupyterProductToInstall.jupyter,
+    [Product.kernelspec]: JupyterProductToInstall.kernelspec,
+    [Product.nbconvert]: JupyterProductToInstall.nbconvert,
+    [Product.notebook]: JupyterProductToInstall.notebook,
+    [Product.pandas]: JupyterProductToInstall.pandas
+};
+
 // tslint:disable: max-classes-per-file
 @injectable()
 export class PythonInstaller implements IPythonInstaller {
@@ -161,7 +171,7 @@ export class PythonInstaller implements IPythonInstaller {
         resource?: InterpreterUri,
         cancel?: CancellationToken
     ): Promise<InstallerResponse> {
-        return this.apiProvider.getApi().then((api) => api.install(product, resource, cancel));
+        return this.apiProvider.getApi().then((api) => api.install(ProductMapping[product], resource, cancel));
     }
 }
 
