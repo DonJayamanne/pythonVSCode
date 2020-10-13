@@ -4,7 +4,7 @@
 'use strict';
 
 import { Event } from 'vscode';
-import { NotebookCell } from 'vscode-proposed';
+import { NotebookCell } from '../../types/vscode-proposed';
 import { IPythonApiProvider, PythonApi } from './api/types';
 import { isTestExecution } from './common/constants';
 import { traceError } from './common/logger';

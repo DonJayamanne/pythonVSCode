@@ -30,6 +30,7 @@ import { InteractiveWindowMessages } from '../../client/datascience/interactive-
 import { NativeEditor as NativeEditorWebView } from '../../client/datascience/interactive-ipynb/nativeEditor';
 import { IKernelSpecQuickPickItem } from '../../client/datascience/jupyter/kernels/types';
 import { KeyPrefix } from '../../client/datascience/notebookStorage/nativeEditorStorage';
+import { NativeEditorNotebookModel } from '../../client/datascience/notebookStorage/notebookModel';
 import {
     ICell,
     IDataScienceErrorHandler,
@@ -1029,7 +1030,7 @@ df.head()`;
 
                         // File should exist. Open and run all cells
                         const n = await openEditor(ioc, '', tf.filePath);
-                        assert.equal(n.editor.model.cells.length, 3, 'Cells not loaded');
+                        assert.equal((n.editor.model as NativeEditorNotebookModel).cells.length, 3, 'Cells not loaded');
                         const threeCellsUpdated = n.mount.waitForMessage(InteractiveWindowMessages.ExecutionRendered, {
                             numberOfTimes: 3
                         });

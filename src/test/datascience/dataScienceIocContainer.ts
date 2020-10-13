@@ -188,6 +188,7 @@ import { KernelDaemonPreWarmer } from '../../client/datascience/kernel-launcher/
 import { KernelFinder } from '../../client/datascience/kernel-launcher/kernelFinder';
 import { KernelLauncher } from '../../client/datascience/kernel-launcher/kernelLauncher';
 import { IKernelFinder, IKernelLauncher } from '../../client/datascience/kernel-launcher/types';
+import { NotebookCellLanguageService } from '../../client/datascience/notebook/defaultCellLanguageService';
 import { NotebookCreationTracker } from '../../client/datascience/notebookAndInteractiveTracker';
 import { NotebookExtensibility } from '../../client/datascience/notebookExtensibility';
 import { NotebookModelFactory } from '../../client/datascience/notebookStorage/factory';
@@ -525,6 +526,10 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
         this.serviceManager.addSingleton<ICodeCssGenerator>(ICodeCssGenerator, CodeCssGenerator);
         this.serviceManager.addSingleton<IStatusProvider>(IStatusProvider, StatusProvider);
         this.serviceManager.addSingleton<IBrowserService>(IBrowserService, BrowserService);
+        this.serviceManager.addSingleton<NotebookCellLanguageService>(
+            NotebookCellLanguageService,
+            NotebookCellLanguageService
+        );
         this.serviceManager.addSingletonInstance<IAsyncDisposableRegistry>(
             IAsyncDisposableRegistry,
             this.asyncRegistry

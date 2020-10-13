@@ -24,12 +24,6 @@ export function isInsiders() {
 export async function initialize(): Promise<IExtensionTestApi> {
     await initializePython();
     const api = await activateExtension();
-    if (!IS_SMOKE_TEST) {
-        // When running smoke tests, we won't have access to these.
-        const configSettings = await import('../client/common/configSettings');
-        // Dispose any cached python settings (used only in test env).
-        configSettings.JupyterSettings.dispose();
-    }
     // tslint:disable-next-line:no-any
     return (api as any) as IExtensionTestApi;
 }

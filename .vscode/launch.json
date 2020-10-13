@@ -31,7 +31,11 @@
                 "XVSC_PYTHON_LOG_TELEMETRY": "1",
                 // Enable this to log debugger output. Directory must exist ahead of time
                 "XDEBUGPY_LOG_DIR": "${workspaceRoot}/tmp/Debug_Output_Ex"
-            }
+            },
+			"presentation": {
+				"group": "1_extension",
+				"order": 1
+			}
         },
         {
             "name": "Extension (UI in Browser)",
@@ -54,7 +58,11 @@
             },
             "skipFiles": [
                 "<node_internals>/**"
-            ]
+            ],
+			"presentation": {
+				"group": "1_extension",
+				"order": 2
+			}
         },
         {
             "name": "Extension inside container",
@@ -72,7 +80,11 @@
                 "${workspaceFolder}/out/**/*",
                 "!${workspaceFolder}/**/node_modules**/*"
             ],
-            "preLaunchTask": "Compile"
+            "preLaunchTask": "Compile",
+			"presentation": {
+				"group": "1_extension",
+				"order": 3
+			}
         },
         {
             "name": "Tests (Debugger, VS Code, *.test.ts)",
@@ -98,7 +110,11 @@
             },
             "skipFiles": [
                 "<node_internals>/**"
-            ]
+            ],
+			"presentation": {
+				"group": "2_tests",
+				"order": 1
+			}
         },
         {
             // Note, for the smoke test you want to debug, you may need to copy the file,
@@ -130,7 +146,11 @@
             "preLaunchTask": "Compile",
             "skipFiles": [
                 "<node_internals>/**"
-            ]
+            ],
+			"presentation": {
+				"group": "2_tests",
+				"order": 2
+			}
         },
         {
             "name": "Tests (Single Workspace, VS Code, *.test.ts)",
@@ -159,7 +179,11 @@
             "preLaunchTask": "Compile",
             "skipFiles": [
                 "<node_internals>/**"
-            ]
+            ],
+			"presentation": {
+				"group": "2_tests",
+				"order": 3
+			}
         },
         {
             "name": "Jedi LSP tests",
@@ -184,10 +208,14 @@
             "preLaunchTask": "preTestJediLSP",
             "skipFiles": [
                 "<node_internals>/**"
-            ]
+            ],
+			"presentation": {
+				"group": "2_tests",
+				"order": 4
+			}
         },
         {
-            "name": "Tests (VSCode+Python+Jupyter, *.vscode.test.ts)",
+            "name": "VS Code Tests (VSCode+Jupyter+Python Extension installed, *.vscode.test.ts)",
             "type": "extensionHost",
             "request": "launch",
             "runtimeExecutable": "${execPath}",
@@ -201,6 +229,7 @@
                 "VSC_JUPYTER_CI_TEST_GREP": "", // Modify this to run a subset of the single workspace tests
                 "VSC_JUPYTER_CI_TEST_INVERT_GREP": "", // Initialize this to invert the grep (exclude tests with value defined in grep).
                 "CI_PYTHON_PATH": "<PythonPath>", // Update with path to real python interpereter used for testing.
+                "VSC_PYTHON_CI_NON_PYTHON_NB_TEST": "", // Initialize this to run tests again Julia & other kernels.
                 "VSC_PYTHON_LOAD_EXPERIMENTS_FROM_FILE": "true",
                 "TEST_FILES_SUFFIX": "vscode.test"
             },
@@ -213,7 +242,41 @@
             // "preLaunchTask": "Compile",
             "skipFiles": [
                 "<node_internals>/**"
-            ]
+            ],
+			"presentation": {
+				"group": "2_tests",
+				"order": 5
+			}
+        },
+        {
+            "name": "Native Notebook Tests (VSCode+Jupyter+Python Extension installed, *.vscode.test.ts)",
+            "type": "extensionHost",
+            "request": "launch",
+            "runtimeExecutable": "${execPath}",
+            "args": [
+                "${workspaceFolder}/src/test/datascience",
+                "--disable-extensions",
+                "--enable-proposed-api",
+                "--extensionDevelopmentPath=${workspaceFolder}",
+                "--extensionTestsPath=${workspaceFolder}/out/test"
+            ],
+            "env": {
+                "VSC_PYTHON_CI_TEST_GREP": "VSCode Notebook", // Modify this to run a subset of the single workspace tests
+                "VSC_PYTHON_CI_TEST_INVERT_GREP": "", // Initialize this to invert the grep (exclude tests with value defined in grep).
+                "CI_PYTHON_PATH": "<PythonPath>", // Update with path to real python interpereter used for testing.
+                "VSC_PYTHON_CI_NON_PYTHON_NB_TEST": "", // Initialize this to run tests again Julia & other kernels.
+                "VSC_PYTHON_LOAD_EXPERIMENTS_FROM_FILE": "true",
+                "TEST_FILES_SUFFIX": "vscode.test"
+            },
+            "stopOnEntry": false,
+            "sourceMaps": true,
+            "outFiles": ["${workspaceFolder}/out/**/*.js", "!${workspaceFolder}/**/node_modules**/*"],
+            "preLaunchTask": "Compile",
+            "skipFiles": ["<node_internals>/**"],
+			"presentation": {
+				"group": "2_tests",
+				"order": 6
+			}
         },
         {
             "name": "Unit Tests (without VS Code, *.unit.test.ts)",
@@ -238,7 +301,11 @@
             "preLaunchTask": "Compile",
             "skipFiles": [
                 "<node_internals>/**"
-            ]
+            ],
+			"presentation": {
+				"group": "2_tests",
+				"order": 7
+			}
         },
         {
             "name": "Unit Tests (fast, without VS Code and without react/monaco, *.unit.test.ts)",
@@ -264,7 +331,11 @@
             "preLaunchTask": "Compile",
             "skipFiles": [
                 "<node_internals>/**"
-            ]
+            ],
+			"presentation": {
+				"group": "2_tests",
+				"order": 7
+			}
         },
         {
             "name": "Functional Tests (without VS Code, *.functional.test.ts)",
@@ -307,7 +378,11 @@
             // "preLaunchTask": "Compile",
             "skipFiles": [
                 "<node_internals>/**"
-            ]
+            ],
+			"presentation": {
+				"group": "2_tests",
+				"order": 8
+			}
         },
         {
             "name": "Functional DS UI Tests (without VS Code, *.ui.functional.test.ts)",
@@ -343,7 +418,11 @@
             "preLaunchTask": "Compile",
             "skipFiles": [
                 "<node_internals>/**"
-            ]
+            ],
+			"presentation": {
+				"group": "2_tests",
+				"order": 9
+			}
         },
         {
             "type": "node",
@@ -355,7 +434,11 @@
             ],
             "skipFiles": [
                 "<node_internals>/**"
-            ]
+            ],
+			"presentation": {
+				"group": "3_misc",
+				"order": 1
+			}
         },
         {
             "name": "Node: Current File",
@@ -364,7 +447,11 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "type": "pwa-node"
+            "type": "pwa-node",
+			"presentation": {
+				"group": "3_misc",
+				"order": 2
+			}
         },
         {
             "name": "Python: Current File with iPython",
@@ -374,14 +461,22 @@
             "console": "integratedTerminal",
             "args": [
                 "${file}"
-            ] // Additional args should be prefixed with a '--' first.
+            ],  // Additional args should be prefixed with a '--' first.
+			"presentation": {
+				"group": "3_misc",
+				"order": 3
+			}
         },
         {
             "name": "Python: Current File",
             "type": "python",
             "request": "launch",
             "program": "${file}",
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+			"presentation": {
+				"group": "3_misc",
+				"order": 2
+			}
         }
     ]
 }

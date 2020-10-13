@@ -67,7 +67,6 @@ import {
     INotebookExtensibility,
     INotebookImporter,
     INotebookMetadataLive,
-    INotebookModel,
     INotebookProvider,
     IStatusProvider,
     IThemeFinder,
@@ -88,6 +87,7 @@ import { IDataViewerFactory } from '../data-viewing/types';
 import { getCellHashProvider } from '../editor-integration/cellhashprovider';
 import { KernelSelector } from '../jupyter/kernels/kernelSelector';
 import { KernelConnectionMetadata } from '../jupyter/kernels/types';
+import { NativeEditorNotebookModel } from '../notebookStorage/notebookModel';
 
 const nativeEditorDir = path.join(EXTENSION_ROOT_DIR, 'out', 'datascience-ui', 'notebook');
 export class NativeEditor extends InteractiveBase implements INotebookEditor {
@@ -135,7 +135,7 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
     public get isDirty(): boolean {
         return this.model ? this.model.isDirty : false;
     }
-    public get model(): Readonly<INotebookModel> {
+    public get model(): Readonly<NativeEditorNotebookModel> {
         return this._model;
     }
     public readonly type: 'old' | 'custom' = 'custom';
@@ -182,7 +182,7 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
         useCustomEditorApi: boolean,
         private trustService: ITrustService,
         expService: IExperimentService,
-        private _model: INotebookModel,
+        private _model: NativeEditorNotebookModel,
         webviewPanel: WebviewPanel | undefined,
         selector: KernelSelector,
         private nbExtensibility: INotebookExtensibility,

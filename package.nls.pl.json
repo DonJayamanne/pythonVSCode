@@ -38,8 +38,8 @@
     "jupyter.command.jupyter.undocells.title": "Cofnij ostatnią akcję IPythona",
     "jupyter.command.jupyter.redocells.title": "Ponów ostatnią akcję IPythona",
     "jupyter.command.jupyter.removeallcells.title": "Usuń wszystkie komórki IPythona",
-    "jupyter.command.jupyter.interruptkernel.title": "Przerwij IPython Kernel",
-    "jupyter.command.jupyter.restartkernel.title": "Restartuj IPython Kernel",
+    "jupyter.command.jupyter.interruptkernel.title": "Przerwij Jupyter Kernel",
+    "jupyter.command.jupyter.restartkernel.title": "Restartuj Jupyter Kernel",
     "jupyter.command.jupyter.expandallcells.title": "Rozwiń wszystkie komórki IPythona",
     "jupyter.command.jupyter.collapseallcells.title": "Zwiń wszystkie komórki IPythona"
 }

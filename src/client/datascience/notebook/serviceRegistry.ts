@@ -3,12 +3,14 @@
 
 'use strict';
 
+import { NotebookContentProvider as VSCNotebookContentProvider } from '../../../../types/vscode-proposed';
 import { IExtensionSingleActivationService } from '../../activation/types';
 import { IServiceManager } from '../../ioc/types';
 import { GitHubIssueCodeLensProvider } from '../../logging/gitHubIssueCodeLensProvider';
 import { KernelProvider } from '../jupyter/kernels/kernelProvider';
 import { IKernelProvider } from '../jupyter/kernels/types';
 import { NotebookContentProvider } from './contentProvider';
+import { NotebookCellLanguageService } from './defaultCellLanguageService';
 import { NotebookIntegration } from './integration';
 import { VSCodeKernelPickerProvider } from './kernelProvider';
 import { NotebookDisposeService } from './notebookDisposeService';
@@ -16,7 +18,7 @@ import { NotebookSurveyBanner, NotebookSurveyDataLogger } from './survey';
 import { INotebookContentProvider } from './types';
 
 export function registerTypes(serviceManager: IServiceManager) {
-    serviceManager.addSingleton<INotebookContentProvider>(INotebookContentProvider, NotebookContentProvider);
+    serviceManager.addSingleton<VSCNotebookContentProvider>(INotebookContentProvider, NotebookContentProvider);
     serviceManager.addSingleton<IExtensionSingleActivationService>(
         IExtensionSingleActivationService,
         NotebookIntegration
@@ -37,4 +39,9 @@ export function registerTypes(serviceManager: IServiceManager) {
         IExtensionSingleActivationService,
         GitHubIssueCodeLensProvider
     );
+    serviceManager.addSingleton<IExtensionSingleActivationService>(
+        IExtensionSingleActivationService,
+        NotebookCellLanguageService
+    );
+    serviceManager.addSingleton<NotebookCellLanguageService>(NotebookCellLanguageService, NotebookCellLanguageService);
 }

@@ -1,6 +1,6 @@
 import { injectable } from 'inversify';
 import { Event, EventEmitter } from 'vscode';
-import type { NotebookCell } from 'vscode-proposed';
+import type { NotebookCell } from '../../../types/vscode-proposed';
 import { INotebookExtensibility } from './types';
 
 @injectable()

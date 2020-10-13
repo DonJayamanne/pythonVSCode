@@ -57,19 +57,21 @@ import {
     WorkspaceFolderPickOptions,
     WorkspaceFoldersChangeEvent
 } from 'vscode';
+import * as vsls from 'vsls/vscode';
 import type {
     NotebookCellLanguageChangeEvent as VSCNotebookCellLanguageChangeEvent,
     NotebookCellMetadata,
+    NotebookCellMetadataChangeEvent as VSCNotebookCellMetadataChangeEvent,
     NotebookCellOutputsChangeEvent as VSCNotebookCellOutputsChangeEvent,
     NotebookCellsChangeEvent as VSCNotebookCellsChangeEvent,
     NotebookContentProvider,
     NotebookDocument,
     NotebookDocumentFilter,
+    NotebookDocumentMetadataChangeEvent as VSCNotebookDocumentMetadataChangeEvent,
     NotebookEditor,
     NotebookKernel,
     NotebookKernelProvider
-} from 'vscode-proposed';
-import * as vsls from 'vsls/vscode';
+} from '../../../../types/vscode-proposed';
 
 import { IAsyncDisposable, Resource } from '../types';
 import { ICommandNameArgumentTypeMapping } from './commands';
@@ -1514,10 +1516,16 @@ export interface IClipboard {
 
 export type NotebookCellsChangeEvent = { type: 'changeCells' } & VSCNotebookCellsChangeEvent;
 export type NotebookCellOutputsChangeEvent = { type: 'changeCellOutputs' } & VSCNotebookCellOutputsChangeEvent;
+export type NotebookCellMetadataChangeEvent = { type: 'changeCellMetadata' } & VSCNotebookCellMetadataChangeEvent;
 export type NotebookCellLanguageChangeEvent = { type: 'changeCellLanguage' } & VSCNotebookCellLanguageChangeEvent;
+export type NotebookDocumentMetadataChangeEvent = {
+    type: 'changeNotebookMetadata';
+} & VSCNotebookDocumentMetadataChangeEvent;
 export type NotebookCellChangedEvent =
     | NotebookCellsChangeEvent
     | NotebookCellOutputsChangeEvent
+    | NotebookCellMetadataChangeEvent
+    | NotebookDocumentMetadataChangeEvent
     | NotebookCellLanguageChangeEvent;
 export const IVSCodeNotebook = Symbol('IVSCodeNotebook');
 export interface IVSCodeNotebook {
@@ -1528,6 +1536,7 @@ export interface IVSCodeNotebook {
     readonly notebookDocuments: ReadonlyArray<NotebookDocument>;
     readonly onDidOpenNotebookDocument: Event<NotebookDocument>;
     readonly onDidCloseNotebookDocument: Event<NotebookDocument>;
+    readonly onDidSaveNotebookDocument: Event<NotebookDocument>;
     readonly onDidChangeActiveNotebookEditor: Event<NotebookEditor | undefined>;
     readonly onDidChangeNotebookDocument: Event<NotebookCellChangedEvent>;
     readonly notebookEditors: Readonly<NotebookEditor[]>;
