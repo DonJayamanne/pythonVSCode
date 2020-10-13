@@ -59,7 +59,7 @@ suite('DataScience - Kernels Finder', () => {
         assert.equal(kernelSpec?.language, PYTHON_LANGUAGE);
     });
     test('Can find a Python kernel based on language (non-python-kernel)', async function () {
-        if (!process.env.VSC_PYTHON_CI_NON_PYTHON_NB_TEST) {
+        if (!process.env.VSC_JUPYTER_CI_RUN_NON_PYTHON_NB_TEST) {
             return this.skip();
         }
 
@@ -71,7 +71,7 @@ suite('DataScience - Kernels Finder', () => {
         assert.equal(kernelSpec?.language, 'julia');
     });
     test('Can find a Julia kernel based on kernelspec (non-python-kernel)', async function () {
-        if (!process.env.VSC_PYTHON_CI_NON_PYTHON_NB_TEST) {
+        if (!process.env.VSC_JUPYTER_CI_RUN_NON_PYTHON_NB_TEST) {
             return this.skip();
         }
         const kernelSpecs = await kernelFinder.listKernelSpecs(resourceToUse);

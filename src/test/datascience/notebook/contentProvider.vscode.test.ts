@@ -14,12 +14,13 @@ import { CellDisplayOutput } from '../../../../types/vscode-proposed';
 import { IVSCodeNotebook } from '../../../client/common/application/types';
 import { IDisposable } from '../../../client/common/types';
 import { INotebookStorageProvider } from '../../../client/datascience/notebookStorage/notebookStorageProvider';
+import { VSCodeNotebookModel } from '../../../client/datascience/notebookStorage/vscNotebookModel';
 import { INotebookEditorProvider } from '../../../client/datascience/types';
 import { IExtensionTestApi, waitForCondition } from '../../common';
 import { EXTENSION_ROOT_DIR_FOR_TESTS, initialize } from '../../initialize';
 import { openNotebook } from '../helpers';
 import {
-    canRunTests,
+    canRunNotebookTests,
     closeNotebooksAndCleanUpAfterTests,
     createTemporaryNotebook,
     saveActiveNotebook,
@@ -55,7 +56,7 @@ suite('DataScience - VSCode Notebook - (Open)', function () {
     suiteSetup(async function () {
         this.timeout(15_000);
         api = await initialize();
-        if (!(await canRunTests())) {
+        if (!(await canRunNotebookTests())) {
             return this.skip();
         }
         vscodeNotebook = api.serviceContainer.get<IVSCodeNotebook>(IVSCodeNotebook);
@@ -93,8 +94,8 @@ suite('DataScience - VSCode Notebook - (Open)', function () {
     });
     test('Verify cells (content, metadata & output)', async () => {
         const editorProvider = api.serviceContainer.get<INotebookEditorProvider>(INotebookEditorProvider);
-        const model = (await editorProvider.open(testIPynb))!.model!;
-        model.trust(); // We want to test the output as well.
+        const model = (await editorProvider.open(testIPynb))!.model! as VSCodeNotebookModel;
+        await model.trustNotebook(); // We want to test the output as well.
 
         const notebook = vscodeNotebook.activeNotebookEditor?.document!;
 

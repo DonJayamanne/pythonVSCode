@@ -153,39 +153,6 @@
 			}
         },
         {
-            "name": "Tests (Single Workspace, VS Code, *.test.ts)",
-            "type": "extensionHost",
-            "request": "launch",
-            "runtimeExecutable": "${execPath}",
-            "args": [
-                "${workspaceFolder:vscode-jupyter}/src/test",
-                "--disable-extensions",
-                "--enable-proposed-api",
-                "--extensionDevelopmentPath=${workspaceFolder:vscode-python}",
-                "--extensionDevelopmentPath=${workspaceFolder:vscode-jupyter}",
-                "--extensionTestsPath=${workspaceFolder:vscode-jupyter}/out/test"
-            ],
-            "env": {
-                "VSC_JUPYTER_CI_TEST_GREP": "" // Modify this to run a subset of the single workspace tests
-            },
-            "stopOnEntry": false,
-            "sourceMaps": true,
-            "outFiles": [
-                "${workspaceFolder:vscode-python}/out/**/*.js",
-                "!${workspaceFolder:vscode-python}/**/node_modules**/*",
-                "${workspaceFolder:vscode-jupyter}/out/**/*.js",
-                "!${workspaceFolder:vscode-jupyter}/**/node_modules**/*"
-            ],
-            "preLaunchTask": "Compile",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-			"presentation": {
-				"group": "2_tests",
-				"order": 3
-			}
-        },
-        {
             "name": "Jedi LSP tests",
             "type": "extensionHost",
             "request": "launch",
@@ -215,7 +182,7 @@
 			}
         },
         {
-            "name": "VS Code Tests (VSCode+Jupyter+Python Extension installed, *.vscode.test.ts)",
+            "name": "VS Code Tests (Jupyter+Python Extension installed, *.vscode.test.ts)",
             "type": "extensionHost",
             "request": "launch",
             "runtimeExecutable": "${execPath}",
@@ -226,10 +193,12 @@
                 "--extensionTestsPath=${workspaceFolder}/out/test"
             ],
             "env": {
-                "VSC_JUPYTER_CI_TEST_GREP": "", // Modify this to run a subset of the single workspace tests
+                "VSC_JUPYTER_CI_TEST_GREP": "", // Modify this to run a subset of the tests
                 "VSC_JUPYTER_CI_TEST_INVERT_GREP": "", // Initialize this to invert the grep (exclude tests with value defined in grep).
                 "CI_PYTHON_PATH": "<PythonPath>", // Update with path to real python interpereter used for testing.
-                "VSC_PYTHON_CI_NON_PYTHON_NB_TEST": "", // Initialize this to run tests again Julia & other kernels.
+                "VSCODE_PYTHON_ROLLING": "true", // Enalbe tests that require Jupyter.
+                "VSC_JUPYTER_CI_RUN_NON_PYTHON_NB_TEST": "", // Initialize this to run tests again Julia & other kernels.
+                "VSC_JUPYTER_RUN_NB_TEST": "", // Initialize this to run notebook tests (must be using VSC Insiders).
                 "VSC_PYTHON_LOAD_EXPERIMENTS_FROM_FILE": "true",
                 "TEST_FILES_SUFFIX": "vscode.test"
             },
@@ -239,7 +208,7 @@
                 "${workspaceFolder}/out/**/*.js",
                 "!${workspaceFolder}/**/node_modules**/*"
             ],
-            // "preLaunchTask": "Compile",
+            "preLaunchTask": "Compile",
             "skipFiles": [
                 "<node_internals>/**"
             ],
@@ -249,7 +218,7 @@
 			}
         },
         {
-            "name": "Native Notebook Tests (VSCode+Jupyter+Python Extension installed, *.vscode.test.ts)",
+            "name": "Native Notebook Tests (Jupyter+Python Extension installed, *.vscode.test.ts)",
             "type": "extensionHost",
             "request": "launch",
             "runtimeExecutable": "${execPath}",
@@ -261,10 +230,12 @@
                 "--extensionTestsPath=${workspaceFolder}/out/test"
             ],
             "env": {
-                "VSC_PYTHON_CI_TEST_GREP": "VSCode Notebook", // Modify this to run a subset of the single workspace tests
+                "VSC_PYTHON_CI_TEST_GREP": "VSCode Notebook", // Leave as `VSCode Notebook` to run only Notebook tests.
                 "VSC_PYTHON_CI_TEST_INVERT_GREP": "", // Initialize this to invert the grep (exclude tests with value defined in grep).
                 "CI_PYTHON_PATH": "<PythonPath>", // Update with path to real python interpereter used for testing.
-                "VSC_PYTHON_CI_NON_PYTHON_NB_TEST": "", // Initialize this to run tests again Julia & other kernels.
+                "VSCODE_PYTHON_ROLLING": "true", // Enalbe tests that require Jupyter.
+                "VSC_JUPYTER_CI_RUN_NON_PYTHON_NB_TEST": "", // Initialize this to run tests again Julia & other kernels.
+                "VSC_JUPYTER_RUN_NB_TEST": "true", // Initialize this to run notebook tests (must be using VSC Insiders).
                 "VSC_PYTHON_LOAD_EXPERIMENTS_FROM_FILE": "true",
                 "TEST_FILES_SUFFIX": "vscode.test"
             },
@@ -375,7 +346,7 @@
                 "${workspaceFolder}/out/**/*.js",
                 "!${workspaceFolder}/**/node_modules**/*"
             ],
-            // "preLaunchTask": "Compile",
+            "preLaunchTask": "Compile",
             "skipFiles": [
                 "<node_internals>/**"
             ],

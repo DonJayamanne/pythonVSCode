@@ -19,7 +19,7 @@ import {
     assertVSCCellHasErrors,
     assertVSCCellIsNotRunning,
     assertVSCCellIsRunning,
-    canRunTests,
+    canRunNotebookTests,
     closeNotebooks,
     closeNotebooksAndCleanUpAfterTests,
     executeActiveDocument,
@@ -51,7 +51,7 @@ suite('DataScience - VSCode Notebook - Restart/Interrupt/Cancel/Errors (slow)', 
     suiteSetup(async function () {
         this.timeout(60_000);
         api = await initialize();
-        if (!(await canRunTests())) {
+        if (!(await canRunNotebookTests())) {
             return this.skip();
         }
         await closeNotebooksAndCleanUpAfterTests();

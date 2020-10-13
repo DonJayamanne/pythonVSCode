@@ -20,7 +20,7 @@ import {
     assertHasTextOutputInVSCode,
     assertNotHasTextOutputInVSCode,
     assertVSCCellHasErrors,
-    canRunTests,
+    canRunNotebookTests,
     closeNotebooksAndCleanUpAfterTests,
     deleteAllCellsAndWait,
     executeActiveDocument,
@@ -42,7 +42,7 @@ suite('DataScience - VSCode Notebook - (Execution) (slow)', () => {
     suiteSetup(async function () {
         this.timeout(120_000);
         api = await initialize();
-        if (!(await canRunTests())) {
+        if (!(await canRunNotebookTests())) {
             return this.skip();
         }
         await trustAllNotebooks();

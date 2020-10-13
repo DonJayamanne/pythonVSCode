@@ -21,7 +21,7 @@ import { noop } from '../../core';
 import { EXTENSION_ROOT_DIR_FOR_TESTS, initialize } from '../../initialize';
 import { openNotebook } from '../helpers';
 import {
-    canRunTests,
+    canRunNotebookTests,
     closeNotebooks,
     closeNotebooksAndCleanUpAfterTests,
     createTemporaryNotebook,
@@ -62,7 +62,7 @@ suite('DataScience - VSCode Notebook - (Trust)', function () {
     suiteSetup(async function () {
         this.timeout(15_000);
         api = await initialize();
-        if (!(await canRunTests())) {
+        if (!(await canRunNotebookTests())) {
             return this.skip();
         }
         const configService = api.serviceContainer.get<IConfigurationService>(IConfigurationService);

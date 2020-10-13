@@ -201,7 +201,6 @@ jobs:
         # macOS runners are expensive, and we assume that Ubuntu is enough to cover the UNIX case.
         os: [ubuntu-latest, windows-latest]
         python: [3.8]
-        # test-suite: [python-unit, single-workspace, functional]
         test-suite: [python-unit, functional]
     steps:
       - name: Checkout
@@ -310,14 +309,6 @@ jobs:
           python pythonFiles/tests/run_all.py
           python -m IPython pythonFiles/tests/run_all.py
         if: matrix.test-suite == 'python-unit'
-
-      - name: Run single-workspace tests
-        env:
-          CI_PYTHON_VERSION: ${{matrix.python}}
-        uses: GabrielBB/xvfb-action@v1.4
-        with:
-          run: npm run testSingleWorkspace
-        if: matrix.test-suite == 'single-workspace'
 
       - name: Run functional tests
         run: npm run test:functional

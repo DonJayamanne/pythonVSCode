@@ -16,7 +16,7 @@ import { createEventHandler, IExtensionTestApi, waitForCondition } from '../../c
 import { EXTENSION_ROOT_DIR_FOR_TESTS } from '../../constants';
 import { closeActiveWindows, initialize } from '../../initialize';
 import {
-    canRunTests,
+    canRunNotebookTests,
     closeNotebooksAndCleanUpAfterTests,
     createTemporaryNotebook,
     insertMarkdownCell,
@@ -44,7 +44,7 @@ suite('DataScience - VSCode Notebook (Editor Provider)', function () {
     const disposables: IDisposable[] = [];
     suiteSetup(async function () {
         api = await initialize();
-        if (!(await canRunTests())) {
+        if (!(await canRunNotebookTests())) {
             return this.skip();
         }
         vscodeNotebook = api.serviceContainer.get<IVSCodeNotebook>(IVSCodeNotebook);

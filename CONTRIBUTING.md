@@ -127,7 +127,7 @@ Note: System tests are those in files with extension `.test*.ts` but which are n
 You can also run the tests from the command-line (after compiling):
 
 ```shell
-npm run testSingleWorkspace  # will launch the VSC UI
+npm run testVSCode  # will launch the VSC UI
 ```
 
 #### Customising the Test Run

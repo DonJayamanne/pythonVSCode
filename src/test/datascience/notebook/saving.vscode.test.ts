@@ -20,7 +20,7 @@ import {
     assertHasTextOutputInVSCode,
     assertVSCCellHasErrorOutput,
     assertVSCCellStateIsUndefinedOrIdle,
-    canRunTests,
+    canRunNotebookTests,
     closeNotebooks,
     closeNotebooksAndCleanUpAfterTests,
     createTemporaryNotebook,
@@ -50,7 +50,7 @@ suite('DataScience - VSCode Notebook - (Saving) (slow)', function () {
     suiteSetup(async function () {
         this.timeout(60_000);
         api = await initialize();
-        if (!(await canRunTests())) {
+        if (!(await canRunNotebookTests())) {
             return this.skip();
         }
         vscodeNotebook = api.serviceContainer.get<IVSCodeNotebook>(IVSCodeNotebook);

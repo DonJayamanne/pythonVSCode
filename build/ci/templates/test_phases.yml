@@ -19,7 +19,6 @@
 # 'testUnitTests'
 # 'pythonUnitTests'
 # 'pythonInternalTools'
-# 'testSingleWorkspace'
 # 'testDebugger'
 # 'testFunctional'
 # 'testPerformance'

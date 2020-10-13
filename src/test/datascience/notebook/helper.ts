@@ -142,8 +142,8 @@ export function disposeAllDisposables(disposables: IDisposable[]) {
     }
 }
 
-export async function canRunTests() {
-    if (!isInsiders()) {
+export async function canRunNotebookTests() {
+    if (!isInsiders() || !process.env.VSC_JUPYTER_RUN_NB_TEST) {
         return false;
     }
     const api = await initialize();

@@ -19,7 +19,7 @@ import { openNotebook } from '../helpers';
 import {
     assertHasExecutionCompletedSuccessfully,
     assertHasTextOutputInVSCode,
-    canRunTests,
+    canRunNotebookTests,
     closeNotebooks,
     closeNotebooksAndCleanUpAfterTests,
     createTemporaryNotebook,
@@ -60,7 +60,7 @@ suite('DataScience - VSCode Notebook - Kernels (non-python-kernel) (slow)', () =
     let languageService: NotebookCellLanguageService;
     suiteSetup(async function () {
         api = await initialize();
-        if (!process.env.VSC_PYTHON_CI_NON_PYTHON_NB_TEST || !(await canRunTests())) {
+        if (!process.env.VSC_JUPYTER_CI_RUN_NON_PYTHON_NB_TEST || !(await canRunNotebookTests())) {
             return this.skip();
         }
         await trustAllNotebooks();
