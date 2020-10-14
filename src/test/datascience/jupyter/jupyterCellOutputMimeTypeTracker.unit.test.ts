@@ -18,7 +18,7 @@ import { NativeEditorNotebookModel } from '../../../client/datascience/notebookS
 import { CellState, ICell, INotebookEditor } from '../../../client/datascience/types';
 
 suite('DataScience - Cell Output Mimetype Tracker', () => {
-    const oldValueOfVSC_PYTHON_UNIT_TEST = process.env.VSC_PYTHON_UNIT_TEST;
+    const oldValueOfVSC_JUPYTER_UNIT_TEST = process.env.VSC_JUPYTER_UNIT_TEST;
     const oldValueOfVSC_JUPYTER_CI_TEST = process.env.VSC_JUPYTER_CI_TEST;
     let outputMimeTypeTracker: CellOutputMimeTypeTracker;
     let nativeProvider: NativeEditorProvider;
@@ -44,7 +44,7 @@ suite('DataScience - Cell Output Mimetype Tracker', () => {
     }
 
     setup(async () => {
-        process.env.VSC_PYTHON_UNIT_TEST = undefined;
+        process.env.VSC_JUPYTER_UNIT_TEST = undefined;
         process.env.VSC_JUPYTER_CI_TEST = undefined;
 
         openedNotebookEmitter = new EventEmitter<INotebookEditor>();
@@ -61,7 +61,7 @@ suite('DataScience - Cell Output Mimetype Tracker', () => {
     });
     teardown(() => {
         clock.uninstall();
-        process.env.VSC_PYTHON_UNIT_TEST = oldValueOfVSC_PYTHON_UNIT_TEST;
+        process.env.VSC_JUPYTER_UNIT_TEST = oldValueOfVSC_JUPYTER_UNIT_TEST;
         process.env.VSC_JUPYTER_CI_TEST = oldValueOfVSC_JUPYTER_CI_TEST;
         Reporter.telemetrySent = [];
         rewiremock.disable();

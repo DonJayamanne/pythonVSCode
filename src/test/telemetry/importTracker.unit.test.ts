@@ -15,7 +15,7 @@ import { ImportTracker } from '../../client/telemetry/importTracker';
 import { createDocument } from '../datascience/editor-integration/helpers';
 
 suite('Import Tracker', () => {
-    const oldValueOfVSC_PYTHON_UNIT_TEST = process.env.VSC_PYTHON_UNIT_TEST;
+    const oldValueOfVSC_JUPYTER_UNIT_TEST = process.env.VSC_JUPYTER_UNIT_TEST;
     const oldValueOfVSC_JUPYTER_CI_TEST = process.env.VSC_JUPYTER_CI_TEST;
     // tslint:disable-next-line:no-require-imports
     const hashJs = require('hash.js');
@@ -59,7 +59,7 @@ suite('Import Tracker', () => {
     }
 
     setup(() => {
-        process.env.VSC_PYTHON_UNIT_TEST = undefined;
+        process.env.VSC_JUPYTER_UNIT_TEST = undefined;
         process.env.VSC_JUPYTER_CI_TEST = undefined;
 
         openedEventEmitter = new EventEmitter<TextDocument>();
@@ -82,7 +82,7 @@ suite('Import Tracker', () => {
         importTracker = new ImportTracker(documentManager.object, nativeProvider.object);
     });
     teardown(() => {
-        process.env.VSC_PYTHON_UNIT_TEST = oldValueOfVSC_PYTHON_UNIT_TEST;
+        process.env.VSC_JUPYTER_UNIT_TEST = oldValueOfVSC_JUPYTER_UNIT_TEST;
         process.env.VSC_JUPYTER_CI_TEST = oldValueOfVSC_JUPYTER_CI_TEST;
         Reporter.properties = [];
         Reporter.eventNames = [];

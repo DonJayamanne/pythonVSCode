@@ -2869,7 +2869,7 @@ df.head()`;
 
                         // Some tests don't have a kernelspec, in which case we should remove it
                         // If there is a spec, we should update the name and display name
-                        const isRollingBuild = process.env ? process.env.VSCODE_PYTHON_ROLLING !== undefined : false;
+                        const isRollingBuild = process.env ? process.env.VSC_FORCE_REAL_JUPYTER !== undefined : false;
                         if (isRollingBuild && fileObject.metadata.kernelspec) {
                             assert.notEqual(fileObject.metadata.kernelspec.display_name, 'JUNK');
                             assert.notEqual(fileObject.metadata.kernelspec.name, 'JUNK');

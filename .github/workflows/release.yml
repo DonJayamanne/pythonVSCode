@@ -317,8 +317,8 @@ jobs:
       - name: Run functional tests with Jupyter
         run: npm run test:functional
         env:
-          VSCODE_PYTHON_ROLLING: 1
-          VSC_PYTHON_FORCE_LOGGING: 1
+          VSC_FORCE_REAL_JUPYTER: 1
+          VSC_JUPYTER_FORCE_LOGGING: 1
         if: matrix.test-suite == 'functional-with-jupyter'
 
   smoke-tests:

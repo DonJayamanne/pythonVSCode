@@ -4,7 +4,7 @@
 // tslint:disable:no-console no-require-imports no-var-requires
 
 // Must always be on top to setup expected env.
-process.env.VSC_PYTHON_SMOKE_TEST = '1';
+process.env.VSC_JUPYTER_SMOKE_TEST = '1';
 
 import { spawn } from 'child_process';
 import * as fs from 'fs-extra';
@@ -21,7 +21,7 @@ class TestRunner {
     }
     private async launchSmokeTests() {
         const env: Record<string, {}> = {
-            VSC_PYTHON_SMOKE_TEST: '1',
+            VSC_JUPYTER_SMOKE_TEST: '1',
             CODE_EXTENSIONS_PATH: SMOKE_TEST_EXTENSIONS_DIR
         };
 

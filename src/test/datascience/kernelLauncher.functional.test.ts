@@ -67,7 +67,7 @@ suite('DataScience - Kernel Launcher', () => {
     });
 
     test('Launch from kernelspec', async function () {
-        if (!process.env.VSCODE_PYTHON_ROLLING) {
+        if (!process.env.VSC_FORCE_REAL_JUPYTER) {
             // tslint:disable-next-line: no-invalid-this
             this.skip();
         } else {
@@ -103,7 +103,7 @@ suite('DataScience - Kernel Launcher', () => {
     }).timeout(10_000);
 
     test('Launch with environment', async function () {
-        if (!process.env.VSCODE_PYTHON_ROLLING || !pythonInterpreter) {
+        if (!process.env.VSC_FORCE_REAL_JUPYTER || !pythonInterpreter) {
             // tslint:disable-next-line: no-invalid-this
             this.skip();
         } else {
@@ -149,7 +149,7 @@ suite('DataScience - Kernel Launcher', () => {
     }).timeout(10_000);
 
     test('Bind with ZMQ', async function () {
-        if (!process.env.VSCODE_PYTHON_ROLLING) {
+        if (!process.env.VSC_FORCE_REAL_JUPYTER) {
             // tslint:disable-next-line: no-invalid-this
             this.skip();
         } else {

@@ -19,7 +19,7 @@ import { IJupyterExecution } from '../../client/datascience/types';
 import { clearTelemetryReporter } from '../../client/telemetry';
 
 suite('Interactive Shift Enter Banner', () => {
-    const oldValueOfVSC_PYTHON_UNIT_TEST = process.env.VSC_PYTHON_UNIT_TEST;
+    const oldValueOfVSC_JUPYTER_UNIT_TEST = process.env.VSC_JUPYTER_UNIT_TEST;
     const oldValueOfVSC_JUPYTER_CI_TEST = process.env.VSC_JUPYTER_CI_TEST;
     let appShell: typemoq.IMock<IApplicationShell>;
     let jupyterExecution: typemoq.IMock<IJupyterExecution>;
@@ -38,7 +38,7 @@ suite('Interactive Shift Enter Banner', () => {
 
     setup(() => {
         clearTelemetryReporter();
-        process.env.VSC_PYTHON_UNIT_TEST = undefined;
+        process.env.VSC_JUPYTER_UNIT_TEST = undefined;
         process.env.VSC_JUPYTER_CI_TEST = undefined;
         appShell = typemoq.Mock.ofType<IApplicationShell>();
         jupyterExecution = typemoq.Mock.ofType<IJupyterExecution>();
@@ -48,7 +48,7 @@ suite('Interactive Shift Enter Banner', () => {
     });
 
     teardown(() => {
-        process.env.VSC_PYTHON_UNIT_TEST = oldValueOfVSC_PYTHON_UNIT_TEST;
+        process.env.VSC_JUPYTER_UNIT_TEST = oldValueOfVSC_JUPYTER_UNIT_TEST;
         process.env.VSC_JUPYTER_CI_TEST = oldValueOfVSC_JUPYTER_CI_TEST;
         Reporter.properties = [];
         Reporter.eventNames = [];

@@ -184,7 +184,7 @@ export class NotebookStarter implements Disposable {
         // Check for the debug environment variable being set. Setting this
         // causes Jupyter to output a lot more information about what it's doing
         // under the covers and can be used to investigate problems with Jupyter.
-        const debugArgs = process.env && process.env.VSCODE_PYTHON_DEBUG_JUPYTER ? ['--debug'] : [];
+        const debugArgs = process.env && process.env.VSCODE_JUPYTER_DEBUG_JUPYTER ? ['--debug'] : [];
 
         // Use this temp file and config file to generate a list of args for our command
         return [...args, ...dockerArgs, ...debugArgs];

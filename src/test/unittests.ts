@@ -21,7 +21,7 @@ if ((Reflect as any).metadata === undefined) {
 }
 
 process.env.VSC_JUPYTER_CI_TEST = '1';
-process.env.VSC_PYTHON_UNIT_TEST = '1';
+process.env.VSC_JUPYTER_UNIT_TEST = '1';
 
 import { initialize } from './vscode-mock';
 

@@ -14,7 +14,7 @@ const monkeyPatchLogger = createLogger();
 
 export function initializeLogger() {
     const config = getPreDefinedConfiguration();
-    if (isCI && process.env.VSC_PYTHON_LOG_FILE) {
+    if (isCI && process.env.VSC_JUPYTER_LOG_FILE) {
         delete config.console;
         // This is a separate logger that matches our config but
         // does not do any console logging.

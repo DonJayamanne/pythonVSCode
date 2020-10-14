@@ -157,7 +157,7 @@ export function sendTelemetryEvent<P extends IEventNamePropertyMapping, E extend
         reporter.sendTelemetryEvent(eventNameSent, customProperties, measures);
     }
 
-    if (process.env && process.env.VSC_PYTHON_LOG_TELEMETRY) {
+    if (process.env && process.env.VSC_JUPYTER_LOG_TELEMETRY) {
         traceInfo(
             `Telemetry Event : ${eventNameSent} Measures: ${JSON.stringify(measures)} Props: ${JSON.stringify(
                 customProperties

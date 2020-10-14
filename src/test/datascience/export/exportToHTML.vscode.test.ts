@@ -19,7 +19,7 @@ suite('DataScience - Export HTML', () => {
         api = await initialize();
         // Export to HTML tests require jupyter to run. Othewrise can't
         // run any of our variable execution code
-        const isRollingBuild = process.env ? process.env.VSCODE_PYTHON_ROLLING !== undefined : false;
+        const isRollingBuild = process.env ? process.env.VSC_FORCE_REAL_JUPYTER !== undefined : false;
         if (!isRollingBuild) {
             // tslint:disable-next-line:no-console
             console.log('Skipping Export to HTML tests. Requires python environment');

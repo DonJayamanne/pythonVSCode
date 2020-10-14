@@ -22,7 +22,7 @@ suite('DataScience - Export Util', () => {
         api = await initialize();
         // Export Util tests require jupyter to run. Otherwise can't
         // run any of our variable execution code
-        if (!process.env.VSCODE_PYTHON_ROLLING) {
+        if (!process.env.VSC_FORCE_REAL_JUPYTER) {
             // tslint:disable-next-line:no-invalid-this
             this.skip();
         }

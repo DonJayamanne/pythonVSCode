@@ -24,7 +24,7 @@ var color = Base.color;
 
 exports = module.exports = Spec;
 
-const prefix = process.env.VSC_PYTHON_CI_TEST_PARALLEL ? `${process.pid}   ` : '';
+const prefix = process.env.VSC_JUPYTER_CI_TEST_PARALLEL ? `${process.pid}   ` : '';
 
 /**
  * Constructs a new `Spec` reporter instance.

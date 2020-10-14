@@ -128,7 +128,7 @@ async function main() {
 
     // Run all of the tests (in parallel or sync based on env)
     try {
-        if (process.env.VSCODE_PYTHON_FORCE_TEST_SYNC) {
+        if (process.env.VSCODE_JUPYTER_FORCE_TEST_SYNC) {
             for (var i = 0; i < files.length; i += 1) {
                 // Synchronous, one at a time
                 returnCode = returnCode | (await runIndividualTest(extraArgs, files[i], i));

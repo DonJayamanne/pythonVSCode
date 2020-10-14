@@ -3,7 +3,7 @@
 'use strict';
 import { isTestExecution } from '../../client/common/constants';
 
-const enableLogger = !isTestExecution() || process.env.VSC_PYTHON_FORCE_LOGGING || process.env.VSC_PYTHON_LOG_FILE;
+const enableLogger = !isTestExecution() || process.env.VSC_JUPYTER_FORCE_LOGGING || process.env.VSC_JUPYTER_LOG_FILE;
 
 // Might want to post this back to the other side too. This was
 export function logMessage(message: string) {

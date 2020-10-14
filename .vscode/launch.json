@@ -24,11 +24,11 @@
             ],
             "env": {
                 // Enable this to turn on redux logging during debugging
-                "XVSC_PYTHON_FORCE_LOGGING": "1",
+                "XVSC_JUPYTER_FORCE_LOGGING": "1",
                 // Enable this to try out new experiments locally
-                "VSC_PYTHON_LOAD_EXPERIMENTS_FROM_FILE": "1",
+                "VSC_JUPYTER_LOAD_EXPERIMENTS_FROM_FILE": "1",
                 // Enable this to log telemetry to the output during debugging
-                "XVSC_PYTHON_LOG_TELEMETRY": "1",
+                "XVSC_JUPYTER_LOG_TELEMETRY": "1",
                 // Enable this to log debugger output. Directory must exist ahead of time
                 "XDEBUGPY_LOG_DIR": "${workspaceRoot}/tmp/Debug_Output_Ex"
             },
@@ -54,7 +54,7 @@
             ],
             "preLaunchTask": "Inject DS WebBrowser UI",
             "env": {
-                "VSC_PYTHON_DS_UI_PROMPT": "1"
+                "VSC_JUPYTER_DS_UI_PROMPT": "1"
             },
             "skipFiles": [
                 "<node_internals>/**"
@@ -102,7 +102,7 @@
             ],
             "env": {
                 "CI_PYTHON_PATH": "<Python Path>",
-                "VSC_PYTHON_SMOKE_TEST": "1",
+                "VSC_JUPYTER_SMOKE_TEST": "1",
                 "VSC_JUPYTER_CI_TEST_GREP": "Smoke Test"
             },
             "stopOnEntry": false,
@@ -166,10 +166,10 @@
                 "VSC_JUPYTER_CI_TEST_GREP": "", // Modify this to run a subset of the tests
                 "VSC_JUPYTER_CI_TEST_INVERT_GREP": "", // Initialize this to invert the grep (exclude tests with value defined in grep).
                 "CI_PYTHON_PATH": "<PythonPath>", // Update with path to real python interpereter used for testing.
-                "VSCODE_PYTHON_ROLLING": "true", // Enalbe tests that require Jupyter.
+                "VSC_FORCE_REAL_JUPYTER": "true", // Enalbe tests that require Jupyter.
                 "VSC_JUPYTER_CI_RUN_NON_PYTHON_NB_TEST": "", // Initialize this to run tests again Julia & other kernels.
                 "VSC_JUPYTER_RUN_NB_TEST": "", // Initialize this to run notebook tests (must be using VSC Insiders).
-                "VSC_PYTHON_LOAD_EXPERIMENTS_FROM_FILE": "true",
+                "VSC_JUPYTER_LOAD_EXPERIMENTS_FROM_FILE": "true",
                 "TEST_FILES_SUFFIX": "vscode.test"
             },
             "stopOnEntry": false,
@@ -202,10 +202,10 @@
                 "VSC_JUPYTER_CI_TEST_GREP": "VSCode Notebook", // Leave as `VSCode Notebook` to run only Notebook tests.
                 "VSC_JUPYTER_CI_TEST_INVERT_GREP": "", // Initialize this to invert the grep (exclude tests with value defined in grep).
                 "CI_PYTHON_PATH": "<PythonPath>", // Update with path to real python interpereter used for testing.
-                "VSCODE_PYTHON_ROLLING": "true", // Enalbe tests that require Jupyter.
+                "VSC_FORCE_REAL_JUPYTER": "true", // Enalbe tests that require Jupyter.
                 "VSC_JUPYTER_CI_RUN_NON_PYTHON_NB_TEST": "", // Initialize this to run tests again Julia & other kernels.
                 "VSC_JUPYTER_RUN_NB_TEST": "true", // Initialize this to run notebook tests (must be using VSC Insiders).
-                "VSC_PYTHON_LOAD_EXPERIMENTS_FROM_FILE": "true",
+                "VSC_JUPYTER_LOAD_EXPERIMENTS_FROM_FILE": "true",
                 "TEST_FILES_SUFFIX": "vscode.test"
             },
             "stopOnEntry": false,
@@ -266,11 +266,11 @@
             ],
             "env": {
                 // Remove `X` prefix to test with real browser to host DS ui (for DS functional tests).
-                "XVSC_PYTHON_DS_UI_BROWSER": "1",
+                "XVSC_JUPYTER_DS_UI_BROWSER": "1",
                 // Remove `X` prefix to test with real python (for DS functional tests).
-                "XVSCODE_PYTHON_ROLLING": "1",
+                "XVSC_FORCE_REAL_JUPYTER": "1",
                 // Remove 'X' to turn on all logging in the debug output
-                "XVSC_PYTHON_FORCE_LOGGING": "1",
+                "XVSC_JUPYTER_FORCE_LOGGING": "1",
                 // Remove `X` prefix and update path to test with real python interpreter (for DS functional tests).
                 "XCI_PYTHON_PATH": "<Python Path>",
                 // Remove 'X' and initialize with second Python interpreter to be used for fucntional tests.
@@ -279,7 +279,7 @@
                 // Remove 'X' prefix to dump output for debugger. Directory has to exist prior to launch
                 "XDEBUGPY_LOG_DIR": "${workspaceRoot}/tmp/Debug_Output",
                 // Remove 'X' prefix to dump webview redux action log
-                "XVSC_PYTHON_WEBVIEW_LOG_FILE": "${workspaceRoot}/test-webview.log"
+                "XVSC_JUPYTER_WEBVIEW_LOG_FILE": "${workspaceRoot}/test-webview.log"
             },
             "outFiles": [
                 "${workspaceFolder}/out/**/*.js",
@@ -313,11 +313,11 @@
             ],
             "env": {
                 // Remove `X` prefix to test with real browser to host DS ui (for DS functional tests).
-                "XVSC_PYTHON_DS_UI_BROWSER": "1",
+                "XVSC_JUPYTER_DS_UI_BROWSER": "1",
                 // Remove `X` prefix to test with real python (for DS functional tests).
-                "XVSCODE_PYTHON_ROLLING": "1",
+                "XVSC_FORCE_REAL_JUPYTER": "1",
                 // Remove 'X' to turn on all logging in the debug output
-                "XVSC_PYTHON_FORCE_LOGGING": "1",
+                "XVSC_JUPYTER_FORCE_LOGGING": "1",
                 // Remove `X` prefix and update path to test with real python interpreter (for DS functional tests).
                 "XCI_PYTHON_PATH": "<Python Path>"
             },

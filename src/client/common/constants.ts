@@ -53,7 +53,7 @@ export function isTestExecution(): boolean {
  * @returns {boolean}
  */
 export function isUnitTestExecution(): boolean {
-    return process.env.VSC_PYTHON_UNIT_TEST === '1';
+    return process.env.VSC_JUPYTER_UNIT_TEST === '1';
 }
 
 // Temporary constant, used to indicate whether we're using custom editor api or not.

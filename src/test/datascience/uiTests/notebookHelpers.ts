@@ -96,7 +96,7 @@ export async function openNotebook(
     let port = Math.floor(Math.random() * Math.floor(1000)) + 9000;
     try {
         port = await getFreePort({ host: 'localhost' });
-        process.env.VSC_PYTHON_DS_UI_PORT = port.toString();
+        process.env.VSC_JUPYTER_DS_UI_PORT = port.toString();
         traceInfo(`Notebook UI Tests: have port ${port}`);
     } catch (exc) {
         traceInfo(`Failed getting a port.`, exc);

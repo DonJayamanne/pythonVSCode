@@ -163,7 +163,7 @@ export class ThemeFinder implements IThemeFinder {
 
     private async findMatchingLanguages(language: string, rootPath: string): Promise<string | undefined> {
         // Environment variable to mimic missing json problem
-        if (process.env.VSC_PYTHON_MIMIC_REMOTE) {
+        if (process.env.VSC_JUPYTER_MIMIC_REMOTE) {
             return undefined;
         }
 
@@ -184,7 +184,7 @@ export class ThemeFinder implements IThemeFinder {
 
     private async findMatchingTheme(themeName: string): Promise<IThemeData | undefined> {
         // Environment variable to mimic missing json problem
-        if (process.env.VSC_PYTHON_MIMIC_REMOTE) {
+        if (process.env.VSC_JUPYTER_MIMIC_REMOTE) {
             return undefined;
         }
 

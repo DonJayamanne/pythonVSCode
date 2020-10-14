@@ -49,7 +49,7 @@ suite('DataScience Debugger tests', () => {
         snapshot = takeSnapshot();
 
         // Debugger tests require jupyter to run. Othewrise can't not really testing them
-        const isRollingBuild = process.env ? process.env.VSCODE_PYTHON_ROLLING !== undefined : false;
+        const isRollingBuild = process.env ? process.env.VSC_FORCE_REAL_JUPYTER !== undefined : false;
 
         if (!isRollingBuild) {
             // tslint:disable-next-line:no-console

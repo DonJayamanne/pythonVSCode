@@ -15,7 +15,7 @@ and spawning the tests (mimic user starting tests from command line), this way w
 // tslint:disable:no-console no-require-imports no-var-requires
 
 // Must always be on top to setup expected env.
-process.env.VSC_PYTHON_PERF_TEST = '1';
+process.env.VSC_JUPYTER_PERF_TEST = '1';
 
 import { spawn } from 'child_process';
 import * as download from 'download';

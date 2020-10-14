@@ -107,7 +107,7 @@ export class WebServer implements IWebServer {
         // Display a message if this env variable is set (used when debugging).
         // tslint:disable-next-line: no-http-string
         const url = `http:///localhost:${port}/index.html`;
-        if (process.env.VSC_PYTHON_DS_UI_PROMPT) {
+        if (process.env.VSC_JUPYTER_DS_UI_PROMPT) {
             window
                 // tslint:disable-next-line: messages-must-be-localized
                 .showInformationMessage(`Open browser to '${url}'`, 'Copy')
@@ -127,8 +127,8 @@ export class WebServer implements IWebServer {
 }
 /**
  * Instead of displaying the UI in VS Code WebViews, we'll display in a browser.
- * Ensure environment variable `VSC_PYTHON_DS_UI_PORT` is set to a port number.
- * Also, if you set `VSC_PYTHON_DS_UI_PROMPT`, you'll be presented with a VS Code messagebox when URL/endpoint is ready.
+ * Ensure environment variable `VSC_JUPYTER_DS_UI_PORT` is set to a port number.
+ * Also, if you set `VSC_JUPYTER_DS_UI_PROMPT`, you'll be presented with a VS Code messagebox when URL/endpoint is ready.
  */
 export class WebBrowserPanel implements IWebviewPanel, IDisposable {
     private panel?: WebviewPanel;
@@ -228,7 +228,7 @@ export class WebBrowserPanel implements IWebviewPanel, IDisposable {
      */
     public async launchServer(cwd: string, resourcesRoot: string): Promise<string> {
         // If no port is provided, use a random port.
-        const dsUIPort = parseInt(process.env.VSC_PYTHON_DS_UI_PORT || '', 10);
+        const dsUIPort = parseInt(process.env.VSC_JUPYTER_DS_UI_PORT || '', 10);
         const portToUse = isNaN(dsUIPort) ? 0 : dsUIPort;
 
         this.server = WebServer.create();

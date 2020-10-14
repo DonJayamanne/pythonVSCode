@@ -37,10 +37,6 @@ python3 -m venv .venv
 source .venv/bin/activate
 # The Python code in the extension is formatted using Black.
 python3 -m pip install black
-# Install Python dependencies using `python3`.
-# If you want to use a different interpreter then specify it in the
-# CI_PYTHON_PATH environment variable.
-npx gulp installPythonLibs
 ```
 
 If you see warnings that `The engine "vscode" appears to be invalid.`, you can ignore these.

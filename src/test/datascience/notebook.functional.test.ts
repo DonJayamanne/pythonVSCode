@@ -658,7 +658,7 @@ suite('DataScience notebook tests', () => {
             });
 
             runTest('Change Interpreter', async () => {
-                const isRollingBuild = process.env ? process.env.VSCODE_PYTHON_ROLLING !== undefined : false;
+                const isRollingBuild = process.env ? process.env.VSC_FORCE_REAL_JUPYTER !== undefined : false;
 
                 // Real Jupyter doesn't help this test at all and is tricky to set up for it, so just skip it
                 if (!isRollingBuild) {

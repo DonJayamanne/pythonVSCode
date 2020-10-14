@@ -131,7 +131,7 @@ function createSendInfoMiddleware(): Redux.Middleware<{}, IStore> {
 }
 
 function createTestLogger() {
-    const logFileEnv = process.env.VSC_PYTHON_WEBVIEW_LOG_FILE;
+    const logFileEnv = process.env.VSC_JUPYTER_WEBVIEW_LOG_FILE;
     if (logFileEnv) {
         // tslint:disable-next-line: no-require-imports
         const log4js = require('log4js') as typeof import('log4js');
@@ -350,7 +350,7 @@ function createMiddleWare(testMode: boolean): Redux.Middleware<{}, IStore>[] {
         logger: testMode ? createTestLogger() : window.console
     });
     const loggerMiddleware =
-        process.env.VSC_PYTHON_FORCE_LOGGING !== undefined && !process.env.VSC_PYTHON_DS_NO_REDUX_LOGGING
+        process.env.VSC_JUPYTER_FORCE_LOGGING !== undefined && !process.env.VSC_JUPYTER_DS_NO_REDUX_LOGGING
             ? logger
             : undefined;
 
