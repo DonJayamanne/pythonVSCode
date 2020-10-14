@@ -14,7 +14,7 @@ import { ExtensionChannels } from '../utils/localize';
 import { IExtensionBuildInstaller } from './types';
 
 export const developmentBuildUri =
-    'https://pvsc.blob.core.windows.net/extension-builds/ms-toolsai-jupyter-insiders.vsix';
+    'https://pvsc.blob.core.windows.net/extension-builds-jupyter/ms-toolsai-jupyter-insiders.vsix';
 export const vsixFileExtension = '.vsix';
 
 @injectable()
