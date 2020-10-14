@@ -190,6 +190,8 @@ jobs:
 
       - name: Compile if not cached
         run: npx gulp prePublishNonBundle
+        env:
+            CI_JUPYTER_FAST_COMPILATION: 'true'
 
         # if: steps.out-cache.outputs.cache-hit == false
       - name: Run TypeScript unit tests
@@ -330,6 +332,8 @@ jobs:
 
       - name: Compile if not cached
         run: npx gulp prePublishNonBundle
+        env:
+            CI_JUPYTER_FAST_COMPILATION: 'true'
 
       - name: Run functional tests
         run: npm run test:functional:parallel -- --${{matrix.test-suite}}
@@ -469,6 +473,8 @@ jobs:
         run: npx gulp prePublishNonBundle
         env:
             VSC_CI_MATRIX_TEST_SUITE: ${{matrix.test-suite}}
+            CI_JUPYTER_FAST_COMPILATION: 'true'
+
 
       # Used by tests for non-python kernels.
       # Test are enabled via env variable `VSC_JUPYTER_CI_RUN_NON_PYTHON_NB_TEST`

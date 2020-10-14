@@ -1900,7 +1900,7 @@
         "fast-xml-parser": "^3.16.0",
         "file-loader": "^5.1.0",
         "flat": "^4.0.0",
-        "fork-ts-checker-webpack-plugin": "^4.1.6",
+        "fork-ts-checker-webpack-plugin": "^5.2.0",
         "gulp": "^4.0.0",
         "gulp-azure-storage": "^0.11.1",
         "gulp-filter": "^5.1.0",

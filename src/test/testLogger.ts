@@ -9,7 +9,7 @@
 import { LogLevel } from '../client/logging/levels';
 import { configureLogger, createLogger, getPreDefinedConfiguration, logToAll } from '../client/logging/logger';
 
-const isCI = process.env.TRAVIS === 'true' || process.env.TF_BUILD !== undefined;
+const isCI = process.env.TF_BUILD !== undefined || process.env.GITHUB_ACTIONS === 'true';
 const monkeyPatchLogger = createLogger();
 
 export function initializeLogger() {

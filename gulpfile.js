@@ -30,7 +30,7 @@ const { argv } = require('yargs');
 const os = require('os');
 const rmrf = require('rimraf');
 
-const isCI = process.env.GITHUB_ACTIONS === 'true';
+const isCI = process.env.TF_BUILD !== undefined || process.env.GITHUB_ACTIONS === 'true';
 
 const noop = function () {};
 /**
@@ -137,7 +137,7 @@ gulp.task('compile-viewers', async () => {
 if (isCI && process.env.VSC_CI_MATRIX_TEST_SUITE === 'notebook') {
     gulp.task('compile-webviews', async () => {});
 } else {
-    gulp.task('compile-webviews', gulp.series('compile-ipywidgets', 'compile-notebooks', 'compile-viewers'));
+    gulp.task('compile-webviews', gulp.parallel('compile-ipywidgets', 'compile-notebooks', 'compile-viewers'));
 }
 
 gulp.task(
@@ -307,7 +307,13 @@ gulp.task('verifyBundle', async () => {
 
 gulp.task('prePublishBundle', gulp.series('webpack'));
 gulp.task('checkDependencies', gulp.series('checkNativeDependencies', 'check-datascience-dependencies'));
-gulp.task('prePublishNonBundle', gulp.series('compile', 'compile-webviews'));
+// On CI, when running Notebook tests, we don't need old webviews.
+// Simple & temporary optimization for the Notebook Test Job.
+if (isCI && process.env.VSC_CI_MATRIX_TEST_SUITE === 'notebook') {
+    gulp.task('prePublishNonBundle', gulp.parallel('compile'));
+} else {
+    gulp.task('prePublishNonBundle', gulp.parallel('compile', 'compile-ipywidgets', 'compile-ipywidgets', 'compile-notebooks', 'compile-viewers'));
+}
 
 gulp.task('installPythonRequirements', async () => {
     const args = [

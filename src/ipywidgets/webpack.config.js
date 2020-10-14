@@ -26,48 +26,64 @@ const publicPath = 'https://unpkg.com/@jupyter-widgets/jupyterlab-manager@' + ve
 const rules = [
     { test: /\.css$/, use: ['style-loader', 'css-loader'] },
     // jquery-ui loads some images
-    { test: /\.(jpg|png|gif)$/, use: 'file-loader' },
+    { test: /\.(jpg|png|gif)$/, use: ['cache-loader', 'thread-loader', 'file-loader'] },
     // required to load font-awesome
     {
         test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
-        use: {
-            loader: 'url-loader',
-            options: {
-                limit: 10000,
-                mimetype: 'application/font-woff'
+        use: [
+            'cache-loader',
+            'thread-loader',
+            {
+                loader: 'url-loader',
+                options: {
+                    limit: 10000,
+                    mimetype: 'application/font-woff'
+                }
             }
-        }
+        ]
     },
     {
         test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
-        use: {
-            loader: 'url-loader',
-            options: {
-                limit: 10000,
-                mimetype: 'application/font-woff'
+        use: [
+            'cache-loader',
+            'thread-loader',
+            {
+                loader: 'url-loader',
+                options: {
+                    limit: 10000,
+                    mimetype: 'application/font-woff'
+                }
             }
-        }
+        ]
     },
     {
         test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
-        use: {
-            loader: 'url-loader',
-            options: {
-                limit: 10000,
-                mimetype: 'application/octet-stream'
+        use: [
+            'cache-loader',
+            'thread-loader',
+            {
+                loader: 'url-loader',
+                options: {
+                    limit: 10000,
+                    mimetype: 'application/octet-stream'
+                }
             }
-        }
+        ]
     },
     { test: /\.eot(\?v=\d+\.\d+\.\d+)?$/, use: 'file-loader' },
     {
         test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
-        use: {
-            loader: 'url-loader',
-            options: {
-                limit: 10000,
-                mimetype: 'image/svg+xml'
+        use: [
+            'cache-loader',
+            'thread-loader',
+            {
+                loader: 'url-loader',
+                options: {
+                    limit: 10000,
+                    mimetype: 'image/svg+xml'
+                }
             }
-        }
+        ]
     }
 ];
 
@@ -81,7 +97,8 @@ module.exports = [
             path: path.resolve(outDir, 'dist'),
             publicPath: 'built/',
             library: 'vscIPyWidgets',
-            libraryTarget: 'window'
+            libraryTarget: 'window',
+            pathinfo: false
         },
         plugins: [...common.getDefaultPlugins('ipywidgets')],
         module: {
@@ -89,6 +106,8 @@ module.exports = [
                 {
                     test: /\.css$/,
                     use: [
+                        'cache-loader',
+                        'thread-loader',
                         'style-loader',
                         'css-loader',
                         {
@@ -115,7 +134,7 @@ module.exports = [
                     ]
                 },
                 // jquery-ui loads some images
-                { test: /\.(jpg|png|gif)$/, use: 'file-loader' },
+                { test: /\.(jpg|png|gif)$/, use: ['cache-loader', 'thread-loader', 'file-loader'] },
                 // required to load font-awesome
                 {
                     test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
@@ -147,7 +166,7 @@ module.exports = [
                         }
                     }
                 },
-                { test: /\.eot(\?v=\d+\.\d+\.\d+)?$/, use: 'file-loader' },
+                { test: /\.eot(\?v=\d+\.\d+\.\d+)?$/, use: ['cache-loader', 'thread-loader', 'file-loader'] },
                 {
                     test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
                     use: {

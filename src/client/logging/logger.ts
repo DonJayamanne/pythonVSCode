@@ -54,7 +54,7 @@ export function getPreDefinedConfiguration(): LoggerConfig {
     if (process.env.VSC_PYTHON_FORCE_LOGGING) {
         config.console = {};
         // In CI there's no need for the label.
-        const isCI = process.env.TRAVIS === 'true' || process.env.TF_BUILD !== undefined;
+        const isCI = process.env.TF_BUILD !== undefined || process.env.GITHUB_ACTIONS === 'true';
         if (!isCI) {
             config.console.label = 'Jupyter Extension:';
         }
