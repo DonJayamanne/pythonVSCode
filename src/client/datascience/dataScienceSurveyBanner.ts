@@ -10,8 +10,8 @@ import '../common/extensions';
 import {
     BANNER_NAME_DS_SURVEY,
     IBrowserService,
-    IPersistentStateFactory,
-    IPythonExtensionBanner
+    IJupyterExtensionBanner,
+    IPersistentStateFactory
 } from '../common/types';
 import * as localize from '../common/utils/localize';
 import { noop } from '../common/utils/misc';
@@ -38,9 +38,9 @@ export class DataScienceSurveyBannerLogger implements IInteractiveWindowListener
     private postEmitter = new EventEmitter<{ message: string; payload: any }>();
     constructor(
         @inject(IPersistentStateFactory) private persistentState: IPersistentStateFactory,
-        @inject(IPythonExtensionBanner)
+        @inject(IJupyterExtensionBanner)
         @named(BANNER_NAME_DS_SURVEY)
-        private readonly dataScienceSurveyBanner: IPythonExtensionBanner
+        private readonly dataScienceSurveyBanner: IJupyterExtensionBanner
     ) {}
     // tslint:disable-next-line: no-any
     public get postMessage(): Event<{ message: string; payload: any }> {
@@ -71,7 +71,7 @@ export class DataScienceSurveyBannerLogger implements IInteractiveWindowListener
 }
 
 @injectable()
-export class DataScienceSurveyBanner implements IPythonExtensionBanner {
+export class DataScienceSurveyBanner implements IJupyterExtensionBanner {
     private disabledInCurrentSession: boolean = false;
     private isInitialized: boolean = false;
     private bannerMessage: string = localize.DataScienceSurveyBanner.bannerMessage();

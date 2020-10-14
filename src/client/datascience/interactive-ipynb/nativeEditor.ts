@@ -735,7 +735,7 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
     private async exportAs(): Promise<void> {
         // Export requires the python extension
         if (!this.extensionChecker.isPythonExtensionInstalled) {
-            return this.extensionChecker.installPythonExtension();
+            return this.extensionChecker.showPythonExtensionInstallRequiredPrompt();
         }
 
         const activeEditor = this.editorProvider.activeEditor;
@@ -780,7 +780,7 @@ export class NativeEditor extends InteractiveBase implements INotebookEditor {
     @captureTelemetry(Telemetry.RunByLineStart)
     private async handleRunByLine(runByLine: IRunByLine) {
         if (!this.extensionChecker.isPythonExtensionInstalled) {
-            return this.extensionChecker.installPythonExtension();
+            return this.extensionChecker.showPythonExtensionInstallRequiredPrompt();
         }
         try {
             // If there's any payload, it has the code and the id

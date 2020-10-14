@@ -500,7 +500,7 @@ export class InteractiveWindow extends InteractiveBase implements IInteractiveWi
     private async export(cells: ICell[]) {
         // Export requires the python extension
         if (!this.extensionChecker.isPythonExtensionInstalled) {
-            return this.extensionChecker.installPythonExtension();
+            return this.extensionChecker.showPythonExtensionInstallRequiredPrompt();
         }
 
         // Should be an array of cells
@@ -529,7 +529,7 @@ export class InteractiveWindow extends InteractiveBase implements IInteractiveWi
     private async exportAs(cells: ICell[]) {
         // Export requires the python extension
         if (!this.extensionChecker.isPythonExtensionInstalled) {
-            return this.extensionChecker.installPythonExtension();
+            return this.extensionChecker.showPythonExtensionInstallRequiredPrompt();
         }
 
         let model: INotebookModel;

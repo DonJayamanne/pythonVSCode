@@ -7,7 +7,7 @@ import { inject, injectable } from 'inversify';
 import { ConfigurationTarget } from 'vscode';
 import { IApplicationShell } from '../common/application/types';
 import '../common/extensions';
-import { IConfigurationService, IPersistentStateFactory, IPythonExtensionBanner } from '../common/types';
+import { IConfigurationService, IJupyterExtensionBanner, IPersistentStateFactory } from '../common/types';
 import * as localize from '../common/utils/localize';
 import { captureTelemetry, sendTelemetryEvent } from '../telemetry';
 import { Telemetry } from './constants';
@@ -24,7 +24,7 @@ enum InteractiveShiftEnterLabelIndex {
 
 // Create a banner to ask users if they want to send shift-enter to the interactive window or not
 @injectable()
-export class InteractiveShiftEnterBanner implements IPythonExtensionBanner {
+export class InteractiveShiftEnterBanner implements IJupyterExtensionBanner {
     private initialized?: boolean;
     private disabledInCurrentSession: boolean = false;
     private bannerMessage: string = localize.InteractiveShiftEnterBanner.bannerMessage();

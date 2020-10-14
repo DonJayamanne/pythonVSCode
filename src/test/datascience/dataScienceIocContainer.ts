@@ -494,7 +494,9 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
         this.serviceManager.addSingletonInstance<IExperimentService>(IExperimentService, instance(experimentService));
         const extensionChecker = mock(PythonExtensionChecker);
         when(extensionChecker.isPythonExtensionInstalled).thenCall(this.isPythonExtensionInstalled.bind(this));
-        when(extensionChecker.installPythonExtension()).thenCall(this.installPythonExtension.bind(this));
+        when(extensionChecker.showPythonExtensionInstallRequiredPrompt()).thenCall(
+            this.installPythonExtension.bind(this)
+        );
         this.serviceManager.addSingletonInstance<IPythonExtensionChecker>(
             IPythonExtensionChecker,
             instance(extensionChecker)

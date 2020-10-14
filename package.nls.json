@@ -186,6 +186,7 @@
     "DataScience.connectedToIPyKernel": "Connected.",
     "DataScience.connected": "Connected",
     "DataScience.disconnected": "Disconnected",
+    "DataScience.pythonExtensionRecommended": "You have opened a Python notebook. Would you like to install the Python extension?",
     "Experiments.inGroup": "User belongs to experiment group '{0}'",
     "Interpreters.RefreshingInterpreters": "Refreshing Python Interpreters",
     "Interpreters.entireWorkspace": "Entire workspace",
