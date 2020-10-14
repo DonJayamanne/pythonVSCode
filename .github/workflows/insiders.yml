@@ -30,7 +30,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Use Node ${{env.NODE_VERSION}}
-        uses: actions/setup-node@v2.1.1
+        uses: actions/setup-node@v2.1.2
         with:
           node-version: ${{env.NODE_VERSION}}
 
@@ -142,7 +142,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Use Node ${{env.NODE_VERSION}}
-        uses: actions/setup-node@v2.1.1
+        uses: actions/setup-node@v2.1.2
         with:
           node-version: ${{env.NODE_VERSION}}
 
@@ -222,7 +222,7 @@ jobs:
         run: python -m pip install -U pip
 
       - name: Use Node ${{env.NODE_VERSION}}
-        uses: actions/setup-node@v2.1.1
+        uses: actions/setup-node@v2.1.2
         with:
           node-version: ${{env.NODE_VERSION}}
 
@@ -356,7 +356,7 @@ jobs:
         run: python -m pip install -U pip
 
       - name: Use Node ${{env.NODE_VERSION}}
-        uses: actions/setup-node@v2.1.1
+        uses: actions/setup-node@v2.1.2
         with:
           node-version: ${{env.NODE_VERSION}}
 
@@ -525,7 +525,7 @@ jobs:
         run: python -m pip install -U pip
 
       - name: Use Node ${{env.NODE_VERSION}}
-        uses: actions/setup-node@v2.1.1
+        uses: actions/setup-node@v2.1.2
         with:
           node-version: ${{env.NODE_VERSION}}
 
