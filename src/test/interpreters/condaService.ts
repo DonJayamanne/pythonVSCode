@@ -178,10 +178,10 @@ async function getCondaEnvironments(): Promise<CondaEnvironmentInfo[] | undefine
  * Return (env name, interpreter filename) for the interpreter.
  */
 export async function getCondaEnvironment(
-    interpreterPath: string
+    interpreterPath: string | undefined
 ): Promise<{ name: string; path: string } | undefined> {
     const isCondaEnv = await isCondaEnvironment(interpreterPath);
-    if (!isCondaEnv) {
+    if (!isCondaEnv || !interpreterPath) {
         return;
     }
     const environments = await getCondaEnvironments();

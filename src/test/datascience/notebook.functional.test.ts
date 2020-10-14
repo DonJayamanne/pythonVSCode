@@ -299,7 +299,7 @@ suite('DataScience notebook tests', () => {
                     return notebook;
                 } catch (exc) {
                     if (!expectFailure) {
-                        assert.ok(false, `Expected server to be created, but got ${exc}`);
+                        assert.ok(false, `Expected server to be created, but got ${exc} at ${exc.stack}`);
                     }
                 }
             }

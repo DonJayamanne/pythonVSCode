@@ -14,6 +14,7 @@ import { EXTENSION_ROOT_DIR_FOR_TESTS } from '../constants';
 import { isCondaEnvironment } from './condaLocator';
 import { getCondaEnvironment, getCondaFile, isCondaAvailable } from './condaService';
 
+const executionTimeout = 7_500;
 const SCRIPTS_DIR = path.join(EXTENSION_ROOT_DIR_FOR_TESTS, 'pythonFiles');
 const defaultShells = {
     [OSType.Windows]: 'cmd',
@@ -25,7 +26,10 @@ const defaultShells = {
 const defaultShell = defaultShells[getOSType()];
 
 const interpreterInfoCache = new Map<string, Promise<PythonEnvironment | undefined>>();
-export async function getInterpreterInfo(pythonPath: string): Promise<PythonEnvironment | undefined> {
+export async function getInterpreterInfo(pythonPath: string | undefined): Promise<PythonEnvironment | undefined> {
+    if (!pythonPath) {
+        return undefined;
+    }
     if (interpreterInfoCache.has(pythonPath)) {
         return interpreterInfoCache.get(pythonPath);
     }
@@ -37,7 +41,7 @@ export async function getInterpreterInfo(pythonPath: string): Promise<PythonEnvi
             const argv = [...cli, path.join(SCRIPTS_DIR, 'interpreterInfo.py').fileToCommandArgument()];
             const cmd = argv.reduce((p, c) => (p ? `${p} "${c}"` : `"${c.replace('\\', '/')}"`), '');
             const result = await processService.shellExec(cmd, {
-                timeout: 1_500,
+                timeout: executionTimeout,
                 env: process.env,
                 shell: defaultShell
             });
@@ -55,7 +59,7 @@ export async function getInterpreterInfo(pythonPath: string): Promise<PythonEnvi
                 sysPrefix: json.sysPrefix
             };
         } catch (ex) {
-            traceError('Failed to get Activated env Variables');
+            traceError('Failed to get Activated env Variables: ', ex);
             return undefined;
         }
     })();
@@ -74,7 +78,7 @@ export async function getActivatedEnvVariables(pythonPath: string): Promise<Node
         const argv = [...cli, path.join(SCRIPTS_DIR, 'printEnvVariables.py')];
         const cmd = argv.reduce((p, c) => (p ? `${p} "${c}"` : `"${c.replace('\\', '/')}"`), '');
         const result = await processService.shellExec(cmd, {
-            timeout: 1_500,
+            timeout: executionTimeout,
             maxBuffer: 1000 * 1000,
             throwOnStdErr: false,
             env: process.env,
@@ -94,7 +98,7 @@ export async function getActivatedEnvVariables(pythonPath: string): Promise<Node
     return promise;
 }
 
-async function getPythonCli(pythonPath: string) {
+async function getPythonCli(pythonPath: string | undefined) {
     const isConda = await isCondaEnvironment(pythonPath);
     if (isConda) {
         try {
@@ -119,5 +123,5 @@ async function getPythonCli(pythonPath: string) {
         }
         traceError('Using Conda Interpreter, but no conda');
     }
-    return [pythonPath.fileToCommandArgument()];
+    return pythonPath ? [pythonPath.fileToCommandArgument()] : [];
 }

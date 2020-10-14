@@ -128,7 +128,7 @@ export class RawSession implements ISessionWithSocket {
         throw new Error('Not yet implemented');
     }
     get status(): Kernel.Status {
-        throw new Error('Not yet implemented');
+        return this.kernel.status;
     }
     public setPath(_path: string): Promise<void> {
         throw new Error('Not yet implemented');

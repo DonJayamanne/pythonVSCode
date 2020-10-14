@@ -33,7 +33,12 @@ import * as path from 'path';
  *   ]
  * }
  */
-export async function isCondaEnvironment(interpreterPath: string): Promise<boolean> {
+export async function isCondaEnvironment(interpreterPath: string | undefined): Promise<boolean> {
+    // This can be undefined on some machines.
+    if (!interpreterPath) {
+        return false;
+    }
+
     const condaMetaDir = 'conda-meta';
 
     // Check if the conda-meta directory is in the same directory as the interpreter.

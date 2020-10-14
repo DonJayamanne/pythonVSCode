@@ -279,36 +279,6 @@
 			}
         },
         {
-            "name": "Unit Tests (fast, without VS Code and without react/monaco, *.unit.test.ts)",
-            "type": "node",
-            "request": "launch",
-            "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
-            "stopOnEntry": false,
-            "sourceMaps": true,
-            "args": [
-                "./out/test/**/*.unit.test.js",
-                "--require=out/test/unittests.js",
-                "--ui=tdd",
-                "--recursive",
-                "--colors",
-                // "--grep", "<suite name>",
-                "--timeout=300000",
-                "--fast"
-            ],
-            "outFiles": [
-                "${workspaceFolder}/out/**/*.js",
-                "!${workspaceFolder}/**/node_modules**/*"
-            ],
-            "preLaunchTask": "Compile",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-			"presentation": {
-				"group": "2_tests",
-				"order": 7
-			}
-        },
-        {
             "name": "Functional Tests (without VS Code, *.functional.test.ts)",
             "type": "node",
             "request": "launch",
@@ -317,7 +287,7 @@
             "sourceMaps": true,
             "args": [
                 "./out/test/**/*.functional.test.js",
-                "--require=out/test/unittests.js",
+                "--require=out/test/functionalTests.js",
                 "--ui=tdd",
                 "--recursive",
                 "--colors",
@@ -364,7 +334,7 @@
             "sourceMaps": true,
             "args": [
                 "./out/test/**/*.ui.functional.test.js",
-                "--require=out/test/unittests.js",
+                "--require=out/test/functionalTests.js",
                 "--ui=tdd",
                 "--recursive",
                 "--colors",

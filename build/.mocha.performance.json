@@ -1,6 +1,6 @@
 {
     "spec": "./out/test/**/*.functional.test.js",
-    "require": ["out/test/unittests.js"],
+    "require": ["out/test/functionalTests.js"],
     "reporter": "mocha-multi-reporters",
     "reporter-option": "configFile=build/.mocha.perf.config",
     "ui": "tdd",

@@ -20,7 +20,7 @@ var groupCount = 4;
 function gatherArgs(extraArgs, file) {
     return [
         file,
-        '--require=out/test/unittests.js',
+        '--require=out/test/functionalTests.js',
         '--exclude=out/**/*.jsx',
         '--reporter=mocha-multi-reporters',
         '--reporter-option=configFile=build/.mocha-multi-reporters.config',

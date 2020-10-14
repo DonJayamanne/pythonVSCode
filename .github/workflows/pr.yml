@@ -316,6 +316,16 @@ jobs:
       - name: Install dependencies (npm ci)
         run: npm ci --prefer-offline
         # This step is slow.
+      - name: Install Julia
+        uses: julia-actions/setup-julia@v1
+        with:
+          version: ${{env.JULIA_VERSION}}
+
+      - name: Install Julia Kernel
+        run: |
+          julia -e '
+            using Pkg
+            Pkg.add("IJulia")'
 
       - name: Compile if not cached
         run: npx gulp prePublishNonBundle
