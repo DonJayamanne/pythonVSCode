@@ -449,7 +449,7 @@ jobs:
         run: npx gulp prePublishNonBundle
 
       - name: Azure Login
-        uses: azure/login@v1.1
+        uses: azure/login@v1.1.1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
         if: matrix.test-suite == 'integration' || matrix.test-suite == 'notebook'
@@ -531,7 +531,7 @@ jobs:
 
 
       - name: Azure Login
-        uses: azure/login@v1.1
+        uses: azure/login@v1.1.1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
@@ -583,7 +583,7 @@ jobs:
           name: ${{ env.VSIX_NAME }}
 
       - name: Azure Login
-        uses: azure/login@v1.1
+        uses: azure/login@v1.1.1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
