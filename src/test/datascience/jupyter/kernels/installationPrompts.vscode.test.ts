@@ -25,7 +25,7 @@ import {
 } from '../../notebook/helper';
 
 // tslint:disable: no-invalid-this max-func-body-length no-function-expression no-any
-suite('DataScience Install IPyKernel (slow) (install)xxx', () => {
+suite('DataScience Install IPyKernel (slow) (install)', () => {
     const disposables: IDisposable[] = [];
     const nbFile = path.join(EXTENSION_ROOT_DIR_FOR_TESTS, 'src/test/datascience/jupyter/kernels/nbWithKernel.ipynb');
     const executable = getOSType() === OSType.Windows ? 'Scripts/python.exe' : 'bin/python'; // If running locally on Windows box.

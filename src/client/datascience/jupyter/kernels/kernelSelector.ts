@@ -9,6 +9,7 @@ import cloneDeep = require('lodash/cloneDeep');
 import { CancellationToken } from 'vscode-jsonrpc';
 import { IPythonExtensionChecker } from '../../../api/types';
 import { IApplicationShell } from '../../../common/application/types';
+import { PYTHON_LANGUAGE } from '../../../common/constants';
 import '../../../common/extensions';
 import { traceError, traceInfo, traceVerbose } from '../../../common/logger';
 import { IConfigurationService, IDisposableRegistry, Resource } from '../../../common/types';
@@ -528,6 +529,7 @@ export class KernelSelector implements IKernelSelectionUsage {
 
         // First use our kernel finder to locate a kernelspec on disk
         const kernelSpec = await this.kernelFinder.findKernelSpec(resource, notebookMetadata, cancelToken);
+        const isNonPythonKernelSPec = kernelSpec?.language && kernelSpec.language !== PYTHON_LANGUAGE ? true : false;
         const activeInterpreter = this.extensionChecker.isPythonExtensionInstalled
             ? await this.interpreterService.getActiveInterpreter(resource)
             : undefined;
@@ -542,10 +544,11 @@ export class KernelSelector implements IKernelSelectionUsage {
                 interpreter: activeInterpreter
             };
         } else if (kernelSpec) {
-            // Locate the interpreter that matches our kernelspec
-            const interpreter = this.extensionChecker.isPythonExtensionInstalled
-                ? await this.kernelService.findMatchingInterpreter(kernelSpec, cancelToken)
-                : undefined;
+            // Locate the interpreter that matches our kernelspec (but don't look for interpreter if kernelspec is Not Python).
+            const interpreter =
+                this.extensionChecker.isPythonExtensionInstalled && !isNonPythonKernelSPec
+                    ? await this.kernelService.findMatchingInterpreter(kernelSpec, cancelToken)
+                    : undefined;
 
             const connectionInfo: KernelSpecConnectionMetadata = {
                 kind: 'startUsingKernelSpec',

@@ -32,6 +32,9 @@ async function connectToServer() {
                 console.log(`Connected to port ${port}`);
                 resolve();
             });
+            client.on('error', () => {
+                // Swallow errors, else node will complain.
+            });
         } catch {
             console.error('Failed to connect to socket server to notify completion of tests');
             resolve();

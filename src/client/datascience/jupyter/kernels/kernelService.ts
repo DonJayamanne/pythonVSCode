@@ -134,6 +134,11 @@ export class KernelService {
         kernelSpec: IJupyterKernelSpec | LiveKernelModel,
         cancelToken?: CancellationToken
     ): Promise<PythonEnvironment | undefined> {
+        // If we know for a fact that the kernel spec is a Non-Python kernel, then return nothing.
+        if (kernelSpec?.language && kernelSpec.language !== PYTHON_LANGUAGE) {
+            return;
+        }
+
         const activeInterpreterPromise = this.interpreterService.getActiveInterpreter(undefined);
         const allInterpretersPromise = this.interpreterService.getInterpreters(undefined);
         // Ensure we handle errors if any (this is required to ensure we do not exit this function without using this promise).
@@ -155,7 +160,7 @@ export class KernelService {
                 return interpreter;
             }
             traceError(
-                `KernelSpec has interpreter information, however a matching interepter could not be found for ${kernelSpec.metadata?.interpreter?.path}`
+                `KernelSpec has interpreter information, however a matching interpreter could not be found for ${kernelSpec.metadata?.interpreter?.path}`
             );
         }
 
@@ -179,7 +184,7 @@ export class KernelService {
                 return interpreter;
             }
             traceError(
-                `KernelSpec has interpreter information, however a matching interepter could not be found for ${kernelSpec.metadata?.interpreter?.path}`
+                `KernelSpec has path information, however a matching interpreter could not be found for ${kernelSpec.metadata?.interpreter?.path}`
             );
         }
         if (Cancellation.isCanceled(cancelToken)) {
