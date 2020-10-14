@@ -14,7 +14,7 @@ import { EXTENSION_ROOT_DIR_FOR_TESTS } from '../constants';
 import { isCondaEnvironment } from './condaLocator';
 import { getCondaEnvironment, getCondaFile, isCondaAvailable } from './condaService';
 
-const executionTimeout = 7_500;
+const executionTimeout = 30_000;
 const SCRIPTS_DIR = path.join(EXTENSION_ROOT_DIR_FOR_TESTS, 'pythonFiles');
 const defaultShells = {
     [OSType.Windows]: 'cmd',

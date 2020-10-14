@@ -221,6 +221,9 @@ jobs:
       - name: Upgrade pip
         run: python -m pip install -U pip
 
+      - name: Show python version
+        run: python --version
+
       - name: Use Node ${{env.NODE_VERSION}}
         uses: actions/setup-node@v2.1.2
         with:
