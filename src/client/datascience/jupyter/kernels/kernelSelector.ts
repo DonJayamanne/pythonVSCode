@@ -533,9 +533,7 @@ export class KernelSelector implements IKernelSelectionUsage {
         const activeInterpreter = this.extensionChecker.isPythonExtensionInstalled
             ? await this.interpreterService.getActiveInterpreter(resource)
             : undefined;
-        if (!kernelSpec && !activeInterpreter) {
-            return;
-        } else if (!kernelSpec && activeInterpreter) {
+        if (!kernelSpec && activeInterpreter) {
             await this.installDependenciesIntoInterpreter(activeInterpreter, ignoreDependencyCheck, cancelToken);
 
             // Return current interpreter.
@@ -560,6 +558,22 @@ export class KernelSelector implements IKernelSelectionUsage {
                 await this.installDependenciesIntoInterpreter(interpreter, ignoreDependencyCheck, cancelToken);
             }
             return connectionInfo;
+        } else {
+            // No kernel specs, list them all and pick the first one
+            const kernelSpecs = await this.kernelFinder.listKernelSpecs(resource);
+
+            // Do a bit of hack and pick a python one first if the resource is a python file
+            if (resource?.fsPath && resource.fsPath.endsWith('.py')) {
+                const firstPython = kernelSpecs.find((k) => k.language === 'python');
+                if (firstPython) {
+                    return { kind: 'startUsingKernelSpec', kernelSpec: firstPython, interpreter: undefined };
+                }
+            }
+
+            // If that didn't work, just pick the first one
+            if (kernelSpecs.length > 0) {
+                return { kind: 'startUsingKernelSpec', kernelSpec: kernelSpecs[0], interpreter: undefined };
+            }
         }
     }
 

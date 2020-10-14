@@ -6,6 +6,7 @@ import * as React from 'react';
 import * as AdazzleReactDataGrid from 'react-data-grid';
 import { Disposable } from 'vscode';
 import { Experiments } from '../../client/common/experiments/groups';
+import { sleep } from '../../client/common/utils/async';
 import { InteractiveWindowMessages } from '../../client/datascience/interactive-common/interactiveWindowTypes';
 import { IJupyterVariable } from '../../client/datascience/types';
 import { DataScienceIocContainer } from './dataScienceIocContainer';
@@ -63,6 +64,8 @@ const rangeInclusive = require('range-inclusive');
             waitForVariablesCount: number = 1,
             expectError: boolean = false
         ): Promise<ReactWrapper<any, Readonly<{}>, React.Component>> {
+            wrapper.update();
+            await sleep(100); // Give wrapper time to update.
             const nodes = wrapper.find('InteractivePanel');
             if (nodes.length > 0) {
                 const variablesUpdated = waitForVariables

@@ -138,7 +138,6 @@ suite('DataScience Interactive Window output tests', () => {
     runTest(
         'Simple text with no python extension',
         async (c) => {
-            return c.skip();
             // Interactive window will attempt to connect so we can only
             // run this test with raw kernel
             if (ioc.isRawKernel) {
@@ -164,7 +163,6 @@ suite('DataScience Interactive Window output tests', () => {
     runTest(
         'Saving without python extension',
         async (c) => {
-            return c.skip();
             if (ioc.isRawKernel) {
                 ioc.setPythonExtensionState(false);
 
