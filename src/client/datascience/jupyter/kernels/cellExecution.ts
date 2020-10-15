@@ -96,7 +96,7 @@ export class CellExecution {
     private disposables: IDisposable[] = [];
     private cancelHandled = false;
 
-    private ioPubChain = Promise.resolve();
+    private requestHandlerChain = Promise.resolve();
 
     private constructor(
         public readonly editor: VSCNotebookEditor,
@@ -355,14 +355,22 @@ export class CellExecution {
             request.onReply = noop;
         });
 
-        // Listen to messages.
-        request.onIOPub = this.handleIOPub.bind(this, clearState, loggers);
+        // Listen to messages & chain each (to process them in the order we get them).
+        request.onIOPub = (msg) =>
+            (this.requestHandlerChain = this.requestHandlerChain.then(() =>
+                this.handleIOPub(clearState, loggers, msg).catch(noop)
+            ));
+        request.onReply = (msg) =>
+            (this.requestHandlerChain = this.requestHandlerChain.then(() =>
+                this.handleReply(clearState, msg).catch(noop)
+            ));
         request.onStdin = this.handleInputRequest.bind(this, session);
-        request.onReply = this.handleReply.bind(this, clearState);
 
         // When the request finishes we are done
         try {
-            await request.done;
+            // request.done resolves even before all iopub messages have been sent through.
+            // Solution is to wait for all messages to get processed.
+            await Promise.all([request.done, this.requestHandlerChain]);
             await this.completedSuccessfully();
         } catch (ex) {
             // @jupyterlab/services throws a `Canceled` error when the kernel is interrupted.
@@ -376,11 +384,8 @@ export class CellExecution {
             cancelDisposable.dispose();
         }
     }
-    private handleIOPub(clearState: RefBool, loggers: INotebookExecutionLogger[], msg: KernelMessage.IIOPubMessage) {
-        this.ioPubChain = this.ioPubChain.then(() => this.handleIOPubInternal(clearState, loggers, msg).catch(noop));
-    }
     @swallowExceptions()
-    private async handleIOPubInternal(
+    private async handleIOPub(
         clearState: RefBool,
         loggers: INotebookExecutionLogger[],
         msg: KernelMessage.IIOPubMessage
@@ -583,6 +588,7 @@ export class CellExecution {
         await this.addToCellData(output, clearState);
     }
 
+    @swallowExceptions()
     private async handleReply(clearState: RefBool, msg: KernelMessage.IShellControlMessage) {
         // tslint:disable-next-line:no-require-imports
         const jupyterLab = require('@jupyterlab/services') as typeof import('@jupyterlab/services');

@@ -196,10 +196,7 @@ suite('DataScience - VSCode Notebook - (Execution) (slow)', () => {
         assert.include(cell.metadata.statusMessage!, 'NameError', 'Must contain error message');
         assert.include(cell.metadata.statusMessage!, 'abcd', 'Must contain error message');
     });
-    test('Updating display data', async function () {
-        // tslint:disable-next-line: no-suspicious-comment
-        // TODO: https://github.com/microsoft/vscode-jupyter/issues/204
-        return this.skip();
+    test('Updating display data', async () => {
         await insertCodeCell('from IPython.display import Markdown\n');
         await insertCodeCell('dh = display(display_id=True)\n');
         await insertCodeCell('dh.update(Markdown("foo"))\n');
@@ -392,10 +389,7 @@ suite('DataScience - VSCode Notebook - (Execution) (slow)', () => {
         assert.isNotEmpty(errorOutput.traceback, 'Incorrect traceback');
         assert.include(errorOutput.traceback.join(''), '<whatever>');
     });
-    test('Verify display updates', async function () {
-        // tslint:disable-next-line: no-suspicious-comment
-        // TODO: https://github.com/microsoft/vscode-jupyter/issues/204
-        return this.skip();
+    test('Verify display updates', async () => {
         await insertCodeCell('from IPython.display import Markdown', { index: 0 });
         await insertCodeCell('dh = display(Markdown("foo"), display_id=True)', { index: 1 });
         let cells = vscodeNotebook.activeNotebookEditor?.document.cells!;
