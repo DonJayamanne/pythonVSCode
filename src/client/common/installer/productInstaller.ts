@@ -115,7 +115,7 @@ export class DataScienceInstaller extends BaseInstaller {
     public async install(
         product: Product,
         interpreterUri?: InterpreterUri,
-        _cancel?: CancellationToken
+        cancel?: CancellationToken
     ): Promise<InstallerResponse> {
         // Precondition
         if (isResource(interpreterUri)) {
@@ -125,7 +125,7 @@ export class DataScienceInstaller extends BaseInstaller {
 
         // At this point we know that `interpreterUri` is of type PythonInterpreter
         const interpreter = interpreterUri as PythonEnvironment;
-        const result = await installer.install(product, interpreter);
+        const result = await installer.install(product, interpreter, cancel);
 
         if (result === InstallerResponse.Disabled || result === InstallerResponse.Ignore) {
             return result;
