@@ -4,8 +4,10 @@
 'use strict';
 
 import { assert } from 'chai';
+import * as path from 'path';
 import { ElementHandle } from 'playwright-chromium';
 import { sleep } from '../../../client/common/utils/async';
+import { EXTENSION_ROOT_DIR } from '../../../client/constants';
 import { InteractiveWindowMessages } from '../../../client/datascience/interactive-common/interactiveWindowTypes';
 import { INotebookEditor } from '../../../client/datascience/types';
 import { BaseWebUI } from './helpers';
@@ -41,8 +43,12 @@ export class NotebookEditorUI extends BaseWebUI {
         // Wait just a bit longer to make sure button is visible (not sure why it isn't clicking the button sometimes)
         await sleep(500);
 
+        // Take a screenshot and save at the root with the same name (upload on error)
+        await this.screenshot(path.join(EXTENSION_ROOT_DIR, 'execute-screenshot.png'));
+
         // Click the run button.
         const runButton = await this.getToolbarButton(cellIndex, CellToolbarButton.run);
+
         // tslint:disable-next-line: no-console
         console.log(`Executing cell ${cellIndex} by clicking ${runButton.toString()}`);
         await Promise.all([runButton.click({ button: 'left', force: true, timeout: 0 }), renderedPromise]);
@@ -67,6 +73,10 @@ export class NotebookEditorUI extends BaseWebUI {
             assert.fail('Cell does not have any output');
         }
         return output[0];
+    }
+
+    public async screenshot(filePath: string): Promise<void> {
+        await this.page?.screenshot({ path: filePath });
     }
 
     public async getCell(cellIndex: number): Promise<ElementHandle<Element>> {
