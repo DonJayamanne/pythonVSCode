@@ -2,25 +2,26 @@
 // Licensed under the MIT License.
 'use strict';
 import { inject, injectable } from 'inversify';
-import * as path from 'path';
 import * as vscode from 'vscode';
-import { DataScience } from '../../common/utils/localize';
-import { IFileSystem } from '../../datascience/types';
 
-import { EXTENSION_ROOT_DIR, UseCustomEditorApi } from '../constants';
+import { UseCustomEditorApi } from '../constants';
 import { traceError } from '../logger';
-import { noop } from '../utils/misc';
-import { CustomEditorProvider, IApplicationEnvironment, ICommandManager, ICustomEditorService } from './types';
+import { IExtensionContext } from '../types';
+import { InvalidCustomEditor } from './invalidCustomEditor';
+import { CustomEditorProvider, ICommandManager, ICustomEditorService, IWorkspaceService } from './types';
+
+const EditorAssociationUpdatedKey = 'EditorAssociationUpdatedToUseCustomEditor';
+export const ViewType = 'jupyter.notebook.ipynb';
 
 @injectable()
 export class CustomEditorService implements ICustomEditorService {
     constructor(
         @inject(ICommandManager) private commandManager: ICommandManager,
         @inject(UseCustomEditorApi) private readonly useCustomEditorApi: boolean,
-        @inject(IApplicationEnvironment) private readonly appEnvironment: IApplicationEnvironment,
-        @inject(IFileSystem) private readonly fileSystem: IFileSystem
+        @inject(IWorkspaceService) private readonly workspace: IWorkspaceService,
+        @inject(IExtensionContext) private readonly extensionContext: IExtensionContext
     ) {
-        this.verifyPackageJson().catch((e) => traceError(`Error rewriting package json: `, e));
+        this.enableCustomEditors().catch((e) => traceError(`Error setting up custom editors: `, e));
     }
 
     public registerCustomEditorProvider(
@@ -35,7 +36,8 @@ export class CustomEditorService implements ICustomEditorService {
             // tslint:disable-next-line: no-any
             return (vscode.window as any).registerCustomEditorProvider(viewType, provider, options);
         } else {
-            return { dispose: noop };
+            // tslint:disable-next-line: no-any
+            return (vscode.window as any).registerCustomEditorProvider(viewType, new InvalidCustomEditor(), options);
         }
     }
 
@@ -45,45 +47,42 @@ export class CustomEditorService implements ICustomEditorService {
         }
     }
 
-    private async verifyPackageJson(): Promise<void> {
-        // Double check the package json has the necessary entries for contributing a custom editor. Note
-        // we have to actually read it because appEnvironment.packageJson is the webpacked version
-        const packageJson = JSON.parse(
-            await this.fileSystem.readLocalFile(path.join(EXTENSION_ROOT_DIR, 'package.json'))
-        );
-        if (this.useCustomEditorApi && !packageJson.contributes?.customEditors) {
-            return this.addCustomEditors(packageJson);
-        } else if (!this.useCustomEditorApi && packageJson.contributes.customEditors) {
-            return this.removeCustomEditors();
-        }
-    }
-
     // tslint:disable-next-line: no-any
-    private async addCustomEditors(currentPackageJson: any) {
-        // tslint:disable-next-line:no-require-imports no-var-requires
-        const _mergeWith = require('lodash/mergeWith') as typeof import('lodash/mergeWith');
-        const improvedContents = await this.fileSystem.readLocalFile(
-            path.join(EXTENSION_ROOT_DIR, 'customEditor.json')
-        );
-        const improved = _mergeWith({ ...currentPackageJson }, JSON.parse(improvedContents), (l, r) => {
-            if (Array.isArray(l) && Array.isArray(r)) {
-                return [...l, ...r];
-            }
-        });
-        await this.fileSystem.writeLocalFile(
-            path.join(EXTENSION_ROOT_DIR, 'package.json'),
-            JSON.stringify(improved, null, 4)
-        );
-        this.commandManager.executeCommand('jupyter.reloadVSCode', DataScience.reloadCustomEditor());
-    }
-    private async removeCustomEditors() {
-        // Note, to put it back, use the shipped version. This packageJson is required into the product
-        // so it's packed by webpack into the source.
-        const original = { ...this.appEnvironment.packageJson };
-        await this.fileSystem.writeLocalFile(
-            path.join(EXTENSION_ROOT_DIR, 'package.json'),
-            JSON.stringify(original, null, 4)
-        );
-        this.commandManager.executeCommand('jupyter.reloadVSCode', DataScience.reloadCustomEditor());
+    private async enableCustomEditors() {
+        // This code is temporary.
+        const settings = this.workspace.getConfiguration('workbench', undefined);
+        const editorAssociations = settings.get('editorAssociations') as {
+            viewType: string;
+            filenamePattern: string;
+        }[];
+
+        // Update the settings.
+        if (
+            this.useCustomEditorApi &&
+            (editorAssociations.length === 0 || !editorAssociations.find((item) => item.viewType === ViewType))
+        ) {
+            editorAssociations.push({
+                viewType: ViewType,
+                filenamePattern: '*.ipynb'
+            });
+            await Promise.all([
+                this.extensionContext.globalState.update(EditorAssociationUpdatedKey, true),
+                settings.update('editorAssociations', editorAssociations, vscode.ConfigurationTarget.Global)
+            ]);
+        }
+
+        // Revert the settings.
+        if (
+            !this.useCustomEditorApi &&
+            this.extensionContext.globalState.get<boolean>(EditorAssociationUpdatedKey, false) &&
+            Array.isArray(editorAssociations) &&
+            editorAssociations.find((item) => item.viewType === ViewType)
+        ) {
+            const updatedSettings = editorAssociations.filter((item) => item.viewType !== ViewType);
+            await Promise.all([
+                this.extensionContext.globalState.update(EditorAssociationUpdatedKey, false),
+                settings.update('editorAssociations', updatedSettings, vscode.ConfigurationTarget.Global)
+            ]);
+        }
     }
 }

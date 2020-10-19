@@ -67,7 +67,8 @@
         "onCommand:jupyter.exportfileandoutputasnotebook",
         "onCommand:jupyter.selectJupyterInterpreter",
         "onCommand:jupyter.selectjupytercommandline",
-        "onNotebook:jupyter-notebook"
+        "onNotebook:jupyter-notebook",
+        "onCustomEditor:jupyter.notebook.ipynb"
     ],
     "main": "./out/client/extension",
     "contributes": {
@@ -1675,6 +1676,18 @@
             {
                 "viewType": "jupyter-notebook",
                 "displayName": "Jupyter Notebook (preview)",
+                "selector": [
+                    {
+                        "filenamePattern": "*.ipynb"
+                    }
+                ],
+                "priority": "option"
+            }
+        ],
+        "customEditors": [
+            {
+                "viewType": "jupyter.notebook.ipynb",
+                "displayName": "Jupyter Notebook",
                 "selector": [
                     {
                         "filenamePattern": "*.ipynb"

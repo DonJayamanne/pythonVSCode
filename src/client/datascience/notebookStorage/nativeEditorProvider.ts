@@ -7,6 +7,7 @@ import { Disposable, Event, EventEmitter, Memento, Uri, WebviewPanel } from 'vsc
 import { CancellationToken } from 'vscode-languageclient/node';
 import { arePathsSame } from '../../../datascience-ui/react-common/arePathsSame';
 import { IPythonExtensionChecker } from '../../api/types';
+import { ViewType } from '../../common/application/customEditorService';
 import {
     CustomDocument,
     CustomDocumentBackup,
@@ -93,7 +94,7 @@ export class NativeEditorProvider implements INotebookEditorProvider, CustomEdit
         return [...this.openedEditors];
     }
     // Note, this constant has to match the value used in the package.json to register the webview custom editor.
-    public static readonly customEditorViewType = 'ms-toolsai.jupyter.notebook.ipynb';
+    public static readonly customEditorViewType = ViewType;
     protected readonly _onDidChangeActiveNotebookEditor = new EventEmitter<INotebookEditor | undefined>();
     protected readonly _onDidOpenNotebookEditor = new EventEmitter<INotebookEditor>();
     protected readonly _onDidEdit = new EventEmitter<CustomDocumentEditEvent>();

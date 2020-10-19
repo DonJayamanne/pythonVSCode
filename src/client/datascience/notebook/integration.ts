@@ -52,40 +52,43 @@ export class NotebookIntegration implements IExtensionSingleActivationService {
             // Again, this is temporary code.
             await this.disableNotebooks();
         }
-        if (this.env.channel !== 'insiders') {
-            return;
-        }
-        try {
-            this.disposables.push(
-                this.vscNotebook.registerNotebookContentProvider(JupyterNotebookView, this.notebookContentProvider, {
-                    transientOutputs: false,
-                    transientMetadata: {
-                        breakpointMargin: true,
-                        editable: true,
-                        hasExecutionOrder: true,
-                        inputCollapsed: true,
-                        lastRunDuration: true,
-                        outputCollapsed: true,
-                        runStartTime: true,
-                        runnable: true,
-                        executionOrder: false,
-                        custom: false,
-                        runState: false,
-                        statusMessage: false
-                    }
-                })
-            );
-            this.disposables.push(
-                this.vscNotebook.registerNotebookKernelProvider(
-                    { filenamePattern: '**/*.ipynb', viewType: JupyterNotebookView },
-                    this.kernelProvider
-                )
-            );
-        } catch (ex) {
-            // If something goes wrong, and we're not in Insiders & not using the NativeEditor experiment, then swallow errors.
-            traceError('Failed to register VS Code Notebook API', ex);
-            if (await this.experimentService.inExperiment(Experiments.NativeNotebook)) {
-                throw ex;
+        if (this.env.channel === 'insiders') {
+            try {
+                this.disposables.push(
+                    this.vscNotebook.registerNotebookContentProvider(
+                        JupyterNotebookView,
+                        this.notebookContentProvider,
+                        {
+                            transientOutputs: false,
+                            transientMetadata: {
+                                breakpointMargin: true,
+                                editable: true,
+                                hasExecutionOrder: true,
+                                inputCollapsed: true,
+                                lastRunDuration: true,
+                                outputCollapsed: true,
+                                runStartTime: true,
+                                runnable: true,
+                                executionOrder: false,
+                                custom: false,
+                                runState: false,
+                                statusMessage: false
+                            }
+                        }
+                    )
+                );
+                this.disposables.push(
+                    this.vscNotebook.registerNotebookKernelProvider(
+                        { filenamePattern: '**/*.ipynb', viewType: JupyterNotebookView },
+                        this.kernelProvider
+                    )
+                );
+            } catch (ex) {
+                // If something goes wrong, and we're not in Insiders & not using the NativeEditor experiment, then swallow errors.
+                traceError('Failed to register VS Code Notebook API', ex);
+                if (await this.experimentService.inExperiment(Experiments.NativeNotebook)) {
+                    throw ex;
+                }
             }
         }
     }

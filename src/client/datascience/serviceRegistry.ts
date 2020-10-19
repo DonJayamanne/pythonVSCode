@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 'use strict';
+import * as vscode from 'vscode';
 import { IExtensionSingleActivationService } from '../activation/types';
 import { UseCustomEditorApi, UseVSCodeNotebookEditorApi } from '../common/constants';
 import { FileSystemPathUtils } from '../common/platform/fs-paths';
@@ -185,8 +186,9 @@ import {
 // README: Did you make sure "dataScienceIocContainer.ts" has also been updated appropriately?
 
 // tslint:disable-next-line: max-func-body-length
-export function registerTypes(serviceManager: IServiceManager, useVSCodeNotebookAPI: boolean, inCustomEditorApiExperiment: boolean) {
-    const usingCustomEditor = inCustomEditorApiExperiment;
+export function registerTypes(serviceManager: IServiceManager, inNotebookApiExperiment: boolean, inCustomEditorApiExperiment: boolean) {
+    const usingCustomEditor = inCustomEditorApiExperiment && !vscode.env.appName.includes('Insider'); // Don't use app manager in case it's not available yet.
+    const useVSCodeNotebookAPI = inNotebookApiExperiment && !usingCustomEditor;
     serviceManager.addSingletonInstance<boolean>(UseCustomEditorApi, usingCustomEditor);
     serviceManager.addSingletonInstance<boolean>(UseVSCodeNotebookEditorApi, useVSCodeNotebookAPI);
     serviceManager.addSingletonInstance<number>(DataScienceStartupTime, Date.now());

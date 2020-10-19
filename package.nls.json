@@ -596,5 +596,6 @@
     "DataScience.ipykernelNotInstalled": "IPyKernel not installed into interpreter {0}",
     "DataScience.illegalEditorConfig": "CustomEditor and NativeNotebook experiments cannot be turned on together",
     "DataScience.pythonExtensionRequired" : "The Python extension is required to perform that task. Click Yes to open Python extension installation page.",
-    "DataScience.pythonInstalledReloadPromptMessage" : "Python extension is now installed. Reload window to activate?"
+    "DataScience.pythonInstalledReloadPromptMessage" : "Python extension is now installed. Reload window to activate?",
+    "DataScience.invalidCustomEditor" : "Using the Jupyter notebook editor requires the stable version of VS code and the CustomEditor experiment to be enabled."
 }
