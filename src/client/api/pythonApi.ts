@@ -15,7 +15,7 @@ import { inject, injectable } from 'inversify';
 import { CancellationToken, Disposable, Event, EventEmitter, Uri } from 'vscode';
 import { IApplicationEnvironment, IApplicationShell, ICommandManager } from '../common/application/types';
 import { InterpreterUri } from '../common/installer/types';
-import { IExtensions, InstallerResponse, Product, Resource } from '../common/types';
+import { IExtensions, InstallerResponse, IPersistentStateFactory, Product, Resource } from '../common/types';
 import { createDeferred } from '../common/utils/async';
 import * as localize from '../common/utils/localize';
 import { noop } from '../common/utils/misc';
@@ -84,6 +84,7 @@ export class PythonExtensionChecker implements IPythonExtensionChecker {
 
     constructor(
         @inject(IExtensions) private readonly extensions: IExtensions,
+        @inject(IPersistentStateFactory) private readonly persistentStateFactory: IPersistentStateFactory,
         @inject(IApplicationShell) private readonly appShell: IApplicationShell,
         @inject(IApplicationEnvironment) private readonly appEnv: IApplicationEnvironment,
         @inject(ICommandManager) private readonly commands: ICommandManager
@@ -104,15 +105,28 @@ export class PythonExtensionChecker implements IPythonExtensionChecker {
     }
 
     public async showPythonExtensionInstallRecommendedPrompt() {
-        const yes = localize.Common.bannerLabelYes();
-        const no = localize.Common.bannerLabelNo();
-        const answer = await this.appShell.showInformationMessage(
-            localize.DataScience.pythonExtensionRecommended(),
-            yes,
-            no
-        );
-        if (answer === yes) {
-            await this.installPythonExtension();
+        const key = 'ShouldShowPythonExtensionInstallRecommendedPrompt';
+        const surveyPrompt = this.persistentStateFactory.createGlobalPersistentState(key, true);
+        if (surveyPrompt.value) {
+            const yes = localize.Common.bannerLabelYes();
+            const no = localize.Common.bannerLabelNo();
+            const doNotShowAgain = localize.Common.doNotShowAgain();
+            const answer = await this.appShell.showInformationMessage(
+                localize.DataScience.pythonExtensionRecommended(),
+                yes,
+                no,
+                doNotShowAgain
+            );
+            switch (answer) {
+                case yes:
+                    await this.installPythonExtension();
+                    break;
+                case doNotShowAgain:
+                    await surveyPrompt.updateValue(false);
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
