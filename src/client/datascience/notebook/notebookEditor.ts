@@ -24,6 +24,7 @@ import {
     IStatusProvider
 } from '../types';
 import { NotebookCellLanguageService } from './defaultCellLanguageService';
+import { chainWithPendingUpdates } from './helpers/notebookUpdater';
 // tslint:disable-next-line: no-var-requires no-require-imports
 const vscodeNotebookEnums = require('vscode') as typeof import('vscode-proposed');
 
@@ -133,19 +134,17 @@ export class NotebookEditor implements INotebookEditor {
         const defaultLanguage = this.cellLanguageService.getPreferredLanguage(this.model.metadata);
         const editor = this.vscodeNotebook.notebookEditors.find((item) => item.document === this.document);
         if (editor) {
-            editor
-                .edit((edit) =>
-                    edit.replaceCells(0, this.document.cells.length, [
-                        {
-                            cellKind: vscodeNotebookEnums.CellKind.Code,
-                            language: defaultLanguage,
-                            metadata: {},
-                            outputs: [],
-                            source: ''
-                        }
-                    ])
-                )
-                .then(noop, noop);
+            chainWithPendingUpdates(editor, (edit) =>
+                edit.replaceCells(0, this.document.cells.length, [
+                    {
+                        cellKind: vscodeNotebookEnums.CellKind.Code,
+                        language: defaultLanguage,
+                        metadata: {},
+                        outputs: [],
+                        source: ''
+                    }
+                ])
+            ).then(noop, noop);
         }
     }
     public expandAllCells(): void {
@@ -155,17 +154,15 @@ export class NotebookEditor implements INotebookEditor {
         const notebook = this.vscodeNotebook.activeNotebookEditor.document;
         const editor = this.vscodeNotebook.notebookEditors.find((item) => item.document === this.document);
         if (editor) {
-            editor
-                .edit((edit) => {
-                    notebook.cells.forEach((cell, index) => {
-                        edit.replaceCellMetadata(index, {
-                            ...cell.metadata,
-                            inputCollapsed: false,
-                            outputCollapsed: false
-                        });
+            chainWithPendingUpdates(editor, (edit) => {
+                notebook.cells.forEach((cell, index) => {
+                    edit.replaceCellMetadata(index, {
+                        ...cell.metadata,
+                        inputCollapsed: false,
+                        outputCollapsed: false
                     });
-                })
-                .then(noop, noop);
+                });
+            }).then(noop, noop);
         }
     }
     public collapseAllCells(): void {
@@ -175,17 +172,15 @@ export class NotebookEditor implements INotebookEditor {
         const notebook = this.vscodeNotebook.activeNotebookEditor.document;
         const editor = this.vscodeNotebook.notebookEditors.find((item) => item.document === this.document);
         if (editor) {
-            editor
-                .edit((edit) => {
-                    notebook.cells.forEach((cell, index) => {
-                        edit.replaceCellMetadata(index, {
-                            ...cell.metadata,
-                            inputCollapsed: true,
-                            outputCollapsed: true
-                        });
+            chainWithPendingUpdates(editor, (edit) => {
+                notebook.cells.forEach((cell, index) => {
+                    edit.replaceCellMetadata(index, {
+                        ...cell.metadata,
+                        inputCollapsed: true,
+                        outputCollapsed: true
                     });
-                })
-                .then(noop, noop);
+                });
+            }).then(noop, noop);
         }
     }
     public notifyExecution(cell: NotebookCell) {

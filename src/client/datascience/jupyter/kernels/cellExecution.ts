@@ -5,14 +5,19 @@
 
 import { nbformat } from '@jupyterlab/coreutils';
 import type { KernelMessage } from '@jupyterlab/services/lib/kernel/messages';
-import { CancellationToken, CellOutputKind, NotebookCell, NotebookCellRunState } from 'vscode';
-import type { CellDisplayOutput, NotebookEditor as VSCNotebookEditor } from '../../../../../types/vscode-proposed';
+import { CancellationToken } from 'vscode';
+import type {
+    CellDisplayOutput,
+    NotebookCell,
+    NotebookCellRunState,
+    NotebookEditor as VSCNotebookEditor
+} from '../../../../../types/vscode-proposed';
 import { concatMultilineString, formatStreamText } from '../../../../datascience-ui/common';
 import { IApplicationShell, IVSCodeNotebook } from '../../../common/application/types';
 import { traceInfo, traceWarning } from '../../../common/logger';
 import { RefBool } from '../../../common/refBool';
 import { IDisposable } from '../../../common/types';
-import { createDeferred } from '../../../common/utils/async';
+import { createDeferred, Deferred } from '../../../common/utils/async';
 import { swallowExceptions } from '../../../common/utils/decorators';
 import { noop } from '../../../common/utils/misc';
 import { StopWatch } from '../../../common/utils/stopWatch';
@@ -30,6 +35,7 @@ import {
     updateCellExecutionTimes
 } from '../../notebook/helpers/helpers';
 import { MultiCancellationTokenSource } from '../../notebook/helpers/multiCancellationToken';
+import { chainWithPendingUpdates } from '../../notebook/helpers/notebookUpdater';
 import { NotebookEditor } from '../../notebook/notebookEditor';
 import {
     IDataScienceErrorHandler,
@@ -62,9 +68,15 @@ export class CellExecutionFactory {
         );
     }
 }
+
 /**
  * Responsible for execution of an individual cell and manages the state of the cell as it progresses through the execution phases.
  * Execution phases include - enqueue for execution (done in ctor), start execution, completed execution with/without errors, cancel execution or dequeue.
+ *
+ * WARNING: Do not dispose `request: Kernel.IShellFuture` object.
+ * Even after request.done & execute_reply is sent we could have more messages coming from iopub.
+ * Further details here https://github.com/microsoft/vscode-jupyter/issues/232 & https://github.com/jupyter/jupyter_client/issues/297
+ *
  */
 export class CellExecution {
     public get result(): Promise<NotebookCellRunState | undefined> {
@@ -78,6 +90,10 @@ export class CellExecution {
     public get completed() {
         return this._completed;
     }
+    /**
+     * To be used only in tests.
+     */
+    public static cellsCompletedForTesting = new WeakMap<NotebookCell, Deferred<void>>();
 
     private static sentExecuteCellTelemetry?: boolean;
 
@@ -95,9 +111,7 @@ export class CellExecution {
     private readonly initPromise: Promise<void>;
     private disposables: IDisposable[] = [];
     private cancelHandled = false;
-
     private requestHandlerChain = Promise.resolve();
-
     private constructor(
         public readonly editor: VSCNotebookEditor,
         public readonly cell: NotebookCell,
@@ -106,6 +120,23 @@ export class CellExecution {
         private readonly applicationService: IApplicationShell,
         private readonly isPythonKernelConnection: boolean
     ) {
+        // These are only used in the tests.
+        // See where this is used to understand its purpose.
+        let deferred = createDeferred<void>();
+        if (
+            !CellExecution.cellsCompletedForTesting.has(cell) ||
+            CellExecution.cellsCompletedForTesting.get(cell)!.completed
+        ) {
+            CellExecution.cellsCompletedForTesting.set(cell, deferred);
+        }
+        if (
+            CellExecution.cellsCompletedForTesting.has(cell) &&
+            !CellExecution.cellsCompletedForTesting.get(cell)!.completed
+        ) {
+            deferred = CellExecution.cellsCompletedForTesting.get(cell)!;
+        }
+        this.result.then(() => deferred.resolve()).catch(() => deferred.resolve());
+
         this.oldCellRunState = cell.metadata.runState;
         this.initPromise = this.enqueue();
     }
@@ -129,7 +160,7 @@ export class CellExecution {
         this.started = true;
         // Ensure we clear the cell state and trigger a change.
         await clearCellForExecution(this.editor, this.cell);
-        await this.editor.edit((edit) => {
+        await chainWithPendingUpdates(this.editor, (edit) => {
             edit.replaceCellMetadata(this.cell.index, {
                 ...this.cell.metadata,
                 runStartTime: new Date().getTime()
@@ -177,7 +208,7 @@ export class CellExecution {
 
     private async completedWithErrors(error: Partial<Error>) {
         this.sendPerceivedCellExecute();
-        await this.editor.edit((edit) =>
+        await chainWithPendingUpdates(this.editor, (edit) =>
             edit.replaceCellMetadata(this.cell.index, {
                 ...this.cell.metadata,
                 lastRunDuration: this.stopWatch.elapsedTime
@@ -210,7 +241,7 @@ export class CellExecution {
             statusMessage = getCellStatusMessageBasedOnFirstCellErrorOutput(this.cell.outputs);
         }
 
-        await this.editor.edit((edit) =>
+        await chainWithPendingUpdates(this.editor, (edit) =>
             edit.replaceCellMetadata(this.cell.index, {
                 ...this.cell.metadata,
                 runState,
@@ -228,7 +259,7 @@ export class CellExecution {
             lastRunDuration: this.stopWatch.elapsedTime
         });
 
-        await this.editor.edit((edit) =>
+        await chainWithPendingUpdates(this.editor, (edit) =>
             edit.replaceCellMetadata(this.cell.index, {
                 ...this.cell.metadata,
                 runState: vscodeNotebookEnums.NotebookCellRunState.Idle,
@@ -263,7 +294,7 @@ export class CellExecution {
             this.oldCellRunState === vscodeNotebookEnums.NotebookCellRunState.Running
                 ? vscodeNotebookEnums.NotebookCellRunState.Idle
                 : this.oldCellRunState;
-        await this.editor.edit((edit) =>
+        await chainWithPendingUpdates(this.editor, (edit) =>
             edit.replaceCellMetadata(this.cell.index, {
                 ...this.cell.metadata,
                 runStartTime: undefined,
@@ -282,7 +313,7 @@ export class CellExecution {
         if (!this.canExecuteCell()) {
             return;
         }
-        await this.editor.edit((edit) =>
+        await chainWithPendingUpdates(this.editor, (edit) =>
             edit.replaceCellMetadata(this.cell.index, {
                 ...this.cell.metadata,
                 runState: vscodeNotebookEnums.NotebookCellRunState.Running
@@ -316,8 +347,9 @@ export class CellExecution {
 
     private async executeCodeCell(code: string, session: IJupyterSession, loggers: INotebookExecutionLogger[]) {
         // Generate metadata from our cell (some kernels expect this.)
-        const metadata = {
-            ...this.cell.metadata,
+        // tslint:disable-next-line: no-any
+        const metadata: any = {
+            ...(this.cell.metadata?.custom?.metadata || {}), // Send the Cell Metadata
             ...{ cellId: this.cell.uri.toString() }
         };
 
@@ -366,8 +398,12 @@ export class CellExecution {
             ));
         request.onStdin = this.handleInputRequest.bind(this, session);
 
-        // When the request finishes we are done
+        // WARNING: Do not dispose `request`.
+        // Even after request.done & execute_reply is sent we could have more messages coming from iopub.
+        // We have tests for this & check https://github.com/microsoft/vscode-jupyter/issues/232 & https://github.com/jupyter/jupyter_client/issues/297
+
         try {
+            // When the request finishes we are done
             // request.done resolves even before all iopub messages have been sent through.
             // Solution is to wait for all messages to get processed.
             await Promise.all([request.done, this.requestHandlerChain]);
@@ -442,7 +478,7 @@ export class CellExecution {
     ) {
         const converted = cellOutputToVSCCellOutput(output);
 
-        await this.editor.edit((edit) => {
+        await chainWithPendingUpdates(this.editor, (edit) => {
             let existingOutput = [...this.cell.outputs];
 
             // Clear if necessary
@@ -522,7 +558,7 @@ export class CellExecution {
         traceInfo(`Kernel switching to ${msg.content.execution_state}`);
     }
     private async handleStreamMessage(msg: KernelMessage.IStreamMsg, clearState: RefBool) {
-        await this.editor.edit((edit) => {
+        await chainWithPendingUpdates(this.editor, (edit) => {
             let exitingCellOutput = this.cell.outputs;
             // Clear output if waiting for a clear
             if (clearState.value) {
@@ -536,7 +572,9 @@ export class CellExecution {
             const lastOutput =
                 exitingCellOutput.length > 0 ? exitingCellOutput[exitingCellOutput.length - 1] : undefined;
             const existing: CellDisplayOutput | undefined =
-                lastOutput && lastOutput.outputKind === CellOutputKind.Rich ? lastOutput : undefined;
+                lastOutput && lastOutput.outputKind === vscodeNotebookEnums.CellOutputKind.Rich
+                    ? lastOutput
+                    : undefined;
             if (existing && 'text/plain' in existing.data) {
                 // tslint:disable-next-line:restrict-plus-operands
                 existing.data['text/plain'] = formatStreamText(
@@ -574,7 +612,7 @@ export class CellExecution {
             clearState.update(true);
         } else {
             // Clear all outputs and start over again.
-            await this.editor.edit((edit) => edit.replaceCellOutput(this.cell.index, []));
+            await chainWithPendingUpdates(this.editor, (edit) => edit.replaceCellOutput(this.cell.index, []));
         }
     }
 

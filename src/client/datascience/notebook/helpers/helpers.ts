@@ -34,6 +34,7 @@ import { KernelMessage } from '@jupyterlab/services';
 // tslint:disable-next-line: no-require-imports
 import cloneDeep = require('lodash/cloneDeep');
 import { Uri } from 'vscode';
+import { chainWithPendingUpdates } from './notebookUpdater';
 
 // This is the custom type we are adding into nbformat.IBaseCellMetadata
 export interface IBaseCellVSCodeMetadata {
@@ -381,7 +382,7 @@ export function createIOutputFromCellOutputs(cellOutputs: CellOutput[]): nbforma
 }
 
 export async function clearCellForExecution(editor: NotebookEditor, cell: NotebookCell) {
-    await editor.edit((edit) => {
+    await chainWithPendingUpdates(editor, (edit) => {
         edit.replaceCellMetadata(cell.index, {
             ...cell.metadata,
             statusMessage: undefined,
@@ -437,7 +438,7 @@ export async function updateCellExecutionTimes(
     // customMetadata.metadata.vscode.end_execution_time = endTimeISO;
     // customMetadata.metadata.vscode.start_execution_time = startTimeISO;
     const lastRunDuration = times.lastRunDuration ?? cell.metadata.lastRunDuration;
-    await editor.edit((edit) =>
+    await chainWithPendingUpdates(editor, (edit) =>
         edit.replaceCellMetadata(cell.index, {
             ...cell.metadata,
             // custom: customMetadata,
@@ -742,7 +743,7 @@ export async function updateVSCNotebookAfterTrustingNotebook(
         return;
     }
 
-    await editor.edit((edit) => {
+    await chainWithPendingUpdates(editor, (edit) => {
         edit.replaceMetadata({
             ...document.metadata,
             cellEditable: true,

@@ -17,7 +17,6 @@ import { EXTENSION_ROOT_DIR_FOR_TESTS } from '../../constants';
 import { initialize } from '../../initialize';
 import { openNotebook } from '../helpers';
 import {
-    assertHasExecutionCompletedSuccessfully,
     assertHasTextOutputInVSCode,
     canRunNotebookTests,
     closeNotebooks,
@@ -28,6 +27,7 @@ import {
     insertMarkdownCell,
     saveActiveNotebook,
     trustAllNotebooks,
+    waitForExecutionCompletedSuccessfully,
     waitForKernelToGetAutoSelected
 } from './helper';
 
@@ -125,11 +125,7 @@ suite('DataScience - VSCode Notebook - Kernels (non-python-kernel) (slow)', () =
 
         const cell = vscodeNotebook.activeNotebookEditor?.document.cells![0]!;
         // Wait till execution count changes and status is success.
-        await waitForCondition(
-            async () => assertHasExecutionCompletedSuccessfully(cell),
-            15_000,
-            'Cell did not get executed'
-        );
+        await waitForExecutionCompletedSuccessfully(cell);
 
         assertHasTextOutputInVSCode(cell, '123456', 0, false);
     });

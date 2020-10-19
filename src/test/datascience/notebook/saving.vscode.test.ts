@@ -15,8 +15,6 @@ import { IExtensionTestApi, waitForCondition } from '../../common';
 import { closeActiveWindows, EXTENSION_ROOT_DIR_FOR_TESTS, initialize } from '../../initialize';
 import { openNotebook } from '../helpers';
 import {
-    assertHasExecutionCompletedSuccessfully,
-    assertHasExecutionCompletedWithErrors,
     assertHasTextOutputInVSCode,
     assertVSCCellHasErrorOutput,
     assertVSCCellStateIsUndefinedOrIdle,
@@ -27,7 +25,9 @@ import {
     executeActiveDocument,
     insertCodeCell,
     saveActiveNotebook,
-    trustAllNotebooks
+    trustAllNotebooks,
+    waitForExecutionCompletedSuccessfully,
+    waitForExecutionCompletedWithErrors
 } from './helper';
 // tslint:disable-next-line:no-require-imports no-var-requires
 const vscodeNotebookEnums = require('vscode') as typeof import('vscode-proposed');
@@ -68,10 +68,10 @@ suite('DataScience - VSCode Notebook - (Saving) (slow)', function () {
     test('Verify output & metadata when re-opening (slow)', async () => {
         await openNotebook(api.serviceContainer, testEmptyIPynb.fsPath);
 
-        await insertCodeCell('print(1)');
-        await insertCodeCell('print(a)');
-        await insertCodeCell('import time\nfor i in range(10000):\n  print(i)\n  time.sleep(0.1)');
-        await insertCodeCell('import time\nfor i in range(10000):\n  print(i)\n  time.sleep(0.1)');
+        await insertCodeCell('print(1)', { index: 0 });
+        await insertCodeCell('print(a)', { index: 1 });
+        await insertCodeCell('import time\nfor i in range(10000):\n  print(i)\n  time.sleep(0.1)', { index: 2 });
+        await insertCodeCell('import time\nfor i in range(10000):\n  print(i)\n  time.sleep(0.1)', { index: 3 });
         let cell1: NotebookCell;
         let cell2: NotebookCell;
         let cell3: NotebookCell;
@@ -86,12 +86,10 @@ suite('DataScience - VSCode Notebook - (Saving) (slow)', function () {
         initializeCells();
         await executeActiveDocument();
         // Wait till 1 & 2 finish & 3rd cell starts executing.
+        await waitForExecutionCompletedSuccessfully(cell1!);
+        await waitForExecutionCompletedWithErrors(cell2!);
         await waitForCondition(
-            async () =>
-                assertHasExecutionCompletedSuccessfully(cell1) &&
-                assertHasExecutionCompletedWithErrors(cell2) &&
-                assertVSCCellStateIsUndefinedOrIdle(cell3) &&
-                assertVSCCellStateIsUndefinedOrIdle(cell4),
+            async () => assertVSCCellStateIsUndefinedOrIdle(cell3) && assertVSCCellStateIsUndefinedOrIdle(cell4),
             15_000,
             'Cells did not finish executing'
         );

@@ -28,17 +28,19 @@ import {
 } from '../../../client/common/types';
 import { createDeferred } from '../../../client/common/utils/async';
 import { swallowExceptions } from '../../../client/common/utils/misc';
+import { CellExecution } from '../../../client/datascience/jupyter/kernels/cellExecution';
 import { JupyterNotebookView } from '../../../client/datascience/notebook/constants';
 import {
     LastSavedNotebookCellLanguage,
     NotebookCellLanguageService
 } from '../../../client/datascience/notebook/defaultCellLanguageService';
+import { chainWithPendingUpdates } from '../../../client/datascience/notebook/helpers/notebookUpdater';
 import { VSCodeNotebookKernelMetadata } from '../../../client/datascience/notebook/kernelProvider';
 import { NotebookEditor } from '../../../client/datascience/notebook/notebookEditor';
 import { INotebookContentProvider } from '../../../client/datascience/notebook/types';
 import { VSCodeNotebookModel } from '../../../client/datascience/notebookStorage/vscNotebookModel';
 import { INotebookEditorProvider, INotebookProvider, ITrustService } from '../../../client/datascience/types';
-import { createEventHandler, waitForCondition } from '../../common';
+import { createEventHandler, sleep, waitForCondition } from '../../common';
 import { EXTENSION_ROOT_DIR_FOR_TESTS, IS_SMOKE_TEST } from '../../constants';
 import { closeActiveWindows, initialize, isInsiders } from '../../initialize';
 const vscodeNotebookEnums = require('vscode') as typeof import('vscode-proposed');
@@ -60,7 +62,7 @@ export async function insertMarkdownCell(source: string) {
         assert.fail('No active editor');
         return;
     }
-    await activeEditor.edit((edit) =>
+    await chainWithPendingUpdates(activeEditor, (edit) =>
         edit.replaceCells(activeEditor.document.cells.length, 0, [
             {
                 cellKind: vscodeNotebookEnums.CellKind.Markdown,
@@ -82,7 +84,7 @@ export async function insertCodeCell(source: string, options?: { language?: stri
         return;
     }
     const startNumber = options?.index ?? activeEditor.document.cells.length;
-    await activeEditor.edit((edit) =>
+    await activeEditor.edit((edit) => {
         edit.replaceCells(startNumber, 0, [
             {
                 cellKind: vscodeNotebookEnums.CellKind.Code,
@@ -93,8 +95,8 @@ export async function insertCodeCell(source: string, options?: { language?: stri
                 },
                 outputs: []
             }
-        ])
-    );
+        ]);
+    });
 }
 export async function deleteCell(index: number = 0) {
     const { vscodeNotebook } = await getServices();
@@ -106,7 +108,7 @@ export async function deleteCell(index: number = 0) {
         assert.fail('No active editor');
         return;
     }
-    await activeEditor.edit((edit) => edit.replaceCells(index, 1, []));
+    await chainWithPendingUpdates(activeEditor, (edit) => edit.replaceCells(index, 1, []));
 }
 export async function deleteAllCellsAndWait() {
     const { vscodeNotebook } = await getServices();
@@ -114,7 +116,7 @@ export async function deleteAllCellsAndWait() {
     if (!activeEditor || activeEditor.document.cells.length === 0) {
         return;
     }
-    await activeEditor.edit((edit) => edit.replaceCells(0, activeEditor.document.cells.length, []));
+    await chainWithPendingUpdates(activeEditor, (edit) => edit.replaceCells(0, activeEditor.document.cells.length, []));
 }
 
 export async function createTemporaryFile(options: {
@@ -255,12 +257,12 @@ export async function startJupyter(closeInitialEditor: boolean) {
             await memento.update(LastSavedNotebookCellLanguage, PYTHON_LANGUAGE);
         }
         await editorProvider.createNew();
-        await insertCodeCell('print("Hello World")', { index: 0 });
+        await insertCodeCell('print("Hello World1")', { index: 0 });
         await waitForKernelToGetAutoSelected();
         const cell = vscodeNotebook.activeNotebookEditor!.document.cells[0]!;
         await executeActiveDocument();
         // Wait for Jupyter to start.
-        await waitForCondition(async () => cell.outputs.length > 0, 60_000, 'Cell not executed');
+        await waitForExecutionCompletedSuccessfully(cell, 60_000);
 
         if (closeInitialEditor) {
             await closeActiveWindows();
@@ -272,24 +274,46 @@ export async function startJupyter(closeInitialEditor: boolean) {
     }
 }
 
-export function assertHasExecutionCompletedSuccessfully(cell: NotebookCell) {
+function assertHasExecutionCompletedSuccessfully(cell: NotebookCell) {
     return (
         (cell.metadata.executionOrder ?? 0) > 0 &&
         cell.metadata.runState === vscodeNotebookEnums.NotebookCellRunState.Success
     );
 }
-export async function waitForExecutionCompletedSuccessfully(cell: NotebookCell) {
+/**
+ *  Wait for VSC to perform some last minute clean up of cells.
+ * In tests we can end up deleting cells. However if extension is still dealing with the cells, we need to give it some time to finish.
+ */
+export async function waitForCellExecutionToComplete(cell: NotebookCell) {
+    if (!CellExecution.cellsCompletedForTesting.has(cell)) {
+        CellExecution.cellsCompletedForTesting.set(cell, createDeferred<void>());
+    }
+    // Yes hacky approach, however its difficult to synchronize everything as we update cells in a few places while executing.
+    // 100ms should be plenty sufficient for other code to get executed when dealing with cells.
+    // Again, we need to wait for rest of execution code to access the cells.
+    // Else in tests we'd delete the cells & the extension code could fall over trying to access non-existent cells.
+    // In fact code doesn't fall over, but VS Code just hangs in tests.
+    // If this doesn't work on CI, we'll need to clean up and write more code to ensure we remove these race conditions as done with `CellExecution.cellsCompleted`.
+    await CellExecution.cellsCompletedForTesting.get(cell)!.promise;
+    await sleep(100);
+}
+export async function waitForExecutionCompletedSuccessfully(cell: NotebookCell, timeout: number = 15_000) {
     await waitForCondition(
         async () => assertHasExecutionCompletedSuccessfully(cell),
-        1_000,
+        timeout,
         `Cell ${cell.index + 1} did not complete successfully`
     );
+    await waitForCellExecutionToComplete(cell);
 }
-export function assertExecutionOrderInVSCCell(cell: NotebookCell, executionOrder?: number) {
-    assert.equal(cell.metadata.executionOrder, executionOrder);
-    return true;
+export async function waitForExecutionCompletedWithErrors(cell: NotebookCell, timeout: number = 15_000) {
+    await waitForCondition(
+        async () => assertHasExecutionCompletedWithErrors(cell),
+        timeout,
+        `Cell ${cell.index + 1} did not fail as expected`
+    );
+    await waitForCellExecutionToComplete(cell);
 }
-export function assertHasExecutionCompletedWithErrors(cell: NotebookCell) {
+function assertHasExecutionCompletedWithErrors(cell: NotebookCell) {
     return (
         (cell.metadata.executionOrder ?? 0) > 0 &&
         cell.metadata.runState === vscodeNotebookEnums.NotebookCellRunState.Error
@@ -335,13 +359,6 @@ export function assertNotHasTextOutputInVSCode(cell: NotebookCell, text: string,
 export function assertVSCCellIsRunning(cell: NotebookCell) {
     assert.equal(cell.metadata.runState, vscodeNotebookEnums.NotebookCellRunState.Running);
     return true;
-}
-export async function waitForVSCCellHasEmptyOutput(cell: NotebookCell) {
-    await waitForCondition(
-        async () => cell.outputs.length === 0,
-        1_000,
-        `Cell ${cell.index + 1} output did not get cleared`
-    );
 }
 export function assertVSCCellIsNotRunning(cell: NotebookCell) {
     assert.notEqual(cell.metadata.runState, vscodeNotebookEnums.NotebookCellRunState.Running);
