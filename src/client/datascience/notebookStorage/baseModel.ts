@@ -12,6 +12,7 @@ import { isUntitledFile } from '../../common/utils/misc';
 import { pruneCell } from '../common';
 import { NotebookModelChange } from '../interactive-common/interactiveWindowTypes';
 import {
+    createDefaultKernelSpec,
     getInterpreterFromKernelConnectionMetadata,
     isPythonKernelConnection,
     kernelConnectionMetadataHasKernelModel
@@ -87,12 +88,14 @@ export function updateNotebookMetadata(
             : kernelConnection?.kernelSpec;
     if (kernelConnection?.kind === 'startUsingPythonInterpreter') {
         // Store interpreter name, we expect the kernel finder will find the corresponding interpreter based on this name.
-        const name = kernelConnection.interpreter.displayName || '';
+        const kernelSpec = kernelConnection.kernelSpec || createDefaultKernelSpec(kernelConnection.interpreter);
+        const displayName = kernelConnection.interpreter.displayName || '';
+        const name = kernelSpec.name;
         if (metadata.kernelspec?.name !== name || metadata.kernelspec?.display_name !== name) {
             changed = true;
             metadata.kernelspec = {
                 name,
-                display_name: name,
+                display_name: displayName,
                 metadata: {
                     interpreter: {
                         hash: sha256().update(kernelConnection.interpreter.path).digest('hex')

@@ -347,9 +347,6 @@ export class KernelSelector implements IKernelSelectionUsage {
                 cancelToken
             );
             return cloneDeep(item);
-        } else if (selection.interpreter && type === 'raw') {
-            const item = await this.useInterpreterAndDefaultKernel(selection.interpreter);
-            return cloneDeep(item);
         } else if (selection.kind === 'connectToLiveKernel') {
             sendTelemetryEvent(Telemetry.SwitchToExistingKernel, undefined, {
                 language: this.computeLanguage(selection.kernelModel.language)
@@ -373,6 +370,9 @@ export class KernelSelector implements IKernelSelectionUsage {
                     : undefined;
             await this.kernelService.updateKernelEnvironment(interpreter, selection.kernelSpec, cancelToken);
             return cloneDeep({ kernelSpec: selection.kernelSpec, interpreter, kind: 'startUsingKernelSpec' });
+        } else if (selection.interpreter && type === 'raw') {
+            const item = await this.useInterpreterAndDefaultKernel(selection.interpreter);
+            return cloneDeep(item);
         } else {
             return;
         }

@@ -157,7 +157,7 @@ export function createDefaultKernelSpec(interpreter?: PythonEnvironment): IJupyt
     // This creates a default kernel spec. When launched, 'python' argument will map to using the interpreter
     // associated with the current resource for launching.
     const defaultSpec: Kernel.ISpecModel = {
-        name: interpreter?.displayName || 'Python 3',
+        name: 'python3', // Don't use display name here. It's supposed to match the relative path on disk
         language: 'python',
         display_name: interpreter?.displayName || 'Python 3',
         metadata: {},

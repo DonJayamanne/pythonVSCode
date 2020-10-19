@@ -11,7 +11,7 @@ import { CancellationToken } from 'vscode-jsonrpc';
 import { expect } from 'chai';
 import { IApplicationShell, IDocumentManager } from '../../client/common/application/types';
 import { Experiments } from '../../client/common/experiments/groups';
-import { createDeferred, waitForPromise } from '../../client/common/utils/async';
+import { createDeferred, sleep, waitForPromise } from '../../client/common/utils/async';
 import { noop } from '../../client/common/utils/misc';
 import { EXTENSION_ROOT_DIR } from '../../client/constants';
 import { Commands, Identifiers } from '../../client/datascience/constants';
@@ -204,6 +204,7 @@ suite('DataScience Debugger tests', () => {
                     await jupyterDebuggerService?.step();
                     await breakPromise.promise;
                     await mountedWebPanel.waitForMessage(InteractiveWindowMessages.VariablesComplete);
+                    await sleep(1000);
                     const variableRefresh = mountedWebPanel.waitForMessage(InteractiveWindowMessages.VariablesComplete);
                     await jupyterDebuggerService?.requestVariables();
                     await variableRefresh;
