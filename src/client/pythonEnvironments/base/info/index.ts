@@ -4,6 +4,7 @@
 import { Uri } from 'vscode';
 import { Architecture } from '../../../common/utils/platform';
 import { BasicVersionInfo, VersionInfo } from '../../../common/utils/version';
+import { arePathsSame } from '../../common/externalDependencies';
 
 /**
  * IDs for the various supported Python environments.

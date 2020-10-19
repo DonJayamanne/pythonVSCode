@@ -72,7 +72,6 @@ import type {
     NotebookKernel,
     NotebookKernelProvider
 } from 'vscode-proposed';
-import * as vsls from 'vsls/vscode';
 
 import { IAsyncDisposable, Resource } from '../types';
 import { ICommandNameArgumentTypeMapping } from './commands';
@@ -499,6 +498,12 @@ export interface ICommandManager {
      * @return Thenable that resolves to a list of command ids.
      */
     getCommands(filterInternal?: boolean): Thenable<string[]>;
+}
+
+export const IJupyterExtensionDependencyManager = Symbol('IJupyterExtensionDependencyManager');
+export interface IJupyterExtensionDependencyManager {
+    readonly isJupyterExtensionInstalled: boolean;
+    installJupyterExtension(): Promise<undefined>;
 }
 
 export const IDocumentManager = Symbol('IDocumentManager');
@@ -1142,22 +1147,6 @@ export interface IWebviewPanelOptions extends IWebviewOptions {
 export const IWebviewPanelProvider = Symbol('IWebviewPanelProvider');
 export interface IWebviewPanelProvider {
     create(options: IWebviewPanelOptions): Promise<IWebviewPanel>;
-}
-
-// Wraps the vsls liveshare API
-export const ILiveShareApi = Symbol('ILiveShareApi');
-export interface ILiveShareApi {
-    getApi(): Promise<vsls.LiveShare | null>;
-}
-
-// Wraps the liveshare api for testing
-export const ILiveShareTestingApi = Symbol('ILiveShareTestingApi');
-export interface ILiveShareTestingApi extends ILiveShareApi {
-    isSessionStarted: boolean;
-    forceRole(role: vsls.Role): void;
-    startSession(): Promise<void>;
-    stopSession(): Promise<void>;
-    disableGuestChecker(): void;
 }
 
 export const ILanguageService = Symbol('ILanguageService');

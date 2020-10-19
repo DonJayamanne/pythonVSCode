@@ -10,6 +10,7 @@ pr:
     include:
       - 'main'
       - 'release*'
+      - 'WIP/NoDS'
       - 'ds*'
   paths:
     exclude: ['/news/1 Enhancements', '/news/2 Fixes', '/news/3 Code Health', '/.vscode']
