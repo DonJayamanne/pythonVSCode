@@ -351,6 +351,9 @@ jobs:
     name: VS Code Tests # These tests run with Python extension & real Jupyter
     runs-on: ${{ matrix.os }}
     if: github.repository == 'microsoft/vscode-jupyter'
+    env:
+        VSC_FORCE_REAL_JUPYTER: 1
+        VSC_JUPYTER_CI_RUN_NON_PYTHON_NB_TEST: 1
     strategy:
       fail-fast: false
       matrix:
@@ -466,6 +469,28 @@ jobs:
       - name: Compile if not cached
         run: npx gulp prePublishNonBundle
 
+      # Used by tests for non-python kernels.
+      # Test are enabled via env variable `VSC_JUPYTER_CI_RUN_NON_PYTHON_NB_TEST`
+      - name: Install Julia
+        uses: julia-actions/setup-julia@v1
+        with:
+          version: ${{env.JULIA_VERSION}}
+
+      - name: Install Julia Kernel
+        run: |
+          julia -e '
+            using Pkg
+            Pkg.add("IJulia")'
+
+      # Used by tests for installation of ipykernel.
+      # Test are enabled dyanamically when
+      # 1. `CI_PYTHON_PATH2` points to the new virtual env.
+      # 2. Virtual env is located under `src/test/datascience/` and named `.venvnokernel`.
+      - name: Create virtual environment for Tests
+        run: |
+          python -m venv .venvnokernel
+        working-directory: src/test/datascience
+
       - name: Azure Login
         uses: azure/login@v1.1.1
         with:
@@ -483,6 +508,7 @@ jobs:
         env:
           VSC_FORCE_REAL_JUPYTER: 1
           VSC_JUPYTER_FORCE_LOGGING: 1
+          VSC_JUPYTER_CI_RUN_NON_PYTHON_NB_TEST: 1
         id: test_vscode
         if: matrix.test-suite == 'integration'
 
@@ -499,9 +525,11 @@ jobs:
         with:
           run: npm run testNativeNotebooksInVSCode
         env:
-          VSC_FORCE_REAL_JUPYTER: 1
-          VSC_JUPYTER_FORCE_LOGGING: 1
-        id: test_notebook_vscode
+            VSC_FORCE_REAL_JUPYTER: 1
+            VSC_JUPYTER_FORCE_LOGGING: 1
+            VSC_JUPYTER_CI_RUN_NON_PYTHON_NB_TEST: 1
+            VSC_JUPYTER_CI_TEST_VSC_CHANNEL: 'insiders'
+          id: test_notebook_vscode
         if: matrix.test-suite == 'notebook'
 
       - name: Publish Notebook Test Report
