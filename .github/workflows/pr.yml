@@ -345,6 +345,7 @@ jobs:
 
       - name: Upload screenshots
         uses: actions/upload-artifact@v2
+        if: steps.test_functional_group.outcome == 'failure' && failure()
         with:
           name: ${{env.IPYWIDGET_SCREENSHOT_PATH}}
           path: './${{env.IPYWIDGET_SCREENSHOT_PATH}}'

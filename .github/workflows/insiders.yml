@@ -19,6 +19,7 @@ env:
   CI_PYTHON_PATH: python
   TEST_RESULTS_DIRECTORY: .
   TEST_RESULTS_GLOB: '**/test-results*.xml'
+  IPYWIDGET_SCREENSHOT_PATH: 'execute-screenshot.png'
 
 jobs:
   build-vsix:
@@ -323,6 +324,13 @@ jobs:
           VSC_FORCE_REAL_JUPYTER: 1
           VSC_JUPYTER_FORCE_LOGGING: 1
         id: test_functional_group
+
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v2
+        if: steps.test_functional_group.outcome == 'failure' && failure()
+        with:
+          name: ${{env.IPYWIDGET_SCREENSHOT_PATH}}
+          path: './${{env.IPYWIDGET_SCREENSHOT_PATH}}'
 
       - name: Publish Test Report
         uses: scacap/action-surefire-report@v1
