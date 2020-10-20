@@ -31,7 +31,7 @@ function fixJupyterLabDTSFiles() {
     var fileContents = fs.readFileSync(filePath, { encoding: 'utf8' });
     if (fileContents.indexOf('[key: string]: ISchema | undefined;') > 0) {
         // tslint:disable-next-line:no-console
-        console.log(colors.blue(relativePath + ' file already updated (by Python VSC)'));
+        console.log(colors.blue(relativePath + ' file already updated (by Jupyter VSC)'));
         return;
     }
     if (fileContents.indexOf('[key: string]: ISchema;') > 0) {
@@ -41,7 +41,7 @@ function fixJupyterLabDTSFiles() {
         }
         fs.writeFileSync(filePath, replacedText);
         // tslint:disable-next-line:no-console
-        console.log(colors.green(relativePath + ' file updated (by Python VSC)'));
+        console.log(colors.green(relativePath + ' file updated (by Jupyter VSC)'));
     } else {
         // tslint:disable-next-line:no-console
         console.log(colors.red(relativePath + ' file does not need updating.'));
@@ -59,7 +59,9 @@ function createJupyterKernelWithoutSerialization() {
     var relativePath = path.join('node_modules', '@jupyterlab', 'services', 'lib', 'kernel', 'default.js');
     var filePath = path.join(constants_1.ExtensionRootDir, relativePath);
     if (!fs.existsSync(filePath)) {
-        throw new Error("Jupyter lab default kernel not found '" + filePath + "' (pvsc post install script)");
+        throw new Error(
+            "Jupyter lab default kernel not found '" + filePath + "' (Jupyter Extension post install script)"
+        );
     }
     var fileContents = fs.readFileSync(filePath, { encoding: 'utf8' });
     var replacedContents = fileContents.replace(
@@ -71,7 +73,7 @@ function createJupyterKernelWithoutSerialization() {
     }
     var destPath = path.join(path.dirname(filePath), 'nonSerializingKernel.js');
     fs.writeFileSync(destPath, replacedContents);
-    console.log(colors.green(destPath + ' file generated (by Python VSC)'));
+    console.log(colors.green(destPath + ' file generated (by Jupyter VSC)'));
 }
 
 fixJupyterLabDTSFiles();

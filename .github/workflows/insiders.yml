@@ -589,7 +589,7 @@ jobs:
     name: Upload VSIX to Azure Blob Storage
     runs-on: ubuntu-latest
     # Extra careful to ensure this happens only in main branch.
-    # if: github.repository == 'microsoft/vscode-jupyter' && github.ref == 'refs/heads/main'
+    if: github.repository == 'microsoft/vscode-jupyter' && github.ref == 'refs/heads/main'
     needs: [build-vsix, lint, ts_tests, vscodeTests, smoke-tests]
     env:
       BLOB_CONTAINER_NAME: extension-builds-jupyter

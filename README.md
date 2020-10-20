@@ -1,11 +1,11 @@
-# Python extension for Visual Studio Code
+# Jupyter extension for Visual Studio Code
 
 A [Visual Studio Code](https://code.visualstudio.com/) [extension](https://marketplace.visualstudio.com/VSCode) with rich support for the [Python language](https://www.python.org/) (for all [actively supported versions](https://devguide.python.org/#status-of-python-branches) of the language: 2.7, >=3.6), including features such as IntelliSense, linting, debugging, code navigation, code formatting, Jupyter notebook support, refactoring, variable explorer, test explorer, snippets, and more!
 
 ## Quick start
 
 -   **Step 1.** [Install a supported version of Python on your system](https://code.visualstudio.com/docs/python/python-tutorial#_prerequisites) (note: that the system install of Python on macOS is not supported).
--   **Step 2.** Install the Python extension for Visual Studio Code.
+-   **Step 2.** Install the Jupyter extension for Visual Studio Code.
 -   **Step 3.** Open or create a Python file and start coding!
 
 ## Set up your environment
@@ -53,7 +53,7 @@ To see all available Python commands, open the Command Palette and type `Python`
 
 ## Feature details
 
-Learn more about the rich features of the Python extension:
+Learn more about the rich features of the Jupyter extension:
 
 -   [IntelliSense](https://code.visualstudio.com/docs/python/editing#_autocomplete-and-intellisense): Edit your code with auto-completion, code navigation, syntax checking and more
 -   [Linting](https://code.visualstudio.com/docs/python/linting): Get additional code analysis with Pylint, Flake8 and more

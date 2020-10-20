@@ -71,15 +71,12 @@ suite('Localization', () => {
 
     test('key found for locale', (done) => {
         addLocale('spam', {
-            'debug.selectConfigurationTitle': '???',
             'Common.gotIt': '!!!'
         });
         setLocale('spam');
 
-        const title = localize.DebugConfigStrings.selectConfiguration.title();
         const gotIt = localize.Common.gotIt();
 
-        assert.equal(title, '???', 'not used');
         assert.equal(gotIt, '!!!', 'not used');
         done();
     });

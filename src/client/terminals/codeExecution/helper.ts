@@ -41,7 +41,7 @@ export class CodeExecutionHelper implements ICodeExecutionHelper {
 
             return parse(proc.stdout);
         } catch (ex) {
-            traceError(ex, 'Python: Failed to normalize code for execution in terminal');
+            traceError(ex, 'Failed to normalize code for execution in terminal');
             return code;
         }
     }

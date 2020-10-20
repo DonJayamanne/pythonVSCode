@@ -48,7 +48,7 @@
     "activationEvents": [
         "onLanguage:python",
         "onLanguage:jupyter",
-        "onCommand:jupyter.viewJupyterOutput",
+        "onCommand:jupyter.viewOutput",
         "onCommand:jupyter.export",
         "onCommand:jupyter.exportAsPythonScript",
         "onCommand:jupyter.exportToHTML",
@@ -268,8 +268,8 @@
                 "category": "Jupyter"
             },
             {
-                "command": "jupyter.viewJupyterOutput",
-                "title": "%jupyter.command.jupyter.viewJupyterOutput.title%",
+                "command": "jupyter.viewOutput",
+                "title": "%jupyter.command.jupyter.viewOutput.title%",
                 "category": "Jupyter"
             },
             {

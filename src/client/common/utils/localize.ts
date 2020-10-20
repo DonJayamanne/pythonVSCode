@@ -973,20 +973,6 @@ export namespace DataScience {
     );
 }
 
-export namespace DebugConfigStrings {
-    export const selectConfiguration = {
-        title: localize('debug.selectConfigurationTitle'),
-        placeholder: localize('debug.selectConfigurationPlaceholder')
-    };
-}
-
-export namespace OutdatedDebugger {
-    export const outdatedDebuggerMessage = localize(
-        'OutdatedDebugger.updateDebuggerMessage',
-        'We noticed you are attaching to ptvsd (Python debugger), which was deprecated on May 1st, 2020. Please switch to [debugpy](https://aka.ms/migrateToDebugpy).'
-    );
-}
-
 // Skip using vscode-nls and instead just compute our strings based on key values. Key values
 // can be loaded out of the nls.<locale>.json files
 let loadedCollection: Record<string, string> | undefined;

@@ -97,7 +97,7 @@ export namespace Commands {
     export const GotoPrevCellInFile = 'jupyter.gotoPrevCellInFile';
     export const ScrollToCell = 'jupyter.scrolltocell';
     export const CreateNewNotebook = 'jupyter.createnewnotebook';
-    export const ViewJupyterOutput = 'jupyter.viewJupyterOutput';
+    export const ViewJupyterOutput = 'jupyter.viewOutput';
     export const ExportAsPythonScript = 'jupyter.exportAsPythonScript';
     export const ExportToHTML = 'jupyter.exportToHTML';
     export const ExportToPDF = 'jupyter.exportToPDF';
