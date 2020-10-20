@@ -6,6 +6,7 @@
 import { inject, injectable } from 'inversify';
 import { IWorkspaceService } from '../../common/application/types';
 import { traceError } from '../../common/logger';
+import { IFileSystem } from '../../common/platform/types';
 
 import { IPythonExecutionFactory, IPythonExecutionService } from '../../common/process/types';
 import { IDisposable, Resource } from '../../common/types';
@@ -14,7 +15,7 @@ import { IEnvironmentVariablesProvider } from '../../common/variables/types';
 import { IInterpreterService } from '../../interpreter/contracts';
 import { PythonEnvironment } from '../../pythonEnvironments/info';
 import { KernelLauncherDaemonModule } from '../constants';
-import { IFileSystem, IJupyterKernelSpec, IKernelDependencyService } from '../types';
+import { IJupyterKernelSpec, IKernelDependencyService } from '../types';
 import { PythonKernelDaemon } from './kernelDaemon';
 import { IPythonKernelDaemon } from './types';
 

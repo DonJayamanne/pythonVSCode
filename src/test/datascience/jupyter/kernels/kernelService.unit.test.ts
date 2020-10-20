@@ -11,16 +11,16 @@ import * as sinon from 'sinon';
 import { anything, capture, instance, mock, verify, when } from 'ts-mockito';
 import { CancellationToken } from 'vscode';
 import { PYTHON_LANGUAGE } from '../../../../client/common/constants';
+import { FileSystem } from '../../../../client/common/platform/fileSystem';
+import { IFileSystem } from '../../../../client/common/platform/types';
 import { PythonExecutionFactory } from '../../../../client/common/process/pythonExecutionFactory';
 import { IPythonExecutionFactory, IPythonExecutionService } from '../../../../client/common/process/types';
 import { ReadWrite } from '../../../../client/common/types';
-import { FileSystem } from '../../../../client/datascience/fileSystem';
 import { JupyterSessionManager } from '../../../../client/datascience/jupyter/jupyterSessionManager';
 import { JupyterKernelSpec } from '../../../../client/datascience/jupyter/kernels/jupyterKernelSpec';
 import { KernelDependencyService } from '../../../../client/datascience/jupyter/kernels/kernelDependencyService';
 import { KernelService } from '../../../../client/datascience/jupyter/kernels/kernelService';
 import {
-    IFileSystem,
     IJupyterKernelSpec,
     IJupyterSessionManager,
     IJupyterSubCommandExecutionService,

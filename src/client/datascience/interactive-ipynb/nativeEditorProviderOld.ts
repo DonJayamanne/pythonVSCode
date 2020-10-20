@@ -17,6 +17,7 @@ import {
     IWorkspaceService
 } from '../../common/application/types';
 import { JUPYTER_LANGUAGE, UseCustomEditorApi } from '../../common/constants';
+import { IFileSystem } from '../../common/platform/types';
 
 import {
     GLOBAL_MEMENTO,
@@ -41,7 +42,6 @@ import { VSCodeNotebookModel } from '../notebookStorage/vscNotebookModel';
 import {
     ICodeCssGenerator,
     IDataScienceErrorHandler,
-    IFileSystem,
     IInteractiveWindowListener,
     IJupyterDebugger,
     IJupyterVariableDataProviderFactory,

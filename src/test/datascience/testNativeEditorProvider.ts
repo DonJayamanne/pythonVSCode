@@ -11,6 +11,7 @@ import {
     IDocumentManager,
     IWorkspaceService
 } from '../../client/common/application/types';
+import { IFileSystem } from '../../client/common/platform/types';
 import { IAsyncDisposableRegistry, IConfigurationService, IDisposableRegistry } from '../../client/common/types';
 import { createDeferred, Deferred } from '../../client/common/utils/async';
 import { InteractiveWindowMessageListener } from '../../client/datascience/interactive-common/interactiveWindowMessageListener';
@@ -22,7 +23,6 @@ import { NativeEditorNotebookModel } from '../../client/datascience/notebookStor
 import { INotebookStorageProvider } from '../../client/datascience/notebookStorage/notebookStorageProvider';
 import {
     IDataScienceErrorHandler,
-    IFileSystem,
     INotebookEditor,
     INotebookEditorProvider,
     INotebookProvider

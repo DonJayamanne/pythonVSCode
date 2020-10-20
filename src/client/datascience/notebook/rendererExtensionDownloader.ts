@@ -7,10 +7,10 @@ import { IApplicationShell, ICommandManager } from '../../common/application/typ
 import { Octicons, STANDARD_OUTPUT_CHANNEL } from '../../common/constants';
 import { vsixFileExtension } from '../../common/installer/extensionBuildInstaller';
 
+import { IFileSystem } from '../../common/platform/types';
 import { IFileDownloader, IOutputChannel } from '../../common/types';
 import { DataScienceRendererExtension } from '../../common/utils/localize';
 import { traceDecorators } from '../../logging';
-import { IFileSystem } from '../types';
 import { RendererExtensionDownloadUri } from './constants';
 
 @injectable()

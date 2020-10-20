@@ -7,21 +7,17 @@ import { assert } from 'chai';
 import { anything, instance, mock, verify, when } from 'ts-mockito';
 import { PythonExtensionChecker } from '../../../../client/api/pythonApi';
 import { PYTHON_LANGUAGE } from '../../../../client/common/constants';
+import { FileSystem } from '../../../../client/common/platform/fileSystem';
 import { PathUtils } from '../../../../client/common/platform/pathUtils';
+import { IFileSystem } from '../../../../client/common/platform/types';
 import { IPathUtils } from '../../../../client/common/types';
 import * as localize from '../../../../client/common/utils/localize';
-import { FileSystem } from '../../../../client/datascience/fileSystem';
 import { JupyterSessionManager } from '../../../../client/datascience/jupyter/jupyterSessionManager';
 import { KernelSelectionProvider } from '../../../../client/datascience/jupyter/kernels/kernelSelections';
 import { KernelService } from '../../../../client/datascience/jupyter/kernels/kernelService';
 import { IKernelSpecQuickPickItem } from '../../../../client/datascience/jupyter/kernels/types';
 import { IKernelFinder } from '../../../../client/datascience/kernel-launcher/types';
-import {
-    IFileSystem,
-    IJupyterKernel,
-    IJupyterKernelSpec,
-    IJupyterSessionManager
-} from '../../../../client/datascience/types';
+import { IJupyterKernel, IJupyterKernelSpec, IJupyterSessionManager } from '../../../../client/datascience/types';
 import { IInterpreterQuickPickItem, IInterpreterSelector } from '../../../../client/interpreter/configuration/types';
 
 // tslint:disable-next-line: max-func-body-length

@@ -5,6 +5,7 @@ import { inject, injectable, named } from 'inversify';
 import { CancellationToken, Event, EventEmitter } from 'vscode';
 
 import { IApplicationShell, ILiveShareApi, IWorkspaceService } from '../../common/application/types';
+import { IFileSystem } from '../../common/platform/types';
 
 import {
     IAsyncDisposable,
@@ -17,7 +18,7 @@ import { IInterpreterService } from '../../interpreter/contracts';
 import { IServiceContainer } from '../../ioc/types';
 import { PythonEnvironment } from '../../pythonEnvironments/info';
 import { JUPYTER_OUTPUT_CHANNEL } from '../constants';
-import { IFileSystem, IJupyterExecution, INotebookServer, INotebookServerOptions } from '../types';
+import { IJupyterExecution, INotebookServer, INotebookServerOptions } from '../types';
 import { KernelSelector } from './kernels/kernelSelector';
 import { GuestJupyterExecution } from './liveshare/guestJupyterExecution';
 import { HostJupyterExecution } from './liveshare/hostJupyterExecution';

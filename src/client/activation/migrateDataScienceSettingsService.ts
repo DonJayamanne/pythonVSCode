@@ -7,9 +7,9 @@ import { inject, injectable } from 'inversify';
 import * as path from 'path';
 import { IApplicationEnvironment, IWorkspaceService } from '../common/application/types';
 import { traceError } from '../common/logger';
+import { IFileSystem } from '../common/platform/types';
 import { Resource } from '../common/types';
 import { swallowExceptions } from '../common/utils/decorators';
-import { IFileSystem } from '../datascience/types';
 import { traceDecorators } from '../logging';
 import { IExtensionActivationService } from './types';
 

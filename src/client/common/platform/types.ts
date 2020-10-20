@@ -132,44 +132,34 @@ export interface IRawFileSystem {
     createWriteStream(filename: string): WriteStream;
 }
 
-// High-level filesystem operations used by the extension.
-export interface IFileSystemUtils {
-    readonly raw: IRawFileSystem;
-    readonly paths: IFileSystemPaths;
-    readonly pathUtils: IFileSystemPathUtils;
-    readonly tmp: ITempFileSystem;
+export const IFileSystem = Symbol('IFileSystem');
+export interface IFileSystem {
+    // Local-only filesystem utilities
+    appendLocalFile(path: string, text: string): Promise<void>;
+    areLocalPathsSame(path1: string, path2: string): boolean;
+    createLocalDirectory(path: string): Promise<void>;
+    createLocalWriteStream(path: string): WriteStream;
+    copyLocal(source: string, destination: string): Promise<void>;
+    createTemporaryLocalFile(fileExtension: string, mode?: number): Promise<TemporaryFile>;
+    deleteLocalDirectory(dirname: string): Promise<void>;
+    deleteLocalFile(path: string): Promise<void>;
+    ensureLocalDir(path: string): Promise<void>;
+    getDisplayName(path: string): string;
+    getFileHash(path: string): Promise<string>;
+    localDirectoryExists(dirname: string): Promise<boolean>;
+    localFileExists(filename: string): Promise<boolean>;
+    readLocalData(path: string): Promise<Buffer>;
+    readLocalFile(path: string): Promise<string>;
+    searchLocal(globPattern: string, cwd?: string, dot?: boolean): Promise<string[]>;
+    writeLocalFile(path: string, text: string | Buffer): Promise<void>;
 
-    //***********************
-    // aliases
-
-    createDirectory(dirname: string): Promise<void>;
-    deleteDirectory(dirname: string): Promise<void>;
-    deleteFile(filename: string): Promise<void>;
-
-    //***********************
-    // helpers
-
-    // Determine if the file exists, optionally requiring the type.
-    pathExists(filename: string, fileType?: FileType): Promise<boolean>;
-    // Determine if the regular file exists.
-    fileExists(filename: string): Promise<boolean>;
-    // Determine if the directory exists.
-    directoryExists(dirname: string): Promise<boolean>;
-    // Get all the directory's entries.
-    listdir(dirname: string): Promise<[string, FileType][]>;
-    // Get the paths of all immediate subdirectories.
-    getSubDirectories(dirname: string): Promise<string[]>;
-    // Get the paths of all immediately contained files.
-    getFiles(dirname: string): Promise<string[]>;
-    // Determine if the directory is read-only.
-    isDirReadonly(dirname: string): Promise<boolean>;
-    // Generate the sha512 hash for the file (based on timestamps).
-    getFileHash(filename: string): Promise<string>;
-    // Get the paths of all files matching the pattern.
-    search(globPattern: string): Promise<string[]>;
-
-    //***********************
-    // helpers (non-async)
-
-    fileExistsSync(path: string): boolean;
+    // vscode.Uri-based filesystem utilities wrapping the VS Code filesystem API
+    arePathsSame(path1: vscode.Uri, path2: vscode.Uri): boolean;
+    copy(source: vscode.Uri, destination: vscode.Uri): Promise<void>;
+    createDirectory(uri: vscode.Uri): Promise<void>;
+    delete(uri: vscode.Uri): Promise<void>;
+    readFile(uri: vscode.Uri): Promise<string>;
+    stat(uri: vscode.Uri): Promise<FileStat>;
+    writeFile(uri: vscode.Uri, text: string | Buffer): Promise<void>;
+    getFiles(dir: vscode.Uri): Promise<vscode.Uri[]>;
 }

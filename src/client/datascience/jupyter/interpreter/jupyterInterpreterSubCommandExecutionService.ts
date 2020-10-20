@@ -8,6 +8,7 @@ import * as path from 'path';
 import { CancellationToken } from 'vscode';
 import { Cancellation } from '../../../common/cancellation';
 import { traceError, traceInfo, traceWarning } from '../../../common/logger';
+import { IFileSystem } from '../../../common/platform/types';
 
 import {
     IPythonDaemonExecutionService,
@@ -23,7 +24,7 @@ import { IInterpreterService } from '../../../interpreter/contracts';
 import { PythonEnvironment } from '../../../pythonEnvironments/info';
 import { sendTelemetryEvent } from '../../../telemetry';
 import { JUPYTER_OUTPUT_CHANNEL, JupyterDaemonModule, Telemetry } from '../../constants';
-import { IFileSystem, IJupyterInterpreterDependencyManager, IJupyterSubCommandExecutionService } from '../../types';
+import { IJupyterInterpreterDependencyManager, IJupyterSubCommandExecutionService } from '../../types';
 import { JupyterServerInfo } from '../jupyterConnection';
 import { JupyterInstallError } from '../jupyterInstallError';
 import { JupyterKernelSpec, parseKernelSpecs } from '../kernels/jupyterKernelSpec';

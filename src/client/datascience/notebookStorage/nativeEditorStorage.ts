@@ -9,6 +9,7 @@ import { createCodeCell } from '../../../datascience-ui/common/cellFactory';
 import { IPythonExtensionChecker } from '../../api/types';
 import { traceError } from '../../common/logger';
 import { isFileNotFoundError } from '../../common/platform/errors';
+import { IFileSystem } from '../../common/platform/types';
 import { GLOBAL_MEMENTO, ICryptoUtils, IExtensionContext, IMemento, WORKSPACE_MEMENTO } from '../../common/types';
 import { isUntitledFile, noop } from '../../common/utils/misc';
 import { sendTelemetryEvent } from '../../telemetry';
@@ -17,7 +18,6 @@ import { InvalidNotebookFileError } from '../jupyter/invalidNotebookFileError';
 import { INotebookModelFactory } from '../notebookStorage/types';
 import {
     CellState,
-    IFileSystem,
     IJupyterExecution,
     IModelLoadOptions,
     INotebookModel,

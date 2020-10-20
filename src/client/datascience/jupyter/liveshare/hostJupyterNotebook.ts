@@ -15,7 +15,6 @@ import { Identifiers, LiveShare, LiveShareCommands } from '../../constants';
 import { IExecuteInfo } from '../../interactive-common/interactiveWindowTypes';
 import {
     ICell,
-    IFileSystem,
     IJupyterSession,
     INotebook,
     INotebookExecutionInfo,
@@ -30,6 +29,7 @@ import { IExecuteObservableResponse, IResponseMapping, IServerResponse, ServerRe
 
 // tslint:disable-next-line: no-require-imports
 import cloneDeep = require('lodash/cloneDeep');
+import { IFileSystem } from '../../../common/platform/types';
 
 // tslint:disable:no-any
 

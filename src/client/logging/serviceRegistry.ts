@@ -3,9 +3,10 @@ import { CommandManager } from '../common/application/commandManager';
 import { IApplicationShell, ICommandManager, IWorkspaceService } from '../common/application/types';
 import { WorkspaceService } from '../common/application/workspace';
 import { ConfigurationService } from '../common/configuration/service';
+import { FileSystem } from '../common/platform/fileSystem';
+import { IFileSystem } from '../common/platform/types';
 import { IConfigurationService } from '../common/types';
-import { FileSystem } from '../datascience/fileSystem';
-import { IDebugLoggingManager, IFileSystem } from '../datascience/types';
+import { IDebugLoggingManager } from '../datascience/types';
 import { IServiceManager } from '../ioc/types';
 import { DebugLoggingManager } from './debugLoggingManager';
 

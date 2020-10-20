@@ -12,7 +12,7 @@ import { CancellationToken, Disposable } from 'vscode';
 import { CancellationError, createPromiseFromCancellation } from '../../common/cancellation';
 import { WrappedError } from '../../common/errors/errorUtils';
 import { traceInfo } from '../../common/logger';
-import { TemporaryDirectory } from '../../common/platform/types';
+import { IFileSystem, TemporaryDirectory } from '../../common/platform/types';
 import { IDisposable, IOutputChannel } from '../../common/types';
 import * as localize from '../../common/utils/localize';
 import { StopWatch } from '../../common/utils/stopWatch';
@@ -21,7 +21,7 @@ import { sendTelemetryEvent } from '../../telemetry';
 import { JUPYTER_OUTPUT_CHANNEL, Telemetry } from '../constants';
 import { reportAction } from '../progress/decorator';
 import { ReportableAction } from '../progress/types';
-import { IFileSystem, IJupyterConnection, IJupyterSubCommandExecutionService } from '../types';
+import { IJupyterConnection, IJupyterSubCommandExecutionService } from '../types';
 import { JupyterConnectionWaiter } from './jupyterConnection';
 import { JupyterInstallError } from './jupyterInstallError';
 

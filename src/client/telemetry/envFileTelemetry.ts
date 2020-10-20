@@ -8,7 +8,7 @@ import { Resource } from '../common/types';
 import { SystemVariables } from '../common/variables/systemVariables';
 
 import { sendTelemetryEvent } from '.';
-import { IFileSystem } from '../datascience/types';
+import { IFileSystem } from '../common/platform/types';
 import { EventName } from './constants';
 
 let _defaultEnvFileSetting: string | undefined;

@@ -1,4 +1,4 @@
-import { IFileSystem } from '../../datascience/types';
+import { IFileSystem } from '../platform/types';
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 

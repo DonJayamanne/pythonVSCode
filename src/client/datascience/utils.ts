@@ -5,9 +5,9 @@
 import * as path from 'path';
 
 import { IWorkspaceService } from '../common/application/types';
+import { IFileSystem } from '../common/platform/types';
 
 import { IConfigurationService } from '../common/types';
-import { IFileSystem } from './types';
 
 export async function calculateWorkingDirectory(
     configService: IConfigurationService,

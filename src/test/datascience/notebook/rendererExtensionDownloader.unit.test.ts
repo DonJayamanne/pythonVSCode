@@ -5,10 +5,10 @@ import { assert } from 'chai';
 import { anything, capture, instance, mock, verify, when } from 'ts-mockito';
 import { Uri } from 'vscode';
 import { IApplicationShell, ICommandManager } from '../../../client/common/application/types';
+import { IFileSystem } from '../../../client/common/platform/types';
 import { IFileDownloader, IOutputChannel } from '../../../client/common/types';
 import { RendererExtensionDownloadUri } from '../../../client/datascience/notebook/constants';
 import { RendererExtensionDownloader } from '../../../client/datascience/notebook/rendererExtensionDownloader';
-import { IFileSystem } from '../../../client/datascience/types';
 import { noop } from '../../core';
 
 // tslint:disable: no-any

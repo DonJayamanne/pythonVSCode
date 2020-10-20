@@ -4,8 +4,8 @@
 import '../../extensions';
 
 import { Event, EventEmitter, Uri, WebviewOptions, WebviewPanel as vscodeWebviewPanel, window } from 'vscode';
-import { IFileSystem } from '../../../datascience/types';
 import { traceError } from '../../logger';
+import { IFileSystem } from '../../platform/types';
 import { IDisposableRegistry } from '../../types';
 import * as localize from '../../utils/localize';
 import { IWebviewPanel, IWebviewPanelOptions } from '../types';

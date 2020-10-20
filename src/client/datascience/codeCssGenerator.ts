@@ -8,10 +8,11 @@ import * as monacoEditor from 'monaco-editor/esm/vs/editor/editor.api';
 import * as path from 'path';
 import { IWorkspaceService } from '../common/application/types';
 import { traceError, traceInfo, traceWarning } from '../common/logger';
+import { IFileSystem } from '../common/platform/types';
 
 import { IConfigurationService, Resource } from '../common/types';
 import { DefaultTheme } from './constants';
-import { ICodeCssGenerator, IFileSystem, IThemeFinder } from './types';
+import { ICodeCssGenerator, IThemeFinder } from './types';
 
 // tslint:disable:no-any
 const DarkTheme = 'dark';

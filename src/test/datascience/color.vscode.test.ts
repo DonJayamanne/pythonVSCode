@@ -7,9 +7,9 @@ import { WorkspaceConfiguration } from 'vscode';
 
 import { Extensions } from '../../client/common/application/extensions';
 import { IWorkspaceService } from '../../client/common/application/types';
+import { FileSystem } from '../../client/common/platform/fileSystem';
 import { IConfigurationService } from '../../client/common/types';
 import { CodeCssGenerator } from '../../client/datascience/codeCssGenerator';
-import { FileSystem } from '../../client/datascience/fileSystem';
 import { ThemeFinder } from '../../client/datascience/themeFinder';
 import { IThemeFinder } from '../../client/datascience/types';
 import { MockJupyterSettings } from './mockJupyterSettings';

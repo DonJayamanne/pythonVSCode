@@ -5,7 +5,6 @@ import type { nbformat } from '@jupyterlab/coreutils';
 import type { Session } from '@jupyterlab/services';
 import type { Kernel, KernelMessage } from '@jupyterlab/services/lib/kernel';
 import type { JSONObject } from '@phosphor/coreutils';
-import { WriteStream } from 'fs-extra';
 import { Observable } from 'rxjs/Observable';
 import { SemVer } from 'semver';
 import {
@@ -28,7 +27,6 @@ import type { Data as WebSocketData } from 'ws';
 import type { NotebookCell } from '../../../types/vscode-proposed';
 import { ServerStatus } from '../../datascience-ui/interactive-common/mainState';
 import { ICommandManager, IDebugService } from '../common/application/types';
-import { FileStat, TemporaryFile } from '../common/platform/types';
 import { ExecutionResult, ObservableExecutionResult, SpawnOptions } from '../common/process/types';
 import { IAsyncDisposable, IDisposable, IJupyterSettings, InteractiveWindowMode, Resource } from '../common/types';
 import { StopWatch } from '../common/utils/stopWatch';
@@ -1372,37 +1370,6 @@ export interface ITrustService {
     trustNotebook(uri: Uri, notebookContents: string): Promise<void>;
 }
 
-export const IFileSystem = Symbol('IFileSystem');
-export interface IFileSystem {
-    // Local-only filesystem utilities
-    appendLocalFile(path: string, text: string): Promise<void>;
-    areLocalPathsSame(path1: string, path2: string): boolean;
-    createLocalDirectory(path: string): Promise<void>;
-    createLocalWriteStream(path: string): WriteStream;
-    copyLocal(source: string, destination: string): Promise<void>;
-    createTemporaryLocalFile(fileExtension: string, mode?: number): Promise<TemporaryFile>;
-    deleteLocalDirectory(dirname: string): Promise<void>;
-    deleteLocalFile(path: string): Promise<void>;
-    ensureLocalDir(path: string): Promise<void>;
-    getDisplayName(path: string): string;
-    getFileHash(path: string): Promise<string>;
-    localDirectoryExists(dirname: string): Promise<boolean>;
-    localFileExists(filename: string): Promise<boolean>;
-    readLocalData(path: string): Promise<Buffer>;
-    readLocalFile(path: string): Promise<string>;
-    searchLocal(globPattern: string, cwd?: string, dot?: boolean): Promise<string[]>;
-    writeLocalFile(path: string, text: string | Buffer): Promise<void>;
-
-    // URI-based filesystem utilities wrapping the VS Code filesystem API
-    arePathsSame(path1: Uri, path2: Uri): boolean;
-    copy(source: Uri, destination: Uri): Promise<void>;
-    createDirectory(uri: Uri): Promise<void>;
-    delete(uri: Uri): Promise<void>;
-    readFile(uri: Uri): Promise<string>;
-    stat(uri: Uri): Promise<FileStat>;
-    writeFile(uri: Uri, text: string | Buffer): Promise<void>;
-    getFiles(dir: Uri): Promise<Uri[]>;
-}
 export interface ISwitchKernelOptions {
     identity: Resource;
     resource: Resource;

@@ -8,13 +8,13 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as path from 'path';
 import { SemVer } from 'semver';
 import * as TypeMoq from 'typemoq';
+import { IFileSystem } from '../../../client/common/platform/types';
 import {
     createCondaEnv,
     createPythonEnv,
     createWindowsStoreEnv
 } from '../../../client/common/process/pythonEnvironment';
 import { IProcessService, StdErrError } from '../../../client/common/process/types';
-import { IFileSystem } from '../../../client/datascience/types';
 import { EXTENSION_ROOT_DIR_FOR_TESTS } from '../../constants';
 
 const isolated = path.join(EXTENSION_ROOT_DIR_FOR_TESTS, 'pythonFiles', 'pyvsc-run-isolated.py');

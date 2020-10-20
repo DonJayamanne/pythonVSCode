@@ -8,10 +8,10 @@ import * as path from 'path';
 import request from 'request';
 import { Uri } from 'vscode';
 import { traceError, traceInfo } from '../../common/logger';
-import { TemporaryFile } from '../../common/platform/types';
+import { IFileSystem, TemporaryFile } from '../../common/platform/types';
 import { IConfigurationService, IHttpClient, WidgetCDNs } from '../../common/types';
 import { createDeferred, sleep } from '../../common/utils/async';
-import { IFileSystem, ILocalResourceUriConverter } from '../types';
+import { ILocalResourceUriConverter } from '../types';
 import { IWidgetScriptSourceProvider, WidgetScriptSource } from './types';
 
 // Source borrowed from https://github.com/jupyter-widgets/ipywidgets/blob/54941b7a4b54036d089652d91b39f937bde6b6cd/packages/html-manager/src/libembed-amd.ts#L33

@@ -4,10 +4,11 @@
 'use strict';
 
 import { inject, injectable } from 'inversify';
+import { IFileSystem } from '../../common/platform/types';
 
 import { IInteractiveWindowMapping, InteractiveWindowMessages } from '../interactive-common/interactiveWindowTypes';
 import { SyncPayload } from '../interactive-common/types';
-import { IFileSystem, INotebookEditor } from '../types';
+import { INotebookEditor } from '../types';
 
 // tslint:disable: no-any
 

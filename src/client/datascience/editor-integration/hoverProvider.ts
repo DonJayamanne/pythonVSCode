@@ -8,19 +8,13 @@ import { Cancellation } from '../../common/cancellation';
 import { PYTHON } from '../../common/constants';
 import { Experiments } from '../../common/experiments/groups';
 import { traceError } from '../../common/logger';
+import { IFileSystem } from '../../common/platform/types';
 
 import { IExperimentService } from '../../common/types';
 import { sleep } from '../../common/utils/async';
 import { noop } from '../../common/utils/misc';
 import { Identifiers } from '../constants';
-import {
-    ICell,
-    IFileSystem,
-    IInteractiveWindowProvider,
-    IJupyterVariables,
-    INotebook,
-    INotebookExecutionLogger
-} from '../types';
+import { ICell, IInteractiveWindowProvider, IJupyterVariables, INotebook, INotebookExecutionLogger } from '../types';
 
 // This class provides hashes for debugging jupyter cells. Call getHashes just before starting debugging to compute all of the
 // hashes for cells.

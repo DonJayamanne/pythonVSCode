@@ -9,13 +9,14 @@ import { CancellationToken, Disposable, Event, EventEmitter } from 'vscode';
 import { Cancellation, CancellationError } from '../../common/cancellation';
 import { traceInfo, traceWarning } from '../../common/logger';
 
+import { IFileSystem } from '../../common/platform/types';
 import { ObservableExecutionResult, Output } from '../../common/process/types';
 import { IConfigurationService, IDisposable } from '../../common/types';
 import { createDeferred, Deferred } from '../../common/utils/async';
 import * as localize from '../../common/utils/localize';
 import { IServiceContainer } from '../../ioc/types';
 import { RegExpValues } from '../constants';
-import { IFileSystem, IJupyterConnection } from '../types';
+import { IJupyterConnection } from '../types';
 import { JupyterConnectError } from './jupyterConnectError';
 
 // tslint:disable-next-line:no-require-imports no-var-requires no-any

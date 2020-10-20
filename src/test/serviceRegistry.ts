@@ -6,7 +6,7 @@ import { Container } from 'inversify';
 import * as path from 'path';
 import { Disposable, Memento, OutputChannel, Uri } from 'vscode';
 import { STANDARD_OUTPUT_CHANNEL } from '../client/common/constants';
-import { convertStat } from '../client/common/platform/fileSystem';
+import { convertStat } from '../client/common/platform/fileSystemUtils';
 import { FileStat, FileType } from '../client/common/platform/types';
 import {
     GLOBAL_MEMENTO,

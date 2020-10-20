@@ -9,6 +9,7 @@ import { CancellationToken } from 'vscode-jsonrpc';
 import * as vsls from 'vsls/vscode';
 import { IApplicationShell, ILiveShareApi, IWorkspaceService } from '../../common/application/types';
 import '../../common/extensions';
+import { IFileSystem } from '../../common/platform/types';
 
 import {
     IAsyncDisposableRegistry,
@@ -21,7 +22,6 @@ import { IInterpreterService } from '../../interpreter/contracts';
 import { IServiceContainer } from '../../ioc/types';
 import { DataScienceStartupTime, JUPYTER_OUTPUT_CHANNEL } from '../constants';
 import {
-    IFileSystem,
     IJupyterConnection,
     IJupyterSessionManagerFactory,
     INotebook,

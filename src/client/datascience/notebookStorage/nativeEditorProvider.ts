@@ -25,6 +25,7 @@ import {
 } from '../../common/application/types';
 import { UseCustomEditorApi } from '../../common/constants';
 import { traceInfo } from '../../common/logger';
+import { IFileSystem } from '../../common/platform/types';
 
 import {
     GLOBAL_MEMENTO,
@@ -48,7 +49,6 @@ import { KernelSelector } from '../jupyter/kernels/kernelSelector';
 import {
     ICodeCssGenerator,
     IDataScienceErrorHandler,
-    IFileSystem,
     IInteractiveWindowListener,
     IJupyterDebugger,
     IJupyterVariableDataProviderFactory,

@@ -16,6 +16,7 @@ import {
 import { ContextKey } from '../../common/contextKey';
 import '../../common/extensions';
 import { traceError } from '../../common/logger';
+import { IFileSystem } from '../../common/platform/types';
 
 import {
     IConfigurationService,
@@ -46,7 +47,6 @@ import {
     ICell,
     ICodeCssGenerator,
     IDataScienceErrorHandler,
-    IFileSystem,
     IInteractiveWindow,
     IInteractiveWindowInfo,
     IInteractiveWindowListener,

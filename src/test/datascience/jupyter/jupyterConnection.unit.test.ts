@@ -8,14 +8,14 @@ import { anything, instance, mock, when } from 'ts-mockito';
 import { CancellationToken } from 'vscode';
 import { JupyterSettings } from '../../../client/common/configSettings';
 import { ConfigurationService } from '../../../client/common/configuration/service';
+import { FileSystem } from '../../../client/common/platform/fileSystem';
+import { IFileSystem } from '../../../client/common/platform/types';
 import { ObservableExecutionResult, Output } from '../../../client/common/process/types';
 import { IConfigurationService, IJupyterSettings } from '../../../client/common/types';
 import { DataScience } from '../../../client/common/utils/localize';
 import { noop } from '../../../client/common/utils/misc';
 import { EXTENSION_ROOT_DIR } from '../../../client/constants';
-import { FileSystem } from '../../../client/datascience/fileSystem';
 import { JupyterConnectionWaiter, JupyterServerInfo } from '../../../client/datascience/jupyter/jupyterConnection';
-import { IFileSystem } from '../../../client/datascience/types';
 import { ServiceContainer } from '../../../client/ioc/container';
 import { IServiceContainer } from '../../../client/ioc/types';
 

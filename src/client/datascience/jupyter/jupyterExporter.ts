@@ -12,7 +12,7 @@ import { concatMultilineString } from '../../../datascience-ui/common';
 import { createCodeCell } from '../../../datascience-ui/common/cellFactory';
 import { IApplicationShell, IWorkspaceService } from '../../common/application/types';
 import { traceError } from '../../common/logger';
-import { IPlatformService } from '../../common/platform/types';
+import { IFileSystem, IPlatformService } from '../../common/platform/types';
 import { IConfigurationService } from '../../common/types';
 import * as localize from '../../common/utils/localize';
 import { noop } from '../../common/utils/misc';
@@ -23,7 +23,6 @@ import {
     CellState,
     ICell,
     IDataScienceErrorHandler,
-    IFileSystem,
     IJupyterExecution,
     INotebookEditorProvider,
     INotebookExporter,

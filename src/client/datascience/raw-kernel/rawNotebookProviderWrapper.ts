@@ -8,6 +8,7 @@ import { CancellationToken } from 'vscode-jsonrpc';
 import * as vsls from 'vsls/vscode';
 import { IApplicationShell, ILiveShareApi, IWorkspaceService } from '../../common/application/types';
 import '../../common/extensions';
+import { IFileSystem } from '../../common/platform/types';
 
 import {
     IAsyncDisposableRegistry,
@@ -25,7 +26,6 @@ import { IKernelLauncher } from '../kernel-launcher/types';
 import { ProgressReporter } from '../progress/progressReporter';
 import {
     ConnectNotebookProviderOptions,
-    IFileSystem,
     INotebook,
     IRawConnection,
     IRawNotebookProvider,

@@ -6,6 +6,7 @@
 import { anything, instance, mock, verify, when } from 'ts-mockito';
 import { Uri } from 'vscode';
 import { IApplicationShell } from '../../../client/common/application/types';
+import { IFileSystem } from '../../../client/common/platform/types';
 import { IDisposable } from '../../../client/common/types';
 import { ExportFileOpener } from '../../../client/datascience/export/exportFileOpener';
 import { ExportInterpreterFinder } from '../../../client/datascience/export/exportInterpreterFinder';
@@ -13,7 +14,7 @@ import { ExportManager } from '../../../client/datascience/export/exportManager'
 import { ExportUtil } from '../../../client/datascience/export/exportUtil';
 import { ExportFormat, IExport, IExportManagerFilePicker } from '../../../client/datascience/export/types';
 import { ProgressReporter } from '../../../client/datascience/progress/progressReporter';
-import { IFileSystem, INotebookModel } from '../../../client/datascience/types';
+import { INotebookModel } from '../../../client/datascience/types';
 
 suite('DataScience - Export Manager', () => {
     let exporter: ExportManager;

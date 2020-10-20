@@ -13,7 +13,7 @@ import { KernelDaemonPool } from '../../client/datascience/kernel-launcher/kerne
 import { KernelLauncher } from '../../client/datascience/kernel-launcher/kernelLauncher';
 import { IKernelConnection, IKernelFinder } from '../../client/datascience/kernel-launcher/types';
 import { createRawKernel } from '../../client/datascience/raw-kernel/rawKernel';
-import { IFileSystem, IJupyterKernelSpec } from '../../client/datascience/types';
+import { IJupyterKernelSpec } from '../../client/datascience/types';
 import { PythonEnvironment } from '../../client/pythonEnvironments/info';
 import { sleep, waitForCondition } from '../common';
 import { DataScienceIocContainer } from './dataScienceIocContainer';
@@ -24,6 +24,7 @@ import { requestExecute } from './raw-kernel/rawKernelTestHelpers';
 // Chai as promised is not part of this file
 import * as chaiAsPromised from 'chai-as-promised';
 import { IPythonExtensionChecker } from '../../client/api/types';
+import { IFileSystem } from '../../client/common/platform/types';
 use(chaiAsPromised);
 
 suite('DataScience - Kernel Launcher', () => {

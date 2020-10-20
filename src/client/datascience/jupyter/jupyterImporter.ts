@@ -10,18 +10,13 @@ import * as path from 'path';
 import { Uri } from 'vscode';
 import { IWorkspaceService } from '../../common/application/types';
 import { traceError } from '../../common/logger';
-import { IPlatformService } from '../../common/platform/types';
+import { IFileSystem, IPlatformService } from '../../common/platform/types';
 import { IConfigurationService, IDisposableRegistry } from '../../common/types';
 import * as localize from '../../common/utils/localize';
 import { noop } from '../../common/utils/misc';
 import { PythonEnvironment } from '../../pythonEnvironments/info';
 import { CodeSnippets, Identifiers } from '../constants';
-import {
-    IFileSystem,
-    INbConvertExportToPythonService,
-    INbConvertInterpreterDependencyChecker,
-    INotebookImporter
-} from '../types';
+import { INbConvertExportToPythonService, INbConvertInterpreterDependencyChecker, INotebookImporter } from '../types';
 
 @injectable()
 export class JupyterImporter implements INotebookImporter {

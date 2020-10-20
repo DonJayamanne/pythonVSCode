@@ -8,6 +8,7 @@ import { PYTHON_LANGUAGE } from '../../common/constants';
 import { traceError } from '../../common/logger';
 
 import type { nbformat } from '@jupyterlab/coreutils';
+import { IFileSystem } from '../../common/platform/types';
 import { IConfigurationService, Resource } from '../../common/types';
 import * as localize from '../../common/utils/localize';
 import { noop } from '../../common/utils/misc';
@@ -22,7 +23,6 @@ import {
 } from '../interactive-common/interactiveWindowTypes';
 import {
     ICell,
-    IFileSystem,
     IGatherLogger,
     IGatherProvider,
     IInteractiveWindowListener,

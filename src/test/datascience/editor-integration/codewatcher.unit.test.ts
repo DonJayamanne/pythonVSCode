@@ -14,6 +14,7 @@ import {
     IDocumentManager,
     IVSCodeNotebook
 } from '../../../client/common/application/types';
+import { IFileSystem } from '../../../client/common/platform/types';
 import { IConfigurationService } from '../../../client/common/types';
 import { Commands, EditorContexts } from '../../../client/datascience/constants';
 import { CodeLensFactory } from '../../../client/datascience/editor-integration/codeLensFactory';
@@ -24,7 +25,6 @@ import {
     ICodeWatcher,
     IDataScienceErrorHandler,
     IDebugLocationTracker,
-    IFileSystem,
     IInteractiveWindow,
     IInteractiveWindowProvider,
     INotebook

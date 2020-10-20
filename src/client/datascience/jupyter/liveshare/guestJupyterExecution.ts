@@ -6,6 +6,7 @@ import * as uuid from 'uuid/v4';
 import { CancellationToken } from 'vscode';
 
 import { IApplicationShell, ILiveShareApi, IWorkspaceService } from '../../../common/application/types';
+import { IFileSystem } from '../../../common/platform/types';
 
 import {
     IAsyncDisposableRegistry,
@@ -18,7 +19,7 @@ import { IInterpreterService } from '../../../interpreter/contracts';
 import { IServiceContainer } from '../../../ioc/types';
 import { PythonEnvironment } from '../../../pythonEnvironments/info';
 import { LiveShare, LiveShareCommands } from '../../constants';
-import { IFileSystem, IJupyterConnection, INotebookServer, INotebookServerOptions } from '../../types';
+import { IJupyterConnection, INotebookServer, INotebookServerOptions } from '../../types';
 import { JupyterConnectError } from '../jupyterConnectError';
 import { JupyterExecutionBase } from '../jupyterExecution';
 import { KernelSelector } from '../kernels/kernelSelector';

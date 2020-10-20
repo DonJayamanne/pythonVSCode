@@ -6,6 +6,7 @@ import { CodeLens, Command, Event, EventEmitter, Range, TextDocument, Uri } from
 
 import { IDocumentManager } from '../../common/application/types';
 import { traceWarning } from '../../common/logger';
+import { IFileSystem } from '../../common/platform/types';
 
 import { IConfigurationService, Resource } from '../../common/types';
 import * as localize from '../../common/utils/localize';
@@ -19,7 +20,6 @@ import {
     ICellRange,
     ICodeLensFactory,
     IFileHashes,
-    IFileSystem,
     IInteractiveWindowListener,
     INotebook,
     INotebookProvider

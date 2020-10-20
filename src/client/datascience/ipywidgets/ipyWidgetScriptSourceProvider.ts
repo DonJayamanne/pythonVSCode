@@ -8,6 +8,7 @@ import { ConfigurationChangeEvent, ConfigurationTarget } from 'vscode';
 import { IApplicationShell, IWorkspaceService } from '../../common/application/types';
 import '../../common/extensions';
 import { traceError } from '../../common/logger';
+import { IFileSystem } from '../../common/platform/types';
 
 import {
     IConfigurationService,
@@ -22,7 +23,7 @@ import { noop } from '../../common/utils/misc';
 import { IInterpreterService } from '../../interpreter/contracts';
 import { sendTelemetryEvent } from '../../telemetry';
 import { Telemetry } from '../constants';
-import { IFileSystem, ILocalResourceUriConverter, INotebook } from '../types';
+import { ILocalResourceUriConverter, INotebook } from '../types';
 import { CDNWidgetScriptSourceProvider } from './cdnWidgetScriptSourceProvider';
 import { LocalWidgetScriptSourceProvider } from './localWidgetScriptSourceProvider';
 import { RemoteWidgetScriptSourceProvider } from './remoteWidgetScriptSourceProvider';

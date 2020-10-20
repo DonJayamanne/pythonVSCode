@@ -22,6 +22,7 @@ import {
     IDocumentManager,
     IWorkspaceService
 } from '../../client/common/application/types';
+import { IFileSystem } from '../../client/common/platform/types';
 import { ICryptoUtils, IExtensionContext } from '../../client/common/types';
 import { createDeferred, sleep, waitForPromise } from '../../client/common/utils/async';
 import { noop } from '../../client/common/utils/misc';
@@ -34,7 +35,6 @@ import { NativeEditorNotebookModel } from '../../client/datascience/notebookStor
 import {
     ICell,
     IDataScienceErrorHandler,
-    IFileSystem,
     IJupyterExecution,
     INotebookEditor,
     INotebookEditorProvider,

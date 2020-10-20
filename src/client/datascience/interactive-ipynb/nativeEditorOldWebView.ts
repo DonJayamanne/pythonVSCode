@@ -17,6 +17,7 @@ import {
 import { traceError } from '../../common/logger';
 
 import { IPythonExtensionChecker } from '../../api/types';
+import { IFileSystem } from '../../common/platform/types';
 import {
     IAsyncDisposableRegistry,
     IConfigurationService,
@@ -35,7 +36,6 @@ import { INotebookStorageProvider } from '../notebookStorage/notebookStorageProv
 import {
     ICodeCssGenerator,
     IDataScienceErrorHandler,
-    IFileSystem,
     IInteractiveWindowListener,
     IJupyterDebugger,
     IJupyterVariableDataProviderFactory,

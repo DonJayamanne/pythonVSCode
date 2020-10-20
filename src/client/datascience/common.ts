@@ -7,11 +7,12 @@ import { parse, SemVer } from 'semver';
 import { Memento, Uri } from 'vscode';
 import { splitMultilineString } from '../../datascience-ui/common';
 import { traceError, traceInfo } from '../common/logger';
+import { IFileSystem } from '../common/platform/types';
 import { IPythonExecutionFactory } from '../common/process/types';
 import { DataScience } from '../common/utils/localize';
 import { noop } from '../common/utils/misc';
 import { Settings } from './constants';
-import { ICell, IFileSystem } from './types';
+import { ICell } from './types';
 
 // Can't figure out a better way to do this. Enumerate
 // the allowed keys of different output formats.

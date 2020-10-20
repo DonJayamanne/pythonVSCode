@@ -5,11 +5,12 @@ import * as path from 'path';
 import { anything, instance, mock, verify, when } from 'ts-mockito';
 import { Uri } from 'vscode';
 import { PYTHON_LANGUAGE } from '../../../client/common/constants';
-import { FileSystem } from '../../../client/datascience/fileSystem';
+import { FileSystem } from '../../../client/common/platform/fileSystem';
+import { IFileSystem } from '../../../client/common/platform/types';
 import { LocalWidgetScriptSourceProvider } from '../../../client/datascience/ipywidgets/localWidgetScriptSourceProvider';
 import { IWidgetScriptSourceProvider } from '../../../client/datascience/ipywidgets/types';
 import { JupyterNotebookBase } from '../../../client/datascience/jupyter/jupyterNotebook';
-import { IFileSystem, ILocalResourceUriConverter, INotebook } from '../../../client/datascience/types';
+import { ILocalResourceUriConverter, INotebook } from '../../../client/datascience/types';
 import { IInterpreterService } from '../../../client/interpreter/contracts';
 
 // tslint:disable: max-func-body-length no-any

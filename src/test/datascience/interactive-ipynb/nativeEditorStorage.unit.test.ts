@@ -26,6 +26,7 @@ import { JupyterSettings } from '../../../client/common/configSettings';
 import { ConfigurationService } from '../../../client/common/configuration/service';
 import { PYTHON_LANGUAGE } from '../../../client/common/constants';
 import { CryptoUtils } from '../../../client/common/crypto';
+import { IFileSystem } from '../../../client/common/platform/types';
 import { IConfigurationService, ICryptoUtils, IDisposable, IExtensionContext } from '../../../client/common/types';
 import { EXTENSION_ROOT_DIR } from '../../../client/constants';
 import {
@@ -39,13 +40,7 @@ import { NotebookModelFactory } from '../../../client/datascience/notebookStorag
 import { NativeEditorStorage } from '../../../client/datascience/notebookStorage/nativeEditorStorage';
 import { NativeEditorNotebookModel } from '../../../client/datascience/notebookStorage/notebookModel';
 import { NotebookStorageProvider } from '../../../client/datascience/notebookStorage/notebookStorageProvider';
-import {
-    ICell,
-    IFileSystem,
-    IJupyterExecution,
-    INotebookServerOptions,
-    ITrustService
-} from '../../../client/datascience/types';
+import { ICell, IJupyterExecution, INotebookServerOptions, ITrustService } from '../../../client/datascience/types';
 import { IInterpreterService } from '../../../client/interpreter/contracts';
 import { concatMultilineString } from '../../../datascience-ui/common';
 import { createEmptyCell } from '../../../datascience-ui/interactive-common/mainState';

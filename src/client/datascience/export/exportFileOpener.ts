@@ -3,11 +3,11 @@ import { Position, Uri } from 'vscode';
 import { IApplicationShell, IDocumentManager } from '../../common/application/types';
 import { PYTHON_LANGUAGE } from '../../common/constants';
 
+import { IFileSystem } from '../../common/platform/types';
 import { IBrowserService } from '../../common/types';
 import * as localize from '../../common/utils/localize';
 import { sendTelemetryEvent } from '../../telemetry';
 import { Telemetry } from '../constants';
-import { IFileSystem } from '../types';
 import { ExportFormat } from './types';
 
 @injectable()

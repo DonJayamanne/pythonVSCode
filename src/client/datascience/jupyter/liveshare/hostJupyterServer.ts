@@ -10,6 +10,7 @@ import * as vsls from 'vsls/vscode';
 import { IApplicationShell, ILiveShareApi, IWorkspaceService } from '../../../common/application/types';
 import { isTestExecution } from '../../../common/constants';
 import { traceInfo } from '../../../common/logger';
+import { IFileSystem } from '../../../common/platform/types';
 import {
     IAsyncDisposableRegistry,
     IConfigurationService,
@@ -23,7 +24,6 @@ import { IInterpreterService } from '../../../interpreter/contracts';
 import { IServiceContainer } from '../../../ioc/types';
 import { Identifiers, LiveShare, LiveShareCommands, RegExpValues } from '../../constants';
 import {
-    IFileSystem,
     IJupyterSession,
     IJupyterSessionManager,
     IJupyterSessionManagerFactory,

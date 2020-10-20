@@ -5,10 +5,10 @@
 
 import { inject, injectable, named } from 'inversify';
 import { Uri } from 'vscode';
-import { IFileSystem } from '../../datascience/types';
 import { IApplicationShell, ICommandManager } from '../application/types';
 import { JVSC_EXTENSION_ID, Octicons, STANDARD_OUTPUT_CHANNEL } from '../constants';
 import { traceDecorators } from '../logger';
+import { IFileSystem } from '../platform/types';
 import { IFileDownloader, IOutputChannel } from '../types';
 import { ExtensionChannels } from '../utils/localize';
 import { IExtensionBuildInstaller } from './types';

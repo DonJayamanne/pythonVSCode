@@ -15,6 +15,7 @@ import {
     ILiveShareApi,
     ILiveShareTestingApi
 } from '../../client/common/application/types';
+import { IFileSystem } from '../../client/common/platform/types';
 import { Resource } from '../../client/common/types';
 import { Commands } from '../../client/datascience/constants';
 import { InteractiveWindowMessages } from '../../client/datascience/interactive-common/interactiveWindowTypes';
@@ -22,7 +23,6 @@ import { InteractiveWindow } from '../../client/datascience/interactive-window/i
 import {
     ICodeWatcher,
     IDataScienceCommandListener,
-    IFileSystem,
     IInteractiveWindowProvider,
     IJupyterExecution
 } from '../../client/datascience/types';

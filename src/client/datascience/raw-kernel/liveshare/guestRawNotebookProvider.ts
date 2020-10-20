@@ -6,6 +6,7 @@ import { Uri } from 'vscode';
 import { CancellationToken } from 'vscode-jsonrpc';
 import * as vsls from 'vsls/vscode';
 import { IApplicationShell, ILiveShareApi, IWorkspaceService } from '../../../common/application/types';
+import { IFileSystem } from '../../../common/platform/types';
 
 import { IAsyncDisposableRegistry, IConfigurationService, IDisposableRegistry, Resource } from '../../../common/types';
 import { createDeferred } from '../../../common/utils/async';
@@ -18,7 +19,7 @@ import {
     LiveShareParticipantGuest
 } from '../../jupyter/liveshare/liveShareParticipantMixin';
 import { ILiveShareParticipant } from '../../jupyter/liveshare/types';
-import { IFileSystem, INotebook, IRawConnection, IRawNotebookProvider } from '../../types';
+import { INotebook, IRawConnection, IRawNotebookProvider } from '../../types';
 import { RawConnection } from '../rawNotebookProvider';
 
 export class GuestRawNotebookProvider

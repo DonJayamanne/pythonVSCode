@@ -18,6 +18,8 @@ import { WorkspaceService } from '../../client/common/application/workspace';
 import { ConfigurationService } from '../../client/common/configuration/service';
 import { PYTHON_LANGUAGE } from '../../client/common/constants';
 import { PersistentState, PersistentStateFactory } from '../../client/common/persistentState';
+import { FileSystem } from '../../client/common/platform/fileSystem';
+import { IFileSystem } from '../../client/common/platform/types';
 import { ProcessServiceFactory } from '../../client/common/process/processFactory';
 import { PythonExecutionFactory } from '../../client/common/process/pythonExecutionFactory';
 import {
@@ -38,7 +40,6 @@ import {
     Product
 } from '../../client/common/types';
 import { EXTENSION_ROOT_DIR } from '../../client/constants';
-import { FileSystem } from '../../client/datascience/fileSystem';
 import { JupyterInterpreterDependencyService } from '../../client/datascience/jupyter/interpreter/jupyterInterpreterDependencyService';
 import { JupyterInterpreterOldCacheStateStore } from '../../client/datascience/jupyter/interpreter/jupyterInterpreterOldCacheStateStore';
 import { JupyterInterpreterService } from '../../client/datascience/jupyter/interpreter/jupyterInterpreterService';
@@ -48,7 +49,6 @@ import { KernelSelector } from '../../client/datascience/jupyter/kernels/kernelS
 import { NotebookStarter } from '../../client/datascience/jupyter/notebookStarter';
 import { LiveShareApi } from '../../client/datascience/liveshare/liveshare';
 import {
-    IFileSystem,
     IJupyterKernelSpec,
     IJupyterSubCommandExecutionService,
     INotebookServer

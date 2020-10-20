@@ -10,6 +10,7 @@ import * as uuid from 'uuid/v4';
 import { Event, EventEmitter, Uri } from 'vscode';
 import { PYTHON_LANGUAGE } from '../../common/constants';
 import { traceError } from '../../common/logger';
+import { IFileSystem } from '../../common/platform/types';
 
 import { IConfigurationService } from '../../common/types';
 import * as localize from '../../common/utils/localize';
@@ -17,7 +18,6 @@ import { EXTENSION_ROOT_DIR } from '../../constants';
 import { Identifiers, Settings } from '../constants';
 import {
     ICell,
-    IFileSystem,
     IJupyterVariable,
     IJupyterVariables,
     IJupyterVariablesRequest,

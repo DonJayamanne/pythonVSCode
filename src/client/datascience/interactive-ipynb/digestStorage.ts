@@ -5,9 +5,10 @@ import * as path from 'path';
 import { Uri } from 'vscode';
 import { traceError, traceInfo } from '../../common/logger';
 import { isFileNotFoundError } from '../../common/platform/errors';
+import { IFileSystem } from '../../common/platform/types';
 import { IExtensionContext } from '../../common/types';
 import { MigrateDigestStorage } from '../../migration/migrateDigestStorage';
-import { IDigestStorage, IFileSystem } from '../types';
+import { IDigestStorage } from '../types';
 
 @injectable()
 export class DigestStorage implements IDigestStorage {

@@ -4,9 +4,9 @@ import * as os from 'os';
 import * as path from 'path';
 import * as uuid from 'uuid/v4';
 import { Uri } from 'vscode';
-import { TemporaryDirectory } from '../../common/platform/types';
+import { IFileSystem, TemporaryDirectory } from '../../common/platform/types';
 import { sleep } from '../../common/utils/async';
-import { ICell, IFileSystem, INotebookExporter, INotebookModel, INotebookStorage } from '../types';
+import { ICell, INotebookExporter, INotebookModel, INotebookStorage } from '../types';
 
 @injectable()
 export class ExportUtil {

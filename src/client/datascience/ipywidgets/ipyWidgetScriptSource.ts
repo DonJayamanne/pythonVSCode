@@ -10,6 +10,7 @@ import * as path from 'path';
 import { Event, EventEmitter, Uri } from 'vscode';
 import { IApplicationShell, IWorkspaceService } from '../../common/application/types';
 import { traceError, traceInfo } from '../../common/logger';
+import { IFileSystem } from '../../common/platform/types';
 
 import {
     IConfigurationService,
@@ -29,13 +30,7 @@ import {
     InteractiveWindowMessages,
     IPyWidgetMessages
 } from '../interactive-common/interactiveWindowTypes';
-import {
-    IFileSystem,
-    IInteractiveWindowListener,
-    ILocalResourceUriConverter,
-    INotebook,
-    INotebookProvider
-} from '../types';
+import { IInteractiveWindowListener, ILocalResourceUriConverter, INotebook, INotebookProvider } from '../types';
 import { IPyWidgetScriptSourceProvider } from './ipyWidgetScriptSourceProvider';
 import { WidgetScriptSource } from './types';
 // tslint:disable: no-var-requires no-require-imports

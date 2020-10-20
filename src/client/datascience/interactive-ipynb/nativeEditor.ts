@@ -55,7 +55,6 @@ import {
     ICell,
     ICodeCssGenerator,
     IDataScienceErrorHandler,
-    IFileSystem,
     IInteractiveWindowInfo,
     IInteractiveWindowListener,
     IJupyterDebugger,
@@ -82,6 +81,7 @@ import { concatMultilineString, splitMultilineString } from '../../../datascienc
 import { ServerStatus } from '../../../datascience-ui/interactive-common/mainState';
 import { IPythonExtensionChecker } from '../../api/types';
 import { isTestExecution, PYTHON_LANGUAGE } from '../../common/constants';
+import { IFileSystem } from '../../common/platform/types';
 import { translateKernelLanguageToMonaco } from '../common';
 import { IDataViewerFactory } from '../data-viewing/types';
 import { getCellHashProvider } from '../editor-integration/cellhashprovider';

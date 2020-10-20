@@ -6,6 +6,7 @@
 import * as path from 'path';
 import { Uri } from 'vscode';
 import { traceError } from '../../common/logger';
+import { IFileSystem } from '../../common/platform/types';
 
 import { IInterpreterService } from '../../interpreter/contracts';
 import { captureTelemetry } from '../../telemetry';
@@ -15,7 +16,7 @@ import {
     getKernelPathFromKernelConnection,
     isPythonKernelConnection
 } from '../jupyter/kernels/helpers';
-import { IFileSystem, ILocalResourceUriConverter, INotebook } from '../types';
+import { ILocalResourceUriConverter, INotebook } from '../types';
 import { IWidgetScriptSourceProvider, WidgetScriptSource } from './types';
 
 /**

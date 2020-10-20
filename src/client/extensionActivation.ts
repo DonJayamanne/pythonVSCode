@@ -15,6 +15,7 @@ import { STANDARD_OUTPUT_CHANNEL, UseProposedApi } from './common/constants';
 import { Experiments } from './common/experiments/groups';
 import { registerTypes as installerRegisterTypes } from './common/installer/serviceRegistry';
 import { registerTypes as platformRegisterTypes } from './common/platform/serviceRegistry';
+import { IFileSystem } from './common/platform/types';
 import { registerTypes as processRegisterTypes } from './common/process/serviceRegistry';
 import { registerTypes as commonRegisterTypes } from './common/serviceRegistry';
 import {
@@ -29,7 +30,7 @@ import { noop } from './common/utils/misc';
 import { registerTypes as variableRegisterTypes } from './common/variables/serviceRegistry';
 import { JUPYTER_OUTPUT_CHANNEL } from './datascience/constants';
 import { registerTypes as dataScienceRegisterTypes } from './datascience/serviceRegistry';
-import { IDataScience, IDebugLoggingManager, IFileSystem } from './datascience/types';
+import { IDataScience, IDebugLoggingManager } from './datascience/types';
 import { IServiceContainer, IServiceManager } from './ioc/types';
 import { addOutputChannelLogging, setLoggingLevel } from './logging';
 import { registerLoggerTypes } from './logging/serviceRegistry';

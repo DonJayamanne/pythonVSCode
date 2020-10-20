@@ -7,10 +7,11 @@ import * as path from 'path';
 import { LanguageConfiguration } from 'vscode';
 import { EXTENSION_ROOT_DIR, PYTHON_LANGUAGE } from '../common/constants';
 import { traceError } from '../common/logger';
+import { IFileSystem } from '../common/platform/types';
 
 import { IExtensions } from '../common/types';
 import { getLanguageConfiguration } from '../language/languageConfiguration';
-import { IFileSystem, IThemeFinder } from './types';
+import { IThemeFinder } from './types';
 
 // tslint:disable:no-any
 

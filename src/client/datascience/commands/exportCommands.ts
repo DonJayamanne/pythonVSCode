@@ -8,6 +8,7 @@ import { QuickPickItem, QuickPickOptions, Uri } from 'vscode';
 import { getLocString } from '../../../datascience-ui/react-common/locReactSide';
 import { ICommandNameArgumentTypeMapping } from '../../common/application/commands';
 import { IApplicationShell, ICommandManager } from '../../common/application/types';
+import { IFileSystem } from '../../common/platform/types';
 
 import { IDisposable } from '../../common/types';
 import { DataScience } from '../../common/utils/localize';
@@ -17,7 +18,7 @@ import { sendTelemetryEvent } from '../../telemetry';
 import { Commands, Telemetry } from '../constants';
 import { ExportManager } from '../export/exportManager';
 import { ExportFormat, IExportManager } from '../export/types';
-import { IFileSystem, INotebookEditorProvider, INotebookModel } from '../types';
+import { INotebookEditorProvider, INotebookModel } from '../types';
 
 interface IExportQuickPickItem extends QuickPickItem {
     handler(): void;

@@ -10,14 +10,14 @@ import * as typemoq from 'typemoq';
 import { Uri } from 'vscode';
 import { PythonExtensionChecker } from '../../../client/api/pythonApi';
 import { IWorkspaceService } from '../../../client/common/application/types';
-import { IPlatformService } from '../../../client/common/platform/types';
+import { IFileSystem, IPlatformService } from '../../../client/common/platform/types';
 import { PythonExecutionFactory } from '../../../client/common/process/pythonExecutionFactory';
 import { IExtensionContext, IPathUtils, Resource } from '../../../client/common/types';
 import { IEnvironmentVariablesProvider } from '../../../client/common/variables/types';
 import { JupyterKernelSpec } from '../../../client/datascience/jupyter/kernels/jupyterKernelSpec';
 import { KernelFinder } from '../../../client/datascience/kernel-launcher/kernelFinder';
 import { IKernelFinder } from '../../../client/datascience/kernel-launcher/types';
-import { IFileSystem, IJupyterKernelSpec } from '../../../client/datascience/types';
+import { IJupyterKernelSpec } from '../../../client/datascience/types';
 import { IInterpreterService } from '../../../client/interpreter/contracts';
 import { PythonEnvironment } from '../../../client/pythonEnvironments/info';
 

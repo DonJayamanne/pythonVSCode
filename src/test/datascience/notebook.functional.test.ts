@@ -19,6 +19,7 @@ import { IApplicationShell, IWorkspaceService } from '../../client/common/applic
 import { Cancellation, CancellationError } from '../../client/common/cancellation';
 import { EXTENSION_ROOT_DIR } from '../../client/common/constants';
 import { traceError, traceInfo } from '../../client/common/logger';
+import { IFileSystem } from '../../client/common/platform/types';
 import { IPythonExecutionFactory } from '../../client/common/process/types';
 import { Product } from '../../client/common/types';
 import { createDeferred, waitForPromise } from '../../client/common/utils/async';
@@ -33,7 +34,6 @@ import { HostJupyterNotebook } from '../../client/datascience/jupyter/liveshare/
 import {
     CellState,
     ICell,
-    IFileSystem,
     IJupyterConnection,
     IJupyterExecution,
     IJupyterKernelSpec,

@@ -13,6 +13,7 @@ import { Cancellation, wrapCancellationTokens } from '../../../common/cancellati
 import { PYTHON_LANGUAGE, PYTHON_WARNINGS } from '../../../common/constants';
 import '../../../common/extensions';
 import { traceDecorators, traceError, traceInfo, traceVerbose, traceWarning } from '../../../common/logger';
+import { IFileSystem } from '../../../common/platform/types';
 
 import { IPythonExecutionFactory } from '../../../common/process/types';
 import { ReadWrite } from '../../../common/types';
@@ -27,7 +28,6 @@ import { Telemetry } from '../../constants';
 import { reportAction } from '../../progress/decorator';
 import { ReportableAction } from '../../progress/types';
 import {
-    IFileSystem,
     IJupyterKernelSpec,
     IJupyterSessionManager,
     IJupyterSubCommandExecutionService,

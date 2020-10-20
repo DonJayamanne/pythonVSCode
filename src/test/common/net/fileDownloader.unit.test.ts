@@ -18,12 +18,12 @@ import { ApplicationShell } from '../../../client/common/application/application
 import { IApplicationShell } from '../../../client/common/application/types';
 import { FileDownloader } from '../../../client/common/net/fileDownloader';
 import { HttpClient } from '../../../client/common/net/httpClient';
+import { FileSystem } from '../../../client/common/platform/fileSystem';
 import { PlatformService } from '../../../client/common/platform/platformService';
+import { IFileSystem } from '../../../client/common/platform/types';
 import { IHttpClient } from '../../../client/common/types';
 import { Http } from '../../../client/common/utils/localize';
 import { EXTENSION_ROOT_DIR } from '../../../client/constants';
-import { FileSystem } from '../../../client/datascience/fileSystem';
-import { IFileSystem } from '../../../client/datascience/types';
 import { noop } from '../../core';
 import { MockOutputChannel } from '../../mockClasses';
 const requestProgress = require('request-progress');

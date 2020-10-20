@@ -13,9 +13,10 @@ import { IApplicationShell, IWebviewPanelProvider, IWorkspaceService } from '../
 import { EXTENSION_ROOT_DIR, UseCustomEditorApi } from '../../common/constants';
 import { traceError } from '../../common/logger';
 
+import { IFileSystem } from '../../common/platform/types';
 import { IConfigurationService, IDisposable } from '../../common/types';
 import * as localize from '../../common/utils/localize';
-import { ICodeCssGenerator, IFileSystem, IPlotViewer, IThemeFinder } from '../types';
+import { ICodeCssGenerator, IPlotViewer, IThemeFinder } from '../types';
 import { WebviewPanelHost } from '../webviews/webviewPanelHost';
 import { PlotViewerMessageListener } from './plotViewerMessageListener';
 import { IExportPlotRequest, IPlotViewerMapping, PlotViewerMessages } from './types';

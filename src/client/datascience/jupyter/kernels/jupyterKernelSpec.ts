@@ -6,11 +6,12 @@ import * as path from 'path';
 import { CancellationToken } from 'vscode';
 import { createPromiseFromCancellation } from '../../../common/cancellation';
 import { traceInfo } from '../../../common/logger';
+import { IFileSystem } from '../../../common/platform/types';
 
 import { IPythonExecutionFactory } from '../../../common/process/types';
 import { PythonEnvironment } from '../../../pythonEnvironments/info';
 import { getRealPath } from '../../common';
-import { IFileSystem, IJupyterKernelSpec } from '../../types';
+import { IJupyterKernelSpec } from '../../types';
 
 export class JupyterKernelSpec implements IJupyterKernelSpec {
     public name: string;

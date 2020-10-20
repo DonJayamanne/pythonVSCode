@@ -17,6 +17,7 @@ import {
 } from '../../common/application/types';
 import { UseCustomEditorApi } from '../../common/constants';
 import { traceInfo } from '../../common/logger';
+import { IFileSystem } from '../../common/platform/types';
 
 import {
     GLOBAL_MEMENTO,
@@ -42,7 +43,6 @@ import { PostOffice } from '../liveshare/postOffice';
 import {
     ICodeCssGenerator,
     IDataScienceErrorHandler,
-    IFileSystem,
     IInteractiveWindow,
     IInteractiveWindowListener,
     IInteractiveWindowLoadable,

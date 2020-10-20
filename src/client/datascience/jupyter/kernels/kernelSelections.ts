@@ -8,13 +8,14 @@ import * as path from 'path';
 import { CancellationToken, EventEmitter } from 'vscode';
 import { IPythonExtensionChecker } from '../../../api/types';
 import { traceError } from '../../../common/logger';
+import { IFileSystem } from '../../../common/platform/types';
 import { IPathUtils, Resource } from '../../../common/types';
 import { createDeferredFromPromise } from '../../../common/utils/async';
 import * as localize from '../../../common/utils/localize';
 import { noop } from '../../../common/utils/misc';
 import { IInterpreterSelector } from '../../../interpreter/configuration/types';
 import { IKernelFinder } from '../../kernel-launcher/types';
-import { IFileSystem, IJupyterKernelSpec, IJupyterSessionManager } from '../../types';
+import { IJupyterKernelSpec, IJupyterSessionManager } from '../../types';
 import { detectDefaultKernelName } from './helpers';
 import { KernelService } from './kernelService';
 import {

@@ -26,7 +26,7 @@ import { ILanguageServerProvider, IPythonExtensionChecker } from '../../../api/t
 import { IWorkspaceService } from '../../../common/application/types';
 import { CancellationError } from '../../../common/cancellation';
 import { traceError, traceWarning } from '../../../common/logger';
-import { TemporaryFile } from '../../../common/platform/types';
+import { IFileSystem, TemporaryFile } from '../../../common/platform/types';
 import { Resource } from '../../../common/types';
 import { createDeferred, Deferred, sleep, waitForPromise } from '../../../common/utils/async';
 import { noop } from '../../../common/utils/misc';
@@ -37,7 +37,6 @@ import { sendTelemetryWhenDone } from '../../../telemetry';
 import { Identifiers, Settings, Telemetry } from '../../constants';
 import {
     ICell,
-    IFileSystem,
     IInteractiveWindowListener,
     IJupyterVariables,
     INotebook,
