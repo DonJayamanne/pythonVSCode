@@ -1640,7 +1640,7 @@
                 "jupyter.insidersChannel": {
                     "type": "string",
                     "default": "off",
-                    "description": "Set to \"weekly\" or \"daily\" to automatically download and install the latest Insiders builds of the python extension, which include upcoming features and bug fixes.",
+                    "description": "Set to \"weekly\" or \"daily\" to automatically download and install the latest Insiders builds of the Jupyter extension, which include upcoming features and bug fixes.",
                     "enum": [
                         "off",
                         "weekly",

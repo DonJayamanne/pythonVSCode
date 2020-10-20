@@ -57,7 +57,7 @@ async function start() {
             .concat(channel === 'insiders' ? ['--enable-proposed-api'] : [])
             .concat(['--timeout', '5000']),
         version: channel,
-        extensionTestsEnv: { ...process.env, UITEST_DISABLE_INSIDERS: '1' }
+        extensionTestsEnv: { ...process.env, DISABLE_INSIDERS_EXTENSION: '1' }
     });
 }
 start().catch((ex) => {

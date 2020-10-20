@@ -11,15 +11,24 @@ on:
 env:
   NODE_VERSION: 12.15.0
   PYTHON_VERSION: 3.8
-  MOCHA_REPORTER_JUNIT: true
+  JULIA_VERSION: 1.5.2
+  MOCHA_REPORTER_JUNIT: true # Use the mocha-multi-reporters and send output to both console (spec) and JUnit (mocha-junit-reporter). Also enables a reporter which exits the process running the tests if it haven't already.
   CACHE_NPM_DEPS: cache-npm
   CACHE_OUT_DIRECTORY: cache-out-directory
   CACHE_PIP_DEPS: cache-pip
+  VSC_JUPYTER_FORCE_LOGGING: 'true'
+  VSC_JUPYTER_CI_RUN_NON_PYTHON_NB_TEST: 'true'
+  # Key for the cache created at the end of the the 'Cache ./pythonFiles/lib/python' step.
+  CACHE_PYTHONFILES: cache-pvsc-pythonFiles
   VSIX_NAME: ms-toolsai-jupyter-release.vsix
   VSIX_NAME_PYTHON: ms-python-release-nods.vsix
   VSIX_NAME_UPLOADED_TO_BLOB: ms-toolsai-jupyter-release.vsix
+  COVERAGE_REPORTS: tests-coverage-reports
   CI_PYTHON_PATH: python
   TEST_RESULTS_DIRECTORY: .
+  TEST_RESULTS_GLOB: '**/test-results*.xml'
+  IPYWIDGET_SCREENSHOT_PATH: 'execute-screenshot.png'
+  DISABLE_INSIDERS_EXTENSION: 1 # Disable prompts to install Insiders in tests (else it blocks activation of extension).
 
 jobs:
   build-vsix:

@@ -48,11 +48,11 @@ export namespace ExtensionChannels {
     export const yesDaily = localize('ExtensionChannels.yesDaily', 'Yes, daily');
     export const promptMessage = localize(
         'ExtensionChannels.promptMessage',
-        'We noticed you are using Visual Studio Code Insiders. Would you like to use the Insiders build of the Python extension?'
+        'We noticed you are using Visual Studio Code Insiders. Would you like to use the Insiders build of the Jupyter extension?'
     );
     export const reloadToUseInsidersMessage = localize(
         'ExtensionChannels.reloadToUseInsidersMessage',
-        'Please reload Visual Studio Code to use the insiders build of the Python extension.'
+        'Please reload Visual Studio Code to use the insiders build of the Jupyter extension.'
     );
     export const downloadCompletedOutputMessage = localize(
         'ExtensionChannels.downloadCompletedOutputMessage',

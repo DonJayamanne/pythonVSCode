@@ -13,7 +13,7 @@ import { Common, DataScienceSurveyBanner, ExtensionChannels } from '../utils/loc
 import { noop } from '../utils/misc';
 import { IExtensionChannelService, IInsiderExtensionPrompt } from './types';
 
-export const insidersPromptStateKey = 'INSIDERS_PROMPT_STATE_KEY';
+export const insidersPromptStateKey = 'INSIDERS_PROMPT_DISPLAYED_STATE_KEY';
 
 @injectable()
 export class InsidersExtensionPrompt implements IInsiderExtensionPrompt {

@@ -86,7 +86,7 @@ export class InsidersExtensionService implements IExtensionSingleActivationServi
      */
     public async handleEdgeCases(installChannel: ExtensionChannels, isDefault: boolean): Promise<boolean> {
         // When running UI Tests we might want to disable these prompts.
-        if (process.env.UITEST_DISABLE_INSIDERS) {
+        if (process.env.DISABLE_INSIDERS_EXTENSION) {
             return true;
         } else if (await this.promptToInstallInsidersIfApplicable(isDefault)) {
             return true;
