@@ -523,7 +523,7 @@ jobs:
             VSC_JUPYTER_FORCE_LOGGING: 1
             VSC_JUPYTER_CI_RUN_NON_PYTHON_NB_TEST: 1
             VSC_JUPYTER_CI_TEST_VSC_CHANNEL: 'insiders'
-          id: test_notebook_vscode
+        id: test_notebook_vscode
         if: matrix.test-suite == 'notebook'
 
       - name: Publish Notebook Test Report
