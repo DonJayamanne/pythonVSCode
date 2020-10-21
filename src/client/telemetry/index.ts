@@ -876,6 +876,14 @@ export interface IEventNamePropertyMapping {
      */
     [Telemetry.KernelFinderPerf]: undefined | never;
     /**
+     * Total time taken to list kernels for VS Code.
+     */
+    [Telemetry.KernelProviderPerf]: undefined | never;
+    /**
+     * Total time taken to get the preferred kernel for notebook.
+     */
+    [Telemetry.GetPreferredKernelPerf]: undefined | never;
+    /**
      * Telemetry event sent if there's an error installing a jupyter required dependency
      *
      * @type { product: string }

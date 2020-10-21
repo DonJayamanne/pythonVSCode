@@ -475,6 +475,23 @@ export async function unzip(zipFile: string, targetFolder: string): Promise<void
         });
     });
 }
+
+const pendingTimers: any[] = [];
+export function clearPendingTimers() {
+    while (pendingTimers.length) {
+        const timer = pendingTimers.shift();
+        try {
+            clearTimeout(timer);
+        } catch {
+            // Noop.
+        }
+        try {
+            clearInterval(timer);
+        } catch {
+            // Noop.
+        }
+    }
+}
 /**
  * Wait for a condition to be fulfilled within a timeout.
  *
@@ -493,7 +510,7 @@ export async function waitForCondition(
         const timeout = setTimeout(() => {
             clearTimeout(timeout);
             // tslint:disable-next-line: no-use-before-declare
-            clearTimeout(timer);
+            clearInterval(timer);
             reject(new Error(errorMessage));
         }, timeoutMs);
         const timer = setInterval(async () => {
@@ -501,9 +518,11 @@ export async function waitForCondition(
                 return;
             }
             clearTimeout(timeout);
-            clearTimeout(timer);
+            clearInterval(timer);
             resolve();
         }, 10);
+        pendingTimers.push(timer);
+        pendingTimers.push(timeout);
     });
 }
 

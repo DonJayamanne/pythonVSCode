@@ -55,7 +55,7 @@ suite('DataScience - VSCode Notebook (Editor Provider)', function () {
         sinon.restore();
         await trustAllNotebooks();
         // Don't use same file (due to dirty handling, we might save in dirty.)
-        // Cuz we won't save to file, hence extension will backup in dirty file and when u re-open it will open from dirty.
+        // Coz we won't save to file, hence extension will backup in dirty file and when u re-open it will open from dirty.
         testIPynb = Uri.file(await createTemporaryNotebook(templateIPynb, disposables));
     });
     teardown(() => closeNotebooksAndCleanUpAfterTests(disposables));
@@ -280,7 +280,7 @@ suite('DataScience - VSCode Notebook (Editor Provider)', function () {
         assert.lengthOf(editorProvider.editors, 1, 'Should have an editor opened');
 
         // If we close one of the VS Code notebook editors, then it should not close our editor.
-        // Cuz we still have a VSC editor associated with the same file.
+        // Coz we still have a VSC editor associated with the same file.
         await commands.executeCommand('workbench.action.closeActiveEditor');
 
         // Verify we have only one VSC Notebook & still have our INotebookEditor.

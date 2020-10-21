@@ -8,8 +8,10 @@ import { CancellationToken } from 'vscode';
 import { IApplicationShell } from '../../../common/application/types';
 import { createPromiseFromCancellation, wrapCancellationTokens } from '../../../common/cancellation';
 import { ProductNames } from '../../../common/installer/productNames';
+import { traceDecorators, traceInfo } from '../../../common/logger';
 import { IInstaller, InstallerResponse, Product } from '../../../common/types';
 import { Common, DataScience } from '../../../common/utils/localize';
+import { TraceOptions } from '../../../logging/trace';
 import { PythonEnvironment } from '../../../pythonEnvironments/info';
 import { IKernelDependencyService, KernelInterpreterDependencyResponse } from '../../types';
 
@@ -27,10 +29,12 @@ export class KernelDependencyService implements IKernelDependencyService {
      * Configures the python interpreter to ensure it can run a Jupyter Kernel by installing any missing dependencies.
      * If user opts not to install they can opt to select another interpreter.
      */
+    @traceDecorators.verbose('Install Missing Dependencies', TraceOptions.ReturnValue)
     public async installMissingDependencies(
         interpreter: PythonEnvironment,
         token?: CancellationToken
     ): Promise<KernelInterpreterDependencyResponse> {
+        traceInfo(`installMissingDependencies ${interpreter.path}`);
         if (await this.areDependenciesInstalled(interpreter, token)) {
             return KernelInterpreterDependencyResponse.ok;
         }
@@ -55,7 +59,7 @@ export class KernelDependencyService implements IKernelDependencyService {
         }
 
         if (selection === Common.install()) {
-            const cancellatonPromise = createPromiseFromCancellation({
+            const cancellationPromise = createPromiseFromCancellation({
                 cancelAction: 'resolve',
                 defaultValue: InstallerResponse.Ignore,
                 token
@@ -63,7 +67,7 @@ export class KernelDependencyService implements IKernelDependencyService {
             // Always pass a cancellation token to `install`, to ensure it waits until the module is installed.
             const response = await Promise.race([
                 this.installer.install(Product.ipykernel, interpreter, installerToken),
-                cancellatonPromise
+                cancellationPromise
             ]);
             if (response === InstallerResponse.Installed) {
                 return KernelInterpreterDependencyResponse.ok;

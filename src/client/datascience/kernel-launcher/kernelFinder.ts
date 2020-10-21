@@ -8,7 +8,7 @@ import * as path from 'path';
 import { CancellationToken } from 'vscode';
 import { IPythonExtensionChecker } from '../../api/types';
 import { IWorkspaceService } from '../../common/application/types';
-import { traceError, traceInfo } from '../../common/logger';
+import { traceDecorators, traceError, traceInfo } from '../../common/logger';
 import { IFileSystem, IPlatformService } from '../../common/platform/types';
 import { IPythonExecutionFactory } from '../../common/process/types';
 import { IExtensionContext, IPathUtils, Resource } from '../../common/types';
@@ -58,11 +58,17 @@ export class KernelFinder implements IKernelFinder {
         @inject(IEnvironmentVariablesProvider) private readonly envVarsProvider: IEnvironmentVariablesProvider,
         @inject(IPythonExtensionChecker) private readonly extensionChecker: IPythonExtensionChecker
     ) {}
+    @traceDecorators.verbose('Find kernel spec')
     @captureTelemetry(Telemetry.KernelFinderPerf)
     public async findKernelSpec(
         resource: Resource,
         notebookMetadata?: nbformat.INotebookMetadata
     ): Promise<IJupyterKernelSpec | undefined> {
+        traceInfo(
+            `Searching for kernel based on ${JSON.stringify(notebookMetadata?.kernelspec || {})} for ${
+                resource?.fsPath || ''
+            }`
+        );
         await this.readCache();
 
         const searchBasedOnKernelSpecMetadata = this.findKernelSpecBasedOnKernelSpecMetadata(
@@ -232,6 +238,8 @@ export class KernelFinder implements IKernelFinder {
     private async getInterpreterPaths(resource: Resource): Promise<string[]> {
         if (this.extensionChecker.isPythonExtensionInstalled) {
             const interpreters = await this.interpreterService.getInterpreters(resource);
+            // tslint:disable-next-line: no-console
+            console.debug(`Search all interpreters ${interpreters.map((item) => item.path).join(', ')}`);
             const interpreterPrefixPaths = interpreters.map((interpreter) => interpreter.sysPrefix);
             // We can get many duplicates here, so de-dupe the list
             const uniqueInterpreterPrefixPaths = [...new Set(interpreterPrefixPaths)];

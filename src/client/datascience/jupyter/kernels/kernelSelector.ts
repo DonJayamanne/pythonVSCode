@@ -11,14 +11,14 @@ import { IPythonExtensionChecker } from '../../../api/types';
 import { IApplicationShell } from '../../../common/application/types';
 import { PYTHON_LANGUAGE } from '../../../common/constants';
 import '../../../common/extensions';
-import { traceError, traceInfo, traceVerbose } from '../../../common/logger';
+import { traceDecorators, traceError, traceInfo, traceVerbose } from '../../../common/logger';
 import { IConfigurationService, IDisposableRegistry, Resource } from '../../../common/types';
 import * as localize from '../../../common/utils/localize';
 import { noop } from '../../../common/utils/misc';
 import { StopWatch } from '../../../common/utils/stopWatch';
 import { IInterpreterService } from '../../../interpreter/contracts';
 import { PythonEnvironment } from '../../../pythonEnvironments/info';
-import { IEventNamePropertyMapping, sendTelemetryEvent } from '../../../telemetry';
+import { captureTelemetry, IEventNamePropertyMapping, sendTelemetryEvent } from '../../../telemetry';
 import { Commands, KnownNotebookLanguages, Settings, Telemetry } from '../../constants';
 import { IKernelFinder } from '../../kernel-launcher/types';
 import { getInterpreterInfoStoredInMetadata } from '../../notebookStorage/baseModel';
@@ -166,6 +166,7 @@ export class KernelSelector implements IKernelSelectionUsage {
      * (will attempt to find the best matching kernel, or prompt user to use current interpreter or select one).
      */
     @reportAction(ReportableAction.KernelsGetKernelForLocalConnection)
+    @captureTelemetry(Telemetry.GetPreferredKernelPerf)
     public async getPreferredKernelForLocalConnection(
         resource: Resource,
         type: 'raw' | 'jupyter' | 'noConnection',
@@ -507,7 +508,10 @@ export class KernelSelector implements IKernelSelectionUsage {
         const interpreters = await this.interpreterService.getInterpreters(resource);
         return interpreters.find((item) => sha256().update(item.path).digest('hex') === info.hash);
     }
-    // Get our kernelspec and interpreter for a local raw connection
+    /**
+     * Get our kernelspec and interpreter for a local raw connection
+     */
+    @traceDecorators.verbose('Find kernel spec')
     private async getKernelForLocalRawConnection(
         resource: Resource,
         notebookMetadata?: nbformat.INotebookMetadata,

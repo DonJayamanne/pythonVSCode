@@ -199,7 +199,7 @@ export async function waitForKernelToGetAutoSelected(expectedLanguage?: string) 
         10_000,
         'Kernel not auto selected'
     );
-
+    let kernelInfo = '';
     const isRightKernel = () => {
         if (!vscodeNotebook.activeNotebookEditor) {
             return false;
@@ -208,16 +208,19 @@ export async function waitForKernelToGetAutoSelected(expectedLanguage?: string) 
             return false;
         }
         if (!expectedLanguage) {
+            kernelInfo = '<No specific kernel expected>';
             return true;
         }
         if (vscodeNotebook.activeNotebookEditor.kernel instanceof VSCodeNotebookKernelMetadata) {
             if (vscodeNotebook.activeNotebookEditor.kernel.selection.kind === 'startUsingKernelSpec') {
+                kernelInfo = JSON.stringify(vscodeNotebook.activeNotebookEditor.kernel.selection.kernelSpec || {});
                 return (
                     vscodeNotebook.activeNotebookEditor.kernel.selection.kernelSpec.language?.toLowerCase() ===
                     expectedLanguage.toLowerCase()
                 );
             }
             if (vscodeNotebook.activeNotebookEditor.kernel.selection.kind === 'startUsingPythonInterpreter') {
+                kernelInfo = `<startUsingPythonInterpreter ${vscodeNotebook.activeNotebookEditor.kernel.selection.interpreter.path}>`;
                 return expectedLanguage.toLowerCase() === PYTHON_LANGUAGE.toLowerCase();
             }
             // We don't support testing other kernels, not required hence not added.
@@ -230,8 +233,10 @@ export async function waitForKernelToGetAutoSelected(expectedLanguage?: string) 
     // Wait for the active kernel to be a julia kernel.
     const errorMessage = expectedLanguage ? `${expectedLanguage} kernel not auto selected` : 'Kernel not auto selected';
     await waitForCondition(async () => isRightKernel(), 15_000, errorMessage);
+    console.info(`Preferred kernel auto selected for Native Notebook for ${kernelInfo}.`);
 }
 export async function trustNotebook(ipynbFile: string | Uri) {
+    console.info(`Trusting Notebook ${ipynbFile}`);
     const api = await initialize();
     const uri = typeof ipynbFile === 'string' ? Uri.file(ipynbFile) : ipynbFile;
     const content = await fs.readFile(uri.fsPath, { encoding: 'utf8' });
@@ -284,7 +289,7 @@ function assertHasExecutionCompletedSuccessfully(cell: NotebookCell) {
  *  Wait for VSC to perform some last minute clean up of cells.
  * In tests we can end up deleting cells. However if extension is still dealing with the cells, we need to give it some time to finish.
  */
-export async function waitForCellExecutionToComplete(cell: NotebookCell) {
+async function waitForCellExecutionToComplete(cell: NotebookCell) {
     if (!CellExecution.cellsCompletedForTesting.has(cell)) {
         CellExecution.cellsCompletedForTesting.set(cell, createDeferred<void>());
     }
@@ -540,11 +545,13 @@ export async function hijackPrompt(
     }
     let displayCount = 0;
     // tslint:disable-next-line: no-function-expression
-    const showErrorMessage = sinon.stub(appShell, promptType).callsFake(function (msg: string) {
+    const stub = sinon.stub(appShell, promptType).callsFake(function (msg: string) {
+        console.info(`Message displayed to user ${msg}.`);
         if (
             ('exactMatch' in message && msg === message.exactMatch) ||
             ('endsWith' in message && msg.endsWith(message.endsWith))
         ) {
+            console.debug(`Exact Message found ${msg} with condition ${JSON.stringify(message)}`);
             displayCount += 1;
             displayed.resolve(true);
             if (buttonToClick) {
@@ -554,12 +561,12 @@ export async function hijackPrompt(
         // tslint:disable-next-line: no-any
         return (appShell[promptType] as any).wrappedMethod.apply(appShell, arguments);
     });
-    const disposable = { dispose: () => showErrorMessage.restore() };
+    const disposable = { dispose: () => stub.restore() };
     if (disposables) {
         disposables.push(disposable);
     }
     return {
-        dispose: () => showErrorMessage.restore(),
+        dispose: () => stub.restore(),
         getDisplayCount: () => displayCount,
         displayed: displayed.promise,
         clickButton: (text?: string) => clickButton.resolve(text || buttonToClick?.text)

@@ -16,6 +16,7 @@ import { INotebookEditorProvider } from '../../client/datascience/types';
 import { IServiceContainer } from '../../client/ioc/types';
 import { CommandSource } from '../../client/testing/common/constants';
 import { waitForCondition } from '../common';
+import { trustNotebook } from './notebook/helper';
 
 // The default base set of data science settings to use
 export function defaultDataScienceSettings(): IJupyterSettings {
@@ -82,7 +83,15 @@ export function writeDiffSnapshot(_snapshot: any, _prefix: string) {
     // fs.writeFile(file, JSON.stringify(diff), { encoding: 'utf-8' }).ignoreErrors();
 }
 
-export async function openNotebook(serviceContainer: IServiceContainer, ipynbFile: string, ignoreSaving = true) {
+export async function openNotebook(
+    serviceContainer: IServiceContainer,
+    ipynbFile: string,
+    options: { ignoreSavingOldNotebooks?: boolean; isNotTrusted?: boolean } = { ignoreSavingOldNotebooks: true }
+) {
+    if (!options.isNotTrusted) {
+        await trustNotebook(ipynbFile);
+    }
+    console.info(`Opening notebook ${ipynbFile}`);
     const cmd = serviceContainer.get<ICommandManager>(ICommandManager);
     await cmd.executeCommand(Commands.OpenNotebook, Uri.file(ipynbFile), CommandSource.commandPalette);
     const editorProvider = serviceContainer.get<INotebookEditorProvider>(INotebookEditorProvider);
@@ -95,9 +104,14 @@ export async function openNotebook(serviceContainer: IServiceContainer, ipynbFil
         'Notebook not opened'
     );
 
-    if (ignoreSaving && editorProvider.activeEditor && editorProvider.activeEditor instanceof NativeEditorOldWebView) {
+    if (
+        options.ignoreSavingOldNotebooks &&
+        editorProvider.activeEditor &&
+        editorProvider.activeEditor instanceof NativeEditorOldWebView
+    ) {
         // We don't care about changes, no need to save them.
         // tslint:disable-next-line: no-any
         (editorProvider.activeEditor as any).askForSave = () => Promise.resolve(AskForSaveResult.No);
     }
+    console.info(`Opened notebook ${ipynbFile}`);
 }

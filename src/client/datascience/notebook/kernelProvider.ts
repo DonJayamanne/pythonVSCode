@@ -12,9 +12,12 @@ import {
     NotebookKernelProvider
 } from '../../../../types/vscode-proposed';
 import { IVSCodeNotebook } from '../../common/application/types';
+import { traceInfo } from '../../common/logger';
 import { IDisposableRegistry } from '../../common/types';
 import { noop } from '../../common/utils/misc';
 import { IInterpreterService } from '../../interpreter/contracts';
+import { captureTelemetry } from '../../telemetry';
+import { Telemetry } from '../constants';
 import { areKernelConnectionsEqual } from '../jupyter/kernels/helpers';
 import { KernelSelectionProvider } from '../jupyter/kernels/kernelSelections';
 import { KernelSelector } from '../jupyter/kernels/kernelSelector';
@@ -46,6 +49,7 @@ export class VSCodeNotebookKernelMetadata implements VSCNotebookKernel {
         private readonly notebook: IVSCodeNotebook
     ) {}
     public executeCell(doc: NotebookDocument, cell: NotebookCell) {
+        traceInfo('Execute Cell in KernelProvider.ts');
         const kernel = this.kernelProvider.getOrCreate(cell.notebook.uri, { metadata: this.selection });
         if (kernel) {
             this.updateKernelInfoInNotebookWhenAvailable(kernel, doc);
@@ -113,6 +117,7 @@ export class VSCodeKernelPickerProvider implements NotebookKernelProvider {
         );
         this.notebook.onDidChangeActiveNotebookKernel(this.onDidChangeActiveNotebookKernel, this, disposables);
     }
+    @captureTelemetry(Telemetry.KernelProviderPerf)
     public async provideKernels(
         document: NotebookDocument,
         token: CancellationToken

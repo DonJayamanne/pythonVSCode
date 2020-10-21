@@ -1,8 +1,9 @@
 import { createHmac } from 'crypto';
 import { inject, injectable } from 'inversify';
 import { EventEmitter, Uri } from 'vscode';
-import { traceError } from '../../common/logger';
+import { traceDecorators, traceError } from '../../common/logger';
 import { IConfigurationService } from '../../common/types';
+import { TraceOptions } from '../../logging/trace';
 import { sortObjectPropertiesRecursively } from '../notebookStorage/vscNotebookModel';
 import { IDigestStorage, ITrustService } from '../types';
 
@@ -27,6 +28,7 @@ export class TrustService implements ITrustService {
      * Once a notebook is loaded in an untrusted state, no code will be executed and no
      * markdown will be rendered until notebook as a whole is marked trusted
      */
+    @traceDecorators.verbose('Trusted', TraceOptions.ReturnValue)
     public async isNotebookTrusted(uri: Uri, notebookContents: string) {
         if (this.alwaysTrustNotebooks) {
             return true; // Skip check if user manually overrode our trust checking

@@ -33,7 +33,7 @@ import { ServiceContainer } from '../../../client/ioc/container';
 import { IServiceContainer } from '../../../client/ioc/types';
 import { sleep } from '../../../test/core';
 
-suite('Insiders Extensionxxx', () => {
+suite('Insiders Extension', () => {
     let envDISABLE_INSIDERS_EXTENSIONExists = false;
     setup(() => {
         envDISABLE_INSIDERS_EXTENSIONExists = process.env.DISABLE_INSIDERS_EXTENSION !== undefined;

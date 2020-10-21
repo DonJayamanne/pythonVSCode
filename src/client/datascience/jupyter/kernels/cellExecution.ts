@@ -153,6 +153,7 @@ export class CellExecution {
     }
 
     public async start(kernelPromise: Promise<IKernel>, notebook: INotebook) {
+        traceInfo(`Start cell execution for cell Index ${this.cell.index}`);
         if (!this.canExecuteCell()) {
             return;
         }
@@ -199,7 +200,12 @@ export class CellExecution {
         await this.completedDurToCancellation();
         this.dispose();
     }
+    /**
+     * This method is called when all execution has been completed (successfully or failed).
+     * Or when execution has been cancelled.
+     */
     private dispose() {
+        traceInfo(`Completed cell execution for cell Index ${this.cell.index}`);
         this.disposables.forEach((d) => d.dispose());
     }
     private handleKernelRestart(kernel: IKernel) {

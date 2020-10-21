@@ -73,17 +73,17 @@ suite('DataScience - VSCode Notebook - Kernels (non-python-kernel) (slow)', () =
         sinon.restore();
         await closeNotebooks();
         // Don't use same file (due to dirty handling, we might save in dirty.)
-        // Cuz we won't save to file, hence extension will backup in dirty file and when u re-open it will open from dirty.
+        // Coz we won't save to file, hence extension will backup in dirty file and when u re-open it will open from dirty.
         testJuliaNb = Uri.file(await createTemporaryNotebook(juliaNb, disposables));
         testEmptyPythonNb = Uri.file(await createTemporaryNotebook(emptyPythonNb, disposables));
     });
     suiteTeardown(() => closeNotebooksAndCleanUpAfterTests(disposables));
     test('Automatically pick julia kernel when opening a Julia Notebook', async () => {
-        await openNotebook(api.serviceContainer, juliaNb, true);
+        await openNotebook(api.serviceContainer, juliaNb);
         await waitForKernelToGetAutoSelected('julia');
     });
     test('New notebook will have a Julia cell if last notebook was a julia nb', async () => {
-        await openNotebook(api.serviceContainer, testJuliaNb.fsPath, false);
+        await openNotebook(api.serviceContainer, testJuliaNb.fsPath);
         await waitForKernelToGetAutoSelected();
         await insertMarkdownCell('# Hello');
         await saveActiveNotebook([]);
@@ -113,12 +113,12 @@ suite('DataScience - VSCode Notebook - Kernels (non-python-kernel) (slow)', () =
         await closeNotebooks();
 
         // Now open an existing python notebook & confirm kernel is set to Python.
-        await openNotebook(api.serviceContainer, testEmptyPythonNb.fsPath, false);
+        await openNotebook(api.serviceContainer, testEmptyPythonNb.fsPath);
         await waitForKernelToGetAutoSelected('python');
     });
     test('Can run a Julia notebook', async function () {
         this.timeout(30_000); // Can be slow to start Julia kernel on CI.
-        await openNotebook(api.serviceContainer, testJuliaNb.fsPath, false);
+        await openNotebook(api.serviceContainer, testJuliaNb.fsPath);
         await insertCodeCell('123456', { language: 'julia', index: 0 });
         await waitForKernelToGetAutoSelected();
         await executeActiveDocument();

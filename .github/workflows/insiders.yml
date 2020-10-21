@@ -482,14 +482,8 @@ jobs:
             using Pkg
             Pkg.add("IJulia")'
 
-      # Used by tests for installation of ipykernel.
-      # Test are enabled dyanamically when
-      # 1. `CI_PYTHON_PATH2` points to the new virtual env.
-      # 2. Virtual env is located under `src/test/datascience/` and named `.venvnokernel`.
-      - name: Create virtual environment for Tests
-        run: |
-          python -m venv .venvnokernel
-        working-directory: src/test/datascience
+      - name: Create Virtual Env for Tests
+        uses: ./.github/actions/create-venv-for-tests
 
       - name: Azure Login
         uses: azure/login@v1.1.1
