@@ -1395,29 +1395,6 @@ plt.show()`,
                 }
             });
 
-            // tslint:disable-next-line: no-function-expression
-            runTest('Notebook launch retry', async function (_this: Mocha.Context) {
-                // Skipping for now. Re-enable to test idle timeouts
-                _this.skip();
-                // ioc.getSettings().jupyterLaunchRetries = 1;
-                // ioc.getSettings().jupyterLaunchTimeout = 10000;
-                //         ioc.getSettings().runStartupCommands = '%config Application.log_level="DEBUG"';
-                //         const log = `import logging
-                // logger = logging.getLogger()
-                // fhandler = logging.FileHandler(filename='D:\\Training\\mylog.log', mode='a')
-                // formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-                // fhandler.setFormatter(formatter)
-                // logger.addHandler(fhandler)
-                // logger.setLevel(logging.DEBUG)`;
-                // for (let i = 0; i < 100; i += 1) {
-                //     const notebook = await createNotebook();
-                //     assert.ok(notebook, 'did not create notebook');
-                //     await notebook!.dispose();
-                //     const exec = ioc.get<IJupyterExecution>(IJupyterExecution);
-                //     await exec.dispose();
-                // }
-            });
-
             runTest('Startup commands', async () => {
                 ioc.forceDataScienceSettingsChanged({ runStartupCommands: ['a=1', 'b=2'] });
                 addMockData(`a=1\\nb=2`, undefined);
