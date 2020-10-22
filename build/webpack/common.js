@@ -18,17 +18,14 @@ exports.nodeModulesToExternalize = [
     'unicode/category/Nd',
     'unicode/category/Pc',
     '@jupyterlab/services',
-    'azure-storage',
     'request',
     'request-progress',
     'diff-match-patch',
     'node-stream-zip',
-    'xml2js',
     'vsls/vscode',
     'pdfkit/js/pdfkit.standalone',
     'crypto-js',
     'fontkit',
-    'linebreak',
     'png-js',
     'zeromq'
 ];
