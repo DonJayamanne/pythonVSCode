@@ -24,7 +24,7 @@
     - [TSLint](https://marketplace.visualstudio.com/items?itemName=ms-vscode.vscode-typescript-tslint-plugin)
     - [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
     - [EditorConfig for VS Code](https://marketplace.visualstudio.com/items?itemName=EditorConfig.EditorConfig)
-1. Have an issue which has a "needs PR" label (feel free to indicate you would like to provide a PR for the issue so others don't work on it as well)
+    - [Python Extension for VS Code](https://marketplace.visualstudio.com/items?itemName=ms-python.python)
 
 ### Setup
 
@@ -36,14 +36,14 @@ python3 -m venv .venv
 # Activate the virtual environment as appropriate for your shell, For example, on bash it's ...
 source .venv/bin/activate
 # The Python code in the extension is formatted using Black.
-python3 -m pip install black
+python -m pip install black
+# The Python code required in the extension
+python -m pip install -r requirements.txt
 ```
-
-If you see warnings that `The engine "vscode" appears to be invalid.`, you can ignore these.
 
 ### Incremental Build
 
-Run the `Compile` and `Hygiene` build Tasks from the [Run Build Task...](https://code.visualstudio.com/docs/editor/tasks) command picker (short cut `CTRL+SHIFT+B` or `⇧⌘B`). This will leave build and hygiene tasks running in the background and which will re-run as files are edited and saved. You can see the output from either task in the Terminal panel (use the selector to choose which output to look at).
+Run the `Compile` and `Compile Web Views` build Tasks from the [Run Build Task...](https://code.visualstudio.com/docs/editor/tasks) command picker (short cut `CTRL+SHIFT+B` or `⇧⌘B`). This will leave build tasks running in the background and which will re-run as files are edited and saved. You can see the output from either task in the Terminal panel (use the selector to choose which output to look at).
 
 You can also compile from the command-line. For a full compile you can use:
 
@@ -55,7 +55,7 @@ For incremental builds you can use the following commands depending on your need
 
 ```shell
 npm run compile
-npm run compile-webviews-watch # For data science (React Code)
+npm run compile-webviews-watch # For Interactive Window, Plot Viewer, Data Frame Viewer, and Notebooks (not the one based on VS Code)
 ```
 
 Sometimes you will need to run `npm run clean` and even `rm -r out`.
@@ -103,16 +103,16 @@ Alter the `launch.json` file in the `"Debug Unit Tests"` section by setting the 
 ### Running Functional Tests
 
 Functional tests are those in files with extension `.functional.test.ts`.
-These tests are similar to system tests in scope, but are run like unit tests.
+These tests are similar to integration tests in scope, but are run like unit tests.
 
 You can run functional tests in a similar way to that for unit tests:
 
 -   via the "Functional Tests" launch option, or
 -   on the command line via `npm run test:functional`
 
-### Running System Tests
+### Running Integration Tests (with VS Code)
 
-Note: System tests are those in files with extension `.test*.ts` but which are neither `.functional.test.ts` nor `.unit.test.ts`.
+Note: Integration tests are those in files with extension `*.vscode.test.ts`.
 
 1. Make sure you have compiled all code (done automatically when using incremental building)
 1. Ensure you have disabled breaking into 'Uncaught Exceptions' when running the Unit Tests
@@ -155,18 +155,16 @@ This environment variable allows providing a regular expression which will
 be matched against suite and test "names" to be run. By default all tests
 are run.
 
-For example, to run only the tests in the `Sorting` suite (from
-[`src/test/format/extension.sort.test.ts`](https://github.com/Microsoft/vscode-jupyter/blob/84f9c7a174111/src/test/format/extension.sort.test.ts))
-you would set the value to `Sorting`. To run the `ProcessService` and
-`ProcessService Observable` tests which relate to `stderr` handling, you might
-use the value `ProcessService.*stderr`.
+For example, to run only the tests in the `DataScience - Kernels Finder` suite (from
+[`src/test/datascience/kernel-launcher/kernelFinder.vscode.test.ts`](https://github.com/microsoft/vscode-jupyter/blob/269e0790f9ef6f1571140f0650c6b5fb844f1940/src/test/datascience/kernel-launcher/kernelFinder.vscode.test.ts))
+you would set the value to `Kernels Finder`.
 
 Be sure to escape any grep-sensitive characters in your suite name.
 
 In some rare cases in the "system" tests the `VSC_JUPYTER_CI_TEST_GREP`
 environment variable is ignored. If that happens then you will need to
-temporarily modify the `const grep =` line in
-[`src/test/index.ts`](https://github.com/Microsoft/vscode-jupyter/blob/84f9c7a174111/src/test/index.ts#L64).
+temporarily modify the `const defaultGrep =` line in
+[`src/test/index.ts`](https://github.com/microsoft/vscode-jupyter/blob/de1bfe1cbebc0f4e570dc4ae7e1ca057abb0533e/src/test/index.ts#L62).
 
 _Launching from VSCode_
 
@@ -188,7 +186,7 @@ on your system, however most systems support a syntax like the following for
 setting a single variable for a subprocess:
 
 ```shell
-VSC_JUPYTER_CI_TEST_GREP=Sorting npm run testSingleWorkspace
+VSC_JUPYTER_CI_TEST_GREP=Sorting npm run testVSCode
 ```
 
 ### Testing Python Scripts
@@ -211,15 +209,10 @@ To run only the functional tests:
 
 Clone the repo into any directory, open that directory in VSCode, and use the `Extension` launch option within VSCode.
 
-### Debugging the Python Extension Debugger
-
-The easiest way to debug the Python Debugger (in our opinion) is to clone this git repo directory into [your](https://code.visualstudio.com/docs/extensions/install-extension#_your-extensions-folder) extensions directory.
-From there use the `Extension + Debugger` launch option.
-
 ### Coding Standards
 
 Information on our coding standards can be found [here](https://github.com/Microsoft/vscode-jupyter/blob/main/CODING_STANDARDS.md).
-We have CI tests to ensure the code committed will adhere to the above coding standards. \*You can run this locally by executing the command `npx gulp precommit` or use the `precommit` Task.
+We have CI tests to ensure the code committed will adhere to the above coding standards.
 
 Messages displayed to the user must be localized using/created constants from/in the [localize.ts](https://github.com/Microsoft/vscode-jupyter/blob/main/src/client/common/utils/localize.ts) file.
 
@@ -249,11 +242,6 @@ than the next sprint from when it was submitted (see
 ### Release cycle
 
 Planning is done as one week sprints. We start a sprint every Thursday.
-All [P0](https://github.com/Microsoft/vscode-jupyter/labels/P0) issues are expected
-to be fixed in the current sprint, else the next release will be blocked.
-[P1](https://github.com/Microsoft/vscode-jupyter/labels/P1) issues are a
-top-priority and we try to close before the next release. All other issues are
-considered best-effort for that sprint.
 
 The extension aims to do a new release once a month. A
 [release plan](https://github.com/Microsoft/vscode-jupyter/labels/release%20plan)
@@ -269,29 +257,6 @@ our [release branch](https://github.com/microsoft/vscode-jupyter/branches).
 At that point only what is in the release branch will make it into the next
 release.
 
-### Issue triaging
-
-#### Classifying issues
-
-To help actively track what stage
-[issues](https://github.com/Microsoft/vscode-jupyter/issues)
-are at, various labels are used. The following label types are expected to
-be set on all open issues (otherwise the issue is not considered triaged):
-
-1. `needs`/`triage`/`classify`
-1. `feature`
-1. `type`
-
-These labels cover what is blocking the issue from closing, what is affected by
-the issue, and what kind of issue it is. (The `feature` label should be `feature-*` if the issue doesn't fit into any other `feature` label appropriately.)
-
-It is also very important to make the title accurate. People often write very brief, quick titles or ones that describe what they think the problem is. By updating the title to be appropriately descriptive for what _you_ think the issue is, you not only make finding older issues easier, but you also help make sure that you and the original reporter agree on what the issue is.
-
-#### Post-classification
-
-Once an issue has been appropriately classified, there are two keys ways to help out. One is to go through open issues that
-have a merged fix and verify that the fix did in fact work. The other is to try to fix issues marked as `needs PR`.
-
 ### Pull requests
 
 Key details that all pull requests are expected to handle should be
@@ -299,14 +264,10 @@ in the [pull request template](https://github.com/Microsoft/vscode-jupyter/blob/
 
 ### Versioning
 
-Starting in 2018, the extension switched to
-[calendar versioning](http://calver.org/) since the extension
-auto-updates and thus there is no need to track its version
-number for backwards-compatibility. In 2020, the extension switched to
-having the the major version be the year of release, the minor version the
+The extension sets the major version be the year of release, the minor version the
 release count for that year, and the build number is a number that increments
 for every build.
-For example the first release made in 2020 is `2020.1.<build number>`.
+For example the first release in 2021 is `2021.1.<build number>`.
 
 ## Releasing
 
@@ -327,11 +288,6 @@ Steps to build the extension on your machine once you've cloned the repo:
 # Perform the next steps in the vscode-jupyter folder.
 > npm ci
 > python3 -m pip --disable-pip-version-check install -t ./pythonFiles/lib/python --no-cache-dir --implementation py --no-deps --upgrade -r requirements.txt
-# For python 3.6 and lower use this command to install the debugger
-> python3 -m pip --disable-pip-version-check install -t ./pythonFiles/lib/python --no-cache-dir --implementation py --no-deps --upgrade --pre debugpy
-# For python 3.7 and greater use this command to install the debugger
-> python3 -m pip --disable-pip-version-check install -r build/debugger-install-requirements.txt
-> python3 ./pythonFiles/install_debugpy.py
 > npm run clean
 > npm run package # This step takes around 10 minutes.
 ```

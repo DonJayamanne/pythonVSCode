@@ -8,8 +8,11 @@
         "bin": true,
         "**/__pycache__": true,
         "**/node_modules": true,
-        ".vscode-test": false,
-        ".vscode test": false,
+        ".vscode-test": true,
+        ".vscode test": true,
+        ".venv": true,
+        "**/.pytest_cache/**": true,
+        "languageServer.*/**": true,
         "**/.mypy_cache/**": true,
         "**/.ropeproject/**": true
     },
