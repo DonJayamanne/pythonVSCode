@@ -71,9 +71,7 @@ export class KernelProvider implements IKernelProvider {
                     this.kernelsByUri.delete(uri.toString());
                     traceInfo(
                         `Kernel got disposed, hence there is no longer a kernel associated with ${uri.toString()}`,
-                        kernel.uri.toString(),
-                        kernel.info,
-                        kernel.metadata
+                        kernel.uri.toString()
                     );
                 }
             },
