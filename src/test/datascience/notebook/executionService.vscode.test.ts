@@ -499,4 +499,104 @@ suite('DataScience - VSCode Notebook - (Execution) (slow)', () => {
             'output from cell 2 should be printed before last background output from cell 1'
         );
     });
+    test('Outputs with support for ansic code `\u001b[A`', async () => {
+        // Ansi Code `<esc>[A` means move cursor up, i.e. replace previous line with the new output (or erase previous line & start there).
+        await insertCodeCell(
+            dedent`
+            import sys
+            import os
+            sys.stdout.write(f"Line1{os.linesep}")
+            sys.stdout.flush()
+            sys.stdout.write(os.linesep)
+            sys.stdout.flush()
+            sys.stdout.write(f"Line3{os.linesep}")
+            sys.stdout.flush()
+            sys.stdout.write("Line4")
+            `,
+            { index: 0 }
+        );
+        await insertCodeCell(
+            dedent`
+            import sys
+            import os
+            sys.stdout.write(f"Line1{os.linesep}")
+            sys.stdout.flush()
+            sys.stdout.write(os.linesep)
+            sys.stdout.flush()
+            sys.stdout.write(u"\u001b[A")
+            sys.stdout.flush()
+            sys.stdout.write(f"Line3{os.linesep}")
+            sys.stdout.flush()
+            sys.stdout.write("Line4")
+            `,
+            { index: 1 }
+        );
+        const cells = vscodeNotebook.activeNotebookEditor?.document.cells!;
+
+        await executeActiveDocument();
+        await waitForExecutionCompletedSuccessfully(cells[0]);
+        await waitForExecutionCompletedSuccessfully(cells[1]);
+
+        // In cell 1 we should have the output
+        // Line1
+        //
+        // Line2
+        // Line3
+        // & in cell 2 we should have the output
+        // Line1
+        // Line2
+        // Line3
+        assert.equal(cells[0].outputs.length, 1, 'Incorrect number of output');
+        assert.equal(cells[0].outputs[0].outputKind, vscodeNotebookEnums.CellOutputKind.Rich, 'Incorrect output type');
+        assert.equal(cells[1].outputs.length, 1, 'Incorrect number of output');
+        assert.equal(cells[1].outputs[0].outputKind, vscodeNotebookEnums.CellOutputKind.Rich, 'Incorrect output type');
+
+        // Confirm the output
+        const output1Lines: string[] = ((cells[0].outputs[0] as CellDisplayOutput).data[
+            'text/plain'
+        ] as string).splitLines({ trim: false, removeEmptyEntries: false });
+        const output2Lines: string[] = ((cells[1].outputs[0] as CellDisplayOutput).data[
+            'text/plain'
+        ] as string).splitLines({ trim: false, removeEmptyEntries: false });
+        assert.equal(output1Lines.length, 4);
+        assert.equal(output2Lines.length, 3);
+    });
+    test('Stderr & stdout outputs should go into separate outputs', async () => {
+        await insertCodeCell(
+            dedent`
+            import sys
+            sys.stdout.write("1")
+            sys.stdout.flush()
+            sys.stderr.write("a")
+            sys.stderr.flush()
+            sys.stdout.write("2")
+            sys.stdout.flush()
+            sys.stderr.write("b")
+            sys.stderr.flush()
+                        `,
+            { index: 0 }
+        );
+        const cells = vscodeNotebook.activeNotebookEditor?.document.cells!;
+
+        await executeActiveDocument();
+        await waitForExecutionCompletedSuccessfully(cells[0]);
+
+        // In cell 1 we should have the output
+        // 12
+        // ab
+        // Basically have one output for stderr & a separate output for stdout.
+        assert.equal(cells[0].outputs.length, 2, 'Incorrect number of output');
+        const output1 = cells[0].outputs[0] as CellDisplayOutput;
+        const output2 = cells[0].outputs[1] as CellDisplayOutput;
+        assert.equal(output1.metadata?.custom?.vscode?.outputType, 'stream', 'Incorrect output type');
+        assert.equal(output2.metadata?.custom?.vscode?.outputType, 'stream', 'Incorrect output type');
+        assert.equal(output1.metadata?.custom?.vscode?.name, 'stdout', 'Incorrect stream name');
+        assert.equal(output2.metadata?.custom?.vscode?.name, 'stderr', 'Incorrect stream name');
+        assert.equal(output1.outputKind, vscodeNotebookEnums.CellOutputKind.Rich, 'Incorrect output type');
+        assert.equal(output2.outputKind, vscodeNotebookEnums.CellOutputKind.Rich, 'Incorrect output type');
+
+        // Confirm the output
+        assert.equal(output1.data['text/plain'], '12');
+        assert.equal(output2.data['text/plain'], 'ab');
+    });
 });

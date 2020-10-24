@@ -584,6 +584,25 @@ function translateStreamOutput(output: nbformat.IStream, outputType: nbformat.Ou
     };
 }
 
+export function isStreamOutput(output: CellOutput, expectedStreamName: string): boolean {
+    if (output.outputKind !== vscodeNotebookEnums.CellOutputKind.Rich) {
+        return false;
+    }
+    output = (output as unknown) as CellDisplayOutput;
+    if (!('text/plain' in output.data)) {
+        return false;
+    }
+    // Logic of metadata can be found here translateStreamOutput.
+    // That function adds the vscode metadata.
+    if (output.metadata?.custom?.vscode?.outputType !== 'stream') {
+        return false;
+    }
+    if (expectedStreamName && output.metadata?.custom?.vscode?.name !== expectedStreamName) {
+        return false;
+    }
+    return true;
+}
+
 // tslint:disable-next-line: no-any
 function getSanitizedCellMetadata(metadata?: { [key: string]: any }) {
     const cloned = { ...metadata };
