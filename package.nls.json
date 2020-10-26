@@ -104,6 +104,8 @@
     "jupyter.command.jupyter.submitGitHubIssue.title": "Submit GitHub Issue",
     "jupyter.command.jupyter.enableDebugLogging.title": "Enable Debug Logging",
     "jupyter.command.jupyter.resetLoggingLevel.title": "Reset Logging Level",
+    "jupyter.command.jupyter.showDataViewer.title": "View Value in Data Viewer",
+    "jupyter.command.jupyter.viewOutput.title": "Show Output",
     "Datascience.currentlySelectedJupyterInterpreterForPlaceholder": "current: {0}",
     "jupyter.command.jupyter.analysis.clearCache.title": "Clear Module Analysis Cache",
     "jupyter.command.jupyter.analysis.restartLanguageServer.title": "Restart Language Server",

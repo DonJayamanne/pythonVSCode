@@ -7,6 +7,7 @@ import { DebugState, IServerState } from '../../../datascience-ui/interactive-co
 
 import type { KernelMessage } from '@jupyterlab/services';
 import { DebugProtocol } from 'vscode-debugprotocol';
+import { DebugProtocolVariable, DebugProtocolVariableContainer } from '../../../../types/vscode-proposed';
 import {
     CommonActionType,
     IAddCellAction,
@@ -332,6 +333,11 @@ export interface IInsertCell {
 export interface IShowDataViewer {
     variable: IJupyterVariable;
     columnSize: number;
+}
+
+export interface IShowDataViewerFromVariablePanel {
+    container: DebugProtocolVariableContainer | undefined;
+    variable: DebugProtocolVariable;
 }
 
 export interface IRefreshVariablesRequest {

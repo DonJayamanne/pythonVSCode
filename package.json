@@ -667,6 +667,11 @@
                 "command": "jupyter.resetLoggingLevel",
                 "title": "%jupyter.command.jupyter.resetLoggingLevel.title%",
                 "category": "Jupyter"
+            },
+            {
+                "command": "jupyter.showDataViewer",
+                "title": "%jupyter.command.jupyter.showDataViewer.title%",
+                "category": "Jupyter"
             }
         ],
         "menus": {
@@ -1201,6 +1206,18 @@
                     "title": "%jupyter.command.jupyter.createGitHubIssue.title%",
                     "category": "Jupyter",
                     "when": "config.jupyter.logging.level == debug"
+                },
+                {
+                    "command": "jupyter.showDataViewer",
+                    "category": "Jupyter",
+                    "when": "false"
+                }
+            ],
+            "debug/variables/context": [
+                {
+                    "command": "jupyter.showDataViewer",
+                    "group": "1_view",
+                    "when": "python.isDebuggerDataViewerExperimentEnabled && debugProtocolVariableMenuContext == 'viewableInDataViewer'"
                 }
             ]
         },
@@ -1236,6 +1253,7 @@
                             "CustomEditor",
                             "RunByLine",
                             "jediLSP",
+                            "debuggerDataViewer",
                             "All"
                         ]
                     },
@@ -1250,6 +1268,7 @@
                             "NativeNotebookEditor",
                             "CustomEditor",
                             "RunByLine",
+                            "debuggerDataViewer",
                             "All"
                         ]
                     },

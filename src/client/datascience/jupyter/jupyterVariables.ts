@@ -49,37 +49,37 @@ export class JupyterVariables implements IJupyterVariables {
     // IJupyterVariables implementation
     @captureTelemetry(Telemetry.VariableExplorerFetchTime, undefined, true)
     public async getVariables(
-        notebook: INotebook,
-        request: IJupyterVariablesRequest
+        request: IJupyterVariablesRequest,
+        notebook?: INotebook
     ): Promise<IJupyterVariablesResponse> {
-        return (await this.getVariableHandler(notebook)).getVariables(notebook, request);
+        return (await this.getVariableHandler(notebook)).getVariables(request, notebook);
     }
 
-    public async getMatchingVariable(notebook: INotebook, name: string): Promise<IJupyterVariable | undefined> {
-        return (await this.getVariableHandler(notebook)).getMatchingVariable(notebook, name);
+    public async getMatchingVariable(name: string, notebook?: INotebook): Promise<IJupyterVariable | undefined> {
+        return (await this.getVariableHandler(notebook)).getMatchingVariable(name, notebook);
     }
 
-    public async getDataFrameInfo(targetVariable: IJupyterVariable, notebook: INotebook): Promise<IJupyterVariable> {
+    public async getDataFrameInfo(targetVariable: IJupyterVariable, notebook?: INotebook): Promise<IJupyterVariable> {
         return (await this.getVariableHandler(notebook)).getDataFrameInfo(targetVariable, notebook);
     }
 
     public async getDataFrameRows(
         targetVariable: IJupyterVariable,
-        notebook: INotebook,
         start: number,
-        end: number
+        end: number,
+        notebook?: INotebook
     ): Promise<JSONObject> {
-        return (await this.getVariableHandler(notebook)).getDataFrameRows(targetVariable, notebook, start, end);
+        return (await this.getVariableHandler(notebook)).getDataFrameRows(targetVariable, start, end, notebook);
     }
 
-    private async getVariableHandler(notebook: INotebook): Promise<IJupyterVariables> {
+    private async getVariableHandler(notebook?: INotebook): Promise<IJupyterVariables> {
         if (this.runByLineEnabled === undefined) {
             this.runByLineEnabled = await this.experimentsService.inExperiment(Experiments.RunByLine);
         }
         if (!this.runByLineEnabled) {
             return this.oldVariables;
         }
-        if (this.debuggerVariables.active && notebook.status === ServerStatus.Busy) {
+        if (this.debuggerVariables.active && (!notebook || notebook.status === ServerStatus.Busy)) {
             return this.debuggerVariables;
         }
 

@@ -14,6 +14,8 @@ import { ExportCommands } from '../../../client/datascience/commands/exportComma
 import { NotebookCommands } from '../../../client/datascience/commands/notebookCommands';
 import { JupyterServerSelectorCommand } from '../../../client/datascience/commands/serverSelector';
 import { Commands } from '../../../client/datascience/constants';
+import { DataViewerFactory } from '../../../client/datascience/data-viewing/dataViewerFactory';
+import { JupyterVariableDataProviderFactory } from '../../../client/datascience/data-viewing/jupyterVariableDataProviderFactory';
 import { DataScienceCodeLensProvider } from '../../../client/datascience/editor-integration/codelensprovider';
 import { NativeEditorProvider } from '../../../client/datascience/notebookStorage/nativeEditorProvider';
 import { MockOutputChannel } from '../../mockClasses';
@@ -38,6 +40,8 @@ suite('DataScience - Commands', () => {
         const configService = mock(ConfigurationService);
         const appShell = mock(ApplicationShell);
         const exportCommand = mock(ExportCommands);
+        const jupyterVariableDataProviderFactory = mock(JupyterVariableDataProviderFactory);
+        const dataViewerFactory = mock(DataViewerFactory);
         const fileSystem = mock(FileSystem);
 
         commandRegistry = new CommandRegistry(
@@ -54,7 +58,9 @@ suite('DataScience - Commands', () => {
             instance(appShell),
             new MockOutputChannel('Jupyter'),
             instance(exportCommand),
-            instance(fileSystem)
+            instance(fileSystem),
+            instance(jupyterVariableDataProviderFactory),
+            instance(dataViewerFactory)
         );
     });
 

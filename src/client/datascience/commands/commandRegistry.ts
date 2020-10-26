@@ -5,8 +5,10 @@
 
 import { inject, injectable, multiInject, named, optional } from 'inversify';
 import { CodeLens, ConfigurationTarget, env, Range, Uri } from 'vscode';
+import { DebugProtocol } from 'vscode-debugprotocol';
 import { ICommandNameArgumentTypeMapping } from '../../common/application/commands';
 import { IApplicationShell, ICommandManager, IDebugService, IDocumentManager } from '../../common/application/types';
+import { traceError } from '../../common/logger';
 import { IFileSystem } from '../../common/platform/types';
 
 import { IConfigurationService, IDisposable, IOutputChannel } from '../../common/types';
@@ -14,11 +16,17 @@ import { DataScience } from '../../common/utils/localize';
 import { noop } from '../../common/utils/misc';
 import { LogLevel } from '../../logging/levels';
 import { captureTelemetry, sendTelemetryEvent } from '../../telemetry';
+import { EventName } from '../../telemetry/constants';
 import { Commands, JUPYTER_OUTPUT_CHANNEL, Telemetry } from '../constants';
+import { IDataViewerFactory } from '../data-viewing/types';
+import { DataViewerChecker } from '../interactive-common/dataViewerChecker';
+import { IShowDataViewerFromVariablePanel } from '../interactive-common/interactiveWindowTypes';
+import { convertDebugProtocolVariableToIJupyterVariable } from '../jupyter/debuggerVariables';
 import {
     ICodeWatcher,
     IDataScienceCodeLensProvider,
     IDataScienceCommandListener,
+    IJupyterVariableDataProviderFactory,
     INotebookEditorProvider
 } from '../types';
 import { JupyterCommandLineSelectorCommand } from './commandLineSelector';
@@ -29,6 +37,7 @@ import { JupyterServerSelectorCommand } from './serverSelector';
 @injectable()
 export class CommandRegistry implements IDisposable {
     private readonly disposables: IDisposable[] = [];
+    private dataViewerChecker: DataViewerChecker;
     constructor(
         @inject(IDocumentManager) private documentManager: IDocumentManager,
         @inject(IDataScienceCodeLensProvider) private dataScienceCodeLensProvider: IDataScienceCodeLensProvider,
@@ -46,10 +55,14 @@ export class CommandRegistry implements IDisposable {
         @inject(IApplicationShell) private appShell: IApplicationShell,
         @inject(IOutputChannel) @named(JUPYTER_OUTPUT_CHANNEL) private jupyterOutput: IOutputChannel,
         @inject(ExportCommands) private readonly exportCommand: ExportCommands,
-        @inject(IFileSystem) private readonly fs: IFileSystem
+        @inject(IFileSystem) private readonly fs: IFileSystem,
+        @inject(IJupyterVariableDataProviderFactory)
+        private readonly jupyterVariableDataProviderFactory: IJupyterVariableDataProviderFactory,
+        @inject(IDataViewerFactory) private readonly dataViewerFactory: IDataViewerFactory
     ) {
         this.disposables.push(this.serverSelectedCommand);
         this.disposables.push(this.notebookCommands);
+        this.dataViewerChecker = new DataViewerChecker(configService, appShell);
     }
     public register() {
         this.commandLineCommand.register();
@@ -96,6 +109,7 @@ export class CommandRegistry implements IDisposable {
         this.registerCommand(Commands.LatestExtension, this.openPythonExtensionPage);
         this.registerCommand(Commands.EnableDebugLogging, this.enableDebugLogging);
         this.registerCommand(Commands.ResetLoggingLevel, this.resetLoggingLevel);
+        this.registerCommand(Commands.ShowDataViewer, this.onVariablePanelShowDataViewerRequest);
         this.registerCommand(
             Commands.EnableLoadingWidgetsFrom3rdPartySource,
             this.enableLoadingWidgetScriptsFromThirdParty
@@ -470,5 +484,30 @@ export class CommandRegistry implements IDisposable {
 
     private openPythonExtensionPage() {
         env.openExternal(Uri.parse(`https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter`));
+    }
+
+    private async onVariablePanelShowDataViewerRequest(request: IShowDataViewerFromVariablePanel) {
+        sendTelemetryEvent(EventName.OPEN_DATAVIEWER_FROM_VARIABLE_WINDOW_REQUEST);
+        if (this.debugService.activeDebugSession) {
+            const jupyterVariable = convertDebugProtocolVariableToIJupyterVariable(
+                request.variable as DebugProtocol.Variable
+            );
+            try {
+                const jupyterVariableDataProvider = await this.jupyterVariableDataProviderFactory.create(
+                    jupyterVariable
+                );
+                const dataFrameInfo = await jupyterVariableDataProvider.getDataFrameInfo();
+                const columnSize = dataFrameInfo?.columns?.length;
+                if (columnSize && (await this.dataViewerChecker.isRequestedColumnSizeAllowed(columnSize))) {
+                    const title: string = `${DataScience.dataExplorerTitle()} - ${jupyterVariable.name}`;
+                    await this.dataViewerFactory.create(jupyterVariableDataProvider, title);
+                    sendTelemetryEvent(EventName.OPEN_DATAVIEWER_FROM_VARIABLE_WINDOW_SUCCESS);
+                }
+            } catch (e) {
+                sendTelemetryEvent(EventName.OPEN_DATAVIEWER_FROM_VARIABLE_WINDOW_ERROR, undefined, e);
+                traceError(e);
+                this.appShell.showErrorMessage(e.toString());
+            }
+        }
     }
 }

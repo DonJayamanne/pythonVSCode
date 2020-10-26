@@ -48,11 +48,13 @@ export class DebuggerVariables extends DebugLocationTracker
 
     // IJupyterVariables implementation
     public async getVariables(
-        notebook: INotebook,
-        request: IJupyterVariablesRequest
+        request: IJupyterVariablesRequest,
+        notebook?: INotebook
     ): Promise<IJupyterVariablesResponse> {
         // Listen to notebook events if we haven't already
-        this.watchNotebook(notebook);
+        if (notebook) {
+            this.watchNotebook(notebook);
+        }
 
         const result: IJupyterVariablesResponse = {
             executionCount: request.executionCount,
@@ -71,7 +73,7 @@ export class DebuggerVariables extends DebugLocationTracker
             for (let i = startPos; i < startPos + chunkSize && i < this.lastKnownVariables.length; i += 1) {
                 const fullVariable = !this.lastKnownVariables[i].truncated
                     ? this.lastKnownVariables[i]
-                    : await this.getFullVariable(this.lastKnownVariables[i], notebook);
+                    : await this.getFullVariable(this.lastKnownVariables[i]);
                 this.lastKnownVariables[i] = fullVariable;
                 result.pageResponse.push(fullVariable);
             }
@@ -81,29 +83,29 @@ export class DebuggerVariables extends DebugLocationTracker
         return result;
     }
 
-    public async getMatchingVariable(notebook: INotebook, name: string): Promise<IJupyterVariable | undefined> {
+    public async getMatchingVariable(name: string, notebook?: INotebook): Promise<IJupyterVariable | undefined> {
         if (this.active) {
             // Note, full variable results isn't necessary for this call. It only really needs the variable value.
             const result = this.lastKnownVariables.find((v) => v.name === name);
-            if (result) {
-                if (notebook.identity.fsPath.endsWith('.ipynb')) {
-                    sendTelemetryEvent(Telemetry.RunByLineVariableHover);
-                }
+            if (result && notebook && notebook.identity.fsPath.endsWith('.ipynb')) {
+                sendTelemetryEvent(Telemetry.RunByLineVariableHover);
             }
             return result;
         }
     }
 
-    public async getDataFrameInfo(targetVariable: IJupyterVariable, notebook: INotebook): Promise<IJupyterVariable> {
+    public async getDataFrameInfo(targetVariable: IJupyterVariable, notebook?: INotebook): Promise<IJupyterVariable> {
         if (!this.active) {
             // No active server just return the unchanged target variable
             return targetVariable;
         }
         // Listen to notebook events if we haven't already
-        this.watchNotebook(notebook);
+        if (notebook) {
+            this.watchNotebook(notebook);
+        }
 
         // See if we imported or not into the kernel our special function
-        await this.importDataFrameScripts(notebook);
+        await this.importDataFrameScripts();
 
         // Then eval calling the main function with our target variable
         const results = await this.evaluate(
@@ -116,16 +118,16 @@ export class DebuggerVariables extends DebugLocationTracker
         return results
             ? {
                   ...targetVariable,
-                  ...JSON.parse(results.result.slice(1, -1))
+                  ...JSON.parse(results.result)
               }
             : targetVariable;
     }
 
     public async getDataFrameRows(
         targetVariable: IJupyterVariable,
-        notebook: INotebook,
         start: number,
-        end: number
+        end: number,
+        notebook?: INotebook
     ): Promise<{}> {
         // Run the get dataframe rows script
         if (!this.debugService.activeDebugSession || targetVariable.columns === undefined) {
@@ -133,10 +135,12 @@ export class DebuggerVariables extends DebugLocationTracker
             return {};
         }
         // Listen to notebook events if we haven't already
-        this.watchNotebook(notebook);
+        if (notebook) {
+            this.watchNotebook(notebook);
+        }
 
         // See if we imported or not into the kernel our special function
-        await this.importDataFrameScripts(notebook);
+        await this.importDataFrameScripts();
 
         // Since the debugger splits up long requests, split this based on the number of items.
 
@@ -154,7 +158,7 @@ export class DebuggerVariables extends DebugLocationTracker
                 // tslint:disable-next-line: no-any
                 (targetVariable as any).frameId
             );
-            const chunkResults = JSON.parse(results.result.slice(1, -1));
+            const chunkResults = JSON.parse(results.result);
             if (output && output.data) {
                 output = {
                     ...output,
@@ -169,6 +173,7 @@ export class DebuggerVariables extends DebugLocationTracker
         return output;
     }
 
+    // This special DebugAdapterTracker function listens to messages sent from the debug adapter to VS Code
     // tslint:disable-next-line: no-any
     public onDidSendMessage(message: any) {
         super.onDidSendMessage(message);
@@ -180,12 +185,17 @@ export class DebuggerVariables extends DebugLocationTracker
             // tslint:disable-next-line: no-suspicious-comment
             // TODO: Figure out what resource to use
             this.updateVariables(undefined, message as DebugProtocol.VariablesResponse);
+            this.monkeyPatchDataViewableVariables(message);
         } else if (message.type === 'event' && message.event === 'terminated') {
             // When the debugger exits, make sure the variables are cleared
             this.lastKnownVariables = [];
             this.topMostFrameId = 0;
             this.debuggingStarted = false;
             this.refreshEventEmitter.fire();
+            const key = this.debugService.activeDebugSession?.id;
+            if (key) {
+                this.importedIntoKernel.delete(key);
+            }
         }
     }
 
@@ -216,7 +226,8 @@ export class DebuggerVariables extends DebugLocationTracker
             const results = await this.debugService.activeDebugSession.customRequest('evaluate', {
                 expression: code,
                 frameId: this.topMostFrameId || frameId,
-                context: 'repl'
+                context: 'repl',
+                format: { rawString: true }
             });
             if (results && results.result !== 'None') {
                 return results;
@@ -228,10 +239,11 @@ export class DebuggerVariables extends DebugLocationTracker
         throw Error('Debugger is not active, cannot evaluate.');
     }
 
-    private async importDataFrameScripts(notebook: INotebook): Promise<void> {
+    private async importDataFrameScripts(): Promise<void> {
         try {
-            const key = notebook.identity.toString();
-            if (!this.importedIntoKernel.has(key)) {
+            // Run our dataframe scripts only once per session because they're slow
+            const key = this.debugService.activeDebugSession?.id;
+            if (key && !this.importedIntoKernel.has(key)) {
                 await this.evaluate(DataFrameLoading.DataFrameSysImport);
                 await this.evaluate(DataFrameLoading.DataFrameInfoImport);
                 await this.evaluate(DataFrameLoading.DataFrameRowImport);
@@ -243,9 +255,9 @@ export class DebuggerVariables extends DebugLocationTracker
         }
     }
 
-    private async getFullVariable(variable: IJupyterVariable, notebook: INotebook): Promise<IJupyterVariable> {
+    private async getFullVariable(variable: IJupyterVariable): Promise<IJupyterVariable> {
         // See if we imported or not into the kernel our special function
-        await this.importDataFrameScripts(notebook);
+        await this.importDataFrameScripts();
 
         // Then eval calling the variable info function with our target variable
         const results = await this.evaluate(
@@ -258,12 +270,21 @@ export class DebuggerVariables extends DebugLocationTracker
             return {
                 ...variable,
                 truncated: false,
-                ...JSON.parse(results.result.slice(1, -1))
+                ...JSON.parse(results.result)
             };
         } else {
             // If no results, just return current value. Better than nothing.
             return variable;
         }
+    }
+
+    private monkeyPatchDataViewableVariables(variablesResponse: DebugProtocol.VariablesResponse) {
+        variablesResponse.body.variables.forEach((v) => {
+            if (v.type && DataViewableTypes.has(v.type)) {
+                // tslint:disable-next-line: no-any
+                (v as any).__vscodeVariableMenuContext = 'viewableInDataViewer';
+            }
+        });
     }
 
     private updateVariables(resource: Resource, variablesResponse: DebugProtocol.VariablesResponse) {
@@ -291,19 +312,23 @@ export class DebuggerVariables extends DebugLocationTracker
         });
 
         this.lastKnownVariables = allowedVariables.map((v) => {
-            return {
-                name: v.name,
-                type: v.type!,
-                count: 0,
-                shape: '',
-                size: 0,
-                supportsDataExplorer: DataViewableTypes.has(v.type || ''),
-                value: v.value,
-                truncated: true,
-                frameId: v.variablesReference
-            };
+            return convertDebugProtocolVariableToIJupyterVariable(v);
         });
 
         this.refreshEventEmitter.fire();
     }
+}
+
+export function convertDebugProtocolVariableToIJupyterVariable(variable: DebugProtocol.Variable) {
+    return {
+        name: variable.name,
+        type: variable.type!,
+        count: 0,
+        shape: '',
+        size: 0,
+        supportsDataExplorer: DataViewableTypes.has(variable.type || ''),
+        value: variable.value,
+        truncated: true,
+        frameId: variable.variablesReference
+    };
 }
