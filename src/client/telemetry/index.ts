@@ -688,7 +688,9 @@ export interface IEventNamePropertyMapping {
     [Telemetry.UserDidNotInstallJupyter]: never | undefined;
     [Telemetry.UserDidNotInstallPandas]: never | undefined;
     [Telemetry.SetJupyterURIToLocal]: never | undefined;
-    [Telemetry.SetJupyterURIToUserSpecified]: never | undefined;
+    [Telemetry.SetJupyterURIToUserSpecified]: {
+        azure: boolean;
+    };
     [Telemetry.ShiftEnterBannerShown]: never | undefined;
     [Telemetry.ShowDataViewer]: { rows: number | undefined; columns: number | undefined };
     [Telemetry.CreateNewInteractive]: never | undefined;
