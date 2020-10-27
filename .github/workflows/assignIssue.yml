@@ -8,6 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.repository == 'microsoft/vscode-jupyter'
     steps:
+      - uses: actions/checkout@v2
       - name: Created internally
         id: internal
         env:
@@ -24,8 +25,6 @@ jobs:
         run: |
           echo ::set-output name=result::$(node -p -e "process.env.ISSUE_IS_INTERNAL === '0' && JSON.parse(process.env.ISSUE_ASSIGNEES).length === 0 && JSON.parse(process.env.ISSUE_LABELS).filter(item => item.name.indexOf('data science') >= 0).length === 1 && JSON.parse(process.env.ISSUE_LABELS).filter(item => item.name.indexOf('Epic') >= 0).length === 0 ? 1 : 0")
         shell: bash
-      - uses: actions/checkout@v2
-        if: steps.proceed.outputs.result == 1
       - name: Day of week
         if: steps.proceed.outputs.result == 1
         id: day
