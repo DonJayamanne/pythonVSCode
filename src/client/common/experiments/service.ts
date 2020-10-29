@@ -148,6 +148,11 @@ export class ExperimentService implements IExperimentService {
         if (this._optInto.includes('All') || this._optInto.includes(experiment)) {
             return 'optIn';
         }
+
+        // If using insiders VS Code, then always enable Native Editor.
+        if (this.appEnvironment.extensionChannel === 'insiders' && experiment === ExperimentGroups.NativeNotebook) {
+            return 'optIn';
+        }
     }
     private getExperimentsUserHasManuallyOptedInto(): ExperimentGroups[] {
         return Object.values(ExperimentGroups).filter(

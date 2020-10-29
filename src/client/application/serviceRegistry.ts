@@ -3,10 +3,8 @@
 
 'use strict';
 
-import { IExtensionSingleActivationService } from '../activation/types';
 import { IServiceManager } from '../ioc/types';
-import { JoinMailingListPrompt } from './misc/joinMailingListPrompt';
 
-export function registerTypes(serviceManager: IServiceManager) {
-    serviceManager.add<IExtensionSingleActivationService>(IExtensionSingleActivationService, JoinMailingListPrompt);
+export function registerTypes(_: IServiceManager) {
+    // serviceManager.add<IExtensionSingleActivationService>(IExtensionSingleActivationService, JoinMailingListPrompt);
 }
