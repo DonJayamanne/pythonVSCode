@@ -332,34 +332,9 @@ export interface ISharedPropertyMapping {
 // Map all events to their properties
 export interface IEventNamePropertyMapping {
     /**
-     * Telemetry event sent with details of actions when invoking a diagnostic command
-     */
-    [EventName.DIAGNOSTICS_ACTION]: {
-        /**
-         * Diagnostics command executed.
-         * @type {string}
-         */
-        commandName?: string;
-        /**
-         * Diagnostisc code ignored (message will not be seen again).
-         * @type {string}
-         */
-        ignoreCode?: string;
-        /**
-         * Url of web page launched in browser.
-         * @type {string}
-         */
-        url?: string;
-        /**
-         * Custom actions performed.
-         * @type {'switchToCommandPrompt'}
-         */
-        action?: 'switchToCommandPrompt';
-    };
-    /**
      * Telemetry event sent with details just after editor loads
      */
-    [EventName.EDITOR_LOAD]: {
+    [EventName.EXTENSION_LOAD]: {
         /**
          * Number of workspace folders opened
          */
@@ -483,23 +458,9 @@ export interface IEventNamePropertyMapping {
         selection: 'Reload' | undefined;
     };
     /**
-     * Telemetry event sent with details when inExperiment() API is called
-     */
-    [EventName.PYTHON_EXPERIMENTS]: {
-        /**
-         * Name of the experiment group the user is in
-         * @type {string}
-         */
-        expName?: string;
-    };
-    /**
-     * Telemetry event sent when Experiments have been disabled.
-     */
-    [EventName.PYTHON_EXPERIMENTS_DISABLED]: never | undefined;
-    /**
      * Telemetry event sent with details when a user has requested to opt it or out of an experiment group
      */
-    [EventName.PYTHON_EXPERIMENTS_OPT_IN_OUT]: {
+    [EventName.JUPYTER_EXPERIMENTS_OPT_IN_OUT]: {
         /**
          * Carries the name of the experiment user has been opted into manually
          */
@@ -508,30 +469,6 @@ export interface IEventNamePropertyMapping {
          * Carries the name of the experiment user has been opted out of manually
          */
         expNameOptedOutOf?: string;
-    };
-    /**
-     * Telemetry event sent with details when doing best effort to download the experiments within timeout and using it in the current session only
-     */
-    [EventName.PYTHON_EXPERIMENTS_DOWNLOAD_SUCCESS_RATE]: {
-        /**
-         * Carries `true` if downloading experiments successfully finishes within timeout, `false` otherwise
-         * @type {boolean}
-         */
-        success?: boolean;
-        /**
-         * Carries an error string if downloading experiments fails with error
-         * @type {string}
-         */
-        error?: string;
-    };
-    /**
-     * When user clicks a button in the python extension survey prompt, this telemetry event is sent with details
-     */
-    [EventName.EXTENSION_SURVEY_PROMPT]: {
-        /**
-         * Carries the selection of user when they are asked to take the extension survey
-         */
-        selection: 'Yes' | 'Maybe later' | 'Do not show again' | undefined;
     };
     /**
      * Telemetry sent back when join mailing list prompt is shown.

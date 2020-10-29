@@ -101,6 +101,7 @@ async function activateLegacy(
     // Load the two data science experiments that we need to register types
     // Await here to keep the register method sync
     const experimentService = serviceContainer.get<IExperimentService>(IExperimentService);
+    experimentService.logExperiments();
     let useVSCodeNotebookAPI = await experimentService.inExperiment(Experiments.NativeNotebook);
     let inCustomEditorApiExperiment = await experimentService.inExperiment(Experiments.CustomEditor);
 

@@ -6,7 +6,7 @@ import { ReactWrapper } from 'enzyme';
 import * as React from 'react';
 import * as sinon from 'sinon';
 import { PYTHON_LANGUAGE } from '../../client/common/constants';
-import { getNamesAndValues } from '../../client/common/utils/enum';
+import { getNamesAndValues } from '../utils/enum';
 import { ServerStatus } from '../../datascience-ui/interactive-common/mainState';
 import { TrustMessage } from '../../datascience-ui/interactive-common/trustMessage';
 import { INativeEditorToolbarProps, Toolbar } from '../../datascience-ui/native-editor/toolbar';

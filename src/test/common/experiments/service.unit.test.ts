@@ -231,7 +231,7 @@ suite('Experimentation service', () => {
             assert.isTrue(result);
             assert.equal(telemetryEvents.length, 1);
             assert.deepEqual(telemetryEvents[0], {
-                eventName: EventName.PYTHON_EXPERIMENTS_OPT_IN_OUT,
+                eventName: EventName.JUPYTER_EXPERIMENTS_OPT_IN_OUT,
                 properties: { expNameOptedInto: experiment }
             });
             sinon.assert.notCalled(isCachedFlightEnabledStub);
@@ -251,7 +251,7 @@ suite('Experimentation service', () => {
             assert.isTrue(result);
             assert.equal(telemetryEvents.length, 1);
             assert.deepEqual(telemetryEvents[0], {
-                eventName: EventName.PYTHON_EXPERIMENTS_OPT_IN_OUT,
+                eventName: EventName.JUPYTER_EXPERIMENTS_OPT_IN_OUT,
                 properties: { expNameOptedInto: experiment }
             });
             sinon.assert.notCalled(isCachedFlightEnabledStub);
@@ -271,7 +271,7 @@ suite('Experimentation service', () => {
             assert.isFalse(result);
             assert.equal(telemetryEvents.length, 1);
             assert.deepEqual(telemetryEvents[0], {
-                eventName: EventName.PYTHON_EXPERIMENTS_OPT_IN_OUT,
+                eventName: EventName.JUPYTER_EXPERIMENTS_OPT_IN_OUT,
                 properties: { expNameOptedOutOf: experiment }
             });
             sinon.assert.notCalled(isCachedFlightEnabledStub);
@@ -291,7 +291,7 @@ suite('Experimentation service', () => {
             assert.isFalse(result);
             assert.equal(telemetryEvents.length, 1);
             assert.deepEqual(telemetryEvents[0], {
-                eventName: EventName.PYTHON_EXPERIMENTS_OPT_IN_OUT,
+                eventName: EventName.JUPYTER_EXPERIMENTS_OPT_IN_OUT,
                 properties: { expNameOptedOutOf: experiment }
             });
             sinon.assert.notCalled(isCachedFlightEnabledStub);

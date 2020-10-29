@@ -28,7 +28,7 @@ export async function sendStartupTelemetry(
         await activatedPromise;
         durations.totalActivateTime = stopWatch.elapsedTime;
         const props = await getActivationTelemetryProps(serviceContainer);
-        sendTelemetryEvent(EventName.EDITOR_LOAD, durations, props);
+        sendTelemetryEvent(EventName.EXTENSION_LOAD, durations, props);
     } catch (ex) {
         traceError('sendStartupTelemetry() failed.', ex);
     }
@@ -49,7 +49,7 @@ export async function sendErrorTelemetry(
                 traceError('getActivationTelemetryProps() failed.', ex);
             }
         }
-        sendTelemetryEvent(EventName.EDITOR_LOAD, durations, props, ex);
+        sendTelemetryEvent(EventName.EXTENSION_LOAD, durations, props, ex);
     } catch (exc2) {
         traceError('sendErrorTelemetry() failed.', exc2);
     }

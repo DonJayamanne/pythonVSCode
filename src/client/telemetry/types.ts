@@ -5,6 +5,6 @@
 import { IEventNamePropertyMapping } from '../telemetry/index';
 import { EventName } from './constants';
 
-export type EditorLoadTelemetry = IEventNamePropertyMapping[EventName.EDITOR_LOAD];
+export type EditorLoadTelemetry = IEventNamePropertyMapping[EventName.EXTENSION_LOAD];
 export const IImportTracker = Symbol('IImportTracker');
 export interface IImportTracker {}

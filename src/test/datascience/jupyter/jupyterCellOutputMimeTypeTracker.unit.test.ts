@@ -9,7 +9,7 @@ import { sha256 } from 'hash.js';
 import rewiremock from 'rewiremock';
 import { instance, mock, when } from 'ts-mockito';
 import { EventEmitter, Uri } from 'vscode';
-import { getNamesAndValues } from '../../../client/common/utils/enum';
+import { getNamesAndValues } from '../../utils/enum';
 import { Telemetry } from '../../../client/datascience/constants';
 import { NativeEditor } from '../../../client/datascience/interactive-ipynb/nativeEditor';
 import { CellOutputMimeTypeTracker } from '../../../client/datascience/jupyter/jupyterCellOutputMimeTypeTracker';
