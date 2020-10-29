@@ -42,6 +42,9 @@ export class NativeEditorViewTracker implements IExtensionSingleActivationServic
     }
 
     private onOpenedEditor(editor: INotebookEditor) {
+        if (editor.type === 'native') {
+            return;
+        }
         // Save this as a file that should be reopened in this workspace
         const list = this.workspaceMemento.get<string[]>(MEMENTO_KEY) || [];
         const fileKey = editor.file.toString();
@@ -63,6 +66,9 @@ export class NativeEditorViewTracker implements IExtensionSingleActivationServic
     }
 
     private onClosedEditor(editor: INotebookEditor) {
+        if (editor.type === 'native') {
+            return;
+        }
         // Save this as a file that should not be reopened in this workspace if this is the
         // last editor for this file
         const fileKey = editor.file.toString();
