@@ -639,11 +639,6 @@
                 "enablement": "jupyter.isnativeactive"
             },
             {
-                "command": "jupyter.gatherquality",
-                "title": "DataScience.gatherQuality",
-                "category": "Jupyter"
-            },
-            {
                 "command": "jupyter.latestExtension",
                 "title": "DataScience.latestExtension",
                 "category": "Jupyter"
@@ -1172,12 +1167,6 @@
                     "when": "jupyter.isnativeactive"
                 },
                 {
-                    "command": "jupyter.gatherquality",
-                    "title": "%DataScience.gatherQuality%",
-                    "category": "Jupyter",
-                    "when": "false"
-                },
-                {
                     "command": "jupyter.latestExtension",
                     "title": "%DataScience.latestExtension%",
                     "category": "Jupyter",
@@ -1521,18 +1510,6 @@
                     "type": "boolean",
                     "default": true,
                     "description": "Modify plot output so that it can be expanded into a plot viewer window.",
-                    "scope": "resource"
-                },
-                "jupyter.gatherToScript": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Gather code to a python script rather than a notebook.",
-                    "scope": "resource"
-                },
-                "jupyter.gatherSpecPath": {
-                    "type": "string",
-                    "default": "",
-                    "description": "This setting specifies a folder that contains additional or replacement spec files used for analysis.",
                     "scope": "resource"
                 },
                 "jupyter.codeLenses": {

@@ -38,8 +38,9 @@ import { Experiments } from '../../common/experiments/groups';
 import { traceError, traceInfo, traceWarning } from '../../common/logger';
 
 import { isNil } from 'lodash';
+import { NotebookCell } from '../../../../types/vscode-proposed';
 import { IFileSystem } from '../../common/platform/types';
-import { IConfigurationService, IDisposableRegistry, IExperimentService } from '../../common/types';
+import { IConfigurationService, IDisposable, IDisposableRegistry, IExperimentService } from '../../common/types';
 import { createDeferred, Deferred } from '../../common/utils/async';
 import * as localize from '../../common/utils/localize';
 import { isUntitledFile, noop } from '../../common/utils/misc';
@@ -81,6 +82,8 @@ import {
     ICell,
     ICodeCssGenerator,
     IDataScienceErrorHandler,
+    IExternalCommandFromWebview,
+    IExternalWebviewCellButton,
     IInteractiveBase,
     IInteractiveWindowInfo,
     IInteractiveWindowListener,
@@ -100,6 +103,7 @@ import {
     IThemeFinder,
     WebViewViewChangeEventArgs
 } from '../types';
+import { translateCellToNative } from '../utils';
 import { WebviewPanelHost } from '../webviews/webviewPanelHost';
 import { DataViewerChecker } from './dataViewerChecker';
 import { InteractiveWindowMessageListener } from './interactiveWindowMessageListener';
@@ -121,10 +125,12 @@ export abstract class InteractiveBase extends WebviewPanelHost<IInteractiveWindo
         return this.readyEvent.event;
     }
 
+    public abstract isInteractive: boolean;
     protected abstract get notebookMetadata(): INotebookMetadataLive | undefined;
 
     protected abstract get notebookIdentity(): INotebookIdentity;
     protected fileInKernel: string | undefined;
+    protected externalButtons: IExternalWebviewCellButton[] = [];
     protected dataViewerChecker: DataViewerChecker;
     private unfinishedCells: ICell[] = [];
     private restartingKernel: boolean = false;
@@ -349,6 +355,10 @@ export abstract class InteractiveBase extends WebviewPanelHost<IInteractiveWindo
                 this.readyEvent.fire();
                 break;
 
+            case InteractiveWindowMessages.ExecuteExternalCommand:
+                this.handleMessage(message, payload, this.handleExecuteExternalCommand);
+                break;
+
             default:
                 break;
         }
@@ -489,6 +499,33 @@ export abstract class InteractiveBase extends WebviewPanelHost<IInteractiveWindo
         return this.copyCodeInternal(args.source).catch((err) => {
             this.applicationShell.showErrorMessage(err);
         });
+    }
+
+    public createWebviewCellButton(
+        buttonId: string,
+        callback: (cell: NotebookCell, isInteractive: boolean, resource: Uri) => Promise<void>,
+        codicon: string,
+        statusToEnable: CellState[],
+        tooltip: string
+    ): IDisposable {
+        const index = this.externalButtons.findIndex((button) => button.buttonId === buttonId);
+        if (index === -1) {
+            this.externalButtons.push({ buttonId, callback, codicon, statusToEnable, tooltip, running: false });
+            this.postMessage(InteractiveWindowMessages.UpdateExternalCellButtons, this.externalButtons).ignoreErrors();
+        }
+
+        return {
+            dispose: () => {
+                const buttonIndex = this.externalButtons.findIndex((button) => button.buttonId === buttonId);
+                if (buttonIndex !== -1) {
+                    this.externalButtons.splice(buttonIndex, 1);
+                    this.postMessage(
+                        InteractiveWindowMessages.UpdateExternalCellButtons,
+                        this.externalButtons
+                    ).ignoreErrors();
+                }
+            }
+        };
     }
 
     public abstract hasCell(id: string): Promise<boolean>;
@@ -1536,5 +1573,22 @@ export abstract class InteractiveBase extends WebviewPanelHost<IInteractiveWindo
     private handleUpdateDisplayData(msg: KernelMessage.IUpdateDisplayDataMsg) {
         // Send to the UI to handle
         this.postMessage(InteractiveWindowMessages.UpdateDisplayData, msg).ignoreErrors();
+    }
+
+    private async handleExecuteExternalCommand(payload: IExternalCommandFromWebview) {
+        const button = this.externalButtons.find((b) => b.buttonId === payload.buttonId);
+
+        if (this.notebook) {
+            const language = getKernelConnectionLanguage(this.notebook.getKernelConnection()) || PYTHON_LANGUAGE;
+            const id = this.notebook.identity;
+            const cell = translateCellToNative(payload.cell, language);
+
+            if (button && cell) {
+                await button.callback(cell as NotebookCell, this.isInteractive, id);
+            }
+        }
+
+        // Post message again to let the react side know the command is done executing
+        this.postMessage(InteractiveWindowMessages.UpdateExternalCellButtons, this.externalButtons).ignoreErrors();
     }
 }

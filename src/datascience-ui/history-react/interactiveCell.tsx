@@ -10,7 +10,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 
 import { Identifiers } from '../../client/datascience/constants';
-import { CellState, IJupyterExtraSettings } from '../../client/datascience/types';
+import { CellState, IExternalWebviewCellButton, IJupyterExtraSettings } from '../../client/datascience/types';
 import { CellInput } from '../interactive-common/cellInput';
 import { CellOutput } from '../interactive-common/cellOutput';
 import { CollapseButton } from '../interactive-common/collapseButton';
@@ -43,6 +43,7 @@ interface IInteractiveCellBaseProps {
     font: IFont;
     settings: IJupyterExtraSettings;
     focusPending: number;
+    externalButtons: IExternalWebviewCellButton[];
 }
 
 type IInteractiveCellProps = IInteractiveCellBaseProps & typeof actionCreators;
@@ -180,29 +181,10 @@ export class InteractiveCell extends React.Component<IInteractiveCellProps> {
         const gotoCode = () => this.props.gotoCell(cellId);
         const deleteCode = () => this.props.deleteCell(cellId);
         const copyCode = () => this.props.copyCellCode(cellId);
-        const gatherCode = () => this.props.gatherCellToScript(cellId);
         const hasNoSource = !cell || !cell.file || cell.file === Identifiers.EmptyFileName;
 
         return (
             <div className="cell-toolbar" key={0}>
-                <ImageButton
-                    baseTheme={this.props.baseTheme}
-                    onClick={gatherCode}
-                    hidden={
-                        this.props.cellVM.cell.state === CellState.error ||
-                        this.props.cellVM.cell.state === CellState.executing ||
-                        this.props.cellVM.cell.data.cell_type === 'markdown' ||
-                        !this.props.settings.gatherIsInstalled
-                    }
-                    tooltip={getLocString('DataScience.gatherCodeTooltip', 'Gather code')}
-                    disabled={this.props.cellVM.gathering}
-                >
-                    <Image
-                        baseTheme={this.props.baseTheme}
-                        class="image-button-image"
-                        image={this.props.cellVM.gathering ? ImageName.Sync : ImageName.GatherCode}
-                    />
-                </ImageButton>
                 <ImageButton
                     baseTheme={this.props.baseTheme}
                     onClick={gotoCode}
@@ -230,9 +212,40 @@ export class InteractiveCell extends React.Component<IInteractiveCellProps> {
                 >
                     <Image baseTheme={this.props.baseTheme} class="image-button-image" image={ImageName.Cancel} />
                 </ImageButton>
+                {this.renderExternalButtons()}
             </div>
         );
     };
+
+    private renderExternalButtons() {
+        const buttons: JSX.Element[] = [];
+
+        this.props.externalButtons.forEach((button, index) => {
+            if (this.isCodeCell()) {
+                buttons.push(
+                    <ImageButton
+                        baseTheme={this.props.baseTheme}
+                        onClick={() => {
+                            button.running = true;
+                            this.props.runExternalCommand(button.buttonId, this.props.cellVM.cell);
+                        }}
+                        disabled={!button.statusToEnable.includes(this.props.cellVM.cell.state)}
+                        tooltip={button.tooltip}
+                        key={index}
+                    >
+                        <Image
+                            baseTheme={this.props.baseTheme}
+                            class="image-button-image"
+                            codicon={button.running ? undefined : button.codicon}
+                            image={button.running ? ImageName.Sync : ImageName.Cancel}
+                        />
+                    </ImageButton>
+                );
+            }
+        });
+
+        return buttons;
+    }
 
     private onMouseClick = (ev: React.MouseEvent<HTMLDivElement>) => {
         // When we receive a click, propagate upwards. Might change our state

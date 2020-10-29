@@ -20,6 +20,9 @@ export class TestExecutionLogger implements INotebookExecutionLogger {
         traceCellResults(`Cell Execution complete for ${cell.id}\n`, [cell]);
         return Promise.resolve();
     }
+    public onKernelStarted() {
+        // Do nothing on started
+    }
     public onKernelRestarted(): void {
         // Can ignore this.
     }

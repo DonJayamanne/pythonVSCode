@@ -93,7 +93,7 @@ export async function openNotebook(
     }
     console.info(`Opening notebook ${ipynbFile}`);
     const cmd = serviceContainer.get<ICommandManager>(ICommandManager);
-    await cmd.executeCommand(Commands.OpenNotebook, Uri.file(ipynbFile), CommandSource.commandPalette);
+    await cmd.executeCommand(Commands.OpenNotebook, Uri.file(ipynbFile), undefined, CommandSource.commandPalette);
     const editorProvider = serviceContainer.get<INotebookEditorProvider>(INotebookEditorProvider);
     await waitForCondition(
         async () =>

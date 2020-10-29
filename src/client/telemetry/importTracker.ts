@@ -65,6 +65,10 @@ export class ImportTracker implements IExtensionSingleActivationService, INotebo
         this.pendingChecks.clear();
     }
 
+    public onKernelStarted() {
+        // Do nothing on started
+    }
+
     public onKernelRestarted() {
         // Do nothing on restarted
     }

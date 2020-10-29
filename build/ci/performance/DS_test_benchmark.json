@@ -120,14 +120,6 @@
         "time": 0.89
     },
     {
-        "name": "DataScience Interactive Window output tests Gather code run from text editor",
-        "time": 0.485
-    },
-    {
-        "name": "DataScience Interactive Window output tests Gather code run from input box",
-        "time": 0.502
-    },
-    {
         "name": "DataScience Interactive Window output tests Copy back to source",
         "time": 0.296
     },

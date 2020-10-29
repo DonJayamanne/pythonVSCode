@@ -1,27 +1,57 @@
 import { injectable } from 'inversify';
-import { Event, EventEmitter } from 'vscode';
+import { Event, EventEmitter, Uri } from 'vscode';
 import type { NotebookCell } from '../../../types/vscode-proposed';
-import { INotebookExtensibility } from './types';
+import { noop } from '../common/utils/misc';
+import { ICell, INotebookExecutionLogger, INotebookExtensibility } from './types';
+import { translateCellToNative } from './utils';
+
+export type KernelStateEventArgs = {
+    resource: Uri;
+    state: KernelState;
+    cell?: NotebookCell;
+};
+
+enum KernelState {
+    started,
+    executed,
+    restarted
+}
 
 @injectable()
-export class NotebookExtensibility implements INotebookExtensibility {
-    private kernelExecute = new EventEmitter<NotebookCell>();
+export class NotebookExtensibility implements INotebookExecutionLogger, INotebookExtensibility {
+    private kernelStateChange = new EventEmitter<KernelStateEventArgs>();
 
-    private kernelRestart = new EventEmitter<void>();
-
-    public get onKernelPostExecute(): Event<NotebookCell> {
-        return this.kernelExecute.event;
+    public dispose() {
+        noop();
     }
 
-    public get onKernelRestart(): Event<void> {
-        return this.kernelRestart.event;
+    public async preExecute(): Promise<void> {
+        noop();
+    }
+    public async postExecute(cell: ICell, _silent: boolean, language: string, resource: Uri): Promise<void> {
+        const nbCell = translateCellToNative(cell, language);
+        if (nbCell && nbCell.code.length > 0) {
+            this.kernelStateChange.fire({
+                resource,
+                state: KernelState.executed,
+                cell: nbCell as NotebookCell
+            });
+        }
+    }
+    public onKernelStarted(resource: Uri): void {
+        this.kernelStateChange.fire({
+            resource,
+            state: KernelState.started
+        });
+    }
+    public onKernelRestarted(resource: Uri): void {
+        this.kernelStateChange.fire({
+            resource,
+            state: KernelState.restarted
+        });
     }
 
-    public fireKernelRestart(): void {
-        this.kernelRestart.fire();
-    }
-
-    public fireKernelPostExecute(cell: NotebookCell): void {
-        this.kernelExecute.fire(cell);
+    public get onKernelStateChange(): Event<KernelStateEventArgs> {
+        return this.kernelStateChange.event;
     }
 }

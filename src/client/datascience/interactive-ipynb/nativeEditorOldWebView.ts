@@ -42,7 +42,6 @@ import {
     IJupyterVariables,
     INotebookEditorProvider,
     INotebookExporter,
-    INotebookExtensibility,
     INotebookImporter,
     INotebookProvider,
     IStatusProvider,
@@ -104,7 +103,6 @@ export class NativeEditorOldWebView extends NativeEditor {
         model: NativeEditorNotebookModel,
         webviewPanel: WebviewPanel | undefined,
         selector: KernelSelector,
-        notebookExtensibility: INotebookExtensibility,
         extensionChecker: IPythonExtensionChecker
     ) {
         super(
@@ -140,7 +138,6 @@ export class NativeEditorOldWebView extends NativeEditor {
             model,
             webviewPanel,
             selector,
-            notebookExtensibility,
             extensionChecker
         );
         asyncRegistry.push(this);

@@ -24,7 +24,7 @@ import {
 } from 'vscode';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import type { Data as WebSocketData } from 'ws';
-import type { NotebookCell } from '../../../types/vscode-proposed';
+import type { NotebookCell, NotebookCellRunState } from '../../../types/vscode-proposed';
 import { ServerStatus } from '../../datascience-ui/interactive-common/mainState';
 import { ICommandManager, IDebugService } from '../common/application/types';
 import { ExecutionResult, ObservableExecutionResult, SpawnOptions } from '../common/process/types';
@@ -38,6 +38,7 @@ import { JupyterServerInfo } from './jupyter/jupyterConnection';
 import { JupyterInstallError } from './jupyter/jupyterInstallError';
 import { JupyterKernelSpec } from './jupyter/kernels/jupyterKernelSpec';
 import { KernelConnectionMetadata } from './jupyter/kernels/types';
+import { KernelStateEventArgs } from './notebookExtensibility';
 
 // tslint:disable-next-line:no-any
 export type PromiseFunction = (...any: any[]) => Promise<any>;
@@ -262,20 +263,10 @@ export interface INotebookServerOptions {
 export const INotebookExecutionLogger = Symbol('INotebookExecutionLogger');
 export interface INotebookExecutionLogger extends IDisposable {
     preExecute(cell: ICell, silent: boolean): Promise<void>;
-    postExecute(cell: ICell, silent: boolean): Promise<void>;
-    onKernelRestarted(): void;
+    postExecute(cell: ICell, silent: boolean, language: string, resource: Uri): Promise<void>;
+    onKernelStarted(resource: Uri): void;
+    onKernelRestarted(resource: Uri): void;
     preHandleIOPub?(msg: KernelMessage.IIOPubMessage): KernelMessage.IIOPubMessage;
-}
-
-export interface IGatherProvider {
-    logExecution(vscCell: ICell): void;
-    gatherCode(vscCell: ICell): string;
-    resetLog(): void;
-}
-
-export const IGatherLogger = Symbol('IGatherLogger');
-export interface IGatherLogger extends INotebookExecutionLogger {
-    getGatherProvider(): IGatherProvider | undefined;
 }
 
 export const IJupyterExecution = Symbol('IJupyterExecution');
@@ -508,6 +499,13 @@ export interface IInteractiveBase extends Disposable {
     interruptKernel(): Promise<void>;
     restartKernel(): Promise<void>;
     hasCell(id: string): Promise<boolean>;
+    createWebviewCellButton(
+        buttonId: string,
+        callback: (cell: NotebookCell, isInteractive: boolean, resource: Uri) => Promise<void>,
+        codicon: string,
+        statusToEnable: CellState[],
+        tooltip: string
+    ): IDisposable;
 }
 
 export const IInteractiveWindow = Symbol('IInteractiveWindow');
@@ -554,7 +552,7 @@ export interface INotebookEditorProvider {
 
 // For native editing, the INotebookEditor acts like a TextEditor and a TextDocument together
 export const INotebookEditor = Symbol('INotebookEditor');
-export interface INotebookEditor extends Disposable {
+export interface INotebookEditor extends Disposable, IInteractiveBase {
     /**
      * Type of editor, whether it is the old, custom or native notebook editor.
      * Once VSC Notebook is stable, this property can be removed.
@@ -565,7 +563,6 @@ export interface INotebookEditor extends Disposable {
     readonly executed: Event<INotebookEditor>;
     readonly modified: Event<INotebookEditor>;
     readonly saved: Event<INotebookEditor>;
-    readonly notebookExtensibility: INotebookExtensibility;
     /**
      * Is this notebook representing an untitled file which has never been saved yet.
      */
@@ -596,10 +593,18 @@ export interface INotebookEditor extends Disposable {
 export const INotebookExtensibility = Symbol('INotebookExtensibility');
 
 export interface INotebookExtensibility {
-    readonly onKernelPostExecute: Event<NotebookCell>;
-    readonly onKernelRestart: Event<void>;
-    fireKernelRestart(): void;
-    fireKernelPostExecute(cell: NotebookCell): void;
+    readonly onKernelStateChange: Event<KernelStateEventArgs>;
+}
+
+export const IWebviewExtensibility = Symbol('IWebviewExtensibility');
+
+export interface IWebviewExtensibility {
+    registerCellToolbarButton(
+        callback: (cell: NotebookCell, isInteractive: boolean, resource: Uri) => Promise<void>,
+        codicon: string,
+        statusToEnable: NotebookCellRunState[],
+        tooltip: string
+    ): IDisposable;
 }
 
 export const IInteractiveWindowListener = Symbol('IInteractiveWindowListener');
@@ -835,8 +840,6 @@ export interface IJupyterExtraSettings extends IJupyterSettings {
     variableOptions: {
         enableDuringDebugger: boolean;
     };
-
-    gatherIsInstalled: boolean;
 }
 
 // Get variables from the currently running active Jupyter server
@@ -1379,4 +1382,18 @@ export interface ISwitchKernelOptions {
 export const IDebugLoggingManager = Symbol('IDebugLoggingManager');
 export interface IDebugLoggingManager {
     initialize(): Promise<void>;
+}
+
+export interface IExternalWebviewCellButton {
+    buttonId: string;
+    codicon: string;
+    statusToEnable: CellState[];
+    tooltip: string;
+    running: boolean;
+    callback(cell: NotebookCell, isInteractive: boolean, resource: Uri): Promise<void>;
+}
+
+export interface IExternalCommandFromWebview {
+    buttonId: string;
+    cell: ICell;
 }

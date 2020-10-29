@@ -3,13 +3,19 @@
 
 'use strict';
 
-import { Event } from 'vscode';
-import { NotebookCell } from '../../types/vscode-proposed';
+import { Disposable, Event, Uri } from 'vscode';
+import { NotebookCell, NotebookCellRunState } from '../../types/vscode-proposed';
 import { IPythonApiProvider, PythonApi } from './api/types';
 import { isTestExecution } from './common/constants';
 import { traceError } from './common/logger';
 import { IDataViewerDataProvider, IDataViewerFactory } from './datascience/data-viewing/types';
-import { IJupyterUriProvider, IJupyterUriProviderRegistration, INotebookExtensibility } from './datascience/types';
+import { KernelStateEventArgs } from './datascience/notebookExtensibility';
+import {
+    IJupyterUriProvider,
+    IJupyterUriProviderRegistration,
+    INotebookExtensibility,
+    IWebviewExtensibility
+} from './datascience/types';
 import { IServiceContainer, IServiceManager } from './ioc/types';
 
 /*
@@ -24,8 +30,13 @@ export interface IExtensionApi {
      * @memberof IExtensionApi
      */
     ready: Promise<void>;
-    readonly onKernelPostExecute: Event<NotebookCell>;
-    readonly onKernelRestart: Event<void>;
+    readonly onKernelStateChange: Event<KernelStateEventArgs>;
+    registerCellToolbarButton(
+        callback: (cell: NotebookCell, isInteractive: boolean, resource: Uri) => Promise<void>,
+        codicon: string,
+        statusToEnable: NotebookCellRunState[],
+        tooltip: string
+    ): Disposable;
     /**
      * Launches Data Viewer component.
      * @param {IDataViewerDataProvider} dataProvider Instance that will be used by the Data Viewer component to fetch data.
@@ -47,6 +58,7 @@ export function buildApi(
     serviceContainer: IServiceContainer
 ): IExtensionApi {
     const notebookExtensibility = serviceContainer.get<INotebookExtensibility>(INotebookExtensibility);
+    const webviewExtensibility = serviceContainer.get<IWebviewExtensibility>(IWebviewExtensibility);
     let registered = false;
     const api: IExtensionApi = {
         // 'ready' will propagate the exception, but we must log it here first.
@@ -70,8 +82,8 @@ export function buildApi(
             const container = serviceContainer.get<IJupyterUriProviderRegistration>(IJupyterUriProviderRegistration);
             container.registerProvider(picker);
         },
-        onKernelPostExecute: notebookExtensibility.onKernelPostExecute,
-        onKernelRestart: notebookExtensibility.onKernelRestart
+        onKernelStateChange: notebookExtensibility.onKernelStateChange.bind(notebookExtensibility),
+        registerCellToolbarButton: webviewExtensibility.registerCellToolbarButton.bind(webviewExtensibility)
     };
 
     // In test environment return the DI Container.

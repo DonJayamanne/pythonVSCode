@@ -862,30 +862,6 @@ export interface IEventNamePropertyMapping {
      * @memberof IEventNamePropertyMapping
      */
     [Telemetry.KernelInvalid]: undefined | never;
-    [Telemetry.GatherIsInstalled]: undefined | never;
-    [Telemetry.GatherCompleted]: {
-        /**
-         * result indicates whether the gather was completed to a script, notebook or suffered an internal error.
-         */
-        result: 'err' | 'script' | 'notebook' | 'unavailable';
-    };
-    [Telemetry.GatherStats]: {
-        linesSubmitted: number;
-        cellsSubmitted: number;
-        linesGathered: number;
-        cellsGathered: number;
-    };
-    [Telemetry.GatherException]: {
-        exceptionType: 'activate' | 'gather' | 'log' | 'reset';
-    };
-    /**
-     * Telemetry event sent when a gathered notebook has been saved by the user.
-     */
-    [Telemetry.GatheredNotebookSaved]: undefined | never;
-    /**
-     * Telemetry event sent when the user reports whether Gathered notebook was good or not
-     */
-    [Telemetry.GatherQualityReport]: { result: 'yes' | 'no' };
     /**
      * Telemetry event sent when the ZMQ native binaries do not work.
      */

@@ -219,6 +219,7 @@ interface IImageProps {
     image: ImageName;
     class: string;
     title?: string;
+    codicon?: string;
 }
 
 export class Image extends React.Component<IImageProps> {
@@ -227,7 +228,18 @@ export class Image extends React.Component<IImageProps> {
     }
 
     public render() {
-        const key = ImageName[this.props.image].toString();
+        if (this.props.codicon && this.props.codicon !== 'gather') {
+            const pre = 'codicon codicon-';
+            const styles: React.CSSProperties = {
+                color: 'var(--vscode-editor-foreground)'
+            };
+            return <div style={styles} className={pre + this.props.codicon}></div>;
+        }
+
+        const key =
+            this.props.codicon === 'gather'
+                ? ImageName[ImageName.GatherCode].toString()
+                : ImageName[this.props.image].toString();
         const image = images.hasOwnProperty(key) ? images[key] : images.Cancel; // Default is cancel.
         const source = this.props.baseTheme.includes('dark') ? image.dark : image.light;
         return <InlineSVG className={this.props.class} src={source} title={this.props.title} />;

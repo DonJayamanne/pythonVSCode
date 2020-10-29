@@ -1253,9 +1253,7 @@ src/client/datascience/data-viewing/dataViewerFactory.ts
 src/client/datascience/shiftEnterBanner.ts
 src/client/datascience/dataScienceSurveyBanner.ts
 src/client/datascience/serviceRegistry.ts
-src/client/datascience/gather/gatherLogger.ts
-src/client/datascience/gather/gatherListener.ts
-src/client/datascience/webViewHost.ts
+src/client/datascience/webviews/webViewHost.ts
 src/client/datascience/context/activeEditorContext.ts
 src/client/datascience/progress/progressReporter.ts
 src/client/datascience/progress/messages.ts

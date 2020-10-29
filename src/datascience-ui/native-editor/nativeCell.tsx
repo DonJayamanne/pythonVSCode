@@ -15,7 +15,7 @@ import {
     NativeKeyboardCommandTelemetry,
     NativeMouseCommandTelemetry
 } from '../../client/datascience/constants';
-import { CellState } from '../../client/datascience/types';
+import { CellState, IExternalWebviewCellButton } from '../../client/datascience/types';
 import { concatMultilineString } from '../common';
 import { CellInput } from '../interactive-common/cellInput';
 import { CellOutput } from '../interactive-common/cellOutput';
@@ -52,7 +52,6 @@ interface INativeCellBaseProps {
     firstCell: boolean;
     font: IFont;
     allowUndo: boolean;
-    gatherIsInstalled: boolean;
     editorOptions: monacoEditor.editor.IEditorOptions;
     themeMatplotlibPlots: boolean | undefined;
     focusPending: number;
@@ -61,6 +60,7 @@ interface INativeCellBaseProps {
     runningByLine: DebugState;
     supportsRunByLine: boolean;
     isNotebookTrusted: boolean;
+    externalButtons: IExternalWebviewCellButton[];
 }
 
 type INativeCellProps = INativeCellBaseProps & typeof actionCreators;
@@ -139,10 +139,6 @@ export class NativeCell extends React.Component<INativeCellProps> {
 
     private isFocused = () => {
         return this.props.cellVM.focused;
-    };
-
-    private isError = () => {
-        return this.props.cellVM.cell.state === CellState.error;
     };
 
     private renderNormalCell() {
@@ -576,9 +572,6 @@ export class NativeCell extends React.Component<INativeCellProps> {
             this.runAndMove();
             this.props.sendCommand(NativeMouseCommandTelemetry.Run);
         };
-        const gatherCell = () => {
-            this.props.gatherCell(cellId);
-        };
         const deleteCell = () => {
             this.props.deleteCell(cellId);
             this.props.sendCommand(NativeMouseCommandTelemetry.DeleteCell);
@@ -594,14 +587,6 @@ export class NativeCell extends React.Component<INativeCellProps> {
             this.props.focusCell(cellId);
             this.props.step(cellId);
         };
-        const gatherDisabled =
-            this.props.cellVM.cell.data.execution_count === null ||
-            this.props.cellVM.hasBeenRun === null ||
-            this.props.cellVM.hasBeenRun === false ||
-            this.props.cellVM.cell.state === CellState.executing ||
-            this.isError() ||
-            this.isMarkdownCell() ||
-            !this.props.gatherIsInstalled;
         const switchTooltip =
             this.props.cellVM.cell.data.cell_type === 'code'
                 ? getLocString('DataScience.switchToMarkdown', 'Change to markdown')
@@ -702,22 +687,6 @@ export class NativeCell extends React.Component<INativeCellProps> {
                     </ImageButton>
                     <ImageButton
                         baseTheme={this.props.baseTheme}
-                        onClick={gatherCell}
-                        tooltip={getLocString(
-                            'DataScience.gatherCell',
-                            'Gather the code required to generate this cell into a new notebook'
-                        )}
-                        hidden={gatherDisabled}
-                        disabled={!this.props.isNotebookTrusted || this.props.cellVM.gathering}
-                    >
-                        <Image
-                            baseTheme={this.props.baseTheme}
-                            class="image-button-image"
-                            image={this.props.cellVM.gathering ? ImageName.Sync : ImageName.GatherCode}
-                        />
-                    </ImageButton>
-                    <ImageButton
-                        baseTheme={this.props.baseTheme}
                         onClick={deleteCell}
                         tooltip={getLocString('DataScience.deleteCell', 'Delete cell')}
                         className="delete-cell-button hover-cell-button"
@@ -725,11 +694,42 @@ export class NativeCell extends React.Component<INativeCellProps> {
                     >
                         <Image baseTheme={this.props.baseTheme} class="image-button-image" image={ImageName.Delete} />
                     </ImageButton>
+                    {this.renderExternalButtons()}
                 </div>
                 <div className="native-editor-celltoolbar-divider" />
             </div>
         );
     };
+
+    private renderExternalButtons() {
+        const buttons: JSX.Element[] = [];
+
+        this.props.externalButtons.forEach((button, index) => {
+            if (this.isCodeCell()) {
+                buttons.push(
+                    <ImageButton
+                        baseTheme={this.props.baseTheme}
+                        onClick={() => {
+                            button.running = true;
+                            this.props.runExternalCommand(button.buttonId, this.props.cellVM.cell);
+                        }}
+                        disabled={!button.statusToEnable.includes(this.props.cellVM.cell.state)}
+                        tooltip={button.tooltip}
+                        key={index}
+                    >
+                        <Image
+                            baseTheme={this.props.baseTheme}
+                            class="image-button-image"
+                            codicon={button.running ? undefined : button.codicon}
+                            image={button.running ? ImageName.Sync : ImageName.Cancel}
+                        />
+                    </ImageButton>
+                );
+            }
+        });
+
+        return buttons;
+    }
 
     private renderControls = () => {
         const busy =

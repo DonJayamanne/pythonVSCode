@@ -7,6 +7,7 @@
 
 import * as TypeMoq from 'typemoq';
 import * as vscode from 'vscode';
+import { noop } from '../client/common/utils/misc';
 import * as vscodeMocks from './mocks/vsc';
 import { vscMockTelemetryReporter } from './mocks/vsc/telemetryReporter';
 const Module = require('module');
@@ -23,6 +24,30 @@ function generateMock<K extends keyof VSCode>(name: K): void {
     mockedVSCodeNamespaces[name] = mockedObj as any;
 }
 
+export class MockCommands {
+    public log: string[] = [];
+    public registerCommand(_command: string, _callback: (...args: any[]) => any, _thisArg?: any): vscode.Disposable {
+        return { dispose: noop };
+    }
+
+    public registerTextEditorCommand(
+        _command: string,
+        _callback: (textEditor: vscode.TextEditor, edit: vscode.TextEditorEdit, ...args: any[]) => void,
+        _thisArg?: any
+    ): vscode.Disposable {
+        return { dispose: noop };
+    }
+
+    public executeCommand<T>(command: string, ..._rest: any[]): Thenable<T | undefined> {
+        this.log.push(command);
+        return Promise.resolve(undefined);
+    }
+
+    public getCommands(_filterInternal?: boolean): Thenable<string[]> {
+        return Promise.resolve([]);
+    }
+}
+
 class MockClipboard {
     private text: string = '';
     public readText(): Promise<string> {
@@ -35,12 +60,15 @@ class MockClipboard {
 export function initialize() {
     generateMock('workspace');
     generateMock('window');
-    generateMock('commands');
     generateMock('languages');
     generateMock('env');
     generateMock('debug');
     generateMock('scm');
     generateNotebookMocks();
+
+    const commands = new MockCommands();
+    (mockedVSCode as any).commands = commands;
+    mockedVSCodeNamespaces.commands = commands as any;
 
     // Use mock clipboard fo testing purposes.
     const clipboard = new MockClipboard();

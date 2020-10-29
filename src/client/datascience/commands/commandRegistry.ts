@@ -105,7 +105,6 @@ export class CommandRegistry implements IDisposable {
         this.registerCommand(Commands.DebugCurrentCellPalette, this.debugCurrentCellFromCursor);
         this.registerCommand(Commands.CreateNewNotebook, this.createNewNotebook);
         this.registerCommand(Commands.ViewJupyterOutput, this.viewJupyterOutput);
-        this.registerCommand(Commands.GatherQuality, this.reportGatherQuality);
         this.registerCommand(Commands.LatestExtension, this.openPythonExtensionPage);
         this.registerCommand(Commands.EnableDebugLogging, this.enableDebugLogging);
         this.registerCommand(Commands.ResetLoggingLevel, this.resetLoggingLevel);
@@ -475,11 +474,6 @@ export class CommandRegistry implements IDisposable {
 
         // Ask our code lens provider to find the matching code watcher for the current document
         return this.dataScienceCodeLensProvider.getCodeWatcher(activeEditor.document);
-    }
-
-    private reportGatherQuality(val: string) {
-        sendTelemetryEvent(Telemetry.GatherQualityReport, undefined, { result: val[0] === 'no' ? 'no' : 'yes' });
-        env.openExternal(Uri.parse(`https://aka.ms/gatherfeedback?succeed=${val[0]}`));
     }
 
     private openPythonExtensionPage() {

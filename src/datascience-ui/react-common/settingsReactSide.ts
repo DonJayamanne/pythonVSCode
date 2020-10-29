@@ -74,7 +74,6 @@ export function getDefaultSettings(): IJupyterExtraSettings {
         variableOptions: {
             enableDuringDebugger: false
         },
-        gatherIsInstalled: false,
         runStartupCommands: '',
         debugJustMyCode: true,
         variableQueries: [],

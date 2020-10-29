@@ -129,8 +129,6 @@ export interface IJupyterSettings {
     readonly collapseCellInputCodeByDefault: boolean;
     readonly maxOutputSize: number;
     readonly enableScrollingForCellOutputs: boolean;
-    readonly gatherToScript: boolean;
-    readonly gatherSpecPath: string;
     readonly sendSelectionToInteractiveWindow: boolean;
     readonly markdownRegularExpression: string;
     readonly codeRegularExpression: string;

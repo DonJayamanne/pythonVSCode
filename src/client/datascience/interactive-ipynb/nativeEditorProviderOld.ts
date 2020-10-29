@@ -49,7 +49,6 @@ import {
     INotebookEditor,
     INotebookEditorProvider,
     INotebookExporter,
-    INotebookExtensibility,
     INotebookImporter,
     INotebookModel,
     INotebookProvider,
@@ -230,7 +229,6 @@ export class NativeEditorProviderOld extends NativeEditorProvider {
             model,
             panel,
             this.serviceContainer.get<KernelSelector>(KernelSelector),
-            this.serviceContainer.get<INotebookExtensibility>(INotebookExtensibility),
             this.serviceContainer.get<IPythonExtensionChecker>(IPythonExtensionChecker)
         );
         this.activeEditors.set(model.file.fsPath, editor);

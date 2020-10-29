@@ -300,6 +300,7 @@ ${buildSettingsCss(this.props.settings)}`}</style>
                         settings={this.props.settings}
                         focusPending={this.props.focusPending}
                         language={this.props.kernel.language}
+                        externalButtons={this.props.externalButtons}
                     />
                 </ErrorBoundary>
             </div>
@@ -395,6 +396,7 @@ ${buildSettingsCss(this.props.settings)}`}</style>
                             settings={this.props.settings}
                             focusPending={this.props.focusPending}
                             language={this.props.kernel.language}
+                            externalButtons={this.props.externalButtons}
                         />
                     </ErrorBoundary>
                 </div>

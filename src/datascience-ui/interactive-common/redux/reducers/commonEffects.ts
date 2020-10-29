@@ -7,7 +7,7 @@ import { Identifiers } from '../../../../client/datascience/constants';
 import { InteractiveWindowMessages } from '../../../../client/datascience/interactive-common/interactiveWindowTypes';
 import { IGetCssResponse } from '../../../../client/datascience/messages';
 import { IGetMonacoThemeResponse } from '../../../../client/datascience/monacoMessages';
-import { CellState, ICell } from '../../../../client/datascience/types';
+import { CellState, ICell, IExternalWebviewCellButton } from '../../../../client/datascience/types';
 import { ICellViewModel, IMainState } from '../../../interactive-common/mainState';
 import { Helpers } from '../../../interactive-common/redux/reducers/helpers';
 import { getLocString, storeLocStrings } from '../../../react-common/locReactSide';
@@ -308,5 +308,14 @@ export namespace CommonEffects {
         // Make sure to tell the extension so it can log telemetry.
         postActionToExtension(arg, InteractiveWindowMessages.IPyWidgetRenderFailure, arg.payload.data);
         return arg.prevState;
+    }
+
+    export function handleWebviewButtons(
+        arg: CommonReducerArg<CommonActionType, IExternalWebviewCellButton[]>
+    ): IMainState {
+        return {
+            ...arg.prevState,
+            externalButtons: arg.payload.data
+        };
     }
 }

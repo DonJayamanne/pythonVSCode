@@ -371,7 +371,7 @@ suite('DataScience Debugger tests', () => {
             // Step into this cell using the button
             let cell = getLastOutputCell(wrapper, 'NativeCell');
             let ImageButtons = cell.find(ImageButton);
-            assert.equal(ImageButtons.length, 7, 'Cell buttons not found');
+            assert.equal(ImageButtons.length, 6, 'Cell buttons not found');
             const runByLineButton = ImageButtons.at(3);
             // tslint:disable-next-line: no-any
             assert.equal((runByLineButton.instance().props as any).tooltip, 'Run by line');
@@ -403,7 +403,7 @@ suite('DataScience Debugger tests', () => {
             // Step into this cell using the button
             let cell = getLastOutputCell(wrapper, 'NativeCell');
             let ImageButtons = cell.find(ImageButton);
-            assert.equal(ImageButtons.length, 7, 'Cell buttons not found');
+            assert.equal(ImageButtons.length, 6, 'Cell buttons not found');
             const runByLineButton = ImageButtons.at(3);
             // tslint:disable-next-line: no-any
             assert.equal((runByLineButton.instance().props as any).tooltip, 'Run by line');

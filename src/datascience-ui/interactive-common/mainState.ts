@@ -13,7 +13,13 @@ import { IJupyterSettings } from '../../client/common/types';
 import { CellMatcher } from '../../client/datascience/cellMatcher';
 import { Identifiers } from '../../client/datascience/constants';
 import { IEditorPosition } from '../../client/datascience/interactive-common/interactiveWindowTypes';
-import { CellState, ICell, IJupyterExtraSettings, IMessageCell } from '../../client/datascience/types';
+import {
+    CellState,
+    ICell,
+    IExternalWebviewCellButton,
+    IJupyterExtraSettings,
+    IMessageCell
+} from '../../client/datascience/types';
 import { concatMultilineString, splitMultilineString } from '../common';
 import { createCodeCell } from '../common/cellFactory';
 import { getDefaultSettings } from '../react-common/settingsReactSide';
@@ -56,7 +62,6 @@ export interface ICellViewModel {
     uiSideError?: string;
     runningByLine: DebugState;
     currentStack?: DebugProtocol.StackFrame[];
-    gathering: boolean;
 }
 
 export type IMainState = {
@@ -90,6 +95,7 @@ export type IMainState = {
     loaded: boolean;
     kernel: IServerState;
     isNotebookTrusted: boolean;
+    externalButtons: IExternalWebviewCellButton[];
 };
 
 export type SelectionAndFocusedInfo = {
@@ -197,7 +203,8 @@ export function generateTestState(filePath: string = '', editable: boolean = fal
             jupyterServerStatus: ServerStatus.NotStarted,
             language: PYTHON_LANGUAGE
         },
-        isNotebookTrusted: true
+        isNotebookTrusted: true,
+        externalButtons: []
     };
 }
 
@@ -226,8 +233,7 @@ export function createEditableCellVM(executionCount: number): ICellViewModel {
         cursorPos: CursorPos.Current,
         hasBeenRun: false,
         scrollCount: 0,
-        runningByLine: DebugState.Design,
-        gathering: false
+        runningByLine: DebugState.Design
     };
 }
 
@@ -281,8 +287,7 @@ export function createCellVM(
         hasBeenRun: false,
         scrollCount: 0,
         runDuringDebug,
-        runningByLine: DebugState.Design,
-        gathering: false
+        runningByLine: DebugState.Design
     };
 
     // Update the input text

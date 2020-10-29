@@ -18,13 +18,7 @@ import { Commands, Telemetry } from '../constants';
 import { IKernelProvider } from '../jupyter/kernels/types';
 import { INotebookStorageProvider } from '../notebookStorage/notebookStorageProvider';
 import { VSCodeNotebookModel } from '../notebookStorage/vscNotebookModel';
-import {
-    INotebookEditor,
-    INotebookEditorProvider,
-    INotebookExtensibility,
-    INotebookProvider,
-    IStatusProvider
-} from '../types';
+import { INotebookEditor, INotebookEditorProvider, INotebookProvider, IStatusProvider } from '../types';
 import { JupyterNotebookView } from './constants';
 import { NotebookCellLanguageService } from './defaultCellLanguageService';
 import { isJupyterNotebook } from './helpers/helpers';
@@ -71,7 +65,6 @@ export class NotebookEditorProvider implements INotebookEditorProvider {
         @inject(IStatusProvider) private readonly statusProvider: IStatusProvider,
         @inject(IServiceContainer) private readonly serviceContainer: IServiceContainer,
         @inject(IFileSystem) private readonly fs: IFileSystem,
-        @inject(INotebookExtensibility) private readonly notebookExtensibility: INotebookExtensibility,
         @inject(NotebookCellLanguageService) private readonly cellLanguageService: NotebookCellLanguageService
     ) {
         this.disposables.push(this.vscodeNotebook.onDidOpenNotebookDocument(this.onDidOpenNotebookDocument, this));
@@ -167,7 +160,6 @@ export class NotebookEditorProvider implements INotebookEditorProvider {
                 this.appShell,
                 this.configurationService,
                 this.disposables,
-                this.notebookExtensibility,
                 this.cellLanguageService
             );
             this.onEditorOpened(editor);

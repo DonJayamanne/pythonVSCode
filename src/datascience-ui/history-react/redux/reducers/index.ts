@@ -30,8 +30,6 @@ export const reducerMap: Partial<IInteractiveActionMapping> = {
     [CommonActionType.GOTO_CELL]: Transfer.gotoCell,
     [CommonActionType.TOGGLE_INPUT_BLOCK]: Effects.toggleInputBlock,
     [CommonActionType.COPY_CELL_CODE]: Transfer.copyCellCode,
-    [CommonActionType.GATHER_CELL]: Transfer.gather,
-    [CommonActionType.GATHER_CELL_TO_SCRIPT]: Transfer.gatherToScript,
     [CommonActionType.EDIT_CELL]: Transfer.editCell,
     [CommonActionType.SUBMIT_INPUT]: Execution.submitInput,
     [InteractiveWindowMessages.ExpandAll]: Effects.expandAll,
@@ -72,5 +70,6 @@ export const reducerMap: Partial<IInteractiveActionMapping> = {
     [SharedMessages.LocInit]: CommonEffects.handleLocInit,
     [InteractiveWindowMessages.UpdateDisplayData]: CommonEffects.handleUpdateDisplayData,
     [InteractiveWindowMessages.HasCell]: Transfer.hasCell,
-    [InteractiveWindowMessages.Gathering]: Transfer.gathering
+    [InteractiveWindowMessages.UpdateExternalCellButtons]: CommonEffects.handleWebviewButtons,
+    [InteractiveWindowMessages.ExecuteExternalCommand]: Transfer.executeExternalCommand
 };

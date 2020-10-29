@@ -55,9 +55,6 @@ export const reducerMap: Partial<INativeEditorActionMapping> = {
     [CommonActionType.EDIT_CELL]: Transfer.editCell,
     [InteractiveWindowMessages.ShowPlot]: Transfer.showPlot,
     [CommonActionType.LINK_CLICK]: Transfer.linkClick,
-    [CommonActionType.GATHER_CELL]: Transfer.gather,
-    [CommonActionType.GATHER_CELL_TO_SCRIPT]: Transfer.gatherToScript,
-    [InteractiveWindowMessages.Gathering]: Transfer.gathering,
     [CommonActionType.EDITOR_LOADED]: Transfer.started,
     [CommonActionType.LOADED_ALL_CELLS]: Transfer.loadedAllCells,
     [CommonActionType.LAUNCH_NOTEBOOK_TRUST_PROMPT]: Transfer.launchNotebookTrustPrompt,
@@ -100,5 +97,7 @@ export const reducerMap: Partial<INativeEditorActionMapping> = {
     [InteractiveWindowMessages.ShowBreak]: Execution.handleBreakState,
     [InteractiveWindowMessages.ShowContinue]: Execution.handleContinue,
     [InteractiveWindowMessages.StartDebugging]: Execution.startDebugging,
-    [InteractiveWindowMessages.StopDebugging]: Execution.stopDebugging
+    [InteractiveWindowMessages.StopDebugging]: Execution.stopDebugging,
+    [InteractiveWindowMessages.UpdateExternalCellButtons]: CommonEffects.handleWebviewButtons,
+    [InteractiveWindowMessages.ExecuteExternalCommand]: Transfer.executeExternalCommand
 };

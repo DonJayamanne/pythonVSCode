@@ -45,6 +45,7 @@ import {
     INotebookEditorProvider,
     INotebookExecutionLogger
 } from '../../types';
+import { translateCellFromNative } from '../../utils';
 import { IKernel } from './types';
 // tslint:disable-next-line: no-var-requires no-require-imports
 const vscodeNotebookEnums = require('vscode') as typeof import('vscode-proposed');
@@ -443,7 +444,7 @@ export class CellExecution {
             if (jupyterLab.KernelMessage.isExecuteResultMsg(msg)) {
                 await this.handleExecuteResult(msg as KernelMessage.IExecuteResultMsg, clearState);
             } else if (jupyterLab.KernelMessage.isExecuteInputMsg(msg)) {
-                await this.handleExecuteInput(msg as KernelMessage.IExecuteInputMsg, clearState);
+                await this.handleExecuteInput(msg as KernelMessage.IExecuteInputMsg, clearState, loggers);
             } else if (jupyterLab.KernelMessage.isStatusMsg(msg)) {
                 // Status is handled by the result promise. While it is running we are active. Otherwise we're stopped.
                 // So ignore status messages.
@@ -555,9 +556,16 @@ export class CellExecution {
         }
     }
 
-    private async handleExecuteInput(msg: KernelMessage.IExecuteInputMsg, _clearState: RefBool) {
+    private async handleExecuteInput(
+        msg: KernelMessage.IExecuteInputMsg,
+        _clearState: RefBool,
+        loggers: INotebookExecutionLogger[]
+    ) {
         if (msg.content.execution_count) {
             await updateCellExecutionCount(this.editor, this.cell, msg.content.execution_count);
+            loggers.forEach((l) =>
+                l.postExecute(translateCellFromNative(this.cell), true, this.cell.language, this.cell.notebook.uri)
+            );
         }
     }
 

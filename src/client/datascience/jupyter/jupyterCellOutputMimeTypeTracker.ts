@@ -25,6 +25,10 @@ export class CellOutputMimeTypeTracker implements IExtensionSingleActivationServ
         this.pendingChecks.clear();
     }
 
+    public onKernelStarted() {
+        // Do nothing on started
+    }
+
     public onKernelRestarted() {
         // Do nothing on restarted
     }

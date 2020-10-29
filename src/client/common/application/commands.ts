@@ -99,7 +99,7 @@ export interface ICommandNameArgumentTypeMapping extends ICommandNameWithoutArgu
     [DSCommands.RunFromLine]: [Uri, number, number];
     [DSCommands.ImportNotebook]: [undefined | Uri, undefined | CommandSource];
     [DSCommands.ImportNotebookFile]: [undefined | Uri, undefined | CommandSource];
-    [DSCommands.OpenNotebook]: [undefined | Uri, undefined | CommandSource];
+    [DSCommands.OpenNotebook]: [undefined | Uri, undefined | string, undefined | CommandSource];
     [DSCommands.OpenNotebookInPreviewEditor]: [undefined | Uri];
     [DSCommands.ExportFileAsNotebook]: [undefined | Uri, undefined | CommandSource];
     [DSCommands.RunFileInInteractiveWindows]: [Uri];
@@ -135,7 +135,6 @@ export interface ICommandNameArgumentTypeMapping extends ICommandNameWithoutArgu
     [DSCommands.SaveNotebookNonCustomEditor]: [INotebookModel];
     [DSCommands.SaveAsNotebookNonCustomEditor]: [INotebookModel, Uri];
     [DSCommands.OpenNotebookNonCustomEditor]: [Uri];
-    [DSCommands.GatherQuality]: [string];
     [DSCommands.LatestExtension]: [string];
     [DSCommands.EnableLoadingWidgetsFrom3rdPartySource]: [undefined | never];
     [DSCommands.TrustNotebook]: [undefined | never | Uri];

@@ -49,8 +49,6 @@ export enum CommonActionType {
     EXPORT_NOTEBOOK_AS = 'action.export_As',
     FOCUS_CELL = 'action.focus_cell',
     FOCUS_INPUT = 'action.focus_input',
-    GATHER_CELL = 'action.gather_cell',
-    GATHER_CELL_TO_SCRIPT = 'action.gather_cell_to_script',
     GET_VARIABLE_DATA = 'action.get_variable_data',
     GOTO_CELL = 'action.goto_cell',
     INSERT_ABOVE = 'action.insert_above',
@@ -128,8 +126,6 @@ export type CommonActionTypeMapping = {
     [CommonActionType.CLICK_CELL]: ICellAction;
     [CommonActionType.COPY_CELL_CODE]: ICellAction;
     [CommonActionType.DELETE_CELL]: ICellAction;
-    [CommonActionType.GATHER_CELL]: ICellAction;
-    [CommonActionType.GATHER_CELL_TO_SCRIPT]: ICellAction;
     [CommonActionType.EDITOR_LOADED]: never | undefined;
     [CommonActionType.LOADED_ALL_CELLS]: never | undefined;
     [CommonActionType.UNMOUNT]: never | undefined;
@@ -256,10 +252,5 @@ export type NotifyIPyWidgeWidgetVersionNotSupportedAction = {
     moduleName: 'qgrid';
     moduleVersion: string;
 };
-
-export interface IChangeGatherStatus {
-    cellId: string;
-    gathering: boolean;
-}
 
 export type CommonAction<T = never | undefined> = ActionWithPayload<T, CommonActionType | InteractiveWindowMessages>;

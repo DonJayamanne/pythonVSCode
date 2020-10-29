@@ -42,7 +42,8 @@ export class NativeEditorCommandListener implements IDataScienceCommandListener 
         this.disposableRegistry.push(
             commandManager.registerCommand(
                 Commands.OpenNotebook,
-                (file?: Uri, _cmdSource: CommandSource = CommandSource.commandPalette) => this.openNotebook(file)
+                (file?: Uri, contents?: string, _cmdSource: CommandSource = CommandSource.commandPalette) =>
+                    this.openNotebook(file, contents)
             )
         );
         this.disposableRegistry.push(
@@ -113,13 +114,19 @@ export class NativeEditorCommandListener implements IDataScienceCommandListener 
     }
 
     @captureTelemetry(Telemetry.OpenNotebook, { scope: 'command' }, false)
-    private async openNotebook(file?: Uri): Promise<void> {
+    private async openNotebook(file?: Uri, content?: string): Promise<void> {
         if (file && path.extname(file.fsPath).toLocaleLowerCase() === '.ipynb') {
             try {
                 // Then take the contents and load it.
                 await this.provider.open(file);
             } catch (e) {
-                return this.dataScienceErrorHandler.handleError(e);
+                await this.dataScienceErrorHandler.handleError(e);
+            }
+        } else if (content) {
+            try {
+                await this.provider.createNew(content);
+            } catch (e) {
+                await this.dataScienceErrorHandler.handleError(e);
             }
         }
     }

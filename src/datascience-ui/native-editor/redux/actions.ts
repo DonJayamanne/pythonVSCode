@@ -7,7 +7,12 @@ import {
     IInteractiveWindowMapping,
     InteractiveWindowMessages
 } from '../../../client/datascience/interactive-common/interactiveWindowTypes';
-import { IJupyterVariable, IJupyterVariablesRequest } from '../../../client/datascience/types';
+import {
+    ICell,
+    IExternalCommandFromWebview,
+    IJupyterVariable,
+    IJupyterVariablesRequest
+} from '../../../client/datascience/types';
 import { CursorPos } from '../../interactive-common/mainState';
 import {
     CommonAction,
@@ -111,10 +116,6 @@ export const actionCreators = {
     linkClick: (href: string): CommonAction<ILinkClickAction> =>
         createIncomingActionWithPayload(CommonActionType.LINK_CLICK, { href }),
     showPlot: (imageHtml: string) => createIncomingActionWithPayload(InteractiveWindowMessages.ShowPlot, imageHtml),
-    gatherCell: (cellId: string | undefined): CommonAction<ICellAction> =>
-        createIncomingActionWithPayload(CommonActionType.GATHER_CELL, { cellId }),
-    gatherCellToScript: (cellId: string | undefined): CommonAction<ICellAction> =>
-        createIncomingActionWithPayload(CommonActionType.GATHER_CELL_TO_SCRIPT, { cellId }),
     editorLoaded: (): CommonAction => createIncomingAction(CommonActionType.EDITOR_LOADED),
     codeCreated: (cellId: string | undefined, modelId: string): CommonAction<ICodeCreatedAction> =>
         createIncomingActionWithPayload(CommonActionType.CODE_CREATED, { cellId, modelId }),
@@ -146,5 +147,7 @@ export const actionCreators = {
     continue: (cellId: string): CommonAction<ICellAction> =>
         createIncomingActionWithPayload(CommonActionType.CONTINUE, { cellId }),
     step: (cellId: string): CommonAction<ICellAction> =>
-        createIncomingActionWithPayload(CommonActionType.STEP, { cellId })
+        createIncomingActionWithPayload(CommonActionType.STEP, { cellId }),
+    runExternalCommand: (buttonId: string, cell: ICell): CommonAction<IExternalCommandFromWebview> =>
+        createIncomingActionWithPayload(InteractiveWindowMessages.ExecuteExternalCommand, { buttonId, cell })
 };

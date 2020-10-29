@@ -40,10 +40,15 @@ import { KernelConnectionMetadata } from './kernels/types';
 // tslint:disable-next-line: no-require-imports
 import cloneDeep = require('lodash/cloneDeep');
 import { concatMultilineString, formatStreamText, splitMultilineString } from '../../../datascience-ui/common';
+import { PYTHON_LANGUAGE } from '../../common/constants';
 import { IFileSystem } from '../../common/platform/types';
 import { RefBool } from '../../common/refBool';
 import { PythonEnvironment } from '../../pythonEnvironments/info';
-import { getInterpreterFromKernelConnectionMetadata, isPythonKernelConnection } from './kernels/helpers';
+import {
+    getInterpreterFromKernelConnectionMetadata,
+    getKernelConnectionLanguage,
+    isPythonKernelConnection
+} from './kernels/helpers';
 
 class CellSubscriber {
     public get startTime(): number {
@@ -209,6 +214,8 @@ export class JupyterNotebookBase implements INotebook {
 
         // Make a copy of the launch info so we can update it in this class
         this._executionInfo = cloneDeep(executionInfo);
+
+        this.logKernelStarted().ignoreErrors();
     }
 
     public get connection() {
@@ -473,7 +480,7 @@ export class JupyterNotebookBase implements INotebook {
             traceInfo('restartKernel - initialSetup completed');
 
             // Tell our loggers
-            this.loggers.forEach((l) => l.onKernelRestarted());
+            this.loggers.forEach((l) => l.onKernelRestarted(this.getNotebookId()));
 
             this.kernelRestarted.fire();
             return;
@@ -722,6 +729,10 @@ export class JupyterNotebookBase implements INotebook {
         } else {
             throw new Error(localize.DataScience.sessionDisposed());
         }
+    }
+
+    private async logKernelStarted() {
+        this.loggers.forEach((l) => l.onKernelStarted(this.getNotebookId()));
     }
 
     private async initializeMatplotlib(cancelToken?: CancellationToken): Promise<void> {
@@ -1194,7 +1205,10 @@ export class JupyterNotebookBase implements INotebook {
     }
 
     private async logPostCode(cell: ICell, silent: boolean): Promise<void> {
-        await Promise.all(this.loggers.map((l) => l.postExecute(cloneDeep(cell), silent)));
+        const language = getKernelConnectionLanguage(this.getKernelConnection()) || PYTHON_LANGUAGE;
+        await Promise.all(
+            this.loggers.map((l) => l.postExecute(cloneDeep(cell), silent, language, this.getNotebookId()))
+        );
     }
 
     private addToCellData = (
@@ -1420,5 +1434,9 @@ export class JupyterNotebookBase implements INotebook {
         }
 
         return outputString.substr(outputString.length - outputLimit);
+    }
+
+    private getNotebookId(): Uri {
+        return this.identity;
     }
 }
