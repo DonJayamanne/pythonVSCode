@@ -38,7 +38,7 @@ export class DataViewerChecker {
         if (settings) {
             settings.askForLargeDataFrames = false;
             this.configuration
-                .updateSetting('dataScience.askForLargeDataFrames', false, undefined, ConfigurationTarget.Global)
+                .updateSetting('askForLargeDataFrames', false, undefined, ConfigurationTarget.Global)
                 .ignoreErrors();
         }
     }
