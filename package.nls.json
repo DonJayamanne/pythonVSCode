@@ -462,7 +462,6 @@
     "DataScience.step": "Run next line (F10)",
     "DataScience.usingPreviewNotebookWithOtherNotebookWarning": "Opening the same file in the Preview Notebook Editor and stable Notebook Editor is not recommended. Doing so could result in data loss or corruption of notebooks.",
     "DataScience.previewNotebookOnlySupportedInVSCInsiders": "The Preview Notebook Editor is supported only in the Insiders version of Visual Studio Code.",
-    "DataScienceNotebookSurveyBanner.bannerMessage": "Can you please take 2 minutes to tell us how the Preview Notebook Editor is working for you?",
     "DataScience.unknownServerUri": "Server URI cannot be used. Did you uninstall an extension that provided a Jupyter server connection?",
     "DataScienceRendererExtension.installingExtension": "Installing Notebook Renderers extension...",
     "DataScienceRendererExtension.installationCompleteMessage": "complete.",

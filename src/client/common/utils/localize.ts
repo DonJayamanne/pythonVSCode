@@ -157,13 +157,6 @@ export namespace DataScienceRendererExtension {
         'Notebook Renderers extension download complete.'
     );
 }
-export namespace DataScienceNotebookSurveyBanner {
-    export const bannerMessage = localize(
-        'DataScienceNotebookSurveyBanner.bannerMessage',
-        'Can you please take 2 minutes to tell us how the Preview Notebook Editor is working for you?'
-    );
-}
-
 export namespace ExtensionSurveyBanner {
     export const bannerMessage = localize(
         'ExtensionSurveyBanner.bannerMessage',

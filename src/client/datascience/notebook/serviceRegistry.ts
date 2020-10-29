@@ -14,7 +14,6 @@ import { NotebookCellLanguageService } from './defaultCellLanguageService';
 import { NotebookIntegration } from './integration';
 import { VSCodeKernelPickerProvider } from './kernelProvider';
 import { NotebookDisposeService } from './notebookDisposeService';
-import { NotebookSurveyBanner, NotebookSurveyDataLogger } from './survey';
 import { INotebookContentProvider } from './types';
 
 export function registerTypes(serviceManager: IServiceManager) {
@@ -29,12 +28,7 @@ export function registerTypes(serviceManager: IServiceManager) {
     );
     serviceManager.addSingleton<NotebookIntegration>(NotebookIntegration, NotebookIntegration);
     serviceManager.addSingleton<IKernelProvider>(IKernelProvider, KernelProvider);
-    serviceManager.addSingleton<NotebookSurveyBanner>(NotebookSurveyBanner, NotebookSurveyBanner);
     serviceManager.addSingleton<VSCodeKernelPickerProvider>(VSCodeKernelPickerProvider, VSCodeKernelPickerProvider);
-    serviceManager.addSingleton<IExtensionSingleActivationService>(
-        IExtensionSingleActivationService,
-        NotebookSurveyDataLogger
-    );
     serviceManager.addSingleton<IExtensionSingleActivationService>(
         IExtensionSingleActivationService,
         GitHubIssueCodeLensProvider
