@@ -2,7 +2,7 @@
     "name": "jupyter",
     "displayName": "Jupyter",
     "description": "Linting, Debugging (multi-threaded, remote), Intellisense, Jupyter Notebooks, code formatting, refactoring, unit tests, snippets, and more.",
-    "version": "2020.9.0-dev",
+    "version": "2020.11.0-dev",
     "featureFlags": {
         "usingNewInterpreterStorage": true
     },
@@ -646,11 +646,13 @@
             {
                 "command": "jupyter.createGitHubIssue",
                 "title": "%jupyter.command.jupyter.createGitHubIssue.title%",
+                "enablement": "config.noExists",
                 "category": "Jupyter"
             },
             {
                 "command": "jupyter.submitGitHubIssue",
                 "title": "%jupyter.command.jupyter.submitGitHubIssue.title%",
+                "enablement": "config.noExists",
                 "category": "Jupyter"
             },
             {
@@ -1194,7 +1196,7 @@
                     "command": "jupyter.createGitHubIssue",
                     "title": "%jupyter.command.jupyter.createGitHubIssue.title%",
                     "category": "Jupyter",
-                    "when": "config.jupyter.logging.level == debug"
+                    "when": "config.jupyter.logging.level == debug && config.noExists"
                 },
                 {
                     "command": "jupyter.showDataViewer",
