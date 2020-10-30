@@ -72,11 +72,15 @@ export class PostOffice implements IDisposable {
         this.handlers = this.handlers.filter((f) => f !== handler);
     }
 
-    private acquireApi(): IVsCodeApi | undefined {
+    public acquireApi(): IVsCodeApi | undefined {
         // Only do this once as it crashes if we ask more than once
         // tslint:disable-next-line:no-typeof-undefined
         if (!this.vscodeApi && typeof acquireVsCodeApi !== 'undefined') {
             this.vscodeApi = acquireVsCodeApi(); // NOSONAR
+            // tslint:disable-next-line: no-any no-typeof-undefined
+        } else if (!this.vscodeApi && typeof (window as any).acquireVsCodeApi !== 'undefined') {
+            // tslint:disable-next-line: no-any
+            this.vscodeApi = (window as any).acquireVsCodeApi();
         }
         if (!this.registered) {
             this.registered = true;
@@ -98,7 +102,6 @@ export class PostOffice implements IDisposable {
 
         return this.vscodeApi;
     }
-
     private async handleMessages(ev: MessageEvent) {
         if (this.handlers) {
             const msg = ev.data as WebviewMessage;
