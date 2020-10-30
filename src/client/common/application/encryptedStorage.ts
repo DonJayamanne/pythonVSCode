@@ -4,8 +4,6 @@ import { inject, injectable } from 'inversify';
 import { env } from 'vscode';
 import { IApplicationEnvironment, IAuthenticationService, IEncryptedStorage } from './types';
 
-import type * as keytarType from 'keytar';
-
 declare const __webpack_require__: typeof require;
 declare const __non_webpack_require__: typeof require;
 function getNodeModule<T>(moduleName: string): T | undefined {
@@ -24,7 +22,13 @@ function getNodeModule<T>(moduleName: string): T | undefined {
 }
 
 // Use it
-const keytar = getNodeModule<typeof keytarType>('keytar');
+type KeyTar = {
+    setPassword(service: string, key: string): Promise<void>;
+    deletePassword(service: string): Promise<void>;
+    getPassword(service: string, key: string): Promise<string | undefined>;
+};
+
+const keytar = getNodeModule<KeyTar>('keytar');
 
 /**
  * Class that wraps keytar and authentication to provide a way to write out and save a string
