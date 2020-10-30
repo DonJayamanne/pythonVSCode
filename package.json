@@ -670,6 +670,11 @@
                 "command": "jupyter.showDataViewer",
                 "title": "%jupyter.command.jupyter.showDataViewer.title%",
                 "category": "Jupyter"
+            },
+            {
+                "command": "jupyter.clearSavedJupyterUris",
+                "title": "%jupyter.command.jupyter.clearSavedJupyterUris.title%",
+                "category": "Jupyter"
             }
         ],
         "menus": {
@@ -1323,10 +1328,13 @@
                     "description": "Number of times to attempt to connect to the Jupyter Notebook",
                     "scope": "resource"
                 },
-                "jupyter.jupyterServerURI": {
+                "jupyter.jupyterServerType": {
                     "type": "string",
-                    "default": "local",
-                    "description": "When a Notebook Editor or Interactive Window session is started, create the kernel on the specified Jupyter server. Select 'local' to create a new Jupyter server on this local machine.",
+                    "enum": [
+                        "local",
+                        "remote"
+                    ],
+                    "description": "Determines the type of connection for talking to jupyter. Local will start kernels locally. Remote allows for connections to remote servers",
                     "scope": "resource"
                 },
                 "jupyter.jupyterCommandLineArguments": {
@@ -1933,6 +1941,7 @@
         "html-webpack-plugin": "^3.2.0",
         "husky": "^1.1.2",
         "jsdom": "^15.0.0",
+        "keytar": "^7.0.0",
         "less": "^3.9.0",
         "less-loader": "^5.0.0",
         "less-plugin-inline-urls": "^1.2.0",

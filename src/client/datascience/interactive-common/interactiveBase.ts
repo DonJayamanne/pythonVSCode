@@ -5,6 +5,7 @@ import '../../common/extensions';
 
 import type { nbformat } from '@jupyterlab/coreutils';
 import type { KernelMessage } from '@jupyterlab/services';
+import * as fsextra from 'fs-extra';
 import * as os from 'os';
 import * as path from 'path';
 import * as uuid from 'uuid/v4';
@@ -48,7 +49,7 @@ import { StopWatch } from '../../common/utils/stopWatch';
 import { captureTelemetry, sendTelemetryEvent } from '../../telemetry';
 import { generateCellRangesFromDocument } from '../cellFactory';
 import { CellMatcher } from '../cellMatcher';
-import { addToUriList, translateKernelLanguageToMonaco } from '../common';
+import { translateKernelLanguageToMonaco } from '../common';
 import { Commands, Identifiers, Settings, Telemetry } from '../constants';
 import { IDataViewerFactory } from '../data-viewing/types';
 import {
@@ -88,6 +89,7 @@ import {
     IInteractiveWindowInfo,
     IInteractiveWindowListener,
     IJupyterDebugger,
+    IJupyterServerUriStorage,
     IJupyterVariableDataProviderFactory,
     IJupyterVariables,
     IJupyterVariablesRequest,
@@ -174,7 +176,8 @@ export abstract class InteractiveBase extends WebviewPanelHost<IInteractiveWindo
         private readonly notebookProvider: INotebookProvider,
         useCustomEditorApi: boolean,
         expService: IExperimentService,
-        private selector: KernelSelector
+        private selector: KernelSelector,
+        private serverStorage: IJupyterServerUriStorage
     ) {
         super(
             configuration,
@@ -910,17 +913,16 @@ export abstract class InteractiveBase extends WebviewPanelHost<IInteractiveWindo
     }
 
     protected async getServerDisplayName(serverConnection: INotebookProviderConnection | undefined): Promise<string> {
+        const serverUri = await this.serverStorage.getUri();
         // If we don't have a server connection, make one if remote. We need the remote connection in order
         // to compute the display name. However only do this if the user is allowing auto start.
         if (
             !serverConnection &&
-            this.configService.getSettings(this.owningResource).jupyterServerURI !==
-                Settings.JupyterServerLocalLaunch &&
+            serverUri !== Settings.JupyterServerLocalLaunch &&
             !this.configService.getSettings(this.owningResource).disableJupyterAutoStart
         ) {
             serverConnection = await this.notebookProvider.connect({ disableUI: true });
         }
-        const serverUri = this.configService.getSettings().jupyterServerURI;
         let displayName =
             serverConnection?.displayName ||
             (!serverConnection?.localLaunch ? serverConnection?.url : undefined) ||
@@ -934,8 +936,7 @@ export abstract class InteractiveBase extends WebviewPanelHost<IInteractiveWindo
                 displayName = localize.DataScience.localJupyterServer();
             } else {
                 // Log this remote URI into our MRU list
-                addToUriList(
-                    this.globalStorage,
+                await this.serverStorage.addToUriList(
                     !isNil(serverConnection.url) ? serverConnection.url : serverConnection.displayName,
                     Date.now(),
                     serverConnection.displayName
@@ -1517,26 +1518,20 @@ export abstract class InteractiveBase extends WebviewPanelHost<IInteractiveWindo
         // Look for the file next or our current file (this is where it's installed in the vsix)
         let filePath = path.join(__dirname, 'node_modules', 'onigasm', 'lib', 'onigasm.wasm');
         traceInfo(`Request for onigasm file at ${filePath}`);
-        if (this.fs) {
-            if (await this.fs.localFileExists(filePath)) {
-                const contents = await this.fs.readLocalData(filePath);
+        if (await fsextra.pathExists(filePath)) {
+            const contents = await fsextra.readFile(filePath);
+            this.postMessage(InteractiveWindowMessages.LoadOnigasmAssemblyResponse, contents).ignoreErrors();
+        } else {
+            // During development it's actually in the node_modules folder
+            filePath = path.join(EXTENSION_ROOT_DIR, 'node_modules', 'onigasm', 'lib', 'onigasm.wasm');
+            traceInfo(`Backup request for onigasm file at ${filePath}`);
+            if (await fsextra.pathExists(filePath)) {
+                const contents = await fsextra.readFile(filePath);
                 this.postMessage(InteractiveWindowMessages.LoadOnigasmAssemblyResponse, contents).ignoreErrors();
             } else {
-                // During development it's actually in the node_modules folder
-                filePath = path.join(EXTENSION_ROOT_DIR, 'node_modules', 'onigasm', 'lib', 'onigasm.wasm');
-                traceInfo(`Backup request for onigasm file at ${filePath}`);
-                if (await this.fs.localFileExists(filePath)) {
-                    const contents = await this.fs.readLocalData(filePath);
-                    this.postMessage(InteractiveWindowMessages.LoadOnigasmAssemblyResponse, contents).ignoreErrors();
-                } else {
-                    traceWarning('Onigasm file not found. Colorization will not be available.');
-                    this.postMessage(InteractiveWindowMessages.LoadOnigasmAssemblyResponse).ignoreErrors();
-                }
+                traceWarning('Onigasm file not found. Colorization will not be available.');
+                this.postMessage(InteractiveWindowMessages.LoadOnigasmAssemblyResponse).ignoreErrors();
             }
-        } else {
-            // This happens during testing. Onigasm not needed as we're not testing colorization.
-            traceWarning('File system not found. Colorization will not be available.');
-            this.postMessage(InteractiveWindowMessages.LoadOnigasmAssemblyResponse).ignoreErrors();
         }
     }
 

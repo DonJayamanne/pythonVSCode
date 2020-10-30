@@ -46,7 +46,7 @@ export class JupyterSettings implements IWatchableJupyterSettings {
     public jupyterInterruptTimeout: number = 10_000;
     public jupyterLaunchTimeout: number = 60_000;
     public jupyterLaunchRetries: number = 3;
-    public jupyterServerURI: string = 'local';
+    public jupyterServerType: string = 'local';
     public notebookFileRoot: string = '';
     public changeDirOnImportExport: boolean = false;
     public useDefaultConfigForJupyter: boolean = false;

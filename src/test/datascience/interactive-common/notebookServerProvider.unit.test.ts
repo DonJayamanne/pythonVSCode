@@ -7,6 +7,8 @@ import * as typemoq from 'typemoq';
 import { IApplicationShell } from '../../../client/common/application/types';
 import { IConfigurationService, IWatchableJupyterSettings } from '../../../client/common/types';
 import { NotebookServerProvider } from '../../../client/datascience/interactive-common/notebookServerProvider';
+import { JupyterServerSelector } from '../../../client/datascience/jupyter/serverSelector';
+import { JupyterServerUriStorage } from '../../../client/datascience/jupyter/serverUriStorage';
 import { ProgressReporter } from '../../../client/datascience/progress/progressReporter';
 import { IJupyterExecution, INotebookServer } from '../../../client/datascience/types';
 import { IInterpreterService } from '../../../client/interpreter/contracts';
@@ -47,8 +49,14 @@ suite('DataScience - NotebookServerProvider', () => {
 
         // Set up our settings
         pythonSettings = mock<IWatchableJupyterSettings>();
-        when(pythonSettings.jupyterServerURI).thenReturn('local');
+        when(pythonSettings.jupyterServerType).thenReturn('local');
         when(configurationService.getSettings(anything())).thenReturn(instance(pythonSettings));
+        const serverStorage = mock(JupyterServerUriStorage);
+        when(serverStorage.getUri()).thenResolve('local');
+        const serverSelector = mock(JupyterServerSelector);
+        when((jupyterExecution as any).then).thenReturn(undefined);
+        when((serverSelector as any).then).thenReturn(undefined);
+        when((serverStorage as any).then).thenReturn(undefined);
 
         // Create the server provider
         serverProvider = new NotebookServerProvider(
@@ -56,7 +64,9 @@ suite('DataScience - NotebookServerProvider', () => {
             instance(configurationService),
             instance(jupyterExecution),
             instance(applicationShell),
-            instance(interpreterService)
+            instance(interpreterService),
+            instance(serverStorage),
+            instance(serverSelector)
         );
     });
 
@@ -70,9 +80,10 @@ suite('DataScience - NotebookServerProvider', () => {
 
     test('NotebookServerProvider - Get Only - server', async () => {
         const notebookServer = mock<INotebookServer>();
+        when((notebookServer as any).then).thenReturn(undefined);
         when(jupyterExecution.getServer(anything())).thenResolve(instance(notebookServer));
 
-        const server = serverProvider.getOrCreateServer({ getOnly: true });
+        const server = await serverProvider.getOrCreateServer({ getOnly: true });
         expect(server).to.not.equal(undefined, 'Server expected to be defined');
         verify(jupyterExecution.getServer(anything())).once();
     });

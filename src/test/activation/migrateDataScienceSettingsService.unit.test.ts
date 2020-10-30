@@ -1,9 +1,11 @@
 import { expect } from 'chai';
-import { mock } from 'ts-mockito';
+import { anyString, instance, mock, when } from 'ts-mockito';
 import { MigrateDataScienceSettingsService } from '../../client/activation/migrateDataScienceSettingsService';
 import { ApplicationEnvironment } from '../../client/common/application/applicationEnvironment';
 import { IApplicationEnvironment, IWorkspaceService } from '../../client/common/application/types';
 import { WorkspaceService } from '../../client/common/application/workspace';
+import { JupyterServerUriStorage } from '../../client/datascience/jupyter/serverUriStorage';
+import { IJupyterServerUriStorage } from '../../client/datascience/types';
 import { MockFileSystem } from '../datascience/mockFileSystem';
 
 suite('Migrate data science settings', () => {
@@ -11,6 +13,8 @@ suite('Migrate data science settings', () => {
     let workspace: IWorkspaceService;
     let application: IApplicationEnvironment;
     let updateDataScienceSettingsService: MigrateDataScienceSettingsService;
+    let uriStorage: IJupyterServerUriStorage;
+    let uriSet: string | undefined = undefined;
     const FILEPATH = '/path/to/settings.json';
     const originalSettings = `{
         "python.dataScience.allowImportFromNotebook": true,
@@ -80,7 +84,6 @@ suite('Migrate data science settings', () => {
         "jupyter.jupyterInterruptTimeout": 0,
         "jupyter.jupyterLaunchTimeout": 0,
         "jupyter.jupyterLaunchRetries": 0,
-        "jupyter.jupyterServerURI": "foo",
         "jupyter.notebookFileRoot": "foo",
         "jupyter.changeDirOnImportExport": true,
         "jupyter.useDefaultConfigForJupyter": true,
@@ -139,11 +142,22 @@ suite('Migrate data science settings', () => {
         fs.addFileContents(FILEPATH, originalSettings);
         application = mock(ApplicationEnvironment);
         workspace = mock(WorkspaceService);
-        updateDataScienceSettingsService = new MigrateDataScienceSettingsService(fs, application, workspace);
+        uriStorage = mock(JupyterServerUriStorage);
+        when(uriStorage.setUri(anyString())).thenCall((a) => {
+            uriSet = a;
+            return Promise.resolve();
+        });
+        updateDataScienceSettingsService = new MigrateDataScienceSettingsService(
+            fs,
+            application,
+            workspace,
+            instance(uriStorage)
+        );
     });
 
     test('Correctly updates python.dataScience settings', async () => {
         const result = await updateDataScienceSettingsService.fixSettingInFile(FILEPATH);
         expect(result === migratedSettings, 'Failed to migrate python.dataScience settings');
+        expect(uriSet === 'foo', 'Uri was not ported');
     });
 });

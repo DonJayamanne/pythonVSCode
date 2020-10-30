@@ -1,7 +1,10 @@
 name: Assign DS issue to someone
+
 on:
   issues:
     types: [opened, labeled]
+  workflow_dispatch:
+
 jobs:
   assignIssue:
     name: Assign Issue to Someone

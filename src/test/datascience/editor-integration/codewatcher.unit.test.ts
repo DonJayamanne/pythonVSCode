@@ -99,7 +99,7 @@ suite('DataScience Code Watcher Unit Tests', () => {
             alwaysTrustNotebooks: true,
             jupyterLaunchTimeout: 20000,
             jupyterLaunchRetries: 3,
-            jupyterServerURI: 'local',
+            jupyterServerType: 'local',
             notebookFileRoot: 'WORKSPACE',
             changeDirOnImportExport: true,
             useDefaultConfigForJupyter: true,

@@ -3,11 +3,10 @@
 
 'use strict';
 
-import { inject, injectable, named } from 'inversify';
+import { inject, injectable } from 'inversify';
 import { isNil } from 'lodash';
-import { ConfigurationTarget, Memento, QuickPickItem, Uri } from 'vscode';
+import { QuickPickItem, Uri } from 'vscode';
 import { IClipboard, ICommandManager } from '../../common/application/types';
-import { GLOBAL_MEMENTO, IConfigurationService, IMemento } from '../../common/types';
 import { DataScience } from '../../common/utils/localize';
 import { noop } from '../../common/utils/misc';
 import {
@@ -18,9 +17,13 @@ import {
     IQuickPickParameters
 } from '../../common/utils/multiStepInput';
 import { captureTelemetry, sendTelemetryEvent } from '../../telemetry';
-import { getSavedUriList } from '../common';
 import { Identifiers, Settings, Telemetry } from '../constants';
-import { IJupyterUriProvider, IJupyterUriProviderRegistration, JupyterServerUriHandle } from '../types';
+import {
+    IJupyterServerUriStorage,
+    IJupyterUriProvider,
+    IJupyterUriProviderRegistration,
+    JupyterServerUriHandle
+} from '../types';
 
 const defaultUri = 'https://hostname:8080/?token=849d61a414abafab97bc4aab1f3547755ddc232c2b8cb7fe';
 
@@ -36,13 +39,12 @@ export class JupyterServerSelector {
     private readonly newLabel = `$(server) ${DataScience.jupyterSelectURINewLabel()}`;
     private readonly remoteLabel = `$(server) ${DataScience.jupyterSelectURIRemoteLabel()}`;
     constructor(
-        @inject(IMemento) @named(GLOBAL_MEMENTO) private globalState: Memento,
         @inject(IClipboard) private readonly clipboard: IClipboard,
         @inject(IMultiStepInputFactory) private readonly multiStepFactory: IMultiStepInputFactory,
-        @inject(IConfigurationService) private configuration: IConfigurationService,
         @inject(ICommandManager) private cmdManager: ICommandManager,
         @inject(IJupyterUriProviderRegistration)
-        private extraUriProviders: IJupyterUriProviderRegistration
+        private extraUriProviders: IJupyterUriProviderRegistration,
+        @inject(IJupyterServerUriStorage) private readonly serverUriStorage: IJupyterServerUriStorage
     ) {}
 
     @captureTelemetry(Telemetry.SelectJupyterURI)
@@ -58,9 +60,23 @@ export class JupyterServerSelector {
     ): Promise<InputStep<{}> | void> {
         // First step, show a quick pick to choose either the remote or the local.
         // newChoice element will be set if the user picked 'enter a new server'
+
+        // Get the list of items and show what the current value is
+        const items = await this.getUriPickList(allowLocal);
+        const uri = await this.serverUriStorage.getUri();
+        const activeItem = items.find(
+            (i) => i.url === uri || (i.label === this.localLabel && uri === Settings.JupyterServerLocalLaunch)
+        );
+        const currentValue =
+            uri === Settings.JupyterServerLocalLaunch ? DataScience.jupyterSelectURILocalLabel() : activeItem?.label;
+        const placeholder = currentValue // This will show at the top (current value really)
+            ? DataScience.jupyterSelectURIQuickPickCurrent().format(currentValue)
+            : DataScience.jupyterSelectURIQuickPickPlaceholder();
+
         const item = await input.showQuickPick<ISelectUriQuickPickItem, IQuickPickParameters<ISelectUriQuickPickItem>>({
-            placeholder: DataScience.jupyterSelectURIQuickPickPlaceholder(),
+            placeholder,
             items: await this.getUriPickList(allowLocal),
+            activeItem,
             title: allowLocal
                 ? DataScience.jupyterSelectURIQuickPickTitle()
                 : DataScience.jupyterSelectURIQuickPickTitleRemoteOnly()
@@ -129,13 +145,8 @@ export class JupyterServerSelector {
 
     @captureTelemetry(Telemetry.SetJupyterURIToLocal)
     private async setJupyterURIToLocal(): Promise<void> {
-        const previousValue = this.configuration.getSettings(undefined).jupyterServerURI;
-        await this.configuration.updateSetting(
-            'jupyterServerURI',
-            Settings.JupyterServerLocalLaunch,
-            undefined,
-            ConfigurationTarget.Workspace
-        );
+        const previousValue = await this.serverUriStorage.getUri();
+        await this.serverUriStorage.setUri(Settings.JupyterServerLocalLaunch);
 
         // Reload if there's a change
         if (previousValue !== Settings.JupyterServerLocalLaunch) {
@@ -146,8 +157,8 @@ export class JupyterServerSelector {
     }
 
     private async setJupyterURIToRemote(userURI: string): Promise<void> {
-        const previousValue = this.configuration.getSettings(undefined).jupyterServerURI;
-        await this.configuration.updateSetting('jupyterServerURI', userURI, undefined, ConfigurationTarget.Workspace);
+        const previousValue = await this.serverUriStorage.getUri();
+        await this.serverUriStorage.setUri(userURI);
 
         // Indicate setting a jupyter URI to a remote setting. Check if an azure remote or not
         sendTelemetryEvent(Telemetry.SetJupyterURIToUserSpecified, undefined, {
@@ -204,7 +215,7 @@ export class JupyterServerSelector {
         }
 
         // Get our list of recent server connections and display that as well
-        const savedURIList = getSavedUriList(this.globalState);
+        const savedURIList = await this.serverUriStorage.getSavedUriList();
         savedURIList.forEach((uriItem) => {
             if (uriItem.uri) {
                 const uriDate = new Date(uriItem.time);

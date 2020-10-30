@@ -41,7 +41,7 @@ suite('DataScience - NotebookProvider', () => {
         // Set up our settings
         dataScienceSettings = mock<IJupyterSettings>();
         when(workspaceService.hasWorkspaceFolders).thenReturn(false);
-        when(dataScienceSettings.jupyterServerURI).thenReturn('local');
+        when(dataScienceSettings.jupyterServerType).thenReturn('local');
         when(dataScienceSettings.useDefaultConfigForJupyter).thenReturn(true);
         when(rawNotebookProvider.supported).thenReturn(() => Promise.resolve(false));
         const extensionChecker = mock(PythonExtensionChecker);

@@ -3,7 +3,7 @@
 'use strict';
 
 import * as path from 'path';
-import { EXTENSION_ROOT_DIR, PYTHON_LANGUAGE } from '../common/constants';
+import { EXTENSION_ROOT_DIR, JVSC_EXTENSION_ID, PYTHON_LANGUAGE } from '../common/constants';
 import { IS_WINDOWS } from '../common/platform/constants';
 import { IVariableQuery } from '../common/types';
 
@@ -114,6 +114,7 @@ export namespace Commands {
     export const CreateGitHubIssue = 'jupyter.createGitHubIssue';
     export const SubmitGitHubIssue = 'jupyter.submitGitHubIssue';
     export const ShowDataViewer = 'jupyter.showDataViewer';
+    export const ClearSavedJupyterUris = 'jupyter.clearSavedJupyterUris';
 }
 
 export namespace CodeLensCommands {
@@ -451,7 +452,13 @@ export namespace HelpLinks {
 
 export namespace Settings {
     export const JupyterServerLocalLaunch = 'local';
+    export const JupyterServerRemoteLaunch = 'remote';
     export const JupyterServerUriList = 'jupyter.jupyterServer.uriList';
+    export const JupyterServerRemoteLaunchUriListKey = 'remote-uri-list';
+    export const JupyterServerRemoteLaunchUriSeparator = '\r';
+    export const JupyterServerRemoteLaunchNameSeparator = '\n';
+    export const JupyterServerRemoteLaunchUriEqualsDisplayName = 'same';
+    export const JupyterServerRemoteLaunchService = JVSC_EXTENSION_ID;
     export const JupyterServerUriListMax = 10;
     // If this timeout expires, ignore the completion request sent to Jupyter.
     export const IntellisenseTimeout = 500;

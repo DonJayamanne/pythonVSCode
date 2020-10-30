@@ -120,7 +120,7 @@ suite('Interactive window command listener', async () => {
             alwaysTrustNotebooks: true,
             jupyterLaunchTimeout: 10,
             jupyterLaunchRetries: 3,
-            jupyterServerURI: '',
+            jupyterServerType: 'local',
             changeDirOnImportExport: false,
             // tslint:disable-next-line: no-invalid-template-strings
             notebookFileRoot: '${fileDirname}',

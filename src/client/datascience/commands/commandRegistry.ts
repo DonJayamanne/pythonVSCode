@@ -26,6 +26,7 @@ import {
     ICodeWatcher,
     IDataScienceCodeLensProvider,
     IDataScienceCommandListener,
+    IJupyterServerUriStorage,
     IJupyterVariableDataProviderFactory,
     INotebookEditorProvider
 } from '../types';
@@ -58,7 +59,8 @@ export class CommandRegistry implements IDisposable {
         @inject(IFileSystem) private readonly fs: IFileSystem,
         @inject(IJupyterVariableDataProviderFactory)
         private readonly jupyterVariableDataProviderFactory: IJupyterVariableDataProviderFactory,
-        @inject(IDataViewerFactory) private readonly dataViewerFactory: IDataViewerFactory
+        @inject(IDataViewerFactory) private readonly dataViewerFactory: IDataViewerFactory,
+        @inject(IJupyterServerUriStorage) private readonly serverUriStorage: IJupyterServerUriStorage
     ) {
         this.disposables.push(this.serverSelectedCommand);
         this.disposables.push(this.notebookCommands);
@@ -113,6 +115,7 @@ export class CommandRegistry implements IDisposable {
             Commands.EnableLoadingWidgetsFrom3rdPartySource,
             this.enableLoadingWidgetScriptsFromThirdParty
         );
+        this.registerCommand(Commands.ClearSavedJupyterUris, this.clearJupyterUris);
         if (this.commandListeners) {
             this.commandListeners.forEach((listener: IDataScienceCommandListener) => {
                 listener.register(this.commandManager);
@@ -176,6 +179,10 @@ export class CommandRegistry implements IDisposable {
                     .then(noop, noop);
             })
             .catch(noop);
+    }
+
+    private async clearJupyterUris(): Promise<void> {
+        return this.serverUriStorage.clearUriList();
     }
 
     private async runAllCells(file: Uri | undefined): Promise<void> {

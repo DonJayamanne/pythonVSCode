@@ -1384,6 +1384,14 @@ export interface IDebugLoggingManager {
     initialize(): Promise<void>;
 }
 
+export const IJupyterServerUriStorage = Symbol('IJupyterServerUriStorage');
+export interface IJupyterServerUriStorage {
+    addToUriList(uri: string, time: number, displayName: string): Promise<void>;
+    getSavedUriList(): Promise<{ uri: string; time: number; displayName?: string }[]>;
+    clearUriList(): Promise<void>;
+    getUri(): Promise<string>;
+    setUri(uri: string): Promise<void>;
+}
 export interface IExternalWebviewCellButton {
     buttonId: string;
     codicon: string;

@@ -4,12 +4,15 @@
 'use strict';
 
 import { inject, injectable } from 'inversify';
+import { applyEdits, ModificationOptions, modify, parse, ParseError } from 'jsonc-parser';
 import * as path from 'path';
 import { IApplicationEnvironment, IWorkspaceService } from '../common/application/types';
 import { traceError } from '../common/logger';
 import { IFileSystem } from '../common/platform/types';
 import { Resource } from '../common/types';
 import { swallowExceptions } from '../common/utils/decorators';
+import { Settings } from '../datascience/constants';
+import { IJupyterServerUriStorage } from '../datascience/types';
 import { traceDecorators } from '../logging';
 import { IExtensionActivationService } from './types';
 
@@ -18,7 +21,8 @@ export class MigrateDataScienceSettingsService implements IExtensionActivationSe
     constructor(
         @inject(IFileSystem) private readonly fs: IFileSystem,
         @inject(IApplicationEnvironment) private readonly application: IApplicationEnvironment,
-        @inject(IWorkspaceService) private readonly workspace: IWorkspaceService
+        @inject(IWorkspaceService) private readonly workspace: IWorkspaceService,
+        @inject(IJupyterServerUriStorage) private readonly serverUriStorage: IJupyterServerUriStorage
     ) {}
 
     public async activate(resource: Resource): Promise<void> {
@@ -28,10 +32,45 @@ export class MigrateDataScienceSettingsService implements IExtensionActivationSe
     @swallowExceptions('Failed to update settings.json')
     public async fixSettingInFile(filePath: string): Promise<string> {
         let fileContents = await this.fs.readLocalFile(filePath);
-        fileContents = fileContents.replace(
-            /"python\.dataScience\.(.*?)":/g,
-            (_match, capture) => `"jupyter.${capture}":`
-        );
+        const errors: ParseError[] = [];
+        const content = parse(fileContents, errors, { allowTrailingComma: true, disallowComments: false });
+        if (errors.length > 0) {
+            traceError('JSONC parser returned ParseError codes', errors);
+        }
+
+        // Find all of the python.datascience entries
+        const dataScienceKeys = Object.keys(content).filter((f) => f.includes('python.dataScience'));
+
+        // Write all of these keys to jupyter tags
+        const modificationOptions: ModificationOptions = {
+            formattingOptions: {
+                tabSize: 4,
+                insertSpaces: true
+            }
+        };
+        dataScienceKeys.forEach((k) => {
+            let val = content[k];
+            // Remove from the original string
+            fileContents = applyEdits(fileContents, modify(fileContents, [k], undefined, modificationOptions));
+
+            // Special case. URI is no longer supported. Move it to storage
+            if (k === 'python.dataScience.jupyterServerURI') {
+                this.serverUriStorage.setUri(val).ignoreErrors();
+
+                // Set the setting to local or remote based on if URI is 'local'
+                val = val === Settings.JupyterServerLocalLaunch ? val : Settings.JupyterServerRemoteLaunch;
+
+                // Change the key to the jupyter version (still needs the 19 chars in front so it substr correctly)
+                k = 'xxxxxx.dataScience.jupyterServerType';
+            }
+
+            // Update the new value
+            fileContents = applyEdits(
+                fileContents,
+                modify(fileContents, [`jupyter.${k.substr(19)}`], val, modificationOptions)
+            );
+        });
+
         await this.fs.writeLocalFile(filePath, fileContents);
         return fileContents;
     }

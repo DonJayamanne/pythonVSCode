@@ -30,8 +30,8 @@ export class KernelSwitcher {
         const settings = this.configService.getSettings(notebook.resource);
         const isLocalConnection =
             notebook.connection?.localLaunch ??
-            settings.jupyterServerURI.toLowerCase() === Settings.JupyterServerLocalLaunch;
-        if (!isLocalConnection) {
+            settings.jupyterServerType.toLowerCase() === Settings.JupyterServerLocalLaunch;
+        if (!notebook.connection?.localLaunch) {
             await this.switchToKernel(notebook, kernel);
             return;
         }

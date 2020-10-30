@@ -9,21 +9,25 @@ import { ImportTracker } from '../telemetry/importTracker';
 import { IImportTracker } from '../telemetry/types';
 import { ActiveResourceService } from './application/activeResource';
 import { ApplicationEnvironment } from './application/applicationEnvironment';
+import { AuthenticationService } from './application/authenticationService';
 import { ClipboardService } from './application/clipboard';
 import { ReloadVSCodeCommandHandler } from './application/commands/reloadCommand';
 import { CustomEditorService } from './application/customEditorService';
 import { DebugService } from './application/debugService';
 import { DocumentManager } from './application/documentManager';
+import { EncryptedStorage } from './application/encryptedStorage';
 import { Extensions } from './application/extensions';
 import { LanguageService } from './application/languageService';
 import { VSCodeNotebook } from './application/notebook';
 import {
     IActiveResourceService,
     IApplicationEnvironment,
+    IAuthenticationService,
     IClipboard,
     ICustomEditorService,
     IDebugService,
     IDocumentManager,
+    IEncryptedStorage,
     ILanguageService,
     ILiveShareApi,
     IVSCodeNotebook
@@ -85,6 +89,8 @@ export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.addSingleton<IDocumentManager>(IDocumentManager, DocumentManager);
     serviceManager.addSingleton<IDebugService>(IDebugService, DebugService);
     serviceManager.addSingleton<IApplicationEnvironment>(IApplicationEnvironment, ApplicationEnvironment);
+    serviceManager.addSingleton<IAuthenticationService>(IAuthenticationService, AuthenticationService);
+    serviceManager.addSingleton<IEncryptedStorage>(IEncryptedStorage, EncryptedStorage);
     serviceManager.addSingleton<ILanguageService>(ILanguageService, LanguageService);
     serviceManager.addSingleton<IBrowserService>(IBrowserService, BrowserService);
     serviceManager.addSingleton<IHttpClient>(IHttpClient, HttpClient);

@@ -17,6 +17,7 @@ import { Commands } from '../../../client/datascience/constants';
 import { DataViewerFactory } from '../../../client/datascience/data-viewing/dataViewerFactory';
 import { JupyterVariableDataProviderFactory } from '../../../client/datascience/data-viewing/jupyterVariableDataProviderFactory';
 import { DataScienceCodeLensProvider } from '../../../client/datascience/editor-integration/codelensprovider';
+import { JupyterServerUriStorage } from '../../../client/datascience/jupyter/serverUriStorage';
 import { NativeEditorProvider } from '../../../client/datascience/notebookStorage/nativeEditorProvider';
 import { MockOutputChannel } from '../../mockClasses';
 
@@ -43,6 +44,7 @@ suite('DataScience - Commands', () => {
         const jupyterVariableDataProviderFactory = mock(JupyterVariableDataProviderFactory);
         const dataViewerFactory = mock(DataViewerFactory);
         const fileSystem = mock(FileSystem);
+        const serverUriStorage = mock(JupyterServerUriStorage);
 
         commandRegistry = new CommandRegistry(
             documentManager,
@@ -60,7 +62,8 @@ suite('DataScience - Commands', () => {
             instance(exportCommand),
             instance(fileSystem),
             instance(jupyterVariableDataProviderFactory),
-            instance(dataViewerFactory)
+            instance(dataViewerFactory),
+            instance(serverUriStorage)
         );
     });
 

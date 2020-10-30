@@ -405,7 +405,7 @@ export class KernelSelector implements IKernelSelectionUsage {
         let kernelConnection: KernelConnectionMetadata | undefined;
         const settings = this.configService.getSettings(resource);
         const isLocalConnection =
-            connection?.localLaunch ?? settings.jupyterServerURI.toLowerCase() === Settings.JupyterServerLocalLaunch;
+            connection?.localLaunch ?? settings.jupyterServerType.toLowerCase() === Settings.JupyterServerLocalLaunch;
 
         if (isLocalConnection) {
             kernelConnection = await this.selectLocalJupyterKernel(

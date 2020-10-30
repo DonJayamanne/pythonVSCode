@@ -500,7 +500,7 @@ suite('DataScience Native Editor', () => {
                         ]);
 
                         // Set this as the URI to use when connecting
-                        ioc.forceDataScienceSettingsChanged({ jupyterServerURI: uri });
+                        await ioc.setServerUri(uri);
 
                         // Create a notebook and run a cell.
                         const notebook = await createNewEditor(ioc);

@@ -24,9 +24,9 @@ export class RawNotebookSupportedService implements IRawNotebookSupportedService
 
     private localLaunch(): boolean {
         const settings = this.configuration.getSettings(undefined);
-        const serverURI: string | undefined = settings.jupyterServerURI;
+        const serverType: string | undefined = settings.jupyterServerType;
 
-        if (!serverURI || serverURI.toLowerCase() === Settings.JupyterServerLocalLaunch) {
+        if (!serverType || serverType.toLowerCase() === Settings.JupyterServerLocalLaunch) {
             return true;
         }
 

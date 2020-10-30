@@ -423,6 +423,10 @@ export namespace DataScience {
         'DataScience.jupyterSelectURIQuickPickPlaceholder',
         'Choose an option'
     );
+    export const jupyterSelectURIQuickPickCurrent = localize(
+        'DataScience.jupyterSelectURIQuickPickCurrent',
+        'Current: {0}'
+    );
     export const jupyterSelectURILocalLabel = localize('DataScience.jupyterSelectURILocalLabel', 'Default');
     export const jupyterSelectURILocalDetail = localize(
         'DataScience.jupyterSelectURILocalDetail',

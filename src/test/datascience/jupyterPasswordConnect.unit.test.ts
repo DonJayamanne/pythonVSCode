@@ -46,7 +46,7 @@ suite('JupyterPasswordConnect', () => {
             // tslint:disable-next-line: no-any
         } as any;
         when(configService.getSettings(anything())).thenReturn(dsSettings as any);
-        when(configService.updateSetting('jupyterServerURI', anything(), anything(), anything())).thenCall(
+        when(configService.updateSetting('jupyterServerType', anything(), anything(), anything())).thenCall(
             (_a1, _a2, _a3, _a4) => {
                 return Promise.resolve();
             }
@@ -232,7 +232,7 @@ suite('JupyterPasswordConnect', () => {
             // tslint:disable-next-line: no-any
         } as any;
         when(configService.getSettings(anything())).thenReturn(dsSettings as any);
-        when(configService.updateSetting('jupyterServerURI', anything(), anything(), anything())).thenCall(
+        when(configService.updateSetting('jupyterServerType', anything(), anything(), anything())).thenCall(
             (_a1, _a2, _a3, _a4) => {
                 return Promise.resolve();
             }

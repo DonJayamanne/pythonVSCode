@@ -119,7 +119,7 @@ export interface IJupyterSettings {
     readonly jupyterInterruptTimeout: number;
     readonly jupyterLaunchTimeout: number;
     readonly jupyterLaunchRetries: number;
-    readonly jupyterServerURI: string;
+    readonly jupyterServerType: string;
     readonly notebookFileRoot: string;
     readonly changeDirOnImportExport: boolean;
     readonly useDefaultConfigForJupyter: boolean;

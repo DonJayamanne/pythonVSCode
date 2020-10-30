@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 'use strict';
 import {
+    AuthenticationProviderInformation,
     Breakpoint,
     BreakpointsChangeEvent,
     CancellationToken,
@@ -59,6 +60,8 @@ import {
 } from 'vscode';
 import * as vsls from 'vsls/vscode';
 import type {
+    AuthenticationProvider,
+    AuthenticationProvidersChangeEvent,
     NotebookCellLanguageChangeEvent as VSCNotebookCellLanguageChangeEvent,
     NotebookCellMetadata,
     NotebookCellMetadataChangeEvent as VSCNotebookCellMetadataChangeEvent,
@@ -1559,4 +1562,81 @@ export interface IVSCodeNotebook {
     ): Disposable;
 
     registerNotebookKernelProvider(selector: NotebookDocumentFilter, provider: NotebookKernelProvider): Disposable;
+}
+
+export const IAuthenticationService = Symbol('IAuthenticationService');
+export interface IAuthenticationService {
+    /**
+     * @deprecated - getSession should now trigger extension activation.
+     * Fires with the provider id that was registered or unregistered.
+     */
+    readonly onDidChangeAuthenticationProviders: Event<AuthenticationProvidersChangeEvent>;
+
+    /**
+     * @deprecated
+     * An array of the ids of authentication providers that are currently registered.
+     */
+    readonly providerIds: ReadonlyArray<string>;
+
+    /**
+     * An array of the information of authentication providers that are currently registered.
+     */
+    readonly providers: ReadonlyArray<AuthenticationProviderInformation>;
+
+    /**
+     * Fires when a password is set or deleted.
+     */
+    readonly onDidChangePassword: Event<void>;
+    /**
+     * Register an authentication provider.
+     *
+     * There can only be one provider per id and an error is being thrown when an id
+     * has already been used by another provider.
+     *
+     * @param provider The authentication provider provider.
+     * @return A [disposable](#Disposable) that unregisters this provider when being disposed.
+     */
+    registerAuthenticationProvider(provider: AuthenticationProvider): Disposable;
+
+    /**
+     * @deprecated
+     * The ids of the currently registered authentication providers.
+     * @returns An array of the ids of authentication providers that are currently registered.
+     */
+    getProviderIds(): Thenable<ReadonlyArray<string>>;
+
+    /**
+     * @deprecated
+     * Logout of a specific session.
+     * @param providerId The id of the provider to use
+     * @param sessionId The session id to remove
+     * provider
+     */
+    logout(providerId: string, sessionId: string): Thenable<void>;
+
+    /**
+     * Retrieve a password that was stored with key. Returns undefined if there
+     * is no password matching that key.
+     * @param key The key the password was stored under.
+     */
+    getPassword(key: string): Thenable<string | undefined>;
+
+    /**
+     * Store a password under a given key.
+     * @param key The key to store the password under
+     * @param value The password
+     */
+    setPassword(key: string, value: string): Thenable<void>;
+
+    /**
+     * Remove a password from storage.
+     * @param key The key the password was stored under.
+     */
+    deletePassword(key: string): Thenable<void>;
+}
+
+export const IEncryptedStorage = Symbol('IAuthenticationService');
+export interface IEncryptedStorage {
+    store(service: string, key: string, value: string | undefined): Promise<void>;
+    retrieve(service: string, key: string): Promise<string | undefined>;
 }

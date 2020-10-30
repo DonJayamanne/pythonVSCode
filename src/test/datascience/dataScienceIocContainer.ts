@@ -33,10 +33,12 @@ import { VSCodeNotebook } from '../../client/common/application/notebook';
 import {
     IApplicationEnvironment,
     IApplicationShell,
+    IAuthenticationService,
     ICommandManager,
     ICustomEditorService,
     IDebugService,
     IDocumentManager,
+    IEncryptedStorage,
     ILiveShareApi,
     ILiveShareTestingApi,
     IVSCodeNotebook,
@@ -226,6 +228,7 @@ import {
     IJupyterNotebookProvider,
     IJupyterPasswordConnect,
     IJupyterServerProvider,
+    IJupyterServerUriStorage,
     IJupyterSessionManagerFactory,
     IJupyterSubCommandExecutionService,
     IJupyterUriProviderRegistration,
@@ -297,6 +300,9 @@ import {
 } from './testNativeEditorProvider';
 import { TestPersistentStateFactory } from './testPersistentStateFactory';
 import { WebBrowserPanelProvider } from './uiTests/webBrowserPanelProvider';
+import { JupyterServerUriStorage } from '../../client/datascience/jupyter/serverUriStorage';
+import { AuthenticationService } from '../../client/common/application/authenticationService';
+import { MockEncryptedStorage } from './mockEncryptedStorage';
 
 export class DataScienceIocContainer extends UnitTestIocContainer {
     public get workingInterpreter() {
@@ -517,6 +523,7 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
         });
 
         this.serviceManager.addSingleton<IApplicationEnvironment>(IApplicationEnvironment, ApplicationEnvironment);
+        this.serviceManager.addSingleton<IAuthenticationService>(IAuthenticationService, AuthenticationService);
         this.serviceManager.add<INotebookImporter>(INotebookImporter, JupyterImporter);
         this.serviceManager.add<INotebookExporter>(INotebookExporter, JupyterExporter);
         this.serviceManager.addSingleton<ILiveShareApi>(ILiveShareApi, MockLiveShareApi);
@@ -837,6 +844,8 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
             }
         };
         this.serviceManager.addSingleton<ILanguageServerProvider>(ILanguageServerProvider, MockLanguageServerProvider);
+        this.serviceManager.addSingleton<IEncryptedStorage>(IEncryptedStorage, MockEncryptedStorage);
+        this.serviceManager.addSingleton<IJupyterServerUriStorage>(IJupyterServerUriStorage, JupyterServerUriStorage);
 
         when(this.applicationShell.showErrorMessage(anyString())).thenReturn(Promise.resolve(''));
         when(this.applicationShell.showErrorMessage(anyString(), anything())).thenReturn(Promise.resolve(''));
@@ -1001,6 +1010,10 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
         this.forceSettingsChanged(undefined, '', dataScienceSettings, notifyEvent);
     }
 
+    public setServerUri(uri: string): Promise<void> {
+        return this.get<IJupyterServerUriStorage>(IJupyterServerUriStorage).setUri(uri);
+    }
+
     public setExtensionRootPath(newRoot: string) {
         this.extensionRootPath = newRoot;
     }
@@ -1134,7 +1147,7 @@ export class DataScienceIocContainer extends UnitTestIocContainer {
             alwaysTrustNotebooks: true,
             jupyterLaunchTimeout: 120000,
             jupyterLaunchRetries: 3,
-            jupyterServerURI: 'local',
+            jupyterServerType: 'local',
             // tslint:disable-next-line: no-invalid-template-strings
             notebookFileRoot: '${fileDirname}',
             changeDirOnImportExport: false,

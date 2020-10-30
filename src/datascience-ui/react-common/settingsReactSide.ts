@@ -17,7 +17,7 @@ export function getDefaultSettings(): IJupyterExtraSettings {
         alwaysTrustNotebooks: true,
         jupyterLaunchTimeout: 10,
         jupyterLaunchRetries: 3,
-        jupyterServerURI: 'local',
+        jupyterServerType: 'local',
         // tslint:disable-next-line: no-invalid-template-strings
         notebookFileRoot: '${fileDirname}',
         changeDirOnImportExport: false,

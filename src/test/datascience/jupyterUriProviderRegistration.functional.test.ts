@@ -108,9 +108,7 @@ suite(`DataScience JupyterServerUriProvider tests`, () => {
 
         // Set the URI to id value.
         const uri = `${Identifiers.REMOTE_URI}?${Identifiers.REMOTE_URI_ID_PARAM}=${TestUriProviderId}&${Identifiers.REMOTE_URI_HANDLE_PARAM}=${TestUriHandle}`;
-        ioc.forceDataScienceSettingsChanged({
-            jupyterServerURI: uri
-        });
+        await ioc.setServerUri(uri);
 
         // Start a notebook server (should not actually start anything as it's remote)
         const jupyterExecution = ioc.get<IJupyterExecution>(IJupyterExecution);

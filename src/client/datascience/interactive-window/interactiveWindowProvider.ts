@@ -48,6 +48,7 @@ import {
     IInteractiveWindowLoadable,
     IInteractiveWindowProvider,
     IJupyterDebugger,
+    IJupyterServerUriStorage,
     IJupyterVariableDataProviderFactory,
     IJupyterVariables,
     INotebookExporter,
@@ -198,7 +199,8 @@ export class InteractiveWindowProvider implements IInteractiveWindowProvider, IA
             mode,
             title,
             this.serviceContainer.get<KernelSelector>(KernelSelector),
-            this.serviceContainer.get<IPythonExtensionChecker>(IPythonExtensionChecker)
+            this.serviceContainer.get<IPythonExtensionChecker>(IPythonExtensionChecker),
+            this.serviceContainer.get<IJupyterServerUriStorage>(IJupyterServerUriStorage)
         );
         this._windows.push(result);
 

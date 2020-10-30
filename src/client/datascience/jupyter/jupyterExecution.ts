@@ -77,7 +77,7 @@ export class JupyterExecutionBase implements IJupyterExecution {
                     // When config changes happen, recreate our commands.
                     this.onSettingsChanged();
                 }
-                if (e.affectsConfiguration('jupyter.jupyterServerURI', undefined)) {
+                if (e.affectsConfiguration('jupyter.jupyterServerType', undefined)) {
                     // When server URI changes, clear our pending URI timeouts
                     this.clearTimeouts();
                 }

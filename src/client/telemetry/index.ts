@@ -279,10 +279,19 @@ export function sendTelemetryWhenDone<P extends IEventNamePropertyMapping, E ext
     }
 }
 
+function parseStack(ex: Error) {
+    // Work around bug in stackTrace when ex has an array already
+    if (ex.stack && Array.isArray(ex.stack)) {
+        const concatenated = { ...ex, stack: ex.stack.join('\n') };
+        return stackTrace.parse(concatenated);
+    }
+    return stackTrace.parse(ex);
+}
+
 function serializeStackTrace(ex: Error): string {
     // We aren't showing the error message (ex.message) since it might contain PII.
     let trace = '';
-    for (const frame of stackTrace.parse(ex)) {
+    for (const frame of parseStack(ex)) {
         const filename = frame.getFileName();
         if (filename) {
             const lineno = frame.getLineNumber();

@@ -94,12 +94,12 @@ function handleLoadOnigasmResponse(arg: MonacoReducerArg<Buffer>): IMonacoState 
     if (!Tokenizer.hasOnigasm()) {
         // Have to convert the buffer into an ArrayBuffer for the tokenizer to load it.
         let typedArray = new Uint8Array(arg.payload.data);
-        if (typedArray.length <= 0) {
+        if (typedArray.length <= 0 && arg.payload.data) {
             // tslint:disable-next-line: no-any
             typedArray = new Uint8Array((arg.payload.data as any).data);
         }
         Tokenizer.loadOnigasm(typedArray.buffer);
-        onigasmPromise.resolve(true);
+        onigasmPromise.resolve(arg.payload.data ? true : false);
     }
 
     return arg.prevState;
@@ -108,9 +108,9 @@ function handleLoadOnigasmResponse(arg: MonacoReducerArg<Buffer>): IMonacoState 
 function handleLoadTmLanguageResponse(arg: MonacoReducerArg<ILoadTmLanguageResponse>): IMonacoState {
     // First make sure we have the onigasm data first.
     onigasmPromise.promise
-        .then(async () => {
+        .then(async (success) => {
             // Then load the language data
-            if (!Tokenizer.hasLanguage(arg.payload.data.languageId)) {
+            if (success && !Tokenizer.hasLanguage(arg.payload.data.languageId)) {
                 await Tokenizer.loadLanguage(
                     arg.payload.data.languageId,
                     arg.payload.data.extensions,
