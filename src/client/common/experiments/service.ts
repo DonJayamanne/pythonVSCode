@@ -150,7 +150,7 @@ export class ExperimentService implements IExperimentService {
         }
 
         // If using insiders VS Code, then always enable Native Editor.
-        if (this.appEnvironment.extensionChannel === 'insiders' && experiment === ExperimentGroups.NativeNotebook) {
+        if (this.appEnvironment.channel === 'insiders' && experiment === ExperimentGroups.NativeNotebook) {
             return 'optIn';
         }
     }
