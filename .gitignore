@@ -41,3 +41,6 @@ debugpy*.log
 pydevd*.log
 nodeLanguageServer/**
 nodeLanguageServer.*/**
+
+# stryker temp files
+.stryker-tmp

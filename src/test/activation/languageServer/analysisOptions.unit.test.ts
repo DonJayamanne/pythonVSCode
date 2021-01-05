@@ -27,7 +27,7 @@ import { sleep } from '../../core';
 
 // tslint:disable:no-unnecessary-override no-any chai-vague-errors no-unused-expression max-func-body-length
 
-suite('Language Server - Analysis Options', () => {
+suite('Language Server - Analysis Optionsxxx', () => {
     class TestClass extends DotNetLanguageServerAnalysisOptions {
         public getDocumentFilters(workspaceFolder?: WorkspaceFolder): DocumentFilter[] {
             return super.getDocumentFilters(workspaceFolder);
@@ -206,7 +206,9 @@ suite('Language Server - Analysis Options', () => {
         expect(settingsChangedInvokedCount).to.be.equal(1);
     });
     test('Ensure search pattern is not provided when there are no workspaces', () => {
+        console.error('aaaaaaaaaaaaaaaaaaaaa');
         when(workspace.workspaceFolders).thenReturn([]);
+        console.error('bbbbbbbbbbbbbbbb');
 
         const expectedSelector = [
             { scheme: 'file', language: PYTHON_LANGUAGE },
@@ -217,7 +219,9 @@ suite('Language Server - Analysis Options', () => {
 
         const selector = analysisOptions.getDocumentFilters();
 
+        console.error('ccccccccccccc');
         expect(selector).to.deep.equal(expectedSelector);
+        console.error('dddddddddddddddddddddddd');
     });
     test('Ensure search pattern is not provided in single-root workspaces', () => {
         const workspaceFolder: WorkspaceFolder = { name: '', index: 0, uri: Uri.file(__dirname) };

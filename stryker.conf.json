@@ -1,0 +1,19 @@
+{
+    "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+    "packageManager": "npm",
+    "reporters": ["clear-text", "progress", "dots", "dashboard", "html", "json"],
+    "testRunner": "mocha",
+    "coverageAnalysis": "off",
+    "mochaOptions": {
+      "config": "./build/.mocha.unittests.js.json",
+      "grep":"Optionsxxx"
+    },
+    "buildCommand":"tsc -p ./",
+    "fileLogLevel": "trace",
+    "logLevel": "trace",
+    "checkers": ["typescript"],
+    "tsconfigFile": "tsconfig.json",
+    "mutate": [
+        "{src,lib}/**/analysisOptions.ts"
+    ]
+  }
