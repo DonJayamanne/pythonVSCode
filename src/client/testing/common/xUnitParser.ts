@@ -1,5 +1,7 @@
 import { inject, injectable } from 'inversify';
 import { IFileSystem } from '../../common/platform/types';
+import { sleep } from '../../common/utils/async';
+import { StopWatch } from '../../common/utils/stopWatch';
 import { FlattenedTestFunction, IXUnitParser, TestFunction, TestResult, Tests, TestStatus, TestSummary } from './types';
 
 type TestSuiteResult = {
@@ -49,10 +51,27 @@ export class XUnitParser implements IXUnitParser {
     constructor(@inject(IFileSystem) private readonly fs: IFileSystem) {}
 
     // Update "tests" with the results parsed from the given file.
-    public async updateResultsFromXmlLogFile(tests: Tests, outputXmlFile: string) {
-        const data = await this.fs.readFile(outputXmlFile);
+    public async updateResultsFromXmlLogFile(tests: Tests, outputXmlFile: string, timeout = 0) {
+        var data = '';
+        var parserResult = undefined;
+        const timer = new StopWatch();
+        // Poll for valid xml
+        do {
+            data = await this.fs.readFile(outputXmlFile);
+            if (data) {
+                try {
+                    parserResult = await parseXML(data);
+                } catch (error) {}
+                if (parserResult) {
+                    break;
+                }
+            }
+            await sleep(100);
+        } while (timer.elapsedTime < timeout);
+        if (!parserResult) {
+            throw new Error('Could not read valid xml from test file');
+        }
 
-        const parserResult = await parseXML(data);
         const junitResults = getJunitResults(parserResult);
         if (junitResults) {
             updateTests(tests, junitResults);

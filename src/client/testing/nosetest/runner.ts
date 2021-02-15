@@ -94,9 +94,7 @@ export class TestManagerRunner implements ITestManagerRunner {
                 await this.testRunner.run(NOSETEST_PROVIDER, runOptions);
             }
 
-            return options.debug
-                ? options.tests
-                : await this.updateResultsFromLogFiles(options.tests, xmlLogFile, testResultsService);
+            return await this.updateResultsFromLogFiles(options.tests, xmlLogFile, testResultsService);
         } catch (ex) {
             return Promise.reject<Tests>(ex);
         } finally {
@@ -109,7 +107,7 @@ export class TestManagerRunner implements ITestManagerRunner {
         outputXmlFile: string,
         testResultsService: ITestResultsService,
     ): Promise<Tests> {
-        await this.xUnitParser.updateResultsFromXmlLogFile(tests, outputXmlFile);
+        await this.xUnitParser.updateResultsFromXmlLogFile(tests, outputXmlFile, 5000);
         testResultsService.updateResults(tests);
         return tests;
     }
