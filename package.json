@@ -3722,7 +3722,7 @@
         "raw-loader": "^0.5.1",
         "react": "^16.5.2",
         "react-data-grid": "^6.0.2-0",
-        "react-dev-utils": "^5.0.2",
+        "react-dev-utils": "^11.0.4",
         "react-dom": "^16.5.2",
         "react-json-tree": "^0.11.0",
         "react-redux": "^7.1.1",
