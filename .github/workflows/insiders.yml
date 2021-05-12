@@ -28,13 +28,13 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Cache pip files
-        uses: actions/cache@v2
+        uses: actions/cache@v2.1.5
         with:
           path: ~/.cache/pip
           key: ${{runner.os}}-${{env.CACHE_PIP_DEPS}}-${{env.PYTHON_VERSION}}-${{hashFiles('requirements.txt')}}-${{hashFiles('build/debugger-install-requirements.txt')}}
 
       - name: Cache npm files
-        uses: actions/cache@v2
+        uses: actions/cache@v2.1.5
         with:
           path: ~/.npm
           key: ${{runner.os}}-${{env.CACHE_NPM_DEPS}}-${{hashFiles('package-lock.json')}}
@@ -69,13 +69,13 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Cache pip files
-        uses: actions/cache@v2
+        uses: actions/cache@v2.1.5
         with:
           path: ~/.cache/pip
           key: ${{runner.os}}-${{env.CACHE_PIP_DEPS}}-${{env.PYTHON_VERSION}}-${{hashFiles('requirements.txt')}}-${{hashFiles('build/debugger-install-requirements.txt')}}
 
       - name: Cache npm files
-        uses: actions/cache@v2
+        uses: actions/cache@v2.1.5
         with:
           path: ~/.npm
           key: ${{runner.os}}-${{env.CACHE_NPM_DEPS}}-${{hashFiles('package-lock.json')}}
@@ -87,7 +87,7 @@ jobs:
         run: npx gulp prePublishNonBundle
 
       - name: Cache the out/ directory
-        uses: actions/cache@v2
+        uses: actions/cache@v2.1.5
         with:
           path: ./out
           key: ${{runner.os}}-${{env.CACHE_OUT_DIRECTORY}}-${{hashFiles('src/**')}}
@@ -141,13 +141,13 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Cache pip files
-        uses: actions/cache@v2
+        uses: actions/cache@v2.1.5
         with:
           path: ~/.cache/pip
           key: ${{runner.os}}-${{env.CACHE_PIP_DEPS}}-${{env.PYTHON_VERSION}}-${{hashFiles('requirements.txt')}}-${{hashFiles('build/debugger-install-requirements.txt')}}
 
       - name: Cache npm files
-        uses: actions/cache@v2
+        uses: actions/cache@v2.1.5
         with:
           path: ~/.npm
           key: ${{runner.os}}-${{env.CACHE_NPM_DEPS}}-${{hashFiles('package-lock.json')}}
@@ -155,7 +155,7 @@ jobs:
       - name: Cache compiled TS files
         # Use an id for this step so that its cache-hit output can be accessed and checked in the next step.
         id: out-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v2.1.5
         with:
           path: ./out
           key: ${{runner.os}}-${{env.CACHE_OUT_DIRECTORY}}-${{hashFiles('src/**')}}
@@ -364,13 +364,13 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Cache pip files
-        uses: actions/cache@v2
+        uses: actions/cache@v2.1.5
         with:
           path: ~/.cache/pip
           key: ${{runner.os}}-${{env.CACHE_PIP_DEPS}}-${{env.PYTHON_VERSION}}-${{hashFiles('requirements.txt')}}-${{hashFiles('build/debugger-install-requirements.txt')}}
 
       - name: Cache npm files
-        uses: actions/cache@v2
+        uses: actions/cache@v2.1.5
         with:
           path: ~/.npm
           key: ${{runner.os}}-${{env.CACHE_NPM_DEPS}}-${{hashFiles('package-lock.json')}}
@@ -433,7 +433,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Cache npm files
-        uses: actions/cache@v2
+        uses: actions/cache@v2.1.5
         with:
           path: ~/.npm
           key: ${{runner.os}}-${{env.CACHE_NPM_DEPS}}-${{hashFiles('package-lock.json')}}
