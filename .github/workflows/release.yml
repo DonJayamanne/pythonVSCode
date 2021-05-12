@@ -42,7 +42,7 @@ jobs:
           key: ${{runner.os}}-${{env.CACHE_NPM_DEPS}}-${{hashFiles('package-lock.json')}}
 
       - name: Use Python ${{env.PYTHON_VERSION}}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v2.2.2
         with:
           python-version: ${{env.PYTHON_VERSION}}
 
@@ -149,7 +149,7 @@ jobs:
         if: steps.out-cache.outputs.cache-hit == false
 
       - name: Use Python ${{matrix.python}}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v2.2.2
         with:
           python-version: ${{matrix.python}}
 
@@ -349,7 +349,7 @@ jobs:
           key: ${{runner.os}}-${{env.CACHE_NPM_DEPS}}-${{hashFiles('package-lock.json')}}
 
       - name: Use Python ${{matrix.python}}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v2.2.2
         with:
           python-version: ${{matrix.python}}
 
