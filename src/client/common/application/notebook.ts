@@ -5,23 +5,39 @@ import { inject, injectable } from 'inversify';
 import { DocumentSelector, Event, EventEmitter, workspace } from 'vscode';
 import type { notebook, NotebookConcatTextDocument, NotebookDocument } from 'vscode-proposed';
 import { UseProposedApi } from '../constants';
+import { traceError } from '../logger';
 import { IApplicationEnvironment, IVSCodeNotebook } from './types';
 
 @injectable()
 export class VSCodeNotebook implements IVSCodeNotebook {
     public get onDidOpenNotebookDocument(): Event<NotebookDocument> {
-        const onDidOpenNotebookDocument =
-            this.notebook.onDidOpenNotebookDocument ?? (workspace as any).onDidOpenNotebookDocument;
-        return this.canUseNotebookApi ? onDidOpenNotebookDocument : new EventEmitter<NotebookDocument>().event;
+        try {
+            const onDidOpenNotebookDocument =
+                this.notebook.onDidOpenNotebookDocument ?? (workspace as any).onDidOpenNotebookDocument;
+            return this.canUseNotebookApi ? onDidOpenNotebookDocument : new EventEmitter<NotebookDocument>().event;
+        } catch (ex) {
+            traceError(`Failed to get event handler onDidOpenNotebookDocument`, ex);
+            return new EventEmitter<NotebookDocument>().event;
+        }
     }
     public get onDidCloseNotebookDocument(): Event<NotebookDocument> {
-        const onDidCloseNotebookDocument =
-            this.notebook.onDidCloseNotebookDocument ?? (workspace as any).onDidCloseNotebookDocument;
-        return this.canUseNotebookApi ? onDidCloseNotebookDocument : new EventEmitter<NotebookDocument>().event;
+        try {
+            const onDidCloseNotebookDocument =
+                this.notebook.onDidCloseNotebookDocument ?? (workspace as any).onDidCloseNotebookDocument;
+            return this.canUseNotebookApi ? onDidCloseNotebookDocument : new EventEmitter<NotebookDocument>().event;
+        } catch (ex) {
+            traceError(`Failed to get event handler onDidOpenNotebookDocument`, ex);
+            return new EventEmitter<NotebookDocument>().event;
+        }
     }
     public get notebookDocuments(): ReadonlyArray<NotebookDocument> {
-        const notebookDocuments = this.notebook.notebookDocuments ?? (workspace as any).notebookDocuments;
-        return this.canUseNotebookApi ? notebookDocuments : [];
+        try {
+            const notebookDocuments = this.notebook.notebookDocuments ?? (workspace as any).notebookDocuments;
+            return this.canUseNotebookApi ? notebookDocuments : [];
+        } catch (ex) {
+            traceError(`Failed to get event handler onDidOpenNotebookDocument`, ex);
+            return [];
+        }
     }
     private get notebook() {
         if (!this._notebook) {
