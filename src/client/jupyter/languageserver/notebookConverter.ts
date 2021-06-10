@@ -29,12 +29,14 @@ import {
     TextEdit,
     Uri,
     WorkspaceEdit,
+    NotebookCell,
+    NotebookDocument,
 } from 'vscode';
-import { NotebookCell, NotebookConcatTextDocument, NotebookDocument } from 'vscode-proposed';
+import type { NotebookConcatTextDocument } from 'vscode-proposed';
 import { IVSCodeNotebook } from '../../common/application/types';
+import { traceError } from '../../common/logger';
 import { IFileSystem } from '../../common/platform/types';
 import { NotebookConcatDocument } from './notebookConcatDocument';
-import { SafeNotebookDocument } from './safeNotebookDocument';
 
 /* Used by code actions. Disabled for now.
 function toRange(rangeLike: Range): Range {
@@ -65,11 +67,15 @@ export class NotebookConverter implements Disposable {
         private cellSelector: DocumentSelector,
         private notebookFilter: RegExp,
     ) {
-        this.disposables.push(api.onDidOpenNotebookDocument(this.onDidOpenNotebook.bind(this)));
-        this.disposables.push(api.onDidCloseNotebookDocument(this.onDidCloseNotebook.bind(this)));
+        try {
+            this.disposables.push(api.onDidOpenNotebookDocument(this.onDidOpenNotebook.bind(this)));
+            this.disposables.push(api.onDidCloseNotebookDocument(this.onDidCloseNotebook.bind(this)));
 
-        // Call open on all of the active notebooks too
-        api.notebookDocuments.forEach(this.onDidOpenNotebook.bind(this));
+            // Call open on all of the active notebooks too
+            api.notebookDocuments.forEach(this.onDidOpenNotebook.bind(this));
+        } catch (ex) {
+            traceError('Failed to initialize API', ex);
+        }
     }
 
     private static getDocumentKey(uri: Uri): string {
@@ -633,17 +639,15 @@ export class NotebookConverter implements Disposable {
     }
 
     private onDidOpenNotebook(doc: NotebookDocument) {
-        const safeDoc = new SafeNotebookDocument(doc);
-        if (this.notebookFilter.test(safeDoc.fileName)) {
-            this.getTextDocumentWrapper(safeDoc.uri);
+        if (this.notebookFilter.test(doc.uri.fsPath)) {
+            this.getTextDocumentWrapper(doc.uri);
         }
     }
 
     private onDidCloseNotebook(doc: NotebookDocument) {
-        const safeDoc = new SafeNotebookDocument(doc);
-        if (this.notebookFilter.test(safeDoc.fileName)) {
-            const key = NotebookConverter.getDocumentKey(safeDoc.uri);
-            const wrapper = this.getTextDocumentWrapper(safeDoc.uri);
+        if (this.notebookFilter.test(doc.uri.fsPath)) {
+            const key = NotebookConverter.getDocumentKey(doc.uri);
+            const wrapper = this.getTextDocumentWrapper(doc.uri);
             this.activeDocuments.delete(key);
             this.activeDocumentsOutgoingMap.delete(NotebookConverter.getDocumentKey(wrapper.uri));
         }

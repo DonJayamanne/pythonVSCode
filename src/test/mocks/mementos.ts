@@ -20,6 +20,8 @@ export class MockMemento implements Memento {
         return exists ? this._value[key] : (defaultValue! as any);
     }
 
+    public readonly keys: string[] = [];
+
     // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-explicit-any
     public update(key: string, value: any): Thenable<void> {
         this._value[key] = value;

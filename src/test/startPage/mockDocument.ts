@@ -2,7 +2,16 @@
 // Licensed under the MIT License.
 
 'use strict';
-import { EndOfLine, Position, Range, TextDocument, TextDocumentContentChangeEvent, TextLine, Uri } from 'vscode';
+import {
+    EndOfLine,
+    NotebookDocument,
+    Position,
+    Range,
+    TextDocument,
+    TextDocumentContentChangeEvent,
+    TextLine,
+    Uri,
+} from 'vscode';
 
 class MockLine implements TextLine {
     private _range: Range;
@@ -53,7 +62,7 @@ export class MockDocument implements TextDocument {
     private _isDirty = false;
     private _language = 'python';
     private _onSave: (doc: TextDocument) => Promise<boolean>;
-
+    public notebook: NotebookDocument | undefined;
     constructor(
         contents: string,
         fileName: string,

@@ -34,6 +34,7 @@ suite('Terminal Auto Activation', () => {
             sendText: noop,
             show: noop,
             exitStatus: { code: 0 },
+            dimensions: undefined,
         };
         terminalManager = mock(TerminalManager);
         activator = mock(TerminalActivator);
@@ -77,6 +78,7 @@ suite('Terminal Auto Activation', () => {
             sendText: noop,
             show: noop,
             exitStatus: { code: 0 },
+            dimensions: undefined,
         };
         type EventHandler = (e: Terminal) => void;
         let handler: undefined | EventHandler;
@@ -107,6 +109,7 @@ suite('Terminal Auto Activation', () => {
             sendText: noop,
             show: noop,
             exitStatus: { code: 0 },
+            dimensions: undefined,
         };
         type EventHandler = (e: Terminal) => void;
         let handler: undefined | EventHandler;

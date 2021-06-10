@@ -544,6 +544,25 @@ export namespace vscMockExtHostedTypes {
     }
 
     export class WorkspaceEdit implements vscode.WorkspaceEdit {
+        replaceNotebookMetadata(_uri: vscode.Uri, _value: { [key: string]: any }): void {
+            throw new Error('Method not implemented.');
+        }
+        replaceNotebookCells(
+            _uri: vscode.Uri,
+            _range: vscode.NotebookRange,
+            _cells: vscode.NotebookCellData[],
+            _metadata?: vscode.WorkspaceEditEntryMetadata,
+        ): void {
+            throw new Error('Method not implemented.');
+        }
+        replaceNotebookCellMetadata(
+            _uri: vscode.Uri,
+            _index: number,
+            _cellMetadata: { [key: string]: any },
+            _metadata?: vscode.WorkspaceEditEntryMetadata,
+        ): void {
+            throw new Error('Method not implemented.');
+        }
         appendNotebookCellOutput(
             _uri: vscode.Uri,
             _index: number,
@@ -570,32 +589,10 @@ export namespace vscMockExtHostedTypes {
         ): void {
             // Noop
         }
-        replaceNotebookMetadata(_uri: vscode.Uri, _value: vscode.NotebookDocumentMetadata): void {
-            //
-        }
-        replaceNotebookCells(
-            _uri: vscode.Uri,
-            _start: number,
-            _end: number,
-            _cells: vscode.NotebookCellData[],
-            _metadata?: vscode.WorkspaceEditEntryMetadata,
-        ): void {
-            // Noop.
-        }
-
         replaceNotebookCellOutput(
             _uri: vscode.Uri,
             _index: number,
             _outputs: vscode.NotebookCellOutput[],
-            _metadata?: vscode.WorkspaceEditEntryMetadata,
-        ): void {
-            // Noop.
-        }
-
-        replaceNotebookCellMetadata(
-            _uri: vscode.Uri,
-            _index: number,
-            _cellMetadata: vscode.NotebookCellMetadata,
             _metadata?: vscode.WorkspaceEditEntryMetadata,
         ): void {
             // Noop.

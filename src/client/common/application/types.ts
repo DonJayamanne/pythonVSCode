@@ -57,8 +57,9 @@ import {
     WorkspaceFolder,
     WorkspaceFolderPickOptions,
     WorkspaceFoldersChangeEvent,
+    NotebookDocument,
 } from 'vscode';
-import type { NotebookConcatTextDocument, NotebookDocument } from 'vscode-proposed';
+import type { NotebookConcatTextDocument } from 'vscode-proposed';
 
 import { Channel } from '../constants';
 import { IAsyncDisposable, Resource } from '../types';
