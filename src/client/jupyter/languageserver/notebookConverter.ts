@@ -648,8 +648,10 @@ export class NotebookConverter implements Disposable {
         if (this.notebookFilter.test(doc.uri.fsPath)) {
             const key = NotebookConverter.getDocumentKey(doc.uri);
             const wrapper = this.getTextDocumentWrapper(doc.uri);
-            this.activeDocuments.delete(key);
-            this.activeDocumentsOutgoingMap.delete(NotebookConverter.getDocumentKey(wrapper.uri));
+            if (wrapper) {
+                this.activeDocuments.delete(key);
+                this.activeDocumentsOutgoingMap.delete(NotebookConverter.getDocumentKey(wrapper.uri));
+            }
         }
     }
 
@@ -657,11 +659,14 @@ export class NotebookConverter implements Disposable {
         return this.activeDocumentsOutgoingMap.get(NotebookConverter.getDocumentKey(outgoingUri));
     }
 
-    private getTextDocumentWrapper(cell: TextDocument | Uri): NotebookConcatDocument {
+    private getTextDocumentWrapper(cell: TextDocument | Uri): NotebookConcatDocument | undefined {
         const uri = cell instanceof Uri ? <Uri>cell : cell.uri;
         const key = NotebookConverter.getDocumentKey(uri);
         let result = this.activeDocuments.get(key);
-        if (!result) {
+        if (result) {
+            return result;
+        }
+        try {
             const doc = this.api.notebookDocuments.find((n) => this.fs.arePathsSame(uri.fsPath, n.uri.fsPath));
             if (!doc) {
                 throw new Error(`Invalid uri, not a notebook: ${uri.fsPath}`);
@@ -670,8 +675,11 @@ export class NotebookConverter implements Disposable {
             result.onCellsChanged((e) => this.onDidChangeCellsEmitter.fire(e), undefined, this.disposables);
             this.activeDocuments.set(key, result);
             this.activeDocumentsOutgoingMap.set(NotebookConverter.getDocumentKey(result.uri), result);
+            return result;
+        } catch (ex) {
+            traceError(`Failed to create Notebook Concat Document`, ex);
+            return undefined;
         }
-        return result;
     }
 
     private getConcatDocument(cell: TextDocument | Uri): NotebookConcatTextDocument | undefined {
