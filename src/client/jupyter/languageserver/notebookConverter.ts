@@ -156,6 +156,7 @@ export class NotebookConverter implements Disposable {
             (this.mapOfConcatDocumentsWithCellUris.get(uri.toString()) || [])
                 .map((cellUri) => Uri.parse(cellUri))
                 .forEach((cellUri) => result.set(cellUri, []));
+            this.mapOfConcatDocumentsWithCellUris.delete(uri.toString());
         } else {
             result.set(uri, diagnostics);
         }
