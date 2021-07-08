@@ -46,7 +46,7 @@ export class InteractiveConcatTextDocument implements IConcatTextDocument {
     }
 
     get isComposeDocumentsAllClosed(): boolean {
-        return !this._notebook.getCells().some(cell => !cell.document.isClosed) && !!(this._input?.isClosed);
+        return !this._notebook.getCells().some((cell) => !cell.document.isClosed) && !!this._input?.isClosed;
     }
 
     constructor(private _notebook: NotebookDocument, private _selector: string, notebookApi: IVSCodeNotebook) {

@@ -125,7 +125,7 @@ export class NotebookConverter implements Disposable {
         let concatDocument = this.activeDocuments.get(key);
 
         // concat document not closed yet
-        // mark the cell is closed (which contains `document`) 
+        // mark the cell is closed (which contains `document`)
         // when all cells are closed, we should return the concatDocument, so the language server will close it and clear diagnostics
         if (concatDocument && concatDocument.isComposeDocumentsAllClosed) {
             return concatDocument;

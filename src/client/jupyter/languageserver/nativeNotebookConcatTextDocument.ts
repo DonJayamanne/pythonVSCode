@@ -27,7 +27,7 @@ export class EnhancedNotebookConcatTextDocument implements IConcatTextDocument {
     onDidChange: Event<void> = this._onDidChange.event;
 
     get isComposeDocumentsAllClosed(): boolean {
-        return !this._notebook.getCells().some(cell => !cell.document.isClosed)
+        return !this._notebook.getCells().some((cell) => !cell.document.isClosed);
     }
 
     constructor(private _notebook: NotebookDocument, private _selector: string, notebookApi: IVSCodeNotebook) {
