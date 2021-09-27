@@ -4,27 +4,17 @@
 #
 #    pip-compile --generate-hashes jedils_requirements.in
 #
-dataclasses==0.8 ; python_version <= "3.6" \
-    --hash=sha256:0201d89fa866f68c8ebd9d08ee6ff50c0b255f8ec63a71c16fda7af82bb887bf \
-    --hash=sha256:8479067f342acf957dc82ec415d355ab5edb7e7646b90dc6e2fd1d96ad084c97
-    # via
-    #   -r jedils_requirements.in
-    #   pydantic
 docstring-to-markdown==0.9 \
     --hash=sha256:0b810e6e16737d2d0ede6182f66f513f814a11fad1222e645fbc14acde78e171 \
     --hash=sha256:488b9f26339651edc7fc9386caeffd3924569072a8b67b727e253f83d5b18c59
-    # via jedi-language-server
-importlib-metadata==3.10.1 \
-    --hash=sha256:2ec0faae539743ae6aaa84b49a169670a465f7f5d64e6add98388cc29fd1f2f6 \
-    --hash=sha256:c9356b657de65c53744046fa8f7358afe0714a1af7d570c00c3835c2d724a7c1
     # via jedi-language-server
 jedi==0.18.0 \
     --hash=sha256:18456d83f65f400ab0c2d3319e48520420ef43b23a086fdc05dff34132f0fb93 \
     --hash=sha256:92550a404bad8afed881a137ec9a461fed49eca661414be45059329614ed0707
     # via jedi-language-server
-jedi-language-server==0.34.3 \
-    --hash=sha256:103296591fdfe8a8dc6277f54d31ef4ddf41cee81e7af2cc04b2b1f66349cf6a \
-    --hash=sha256:8356a208b877ba48bdbe7df8373716702446b47e39b925b0e10deed4d52bcb01
+jedi-language-server==0.34.5 \
+    --hash=sha256:2ba7b8fd99eb9e7a006e3179040497dfc9e9a1cbfa817ffde8144234d5e0a46b \
+    --hash=sha256:7bc35d9c377226b4b3e48a13d28dd9769b858fed485c5f359395f102a84a474b
     # via -r jedils_requirements.in
 parso==0.8.2 \
     --hash=sha256:12b83492c6239ce32ff5eed6d3639d6a536170723c6f3f1506869f1ace413398 \
@@ -70,10 +60,4 @@ typing-extensions==3.10.0.0 \
     --hash=sha256:0ac0f89795dd19de6b97debb0c6af1c70987fd80a2d62d1958f7e56fcc31b497 \
     --hash=sha256:50b6f157849174217d0656f99dc82fe932884fb250826c18350e159ec6cdf342 \
     --hash=sha256:779383f6086d90c99ae41cf0ff39aac8a7937a9283ce0a414e5dd782f4c94a84
-    # via
-    #   importlib-metadata
-    #   pydantic
-zipp==3.5.0 \
-    --hash=sha256:957cfda87797e389580cb8b9e3870841ca991e2125350677b2ca83a0e99390a3 \
-    --hash=sha256:f5812b1e007e48cff63449a5e9f4e7ebea716b4111f9c4f9a645f91d579bf0c4
-    # via importlib-metadata
+    # via pydantic
