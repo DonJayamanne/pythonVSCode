@@ -8,11 +8,11 @@ import { inject, injectable, named } from 'inversify';
 import { dirname } from 'path';
 import { CancellationToken, Disposable, Event, Extension, Memento, Uri } from 'vscode';
 import * as lsp from 'vscode-languageserver-protocol';
+import type { SemVer } from 'semver';
 import { ILanguageServerCache, ILanguageServerConnection } from '../activation/types';
 import { IWorkspaceService } from '../common/application/types';
 import { JUPYTER_EXTENSION_ID } from '../common/constants';
 import { InterpreterUri, ModuleInstallFlags } from '../common/installer/types';
-import type { SemVer } from 'semver';
 import {
     GLOBAL_MEMENTO,
     IExtensions,
