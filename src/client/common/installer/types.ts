@@ -70,7 +70,6 @@ export interface IProductPathService {
     getExecutableNameFromSettings(product: Product, resource?: Uri): string;
     isExecutableAModule(product: Product, resource?: Uri): boolean;
 }
-
 export enum ModuleInstallFlags {
     upgrade = 1,
     updateDependencies = 2,

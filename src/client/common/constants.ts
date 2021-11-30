@@ -20,10 +20,11 @@ export const PYTHON_NOTEBOOKS = [
     { scheme: InteractiveInputScheme, language: PYTHON_LANGUAGE },
 ];
 
-export const PVSC_EXTENSION_ID = 'ms-python.python';
+export const PVSC_EXTENSION_ID = 'python-environment-manager';
+export const CODE_RUNNER_EXTENSION_ID = 'formulahendry.code-runner';
 export const PYLANCE_EXTENSION_ID = 'ms-python.vscode-pylance';
 export const JUPYTER_EXTENSION_ID = 'ms-toolsai.jupyter';
-export const AppinsightsKey = 'AIF-d9b70cd4-b9f9-4d70-929b-a071c400b217';
+export const AppinsightsKey = '_';
 
 export type Channel = 'stable' | 'insiders';
 
@@ -33,34 +34,12 @@ export enum CommandSource {
 }
 
 export namespace Commands {
-    export const Set_Interpreter = 'python.setInterpreter';
-    export const Set_ShebangInterpreter = 'python.setShebangInterpreter';
-    export const Exec_In_Terminal = 'python.execInTerminal';
-    export const Exec_In_Terminal_Icon = 'python.execInTerminal-icon';
-    export const Debug_In_Terminal = 'python.debugInTerminal';
-    export const Exec_Selection_In_Terminal = 'python.execSelectionInTerminal';
-    export const Exec_Selection_In_Django_Shell = 'python.execSelectionInDjangoShell';
-    export const Tests_Configure = 'python.configureTests';
-    export const Test_Refresh = 'python.refreshTests';
-    // `python.refreshingTests` is a dummy command just to show the spinning icon
-    export const Test_Refreshing = 'python.refreshingTests';
-    export const Test_Stop_Refreshing = 'python.stopRefreshingTests';
-    export const Sort_Imports = 'python.sortImports';
-    export const ViewOutput = 'python.viewOutput';
-    export const Start_REPL = 'python.startREPL';
-    export const Create_Terminal = 'python.createTerminal';
-    export const CreateNewFile = 'python.createNewFile';
-    export const Set_Linter = 'python.setLinter';
-    export const Enable_Linter = 'python.enableLinting';
-    export const Run_Linter = 'python.runLinting';
-    export const Enable_SourceMap_Support = 'python.enableSourceMapSupport';
-    export const PickLocalProcess = 'python.pickLocalProcess';
-    export const GetSelectedInterpreterPath = 'python.interpreterPath';
-    export const ClearStorage = 'python.clearPersistentStorage';
-    export const ClearWorkspaceInterpreter = 'python.clearWorkspaceInterpreter';
-    export const LaunchTensorBoard = 'python.launchTensorBoard';
-    export const RefreshTensorBoard = 'python.refreshTensorBoard';
-    export const ReportIssue = 'python.reportIssue';
+    export const Exec_In_Terminal = 'python.envManager.execInTerminal';
+    export const Exec_In_Terminal_Icon = 'python.envManager.execInTerminal-icon';
+    export const ViewOutput = 'python.envManager.viewOutput';
+    export const Start_REPL = 'python.envManagerstartREPL';
+    export const Create_Terminal = 'python.envManager.createTerminal';
+    export const ClearStorage = 'python.envManager.clearPersistentStorage';
 }
 
 // Look at https://microsoft.github.io/vscode-codicons/dist/codicon.html for other Octicon icon ids

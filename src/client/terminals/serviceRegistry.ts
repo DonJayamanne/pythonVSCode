@@ -3,13 +3,12 @@
 
 import { interfaces } from 'inversify';
 import { ClassType } from '../ioc/types';
-import { TerminalAutoActivation } from './activation';
 import { CodeExecutionManager } from './codeExecution/codeExecutionManager';
 import { DjangoShellCodeExecutionProvider } from './codeExecution/djangoShellCodeExecution';
 import { CodeExecutionHelper } from './codeExecution/helper';
 import { ReplProvider } from './codeExecution/repl';
 import { TerminalCodeExecutionProvider } from './codeExecution/terminalCodeExecution';
-import { ICodeExecutionHelper, ICodeExecutionManager, ICodeExecutionService, ITerminalAutoActivation } from './types';
+import { ICodeExecutionHelper, ICodeExecutionManager, ICodeExecutionService } from './types';
 
 interface IServiceRegistry {
     addSingleton<T>(
@@ -35,6 +34,4 @@ export function registerTypes(serviceManager: IServiceRegistry): void {
         'standard',
     );
     serviceManager.addSingleton<ICodeExecutionService>(ICodeExecutionService, ReplProvider, 'repl');
-
-    serviceManager.addSingleton<ITerminalAutoActivation>(ITerminalAutoActivation, TerminalAutoActivation);
 }

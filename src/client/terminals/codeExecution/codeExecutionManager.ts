@@ -6,7 +6,7 @@
 import { inject, injectable } from 'inversify';
 import { Disposable, Event, EventEmitter, Uri } from 'vscode';
 
-import { ICommandManager, IDocumentManager } from '../../common/application/types';
+import { ICommandManager } from '../../common/application/types';
 import { Commands } from '../../common/constants';
 import '../../common/extensions';
 import { IFileSystem } from '../../common/platform/types';
@@ -14,7 +14,7 @@ import { IDisposableRegistry, Resource } from '../../common/types';
 import { noop } from '../../common/utils/misc';
 import { IServiceContainer } from '../../ioc/types';
 import { traceError } from '../../logging';
-import { captureTelemetry, sendTelemetryEvent } from '../../telemetry';
+import { sendTelemetryEvent } from '../../telemetry';
 import { EventName } from '../../telemetry/constants';
 import { ICodeExecutionHelper, ICodeExecutionManager, ICodeExecutionService } from '../../terminals/types';
 
@@ -23,7 +23,6 @@ export class CodeExecutionManager implements ICodeExecutionManager {
     private eventEmitter: EventEmitter<string> = new EventEmitter<string>();
     constructor(
         @inject(ICommandManager) private commandManager: ICommandManager,
-        @inject(IDocumentManager) private documentManager: IDocumentManager,
         @inject(IDisposableRegistry) private disposableRegistry: Disposable[],
         @inject(IFileSystem) private fileSystem: IFileSystem,
         @inject(IServiceContainer) private serviceContainer: IServiceContainer,
@@ -44,18 +43,6 @@ export class CodeExecutionManager implements ICodeExecutionManager {
                 }),
             );
         });
-        this.disposableRegistry.push(
-            this.commandManager.registerCommand(
-                Commands.Exec_Selection_In_Terminal,
-                this.executeSelectionInTerminal.bind(this),
-            ),
-        );
-        this.disposableRegistry.push(
-            this.commandManager.registerCommand(
-                Commands.Exec_Selection_In_Django_Shell,
-                this.executeSelectionInDjangoShell.bind(this),
-            ),
-        );
     }
     private async executeFileInTerminal(file: Resource, trigger: 'command' | 'icon') {
         sendTelemetryEvent(EventName.EXECUTION_CODE, undefined, { scope: 'file', trigger });
@@ -78,41 +65,5 @@ export class CodeExecutionManager implements ICodeExecutionManager {
 
         const executionService = this.serviceContainer.get<ICodeExecutionService>(ICodeExecutionService, 'standard');
         await executionService.executeFile(fileToExecute);
-    }
-
-    @captureTelemetry(EventName.EXECUTION_CODE, { scope: 'selection' }, false)
-    private async executeSelectionInTerminal(): Promise<void> {
-        const executionService = this.serviceContainer.get<ICodeExecutionService>(ICodeExecutionService, 'standard');
-
-        await this.executeSelection(executionService);
-    }
-
-    @captureTelemetry(EventName.EXECUTION_DJANGO, { scope: 'selection' }, false)
-    private async executeSelectionInDjangoShell(): Promise<void> {
-        const executionService = this.serviceContainer.get<ICodeExecutionService>(ICodeExecutionService, 'djangoShell');
-        await this.executeSelection(executionService);
-    }
-
-    private async executeSelection(executionService: ICodeExecutionService): Promise<void> {
-        const activeEditor = this.documentManager.activeTextEditor;
-        if (!activeEditor) {
-            return;
-        }
-        const codeExecutionHelper = this.serviceContainer.get<ICodeExecutionHelper>(ICodeExecutionHelper);
-        const codeToExecute = await codeExecutionHelper.getSelectedTextToExecute(activeEditor!);
-        const normalizedCode = await codeExecutionHelper.normalizeLines(codeToExecute!);
-        if (!normalizedCode || normalizedCode.trim().length === 0) {
-            return;
-        }
-
-        try {
-            this.eventEmitter.fire(normalizedCode);
-        } catch {
-            // Ignore any errors that occur for firing this event. It's only used
-            // for telemetry
-            noop();
-        }
-
-        await executionService.execute(normalizedCode, activeEditor!.document.uri);
     }
 }

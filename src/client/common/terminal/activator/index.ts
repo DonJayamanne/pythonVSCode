@@ -3,10 +3,10 @@
 
 'use strict';
 
-import { inject, injectable, multiInject } from 'inversify';
+import { inject, injectable } from 'inversify';
 import { Terminal } from 'vscode';
 import { IConfigurationService } from '../../types';
-import { ITerminalActivationHandler, ITerminalActivator, ITerminalHelper, TerminalActivationOptions } from '../types';
+import { ITerminalActivator, ITerminalHelper, TerminalActivationOptions } from '../types';
 import { BaseTerminalActivator } from './base';
 
 @injectable()
@@ -15,7 +15,6 @@ export class TerminalActivator implements ITerminalActivator {
     private pendingActivations = new WeakMap<Terminal, Promise<boolean>>();
     constructor(
         @inject(ITerminalHelper) readonly helper: ITerminalHelper,
-        @multiInject(ITerminalActivationHandler) private readonly handlers: ITerminalActivationHandler[],
         @inject(IConfigurationService) private readonly configurationService: IConfigurationService,
     ) {
         this.initialize();
@@ -42,13 +41,7 @@ export class TerminalActivator implements ITerminalActivator {
             return false;
         }
 
-        const activated = await this.baseActivator.activateEnvironmentInTerminal(terminal, options);
-        this.handlers.forEach((handler) =>
-            handler
-                .handleActivation(terminal, options?.resource, options?.preserveFocus === true, activated)
-                .ignoreErrors(),
-        );
-        return activated;
+        return this.baseActivator.activateEnvironmentInTerminal(terminal, options);
     }
     protected initialize() {
         this.baseActivator = new BaseTerminalActivator(this.helper);

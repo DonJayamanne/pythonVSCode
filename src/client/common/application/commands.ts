@@ -4,8 +4,6 @@
 'use strict';
 
 import { CancellationToken, Position, TextDocument, Uri } from 'vscode';
-import { Commands as LSCommands } from '../../activation/commands';
-import { TensorBoardEntrypoint, TensorBoardEntrypointTrigger } from '../../tensorBoard/constants';
 import { Channel, Commands, CommandSource } from '../constants';
 
 export type CommandsWithoutArgs = keyof ICommandNameWithoutArgumentTypeMapping;
@@ -16,11 +14,6 @@ export type CommandsWithoutArgs = keyof ICommandNameWithoutArgumentTypeMapping;
  * @interface ICommandNameWithoutArgumentTypeMapping
  */
 interface ICommandNameWithoutArgumentTypeMapping {
-    [Commands.ClearWorkspaceInterpreter]: [];
-    [Commands.Set_Interpreter]: [];
-    [Commands.Set_ShebangInterpreter]: [];
-    [Commands.Run_Linter]: [];
-    [Commands.Enable_Linter]: [];
     ['workbench.action.showCommands']: [];
     ['workbench.action.debug.continue']: [];
     ['workbench.action.debug.stepOver']: [];
@@ -30,18 +23,9 @@ interface ICommandNameWithoutArgumentTypeMapping {
     ['editor.action.formatDocument']: [];
     ['editor.action.rename']: [];
     [Commands.ViewOutput]: [];
-    [Commands.Set_Linter]: [];
     [Commands.Start_REPL]: [];
-    [Commands.Enable_SourceMap_Support]: [];
-    [Commands.Exec_Selection_In_Terminal]: [];
-    [Commands.Exec_Selection_In_Django_Shell]: [];
     [Commands.Create_Terminal]: [];
-    [Commands.PickLocalProcess]: [];
     [Commands.ClearStorage]: [];
-    [Commands.ReportIssue]: [];
-    [Commands.CreateNewFile]: [];
-    [Commands.RefreshTensorBoard]: [];
-    [LSCommands.RestartLS]: [];
 }
 
 export type AllCommands = keyof ICommandNameArgumentTypeMapping;
@@ -88,15 +72,7 @@ export interface ICommandNameArgumentTypeMapping extends ICommandNameWithoutArgu
     ['jupyter.runallcells']: [Uri];
     ['extension.open']: [string];
     ['workbench.action.openIssueReporter']: [{ extensionId: string; issueBody: string }];
-    [Commands.GetSelectedInterpreterPath]: [{ workspaceFolder: string } | string[]];
-    [Commands.Sort_Imports]: [undefined, Uri];
     [Commands.Exec_In_Terminal]: [undefined, Uri];
     [Commands.Exec_In_Terminal_Icon]: [undefined, Uri];
-    [Commands.Debug_In_Terminal]: [Uri];
-    [Commands.Tests_Configure]: [undefined, undefined | CommandSource, undefined | Uri];
-    [Commands.Test_Refresh]: [undefined, undefined | CommandSource, undefined | Uri];
-    [Commands.Test_Refreshing]: [];
-    [Commands.Test_Stop_Refreshing]: [];
-    [Commands.LaunchTensorBoard]: [TensorBoardEntrypoint, TensorBoardEntrypointTrigger];
     ['workbench.view.testing.focus']: [];
 }

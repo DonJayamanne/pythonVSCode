@@ -3,7 +3,7 @@
 
 'use strict';
 
-import { IExtensionActivationService, IExtensionSingleActivationService } from '../activation/types';
+import { IExtensionActivationService } from '../activation/types';
 import { IServiceManager } from '../ioc/types';
 import { EnvironmentActivationService } from './activation/service';
 import { IEnvironmentActivationService } from './activation/types';
@@ -11,22 +11,14 @@ import { InterpreterAutoSelectionService } from './autoSelection/index';
 import { InterpreterAutoSelectionProxyService } from './autoSelection/proxy';
 import { IInterpreterAutoSelectionService, IInterpreterAutoSelectionProxyService } from './autoSelection/types';
 import { EnvironmentTypeComparer } from './configuration/environmentTypeComparer';
-import { ResetInterpreterCommand } from './configuration/interpreterSelector/commands/resetInterpreter';
-import { SetInterpreterCommand } from './configuration/interpreterSelector/commands/setInterpreter';
-import { SetShebangInterpreterCommand } from './configuration/interpreterSelector/commands/setShebangInterpreter';
-import { InterpreterSelector } from './configuration/interpreterSelector/interpreterSelector';
 import { PythonPathUpdaterService } from './configuration/pythonPathUpdaterService';
 import { PythonPathUpdaterServiceFactory } from './configuration/pythonPathUpdaterServiceFactory';
 import {
     IInterpreterComparer,
-    IInterpreterSelector,
     IPythonPathUpdaterServiceFactory,
     IPythonPathUpdaterServiceManager,
 } from './configuration/types';
-import { IInterpreterDisplay, IInterpreterHelper, IInterpreterService, IShebangCodeLensProvider } from './contracts';
-import { InterpreterDisplay } from './display';
-import { InterpreterLocatorProgressStatubarHandler } from './display/progressDisplay';
-import { ShebangCodeLensProvider } from './display/shebangCodeLensProvider';
+import { IInterpreterHelper, IInterpreterService } from './contracts';
 import { InterpreterHelper } from './helpers';
 import { InterpreterService } from './interpreterService';
 import { CondaInheritEnvPrompt } from './virtualEnvs/condaInheritEnvPrompt';
@@ -40,24 +32,9 @@ import { VirtualEnvironmentPrompt } from './virtualEnvs/virtualEnvPrompt';
  */
 
 export function registerInterpreterTypes(serviceManager: IServiceManager): void {
-    serviceManager.addSingleton<IExtensionSingleActivationService>(
-        IExtensionSingleActivationService,
-        SetInterpreterCommand,
-    );
-    serviceManager.addSingleton<IExtensionSingleActivationService>(
-        IExtensionSingleActivationService,
-        ResetInterpreterCommand,
-    );
-    serviceManager.addSingleton<IExtensionSingleActivationService>(
-        IExtensionSingleActivationService,
-        SetShebangInterpreterCommand,
-    );
-
     serviceManager.addSingleton<IExtensionActivationService>(IExtensionActivationService, VirtualEnvironmentPrompt);
 
     serviceManager.addSingleton<IInterpreterService>(IInterpreterService, InterpreterService);
-    serviceManager.addSingleton<IInterpreterDisplay>(IInterpreterDisplay, InterpreterDisplay);
-    serviceManager.addBinding(IInterpreterDisplay, IExtensionSingleActivationService);
 
     serviceManager.addSingleton<IPythonPathUpdaterServiceFactory>(
         IPythonPathUpdaterServiceFactory,
@@ -67,17 +44,9 @@ export function registerInterpreterTypes(serviceManager: IServiceManager): void 
         IPythonPathUpdaterServiceManager,
         PythonPathUpdaterService,
     );
-
-    serviceManager.addSingleton<IInterpreterSelector>(IInterpreterSelector, InterpreterSelector);
-    serviceManager.addSingleton<IShebangCodeLensProvider>(IShebangCodeLensProvider, ShebangCodeLensProvider);
     serviceManager.addSingleton<IInterpreterHelper>(IInterpreterHelper, InterpreterHelper);
 
     serviceManager.addSingleton<IInterpreterComparer>(IInterpreterComparer, EnvironmentTypeComparer);
-
-    serviceManager.addSingleton<IExtensionSingleActivationService>(
-        IExtensionSingleActivationService,
-        InterpreterLocatorProgressStatubarHandler,
-    );
 
     serviceManager.addSingleton<IInterpreterAutoSelectionService>(
         IInterpreterAutoSelectionService,

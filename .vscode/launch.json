@@ -12,11 +12,9 @@
             "smartStep": true,
             "sourceMaps": true,
             "outFiles": ["${workspaceFolder}/out/**/*", "!${workspaceFolder}/**/node_modules**/*"],
-            "preLaunchTask": "Compile",
             "skipFiles": ["<node_internals>/**"],
             "env": {
-                // Enable this to turn on redux logging during debugging
-                "XVSC_PYTHON_FORCE_LOGGING": "1",
+                "VSC_PYTHON_FORCE_LOGGING": "1",
                 // Enable this to try out new experiments locally
                 "VSC_PYTHON_LOAD_EXPERIMENTS_FROM_FILE": "1",
                 // Enable this to log telemetry to the output during debugging
@@ -235,9 +233,7 @@
             "name": "Node: Current File",
             "program": "${file}",
             "request": "launch",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
+            "skipFiles": ["<node_internals>/**"],
             "type": "pwa-node"
         },
         {

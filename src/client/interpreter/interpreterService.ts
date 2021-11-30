@@ -4,27 +4,12 @@ import * as pathUtils from 'path';
 import { Disposable, Event, EventEmitter, Uri } from 'vscode';
 import '../common/extensions';
 import { IDocumentManager } from '../common/application/types';
-import {
-    IConfigurationService,
-    IDisposableRegistry,
-    IExperimentService,
-    IInterpreterPathService,
-} from '../common/types';
+import { IPythonExecutionFactory } from '../common/process/types';
+import { IConfigurationService, IDisposableRegistry, IInterpreterPathService } from '../common/types';
 import { IServiceContainer } from '../ioc/types';
 import { PythonEnvironment } from '../pythonEnvironments/info';
-import {
-    IComponentAdapter,
-    IInterpreterDisplay,
-    IInterpreterService,
-    IInterpreterStatusbarVisibilityFilter,
-    PythonEnvironmentsChangedEvent,
-} from './contracts';
+import { IComponentAdapter, IInterpreterService, PythonEnvironmentsChangedEvent } from './contracts';
 import { PythonLocatorQuery } from '../pythonEnvironments/base/locator';
-import { traceError } from '../logging';
-import { PYTHON_LANGUAGE } from '../common/constants';
-import { InterpreterStatusBarPosition } from '../common/experiments/groups';
-import { reportActiveInterpreterChanged } from '../proposedApi';
-import { IPythonExecutionFactory } from '../common/process/types';
 
 type StoredPythonEnvironment = PythonEnvironment & { store?: boolean };
 
@@ -83,9 +68,8 @@ export class InterpreterService implements Disposable, IInterpreterService {
         this.onDidChangeInterpreters = pyenvs.onChanged;
     }
 
-    public async refresh(resource?: Uri): Promise<void> {
-        const interpreterDisplay = this.serviceContainer.get<IInterpreterDisplay>(IInterpreterDisplay);
-        return interpreterDisplay.refresh(resource);
+    public async refresh(_resource?: Uri): Promise<void> {
+        // noop.
     }
 
     public initialize(): void {
@@ -129,11 +113,16 @@ export class InterpreterService implements Disposable, IInterpreterService {
         );
         const pySettings = this.configService.getSettings();
         this._pythonPathSetting = pySettings.pythonPath;
-        disposables.push(
-            this.interpreterPathService.onDidChange((i): void => {
-                this._onConfigChanged(i.uri);
-            }),
-        );
+        // if (this.experimentsManager.inExperimentSync(DeprecatePythonPath.experiment)) {
+        // DON:
+        // eslint-disable-next-line no-constant-condition
+        if (true) {
+            disposables.push(
+                this.interpreterPathService.onDidChange((i) => {
+                    this._onConfigChanged(i.uri);
+                }),
+            );
+        }
     }
 
     public getInterpreters(resource?: Uri): PythonEnvironment[] {
@@ -186,12 +175,6 @@ export class InterpreterService implements Disposable, IInterpreterService {
         if (this._pythonPathSetting === '' || this._pythonPathSetting !== pySettings.pythonPath) {
             this._pythonPathSetting = pySettings.pythonPath;
             this.didChangeInterpreterEmitter.fire();
-            reportActiveInterpreterChanged({
-                interpreterPath: pySettings.pythonPath === '' ? undefined : pySettings.pythonPath,
-                resource,
-            });
-            const interpreterDisplay = this.serviceContainer.get<IInterpreterDisplay>(IInterpreterDisplay);
-            interpreterDisplay.refresh().catch((ex) => traceError('Python Extension: display.refresh', ex));
         }
     };
 }

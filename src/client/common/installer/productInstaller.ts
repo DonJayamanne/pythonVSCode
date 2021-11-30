@@ -6,23 +6,19 @@ import { CancellationToken, Uri } from 'vscode';
 import '../extensions';
 import { IInterpreterService } from '../../interpreter/contracts';
 import { IServiceContainer } from '../../ioc/types';
-import { LinterId } from '../../linters/types';
 import { EnvironmentType, ModuleInstallerType, PythonEnvironment } from '../../pythonEnvironments/info';
 import { sendTelemetryEvent } from '../../telemetry';
 import { EventName } from '../../telemetry/constants';
-import { IApplicationShell, ICommandManager, IWorkspaceService } from '../application/types';
-import { Commands } from '../constants';
 import { IProcessServiceFactory, IPythonExecutionFactory } from '../process/types';
 import {
     IConfigurationService,
     IInstaller,
     InstallerResponse,
-    IPersistentStateFactory,
     ProductInstallStatus,
     Product,
     ProductType,
+    IPersistentStateFactory,
 } from '../types';
-import { Common, Installer, Linters, Products } from '../utils/localize';
 import { isResource, noop } from '../utils/misc';
 import { translateProductToModule } from './moduleInstaller';
 import { ProductNames } from './productNames';
@@ -35,6 +31,8 @@ import {
     ModuleInstallFlags,
 } from './types';
 import { traceError, traceInfo } from '../../logging';
+import { IApplicationShell, IWorkspaceService } from '../application/types';
+import { Installer } from '../utils/localize';
 
 export { Product } from '../types';
 
@@ -218,181 +216,6 @@ abstract class BaseInstaller {
         const productType = this.productService.getProductType(product);
         const productPathService = this.serviceContainer.get<IProductPathService>(IProductPathService, productType);
         return productPathService.isExecutableAModule(product, resource);
-    }
-}
-
-const doNotDisplayFormatterPromptStateKey = 'FORMATTER_NOT_INSTALLED_KEY';
-
-export class FormatterInstaller extends BaseInstaller {
-    protected async promptToInstallImplementation(
-        product: Product,
-        resource?: Uri,
-        cancel?: CancellationToken,
-        _flags?: ModuleInstallFlags,
-    ): Promise<InstallerResponse> {
-        const neverShowAgain = this.persistentStateFactory.createGlobalPersistentState(
-            doNotDisplayFormatterPromptStateKey,
-            false,
-        );
-
-        if (neverShowAgain.value) {
-            return InstallerResponse.Ignore;
-        }
-
-        // Hard-coded on purpose because the UI won't necessarily work having
-        // another formatter.
-        const formatters = [Product.autopep8, Product.black, Product.yapf];
-        const formatterNames = formatters.map((formatter) => ProductNames.get(formatter)!);
-        const productName = ProductNames.get(product)!;
-        formatterNames.splice(formatterNames.indexOf(productName), 1);
-        const useOptions = formatterNames.map((name) => Products.useFormatter().format(name));
-        const yesChoice = Common.bannerLabelYes();
-
-        const options = [...useOptions, Common.doNotShowAgain()];
-        let message = Products.formatterNotInstalled().format(productName);
-        if (this.isExecutableAModule(product, resource)) {
-            options.splice(0, 0, yesChoice);
-        } else {
-            const executable = this.getExecutableNameFromSettings(product, resource);
-            message = Products.invalidFormatterPath().format(productName, executable);
-        }
-
-        const item = await this.appShell.showErrorMessage(message, ...options);
-        if (item === yesChoice) {
-            return this.install(product, resource, cancel);
-        }
-
-        if (item === Common.doNotShowAgain()) {
-            neverShowAgain.updateValue(true);
-            return InstallerResponse.Ignore;
-        }
-
-        if (typeof item === 'string') {
-            for (const formatter of formatters) {
-                const formatterName = ProductNames.get(formatter)!;
-
-                if (item.endsWith(formatterName)) {
-                    await this.configService.updateSetting('formatting.provider', formatterName, resource);
-                    return this.install(formatter, resource, cancel);
-                }
-            }
-        }
-
-        return InstallerResponse.Ignore;
-    }
-}
-
-export class LinterInstaller extends BaseInstaller {
-    constructor(protected serviceContainer: IServiceContainer) {
-        super(serviceContainer);
-    }
-
-    protected async promptToInstallImplementation(
-        product: Product,
-        resource?: Uri,
-        cancel?: CancellationToken,
-        _flags?: ModuleInstallFlags,
-    ): Promise<InstallerResponse> {
-        return this.oldPromptForInstallation(product, resource, cancel);
-    }
-
-    /**
-     * For installers that want to avoid prompting the user over and over, they can make use of a
-     * persisted true/false value representing user responses to 'stop showing this prompt'. This method
-     * gets the persisted value given the installer-defined key.
-     *
-     * @param key Key to use to get a persisted response value, each installer must define this for themselves.
-     * @returns Boolean: The current state of the stored response key given.
-     */
-    protected getStoredResponse(key: string): boolean {
-        const factory = this.serviceContainer.get<IPersistentStateFactory>(IPersistentStateFactory);
-        const state = factory.createGlobalPersistentState<boolean | undefined>(key, undefined);
-        return state.value === true;
-    }
-
-    private async oldPromptForInstallation(product: Product, resource?: Uri, cancel?: CancellationToken) {
-        const productName = ProductNames.get(product)!;
-        const install = Common.install();
-        const doNotShowAgain = Common.doNotShowAgain();
-        const disableLinterInstallPromptKey = `${productName}_DisableLinterInstallPrompt`;
-        const selectLinter = Linters.selectLinter();
-
-        if (this.getStoredResponse(disableLinterInstallPromptKey) === true) {
-            return InstallerResponse.Ignore;
-        }
-
-        const options = [selectLinter, doNotShowAgain];
-
-        let message = `Linter ${productName} is not installed.`;
-        if (this.isExecutableAModule(product, resource)) {
-            options.splice(0, 0, install);
-        } else {
-            const executable = this.getExecutableNameFromSettings(product, resource);
-            message = `Path to the ${productName} linter is invalid (${executable})`;
-        }
-        const response = await this.appShell.showErrorMessage(message, ...options);
-        if (response === install) {
-            sendTelemetryEvent(EventName.LINTER_NOT_INSTALLED_PROMPT, undefined, {
-                tool: productName as LinterId,
-                action: 'install',
-            });
-            return this.install(product, resource, cancel);
-        }
-        if (response === doNotShowAgain) {
-            await this.setStoredResponse(disableLinterInstallPromptKey, true);
-            sendTelemetryEvent(EventName.LINTER_NOT_INSTALLED_PROMPT, undefined, {
-                tool: productName as LinterId,
-                action: 'disablePrompt',
-            });
-            return InstallerResponse.Ignore;
-        }
-
-        if (response === selectLinter) {
-            sendTelemetryEvent(EventName.LINTER_NOT_INSTALLED_PROMPT, undefined, { action: 'select' });
-            const commandManager = this.serviceContainer.get<ICommandManager>(ICommandManager);
-            await commandManager.executeCommand(Commands.Set_Linter);
-        }
-        return InstallerResponse.Ignore;
-    }
-
-    /**
-     * For installers that want to avoid prompting the user over and over, they can make use of a
-     * persisted true/false value representing user responses to 'stop showing this prompt'. This
-     * method will set that persisted value given the installer-defined key.
-     *
-     * @param key Key to use to get a persisted response value, each installer must define this for themselves.
-     * @param value Boolean value to store for the user - if they choose to not be prompted again for instance.
-     * @returns Boolean: The current state of the stored response key given.
-     */
-    private async setStoredResponse(key: string, value: boolean): Promise<void> {
-        const factory = this.serviceContainer.get<IPersistentStateFactory>(IPersistentStateFactory);
-        const state = factory.createGlobalPersistentState<boolean | undefined>(key, undefined);
-        if (state && state.value !== value) {
-            await state.updateValue(value);
-        }
-    }
-}
-
-export class TestFrameworkInstaller extends BaseInstaller {
-    protected async promptToInstallImplementation(
-        product: Product,
-        resource?: Uri,
-        cancel?: CancellationToken,
-        _flags?: ModuleInstallFlags,
-    ): Promise<InstallerResponse> {
-        const productName = ProductNames.get(product)!;
-
-        const options: string[] = [];
-        let message = `Test framework ${productName} is not installed. Install?`;
-        if (this.isExecutableAModule(product, resource)) {
-            options.push(...['Yes', 'No']);
-        } else {
-            const executable = this.getExecutableNameFromSettings(product, resource);
-            message = `Path to the ${productName} test framework is invalid (${executable})`;
-        }
-
-        const item = await this.appShell.showErrorMessage(message, ...options);
-        return item === 'Yes' ? this.install(product, resource, cancel) : InstallerResponse.Ignore;
     }
 }
 
@@ -607,12 +430,6 @@ export class ProductInstaller implements IInstaller {
     private createInstaller(product: Product): BaseInstaller {
         const productType = this.productService.getProductType(product);
         switch (productType) {
-            case ProductType.Formatter:
-                return new FormatterInstaller(this.serviceContainer);
-            case ProductType.Linter:
-                return new LinterInstaller(this.serviceContainer);
-            case ProductType.TestFramework:
-                return new TestFrameworkInstaller(this.serviceContainer);
             case ProductType.DataScience:
                 return new DataScienceInstaller(this.serviceContainer);
             default:

@@ -144,16 +144,6 @@ export interface ITerminalActivationCommandProvider {
     ): Promise<string[] | undefined>;
 }
 
-export const ITerminalActivationHandler = Symbol('ITerminalActivationHandler');
-export interface ITerminalActivationHandler {
-    handleActivation(
-        terminal: Terminal,
-        resource: Uri | undefined,
-        preserveFocus: boolean,
-        activated: boolean,
-    ): Promise<void>;
-}
-
 export type ShellIdentificationTelemetry = IEventNamePropertyMapping['TERMINAL_SHELL_IDENTIFICATION'];
 
 export const IShellDetector = Symbol('IShellDetector');

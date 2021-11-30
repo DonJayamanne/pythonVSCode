@@ -8,7 +8,6 @@ import { Request as RequestResult } from 'request';
 import {
     CancellationToken,
     ConfigurationTarget,
-    DiagnosticSeverity,
     Disposable,
     DocumentSymbolProvider,
     Event,
@@ -18,10 +17,8 @@ import {
     Uri,
     WorkspaceEdit,
 } from 'vscode';
-import { LanguageServerType } from '../activation/types';
 import type { InterpreterUri, ModuleInstallFlags } from './installer/types';
 import { EnvironmentVariables } from './variables/types';
-import { ITestingSettings } from '../testing/configuration/types';
 
 export const IOutputChannel = Symbol('IOutputChannel');
 export interface IOutputChannel extends OutputChannel {}
@@ -71,10 +68,6 @@ export enum ProductInstallStatus {
 }
 
 export enum ProductType {
-    Linter = 'Linter',
-    Formatter = 'Formatter',
-    TestFramework = 'TestFramework',
-    RefactoringLibrary = 'RefactoringLibrary',
     DataScience = 'DataScience',
 }
 
@@ -170,100 +163,12 @@ export interface IPythonSettings {
     readonly condaPath: string;
     readonly pipenvPath: string;
     readonly poetryPath: string;
-    readonly downloadLanguageServer: boolean;
-    readonly devOptions: string[];
-    readonly linting: ILintingSettings;
-    readonly formatting: IFormattingSettings;
-    readonly testing: ITestingSettings;
-    readonly autoComplete: IAutoCompleteSettings;
     readonly terminal: ITerminalSettings;
-    readonly sortImports: ISortImportSettings;
-    readonly envFile: string;
     readonly disableInstallationChecks: boolean;
     readonly globalModuleInstallation: boolean;
-    readonly autoUpdateLanguageServer: boolean;
     readonly onDidChange: Event<void>;
-    readonly experiments: IExperiments;
-    readonly languageServer: LanguageServerType;
-    readonly languageServerIsDefault: boolean;
     readonly defaultInterpreterPath: string;
-    readonly tensorBoard: ITensorBoardSettings | undefined;
     initialize(): void;
-}
-
-export interface ITensorBoardSettings {
-    readonly logDirectory: string | undefined;
-}
-export interface ISortImportSettings {
-    readonly path: string;
-    readonly args: string[];
-}
-
-export interface IPylintCategorySeverity {
-    readonly convention: DiagnosticSeverity;
-    readonly refactor: DiagnosticSeverity;
-    readonly warning: DiagnosticSeverity;
-    readonly error: DiagnosticSeverity;
-    readonly fatal: DiagnosticSeverity;
-}
-export interface IPycodestyleCategorySeverity {
-    readonly W: DiagnosticSeverity;
-    readonly E: DiagnosticSeverity;
-}
-
-export interface Flake8CategorySeverity {
-    readonly F: DiagnosticSeverity;
-    readonly E: DiagnosticSeverity;
-    readonly W: DiagnosticSeverity;
-}
-export interface IMypyCategorySeverity {
-    readonly error: DiagnosticSeverity;
-    readonly note: DiagnosticSeverity;
-}
-
-export interface ILintingSettings {
-    readonly enabled: boolean;
-    readonly ignorePatterns: string[];
-    readonly prospectorEnabled: boolean;
-    readonly prospectorArgs: string[];
-    readonly pylintEnabled: boolean;
-    readonly pylintArgs: string[];
-    readonly pycodestyleEnabled: boolean;
-    readonly pycodestyleArgs: string[];
-    readonly pylamaEnabled: boolean;
-    readonly pylamaArgs: string[];
-    readonly flake8Enabled: boolean;
-    readonly flake8Args: string[];
-    readonly pydocstyleEnabled: boolean;
-    readonly pydocstyleArgs: string[];
-    readonly lintOnSave: boolean;
-    readonly maxNumberOfProblems: number;
-    readonly pylintCategorySeverity: IPylintCategorySeverity;
-    readonly pycodestyleCategorySeverity: IPycodestyleCategorySeverity;
-    readonly flake8CategorySeverity: Flake8CategorySeverity;
-    readonly mypyCategorySeverity: IMypyCategorySeverity;
-    cwd?: string;
-    prospectorPath: string;
-    pylintPath: string;
-    pycodestylePath: string;
-    pylamaPath: string;
-    flake8Path: string;
-    pydocstylePath: string;
-    mypyEnabled: boolean;
-    mypyArgs: string[];
-    mypyPath: string;
-    banditEnabled: boolean;
-    banditArgs: string[];
-    banditPath: string;
-}
-export interface IFormattingSettings {
-    readonly provider: string;
-    autopep8Path: string;
-    readonly autopep8Args: string[];
-    blackPath: string;
-    readonly blackArgs: string[];
-    yapfPath: string;
-    readonly yapfArgs: string[];
 }
 
 export interface ITerminalSettings {
@@ -271,25 +176,6 @@ export interface ITerminalSettings {
     readonly launchArgs: string[];
     readonly activateEnvironment: boolean;
     readonly activateEnvInCurrentTerminal: boolean;
-}
-
-export interface IExperiments {
-    /**
-     * Return `true` if experiments are enabled, else `false`.
-     */
-    readonly enabled: boolean;
-    /**
-     * Experiments user requested to opt into manually
-     */
-    readonly optInto: string[];
-    /**
-     * Experiments user requested to opt out from manually
-     */
-    readonly optOutFrom: string[];
-}
-
-export interface IAutoCompleteSettings {
-    readonly extraPaths: string[];
 }
 
 export const IConfigurationService = Symbol('IConfigurationService');
@@ -440,18 +326,6 @@ export const IAsyncDisposableRegistry = Symbol('IAsyncDisposableRegistry');
 export interface IAsyncDisposableRegistry extends IAsyncDisposable {
     push(disposable: IDisposable | IAsyncDisposable): void;
 }
-
-/**
- * Experiment service leveraging VS Code's experiment framework.
- */
-export const IExperimentService = Symbol('IExperimentService');
-export interface IExperimentService {
-    activate(): Promise<void>;
-    inExperiment(experimentName: string): Promise<boolean>;
-    inExperimentSync(experimentName: string): boolean;
-    getExperimentValue<T extends boolean | number | string>(experimentName: string): Promise<T | undefined>;
-}
-
 export type InterpreterConfigurationScope = { uri: Resource; configTarget: ConfigurationTarget };
 export type InspectInterpreterSettingType = {
     globalValue?: string;
@@ -468,19 +342,4 @@ export interface IInterpreterPathService {
     get(resource: Resource): string;
     inspect(resource: Resource): InspectInterpreterSettingType;
     update(resource: Resource, configTarget: ConfigurationTarget, value: string | undefined): Promise<void>;
-}
-
-export type DefaultLSType = LanguageServerType.Jedi | LanguageServerType.Node;
-
-/**
- * Interface used to retrieve the default language server.
- *
- * Note: This is added to get around a problem that the config service is not `async`.
- * Adding experiment check there would mean touching the entire extension. For simplicity
- * this is a solution.
- */
-export const IDefaultLanguageServer = Symbol('IDefaultLanguageServer');
-
-export interface IDefaultLanguageServer {
-    readonly defaultLSType: DefaultLSType;
 }

@@ -78,12 +78,6 @@ export interface IInterpreterService {
     initialize(): void;
 }
 
-export const IInterpreterDisplay = Symbol('IInterpreterDisplay');
-export interface IInterpreterDisplay {
-    refresh(resource?: Uri): Promise<void>;
-    registerVisibilityFilter(filter: IInterpreterStatusbarVisibilityFilter): void;
-}
-
 export const IShebangCodeLensProvider = Symbol('IShebangCodeLensProvider');
 export interface IShebangCodeLensProvider extends CodeLensProvider {
     detectShebang(document: TextDocument, resolveShebangAsInterpreter?: boolean): Promise<string | undefined>;

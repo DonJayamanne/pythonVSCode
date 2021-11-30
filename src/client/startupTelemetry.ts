@@ -4,7 +4,12 @@
 import { IWorkspaceService } from './common/application/types';
 import { isTestExecution } from './common/constants';
 import { ITerminalHelper } from './common/terminal/types';
-import { IConfigurationService, IInterpreterPathService, Resource } from './common/types';
+import {
+    IConfigurationService,
+    IInterpreterPathService,
+    InspectInterpreterSettingType,
+    Resource,
+} from './common/types';
 import { IStopWatch } from './common/utils/stopWatch';
 import { IInterpreterAutoSelectionService } from './interpreter/autoSelection/types';
 import { ICondaService, IInterpreterService } from './interpreter/contracts';
@@ -66,8 +71,16 @@ function isUsingGlobalInterpreterInWorkspace(currentPythonPath: string, serviceC
 }
 
 export function hasUserDefinedPythonPath(resource: Resource, serviceContainer: IServiceContainer) {
+    const workspaceService = serviceContainer.get<IWorkspaceService>(IWorkspaceService);
     const interpreterPathService = serviceContainer.get<IInterpreterPathService>(IInterpreterPathService);
-    let settings = interpreterPathService.inspect(resource);
+    let settings: InspectInterpreterSettingType;
+    // if (abExperiments.inExperimentSync(DeprecatePythonPath.experiment)) {
+    // DON:
+    if (true) {
+        settings = interpreterPathService.inspect(resource);
+    } else {
+        settings = workspaceService.getConfiguration('python', resource)!.inspect<string>('pythonPath')!;
+    }
     return (settings.workspaceFolderValue && settings.workspaceFolderValue !== 'python') ||
         (settings.workspaceValue && settings.workspaceValue !== 'python') ||
         (settings.globalValue && settings.globalValue !== 'python')

@@ -29,9 +29,8 @@ initializeFileLogging(logDispose);
 // loading starts here
 
 import { ProgressLocation, ProgressOptions, window } from 'vscode';
-import { buildApi } from './api';
 import { IApplicationShell, IWorkspaceService } from './common/application/types';
-import { IAsyncDisposableRegistry, IDisposableRegistry, IExperimentService, IExtensionContext } from './common/types';
+import { IAsyncDisposableRegistry, IDisposableRegistry, IExtensionContext } from './common/types';
 import { createDeferred } from './common/utils/async';
 import { Common } from './common/utils/localize';
 import { activateComponents } from './extensionActivation';
@@ -41,9 +40,6 @@ import { sendErrorTelemetry, sendStartupTelemetry } from './startupTelemetry';
 import { IStartupDurations } from './types';
 import { runAfterActivation } from './common/utils/runAfterActivation';
 import { IInterpreterService } from './interpreter/contracts';
-import { IExtensionApi, IProposedExtensionAPI } from './apiTypes';
-import { buildProposedApi } from './proposedApi';
-import { WorkspaceService } from './common/application/workspace';
 
 durations.codeLoadingTime = stopWatch.elapsedTime;
 
@@ -56,19 +52,11 @@ let activatedServiceContainer: IServiceContainer | undefined;
 /////////////////////////////
 // public functions
 
-export async function activate(context: IExtensionContext): Promise<IExtensionApi> {
-    let api: IExtensionApi;
+export async function activate(context: IExtensionContext): Promise<void> {
     let ready: Promise<void>;
     let serviceContainer: IServiceContainer;
     try {
-        const workspaceService = new WorkspaceService();
-        context.subscriptions.push(
-            workspaceService.onDidGrantWorkspaceTrust(async () => {
-                await deactivate();
-                await activate(context);
-            }),
-        );
-        [api, ready, serviceContainer] = await activateUnsafe(context, stopWatch, durations);
+        [ready, serviceContainer] = await activateUnsafe(context, stopWatch, durations);
     } catch (ex) {
         // We want to completely handle the error
         // before notifying VS Code.
@@ -81,7 +69,6 @@ export async function activate(context: IExtensionContext): Promise<IExtensionAp
     sendStartupTelemetry(ready, durations, stopWatch, serviceContainer)
         // Run in the background.
         .ignoreErrors();
-    return api;
 }
 
 export function deactivate(): Thenable<void> {
@@ -107,10 +94,9 @@ async function activateUnsafe(
     context: IExtensionContext,
     startupStopWatch: StopWatch,
     startupDurations: IStartupDurations,
-): Promise<[IExtensionApi & IProposedExtensionAPI, Promise<void>, IServiceContainer]> {
+): Promise<[Promise<void>, IServiceContainer]> {
     // Add anything that we got from initializing logs to dispose.
     context.subscriptions.push(...logDispose);
-
     const activationDeferred = createDeferred<void>();
     displayProgress(activationDeferred.promise);
     startupDurations.startActivateTime = startupStopWatch.elapsedTime;
@@ -124,10 +110,6 @@ async function activateUnsafe(
     // Note standard utils especially experiment and platform code are fundamental to the extension
     // and should be available before we activate anything else.Hence register them first.
     initializeStandard(ext);
-    // We need to activate experiments before initializing components as objects are created or not created based on experiments.
-    const experimentService = activatedServiceContainer.get<IExperimentService>(IExperimentService);
-    // This guarantees that all experiment information has loaded & all telemetry will contain experiment info.
-    await experimentService.activate();
     const components = await initializeComponents(ext);
 
     // Then we finish activating.
@@ -158,9 +140,7 @@ async function activateUnsafe(
         runAfterActivation();
     });
 
-    const api = buildApi(activationPromise, ext.legacyIOC.serviceManager, ext.legacyIOC.serviceContainer);
-    const proposedApi = buildProposedApi(components.pythonEnvs, ext.legacyIOC.serviceContainer);
-    return [{ ...api, ...proposedApi }, activationPromise, ext.legacyIOC.serviceContainer];
+    return [activationPromise, ext.legacyIOC.serviceContainer];
 }
 
 function displayProgress(promise: Promise<any>) {

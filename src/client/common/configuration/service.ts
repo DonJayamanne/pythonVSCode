@@ -8,7 +8,7 @@ import { IServiceContainer } from '../../ioc/types';
 import { IWorkspaceService } from '../application/types';
 import { PythonSettings } from '../configSettings';
 import { isUnitTestExecution } from '../constants';
-import { IConfigurationService, IDefaultLanguageServer, IInterpreterPathService, IPythonSettings } from '../types';
+import { IConfigurationService, IInterpreterPathService, IPythonSettings } from '../types';
 
 @injectable()
 export class ConfigurationService implements IConfigurationService {
@@ -23,13 +23,11 @@ export class ConfigurationService implements IConfigurationService {
             IInterpreterAutoSelectionService,
         );
         const interpreterPathService = this.serviceContainer.get<IInterpreterPathService>(IInterpreterPathService);
-        const defaultLS = this.serviceContainer.tryGet<IDefaultLanguageServer>(IDefaultLanguageServer);
         return PythonSettings.getInstance(
             resource,
             InterpreterAutoSelectionService,
             this.workspaceService,
             interpreterPathService,
-            defaultLS,
         );
     }
 
@@ -40,6 +38,9 @@ export class ConfigurationService implements IConfigurationService {
         resource?: Uri,
         configTarget?: ConfigurationTarget,
     ): Promise<void> {
+        const interpreterPathService = this.serviceContainer.get<IInterpreterPathService>(IInterpreterPathService);
+        // DON:
+        const inExperimentDeprecatePythonPath = true;
         const defaultSetting = {
             uri: resource,
             target: configTarget || ConfigurationTarget.WorkspaceFolder,
@@ -51,7 +52,10 @@ export class ConfigurationService implements IConfigurationService {
         configTarget = configTarget || settingsInfo.target;
 
         const configSection = this.workspaceService.getConfiguration(section, settingsInfo.uri);
-        const currentValue = configSection.inspect(setting);
+        const currentValue =
+            inExperimentDeprecatePythonPath && section === 'python' && setting === 'pythonPath'
+                ? interpreterPathService.inspect(settingsInfo.uri)
+                : configSection.inspect(setting);
 
         if (
             currentValue !== undefined &&
@@ -61,8 +65,15 @@ export class ConfigurationService implements IConfigurationService {
         ) {
             return;
         }
-        await configSection.update(setting, value, configTarget);
-        await this.verifySetting(configSection, configTarget, setting, value);
+        if (section === 'python' && setting === 'pythonPath') {
+            if (inExperimentDeprecatePythonPath) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                await interpreterPathService.update(settingsInfo.uri, configTarget, value as any);
+            }
+        } else {
+            await configSection.update(setting, value, configTarget);
+            await this.verifySetting(configSection, configTarget, setting, value);
+        }
     }
 
     public async updateSetting(

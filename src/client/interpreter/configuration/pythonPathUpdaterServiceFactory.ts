@@ -12,6 +12,8 @@ export class PythonPathUpdaterServiceFactory implements IPythonPathUpdaterServic
     private readonly interpreterPathService: IInterpreterPathService;
     constructor(@inject(IServiceContainer) serviceContainer: IServiceContainer) {
         this.interpreterPathService = serviceContainer.get<IInterpreterPathService>(IInterpreterPathService);
+        // DON:
+        // this.inDeprecatePythonPathExperiment = experiments.inExperimentSync(DeprecatePythonPath.experiment);
     }
     public getGlobalPythonPathConfigurationService(): IPythonPathUpdaterService {
         return new GlobalPythonPathUpdaterService(this.interpreterPathService);
