@@ -3473,8 +3473,8 @@
     },
     "dependencies": {
         "@jupyter-widgets/schema": "^0.4.0",
-        "@jupyterlab/coreutils": "^3.1.0",
-        "@jupyterlab/services": "^4.2.0",
+        "@jupyterlab/coreutils": "^5.0.6",
+        "@jupyterlab/services": "^6.0.0",
         "@loadable/component": "^5.12.0",
         "@nteract/messaging": "^7.0.0",
         "@types/tcp-port-used": "^1.0.0",
