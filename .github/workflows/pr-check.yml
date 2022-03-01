@@ -87,7 +87,7 @@ jobs:
         run: npx gulp prePublishNonBundle
 
       - name: Use Python ${{ matrix.python }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python }}
 
@@ -302,7 +302,7 @@ jobs:
   #           cache: 'npm'
 
   #       - name: Use Python ${{ matrix.python }}
-  #         uses: actions/setup-python@v2
+  #         uses: actions/setup-python@v3
   #         with:
   #           python-version: ${{ matrix.python }}
 
@@ -372,7 +372,7 @@ jobs:
         run: npx gulp prePublishNonBundle
 
       - name: Use Python ${{ env.PYTHON_VERSION }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
