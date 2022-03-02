@@ -48,7 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Build VSIX
         uses: ./.github/actions/build-vsix
@@ -63,7 +63,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v3
 
       - name: Lint
         uses: ./.github/actions/lint
@@ -89,7 +89,7 @@ jobs:
         test-suite: [ts-unit, python-unit, venv, single-workspace, multi-workspace, debugger, functional]
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: ${{ env.special-working-directory-relative }}
 
@@ -288,7 +288,7 @@ jobs:
         os: [ubuntu-latest, windows-latest]
     steps:
       - name: Checkout
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v3
 
       - name: Smoke tests
         uses: ./.github/actions/smoke-tests
@@ -309,7 +309,7 @@ jobs:
   #         python: [3.8] # For Jupyter.
   #     steps:
   #       - name: Checkout
-  #         uses: actions/checkout@v2
+  #         uses: actions/checkout@v3
 
   #       - name: Install Node
   #         uses: actions/setup-node@v2
