@@ -187,7 +187,7 @@ export class PythonSettings implements IPythonSettings {
         const workspaceRoot = this.workspaceRoot?.fsPath;
         const systemVariables: SystemVariables = new SystemVariables(undefined, workspaceRoot, this.workspace);
 
-        this.pythonPath = this.getPythonPath(systemVariables, workspaceRoot);
+        this.pythonPath = this.getPythonPath(pythonSettings, systemVariables, workspaceRoot);
 
         const defaultInterpreterPath = systemVariables.resolveAny(pythonSettings.get<string>('defaultInterpreterPath'));
         this.defaultInterpreterPath = defaultInterpreterPath || DEFAULT_INTERPRETER_SETTING;
@@ -238,11 +238,11 @@ export class PythonSettings implements IPythonSettings {
         this.terminal = this.terminal
             ? this.terminal
             : {
-                  executeInFileDir: true,
-                  launchArgs: [],
-                  activateEnvironment: true,
-                  activateEnvInCurrentTerminal: false,
-              };
+                executeInFileDir: true,
+                launchArgs: [],
+                activateEnvironment: true,
+                activateEnvInCurrentTerminal: false,
+            };
     }
 
     // eslint-disable-next-line class-methods-use-this

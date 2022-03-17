@@ -1,16 +1,16 @@
 {
     "name": "python-environment-manager",
     "displayName": "Python Environment Manager",
-    "description": "IntelliSense (Pylance), Linting, Debugging (multi-threaded, remote), Jupyter Notebooks, code formatting, refactoring, unit tests, and more.",
-    "version": "1.0.0",
+    "description": "View and manage Python environments & pacakges.",
+    "version": "1.0.3",
     "capabilities": {
         "untrustedWorkspaces": {
-            "supported": "limited",
-            "description": "Only Partial IntelliSense with Pylance is supported. Cannot execute Python with untrusted files."
+            "supported": false,
+            "description": "Management of Python environments in untrusted workspaces is not supported."
         },
         "virtualWorkspaces": {
-            "supported": "limited",
-            "description": "Only Partial IntelliSense supported."
+            "supported": false,
+            "description": "Management of Python environments is not supported on the web."
         }
     },
     "publisher": "donjayamanne",
@@ -18,22 +18,22 @@
         "name": "Don Jayamanne"
     },
     "license": "MIT",
-    "homepage": "https://github.com/donjayamanne/vscode-python",
+    "homepage": "https://github.com/DonJayamanne/vscode-python-manager",
     "repository": {
         "type": "git",
-        "url": "https://github.com/donjayamanne/vscode-python/environmentManager"
+        "url": "https://github.com/DonJayamanne/vscode-python-manager"
     },
     "bugs": {
-        "url": "https://github.com/donjayamanne/vscode-python/issues"
+        "url": "https://github.com/DonJayamanne/vscode-python-manager/issues"
     },
-    "qna": "https://github.com/microsoft/vscode-python/discussions/categories/q-a",
+    "qna": "https://github.com/DonJayamanne/vscode-python-manager/issues",
     "icon": "icon.png",
     "galleryBanner": {
         "color": "#1e415e",
         "theme": "dark"
     },
     "engines": {
-        "vscode": "^1.63.1"
+        "vscode": "^1.62.0"
     },
     "keywords": [
         "python",
@@ -45,11 +45,12 @@
     ],
     "categories": [
         "Programming Languages",
+        "Machine Learning",
         "Other",
         "Data Science"
     ],
     "activationEvents": [
-        "*"
+        "onView:pythonEnvironments"
     ],
     "main": "./out/client/extension",
     "browser": "./dist/extension.browser.js",
@@ -57,28 +58,69 @@
         "commands": [
             {
                 "command": "python.envManager.clearPersistentStorage",
-                "title": "Clear this"
+                "title": "Python: Clear Environment Manager cache",
+                "enablement": "false"
+            },
+            {
+                "command": "python.envManager.create",
+                "title": "Create Environment",
+                "icon": "$(add)",
+                "enablement": "false"
+            },
+            {
+                "command": "python.envManager.delete",
+                "title": "Delete Environment",
+                "icon": "$(trash)",
+                "enablement": "false"
+            },
+            {
+                "command": "python.envManager.viewPackages",
+                "title": "View Packages",
+                "icon": "$(package)"
+            },
+            {
+                "command": "python.envManager.openInTerminal",
+                "title": "Open in Terminal",
+                "icon": "$(terminal)"
+            },
+            {
+                "command": "python.envManager.refresh",
+                "title": "Refresh Environments",
+                "icon": "$(refresh)"
             }
         ],
-        "configuration": {
-            "properties": {
-                "python.xxx": {
-                    "default": "",
-                    "description": "Path to the conda executable to use for activation (version 4.4+).",
-                    "scope": "machine",
-                    "type": "string"
+        "menus": {
+            "view/title": [
+                {
+                    "command": "python.envManager.refresh",
+                    "when": "view == pythonEnvironments",
+                    "group": "navigation"
                 }
-            },
-            "title": "Python",
-            "type": "object"
+            ],
+            "view/item/context": [
+                {
+                    "command": "python.envManager.create",
+                    "when": "view == pythonEnvironments && viewItem == envType && false",
+                    "group": "inline"
+                },
+                {
+                    "command": "python.envManager.delete",
+                    "when": "view == pythonEnvironments && viewItem == env && false",
+                    "group": "inline"
+                },
+                {
+                    "command": "python.envManager.openInTerminal",
+                    "when": "view == pythonEnvironments && viewItem == env",
+                    "group": "inline@2"
+                }
+            ]
         },
-        "menus": {},
         "viewsWelcome": [],
         "viewsContainers": {
             "activitybar": [
                 {
                     "id": "package-explorer",
-                    "title": "Package Explorer",
+                    "title": "Python",
                     "icon": "resources/logo.svg"
                 }
             ]
@@ -87,15 +129,15 @@
             "package-explorer": [
                 {
                     "id": "pythonEnvironments",
-                    "name": "Node Dependencies",
+                    "name": "Environments",
                     "icon": "resources/logo.svg",
-                    "contextualTitle": "Package Explorer"
+                    "contextualTitle": "Environment Manager"
                 }
             ]
         }
     },
     "scripts": {
-        "package": "gulp clean && gulp prePublishBundle && vsce package -o ms-python-insiders.vsix",
+        "package": "gulp clean && gulp prePublishBundle && vsce package -o python-env-manager.vsix",
         "prePublish": "gulp clean && gulp prePublishNonBundle",
         "compile": "tsc -watch -p ./",
         "compiled": "deemon npm run compile",
@@ -131,7 +173,8 @@
         "webpack": "webpack"
     },
     "dependencies": {
-        "@vscode/jupyter-lsp-middleware": "^0.2.35",
+        "@vscode/codicons": "0.0.26",
+        "@vscode/jupyter-lsp-middleware": "^0.2.15",
         "arch": "^2.1.0",
         "diff-match-patch": "^1.0.0",
         "fs-extra": "^9.1.0",
@@ -139,6 +182,7 @@
         "hash.js": "^1.1.7",
         "iconv-lite": "^0.4.21",
         "inversify": "^5.0.4",
+        "is-wsl": "^2.2.0",
         "jsonc-parser": "^2.0.3",
         "lodash": "^4.17.21",
         "md5": "^2.2.1",

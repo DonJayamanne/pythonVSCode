@@ -20,7 +20,7 @@ export const PYTHON_NOTEBOOKS = [
     { scheme: InteractiveInputScheme, language: PYTHON_LANGUAGE },
 ];
 
-export const PVSC_EXTENSION_ID = 'python-environment-manager';
+export const PVSC_EXTENSION_ID = 'donjayamanne.python-environment-manager';
 export const CODE_RUNNER_EXTENSION_ID = 'formulahendry.code-runner';
 export const PYLANCE_EXTENSION_ID = 'ms-python.vscode-pylance';
 export const JUPYTER_EXTENSION_ID = 'ms-toolsai.jupyter';

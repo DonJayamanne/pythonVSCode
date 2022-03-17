@@ -8,7 +8,7 @@
         "obj": true,
         "bin": true,
         "**/__pycache__": true,
-        "**/node_modules": true,
+        "**/node_modules": false,
         ".vscode-test": false,
         ".vscode test": false,
         "**/.mypy_cache/**": true
@@ -26,7 +26,7 @@
         "editor.formatOnSave": true
     },
     "[typescript]": {
-        "editor.defaultFormatter": "rvest.vs-code-prettier-eslint",
+        "editor.defaultFormatter": "vscode.typescript-language-features",
         "editor.formatOnSave": true
     },
     "[javascript]": {

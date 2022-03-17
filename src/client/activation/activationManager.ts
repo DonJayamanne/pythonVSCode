@@ -8,7 +8,7 @@ import { TextDocument } from 'vscode';
 import { IActiveResourceService, IDocumentManager, IWorkspaceService } from '../common/application/types';
 import { PYTHON_LANGUAGE } from '../common/constants';
 import { IFileSystem } from '../common/platform/types';
-import { IDisposable, IInterpreterPathService, Resource } from '../common/types';
+import { IDisposable, Resource } from '../common/types';
 import { Deferred } from '../common/utils/async';
 import { traceDecoratorError } from '../logging';
 import { sendActivationTelemetry } from '../telemetry/envFileTelemetry';
@@ -32,7 +32,6 @@ export class ExtensionActivationManager implements IExtensionActivationManager {
         @inject(IWorkspaceService) private readonly workspaceService: IWorkspaceService,
         @inject(IFileSystem) private readonly fileSystem: IFileSystem,
         @inject(IActiveResourceService) private readonly activeResourceService: IActiveResourceService,
-        @inject(IInterpreterPathService) private readonly interpreterPathService: IInterpreterPathService,
     ) {
         if (!this.workspaceService.isTrusted) {
             this.activationServices = this.activationServices.filter(

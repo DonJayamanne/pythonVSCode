@@ -3,13 +3,13 @@ import { inject, injectable } from 'inversify';
 import * as pathUtils from 'path';
 import { Disposable, Event, EventEmitter, Uri } from 'vscode';
 import '../common/extensions';
-import { IDocumentManager } from '../common/application/types';
 import { IPythonExecutionFactory } from '../common/process/types';
 import { IConfigurationService, IDisposableRegistry, IInterpreterPathService } from '../common/types';
 import { IServiceContainer } from '../ioc/types';
 import { PythonEnvironment } from '../pythonEnvironments/info';
 import { IComponentAdapter, IInterpreterService, PythonEnvironmentsChangedEvent } from './contracts';
 import { PythonLocatorQuery } from '../pythonEnvironments/base/locator';
+import { traceError } from '../logging';
 
 type StoredPythonEnvironment = PythonEnvironment & { store?: boolean };
 
@@ -68,46 +68,18 @@ export class InterpreterService implements Disposable, IInterpreterService {
         this.onDidChangeInterpreters = pyenvs.onChanged;
     }
 
+    // eslint-disable-next-line class-methods-use-this
     public async refresh(_resource?: Uri): Promise<void> {
         // noop.
     }
 
     public initialize(): void {
         const disposables = this.serviceContainer.get<Disposable[]>(IDisposableRegistry);
-        const documentManager = this.serviceContainer.get<IDocumentManager>(IDocumentManager);
-        const interpreterDisplay = this.serviceContainer.get<IInterpreterDisplay>(IInterpreterDisplay);
-        const filter = new (class implements IInterpreterStatusbarVisibilityFilter {
-            constructor(private readonly docManager: IDocumentManager) {}
-
-            public readonly interpreterVisibilityEmitter = new EventEmitter<void>();
-
-            public readonly changed = this.interpreterVisibilityEmitter.event;
-
-            get hidden() {
-                return this.docManager.activeTextEditor?.document.languageId !== PYTHON_LANGUAGE;
-            }
-        })(documentManager);
-        const experiments = this.serviceContainer.get<IExperimentService>(IExperimentService);
-        if (experiments.inExperimentSync(InterpreterStatusBarPosition.Pinned)) {
-            interpreterDisplay.registerVisibilityFilter(filter);
-        }
         disposables.push(
             this.onDidChangeInterpreters((e): void => {
                 const interpreter = e.old ?? e.new;
                 if (interpreter) {
                     this.didChangeInterpreterInformation.fire(interpreter);
-                }
-            }),
-        );
-        disposables.push(
-            documentManager.onDidOpenTextDocument(() => {
-                // To handle scenario when language mode is set to "python"
-                filter.interpreterVisibilityEmitter.fire();
-            }),
-            documentManager.onDidChangeActiveTextEditor((e): void => {
-                filter.interpreterVisibilityEmitter.fire();
-                if (e && e.document) {
-                    this.refresh(e.document.uri);
                 }
             }),
         );
@@ -152,8 +124,8 @@ export class InterpreterService implements Disposable, IInterpreterService {
                 : undefined;
             const fullyQualifiedPath = pythonExecutionService
                 ? await pythonExecutionService.getExecutablePath().catch((ex) => {
-                      traceError(ex);
-                  })
+                    traceError(ex);
+                })
                 : undefined;
             // Python path is invalid or python isn't installed.
             if (!fullyQualifiedPath) {

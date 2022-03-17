@@ -18,6 +18,7 @@ import { TerminalProvider } from './providers/terminalProvider';
 import { registerTypes as commonRegisterTerminalTypes } from './terminals/serviceRegistry';
 import { ICodeExecutionManager } from './terminals/types';
 import { registerTypes as interpretersRegisterTypes } from './interpreter/serviceRegistry';
+import { registerTypes as registerEnvironmentTypes } from '../environments/serviceRegistry';
 
 // components
 import * as pythonEnvironments from './pythonEnvironments';
@@ -25,7 +26,6 @@ import * as pythonEnvironments from './pythonEnvironments';
 import { ActivationResult, ExtensionState } from './components';
 import { Components } from './extensionInit';
 import { getLoggingLevel } from './logging/settings';
-import { registerTypes as registerEnvironmentTypes } from '../environments/serviceRegistry';
 
 export async function activateComponents(
     // `ext` is passed to any extra activation funcs.
@@ -107,6 +107,6 @@ async function activateLegacy(ext: ExtensionState): Promise<ActivationResult> {
     const terminalProvider = new TerminalProvider(serviceContainer);
     context.subscriptions.push(terminalProvider);
 
-    registerEnvironmentTypes(serviceManager);
+    registerEnvironmentTypes(serviceManager, context);
     return { fullyReady: activationPromise };
 }

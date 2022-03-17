@@ -3,7 +3,6 @@
 
 import { Event, Uri } from 'vscode';
 import { Resource } from './common/types';
-import { IDataViewerDataProvider, IJupyterUriProvider } from './jupyter/types';
 
 /*
  * Do not introduce any breaking changes to this API.
@@ -70,20 +69,6 @@ export interface IExtensionApi {
              */
             execCommand: string[] | undefined;
         };
-    };
-
-    datascience: {
-        /**
-         * Launches Data Viewer component.
-         * @param {IDataViewerDataProvider} dataProvider Instance that will be used by the Data Viewer component to fetch data.
-         * @param {string} title Data Viewer title
-         */
-        showDataViewer(dataProvider: IDataViewerDataProvider, title: string): Promise<void>;
-        /**
-         * Registers a remote server provider component that's used to pick remote jupyter server URIs
-         * @param serverProvider object called back when picking jupyter server URI
-         */
-        registerRemoteServerProvider(serverProvider: IJupyterUriProvider): void;
     };
 }
 
