@@ -7,7 +7,7 @@ import { IFileSystem, IPlatformService } from '../../../../client/common/platfor
 import { CondaService } from '../../../../client/pythonEnvironments/common/environmentManagers/condaService';
 import { Conda } from '../../../../client/pythonEnvironments/common/environmentManagers/conda';
 
-suite.only('Interpreters Conda Service', () => {
+suite('Interpreters Conda Service', () => {
     let platformService: TypeMoq.IMock<IPlatformService>;
     let condaService: CondaService;
     let fileSystem: TypeMoq.IMock<IFileSystem>;
