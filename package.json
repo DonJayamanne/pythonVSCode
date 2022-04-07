@@ -3536,7 +3536,7 @@
         "vscode-tas-client": "^0.1.4",
         "vsls": "^0.3.1291",
         "winreg": "^1.2.4",
-        "winston": "^3.2.1",
+        "winston": "^3.3.0",
         "ws": "^6.0.0",
         "xml2js": "^0.4.19",
         "zeromq": "^6.0.0-beta.6"
