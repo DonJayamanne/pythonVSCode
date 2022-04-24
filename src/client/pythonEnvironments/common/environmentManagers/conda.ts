@@ -377,8 +377,9 @@ export class Conda {
             traceVerbose(`Probing conda binary: ${condaPath}`);
             let conda = new Conda(condaPath);
             try {
-                await conda.getInfo();
-                if (getOSType() === OSType.Windows && (isTestExecution() || condaPath !== customCondaPath)) {
+                const info = await conda.getInfo();
+                const osType = getOSType();
+                if (osType === OSType.Windows && (isTestExecution() || condaPath !== customCondaPath)) {
                     // Prefer to use .bat files over .exe on windows as that is what cmd works best on.
                     // Do not translate to `.bat` file if the setting explicitly sets the executable.
                     const condaBatFile = await getCondaBatFile(condaPath);
@@ -390,6 +391,11 @@ export class Conda {
                         }
                     } catch (ex) {
                         traceVerbose('Failed to spawn conda bat file', condaBatFile, ex);
+                    }
+                } else if (condaPath === 'conda' && (osType === OSType.Linux || OSType.OSX) && info.root_prefix){
+                    const condaBinPath = path.join(info.root_prefix, 'bin', 'conda');
+                    if (await pathExists(condaBinPath)) {
+                        conda = new Conda(condaBinPath);
                     }
                 }
                 traceVerbose(`Found conda via filesystem probing: ${condaPath}`);
