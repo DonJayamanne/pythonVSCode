@@ -50,58 +50,10 @@ const condaRetryMessages = [
     'The directory is not empty',
 ];
 
-/**
- * This class exists so that the environment variable fetching can be cached in between tests. Normally
- * this cache resides in memory for the duration of the EnvironmentActivationService's lifetime, but in the case
- * of our functional tests, we want the cached data to exist outside of each test (where each test will destroy the EnvironmentActivationService)
- * This gives each test a 3 or 4 second speedup.
- */
-export class EnvironmentActivationServiceCache {
-    private static useStatic = false;
-    private static staticMap = new Map<string, InMemoryCache<NodeJS.ProcessEnv | undefined>>();
-    private normalMap = new Map<string, InMemoryCache<NodeJS.ProcessEnv | undefined>>();
-
-    public static forceUseStatic() {
-        EnvironmentActivationServiceCache.useStatic = true;
-    }
-    public static forceUseNormal() {
-        EnvironmentActivationServiceCache.useStatic = false;
-    }
-    public get(key: string): InMemoryCache<NodeJS.ProcessEnv | undefined> | undefined {
-        if (EnvironmentActivationServiceCache.useStatic) {
-            return EnvironmentActivationServiceCache.staticMap.get(key);
-        }
-        return this.normalMap.get(key);
-    }
-
-    public set(key: string, value: InMemoryCache<NodeJS.ProcessEnv | undefined>) {
-        if (EnvironmentActivationServiceCache.useStatic) {
-            EnvironmentActivationServiceCache.staticMap.set(key, value);
-        } else {
-            this.normalMap.set(key, value);
-        }
-    }
-
-    public delete(key: string) {
-        if (EnvironmentActivationServiceCache.useStatic) {
-            EnvironmentActivationServiceCache.staticMap.delete(key);
-        } else {
-            this.normalMap.delete(key);
-        }
-    }
-
-    public clear() {
-        // Don't clear during a test as the environment isn't going to change
-        if (!EnvironmentActivationServiceCache.useStatic) {
-            this.normalMap.clear();
-        }
-    }
-}
-
 @injectable()
 export class EnvironmentActivationService implements IEnvironmentActivationService, IDisposable {
     private readonly disposables: IDisposable[] = [];
-    private readonly activatedEnvVariablesCache = new EnvironmentActivationServiceCache();
+    private readonly activatedEnvVariablesCache = new Map<string, InMemoryCache<Promise<NodeJS.ProcessEnv | undefined>>>();
     constructor(
         @inject(ITerminalHelper) private readonly helper: ITerminalHelper,
         @inject(IPlatformService) private readonly platform: IPlatformService,
@@ -144,12 +96,10 @@ export class EnvironmentActivationService implements IEnvironmentActivationServi
         }
 
         // Cache only if successful, else keep trying & failing if necessary.
-        const cache = new InMemoryCache<NodeJS.ProcessEnv | undefined>(CACHE_DURATION);
-        return this.getActivatedEnvironmentVariablesImpl(resource, interpreter, allowExceptions).then((vars) => {
-            cache.data = vars;
-            this.activatedEnvVariablesCache.set(cacheKey, cache);
-            return vars;
-        });
+        const cache = new InMemoryCache<Promise<NodeJS.ProcessEnv | undefined>>(CACHE_DURATION);
+        this.activatedEnvVariablesCache.set(cacheKey, cache);
+        cache.data = this.getActivatedEnvironmentVariablesImpl(resource, interpreter, allowExceptions);
+        return cache.data;
     }
     public async getEnvironmentActivationShellCommands(
         resource: Resource,

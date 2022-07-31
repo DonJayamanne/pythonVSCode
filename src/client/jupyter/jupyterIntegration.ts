@@ -6,12 +6,12 @@
 
 import { inject, injectable, named } from 'inversify';
 import { dirname } from 'path';
-import { CancellationToken, Disposable, Event, Extension, Memento, Uri } from 'vscode';
+import { CancellationToken, Disposable, Event, Memento, Uri } from 'vscode';
 import * as lsp from 'vscode-languageserver-protocol';
 import type { SemVer } from 'semver';
 import { ILanguageServerCache, ILanguageServerConnection } from '../activation/types';
 import { IWorkspaceService } from '../common/application/types';
-import { JUPYTER_EXTENSION_ID } from '../common/constants';
+import { JUPYTER_CORE_EXTENSION_ID, JUPYTER_EXTENSION_ID } from '../common/constants';
 import { InterpreterUri, ModuleInstallFlags } from '../common/installer/types';
 import {
     GLOBAL_MEMENTO,
@@ -182,8 +182,6 @@ type JupyterExtensionApi = {
 
 @injectable()
 export class JupyterExtensionIntegration {
-    private jupyterExtension: Extension<JupyterExtensionApi> | undefined;
-
     private jupyterPythonPathFunction: ((uri: Uri) => Promise<string | undefined>) | undefined;
 
     constructor(
@@ -286,9 +284,13 @@ export class JupyterExtensionIntegration {
     }
 
     public async integrateWithJupyterExtension(): Promise<void> {
-        const api = await this.getExtensionApi();
+        const api = await this.getExtensionApi(false);
         if (api) {
             this.registerApi(api);
+        }
+        const core = await this.getExtensionApi(true);
+        if (core) {
+            this.registerApi(core);
         }
     }
 
@@ -310,21 +312,17 @@ export class JupyterExtensionIntegration {
         return undefined;
     }
 
-    private async getExtensionApi(): Promise<JupyterExtensionApi | undefined> {
-        if (!this.jupyterExtension) {
-            const jupyterExtension = this.extensions.getExtension<JupyterExtensionApi>(JUPYTER_EXTENSION_ID);
-            if (!jupyterExtension) {
-                return undefined;
-            }
-            await jupyterExtension.activate();
-            if (jupyterExtension.isActive) {
-                this.jupyterExtension = jupyterExtension;
-                return this.jupyterExtension.exports;
-            }
-        } else {
-            return this.jupyterExtension.exports;
+    private async getExtensionApi(core?: boolean): Promise<JupyterExtensionApi | undefined> {
+        const jupyterExtension = this.extensions.getExtension<JupyterExtensionApi>(
+            core ? JUPYTER_CORE_EXTENSION_ID : JUPYTER_EXTENSION_ID,
+        );
+        if (!jupyterExtension) {
+            return undefined;
         }
-        return undefined;
+        if (!jupyterExtension.isActive) {
+            await jupyterExtension.activate();
+        }
+        return jupyterExtension.exports;
     }
 
     private registerJupyterPythonPathFunction(func: (uri: Uri) => Promise<string | undefined>) {
