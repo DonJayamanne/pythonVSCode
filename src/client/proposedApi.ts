@@ -271,19 +271,19 @@ export function convertCompleteEnvInfo(env: PythonEnvInfo): ResolvedEnvironment 
         path,
         id: getEnvID(path),
         executable: {
-            uri: Uri.file(env.executable.filename),
+            uri: env.executable.filename === 'python' ? undefined : Uri.file(env.executable.filename),
             bitness: convertBitness(env.arch),
             sysPrefix: env.executable.sysPrefix,
         },
         environment: env.type
             ? {
                   type: convertEnvType(env.type),
-                  name: env.name,
+                  name: env.name === '' ? undefined : env.name,
                   folderUri: Uri.file(env.location),
                   workspaceFolder: env.searchLocation,
               }
             : undefined,
-        version: version as ResolvedEnvironment['version'],
+        version: env.executable.filename === 'python' ? undefined : (version as ResolvedEnvironment['version']),
         tools: tool ? [tool] : [],
     };
     return resolvedEnv;
@@ -325,19 +325,16 @@ export function convertEnvInfo(env: PythonEnvInfo): Environment {
     if (convertedEnv.executable.sysPrefix === '') {
         convertedEnv.executable.sysPrefix = undefined;
     }
-    if (convertedEnv.executable.uri?.fsPath === 'python') {
-        convertedEnv.executable.uri = undefined;
+    if (convertedEnv.version?.sysVersion === '') {
+        convertedEnv.version.sysVersion = undefined;
     }
-    if (convertedEnv.environment?.name === '') {
-        convertedEnv.environment.name = undefined;
-    }
-    if (convertedEnv.version.major === -1) {
+    if (convertedEnv.version?.major === -1) {
         convertedEnv.version.major = undefined;
     }
-    if (convertedEnv.version.micro === -1) {
+    if (convertedEnv.version?.micro === -1) {
         convertedEnv.version.micro = undefined;
     }
-    if (convertedEnv.version.minor === -1) {
+    if (convertedEnv.version?.minor === -1) {
         convertedEnv.version.minor = undefined;
     }
     return convertedEnv as Environment;
