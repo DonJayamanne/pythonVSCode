@@ -282,6 +282,10 @@ export namespace Interpreters {
         'Interpreters.installPythonTerminalMessage',
         '💡 Please try installing the python package using your package manager. Alternatively you can also download it from https://www.python.org/downloads',
     );
+    export const changePythonInterpreter = localize(
+        'Interpreters.changePythonInterpreter',
+        'Change Python Interpreter',
+    );
 }
 
 export namespace InterpreterQuickPickList {
