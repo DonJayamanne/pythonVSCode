@@ -57,7 +57,12 @@ export async function resolveBasicEnv(env: BasicEnvInfo): Promise<PythonEnvInfo>
         await updateEnvUsingRegistry(resolvedEnv);
     }
     setEnvDisplayString(resolvedEnv);
-    resolvedEnv.id = getEnvID(resolvedEnv.executable.filename, resolvedEnv.location);
+    let fileName = resolvedEnv.executable.filename;
+    if (env.envPath && env.kind === PythonEnvKind.Conda && path.basename(fileName) === fileName) {
+        fileName =
+            getOSType() === OSType.Windows ? path.join(env.envPath, fileName) : path.join(env.envPath, 'bin', fileName);
+    }
+    resolvedEnv.id = getEnvID(fileName, resolvedEnv.location);
     const { ctime, mtime } = await getFileInfo(resolvedEnv.executable.filename);
     resolvedEnv.executable.ctime = ctime;
     resolvedEnv.executable.mtime = mtime;
