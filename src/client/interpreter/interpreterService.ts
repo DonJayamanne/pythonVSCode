@@ -2,6 +2,7 @@
 import { inject, injectable } from 'inversify';
 import * as pathUtils from 'path';
 import {
+    commands,
     ConfigurationChangeEvent,
     Disposable,
     Event,
@@ -38,6 +39,7 @@ import { EventName } from '../telemetry/constants';
 import { cache } from '../common/utils/decorators';
 import { PythonLocatorQuery, TriggerRefreshOptions } from '../pythonEnvironments/base/locator';
 import { sleep } from '../common/utils/async';
+import { PythonEnvKind } from '../pythonEnvironments/base/info';
 
 type StoredPythonEnvironment = PythonEnvironment & { store?: boolean };
 
@@ -90,6 +92,10 @@ export class InterpreterService implements Disposable, IInterpreterService {
         this.configService = this.serviceContainer.get<IConfigurationService>(IConfigurationService);
         this.interpreterPathService = this.serviceContainer.get<IInterpreterPathService>(IInterpreterPathService);
         this.onDidChangeInterpreters = pyenvs.onChanged;
+        commands.registerCommand('python.installPythonIntoCondaEnv', async (pythonPath: string) => {
+            await this.ensureEnvironmentContainsPythonImpl(pythonPath);
+            this.triggerRefresh({ kinds: [PythonEnvKind.Conda] });
+        });
     }
 
     public async refresh(resource?: Uri): Promise<void> {
@@ -236,15 +242,24 @@ export class InterpreterService implements Disposable, IInterpreterService {
         if (!(await installer.isInstalled(Product.python))) {
             // If Python is not installed into the environment, install it.
             sendTelemetryEvent(EventName.ENVIRONMENT_WITHOUT_PYTHON_SELECTED);
+            await this.ensureEnvironmentContainsPythonImpl(pythonPath);
+        }
+    }
+
+    private async ensureEnvironmentContainsPythonImpl(pythonPath: string) {
+        const installer = this.serviceContainer.get<IInstaller>(IInstaller);
+        const interpreterInfo = await this.getInterpreterDetails(pythonPath);
+        if (!(await installer.isInstalled(Product.python, interpreterInfo))) {
+            // If Python is not installed into the environment, install it.
             const shell = this.serviceContainer.get<IApplicationShell>(IApplicationShell);
             const progressOptions: ProgressOptions = {
                 location: ProgressLocation.Window,
                 title: `[${Interpreters.installingPython}](command:${Commands.ViewOutput})`,
             };
             traceLog('Conda envs without Python are known to not work well; fixing conda environment...');
-            const promise = installer.install(Product.python, await this.getInterpreterDetails(pythonPath));
+            const promise = installer.install(Product.python, interpreterInfo);
             shell.withProgress(progressOptions, () => promise);
-            promise.then(() => this.triggerRefresh().ignoreErrors());
+            await promise.then(() => this.triggerRefresh().ignoreErrors());
         }
     }
 }
