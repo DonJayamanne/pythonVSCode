@@ -76,7 +76,7 @@ suite('venv Creation provider tests', () => {
         pickWorkspaceFolderStub.resolves(workspace1);
 
         interpreterQuickPick
-            .setup((i) => i.getInterpreterViaQuickPick(typemoq.It.isAny(), typemoq.It.isAny()))
+            .setup((i) => i.getInterpreterViaQuickPick(typemoq.It.isAny(), typemoq.It.isAny(), typemoq.It.isAny()))
             .returns(() => Promise.resolve(undefined))
             .verifiable(typemoq.Times.once());
 
@@ -91,7 +91,7 @@ suite('venv Creation provider tests', () => {
         pickWorkspaceFolderStub.resolves(workspace1);
 
         interpreterQuickPick
-            .setup((i) => i.getInterpreterViaQuickPick(typemoq.It.isAny(), typemoq.It.isAny()))
+            .setup((i) => i.getInterpreterViaQuickPick(typemoq.It.isAny(), typemoq.It.isAny(), typemoq.It.isAny()))
             .returns(() => Promise.resolve('/usr/bin/python'))
             .verifiable(typemoq.Times.once());
 
@@ -105,7 +105,7 @@ suite('venv Creation provider tests', () => {
         pickWorkspaceFolderStub.resolves(workspace1);
 
         interpreterQuickPick
-            .setup((i) => i.getInterpreterViaQuickPick(typemoq.It.isAny(), typemoq.It.isAny()))
+            .setup((i) => i.getInterpreterViaQuickPick(typemoq.It.isAny(), typemoq.It.isAny(), typemoq.It.isAny()))
             .returns(() => Promise.resolve('/usr/bin/python'))
             .verifiable(typemoq.Times.once());
 
@@ -168,7 +168,7 @@ suite('venv Creation provider tests', () => {
         pickWorkspaceFolderStub.resolves(workspace1);
 
         interpreterQuickPick
-            .setup((i) => i.getInterpreterViaQuickPick(typemoq.It.isAny(), typemoq.It.isAny()))
+            .setup((i) => i.getInterpreterViaQuickPick(typemoq.It.isAny(), typemoq.It.isAny(), typemoq.It.isAny()))
             .returns(() => Promise.resolve('/usr/bin/python'))
             .verifiable(typemoq.Times.once());
 
@@ -225,7 +225,7 @@ suite('venv Creation provider tests', () => {
         pickWorkspaceFolderStub.resolves(workspace1);
 
         interpreterQuickPick
-            .setup((i) => i.getInterpreterViaQuickPick(typemoq.It.isAny(), typemoq.It.isAny()))
+            .setup((i) => i.getInterpreterViaQuickPick(typemoq.It.isAny(), typemoq.It.isAny(), typemoq.It.isAny()))
             .returns(() => Promise.resolve('/usr/bin/python'))
             .verifiable(typemoq.Times.once());
 
