@@ -3538,7 +3538,7 @@
         "winreg": "^1.2.4",
         "winston": "^3.2.1",
         "ws": "^6.0.0",
-        "xml2js": "^0.4.19",
+        "xml2js": "^0.5.0",
         "zeromq": "^6.0.0-beta.6"
     },
     "devDependencies": {
