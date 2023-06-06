@@ -49,6 +49,7 @@ export namespace Diagnostics {
 
 export namespace Common {
     export const allow = l10n.t('Allow');
+    export const seeInstructions = l10n.t('See Instructions');
     export const close = l10n.t('Close');
     export const bannerLabelYes = l10n.t('Yes');
     export const bannerLabelNo = l10n.t('No');
@@ -187,6 +188,9 @@ export namespace LanguageService {
     );
 }
 export namespace Interpreters {
+    export const requireJupyter = l10n.t(
+        'Running in Interactive window requires Jupyter Extension. Would you like to install it? [Learn more](https://aka.ms/pythonJupyterSupport).',
+    );
     export const installingPython = l10n.t('Installing Python into Environment...');
     export const discovering = l10n.t('Discovering Python Interpreters');
     export const refreshing = l10n.t('Refreshing Python Interpreters');
@@ -194,6 +198,7 @@ export namespace Interpreters {
         'We noticed you\'re using a conda environment. If you are experiencing issues with this environment in the integrated terminal, we recommend that you let the Python extension change "terminal.integrated.inheritEnv" to false in your user settings. [Learn more](https://aka.ms/AA66i8f).',
     );
     export const activatingTerminals = l10n.t('Reactivating terminals...');
+    export const activateTerminalDescription = l10n.t('Activated environment for');
     export const activatedCondaEnvLaunch = l10n.t(
         'We noticed VS Code was launched from an activated conda environment, would you like to select it?',
     );
@@ -206,17 +211,20 @@ export namespace Interpreters {
         'Tip: you can change the Python interpreter used by the Python extension by clicking on the Python version in the status bar',
     );
     export const installPythonTerminalMessageLinux = l10n.t(
-        '💡 Please try installing the python package using your package manager. Alternatively you can also download it from https://www.python.org/downloads',
+        '💡 Please try installing the Python package using your package manager. Alternatively you can also download it from https://www.python.org/downloads',
     );
 
     export const installPythonTerminalMacMessage = l10n.t(
-        '💡 Brew does not seem to be available. Please try to download Python from https://www.python.org/downloads. Alternatively, you can install the python package using some other package manager which is available.',
+        '💡 Brew does not seem to be available. Please try to download Python from https://www.python.org/downloads. Alternatively, you can install the Python package using some other available package manager.',
     );
     export const changePythonInterpreter = l10n.t('Change Python Interpreter');
     export const selectedPythonInterpreter = l10n.t('Selected Python Interpreter');
 }
 
 export namespace InterpreterQuickPickList {
+    export const condaEnvWithoutPythonTooltip = l10n.t(
+        'Python is not available in this environment, it will automatically be installed upon selecting it',
+    );
     export const noPythonInstalled = l10n.t('Python is not installed, please download and install it');
     export const clickForInstructions = l10n.t('Click for instructions...');
     export const globalGroupName = l10n.t('Global');
@@ -343,7 +351,7 @@ export namespace DebugConfigStrings {
         export const enterManagePyPath = {
             title: l10n.t('Debug Django'),
             prompt: l10n.t(
-                "Enter the path to manage.py ('${workspaceFolderToken}' points to the root of the current workspace folder)",
+                "Enter the path to manage.py ('${workspaceFolder}' points to the root of the current workspace folder)",
             ),
             invalid: l10n.t('Enter a valid Python file path'),
         };
@@ -399,9 +407,13 @@ export namespace Testing {
     export const testNotConfigured = l10n.t('No test framework configured.');
     export const cancelUnittestDiscovery = l10n.t('Canceled unittest test discovery');
     export const errorUnittestDiscovery = l10n.t('Unittest test discovery error');
+    export const cancelPytestDiscovery = l10n.t('Canceled pytest test discovery');
+    export const errorPytestDiscovery = l10n.t('pytest test discovery error');
     export const seePythonOutput = l10n.t('(see Output > Python)');
     export const cancelUnittestExecution = l10n.t('Canceled unittest test execution');
     export const errorUnittestExecution = l10n.t('Unittest test execution error');
+    export const cancelPytestExecution = l10n.t('Canceled pytest test execution');
+    export const errorPytestExecution = l10n.t('Pytest test execution error');
 }
 
 export namespace OutdatedDebugger {
@@ -437,10 +449,15 @@ export namespace CreateEnv {
 
     export namespace Venv {
         export const creating = l10n.t('Creating venv...');
+        export const creatingMicrovenv = l10n.t('Creating microvenv...');
         export const created = l10n.t('Environment created...');
+        export const existing = l10n.t('Using existing environment...');
+        export const downloadingPip = l10n.t('Downloading pip...');
+        export const installingPip = l10n.t('Installing pip...');
+        export const upgradingPip = l10n.t('Upgrading pip...');
         export const installingPackages = l10n.t('Installing packages...');
         export const errorCreatingEnvironment = l10n.t('Error while creating virtual environment.');
-        export const selectPythonQuickPickTitle = l10n.t('Select a python to use for environment creation');
+        export const selectPythonPlaceHolder = l10n.t('Select a Python installation to create the virtual environment');
         export const providerDescription = l10n.t('Creates a `.venv` virtual environment in the current workspace');
         export const error = l10n.t('Creating virtual environment failed with error.');
         export const tomlExtrasQuickPickTitle = l10n.t('Select optional dependencies to install from pyproject.toml');

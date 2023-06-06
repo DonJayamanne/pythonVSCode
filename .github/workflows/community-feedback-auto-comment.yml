@@ -1,0 +1,29 @@
+name: Community Feedback Auto Comment
+
+on:
+  issues:
+    types:
+      - labeled
+jobs:
+  add-comment:
+    if: github.event.label.name == 'needs community feedback'
+    runs-on: ubuntu-latest
+
+    permissions:
+      issues: write
+
+    steps:
+      - name: Checkout Actions
+        uses: actions/checkout@v3
+        with:
+          repository: 'microsoft/vscode-github-triage-actions'
+          ref: stable
+          path: ./actions
+
+      - name: Install Actions
+        run: npm install --production --prefix ./actions
+
+      - name: Add Community Feedback Comment if applicable
+        uses: ./actions/python-community-feedback-auto-comment
+        with:
+          issue-number: ${{ github.event.issue.number }}

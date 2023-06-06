@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import * as http from 'http';
 import * as net from 'net';
 import * as crypto from 'crypto';
 import { Disposable, Event, EventEmitter } from 'vscode';
@@ -10,56 +9,77 @@ import {
     IPythonExecutionFactory,
     SpawnOptions,
 } from '../../../common/process/types';
-import { traceLog } from '../../../logging';
+import { traceError, traceInfo, traceLog, traceVerbose } from '../../../logging';
 import { DataReceivedEvent, ITestServer, TestCommandOptions } from './types';
 import { ITestDebugLauncher, LaunchOptions } from '../../common/types';
 import { UNITTEST_PROVIDER } from '../../common/constants';
+import { jsonRPCHeaders, jsonRPCContent, JSONRPC_UUID_HEADER } from './utils';
 
 export class PythonTestServer implements ITestServer, Disposable {
     private _onDataReceived: EventEmitter<DataReceivedEvent> = new EventEmitter<DataReceivedEvent>();
 
-    private uuids: Map<string, string>;
+    private uuids: Array<string> = [];
 
-    private server: http.Server;
+    private server: net.Server;
 
     private ready: Promise<void>;
 
     constructor(private executionFactory: IPythonExecutionFactory, private debugLauncher: ITestDebugLauncher) {
-        this.uuids = new Map();
-
-        const requestListener: http.RequestListener = async (request, response) => {
-            const buffers = [];
-
-            try {
-                for await (const chunk of request) {
-                    buffers.push(chunk);
+        this.server = net.createServer((socket: net.Socket) => {
+            let buffer: Buffer = Buffer.alloc(0); // Buffer to accumulate received data
+            socket.on('data', (data: Buffer) => {
+                try {
+                    let rawData: string = data.toString();
+                    buffer = Buffer.concat([buffer, data]);
+                    while (buffer.length > 0) {
+                        const rpcHeaders = jsonRPCHeaders(buffer.toString());
+                        const uuid = rpcHeaders.headers.get(JSONRPC_UUID_HEADER);
+                        const totalContentLength = rpcHeaders.headers.get('Content-Length');
+                        if (!uuid) {
+                            traceError('On data received: Error occurred because payload UUID is undefined');
+                            this._onDataReceived.fire({ uuid: '', data: '' });
+                            return;
+                        }
+                        if (!this.uuids.includes(uuid)) {
+                            traceError('On data received: Error occurred because the payload UUID is not recognized');
+                            this._onDataReceived.fire({ uuid: '', data: '' });
+                            return;
+                        }
+                        rawData = rpcHeaders.remainingRawData;
+                        const rpcContent = jsonRPCContent(rpcHeaders.headers, rawData);
+                        const extractedData = rpcContent.extractedJSON;
+                        if (extractedData.length === Number(totalContentLength)) {
+                            // do not send until we have the full content
+                            traceVerbose(`Received data from test server: ${extractedData}`);
+                            this._onDataReceived.fire({ uuid, data: extractedData });
+                            this.uuids = this.uuids.filter((u) => u !== uuid);
+                            buffer = Buffer.alloc(0);
+                        } else {
+                            break;
+                        }
+                    }
+                } catch (ex) {
+                    traceError(`Error processing test server request: ${ex} observe`);
+                    this._onDataReceived.fire({ uuid: '', data: '' });
                 }
-
-                const data = Buffer.concat(buffers).toString();
-                // grab the uuid from the header
-                const indexRequestuuid = request.rawHeaders.indexOf('Request-uuid');
-                const uuid = request.rawHeaders[indexRequestuuid + 1];
-                response.end();
-
-                JSON.parse(data);
-                // Check if the uuid we received exists in the list of active ones.
-                // If yes, process the response, if not, ignore it.
-                const cwd = this.uuids.get(uuid);
-                if (cwd) {
-                    this._onDataReceived.fire({ cwd, data });
-                    this.uuids.delete(uuid);
-                }
-            } catch (ex) {
-                traceLog(`Error processing test server request: ${ex} observe`);
-                this._onDataReceived.fire({ cwd: '', data: '' });
-            }
-        };
-
-        this.server = http.createServer(requestListener);
+            });
+        });
         this.ready = new Promise((resolve, _reject) => {
             this.server.listen(undefined, 'localhost', () => {
                 resolve();
             });
+        });
+        this.server.on('error', (ex) => {
+            traceLog(`Error starting test server: ${ex}`);
+        });
+        this.server.on('close', () => {
+            traceLog('Test server closed.');
+        });
+        this.server.on('listening', () => {
+            traceLog('Test server listening.');
+        });
+        this.server.on('connection', () => {
+            traceLog('Test server connected to a client.');
         });
     }
 
@@ -71,9 +91,9 @@ export class PythonTestServer implements ITestServer, Disposable {
         return (this.server.address() as net.AddressInfo).port;
     }
 
-    public createUUID(cwd: string): string {
+    public createUUID(): string {
         const uuid = crypto.randomUUID();
-        this.uuids.set(uuid, cwd);
+        this.uuids.push(uuid);
         return uuid;
     }
 
@@ -86,14 +106,18 @@ export class PythonTestServer implements ITestServer, Disposable {
         return this._onDataReceived.event;
     }
 
-    async sendCommand(options: TestCommandOptions): Promise<void> {
-        const uuid = this.createUUID(options.cwd);
+    async sendCommand(options: TestCommandOptions, runTestIdPort?: string, callback?: () => void): Promise<void> {
+        const { uuid } = options;
         const spawnOptions: SpawnOptions = {
             token: options.token,
             cwd: options.cwd,
             throwOnStdErr: true,
+            outputChannel: options.outChannel,
+            extraVariables: {},
         };
 
+        if (spawnOptions.extraVariables) spawnOptions.extraVariables.RUN_TEST_IDS_PORT = runTestIdPort;
+        const isRun = !options.testIds;
         // Create the Python environment in which to execute the command.
         const creationOptions: ExecutionFactoryCreateWithEnvironmentOptions = {
             allowEnvironmentFetchExceptions: false,
@@ -104,23 +128,9 @@ export class PythonTestServer implements ITestServer, Disposable {
         // Add the generated UUID to the data to be sent (expecting to receive it back).
         // first check if we have testIds passed in (in case of execution) and
         // insert appropriate flag and test id array
-        let args = [];
-        if (options.testIds) {
-            args = [
-                options.command.script,
-                '--port',
-                this.getPort().toString(),
-                '--uuid',
-                uuid,
-                '--testids',
-                ...options.testIds,
-            ].concat(options.command.args);
-        } else {
-            // if not case of execution, go with the normal args
-            args = [options.command.script, '--port', this.getPort().toString(), '--uuid', uuid].concat(
-                options.command.args,
-            );
-        }
+        const args = [options.command.script, '--port', this.getPort().toString(), '--uuid', uuid].concat(
+            options.command.args,
+        );
 
         if (options.outChannel) {
             options.outChannel.appendLine(`python ${args.join(' ')}`);
@@ -133,16 +143,27 @@ export class PythonTestServer implements ITestServer, Disposable {
                     args,
                     token: options.token,
                     testProvider: UNITTEST_PROVIDER,
+                    runTestIdsPort: runTestIdPort,
                 };
+                traceInfo(`Running DEBUG unittest with arguments: ${args}\r\n`);
 
-                await this.debugLauncher!.launchDebugger(launchOptions);
+                await this.debugLauncher!.launchDebugger(launchOptions, () => {
+                    callback?.();
+                });
             } else {
+                if (isRun) {
+                    // This means it is running the test
+                    traceInfo(`Running unittests with arguments: ${args}\r\n`);
+                } else {
+                    // This means it is running discovery
+                    traceLog(`Discovering unittest tests with arguments: ${args}\r\n`);
+                }
                 await execService.exec(args, spawnOptions);
             }
         } catch (ex) {
-            this.uuids.delete(uuid);
+            this.uuids = this.uuids.filter((u) => u !== uuid);
             this._onDataReceived.fire({
-                cwd: options.cwd,
+                uuid,
                 data: JSON.stringify({
                     status: 'error',
                     errors: [(ex as Error).message],

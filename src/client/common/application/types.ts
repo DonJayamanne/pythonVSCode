@@ -25,10 +25,10 @@ import {
     InputBox,
     InputBoxOptions,
     LanguageStatusItem,
+    LogOutputChannel,
     MessageItem,
     MessageOptions,
     OpenDialogOptions,
-    OutputChannel,
     Progress,
     ProgressOptions,
     QuickPick,
@@ -429,7 +429,7 @@ export interface IApplicationShell {
      *
      * @param name Human-readable string which will be used to represent the channel in the UI.
      */
-    createOutputChannel(name: string): OutputChannel;
+    createOutputChannel(name: string): LogOutputChannel;
     createLanguageStatusItem(id: string, selector: DocumentSelector): LanguageStatusItem;
 }
 
@@ -851,6 +851,16 @@ export interface IWorkspaceService {
      * @return A promise that resolves to a {@link TextDocument document}.
      */
     openTextDocument(options?: { language?: string; content?: string }): Thenable<TextDocument>;
+    /**
+     * Saves the editor identified by the given resource and returns the resulting resource or `undefined`
+     * if save was not successful.
+     *
+     * **Note** that an editor with the provided resource must be opened in order to be saved.
+     *
+     * @param uri the associated uri for the opened editor to save.
+     * @return A thenable that resolves when the save operation has finished.
+     */
+    save(uri: Uri): Thenable<Uri | undefined>;
 }
 
 export const ITerminalManager = Symbol('ITerminalManager');

@@ -8,13 +8,8 @@ import { createVenvScript } from '../../../common/process/internal/scripts';
 import { execObservable } from '../../../common/process/rawProcessApis';
 import { createDeferred } from '../../../common/utils/async';
 import { Common, CreateEnv } from '../../../common/utils/localize';
-import { traceError, traceInfo, traceLog } from '../../../logging';
-import {
-    CreateEnvironmentOptions,
-    CreateEnvironmentProgress,
-    CreateEnvironmentProvider,
-    CreateEnvironmentResult,
-} from '../types';
+import { traceError, traceLog, traceVerbose } from '../../../logging';
+import { CreateEnvironmentProgress } from '../types';
 import { pickWorkspaceFolder } from '../common/workspaceSelection';
 import { IInterpreterQuickPick } from '../../../interpreter/configuration/types';
 import { EnvironmentType, PythonEnvironment } from '../../info';
@@ -25,6 +20,11 @@ import { VenvProgressAndTelemetry, VENV_CREATED_MARKER, VENV_EXISTING_MARKER } f
 import { showErrorMessageWithLogs } from '../common/commonUtils';
 import { IPackageInstallSelection, pickPackagesToInstall } from './venvUtils';
 import { InputFlowAction } from '../../../common/utils/multiStepInput';
+import {
+    CreateEnvironmentProvider,
+    CreateEnvironmentOptions,
+    CreateEnvironmentResult,
+} from '../proposed.createEnvApis';
 
 function generateCommandArgs(installInfo?: IPackageInstallSelection[], addGitIgnore?: boolean): string[] {
     const command: string[] = [createVenvScript()];
@@ -162,10 +162,13 @@ export class VenvCreationProvider implements CreateEnvironmentProvider {
                                     EnvironmentType.System,
                                     EnvironmentType.MicrosoftStore,
                                     EnvironmentType.Global,
-                                ].includes(i.envType),
+                                    EnvironmentType.Pyenv,
+                                ].includes(i.envType) && i.type === undefined, // only global intepreters
                             {
                                 skipRecommended: true,
                                 showBackButton: true,
+                                placeholder: CreateEnv.Venv.selectPythonPlaceHolder,
+                                title: null,
                             },
                         );
                     } catch (ex) {
@@ -206,7 +209,7 @@ export class VenvCreationProvider implements CreateEnvironmentProvider {
                         throw ex;
                     }
                     if (!installInfo) {
-                        traceInfo('Virtual env creation exited during dependencies selection.');
+                        traceVerbose('Virtual env creation exited during dependencies selection.');
                         return MultiStepAction.Cancel;
                     }
                 }
@@ -255,7 +258,7 @@ export class VenvCreationProvider implements CreateEnvironmentProvider {
                     }
                 }
 
-                return { path: envPath, uri: workspace?.uri };
+                return { path: envPath, workspaceFolder: workspace, action: undefined, error: undefined };
             },
         );
     }
@@ -265,4 +268,6 @@ export class VenvCreationProvider implements CreateEnvironmentProvider {
     description: string = CreateEnv.Venv.providerDescription;
 
     id = `${PVSC_EXTENSION_ID}:venv`;
+
+    tools = ['Venv'];
 }

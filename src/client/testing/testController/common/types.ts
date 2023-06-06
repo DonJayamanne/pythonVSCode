@@ -12,8 +12,8 @@ import {
     Uri,
     WorkspaceFolder,
 } from 'vscode';
-// ** import { IPythonExecutionFactory } from '../../../common/process/types';
-import { TestDiscoveryOptions } from '../../common/types';
+import { ITestDebugLauncher, TestDiscoveryOptions } from '../../common/types';
+import { IPythonExecutionFactory } from '../../../common/process/types';
 
 export type TestRunInstanceOptions = TestRunOptions & {
     exclude?: readonly TestItem[];
@@ -128,7 +128,7 @@ export type RawDiscoveredTests = {
 // New test discovery adapter types
 
 export type DataReceivedEvent = {
-    cwd: string;
+    uuid: string;
     data: string;
 };
 
@@ -146,6 +146,7 @@ export type TestCommandOptions = {
     workspaceFolder: Uri;
     cwd: string;
     command: TestDiscoveryCommand | TestExecutionCommand;
+    uuid: string;
     token?: CancellationToken;
     outChannel?: OutputChannel;
     debugBool?: boolean;
@@ -171,28 +172,29 @@ export type TestCommandOptionsPytest = {
  */
 export interface ITestServer {
     readonly onDataReceived: Event<DataReceivedEvent>;
-    sendCommand(options: TestCommandOptions): Promise<void>;
+    sendCommand(options: TestCommandOptions, runTestIdsPort?: string, callback?: () => void): Promise<void>;
     serverReady(): Promise<void>;
     getPort(): number;
     createUUID(cwd: string): string;
 }
 
 export interface ITestDiscoveryAdapter {
-    // ** Uncomment second line and comment out first line to use the new discovery method.
+    // ** first line old method signature, second line new method signature
     discoverTests(uri: Uri): Promise<DiscoveredTestPayload>;
-    // discoverTests(uri: Uri, executionFactory: IPythonExecutionFactory): Promise<DiscoveredTestPayload>;
+    discoverTests(uri: Uri, executionFactory: IPythonExecutionFactory): Promise<DiscoveredTestPayload>;
 }
 
 // interface for execution/runner adapter
 export interface ITestExecutionAdapter {
-    // ** Uncomment second line and comment out first line to use the new execution method.
+    // ** first line old method signature, second line new method signature
     runTests(uri: Uri, testIds: string[], debugBool?: boolean): Promise<ExecutionTestPayload>;
-    // runTests(
-    //     uri: Uri,
-    //     testIds: string[],
-    //     debugBool?: boolean,
-    //     executionFactory?: IPythonExecutionFactory,
-    // ): Promise<ExecutionTestPayload>;
+    runTests(
+        uri: Uri,
+        testIds: string[],
+        debugBool?: boolean,
+        executionFactory?: IPythonExecutionFactory,
+        debugLauncher?: ITestDebugLauncher,
+    ): Promise<ExecutionTestPayload>;
 }
 
 // Same types as in pythonFiles/unittestadapter/utils.py

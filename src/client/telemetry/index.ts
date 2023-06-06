@@ -76,7 +76,7 @@ export function _resetSharedProperties(): void {
 }
 
 let telemetryReporter: TelemetryReporter | undefined;
-function getTelemetryReporter() {
+export function getTelemetryReporter(): TelemetryReporter {
     if (!isTestExecution() && telemetryReporter) {
         return telemetryReporter;
     }
@@ -825,6 +825,12 @@ export interface IEventNamePropertyMapping {
          * @type {('command' | 'icon')}
          */
         trigger?: 'command' | 'icon';
+        /**
+         * Whether user chose to execute this Python file in a separate terminal or not.
+         *
+         * @type {boolean}
+         */
+        newTerminalPerFile?: boolean;
     };
     /**
      * Telemetry Event sent when user executes code against Django Shell.
@@ -1314,6 +1320,22 @@ export interface IEventNamePropertyMapping {
          * `Close` When 'Close' option is selected
          */
         selection: 'Allow' | 'Close' | undefined;
+    };
+    /**
+     * Telemetry event sent with details when user attempts to run in interactive window when Jupyter is not installed.
+     */
+    /* __GDPR__
+       "conda_inherit_env_prompt" : {
+          "selection" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "karrtikr" }
+       }
+     */
+    [EventName.REQUIRE_JUPYTER_PROMPT]: {
+        /**
+         * `Yes` When 'Yes' option is selected
+         * `No` When 'No' option is selected
+         * `undefined` When 'x' is selected
+         */
+        selection: 'Yes' | 'No' | undefined;
     };
     /**
      * Telemetry event sent with details when user clicks the prompt with the following message:
@@ -2014,7 +2036,7 @@ export interface IEventNamePropertyMapping {
        }
      */
     [EventName.ENVIRONMENT_CREATING]: {
-        environmentType: 'venv' | 'conda';
+        environmentType: 'venv' | 'conda' | 'microvenv';
         pythonVersion: string | undefined;
     };
     /**
@@ -2027,7 +2049,7 @@ export interface IEventNamePropertyMapping {
         }
      */
     [EventName.ENVIRONMENT_CREATED]: {
-        environmentType: 'venv' | 'conda';
+        environmentType: 'venv' | 'conda' | 'microvenv';
         reason: 'created' | 'existing';
     };
     /**
@@ -2040,8 +2062,8 @@ export interface IEventNamePropertyMapping {
        }
      */
     [EventName.ENVIRONMENT_FAILED]: {
-        environmentType: 'venv' | 'conda';
-        reason: 'noVenv' | 'noPip' | 'other';
+        environmentType: 'venv' | 'conda' | 'microvenv';
+        reason: 'noVenv' | 'noPip' | 'noDistUtils' | 'other';
     };
     /**
      * Telemetry event sent before installing packages.
@@ -2053,8 +2075,8 @@ export interface IEventNamePropertyMapping {
        }
      */
     [EventName.ENVIRONMENT_INSTALLING_PACKAGES]: {
-        environmentType: 'venv' | 'conda';
-        using: 'requirements.txt' | 'pyproject.toml' | 'environment.yml';
+        environmentType: 'venv' | 'conda' | 'microvenv';
+        using: 'requirements.txt' | 'pyproject.toml' | 'environment.yml' | 'pipUpgrade' | 'pipInstall' | 'pipDownload';
     };
     /**
      * Telemetry event sent after installing packages.
@@ -2067,7 +2089,7 @@ export interface IEventNamePropertyMapping {
      */
     [EventName.ENVIRONMENT_INSTALLED_PACKAGES]: {
         environmentType: 'venv' | 'conda';
-        using: 'requirements.txt' | 'pyproject.toml' | 'environment.yml';
+        using: 'requirements.txt' | 'pyproject.toml' | 'environment.yml' | 'pipUpgrade';
     };
     /**
      * Telemetry event sent if installing packages failed.
@@ -2079,9 +2101,16 @@ export interface IEventNamePropertyMapping {
        }
      */
     [EventName.ENVIRONMENT_INSTALLING_PACKAGES_FAILED]: {
-        environmentType: 'venv' | 'conda';
-        using: 'pipUpgrade' | 'requirements.txt' | 'pyproject.toml' | 'environment.yml';
+        environmentType: 'venv' | 'conda' | 'microvenv';
+        using: 'pipUpgrade' | 'requirements.txt' | 'pyproject.toml' | 'environment.yml' | 'pipDownload' | 'pipInstall';
     };
+    /**
+     * Telemetry event sent if create environment button was used to trigger the command.
+     */
+    /* __GDPR__
+       "environment.button" : {"owner": "karthiknadig" }
+     */
+    [EventName.ENVIRONMENT_BUTTON]: never | undefined;
     /**
      * Telemetry event sent when a linter or formatter extension is already installed.
      */

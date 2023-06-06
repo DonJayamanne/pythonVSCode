@@ -5,11 +5,18 @@ import argparse
 import enum
 import json
 import os
+import pathlib
+import socket
 import sys
 import traceback
 import unittest
 from types import TracebackType
-from typing import Dict, List, Optional, Tuple, Type, TypeAlias, TypedDict
+from typing import Dict, List, Optional, Tuple, Type, Union
+
+script_dir = pathlib.Path(__file__).parent.parent
+sys.path.append(os.fspath(script_dir))
+sys.path.append(os.fspath(script_dir / "lib" / "python"))
+from testing_tools import process_json_util
 
 # Add the path to pythonFiles to sys.path to find testing_tools.socket_manager.
 PYTHON_FILES = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -17,13 +24,15 @@ sys.path.insert(0, PYTHON_FILES)
 # Add the lib path to sys.path to find the typing_extensions module.
 sys.path.insert(0, os.path.join(PYTHON_FILES, "lib", "python"))
 from testing_tools import socket_manager
-from typing_extensions import NotRequired
+from typing_extensions import NotRequired, TypeAlias, TypedDict
 from unittestadapter.utils import parse_unittest_args
 
 DEFAULT_PORT = "45454"
 
 
-def parse_execution_cli_args(args: List[str]) -> Tuple[int, str | None, List[str]]:
+def parse_execution_cli_args(
+    args: List[str],
+) -> Tuple[int, Union[str, None]]:
     """Parse command-line arguments that should be processed by the script.
 
     So far this includes the port number that it needs to connect to, the uuid passed by the TS side,
@@ -37,15 +46,14 @@ def parse_execution_cli_args(args: List[str]) -> Tuple[int, str | None, List[str
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument("--port", default=DEFAULT_PORT)
     arg_parser.add_argument("--uuid")
-    arg_parser.add_argument("--testids", nargs="+")
     parsed_args, _ = arg_parser.parse_known_args(args)
 
-    return (int(parsed_args.port), parsed_args.uuid, parsed_args.testids)
+    return (int(parsed_args.port), parsed_args.uuid)
 
 
-ErrorType = (
-    Tuple[Type[BaseException], BaseException, TracebackType] | Tuple[None, None, None]
-)
+ErrorType = Union[
+    Tuple[Type[BaseException], BaseException, TracebackType], Tuple[None, None, None]
+]
 
 
 class TestOutcomeEnum(str, enum.Enum):
@@ -60,7 +68,9 @@ class TestOutcomeEnum(str, enum.Enum):
 
 
 class UnittestTestResult(unittest.TextTestResult):
-    formatted: Dict[str, Dict[str, str | None]] = dict()
+    def __init__(self, *args, **kwargs):
+        self.formatted: Dict[str, Dict[str, Union[str, None]]] = dict()
+        super(UnittestTestResult, self).__init__(*args, **kwargs)
 
     def startTest(self, test: unittest.TestCase):
         super(UnittestTestResult, self).startTest(test)
@@ -98,7 +108,10 @@ class UnittestTestResult(unittest.TextTestResult):
         self.formatResult(test, TestOutcomeEnum.unexpected_success)
 
     def addSubTest(
-        self, test: unittest.TestCase, subtest: unittest.TestCase, err: ErrorType | None
+        self,
+        test: unittest.TestCase,
+        subtest: unittest.TestCase,
+        err: Union[ErrorType, None],
     ):
         super(UnittestTestResult, self).addSubTest(test, subtest, err)
         self.formatResult(
@@ -112,8 +125,8 @@ class UnittestTestResult(unittest.TextTestResult):
         self,
         test: unittest.TestCase,
         outcome: str,
-        error: ErrorType | None = None,
-        subtest: unittest.TestCase | None = None,
+        error: Union[ErrorType, None] = None,
+        subtest: Union[unittest.TestCase, None] = None,
     ):
         tb = None
         if error and error[2] is not None:
@@ -123,7 +136,10 @@ class UnittestTestResult(unittest.TextTestResult):
             formatted = formatted[1:]
             tb = "".join(formatted)
 
-        test_id = test.id()
+        if subtest:
+            test_id = subtest.id()
+        else:
+            test_id = test.id()
 
         result = {
             "test": test.id(),
@@ -141,7 +157,7 @@ class TestExecutionStatus(str, enum.Enum):
     success = "success"
 
 
-TestResultTypeAlias: TypeAlias = Dict[str, Dict[str, str | None]]
+TestResultTypeAlias: TypeAlias = Dict[str, Dict[str, Union[str, None]]]
 
 
 class PayloadDict(TypedDict):
@@ -201,10 +217,10 @@ def run_tests(
 
     if error is not None:
         payload["error"] = error
+    else:
+        status = TestExecutionStatus.success
 
     payload["status"] = status
-
-    # print(f"payload: \n{json.dumps(payload, indent=4)}")
 
     return payload
 
@@ -216,19 +232,73 @@ if __name__ == "__main__":
 
     start_dir, pattern, top_level_dir = parse_unittest_args(argv[index + 1 :])
 
-    # Perform test execution.
-    port, uuid, testids = parse_execution_cli_args(argv[:index])
-    payload = run_tests(start_dir, testids, pattern, top_level_dir, uuid)
+    run_test_ids_port = os.environ.get("RUN_TEST_IDS_PORT")
+    run_test_ids_port_int = (
+        int(run_test_ids_port) if run_test_ids_port is not None else 0
+    )
 
-    # Build the request data (it has to be a POST request or the Node side will not process it), and send it.
+    # get data from socket
+    test_ids_from_buffer = []
+    try:
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client_socket.connect(("localhost", run_test_ids_port_int))
+        print(f"CLIENT: Server listening on port {run_test_ids_port_int}...")
+        buffer = b""
+
+        while True:
+            # Receive the data from the client
+            data = client_socket.recv(1024 * 1024)
+            if not data:
+                break
+
+            # Append the received data to the buffer
+            buffer += data
+
+            try:
+                # Try to parse the buffer as JSON
+                test_ids_from_buffer = process_json_util.process_rpc_json(
+                    buffer.decode("utf-8")
+                )
+                # Clear the buffer as complete JSON object is received
+                buffer = b""
+
+                # Process the JSON data
+                print(f"Received JSON data: {test_ids_from_buffer}")
+                break
+            except json.JSONDecodeError:
+                # JSON decoding error, the complete JSON object is not yet received
+                continue
+    except socket.error as e:
+        print(f"Error: Could not connect to runTestIdsPort: {e}")
+        print("Error: Could not connect to runTestIdsPort")
+
+    port, uuid = parse_execution_cli_args(argv[:index])
+    if test_ids_from_buffer:
+        # Perform test execution.
+        payload = run_tests(
+            start_dir, test_ids_from_buffer, pattern, top_level_dir, uuid
+        )
+    else:
+        cwd = os.path.abspath(start_dir)
+        status = TestExecutionStatus.error
+        payload: PayloadDict = {
+            "cwd": cwd,
+            "status": status,
+            "error": "No test ids received from buffer",
+        }
+
+    # Build the request data and send it.
     addr = ("localhost", port)
-    with socket_manager.SocketManager(addr) as s:
-        data = json.dumps(payload)
-        request = f"""POST / HTTP/1.1
-Host: localhost:{port}
-Content-Length: {len(data)}
+    data = json.dumps(payload)
+    request = f"""Content-Length: {len(data)}
 Content-Type: application/json
 Request-uuid: {uuid}
 
 {data}"""
-        result = s.socket.sendall(request.encode("utf-8"))  # type: ignore
+    try:
+        with socket_manager.SocketManager(addr) as s:
+            if s.socket is not None:
+                s.socket.sendall(request.encode("utf-8"))
+    except Exception as e:
+        print(f"Error sending response: {e}")
+        print(f"Request data: {request}")

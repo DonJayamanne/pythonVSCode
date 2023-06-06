@@ -2,32 +2,51 @@
 # Licensed under the MIT License.
 
 import importlib
+import os
 import sys
 
 import create_venv
 import pytest
 
 
-def test_venv_not_installed():
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="Windows does not have micro venv fallback."
+)
+def test_venv_not_installed_unix():
+    importlib.reload(create_venv)
+    create_venv.is_installed = lambda module: module != "venv"
+    run_process_called = False
+
+    def run_process(args, error_message):
+        nonlocal run_process_called
+        microvenv_path = os.fspath(create_venv.MICROVENV_SCRIPT_PATH)
+        if microvenv_path in args:
+            run_process_called = True
+            assert args == [
+                sys.executable,
+                microvenv_path,
+                "--name",
+                ".test_venv",
+            ]
+            assert error_message == "CREATE_VENV.MICROVENV_FAILED_CREATION"
+
+    create_venv.run_process = run_process
+
+    create_venv.main(["--name", ".test_venv"])
+
+    # run_process is called when the venv does not exist
+    assert run_process_called == True
+
+
+@pytest.mark.skipif(
+    sys.platform != "win32", reason="Windows does not have microvenv fallback."
+)
+def test_venv_not_installed_windows():
     importlib.reload(create_venv)
     create_venv.is_installed = lambda module: module != "venv"
     with pytest.raises(create_venv.VenvError) as e:
         create_venv.main()
     assert str(e.value) == "CREATE_VENV.VENV_NOT_FOUND"
-
-
-@pytest.mark.parametrize("install", ["requirements", "toml"])
-def test_pip_not_installed(install):
-    importlib.reload(create_venv)
-    create_venv.venv_exists = lambda _n: True
-    create_venv.is_installed = lambda module: module != "pip"
-    create_venv.run_process = lambda _args, _error_message: None
-    with pytest.raises(create_venv.VenvError) as e:
-        if install == "requirements":
-            create_venv.main(["--requirements", "requirements-for-test.txt"])
-        elif install == "toml":
-            create_venv.main(["--toml", "pyproject.toml", "--extras", "test"])
-    assert str(e.value) == "CREATE_VENV.PIP_NOT_FOUND"
 
 
 @pytest.mark.parametrize("env_exists", ["hasEnv", "noEnv"])
@@ -100,7 +119,7 @@ def test_install_packages(install_type):
         nonlocal pip_upgraded, installing
         if args[1:] == ["-m", "pip", "install", "--upgrade", "pip"]:
             pip_upgraded = True
-            assert error_message == "CREATE_VENV.PIP_UPGRADE_FAILED"
+            assert error_message == "CREATE_VENV.UPGRADE_PIP_FAILED"
         elif args[1:-1] == ["-m", "pip", "install", "-r"]:
             installing = "requirements"
             assert error_message == "CREATE_VENV.PIP_FAILED_INSTALL_REQUIREMENTS"
@@ -146,22 +165,16 @@ def test_toml_args(extras, expected):
 @pytest.mark.parametrize(
     ("extras", "expected"),
     [
-        ([], None),
+        ([], []),
         (
             ["requirements/test.txt"],
-            [sys.executable, "-m", "pip", "install", "-r", "requirements/test.txt"],
+            [[sys.executable, "-m", "pip", "install", "-r", "requirements/test.txt"]],
         ),
         (
             ["requirements/test.txt", "requirements/doc.txt"],
             [
-                sys.executable,
-                "-m",
-                "pip",
-                "install",
-                "-r",
-                "requirements/test.txt",
-                "-r",
-                "requirements/doc.txt",
+                [sys.executable, "-m", "pip", "install", "-r", "requirements/test.txt"],
+                [sys.executable, "-m", "pip", "install", "-r", "requirements/doc.txt"],
             ],
         ),
     ],
@@ -169,14 +182,44 @@ def test_toml_args(extras, expected):
 def test_requirements_args(extras, expected):
     importlib.reload(create_venv)
 
-    actual = None
+    actual = []
 
     def run_process(args, error_message):
         nonlocal actual
-        actual = args
+        actual.append(args)
 
     create_venv.run_process = run_process
 
     create_venv.install_requirements(sys.executable, extras)
 
     assert actual == expected
+
+
+def test_create_venv_missing_pip():
+    importlib.reload(create_venv)
+    create_venv.venv_exists = lambda _n: True
+    create_venv.is_installed = lambda module: module != "pip"
+
+    download_pip_pyz_called = False
+
+    def download_pip_pyz(name):
+        nonlocal download_pip_pyz_called
+        download_pip_pyz_called = True
+        assert name == create_venv.VENV_NAME
+
+    create_venv.download_pip_pyz = download_pip_pyz
+
+    run_process_called = False
+
+    def run_process(args, error_message):
+        if "install" in args and "pip" in args:
+            nonlocal run_process_called
+            run_process_called = True
+            pip_pyz_path = os.fspath(
+                create_venv.CWD / create_venv.VENV_NAME / "pip.pyz"
+            )
+            assert args[1:] == [pip_pyz_path, "install", "pip"]
+            assert error_message == "CREATE_VENV.INSTALL_PIP_FAILED"
+
+    create_venv.run_process = run_process
+    create_venv.main([])
