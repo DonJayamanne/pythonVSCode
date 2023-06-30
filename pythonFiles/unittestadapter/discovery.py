@@ -12,23 +12,14 @@ from typing import List, Optional, Tuple, Union
 
 script_dir = pathlib.Path(__file__).parent.parent
 sys.path.append(os.fspath(script_dir))
-sys.path.append(os.fspath(script_dir / "lib" / "python"))
-
-from typing_extensions import Literal
-
-# Add the path to pythonFiles to sys.path to find testing_tools.socket_manager.
-PYTHON_FILES = pathlib.Path(__file__).parent.parent
-sys.path.insert(0, os.fspath(PYTHON_FILES))
+sys.path.insert(0, os.fspath(script_dir / "lib" / "python"))
 
 from testing_tools import socket_manager
 
 # If I use from utils then there will be an import error in test_discovery.py.
 from unittestadapter.utils import TestNode, build_test_tree, parse_unittest_args
 
-# Add the lib path to sys.path to find the typing_extensions module.
-sys.path.insert(0, os.path.join(PYTHON_FILES, "lib", "python"))
-
-from typing_extensions import NotRequired, TypedDict
+from typing_extensions import NotRequired, TypedDict, Literal
 
 DEFAULT_PORT = "45454"
 
