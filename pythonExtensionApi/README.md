@@ -28,6 +28,8 @@ The actual source code to get the active environment to run some script could lo
 // Import the API
 import { PythonExtension } from '@vscode/python-extension';
 
+...
+
 // Load the Python extension API
 const pythonApi: PythonExtension = await PythonExtension.api();
 
