@@ -33,6 +33,7 @@ export class PosixKnownPathsLocator extends Locator<BasicEnvInfo> {
                 // those binaries as environments.
                 const knownDirs = (await commonPosixBinPaths()).filter((dirname) => !isPyenvShimDir(dirname));
                 let pythonBinaries = await getPythonBinFromPosixPaths(knownDirs);
+                traceVerbose(`Found ${pythonBinaries.length} python binaries in posix paths`);
 
                 // Filter out MacOS system installs of Python 2 if necessary.
                 if (isMacPython2Deprecated) {
