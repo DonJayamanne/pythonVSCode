@@ -33,20 +33,6 @@ export interface PythonExtension {
         getDebuggerPackagePath(): Promise<string | undefined>;
     };
 
-    datascience: {
-        /**
-         * Launches Data Viewer component.
-         * @param dataProvider Instance that will be used by the Data Viewer component to fetch data.
-         * @param title Data Viewer title
-         */
-        showDataViewer(dataProvider: IDataViewerDataProvider, title: string): Promise<void>;
-        /**
-         * Registers a remote server provider component that's used to pick remote jupyter server URIs
-         * @param serverProvider object called back when picking jupyter server URI
-         */
-        registerRemoteServerProvider(serverProvider: IJupyterUriProvider): void;
-    };
-
     /**
      * These APIs provide a way for extensions to work with by python environments available in the user's machine
      * as found by the Python extension. See
