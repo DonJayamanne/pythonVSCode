@@ -51,7 +51,7 @@ NOTE: this PR should make all CI relating to `main` be passing again (such as th
 -   [ ] Manually add/fix any 3rd-party licenses as appropriate based on what the internal build pipeline detects.
 -   [ ] Open appropriate [documentation issues](https://github.com/microsoft/vscode-docs/issues?q=is%3Aissue+is%3Aopen+label%3Apython).
 -   [ ] Contact the PM team to begin drafting a blog post.
--   [ ] Announce do the development team that `main` is open again.
+-   [ ] Announce to the development team that `main` is open again.
 
 
 # Release (Wednesday, XXX XX)
