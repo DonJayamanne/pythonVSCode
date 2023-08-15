@@ -950,7 +950,7 @@ export interface IEventNamePropertyMapping {
         tool?: LinterId;
         /**
          * `select` When 'Select linter' option is selected
-         * `disablePrompt` When 'Do not show again' option is selected
+         * `disablePrompt` When "Don't show again" option is selected
          * `install` When 'Install' option is selected
          *
          * @type {('select' | 'disablePrompt' | 'install')}
@@ -1374,7 +1374,7 @@ export interface IEventNamePropertyMapping {
         /**
          * `Yes` When 'Yes' option is selected
          * `No` When 'No' option is selected
-         * `Ignore` When 'Do not show again' option is clicked
+         * `Ignore` When "Don't show again" option is clicked
          *
          * @type {('Yes' | 'No' | 'Ignore' | undefined)}
          */
@@ -1571,7 +1571,7 @@ export interface IEventNamePropertyMapping {
         /**
          * Carries the selection of user when they are asked to take the extension survey
          */
-        selection: 'Yes' | 'Maybe later' | 'Do not show again' | undefined;
+        selection: 'Yes' | 'Maybe later' | "Don't show again" | undefined;
     };
     /**
      * Telemetry event sent when starting REPL

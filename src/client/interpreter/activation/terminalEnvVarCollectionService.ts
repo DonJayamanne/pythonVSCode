@@ -23,13 +23,15 @@ import { Interpreters } from '../../common/utils/localize';
 import { traceDecoratorVerbose, traceVerbose } from '../../logging';
 import { IInterpreterService } from '../contracts';
 import { defaultShells } from './service';
-import { IEnvironmentActivationService } from './types';
+import { IEnvironmentActivationService, ITerminalEnvVarCollectionService } from './types';
 import { EnvironmentType } from '../../pythonEnvironments/info';
 import { getSearchPathEnvVarNames } from '../../common/utils/exec';
 import { EnvironmentVariables } from '../../common/variables/types';
+import { TerminalShellType } from '../../common/terminal/types';
+import { OSType } from '../../common/utils/platform';
 
 @injectable()
-export class TerminalEnvVarCollectionService implements IExtensionActivationService {
+export class TerminalEnvVarCollectionService implements IExtensionActivationService, ITerminalEnvVarCollectionService {
     public readonly supportedWorkspaceTypes = {
         untrustedWorkspace: false,
         virtualWorkspace: false,
@@ -127,6 +129,7 @@ export class TerminalEnvVarCollectionService implements IExtensionActivationServ
                 await this._applyCollection(resource, defaultShell?.shell);
                 return;
             }
+            await this.trackTerminalPrompt(shell, resource, env);
             this.processEnvVars = undefined;
             return;
         }
@@ -146,6 +149,7 @@ export class TerminalEnvVarCollectionService implements IExtensionActivationServ
             if (prevValue !== value) {
                 if (value !== undefined) {
                     if (key === 'PS1') {
+                        // We cannot have the full PS1 without executing in terminal, which we do not. Hence prepend it.
                         traceVerbose(`Prepending environment variable ${key} in collection with ${value}`);
                         envVarCollection.prepend(key, value, {
                             applyAtShellIntegration: true,
@@ -165,6 +169,61 @@ export class TerminalEnvVarCollectionService implements IExtensionActivationServ
         const displayPath = this.pathUtils.getDisplayName(settings.pythonPath, workspaceFolder?.uri.fsPath);
         const description = new MarkdownString(`${Interpreters.activateTerminalDescription} \`${displayPath}\``);
         envVarCollection.description = description;
+
+        await this.trackTerminalPrompt(shell, resource, env);
+    }
+
+    private isPromptSet = new Map<number | undefined, boolean>();
+
+    // eslint-disable-next-line class-methods-use-this
+    public isTerminalPromptSetCorrectly(resource?: Resource): boolean {
+        const workspaceFolder = this.getWorkspaceFolder(resource);
+        return !!this.isPromptSet.get(workspaceFolder?.index);
+    }
+
+    /**
+     * Call this once we know terminal prompt is set correctly for terminal owned by this resource.
+     */
+    private terminalPromptIsCorrect(resource: Resource) {
+        const key = this.getWorkspaceFolder(resource)?.index;
+        this.isPromptSet.set(key, true);
+    }
+
+    private terminalPromptIsUnknown(resource: Resource) {
+        const key = this.getWorkspaceFolder(resource)?.index;
+        this.isPromptSet.delete(key);
+    }
+
+    /**
+     * Tracks whether prompt for terminal was correctly set.
+     */
+    private async trackTerminalPrompt(shell: string, resource: Resource, env: EnvironmentVariables | undefined) {
+        this.terminalPromptIsUnknown(resource);
+        if (!env) {
+            this.terminalPromptIsCorrect(resource);
+            return;
+        }
+        // Prompts for these shells cannot be set reliably using variables
+        const exceptionShells = [
+            TerminalShellType.powershell,
+            TerminalShellType.powershellCore,
+            TerminalShellType.fish,
+            TerminalShellType.zsh, // TODO: Remove this once https://github.com/microsoft/vscode/issues/188875 is fixed
+        ];
+        const customShellType = identifyShellFromShellPath(shell);
+        if (exceptionShells.includes(customShellType)) {
+            return;
+        }
+        if (this.platform.osType !== OSType.Windows) {
+            // These shells are expected to set PS1 variable for terminal prompt for virtual/conda environments.
+            const interpreter = await this.interpreterService.getActiveInterpreter(resource);
+            const shouldPS1BeSet = interpreter?.type !== undefined;
+            if (shouldPS1BeSet && !env.PS1) {
+                // PS1 should be set but no PS1 was set.
+                return;
+            }
+        }
+        this.terminalPromptIsCorrect(resource);
     }
 
     private async handleMicroVenv(resource: Resource) {
@@ -178,7 +237,7 @@ export class TerminalEnvVarCollectionService implements IExtensionActivationServ
                 envVarCollection.replace(
                     'PATH',
                     `${path.dirname(interpreter.path)}${path.delimiter}${process.env[pathVarName]}`,
-                    { applyAtShellIntegration: true },
+                    { applyAtShellIntegration: true, applyAtProcessCreation: true },
                 );
                 return;
             }
