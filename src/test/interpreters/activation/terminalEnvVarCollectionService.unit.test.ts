@@ -9,9 +9,10 @@ import { mock, instance, when, anything, verify, reset } from 'ts-mockito';
 import {
     EnvironmentVariableCollection,
     EnvironmentVariableMutatorOptions,
-    EnvironmentVariableScope,
+    GlobalEnvironmentVariableCollection,
     ProgressLocation,
     Uri,
+    WorkspaceConfiguration,
     WorkspaceFolder,
 } from 'vscode';
 import {
@@ -44,12 +45,12 @@ suite('Terminal Environment Variable Collection Service', () => {
     let context: IExtensionContext;
     let shell: IApplicationShell;
     let experimentService: IExperimentService;
-    let collection: EnvironmentVariableCollection & {
-        getScopedEnvironmentVariableCollection(scope: EnvironmentVariableScope): EnvironmentVariableCollection;
-    };
+    let collection: EnvironmentVariableCollection;
+    let globalCollection: GlobalEnvironmentVariableCollection;
     let applicationEnvironment: IApplicationEnvironment;
     let environmentActivationService: IEnvironmentActivationService;
     let workspaceService: IWorkspaceService;
+    let workspaceConfig: WorkspaceConfiguration;
     let terminalEnvVarCollectionService: TerminalEnvVarCollectionService;
     const progressOptions = {
         location: ProgressLocation.Window,
@@ -62,19 +63,20 @@ suite('Terminal Environment Variable Collection Service', () => {
 
     setup(() => {
         workspaceService = mock<IWorkspaceService>();
+        workspaceConfig = mock<WorkspaceConfiguration>();
         when(workspaceService.getWorkspaceFolder(anything())).thenReturn(undefined);
         when(workspaceService.workspaceFolders).thenReturn(undefined);
+        when(workspaceService.getConfiguration('terminal')).thenReturn(instance(workspaceConfig));
+        when(workspaceConfig.get<boolean>('integrated.shellIntegration.enabled')).thenReturn(true);
         platform = mock<IPlatformService>();
         when(platform.osType).thenReturn(getOSType());
         interpreterService = mock<IInterpreterService>();
         context = mock<IExtensionContext>();
         shell = mock<IApplicationShell>();
-        collection = mock<
-            EnvironmentVariableCollection & {
-                getScopedEnvironmentVariableCollection(scope: EnvironmentVariableScope): EnvironmentVariableCollection;
-            }
-        >();
-        when(context.getEnvironmentVariableCollection(anything())).thenReturn(instance(collection));
+        globalCollection = mock<GlobalEnvironmentVariableCollection>();
+        collection = mock<EnvironmentVariableCollection>();
+        when(context.environmentVariableCollection).thenReturn(instance(globalCollection));
+        when(globalCollection.getScoped(anything())).thenReturn(instance(collection));
         experimentService = mock<IExperimentService>();
         when(experimentService.inExperimentSync(TerminalEnvVarActivation.experiment)).thenReturn(true);
         applicationEnvironment = mock<IApplicationEnvironment>();
@@ -289,6 +291,34 @@ suite('Terminal Environment Variable Collection Service', () => {
         const result = terminalEnvVarCollectionService.isTerminalPromptSetCorrectly(resource);
 
         expect(result).to.equal(true);
+    });
+
+    test('Correct track that prompt was set for PS1 if shell integration is disabled', async () => {
+        reset(workspaceConfig);
+        when(workspaceConfig.get<boolean>('integrated.shellIntegration.enabled')).thenReturn(false);
+        when(platform.osType).thenReturn(OSType.Linux);
+        const envVars: NodeJS.ProcessEnv = { VIRTUAL_ENV: 'prefix/to/venv', PS1: '(.venv)', ...process.env };
+        const ps1Shell = 'bash';
+        const resource = Uri.file('a');
+        const workspaceFolder: WorkspaceFolder = {
+            uri: Uri.file('workspacePath'),
+            name: 'workspace1',
+            index: 0,
+        };
+        when(interpreterService.getActiveInterpreter(resource)).thenResolve(({
+            type: PythonEnvType.Virtual,
+        } as unknown) as PythonEnvironment);
+        when(workspaceService.getWorkspaceFolder(resource)).thenReturn(workspaceFolder);
+        when(
+            environmentActivationService.getActivatedEnvironmentVariables(resource, undefined, undefined, ps1Shell),
+        ).thenResolve(envVars);
+        when(collection.replace(anything(), anything(), anything())).thenReturn();
+
+        await terminalEnvVarCollectionService._applyCollection(resource, ps1Shell);
+
+        const result = terminalEnvVarCollectionService.isTerminalPromptSetCorrectly(resource);
+
+        expect(result).to.equal(false);
     });
 
     test('Correct track that prompt was not set for non-Windows zsh where PS1 is set', async () => {

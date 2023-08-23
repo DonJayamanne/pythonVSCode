@@ -3,7 +3,14 @@
 
 import * as path from 'path';
 import { inject, injectable } from 'inversify';
-import { ProgressOptions, ProgressLocation, MarkdownString, WorkspaceFolder } from 'vscode';
+import {
+    ProgressOptions,
+    ProgressLocation,
+    MarkdownString,
+    WorkspaceFolder,
+    GlobalEnvironmentVariableCollection,
+    EnvironmentVariableScope,
+} from 'vscode';
 import { pathExists } from 'fs-extra';
 import { IExtensionActivationService } from '../../activation/types';
 import { IApplicationShell, IApplicationEnvironment, IWorkspaceService } from '../../common/application/types';
@@ -20,7 +27,7 @@ import {
 } from '../../common/types';
 import { Deferred, createDeferred } from '../../common/utils/async';
 import { Interpreters } from '../../common/utils/localize';
-import { traceDecoratorVerbose, traceVerbose, traceWarn } from '../../logging';
+import { traceDecoratorVerbose, traceError, traceVerbose, traceWarn } from '../../logging';
 import { IInterpreterService } from '../contracts';
 import { defaultShells } from './service';
 import { IEnvironmentActivationService, ITerminalEnvVarCollectionService } from './types';
@@ -61,52 +68,56 @@ export class TerminalEnvVarCollectionService implements IExtensionActivationServ
     ) {}
 
     public async activate(resource: Resource): Promise<void> {
-        if (!inTerminalEnvVarExperiment(this.experimentService)) {
-            this.context.environmentVariableCollection.clear();
-            await this.handleMicroVenv(resource);
+        try {
+            if (!inTerminalEnvVarExperiment(this.experimentService)) {
+                this.context.environmentVariableCollection.clear();
+                await this.handleMicroVenv(resource);
+                if (!this.registeredOnce) {
+                    this.interpreterService.onDidChangeInterpreter(
+                        async (r) => {
+                            await this.handleMicroVenv(r);
+                        },
+                        this,
+                        this.disposables,
+                    );
+                    this.registeredOnce = true;
+                }
+                return;
+            }
             if (!this.registeredOnce) {
                 this.interpreterService.onDidChangeInterpreter(
                     async (r) => {
-                        await this.handleMicroVenv(r);
+                        this.showProgress();
+                        await this._applyCollection(r).ignoreErrors();
+                        this.hideProgress();
+                    },
+                    this,
+                    this.disposables,
+                );
+                this.applicationEnvironment.onDidChangeShell(
+                    async (shell: string) => {
+                        this.showProgress();
+                        this.processEnvVars = undefined;
+                        // Pass in the shell where known instead of relying on the application environment, because of bug
+                        // on VSCode: https://github.com/microsoft/vscode/issues/160694
+                        await this._applyCollection(undefined, shell).ignoreErrors();
+                        this.hideProgress();
                     },
                     this,
                     this.disposables,
                 );
                 this.registeredOnce = true;
             }
-            return;
+            this._applyCollection(resource).ignoreErrors();
+        } catch (ex) {
+            traceError(`Activating terminal env collection failed`, ex);
         }
-        if (!this.registeredOnce) {
-            this.interpreterService.onDidChangeInterpreter(
-                async (r) => {
-                    this.showProgress();
-                    await this._applyCollection(r).ignoreErrors();
-                    this.hideProgress();
-                },
-                this,
-                this.disposables,
-            );
-            this.applicationEnvironment.onDidChangeShell(
-                async (shell: string) => {
-                    this.showProgress();
-                    this.processEnvVars = undefined;
-                    // Pass in the shell where known instead of relying on the application environment, because of bug
-                    // on VSCode: https://github.com/microsoft/vscode/issues/160694
-                    await this._applyCollection(undefined, shell).ignoreErrors();
-                    this.hideProgress();
-                },
-                this,
-                this.disposables,
-            );
-            this.registeredOnce = true;
-        }
-        this._applyCollection(resource).ignoreErrors();
     }
 
     public async _applyCollection(resource: Resource, shell = this.applicationEnvironment.shell): Promise<void> {
         const workspaceFolder = this.getWorkspaceFolder(resource);
         const settings = this.configurationService.getSettings(resource);
-        const envVarCollection = this.context.getEnvironmentVariableCollection({ workspaceFolder });
+        const envVarCollection = this.getEnvironmentVariableCollection({ workspaceFolder });
         // Clear any previously set env vars from collection
         envVarCollection.clear();
         if (!settings.terminal.activateEnvironment) {
@@ -221,6 +232,13 @@ export class TerminalEnvVarCollectionService implements IExtensionActivationServ
                 // PS1 should be set but no PS1 was set.
                 return;
             }
+            const config = this.workspaceService
+                .getConfiguration('terminal')
+                .get<boolean>('integrated.shellIntegration.enabled');
+            if (!config) {
+                traceVerbose('PS1 is not set when shell integration is disabled.');
+                return;
+            }
         }
         this.terminalPromptIsCorrect(resource);
     }
@@ -232,7 +250,7 @@ export class TerminalEnvVarCollectionService implements IExtensionActivationServ
             if (interpreter?.envType === EnvironmentType.Venv) {
                 const activatePath = path.join(path.dirname(interpreter.path), 'activate');
                 if (!(await pathExists(activatePath))) {
-                    const envVarCollection = this.context.getEnvironmentVariableCollection({ workspaceFolder });
+                    const envVarCollection = this.getEnvironmentVariableCollection({ workspaceFolder });
                     const pathVarName = getSearchPathEnvVarNames()[0];
                     envVarCollection.replace(
                         'PATH',
@@ -241,11 +259,16 @@ export class TerminalEnvVarCollectionService implements IExtensionActivationServ
                     );
                     return;
                 }
-                this.context.getEnvironmentVariableCollection({ workspaceFolder }).clear();
+                this.getEnvironmentVariableCollection({ workspaceFolder }).clear();
             }
         } catch (ex) {
             traceWarn(`Microvenv failed as it is using proposed API which is constantly changing`, ex);
         }
+    }
+
+    private getEnvironmentVariableCollection(scope: EnvironmentVariableScope = {}) {
+        const envVarCollection = this.context.environmentVariableCollection as GlobalEnvironmentVariableCollection;
+        return envVarCollection.getScoped(scope);
     }
 
     private getWorkspaceFolder(resource: Resource): WorkspaceFolder | undefined {
