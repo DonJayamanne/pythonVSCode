@@ -19,6 +19,7 @@ from testing_tools import process_json_util
 
 if __name__ == "__main__":
     # Add the root directory to the path so that we can import the plugin.
+    print("inside run pytest script")
     directory_path = pathlib.Path(__file__).parent.parent
     sys.path.append(os.fspath(directory_path))
     sys.path.insert(0, os.getcwd())
@@ -37,6 +38,7 @@ if __name__ == "__main__":
 
         while True:
             # Receive the data from the client
+            print("still true")
             data = client_socket.recv(1024 * 1024)
             if not data:
                 break
@@ -53,7 +55,7 @@ if __name__ == "__main__":
                 buffer = b""
 
                 # Process the JSON data
-                print(f"Received JSON data: {test_ids_from_buffer}")
+                print(f"Received JSON data: {len(test_ids_from_buffer)}")
                 break
             except json.JSONDecodeError:
                 # JSON decoding error, the complete JSON object is not yet received
@@ -62,8 +64,10 @@ if __name__ == "__main__":
         print(f"Error: Could not connect to runTestIdsPort: {e}")
         print("Error: Could not connect to runTestIdsPort")
     try:
+        print("xxxxxxxxxxxxxxxxxxx---------------------oooo----------------------------------------")
         if test_ids_from_buffer:
             arg_array = ["-p", "vscode_pytest"] + args + test_ids_from_buffer
+            print("arg array", len(arg_array))
             pytest.main(arg_array)
     except json.JSONDecodeError:
         print("Error: Could not parse test ids from stdin")

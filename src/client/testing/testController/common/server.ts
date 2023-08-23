@@ -212,13 +212,20 @@ export class PythonTestServer implements ITestServer, Disposable {
 
                 // Take all output from the subprocess and add it to the test output channel. This will be the pytest output.
                 // Displays output to user and ensure the subprocess doesn't run into buffer overflow.
+                // const stdoutData = '';
+                // const stderrData = '';
                 result?.proc?.stdout?.on('data', (data) => {
+                    // stdoutData.concat(data.toString());
                     spawnOptions?.outputChannel?.append(data.toString());
                 });
                 result?.proc?.stderr?.on('data', (data) => {
+                    // stderrData.concat(data.toString());
                     spawnOptions?.outputChannel?.append(data.toString());
                 });
-                result?.proc?.on('exit', () => {
+                result?.proc?.on('exit', (code) => {
+                    console.log('exit', code);
+                    // console.log('full stdout', stdoutData);
+                    // console.log('full stderr', stderrData);
                     traceLog('Exec server closed.', uuid);
                     deferred.resolve({ stdout: '', stderr: '' });
                     callback?.();

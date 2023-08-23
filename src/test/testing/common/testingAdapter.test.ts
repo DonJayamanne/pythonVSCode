@@ -24,9 +24,9 @@ suite('End to End Tests: test adapters', () => {
     let pythonExecFactory: IPythonExecutionFactory;
     let debugLauncher: ITestDebugLauncher;
     let configService: IConfigurationService;
-    let testOutputChannel: ITestOutputChannel;
     let serviceContainer: IServiceContainer;
     let workspaceUri: Uri;
+    let testOutputChannel: typeMoq.IMock<ITestOutputChannel>;
     const rootPathSmallWorkspace = path.join(
         EXTENSION_ROOT_DIR_FOR_TESTS,
         'src',
@@ -48,7 +48,6 @@ suite('End to End Tests: test adapters', () => {
         configService = serviceContainer.get<IConfigurationService>(IConfigurationService);
         pythonExecFactory = serviceContainer.get<IPythonExecutionFactory>(IPythonExecutionFactory);
         debugLauncher = serviceContainer.get<ITestDebugLauncher>(ITestDebugLauncher);
-        testOutputChannel = serviceContainer.get<ITestOutputChannel>(ITestOutputChannel);
 
         // create mock resultResolver object
         resultResolver = typeMoq.Mock.ofType<ITestResultResolver>();
@@ -56,6 +55,23 @@ suite('End to End Tests: test adapters', () => {
         // create objects that were not injected
         pythonTestServer = new PythonTestServer(pythonExecFactory, debugLauncher);
         await pythonTestServer.serverReady();
+        testOutputChannel = typeMoq.Mock.ofType<ITestOutputChannel>();
+        testOutputChannel
+            .setup((x) => x.append(typeMoq.It.isAny()))
+            .callback((appendVal: any) => {
+                console.log('abc', appendVal);
+            })
+            .returns(() => {
+                // Whatever you need to return
+            });
+        testOutputChannel
+            .setup((x) => x.appendLine(typeMoq.It.isAny()))
+            .callback((appendVal: any) => {
+                console.log('def', appendVal);
+            })
+            .returns(() => {
+                // Whatever you need to return
+            });
     });
     test('unittest discovery adapter small workspace', async () => {
         // result resolver and saved data for assertions
@@ -80,7 +96,7 @@ suite('End to End Tests: test adapters', () => {
         const discoveryAdapter = new UnittestTestDiscoveryAdapter(
             pythonTestServer,
             configService,
-            testOutputChannel,
+            testOutputChannel.object,
             resultResolver.object,
         );
 
@@ -122,7 +138,7 @@ suite('End to End Tests: test adapters', () => {
         const discoveryAdapter = new UnittestTestDiscoveryAdapter(
             pythonTestServer,
             configService,
-            testOutputChannel,
+            testOutputChannel.object,
             resultResolver.object,
         );
 
@@ -159,7 +175,7 @@ suite('End to End Tests: test adapters', () => {
         const discoveryAdapter = new PytestTestDiscoveryAdapter(
             pythonTestServer,
             configService,
-            testOutputChannel,
+            testOutputChannel.object,
             resultResolver.object,
         );
 
@@ -199,7 +215,7 @@ suite('End to End Tests: test adapters', () => {
         const discoveryAdapter = new PytestTestDiscoveryAdapter(
             pythonTestServer,
             configService,
-            testOutputChannel,
+            testOutputChannel.object,
             resultResolver.object,
         );
 
@@ -243,7 +259,7 @@ suite('End to End Tests: test adapters', () => {
         const executionAdapter = new UnittestTestExecutionAdapter(
             pythonTestServer,
             configService,
-            testOutputChannel,
+            testOutputChannel.object,
             resultResolver.object,
         );
         const testRun = typeMoq.Mock.ofType<TestRun>();
@@ -270,7 +286,7 @@ suite('End to End Tests: test adapters', () => {
                 assert.ok(actualData.result, 'Expected results to be present');
             });
     });
-    test('unittest execution adapter large workspace', async () => {
+    test('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx unittest execution adapter large workspace', async () => {
         // result resolver and saved data for assertions
         resultResolver
             .setup((x) => x.resolveExecution(typeMoq.It.isAny(), typeMoq.It.isAny()))
@@ -296,7 +312,7 @@ suite('End to End Tests: test adapters', () => {
         const executionAdapter = new UnittestTestExecutionAdapter(
             pythonTestServer,
             configService,
-            testOutputChannel,
+            testOutputChannel.object,
             resultResolver.object,
         );
         const testRun = typeMoq.Mock.ofType<TestRun>();
@@ -314,11 +330,11 @@ suite('End to End Tests: test adapters', () => {
                 // verification after discovery is complete
                 resultResolver.verify(
                     (x) => x.resolveExecution(typeMoq.It.isAny(), typeMoq.It.isAny()),
-                    typeMoq.Times.atLeastOnce(),
+                    typeMoq.Times.atLeast(200),
                 );
             });
     });
-    test('pytest execution adapter small workspace', async () => {
+    test('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx pytest execution adapter small workspace', async () => {
         // result resolver and saved data for assertions
         let actualData: {
             status: unknown;
@@ -340,7 +356,7 @@ suite('End to End Tests: test adapters', () => {
         const executionAdapter = new PytestTestExecutionAdapter(
             pythonTestServer,
             configService,
-            testOutputChannel,
+            testOutputChannel.object,
             resultResolver.object,
         );
         const testRun = typeMoq.Mock.ofType<TestRun>();
@@ -375,7 +391,7 @@ suite('End to End Tests: test adapters', () => {
                 assert.ok(actualData.result, 'Expected results to be present');
             });
     });
-    test('pytest execution adapter large workspace', async () => {
+    test('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx pytest execution adapter large workspace', async () => {
         resultResolver
             .setup((x) => x.resolveExecution(typeMoq.It.isAny(), typeMoq.It.isAny()))
             .returns((data) => {
@@ -395,7 +411,7 @@ suite('End to End Tests: test adapters', () => {
 
         // generate list of test_ids
         const testIds: string[] = [];
-        for (let i = 0; i < 200; i = i + 1) {
+        for (let i = 0; i < 2000; i = i + 1) {
             const testId = `${rootPathLargeWorkspace}/test_parameterized_subtest.py::test_odd_even[${i}]`;
             testIds.push(testId);
         }
@@ -404,7 +420,7 @@ suite('End to End Tests: test adapters', () => {
         const executionAdapter = new PytestTestExecutionAdapter(
             pythonTestServer,
             configService,
-            testOutputChannel,
+            testOutputChannel.object,
             resultResolver.object,
         );
         const testRun = typeMoq.Mock.ofType<TestRun>();
@@ -420,7 +436,7 @@ suite('End to End Tests: test adapters', () => {
             // resolve execution should be called 200 times since there are 200 tests run.
             resultResolver.verify(
                 (x) => x.resolveExecution(typeMoq.It.isAny(), typeMoq.It.isAny()),
-                typeMoq.Times.exactly(200),
+                typeMoq.Times.exactly(2000),
             );
         });
     });

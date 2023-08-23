@@ -49,9 +49,10 @@ ERRORS = []
 IS_DISCOVERY = False
 map_id_to_path = dict()
 collected_tests_so_far = list()
-
+print("inside the init file for the plugin")
 
 def pytest_load_initial_conftests(early_config, parser, args):
+    print("LOADING")
     if "--collect-only" in args:
         global IS_DISCOVERY
         IS_DISCOVERY = True
@@ -126,7 +127,6 @@ def get_absolute_test_id(test_id: str, testPath: pathlib.Path) -> str:
     """
     split_id = test_id.split("::")[1:]
     absolute_test_id = "::".join([str(testPath), *split_id])
-    print("absolute path", absolute_test_id)
     return absolute_test_id
 
 

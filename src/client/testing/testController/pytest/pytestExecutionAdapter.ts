@@ -157,6 +157,7 @@ export class PytestTestExecutionAdapter implements ITestExecutionAdapter {
                 // combine path to run script with run args
                 const scriptPath = path.join(fullPluginPath, 'vscode_pytest', 'run_pytest_script.py');
                 const runArgs = [scriptPath, ...testArgs];
+                // new option to run
                 traceInfo(`Running pytests with arguments: ${runArgs.join(' ')}\r\n`);
 
                 const deferredExec = createDeferred<ExecutionResult<string>>();
@@ -168,17 +169,24 @@ export class PytestTestExecutionAdapter implements ITestExecutionAdapter {
 
                 // Take all output from the subprocess and add it to the test output channel. This will be the pytest output.
                 // Displays output to user and ensure the subprocess doesn't run into buffer overflow.
+                const stdoutData = '';
+                const stderrData = '';
                 result?.proc?.stdout?.on('data', (data) => {
+                    stdoutData.concat(data.toString());
                     this.outputChannel?.append(data.toString());
                 });
                 result?.proc?.stderr?.on('data', (data) => {
+                    stderrData.concat(data.toString());
                     this.outputChannel?.append(data.toString());
                 });
 
-                result?.proc?.on('exit', () => {
+                result?.proc?.on('exit', (code) => {
+                    console.log('EJFB exit', code);
                     deferredExec.resolve({ stdout: '', stderr: '' });
                     deferred.resolve();
                     disposeDataReceiver?.(this.testServer);
+                    console.log('full out', stdoutData);
+                    console.log('full err', stderrData);
                 });
                 await deferredExec.promise;
             }

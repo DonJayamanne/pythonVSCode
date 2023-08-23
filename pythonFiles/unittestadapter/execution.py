@@ -17,9 +17,8 @@ script_dir = pathlib.Path(__file__).parent.parent
 sys.path.append(os.fspath(script_dir))
 sys.path.insert(0, os.fspath(script_dir / "lib" / "python"))
 
-from typing_extensions import NotRequired, TypeAlias, TypedDict
-
 from testing_tools import process_json_util, socket_manager
+from typing_extensions import NotRequired, TypeAlias, TypedDict
 from unittestadapter.utils import parse_unittest_args
 
 DEFAULT_PORT = "45454"
@@ -254,6 +253,7 @@ Request-uuid: {uuid}
 
 if __name__ == "__main__":
     # Get unittest test execution arguments.
+    print("in unittest execution")
     argv = sys.argv[1:]
     index = argv.index("--udiscovery")
 
