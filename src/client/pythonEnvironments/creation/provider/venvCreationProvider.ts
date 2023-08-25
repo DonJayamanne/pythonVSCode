@@ -17,8 +17,14 @@ import { MultiStepAction, MultiStepNode, withProgress } from '../../../common/vs
 import { sendTelemetryEvent } from '../../../telemetry';
 import { EventName } from '../../../telemetry/constants';
 import { VenvProgressAndTelemetry, VENV_CREATED_MARKER, VENV_EXISTING_MARKER } from './venvProgressAndTelemetry';
-import { showErrorMessageWithLogs } from '../common/commonUtils';
-import { IPackageInstallSelection, pickPackagesToInstall } from './venvUtils';
+import { getVenvExecutable, showErrorMessageWithLogs } from '../common/commonUtils';
+import {
+    ExistingVenvAction,
+    IPackageInstallSelection,
+    deleteEnvironment,
+    pickExistingVenvAction,
+    pickPackagesToInstall,
+} from './venvUtils';
 import { InputFlowAction } from '../../../common/utils/multiStepInput';
 import {
     CreateEnvironmentProvider,
@@ -150,33 +156,66 @@ export class VenvCreationProvider implements CreateEnvironmentProvider {
             undefined,
         );
 
+        let existingVenvAction: ExistingVenvAction | undefined;
+        const existingEnvStep = new MultiStepNode(
+            workspaceStep,
+            async (context?: MultiStepAction) => {
+                if (workspace && context === MultiStepAction.Continue) {
+                    try {
+                        existingVenvAction = await pickExistingVenvAction(workspace);
+                        return MultiStepAction.Continue;
+                    } catch (ex) {
+                        if (ex === MultiStepAction.Back || ex === MultiStepAction.Cancel) {
+                            return ex;
+                        }
+                        throw ex;
+                    }
+                } else if (context === MultiStepAction.Back) {
+                    return MultiStepAction.Back;
+                }
+                return MultiStepAction.Continue;
+            },
+            undefined,
+        );
+        workspaceStep.next = existingEnvStep;
+
         let interpreter: string | undefined;
         const interpreterStep = new MultiStepNode(
-            workspaceStep,
-            async () => {
+            existingEnvStep,
+            async (context?: MultiStepAction) => {
                 if (workspace) {
-                    try {
-                        interpreter = await this.interpreterQuickPick.getInterpreterViaQuickPick(
-                            workspace.uri,
-                            (i: PythonEnvironment) =>
-                                [
-                                    EnvironmentType.System,
-                                    EnvironmentType.MicrosoftStore,
-                                    EnvironmentType.Global,
-                                    EnvironmentType.Pyenv,
-                                ].includes(i.envType) && i.type === undefined, // only global intepreters
-                            {
-                                skipRecommended: true,
-                                showBackButton: true,
-                                placeholder: CreateEnv.Venv.selectPythonPlaceHolder,
-                                title: null,
-                            },
-                        );
-                    } catch (ex) {
-                        if (ex === InputFlowAction.back) {
+                    if (
+                        existingVenvAction === ExistingVenvAction.Recreate ||
+                        existingVenvAction === ExistingVenvAction.Create
+                    ) {
+                        try {
+                            interpreter = await this.interpreterQuickPick.getInterpreterViaQuickPick(
+                                workspace.uri,
+                                (i: PythonEnvironment) =>
+                                    [
+                                        EnvironmentType.System,
+                                        EnvironmentType.MicrosoftStore,
+                                        EnvironmentType.Global,
+                                        EnvironmentType.Pyenv,
+                                    ].includes(i.envType) && i.type === undefined, // only global intepreters
+                                {
+                                    skipRecommended: true,
+                                    showBackButton: true,
+                                    placeholder: CreateEnv.Venv.selectPythonPlaceHolder,
+                                    title: null,
+                                },
+                            );
+                        } catch (ex) {
+                            if (ex === InputFlowAction.back) {
+                                return MultiStepAction.Back;
+                            }
+                            interpreter = undefined;
+                        }
+                    } else if (existingVenvAction === ExistingVenvAction.UseExisting) {
+                        if (context === MultiStepAction.Back) {
                             return MultiStepAction.Back;
                         }
-                        interpreter = undefined;
+                        interpreter = getVenvExecutable(workspace);
                     }
                 }
 
@@ -189,7 +228,7 @@ export class VenvCreationProvider implements CreateEnvironmentProvider {
             },
             undefined,
         );
-        workspaceStep.next = interpreterStep;
+        existingEnvStep.next = interpreterStep;
 
         let addGitIgnore = true;
         let installPackages = true;
@@ -200,19 +239,23 @@ export class VenvCreationProvider implements CreateEnvironmentProvider {
         let installInfo: IPackageInstallSelection[] | undefined;
         const packagesStep = new MultiStepNode(
             interpreterStep,
-            async () => {
+            async (context?: MultiStepAction) => {
                 if (workspace && installPackages) {
-                    try {
-                        installInfo = await pickPackagesToInstall(workspace);
-                    } catch (ex) {
-                        if (ex === MultiStepAction.Back || ex === MultiStepAction.Cancel) {
-                            return ex;
+                    if (existingVenvAction !== ExistingVenvAction.UseExisting) {
+                        try {
+                            installInfo = await pickPackagesToInstall(workspace);
+                        } catch (ex) {
+                            if (ex === MultiStepAction.Back || ex === MultiStepAction.Cancel) {
+                                return ex;
+                            }
+                            throw ex;
                         }
-                        throw ex;
-                    }
-                    if (!installInfo) {
-                        traceVerbose('Virtual env creation exited during dependencies selection.');
-                        return MultiStepAction.Cancel;
+                        if (!installInfo) {
+                            traceVerbose('Virtual env creation exited during dependencies selection.');
+                            return MultiStepAction.Cancel;
+                        }
+                    } else if (context === MultiStepAction.Back) {
+                        return MultiStepAction.Back;
                     }
                 }
 
@@ -225,6 +268,32 @@ export class VenvCreationProvider implements CreateEnvironmentProvider {
         const action = await MultiStepNode.run(workspaceStep);
         if (action === MultiStepAction.Back || action === MultiStepAction.Cancel) {
             throw action;
+        }
+
+        if (workspace) {
+            if (existingVenvAction === ExistingVenvAction.Recreate) {
+                sendTelemetryEvent(EventName.ENVIRONMENT_DELETE, undefined, {
+                    environmentType: 'venv',
+                    status: 'triggered',
+                });
+                if (await deleteEnvironment(workspace, interpreter)) {
+                    sendTelemetryEvent(EventName.ENVIRONMENT_DELETE, undefined, {
+                        environmentType: 'venv',
+                        status: 'deleted',
+                    });
+                } else {
+                    sendTelemetryEvent(EventName.ENVIRONMENT_DELETE, undefined, {
+                        environmentType: 'venv',
+                        status: 'failed',
+                    });
+                    throw MultiStepAction.Cancel;
+                }
+            } else if (existingVenvAction === ExistingVenvAction.UseExisting) {
+                sendTelemetryEvent(EventName.ENVIRONMENT_REUSE, undefined, {
+                    environmentType: 'venv',
+                });
+                return { path: getVenvExecutable(workspace), workspaceFolder: workspace };
+            }
         }
 
         const args = generateCommandArgs(installInfo, addGitIgnore);
