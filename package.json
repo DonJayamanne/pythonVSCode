@@ -23,9 +23,7 @@
         "envShellEvent",
         "testObserver",
         "quickPickItemTooltip",
-        "envCollectionWorkspace",
-        "saveEditor",
-        "envCollectionOptions"
+        "saveEditor"
     ],
     "author": {
         "name": "Microsoft Corporation"
@@ -46,7 +44,7 @@
         "theme": "dark"
     },
     "engines": {
-        "vscode": "^1.82.0-20230823"
+        "vscode": "^1.82.0-20230830"
     },
     "enableTelemetry": false,
     "keywords": [
