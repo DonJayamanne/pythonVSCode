@@ -167,7 +167,7 @@ export class TerminalEnvVarCollectionService implements IExtensionActivationServ
             if (shouldSkip(key)) {
                 return;
             }
-            const value = env[key];
+            let value = env[key];
             const prevValue = processEnv[key];
             if (prevValue !== value) {
                 if (value !== undefined) {
@@ -178,6 +178,26 @@ export class TerminalEnvVarCollectionService implements IExtensionActivationServ
                             applyAtShellIntegration: true,
                             applyAtProcessCreation: false,
                         });
+                        return;
+                    }
+                    if (key === 'PATH') {
+                        if (processEnv.PATH && env.PATH?.endsWith(processEnv.PATH)) {
+                            // Prefer prepending to PATH instead of replacing it, as we do not want to replace any
+                            // changes to PATH users might have made it in their init scripts (~/.bashrc etc.)
+                            const prependedPart = env.PATH.slice(0, -processEnv.PATH.length);
+                            value = prependedPart;
+                            traceVerbose(`Prepending environment variable ${key} in collection with ${value}`);
+                            envVarCollection.prepend(key, value, {
+                                applyAtShellIntegration: true,
+                                applyAtProcessCreation: true,
+                            });
+                        } else {
+                            traceVerbose(`Prepending environment variable ${key} in collection to ${value}`);
+                            envVarCollection.prepend(key, value, {
+                                applyAtShellIntegration: true,
+                                applyAtProcessCreation: true,
+                            });
+                        }
                         return;
                     }
                     traceVerbose(`Setting environment variable ${key} in collection to ${value}`);
