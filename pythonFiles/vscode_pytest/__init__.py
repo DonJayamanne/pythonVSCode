@@ -1,7 +1,12 @@
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# Licensed under the MIT License.
+
+import atexit
 import json
 import os
 import pathlib
 import sys
+import time
 import traceback
 
 import pytest
@@ -301,12 +306,6 @@ def pytest_sessionfinish(session, exitstatus):
     4: Pytest encountered an internal error or exception during test execution.
     5: Pytest was unable to find any tests to run.
     """
-    print(
-        "pytest session has finished, exit status: ",
-        exitstatus,
-        "in discovery? ",
-        IS_DISCOVERY,
-    )
     cwd = pathlib.Path.cwd()
     if IS_DISCOVERY:
         if not (exitstatus == 0 or exitstatus == 1 or exitstatus == 5):
@@ -352,6 +351,10 @@ def pytest_sessionfinish(session, exitstatus):
                 exitstatus_bool,
                 None,
             )
+        # send end of transmission token
+    command_type = "discovery" if IS_DISCOVERY else "execution"
+    payload: EOTPayloadDict = {"command_type": command_type, "eot": True}
+    send_post_request(payload)
 
 
 def build_test_tree(session: pytest.Session) -> TestNode:
@@ -603,44 +606,60 @@ class ExecutionPayloadDict(Dict):
     error: Union[str, None]  # Currently unused need to check
 
 
+class EOTPayloadDict(TypedDict):
+    """A dictionary that is used to send a end of transmission post request to the server."""
+
+    command_type: Literal["discovery"] | Literal["execution"]
+    eot: bool
+
+
 def get_node_path(node: Any) -> pathlib.Path:
+    """A function that returns the path of a node given the switch to pathlib.Path."""
     return getattr(node, "path", pathlib.Path(node.fspath))
 
 
+__socket = None
+atexit.register(lambda: __socket.close() if __socket else None)
+
+
 def execution_post(
-    cwd: str,
-    status: Literal["success", "error"],
-    tests: Union[testRunResultDict, None],
+    cwd: str, status: Literal["success", "error"], tests: Union[testRunResultDict, None]
 ):
     """
-    Sends a post request to the server after the tests have been executed.
-    Keyword arguments:
-    cwd -- the current working directory.
-    session_node -- the status of running the tests
-    tests -- the tests that were run and their status.
+    Sends a POST request with execution payload details.
+
+    Args:
+        cwd (str): Current working directory.
+        status (Literal["success", "error"]): Execution status indicating success or error.
+        tests (Union[testRunResultDict, None]): Test run results, if available.
     """
-    testPort = os.getenv("TEST_PORT", 45454)
-    testuuid = os.getenv("TEST_UUID")
+
     payload: ExecutionPayloadDict = ExecutionPayloadDict(
         cwd=cwd, status=status, result=tests, not_found=None, error=None
     )
     if ERRORS:
         payload["error"] = ERRORS
+    send_post_request(payload)
 
-    addr = ("localhost", int(testPort))
-    data = json.dumps(payload)
-    request = f"""Content-Length: {len(data)}
-Content-Type: application/json
-Request-uuid: {testuuid}
 
-{data}"""
-    try:
-        with socket_manager.SocketManager(addr) as s:
-            if s.socket is not None:
-                s.socket.sendall(request.encode("utf-8"))
-    except Exception as e:
-        print(f"Plugin error connection error[vscode-pytest]: {e}")
-        print(f"[vscode-pytest] data: {request}")
+def post_response(cwd: str, session_node: TestNode) -> None:
+    """
+    Sends a POST request with test session details in payload.
+
+    Args:
+        cwd (str): Current working directory.
+        session_node (TestNode): Node information of the test session.
+    """
+
+    payload: DiscoveryPayloadDict = {
+        "cwd": cwd,
+        "status": "success" if not ERRORS else "error",
+        "tests": session_node,
+        "error": [],
+    }
+    if ERRORS is not None:
+        payload["error"] = ERRORS
+    send_post_request(payload, cls_encoder=PathEncoder)
 
 
 class PathEncoder(json.JSONEncoder):
@@ -652,35 +671,55 @@ class PathEncoder(json.JSONEncoder):
         return super().default(obj)
 
 
-def post_response(cwd: str, session_node: TestNode) -> None:
-    """Sends a post request to the server.
+def send_post_request(
+    payload: ExecutionPayloadDict | DiscoveryPayloadDict | EOTPayloadDict,
+    cls_encoder=None,
+):
+    """
+    Sends a post request to the server.
 
     Keyword arguments:
-    cwd -- the current working directory.
-    session_node -- the session node, which is the top of the testing tree.
-    errors -- a list of errors that occurred during test collection.
+    payload -- the payload data to be sent.
+    cls_encoder -- a custom encoder if needed.
     """
-    payload: DiscoveryPayloadDict = {
-        "cwd": cwd,
-        "status": "success" if not ERRORS else "error",
-        "tests": session_node,
-        "error": [],
-    }
-    if ERRORS is not None:
-        payload["error"] = ERRORS
-    test_port: Union[str, int] = os.getenv("TEST_PORT", 45454)
-    test_uuid: Union[str, None] = os.getenv("TEST_UUID")
-    addr = "localhost", int(test_port)
-    data = json.dumps(payload, cls=PathEncoder)
+    testPort = os.getenv("TEST_PORT", 45454)
+    testuuid = os.getenv("TEST_UUID")
+    addr = ("localhost", int(testPort))
+    global __socket
+
+    if __socket is None:
+        try:
+            __socket = socket_manager.SocketManager(addr)
+            __socket.connect()
+        except Exception as error:
+            print(f"Plugin error connection error[vscode-pytest]: {error}")
+            __socket = None
+
+    data = json.dumps(payload, cls=cls_encoder)
     request = f"""Content-Length: {len(data)}
 Content-Type: application/json
-Request-uuid: {test_uuid}
+Request-uuid: {testuuid}
 
 {data}"""
-    try:
-        with socket_manager.SocketManager(addr) as s:
-            if s.socket is not None:
-                s.socket.sendall(request.encode("utf-8"))
-    except Exception as e:
-        print(f"Plugin error connection error[vscode-pytest]: {e}")
-        print(f"[vscode-pytest] data: {request}")
+
+    max_retries = 3
+    retries = 0
+    while retries < max_retries:
+        try:
+            if __socket is not None and __socket.socket is not None:
+                __socket.socket.sendall(request.encode("utf-8"))
+                # print("Post request sent successfully!")
+                # print("data sent", payload, "end of data")
+                break  # Exit the loop if the send was successful
+            else:
+                print("Plugin error connection error[vscode-pytest]")
+                print(f"[vscode-pytest] data: {request}")
+        except Exception as error:
+            print(f"Plugin error connection error[vscode-pytest]: {error}")
+            print(f"[vscode-pytest] data: {request}")
+            retries += 1  # Increment retry counter
+            if retries < max_retries:
+                print(f"Retrying ({retries}/{max_retries}) in 2 seconds...")
+                time.sleep(2)  # Wait for a short duration before retrying
+            else:
+                print("Maximum retry attempts reached. Cannot send post request.")
