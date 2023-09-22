@@ -4,7 +4,6 @@
 'use strict';
 
 import { Socket } from 'net';
-import { Request as RequestResult } from 'request';
 import {
     CancellationToken,
     ConfigurationChangeEvent,
@@ -16,9 +15,10 @@ import {
     Extension,
     ExtensionContext,
     Memento,
-    OutputChannel,
+    LogOutputChannel,
     Uri,
     WorkspaceEdit,
+    OutputChannel,
 } from 'vscode';
 import { LanguageServerType } from '../activation/types';
 import type { InstallOptions, InterpreterUri, ModuleInstallFlags } from './installer/types';
@@ -30,8 +30,10 @@ export interface IDisposable {
     dispose(): void | undefined | Promise<void>;
 }
 
-export const IOutputChannel = Symbol('IOutputChannel');
-export interface IOutputChannel extends OutputChannel {}
+export const ILogOutputChannel = Symbol('ILogOutputChannel');
+export interface ILogOutputChannel extends LogOutputChannel {}
+export const ITestOutputChannel = Symbol('ITestOutputChannel');
+export interface ITestOutputChannel extends OutputChannel {}
 export const IDocumentSymbolProvider = Symbol('IDocumentSymbolProvider');
 export interface IDocumentSymbolProvider extends DocumentSymbolProvider {}
 export const IsWindows = Symbol('IS_WINDOWS');
@@ -107,12 +109,6 @@ export enum Product {
     isort = 15,
     black = 16,
     bandit = 17,
-    jupyter = 18,
-    ipykernel = 19,
-    notebook = 20,
-    kernelspec = 21,
-    nbconvert = 22,
-    pandas = 23,
     tensorboard = 24,
     torchProfilerInstallName = 25,
     torchProfilerImportName = 26,
@@ -359,41 +355,6 @@ export type DownloadOptions = {
      */
     extension: 'tmp' | string;
 };
-
-export const IFileDownloader = Symbol('IFileDownloader');
-/**
- * File downloader, that'll display progress in the status bar.
- *
- * @export
- * @interface IFileDownloader
- */
-export interface IFileDownloader {
-    /**
-     * Download file and display progress in statusbar.
-     * Optionnally display progress in the provided output channel.
-     *
-     * @param {string} uri
-     * @param {DownloadOptions} options
-     * @returns {Promise<string>}
-     * @memberof IFileDownloader
-     */
-    downloadFile(uri: string, options: DownloadOptions): Promise<string>;
-}
-
-export const IHttpClient = Symbol('IHttpClient');
-export interface IHttpClient {
-    downloadFile(uri: string): Promise<RequestResult>;
-    /**
-     * Downloads file from uri as string and parses them into JSON objects
-     * @param uri The uri to download the JSON from
-     * @param strict Set `false` to allow trailing comma and comments in the JSON, defaults to `true`
-     */
-    getJSON<T>(uri: string, strict?: boolean): Promise<T>;
-    /**
-     * Returns the url is valid (i.e. return status code of 200).
-     */
-    exists(uri: string): Promise<boolean>;
-}
 
 export const IExtensionContext = Symbol('ExtensionContext');
 export interface IExtensionContext extends ExtensionContext {}

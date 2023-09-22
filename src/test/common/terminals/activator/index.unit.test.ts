@@ -29,10 +29,11 @@ suite('Terminal Activator', () => {
     setup(() => {
         baseActivator = TypeMoq.Mock.ofType<ITerminalActivator>();
         terminalSettings = TypeMoq.Mock.ofType<ITerminalSettings>();
+        experimentService = TypeMoq.Mock.ofType<IExperimentService>();
+        experimentService.setup((e) => e.inExperimentSync(TypeMoq.It.isAny())).returns(() => false);
         handler1 = TypeMoq.Mock.ofType<ITerminalActivationHandler>();
         handler2 = TypeMoq.Mock.ofType<ITerminalActivationHandler>();
         const configService = TypeMoq.Mock.ofType<IConfigurationService>();
-        experimentService = TypeMoq.Mock.ofType<IExperimentService>();
         configService
             .setup((c) => c.getSettings(TypeMoq.It.isAny()))
             .returns(() => {
@@ -40,7 +41,6 @@ suite('Terminal Activator', () => {
                     terminal: terminalSettings.object,
                 } as unknown) as IPythonSettings;
             });
-        experimentService.setup((e) => e.inExperimentSync(TypeMoq.It.isAny())).returns(() => false);
         activator = new (class extends TerminalActivator {
             protected initialize() {
                 this.baseActivator = baseActivator.object;

@@ -6,7 +6,7 @@
 import * as fs from 'fs-extra';
 import { inject, injectable } from 'inversify';
 import { ConfigurationChangeEvent, ConfigurationTarget, Event, EventEmitter, Uri } from 'vscode';
-import { traceError } from '../logging';
+import { traceError, traceVerbose } from '../logging';
 import { IApplicationEnvironment, IWorkspaceService } from './application/types';
 import { PythonSettings } from './configSettings';
 import { isTestExecution } from './constants';
@@ -30,7 +30,7 @@ export const isRemoteGlobalSettingCopiedKey = 'isRemoteGlobalSettingCopiedKey';
 export const defaultInterpreterPathSetting: keyof IPythonSettings = 'defaultInterpreterPath';
 const CI_PYTHON_PATH = getCIPythonPath();
 
-function getCIPythonPath(): string {
+export function getCIPythonPath(): string {
     if (process.env.CI_PYTHON_PATH && fs.existsSync(process.env.CI_PYTHON_PATH)) {
         return process.env.CI_PYTHON_PATH;
     }
@@ -56,6 +56,7 @@ export class InterpreterPathService implements IInterpreterPathService {
     public async onDidChangeConfiguration(event: ConfigurationChangeEvent) {
         if (event.affectsConfiguration(`python.${defaultInterpreterPathSetting}`)) {
             this._didChangeInterpreterEmitter.fire({ uri: undefined, configTarget: ConfigurationTarget.Global });
+            traceVerbose('Interpreter Path updated', `python.${defaultInterpreterPathSetting}`);
         }
     }
 
@@ -129,6 +130,7 @@ export class InterpreterPathService implements IInterpreterPathService {
         if (persistentSetting.value !== pythonPath) {
             await persistentSetting.updateValue(pythonPath);
             this._didChangeInterpreterEmitter.fire({ uri: resource, configTarget });
+            traceVerbose('Interpreter Path updated', settingKey, pythonPath);
         }
     }
 

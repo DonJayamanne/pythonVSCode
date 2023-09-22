@@ -42,8 +42,6 @@ import {
 } from '../../client/common/installer/types';
 import { InterpreterPathService } from '../../client/common/interpreterPathService';
 import { BrowserService } from '../../client/common/net/browser';
-import { FileDownloader } from '../../client/common/net/fileDownloader';
-import { HttpClient } from '../../client/common/net/httpClient';
 import { PersistentStateFactory } from '../../client/common/persistentState';
 import { PathUtils } from '../../client/common/platform/pathUtils';
 import { CurrentProcess } from '../../client/common/process/currentProcess';
@@ -53,6 +51,7 @@ import { TerminalActivator } from '../../client/common/terminal/activator';
 import { PowershellTerminalActivationFailedHandler } from '../../client/common/terminal/activator/powershellFailedHandler';
 import { Bash } from '../../client/common/terminal/environmentActivationProviders/bash';
 import { CommandPromptAndPowerShell } from '../../client/common/terminal/environmentActivationProviders/commandPrompt';
+import { Nushell } from '../../client/common/terminal/environmentActivationProviders/nushell';
 import { CondaActivationCommandProvider } from '../../client/common/terminal/environmentActivationProviders/condaActivationProvider';
 import { PipEnvActivationCommandProvider } from '../../client/common/terminal/environmentActivationProviders/pipEnvActivationProvider';
 import { PyEnvActivationCommandProvider } from '../../client/common/terminal/environmentActivationProviders/pyenvActivationProvider';
@@ -78,8 +77,6 @@ import {
     IEditorUtils,
     IExperimentService,
     IExtensions,
-    IFileDownloader,
-    IHttpClient,
     IInstaller,
     IInterpreterPathService,
     IPathUtils,
@@ -90,7 +87,6 @@ import {
     ProductType,
 } from '../../client/common/types';
 import { createDeferred } from '../../client/common/utils/async';
-import { getNamesAndValues } from '../../client/common/utils/enum';
 import { IMultiStepInputFactory, MultiStepInputFactory } from '../../client/common/utils/multiStepInput';
 import { Random } from '../../client/common/utils/random';
 import { ImportTracker } from '../../client/telemetry/importTracker';
@@ -108,6 +104,7 @@ import {
 } from '../../client/interpreter/configuration/types';
 import { PythonPathUpdaterService } from '../../client/interpreter/configuration/pythonPathUpdaterService';
 import { PythonPathUpdaterServiceFactory } from '../../client/interpreter/configuration/pythonPathUpdaterServiceFactory';
+import { getProductsForInstallerTests } from './productsToTest';
 
 suite('Installer', () => {
     let ioc: UnitTestIocContainer;
@@ -199,8 +196,6 @@ suite('Installer', () => {
         ioc.serviceManager.addSingleton<IDebugService>(IDebugService, DebugService);
         ioc.serviceManager.addSingleton<IApplicationEnvironment>(IApplicationEnvironment, ApplicationEnvironment);
         ioc.serviceManager.addSingleton<IBrowserService>(IBrowserService, BrowserService);
-        ioc.serviceManager.addSingleton<IHttpClient>(IHttpClient, HttpClient);
-        ioc.serviceManager.addSingleton<IFileDownloader>(IFileDownloader, FileDownloader);
         ioc.serviceManager.addSingleton<IEditorUtils>(IEditorUtils, EditorUtils);
         ioc.serviceManager.addSingleton<ITerminalActivator>(ITerminalActivator, TerminalActivator);
         ioc.serviceManager.addSingleton<ITerminalActivationHandler>(
@@ -219,6 +214,11 @@ suite('Installer', () => {
             ITerminalActivationCommandProvider,
             CommandPromptAndPowerShell,
             TerminalActivationProviders.commandPromptAndPowerShell,
+        );
+        ioc.serviceManager.addSingleton<ITerminalActivationCommandProvider>(
+            ITerminalActivationCommandProvider,
+            Nushell,
+            TerminalActivationProviders.nushell,
         );
         ioc.serviceManager.addSingleton<ITerminalActivationCommandProvider>(
             ITerminalActivationCommandProvider,
@@ -276,7 +276,8 @@ suite('Installer', () => {
         await installer.isInstalled(product, resource);
         await checkInstalledDef.promise;
     }
-    getNamesAndValues<Product>(Product).forEach((prod) => {
+
+    getProductsForInstallerTests().forEach((prod) => {
         test(`Ensure isInstalled for Product: '${prod.name}' executes the right command`, async function () {
             if (
                 new ProductService().getProductType(prod.value) === ProductType.DataScience ||
@@ -293,7 +294,7 @@ suite('Installer', () => {
                 new MockModuleInstaller('two', true),
             );
             ioc.serviceManager.addSingletonInstance<ITerminalHelper>(ITerminalHelper, instance(mock(TerminalHelper)));
-            if (prod.value === Product.unittest || prod.value === Product.isort) {
+            if (prod.value === Product.unittest) {
                 return undefined;
             }
             await testCheckingIfProductIsInstalled(prod.value);
@@ -316,7 +317,8 @@ suite('Installer', () => {
         await installer.install(product);
         await checkInstalledDef.promise;
     }
-    getNamesAndValues<Product>(Product).forEach((prod) => {
+
+    getProductsForInstallerTests().forEach((prod) => {
         test(`Ensure install for Product: '${prod.name}' executes the right command in IModuleInstaller`, async function () {
             const productType = new ProductService().getProductType(prod.value);
             if (productType === ProductType.DataScience || productType === ProductType.Python) {
@@ -331,7 +333,7 @@ suite('Installer', () => {
                 new MockModuleInstaller('two', true),
             );
             ioc.serviceManager.addSingletonInstance<ITerminalHelper>(ITerminalHelper, instance(mock(TerminalHelper)));
-            if (prod.value === Product.unittest || prod.value === Product.isort) {
+            if (prod.value === Product.unittest) {
                 return undefined;
             }
             await testInstallingProduct(prod.value);

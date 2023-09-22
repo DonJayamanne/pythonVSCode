@@ -5,12 +5,35 @@ import * as tomljs from '@iarna/toml';
 import * as fs from 'fs-extra';
 import { flatten, isArray } from 'lodash';
 import * as path from 'path';
-import { CancellationToken, QuickPickItem, RelativePattern, WorkspaceFolder } from 'vscode';
-import { CreateEnv } from '../../../common/utils/localize';
-import { MultiStepAction, MultiStepNode, showQuickPickWithBack } from '../../../common/vscodeApis/windowApis';
+import {
+    CancellationToken,
+    ProgressLocation,
+    QuickPickItem,
+    QuickPickItemButtonEvent,
+    RelativePattern,
+    ThemeIcon,
+    Uri,
+    WorkspaceFolder,
+} from 'vscode';
+import { Common, CreateEnv } from '../../../common/utils/localize';
+import {
+    MultiStepAction,
+    MultiStepNode,
+    showQuickPickWithBack,
+    showTextDocument,
+    withProgress,
+} from '../../../common/vscodeApis/windowApis';
 import { findFiles } from '../../../common/vscodeApis/workspaceApis';
-import { traceError, traceInfo, traceVerbose } from '../../../logging';
+import { traceError, traceVerbose } from '../../../logging';
+import { Commands } from '../../../common/constants';
+import { isWindows } from '../../../common/platform/platformService';
+import { getVenvPath, hasVenv } from '../common/commonUtils';
+import { deleteEnvironmentNonWindows, deleteEnvironmentWindows } from './venvDeleteUtils';
 
+export const OPEN_REQUIREMENTS_BUTTON = {
+    iconPath: new ThemeIcon('go-to-file'),
+    tooltip: CreateEnv.Venv.openRequirementsFile,
+};
 const exclude = '**/{.venv*,.git,.nox,.tox,.conda,site-packages,__pypackages__}/**';
 async function getPipRequirementsFiles(
     workspaceFolder: WorkspaceFolder,
@@ -69,8 +92,13 @@ async function pickTomlExtras(extras: string[], token?: CancellationToken): Prom
     return undefined;
 }
 
-async function pickRequirementsFiles(files: string[], token?: CancellationToken): Promise<string[] | undefined> {
+async function pickRequirementsFiles(
+    files: string[],
+    root: string,
+    token?: CancellationToken,
+): Promise<string[] | undefined> {
     const items: QuickPickItem[] = files
+        .map((p) => path.relative(root, p))
         .sort((a, b) => {
             const al: number = a.split(/[\\\/]/).length;
             const bl: number = b.split(/[\\\/]/).length;
@@ -82,7 +110,10 @@ async function pickRequirementsFiles(files: string[], token?: CancellationToken)
             }
             return al - bl;
         })
-        .map((e) => ({ label: e }));
+        .map((e) => ({
+            label: e,
+            buttons: [OPEN_REQUIREMENTS_BUTTON],
+        }));
 
     const selection = await showQuickPickWithBack(
         items,
@@ -92,6 +123,11 @@ async function pickRequirementsFiles(files: string[], token?: CancellationToken)
             canPickMany: true,
         },
         token,
+        async (e: QuickPickItemButtonEvent<QuickPickItem>) => {
+            if (e.item.label) {
+                await showTextDocument(Uri.file(path.join(root, e.item.label)));
+            }
+        },
     );
 
     if (selection && isArray(selection)) {
@@ -133,10 +169,10 @@ export async function pickPackagesToInstall(
                 hasBuildSystem = tomlHasBuildSystem(toml);
 
                 if (!hasBuildSystem) {
-                    traceInfo('Create env: Found toml without build system. So we will not use editable install.');
+                    traceVerbose('Create env: Found toml without build system. So we will not use editable install.');
                 }
                 if (extras.length === 0) {
-                    traceInfo('Create env: Found toml without optional dependencies.');
+                    traceVerbose('Create env: Found toml without optional dependencies.');
                 }
             } else if (context === MultiStepAction.Back) {
                 // This step is not really used so just go back
@@ -186,14 +222,11 @@ export async function pickPackagesToInstall(
         tomlStep,
         async (context?: MultiStepAction) => {
             traceVerbose('Looking for pip requirements.');
-            const requirementFiles = (await getPipRequirementsFiles(workspaceFolder, token))?.map((p) =>
-                path.relative(workspaceFolder.uri.fsPath, p),
-            );
-
+            const requirementFiles = await getPipRequirementsFiles(workspaceFolder, token);
             if (requirementFiles && requirementFiles.length > 0) {
                 traceVerbose('Found pip requirements.');
                 try {
-                    const result = await pickRequirementsFiles(requirementFiles, token);
+                    const result = await pickRequirementsFiles(requirementFiles, workspaceFolder.uri.fsPath, token);
                     const installList = result?.map((p) => path.join(workspaceFolder.uri.fsPath, p));
                     if (installList) {
                         installList.forEach((i) => {
@@ -225,4 +258,70 @@ export async function pickPackagesToInstall(
     }
 
     return packages;
+}
+
+export async function deleteEnvironment(
+    workspaceFolder: WorkspaceFolder,
+    interpreter: string | undefined,
+): Promise<boolean> {
+    const venvPath = getVenvPath(workspaceFolder);
+    return withProgress<boolean>(
+        {
+            location: ProgressLocation.Notification,
+            title: `${CreateEnv.Venv.deletingEnvironmentProgress} ([${Common.showLogs}](command:${Commands.ViewOutput})): ${venvPath}`,
+            cancellable: false,
+        },
+        async () => {
+            if (isWindows()) {
+                return deleteEnvironmentWindows(workspaceFolder, interpreter);
+            }
+            return deleteEnvironmentNonWindows(workspaceFolder);
+        },
+    );
+}
+
+export enum ExistingVenvAction {
+    Recreate,
+    UseExisting,
+    Create,
+}
+
+export async function pickExistingVenvAction(
+    workspaceFolder: WorkspaceFolder | undefined,
+): Promise<ExistingVenvAction> {
+    if (workspaceFolder) {
+        if (await hasVenv(workspaceFolder)) {
+            const items: QuickPickItem[] = [
+                {
+                    label: CreateEnv.Venv.useExisting,
+                    description: CreateEnv.Venv.useExistingDescription,
+                },
+                {
+                    label: CreateEnv.Venv.recreate,
+                    description: CreateEnv.Venv.recreateDescription,
+                },
+            ];
+
+            const selection = (await showQuickPickWithBack(
+                items,
+                {
+                    placeHolder: CreateEnv.Venv.existingVenvQuickPickPlaceholder,
+                    ignoreFocusOut: true,
+                },
+                undefined,
+            )) as QuickPickItem | undefined;
+
+            if (selection?.label === CreateEnv.Venv.recreate) {
+                return ExistingVenvAction.Recreate;
+            }
+
+            if (selection?.label === CreateEnv.Venv.useExisting) {
+                return ExistingVenvAction.UseExisting;
+            }
+        } else {
+            return ExistingVenvAction.Create;
+        }
+    }
+
+    throw MultiStepAction.Cancel;
 }

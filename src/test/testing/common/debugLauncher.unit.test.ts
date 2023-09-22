@@ -29,6 +29,7 @@ import { ITestingSettings } from '../../../client/testing/configuration/types';
 import { TestProvider } from '../../../client/testing/types';
 import { isOs, OSType } from '../../common';
 import { IEnvironmentActivationService } from '../../../client/interpreter/activation/types';
+import * as util from '../../../client/testing/testController/common/utils';
 
 use(chaiAsPromised);
 
@@ -45,6 +46,7 @@ suite('Unit Tests - Debug Launcher', () => {
     let getWorkspaceFoldersStub: sinon.SinonStub;
     let pathExistsStub: sinon.SinonStub;
     let readFileStub: sinon.SinonStub;
+    let pythonTestAdapterRewriteEnabledStub: sinon.SinonStub;
     const envVars = { FOO: 'BAR' };
 
     setup(async () => {
@@ -65,6 +67,8 @@ suite('Unit Tests - Debug Launcher', () => {
         getWorkspaceFoldersStub = sinon.stub(workspaceApis, 'getWorkspaceFolders');
         pathExistsStub = sinon.stub(fs, 'pathExists');
         readFileStub = sinon.stub(fs, 'readFile');
+        pythonTestAdapterRewriteEnabledStub = sinon.stub(util, 'pythonTestAdapterRewriteEnabled');
+        pythonTestAdapterRewriteEnabledStub.returns(false);
 
         const appShell = TypeMoq.Mock.ofType<IApplicationShell>(undefined, TypeMoq.MockBehavior.Strict);
         appShell.setup((a) => a.showErrorMessage(TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
@@ -73,7 +77,7 @@ suite('Unit Tests - Debug Launcher', () => {
         settings = TypeMoq.Mock.ofType<IPythonSettings>(undefined, TypeMoq.MockBehavior.Strict);
         configService.setup((c) => c.getSettings(TypeMoq.It.isAny())).returns(() => settings.object);
 
-        unitTestSettings = TypeMoq.Mock.ofType<ITestingSettings>(undefined, TypeMoq.MockBehavior.Strict);
+        unitTestSettings = TypeMoq.Mock.ofType<ITestingSettings>();
         settings.setup((p) => p.testing).returns(() => unitTestSettings.object);
 
         debugEnvHelper = TypeMoq.Mock.ofType<IDebugEnvironmentVariablesService>(undefined, TypeMoq.MockBehavior.Strict);
@@ -143,19 +147,22 @@ suite('Unit Tests - Debug Launcher', () => {
             uri: Uri.file(folderPath),
         };
     }
-    function getTestLauncherScript(testProvider: TestProvider) {
-        switch (testProvider) {
-            case 'unittest': {
-                return path.join(EXTENSION_ROOT_DIR, 'pythonFiles', 'visualstudio_py_testlauncher.py');
-            }
-            case 'pytest': {
-                return path.join(EXTENSION_ROOT_DIR, 'pythonFiles', 'testlauncher.py');
-            }
-            default: {
-                throw new Error(`Unknown test provider '${testProvider}'`);
+    function getTestLauncherScript(testProvider: TestProvider, pythonTestAdapterRewriteExperiment?: boolean) {
+        if (!pythonTestAdapterRewriteExperiment) {
+            switch (testProvider) {
+                case 'unittest': {
+                    return path.join(EXTENSION_ROOT_DIR, 'pythonFiles', 'visualstudio_py_testlauncher.py');
+                }
+                case 'pytest': {
+                    return path.join(EXTENSION_ROOT_DIR, 'pythonFiles', 'testlauncher.py');
+                }
+                default: {
+                    throw new Error(`Unknown test provider '${testProvider}'`);
+                }
             }
         }
     }
+
     function getDefaultDebugConfig(): DebugConfiguration {
         return {
             name: 'Debug Unit Test',
@@ -178,7 +185,7 @@ suite('Unit Tests - Debug Launcher', () => {
         expected?: DebugConfiguration,
         debugConfigs?: string | DebugConfiguration[],
     ) {
-        const testLaunchScript = getTestLauncherScript(testProvider);
+        const testLaunchScript = getTestLauncherScript(testProvider, false);
 
         const workspaceFolders = [createWorkspaceFolder(options.cwd), createWorkspaceFolder('five/six/seven')];
         getWorkspaceFoldersStub.returns(workspaceFolders);
@@ -208,6 +215,9 @@ suite('Unit Tests - Debug Launcher', () => {
         if (!expected.cwd) {
             expected.cwd = workspaceFolders[0].uri.fsPath;
         }
+        const pluginPath = path.join(EXTENSION_ROOT_DIR, 'pythonFiles');
+        const pythonPath = `${pluginPath}${path.delimiter}${expected.cwd}`;
+        expected.env.PYTHONPATH = pythonPath;
 
         // added by LaunchConfigurationResolver:
         if (!expected.python) {
@@ -326,6 +336,25 @@ suite('Unit Tests - Debug Launcher', () => {
         debugService.verifyAll();
     });
 
+    test('Use cwd value in settings if exist', async () => {
+        unitTestSettings.setup((p) => p.cwd).returns(() => 'path/to/settings/cwd');
+        const options: LaunchOptions = {
+            cwd: 'one/two/three',
+            args: ['/one/two/three/testfile.py'],
+            testProvider: 'unittest',
+        };
+        const expected = getDefaultDebugConfig();
+        expected.cwd = 'path/to/settings/cwd';
+        const pluginPath = path.join(EXTENSION_ROOT_DIR, 'pythonFiles');
+        const pythonPath = `${pluginPath}${path.delimiter}${expected.cwd}`;
+        expected.env.PYTHONPATH = pythonPath;
+
+        setupSuccess(options, 'unittest', expected);
+        await debugLauncher.launchDebugger(options);
+
+        debugService.verifyAll();
+    });
+
     test('Full debug config', async () => {
         const options: LaunchOptions = {
             cwd: 'one/two/three',
@@ -344,6 +373,7 @@ suite('Unit Tests - Debug Launcher', () => {
             console: 'integratedTerminal',
             cwd: 'some/dir',
             env: {
+                PYTHONPATH: 'one/two/three',
                 SPAM: 'EGGS',
             },
             envFile: 'some/dir/.env',

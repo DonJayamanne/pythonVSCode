@@ -100,7 +100,7 @@ export function plainExec(
     const deferred = createDeferred<ExecutionResult<string>>();
     const disposable: IDisposable = {
         dispose: () => {
-            if (!proc.killed && !deferred.completed) {
+            if (!proc.killed) {
                 proc.kill();
             }
         },
@@ -121,7 +121,10 @@ export function plainExec(
     }
 
     const stdoutBuffers: Buffer[] = [];
-    on(proc.stdout, 'data', (data: Buffer) => stdoutBuffers.push(data));
+    on(proc.stdout, 'data', (data: Buffer) => {
+        stdoutBuffers.push(data);
+        options.outputChannel?.append(data.toString());
+    });
     const stderrBuffers: Buffer[] = [];
     on(proc.stderr, 'data', (data: Buffer) => {
         if (options.mergeStdOutErr) {
@@ -130,6 +133,7 @@ export function plainExec(
         } else {
             stderrBuffers.push(data);
         }
+        options.outputChannel?.append(data.toString());
     });
 
     proc.once('close', () => {
@@ -152,10 +156,12 @@ export function plainExec(
             deferred.resolve({ stdout, stderr });
         }
         internalDisposables.forEach((d) => d.dispose());
+        disposable.dispose();
     });
     proc.once('error', (ex) => {
         deferred.reject(ex);
         internalDisposables.forEach((d) => d.dispose());
+        disposable.dispose();
     });
 
     return deferred.promise;
@@ -188,7 +194,7 @@ export function execObservable(
     let procExited = false;
     const disposable: IDisposable = {
         dispose() {
-            if (proc && !proc.killed && !procExited) {
+            if (proc && proc.pid && !proc.killed && !procExited) {
                 killPid(proc.pid);
             }
             if (proc) {
@@ -251,6 +257,10 @@ export function execObservable(
             subscriber.error(ex);
             internalDisposables.forEach((d) => d.dispose());
         });
+        if (options.stdinStr !== undefined) {
+            proc.stdin?.write(options.stdinStr);
+            proc.stdin?.end();
+        }
     });
 
     return {

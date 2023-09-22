@@ -25,9 +25,6 @@ const SCRIPTS_DIR = _SCRIPTS_DIR;
 // In some cases one or more types related to a script are exported
 // from the same module in which the script's function is located.
 // These types typically relate to the return type of "parse()".
-//
-// ignored scripts:
-//  * install_debugpy.py  (used only for extension development)
 export * as testingTools from './testing_tools';
 
 // interpreterInfo.py
@@ -110,6 +107,13 @@ export function testlauncher(testArgs: string[]): string[] {
     return [script, ...testArgs];
 }
 
+// run_pytest_script.py
+export function pytestlauncher(testArgs: string[]): string[] {
+    const script = path.join(SCRIPTS_DIR, 'vscode_pytest', 'run_pytest_script.py');
+    // There is no output to parse, so we do not return a function.
+    return [script, ...testArgs];
+}
+
 // visualstudio_py_testlauncher.py
 
 // eslint-disable-next-line camelcase
@@ -147,5 +151,10 @@ export function createVenvScript(): string {
 
 export function createCondaScript(): string {
     const script = path.join(SCRIPTS_DIR, 'create_conda.py');
+    return script;
+}
+
+export function installedCheckScript(): string {
+    const script = path.join(SCRIPTS_DIR, 'installed_check.py');
     return script;
 }

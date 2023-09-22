@@ -5,10 +5,10 @@
 
 import { inject, injectable, multiInject } from 'inversify';
 import { Terminal } from 'vscode';
-import { inTerminalEnvVarExperiment } from '../../experiments/helpers';
 import { IConfigurationService, IExperimentService } from '../../types';
 import { ITerminalActivationHandler, ITerminalActivator, ITerminalHelper, TerminalActivationOptions } from '../types';
 import { BaseTerminalActivator } from './base';
+import { inTerminalEnvVarExperiment } from '../../experiments/helpers';
 
 @injectable()
 export class TerminalActivator implements ITerminalActivator {

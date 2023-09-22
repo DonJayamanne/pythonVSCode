@@ -4,21 +4,23 @@
 import { CancellationToken, ProgressLocation, WorkspaceFolder } from 'vscode';
 import * as path from 'path';
 import { Commands, PVSC_EXTENSION_ID } from '../../../common/constants';
-import { traceError, traceLog } from '../../../logging';
-import {
-    CreateEnvironmentOptions,
-    CreateEnvironmentProgress,
-    CreateEnvironmentProvider,
-    CreateEnvironmentResult,
-} from '../types';
+import { traceError, traceInfo, traceLog } from '../../../logging';
+import { CreateEnvironmentProgress } from '../types';
 import { pickWorkspaceFolder } from '../common/workspaceSelection';
 import { execObservable } from '../../../common/process/rawProcessApis';
 import { createDeferred } from '../../../common/utils/async';
-import { getEnvironmentVariable, getOSType, OSType } from '../../../common/utils/platform';
+import { getOSType, OSType } from '../../../common/utils/platform';
 import { createCondaScript } from '../../../common/process/internal/scripts';
 import { Common, CreateEnv } from '../../../common/utils/localize';
-import { getCondaBaseEnv, pickPythonVersion } from './condaUtils';
-import { showErrorMessageWithLogs } from '../common/commonUtils';
+import {
+    ExistingCondaAction,
+    deleteEnvironment,
+    getCondaBaseEnv,
+    getPathEnvVariableForConda,
+    pickExistingCondaAction,
+    pickPythonVersion,
+} from './condaUtils';
+import { getPrefixCondaEnvPath, showErrorMessageWithLogs } from '../common/commonUtils';
 import { MultiStepAction, MultiStepNode, withProgress } from '../../../common/vscodeApis/windowApis';
 import { EventName } from '../../../telemetry/constants';
 import { sendTelemetryEvent } from '../../../telemetry';
@@ -28,6 +30,11 @@ import {
     CONDA_ENV_EXISTING_MARKER,
 } from './condaProgressAndTelemetry';
 import { splitLines } from '../../../common/stringUtils';
+import {
+    CreateEnvironmentOptions,
+    CreateEnvironmentResult,
+    CreateEnvironmentProvider,
+} from '../proposed.createEnvApis';
 
 function generateCommandArgs(version?: string, options?: CreateEnvironmentOptions): string[] {
     let addGitIgnore = true;
@@ -77,28 +84,13 @@ async function createCondaEnv(
     args: string[],
     progress: CreateEnvironmentProgress,
     token?: CancellationToken,
-): Promise<string | undefined> {
+): Promise<string> {
     progress.report({
         message: CreateEnv.Conda.creating,
     });
 
     const deferred = createDeferred<string>();
-    let pathEnv = getEnvironmentVariable('PATH') || getEnvironmentVariable('Path') || '';
-    if (getOSType() === OSType.Windows) {
-        // On windows `conda.bat` is used, which adds the following bin directories to PATH
-        // then launches `conda.exe` which is a stub to `python.exe -m conda`. Here, we are
-        // instead using the `python.exe` that ships with conda to run a python script that
-        // handles conda env creation and package installation.
-        // See conda issue: https://github.com/conda/conda/issues/11399
-        const root = path.dirname(command);
-        const libPath1 = path.join(root, 'Library', 'bin');
-        const libPath2 = path.join(root, 'Library', 'mingw-w64', 'bin');
-        const libPath3 = path.join(root, 'Library', 'usr', 'bin');
-        const libPath4 = path.join(root, 'bin');
-        const libPath5 = path.join(root, 'Scripts');
-        const libPath = [libPath1, libPath2, libPath3, libPath4, libPath5].join(path.delimiter);
-        pathEnv = `${libPath}${path.delimiter}${pathEnv}`;
-    }
+    const pathEnv = getPathEnvVariableForConda(command);
     traceLog('Running Conda Env creation script: ', [command, ...args]);
     const { proc, out, dispose } = execObservable(command, args, {
         mergeStdOutErr: true,
@@ -128,7 +120,9 @@ async function createCondaEnv(
             dispose();
             if (proc?.exitCode !== 0) {
                 traceError('Error while running venv creation script: ', progressAndTelemetry.getLastError());
-                deferred.reject(progressAndTelemetry.getLastError());
+                deferred.reject(
+                    progressAndTelemetry.getLastError() || `Conda env creation failed with exitCode: ${proc?.exitCode}`,
+                );
             } else {
                 deferred.resolve(condaEnvPath);
             }
@@ -174,10 +168,34 @@ async function createEnvironment(options?: CreateEnvironmentOptions): Promise<Cr
                 traceError('Workspace was not selected or found for creating conda environment.');
                 return MultiStepAction.Cancel;
             }
+            traceInfo(`Selected workspace ${workspace.uri.fsPath} for creating conda environment.`);
             return MultiStepAction.Continue;
         },
         undefined,
     );
+
+    let existingCondaAction: ExistingCondaAction | undefined;
+    const existingEnvStep = new MultiStepNode(
+        workspaceStep,
+        async (context?: MultiStepAction) => {
+            if (workspace && context === MultiStepAction.Continue) {
+                try {
+                    existingCondaAction = await pickExistingCondaAction(workspace);
+                    return MultiStepAction.Continue;
+                } catch (ex) {
+                    if (ex === MultiStepAction.Back || ex === MultiStepAction.Cancel) {
+                        return ex;
+                    }
+                    throw ex;
+                }
+            } else if (context === MultiStepAction.Back) {
+                return MultiStepAction.Back;
+            }
+            return MultiStepAction.Continue;
+        },
+        undefined,
+    );
+    workspaceStep.next = existingEnvStep;
 
     let version: string | undefined;
     const versionStep = new MultiStepNode(
@@ -196,15 +214,42 @@ async function createEnvironment(options?: CreateEnvironmentOptions): Promise<Cr
                 traceError('Python version was not selected for creating conda environment.');
                 return MultiStepAction.Cancel;
             }
+            traceInfo(`Selected Python version ${version} for creating conda environment.`);
             return MultiStepAction.Continue;
         },
         undefined,
     );
-    workspaceStep.next = versionStep;
+    existingEnvStep.next = versionStep;
 
     const action = await MultiStepNode.run(workspaceStep);
     if (action === MultiStepAction.Back || action === MultiStepAction.Cancel) {
         throw action;
+    }
+
+    if (workspace) {
+        if (existingCondaAction === ExistingCondaAction.Recreate) {
+            sendTelemetryEvent(EventName.ENVIRONMENT_DELETE, undefined, {
+                environmentType: 'conda',
+                status: 'triggered',
+            });
+            if (await deleteEnvironment(workspace, getExecutableCommand(conda))) {
+                sendTelemetryEvent(EventName.ENVIRONMENT_DELETE, undefined, {
+                    environmentType: 'conda',
+                    status: 'deleted',
+                });
+            } else {
+                sendTelemetryEvent(EventName.ENVIRONMENT_DELETE, undefined, {
+                    environmentType: 'conda',
+                    status: 'failed',
+                });
+                throw MultiStepAction.Cancel;
+            }
+        } else if (existingCondaAction === ExistingCondaAction.UseExisting) {
+            sendTelemetryEvent(EventName.ENVIRONMENT_REUSE, undefined, {
+                environmentType: 'conda',
+            });
+            return { path: getPrefixCondaEnvPath(workspace), workspaceFolder: workspace };
+        }
     }
 
     return withProgress(
@@ -217,8 +262,6 @@ async function createEnvironment(options?: CreateEnvironmentOptions): Promise<Cr
             progress: CreateEnvironmentProgress,
             token: CancellationToken,
         ): Promise<CreateEnvironmentResult | undefined> => {
-            let hasError = false;
-
             progress.report({
                 message: CreateEnv.statusStarting,
             });
@@ -237,17 +280,20 @@ async function createEnvironment(options?: CreateEnvironmentOptions): Promise<Cr
                         progress,
                         token,
                     );
+
+                    if (envPath) {
+                        return { path: envPath, workspaceFolder: workspace };
+                    }
+
+                    throw new Error('Failed to create conda environment. See Output > Python for more info.');
+                } else {
+                    throw new Error('A workspace is needed to create conda environment');
                 }
             } catch (ex) {
                 traceError(ex);
-                hasError = true;
-                throw ex;
-            } finally {
-                if (hasError) {
-                    showErrorMessageWithLogs(CreateEnv.Conda.errorCreatingEnvironment);
-                }
+                showErrorMessageWithLogs(CreateEnv.Conda.errorCreatingEnvironment);
+                return { error: ex as Error };
             }
-            return { path: envPath, uri: workspace?.uri };
         },
     );
 }
@@ -260,5 +306,7 @@ export function condaCreationProvider(): CreateEnvironmentProvider {
         description: CreateEnv.Conda.providerDescription,
 
         id: `${PVSC_EXTENSION_ID}:conda`,
+
+        tools: ['Conda'],
     };
 }

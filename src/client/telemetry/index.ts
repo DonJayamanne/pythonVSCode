@@ -4,9 +4,10 @@
 
 import TelemetryReporter from '@vscode/extension-telemetry';
 
+import * as path from 'path';
+import * as fs from 'fs-extra';
 import { DiagnosticCodes } from '../application/diagnostics/constants';
-import { IWorkspaceService } from '../common/application/types';
-import { AppinsightsKey, isTestExecution, isUnitTestExecution } from '../common/constants';
+import { AppinsightsKey, EXTENSION_ROOT_DIR, isTestExecution, isUnitTestExecution } from '../common/constants';
 import type { TerminalShellType } from '../common/terminal/types';
 import { StopWatch } from '../common/utils/stopWatch';
 import { isPromise } from '../common/utils/async';
@@ -41,12 +42,13 @@ function isTelemetrySupported(): boolean {
 }
 
 /**
- * Checks if the telemetry is disabled in user settings
+ * Checks if the telemetry is disabled
  * @returns {boolean}
  */
-export function isTelemetryDisabled(workspaceService: IWorkspaceService): boolean {
-    const settings = workspaceService.getConfiguration('telemetry').inspect<boolean>('enableTelemetry')!;
-    return settings.globalValue === false;
+export function isTelemetryDisabled(): boolean {
+    const packageJsonPath = path.join(EXTENSION_ROOT_DIR, 'package.json');
+    const packageJson = fs.readJSONSync(packageJsonPath);
+    return !packageJson.enableTelemetry;
 }
 
 const sharedProperties: Record<string, unknown> = {};
@@ -76,7 +78,7 @@ export function _resetSharedProperties(): void {
 }
 
 let telemetryReporter: TelemetryReporter | undefined;
-function getTelemetryReporter() {
+export function getTelemetryReporter(): TelemetryReporter {
     if (!isTestExecution() && telemetryReporter) {
         return telemetryReporter;
     }
@@ -101,7 +103,7 @@ export function sendTelemetryEvent<P extends IEventNamePropertyMapping, E extend
     properties?: P[E],
     ex?: Error,
 ): void {
-    if (isTestExecution() || !isTelemetrySupported()) {
+    if (isTestExecution() || !isTelemetrySupported() || isTelemetryDisabled()) {
         return;
     }
     const reporter = getTelemetryReporter();
@@ -727,6 +729,7 @@ export interface IEventNamePropertyMapping {
      */
     /* __GDPR__
        "editor.load" : {
+          "appName" : {"classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "luabud"},
           "codeloadingtime" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "luabud" },
           "condaversion" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "luabud" },
           "errorname" : { "classification": "CallstackOrException", "purpose": "PerformanceAndHealth", "owner": "luabud" },
@@ -745,6 +748,10 @@ export interface IEventNamePropertyMapping {
        }
      */
     [EventName.EDITOR_LOAD]: {
+        /**
+         * The name of the application where the Python extension is running
+         */
+        appName?: string | undefined;
         /**
          * The conda version if selected
          */
@@ -825,6 +832,12 @@ export interface IEventNamePropertyMapping {
          * @type {('command' | 'icon')}
          */
         trigger?: 'command' | 'icon';
+        /**
+         * Whether user chose to execute this Python file in a separate terminal or not.
+         *
+         * @type {boolean}
+         */
+        newTerminalPerFile?: boolean;
     };
     /**
      * Telemetry Event sent when user executes code against Django Shell.
@@ -937,7 +950,7 @@ export interface IEventNamePropertyMapping {
         tool?: LinterId;
         /**
          * `select` When 'Select linter' option is selected
-         * `disablePrompt` When 'Do not show again' option is selected
+         * `disablePrompt` When "Don't show again" option is selected
          * `install` When 'Install' option is selected
          *
          * @type {('select' | 'disablePrompt' | 'install')}
@@ -1316,6 +1329,22 @@ export interface IEventNamePropertyMapping {
         selection: 'Allow' | 'Close' | undefined;
     };
     /**
+     * Telemetry event sent with details when user attempts to run in interactive window when Jupyter is not installed.
+     */
+    /* __GDPR__
+       "conda_inherit_env_prompt" : {
+          "selection" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "karrtikr" }
+       }
+     */
+    [EventName.REQUIRE_JUPYTER_PROMPT]: {
+        /**
+         * `Yes` When 'Yes' option is selected
+         * `No` When 'No' option is selected
+         * `undefined` When 'x' is selected
+         */
+        selection: 'Yes' | 'No' | undefined;
+    };
+    /**
      * Telemetry event sent with details when user clicks the prompt with the following message:
      *
      * 'We noticed VS Code was launched from an activated conda environment, would you like to select it?'
@@ -1345,7 +1374,7 @@ export interface IEventNamePropertyMapping {
         /**
          * `Yes` When 'Yes' option is selected
          * `No` When 'No' option is selected
-         * `Ignore` When 'Do not show again' option is clicked
+         * `Ignore` When "Don't show again" option is clicked
          *
          * @type {('Yes' | 'No' | 'Ignore' | undefined)}
          */
@@ -1525,7 +1554,9 @@ export interface IEventNamePropertyMapping {
      * This event also has a measure, "resultLength", which records the number of completions provided.
      */
     /* __GDPR__
-       "jedi_language_server.request" : { "owner": "karthiknadig" }
+       "jedi_language_server.request" : {
+           "method": {"classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "karthiknadig"}
+       }
      */
     [EventName.JEDI_LANGUAGE_SERVER_REQUEST]: unknown;
     /**
@@ -1540,7 +1571,7 @@ export interface IEventNamePropertyMapping {
         /**
          * Carries the selection of user when they are asked to take the extension survey
          */
-        selection: 'Yes' | 'Maybe later' | 'Do not show again' | undefined;
+        selection: 'Yes' | 'Maybe later' | "Don't show again" | undefined;
     };
     /**
      * Telemetry event sent when starting REPL
@@ -2014,7 +2045,7 @@ export interface IEventNamePropertyMapping {
        }
      */
     [EventName.ENVIRONMENT_CREATING]: {
-        environmentType: 'venv' | 'conda';
+        environmentType: 'venv' | 'conda' | 'microvenv';
         pythonVersion: string | undefined;
     };
     /**
@@ -2027,7 +2058,7 @@ export interface IEventNamePropertyMapping {
         }
      */
     [EventName.ENVIRONMENT_CREATED]: {
-        environmentType: 'venv' | 'conda';
+        environmentType: 'venv' | 'conda' | 'microvenv';
         reason: 'created' | 'existing';
     };
     /**
@@ -2040,8 +2071,8 @@ export interface IEventNamePropertyMapping {
        }
      */
     [EventName.ENVIRONMENT_FAILED]: {
-        environmentType: 'venv' | 'conda';
-        reason: 'noVenv' | 'noPip' | 'other';
+        environmentType: 'venv' | 'conda' | 'microvenv';
+        reason: 'noVenv' | 'noPip' | 'noDistUtils' | 'other';
     };
     /**
      * Telemetry event sent before installing packages.
@@ -2053,8 +2084,8 @@ export interface IEventNamePropertyMapping {
        }
      */
     [EventName.ENVIRONMENT_INSTALLING_PACKAGES]: {
-        environmentType: 'venv' | 'conda';
-        using: 'requirements.txt' | 'pyproject.toml' | 'environment.yml';
+        environmentType: 'venv' | 'conda' | 'microvenv';
+        using: 'requirements.txt' | 'pyproject.toml' | 'environment.yml' | 'pipUpgrade' | 'pipInstall' | 'pipDownload';
     };
     /**
      * Telemetry event sent after installing packages.
@@ -2067,7 +2098,7 @@ export interface IEventNamePropertyMapping {
      */
     [EventName.ENVIRONMENT_INSTALLED_PACKAGES]: {
         environmentType: 'venv' | 'conda';
-        using: 'requirements.txt' | 'pyproject.toml' | 'environment.yml';
+        using: 'requirements.txt' | 'pyproject.toml' | 'environment.yml' | 'pipUpgrade';
     };
     /**
      * Telemetry event sent if installing packages failed.
@@ -2079,8 +2110,39 @@ export interface IEventNamePropertyMapping {
        }
      */
     [EventName.ENVIRONMENT_INSTALLING_PACKAGES_FAILED]: {
+        environmentType: 'venv' | 'conda' | 'microvenv';
+        using: 'pipUpgrade' | 'requirements.txt' | 'pyproject.toml' | 'environment.yml' | 'pipDownload' | 'pipInstall';
+    };
+    /**
+     * Telemetry event sent if create environment button was used to trigger the command.
+     */
+    /* __GDPR__
+       "environment.button" : {"owner": "karthiknadig" }
+     */
+    [EventName.ENVIRONMENT_BUTTON]: never | undefined;
+    /**
+     * Telemetry event if user selected to delete the existing environment.
+     */
+    /* __GDPR__
+       "environment.delete" : {
+          "environmentType" : { "classification": "SystemMetaData", "purpose": "PerformanceAndHealth", "owner": "karthiknadig" },
+          "status" : { "classification": "SystemMetaData", "purpose": "PerformanceAndHealth", "owner": "karthiknadig" }
+       }
+     */
+    [EventName.ENVIRONMENT_DELETE]: {
         environmentType: 'venv' | 'conda';
-        using: 'pipUpgrade' | 'requirements.txt' | 'pyproject.toml' | 'environment.yml';
+        status: 'triggered' | 'deleted' | 'failed';
+    };
+    /**
+     * Telemetry event if user selected to re-use the existing environment.
+     */
+    /* __GDPR__
+       "environment.reuse" : {
+          "environmentType" : { "classification": "SystemMetaData", "purpose": "PerformanceAndHealth", "owner": "karthiknadig" }
+       }
+     */
+    [EventName.ENVIRONMENT_REUSE]: {
+        environmentType: 'venv' | 'conda';
     };
     /**
      * Telemetry event sent when a linter or formatter extension is already installed.

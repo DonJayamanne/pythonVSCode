@@ -38,8 +38,6 @@ import { ProductInstaller } from '../../client/common/installer/productInstaller
 import { IModuleInstaller } from '../../client/common/installer/types';
 import { InterpreterPathService } from '../../client/common/interpreterPathService';
 import { BrowserService } from '../../client/common/net/browser';
-import { FileDownloader } from '../../client/common/net/fileDownloader';
-import { HttpClient } from '../../client/common/net/httpClient';
 import { PersistentStateFactory } from '../../client/common/persistentState';
 import { FileSystem } from '../../client/common/platform/fileSystem';
 import { PathUtils } from '../../client/common/platform/pathUtils';
@@ -52,6 +50,7 @@ import { TerminalActivator } from '../../client/common/terminal/activator';
 import { PowershellTerminalActivationFailedHandler } from '../../client/common/terminal/activator/powershellFailedHandler';
 import { Bash } from '../../client/common/terminal/environmentActivationProviders/bash';
 import { CommandPromptAndPowerShell } from '../../client/common/terminal/environmentActivationProviders/commandPrompt';
+import { Nushell } from '../../client/common/terminal/environmentActivationProviders/nushell';
 import { CondaActivationCommandProvider } from '../../client/common/terminal/environmentActivationProviders/condaActivationProvider';
 import { PipEnvActivationCommandProvider } from '../../client/common/terminal/environmentActivationProviders/pipEnvActivationProvider';
 import { PyEnvActivationCommandProvider } from '../../client/common/terminal/environmentActivationProviders/pyenvActivationProvider';
@@ -77,8 +76,6 @@ import {
     IEditorUtils,
     IExperimentService,
     IExtensions,
-    IFileDownloader,
-    IHttpClient,
     IInstaller,
     IInterpreterPathService,
     IPathUtils,
@@ -211,8 +208,6 @@ suite('Module Installer', () => {
                 JupyterExtensionDependencyManager,
             );
             ioc.serviceManager.addSingleton<IBrowserService>(IBrowserService, BrowserService);
-            ioc.serviceManager.addSingleton<IHttpClient>(IHttpClient, HttpClient);
-            ioc.serviceManager.addSingleton<IFileDownloader>(IFileDownloader, FileDownloader);
             ioc.serviceManager.addSingleton<IEditorUtils>(IEditorUtils, EditorUtils);
             ioc.serviceManager.addSingleton<ITerminalActivator>(ITerminalActivator, TerminalActivator);
             ioc.serviceManager.addSingleton<ITerminalActivationHandler>(
@@ -230,6 +225,11 @@ suite('Module Installer', () => {
                 ITerminalActivationCommandProvider,
                 CommandPromptAndPowerShell,
                 TerminalActivationProviders.commandPromptAndPowerShell,
+            );
+            ioc.serviceManager.addSingleton<ITerminalActivationCommandProvider>(
+                ITerminalActivationCommandProvider,
+                Nushell,
+                TerminalActivationProviders.nushell,
             );
             ioc.serviceManager.addSingleton<ITerminalActivationCommandProvider>(
                 ITerminalActivationCommandProvider,

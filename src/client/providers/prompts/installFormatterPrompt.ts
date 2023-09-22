@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 import { Uri } from 'vscode';
+import { inject, injectable } from 'inversify';
 import { IDisposableRegistry } from '../../common/types';
 import { Common, ToolsExtensions } from '../../common/utils/localize';
 import { isExtensionEnabled } from '../../common/vscodeApis/extensionsApi';
@@ -18,31 +19,36 @@ import { AUTOPEP8_EXTENSION, BLACK_EXTENSION, IInstallFormatterPrompt } from './
 
 const SHOW_FORMATTER_INSTALL_PROMPT_DONOTSHOW_KEY = 'showFormatterExtensionInstallPrompt';
 
+@injectable()
 export class InstallFormatterPrompt implements IInstallFormatterPrompt {
-    private shownThisSession = false;
+    private currentlyShown = false;
 
-    constructor(private readonly serviceContainer: IServiceContainer) {}
+    constructor(@inject(IServiceContainer) private readonly serviceContainer: IServiceContainer) {}
 
-    public async showInstallFormatterPrompt(resource?: Uri): Promise<void> {
+    /*
+     * This method is called when the user saves a python file or a cell.
+     * Returns true if an extension was selected. Otherwise returns false.
+     */
+    public async showInstallFormatterPrompt(resource?: Uri): Promise<boolean> {
         if (!inFormatterExtensionExperiment(this.serviceContainer)) {
-            return;
+            return false;
         }
 
         const promptState = doNotShowPromptState(SHOW_FORMATTER_INSTALL_PROMPT_DONOTSHOW_KEY, this.serviceContainer);
-        if (this.shownThisSession || promptState.value) {
-            return;
+        if (this.currentlyShown || promptState.value) {
+            return false;
         }
 
         const config = getConfiguration('python', resource);
         const formatter = config.get<string>('formatting.provider', 'none');
         if (!['autopep8', 'black'].includes(formatter)) {
-            return;
+            return false;
         }
 
         const editorConfig = getConfiguration('editor', { uri: resource, languageId: 'python' });
         const defaultFormatter = editorConfig.get<string>('defaultFormatter', '');
         if ([BLACK_EXTENSION, AUTOPEP8_EXTENSION].includes(defaultFormatter)) {
-            return;
+            return false;
         }
 
         const black = isExtensionEnabled(BLACK_EXTENSION);
@@ -51,7 +57,7 @@ export class InstallFormatterPrompt implements IInstallFormatterPrompt {
         let selection: string | undefined;
 
         if (black || autopep8) {
-            this.shownThisSession = true;
+            this.currentlyShown = true;
             if (black && autopep8) {
                 selection = await showInformationMessage(
                     ToolsExtensions.selectMultipleFormattersPrompt,
@@ -79,7 +85,7 @@ export class InstallFormatterPrompt implements IInstallFormatterPrompt {
                 }
             }
         } else if (formatter === 'black' && !black) {
-            this.shownThisSession = true;
+            this.currentlyShown = true;
             selection = await showInformationMessage(
                 ToolsExtensions.installBlackFormatterPrompt,
                 'Black',
@@ -87,7 +93,7 @@ export class InstallFormatterPrompt implements IInstallFormatterPrompt {
                 Common.doNotShowAgain,
             );
         } else if (formatter === 'autopep8' && !autopep8) {
-            this.shownThisSession = true;
+            this.currentlyShown = true;
             selection = await showInformationMessage(
                 ToolsExtensions.installAutopep8FormatterPrompt,
                 'Black',
@@ -96,27 +102,38 @@ export class InstallFormatterPrompt implements IInstallFormatterPrompt {
             );
         }
 
+        let userSelectedAnExtension = false;
         if (selection === 'Black') {
             if (black) {
+                userSelectedAnExtension = true;
                 await updateDefaultFormatter(BLACK_EXTENSION, resource);
             } else {
+                userSelectedAnExtension = true;
                 await installFormatterExtension(BLACK_EXTENSION, resource);
             }
         } else if (selection === 'Autopep8') {
             if (autopep8) {
+                userSelectedAnExtension = true;
                 await updateDefaultFormatter(AUTOPEP8_EXTENSION, resource);
             } else {
+                userSelectedAnExtension = true;
                 await installFormatterExtension(AUTOPEP8_EXTENSION, resource);
             }
         } else if (selection === Common.doNotShowAgain) {
+            userSelectedAnExtension = false;
             await promptState.updateValue(true);
+        } else {
+            userSelectedAnExtension = false;
         }
+
+        this.currentlyShown = false;
+        return userSelectedAnExtension;
     }
 }
 
 export function registerInstallFormatterPrompt(serviceContainer: IServiceContainer): void {
     const disposables = serviceContainer.get<IDisposableRegistry>(IDisposableRegistry);
-    const installFormatterPrompt = new InstallFormatterPrompt(serviceContainer);
+    const installFormatterPrompt = serviceContainer.get<IInstallFormatterPrompt>(IInstallFormatterPrompt);
     disposables.push(
         onDidSaveTextDocument(async (e) => {
             const editorConfig = getConfiguration('editor', { uri: e.uri, languageId: 'python' });

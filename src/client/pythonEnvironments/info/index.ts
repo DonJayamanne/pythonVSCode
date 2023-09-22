@@ -4,6 +4,7 @@
 'use strict';
 
 import { Architecture } from '../../common/utils/platform';
+import { PythonEnvType } from '../base/info';
 import { PythonVersion } from './pythonVersion';
 
 /**
@@ -68,10 +69,11 @@ export type InterpreterInformation = {
  *
  * @prop companyDisplayName - the user-facing name of the distro publisher
  * @prop displayName - the user-facing name for the environment
- * @prop type - the kind of Python environment
+ * @prop envType - the kind of Python environment
  * @prop envName - the environment's name, if applicable (else `envPath` is set)
  * @prop envPath - the environment's root dir, if applicable (else `envName`)
  * @prop cachedEntry - whether or not the info came from a cache
+ * @prop type - the type of Python environment, if applicable
  */
 // Note that "cachedEntry" is specific to the caching machinery
 // and doesn't really belong here.
@@ -84,6 +86,7 @@ export type PythonEnvironment = InterpreterInformation & {
     envName?: string;
     envPath?: string;
     cachedEntry?: boolean;
+    type?: PythonEnvType;
 };
 
 /**

@@ -11,15 +11,15 @@ import {
 } from '../../common/vscodeApis/windowApis';
 import { traceError, traceVerbose } from '../../logging';
 import {
-    CreateEnvironmentExitedEventArgs,
     CreateEnvironmentOptions,
-    CreateEnvironmentProvider,
     CreateEnvironmentResult,
-    CreateEnvironmentStartedEventArgs,
-} from './types';
+    CreateEnvironmentProvider,
+    EnvironmentWillCreateEvent,
+    EnvironmentDidCreateEvent,
+} from './proposed.createEnvApis';
 
-const onCreateEnvironmentStartedEvent = new EventEmitter<CreateEnvironmentStartedEventArgs>();
-const onCreateEnvironmentExitedEvent = new EventEmitter<CreateEnvironmentExitedEventArgs>();
+const onCreateEnvironmentStartedEvent = new EventEmitter<EnvironmentWillCreateEvent>();
+const onCreateEnvironmentExitedEvent = new EventEmitter<EnvironmentDidCreateEvent>();
 
 let startedEventCount = 0;
 
@@ -32,14 +32,18 @@ function fireStartedEvent(options?: CreateEnvironmentOptions): void {
     startedEventCount += 1;
 }
 
-function fireExitedEvent(result?: CreateEnvironmentResult, options?: CreateEnvironmentOptions, error?: unknown): void {
-    onCreateEnvironmentExitedEvent.fire({ result, options, error });
+function fireExitedEvent(result?: CreateEnvironmentResult, options?: CreateEnvironmentOptions, error?: Error): void {
     startedEventCount -= 1;
+    if (result) {
+        onCreateEnvironmentExitedEvent.fire({ options, ...result });
+    } else if (error) {
+        onCreateEnvironmentExitedEvent.fire({ options, error });
+    }
 }
 
 export function getCreationEvents(): {
-    onCreateEnvironmentStarted: Event<CreateEnvironmentStartedEventArgs>;
-    onCreateEnvironmentExited: Event<CreateEnvironmentExitedEventArgs>;
+    onCreateEnvironmentStarted: Event<EnvironmentWillCreateEvent>;
+    onCreateEnvironmentExited: Event<EnvironmentDidCreateEvent>;
     isCreatingEnvironment: () => boolean;
 } {
     return {
@@ -54,7 +58,7 @@ async function createEnvironment(
     options: CreateEnvironmentOptions,
 ): Promise<CreateEnvironmentResult | undefined> {
     let result: CreateEnvironmentResult | undefined;
-    let err: unknown | undefined;
+    let err: Error | undefined;
     try {
         fireStartedEvent(options);
         result = await provider.createEnvironment(options);
@@ -65,7 +69,7 @@ async function createEnvironment(
                 return undefined;
             }
         }
-        err = ex;
+        err = ex as Error;
         throw err;
     } finally {
         fireExitedEvent(result, options, err);
@@ -185,13 +189,12 @@ export async function handleCreateEnvironmentCommand(
     const action = await MultiStepNode.run(envTypeStep);
     if (options?.showBackButton) {
         if (action === MultiStepAction.Back || action === MultiStepAction.Cancel) {
-            result = {
-                path: result?.path,
-                uri: result?.uri,
-                action: action === MultiStepAction.Back ? 'Back' : 'Cancel',
-            };
+            result = { action, workspaceFolder: undefined, path: undefined, error: undefined };
         }
     }
 
-    return result;
+    if (result) {
+        return Object.freeze(result);
+    }
+    return undefined;
 }

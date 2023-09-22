@@ -1,295 +1,303 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import * as assert from 'assert';
-import * as http from 'http';
+import * as net from 'net';
 import * as sinon from 'sinon';
 import * as crypto from 'crypto';
+import { Observable } from 'rxjs';
+import * as typeMoq from 'typemoq';
 import { OutputChannel, Uri } from 'vscode';
-import { IPythonExecutionFactory, IPythonExecutionService } from '../../../client/common/process/types';
-import { createDeferred } from '../../../client/common/utils/async';
+import {
+    IPythonExecutionFactory,
+    IPythonExecutionService,
+    ObservableExecutionResult,
+    Output,
+} from '../../../client/common/process/types';
 import { PythonTestServer } from '../../../client/testing/testController/common/server';
-import * as logging from '../../../client/logging';
 import { ITestDebugLauncher } from '../../../client/testing/common/types';
+import { Deferred, createDeferred } from '../../../client/common/utils/async';
+import { MockChildProcess } from '../../mocks/mockChildProcess';
+import {
+    PAYLOAD_MULTI_CHUNK,
+    PAYLOAD_SINGLE_CHUNK,
+    PAYLOAD_SPLIT_ACROSS_CHUNKS_ARRAY,
+    DataWithPayloadChunks,
+} from './payloadTestCases';
+import { traceLog } from '../../../client/logging';
 
-suite('Python Test Server', () => {
-    const fakeUuid = 'fake-uuid';
+const testCases = [
+    {
+        val: () => PAYLOAD_SINGLE_CHUNK('fake-uuid'),
+    },
+    {
+        val: () => PAYLOAD_MULTI_CHUNK('fake-uuid'),
+    },
+    {
+        val: () => PAYLOAD_SPLIT_ACROSS_CHUNKS_ARRAY('fake-uuid'),
+    },
+];
 
-    let stubExecutionFactory: IPythonExecutionFactory;
-    let stubExecutionService: IPythonExecutionService;
+suite('Python Test Server, DataWithPayloadChunks', () => {
+    const FAKE_UUID = 'fake-uuid';
     let server: PythonTestServer;
-    let sandbox: sinon.SinonSandbox;
-    let execArgs: string[];
     let v4Stub: sinon.SinonStub;
-    let traceLogStub: sinon.SinonStub;
     let debugLauncher: ITestDebugLauncher;
+    let mockProc: MockChildProcess;
+    let execService: typeMoq.IMock<IPythonExecutionService>;
+    let deferred: Deferred<void>;
+    const sandbox = sinon.createSandbox();
 
-    setup(() => {
-        sandbox = sinon.createSandbox();
+    setup(async () => {
+        // set up test command options
+
         v4Stub = sandbox.stub(crypto, 'randomUUID');
-        traceLogStub = sandbox.stub(logging, 'traceLog');
+        v4Stub.returns(FAKE_UUID);
 
-        v4Stub.returns(fakeUuid);
-        stubExecutionService = ({
-            exec: (args: string[]) => {
-                execArgs = args;
-                return Promise.resolve({ stdout: '', stderr: '' });
-            },
-        } as unknown) as IPythonExecutionService;
-
-        stubExecutionFactory = ({
-            createActivatedEnvironment: () => Promise.resolve(stubExecutionService),
-        } as unknown) as IPythonExecutionFactory;
+        // set up exec service with child process
+        mockProc = new MockChildProcess('', ['']);
+        execService = typeMoq.Mock.ofType<IPythonExecutionService>();
+        const outputObservable = new Observable<Output<string>>(() => {
+            /* no op */
+        });
+        execService
+            .setup((x) => x.execObservable(typeMoq.It.isAny(), typeMoq.It.isAny()))
+            .returns(() => ({
+                proc: mockProc,
+                out: outputObservable,
+                dispose: () => {
+                    /* no-body */
+                },
+            }));
+        execService.setup((p) => ((p as unknown) as any).then).returns(() => undefined);
     });
 
     teardown(() => {
         sandbox.restore();
-        execArgs = [];
         server.dispose();
     });
 
-    test('sendCommand should add the port and uuid to the command being sent', async () => {
+    testCases.forEach((testCase) => {
+        test(`run correctly`, async () => {
+            const testCaseDataObj: DataWithPayloadChunks = testCase.val();
+            let eventData = '';
+            const client = new net.Socket();
+
+            deferred = createDeferred();
+            mockProc = new MockChildProcess('', ['']);
+            const output2 = new Observable<Output<string>>(() => {
+                /* no op */
+            });
+            const stubExecutionService2 = ({
+                execObservable: () => {
+                    client.connect(server.getPort());
+                    return {
+                        proc: mockProc,
+                        out: output2,
+                        dispose: () => {
+                            /* no-body */
+                        },
+                    };
+                },
+            } as unknown) as IPythonExecutionService;
+
+            const stubExecutionFactory2 = ({
+                createActivatedEnvironment: () => Promise.resolve(stubExecutionService2),
+            } as unknown) as IPythonExecutionFactory;
+            server = new PythonTestServer(stubExecutionFactory2, debugLauncher);
+            const uuid = server.createUUID();
+            const options = {
+                command: { script: 'myscript', args: ['-foo', 'foo'] },
+                workspaceFolder: Uri.file('/foo/bar'),
+                cwd: '/foo/bar',
+                uuid,
+            };
+
+            const dataWithPayloadChunks = testCaseDataObj;
+
+            await server.serverReady();
+
+            server.onRunDataReceived(({ data }) => {
+                try {
+                    const resultData = JSON.parse(data).result;
+                    eventData = eventData + JSON.stringify(resultData);
+                } catch (e) {
+                    assert(false, 'Error parsing data');
+                }
+                deferred.resolve();
+            });
+            client.on('connect', () => {
+                traceLog('Socket connected, local port:', client.localPort);
+                // since this test is a single payload as a single chunk there should be a single line in the payload.
+                for (const line of dataWithPayloadChunks.payloadArray) {
+                    client.write(line);
+                }
+                client.end();
+            });
+            client.on('error', (error) => {
+                traceLog('Socket connection error:', error);
+            });
+
+            server.sendCommand(options);
+            await deferred.promise;
+            const expectedResult = dataWithPayloadChunks.data;
+            assert.deepStrictEqual(eventData, expectedResult);
+        });
+    });
+});
+
+suite('Python Test Server, Send command etc', () => {
+    const FAKE_UUID = 'fake-uuid';
+    let server: PythonTestServer;
+    let v4Stub: sinon.SinonStub;
+    let debugLauncher: ITestDebugLauncher;
+    let mockProc: MockChildProcess;
+    let execService: typeMoq.IMock<IPythonExecutionService>;
+    let deferred: Deferred<void>;
+    const sandbox = sinon.createSandbox();
+
+    setup(async () => {
+        // set up test command options
+
+        v4Stub = sandbox.stub(crypto, 'randomUUID');
+        v4Stub.returns(FAKE_UUID);
+
+        // set up exec service with child process
+        mockProc = new MockChildProcess('', ['']);
+        execService = typeMoq.Mock.ofType<IPythonExecutionService>();
+        execService.setup((p) => ((p as unknown) as any).then).returns(() => undefined);
+    });
+
+    teardown(() => {
+        sandbox.restore();
+        server.dispose();
+    });
+    test('sendCommand should add the port to the command being sent and add the correct extra spawn variables', async () => {
+        const deferred2 = createDeferred();
+        const RUN_TEST_IDS_PORT_CONST = '5678';
+        execService
+            .setup((x) => x.execObservable(typeMoq.It.isAny(), typeMoq.It.isAny()))
+            .returns((_args, options2) => {
+                try {
+                    assert.strictEqual(
+                        options2.extraVariables.PYTHONPATH,
+                        '/foo/bar',
+                        'Expect python path to exist as extra variable and be set correctly',
+                    );
+                    assert.strictEqual(
+                        options2.extraVariables.RUN_TEST_IDS_PORT,
+                        RUN_TEST_IDS_PORT_CONST,
+                        'Expect test id port to be in extra variables and set correctly',
+                    );
+                } catch (e) {
+                    assert(false, 'Error parsing data, extra variables do not match');
+                }
+                return typeMoq.Mock.ofType<ObservableExecutionResult<string>>().object;
+            });
+        const execFactory = typeMoq.Mock.ofType<IPythonExecutionFactory>();
+        execFactory
+            .setup((x) => x.createActivatedEnvironment(typeMoq.It.isAny()))
+            .returns(() => {
+                deferred2.resolve();
+                return Promise.resolve(execService.object);
+            });
+        server = new PythonTestServer(execFactory.object, debugLauncher);
+        await server.serverReady();
         const options = {
             command: { script: 'myscript', args: ['-foo', 'foo'] },
             workspaceFolder: Uri.file('/foo/bar'),
             cwd: '/foo/bar',
+            uuid: FAKE_UUID,
         };
+        server.sendCommand(options, RUN_TEST_IDS_PORT_CONST);
+        // add in await and trigger
+        await deferred2.promise;
+        mockProc.trigger('close');
 
-        server = new PythonTestServer(stubExecutionFactory, debugLauncher);
-        await server.serverReady();
-
-        await server.sendCommand(options);
         const port = server.getPort();
-
-        assert.deepStrictEqual(execArgs, ['myscript', '--port', `${port}`, '--uuid', fakeUuid, '-foo', 'foo']);
+        const expectedArgs = ['myscript', '--port', `${port}`, '--uuid', FAKE_UUID, '-foo', 'foo'];
+        execService.verify((x) => x.execObservable(expectedArgs, typeMoq.It.isAny()), typeMoq.Times.once());
     });
 
     test('sendCommand should write to an output channel if it is provided as an option', async () => {
-        const output: string[] = [];
+        const output2: string[] = [];
         const outChannel = {
             appendLine: (str: string) => {
-                output.push(str);
+                output2.push(str);
             },
         } as OutputChannel;
         const options = {
-            command: { script: 'myscript', args: ['-foo', 'foo'] },
+            command: {
+                script: 'myscript',
+                args: ['-foo', 'foo'],
+            },
             workspaceFolder: Uri.file('/foo/bar'),
             cwd: '/foo/bar',
+            uuid: FAKE_UUID,
             outChannel,
         };
+        deferred = createDeferred();
+        const execFactory = typeMoq.Mock.ofType<IPythonExecutionFactory>();
+        execFactory
+            .setup((x) => x.createActivatedEnvironment(typeMoq.It.isAny()))
+            .returns(() => {
+                deferred.resolve();
+                return Promise.resolve(execService.object);
+            });
 
-        server = new PythonTestServer(stubExecutionFactory, debugLauncher);
+        server = new PythonTestServer(execFactory.object, debugLauncher);
         await server.serverReady();
 
-        await server.sendCommand(options);
+        server.sendCommand(options);
+        // add in await and trigger
+        await deferred.promise;
+        mockProc.trigger('close');
 
         const port = server.getPort();
-        const expected = ['python', 'myscript', '--port', `${port}`, '--uuid', fakeUuid, '-foo', 'foo'].join(' ');
+        const expected = ['python', 'myscript', '--port', `${port}`, '--uuid', FAKE_UUID, '-foo', 'foo'].join(' ');
 
-        assert.deepStrictEqual(output, [expected]);
+        assert.deepStrictEqual(output2, [expected]);
     });
 
     test('If script execution fails during sendCommand, an onDataReceived event should be fired with the "error" status', async () => {
-        let eventData: { status: string; errors: string[] };
-        stubExecutionService = ({
-            exec: () => {
+        let eventData: { status: string; errors: string[] } | undefined;
+        const deferred2 = createDeferred();
+        const deferred3 = createDeferred();
+        const stubExecutionService = typeMoq.Mock.ofType<IPythonExecutionService>();
+        stubExecutionService.setup((p) => ((p as unknown) as any).then).returns(() => undefined);
+        stubExecutionService
+            .setup((x) => x.execObservable(typeMoq.It.isAny(), typeMoq.It.isAny()))
+            .returns(() => {
+                deferred3.resolve();
                 throw new Error('Failed to execute');
-            },
-        } as unknown) as IPythonExecutionService;
-
+            });
         const options = {
             command: { script: 'myscript', args: ['-foo', 'foo'] },
             workspaceFolder: Uri.file('/foo/bar'),
             cwd: '/foo/bar',
+            uuid: FAKE_UUID,
         };
+        const stubExecutionFactory = typeMoq.Mock.ofType<IPythonExecutionFactory>();
+        stubExecutionFactory
+            .setup((x) => x.createActivatedEnvironment(typeMoq.It.isAny()))
+            .returns(() => {
+                deferred2.resolve();
+                return Promise.resolve(stubExecutionService.object);
+            });
 
-        server = new PythonTestServer(stubExecutionFactory, debugLauncher);
+        server = new PythonTestServer(stubExecutionFactory.object, debugLauncher);
         await server.serverReady();
 
         server.onDataReceived(({ data }) => {
             eventData = JSON.parse(data);
         });
 
-        await server.sendCommand(options);
-
-        assert.deepStrictEqual(eventData!.status, 'error');
-        assert.deepStrictEqual(eventData!.errors, ['Failed to execute']);
-    });
-
-    test('If the server receives data, it should fire an event if it is a known uuid', async () => {
-        const deferred = createDeferred();
-        const options = {
-            command: { script: 'myscript', args: ['-foo', 'foo'] },
-            workspaceFolder: Uri.file('/foo/bar'),
-            cwd: '/foo/bar',
-        };
-
-        let response;
-
-        server = new PythonTestServer(stubExecutionFactory, debugLauncher);
-        await server.serverReady();
-
-        server.onDataReceived(({ data }) => {
-            response = data;
-            deferred.resolve();
-        });
-
-        await server.sendCommand(options);
-
-        // Send data back.
-        const port = server.getPort();
-        const requestOptions = {
-            hostname: 'localhost',
-            method: 'POST',
-            port,
-            headers: { 'Request-uuid': fakeUuid },
-        };
-
-        const request = http.request(requestOptions, (res) => {
-            res.setEncoding('utf8');
-        });
-
-        const postData = JSON.stringify({ status: 'success', uuid: fakeUuid });
-        request.write(postData);
-        request.end();
-
-        await deferred.promise;
-
-        assert.deepStrictEqual(response, postData);
-    });
-    test('If the server receives malformed data, it should display a log message, and not fire an event', async () => {
-        const deferred = createDeferred();
-        const options = {
-            command: { script: 'myscript', args: ['-foo', 'foo'] },
-            workspaceFolder: Uri.file('/foo/bar'),
-            cwd: '/foo/bar',
-        };
-
-        let response;
-
-        server = new PythonTestServer(stubExecutionFactory, debugLauncher);
-        await server.serverReady();
-
-        server.onDataReceived(({ data }) => {
-            response = data;
-            deferred.resolve();
-        });
-
-        await server.sendCommand(options);
-
-        // Send data back.
-        const port = server.getPort();
-        const requestOptions = {
-            hostname: 'localhost',
-            method: 'POST',
-            port,
-            headers: { 'Request-uuid': fakeUuid },
-        };
-
-        const request = http.request(requestOptions, (res) => {
-            res.setEncoding('utf8');
-        });
-        const postData = '[test';
-        request.write(postData);
-        request.end();
-
-        await deferred.promise;
-
-        sinon.assert.calledOnce(traceLogStub);
-        assert.deepStrictEqual(response, '');
-    });
-
-    test('If the server receives data, it should not fire an event if it is an unknown uuid', async () => {
-        const deferred = createDeferred();
-        const options = {
-            command: { script: 'myscript', args: ['-foo', 'foo'] },
-            workspaceFolder: Uri.file('/foo/bar'),
-            cwd: '/foo/bar',
-        };
-
-        let response;
-
-        server = new PythonTestServer(stubExecutionFactory, debugLauncher);
-        await server.serverReady();
-
-        server.onDataReceived(({ data }) => {
-            response = data;
-            deferred.resolve();
-        });
-
-        await server.sendCommand(options);
-
-        // Send data back.
-        const port = server.getPort();
-        const requestOptions = {
-            hostname: 'localhost',
-            method: 'POST',
-            port,
-            headers: { 'Request-uuid': fakeUuid },
-        };
-        // request.hasHeader()
-        const request = http.request(requestOptions, (res) => {
-            res.setEncoding('utf8');
-        });
-        const postData = JSON.stringify({ status: 'success', uuid: fakeUuid, payload: 'foo' });
-        request.write(postData);
-        request.end();
-
-        await deferred.promise;
-
-        assert.deepStrictEqual(response, postData);
-    });
-
-    test('If the server receives data, it should not fire an event if there is no uuid', async () => {
-        const deferred = createDeferred();
-        const options = {
-            command: { script: 'myscript', args: ['-foo', 'foo'] },
-            workspaceFolder: Uri.file('/foo/bar'),
-            cwd: '/foo/bar',
-        };
-
-        let response;
-
-        server = new PythonTestServer(stubExecutionFactory, debugLauncher);
-        await server.serverReady();
-
-        server.onDataReceived(({ data }) => {
-            response = data;
-            deferred.resolve();
-        });
-
-        await server.sendCommand(options);
-
-        // Send data back.
-        const port = server.getPort();
-        const requestOptions = {
-            hostname: 'localhost',
-            method: 'POST',
-            port,
-            headers: { 'Request-uuid': 'some-other-uuid' },
-        };
-        const requestOptions2 = {
-            hostname: 'localhost',
-            method: 'POST',
-            port,
-            headers: { 'Request-uuid': fakeUuid },
-        };
-        const requestOne = http.request(requestOptions, (res) => {
-            res.setEncoding('utf8');
-        });
-        const postDataOne = JSON.stringify({ status: 'success', uuid: 'some-other-uuid', payload: 'foo' });
-        requestOne.write(postDataOne);
-        requestOne.end();
-
-        const requestTwo = http.request(requestOptions2, (res) => {
-            res.setEncoding('utf8');
-        });
-        const postDataTwo = JSON.stringify({ status: 'success', uuid: fakeUuid, payload: 'foo' });
-        requestTwo.write(postDataTwo);
-        requestTwo.end();
-
-        await deferred.promise;
-
-        assert.deepStrictEqual(response, postDataTwo);
+        server.sendCommand(options);
+        await deferred2.promise;
+        await deferred3.promise;
+        assert.notEqual(eventData, undefined);
+        assert.deepStrictEqual(eventData?.status, 'error');
+        assert.deepStrictEqual(eventData?.errors, ['Failed to execute']);
     });
 });

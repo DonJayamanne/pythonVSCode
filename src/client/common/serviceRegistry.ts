@@ -8,8 +8,6 @@ import {
     IEditorUtils,
     IExperimentService,
     IExtensions,
-    IFileDownloader,
-    IHttpClient,
     IInstaller,
     IInterpreterPathService,
     IPathUtils,
@@ -58,10 +56,7 @@ import { ExperimentService } from './experiments/service';
 import { ProductInstaller } from './installer/productInstaller';
 import { InterpreterPathService } from './interpreterPathService';
 import { BrowserService } from './net/browser';
-import { FileDownloader } from './net/fileDownloader';
-import { HttpClient } from './net/httpClient';
 import { PersistentStateFactory } from './persistentState';
-import { IS_WINDOWS } from './platform/constants';
 import { PathUtils } from './platform/pathUtils';
 import { CurrentProcess } from './process/currentProcess';
 import { ProcessLogger } from './process/logger';
@@ -69,6 +64,7 @@ import { IProcessLogger } from './process/types';
 import { TerminalActivator } from './terminal/activator';
 import { PowershellTerminalActivationFailedHandler } from './terminal/activator/powershellFailedHandler';
 import { Bash } from './terminal/environmentActivationProviders/bash';
+import { Nushell } from './terminal/environmentActivationProviders/nushell';
 import { CommandPromptAndPowerShell } from './terminal/environmentActivationProviders/commandPrompt';
 import { CondaActivationCommandProvider } from './terminal/environmentActivationProviders/condaActivationProvider';
 import { PipEnvActivationCommandProvider } from './terminal/environmentActivationProviders/pipEnvActivationProvider';
@@ -93,9 +89,11 @@ import { IMultiStepInputFactory, MultiStepInputFactory } from './utils/multiStep
 import { Random } from './utils/random';
 import { ContextKeyManager } from './application/contextKeyManager';
 import { CreatePythonFileCommandHandler } from './application/commands/createPythonFile';
+import { RequireJupyterPrompt } from '../jupyter/requireJupyterPrompt';
+import { isWindows } from './platform/platformService';
 
 export function registerTypes(serviceManager: IServiceManager): void {
-    serviceManager.addSingletonInstance<boolean>(IsWindows, IS_WINDOWS);
+    serviceManager.addSingletonInstance<boolean>(IsWindows, isWindows());
 
     serviceManager.addSingleton<IActiveResourceService>(IActiveResourceService, ActiveResourceService);
     serviceManager.addSingleton<IInterpreterPathService>(IInterpreterPathService, InterpreterPathService);
@@ -115,6 +113,10 @@ export function registerTypes(serviceManager: IServiceManager): void {
     );
     serviceManager.addSingleton<IExtensionSingleActivationService>(
         IExtensionSingleActivationService,
+        RequireJupyterPrompt,
+    );
+    serviceManager.addSingleton<IExtensionSingleActivationService>(
+        IExtensionSingleActivationService,
         CreatePythonFileCommandHandler,
     );
     serviceManager.addSingleton<ICommandManager>(ICommandManager, CommandManager);
@@ -128,8 +130,6 @@ export function registerTypes(serviceManager: IServiceManager): void {
     serviceManager.addSingleton<IApplicationEnvironment>(IApplicationEnvironment, ApplicationEnvironment);
     serviceManager.addSingleton<ILanguageService>(ILanguageService, LanguageService);
     serviceManager.addSingleton<IBrowserService>(IBrowserService, BrowserService);
-    serviceManager.addSingleton<IHttpClient>(IHttpClient, HttpClient);
-    serviceManager.addSingleton<IFileDownloader>(IFileDownloader, FileDownloader);
     serviceManager.addSingleton<IEditorUtils>(IEditorUtils, EditorUtils);
     serviceManager.addSingleton<ITerminalActivator>(ITerminalActivator, TerminalActivator);
     serviceManager.addSingleton<ITerminalActivationHandler>(
@@ -148,6 +148,11 @@ export function registerTypes(serviceManager: IServiceManager): void {
         ITerminalActivationCommandProvider,
         CommandPromptAndPowerShell,
         TerminalActivationProviders.commandPromptAndPowerShell,
+    );
+    serviceManager.addSingleton<ITerminalActivationCommandProvider>(
+        ITerminalActivationCommandProvider,
+        Nushell,
+        TerminalActivationProviders.nushell,
     );
     serviceManager.addSingleton<ITerminalActivationCommandProvider>(
         ITerminalActivationCommandProvider,
