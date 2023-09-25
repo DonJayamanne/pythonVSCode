@@ -462,7 +462,6 @@ export class PythonTestController implements ITestController, IExtensionSingleAc
                             );
                         }
                     }
-
                     if (!settings.testing.pytestEnabled && !settings.testing.unittestEnabled) {
                         unconfiguredWorkspaces.push(workspace);
                     }

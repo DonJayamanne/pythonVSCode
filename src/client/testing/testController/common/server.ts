@@ -5,6 +5,7 @@ import * as net from 'net';
 import * as crypto from 'crypto';
 import { Disposable, Event, EventEmitter, TestRun } from 'vscode';
 import * as path from 'path';
+import { ChildProcess } from 'child_process';
 import {
     ExecutionFactoryCreateWithEnvironmentOptions,
     ExecutionResult,
@@ -86,7 +87,7 @@ export class PythonTestServer implements ITestServer, Disposable {
             // what payload is so small it doesn't include the whole UUID think got this
             if (extractedJsonPayload.uuid !== undefined && extractedJsonPayload.cleanedJsonData !== undefined) {
                 // if a full json was found in the buffer, fire the data received event then keep cycling with the remaining raw data.
-                traceInfo(`Firing data received event,  ${extractedJsonPayload.cleanedJsonData}`);
+                traceLog(`Firing data received event,  ${extractedJsonPayload.cleanedJsonData}`);
                 this._fireDataReceived(extractedJsonPayload.uuid, extractedJsonPayload.cleanedJsonData);
             }
             buffer = Buffer.from(extractedJsonPayload.remainingRawData);
@@ -223,12 +224,22 @@ export class PythonTestServer implements ITestServer, Disposable {
                     // This means it is running discovery
                     traceLog(`Discovering unittest tests with arguments: ${args}\r\n`);
                 }
-                const deferred = createDeferred<ExecutionResult<string>>();
-                const result = execService.execObservable(args, spawnOptions);
+                const deferredTillExecClose = createDeferred<ExecutionResult<string>>();
+
+                let resultProc: ChildProcess | undefined;
+
                 runInstance?.token.onCancellationRequested(() => {
                     traceInfo('Test run cancelled, killing unittest subprocess.');
-                    result?.proc?.kill();
+                    // if the resultProc exists just call kill on it which will handle resolving the ExecClose deferred, otherwise resolve the deferred here.
+                    if (resultProc) {
+                        resultProc?.kill();
+                    } else {
+                        deferredTillExecClose?.resolve();
+                    }
                 });
+
+                const result = execService?.execObservable(args, spawnOptions);
+                resultProc = result?.proc;
 
                 // Take all output from the subprocess and add it to the test output channel. This will be the pytest output.
                 // Displays output to user and ensure the subprocess doesn't run into buffer overflow.
@@ -238,6 +249,12 @@ export class PythonTestServer implements ITestServer, Disposable {
                 result?.proc?.stderr?.on('data', (data) => {
                     spawnOptions?.outputChannel?.append(data.toString());
                 });
+                result?.proc?.on('exit', (code, signal) => {
+                    if (code !== 0) {
+                        traceError(`Subprocess exited unsuccessfully with exit code ${code} and signal ${signal}`);
+                    }
+                });
+
                 result?.proc?.on('exit', (code, signal) => {
                     // if the child has testIds then this is a run request
                     if (code !== 0 && testIds && testIds?.length !== 0) {
@@ -269,9 +286,9 @@ export class PythonTestServer implements ITestServer, Disposable {
                             data: JSON.stringify(createEOTPayload(true)),
                         });
                     }
-                    deferred.resolve({ stdout: '', stderr: '' });
+                    deferredTillExecClose.resolve({ stdout: '', stderr: '' });
                 });
-                await deferred.promise;
+                await deferredTillExecClose.promise;
             }
         } catch (ex) {
             traceError(`Error while server attempting to run unittest command: ${ex}`);
