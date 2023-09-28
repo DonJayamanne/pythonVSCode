@@ -320,3 +320,20 @@ export function createEOTPayload(executionBool: boolean): EOTTestPayload {
         eot: true,
     } as EOTTestPayload;
 }
+
+/**
+ * Splits a test name into its parent test name and subtest unique section.
+ *
+ * @param testName The full test name string.
+ * @returns A tuple where the first item is the parent test name and the second item is the subtest section or `testName` if no subtest section exists.
+ */
+export function splitTestNameWithRegex(testName: string): [string, string] {
+    // If a match is found, return the parent test name and the subtest (whichever was captured between parenthesis or square brackets).
+    // Otherwise, return the entire testName for the parent and entire testName for the subtest.
+    const regex = /^(.*?) ([\[(].*[\])])$/;
+    const match = testName.match(regex);
+    if (match) {
+        return [match[1].trim(), match[2] || match[3] || testName];
+    }
+    return [testName, testName];
+}
