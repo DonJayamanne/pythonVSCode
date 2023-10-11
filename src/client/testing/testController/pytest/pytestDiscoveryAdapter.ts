@@ -18,7 +18,13 @@ import {
     ITestResultResolver,
     ITestServer,
 } from '../common/types';
-import { createDiscoveryErrorPayload, createEOTPayload, createTestingDeferred } from '../common/utils';
+import {
+    MESSAGE_ON_TESTING_OUTPUT_MOVE,
+    createDiscoveryErrorPayload,
+    createEOTPayload,
+    createTestingDeferred,
+    fixLogLinesNoTrailing,
+} from '../common/utils';
 import { IEnvironmentVariablesProvider } from '../../../common/variables/types';
 
 /**
@@ -95,13 +101,20 @@ export class PytestTestDiscoveryAdapter implements ITestDiscoveryAdapter {
 
         // Take all output from the subprocess and add it to the test output channel. This will be the pytest output.
         // Displays output to user and ensure the subprocess doesn't run into buffer overflow.
+        // TODO: after a release, remove discovery output from the "Python Test Log" channel and send it to the "Python" channel instead.
+
         result?.proc?.stdout?.on('data', (data) => {
-            spawnOptions.outputChannel?.append(data.toString());
+            const out = fixLogLinesNoTrailing(data.toString());
+            traceInfo(out);
+            spawnOptions?.outputChannel?.append(`${out}`);
         });
         result?.proc?.stderr?.on('data', (data) => {
-            spawnOptions.outputChannel?.append(data.toString());
+            const out = fixLogLinesNoTrailing(data.toString());
+            traceError(out);
+            spawnOptions?.outputChannel?.append(`${out}`);
         });
         result?.proc?.on('exit', (code, signal) => {
+            this.outputChannel?.append(MESSAGE_ON_TESTING_OUTPUT_MOVE);
             if (code !== 0) {
                 traceError(`Subprocess exited unsuccessfully with exit code ${code} and signal ${signal}.`);
             }

@@ -190,13 +190,19 @@ export class PytestTestExecutionAdapter implements ITestExecutionAdapter {
 
                 // Take all output from the subprocess and add it to the test output channel. This will be the pytest output.
                 // Displays output to user and ensure the subprocess doesn't run into buffer overflow.
+                // TODO: after a release, remove run output from the "Python Test Log" channel and send it to the "Test Result" channel instead.
                 result?.proc?.stdout?.on('data', (data) => {
-                    this.outputChannel?.append(data.toString());
+                    const out = utils.fixLogLinesNoTrailing(data.toString());
+                    runInstance?.appendOutput(out);
+                    this.outputChannel?.append(out);
                 });
                 result?.proc?.stderr?.on('data', (data) => {
-                    this.outputChannel?.append(data.toString());
+                    const out = utils.fixLogLinesNoTrailing(data.toString());
+                    runInstance?.appendOutput(out);
+                    this.outputChannel?.append(out);
                 });
                 result?.proc?.on('exit', (code, signal) => {
+                    this.outputChannel?.append(utils.MESSAGE_ON_TESTING_OUTPUT_MOVE);
                     if (code !== 0 && testIds) {
                         traceError(`Subprocess exited unsuccessfully with exit code ${code} and signal ${signal}.`);
                     }
