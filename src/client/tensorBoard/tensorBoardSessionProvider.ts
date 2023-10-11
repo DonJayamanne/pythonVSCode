@@ -22,8 +22,9 @@ import { sendTelemetryEvent } from '../telemetry';
 import { EventName } from '../telemetry/constants';
 import { TensorBoardEntrypoint, TensorBoardEntrypointTrigger } from './constants';
 import { TensorBoardSession } from './tensorBoardSession';
+import { useNewTensorboardExtension } from './tensorboarExperiment';
 
-const PREFERRED_VIEWGROUP = 'PythonTensorBoardWebviewPreferredViewGroup';
+export const PREFERRED_VIEWGROUP = 'PythonTensorBoardWebviewPreferredViewGroup';
 
 @injectable()
 export class TensorBoardSessionProvider implements IExtensionSingleActivationService {
@@ -58,6 +59,10 @@ export class TensorBoardSessionProvider implements IExtensionSingleActivationSer
     }
 
     public async activate(): Promise<void> {
+        if (useNewTensorboardExtension()) {
+            return;
+        }
+
         this.disposables.push(
             this.commandManager.registerCommand(
                 Commands.LaunchTensorBoard,
