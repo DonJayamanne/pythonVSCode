@@ -4,7 +4,6 @@
 'use strict';
 
 import { Socket } from 'net';
-import { Request as RequestResult } from 'request';
 import {
     CancellationToken,
     ConfigurationChangeEvent,
@@ -16,9 +15,10 @@ import {
     Extension,
     ExtensionContext,
     Memento,
-    OutputChannel,
+    LogOutputChannel,
     Uri,
     WorkspaceEdit,
+    OutputChannel,
 } from 'vscode';
 import { LanguageServerType } from '../activation/types';
 import type { InstallOptions, InterpreterUri, ModuleInstallFlags } from './installer/types';
@@ -30,8 +30,10 @@ export interface IDisposable {
     dispose(): void | undefined | Promise<void>;
 }
 
-export const IOutputChannel = Symbol('IOutputChannel');
-export interface IOutputChannel extends OutputChannel {}
+export const ILogOutputChannel = Symbol('ILogOutputChannel');
+export interface ILogOutputChannel extends LogOutputChannel {}
+export const ITestOutputChannel = Symbol('ITestOutputChannel');
+export interface ITestOutputChannel extends OutputChannel {}
 export const IDocumentSymbolProvider = Symbol('IDocumentSymbolProvider');
 export interface IDocumentSymbolProvider extends DocumentSymbolProvider {}
 export const IsWindows = Symbol('IS_WINDOWS');
@@ -85,7 +87,6 @@ export enum ProductInstallStatus {
 
 export enum ProductType {
     Linter = 'Linter',
-    Formatter = 'Formatter',
     TestFramework = 'TestFramework',
     RefactoringLibrary = 'RefactoringLibrary',
     DataScience = 'DataScience',
@@ -100,19 +101,9 @@ export enum Product {
     pylama = 6,
     prospector = 7,
     pydocstyle = 8,
-    yapf = 9,
-    autopep8 = 10,
     mypy = 11,
     unittest = 12,
-    isort = 15,
-    black = 16,
     bandit = 17,
-    jupyter = 18,
-    ipykernel = 19,
-    notebook = 20,
-    kernelspec = 21,
-    nbconvert = 22,
-    pandas = 23,
     tensorboard = 24,
     torchProfilerInstallName = 25,
     torchProfilerImportName = 26,
@@ -190,11 +181,9 @@ export interface IPythonSettings {
     readonly poetryPath: string;
     readonly devOptions: string[];
     readonly linting: ILintingSettings;
-    readonly formatting: IFormattingSettings;
     readonly testing: ITestingSettings;
     readonly autoComplete: IAutoCompleteSettings;
     readonly terminal: ITerminalSettings;
-    readonly sortImports: ISortImportSettings;
     readonly envFile: string;
     readonly globalModuleInstallation: boolean;
     readonly experiments: IExperiments;
@@ -207,10 +196,6 @@ export interface IPythonSettings {
 
 export interface ITensorBoardSettings {
     logDirectory: string | undefined;
-}
-export interface ISortImportSettings {
-    readonly path: string;
-    readonly args: string[];
 }
 
 export interface IPylintCategorySeverity {
@@ -272,15 +257,6 @@ export interface ILintingSettings {
     banditEnabled: boolean;
     banditArgs: string[];
     banditPath: string;
-}
-export interface IFormattingSettings {
-    readonly provider: string;
-    autopep8Path: string;
-    readonly autopep8Args: string[];
-    blackPath: string;
-    readonly blackArgs: string[];
-    yapfPath: string;
-    readonly yapfArgs: string[];
 }
 
 export interface ITerminalSettings {
@@ -359,41 +335,6 @@ export type DownloadOptions = {
      */
     extension: 'tmp' | string;
 };
-
-export const IFileDownloader = Symbol('IFileDownloader');
-/**
- * File downloader, that'll display progress in the status bar.
- *
- * @export
- * @interface IFileDownloader
- */
-export interface IFileDownloader {
-    /**
-     * Download file and display progress in statusbar.
-     * Optionnally display progress in the provided output channel.
-     *
-     * @param {string} uri
-     * @param {DownloadOptions} options
-     * @returns {Promise<string>}
-     * @memberof IFileDownloader
-     */
-    downloadFile(uri: string, options: DownloadOptions): Promise<string>;
-}
-
-export const IHttpClient = Symbol('IHttpClient');
-export interface IHttpClient {
-    downloadFile(uri: string): Promise<RequestResult>;
-    /**
-     * Downloads file from uri as string and parses them into JSON objects
-     * @param uri The uri to download the JSON from
-     * @param strict Set `false` to allow trailing comma and comments in the JSON, defaults to `true`
-     */
-    getJSON<T>(uri: string, strict?: boolean): Promise<T>;
-    /**
-     * Returns the url is valid (i.e. return status code of 200).
-     */
-    exists(uri: string): Promise<boolean>;
-}
 
 export const IExtensionContext = Symbol('ExtensionContext');
 export interface IExtensionContext extends ExtensionContext {}

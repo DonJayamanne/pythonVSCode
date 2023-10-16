@@ -3,21 +3,14 @@
 
 'use strict';
 
-import {
-    debug,
-    DebugConfigurationProvider,
-    DebugConfigurationProviderTriggerKind,
-    languages,
-    OutputChannel,
-    window,
-} from 'vscode';
+import { debug, DebugConfigurationProvider, DebugConfigurationProviderTriggerKind, languages, window } from 'vscode';
 
 import { registerTypes as activationRegisterTypes } from './activation/serviceRegistry';
 import { IExtensionActivationManager } from './activation/types';
 import { registerTypes as appRegisterTypes } from './application/serviceRegistry';
 import { IApplicationDiagnostics } from './application/types';
 import { IApplicationEnvironment, ICommandManager, IWorkspaceService } from './common/application/types';
-import { Commands, PYTHON, PYTHON_LANGUAGE, STANDARD_OUTPUT_CHANNEL, UseProposedApi } from './common/constants';
+import { Commands, PYTHON_LANGUAGE, UseProposedApi } from './common/constants';
 import { registerTypes as installerRegisterTypes } from './common/installer/serviceRegistry';
 import { IFileSystem } from './common/platform/types';
 import {
@@ -25,20 +18,16 @@ import {
     IDisposableRegistry,
     IExtensions,
     IInterpreterPathService,
-    IOutputChannel,
+    ILogOutputChannel,
     IPathUtils,
 } from './common/types';
 import { noop } from './common/utils/misc';
 import { DebuggerTypeName } from './debugger/constants';
 import { registerTypes as debugConfigurationRegisterTypes } from './debugger/extension/serviceRegistry';
 import { IDebugConfigurationService, IDynamicDebugConfigurationService } from './debugger/extension/types';
-import { registerTypes as formattersRegisterTypes } from './formatters/serviceRegistry';
 import { IInterpreterService } from './interpreter/contracts';
 import { getLanguageConfiguration } from './language/languageConfiguration';
-import { LinterCommands } from './linters/linterCommands';
 import { registerTypes as lintersRegisterTypes } from './linters/serviceRegistry';
-import { setLoggingLevel } from './logging';
-import { PythonFormattingEditProvider } from './providers/formatProvider';
 import { ReplProvider } from './providers/replProvider';
 import { registerTypes as providersRegisterTypes } from './providers/serviceRegistry';
 import { TerminalProvider } from './providers/terminalProvider';
@@ -54,16 +43,16 @@ import * as pythonEnvironments from './pythonEnvironments';
 import { ActivationResult, ExtensionState } from './components';
 import { Components } from './extensionInit';
 import { setDefaultLanguageServer } from './activation/common/defaultlanguageServer';
-import { getLoggingLevel } from './logging/settings';
 import { DebugService } from './common/application/debugService';
 import { DebugSessionEventDispatcher } from './debugger/extension/hooks/eventHandlerDispatcher';
 import { IDebugSessionEventHandlers } from './debugger/extension/hooks/types';
 import { WorkspaceService } from './common/application/workspace';
 import { DynamicPythonDebugConfigurationService } from './debugger/extension/configuration/dynamicdebugConfigurationService';
-import { registerCreateEnvironmentFeatures } from './pythonEnvironments/creation/createEnvApi';
 import { IInterpreterQuickPick } from './interpreter/configuration/types';
-import { registerInstallFormatterPrompt } from './providers/prompts/installFormatterPrompt';
-import { registerPyProjectTomlCreateEnvFeatures } from './pythonEnvironments/creation/pyprojectTomlCreateEnv';
+import { registerAllCreateEnvironmentFeatures } from './pythonEnvironments/creation/registrations';
+import { registerCreateEnvironmentTriggers } from './pythonEnvironments/creation/createEnvironmentTrigger';
+import { initializePersistentStateForTriggers } from './common/persistentState';
+import { logAndNotifyOnFormatterSetting } from './logging/settingLogs';
 
 export async function activateComponents(
     // `ext` is passed to any extra activation funcs.
@@ -106,8 +95,7 @@ export function activateFeatures(ext: ExtensionState, _components: Components): 
         IInterpreterPathService,
     );
     const pathUtils = ext.legacyIOC.serviceContainer.get<IPathUtils>(IPathUtils);
-    registerCreateEnvironmentFeatures(ext.disposables, interpreterQuickPick, interpreterPathService, pathUtils);
-    registerPyProjectTomlCreateEnvFeatures(ext.disposables);
+    registerAllCreateEnvironmentFeatures(ext.disposables, interpreterQuickPick, interpreterPathService, pathUtils);
 }
 
 /// //////////////////////////
@@ -120,7 +108,7 @@ export function activateFeatures(ext: ExtensionState, _components: Components): 
 // See https://github.com/microsoft/vscode-python/issues/10454.
 
 async function activateLegacy(ext: ExtensionState): Promise<ActivationResult> {
-    const { context, legacyIOC } = ext;
+    const { legacyIOC } = ext;
     const { serviceManager, serviceContainer } = legacyIOC;
 
     // register "services"
@@ -135,7 +123,6 @@ async function activateLegacy(ext: ExtensionState): Promise<ActivationResult> {
     // Feature specific registrations.
     unitTestsRegisterTypes(serviceManager);
     lintersRegisterTypes(serviceManager);
-    formattersRegisterTypes(serviceManager);
     installerRegisterTypes(serviceManager);
     commonRegisterTerminalTypes(serviceManager);
     debugConfigurationRegisterTypes(serviceManager);
@@ -144,12 +131,6 @@ async function activateLegacy(ext: ExtensionState): Promise<ActivationResult> {
     const extensions = serviceContainer.get<IExtensions>(IExtensions);
     await setDefaultLanguageServer(extensions, serviceManager);
 
-    // Note we should not trigger any extension related code which logs, until we have set logging level. So we cannot
-    // use configurations service to get level setting. Instead, we use Workspace service to query for setting as it
-    // directly queries VSCode API.
-    setLoggingLevel(getLoggingLevel());
-
-    const configuration = serviceManager.get<IConfigurationService>(IConfigurationService);
     // Settings are dependent on Experiment service, so we need to initialize it after experiments are activated.
     serviceContainer.get<IConfigurationService>(IConfigurationService).getSettings().register();
 
@@ -173,28 +154,15 @@ async function activateLegacy(ext: ExtensionState): Promise<ActivationResult> {
             const dispatcher = new DebugSessionEventDispatcher(handlers, DebugService.instance, disposables);
             dispatcher.registerEventHandlers();
 
-            const outputChannel = serviceManager.get<OutputChannel>(IOutputChannel, STANDARD_OUTPUT_CHANNEL);
+            const outputChannel = serviceManager.get<ILogOutputChannel>(ILogOutputChannel);
             disposables.push(cmdManager.registerCommand(Commands.ViewOutput, () => outputChannel.show()));
             cmdManager.executeCommand('setContext', 'python.vscode.channel', applicationEnv.channel).then(noop, noop);
 
             serviceContainer.get<IApplicationDiagnostics>(IApplicationDiagnostics).register();
 
             serviceManager.get<ITerminalAutoActivation>(ITerminalAutoActivation).register();
-            const pythonSettings = configuration.getSettings();
 
             serviceManager.get<ICodeExecutionManager>(ICodeExecutionManager).registerCommands();
-
-            disposables.push(new LinterCommands(serviceManager));
-
-            if (
-                pythonSettings &&
-                pythonSettings.formatting &&
-                pythonSettings.formatting.provider !== 'internalConsole'
-            ) {
-                const formatProvider = new PythonFormattingEditProvider(context, serviceContainer);
-                disposables.push(languages.registerDocumentFormattingEditProvider(PYTHON, formatProvider));
-                disposables.push(languages.registerDocumentRangeFormattingEditProvider(PYTHON, formatProvider));
-            }
 
             disposables.push(new ReplProvider(serviceContainer));
 
@@ -217,7 +185,9 @@ async function activateLegacy(ext: ExtensionState): Promise<ActivationResult> {
                 ),
             );
 
-            registerInstallFormatterPrompt(serviceContainer);
+            logAndNotifyOnFormatterSetting();
+            registerCreateEnvironmentTriggers(disposables);
+            initializePersistentStateForTriggers(ext.context);
         }
     }
 

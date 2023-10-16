@@ -1,51 +1,33 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
-import argparse
+import atexit
 import enum
 import json
 import os
+import pathlib
+import socket
 import sys
 import traceback
 import unittest
 from types import TracebackType
-from typing import Dict, List, Optional, Tuple, Type, TypeAlias, TypedDict
+from typing import Dict, List, Optional, Tuple, Type, Union
 
-# Add the path to pythonFiles to sys.path to find testing_tools.socket_manager.
-PYTHON_FILES = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, PYTHON_FILES)
-# Add the lib path to sys.path to find the typing_extensions module.
-sys.path.insert(0, os.path.join(PYTHON_FILES, "lib", "python"))
-from testing_tools import socket_manager
-from typing_extensions import NotRequired
+script_dir = pathlib.Path(__file__).parent.parent
+sys.path.append(os.fspath(script_dir))
+sys.path.insert(0, os.fspath(script_dir / "lib" / "python"))
+
+from testing_tools import process_json_util, socket_manager
+from typing_extensions import Literal, NotRequired, TypeAlias, TypedDict
 from unittestadapter.utils import parse_unittest_args
 
-DEFAULT_PORT = "45454"
-
-
-def parse_execution_cli_args(args: List[str]) -> Tuple[int, str | None, List[str]]:
-    """Parse command-line arguments that should be processed by the script.
-
-    So far this includes the port number that it needs to connect to, the uuid passed by the TS side,
-    and the list of test ids to report.
-    The port is passed to the execution.py script when it is executed, and
-    defaults to DEFAULT_PORT if it can't be parsed.
-    The list of test ids is passed to the execution.py script when it is executed, and defaults to an empty list if it can't be parsed.
-    The uuid should be passed to the execution.py script when it is executed, and defaults to None if it can't be parsed.
-    If the arguments appear several times, the value returned by parse_cli_args will be the value of the last argument.
-    """
-    arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument("--port", default=DEFAULT_PORT)
-    arg_parser.add_argument("--uuid")
-    arg_parser.add_argument("--testids", nargs="+")
-    parsed_args, _ = arg_parser.parse_known_args(args)
-
-    return (int(parsed_args.port), parsed_args.uuid, parsed_args.testids)
-
-
-ErrorType = (
-    Tuple[Type[BaseException], BaseException, TracebackType] | Tuple[None, None, None]
-)
+ErrorType = Union[
+    Tuple[Type[BaseException], BaseException, TracebackType], Tuple[None, None, None]
+]
+testPort = 0
+testUuid = 0
+START_DIR = ""
+DEFAULT_PORT = 45454
 
 
 class TestOutcomeEnum(str, enum.Enum):
@@ -60,7 +42,9 @@ class TestOutcomeEnum(str, enum.Enum):
 
 
 class UnittestTestResult(unittest.TextTestResult):
-    formatted: Dict[str, Dict[str, str | None]] = dict()
+    def __init__(self, *args, **kwargs):
+        self.formatted: Dict[str, Dict[str, Union[str, None]]] = dict()
+        super(UnittestTestResult, self).__init__(*args, **kwargs)
 
     def startTest(self, test: unittest.TestCase):
         super(UnittestTestResult, self).startTest(test)
@@ -98,7 +82,10 @@ class UnittestTestResult(unittest.TextTestResult):
         self.formatResult(test, TestOutcomeEnum.unexpected_success)
 
     def addSubTest(
-        self, test: unittest.TestCase, subtest: unittest.TestCase, err: ErrorType | None
+        self,
+        test: unittest.TestCase,
+        subtest: unittest.TestCase,
+        err: Union[ErrorType, None],
     ):
         super(UnittestTestResult, self).addSubTest(test, subtest, err)
         self.formatResult(
@@ -112,28 +99,38 @@ class UnittestTestResult(unittest.TextTestResult):
         self,
         test: unittest.TestCase,
         outcome: str,
-        error: ErrorType | None = None,
-        subtest: unittest.TestCase | None = None,
+        error: Union[ErrorType, None] = None,
+        subtest: Union[unittest.TestCase, None] = None,
     ):
         tb = None
-        if error and error[2] is not None:
-            # Format traceback
+
+        message = ""
+        # error is a tuple of the form returned by sys.exc_info(): (type, value, traceback).
+        if error is not None:
+            try:
+                message = f"{error[0]} {error[1]}"
+            except Exception:
+                message = "Error occurred, unknown type or value"
             formatted = traceback.format_exception(*error)
+            tb = "".join(formatted)
             # Remove the 'Traceback (most recent call last)'
             formatted = formatted[1:]
-            tb = "".join(formatted)
-
-        test_id = test.id()
+        if subtest:
+            test_id = subtest.id()
+        else:
+            test_id = test.id()
 
         result = {
             "test": test.id(),
             "outcome": outcome,
-            "message": str(error),
+            "message": message,
             "traceback": tb,
             "subtest": subtest.id() if subtest else None,
         }
-
         self.formatted[test_id] = result
+        if testPort == 0 or testUuid == 0:
+            print("Error sending response, port or uuid unknown to python server.")
+        send_run_data(result, testPort, testUuid)
 
 
 class TestExecutionStatus(str, enum.Enum):
@@ -141,15 +138,22 @@ class TestExecutionStatus(str, enum.Enum):
     success = "success"
 
 
-TestResultTypeAlias: TypeAlias = Dict[str, Dict[str, str | None]]
+TestResultTypeAlias: TypeAlias = Dict[str, Dict[str, Union[str, None]]]
 
 
 class PayloadDict(TypedDict):
     cwd: str
     status: TestExecutionStatus
-    result: NotRequired[TestResultTypeAlias]
+    result: Optional[TestResultTypeAlias]
     not_found: NotRequired[List[str]]
     error: NotRequired[str]
+
+
+class EOTPayloadDict(TypedDict):
+    """A dictionary that is used to send a end of transmission post request to the server."""
+
+    command_type: Union[Literal["discovery"], Literal["execution"]]
+    eot: bool
 
 
 # Args: start_path path to a directory or a file, list of ids that may be empty.
@@ -167,7 +171,7 @@ def run_tests(
     cwd = os.path.abspath(start_dir)
     status = TestExecutionStatus.error
     error = None
-    payload: PayloadDict = {"cwd": cwd, "status": status}
+    payload: PayloadDict = {"cwd": cwd, "status": status, "result": None}
 
     try:
         # If it's a file, split path and file name.
@@ -179,12 +183,12 @@ def run_tests(
         # Discover tests at path with the file name as a pattern (if any).
         loader = unittest.TestLoader()
 
-        args = {
+        args = {  # noqa: F841
             "start_dir": start_dir,
             "pattern": pattern,
             "top_level_dir": top_level_dir,
         }
-        suite = loader.discover(start_dir, pattern, top_level_dir)
+        suite = loader.discover(start_dir, pattern, top_level_dir)  # noqa: F841
 
         # Run tests.
         runner = unittest.TextTestRunner(resultclass=UnittestTestResult)
@@ -201,12 +205,56 @@ def run_tests(
 
     if error is not None:
         payload["error"] = error
+    else:
+        status = TestExecutionStatus.success
 
     payload["status"] = status
 
-    # print(f"payload: \n{json.dumps(payload, indent=4)}")
-
     return payload
+
+
+__socket = None
+atexit.register(lambda: __socket.close() if __socket else None)
+
+
+def send_run_data(raw_data, port, uuid):
+    status = raw_data["outcome"]
+    cwd = os.path.abspath(START_DIR)
+    if raw_data["subtest"]:
+        test_id = raw_data["subtest"]
+    else:
+        test_id = raw_data["test"]
+    test_dict = {}
+    test_dict[test_id] = raw_data
+    payload: PayloadDict = {"cwd": cwd, "status": status, "result": test_dict}
+    post_response(payload, port, uuid)
+
+
+def post_response(
+    payload: Union[PayloadDict, EOTPayloadDict], port: int, uuid: str
+) -> None:
+    # Build the request data (it has to be a POST request or the Node side will not process it), and send it.
+    addr = ("localhost", port)
+    global __socket
+    if __socket is None:
+        try:
+            __socket = socket_manager.SocketManager(addr)
+            __socket.connect()
+        except Exception as error:
+            print(f"Plugin error connection error[vscode-pytest]: {error}")
+            __socket = None
+    data = json.dumps(payload)
+    request = f"""Content-Length: {len(data)}
+Content-Type: application/json
+Request-uuid: {uuid}
+
+{data}"""
+    try:
+        if __socket is not None and __socket.socket is not None:
+            __socket.socket.sendall(request.encode("utf-8"))
+    except Exception as ex:
+        print(f"Error sending response: {ex}")
+        print(f"Request data: {request}")
 
 
 if __name__ == "__main__":
@@ -216,19 +264,75 @@ if __name__ == "__main__":
 
     start_dir, pattern, top_level_dir = parse_unittest_args(argv[index + 1 :])
 
-    # Perform test execution.
-    port, uuid, testids = parse_execution_cli_args(argv[:index])
-    payload = run_tests(start_dir, testids, pattern, top_level_dir, uuid)
+    run_test_ids_port = os.environ.get("RUN_TEST_IDS_PORT")
+    run_test_ids_port_int = (
+        int(run_test_ids_port) if run_test_ids_port is not None else 0
+    )
+    if run_test_ids_port_int == 0:
+        print("Error[vscode-unittest]: RUN_TEST_IDS_PORT env var is not set.")
+    # get data from socket
+    test_ids_from_buffer = []
+    try:
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client_socket.connect(("localhost", run_test_ids_port_int))
+        buffer = b""
 
-    # Build the request data (it has to be a POST request or the Node side will not process it), and send it.
-    addr = ("localhost", port)
-    with socket_manager.SocketManager(addr) as s:
-        data = json.dumps(payload)
-        request = f"""POST / HTTP/1.1
-Host: localhost:{port}
-Content-Length: {len(data)}
-Content-Type: application/json
-Request-uuid: {uuid}
+        while True:
+            # Receive the data from the client
+            data = client_socket.recv(1024 * 1024)
+            if not data:
+                break
 
-{data}"""
-        result = s.socket.sendall(request.encode("utf-8"))  # type: ignore
+            # Append the received data to the buffer
+            buffer += data
+
+            try:
+                # Try to parse the buffer as JSON
+                test_ids_from_buffer = process_json_util.process_rpc_json(
+                    buffer.decode("utf-8")
+                )
+                # Clear the buffer as complete JSON object is received
+                buffer = b""
+                break
+            except json.JSONDecodeError:
+                # JSON decoding error, the complete JSON object is not yet received
+                continue
+    except socket.error as e:
+        print(f"Error: Could not connect to runTestIdsPort: {e}")
+        print("Error: Could not connect to runTestIdsPort")
+
+    testPort = int(os.environ.get("TEST_PORT", DEFAULT_PORT))
+    testUuid = os.environ.get("TEST_UUID")
+    if testPort is DEFAULT_PORT:
+        print(
+            "Error[vscode-unittest]: TEST_PORT is not set.",
+            " TEST_UUID = ",
+            testUuid,
+        )
+    if testUuid is None:
+        print(
+            "Error[vscode-unittest]: TEST_UUID is not set.",
+            " TEST_PORT = ",
+            testPort,
+        )
+        testUuid = "unknown"
+    if test_ids_from_buffer:
+        # Perform test execution.
+        payload = run_tests(
+            start_dir, test_ids_from_buffer, pattern, top_level_dir, testUuid
+        )
+    else:
+        cwd = os.path.abspath(start_dir)
+        status = TestExecutionStatus.error
+        payload: PayloadDict = {
+            "cwd": cwd,
+            "status": status,
+            "error": "No test ids received from buffer",
+            "result": None,
+        }
+    eot_payload: EOTPayloadDict = {"command_type": "execution", "eot": True}
+    if testUuid is None:
+        print("Error sending response, uuid unknown to python server.")
+        post_response(eot_payload, testPort, "unknown")
+    else:
+        post_response(eot_payload, testPort, testUuid)

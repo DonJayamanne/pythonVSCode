@@ -17,13 +17,12 @@ export type CommandsWithoutArgs = keyof ICommandNameWithoutArgumentTypeMapping;
  */
 interface ICommandNameWithoutArgumentTypeMapping {
     [Commands.InstallPythonOnMac]: [];
+    [Commands.InstallJupyter]: [];
     [Commands.InstallPythonOnLinux]: [];
     [Commands.InstallPython]: [];
     [Commands.ClearWorkspaceInterpreter]: [];
     [Commands.Set_Interpreter]: [];
     [Commands.Set_ShebangInterpreter]: [];
-    [Commands.Run_Linter]: [];
-    [Commands.Enable_Linter]: [];
     ['workbench.action.showCommands']: [];
     ['workbench.action.debug.continue']: [];
     ['workbench.action.debug.stepOver']: [];
@@ -34,7 +33,6 @@ interface ICommandNameWithoutArgumentTypeMapping {
     ['editor.action.formatDocument']: [];
     ['editor.action.rename']: [];
     [Commands.ViewOutput]: [];
-    [Commands.Set_Linter]: [];
     [Commands.Start_REPL]: [];
     [Commands.Enable_SourceMap_Support]: [];
     [Commands.Exec_Selection_In_Terminal]: [];
@@ -95,11 +93,18 @@ export interface ICommandNameArgumentTypeMapping extends ICommandNameWithoutArgu
     ['workbench.action.openIssueReporter']: [{ extensionId: string; issueBody: string }];
     [Commands.GetSelectedInterpreterPath]: [{ workspaceFolder: string } | string[]];
     [Commands.TriggerEnvironmentSelection]: [undefined | Uri];
-    [Commands.Sort_Imports]: [undefined, Uri];
     [Commands.Exec_In_Terminal]: [undefined, Uri];
     [Commands.Exec_In_Terminal_Icon]: [undefined, Uri];
     [Commands.Debug_In_Terminal]: [Uri];
     [Commands.Tests_Configure]: [undefined, undefined | CommandSource, undefined | Uri];
     [Commands.LaunchTensorBoard]: [TensorBoardEntrypoint, TensorBoardEntrypointTrigger];
     ['workbench.view.testing.focus']: [];
+    ['cursorMove']: [
+        {
+            to: string;
+            by: string;
+            value: number;
+        },
+    ];
+    ['cursorEnd']: [];
 }

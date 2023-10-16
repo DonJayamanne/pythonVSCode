@@ -12,13 +12,15 @@ jobs:
     if: contains(github.event.issue.labels.*.name, 'testplan-item') || contains(github.event.issue.labels.*.name, 'invalid-testplan-item')
     steps:
       - name: Checkout Actions
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: 'microsoft/vscode-github-triage-actions'
           path: ./actions
           ref: stable
+
       - name: Install Actions
         run: npm install --production --prefix ./actions
+
       - name: Run Test Plan Item Validator
         uses: ./actions/test-plan-item-validator
         with:

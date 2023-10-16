@@ -2,22 +2,22 @@
 // Licensed under the MIT License.
 
 import { Event, Terminal, TextEditor, Uri } from 'vscode';
-import { IDisposable } from '../common/types';
+import { IDisposable, Resource } from '../common/types';
 
 export const ICodeExecutionService = Symbol('ICodeExecutionService');
 
 export interface ICodeExecutionService {
     execute(code: string, resource?: Uri): Promise<void>;
-    executeFile(file: Uri): Promise<void>;
+    executeFile(file: Uri, options?: { newTerminalPerFile: boolean }): Promise<void>;
     initializeRepl(resource?: Uri): Promise<void>;
 }
 
 export const ICodeExecutionHelper = Symbol('ICodeExecutionHelper');
 
 export interface ICodeExecutionHelper {
-    normalizeLines(code: string): Promise<string>;
+    normalizeLines(code: string, wholeFileContent?: string): Promise<string>;
     getFileToExecute(): Promise<Uri | undefined>;
-    saveFileIfDirty(file: Uri): Promise<void>;
+    saveFileIfDirty(file: Uri): Promise<Resource>;
     getSelectedTextToExecute(textEditor: TextEditor): Promise<string | undefined>;
 }
 

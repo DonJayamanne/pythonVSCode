@@ -32,7 +32,6 @@ import { EditorUtils } from '../../client/common/editor';
 import { ProductInstaller } from '../../client/common/installer/productInstaller';
 import { InterpreterPathService } from '../../client/common/interpreterPathService';
 import { BrowserService } from '../../client/common/net/browser';
-import { HttpClient } from '../../client/common/net/httpClient';
 import { PersistentStateFactory } from '../../client/common/persistentState';
 import { PathUtils } from '../../client/common/platform/pathUtils';
 import { CurrentProcess } from '../../client/common/process/currentProcess';
@@ -41,6 +40,7 @@ import { TerminalActivator } from '../../client/common/terminal/activator';
 import { PowershellTerminalActivationFailedHandler } from '../../client/common/terminal/activator/powershellFailedHandler';
 import { Bash } from '../../client/common/terminal/environmentActivationProviders/bash';
 import { CommandPromptAndPowerShell } from '../../client/common/terminal/environmentActivationProviders/commandPrompt';
+import { Nushell } from '../../client/common/terminal/environmentActivationProviders/nushell';
 import { CondaActivationCommandProvider } from '../../client/common/terminal/environmentActivationProviders/condaActivationProvider';
 import { PipEnvActivationCommandProvider } from '../../client/common/terminal/environmentActivationProviders/pipEnvActivationProvider';
 import { PyEnvActivationCommandProvider } from '../../client/common/terminal/environmentActivationProviders/pyenvActivationProvider';
@@ -65,7 +65,6 @@ import {
     ICurrentProcess,
     IEditorUtils,
     IExtensions,
-    IHttpClient,
     IInstaller,
     IInterpreterPathService,
     IPathUtils,
@@ -104,7 +103,6 @@ suite('Common - Service Registry', () => {
             [IApplicationEnvironment, ApplicationEnvironment],
             [ILanguageService, LanguageService],
             [IBrowserService, BrowserService],
-            [IHttpClient, HttpClient],
             [IEditorUtils, EditorUtils],
             [ITerminalActivator, TerminalActivator],
             [ITerminalActivationHandler, PowershellTerminalActivationFailedHandler],
@@ -116,6 +114,7 @@ suite('Common - Service Registry', () => {
                 CommandPromptAndPowerShell,
                 TerminalActivationProviders.commandPromptAndPowerShell,
             ],
+            [ITerminalActivationCommandProvider, Nushell, TerminalActivationProviders.nushell],
             [IToolExecutionPath, PipEnvExecutionPath, ToolExecutionPath.pipenv],
             [ITerminalActivationCommandProvider, CondaActivationCommandProvider, TerminalActivationProviders.conda],
             [ITerminalActivationCommandProvider, PipEnvActivationCommandProvider, TerminalActivationProviders.pipenv],

@@ -23,17 +23,14 @@ import { ITestingSettings } from '../testing/configuration/types';
 import { IWorkspaceService } from './application/types';
 import { WorkspaceService } from './application/workspace';
 import { DEFAULT_INTERPRETER_SETTING, isTestExecution } from './constants';
-import { IS_WINDOWS } from './platform/constants';
 import {
     IAutoCompleteSettings,
     IDefaultLanguageServer,
     IExperiments,
-    IFormattingSettings,
     IInterpreterPathService,
     IInterpreterSettings,
     ILintingSettings,
     IPythonSettings,
-    ISortImportSettings,
     ITensorBoardSettings,
     ITerminalSettings,
     Resource,
@@ -41,6 +38,7 @@ import {
 import { debounceSync } from './utils/decorators';
 import { SystemVariables } from './variables/systemVariables';
 import { getOSType, OSType } from './utils/platform';
+import { isWindows } from './platform/platformService';
 
 const untildify = require('untildify');
 
@@ -110,8 +108,6 @@ export class PythonSettings implements IPythonSettings {
 
     public linting!: ILintingSettings;
 
-    public formatting!: IFormattingSettings;
-
     public autoComplete!: IAutoCompleteSettings;
 
     public tensorBoard: ITensorBoardSettings | undefined;
@@ -119,8 +115,6 @@ export class PythonSettings implements IPythonSettings {
     public testing!: ITestingSettings;
 
     public terminal!: ITerminalSettings;
-
-    public sortImports!: ISortImportSettings;
 
     public globalModuleInstallation = false;
 
@@ -319,14 +313,6 @@ export class PythonSettings implements IPythonSettings {
 
         this.globalModuleInstallation = pythonSettings.get<boolean>('globalModuleInstallation') === true;
 
-        const sortImportSettings = systemVariables.resolveAny(pythonSettings.get<ISortImportSettings>('sortImports'))!;
-        if (this.sortImports) {
-            Object.assign<ISortImportSettings, ISortImportSettings>(this.sortImports, sortImportSettings);
-        } else {
-            this.sortImports = sortImportSettings;
-        }
-        // Support for travis.
-        this.sortImports = this.sortImports ? this.sortImports : { path: '', args: [] };
         // Support for travis.
         this.linting = this.linting
             ? this.linting
@@ -405,34 +391,6 @@ export class PythonSettings implements IPythonSettings {
         if (this.linting.cwd) {
             this.linting.cwd = getAbsolutePath(systemVariables.resolveAny(this.linting.cwd), workspaceRoot);
         }
-
-        const formattingSettings = systemVariables.resolveAny(pythonSettings.get<IFormattingSettings>('formatting'))!;
-        if (this.formatting) {
-            Object.assign<IFormattingSettings, IFormattingSettings>(this.formatting, formattingSettings);
-        } else {
-            this.formatting = formattingSettings;
-        }
-        // Support for travis.
-        this.formatting = this.formatting
-            ? this.formatting
-            : {
-                  autopep8Args: [],
-                  autopep8Path: 'autopep8',
-                  provider: 'autopep8',
-                  blackArgs: [],
-                  blackPath: 'black',
-                  yapfArgs: [],
-                  yapfPath: 'yapf',
-              };
-        this.formatting.autopep8Path = getAbsolutePath(
-            systemVariables.resolveAny(this.formatting.autopep8Path),
-            workspaceRoot,
-        );
-        this.formatting.yapfPath = getAbsolutePath(systemVariables.resolveAny(this.formatting.yapfPath), workspaceRoot);
-        this.formatting.blackPath = getAbsolutePath(
-            systemVariables.resolveAny(this.formatting.blackPath),
-            workspaceRoot,
-        );
 
         const testSettings = systemVariables.resolveAny(pythonSettings.get<ITestingSettings>('testing'))!;
         if (this.testing) {
@@ -654,7 +612,7 @@ function getPythonExecutable(pythonPath: string): string {
 
     for (let executableName of KnownPythonExecutables) {
         // Suffix with 'python' for linux and 'osx', and 'python.exe' for 'windows'.
-        if (IS_WINDOWS) {
+        if (isWindows()) {
             executableName = `${executableName}.exe`;
             if (isValidPythonPath(path.join(pythonPath, executableName))) {
                 return path.join(pythonPath, executableName);

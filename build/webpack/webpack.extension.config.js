@@ -61,11 +61,15 @@ const config = {
         // See: https://github.com/microsoft/vscode-extension-telemetry/issues/41#issuecomment-598852991
         'applicationinsights-native-metrics',
         '@opentelemetry/tracing',
+        '@azure/opentelemetry-instrumentation-azure-sdk',
+        '@opentelemetry/instrumentation',
+        '@azure/functions-core',
     ],
     plugins: [...common.getDefaultPlugins('extension')],
     resolve: {
         extensions: ['.ts', '.js'],
         plugins: [new tsconfig_paths_webpack_plugin.TsconfigPathsPlugin({ configFile: configFileName })],
+        conditionNames: ['import', 'require', 'node'],
     },
     output: {
         filename: '[name].js',

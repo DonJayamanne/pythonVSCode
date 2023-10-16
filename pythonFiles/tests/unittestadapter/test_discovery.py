@@ -6,37 +6,11 @@ import pathlib
 from typing import List
 
 import pytest
-from unittestadapter.discovery import (
-    DEFAULT_PORT,
-    discover_tests,
-    parse_discovery_cli_args,
-)
+from unittestadapter.discovery import discover_tests
 from unittestadapter.utils import TestNodeTypeEnum, parse_unittest_args
 
+from . import expected_discovery_test_output
 from .helpers import TEST_DATA_PATH, is_same_tree
-
-
-@pytest.mark.parametrize(
-    "args, expected",
-    [
-        (["--port", "6767", "--uuid", "some-uuid"], (6767, "some-uuid")),
-        (["--foo", "something", "--bar", "another"], (int(DEFAULT_PORT), None)),
-        (["--port", "4444", "--foo", "something", "--port", "9999"], (9999, None)),
-        (
-            ["--uuid", "first-uuid", "--bar", "other", "--uuid", "second-uuid"],
-            (int(DEFAULT_PORT), "second-uuid"),
-        ),
-    ],
-)
-def test_parse_cli_args(args: List[str], expected: List[str]) -> None:
-    """The parse_cli_args function should parse and return the port and uuid passed as command-line options.
-
-    If there were no --port or --uuid command-line option, it should return default values).
-    If there are multiple options, the last one wins.
-    """
-    actual = parse_discovery_cli_args(args)
-
-    assert expected == actual
 
 
 @pytest.mark.parametrize(
@@ -132,7 +106,7 @@ def test_simple_discovery() -> None:
 
     assert actual["status"] == "success"
     assert is_same_tree(actual.get("tests"), expected)
-    assert "errors" not in actual
+    assert "error" not in actual
 
 
 def test_empty_discovery() -> None:
@@ -146,8 +120,8 @@ def test_empty_discovery() -> None:
     actual = discover_tests(start_dir, pattern, None, uuid)
 
     assert actual["status"] == "success"
-    assert "tests" not in actual
-    assert "errors" not in actual
+    assert "tests" in actual
+    assert "error" not in actual
 
 
 def test_error_discovery() -> None:
@@ -213,4 +187,23 @@ def test_error_discovery() -> None:
 
     assert actual["status"] == "error"
     assert is_same_tree(expected, actual.get("tests"))
-    assert len(actual.get("errors", [])) == 1
+    assert len(actual.get("error", [])) == 1
+
+
+def test_unit_skip() -> None:
+    """The discover_tests function should return a dictionary with a "success" status, a uuid, no errors, and test tree.
+    if unittest discovery was performed and found a test in one file marked as skipped and another file marked as skipped.
+    """
+    start_dir = os.fsdecode(TEST_DATA_PATH / "unittest_skip")
+    pattern = "unittest_*"
+
+    uuid = "some-uuid"
+    actual = discover_tests(start_dir, pattern, None, uuid)
+
+    assert actual["status"] == "success"
+    assert "tests" in actual
+    assert is_same_tree(
+        actual.get("tests"),
+        expected_discovery_test_output.skip_unittest_folder_discovery_output,
+    )
+    assert "error" not in actual

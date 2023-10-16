@@ -14,3 +14,11 @@ export enum TerminalEnvVarActivation {
 export enum ShowFormatterExtensionPrompt {
     experiment = 'pythonPromptNewFormatterExt',
 }
+// Experiment to enable the new testing rewrite.
+export enum EnableTestAdapterRewrite {
+    experiment = 'pythonTestAdapter',
+}
+// Experiment to enable smart shift+enter, advance cursor.
+export enum EnableREPLSmartSend {
+    experiment = 'pythonREPLSmartSend',
+}

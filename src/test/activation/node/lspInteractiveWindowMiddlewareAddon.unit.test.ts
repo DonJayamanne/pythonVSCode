@@ -10,16 +10,11 @@ import { anything, capture, instance, mock, verify, when } from 'ts-mockito';
 import { LanguageClient } from 'vscode-languageclient/node';
 import { LspInteractiveWindowMiddlewareAddon } from '../../../client/activation/node/lspInteractiveWindowMiddlewareAddon';
 import { JupyterExtensionIntegration } from '../../../client/jupyter/jupyterIntegration';
-import { IExtensions, IInstaller } from '../../../client/common/types';
-import {
-    IComponentAdapter,
-    ICondaService,
-    IInterpreterDisplay,
-    IInterpreterService,
-} from '../../../client/interpreter/contracts';
+import { IExtensions } from '../../../client/common/types';
+import { ICondaService, IInterpreterDisplay } from '../../../client/interpreter/contracts';
 import { IInterpreterSelector } from '../../../client/interpreter/configuration/types';
 import { IEnvironmentActivationService } from '../../../client/interpreter/activation/types';
-import { IWorkspaceService } from '../../../client/common/application/types';
+import { IContextKeyManager, IWorkspaceService } from '../../../client/common/application/types';
 import { MockMemento } from '../../mocks/mementos';
 
 suite('Pylance Language Server - Interactive Window LSP Notebooks', () => {
@@ -32,15 +27,13 @@ suite('Pylance Language Server - Interactive Window LSP Notebooks', () => {
         languageClient = instance(languageClientMock);
         jupyterApi = new JupyterExtensionIntegration(
             mock<IExtensions>(),
-            mock<IInterpreterService>(),
             mock<IInterpreterSelector>(),
-            mock<IInstaller>(),
             mock<IEnvironmentActivationService>(),
             new MockMemento(),
             mock<IInterpreterDisplay>(),
-            mock<IComponentAdapter>(),
             mock<IWorkspaceService>(),
             mock<ICondaService>(),
+            mock<IContextKeyManager>(),
         );
         jupyterApi.registerGetNotebookUriForTextDocumentUriFunction(getNotebookUriFunction);
     });

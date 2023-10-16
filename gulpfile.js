@@ -27,7 +27,7 @@ const tsProject = ts.createProject('./tsconfig.json', { typescript });
 
 const isCI = process.env.TRAVIS === 'true' || process.env.TF_BUILD !== undefined;
 
-gulp.task('compile', (done) => {
+gulp.task('compileCore', (done) => {
     let failed = false;
     tsProject
         .src()
@@ -38,6 +38,23 @@ gulp.task('compile', (done) => {
         .js.pipe(gulp.dest('out'))
         .on('finish', () => (failed ? done(new Error('TypeScript compilation errors')) : done()));
 });
+
+gulp.task('compileApi', (done) => {
+    spawnAsync('npm', ['run', 'compileApi'], undefined, true)
+        .then((stdout) => {
+            if (stdout.includes('error')) {
+                done(new Error(stdout));
+            } else {
+                done();
+            }
+        })
+        .catch((ex) => {
+            console.log(ex);
+            done(new Error('TypeScript compilation errors', ex));
+        });
+});
+
+gulp.task('compile', gulp.series('compileCore', 'compileApi'));
 
 gulp.task('precommit', (done) => run({ exitOnError: true, mode: 'staged' }, done));
 
@@ -82,8 +99,12 @@ async function addExtensionPackDependencies() {
     // extension dependencies need not be installed during development
     const packageJsonContents = await fsExtra.readFile('package.json', 'utf-8');
     const packageJson = JSON.parse(packageJsonContents);
-    packageJson.extensionPack = ['ms-toolsai.jupyter', 'ms-python.vscode-pylance'].concat(
+    packageJson.extensionPack = ['ms-python.vscode-pylance'].concat(
         packageJson.extensionPack ? packageJson.extensionPack : [],
+    );
+    // Remove potential duplicates.
+    packageJson.extensionPack = packageJson.extensionPack.filter(
+        (item, index) => packageJson.extensionPack.indexOf(item) === index,
     );
     await fsExtra.writeFile('package.json', JSON.stringify(packageJson, null, 4), 'utf-8');
 }
@@ -282,7 +303,7 @@ gulp.task('installDebugpy', async () => {
         '-t',
         './pythonFiles/lib/temp',
         '-r',
-        './build/debugger-install-requirements.txt',
+        './build/build-install-requirements.txt',
     ];
     await spawnAsync(process.env.CI_PYTHON_PATH || 'python', depsArgs, undefined, true)
         .then(() => true)
@@ -291,13 +312,23 @@ gulp.task('installDebugpy', async () => {
             return false;
         });
 
-    // Install new DEBUGPY with wheels for python 3.7
+    // Install new DEBUGPY with wheels for python
     const wheelsArgs = ['./pythonFiles/install_debugpy.py'];
     const wheelsEnv = { PYTHONPATH: './pythonFiles/lib/temp' };
     await spawnAsync(process.env.CI_PYTHON_PATH || 'python', wheelsArgs, wheelsEnv, true)
         .then(() => true)
         .catch((ex) => {
             console.error("Failed to install DEBUGPY wheels using 'python'", ex);
+            return false;
+        });
+
+    // Download get-pip.py
+    const getPipArgs = ['./pythonFiles/download_get_pip.py'];
+    const getPipEnv = { PYTHONPATH: './pythonFiles/lib/temp' };
+    await spawnAsync(process.env.CI_PYTHON_PATH || 'python', getPipArgs, getPipEnv, true)
+        .then(() => true)
+        .catch((ex) => {
+            console.error("Failed to download get-pip wheels using 'python'", ex);
             return false;
         });
 

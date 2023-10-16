@@ -16,9 +16,17 @@ import { DebuggerTypeName } from '../../../constants';
 import { DebugOptions, DebugPurpose, LaunchRequestArguments } from '../../../types';
 import { BaseConfigurationResolver } from './base';
 import { getProgram, IDebugEnvironmentVariablesService } from './helper';
+import {
+    CreateEnvironmentCheckKind,
+    triggerCreateEnvironmentCheckNonBlocking,
+} from '../../../../pythonEnvironments/creation/createEnvironmentTrigger';
+import { sendTelemetryEvent } from '../../../../telemetry';
+import { EventName } from '../../../../telemetry/constants';
 
 @injectable()
 export class LaunchConfigurationResolver extends BaseConfigurationResolver<LaunchRequestArguments> {
+    private isCustomPythonSet = false;
+
     constructor(
         @inject(IDiagnosticsService)
         @named(InvalidPythonPathInDebuggerServiceId)
@@ -36,6 +44,7 @@ export class LaunchConfigurationResolver extends BaseConfigurationResolver<Launc
         debugConfiguration: LaunchRequestArguments,
         _token?: CancellationToken,
     ): Promise<LaunchRequestArguments | undefined> {
+        this.isCustomPythonSet = debugConfiguration.python !== undefined;
         if (
             debugConfiguration.name === undefined &&
             debugConfiguration.type === undefined &&
@@ -52,6 +61,10 @@ export class LaunchConfigurationResolver extends BaseConfigurationResolver<Launc
         }
 
         const workspaceFolder = LaunchConfigurationResolver.getWorkspaceFolder(folder);
+        // Pass workspace folder so we can get this when we get debug events firing.
+        // Do it here itself instead of `resolveDebugConfigurationWithSubstitutedVariables` which is called after
+        // this method, as in order to calculate substituted variables, this might be needed.
+        debugConfiguration.workspaceFolder = workspaceFolder?.fsPath;
         await this.resolveAndUpdatePaths(workspaceFolder, debugConfiguration);
         if (debugConfiguration.clientOS === undefined) {
             debugConfiguration.clientOS = getOSType() === OSType.Windows ? 'windows' : 'unix';
@@ -77,6 +90,8 @@ export class LaunchConfigurationResolver extends BaseConfigurationResolver<Launc
                 (item, pos) => debugConfiguration.debugOptions!.indexOf(item) === pos,
             );
         }
+        sendTelemetryEvent(EventName.ENVIRONMENT_CHECK_TRIGGER, undefined, { trigger: 'debug' });
+        triggerCreateEnvironmentCheckNonBlocking(CreateEnvironmentCheckKind.Workspace, workspaceFolder);
         return debugConfiguration;
     }
 
@@ -84,7 +99,6 @@ export class LaunchConfigurationResolver extends BaseConfigurationResolver<Launc
         workspaceFolder: Uri | undefined,
         debugConfiguration: LaunchRequestArguments,
     ): Promise<void> {
-        const isPythonSet = debugConfiguration.python !== undefined;
         if (debugConfiguration.python === undefined) {
             debugConfiguration.python = debugConfiguration.pythonPath;
         }
@@ -104,7 +118,9 @@ export class LaunchConfigurationResolver extends BaseConfigurationResolver<Launc
             debugConfiguration.envFile = settings.envFile;
         }
         let baseEnvVars: EnvironmentVariables | undefined;
-        if (isPythonSet) {
+        if (this.isCustomPythonSet || debugConfiguration.console !== 'integratedTerminal') {
+            // We only have the right activated environment present in integrated terminal if no custom Python path
+            // is specified. Otherwise, we need to explicitly set the variables.
             baseEnvVars = await this.environmentActivationService.getActivatedEnvironmentVariables(
                 workspaceFolder,
                 await this.interpreterService.getInterpreterDetails(debugConfiguration.python ?? ''),
@@ -133,8 +149,6 @@ export class LaunchConfigurationResolver extends BaseConfigurationResolver<Launc
             // Populate justMyCode using debugStdLib
             debugConfiguration.justMyCode = !debugConfiguration.debugStdLib;
         }
-        // Pass workspace folder so we can get this when we get debug events firing.
-        debugConfiguration.workspaceFolder = workspaceFolder ? workspaceFolder.fsPath : undefined;
         const debugOptions = debugConfiguration.debugOptions!;
         if (!debugConfiguration.justMyCode) {
             LaunchConfigurationResolver.debugOption(debugOptions, DebugOptions.DebugStdLib);

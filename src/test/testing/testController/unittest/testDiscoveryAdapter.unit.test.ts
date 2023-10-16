@@ -3,14 +3,17 @@
 
 import * as assert from 'assert';
 import * as path from 'path';
+import * as typemoq from 'typemoq';
 import { Uri } from 'vscode';
-import { IConfigurationService } from '../../../../client/common/types';
+import { IConfigurationService, ITestOutputChannel } from '../../../../client/common/types';
 import { EXTENSION_ROOT_DIR } from '../../../../client/constants';
 import { ITestServer, TestCommandOptions } from '../../../../client/testing/testController/common/types';
 import { UnittestTestDiscoveryAdapter } from '../../../../client/testing/testController/unittest/testDiscoveryAdapter';
+import { createDeferred } from '../../../../client/common/utils/async';
 
 suite('Unittest test discovery adapter', () => {
     let stubConfigSettings: IConfigurationService;
+    let outputChannel: typemoq.IMock<ITestOutputChannel>;
 
     setup(() => {
         stubConfigSettings = ({
@@ -18,80 +21,72 @@ suite('Unittest test discovery adapter', () => {
                 testing: { unittestArgs: ['-v', '-s', '.', '-p', 'test*'] },
             }),
         } as unknown) as IConfigurationService;
+        outputChannel = typemoq.Mock.ofType<ITestOutputChannel>();
     });
 
-    test('discoverTests should send the discovery command to the test server', async () => {
+    test('DiscoverTests should send the discovery command to the test server with the correct args', async () => {
         let options: TestCommandOptions | undefined;
 
+        const deferred = createDeferred();
         const stubTestServer = ({
             sendCommand(opt: TestCommandOptions): Promise<void> {
+                delete opt.outChannel;
                 options = opt;
+                deferred.resolve();
                 return Promise.resolve();
             },
-            onDataReceived: () => {
+            onDiscoveryDataReceived: () => {
                 // no body
             },
+            createUUID: () => '123456789',
         } as unknown) as ITestServer;
 
         const uri = Uri.file('/foo/bar');
         const script = path.join(EXTENSION_ROOT_DIR, 'pythonFiles', 'unittestadapter', 'discovery.py');
 
-        const adapter = new UnittestTestDiscoveryAdapter(stubTestServer, stubConfigSettings);
+        const adapter = new UnittestTestDiscoveryAdapter(stubTestServer, stubConfigSettings, outputChannel.object);
         adapter.discoverTests(uri);
 
-        assert.deepStrictEqual(options, {
-            workspaceFolder: uri,
-            cwd: uri.fsPath,
-            command: { script, args: ['--udiscovery', '-v', '-s', '.', '-p', 'test*'] },
-        });
+        await deferred.promise;
+        assert.deepStrictEqual(options?.command?.args, ['--udiscovery', '-v', '-s', '.', '-p', 'test*']);
+        assert.deepStrictEqual(options.workspaceFolder, uri);
+        assert.deepStrictEqual(options.cwd, uri.fsPath);
+        assert.deepStrictEqual(options.command.script, script);
+        assert.deepStrictEqual(options.uuid, '123456789');
     });
+    test('DiscoverTests should respect settings.testings.cwd when present', async () => {
+        let options: TestCommandOptions | undefined;
+        stubConfigSettings = ({
+            getSettings: () => ({
+                testing: { unittestArgs: ['-v', '-s', '.', '-p', 'test*'], cwd: '/foo' },
+            }),
+        } as unknown) as IConfigurationService;
 
-    test("onDataReceivedHandler should parse the data if the cwd from the payload matches the test adapter's cwd", async () => {
+        const deferred = createDeferred();
         const stubTestServer = ({
-            sendCommand(): Promise<void> {
+            sendCommand(opt: TestCommandOptions): Promise<void> {
+                delete opt.outChannel;
+                options = opt;
+                deferred.resolve();
                 return Promise.resolve();
             },
-            onDataReceived: () => {
+            onDiscoveryDataReceived: () => {
                 // no body
             },
+            createUUID: () => '123456789',
         } as unknown) as ITestServer;
 
         const uri = Uri.file('/foo/bar');
-        const data = { status: 'success' };
+        const newCwd = '/foo';
+        const script = path.join(EXTENSION_ROOT_DIR, 'pythonFiles', 'unittestadapter', 'discovery.py');
 
-        const adapter = new UnittestTestDiscoveryAdapter(stubTestServer, stubConfigSettings);
-        const promise = adapter.discoverTests(uri);
-
-        adapter.onDataReceivedHandler({ cwd: uri.fsPath, data: JSON.stringify(data) });
-
-        const result = await promise;
-
-        assert.deepStrictEqual(result, data);
-    });
-
-    test("onDataReceivedHandler should ignore the data if the cwd from the payload does not match the test adapter's cwd", async () => {
-        const stubTestServer = ({
-            sendCommand(): Promise<void> {
-                return Promise.resolve();
-            },
-            onDataReceived: () => {
-                // no body
-            },
-        } as unknown) as ITestServer;
-
-        const uri = Uri.file('/foo/bar');
-
-        const adapter = new UnittestTestDiscoveryAdapter(stubTestServer, stubConfigSettings);
-        const promise = adapter.discoverTests(uri);
-
-        const data = { status: 'success' };
-        adapter.onDataReceivedHandler({ cwd: 'some/other/path', data: JSON.stringify(data) });
-
-        const nextData = { status: 'error' };
-        adapter.onDataReceivedHandler({ cwd: uri.fsPath, data: JSON.stringify(nextData) });
-
-        const result = await promise;
-
-        assert.deepStrictEqual(result, nextData);
+        const adapter = new UnittestTestDiscoveryAdapter(stubTestServer, stubConfigSettings, outputChannel.object);
+        adapter.discoverTests(uri);
+        await deferred.promise;
+        assert.deepStrictEqual(options?.command?.args, ['--udiscovery', '-v', '-s', '.', '-p', 'test*']);
+        assert.deepStrictEqual(options.workspaceFolder, uri);
+        assert.deepStrictEqual(options.cwd, newCwd);
+        assert.deepStrictEqual(options.command.script, script);
+        assert.deepStrictEqual(options.uuid, '123456789');
     });
 });

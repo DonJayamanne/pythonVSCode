@@ -3,62 +3,82 @@
 
 import * as path from 'path';
 import { Uri } from 'vscode';
-import { IConfigurationService } from '../../../common/types';
-import { createDeferred, Deferred } from '../../../common/utils/async';
+import { IConfigurationService, ITestOutputChannel } from '../../../common/types';
 import { EXTENSION_ROOT_DIR } from '../../../constants';
 import {
     DataReceivedEvent,
     DiscoveredTestPayload,
     ITestDiscoveryAdapter,
+    ITestResultResolver,
     ITestServer,
     TestCommandOptions,
     TestDiscoveryCommand,
 } from '../common/types';
+import { Deferred, createDeferred } from '../../../common/utils/async';
+import { EnvironmentVariables, IEnvironmentVariablesProvider } from '../../../common/variables/types';
 
 /**
  * Wrapper class for unittest test discovery. This is where we call `runTestCommand`.
  */
 export class UnittestTestDiscoveryAdapter implements ITestDiscoveryAdapter {
-    private deferred: Deferred<DiscoveredTestPayload> | undefined;
-
-    private cwd: string | undefined;
-
-    constructor(public testServer: ITestServer, public configSettings: IConfigurationService) {
-        testServer.onDataReceived(this.onDataReceivedHandler, this);
-    }
-
-    public onDataReceivedHandler({ cwd, data }: DataReceivedEvent): void {
-        if (this.deferred && cwd === this.cwd) {
-            const testData: DiscoveredTestPayload = JSON.parse(data);
-
-            this.deferred.resolve(testData);
-            this.deferred = undefined;
-        }
-    }
+    constructor(
+        public testServer: ITestServer,
+        public configSettings: IConfigurationService,
+        private readonly outputChannel: ITestOutputChannel,
+        private readonly resultResolver?: ITestResultResolver,
+        private readonly envVarsService?: IEnvironmentVariablesProvider,
+    ) {}
 
     public async discoverTests(uri: Uri): Promise<DiscoveredTestPayload> {
-        if (!this.deferred) {
-            const settings = this.configSettings.getSettings(uri);
-            const { unittestArgs } = settings.testing;
-
-            const command = buildDiscoveryCommand(unittestArgs);
-
-            this.cwd = uri.fsPath;
-
-            const options: TestCommandOptions = {
-                workspaceFolder: uri,
-                command,
-                cwd: this.cwd,
-            };
-
-            this.deferred = createDeferred<DiscoveredTestPayload>();
-
-            // Send the test command to the server.
-            // The server will fire an onDataReceived event once it gets a response.
-            this.testServer.sendCommand(options);
+        const settings = this.configSettings.getSettings(uri);
+        const { unittestArgs } = settings.testing;
+        const cwd = settings.testing.cwd && settings.testing.cwd.length > 0 ? settings.testing.cwd : uri.fsPath;
+        let env: EnvironmentVariables | undefined = await this.envVarsService?.getEnvironmentVariables(uri);
+        if (env === undefined) {
+            env = {} as EnvironmentVariables;
         }
+        const command = buildDiscoveryCommand(unittestArgs);
 
-        return this.deferred.promise;
+        const uuid = this.testServer.createUUID(uri.fsPath);
+        const deferredTillEOT: Deferred<void> = createDeferred<void>();
+        const options: TestCommandOptions = {
+            workspaceFolder: uri,
+            command,
+            cwd,
+            uuid,
+            outChannel: this.outputChannel,
+        };
+
+        const dataReceivedDisposable = this.testServer.onDiscoveryDataReceived((e: DataReceivedEvent) => {
+            this.resultResolver?.resolveDiscovery(JSON.parse(e.data), deferredTillEOT);
+        });
+        const disposeDataReceiver = function (testServer: ITestServer) {
+            testServer.deleteUUID(uuid);
+            dataReceivedDisposable.dispose();
+        };
+
+        await this.callSendCommand(options, env, () => {
+            disposeDataReceiver?.(this.testServer);
+        });
+        await deferredTillEOT.promise;
+        disposeDataReceiver(this.testServer);
+        // placeholder until after the rewrite is adopted
+        // TODO: remove after adoption.
+        const discoveryPayload: DiscoveredTestPayload = {
+            cwd,
+            status: 'success',
+        };
+        return discoveryPayload;
+    }
+
+    private async callSendCommand(
+        options: TestCommandOptions,
+        env: EnvironmentVariables,
+        callback: () => void,
+    ): Promise<DiscoveredTestPayload> {
+        await this.testServer.sendCommand(options, env, undefined, undefined, [], callback);
+        const discoveryPayload: DiscoveredTestPayload = { cwd: '', status: 'success' };
+        return discoveryPayload;
     }
 }
 
