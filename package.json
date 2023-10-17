@@ -1100,7 +1100,9 @@
                     "default": "",
                     "description": "%python.tensorBoard.logDirectory.description%",
                     "scope": "resource",
-                    "type": "string"
+                    "type": "string",
+                    "markdownDeprecationMessage": "%python.tensorBoard.logDirectory.markdownDeprecationMessage%",
+                    "deprecationMessage": "%python.tensorBoard.logDirectory.deprecationMessage%"
                 },
                 "python.terminal.activateEnvInCurrentTerminal": {
                     "default": false,
