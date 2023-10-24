@@ -12,6 +12,8 @@ import { ExecutionResult, ObservableExecutionResult, Output, ShellOptions, Spawn
 import { noop } from '../utils/misc';
 import { decodeBuffer } from './decoder';
 import { traceVerbose } from '../../logging';
+import { WorkspaceService } from '../application/workspace';
+import { ProcessLogger } from './logger';
 
 const PS_ERROR_SCREEN_BOGUS = /your [0-9]+x[0-9]+ screen size is bogus\. expect trouble/;
 
@@ -49,12 +51,16 @@ function getDefaultOptions<T extends ShellOptions | SpawnOptions>(options: T, de
 
 export function shellExec(
     command: string,
-    options: ShellOptions = {},
+    options: ShellOptions & { doNotLog?: boolean } = {},
     defaultEnv?: EnvironmentVariables,
     disposables?: Set<IDisposable>,
 ): Promise<ExecutionResult<string>> {
     const shellOptions = getDefaultOptions(options, defaultEnv);
     traceVerbose(`Shell Exec: ${command} with options: ${JSON.stringify(shellOptions, null, 4)}`);
+    if (!options.doNotLog) {
+        const processLogger = new ProcessLogger(new WorkspaceService());
+        processLogger.logProcess(command, undefined, shellOptions);
+    }
     return new Promise((resolve, reject) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const callback = (e: any, stdout: any, stderr: any) => {
@@ -90,12 +96,16 @@ export function shellExec(
 export function plainExec(
     file: string,
     args: string[],
-    options: SpawnOptions = {},
+    options: SpawnOptions & { doNotLog?: boolean } = {},
     defaultEnv?: EnvironmentVariables,
     disposables?: Set<IDisposable>,
 ): Promise<ExecutionResult<string>> {
     const spawnOptions = getDefaultOptions(options, defaultEnv);
     const encoding = spawnOptions.encoding ? spawnOptions.encoding : 'utf8';
+    if (!options.doNotLog) {
+        const processLogger = new ProcessLogger(new WorkspaceService());
+        processLogger.logProcess(file, args, options);
+    }
     const proc = spawn(file, args, spawnOptions);
     // Listen to these errors (unhandled errors in streams tears down the process).
     // Errors will be bubbled up to the `error` event in `proc`, hence no need to log.
@@ -192,12 +202,16 @@ function removeCondaRunMarkers(out: string) {
 export function execObservable(
     file: string,
     args: string[],
-    options: SpawnOptions = {},
+    options: SpawnOptions & { doNotLog?: boolean } = {},
     defaultEnv?: EnvironmentVariables,
     disposables?: Set<IDisposable>,
 ): ObservableExecutionResult<string> {
     const spawnOptions = getDefaultOptions(options, defaultEnv);
     const encoding = spawnOptions.encoding ? spawnOptions.encoding : 'utf8';
+    if (!options.doNotLog) {
+        const processLogger = new ProcessLogger(new WorkspaceService());
+        processLogger.logProcess(file, args, options);
+    }
     const proc = spawn(file, args, spawnOptions);
     let procExited = false;
     const disposable: IDisposable = {
