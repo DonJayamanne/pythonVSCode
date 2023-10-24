@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 import { inject, injectable } from 'inversify';
-import { Uri, l10n } from 'vscode';
+import { Uri } from 'vscode';
 import * as path from 'path';
 import { IActiveResourceService, IApplicationShell, ITerminalManager } from '../../common/application/types';
 import {
@@ -20,6 +20,7 @@ import { PythonEnvironment } from '../../pythonEnvironments/info';
 import { ITerminalEnvVarCollectionService } from '../types';
 import { sleep } from '../../common/utils/async';
 import { isTestExecution } from '../../common/constants';
+import { PythonEnvType } from '../../pythonEnvironments/base/info';
 
 export const terminalEnvCollectionPromptKey = 'TERMINAL_ENV_COLLECTION_PROMPT_KEY';
 
@@ -85,12 +86,13 @@ export class TerminalIndicatorPrompt implements IExtensionSingleActivationServic
         }
         const prompts = [Common.doNotShowAgain];
         const interpreter = await this.interpreterService.getActiveInterpreter(resource);
-        if (!interpreter) {
+        if (!interpreter || !interpreter.type) {
             return;
         }
         const terminalPromptName = getPromptName(interpreter);
+        const environmentType = interpreter.type === PythonEnvType.Conda ? 'Selected conda' : 'Python virtual';
         const selection = await this.appShell.showInformationMessage(
-            Interpreters.terminalEnvVarCollectionPrompt.format(terminalPromptName),
+            Interpreters.terminalEnvVarCollectionPrompt.format(environmentType, terminalPromptName),
             ...prompts,
         );
         if (!selection) {
@@ -104,10 +106,10 @@ export class TerminalIndicatorPrompt implements IExtensionSingleActivationServic
 
 function getPromptName(interpreter: PythonEnvironment) {
     if (interpreter.envName) {
-        return `, ${l10n.t('i.e')} "(${interpreter.envName})"`;
+        return `"(${interpreter.envName})"`;
     }
     if (interpreter.envPath) {
-        return `, ${l10n.t('i.e')} "(${path.basename(interpreter.envPath)})"`;
+        return `"(${path.basename(interpreter.envPath)})"`;
     }
-    return '';
+    return 'environment indicator';
 }
