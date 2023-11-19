@@ -5,7 +5,7 @@
 import { HKCU, HKLM, Options, REG_SZ, Registry, RegistryItem } from 'winreg';
 import * as path from 'path';
 import { createDeferred } from '../../common/utils/async';
-import { executeWorkerFile } from './externalDependencies';
+import { executeWorkerFile } from '../../common/process/worker/main';
 
 export { HKCU, HKLM, REG_SZ, Options };
 
@@ -39,7 +39,7 @@ export async function readRegistryValues(options: Options, useWorkerThreads: boo
         });
         return deferred.promise;
     }
-    return executeWorkerFile(path.join(__dirname, 'registryValuesWorker.js'), options);
+    return executeWorkerFile(path.join(__dirname, 'registryValues.worker.js'), options);
 }
 
 export async function readRegistryKeys(options: Options, useWorkerThreads: boolean): Promise<IRegistryKey[]> {
@@ -56,5 +56,5 @@ export async function readRegistryKeys(options: Options, useWorkerThreads: boole
         });
         return deferred.promise;
     }
-    return executeWorkerFile(path.join(__dirname, 'registryKeysWorker.js'), options);
+    return executeWorkerFile(path.join(__dirname, 'registryKeys.worker.js'), options);
 }
