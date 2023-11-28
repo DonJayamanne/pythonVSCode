@@ -16,6 +16,8 @@ import { ILanguageServerOutputChannel } from '../types';
 export class JediLanguageServerAnalysisOptions extends LanguageServerAnalysisOptionsWithEnv {
     private resource: Resource | undefined;
 
+    private interpreter: PythonEnvironment | undefined;
+
     constructor(
         envVarsProvider: IEnvironmentVariablesProvider,
         lsOutputChannel: ILanguageServerOutputChannel,
@@ -28,6 +30,7 @@ export class JediLanguageServerAnalysisOptions extends LanguageServerAnalysisOpt
 
     public async initialize(resource: Resource, interpreter: PythonEnvironment | undefined) {
         this.resource = resource;
+        this.interpreter = interpreter;
         return super.initialize(resource, interpreter);
     }
 
@@ -76,6 +79,7 @@ export class JediLanguageServerAnalysisOptions extends LanguageServerAnalysisOpt
             },
             workspace: {
                 extraPaths: distinctExtraPaths,
+                environmentPath: this.interpreter?.envPath,
                 symbols: {
                     // 0 means remove limit on number of workspace symbols returned
                     maxSymbols: 0,
