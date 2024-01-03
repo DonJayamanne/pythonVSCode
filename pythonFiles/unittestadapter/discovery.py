@@ -86,7 +86,13 @@ def discover_tests(
         loader = unittest.TestLoader()
         suite = loader.discover(start_dir, pattern, top_level_dir)
 
-        tests, error = build_test_tree(suite, cwd)  # test tree built succesfully here.
+        # If the top level directory is not provided, then use the start directory.
+        if top_level_dir is None:
+            top_level_dir = start_dir
+
+        tests, error = build_test_tree(
+            suite, top_level_dir
+        )  # test tree built successfully here.
 
     except Exception:
         error.append(traceback.format_exc())
