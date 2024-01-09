@@ -3,7 +3,7 @@
 
 'use strict';
 
-import { debug, DebugConfigurationProvider, DebugConfigurationProviderTriggerKind, languages, window } from 'vscode';
+import { languages, window } from 'vscode';
 
 import { registerTypes as activationRegisterTypes } from './activation/serviceRegistry';
 import { IExtensionActivationManager } from './activation/types';
@@ -22,9 +22,7 @@ import {
     IPathUtils,
 } from './common/types';
 import { noop } from './common/utils/misc';
-import { DebuggerTypeName } from './debugger/constants';
 import { registerTypes as debugConfigurationRegisterTypes } from './debugger/extension/serviceRegistry';
-import { IDebugConfigurationService, IDynamicDebugConfigurationService } from './debugger/extension/types';
 import { IInterpreterService } from './interpreter/contracts';
 import { getLanguageConfiguration } from './language/languageConfiguration';
 import { ReplProvider } from './providers/replProvider';
@@ -46,7 +44,6 @@ import { DebugService } from './common/application/debugService';
 import { DebugSessionEventDispatcher } from './debugger/extension/hooks/eventHandlerDispatcher';
 import { IDebugSessionEventHandlers } from './debugger/extension/hooks/types';
 import { WorkspaceService } from './common/application/workspace';
-import { DynamicPythonDebugConfigurationService } from './debugger/extension/configuration/dynamicdebugConfigurationService';
 import { IInterpreterQuickPick } from './interpreter/configuration/types';
 import { registerAllCreateEnvironmentFeatures } from './pythonEnvironments/creation/registrations';
 import { registerCreateEnvironmentTriggers } from './pythonEnvironments/creation/createEnvironmentTrigger';
@@ -151,7 +148,6 @@ async function activateLegacy(ext: ExtensionState): Promise<ActivationResult> {
             const handlers = serviceManager.getAll<IDebugSessionEventHandlers>(IDebugSessionEventHandlers);
             const dispatcher = new DebugSessionEventDispatcher(handlers, DebugService.instance, disposables);
             dispatcher.registerEventHandlers();
-
             const outputChannel = serviceManager.get<ILogOutputChannel>(ILogOutputChannel);
             disposables.push(cmdManager.registerCommand(Commands.ViewOutput, () => outputChannel.show()));
             cmdManager.executeCommand('setContext', 'python.vscode.channel', applicationEnv.channel).then(noop, noop);
@@ -167,21 +163,6 @@ async function activateLegacy(ext: ExtensionState): Promise<ActivationResult> {
             const terminalProvider = new TerminalProvider(serviceContainer);
             terminalProvider.initialize(window.activeTerminal).ignoreErrors();
             disposables.push(terminalProvider);
-
-            serviceContainer
-                .getAll<DebugConfigurationProvider>(IDebugConfigurationService)
-                .forEach((debugConfigProvider) => {
-                    disposables.push(debug.registerDebugConfigurationProvider(DebuggerTypeName, debugConfigProvider));
-                });
-
-            // register a dynamic configuration provider for 'python' debug type
-            disposables.push(
-                debug.registerDebugConfigurationProvider(
-                    DebuggerTypeName,
-                    serviceContainer.get<DynamicPythonDebugConfigurationService>(IDynamicDebugConfigurationService),
-                    DebugConfigurationProviderTriggerKind.Dynamic,
-                ),
-            );
 
             logAndNotifyOnLegacySettings();
             registerCreateEnvironmentTriggers(disposables);

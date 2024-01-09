@@ -1,7 +1,7 @@
 {
     "name": "python",
     "displayName": "Python",
-    "description": "IntelliSense (Pylance), Linting, Debugging (multi-threaded, remote), code formatting, refactoring, unit tests, and more.",
+    "description": "IntelliSense (Pylance), Linting, Debugging (Python Debugger), code formatting, refactoring, unit tests, and more.",
     "version": "2023.23.0-dev",
     "featureFlags": {
         "usingNewInterpreterStorage": true
@@ -66,7 +66,6 @@
     "activationEvents": [
         "onDebugInitialConfigurations",
         "onLanguage:python",
-        "onDebugDynamicConfigurations:python",
         "onDebugResolve:python",
         "workspaceContains:mspythonconfig.json",
         "workspaceContains:pyproject.toml",
@@ -387,12 +386,6 @@
                 "command": "python.execInDedicatedTerminal",
                 "icon": "$(play)",
                 "title": "%python.command.python.execInDedicatedTerminal.title%"
-            },
-            {
-                "category": "Python",
-                "command": "python.debugInTerminal",
-                "icon": "$(debug-alt)",
-                "title": "%python.command.python.debugInTerminal.title%"
             },
             {
                 "category": "Python",
@@ -1325,13 +1318,6 @@
                 },
                 {
                     "category": "Python",
-                    "command": "python.debugInTerminal",
-                    "icon": "$(debug-alt)",
-                    "title": "%python.command.python.debugInTerminal.title%",
-                    "when": "!virtualWorkspace && shellExecutionSupported && editorLangId == python"
-                },
-                {
-                    "category": "Python",
                     "command": "python.execSelectionInDjangoShell",
                     "title": "%python.command.python.execSelectionInDjangoShell.title%",
                     "when": "!virtualWorkspace && shellExecutionSupported && editorLangId == python"
@@ -1461,12 +1447,6 @@
                     "command": "python.execInDedicatedTerminal",
                     "group": "navigation@0",
                     "title": "%python.command.python.execInDedicatedTerminal.title%",
-                    "when": "resourceLangId == python && !isInDiffEditor && !virtualWorkspace && shellExecutionSupported"
-                },
-                {
-                    "command": "python.debugInTerminal",
-                    "group": "navigation@1",
-                    "title": "%python.command.python.debugInTerminal.title%",
                     "when": "resourceLangId == python && !isInDiffEditor && !virtualWorkspace && shellExecutionSupported"
                 }
             ],
