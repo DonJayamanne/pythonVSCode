@@ -1141,6 +1141,7 @@
                         }
                     }
                 },
+                "deprecated": "%python.debugger.deprecatedMessage%",
                 "configurationSnippets": [],
                 "label": "Python",
                 "languages": [
@@ -1150,7 +1151,8 @@
                 "variables": {
                     "pickProcess": "python.pickLocalProcess"
                 },
-                "when": "!virtualWorkspace && shellExecutionSupported"
+                "when": "!virtualWorkspace && shellExecutionSupported",
+                "hiddenWhen": "true"
             }
         ],
         "grammars": [

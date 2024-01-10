@@ -3,7 +3,7 @@
 
 'use strict';
 
-import { languages, window } from 'vscode';
+import { DebugConfigurationProvider, debug, languages, window } from 'vscode';
 
 import { registerTypes as activationRegisterTypes } from './activation/serviceRegistry';
 import { IExtensionActivationManager } from './activation/types';
@@ -23,6 +23,7 @@ import {
 } from './common/types';
 import { noop } from './common/utils/misc';
 import { registerTypes as debugConfigurationRegisterTypes } from './debugger/extension/serviceRegistry';
+import { IDebugConfigurationService } from './debugger/extension/types';
 import { IInterpreterService } from './interpreter/contracts';
 import { getLanguageConfiguration } from './language/languageConfiguration';
 import { ReplProvider } from './providers/replProvider';
@@ -49,6 +50,7 @@ import { registerAllCreateEnvironmentFeatures } from './pythonEnvironments/creat
 import { registerCreateEnvironmentTriggers } from './pythonEnvironments/creation/createEnvironmentTrigger';
 import { initializePersistentStateForTriggers } from './common/persistentState';
 import { logAndNotifyOnLegacySettings } from './logging/settingLogs';
+import { DebuggerTypeName } from './debugger/constants';
 
 export async function activateComponents(
     // `ext` is passed to any extra activation funcs.
@@ -162,6 +164,12 @@ async function activateLegacy(ext: ExtensionState): Promise<ActivationResult> {
 
             const terminalProvider = new TerminalProvider(serviceContainer);
             terminalProvider.initialize(window.activeTerminal).ignoreErrors();
+
+            serviceContainer
+                .getAll<DebugConfigurationProvider>(IDebugConfigurationService)
+                .forEach((debugConfigProvider) => {
+                    disposables.push(debug.registerDebugConfigurationProvider(DebuggerTypeName, debugConfigProvider));
+                });
             disposables.push(terminalProvider);
 
             logAndNotifyOnLegacySettings();

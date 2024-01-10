@@ -12,6 +12,7 @@ import { DebugSessionLoggingFactory } from './adapter/logging';
 import { OutdatedDebuggerPromptFactory } from './adapter/outdatedDebuggerPrompt';
 import { AttachProcessProviderFactory } from './attachQuickPick/factory';
 import { IAttachProcessProviderFactory } from './attachQuickPick/types';
+import { PythonDebugConfigurationService } from './configuration/debugConfigurationService';
 import { AttachConfigurationResolver } from './configuration/resolvers/attach';
 import { DebugEnvironmentVariablesHelper, IDebugEnvironmentVariablesService } from './configuration/resolvers/helper';
 import { LaunchConfigurationResolver } from './configuration/resolvers/launch';
@@ -20,9 +21,18 @@ import { DebugCommands } from './debugCommands';
 import { ChildProcessAttachEventHandler } from './hooks/childProcessAttachHandler';
 import { ChildProcessAttachService } from './hooks/childProcessAttachService';
 import { IChildProcessAttachService, IDebugSessionEventHandlers } from './hooks/types';
-import { IDebugAdapterDescriptorFactory, IDebugSessionLoggingFactory, IOutdatedDebuggerPromptFactory } from './types';
+import {
+    IDebugAdapterDescriptorFactory,
+    IDebugConfigurationService,
+    IDebugSessionLoggingFactory,
+    IOutdatedDebuggerPromptFactory,
+} from './types';
 
 export function registerTypes(serviceManager: IServiceManager): void {
+    serviceManager.addSingleton<IDebugConfigurationService>(
+        IDebugConfigurationService,
+        PythonDebugConfigurationService,
+    );
     serviceManager.addSingleton<IChildProcessAttachService>(IChildProcessAttachService, ChildProcessAttachService);
     serviceManager.addSingleton<IDebugSessionEventHandlers>(IDebugSessionEventHandlers, ChildProcessAttachEventHandler);
     serviceManager.addSingleton<IDebugConfigurationResolver<LaunchRequestArguments>>(

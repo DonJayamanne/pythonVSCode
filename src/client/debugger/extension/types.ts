@@ -3,7 +3,10 @@
 
 'use strict';
 
-import { DebugAdapterDescriptorFactory, DebugAdapterTrackerFactory } from 'vscode';
+import { DebugAdapterDescriptorFactory, DebugAdapterTrackerFactory, DebugConfigurationProvider } from 'vscode';
+
+export const IDebugConfigurationService = Symbol('IDebugConfigurationService');
+export interface IDebugConfigurationService extends DebugConfigurationProvider {}
 
 export const IDebugAdapterDescriptorFactory = Symbol('IDebugAdapterDescriptorFactory');
 export interface IDebugAdapterDescriptorFactory extends DebugAdapterDescriptorFactory {}
