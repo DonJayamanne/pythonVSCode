@@ -90,6 +90,9 @@ def discover_tests(
         if top_level_dir is None:
             top_level_dir = start_dir
 
+        # Get abspath of top level directory for build_test_tree.
+        top_level_dir = os.path.abspath(top_level_dir)
+
         tests, error = build_test_tree(
             suite, top_level_dir
         )  # test tree built successfully here.
