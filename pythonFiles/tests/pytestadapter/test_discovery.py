@@ -1,5 +1,6 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
+import json
 import os
 import pathlib
 import shutil
@@ -14,7 +15,7 @@ sys.path.append(os.fspath(script_dir))
 from tests.tree_comparison_helper import is_same_tree
 
 from . import expected_discovery_test_output
-from .helpers import TEST_DATA_PATH, runner, runner_with_cwd
+from .helpers import TEST_DATA_PATH, runner, runner_with_cwd, create_symlink
 
 
 def test_import_error(tmp_path):
@@ -203,6 +204,45 @@ def test_pytest_collect(file, expected_const):
         assert actual_item.get("status") == "success"
         assert actual_item.get("cwd") == os.fspath(TEST_DATA_PATH)
         assert is_same_tree(actual_item.get("tests"), expected_const)
+
+
+def test_symlink_root_dir():
+    """
+    Test to test pytest discovery with the command line arg --rootdir specified as a symlink path.
+    Discovery should succeed and testids should be relative to the symlinked root directory.
+    """
+    with create_symlink(TEST_DATA_PATH, "root", "symlink_folder") as (
+        source,
+        destination,
+    ):
+        assert destination.is_symlink()
+
+        # Run pytest with the cwd being the resolved symlink path (as it will be when we run the subprocess from node).
+        actual = runner_with_cwd(
+            ["--collect-only", f"--rootdir={os.fspath(destination)}"], source
+        )
+        expected = expected_discovery_test_output.symlink_expected_discovery_output
+        assert actual
+        actual_list: List[Dict[str, Any]] = actual
+        if actual_list is not None:
+            assert actual_list.pop(-1).get("eot")
+            actual_item = actual_list.pop(0)
+            try:
+                # Check if all requirements
+                assert all(
+                    item in actual_item.keys() for item in ("status", "cwd", "error")
+                ), "Required keys are missing"
+                assert actual_item.get("status") == "success", "Status is not 'success'"
+                assert actual_item.get("cwd") == os.fspath(
+                    destination
+                ), f"CWD does not match: {os.fspath(destination)}"
+                assert (
+                    actual_item.get("tests") == expected
+                ), "Tests do not match expected value"
+            except AssertionError as e:
+                # Print the actual_item in JSON format if an assertion fails
+                print(json.dumps(actual_item, indent=4))
+                pytest.fail(str(e))
 
 
 def test_pytest_root_dir():
