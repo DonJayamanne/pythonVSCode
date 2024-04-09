@@ -262,7 +262,17 @@ export class PythonEnvInfoCache extends PythonEnvsWatcher<PythonEnvCollectionCha
 /**
  * Build a cache of PythonEnvInfo that is ready to use.
  */
-export async function createCollectionCache(storage: IPersistentStorage): Promise<PythonEnvInfoCache> {
+export function createCollectionCache(storage: IPersistentStorage): PythonEnvInfoCache {
+    const cache = new PythonEnvInfoCache(storage);
+    cache.clearAndReloadFromStorage();
+    void validateCache(cache);
+    return cache;
+}
+
+/**
+ * Build a cache of PythonEnvInfo that is ready to use.
+ */
+export async function createCollectionCacheForTests(storage: IPersistentStorage): Promise<PythonEnvInfoCache> {
     const cache = new PythonEnvInfoCache(storage);
     cache.clearAndReloadFromStorage();
     await validateCache(cache);
@@ -275,5 +285,6 @@ async function validateCache(cache: PythonEnvInfoCache) {
         return cache.validateCache();
     }
     // Validate in background so it doesn't block on returning the API object.
-    return cache.validateCache().ignoreErrors();
+    cache.validateCache().ignoreErrors();
+    return;
 }

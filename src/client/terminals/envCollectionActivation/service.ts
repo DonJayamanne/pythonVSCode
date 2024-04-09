@@ -88,7 +88,11 @@ export class TerminalEnvVarCollectionService implements IExtensionActivationServ
         this.progressService = new ProgressService(this.shell);
     }
 
-    public async activate(resource: Resource): Promise<void> {
+    public async activate(_resource: Resource): Promise<void> {
+        // void this.doActivate(resource);
+        return;
+    }
+    public async doActivate(resource: Resource): Promise<void> {
         try {
             if (!inTerminalEnvVarExperiment(this.experimentService)) {
                 this.context.environmentVariableCollection.clear();

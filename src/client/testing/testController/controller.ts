@@ -157,6 +157,9 @@ export class PythonTestController implements ITestController, IExtensionSingleAc
     }
 
     public async activate(): Promise<void> {
+        void this.doActivate();
+    }
+    public async doActivate(): Promise<void> {
         traceVerbose('Waiting for test server to start...');
         await this.pythonTestServer.serverReady();
         traceVerbose('Test server started.');

@@ -74,9 +74,9 @@ export class LanguageServerWatcher implements IExtensionActivationService, ILang
 
     // IExtensionActivationService
 
-    public async activate(resource?: Resource, startupStopWatch?: StopWatch): Promise<void> {
+    public async activate(_resource?: Resource, _startupStopWatch?: StopWatch): Promise<void> {
         this.register();
-        await this.startLanguageServer(this.languageServerType, resource, startupStopWatch);
+        // await this.startLanguageServer(this.languageServerType, resource, startupStopWatch);
     }
 
     // ILanguageServerWatcher

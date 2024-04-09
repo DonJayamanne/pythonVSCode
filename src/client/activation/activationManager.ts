@@ -72,7 +72,7 @@ export class ExtensionActivationManager implements IExtensionActivationManager {
 
     public async activate(startupStopWatch: StopWatch): Promise<void> {
         this.filterServices();
-        await this.initialize();
+        this.initialize();
 
         // Activate all activation services together.
 
@@ -102,7 +102,7 @@ export class ExtensionActivationManager implements IExtensionActivationManager {
         await this.appDiagnostics.performPreStartupHealthCheck(resource);
     }
 
-    public async initialize(): Promise<void> {
+    public initialize(): void {
         this.addHandlers();
         this.addRemoveDocOpenedHandlers();
     }

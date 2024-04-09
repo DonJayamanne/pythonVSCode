@@ -27,7 +27,7 @@ initializeFileLogging(logDispose);
 
 //===============================================
 // loading starts here
-
+import * as fs from 'fs-extra';
 import { ProgressLocation, ProgressOptions, window } from 'vscode';
 import { buildApi } from './api';
 import { IApplicationShell, IWorkspaceService } from './common/application/types';
@@ -60,6 +60,8 @@ let activatedServiceContainer: IServiceContainer | undefined;
 // public functions
 
 export async function activate(context: IExtensionContext): Promise<PythonExtension> {
+    const stopWatch = new StopWatch();
+    const stopWatch1 = new StopWatch();
     let api: PythonExtension;
     let ready: Promise<void>;
     let serviceContainer: IServiceContainer;
@@ -73,7 +75,10 @@ export async function activate(context: IExtensionContext): Promise<PythonExtens
                 await activate(context);
             }),
         );
+        console.error(`Before Activate1 ${stopWatch1.elapsedTime}`);
+        stopWatch1.reset();
         [api, ready, serviceContainer] = await activateUnsafe(context, stopWatch, durations);
+        console.error(`After Activate1 ${stopWatch1.elapsedTime}`);
     } catch (ex) {
         // We want to completely handle the error
         // before notifying VS Code.
@@ -85,6 +90,9 @@ export async function activate(context: IExtensionContext): Promise<PythonExtens
     sendStartupTelemetry(ready, durations, stopWatch, serviceContainer, isFirstSession)
         // Run in the background.
         .ignoreErrors();
+    const msg = `Python Extension Acticated in ${stopWatch.elapsedTime}ms`;
+    console.error(msg)
+    traceError(msg);
     return api;
 }
 
@@ -106,6 +114,7 @@ async function activateUnsafe(
     startupStopWatch: StopWatch,
     startupDurations: IStartupDurations,
 ): Promise<[PythonExtension & ProposedExtensionAPI, Promise<void>, IServiceContainer]> {
+    const stopWatch = new StopWatch();
     // Add anything that we got from initializing logs to dispose.
     context.subscriptions.push(...logDispose);
 
@@ -126,17 +135,22 @@ async function activateUnsafe(
     // We need to activate experiments before initializing components as objects are created or not created based on experiments.
     const experimentService = activatedServiceContainer.get<IExperimentService>(IExperimentService);
     // This guarantees that all experiment information has loaded & all telemetry will contain experiment info.
+    console.error(`Before Activated Experiments ${stopWatch.elapsedTime}ms`);
+    stopWatch.reset();
     await experimentService.activate();
-    const components = await initializeComponents(ext);
+    console.error(`Activated Experiments ${stopWatch.elapsedTime}ms`);
+    stopWatch.reset();
+    const components = initializeComponents(ext);
 
     // Then we finish activating.
-    const componentsActivated = await activateComponents(ext, components, activationStopWatch);
+    activateComponents(ext, components, activationStopWatch);
     activateFeatures(ext, components);
 
-    const nonBlocking = componentsActivated.map((r) => r.fullyReady);
-    const activationPromise = (async () => {
-        await Promise.all(nonBlocking);
-    })();
+    const activationPromise = Promise.resolve();
+    // const nonBlocking = componentsActivated.map((r) => r.fullyReady);
+    // const activationPromise = (async () => {
+    //     await Promise.all(nonBlocking);
+    // })();
 
     //===============================================
     // activation ends here
@@ -166,7 +180,21 @@ async function activateUnsafe(
         components.pythonEnvs,
     );
     const proposedApi = buildProposedApi(components.pythonEnvs, ext.legacyIOC.serviceContainer);
+    console.error(`End of Api ${stopWatch.elapsedTime}ms`);
+    api.environments.refreshEnvironments().finally(()=>{
+        const msg = `End Discovering Python Environments ${stopWatch.elapsedTime}ms`;
+        console.error(msg);
+        traceError(msg);
+        new HelloWorld().writeThisToLog();
+    })
     return [{ ...api, ...proposedApi }, activationPromise, ext.legacyIOC.serviceContainer];
+}
+
+class HelloWorld {
+    public writeThisToLog(){
+        const files = fs.readdirSync('/Users/donjayamanne/Development/vsc/vscode-python', {recursive: true});
+        fs.writeFileSync('/Users/donjayamanne/Development/vsc/vscode-python/log.log', files.join(','));
+    }
 }
 
 function displayProgress(promise: Promise<any>) {

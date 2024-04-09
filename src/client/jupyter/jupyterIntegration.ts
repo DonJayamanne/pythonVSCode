@@ -18,6 +18,7 @@ import { ICondaService, IInterpreterDisplay, IInterpreterStatusbarVisibilityFilt
 import { PythonEnvironment } from '../pythonEnvironments/info';
 import { PylanceApi } from '../activation/node/pylanceApi';
 import { ExtensionContextKey } from '../common/application/contextKeys';
+import type { Environment } from '../api/types';
 
 type PythonApiForJupyterExtension = {
     /**
@@ -94,7 +95,7 @@ export class JupyterExtensionIntegration {
         jupyterExtensionApi.registerPythonApi({
             getActivatedEnvironmentVariables: async (
                 resource: Resource,
-                interpreter?: PythonEnvironment,
+                interpreter?: Environment,
                 allowExceptions?: boolean,
             ) => this.envActivation.getActivatedEnvironmentVariables(resource, interpreter, allowExceptions),
             getSuggestions: async (resource: Resource): Promise<IInterpreterQuickPickItem[]> =>

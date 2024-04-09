@@ -11,7 +11,7 @@ import {
     TriggerRefreshOptions,
 } from './base/locator';
 
-export type GetLocatorFunc = () => Promise<IDiscoveryAPI>;
+export type GetLocatorFunc = () => IDiscoveryAPI;
 
 /**
  * The public API for the Python environments component.
@@ -24,10 +24,8 @@ class PythonEnvironments implements IDiscoveryAPI {
     constructor(
         // These are factories for the sub-components the full component is composed of:
         private readonly getLocator: GetLocatorFunc,
-    ) {}
-
-    public async activate(): Promise<void> {
-        this.locator = await this.getLocator();
+    ) {
+        this.locator = this.getLocator();
     }
 
     public get onProgress(): Event<ProgressNotificationEvent> {
@@ -59,8 +57,6 @@ class PythonEnvironments implements IDiscoveryAPI {
     }
 }
 
-export async function createPythonEnvironments(getLocator: GetLocatorFunc): Promise<IDiscoveryAPI> {
-    const api = new PythonEnvironments(getLocator);
-    await api.activate();
-    return api;
+export function createPythonEnvironments(getLocator: GetLocatorFunc): IDiscoveryAPI {
+    return new PythonEnvironments(getLocator);
 }

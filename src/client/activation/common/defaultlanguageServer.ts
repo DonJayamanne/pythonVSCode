@@ -16,18 +16,18 @@ class DefaultLanguageServer implements IDefaultLanguageServer {
     }
 }
 
-export async function setDefaultLanguageServer(
+export function setDefaultLanguageServer(
     extensions: IExtensions,
     serviceManager: IServiceManager,
-): Promise<void> {
-    const lsType = await getDefaultLanguageServer(extensions);
+): void {
+    const lsType = getDefaultLanguageServer(extensions);
     serviceManager.addSingletonInstance<IDefaultLanguageServer>(
         IDefaultLanguageServer,
         new DefaultLanguageServer(lsType),
     );
 }
 
-async function getDefaultLanguageServer(extensions: IExtensions): Promise<DefaultLSType> {
+function getDefaultLanguageServer(extensions: IExtensions): DefaultLSType {
     if (extensions.getExtension(PYLANCE_EXTENSION_ID)) {
         return LanguageServerType.Node;
     }

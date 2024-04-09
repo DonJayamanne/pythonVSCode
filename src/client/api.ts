@@ -37,9 +37,9 @@ export function buildApi(
         TensorboardExtensionIntegration,
     );
     const jupyterIntegration = serviceContainer.get<JupyterExtensionIntegration>(JupyterExtensionIntegration);
-    const tensorboardIntegration = serviceContainer.get<TensorboardExtensionIntegration>(
-        TensorboardExtensionIntegration,
-    );
+    // const tensorboardIntegration = serviceContainer.get<TensorboardExtensionIntegration>(
+    //     TensorboardExtensionIntegration,
+    // );
     const outputChannel = serviceContainer.get<ILanguageServerOutputChannel>(ILanguageServerOutputChannel);
 
     const api: PythonExtension & {
@@ -107,7 +107,10 @@ export function buildApi(
             registerHooks: () => jupyterIntegration.integrateWithJupyterExtension(),
         },
         tensorboard: {
-            registerHooks: () => tensorboardIntegration.integrateWithTensorboardExtension(),
+            registerHooks: () => {
+                //
+            },
+            // registerHooks: () => tensorboardIntegration.integrateWithTensorboardExtension(),
         },
         debug: {
             async getRemoteLauncherCommand(

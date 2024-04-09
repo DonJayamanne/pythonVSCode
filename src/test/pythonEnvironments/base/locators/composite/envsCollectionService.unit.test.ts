@@ -16,7 +16,7 @@ import {
     ProgressReportStage,
     PythonEnvUpdatedEvent,
 } from '../../../../../client/pythonEnvironments/base/locator';
-import { createCollectionCache } from '../../../../../client/pythonEnvironments/base/locators/composite/envsCollectionCache';
+import { createCollectionCacheForTests as createCollectionCache } from '../../../../../client/pythonEnvironments/base/locators/composite/envsCollectionCache';
 import { EnvsCollectionService } from '../../../../../client/pythonEnvironments/base/locators/composite/envsCollectionService';
 import { PythonEnvCollectionChangedEvent } from '../../../../../client/pythonEnvironments/base/watcher';
 import * as externalDependencies from '../../../../../client/pythonEnvironments/common/externalDependencies';

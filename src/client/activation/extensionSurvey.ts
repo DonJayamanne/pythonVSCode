@@ -42,6 +42,9 @@ export class ExtensionSurveyPrompt implements IExtensionSingleActivationService 
     ) {}
 
     public async activate(): Promise<void> {
+        void this.doactivate();
+    }
+    public async doactivate(): Promise<void> {
         if (!(await this.experiments.inExperiment(ShowExtensionSurveyPrompt.experiment))) {
             return;
         }

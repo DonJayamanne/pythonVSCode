@@ -3,6 +3,7 @@
 
 'use strict';
 
+import type { Environment } from '../../api/types';
 import { Resource } from '../../common/types';
 import { EnvironmentVariables } from '../../common/variables/types';
 import { PythonEnvironment } from '../../pythonEnvironments/info';
@@ -12,7 +13,7 @@ export interface IEnvironmentActivationService {
     getProcessEnvironmentVariables(resource: Resource, shell?: string): Promise<EnvironmentVariables>;
     getActivatedEnvironmentVariables(
         resource: Resource,
-        interpreter?: PythonEnvironment,
+        interpreter?: Environment,
         allowExceptions?: boolean,
         shell?: string,
     ): Promise<NodeJS.ProcessEnv | undefined>;

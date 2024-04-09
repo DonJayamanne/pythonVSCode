@@ -45,11 +45,11 @@ const PYTHON_ENV_INFO_CACHE_KEY = 'PYTHON_ENV_INFO_CACHEv2';
 /**
  * Set up the Python environments component (during extension activation).'
  */
-export async function initialize(ext: ExtensionState): Promise<IDiscoveryAPI> {
+export function initialize(ext: ExtensionState): IDiscoveryAPI {
     // Set up the legacy IOC container before api is created.
     initializeLegacyExternalDependencies(ext.legacyIOC.serviceContainer);
 
-    const api = await createPythonEnvironments(() => createLocator(ext));
+    const api = createPythonEnvironments(() => createLocator(ext));
     registerNewDiscoveryForIOC(
         // These are what get wrapped in the legacy adapter.
         ext.legacyIOC.serviceManager,
@@ -61,7 +61,7 @@ export async function initialize(ext: ExtensionState): Promise<IDiscoveryAPI> {
 /**
  * Make use of the component (e.g. register with VS Code).
  */
-export async function activate(api: IDiscoveryAPI, ext: ExtensionState): Promise<ActivationResult> {
+export function activate(api: IDiscoveryAPI, ext: ExtensionState): ActivationResult {
     /**
      * Force an initial background refresh of the environments.
      *
@@ -80,21 +80,24 @@ export async function activate(api: IDiscoveryAPI, ext: ExtensionState): Promise
                 `PYTHON_WAS_DISCOVERY_TRIGGERED_${normCasePath(folder.uri.fsPath)}`,
                 false,
             );
-            await wasTriggeredForFolder.set(true);
+            void wasTriggeredForFolder.set(true);
         });
     } else {
         // Figure out which workspace folders need to be activated if any.
+        const triggered = new Set<string>();
         folders?.forEach(async (folder) => {
+            const key = `PYTHON_WAS_DISCOVERY_TRIGGERED_${normCasePath(folder.uri.fsPath)}`;
             const wasTriggeredForFolder = getGlobalStorage<boolean>(
                 ext.context,
-                `PYTHON_WAS_DISCOVERY_TRIGGERED_${normCasePath(folder.uri.fsPath)}`,
+                key,
                 false,
             );
-            if (!wasTriggeredForFolder.get()) {
+            if (!wasTriggeredForFolder.get() && !triggered.has(key)) {
+                triggered.add(key);
                 api.triggerRefresh({
                     searchLocations: { roots: [folder.uri], doNotIncludeNonRooted: true },
                 }).ignoreErrors();
-                await wasTriggeredForFolder.set(true);
+                void wasTriggeredForFolder.set(true);
             }
         });
     }
@@ -107,10 +110,10 @@ export async function activate(api: IDiscoveryAPI, ext: ExtensionState): Promise
 /**
  * Get the locator to use in the component.
  */
-async function createLocator(
+function createLocator(
     ext: ExtensionState,
     // This is shared.
-): Promise<IDiscoveryAPI> {
+): IDiscoveryAPI {
     // Create the low-level locators.
     const locators: ILocator<BasicEnvInfo> = new ExtensionLocators<BasicEnvInfo>(
         // Here we pull the locators together.
@@ -129,7 +132,7 @@ async function createLocator(
         envInfoService,
     );
     const caching = new EnvsCollectionService(
-        await createCollectionCache(ext),
+        createCollectionCache(ext),
         // This is shared.
         resolvingLocator,
     );
@@ -228,9 +231,9 @@ function putIntoStorage(storage: IPersistentStorage<PythonEnvInfo[]>, envs: Pyth
     return Promise.resolve();
 }
 
-async function createCollectionCache(ext: ExtensionState): Promise<IEnvsCollectionCache> {
+function createCollectionCache(ext: ExtensionState): IEnvsCollectionCache {
     const storage = getGlobalStorage<PythonEnvInfo[]>(ext.context, PYTHON_ENV_INFO_CACHE_KEY, []);
-    const cache = await createCache({
+    const cache = createCache({
         get: () => getFromStorage(storage),
         store: async (e) => putIntoStorage(storage, e),
     });

@@ -39,7 +39,7 @@ export class TensorBoardUsageTracker implements IExtensionSingleActivationServic
         }
         this.experiment.disposeOnInstallingTensorboard(this);
         if (testExecution) {
-            await this.activateInternal();
+            void this.activateInternal();
         } else {
             this.activateInternal().ignoreErrors();
         }

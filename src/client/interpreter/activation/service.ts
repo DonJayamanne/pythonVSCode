@@ -39,6 +39,7 @@ import { StopWatch } from '../../common/utils/stopWatch';
 import { identifyShellFromShellPath } from '../../common/terminal/shellDetectors/baseShellDetector';
 import { getSearchPathEnvVarNames } from '../../common/utils/exec';
 import { cache } from '../../common/utils/decorators';
+import type { Environment } from '../../api/types';
 
 const ENVIRONMENT_PREFIX = 'e8b39361-0157-4923-80e1-22d70d46dee6';
 const CACHE_DURATION = 10 * 60 * 1000;
@@ -139,14 +140,16 @@ export class EnvironmentActivationService implements IEnvironmentActivationServi
     @traceDecoratorVerbose('getActivatedEnvironmentVariables', TraceOptions.Arguments)
     public async getActivatedEnvironmentVariables(
         resource: Resource,
-        interpreter?: PythonEnvironment,
+        interpreter: Environment,
         allowExceptions?: boolean,
         shell?: string,
     ): Promise<NodeJS.ProcessEnv | undefined> {
         const stopWatch = new StopWatch();
         // Cache key = resource + interpreter.
         const workspaceKey = this.workspace.getWorkspaceFolderIdentifier(resource);
-        interpreter = interpreter ?? (await this.interpreterService.getActiveInterpreter(resource));
+        const pythonInterpreter = interpreter
+            ? await this.interpreterService.getInterpreterDetails(interpreter.path)
+            : await this.interpreterService.getActiveInterpreter(resource);
         const interpreterPath = this.platform.isWindows ? interpreter?.path.toLowerCase() : interpreter?.path;
         const cacheKey = `${workspaceKey}_${interpreterPath}_${shell}`;
 
@@ -156,7 +159,7 @@ export class EnvironmentActivationService implements IEnvironmentActivationServi
 
         // Cache only if successful, else keep trying & failing if necessary.
         const memCache = new InMemoryCache<NodeJS.ProcessEnv | undefined>(CACHE_DURATION);
-        return this.getActivatedEnvironmentVariablesImpl(resource, interpreter, allowExceptions, shell)
+        return this.getActivatedEnvironmentVariablesImpl(resource, pythonInterpreter, allowExceptions, shell)
             .then((vars) => {
                 memCache.data = vars;
                 this.activatedEnvVariablesCache.set(cacheKey, memCache);
