@@ -1,0 +1,22 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "commonjs",
+        "lib": [
+            "es2018",
+            "ES2020",
+            "ESNext"
+        ],
+        "outDir": "./dist",
+        "rootDir": "./src",
+        "esModuleInterop": true,
+        "resolveJsonModule": true,
+        "strict": true
+    },
+    "include": [
+        "src/**/*.ts"
+    ],
+    "exclude": [
+        "node_modules"
+    ]
+}

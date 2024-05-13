@@ -1,0 +1,14 @@
+{
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
+        "ts-async/src/*.js": {
+            "when": "$(basename).ts"
+        },
+        "ts-async/src/*.js.map": true,
+    }
+}
