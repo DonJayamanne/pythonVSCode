@@ -37,7 +37,7 @@ fn main() {
 
     let virtualenv_locator = virtualenv::VirtualEnv::new();
     let venv_locator = venv::Venv::new();
-    let virtualenvwrapper_locator = virtualenvwrapper::VirtualEnvWrapper::with(&environment);
+    let mut virtualenvwrapper = virtualenvwrapper::VirtualEnvWrapper::with(&environment);
     let pipenv_locator = pipenv::PipEnv::new();
     let mut path_locator = common_python::PythonOnPath::with(&environment);
     let mut conda_locator = conda::Conda::with(&environment);
@@ -54,6 +54,7 @@ fn main() {
     #[cfg(windows)]
     find_environments(&mut windows_registry, &mut dispatcher);
     let mut pyenv_locator = pyenv::PyEnv::with(&environment, &mut conda_locator);
+    find_environments(&mut virtualenvwrapper, &mut dispatcher);
     find_environments(&mut pyenv_locator, &mut dispatcher);
     #[cfg(unix)]
     find_environments(&mut homebrew_locator, &mut dispatcher);
@@ -61,14 +62,27 @@ fn main() {
     #[cfg(windows)]
     find_environments(&mut windows_store, &mut dispatcher);
 
-    // Step 2: Search in some global locations.
+    // Step 2: Search in some global locations for virtual envs.
     for env in list_global_virtual_envs(&environment).iter() {
         if dispatcher.was_environment_reported(&env) {
             continue;
         }
 
-        let _ = resolve_environment(&pipenv_locator, env, &mut dispatcher)
-            || resolve_environment(&virtualenvwrapper_locator, env, &mut dispatcher)
+        // First must be homebrew, as it is the most specific and supports symlinks
+        #[cfg(unix)]
+        let homebrew_result = resolve_environment(&homebrew_locator, env, &mut dispatcher);
+        #[cfg(unix)]
+        if homebrew_result {
+            continue;
+        }
+
+        let _ = // Pipeenv before virtualenvwrapper as it is more specific.
+            // Because pipenv environments are also virtualenvwrapper environments.
+            resolve_environment(&pipenv_locator, env, &mut dispatcher)
+            // Before venv, as all venvs are also virtualenvwrapper environments.
+            || resolve_environment(&virtualenvwrapper, env, &mut dispatcher)
+            // Before virtualenv as this is more specific.
+            // All venvs are also virtualenvs environments.
             || resolve_environment(&venv_locator, env, &mut dispatcher)
             || resolve_environment(&virtualenv_locator, env, &mut dispatcher);
     }
