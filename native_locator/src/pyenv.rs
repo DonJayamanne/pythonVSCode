@@ -66,7 +66,7 @@ fn get_pyenv_binary(environment: &dyn known::Environment) -> Option<PathBuf> {
     }
 }
 
-fn get_pyenv_version(folder_name: &String) -> Option<String> {
+fn get_version(folder_name: &String) -> Option<String> {
     // Stable Versions = like 3.10.10
     let python_regex = Regex::new(r"^(\d+\.\d+\.\d+)$").unwrap();
     match python_regex.captures(&folder_name) {
@@ -90,7 +90,17 @@ fn get_pyenv_version(folder_name: &String) -> Option<String> {
                             Some(version) => Some(version.as_str().to_string()),
                             None => None,
                         },
-                        None => None,
+                        None => {
+                            // win32 versions, rc Versions = like 3.11.0a-win32
+                            let python_regex = Regex::new(r"^(\d+\.\d+.\d+\w\d+)-win32").unwrap();
+                            match python_regex.captures(&folder_name) {
+                                Some(captures) => match captures.get(1) {
+                                    Some(version) => Some(version.as_str().to_string()),
+                                    None => None,
+                                },
+                                None => None,
+                            }
+                        }
                     }
                 }
             }
@@ -103,8 +113,9 @@ fn get_pure_python_environment(
     path: &PathBuf,
     manager: &Option<EnvManager>,
 ) -> Option<PythonEnvironment> {
-    let version = get_pyenv_version(&path.file_name().unwrap().to_string_lossy().to_string())?;
-    Some(messaging::PythonEnvironment::new(
+    let file_name = path.file_name()?.to_string_lossy().to_string();
+    let version = get_version(&file_name)?;
+    let mut env = messaging::PythonEnvironment::new(
         None,
         None,
         Some(executable.clone()),
@@ -117,7 +128,12 @@ fn get_pure_python_environment(
             .into_os_string()
             .into_string()
             .unwrap()]),
-    ))
+    );
+    if file_name.ends_with("-win32") {
+        env.arch = Some(messaging::Architecture::X86);
+    }
+
+    Some(env)
 }
 
 fn is_conda_environment(path: &PathBuf) -> bool {
@@ -189,6 +205,47 @@ pub fn list_pyenv_environments(
     Some(envs)
 }
 
+#[cfg(windows)]
+fn get_pyenv_manager_version(
+    pyenv_binary_path: &PathBuf,
+    environment: &dyn known::Environment,
+) -> Option<String> {
+    // In windows, the version is stored in the `.pyenv/.version` file
+    let pyenv_dir = get_pyenv_dir(environment)?;
+    let mut version_file = PathBuf::from(&pyenv_dir).join(".version");
+    if !version_file.exists() {
+        // We might have got the path `~/.pyenv/pyenv-win`
+        version_file = pyenv_dir.parent()?.join(".version");
+        if !version_file.exists() {
+            return None;
+        }
+    }
+    let version = fs::read_to_string(version_file).ok()?;
+    let version_regex = Regex::new(r"(\d+\.\d+\.\d+)").unwrap();
+    let captures = version_regex.captures(&version)?.get(1)?;
+    Some(captures.as_str().to_string())
+}
+
+#[cfg(unix)]
+fn get_pyenv_manager_version(
+    pyenv_binary_path: &PathBuf,
+    _environment: &dyn known::Environment,
+) -> Option<String> {
+    // Look for version in path
+    // Sample /opt/homebrew/Cellar/pyenv/2.4.0/libexec/pyenv
+    if !pyenv_binary_path.to_string_lossy().contains("/pyenv/") {
+        return None;
+    }
+    // Find the real path, generally we have a symlink.
+    let real_path = fs::read_link(pyenv_binary_path)
+        .ok()?
+        .to_string_lossy()
+        .to_string();
+    let version_regex = Regex::new(r"pyenv/(\d+\.\d+\.\d+)/").unwrap();
+    let captures = version_regex.captures(&real_path)?.get(1)?;
+    Some(captures.as_str().to_string())
+}
+
 pub struct PyEnv<'a> {
     pub environment: &'a dyn Environment,
     pub conda_locator: &'a mut dyn CondaLocator,
@@ -214,7 +271,8 @@ impl Locator for PyEnv<'_> {
 
     fn find(&mut self) -> Option<LocatorResult> {
         let pyenv_binary = get_pyenv_binary(self.environment)?;
-        let manager = messaging::EnvManager::new(pyenv_binary, None, EnvManagerType::Pyenv);
+        let version = get_pyenv_manager_version(&pyenv_binary, self.environment);
+        let manager = messaging::EnvManager::new(pyenv_binary, version, EnvManagerType::Pyenv);
         let mut environments: Vec<PythonEnvironment> = vec![];
         if let Some(envs) =
             list_pyenv_environments(&Some(manager.clone()), self.environment, self.conda_locator)

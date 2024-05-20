@@ -61,6 +61,7 @@ fn list_windows_store_python_executables(
                         env_manager: None,
                         project_path: None,
                         python_run_command: Some(vec![exe.to_string_lossy().to_string()]),
+                        arch: None,
                     };
                     python_envs.push(env);
                 }
@@ -93,8 +94,6 @@ fn get_package_display_name_and_location(name: String, hkcu: &RegKey) -> Option<
         let package_key = hkcu.open_subkey(key).ok()?;
         let display_name = package_key.get_value("DisplayName").ok()?;
         let env_path = package_key.get_value("PackageRootFolder").ok()?;
-
-        let regex = regex::Regex::new("PythonSoftwareFoundation.Python.((\\d+\\.?)*)_.*").ok()?;
 
         return Some(StorePythonInfo {
             display_name,
@@ -131,6 +130,7 @@ impl Locator for WindowsStore<'_> {
                 env_manager: None,
                 project_path: None,
                 python_run_command: Some(vec![env.executable.to_str().unwrap().to_string()]),
+                arch: None,
             });
         }
         None
