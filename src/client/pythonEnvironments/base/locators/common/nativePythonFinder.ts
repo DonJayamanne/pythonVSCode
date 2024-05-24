@@ -28,6 +28,10 @@ export interface NativeEnvInfo {
      * Path to the project directory when dealing with pipenv virtual environments.
      */
     projectPath?: string;
+    arch?: 'X64' | 'X86';
+    symlinks?: string[];
+    creationTime?: number;
+    modifiedTime?: number;
 }
 
 export interface NativeEnvManagerInfo {
@@ -60,7 +64,6 @@ class NativeGlobalPythonFinderImpl implements NativeGlobalPythonFinder {
         const deferred = createDeferred<void>();
         const proc = ch.spawn(NATIVE_LOCATOR, [], { env: process.env });
         const disposables: Disposable[] = [];
-
         // jsonrpc package cannot handle messages coming through too quicly.
         // Lets handle the messages and close the stream only when
         // we have got the exit event.
