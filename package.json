@@ -442,8 +442,7 @@
                             "pythonDiscoveryUsingWorkers",
                             "pythonTestAdapter",
                             "pythonREPLSmartSend",
-                            "pythonRecommendTensorboardExt",
-                            "pythonRunREPL"
+                            "pythonRecommendTensorboardExt"
                         ],
                         "enumDescriptions": [
                             "%python.experiments.All.description%",
@@ -453,8 +452,7 @@
                             "%python.experiments.pythonDiscoveryUsingWorkers.description%",
                             "%python.experiments.pythonTestAdapter.description%",
                             "%python.experiments.pythonREPLSmartSend.description%",
-                            "%python.experiments.pythonRecommendTensorboardExt.description%",
-                            "%python.experiments.pythonRunREPL.description%"
+                            "%python.experiments.pythonRecommendTensorboardExt.description%"
                         ]
                     },
                     "scope": "window",
@@ -472,8 +470,7 @@
                             "pythonTerminalEnvVarActivation",
                             "pythonDiscoveryUsingWorkers",
                             "pythonTestAdapter",
-                            "pythonREPLSmartSend",
-                            "pythonRunREPL"
+                            "pythonREPLSmartSend"
                         ],
                         "enumDescriptions": [
                             "%python.experiments.All.description%",
@@ -482,8 +479,7 @@
                             "%python.experiments.pythonTerminalEnvVarActivation.description%",
                             "%python.experiments.pythonDiscoveryUsingWorkers.description%",
                             "%python.experiments.pythonTestAdapter.description%",
-                            "%python.experiments.pythonREPLSmartSend.description%",
-                            "%python.experiments.pythonRunREPL.description%"
+                            "%python.experiments.pythonREPLSmartSend.description%"
                         ]
                     },
                     "scope": "window",
@@ -627,6 +623,15 @@
                     "description": "%python.EnableREPLSmartSend.description%",
                     "scope": "resource",
                     "type": "boolean"
+                },
+                "python.REPL.sendToNativeREPL": {
+                    "default": false,
+                    "description": "%python.REPL.sendToNativeREPL.description%",
+                    "scope": "resource",
+                    "type": "boolean",
+                    "tags": [
+                        "experimental"
+                    ]
                 },
                 "python.testing.autoTestDiscoverOnSaveEnabled": {
                     "default": true,
@@ -1108,7 +1113,22 @@
             {
                 "command": "python.execSelectionInTerminal",
                 "key": "shift+enter",
-                "when": "editorTextFocus && editorLangId == python && !findInputFocussed && !replaceInputFocussed && !jupyter.ownsSelection && !notebookEditorFocused && activeEditor != 'workbench.editor.interactive'"
+                "when": "!config.python.REPL.sendToNativeREPL && editorTextFocus && editorLangId == python && !findInputFocussed && !replaceInputFocussed && !jupyter.ownsSelection && !notebookEditorFocused && activeEditor != 'workbench.editor.interactive'"
+            },
+            {
+                "command": "python.execInREPL",
+                "key": "shift+enter",
+                "when": "config.python.REPL.sendToNativeREPL && activeEditor != 'workbench.editor.interactive'"
+            },
+            {
+                "command": "python.execREPLShiftEnter",
+                "key": "shift+enter",
+                "when": "activeEditor == 'workbench.editor.interactive' && config.interactiveWindow.executeWithShiftEnter"
+            },
+            {
+                "command": "python.execInREPLEnter",
+                "key": "enter",
+                "when": "!config.interactiveWindow.executeWithShiftEnter && activeEditor == 'workbench.editor.interactive'"
             },
             {
                 "command": "python.refreshTensorBoard",
@@ -1367,12 +1387,12 @@
                 {
                     "command": "python.execSelectionInTerminal",
                     "group": "Python",
-                    "when": "editorFocus && editorLangId == python && !virtualWorkspace && shellExecutionSupported"
+                    "when": "!config.python.REPL.sendToNativeREPL && editorFocus && editorLangId == python && !virtualWorkspace && shellExecutionSupported"
                 },
                 {
                     "command": "python.execInREPL",
                     "group": "Python",
-                    "when": "editorFocus && editorLangId == python && !virtualWorkspace && shellExecutionSupported && pythonRunREPL"
+                    "when": "editorFocus && editorLangId == python && !virtualWorkspace && shellExecutionSupported && config.python.REPL.sendToNativeREPL"
                 }
             ],
             "editor/title": [
