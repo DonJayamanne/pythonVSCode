@@ -234,7 +234,7 @@ impl Locator for WindowsRegistry<'_> {
     fn find(&mut self) -> Option<LocatorResult> {
         if let Some(result) = get_registry_pythons(self.conda_locator) {
             if !result.environments.is_empty() || !result.managers.is_empty() {
-                // return Some(result);
+                return Some(result);
             }
         }
         None
