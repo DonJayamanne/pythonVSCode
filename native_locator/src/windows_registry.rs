@@ -17,29 +17,6 @@ use std::path::PathBuf;
 use winreg::RegKey;
 
 #[cfg(windows)]
-fn get_registry_pythons_from_key(
-    hk: &RegKey,
-    conda_locator: &mut dyn CondaLocator,
-) -> Option<LocatorResult> {
-    let mut environments = vec![];
-    let mut managers: Vec<EnvManager> = vec![];
-    let python_key = hk.open_subkey("Software\\Python").ok()?;
-    for company in python_key.enum_keys().filter_map(Result::ok) {
-        if let Some(result) =
-            get_registry_pythons_from_key_for_company(&hk, &company, conda_locator)
-        {
-            managers.extend(result.managers);
-            environments.extend(result.environments);
-        }
-    }
-
-    Some(LocatorResult {
-        environments,
-        managers,
-    })
-}
-
-#[cfg(windows)]
 fn get_registry_pythons_from_key_for_company(
     hk: &RegKey,
     company: &str,
@@ -136,19 +113,33 @@ fn get_registry_pythons_from_key_for_company(
 
 #[cfg(windows)]
 fn get_registry_pythons(conda_locator: &mut dyn CondaLocator) -> Option<LocatorResult> {
-    let hklm = winreg::RegKey::predef(winreg::enums::HKEY_LOCAL_MACHINE);
-    let hkcu = winreg::RegKey::predef(winreg::enums::HKEY_CURRENT_USER);
+    use log::warn;
 
     let mut environments = vec![];
     let mut managers: Vec<EnvManager> = vec![];
 
-    if let Some(result) = get_registry_pythons_from_key(&hklm, conda_locator) {
-        managers.extend(result.managers);
-        environments.extend(result.environments);
-    }
-    if let Some(result) = get_registry_pythons_from_key(&hkcu, conda_locator) {
-        managers.extend(result.managers);
-        environments.extend(result.environments);
+    for (name, key) in [
+        vec![
+            "HKLM",
+            winreg::RegKey::predef(winreg::enums::HKEY_LOCAL_MACHINE),
+        ],
+        vec![
+            "HKCU",
+            winreg::RegKey::predef(winreg::enums::HKEY_CURRENT_USER),
+        ],
+    ] {
+        if let Some(python_key) = key.open_subkey("Software\\Python").ok() {
+            for company in python_key.enum_keys().filter_map(Result::ok) {
+                if let Some(result) =
+                    get_registry_pythons_from_key_for_company(&key, &company, conda_locator)
+                {
+                    managers.extend(result.managers);
+                    environments.extend(result.environments);
+                }
+            }
+        } else {
+            warn!("Failed to open {}\\Software\\Python key", name)
+        }
     }
     Some(LocatorResult {
         environments,
@@ -177,7 +168,7 @@ impl Locator for WindowsRegistry<'_> {
 
     fn find(&mut self) -> Option<LocatorResult> {
         if let Some(result) = get_registry_pythons(self.conda_locator) {
-            if !result.environments.is_empty() && !result.managers.is_empty() {
+            if !result.environments.is_empty() || !result.managers.is_empty() {
                 return Some(result);
             }
         }
