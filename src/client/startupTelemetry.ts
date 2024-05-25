@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+import * as vscode from 'vscode';
 import { IWorkspaceService } from './common/application/types';
 import { isTestExecution } from './common/constants';
 import { ITerminalHelper } from './common/terminal/types';
@@ -21,6 +22,7 @@ export async function sendStartupTelemetry(
     durations: IStartupDurations,
     stopWatch: IStopWatch,
     serviceContainer: IServiceContainer,
+    isFirstSession: boolean,
 ) {
     if (isTestExecution()) {
         return;
@@ -29,7 +31,7 @@ export async function sendStartupTelemetry(
     try {
         await activatedPromise;
         durations.totalNonBlockingActivateTime = stopWatch.elapsedTime - durations.startActivateTime;
-        const props = await getActivationTelemetryProps(serviceContainer);
+        const props = await getActivationTelemetryProps(serviceContainer, isFirstSession);
         sendTelemetryEvent(EventName.EDITOR_LOAD, durations, props);
     } catch (ex) {
         traceError('sendStartupTelemetry() failed.', ex);
@@ -75,21 +77,27 @@ export function hasUserDefinedPythonPath(resource: Resource, serviceContainer: I
         : false;
 }
 
-async function getActivationTelemetryProps(serviceContainer: IServiceContainer): Promise<EditorLoadTelemetry> {
+async function getActivationTelemetryProps(
+    serviceContainer: IServiceContainer,
+    isFirstSession?: boolean,
+): Promise<EditorLoadTelemetry> {
     // TODO: Not all of this data is showing up in the database...
 
     // TODO: If any one of these parts fails we send no info.  We should
     // be able to partially populate as much as possible instead
     // (through granular try-catch statements).
+    const appName = vscode.env.appName;
     const workspaceService = serviceContainer.get<IWorkspaceService>(IWorkspaceService);
     const workspaceFolderCount = workspaceService.workspaceFolders?.length || 0;
     const terminalHelper = serviceContainer.get<ITerminalHelper>(ITerminalHelper);
     const terminalShellType = terminalHelper.identifyTerminalShell();
     if (!workspaceService.isTrusted) {
-        return { workspaceFolderCount, terminal: terminalShellType };
+        return { workspaceFolderCount, terminal: terminalShellType, isFirstSession };
     }
     const interpreterService = serviceContainer.get<IInterpreterService>(IInterpreterService);
-    const mainWorkspaceUri = workspaceService.workspaceFolders ? workspaceService.workspaceFolders[0].uri : undefined;
+    const mainWorkspaceUri = workspaceService.workspaceFolders?.length
+        ? workspaceService.workspaceFolders[0].uri
+        : undefined;
     const hasPythonThree = await interpreterService.hasInterpreters(async (item) => item.version?.major === 3);
     // If an unknown type environment can be found from windows registry or path env var,
     // consider them as global type instead of unknown. Such types can only be known after
@@ -127,5 +135,7 @@ async function getActivationTelemetryProps(serviceContainer: IServiceContainer):
         hasPythonThree,
         usingUserDefinedInterpreter,
         usingGlobalInterpreter,
+        appName,
+        isFirstSession,
     };
 }

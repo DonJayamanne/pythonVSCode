@@ -3,7 +3,7 @@
 
 import { ChildProcess, ExecOptions, SpawnOptions as ChildProcessSpawnOptions } from 'child_process';
 import { Observable } from 'rxjs/Observable';
-import { CancellationToken, Uri } from 'vscode';
+import { CancellationToken, OutputChannel, Uri } from 'vscode';
 import { PythonExecInfo } from '../../pythonEnvironments/exec';
 import { InterpreterInformation, PythonEnvironment } from '../../pythonEnvironments/info';
 import { ExecutionInfo, IDisposable } from '../types';
@@ -24,9 +24,12 @@ export type SpawnOptions = ChildProcessSpawnOptions & {
     mergeStdOutErr?: boolean;
     throwOnStdErr?: boolean;
     extraVariables?: NodeJS.ProcessEnv;
+    outputChannel?: OutputChannel;
+    stdinStr?: string;
+    useWorker?: boolean;
 };
 
-export type ShellOptions = ExecOptions & { throwOnStdErr?: boolean };
+export type ShellOptions = ExecOptions & { throwOnStdErr?: boolean; useWorker?: boolean };
 
 export type ExecutionResult<T extends string | Buffer> = {
     stdout: T;
@@ -53,7 +56,7 @@ export interface IProcessService extends IDisposable {
 export const IProcessServiceFactory = Symbol('IProcessServiceFactory');
 
 export interface IProcessServiceFactory {
-    create(resource?: Uri): Promise<IProcessService>;
+    create(resource?: Uri, options?: { doNotUseCustomEnvs: boolean }): Promise<IProcessService>;
 }
 
 export const IPythonExecutionFactory = Symbol('IPythonExecutionFactory');

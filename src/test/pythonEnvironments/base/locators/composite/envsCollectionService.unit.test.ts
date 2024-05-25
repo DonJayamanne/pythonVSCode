@@ -78,6 +78,9 @@ suite('Python envs locator - Environments Collection', async () => {
     ) {
         const env = buildEnvInfo({ executable, searchLocation, name, location, kind });
         env.id = id ?? env.id;
+        env.version.major = 3;
+        env.version.minor = 10;
+        env.version.micro = 10;
         return env;
     }
 
@@ -143,7 +146,7 @@ suite('Python envs locator - Environments Collection', async () => {
                 storage = envs;
             },
         });
-        collectionService = new EnvsCollectionService(cache, parentLocator);
+        collectionService = new EnvsCollectionService(cache, parentLocator, false);
     });
 
     teardown(async () => {
@@ -189,7 +192,7 @@ suite('Python envs locator - Environments Collection', async () => {
                 storage = e;
             },
         });
-        collectionService = new EnvsCollectionService(cache, parentLocator);
+        collectionService = new EnvsCollectionService(cache, parentLocator, false);
 
         await collectionService.triggerRefresh(undefined);
         await collectionService.triggerRefresh(undefined, { ifNotTriggerredAlready: true });
@@ -223,7 +226,7 @@ suite('Python envs locator - Environments Collection', async () => {
                 storage = e;
             },
         });
-        collectionService = new EnvsCollectionService(cache, parentLocator);
+        collectionService = new EnvsCollectionService(cache, parentLocator, false);
 
         const events: PythonEnvCollectionChangedEvent[] = [];
         collectionService.onChanged((e) => {
@@ -264,7 +267,7 @@ suite('Python envs locator - Environments Collection', async () => {
                 storage = e;
             },
         });
-        collectionService = new EnvsCollectionService(cache, parentLocator);
+        collectionService = new EnvsCollectionService(cache, parentLocator, false);
 
         let events: PythonEnvCollectionChangedEvent[] = [];
         collectionService.onChanged((e) => {
@@ -315,7 +318,7 @@ suite('Python envs locator - Environments Collection', async () => {
                 storage = e;
             },
         });
-        collectionService = new EnvsCollectionService(cache, parentLocator);
+        collectionService = new EnvsCollectionService(cache, parentLocator, false);
 
         const events: PythonEnvCollectionChangedEvent[] = [];
         collectionService.onChanged((e) => {
@@ -368,7 +371,7 @@ suite('Python envs locator - Environments Collection', async () => {
                 storage = e;
             },
         });
-        collectionService = new EnvsCollectionService(cache, parentLocator);
+        collectionService = new EnvsCollectionService(cache, parentLocator, false);
         let stage: ProgressReportStage | undefined;
         collectionService.onProgress((e) => {
             stage = e.stage;
@@ -439,7 +442,7 @@ suite('Python envs locator - Environments Collection', async () => {
             get: () => cachedEnvs,
             store: async () => noop(),
         });
-        collectionService = new EnvsCollectionService(cache, parentLocator);
+        collectionService = new EnvsCollectionService(cache, parentLocator, false);
         const resolved = await collectionService.resolveEnv(env.executable.filename);
         assertEnvEqual(resolved, env);
     });
@@ -469,10 +472,10 @@ suite('Python envs locator - Environments Collection', async () => {
             get: () => [],
             store: async () => noop(),
         });
-        collectionService = new EnvsCollectionService(cache, parentLocator);
+        collectionService = new EnvsCollectionService(cache, parentLocator, false);
         collectionService.triggerRefresh().ignoreErrors();
         await waitDeferred.promise; // Cache should already contain `env` at this point, although it is not complete.
-        collectionService = new EnvsCollectionService(cache, parentLocator);
+        collectionService = new EnvsCollectionService(cache, parentLocator, false);
         const resolved = await collectionService.resolveEnv(env.executable.filename);
         assertEnvEqual(resolved, resolvedViaLocator);
     });
@@ -499,7 +502,7 @@ suite('Python envs locator - Environments Collection', async () => {
             get: () => cachedEnvs,
             store: async () => noop(),
         });
-        collectionService = new EnvsCollectionService(cache, parentLocator);
+        collectionService = new EnvsCollectionService(cache, parentLocator, false);
         const resolved = await collectionService.resolveEnv(env.executable.filename);
         assertEnvEqual(resolved, resolvedViaLocator);
     });
@@ -518,7 +521,7 @@ suite('Python envs locator - Environments Collection', async () => {
             get: () => [],
             store: async () => noop(),
         });
-        collectionService = new EnvsCollectionService(cache, parentLocator);
+        collectionService = new EnvsCollectionService(cache, parentLocator, false);
         const resolved = await collectionService.resolveEnv(resolvedViaLocator.executable.filename);
         const envs = collectionService.getEnvs();
         assertEnvsEqual(envs, [resolved]);
@@ -542,7 +545,7 @@ suite('Python envs locator - Environments Collection', async () => {
             get: () => cachedEnvs,
             store: async () => noop(),
         });
-        collectionService = new EnvsCollectionService(cache, parentLocator);
+        collectionService = new EnvsCollectionService(cache, parentLocator, false);
         let resolved = await collectionService.resolveEnv(condaEnvWithoutPython.location);
         assertEnvEqual(resolved, condaEnvWithoutPython); // Ensure cache is used to resolve such envs.
 
@@ -580,7 +583,7 @@ suite('Python envs locator - Environments Collection', async () => {
             get: () => [],
             store: async () => noop(),
         });
-        collectionService = new EnvsCollectionService(cache, parentLocator);
+        collectionService = new EnvsCollectionService(cache, parentLocator, false);
         const events: PythonEnvCollectionChangedEvent[] = [];
         collectionService.onChanged((e) => {
             events.push(e);

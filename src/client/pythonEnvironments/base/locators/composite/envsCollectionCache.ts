@@ -3,7 +3,7 @@
 
 import { Event } from 'vscode';
 import { isTestExecution } from '../../../../common/constants';
-import { traceInfo, traceVerbose } from '../../../../logging';
+import { traceVerbose } from '../../../../logging';
 import { arePathsSame, getFileInfo, pathExists } from '../../../common/externalDependencies';
 import { PythonEnvInfo, PythonEnvKind } from '../../info';
 import { areEnvsDeepEqual, areSameEnv, getEnvPath } from '../../info/env';
@@ -225,7 +225,7 @@ export class PythonEnvInfoCache extends PythonEnvsWatcher<PythonEnvCollectionCha
             await this.persistentStorage.store(envs);
             return;
         }
-        traceInfo('Environments added to cache', JSON.stringify(this.envs));
+        traceVerbose('Environments added to cache', JSON.stringify(this.envs));
         this.markAllEnvsAsFlushed();
         await this.persistentStorage.store(this.envs);
     }
@@ -243,6 +243,10 @@ export class PythonEnvInfoCache extends PythonEnvsWatcher<PythonEnvCollectionCha
         // Make sure any previously flushed information is upto date by ensuring environment did not change.
         if (!this.flushedEnvs.has(env.id!)) {
             // Any environment with complete information is flushed, so this env does not contain complete info.
+            return false;
+        }
+        if (env.version.micro === -1 || env.version.major === -1 || env.version.minor === -1) {
+            // Env should not contain incomplete versions.
             return false;
         }
         const { ctime, mtime } = await getFileInfo(env.executable.filename);

@@ -156,6 +156,7 @@ suite('Conda and its environments are located correctly', () => {
                         const isFile = typeof dir[name] === 'string';
                         return {
                             name,
+                            path: dir.name?.toString() ?? '',
                             isFile: () => isFile,
                             isDirectory: () => !isFile,
                             isBlockDevice: () => false,
@@ -275,7 +276,11 @@ suite('Conda and its environments are located correctly', () => {
                                     opt: {},
                                 },
                             },
-                            opt: {},
+                            opt: {
+                                homebrew: {
+                                    bin: {},
+                                },
+                            },
                             usr: {
                                 share: {
                                     doc: {},
@@ -289,7 +294,14 @@ suite('Conda and its environments are located correctly', () => {
                         };
                     });
 
-                    ['/usr/share', '/usr/local/share', '/opt', '/home/user', '/home/user/opt'].forEach((prefix) => {
+                    [
+                        '/usr/share',
+                        '/usr/local/share',
+                        '/opt',
+                        '/opt/homebrew/bin',
+                        '/home/user',
+                        '/home/user/opt',
+                    ].forEach((prefix) => {
                         const condaPath = `${prefix}/${condaDirName}`;
 
                         test(`Must find conda in ${condaPath}`, async () => {
@@ -592,6 +604,11 @@ suite('Conda and its environments are located correctly', () => {
                     },
                 },
             };
+            sinon.stub(externalDependencies, 'inExperiment').returns(false);
+        });
+
+        teardown(() => {
+            sinon.restore();
         });
 
         test('Must compute conda environment name from prefix', async () => {

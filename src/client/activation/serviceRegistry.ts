@@ -15,7 +15,7 @@ import { LoadLanguageServerExtension } from './common/loadLanguageServerExtensio
 import { PartialModeStatusItem } from './partialModeStatus';
 import { ILanguageServerWatcher } from '../languageServer/types';
 import { LanguageServerWatcher } from '../languageServer/watcher';
-import { LspNotebooksExperiment } from './node/lspNotebooksExperiment';
+import { RequirementsTxtLinkActivator } from './requirementsTxtLinkActivator';
 
 export function registerTypes(serviceManager: IServiceManager): void {
     serviceManager.addSingleton<IExtensionActivationService>(IExtensionActivationService, PartialModeStatusItem);
@@ -35,6 +35,9 @@ export function registerTypes(serviceManager: IServiceManager): void {
 
     serviceManager.addSingleton<ILanguageServerWatcher>(ILanguageServerWatcher, LanguageServerWatcher);
     serviceManager.addBinding(ILanguageServerWatcher, IExtensionActivationService);
-    serviceManager.addSingleton<LspNotebooksExperiment>(LspNotebooksExperiment, LspNotebooksExperiment);
-    serviceManager.addBinding(LspNotebooksExperiment, IExtensionSingleActivationService);
+
+    serviceManager.addSingleton<IExtensionSingleActivationService>(
+        IExtensionSingleActivationService,
+        RequirementsTxtLinkActivator,
+    );
 }

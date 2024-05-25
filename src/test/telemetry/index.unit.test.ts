@@ -4,24 +4,20 @@
 
 import { expect } from 'chai';
 import rewiremock from 'rewiremock';
-import * as TypeMoq from 'typemoq';
+import * as sinon from 'sinon';
+import * as fs from 'fs-extra';
 
-import { instance, mock, verify, when } from 'ts-mockito';
-import { WorkspaceConfiguration } from 'vscode';
-import { IWorkspaceService } from '../../client/common/application/types';
-import { WorkspaceService } from '../../client/common/application/workspace';
 import {
     _resetSharedProperties,
     clearTelemetryReporter,
-    isTelemetryDisabled,
     sendTelemetryEvent,
     setSharedProperty,
 } from '../../client/telemetry';
 
 suite('Telemetry', () => {
-    let workspaceService: IWorkspaceService;
     const oldValueOfVSC_PYTHON_UNIT_TEST = process.env.VSC_PYTHON_UNIT_TEST;
     const oldValueOfVSC_PYTHON_CI_TEST = process.env.VSC_PYTHON_CI_TEST;
+    let readJSONSyncStub: sinon.SinonStub;
 
     class Reporter {
         public static eventName: string[] = [];
@@ -48,9 +44,10 @@ suite('Telemetry', () => {
     }
 
     setup(() => {
-        workspaceService = mock(WorkspaceService);
         process.env.VSC_PYTHON_UNIT_TEST = undefined;
         process.env.VSC_PYTHON_CI_TEST = undefined;
+        readJSONSyncStub = sinon.stub(fs, 'readJSONSync');
+        readJSONSyncStub.returns({ enableTelemetry: true });
         clearTelemetryReporter();
         Reporter.clear();
     });
@@ -59,37 +56,7 @@ suite('Telemetry', () => {
         process.env.VSC_PYTHON_CI_TEST = oldValueOfVSC_PYTHON_CI_TEST;
         rewiremock.disable();
         _resetSharedProperties();
-    });
-
-    const testsForisTelemetryDisabled = [
-        {
-            testName: 'Returns true when globalValue is set to false',
-            settings: { globalValue: false },
-            expectedResult: true,
-        },
-        {
-            testName: 'Returns false otherwise',
-            settings: {},
-            expectedResult: false,
-        },
-    ];
-
-    suite('Function isTelemetryDisabled()', () => {
-        testsForisTelemetryDisabled.forEach((testParams) => {
-            test(testParams.testName, async () => {
-                const workspaceConfig = TypeMoq.Mock.ofType<WorkspaceConfiguration>();
-                when(workspaceService.getConfiguration('telemetry')).thenReturn(workspaceConfig.object);
-                workspaceConfig
-                    .setup((c) => c.inspect<string>('enableTelemetry'))
-                    .returns(() => testParams.settings as any)
-                    .verifiable(TypeMoq.Times.once());
-
-                expect(isTelemetryDisabled(instance(workspaceService))).to.equal(testParams.expectedResult);
-
-                verify(workspaceService.getConfiguration('telemetry')).once();
-                workspaceConfig.verifyAll();
-            });
-        });
+        sinon.restore();
     });
 
     test('Send Telemetry', () => {

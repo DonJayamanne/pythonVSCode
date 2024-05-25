@@ -1,8 +1,9 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { uniq } from 'lodash';
+import { toLower, uniq, uniqBy } from 'lodash';
 import * as path from 'path';
+import { Uri } from 'vscode';
 import { chain, iterable } from '../../../../common/utils/async';
 import { getEnvironmentVariable, getOSType, getUserHomeDir, OSType } from '../../../../common/utils/platform';
 import { PythonEnvKind } from '../../info';
@@ -10,7 +11,7 @@ import { BasicEnvInfo, IPythonEnvsIterator } from '../../locator';
 import { FSWatchingLocator } from './fsWatchingLocator';
 import { findInterpretersInDir, looksLikeBasicVirtualPython } from '../../../common/commonUtils';
 import { pathExists, untildify } from '../../../common/externalDependencies';
-import { isPipenvEnvironment } from '../../../common/environmentManagers/pipenv';
+import { getProjectDir, isPipenvEnvironment } from '../../../common/environmentManagers/pipenv';
 import {
     isVenvEnvironment,
     isVirtualenvEnvironment,
@@ -18,7 +19,8 @@ import {
 } from '../../../common/environmentManagers/simplevirtualenvs';
 import '../../../../common/extensions';
 import { asyncFilter } from '../../../../common/utils/arrayUtils';
-import { traceError, traceVerbose } from '../../../../logging';
+import { traceError, traceInfo, traceVerbose } from '../../../../logging';
+import { StopWatch } from '../../../../common/utils/stopWatch';
 
 const DEFAULT_SEARCH_DEPTH = 2;
 /**
@@ -39,10 +41,14 @@ async function getGlobalVirtualEnvDirs(): Promise<string[]> {
 
     const homeDir = getUserHomeDir();
     if (homeDir && (await pathExists(homeDir))) {
-        const subDirs = ['Envs', '.direnv', '.venvs', '.virtualenvs', path.join('.local', 'share', 'virtualenvs')];
-        if (getOSType() !== OSType.Windows) {
-            subDirs.push('envs');
-        }
+        const subDirs = [
+            'envs',
+            'Envs',
+            '.direnv',
+            '.venvs',
+            '.virtualenvs',
+            path.join('.local', 'share', 'virtualenvs'),
+        ];
         const filtered = await asyncFilter(
             subDirs.map((d) => path.join(homeDir, d)),
             pathExists,
@@ -50,7 +56,19 @@ async function getGlobalVirtualEnvDirs(): Promise<string[]> {
         filtered.forEach((d) => venvDirs.push(d));
     }
 
-    return uniq(venvDirs);
+    return [OSType.Windows, OSType.OSX].includes(getOSType()) ? uniqBy(venvDirs, toLower) : uniq(venvDirs);
+}
+
+async function getSearchLocation(env: BasicEnvInfo): Promise<Uri | undefined> {
+    if (env.kind === PythonEnvKind.Pipenv) {
+        // Pipenv environments are created only for a specific project, so they must only
+        // appear if that particular project is being queried.
+        const project = await getProjectDir(path.dirname(path.dirname(env.executablePath)));
+        if (project) {
+            return Uri.file(project);
+        }
+    }
+    return undefined;
 }
 
 /**
@@ -101,6 +119,8 @@ export class GlobalVirtualEnvironmentLocator extends FSWatchingLocator {
         const searchDepth = this.searchDepth ?? DEFAULT_SEARCH_DEPTH;
 
         async function* iterator() {
+            const stopWatch = new StopWatch();
+            traceInfo('Searching for global virtual environments');
             const envRootDirs = await getGlobalVirtualEnvDirs();
             const envGenerators = envRootDirs.map((envRootDir) => {
                 async function* generator() {
@@ -119,8 +139,9 @@ export class GlobalVirtualEnvironmentLocator extends FSWatchingLocator {
                             // check multiple times. Those checks are file system heavy and
                             // we can use the kind to determine this anyway.
                             const kind = await getVirtualEnvKind(filename);
+                            const searchLocation = await getSearchLocation({ kind, executablePath: filename });
                             try {
-                                yield { kind, executablePath: filename };
+                                yield { kind, executablePath: filename, searchLocation };
                                 traceVerbose(`Global Virtual Environment: [added] ${filename}`);
                             } catch (ex) {
                                 traceError(`Failed to process environment: ${filename}`, ex);
@@ -134,7 +155,7 @@ export class GlobalVirtualEnvironmentLocator extends FSWatchingLocator {
             });
 
             yield* iterable(chain(envGenerators));
-            traceVerbose(`Finished searching for global virtual envs`);
+            traceInfo(`Finished searching for global virtual envs: ${stopWatch.elapsedTime} milliseconds`);
         }
 
         return iterator();

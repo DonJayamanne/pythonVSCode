@@ -10,7 +10,7 @@ import * as glob from 'glob';
 import * as path from 'path';
 import { coerce, SemVer } from 'semver';
 import { ConfigurationTarget, Event, TextDocument, Uri } from 'vscode';
-import type { IExtensionApi } from '../client/apiTypes';
+import type { PythonExtension } from '../client/api/types';
 import { IProcessService } from '../client/common/process/types';
 import { IDisposable } from '../client/common/types';
 import { IServiceContainer, IServiceManager } from '../client/ioc/types';
@@ -22,7 +22,7 @@ const StreamZip = require('node-stream-zip');
 
 export { sleep } from './core';
 
-const fileInNonRootWorkspace = path.join(EXTENSION_ROOT_DIR_FOR_TESTS, 'src', 'test', 'pythonFiles', 'dummy.py');
+const fileInNonRootWorkspace = path.join(EXTENSION_ROOT_DIR_FOR_TESTS, 'src', 'test', 'python_files', 'dummy.py');
 export const rootWorkspaceUri = getWorkspaceRoot();
 
 export const PYTHON_PATH = getPythonPath();
@@ -40,24 +40,12 @@ export enum OSType {
 export type PythonSettingKeys =
     | 'defaultInterpreterPath'
     | 'languageServer'
-    | 'linting.lintOnSave'
-    | 'linting.enabled'
-    | 'linting.pylintEnabled'
-    | 'linting.flake8Enabled'
-    | 'linting.pycodestyleEnabled'
-    | 'linting.pylamaEnabled'
-    | 'linting.prospectorEnabled'
-    | 'linting.pydocstyleEnabled'
-    | 'linting.mypyEnabled'
-    | 'linting.banditEnabled'
     | 'testing.pytestArgs'
     | 'testing.unittestArgs'
     | 'formatting.provider'
-    | 'sortImports.args'
     | 'testing.pytestEnabled'
     | 'testing.unittestEnabled'
     | 'envFile'
-    | 'linting.ignorePatterns'
     | 'terminal.activateEnvironment';
 
 async function disposePythonSettings() {
@@ -438,7 +426,7 @@ export async function isPythonVersion(...versions: string[]): Promise<boolean> {
     }
 }
 
-export interface IExtensionTestApi extends IExtensionApi, ProposedExtensionAPI {
+export interface IExtensionTestApi extends PythonExtension, ProposedExtensionAPI {
     serviceContainer: IServiceContainer;
     serviceManager: IServiceManager;
 }

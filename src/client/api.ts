@@ -1,54 +1,70 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
 'use strict';
 
-import { noop } from 'lodash';
 import { Uri, Event } from 'vscode';
 import { BaseLanguageClient, LanguageClientOptions } from 'vscode-languageclient';
 import { LanguageClient } from 'vscode-languageclient/node';
 import { PYLANCE_NAME } from './activation/node/languageClientFactory';
 import { ILanguageServerOutputChannel } from './activation/types';
-import { IExtensionApi } from './apiTypes';
+import { PythonExtension } from './api/types';
 import { isTestExecution, PYTHON_LANGUAGE } from './common/constants';
 import { IConfigurationService, Resource } from './common/types';
-import { IEnvironmentVariablesProvider } from './common/variables/types';
-import { getDebugpyLauncherArgs, getDebugpyPackagePath } from './debugger/extension/adapter/remoteLaunchers';
+import { getDebugpyLauncherArgs } from './debugger/extension/adapter/remoteLaunchers';
 import { IInterpreterService } from './interpreter/contracts';
 import { IServiceContainer, IServiceManager } from './ioc/types';
 import { JupyterExtensionIntegration } from './jupyter/jupyterIntegration';
 import { traceError } from './logging';
 import { IDiscoveryAPI } from './pythonEnvironments/base/locator';
 import { buildEnvironmentApi } from './environmentApi';
+import { ApiForPylance } from './pylanceApi';
+import { getTelemetryReporter } from './telemetry';
+import { TensorboardExtensionIntegration } from './tensorBoard/tensorboardIntegration';
+import { getDebugpyPath } from './debugger/pythonDebugger';
 
 export function buildApi(
-    ready: Promise<any>,
+    ready: Promise<void>,
     serviceManager: IServiceManager,
     serviceContainer: IServiceContainer,
     discoveryApi: IDiscoveryAPI,
-): IExtensionApi {
+): PythonExtension {
     const configurationService = serviceContainer.get<IConfigurationService>(IConfigurationService);
     const interpreterService = serviceContainer.get<IInterpreterService>(IInterpreterService);
     serviceManager.addSingleton<JupyterExtensionIntegration>(JupyterExtensionIntegration, JupyterExtensionIntegration);
+    serviceManager.addSingleton<TensorboardExtensionIntegration>(
+        TensorboardExtensionIntegration,
+        TensorboardExtensionIntegration,
+    );
     const jupyterIntegration = serviceContainer.get<JupyterExtensionIntegration>(JupyterExtensionIntegration);
-    const envService = serviceContainer.get<IEnvironmentVariablesProvider>(IEnvironmentVariablesProvider);
+    const tensorboardIntegration = serviceContainer.get<TensorboardExtensionIntegration>(
+        TensorboardExtensionIntegration,
+    );
     const outputChannel = serviceContainer.get<ILanguageServerOutputChannel>(ILanguageServerOutputChannel);
 
-    const api: IExtensionApi & {
+    const api: PythonExtension & {
+        /**
+         * Internal API just for Jupyter, hence don't include in the official types.
+         */
+        jupyter: {
+            registerHooks(): void;
+        };
+        /**
+         * Internal API just for Tensorboard, hence don't include in the official types.
+         */
+        tensorboard: {
+            registerHooks(): void;
+        };
+    } & {
         /**
          * @deprecated Temporarily exposed for Pylance until we expose this API generally. Will be removed in an
          * iteration or two.
          */
-        pylance: {
-            getPythonPathVar: (resource?: Uri) => Promise<string | undefined>;
-            readonly onDidEnvironmentVariablesChange: Event<Uri | undefined>;
-            createClient(...args: any[]): BaseLanguageClient;
-            start(client: BaseLanguageClient): Promise<void>;
-            stop(client: BaseLanguageClient): Promise<void>;
-        };
+        pylance: ApiForPylance;
     } & {
         /**
-         * @deprecated Use IExtensionApi.environments API instead.
+         * @deprecated Use PythonExtension.environments API instead.
          *
          * Return internal settings within the extension which are stored in VSCode storage
          */
@@ -91,11 +107,14 @@ export function buildApi(
         jupyter: {
             registerHooks: () => jupyterIntegration.integrateWithJupyterExtension(),
         },
+        tensorboard: {
+            registerHooks: () => tensorboardIntegration.integrateWithTensorboardExtension(),
+        },
         debug: {
             async getRemoteLauncherCommand(
                 host: string,
                 port: number,
-                waitUntilDebuggerAttaches: boolean = true,
+                waitUntilDebuggerAttaches = true,
             ): Promise<string[]> {
                 return getDebugpyLauncherArgs({
                     host,
@@ -104,33 +123,18 @@ export function buildApi(
                 });
             },
             async getDebuggerPackagePath(): Promise<string | undefined> {
-                return getDebugpyPackagePath();
+                return getDebugpyPath();
             },
         },
         settings: {
             onDidChangeExecutionDetails: interpreterService.onDidChangeInterpreterConfiguration,
             getExecutionDetails(resource?: Resource) {
-                const pythonPath = configurationService.getSettings(resource).pythonPath;
+                const { pythonPath } = configurationService.getSettings(resource);
                 // If pythonPath equals an empty string, no interpreter is set.
                 return { execCommand: pythonPath === '' ? undefined : [pythonPath] };
             },
         },
-        // These are for backwards compatibility. Other extensions are using these APIs and we don't want
-        // to force them to move to the jupyter extension ... yet.
-        datascience: {
-            registerRemoteServerProvider: jupyterIntegration
-                ? jupyterIntegration.registerRemoteServerProvider.bind(jupyterIntegration)
-                : (noop as any),
-            showDataViewer: jupyterIntegration
-                ? jupyterIntegration.showDataViewer.bind(jupyterIntegration)
-                : (noop as any),
-        },
         pylance: {
-            getPythonPathVar: async (resource?: Uri) => {
-                const envs = await envService.getEnvironmentVariables(resource);
-                return envs.PYTHONPATH;
-            },
-            onDidEnvironmentVariablesChange: envService.onDidEnvironmentVariablesChange,
             createClient: (...args: any[]): BaseLanguageClient => {
                 // Make sure we share output channel so that we can share one with
                 // Jedi as well.
@@ -141,6 +145,7 @@ export function buildApi(
             },
             start: (client: BaseLanguageClient): Promise<void> => client.start(),
             stop: (client: BaseLanguageClient): Promise<void> => client.stop(),
+            getTelemetryReporter: () => getTelemetryReporter(),
         },
         environments: buildEnvironmentApi(discoveryApi, serviceContainer),
     };

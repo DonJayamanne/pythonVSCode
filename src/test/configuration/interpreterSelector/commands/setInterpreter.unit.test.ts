@@ -31,6 +31,7 @@ import {
 import {
     EnvGroups,
     InterpreterStateArgs,
+    QuickPickType,
     SetInterpreterCommand,
 } from '../../../../client/interpreter/configuration/interpreterSelector/commands/setInterpreter';
 import {
@@ -154,7 +155,11 @@ suite('Set Interpreter Command', () => {
             } as PythonEnvironment,
         };
         const expectedEnterInterpreterPathSuggestion = {
-            label: `${Octicons.Add} ${InterpreterQuickPickList.enterPath.label}`,
+            label: `${Octicons.Folder} ${InterpreterQuickPickList.enterPath.label}`,
+            alwaysShow: true,
+        };
+        const expectedCreateEnvSuggestion = {
+            label: `${Octicons.Add} ${InterpreterQuickPickList.create.label}`,
             alwaysShow: true,
         };
         const currentPythonPath = 'python';
@@ -232,10 +237,11 @@ suite('Set Interpreter Command', () => {
             const state: InterpreterStateArgs = { path: 'some path', workspace: undefined };
             const multiStepInput = TypeMoq.Mock.ofType<IMultiStepInput<InterpreterStateArgs>>();
             const recommended = cloneDeep(item);
-            recommended.label = `${Octicons.Star} ${item.label}`;
+            recommended.label = item.label;
             recommended.description = interpreterPath;
             const suggestions = [
                 expectedEnterInterpreterPathSuggestion,
+                { kind: QuickPickItemKind.Separator, label: '' },
                 defaultInterpreterPathSuggestion,
                 { kind: QuickPickItemKind.Separator, label: EnvGroups.Recommended },
                 recommended,
@@ -265,8 +271,68 @@ suite('Set Interpreter Command', () => {
             delete actualParameters!.initialize;
             delete actualParameters!.customButtonSetups;
             delete actualParameters!.onChangeItem;
-            const activeItem = await actualParameters!.activeItem;
-            assert.deepStrictEqual(activeItem, recommended);
+            if (typeof actualParameters!.activeItem === 'function') {
+                const activeItem = await actualParameters!.activeItem(({ items: suggestions } as unknown) as QuickPick<
+                    QuickPickType
+                >);
+                assert.deepStrictEqual(activeItem, recommended);
+            } else {
+                assert(false, 'Not a function');
+            }
+            delete actualParameters!.activeItem;
+            assert.deepStrictEqual(actualParameters, expectedParameters, 'Params not equal');
+        });
+
+        test('Picker should show create env when set in options', async () => {
+            const state: InterpreterStateArgs = { path: 'some path', workspace: undefined };
+            const multiStepInput = TypeMoq.Mock.ofType<IMultiStepInput<InterpreterStateArgs>>();
+            const recommended = cloneDeep(item);
+            recommended.label = item.label;
+            recommended.description = interpreterPath;
+            const suggestions = [
+                expectedCreateEnvSuggestion,
+                { kind: QuickPickItemKind.Separator, label: '' },
+                expectedEnterInterpreterPathSuggestion,
+                { kind: QuickPickItemKind.Separator, label: '' },
+                defaultInterpreterPathSuggestion,
+                { kind: QuickPickItemKind.Separator, label: EnvGroups.Recommended },
+                recommended,
+            ];
+            const expectedParameters: IQuickPickParameters<QuickPickItem> = {
+                placeholder: `Selected Interpreter: ${currentPythonPath}`,
+                items: suggestions,
+                matchOnDetail: true,
+                matchOnDescription: true,
+                title: InterpreterQuickPickList.browsePath.openButtonLabel,
+                sortByLabel: true,
+                keepScrollPosition: true,
+            };
+            let actualParameters: IQuickPickParameters<QuickPickItem> | undefined;
+            multiStepInput
+                .setup((i) => i.showQuickPick(TypeMoq.It.isAny()))
+                .callback((options) => {
+                    actualParameters = options;
+                })
+                .returns(() => Promise.resolve((undefined as unknown) as QuickPickItem));
+
+            await setInterpreterCommand._pickInterpreter(multiStepInput.object, state, undefined, {
+                showCreateEnvironment: true,
+            });
+
+            expect(actualParameters).to.not.equal(undefined, 'Parameters not set');
+            const refreshButtons = actualParameters!.customButtonSetups;
+            expect(refreshButtons).to.not.equal(undefined, 'Callback not set');
+            delete actualParameters!.initialize;
+            delete actualParameters!.customButtonSetups;
+            delete actualParameters!.onChangeItem;
+            if (typeof actualParameters!.activeItem === 'function') {
+                const activeItem = await actualParameters!.activeItem(({ items: suggestions } as unknown) as QuickPick<
+                    QuickPickType
+                >);
+                assert.deepStrictEqual(activeItem, recommended);
+            } else {
+                assert(false, 'Not a function');
+            }
             delete actualParameters!.activeItem;
             assert.deepStrictEqual(actualParameters, expectedParameters, 'Params not equal');
         });
@@ -276,6 +342,7 @@ suite('Set Interpreter Command', () => {
             const multiStepInput = TypeMoq.Mock.ofType<IMultiStepInput<InterpreterStateArgs>>();
             const suggestions = [
                 expectedEnterInterpreterPathSuggestion,
+                { kind: QuickPickItemKind.Separator, label: '' },
                 defaultInterpreterPathSuggestion,
                 noPythonInstalled,
             ];
@@ -308,8 +375,14 @@ suite('Set Interpreter Command', () => {
             delete actualParameters!.initialize;
             delete actualParameters!.customButtonSetups;
             delete actualParameters!.onChangeItem;
-            const activeItem = await actualParameters!.activeItem;
-            assert.deepStrictEqual(activeItem, noPythonInstalled);
+            if (typeof actualParameters!.activeItem === 'function') {
+                const activeItem = await actualParameters!.activeItem(({ items: suggestions } as unknown) as QuickPick<
+                    QuickPickType
+                >);
+                assert.deepStrictEqual(activeItem, noPythonInstalled);
+            } else {
+                assert(false, 'Not a function');
+            }
             delete actualParameters!.activeItem;
             assert.deepStrictEqual(actualParameters, expectedParameters, 'Params not equal');
         });
@@ -423,10 +496,11 @@ suite('Set Interpreter Command', () => {
                 .setup((i) => i.getRecommendedSuggestion(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
                 .returns(() => item);
             const recommended = cloneDeep(item);
-            recommended.label = `${Octicons.Star} ${item.label}`;
+            recommended.label = item.label;
             recommended.description = interpreterPath;
             const suggestions = [
                 expectedEnterInterpreterPathSuggestion,
+                { kind: QuickPickItemKind.Separator, label: '' },
                 defaultInterpreterPathSuggestion,
                 { kind: QuickPickItemKind.Separator, label: EnvGroups.Recommended },
                 recommended,
@@ -539,10 +613,11 @@ suite('Set Interpreter Command', () => {
                 .setup((i) => i.getRecommendedSuggestion(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
                 .returns(() => item);
             const recommended = cloneDeep(item);
-            recommended.label = `${Octicons.Star} ${item.label}`;
+            recommended.label = item.label;
             recommended.description = interpreterPath;
             const suggestions = [
                 expectedEnterInterpreterPathSuggestion,
+                { kind: QuickPickItemKind.Separator, label: '' },
                 defaultInterpreterPathSuggestion,
                 { kind: QuickPickItemKind.Separator, label: EnvGroups.Recommended },
                 recommended,
@@ -628,7 +703,7 @@ suite('Set Interpreter Command', () => {
             const state: InterpreterStateArgs = { path: 'some path', workspace: undefined };
             const multiStepInput = TypeMoq.Mock.ofType<IMultiStepInput<InterpreterStateArgs>>();
             const recommended = cloneDeep(item);
-            recommended.label = `${Octicons.Star} ${item.label}`;
+            recommended.label = item.label;
             recommended.description = interpreterPath;
             const separator = { label: EnvGroups.Recommended, kind: QuickPickItemKind.Separator };
 
@@ -639,7 +714,13 @@ suite('Set Interpreter Command', () => {
                 alwaysShow: true,
             };
 
-            const suggestions = [expectedEnterInterpreterPathSuggestion, defaultPathSuggestion, separator, recommended];
+            const suggestions = [
+                expectedEnterInterpreterPathSuggestion,
+                { kind: QuickPickItemKind.Separator, label: '' },
+                defaultPathSuggestion,
+                separator,
+                recommended,
+            ];
             const expectedParameters: IQuickPickParameters<QuickPickItem> = {
                 placeholder: `Selected Interpreter: ${currentPythonPath}`,
                 items: suggestions,
@@ -666,8 +747,14 @@ suite('Set Interpreter Command', () => {
             delete actualParameters!.initialize;
             delete actualParameters!.customButtonSetups;
             delete actualParameters!.onChangeItem;
-            const activeItem = await actualParameters!.activeItem;
-            assert.deepStrictEqual(activeItem, recommended);
+            if (typeof actualParameters!.activeItem === 'function') {
+                const activeItem = await actualParameters!.activeItem(({ items: suggestions } as unknown) as QuickPick<
+                    QuickPickType
+                >);
+                assert.deepStrictEqual(activeItem, recommended);
+            } else {
+                assert(false, 'Not a function');
+            }
             delete actualParameters!.activeItem;
 
             assert.deepStrictEqual(actualParameters, expectedParameters, 'Params not equal');
@@ -767,7 +854,7 @@ suite('Set Interpreter Command', () => {
             await sleep(1);
 
             const recommended = cloneDeep(refreshedItem);
-            recommended.label = `${Octicons.Star} ${refreshedItem.label}`;
+            recommended.label = refreshedItem.label;
             recommended.description = `${interpreterPath} - ${Common.recommended}`;
             assert.deepStrictEqual(
                 quickPick,

@@ -42,6 +42,12 @@ export function buildEnvInfo(init?: {
     sysPrefix?: string;
     searchLocation?: Uri;
     type?: PythonEnvType;
+    /**
+     * Command used to run Python in this environment.
+     * E.g. `conda run -n envName python` or `python.exe`
+     */
+    pythonRunCommand?: string[];
+    identifiedUsingNativeLocator?: boolean;
 }): PythonEnvInfo {
     const env: PythonEnvInfo = {
         name: init?.name ?? '',
@@ -69,6 +75,8 @@ export function buildEnvInfo(init?: {
             org: init?.org ?? '',
         },
         source: init?.source ?? [],
+        pythonRunCommand: init?.pythonRunCommand,
+        identifiedUsingNativeLocator: init?.identifiedUsingNativeLocator,
     };
     if (init !== undefined) {
         updateEnv(env, init);
@@ -87,7 +95,13 @@ export function areEnvsDeepEqual(env1: PythonEnvInfo, env2: PythonEnvInfo): bool
     env2Clone.source = env2Clone.source.sort();
     const searchLocation1 = env1.searchLocation?.fsPath ?? '';
     const searchLocation2 = env2.searchLocation?.fsPath ?? '';
-    return isEqual(env1Clone, env2Clone) && arePathsSame(searchLocation1, searchLocation2);
+    const searchLocation1Scheme = env1.searchLocation?.scheme ?? '';
+    const searchLocation2Scheme = env2.searchLocation?.scheme ?? '';
+    return (
+        isEqual(env1Clone, env2Clone) &&
+        arePathsSame(searchLocation1, searchLocation2) &&
+        searchLocation1Scheme === searchLocation2Scheme
+    );
 }
 
 /**
@@ -154,7 +168,7 @@ export function setEnvDisplayString(env: PythonEnvInfo): void {
 
 function buildEnvDisplayString(env: PythonEnvInfo, getAllDetails = false): string {
     // main parts
-    const shouldDisplayKind = getAllDetails || env.searchLocation || globallyInstalledEnvKinds.includes(env.kind);
+    const shouldDisplayKind = getAllDetails || globallyInstalledEnvKinds.includes(env.kind);
     const shouldDisplayArch = !virtualEnvKinds.includes(env.kind);
     const displayNameParts: string[] = ['Python'];
     if (env.version && !isVersionEmpty(env.version)) {
@@ -173,6 +187,11 @@ function buildEnvDisplayString(env: PythonEnvInfo, getAllDetails = false): strin
     const envSuffixParts: string[] = [];
     if (env.name && env.name !== '') {
         envSuffixParts.push(`'${env.name}'`);
+    } else if (env.location && env.location !== '') {
+        if (env.kind === PythonEnvKind.Conda) {
+            const condaEnvName = path.basename(env.location);
+            envSuffixParts.push(`'${condaEnvName}'`);
+        }
     }
     if (shouldDisplayKind) {
         const kindName = getKindDisplayName(env.kind);
@@ -265,13 +284,19 @@ export function areSameEnv(
     if (leftInfo === undefined || rightInfo === undefined) {
         return undefined;
     }
-    const leftFilename = leftInfo.executable!.filename;
-    const rightFilename = rightInfo.executable!.filename;
-
+    if (
+        (leftInfo.executable?.filename && !rightInfo.executable?.filename) ||
+        (!leftInfo.executable?.filename && rightInfo.executable?.filename)
+    ) {
+        return false;
+    }
     if (leftInfo.id && leftInfo.id === rightInfo.id) {
         // In case IDs are available, use it.
         return true;
     }
+
+    const leftFilename = leftInfo.executable!.filename;
+    const rightFilename = rightInfo.executable!.filename;
 
     if (getEnvID(leftFilename, leftInfo.location) === getEnvID(rightFilename, rightInfo.location)) {
         // Otherwise use ID function to get the ID. Note ID returned by function may itself change if executable of

@@ -6,7 +6,6 @@
 import { IExtensionActivationService, IExtensionSingleActivationService } from '../activation/types';
 import { IServiceManager } from '../ioc/types';
 import { EnvironmentActivationService } from './activation/service';
-import { TerminalEnvVarCollectionService } from './activation/terminalEnvVarCollectionService';
 import { IEnvironmentActivationService } from './activation/types';
 import { InterpreterAutoSelectionService } from './autoSelection/index';
 import { InterpreterAutoSelectionProxyService } from './autoSelection/proxy';
@@ -30,6 +29,7 @@ import { IActivatedEnvironmentLaunch, IInterpreterDisplay, IInterpreterHelper, I
 import { InterpreterDisplay } from './display';
 import { InterpreterLocatorProgressStatubarHandler } from './display/progressDisplay';
 import { InterpreterHelper } from './helpers';
+import { InterpreterPathCommand } from './interpreterPathCommand';
 import { InterpreterService } from './interpreterService';
 import { ActivatedEnvironmentLaunch } from './virtualEnvs/activatedEnvLaunch';
 import { CondaInheritEnvPrompt } from './virtualEnvs/condaInheritEnvPrompt';
@@ -111,6 +111,6 @@ export function registerTypes(serviceManager: IServiceManager): void {
     );
     serviceManager.addSingleton<IExtensionSingleActivationService>(
         IExtensionSingleActivationService,
-        TerminalEnvVarCollectionService,
+        InterpreterPathCommand,
     );
 }

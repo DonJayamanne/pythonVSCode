@@ -12,6 +12,8 @@ import { ExecutionResult, ObservableExecutionResult, Output, ShellOptions, Spawn
 import { noop } from '../utils/misc';
 import { decodeBuffer } from './decoder';
 import { traceVerbose } from '../../logging';
+import { WorkspaceService } from '../application/workspace';
+import { ProcessLogger } from './logger';
 
 const PS_ERROR_SCREEN_BOGUS = /your [0-9]+x[0-9]+ screen size is bogus\. expect trouble/;
 
@@ -49,12 +51,15 @@ function getDefaultOptions<T extends ShellOptions | SpawnOptions>(options: T, de
 
 export function shellExec(
     command: string,
-    options: ShellOptions = {},
+    options: ShellOptions & { doNotLog?: boolean } = {},
     defaultEnv?: EnvironmentVariables,
     disposables?: Set<IDisposable>,
 ): Promise<ExecutionResult<string>> {
     const shellOptions = getDefaultOptions(options, defaultEnv);
-    traceVerbose(`Shell Exec: ${command} with options: ${JSON.stringify(shellOptions, null, 4)}`);
+    if (!options.doNotLog) {
+        const processLogger = new ProcessLogger(new WorkspaceService());
+        processLogger.logProcess(command, undefined, shellOptions);
+    }
     return new Promise((resolve, reject) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const callback = (e: any, stdout: any, stderr: any) => {
@@ -69,11 +74,26 @@ export function shellExec(
                 resolve({ stderr: stderr && stderr.length > 0 ? stderr : undefined, stdout });
             }
         };
+        let procExited = false;
         const proc = exec(command, shellOptions, callback); // NOSONAR
+        proc.once('close', () => {
+            procExited = true;
+        });
+        proc.once('exit', () => {
+            procExited = true;
+        });
+        proc.once('error', () => {
+            procExited = true;
+        });
         const disposable: IDisposable = {
             dispose: () => {
-                if (!proc.killed) {
-                    proc.kill();
+                // If process has not exited nor killed, force kill it.
+                if (!procExited && !proc.killed) {
+                    if (proc.pid) {
+                        killPid(proc.pid);
+                    } else {
+                        proc.kill();
+                    }
                 }
             },
         };
@@ -86,12 +106,16 @@ export function shellExec(
 export function plainExec(
     file: string,
     args: string[],
-    options: SpawnOptions = {},
+    options: SpawnOptions & { doNotLog?: boolean } = {},
     defaultEnv?: EnvironmentVariables,
     disposables?: Set<IDisposable>,
 ): Promise<ExecutionResult<string>> {
     const spawnOptions = getDefaultOptions(options, defaultEnv);
     const encoding = spawnOptions.encoding ? spawnOptions.encoding : 'utf8';
+    if (!options.doNotLog) {
+        const processLogger = new ProcessLogger(new WorkspaceService());
+        processLogger.logProcess(file, args, options);
+    }
     const proc = spawn(file, args, spawnOptions);
     // Listen to these errors (unhandled errors in streams tears down the process).
     // Errors will be bubbled up to the `error` event in `proc`, hence no need to log.
@@ -100,8 +124,13 @@ export function plainExec(
     const deferred = createDeferred<ExecutionResult<string>>();
     const disposable: IDisposable = {
         dispose: () => {
+            // If process has not exited nor killed, force kill it.
             if (!proc.killed && !deferred.completed) {
-                proc.kill();
+                if (proc.pid) {
+                    killPid(proc.pid);
+                } else {
+                    proc.kill();
+                }
             }
         },
     };
@@ -121,7 +150,10 @@ export function plainExec(
     }
 
     const stdoutBuffers: Buffer[] = [];
-    on(proc.stdout, 'data', (data: Buffer) => stdoutBuffers.push(data));
+    on(proc.stdout, 'data', (data: Buffer) => {
+        stdoutBuffers.push(data);
+        options.outputChannel?.append(data.toString());
+    });
     const stderrBuffers: Buffer[] = [];
     on(proc.stderr, 'data', (data: Buffer) => {
         if (options.mergeStdOutErr) {
@@ -130,6 +162,7 @@ export function plainExec(
         } else {
             stderrBuffers.push(data);
         }
+        options.outputChannel?.append(data.toString());
     });
 
     proc.once('close', () => {
@@ -152,10 +185,12 @@ export function plainExec(
             deferred.resolve({ stdout, stderr });
         }
         internalDisposables.forEach((d) => d.dispose());
+        disposable.dispose();
     });
     proc.once('error', (ex) => {
         deferred.reject(ex);
         internalDisposables.forEach((d) => d.dispose());
+        disposable.dispose();
     });
 
     return deferred.promise;
@@ -178,17 +213,21 @@ function removeCondaRunMarkers(out: string) {
 export function execObservable(
     file: string,
     args: string[],
-    options: SpawnOptions = {},
+    options: SpawnOptions & { doNotLog?: boolean } = {},
     defaultEnv?: EnvironmentVariables,
     disposables?: Set<IDisposable>,
 ): ObservableExecutionResult<string> {
     const spawnOptions = getDefaultOptions(options, defaultEnv);
     const encoding = spawnOptions.encoding ? spawnOptions.encoding : 'utf8';
+    if (!options.doNotLog) {
+        const processLogger = new ProcessLogger(new WorkspaceService());
+        processLogger.logProcess(file, args, options);
+    }
     const proc = spawn(file, args, spawnOptions);
     let procExited = false;
     const disposable: IDisposable = {
         dispose() {
-            if (proc && !proc.killed && !procExited) {
+            if (proc && proc.pid && !proc.killed && !procExited) {
                 killPid(proc.pid);
             }
             if (proc) {
@@ -213,7 +252,11 @@ export function execObservable(
             internalDisposables.push(
                 options.token.onCancellationRequested(() => {
                     if (!procExited && !proc.killed) {
-                        proc.kill();
+                        if (proc.pid) {
+                            killPid(proc.pid);
+                        } else {
+                            proc.kill();
+                        }
                         procExited = true;
                     }
                 }),
@@ -251,6 +294,10 @@ export function execObservable(
             subscriber.error(ex);
             internalDisposables.forEach((d) => d.dispose());
         });
+        if (options.stdinStr !== undefined) {
+            proc.stdin?.write(options.stdinStr);
+            proc.stdin?.end();
+        }
     });
 
     return {
@@ -269,6 +316,6 @@ export function killPid(pid: number): void {
             process.kill(pid);
         }
     } catch {
-        // Ignore.
+        traceVerbose('Unable to kill process with pid', pid);
     }
 }

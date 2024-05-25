@@ -105,9 +105,7 @@ export abstract class FSWatchingLocator extends LazyResourceBasedLocator {
         }
 
         // Start the FS watchers.
-        traceVerbose('Getting roots');
         let roots = await this.getRoots();
-        traceVerbose('Found roots');
         if (typeof roots === 'string') {
             roots = [roots];
         }
@@ -126,6 +124,10 @@ export abstract class FSWatchingLocator extends LazyResourceBasedLocator {
         });
         const watchableRoots = (await Promise.all(promises)).filter((root) => !!root) as string[];
         watchableRoots.forEach((root) => this.startWatchers(root));
+    }
+
+    protected fire(args = {}): void {
+        this.emitter.fire({ ...args, providerId: this.providerId });
     }
 
     private startWatchers(root: string): void {

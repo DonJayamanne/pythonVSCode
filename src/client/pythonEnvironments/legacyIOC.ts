@@ -9,7 +9,12 @@ import { Resource } from '../common/types';
 import { IComponentAdapter, ICondaService, PythonEnvironmentsChangedEvent } from '../interpreter/contracts';
 import { IServiceManager } from '../ioc/types';
 import { PythonEnvInfo, PythonEnvKind, PythonEnvSource } from './base/info';
-import { IDiscoveryAPI, PythonLocatorQuery, TriggerRefreshOptions } from './base/locator';
+import {
+    GetRefreshEnvironmentsOptions,
+    IDiscoveryAPI,
+    PythonLocatorQuery,
+    TriggerRefreshOptions,
+} from './base/locator';
 import { isMacDefaultPythonPath } from './common/environmentManagers/macDefault';
 import { isParentPath } from './common/externalDependencies';
 import { EnvironmentType, PythonEnvironment } from './info';
@@ -33,6 +38,7 @@ const convertedKinds = new Map(
         [PythonEnvKind.VirtualEnv]: EnvironmentType.VirtualEnv,
         [PythonEnvKind.Pipenv]: EnvironmentType.Pipenv,
         [PythonEnvKind.Poetry]: EnvironmentType.Poetry,
+        [PythonEnvKind.Hatch]: EnvironmentType.Hatch,
         [PythonEnvKind.Venv]: EnvironmentType.Venv,
         [PythonEnvKind.VirtualEnvWrapper]: EnvironmentType.VirtualEnvWrapper,
         [PythonEnvKind.ActiveState]: EnvironmentType.ActiveState,
@@ -75,6 +81,7 @@ function convertEnvInfo(info: PythonEnvInfo): PythonEnvironment {
     }
     env.displayName = info.display;
     env.detailedDisplayName = info.detailedDisplayName;
+    env.type = info.type;
     // We do not worry about using distro.defaultDisplayName.
 
     return env;
@@ -101,8 +108,8 @@ class ComponentAdapter implements IComponentAdapter {
         return this.api.triggerRefresh(query, options);
     }
 
-    public getRefreshPromise() {
-        return this.api.getRefreshPromise();
+    public getRefreshPromise(options?: GetRefreshEnvironmentsOptions) {
+        return this.api.getRefreshPromise(options);
     }
 
     public get onProgress() {

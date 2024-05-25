@@ -3,15 +3,16 @@
 
 'use strict';
 
-import { workspace } from 'vscode';
-import { isTestExecution } from '../constants';
+import { env, workspace } from 'vscode';
 import { IExperimentService } from '../types';
 import { TerminalEnvVarActivation } from './groups';
+import { isTestExecution } from '../constants';
+import { traceInfo } from '../../logging';
 
 export function inTerminalEnvVarExperiment(experimentService: IExperimentService): boolean {
-    if (workspace.workspaceFile && !isTestExecution()) {
-        // Don't run experiment in multi-root workspaces for now, requires work on VSCode:
-        // https://github.com/microsoft/vscode/issues/171173
+    if (!isTestExecution() && env.remoteName && workspace.workspaceFolders && workspace.workspaceFolders.length > 1) {
+        // TODO: Remove this if statement once https://github.com/microsoft/vscode/issues/180486 is fixed.
+        traceInfo('Not enabling terminal env var experiment in multiroot remote workspaces');
         return false;
     }
     if (!experimentService.inExperimentSync(TerminalEnvVarActivation.experiment)) {

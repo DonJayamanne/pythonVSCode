@@ -14,7 +14,7 @@ import { WorkspaceService } from '../../../client/common/application/workspace';
 import { PersistentState, PersistentStateFactory } from '../../../client/common/persistentState';
 import { FileSystem } from '../../../client/common/platform/fileSystem';
 import { IFileSystem } from '../../../client/common/platform/types';
-import { IPersistentStateFactory, Resource } from '../../../client/common/types';
+import { IExperimentService, IPersistentStateFactory, Resource } from '../../../client/common/types';
 import { createDeferred } from '../../../client/common/utils/async';
 import { InterpreterAutoSelectionService } from '../../../client/interpreter/autoSelection';
 import { InterpreterAutoSelectionProxyService } from '../../../client/interpreter/autoSelection/proxy';
@@ -23,6 +23,7 @@ import { EnvironmentTypeComparer } from '../../../client/interpreter/configurati
 import { IInterpreterHelper, IInterpreterService, WorkspacePythonPath } from '../../../client/interpreter/contracts';
 import { InterpreterHelper } from '../../../client/interpreter/helpers';
 import { InterpreterService } from '../../../client/interpreter/interpreterService';
+import { PythonEnvType } from '../../../client/pythonEnvironments/base/info';
 import { EnvironmentType, PythonEnvironment } from '../../../client/pythonEnvironments/info';
 import * as Telemetry from '../../../client/telemetry';
 import { EventName } from '../../../client/telemetry/constants';
@@ -40,6 +41,7 @@ suite('Interpreters - Auto Selection', () => {
     let helper: IInterpreterHelper;
     let proxy: IInterpreterAutoSelectionProxyService;
     let interpreterService: IInterpreterService;
+    let experimentService: IExperimentService;
     let sendTelemetryEventStub: sinon.SinonStub;
     let telemetryEvents: { eventName: string; properties: Record<string, unknown> }[] = [];
     class InterpreterAutoSelectionServiceTest extends InterpreterAutoSelectionService {
@@ -63,6 +65,8 @@ suite('Interpreters - Auto Selection', () => {
         helper = mock(InterpreterHelper);
         proxy = mock(InterpreterAutoSelectionProxyService);
         interpreterService = mock(InterpreterService);
+        experimentService = mock<IExperimentService>();
+        when(experimentService.inExperimentSync(anything())).thenReturn(false);
 
         const interpreterComparer = new EnvironmentTypeComparer(instance(helper));
 
@@ -74,6 +78,7 @@ suite('Interpreters - Auto Selection', () => {
             interpreterComparer,
             instance(proxy),
             instance(helper),
+            instance(experimentService),
         );
 
         when(interpreterService.refreshPromise).thenReturn(undefined);
@@ -139,6 +144,12 @@ suite('Interpreters - Auto Selection', () => {
                     undefined,
                 ),
             ).thenReturn(instance(state));
+            when(
+                stateFactory.createGlobalPersistentState<PythonEnvironment | undefined>(
+                    'autoSelectionInterpretersQueriedOnce',
+                    undefined,
+                ),
+            ).thenReturn(instance(state));
             when(workspaceService.getWorkspaceFolderIdentifier(anything(), '')).thenReturn('workspaceIdentifier');
 
             autoSelectionService.onDidChangeAutoSelectedInterpreter(() => {
@@ -150,6 +161,7 @@ suite('Interpreters - Auto Selection', () => {
         test('If there is a local environment select it', async () => {
             const localEnv = {
                 envType: EnvironmentType.Venv,
+                type: PythonEnvType.Virtual,
                 envPath: path.join(workspacePath, '.venv'),
                 version: { major: 3, minor: 10, patch: 0 },
             } as PythonEnvironment;
@@ -157,6 +169,7 @@ suite('Interpreters - Auto Selection', () => {
             when(interpreterService.getInterpreters(resource)).thenCall((_) => [
                 {
                     envType: EnvironmentType.Conda,
+                    type: PythonEnvType.Conda,
                     envPath: path.join('some', 'conda', 'env'),
                     version: { major: 3, minor: 7, patch: 2 },
                 } as PythonEnvironment,
@@ -205,6 +218,13 @@ suite('Interpreters - Auto Selection', () => {
 
         test('getInterpreters is called with ignoreCache at true if there is no value set in the workspace persistent state', async () => {
             const interpreterComparer = new EnvironmentTypeComparer(instance(helper));
+
+            const globalQueriedState = mock(PersistentState) as PersistentState<boolean | undefined>;
+            when(globalQueriedState.value).thenReturn(true);
+            when(stateFactory.createGlobalPersistentState<boolean | undefined>(anyString(), undefined)).thenReturn(
+                instance(globalQueriedState),
+            );
+
             const queryState = mock(PersistentState) as PersistentState<boolean | undefined>;
 
             when(queryState.value).thenReturn(undefined);
@@ -233,6 +253,7 @@ suite('Interpreters - Auto Selection', () => {
                 interpreterComparer,
                 instance(proxy),
                 instance(helper),
+                instance(experimentService),
             );
 
             autoSelectionService.initializeStore = () => Promise.resolve();
@@ -272,6 +293,7 @@ suite('Interpreters - Auto Selection', () => {
                 interpreterComparer,
                 instance(proxy),
                 instance(helper),
+                instance(experimentService),
             );
 
             autoSelectionService.initializeStore = () => Promise.resolve();
@@ -306,6 +328,7 @@ suite('Interpreters - Auto Selection', () => {
                 interpreterComparer,
                 instance(proxy),
                 instance(helper),
+                instance(experimentService),
             );
 
             autoSelectionService.initializeStore = () => Promise.resolve();
@@ -349,6 +372,7 @@ suite('Interpreters - Auto Selection', () => {
                 interpreterComparer,
                 instance(proxy),
                 instance(helper),
+                instance(experimentService),
             );
 
             autoSelectionService.initializeStore = () => Promise.resolve();
@@ -380,6 +404,10 @@ suite('Interpreters - Auto Selection', () => {
 
         when(queryState.value).thenReturn(undefined);
         when(stateFactory.createWorkspacePersistentState<boolean | undefined>(anyString(), undefined)).thenReturn(
+            instance(queryState),
+        );
+        when(queryState.value).thenReturn(undefined);
+        when(stateFactory.createGlobalPersistentState<boolean | undefined>(anyString(), undefined)).thenReturn(
             instance(queryState),
         );
 

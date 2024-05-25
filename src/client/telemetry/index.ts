@@ -3,16 +3,13 @@
 // Licensed under the MIT License.
 
 import TelemetryReporter from '@vscode/extension-telemetry';
-
+import type * as vscodeTypes from 'vscode';
 import { DiagnosticCodes } from '../application/diagnostics/constants';
-import { IWorkspaceService } from '../common/application/types';
-import { AppinsightsKey, isTestExecution, isUnitTestExecution } from '../common/constants';
+import { AppinsightsKey, isTestExecution, isUnitTestExecution, PVSC_EXTENSION_ID } from '../common/constants';
 import type { TerminalShellType } from '../common/terminal/types';
 import { StopWatch } from '../common/utils/stopWatch';
 import { isPromise } from '../common/utils/async';
-import { DebugConfigurationType } from '../debugger/extension/types';
 import { ConsoleType, TriggerType } from '../debugger/types';
-import { LinterId } from '../linters/types';
 import { EnvironmentType, PythonEnvironment } from '../pythonEnvironments/info';
 import {
     TensorBoardPromptSelection,
@@ -21,7 +18,7 @@ import {
     TensorBoardEntrypoint,
 } from '../tensorBoard/constants';
 import { EventName } from './constants';
-import type { LinterTrigger, TestTool } from './types';
+import type { TestTool } from './types';
 
 /**
  * Checks whether telemetry is supported.
@@ -40,13 +37,20 @@ function isTelemetrySupported(): boolean {
     }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let packageJSON: any;
+
 /**
- * Checks if the telemetry is disabled in user settings
+ * Checks if the telemetry is disabled
  * @returns {boolean}
  */
-export function isTelemetryDisabled(workspaceService: IWorkspaceService): boolean {
-    const settings = workspaceService.getConfiguration('telemetry').inspect<boolean>('enableTelemetry')!;
-    return settings.globalValue === false;
+export function isTelemetryDisabled(): boolean {
+    if (!packageJSON) {
+        const vscode = require('vscode') as typeof vscodeTypes;
+        const pythonExtension = vscode.extensions.getExtension(PVSC_EXTENSION_ID)!;
+        packageJSON = pythonExtension.packageJSON;
+    }
+    return !packageJSON.enableTelemetry;
 }
 
 const sharedProperties: Record<string, unknown> = {};
@@ -76,7 +80,7 @@ export function _resetSharedProperties(): void {
 }
 
 let telemetryReporter: TelemetryReporter | undefined;
-function getTelemetryReporter() {
+export function getTelemetryReporter(): TelemetryReporter {
     if (!isTestExecution() && telemetryReporter) {
         return telemetryReporter;
     }
@@ -101,7 +105,7 @@ export function sendTelemetryEvent<P extends IEventNamePropertyMapping, E extend
     properties?: P[E],
     ex?: Error,
 ): void {
-    if (isTestExecution() || !isTelemetrySupported()) {
+    if (isTestExecution() || !isTelemetrySupported() || isTelemetryDisabled()) {
         return;
     }
     const reporter = getTelemetryReporter();
@@ -365,7 +369,6 @@ export interface IEventNamePropertyMapping {
           "duration" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "paulacamargo25" },
           "trigger" : { "classification": "SystemMetaData", "purpose": "PerformanceAndHealth", "owner": "paulacamargo25" },
           "console" : { "classification": "SystemMetaData", "purpose": "PerformanceAndHealth", "owner": "paulacamargo25" }
-
        }
      */
     [EventName.DEBUG_SESSION_ERROR]: {
@@ -615,66 +618,6 @@ export interface IEventNamePropertyMapping {
      */
     [EventName.DEBUGGER_ATTACH_TO_LOCAL_PROCESS]: never | undefined;
     /**
-     * Telemetry sent after building configuration for debugger
-     */
-    /* __GDPR__
-       "debugger.configuration.prompts" : {
-          "configurationtype" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "paulacamargo25" },
-          "autodetecteddjangomanagepypath" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "paulacamargo25" },
-          "autodetectedpyramidinipath" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "paulacamargo25" },
-          "autodetectedfastapimainpypath" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "paulacamargo25" },
-          "autodetectedflaskapppypath" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "paulacamargo25" },
-          "manuallyenteredavalue" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "paulacamargo25" }
-       }
-     */
-
-    [EventName.DEBUGGER_CONFIGURATION_PROMPTS]: {
-        /**
-         * The type of debug configuration to build configuration for
-         *
-         * @type {DebugConfigurationType}
-         */
-        configurationType: DebugConfigurationType;
-        /**
-         * Carries `true` if we are able to auto-detect manage.py path for Django, `false` otherwise
-         *
-         * @type {boolean}
-         */
-        autoDetectedDjangoManagePyPath?: boolean;
-        /**
-         * Carries `true` if we are able to auto-detect .ini file path for Pyramid, `false` otherwise
-         *
-         * @type {boolean}
-         */
-        autoDetectedPyramidIniPath?: boolean;
-        /**
-         * Carries `true` if we are able to auto-detect main.py path for FastAPI, `false` otherwise
-         *
-         * @type {boolean}
-         */
-        autoDetectedFastAPIMainPyPath?: boolean;
-        /**
-         * Carries `true` if we are able to auto-detect app.py path for Flask, `false` otherwise
-         *
-         * @type {boolean}
-         */
-        autoDetectedFlaskAppPyPath?: boolean;
-        /**
-         * Carries `true` if user manually entered the required path for the app
-         * (path to `manage.py` for Django, path to `.ini` for Pyramid, path to `app.py` for Flask), `false` otherwise
-         *
-         * @type {boolean}
-         */
-        manuallyEnteredAValue?: boolean;
-    };
-    /**
-     * Telemetry event sent when providing completion provider in launch.json. It is sent just *after* inserting the completion.
-     */
-    /* __GDPR__
-       "debugger.configuration.prompts.in.launch.json" : { "owner": "paulacamargo25" }
-     */
-    [EventName.DEBUGGER_CONFIGURATION_PROMPTS_IN_LAUNCH_JSON]: never | undefined;
-    /**
      * Telemetry event sent with details of actions when invoking a diagnostic command
      */
     /* __GDPR__
@@ -727,6 +670,7 @@ export interface IEventNamePropertyMapping {
      */
     /* __GDPR__
        "editor.load" : {
+          "appName" : {"classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "luabud"},
           "codeloadingtime" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "luabud" },
           "condaversion" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "luabud" },
           "errorname" : { "classification": "CallstackOrException", "purpose": "PerformanceAndHealth", "owner": "luabud" },
@@ -741,10 +685,15 @@ export interface IEventNamePropertyMapping {
           "totalactivatetime" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "luabud" },
           "totalnonblockingactivatetime" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "luabud" },
           "usinguserdefinedinterpreter" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "luabud" },
-          "usingglobalinterpreter" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "luabud" }
+          "usingglobalinterpreter" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "luabud" },
+          "isfirstsession" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "luabud" }
        }
      */
     [EventName.EDITOR_LOAD]: {
+        /**
+         * The name of the application where the Python extension is running
+         */
+        appName?: string | undefined;
         /**
          * The conda version if selected
          */
@@ -779,6 +728,11 @@ export interface IEventNamePropertyMapping {
          * If global interpreter is being used
          */
         usingGlobalInterpreter?: boolean;
+        /**
+         * Carries `true` if it is the very first session of the user. We check whether persistent cache is empty
+         * to approximately guess if it's the first session.
+         */
+        isFirstSession?: boolean;
     };
     /**
      * Telemetry event sent when substituting Environment variables to calculate value of variables
@@ -814,17 +768,23 @@ export interface IEventNamePropertyMapping {
      */
     [EventName.EXECUTION_CODE]: {
         /**
-         * Whether the user executed a file in the terminal or just the selected text.
+         * Whether the user executed a file in the terminal or just the selected text or line by shift+enter.
          *
          * @type {('file' | 'selection')}
          */
-        scope: 'file' | 'selection';
+        scope: 'file' | 'selection' | 'line';
         /**
          * How was the code executed (through the command or by clicking the `Run File` icon).
          *
          * @type {('command' | 'icon')}
          */
         trigger?: 'command' | 'icon';
+        /**
+         * Whether user chose to execute this Python file in a separate terminal or not.
+         *
+         * @type {boolean}
+         */
+        newTerminalPerFile?: boolean;
     };
     /**
      * Telemetry Event sent when user executes code against Django Shell.
@@ -846,33 +806,7 @@ export interface IEventNamePropertyMapping {
          */
         scope: 'file' | 'selection';
     };
-    /**
-     * Telemetry event sent with details when formatting a document
-     */
-    /* __GDPR__
-       "format.format" : {
-          "duration" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "karthiknadig" },
-          "errorname" : { "classification": "CallstackOrException", "purpose": "PerformanceAndHealth", "owner": "karthiknadig" },
-          "errorstack" : { "classification": "CallstackOrException", "purpose": "PerformanceAndHealth", "owner": "karthiknadig" },
-          "tool" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "karthiknadig" },
-          "hascustomargs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "karthiknadig" },
-          "formatselection" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "karthiknadig" }
-       }
-     */
-    [EventName.FORMAT]: {
-        /**
-         * Tool being used to format
-         */
-        tool: 'autopep8' | 'black' | 'yapf';
-        /**
-         * If arguments for formatter is provided in resource settings
-         */
-        hasCustomArgs: boolean;
-        /**
-         * Carries `true` when formatting a selection of text, `false` otherwise
-         */
-        formatSelection: boolean;
-    };
+
     /**
      * Telemetry event sent with the value of setting 'Format on type'
      */
@@ -889,16 +823,6 @@ export interface IEventNamePropertyMapping {
          */
         enabled: boolean;
     };
-    /**
-     * Telemetry event sent when sorting imports using formatter
-     */
-    /* __GDPR__
-       "format.sort_imports" : {
-           "duration" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "karthiknadig" },
-           "originaleventname" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "karthiknadig" }
-       }
-     */
-    [EventName.FORMAT_SORT_IMPORTS]: never | undefined;
 
     /**
      * Telemetry event sent with details when tracking imports
@@ -908,7 +832,6 @@ export interface IEventNamePropertyMapping {
           "hashedname" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "luabud" }
        }
      */
-
     [EventName.HASHED_PACKAGE_NAME]: {
         /**
          * Hash of the package name
@@ -916,33 +839,6 @@ export interface IEventNamePropertyMapping {
          * @type {string}
          */
         hashedName: string;
-    };
-
-    /**
-     * Telemetry event sent with details of selection in prompt
-     * `Prompt message` :- 'Linter ${productName} is not installed'
-     */
-    /* __GDPR__
-       "linter_not_installed_prompt" : {
-          "tool" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "karthiknadig" },
-          "action": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "karthiknadig" }
-       }
-     */
-    [EventName.LINTER_NOT_INSTALLED_PROMPT]: {
-        /**
-         * Name of the linter
-         *
-         * @type {LinterId}
-         */
-        tool?: LinterId;
-        /**
-         * `select` When 'Select linter' option is selected
-         * `disablePrompt` When 'Do not show again' option is selected
-         * `install` When 'Install' option is selected
-         *
-         * @type {('select' | 'disablePrompt' | 'install')}
-         */
-        action: 'select' | 'disablePrompt' | 'install';
     };
 
     /**
@@ -984,44 +880,6 @@ export interface IEventNamePropertyMapping {
          * Version of the Python environment into which the Python package is being installed.
          */
         version?: string;
-    };
-    /**
-     * Telemetry sent with details immediately after linting a document completes
-     */
-    /* __GDPR__
-       "linting" : {
-          "duration" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "karthiknadig" },
-          "tool" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "karthiknadig" },
-          "hascustomargs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "karthiknadig" },
-          "trigger" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "karthiknadig" },
-          "executablespecified" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "karthiknadig" }
-       }
-     */
-    [EventName.LINTING]: {
-        /**
-         * Name of the linter being used
-         *
-         * @type {LinterId}
-         */
-        tool: LinterId;
-        /**
-         * If custom arguments for linter is provided in settings.json
-         *
-         * @type {boolean}
-         */
-        hasCustomArgs: boolean;
-        /**
-         * Carries the source which triggered configuration of tests
-         *
-         * @type {LinterTrigger}
-         */
-        trigger: LinterTrigger;
-        /**
-         * Carries `true` if linter executable is specified, `false` otherwise
-         *
-         * @type {boolean}
-         */
-        executableSpecified: boolean;
     };
     /**
      * Telemetry event sent when an environment without contain a python binary is selected.
@@ -1285,7 +1143,23 @@ export interface IEventNamePropertyMapping {
        "python_interpreter_discovery" : {
            "duration" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "karrtikr" },
           "interpreters" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true , "owner": "karrtikr"},
-          "environmentsWithoutPython" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "karrtikr" }
+          "environmentsWithoutPython" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "karrtikr" },
+          "usingNativeLocator" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" },
+          "activeStateEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+          "condaEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+          "customEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+          "hatchEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+          "microsoftStoreEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+          "otherGlobalEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+          "otherVirtualEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+          "pipEnvEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+          "poetryEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+          "pyenvEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+          "systemEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+          "unknownEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+          "venvEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+          "virtualEnvEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+          "virtualEnvWrapperEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" }
        }
      */
     [EventName.PYTHON_INTERPRETER_DISCOVERY]: {
@@ -1294,9 +1168,168 @@ export interface IEventNamePropertyMapping {
          */
         interpreters?: number;
         /**
+         * Whether or not we're using the native locator.
+         */
+        usingNativeLocator?: boolean;
+        /**
          * The number of environments discovered not containing an interpreter
          */
         environmentsWithoutPython?: number;
+        /**
+         * Number of environments of a specific type
+         */
+        activeStateEnvs?: number;
+        /**
+         * Number of environments of a specific type
+         */
+        condaEnvs?: number;
+        /**
+         * Number of environments of a specific type
+         */
+        customEnvs?: number;
+        /**
+         * Number of environments of a specific type
+         */
+        hatchEnvs?: number;
+        /**
+         * Number of environments of a specific type
+         */
+        microsoftStoreEnvs?: number;
+        /**
+         * Number of environments of a specific type
+         */
+        otherGlobalEnvs?: number;
+        /**
+         * Number of environments of a specific type
+         */
+        otherVirtualEnvs?: number;
+        /**
+         * Number of environments of a specific type
+         */
+        pipEnvEnvs?: number;
+        /**
+         * Number of environments of a specific type
+         */
+        poetryEnvs?: number;
+        /**
+         * Number of environments of a specific type
+         */
+        pyenvEnvs?: number;
+        /**
+         * Number of environments of a specific type
+         */
+        systemEnvs?: number;
+        /**
+         * Number of environments of a specific type
+         */
+        unknownEnvs?: number;
+        /**
+         * Number of environments of a specific type
+         */
+        venvEnvs?: number;
+        /**
+         * Number of environments of a specific type
+         */
+        virtualEnvEnvs?: number;
+        /**
+         * Number of environments of a specific type
+         */
+        virtualEnvWrapperEnvs?: number;
+    };
+    /**
+     * Telemetry event sent when discovery of all python environments using the native locator(virtualenv, conda, pipenv etc.) finishes.
+     */
+    /* __GDPR__
+       "python_interpreter_discovery_native" : {
+           "duration" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+          "interpreters" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true , "owner": "donjayamanne"},
+          "environmentsWithoutPython" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+          "activeStateEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+          "condaEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+          "customEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+          "hatchEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+          "microsoftStoreEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+          "otherGlobalEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+          "otherVirtualEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+          "pipEnvEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+          "poetryEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+          "pyenvEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+          "systemEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+          "unknownEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+          "venvEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+          "virtualEnvEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+          "virtualEnvWrapperEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" }
+       }
+     */
+    [EventName.PYTHON_INTERPRETER_DISCOVERY_NATIVE]: {
+        /**
+         * The number of the interpreters discovered
+         */
+        interpreters?: number;
+        /**
+         * The number of environments discovered not containing an interpreter
+         */
+        environmentsWithoutPython?: number;
+        /**
+         * Number of environments of a specific type
+         */
+        activeStateEnvs?: number;
+        /**
+         * Number of environments of a specific type
+         */
+        condaEnvs?: number;
+        /**
+         * Number of environments of a specific type
+         */
+        customEnvs?: number;
+        /**
+         * Number of environments of a specific type
+         */
+        hatchEnvs?: number;
+        /**
+         * Number of environments of a specific type
+         */
+        microsoftStoreEnvs?: number;
+        /**
+         * Number of environments of a specific type
+         */
+        otherGlobalEnvs?: number;
+        /**
+         * Number of environments of a specific type
+         */
+        otherVirtualEnvs?: number;
+        /**
+         * Number of environments of a specific type
+         */
+        pipEnvEnvs?: number;
+        /**
+         * Number of environments of a specific type
+         */
+        poetryEnvs?: number;
+        /**
+         * Number of environments of a specific type
+         */
+        pyenvEnvs?: number;
+        /**
+         * Number of environments of a specific type
+         */
+        systemEnvs?: number;
+        /**
+         * Number of environments of a specific type
+         */
+        unknownEnvs?: number;
+        /**
+         * Number of environments of a specific type
+         */
+        venvEnvs?: number;
+        /**
+         * Number of environments of a specific type
+         */
+        virtualEnvEnvs?: number;
+        /**
+         * Number of environments of a specific type
+         */
+        virtualEnvWrapperEnvs?: number;
     };
     /**
      * Telemetry event sent with details when user clicks the prompt with the following message:
@@ -1314,6 +1347,39 @@ export interface IEventNamePropertyMapping {
          * `Close` When 'Close' option is selected
          */
         selection: 'Allow' | 'Close' | undefined;
+    };
+    /**
+     * Telemetry event sent with details when user clicks the prompt with the following message:
+     *
+     * 'We noticed you're using a conda environment. If you are experiencing issues with this environment in the integrated terminal, we suggest the "terminal.integrated.inheritEnv" setting to be changed to false. Would you like to update this setting?'
+     */
+    /* __GDPR__
+       "conda_inherit_env_prompt" : {
+          "selection" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "karrtikr" }
+       }
+     */
+    [EventName.TERMINAL_DEACTIVATE_PROMPT]: {
+        /**
+         * `Yes` When 'Allow' option is selected
+         * `Close` When 'Close' option is selected
+         */
+        selection: 'Edit script' | "Don't show again" | undefined;
+    };
+    /**
+     * Telemetry event sent with details when user attempts to run in interactive window when Jupyter is not installed.
+     */
+    /* __GDPR__
+       "require_jupyter_prompt" : {
+          "selection" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "karrtikr" }
+       }
+     */
+    [EventName.REQUIRE_JUPYTER_PROMPT]: {
+        /**
+         * `Yes` When 'Yes' option is selected
+         * `No` When 'No' option is selected
+         * `undefined` When 'x' is selected
+         */
+        selection: 'Yes' | 'No' | undefined;
     };
     /**
      * Telemetry event sent with details when user clicks the prompt with the following message:
@@ -1345,7 +1411,7 @@ export interface IEventNamePropertyMapping {
         /**
          * `Yes` When 'Yes' option is selected
          * `No` When 'No' option is selected
-         * `Ignore` When 'Do not show again' option is clicked
+         * `Ignore` When "Don't show again" option is clicked
          *
          * @type {('Yes' | 'No' | 'Ignore' | undefined)}
          */
@@ -1413,14 +1479,14 @@ export interface IEventNamePropertyMapping {
     [EventName.PYTHON_EXPERIMENTS_OPT_IN_OPT_OUT_SETTINGS]: {
         /**
          * List of valid experiments in the python.experiments.optInto setting
-         * @type {string[]}
+         * @type {string}
          */
-        optedInto: string[];
+        optedInto: string;
         /**
          * List of valid experiments in the python.experiments.optOutFrom setting
-         * @type {string[]}
+         * @type {string}
          */
-        optedOutFrom: string[];
+        optedOutFrom: string;
     };
     /**
      * Telemetry event sent when LS is started for workspace (workspace folder in case of multi-root)
@@ -1443,6 +1509,21 @@ export interface IEventNamePropertyMapping {
      */
     [EventName.LANGUAGE_SERVER_READY]: {
         lsVersion?: string;
+    };
+    /**
+     * Track how long it takes to trigger language server activation code, after Python extension starts activating.
+     */
+    /* __GDPR__
+       "language_server_trigger_time" : {
+          "duration" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "karrtikr" },
+          "triggerTime" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "karrtikr" }
+       }
+     */
+    [EventName.LANGUAGE_SERVER_TRIGGER_TIME]: {
+        /**
+         * Time it took to trigger language server startup.
+         */
+        triggerTime: number;
     };
     /**
      * Telemetry event sent when starting Node.js server
@@ -1525,7 +1606,9 @@ export interface IEventNamePropertyMapping {
      * This event also has a measure, "resultLength", which records the number of completions provided.
      */
     /* __GDPR__
-       "jedi_language_server.request" : { "owner": "karthiknadig" }
+       "jedi_language_server.request" : {
+           "method": {"classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "karthiknadig"}
+       }
      */
     [EventName.JEDI_LANGUAGE_SERVER_REQUEST]: unknown;
     /**
@@ -1540,7 +1623,7 @@ export interface IEventNamePropertyMapping {
         /**
          * Carries the selection of user when they are asked to take the extension survey
          */
-        selection: 'Yes' | 'Maybe later' | 'Do not show again' | undefined;
+        selection: 'Yes' | 'Maybe later' | "Don't show again" | undefined;
     };
     /**
      * Telemetry event sent when starting REPL
@@ -1551,25 +1634,6 @@ export interface IEventNamePropertyMapping {
        }
      */
     [EventName.REPL]: never | undefined;
-    /**
-     * Telemetry event sent with details of linter selected in quickpick of linter list.
-     */
-    /* __GDPR__
-       "linting.select" : {
-          "tool" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "karthiknadig" },
-          "enabled" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "karthiknadig" }
-       }
-     */
-    [EventName.SELECT_LINTER]: {
-        /**
-         * The name of the linter
-         */
-        tool?: LinterId;
-        /**
-         * Carries `true` if linter is enabled, `false` otherwise
-         */
-        enabled: boolean;
-    };
     /**
      * Telemetry event sent if and when user configure tests command. This command can be trigerred from multiple places in the extension. (Command palette, prompt etc.)
      */
@@ -2014,7 +2078,7 @@ export interface IEventNamePropertyMapping {
        }
      */
     [EventName.ENVIRONMENT_CREATING]: {
-        environmentType: 'venv' | 'conda';
+        environmentType: 'venv' | 'conda' | 'microvenv';
         pythonVersion: string | undefined;
     };
     /**
@@ -2027,7 +2091,7 @@ export interface IEventNamePropertyMapping {
         }
      */
     [EventName.ENVIRONMENT_CREATED]: {
-        environmentType: 'venv' | 'conda';
+        environmentType: 'venv' | 'conda' | 'microvenv';
         reason: 'created' | 'existing';
     };
     /**
@@ -2040,8 +2104,8 @@ export interface IEventNamePropertyMapping {
        }
      */
     [EventName.ENVIRONMENT_FAILED]: {
-        environmentType: 'venv' | 'conda';
-        reason: 'noVenv' | 'noPip' | 'other';
+        environmentType: 'venv' | 'conda' | 'microvenv';
+        reason: 'noVenv' | 'noPip' | 'noDistUtils' | 'other';
     };
     /**
      * Telemetry event sent before installing packages.
@@ -2053,8 +2117,8 @@ export interface IEventNamePropertyMapping {
        }
      */
     [EventName.ENVIRONMENT_INSTALLING_PACKAGES]: {
-        environmentType: 'venv' | 'conda';
-        using: 'requirements.txt' | 'pyproject.toml' | 'environment.yml';
+        environmentType: 'venv' | 'conda' | 'microvenv';
+        using: 'requirements.txt' | 'pyproject.toml' | 'environment.yml' | 'pipUpgrade' | 'pipInstall' | 'pipDownload';
     };
     /**
      * Telemetry event sent after installing packages.
@@ -2067,7 +2131,7 @@ export interface IEventNamePropertyMapping {
      */
     [EventName.ENVIRONMENT_INSTALLED_PACKAGES]: {
         environmentType: 'venv' | 'conda';
-        using: 'requirements.txt' | 'pyproject.toml' | 'environment.yml';
+        using: 'requirements.txt' | 'pyproject.toml' | 'environment.yml' | 'pipUpgrade';
     };
     /**
      * Telemetry event sent if installing packages failed.
@@ -2079,56 +2143,75 @@ export interface IEventNamePropertyMapping {
        }
      */
     [EventName.ENVIRONMENT_INSTALLING_PACKAGES_FAILED]: {
+        environmentType: 'venv' | 'conda' | 'microvenv';
+        using: 'pipUpgrade' | 'requirements.txt' | 'pyproject.toml' | 'environment.yml' | 'pipDownload' | 'pipInstall';
+    };
+    /**
+     * Telemetry event sent if create environment button was used to trigger the command.
+     */
+    /* __GDPR__
+       "environment.button" : {"owner": "karthiknadig" }
+     */
+    [EventName.ENVIRONMENT_BUTTON]: never | undefined;
+    /**
+     * Telemetry event if user selected to delete the existing environment.
+     */
+    /* __GDPR__
+       "environment.delete" : {
+          "environmentType" : { "classification": "SystemMetaData", "purpose": "PerformanceAndHealth", "owner": "karthiknadig" },
+          "status" : { "classification": "SystemMetaData", "purpose": "PerformanceAndHealth", "owner": "karthiknadig" }
+       }
+     */
+    [EventName.ENVIRONMENT_DELETE]: {
         environmentType: 'venv' | 'conda';
-        using: 'pipUpgrade' | 'requirements.txt' | 'pyproject.toml' | 'environment.yml';
+        status: 'triggered' | 'deleted' | 'failed';
     };
     /**
-     * Telemetry event sent when a linter or formatter extension is already installed.
+     * Telemetry event if user selected to re-use the existing environment.
      */
     /* __GDPR__
-       "tools_extensions.already_installed" : {
-          "extensionId" : { "classification": "SystemMetaData", "purpose": "PerformanceAndHealth", "owner": "karthiknadig" }
+       "environment.reuse" : {
+          "environmentType" : { "classification": "SystemMetaData", "purpose": "PerformanceAndHealth", "owner": "karthiknadig" }
        }
      */
-    [EventName.TOOLS_EXTENSIONS_ALREADY_INSTALLED]: {
-        extensionId: 'ms-python.pylint' | 'ms-python.flake8' | 'ms-python.isort';
-        isEnabled: boolean;
+    [EventName.ENVIRONMENT_REUSE]: {
+        environmentType: 'venv' | 'conda';
     };
     /**
-     * Telemetry event sent when install linter or formatter extension prompt is shown.
+     * Telemetry event sent when a check for environment creation conditions is triggered.
      */
     /* __GDPR__
-       "tools_extensions.prompt_shown" : {
-          "extensionId" : { "classification": "SystemMetaData", "purpose": "PerformanceAndHealth", "owner": "karthiknadig" }
+       "environment.check.trigger" : {
+          "trigger" : { "classification": "SystemMetaData", "purpose": "PerformanceAndHealth", "owner": "karthiknadig" }
        }
      */
-    [EventName.TOOLS_EXTENSIONS_PROMPT_SHOWN]: {
-        extensionId: 'ms-python.pylint' | 'ms-python.flake8' | 'ms-python.isort';
+    [EventName.ENVIRONMENT_CHECK_TRIGGER]: {
+        trigger:
+            | 'run-in-terminal'
+            | 'debug-in-terminal'
+            | 'run-selection'
+            | 'on-workspace-load'
+            | 'as-command'
+            | 'debug';
     };
     /**
-     * Telemetry event sent when clicking to install linter or formatter extension from the suggestion prompt.
+     * Telemetry event sent when a check for environment creation condition is computed.
      */
     /* __GDPR__
-       "tools_extensions.install_selected" : {
-          "extensionId" : { "classification": "SystemMetaData", "purpose": "PerformanceAndHealth", "owner": "karthiknadig" }
+       "environment.check.result" : {
+          "result" : { "classification": "SystemMetaData", "purpose": "PerformanceAndHealth", "owner": "karthiknadig" }
        }
      */
-    [EventName.TOOLS_EXTENSIONS_INSTALL_SELECTED]: {
-        extensionId: 'ms-python.pylint' | 'ms-python.flake8' | 'ms-python.isort';
+    [EventName.ENVIRONMENT_CHECK_RESULT]: {
+        result: 'criteria-met' | 'criteria-not-met' | 'already-ran' | 'turned-off' | 'no-uri';
     };
     /**
-     * Telemetry event sent when dismissing prompt suggesting to install the linter or formatter extension.
+     * Telemetry event sent when `pip install` was called from a global env in a shell where shell inegration is supported.
      */
     /* __GDPR__
-       "tools_extensions.prompt_dismissed" : {
-          "extensionId" : { "classification": "SystemMetaData", "purpose": "PerformanceAndHealth", "owner": "karthiknadig" },
-          "dismissType" : { "classification": "SystemMetaData", "purpose": "PerformanceAndHealth", "owner": "karthiknadig" }
-       }
+       "environment.terminal.global_pip" : { "owner": "karthiknadig" }
      */
-    [EventName.TOOLS_EXTENSIONS_PROMPT_DISMISSED]: {
-        extensionId: 'ms-python.pylint' | 'ms-python.flake8' | 'ms-python.isort';
-        dismissType: 'close' | 'doNotShow';
-    };
+    [EventName.ENVIRONMENT_TERMINAL_GLOBAL_PIP]: never | undefined;
     /* __GDPR__
             "query-expfeature" : {
                 "owner": "luabud",

@@ -5,6 +5,7 @@ log.log
 **/node_modules
 *.pyc
 *.vsix
+envVars.txt
 **/.vscode/.ropeproject/**
 **/testFiles/**/.cache/**
 *.noseids
@@ -22,7 +23,8 @@ cucumber-report.json
 **/.venv*/
 port.txt
 precommit.hook
-pythonFiles/lib/**
+python_files/lib/**
+python_files/get-pip.py
 debug_coverage*/**
 languageServer/**
 languageServer.*/**
@@ -46,3 +48,5 @@ dist/**
 *.xlf
 package.nls.*.json
 l10n/
+native_locator/target/**
+native_locator/Cargo.lock

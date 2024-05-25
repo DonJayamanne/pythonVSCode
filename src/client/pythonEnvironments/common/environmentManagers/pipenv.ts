@@ -3,7 +3,7 @@
 
 import * as path from 'path';
 import { getEnvironmentVariable } from '../../../common/utils/platform';
-import { traceError } from '../../../logging';
+import { traceError, traceVerbose } from '../../../logging';
 import { arePathsSame, normCasePath, pathExists, readFile } from '../externalDependencies';
 
 function getSearchHeight() {
@@ -70,7 +70,7 @@ async function getPipfileIfLocal(interpreterPath: string): Promise<string | unde
  * Returns the project directory for pipenv environments given the environment folder
  * @param envFolder Path to the environment folder
  */
-async function getProjectDir(envFolder: string): Promise<string | undefined> {
+export async function getProjectDir(envFolder: string): Promise<string | undefined> {
     // Global pipenv environments have a .project file with the absolute path to the project
     // See https://github.com/pypa/pipenv/blob/v2018.6.25/CHANGELOG.rst#features--improvements
     // This is the layout we expect
@@ -85,7 +85,7 @@ async function getProjectDir(envFolder: string): Promise<string | undefined> {
     }
     const projectDir = (await readFile(dotProjectFile)).trim();
     if (!(await pathExists(projectDir))) {
-        traceError(
+        traceVerbose(
             `The .project file inside environment folder: ${envFolder} doesn't contain a valid path to the project`,
         );
         return undefined;

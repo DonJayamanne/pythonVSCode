@@ -8,7 +8,9 @@ import { assert } from 'chai';
 import * as sinon from 'sinon';
 import { anything, instance, mock, when } from 'ts-mockito';
 import { Disposable } from 'vscode-jsonrpc';
-import * as tasClient from 'vscode-tas-client';
+// sinon can not create a stub if we just point to the exported module
+import * as tasClient from 'vscode-tas-client/vscode-tas-client/VSCodeTasClient';
+import * as expService from 'vscode-tas-client';
 import { ApplicationEnvironment } from '../../../client/common/application/applicationEnvironment';
 import { IApplicationEnvironment, IWorkspaceService } from '../../../client/common/application/types';
 import { WorkspaceService } from '../../../client/common/application/workspace';
@@ -180,7 +182,7 @@ suite('Experimentation service', () => {
             getTreatmentVariable = sinon.stub().returns(true);
             sinon.stub(tasClient, 'getExperimentationService').returns(({
                 getTreatmentVariable,
-            } as unknown) as tasClient.IExperimentationService);
+            } as unknown) as expService.IExperimentationService);
 
             configureApplicationEnvironment('stable', extensionVersion);
         });
@@ -218,7 +220,7 @@ suite('Experimentation service', () => {
             getTreatmentVariable = sinon.stub().returns(false);
             sinon.stub(tasClient, 'getExperimentationService').returns(({
                 getTreatmentVariable,
-            } as unknown) as tasClient.IExperimentationService);
+            } as unknown) as expService.IExperimentationService);
 
             configureApplicationEnvironment('stable', extensionVersion);
 
@@ -364,7 +366,7 @@ suite('Experimentation service', () => {
             getTreatmentVariableStub = sinon.stub().returns(Promise.resolve('value'));
             sinon.stub(tasClient, 'getExperimentationService').returns(({
                 getTreatmentVariable: getTreatmentVariableStub,
-            } as unknown) as tasClient.IExperimentationService);
+            } as unknown) as expService.IExperimentationService);
 
             configureApplicationEnvironment('stable', extensionVersion);
         });
@@ -491,7 +493,10 @@ suite('Experimentation service', () => {
             await experimentService.activate();
 
             const { properties } = telemetryEvents[1];
-            assert.deepStrictEqual(properties, { optedInto: ['foo'], optedOutFrom: ['bar'] });
+            assert.deepStrictEqual(properties, {
+                optedInto: JSON.stringify(['foo']),
+                optedOutFrom: JSON.stringify(['bar']),
+            });
         });
 
         test('Set telemetry properties to empty arrays if no experiments have been opted into or out from', async () => {
@@ -523,7 +528,7 @@ suite('Experimentation service', () => {
             await experimentService.activate();
 
             const { properties } = telemetryEvents[1];
-            assert.deepStrictEqual(properties, { optedInto: [], optedOutFrom: [] });
+            assert.deepStrictEqual(properties, { optedInto: '[]', optedOutFrom: '[]' });
         });
 
         test('If the entered value for a setting contains "All", do not expand it to be a list of all experiments, and pass it as-is', async () => {
@@ -555,7 +560,10 @@ suite('Experimentation service', () => {
             await experimentService.activate();
 
             const { properties } = telemetryEvents[0];
-            assert.deepStrictEqual(properties, { optedInto: ['All'], optedOutFrom: ['All'] });
+            assert.deepStrictEqual(properties, {
+                optedInto: JSON.stringify(['All']),
+                optedOutFrom: JSON.stringify(['All']),
+            });
         });
 
         // This is an unlikely scenario.
@@ -577,7 +585,7 @@ suite('Experimentation service', () => {
             await experimentService.activate();
 
             const { properties } = telemetryEvents[1];
-            assert.deepStrictEqual(properties, { optedInto: [], optedOutFrom: [] });
+            assert.deepStrictEqual(properties, { optedInto: '[]', optedOutFrom: '[]' });
         });
 
         // This is also an unlikely scenario.
@@ -608,7 +616,7 @@ suite('Experimentation service', () => {
             await experimentService.activate();
 
             const { properties } = telemetryEvents[1];
-            assert.deepStrictEqual(properties, { optedInto: [], optedOutFrom: [] });
+            assert.deepStrictEqual(properties, { optedInto: '[]', optedOutFrom: '[]' });
         });
     });
 });

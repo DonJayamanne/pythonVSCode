@@ -19,6 +19,10 @@ const config = {
     target: 'node',
     entry: {
         extension: './src/client/extension.ts',
+        'shellExec.worker': './src/client/common/process/worker/shellExec.worker.ts',
+        'plainExec.worker': './src/client/common/process/worker/plainExec.worker.ts',
+        'registryKeys.worker': 'src/client/pythonEnvironments/common/registryKeys.worker.ts',
+        'registryValues.worker': 'src/client/pythonEnvironments/common/registryValues.worker.ts',
     },
     devtool: 'source-map',
     node: {
@@ -51,6 +55,10 @@ const config = {
                     },
                 ],
             },
+            {
+                test: /\.worker\.js$/,
+                use: { loader: 'worker-loader' },
+            },
         ],
     },
     externals: [
@@ -61,11 +69,15 @@ const config = {
         // See: https://github.com/microsoft/vscode-extension-telemetry/issues/41#issuecomment-598852991
         'applicationinsights-native-metrics',
         '@opentelemetry/tracing',
+        '@azure/opentelemetry-instrumentation-azure-sdk',
+        '@opentelemetry/instrumentation',
+        '@azure/functions-core',
     ],
     plugins: [...common.getDefaultPlugins('extension')],
     resolve: {
         extensions: ['.ts', '.js'],
         plugins: [new tsconfig_paths_webpack_plugin.TsconfigPathsPlugin({ configFile: configFileName })],
+        conditionNames: ['import', 'require', 'node'],
     },
     output: {
         filename: '[name].js',

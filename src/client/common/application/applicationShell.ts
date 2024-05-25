@@ -10,14 +10,15 @@ import {
     DocumentSelector,
     env,
     Event,
+    EventEmitter,
     InputBox,
     InputBoxOptions,
     languages,
     LanguageStatusItem,
+    LogOutputChannel,
     MessageItem,
     MessageOptions,
     OpenDialogOptions,
-    OutputChannel,
     Progress,
     ProgressOptions,
     QuickPick,
@@ -37,7 +38,8 @@ import {
     WorkspaceFolder,
     WorkspaceFolderPickOptions,
 } from 'vscode';
-import { IApplicationShell } from './types';
+import { traceError } from '../../logging';
+import { IApplicationShell, TerminalDataWriteEvent, TerminalExecutedCommand } from './types';
 
 @injectable()
 export class ApplicationShell implements IApplicationShell {
@@ -166,10 +168,26 @@ export class ApplicationShell implements IApplicationShell {
     public createTreeView<T>(viewId: string, options: TreeViewOptions<T>): TreeView<T> {
         return window.createTreeView<T>(viewId, options);
     }
-    public createOutputChannel(name: string): OutputChannel {
-        return window.createOutputChannel(name);
+    public createOutputChannel(name: string): LogOutputChannel {
+        return window.createOutputChannel(name, { log: true });
     }
     public createLanguageStatusItem(id: string, selector: DocumentSelector): LanguageStatusItem {
         return languages.createLanguageStatusItem(id, selector);
+    }
+    public get onDidWriteTerminalData(): Event<TerminalDataWriteEvent> {
+        try {
+            return window.onDidWriteTerminalData;
+        } catch (ex) {
+            traceError('Failed to get proposed API onDidWriteTerminalData', ex);
+            return new EventEmitter<TerminalDataWriteEvent>().event;
+        }
+    }
+    public get onDidExecuteTerminalCommand(): Event<TerminalExecutedCommand> | undefined {
+        try {
+            return window.onDidExecuteTerminalCommand;
+        } catch (ex) {
+            traceError('Failed to get proposed API TerminalExecutedCommand', ex);
+            return undefined;
+        }
     }
 }
