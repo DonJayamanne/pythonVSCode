@@ -156,54 +156,32 @@ fn get_registry_pythons_from_key_for_company(
 
 #[cfg(windows)]
 fn get_registry_pythons(conda_locator: &mut dyn CondaLocator) -> Option<LocatorResult> {
-    use log::{trace, warn};
+    use log::warn;
 
     let mut environments = vec![];
     let mut managers: Vec<EnvManager> = vec![];
 
-    struct RegistryKey {
-        pub name: &'static str,
-        pub key: winreg::RegKey,
-    }
-    let search_keys = [
-        RegistryKey {
-            name: "HKLM",
-            key: winreg::RegKey::predef(winreg::enums::HKEY_LOCAL_MACHINE),
-        },
-        RegistryKey {
-            name: "HKCU",
-            key: winreg::RegKey::predef(winreg::enums::HKEY_CURRENT_USER),
-        },
-    ];
-    for (name, key) in search_keys.iter().map(|f| (f.name, &f.key)) {
-        match key.open_subkey("Software\\Python") {
-            Ok(python_key) => {
-                for company in python_key.enum_keys().filter_map(Result::ok) {
-                    trace!("Searching {}\\Software\\Python\\{}", name, company);
-                    match python_key.open_subkey(&company) {
-                        Ok(company_key) => {
-                            if let Some(result) = get_registry_pythons_from_key_for_company(
-                                name,
-                                &company_key,
-                                &company,
-                                conda_locator,
-                            ) {
-                                managers.extend(result.managers);
-                                environments.extend(result.environments);
-                            }
-                        }
-                        Err(err) => {
-                            warn!(
-                                "Failed to open {}\\Software\\Python\\{}, {:?}",
-                                name, company, err
-                            );
-                        }
-                    }
+    for (name, key) in [
+        vec![
+            "HKLM",
+            winreg::RegKey::predef(winreg::enums::HKEY_LOCAL_MACHINE),
+        ],
+        vec![
+            "HKCU",
+            winreg::RegKey::predef(winreg::enums::HKEY_CURRENT_USER),
+        ],
+    ] {
+        if let Some(python_key) = key.open_subkey("Software\\Python").ok() {
+            for company in python_key.enum_keys().filter_map(Result::ok) {
+                if let Some(result) =
+                    get_registry_pythons_from_key_for_company(&key, &company, conda_locator)
+                {
+                    managers.extend(result.managers);
+                    environments.extend(result.environments);
                 }
             }
-            Err(err) => {
-                warn!("Failed to open {}\\Software\\Python, {:?}", name, err)
-            }
+        } else {
+            warn!("Failed to open {}\\Software\\Python key", name)
         }
     }
     Some(LocatorResult {
