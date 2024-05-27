@@ -8,7 +8,7 @@ use crate::{
     utils::PythonEnv,
 };
 use regex::Regex;
-use std::{collections::HashSet, path::PathBuf};
+use std::{collections::HashSet, env, path::PathBuf};
 
 fn is_symlinked_python_executable(path: &PathBuf) -> Option<PathBuf> {
     let name = path.file_name()?.to_string_lossy();
@@ -257,43 +257,39 @@ fn get_python_info(
     python_exe_from_bin_dir: &PathBuf,
     reported: &mut HashSet<String>,
     python_version_regex: &Regex,
+    resolved_exe: &PathBuf,
 ) -> Option<PythonEnvironment> {
-    // Possible we do not have python3.12 or the like in bin directory
-    // & we have only python3, in that case we should add python3 to the list
-    if let Some(resolved_exe) = is_symlinked_python_executable(python_exe_from_bin_dir) {
-        let user_friendly_exe = python_exe_from_bin_dir;
-        let python_version = resolved_exe.to_string_lossy().to_string();
-        let version = match python_version_regex.captures(&python_version) {
-            Some(captures) => match captures.get(1) {
-                Some(version) => Some(version.as_str().to_string()),
-                None => None,
-            },
+    let user_friendly_exe = python_exe_from_bin_dir;
+    let python_version = resolved_exe.to_string_lossy().to_string();
+    let version = match python_version_regex.captures(&python_version) {
+        Some(captures) => match captures.get(1) {
+            Some(version) => Some(version.as_str().to_string()),
             None => None,
-        };
-        if reported.contains(&resolved_exe.to_string_lossy().to_string()) {
-            return None;
-        }
-
-        let mut symlinks: Option<Vec<PathBuf>> = None;
-        if let Some(version) = &version {
-            symlinks = Some(get_known_symlinks(&resolved_exe, &version));
-        }
-
-        reported.insert(resolved_exe.to_string_lossy().to_string());
-        let mut env = PythonEnvironment::new(
-            None,
-            None,
-            Some(user_friendly_exe.clone()),
-            crate::messaging::PythonEnvironmentCategory::Homebrew,
-            version,
-            get_env_path(&resolved_exe),
-            None,
-            Some(vec![user_friendly_exe.to_string_lossy().to_string()]),
-        );
-        env.symlinks = symlinks;
-        return Some(env);
+        },
+        None => None,
+    };
+    if reported.contains(&resolved_exe.to_string_lossy().to_string()) {
+        return None;
     }
-    None
+
+    let mut symlinks: Option<Vec<PathBuf>> = None;
+    if let Some(version) = &version {
+        symlinks = Some(get_known_symlinks(&resolved_exe, &version));
+    }
+
+    reported.insert(resolved_exe.to_string_lossy().to_string());
+    let mut env = PythonEnvironment::new(
+        None,
+        None,
+        Some(user_friendly_exe.clone()),
+        crate::messaging::PythonEnvironmentCategory::Homebrew,
+        version,
+        get_env_path(&resolved_exe),
+        None,
+        Some(vec![user_friendly_exe.to_string_lossy().to_string()]),
+    );
+    env.symlinks = symlinks;
+    Some(env)
 }
 
 pub struct Homebrew<'a> {
@@ -307,86 +303,103 @@ impl Homebrew<'_> {
     }
 }
 
+fn resolve(env: &PythonEnv, reported: &mut HashSet<String>) -> Option<PythonEnvironment> {
+    let python_regex = Regex::new(r"/(\d+\.\d+\.\d+)/").unwrap();
+    let exe = env.executable.clone();
+    let exe_file_name = exe.file_name()?;
+    let resolved_file = is_symlinked_python_executable(&exe).unwrap_or(exe.clone());
+    if resolved_file.starts_with("/opt/homebrew/Cellar") {
+        // Symlink  - /opt/homebrew/bin/python3.12
+        // Symlink  - /opt/homebrew/opt/python3/bin/python3.12
+        // Symlink  - /opt/homebrew/Cellar/python@3.12/3.12.3/bin/python3.12
+        // Symlink  - /opt/homebrew/opt/python@3.12/bin/python3.12
+        // Symlink  - /opt/homebrew/Cellar/python@3.12/3.12.3/Frameworks/Python.framework/Versions/3.12/bin/python3.12
+        // Symlink  - /opt/homebrew/Cellar/python@3.12/3.12.3/Frameworks/Python.framework/Versions/Current/bin/python3.12
+        // Symlink  - /opt/homebrew/Frameworks/Python.framework/Versions/3.12/bin/python3.12
+        // Symlink  - /opt/homebrew/Frameworks/Python.framework/Versions/Current/bin/python3.12
+        // Real exe - /opt/homebrew/Cellar/python@3.12/3.12.3/Frameworks/Python.framework/Versions/3.12/bin/python3.12
+        // SysPrefix- /opt/homebrew/opt/python@3.12/Frameworks/Python.framework/Versions/3.12
+        get_python_info(
+            &PathBuf::from("/opt/homebrew/bin").join(exe_file_name),
+            reported,
+            &python_regex,
+            &resolved_file,
+        )
+    } else if resolved_file.starts_with("/home/linuxbrew/.linuxbrew/Cellar") {
+        // Symlink  - /usr/local/bin/python3.12
+        // Symlink  - /home/linuxbrew/.linuxbrew/bin/python3.12
+        // Symlink  - /home/linuxbrew/.linuxbrew/opt/python@3.12/bin/python3.12
+        // Real exe - /home/linuxbrew/.linuxbrew/Cellar/python@3.12/3.12.3/bin/python3.12
+        // SysPrefix- /home/linuxbrew/.linuxbrew/Cellar/python@3.12/3.12.3
+        get_python_info(
+            &PathBuf::from("/usr/local/bin").join(exe_file_name),
+            reported,
+            &python_regex,
+            &resolved_file,
+        )
+    } else if resolved_file.starts_with("/usr/local/Cellar") {
+        // Symlink  - /usr/local/bin/python3.8
+        // Symlink  - /usr/local/opt/python@3.8/bin/python3.8
+        // Symlink  - /usr/local/Cellar/python@3.8/3.8.19/bin/python3.8
+        // Real exe - /usr/local/Cellar/python@3.8/3.8.19/Frameworks/Python.framework/Versions/3.8/bin/python3.8
+        // SysPrefix- /usr/local/Cellar/python@3.8/3.8.19/Frameworks/Python.framework/Versions/3.8
+        get_python_info(
+            &PathBuf::from("/usr/local/bin").join(exe_file_name),
+            reported,
+            &python_regex,
+            &resolved_file,
+        )
+    } else {
+        None
+    }
+}
+
 impl Locator for Homebrew<'_> {
     fn resolve(&self, env: &PythonEnv) -> Option<PythonEnvironment> {
-        let python_regex = Regex::new(r"/(\d+\.\d+\.\d+)/").unwrap();
-        let exe = env.executable.clone();
-        let exe_file_name = exe.file_name()?;
         let mut reported: HashSet<String> = HashSet::new();
-        let resolved_file = is_symlinked_python_executable(&exe).unwrap_or(exe.clone());
-        if resolved_file.starts_with("/opt/homebrew/Cellar") {
-            // Symlink  - /opt/homebrew/bin/python3.12
-            // Symlink  - /opt/homebrew/opt/python3/bin/python3.12
-            // Symlink  - /opt/homebrew/Cellar/python@3.12/3.12.3/bin/python3.12
-            // Symlink  - /opt/homebrew/opt/python@3.12/bin/python3.12
-            // Symlink  - /opt/homebrew/Cellar/python@3.12/3.12.3/Frameworks/Python.framework/Versions/3.12/bin/python3.12
-            // Symlink  - /opt/homebrew/Cellar/python@3.12/3.12.3/Frameworks/Python.framework/Versions/Current/bin/python3.12
-            // Symlink  - /opt/homebrew/Frameworks/Python.framework/Versions/3.12/bin/python3.12
-            // Symlink  - /opt/homebrew/Frameworks/Python.framework/Versions/Current/bin/python3.12
-            // Real exe - /opt/homebrew/Cellar/python@3.12/3.12.3/Frameworks/Python.framework/Versions/3.12/bin/python3.12
-            // SysPrefix- /opt/homebrew/opt/python@3.12/Frameworks/Python.framework/Versions/3.12
-            get_python_info(
-                &PathBuf::from("/opt/homebrew/bin").join(exe_file_name),
-                &mut reported,
-                &python_regex,
-            )
-        } else if resolved_file.starts_with("/home/linuxbrew/.linuxbrew/Cellar") {
-            // Symlink  - /usr/local/bin/python3.12
-            // Symlink  - /home/linuxbrew/.linuxbrew/bin/python3.12
-            // Symlink  - /home/linuxbrew/.linuxbrew/opt/python@3.12/bin/python3.12
-            // Real exe - /home/linuxbrew/.linuxbrew/Cellar/python@3.12/3.12.3/bin/python3.12
-            // SysPrefix- /home/linuxbrew/.linuxbrew/Cellar/python@3.12/3.12.3
-            get_python_info(
-                &PathBuf::from("/usr/local/bin").join(exe_file_name),
-                &mut reported,
-                &python_regex,
-            )
-        } else if resolved_file.starts_with("/usr/local/Cellar") {
-            // Symlink  - /usr/local/bin/python3.8
-            // Symlink  - /usr/local/opt/python@3.8/bin/python3.8
-            // Symlink  - /usr/local/Cellar/python@3.8/3.8.19/bin/python3.8
-            // Real exe - /usr/local/Cellar/python@3.8/3.8.19/Frameworks/Python.framework/Versions/3.8/bin/python3.8
-            // SysPrefix- /usr/local/Cellar/python@3.8/3.8.19/Frameworks/Python.framework/Versions/3.8
-            get_python_info(
-                &PathBuf::from("/usr/local/bin").join(exe_file_name),
-                &mut reported,
-                &python_regex,
-            )
-        } else {
-            None
-        }
+        resolve(env, &mut reported)
     }
 
     fn find(&mut self) -> Option<LocatorResult> {
         let mut reported: HashSet<String> = HashSet::new();
         let mut environments: Vec<PythonEnvironment> = vec![];
-        let python_regex = Regex::new(r"/(\d+\.\d+\.\d+)/").unwrap();
         for homebrew_prefix_bin in get_homebrew_prefix_bin(self.environment) {
             for file in std::fs::read_dir(&homebrew_prefix_bin)
                 .ok()?
                 .filter_map(Result::ok)
+                .filter(|f| {
+                    let file_name = f.file_name().to_str().unwrap_or_default().to_lowercase();
+                    return file_name.starts_with("python")
+                    // If this file name is `python3`, then ignore this for now.
+                    // We would prefer to use `python3.x` instead of `python3`.
+                    // That way its more consistent and future proof
+                        && file_name != "python3"
+                        && file_name != "python";
+                })
             {
-                // If this file name is `python3`, then ignore this for now.
-                // We would prefer to use `python3.x` instead of `python3`.
-                // That way its more consistent and future proof
-                if let Some(file_name) = file.file_name().to_str() {
-                    if file_name.to_lowercase() == "python3" {
-                        continue;
-                    }
-                }
-
-                if let Some(env) = get_python_info(&file.path(), &mut reported, &python_regex) {
+                // Sometimes we end up with other python installs in the Homebrew bin directory.
+                // E.g. /usr/local/bin is treated as a location where homebrew can be found (homebrew bin)
+                // However this is a very generic location, and we might end up with other python installs here.
+                // Hence call `resolve` to correctly identify homebrew python installs.
+                let env_to_resolve = PythonEnv {
+                    executable: file.path(),
+                    path: None,
+                    version: None,
+                };
+                if let Some(env) = resolve(&env_to_resolve, &mut reported) {
                     environments.push(env);
                 }
             }
 
             // Possible we do not have python3.12 or the like in bin directory
             // & we have only python3, in that case we should add python3 to the list
-            if let Some(env) = get_python_info(
-                &homebrew_prefix_bin.join("python3"),
-                &mut reported,
-                &python_regex,
-            ) {
+            let file = homebrew_prefix_bin.join("python3");
+            let env_to_resolve = PythonEnv {
+                executable: file,
+                path: None,
+                version: None,
+            };
+            if let Some(env) = resolve(&env_to_resolve, &mut reported) {
                 environments.push(env);
             }
         }
