@@ -105,8 +105,6 @@ pub fn get_conda_package_json_path(path: &Path, package: &str) -> Option<CondaPa
             // +conda-forge/osx-arm64::python-3.12.2-hdf0ec26_0_cpython
             // +conda-forge/osx-arm64::python_abi-3.12-4_cp312
             if let Some(package_path) = line.split(&package_entry).nth(1) {
-                // if let Some(version) = package_entry_regex.clone().ok().unwrap().captures(&line) {
-                //     if let Some(version) = version.get(1) {
                 let package_path = path.join(format!("{}{}.json", package, package_path));
                 let mut arch: Option<Architecture> = None;
                 // Sample contents
