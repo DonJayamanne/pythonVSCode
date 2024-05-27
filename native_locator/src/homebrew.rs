@@ -5,22 +5,10 @@ use crate::{
     known::Environment,
     locator::{Locator, LocatorResult},
     messaging::PythonEnvironment,
-    utils::PythonEnv,
+    utils::{is_symlinked_python_executable, PythonEnv},
 };
 use regex::Regex;
 use std::{collections::HashSet, env, path::PathBuf};
-
-fn is_symlinked_python_executable(path: &PathBuf) -> Option<PathBuf> {
-    let name = path.file_name()?.to_string_lossy();
-    if !name.starts_with("python") || name.ends_with("-config") || name.ends_with("-build") {
-        return None;
-    }
-    let metadata = std::fs::symlink_metadata(&path).ok()?;
-    if metadata.is_file() || !metadata.file_type().is_symlink() {
-        return None;
-    }
-    Some(std::fs::canonicalize(path).ok()?)
-}
 
 fn get_homebrew_prefix_env_var(environment: &dyn Environment) -> Option<PathBuf> {
     if let Some(homebrew_prefix) = environment.get_env_var("HOMEBREW_PREFIX".to_string()) {

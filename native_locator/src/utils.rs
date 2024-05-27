@@ -98,17 +98,34 @@ pub fn get_version(python_executable: &PathBuf) -> Option<String> {
     None
 }
 
+#[cfg(windows)]
 pub fn find_python_binary_path(env_path: &Path) -> Option<PathBuf> {
-    let python_bin_name = if cfg!(windows) {
-        "python.exe"
-    } else {
-        "python"
-    };
-    let path_1 = env_path.join("bin").join(python_bin_name);
-    let path_2 = env_path.join("Scripts").join(python_bin_name);
-    let path_3 = env_path.join(python_bin_name);
-    let paths = vec![path_1, path_2, path_3];
-    paths.into_iter().find(|path| path.exists())
+    for path in vec![
+        env_path.join("Scripts").join("python.exe"),
+        env_path.join("Scripts").join("python3.exe"),
+        env_path.join("python.exe"),
+        env_path.join("python3.exe"),
+    ] {
+        if path.exists() {
+            return Some(path);
+        }
+    }
+    None
+}
+
+#[cfg(unix)]
+pub fn find_python_binary_path(env_path: &Path) -> Option<PathBuf> {
+    for path in vec![
+        env_path.join("bin").join("python"),
+        env_path.join("bin").join("python3"),
+        env_path.join("python"),
+        env_path.join("python3"),
+    ] {
+        if path.exists() {
+            return Some(path);
+        }
+    }
+    None
 }
 
 pub fn list_python_environments(path: &PathBuf) -> Option<Vec<PythonEnv>> {
@@ -145,4 +162,35 @@ pub fn get_environment_key(env: &PythonEnvironment) -> Option<String> {
 
 pub fn get_environment_manager_key(env: &EnvManager) -> String {
     return env.executable_path.to_string_lossy().to_string();
+}
+
+pub fn is_symlinked_python_executable(path: &PathBuf) -> Option<PathBuf> {
+    let name = path.file_name()?.to_string_lossy();
+    if !name.starts_with("python") || name.ends_with("-config") || name.ends_with("-build") {
+        return None;
+    }
+    let metadata = std::fs::symlink_metadata(&path).ok()?;
+    if metadata.is_file() || !metadata.file_type().is_symlink() {
+        return None;
+    }
+    Some(std::fs::canonicalize(path).ok()?)
+}
+
+// Get the python version from the `Headers/patchlevel.h` file
+// The lines we are looking for are:
+// /* Version as a string */
+// #define PY_VERSION              "3.10.2"
+// /*--end constants--*/
+pub fn get_version_from_header_files(path: &Path) -> Option<String> {
+    let version_regex = Regex::new(r#"#define\s+PY_VERSION\s+"((\d+\.?)*)"#).unwrap();
+    let patchlevel_h = path.join("Headers").join("patchlevel.h");
+    let contents = fs::read_to_string(&patchlevel_h).ok()?;
+    for line in contents.lines() {
+        if let Some(captures) = version_regex.captures(line) {
+            if let Some(value) = captures.get(1) {
+                return Some(value.as_str().to_string());
+            }
+        }
+    }
+    None
 }

@@ -1,10 +1,15 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+use regex::Regex;
+
 use crate::known::Environment;
 use crate::locator::{Locator, LocatorResult};
 use crate::messaging::PythonEnvironment;
-use crate::utils::{self, PythonEnv};
+use crate::utils::{
+    self, find_python_binary_path, get_version_from_header_files, is_symlinked_python_executable,
+    PythonEnv,
+};
 use std::env;
 use std::path::{Path, PathBuf};
 
@@ -29,32 +34,44 @@ impl PythonOnPath<'_> {
 
 impl Locator for PythonOnPath<'_> {
     fn resolve(&self, env: &PythonEnv) -> Option<PythonEnvironment> {
-        let bin = if cfg!(windows) {
-            "python.exe"
-        } else {
-            "python"
-        };
-        if env.executable.file_name().unwrap().to_ascii_lowercase() != bin {
-            return None;
-        }
-        Some(PythonEnvironment {
+        let exe = &env.executable;
+        let mut env = PythonEnvironment {
             display_name: None,
-            python_executable_path: Some(env.executable.clone()),
+            python_executable_path: Some(exe.clone()),
             version: env.version.clone(),
             category: crate::messaging::PythonEnvironmentCategory::System,
             env_path: env.path.clone(),
-            python_run_command: Some(vec![env.executable.to_str().unwrap().to_string()]),
+            python_run_command: Some(vec![exe.clone().to_str().unwrap().to_string()]),
             ..Default::default()
-        })
+        };
+
+        if let Some(symlink) = is_symlinked_python_executable(&exe) {
+            env.symlinks = Some(vec![symlink.clone(), exe.clone()]);
+            // Getting version this way is more accurate than the above regex.
+            // Sample paths
+            // /Library/Frameworks/Python.framework/Versions/3.10/bin/python3.10
+            if symlink.starts_with("/Library/Frameworks/Python.framework/Versions") {
+                let python_regex = Regex::new(r"/Versions/((\d+\.?)*)/bin").unwrap();
+                if let Some(captures) = python_regex.captures(symlink.to_str().unwrap()) {
+                    let version = captures.get(1).map_or("", |m| m.as_str());
+                    if version.len() > 0 {
+                        env.version = Some(version.to_string());
+                    }
+                }
+                // Sample paths
+                // /Library/Frameworks/Python.framework/Versions/3.10/bin/python3.10
+                if let Some(parent) = symlink.ancestors().nth(2) {
+                    if let Some(version) = get_version_from_header_files(parent) {
+                        env.version = Some(version);
+                    }
+                }
+            }
+        }
+        Some(env)
     }
 
     fn find(&mut self) -> Option<LocatorResult> {
         let paths = self.environment.get_env_var("PATH".to_string())?;
-        let bin = if cfg!(windows) {
-            "python.exe"
-        } else {
-            "python"
-        };
 
         // Exclude files from this folder, as they would have been discovered elsewhere (widows_store)
         // Also the exe is merely a pointer to another file.
@@ -67,8 +84,11 @@ impl Locator for PythonOnPath<'_> {
         let mut environments: Vec<PythonEnvironment> = vec![];
         env::split_paths(&paths)
             .filter(|p| !p.starts_with(apps_path.clone()))
-            .map(|p| p.join(bin))
-            .filter(|p| p.exists())
+            // Paths like /Library/Frameworks/Python.framework/Versions/3.10/bin can end up in the current PATH variable.
+            // Hence do not just look for files in a bin directory of the path.
+            .map(|p| find_python_binary_path(&p))
+            .filter(Option::is_some)
+            .map(Option::unwrap)
             .for_each(|full_path| {
                 let version = utils::get_version(&full_path);
                 let env_path = get_env_path(&full_path);
