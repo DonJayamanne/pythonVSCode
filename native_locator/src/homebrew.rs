@@ -37,6 +37,8 @@ fn get_homebrew_prefix_bin(environment: &dyn Environment) -> Vec<PathBuf> {
     // /opt/homebrew for Apple Silicon,
     // /usr/local for macOS Intel
     // /home/linuxbrew/.linuxbrew for Linux
+    // If user has rosetta enabled, then its possible we have homebrew installed via rosetta as well as apple silicon
+    // I.e. we can have multiple home brews on the same machine, hence search all,
     let mut homebrew_prefixes = [
         "/home/linuxbrew/.linuxbrew/bin",
         "/opt/homebrew/bin",
