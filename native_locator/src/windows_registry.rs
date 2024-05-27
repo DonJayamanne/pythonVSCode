@@ -2,6 +2,8 @@
 // Licensed under the MIT License.
 
 #[cfg(windows)]
+use crate::conda::{is_conda_env_location, is_conda_install_location};
+#[cfg(windows)]
 use crate::conda::CondaLocator;
 #[cfg(windows)]
 use crate::locator::{Locator, LocatorResult};
@@ -227,7 +229,23 @@ impl WindowsRegistry<'_> {
 
 #[cfg(windows)]
 impl Locator for WindowsRegistry<'_> {
-    fn resolve(&self, _env: &PythonEnv) -> Option<PythonEnvironment> {
+    fn resolve(&self, env: &PythonEnv) -> Option<PythonEnvironment> {
+        if let Some(env_path) = &env.path {
+            if is_conda_env_location(&env_path){
+                return None;
+            }
+            if is_conda_install_location(&env_path){
+                return None;
+            }
+        }
+        if let Some(result) = get_registry_pythons(self.conda_locator) {
+            // Find the same env here
+            for found_env in result.environments {
+                if env.executable == env.executable {
+                    return Some(env);
+                }
+            }
+        }
         None
     }
 

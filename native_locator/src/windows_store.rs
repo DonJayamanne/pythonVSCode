@@ -218,13 +218,13 @@ impl WindowsStore<'_> {
 #[cfg(windows)]
 impl Locator for WindowsStore<'_> {
     fn resolve(&self, env: &PythonEnv) -> Option<PythonEnvironment> {
-        if is_windows_python_executable(&env.executable) {
-            return Some(PythonEnvironment {
-                python_executable_path: Some(env.executable.clone()),
-                category: crate::messaging::PythonEnvironmentCategory::WindowsStore,
-                python_run_command: Some(vec![env.executable.to_str().unwrap().to_string()]),
-                ..Default::default()
-            });
+        let environments = list_windows_store_python_executables(self.environment)?;
+        for found_env in environments {
+            if let Some(ref python_executable_path) = found_env.python_executable_path {
+                if python_executable_path == &env.executable {
+                    return Some(found_env);
+                }
+            }
         }
         None
     }
