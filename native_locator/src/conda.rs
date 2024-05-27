@@ -19,6 +19,7 @@ use serde::Deserialize;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::env;
+use std::fs;
 use std::fs::read_to_string;
 use std::path::{Path, PathBuf};
 
@@ -56,25 +57,104 @@ fn get_relative_paths_to_main_python_executable() -> PathBuf {
 }
 
 #[derive(Debug)]
-struct CondaPackage {
+pub struct CondaPackage {
     #[allow(dead_code)]
-    path: PathBuf,
-    version: String,
-    arch: Option<Architecture>,
+    pub path: PathBuf,
+    pub version: String,
+    pub arch: Option<Architecture>,
+}
+
+impl PartialEq for CondaPackage {
+    fn eq(&self, other: &Self) -> bool {
+        if self.path == other.path && self.version == other.version {
+            if self.arch.is_none() && other.arch.is_none() {
+                return true;
+            }
+            if self.arch.is_none() && !other.arch.is_none() {
+                return false;
+            }
+            if !self.arch.is_none() && other.arch.is_none() {
+                return false;
+            }
+            return self.arch.as_ref().unwrap() == other.arch.as_ref().unwrap();
+        }
+        return false;
+    }
 }
 
 #[derive(Deserialize, Debug)]
 struct CondaMetaPackageStructure {
     channel: Option<String>,
-    // version: Option<String>,
+    version: Option<String>,
 }
 
 /// Get the path to the json file along with the version of a package in the conda environment from the 'conda-meta' directory.
-fn get_conda_package_json_path(path: &Path, package: &str) -> Option<CondaPackage> {
+pub fn get_conda_package_json_path(path: &Path, package: &str) -> Option<CondaPackage> {
     // conda-meta is in the root of the conda installation folder
     let path = path.join("conda-meta");
+
+    let history = path.join("history");
+    let package_entry = format!(":{}", package);
+    if let Ok(history_contents) = fs::read_to_string(&history) {
+        for line in history_contents
+            .lines()
+            .filter(|l| l.contains(&package_entry))
+        {
+            // Sample entry in the history file
+            // +conda-forge/osx-arm64::psutil-5.9.8-py312he37b823_0
+            // +conda-forge/osx-arm64::python-3.12.2-hdf0ec26_0_cpython
+            // +conda-forge/osx-arm64::python_abi-3.12-4_cp312
+            if let Some(package_path) = line.split(&package_entry).nth(1) {
+                // if let Some(version) = package_entry_regex.clone().ok().unwrap().captures(&line) {
+                //     if let Some(version) = version.get(1) {
+                let package_path = path.join(format!("{}{}.json", package, package_path));
+                let mut arch: Option<Architecture> = None;
+                // Sample contents
+                // {
+                //   "build": "h966fe2a_2",
+                //   "build_number": 2,
+                //   "channel": "https://repo.anaconda.com/pkgs/main/win-64",
+                //   "constrains": [],
+                // }
+                // 32bit channel is https://repo.anaconda.com/pkgs/main/win-32/
+                // 64bit channel is "channel": "https://repo.anaconda.com/pkgs/main/osx-arm64",
+                if let Some(contents) = read_to_string(&package_path).ok() {
+                    if let Some(js) =
+                        serde_json::from_str::<CondaMetaPackageStructure>(&contents).ok()
+                    {
+                        if let Some(channel) = js.channel {
+                            if channel.ends_with("64") {
+                                arch = Some(Architecture::X64);
+                            } else if channel.ends_with("32") {
+                                arch = Some(Architecture::X86);
+                            }
+                        }
+                        if let Some(version) = js.version {
+                            return Some(CondaPackage {
+                                path: package_path,
+                                version,
+                                arch,
+                            });
+                        } else {
+                            warn!(
+                                "Unable to find version for package {} in {:?}",
+                                package, package_path
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+    warn!(
+        "Unable to find conda package {} in {:?}, trying slower approach",
+        package, path
+    );
+
     let package_name = format!("{}-", package);
     let regex = Regex::new(format!("^{}-((\\d+\\.*)*)-.*.json$", package).as_str());
+
+    // Fallback, slower approach of enumerating all files.
     std::fs::read_dir(path)
         .ok()?
         .filter_map(Result::ok)
@@ -239,6 +319,29 @@ fn get_conda_manager(path: &Path) -> Option<EnvManager> {
     })
 }
 
+fn get_conda_manager_from_env(env_path: &Path) -> Option<EnvManager> {
+    // Lets see if we've been given the base env.
+    if let Some(manager) = get_conda_manager(env_path) {
+        return Some(manager);
+    }
+
+    // Possible we've been given an env thats in the `<conda insta..>/envs` folder.
+    if let Some(parent) = env_path.parent() {
+        if parent.file_name().unwrap_or_default() == "envs" {
+            return get_conda_manager(parent.parent()?);
+        }
+    }
+
+    // We've been given an env thats been created using the -p flag.
+    // Get the conda install folder from the history file.
+    if let Some(conda_install_folder) =
+        get_conda_installation_used_to_create_conda_env(&env_path.to_path_buf())
+    {
+        return get_conda_manager(&conda_install_folder);
+    }
+    None
+}
+
 #[derive(Debug, Clone)]
 struct CondaEnvironment {
     name: String,
@@ -246,7 +349,7 @@ struct CondaEnvironment {
     env_path: PathBuf,
     python_executable_path: Option<PathBuf>,
     version: Option<String>,
-    conda_install_folder: Option<String>,
+    conda_install_folder: Option<PathBuf>,
     arch: Option<Architecture>,
 }
 fn get_conda_environment_info(env_path: &PathBuf, named: bool) -> Option<CondaEnvironment> {
@@ -292,25 +395,6 @@ fn get_conda_environment_info(env_path: &PathBuf, named: bool) -> Option<CondaEn
     }
 
     None
-}
-
-fn get_environments_from_envs_folder_in_conda_directory(
-    path: &Path,
-) -> Option<Vec<CondaEnvironment>> {
-    let mut envs: Vec<CondaEnvironment> = vec![];
-    // iterate through all sub directories in the env folder
-    // for each sub directory, check if it has a python executable
-    // if it does, create a PythonEnvironment object and add it to the list
-    for entry in std::fs::read_dir(path.join("envs"))
-        .ok()?
-        .filter_map(Result::ok)
-    {
-        if let Some(env) = get_conda_environment_info(&entry.path(), true) {
-            envs.push(env);
-        }
-    }
-
-    Some(envs)
 }
 
 fn get_conda_envs_from_environment_txt(environment: &dyn known::Environment) -> Vec<String> {
@@ -531,8 +615,10 @@ fn was_conda_environment_created_by_specific_conda(
     env: &CondaEnvironment,
     root_conda_path: &Path,
 ) -> bool {
-    if let Some(cmd_line) = env.conda_install_folder.clone() {
-        if cmd_line
+    if let Some(conda_dir) = env.conda_install_folder.clone() {
+        if conda_dir
+            .to_str()
+            .unwrap_or_default()
             .to_lowercase()
             .contains(&root_conda_path.to_string_lossy().to_lowercase())
         {
@@ -553,7 +639,7 @@ fn was_conda_environment_created_by_specific_conda(
  * Sometimes the cmd line contains the fully qualified path to the conda install folder.
  * This function returns the path to the conda installation that was used to create the environment.
  */
-fn get_conda_installation_used_to_create_conda_env(env_path: &PathBuf) -> Option<String> {
+fn get_conda_installation_used_to_create_conda_env(env_path: &PathBuf) -> Option<PathBuf> {
     let conda_meta_history = env_path.join("conda-meta").join("history");
     if let Ok(reader) = std::fs::read_to_string(conda_meta_history.clone()) {
         if let Some(line) = reader.lines().map(|l| l.trim()).find(|l| {
@@ -567,14 +653,15 @@ fn get_conda_installation_used_to_create_conda_env(env_path: &PathBuf) -> Option
             let end_index = line.to_lowercase().find(" create -")?;
             let cmd_line = PathBuf::from(line[start_index..end_index].trim().to_string());
             if let Some(cmd_line) = cmd_line.parent() {
-                if let Some(name) = cmd_line.file_name() {
-                    if name.to_ascii_lowercase() == "bin" || name.to_ascii_lowercase() == "scripts"
+                if let Some(conda_dir) = cmd_line.file_name() {
+                    if conda_dir.to_ascii_lowercase() == "bin"
+                        || conda_dir.to_ascii_lowercase() == "scripts"
                     {
-                        if let Some(cmd_line) = cmd_line.parent() {
-                            return Some(cmd_line.to_str()?.to_string());
+                        if let Some(conda_dir) = cmd_line.parent() {
+                            return Some(conda_dir.to_path_buf());
                         }
                     }
-                    return Some(cmd_line.to_str()?.to_string());
+                    return Some(cmd_line.to_path_buf());
                 }
             }
         }
@@ -685,8 +772,8 @@ fn get_root_python_environment(path: &Path, manager: &EnvManager) -> Option<Pyth
             python_run_command: Some(vec![
                 conda_exe,
                 "run".to_string(),
-                "-p".to_string(),
-                path.to_str().unwrap().to_string(),
+                "-n".to_string(),
+                "base".to_string(),
                 "python".to_string(),
             ]),
             ..Default::default()
@@ -722,15 +809,18 @@ fn get_conda_environments_in_specified_install_path(
 
         // 2. All environments in the `<conda install folder>/envs` folder
         let mut envs: Vec<CondaEnvironment> = vec![];
-        if let Some(environments) =
-            get_environments_from_envs_folder_in_conda_directory(conda_install_folder)
-        {
-            environments.iter().for_each(|env| {
-                possible_conda_envs.remove(&env.env_path);
-                envs.push(env.clone());
-            });
-        }
+        // iterate through all sub directories in the env folder
+        // for each sub directory, check if it has a python executable
+        // if it does, create a PythonEnvironment object and add it to the list
 
+        if let Ok(dirs) = std::fs::read_dir(conda_install_folder.join("envs")) {
+            for entry in dirs.filter_map(Result::ok) {
+                if let Some(env) = get_conda_environment_info(&entry.path(), true) {
+                    possible_conda_envs.remove(&env.env_path);
+                    envs.push(env);
+                }
+            }
+        }
         // 3. All environments in the environments.txt and other locations (such as `conda config --show envs_dirs`)
         // Only include those environments that were created by the specific conda installation
         // Ignore environments that are in the env sub directory of the conda folder, as those would have been
@@ -842,9 +932,11 @@ fn find_conda_environments_from_known_conda_install_locations(
     })
 }
 
-fn is_conda_install_location(path: &Path) -> bool {
-    let envs_path = path.join("envs");
-    return envs_path.exists() && envs_path.is_dir();
+pub fn is_conda_install_location(path: &Path) -> bool {
+    return path.join("envs").exists() && path.join("conda-meta").exists();
+}
+pub fn is_conda_env_location(path: &Path) -> bool {
+    return !path.join("envs").exists() && path.join("conda-meta").exists();
 }
 
 pub fn get_conda_version(conda_binary: &PathBuf) -> Option<String> {
@@ -1032,8 +1124,32 @@ impl CondaLocator for Conda<'_> {
 }
 
 impl Locator for Conda<'_> {
-    fn resolve(&self, _env: &PythonEnv) -> Option<PythonEnvironment> {
-        // We will find everything in find
+    fn resolve(&self, env: &PythonEnv) -> Option<PythonEnvironment> {
+        if let Some(ref path) = env.path {
+            if is_conda_install_location(path) {
+                // This is a conda install directory, return the Base environment.
+                if let Some(manager) = get_conda_manager(&path) {
+                    return get_root_python_environment(&path, &manager);
+                }
+            } else if is_conda_env_location(path) {
+                // Find the conda manager.
+                if let Some(manager) = get_conda_manager_from_env(&path) {
+                    if let Some(env) = get_conda_environment_info(&path, true) {
+                        let python_run_command = get_activation_command(&env, &manager);
+                        return Some(PythonEnvironment {
+                            name: Some(env.name.clone()),
+                            category: messaging::PythonEnvironmentCategory::Conda,
+                            python_executable_path: env.python_executable_path,
+                            version: env.version,
+                            env_path: Some(env.env_path.clone()),
+                            env_manager: Some(manager),
+                            python_run_command,
+                            ..Default::default()
+                        });
+                    }
+                }
+            }
+        }
         None
     }
 

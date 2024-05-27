@@ -151,7 +151,7 @@ fn get_python_info(
             return None;
         }
         reported.insert(resolved_exe.to_string_lossy().to_string());
-        return Some(PythonEnvironment::new(
+        let mut env = PythonEnvironment::new(
             None,
             None,
             Some(user_friendly_exe.clone()),
@@ -160,7 +160,9 @@ fn get_python_info(
             get_env_path(python_exe_from_bin_dir, &resolved_exe),
             None,
             Some(vec![user_friendly_exe.to_string_lossy().to_string()]),
-        ));
+        );
+        env.symlinks = Some(vec![resolved_exe.clone(), python_exe_from_bin_dir.clone()]);
+        return Some(env);
     }
     None
 }

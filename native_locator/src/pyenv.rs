@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+use crate::conda::is_conda_env_location;
+use crate::conda::is_conda_install_location;
 use crate::conda::CondaLocator;
 use crate::known;
 use crate::known::Environment;
@@ -14,8 +16,17 @@ use crate::utils::find_and_parse_pyvenv_cfg;
 use crate::utils::find_python_binary_path;
 use crate::utils::PythonEnv;
 use regex::Regex;
+use std::env;
 use std::fs;
 use std::path::PathBuf;
+
+#[derive(Debug)]
+pub struct PyEnvInfo {
+    #[allow(dead_code)]
+    pub exe: Option<PathBuf>,
+    pub versions: Option<PathBuf>,
+    pub version: Option<String>,
+}
 
 #[cfg(windows)]
 fn get_home_pyenv_dir(environment: &dyn known::Environment) -> Option<PathBuf> {
@@ -30,6 +41,16 @@ fn get_home_pyenv_dir(environment: &dyn known::Environment) -> Option<PathBuf> {
 }
 
 fn get_binary_from_known_paths(environment: &dyn known::Environment) -> Option<PathBuf> {
+    for known_path in env::split_paths(
+        &environment
+            .get_env_var("PATH".to_string())
+            .unwrap_or_default(),
+    ) {
+        let bin = PathBuf::from(known_path).join("pyenv");
+        if bin.exists() {
+            return Some(bin);
+        }
+    }
     for known_path in environment.get_know_global_search_locations() {
         let bin = known_path.join("pyenv");
         if bin.exists() {
@@ -51,19 +72,54 @@ fn get_pyenv_dir(environment: &dyn known::Environment) -> Option<PathBuf> {
         Some(dir) => Some(PathBuf::from(dir)),
         None => match environment.get_env_var("PYENV".to_string()) {
             Some(dir) => Some(PathBuf::from(dir)),
-            None => get_home_pyenv_dir(environment),
+            None => None,
         },
     }
 }
 
-fn get_pyenv_binary(environment: &dyn known::Environment) -> Option<PathBuf> {
-    let dir = get_pyenv_dir(environment)?;
-    let exe = PathBuf::from(dir).join("bin").join("pyenv");
-    if fs::metadata(&exe).is_ok() {
-        Some(exe)
-    } else {
-        get_binary_from_known_paths(environment)
+fn get_pyenv_info(environment: &dyn known::Environment) -> PyEnvInfo {
+    let mut pyenv = PyEnvInfo {
+        exe: None,
+        versions: None,
+        version: None,
+    };
+    if let Some(dir) = get_pyenv_dir(environment) {
+        let versions = dir.join("versions");
+        if fs::metadata(&versions).is_ok() {
+            pyenv.versions = Some(versions);
+        }
+        let exe = PathBuf::from(dir).join("bin").join("pyenv");
+        if fs::metadata(&exe).is_ok() {
+            pyenv.exe = Some(exe);
+        }
     }
+    if let Some(exe) = get_binary_from_known_paths(environment) {
+        pyenv.exe = Some(exe);
+    }
+
+    if !pyenv.exe.is_some() || !pyenv.versions.is_some() {
+        if let Some(path) = get_home_pyenv_dir(environment) {
+            if pyenv.exe.is_none() {
+                let exe = path.join("bin").join("pyenv");
+                if fs::metadata(&exe).is_ok() {
+                    pyenv.exe = Some(exe);
+                }
+            }
+            if pyenv.versions.is_none() {
+                let versions = path.join("versions");
+                if fs::metadata(&versions).is_ok() {
+                    pyenv.versions = Some(versions);
+                }
+            }
+        }
+    }
+
+    // Get the version of the pyenv manager
+    if let Some(ref exe) = pyenv.exe {
+        pyenv.version = get_pyenv_manager_version(exe, environment);
+    }
+
+    pyenv
 }
 
 fn get_version(folder_name: &String) -> Option<String> {
@@ -143,6 +199,13 @@ fn is_conda_environment(path: &PathBuf) -> bool {
             || name.starts_with("miniconda")
             || name.starts_with("miniforge");
     }
+
+    if is_conda_install_location(path) {
+        return true;
+    }
+    if is_conda_env_location(path) {
+        return true;
+    }
     false
 }
 
@@ -171,16 +234,11 @@ fn get_virtual_env_environment(
 
 pub fn list_pyenv_environments(
     manager: &Option<EnvManager>,
-    environment: &dyn known::Environment,
+    versions_dir: &PathBuf,
     conda_locator: &mut dyn CondaLocator,
-) -> Option<Vec<messaging::PythonEnvironment>> {
-    let pyenv_dir = get_pyenv_dir(environment)?;
+) -> Option<LocatorResult> {
     let mut envs: Vec<messaging::PythonEnvironment> = vec![];
-    let versions_dir = PathBuf::from(&pyenv_dir)
-        .join("versions")
-        .into_os_string()
-        .into_string()
-        .ok()?;
+    let mut managers: Vec<messaging::EnvManager> = vec![];
 
     for entry in fs::read_dir(&versions_dir).ok()?.filter_map(Result::ok) {
         let path = entry.path();
@@ -197,12 +255,18 @@ pub fn list_pyenv_environments(
                     result.environments.iter().for_each(|e| {
                         envs.push(e.clone());
                     });
+                    result.managers.iter().for_each(|e| {
+                        managers.push(e.clone());
+                    });
                 }
             }
         }
     }
 
-    Some(envs)
+    Some(LocatorResult {
+        managers,
+        environments: envs,
+    })
 }
 
 #[cfg(windows)]
@@ -228,22 +292,20 @@ fn get_pyenv_manager_version(
 
 #[cfg(unix)]
 fn get_pyenv_manager_version(
-    pyenv_binary_path: &PathBuf,
+    pyenv_exe: &PathBuf,
     _environment: &dyn known::Environment,
 ) -> Option<String> {
-    // Look for version in path
-    // Sample /opt/homebrew/Cellar/pyenv/2.4.0/libexec/pyenv
-    if !pyenv_binary_path.to_string_lossy().contains("/pyenv/") {
-        return None;
+    if let Some(ref real_path) = fs::read_link(pyenv_exe).ok() {
+        // Look for version in path
+        // Sample /opt/homebrew/Cellar/pyenv/2.4.0/libexec/pyenv
+        let version_regex = Regex::new(r"pyenv/((\d+\.?)*)/").unwrap();
+        let captures = version_regex
+            .captures(&real_path.to_str().unwrap_or_default())?
+            .get(1)?;
+        Some(captures.as_str().to_string())
+    } else {
+        None
     }
-    // Find the real path, generally we have a symlink.
-    let real_path = fs::read_link(pyenv_binary_path)
-        .ok()?
-        .to_string_lossy()
-        .to_string();
-    let version_regex = Regex::new(r"pyenv/(\d+\.\d+\.\d+)/").unwrap();
-    let captures = version_regex.captures(&real_path)?.get(1)?;
-    Some(captures.as_str().to_string())
 }
 
 pub struct PyEnv<'a> {
@@ -264,27 +326,68 @@ impl PyEnv<'_> {
 }
 
 impl Locator for PyEnv<'_> {
-    fn resolve(&self, _env: &PythonEnv) -> Option<PythonEnvironment> {
-        // We will find everything in gather
+    fn resolve(&self, env: &PythonEnv) -> Option<PythonEnvironment> {
+        // Env path must exists,
+        // If exe is Scripts/python.exe or bin/python.exe
+        // Then env path is parent of Scripts or bin
+        // & in pyenv case thats a directory inside `versions` folder.
+        let env_path = &env.path.clone()?;
+        let pyenv_info = get_pyenv_info(self.environment);
+        let mut manager: Option<messaging::EnvManager> = None;
+        if let Some(ref exe) = pyenv_info.exe {
+            let version = pyenv_info.version.clone();
+            manager = Some(messaging::EnvManager::new(
+                exe.clone(),
+                version,
+                EnvManagerType::Pyenv,
+            ));
+        }
+
+        let versions = &pyenv_info.versions?;
+        if env.executable.starts_with(versions) {
+            if let Some(env) = get_pure_python_environment(&env.executable, env_path, &manager) {
+                return Some(env);
+            } else if let Some(env) =
+                get_virtual_env_environment(&env.executable, env_path, &manager)
+            {
+                return Some(env);
+            }
+        }
         None
     }
 
     fn find(&mut self) -> Option<LocatorResult> {
-        let pyenv_binary = get_pyenv_binary(self.environment)?;
-        let version = get_pyenv_manager_version(&pyenv_binary, self.environment);
-        let manager = messaging::EnvManager::new(pyenv_binary, version, EnvManagerType::Pyenv);
+        let pyenv_info = get_pyenv_info(self.environment);
+        let mut managers: Vec<messaging::EnvManager> = vec![];
+        let mut manager: Option<messaging::EnvManager> = None;
         let mut environments: Vec<PythonEnvironment> = vec![];
-        if let Some(envs) =
-            list_pyenv_environments(&Some(manager.clone()), self.environment, self.conda_locator)
-        {
-            for env in envs {
-                environments.push(env);
+        if let Some(ref exe) = pyenv_info.exe {
+            let version = pyenv_info.version.clone();
+            manager = Some(messaging::EnvManager::new(
+                exe.clone(),
+                version,
+                EnvManagerType::Pyenv,
+            ));
+            managers.push(manager.clone().unwrap());
+        }
+        if let Some(ref versions) = &pyenv_info.versions {
+            if let Some(envs) = list_pyenv_environments(&manager, versions, self.conda_locator) {
+                for env in envs.environments {
+                    environments.push(env);
+                }
+                for mgr in envs.managers {
+                    managers.push(mgr);
+                }
             }
         }
 
-        Some(LocatorResult {
-            managers: vec![manager],
-            environments,
-        })
+        if environments.is_empty() && managers.is_empty() {
+            None
+        } else {
+            Some(LocatorResult {
+                managers,
+                environments,
+            })
+        }
     }
 }

@@ -86,7 +86,7 @@ pub enum PythonEnvironmentCategory {
 
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Architecture {
     X64,
     X86,
