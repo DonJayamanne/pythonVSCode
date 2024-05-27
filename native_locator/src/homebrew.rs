@@ -142,6 +142,16 @@ fn get_known_symlinks(python_exe: &PathBuf, full_version: &String) -> Vec<PathBu
             Some(captures) => match captures.get(1) {
                 Some(version) => {
                     let version = version.as_str().to_string();
+                    // Never include `/opt/homebrew/bin/python` into this list.
+                    // Yes its possible that the file `/opt/homebrew/bin/python` is a symlink to this same version.
+                    // However what happens if user installed 3.10 and 3.11/
+                    // Then /opt/homebrew/bin/python will most likely point to 3.11, thats fine.
+                    // Now assume we return the path `/opt/homebrew/bin/python` as a symlink to 3.11.
+                    // Then user installs 3.12, how we will end up looking at the symlinks and treat
+                    // /opt/homebrew/bin/python as 3.11, when in fact its entirely possible that
+                    // during the installtion of 3.12, that symlink was updated to point to 3.12.
+                    // Hence in such cases we just rely on `resolve` to always return the right information.
+                    // & we never deal with those paths.
                     vec![
                         PathBuf::from(format!("/opt/homebrew/bin/python{}", version)),
                         PathBuf::from(format!("/opt/homebrew/opt/python3/bin/python{}",version)),
@@ -170,6 +180,9 @@ fn get_known_symlinks(python_exe: &PathBuf, full_version: &String) -> Vec<PathBu
             Some(captures) => match captures.get(1) {
                 Some(version) => {
                     let version = version.as_str().to_string();
+                    // Never include `/usr/local/bin/python` into this list.
+                    // See previous explanation
+
                     let mut symlinks = vec![
                         PathBuf::from(format!(
                             "/usr/local/opt/python@{}/bin/python{}",
@@ -209,6 +222,8 @@ fn get_known_symlinks(python_exe: &PathBuf, full_version: &String) -> Vec<PathBu
             Some(captures) => match captures.get(1) {
                 Some(version) => {
                     let version = version.as_str().to_string();
+                    // Never include `/usr/local/bin/python` into this list.
+                    // See previous explanation
                     let mut symlinks = vec![
                         PathBuf::from(format!("/home/linuxbrew/.linuxbrew/bin/python{}", version)),
                         PathBuf::from(format!(
