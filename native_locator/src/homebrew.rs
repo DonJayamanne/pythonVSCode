@@ -56,7 +56,7 @@ fn get_homebrew_prefix_bin(environment: &dyn Environment) -> Vec<PathBuf> {
     homebrew_prefixes
 }
 
-fn get_env_path(python_exe_from_bin_dir: &PathBuf, resolved_file: &PathBuf) -> Option<PathBuf> {
+fn get_env_path(resolved_file: &PathBuf) -> Option<PathBuf> {
     // If the fully resolved file path contains the words `/homebrew/` or `/linuxbrew/`
     // Then we know this is definitely a home brew version of python.
     // And in these cases we can compute the sysprefix.
@@ -271,7 +271,7 @@ fn get_python_info(
             Some(user_friendly_exe.clone()),
             crate::messaging::PythonEnvironmentCategory::Homebrew,
             version,
-            get_env_path(python_exe_from_bin_dir, &resolved_exe),
+            get_env_path(&resolved_exe),
             None,
             Some(vec![user_friendly_exe.to_string_lossy().to_string()]),
         );
