@@ -32,23 +32,26 @@ fn get_homebrew_prefix_env_var(environment: &dyn Environment) -> Option<PathBuf>
     None
 }
 
-fn get_homebrew_prefix_bin(environment: &dyn Environment) -> Option<PathBuf> {
-    if let Some(homebrew_prefix) = get_homebrew_prefix_env_var(environment) {
-        return Some(homebrew_prefix);
-    }
-
+fn get_homebrew_prefix_bin(environment: &dyn Environment) -> Vec<PathBuf> {
     // Homebrew install folders documented here https://docs.brew.sh/Installation
     // /opt/homebrew for Apple Silicon,
     // /usr/local for macOS Intel
     // /home/linuxbrew/.linuxbrew for Linux
-    [
+    let mut homebrew_prefixes = [
         "/home/linuxbrew/.linuxbrew/bin",
         "/opt/homebrew/bin",
         "/usr/local/bin",
     ]
     .iter()
     .map(|p| PathBuf::from(p))
-    .find(|p| p.exists())
+    .filter(|p| p.exists())
+    .collect::<Vec<PathBuf>>();
+    if let Some(homebrew_prefix) = get_homebrew_prefix_env_var(environment) {
+        if !homebrew_prefixes.contains(&homebrew_prefix) {
+            homebrew_prefixes.push(homebrew_prefix);
+        }
+    }
+    homebrew_prefixes
 }
 
 fn get_env_path(python_exe_from_bin_dir: &PathBuf, resolved_file: &PathBuf) -> Option<PathBuf> {
@@ -338,36 +341,37 @@ impl Locator for Homebrew<'_> {
     }
 
     fn find(&mut self) -> Option<LocatorResult> {
-        let homebrew_prefix_bin = get_homebrew_prefix_bin(self.environment)?;
         let mut reported: HashSet<String> = HashSet::new();
-        let python_regex = Regex::new(r"/(\d+\.\d+\.\d+)/").unwrap();
         let mut environments: Vec<PythonEnvironment> = vec![];
-        for file in std::fs::read_dir(&homebrew_prefix_bin)
-            .ok()?
-            .filter_map(Result::ok)
-        {
-            // If this file name is `python3`, then ignore this for now.
-            // We would prefer to use `python3.x` instead of `python3`.
-            // That way its more consistent and future proof
-            if let Some(file_name) = file.file_name().to_str() {
-                if file_name.to_lowercase() == "python3" {
-                    continue;
+        let python_regex = Regex::new(r"/(\d+\.\d+\.\d+)/").unwrap();
+        for homebrew_prefix_bin in get_homebrew_prefix_bin(self.environment) {
+            for file in std::fs::read_dir(&homebrew_prefix_bin)
+                .ok()?
+                .filter_map(Result::ok)
+            {
+                // If this file name is `python3`, then ignore this for now.
+                // We would prefer to use `python3.x` instead of `python3`.
+                // That way its more consistent and future proof
+                if let Some(file_name) = file.file_name().to_str() {
+                    if file_name.to_lowercase() == "python3" {
+                        continue;
+                    }
+                }
+
+                if let Some(env) = get_python_info(&file.path(), &mut reported, &python_regex) {
+                    environments.push(env);
                 }
             }
 
-            if let Some(env) = get_python_info(&file.path(), &mut reported, &python_regex) {
+            // Possible we do not have python3.12 or the like in bin directory
+            // & we have only python3, in that case we should add python3 to the list
+            if let Some(env) = get_python_info(
+                &homebrew_prefix_bin.join("python3"),
+                &mut reported,
+                &python_regex,
+            ) {
                 environments.push(env);
             }
-        }
-
-        // Possible we do not have python3.12 or the like in bin directory
-        // & we have only python3, in that case we should add python3 to the list
-        if let Some(env) = get_python_info(
-            &homebrew_prefix_bin.join("python3"),
-            &mut reported,
-            &python_regex,
-        ) {
-            environments.push(env);
         }
 
         if environments.is_empty() {
