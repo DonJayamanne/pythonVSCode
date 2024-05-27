@@ -88,8 +88,8 @@ struct CondaMetaPackageStructure {
     version: Option<String>,
 }
 
-/// Get the path to the json file along with the version of a package in the conda environment from the 'conda-meta' directory.
-pub fn get_conda_package_json_path(path: &Path, package: &str) -> Option<CondaPackage> {
+/// Get the details of a conda package from the 'conda-meta' directory.
+pub fn get_conda_package_info(path: &Path, package: &str) -> Option<CondaPackage> {
     // conda-meta is in the root of the conda installation folder
     let path = path.join("conda-meta");
 
@@ -306,7 +306,7 @@ pub fn find_conda_binary(environment: &dyn known::Environment) -> Option<PathBuf
 
 fn get_conda_manager(path: &Path) -> Option<EnvManager> {
     let conda_exe = get_conda_executable(path)?;
-    let conda_pkg = get_conda_package_json_path(path, "conda")?;
+    let conda_pkg = get_conda_package_info(path, "conda")?;
 
     Some(EnvManager {
         executable_path: conda_exe,
@@ -357,7 +357,7 @@ fn get_conda_environment_info(env_path: &PathBuf, named: bool) -> Option<CondaEn
             let conda_install_folder = get_conda_installation_used_to_create_conda_env(env_path);
             let env_path = env_path.clone();
             if let Some(python_binary) = find_python_binary_path(&env_path) {
-                if let Some(package_info) = get_conda_package_json_path(&env_path, "python") {
+                if let Some(package_info) = get_conda_package_info(&env_path, "python") {
                     return Some(CondaEnvironment {
                         name: env_path.file_name()?.to_string_lossy().to_string(),
                         env_path,
@@ -751,7 +751,7 @@ fn get_root_python_environment(path: &Path, manager: &EnvManager) -> Option<Pyth
     if !python_exe.exists() {
         return None;
     }
-    if let Some(package_info) = get_conda_package_json_path(&path, "python") {
+    if let Some(package_info) = get_conda_package_info(&path, "python") {
         let conda_exe = manager.executable_path.to_str().unwrap().to_string();
         return Some(PythonEnvironment {
             // Do not set the name to `base`
@@ -945,9 +945,9 @@ pub fn get_conda_version(conda_binary: &PathBuf) -> Option<String> {
     if parent.ends_with("Library") {
         parent = parent.parent()?;
     }
-    match get_conda_package_json_path(&parent, "conda") {
+    match get_conda_package_info(&parent, "conda") {
         Some(result) => Some(result.version),
-        None => match get_conda_package_json_path(&parent.parent()?, "conda") {
+        None => match get_conda_package_info(&parent.parent()?, "conda") {
             Some(result) => Some(result.version),
             None => None,
         },

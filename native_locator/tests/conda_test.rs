@@ -552,13 +552,13 @@ fn detect_conda_envs_from_project_dir_created_using_p_flag() {
 #[cfg(unix)]
 fn get_conda_package_info() {
     use crate::common::{join_test_paths, test_file_path};
-    use python_finder::conda::{get_conda_package_json_path, CondaPackage};
+    use python_finder::conda::{get_conda_package_info, CondaPackage};
 
     use python_finder::messaging::Architecture;
 
     let conda_dir = test_file_path(&["tests/unix/conda/user_home/anaconda3"]);
 
-    let conda_package = get_conda_package_json_path(&conda_dir, "conda").unwrap();
+    let conda_package = get_conda_package_info(&conda_dir, "conda").unwrap();
     assert_eq!(
         conda_package,
         CondaPackage {
@@ -571,7 +571,7 @@ fn get_conda_package_info() {
             arch: Some(Architecture::X64),
         }
     );
-    let python_package = get_conda_package_json_path(&conda_dir, "python").unwrap();
+    let python_package = get_conda_package_info(&conda_dir, "python").unwrap();
     assert_eq!(
         python_package,
         CondaPackage {
