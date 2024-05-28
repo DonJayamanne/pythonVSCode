@@ -53,6 +53,15 @@ function getSendToNativeREPLSetting(): boolean {
     const configuration = getConfiguration('python', uri);
     return configuration.get<boolean>('REPL.sendToNativeREPL', false);
 }
+
+window.onDidChangeVisibleTextEditors((editors) => {
+    const interactiveWindowIsOpen = editors.some((editor) => editor.document.uri.scheme === 'vscode-interactive-input');
+    if (!interactiveWindowIsOpen) {
+        notebookEditor = undefined;
+        notebookDocument = undefined;
+    }
+});
+
 // Will only be called when user has experiment enabled.
 export async function registerReplCommands(
     disposables: Disposable[],
@@ -82,18 +91,24 @@ export async function registerReplCommands(
                 const activeEditor = window.activeTextEditor as TextEditor;
                 const code = await getSelectedTextToExecute(activeEditor);
 
-                const interactiveWindowObject = (await commands.executeCommand(
-                    'interactive.open',
-                    {
-                        preserveFocus: true,
-                        viewColumn: ViewColumn.Beside,
-                    },
-                    undefined,
-                    notebookController.id,
-                    'Python REPL',
-                )) as { notebookEditor: NotebookEditor };
-                notebookEditor = interactiveWindowObject.notebookEditor;
-                notebookDocument = interactiveWindowObject.notebookEditor.notebook;
+                if (!notebookEditor) {
+                    const interactiveWindowObject = (await commands.executeCommand(
+                        'interactive.open',
+                        {
+                            preserveFocus: true,
+                            viewColumn: ViewColumn.Beside,
+                        },
+                        undefined,
+                        notebookController.id,
+                        'Python REPL',
+                    )) as { notebookEditor: NotebookEditor };
+                    notebookEditor = interactiveWindowObject.notebookEditor;
+                    notebookDocument = interactiveWindowObject.notebookEditor.notebook;
+                }
+                // Handle case where user has closed REPL window, and re-opens.
+                if (notebookEditor && notebookDocument) {
+                    await window.showNotebookDocument(notebookDocument, { viewColumn: ViewColumn.Beside });
+                }
 
                 if (notebookDocument) {
                     notebookController.updateNotebookAffinity(notebookDocument, NotebookControllerAffinity.Default);
