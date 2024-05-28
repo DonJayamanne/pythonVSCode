@@ -48,20 +48,47 @@ impl Environment for EnvironmentApi {
         get_env_var(key)
     }
     fn get_know_global_search_locations(&self) -> Vec<PathBuf> {
+        let mut paths = env::split_paths(&self.get_env_var("PATH".to_string()).unwrap_or_default())
+            .collect::<Vec<PathBuf>>();
+
         vec![
-            PathBuf::from("/usr/bin"),
-            PathBuf::from("/usr/local/bin"),
             PathBuf::from("/bin"),
-            PathBuf::from("/home/bin"),
+            PathBuf::from("/etc"),
+            PathBuf::from("/lib"),
+            PathBuf::from("/lib/x86_64-linux-gnu"),
+            PathBuf::from("/lib64"),
             PathBuf::from("/sbin"),
-            PathBuf::from("/usr/sbin"),
+            PathBuf::from("/snap/bin"),
+            PathBuf::from("/usr/bin"),
+            PathBuf::from("/usr/games"),
+            PathBuf::from("/usr/include"),
+            PathBuf::from("/usr/lib"),
+            PathBuf::from("/usr/lib/x86_64-linux-gnu"),
+            PathBuf::from("/usr/lib64"),
+            PathBuf::from("/usr/libexec"),
+            PathBuf::from("/usr/local"),
+            PathBuf::from("/usr/local/bin"),
+            PathBuf::from("/usr/local/etc"),
+            PathBuf::from("/usr/local/games"),
+            PathBuf::from("/usr/local/lib"),
             PathBuf::from("/usr/local/sbin"),
+            PathBuf::from("/usr/sbin"),
+            PathBuf::from("/usr/share"),
+            PathBuf::from("~/.local/bin"),
+            PathBuf::from("/home/bin"),
             PathBuf::from("/home/sbin"),
             PathBuf::from("/opt"),
             PathBuf::from("/opt/bin"),
             PathBuf::from("/opt/sbin"),
-            PathBuf::from("/opt/homebrew/bin"),
         ]
+        .iter()
+        .for_each(|p| {
+            if !paths.contains(p) {
+                paths.push(p.clone());
+            }
+        });
+
+        paths
     }
 }
 

@@ -3,7 +3,7 @@
 
 use crate::locator::{Locator, LocatorResult};
 use crate::messaging::PythonEnvironment;
-use crate::utils::list_python_environments;
+use crate::utils::{find_python_binary_path, get_version_using_pyvenv_cfg};
 use crate::virtualenv;
 use crate::{known::Environment, utils::PythonEnv};
 use std::fs;
@@ -77,6 +77,27 @@ fn get_project(env: &PythonEnv) -> Option<PathBuf> {
         }
     }
     None
+}
+
+fn list_python_environments(path: &PathBuf) -> Option<Vec<PythonEnv>> {
+    let mut python_envs: Vec<PythonEnv> = vec![];
+    for venv_dir in fs::read_dir(path).ok()? {
+        if let Ok(venv_dir) = venv_dir {
+            let venv_dir = venv_dir.path();
+            if !venv_dir.is_dir() {
+                continue;
+            }
+            if let Some(executable) = find_python_binary_path(&venv_dir) {
+                python_envs.push(PythonEnv::new(
+                    executable.clone(),
+                    Some(venv_dir),
+                    get_version_using_pyvenv_cfg(&executable),
+                ));
+            }
+        }
+    }
+
+    Some(python_envs)
 }
 
 pub struct VirtualEnvWrapper<'a> {

@@ -41,16 +41,6 @@ fn get_home_pyenv_dir(environment: &dyn known::Environment) -> Option<PathBuf> {
 }
 
 fn get_binary_from_known_paths(environment: &dyn known::Environment) -> Option<PathBuf> {
-    for known_path in env::split_paths(
-        &environment
-            .get_env_var("PATH".to_string())
-            .unwrap_or_default(),
-    ) {
-        let bin = PathBuf::from(known_path).join("pyenv");
-        if bin.exists() {
-            return Some(bin);
-        }
-    }
     for known_path in environment.get_know_global_search_locations() {
         let bin = known_path.join("pyenv");
         if bin.exists() {

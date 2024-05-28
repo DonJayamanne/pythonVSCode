@@ -263,6 +263,13 @@ impl MessageDispatcher for JsonRpcDispatcher {
             }
             if !self.reported_environments.contains(&key) {
                 self.reported_environments.insert(key);
+                if let Some(ref symlinks) = env.symlinks {
+                    for symlink in symlinks {
+                        if let Some(key) = symlink.as_os_str().to_str() {
+                            self.reported_environments.insert(key.to_string());
+                        }
+                    }
+                }
 
                 // Get the creation and modified times.
                 let mut env = env.clone();

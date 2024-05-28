@@ -3,7 +3,7 @@
 
 use crate::{
     known,
-    utils::{find_python_binary_path, get_version, PythonEnv},
+    utils::{find_python_binary_path, get_version_using_pyvenv_cfg, PythonEnv},
 };
 use std::{fs, path::PathBuf};
 
@@ -57,7 +57,7 @@ pub fn list_global_virtual_envs(environment: &impl known::Environment) -> Vec<Py
                         python_envs.push(PythonEnv::new(
                             executable.clone(),
                             Some(venv_dir),
-                            get_version(&executable),
+                            get_version_using_pyvenv_cfg(&executable),
                         ));
                     }
                 }

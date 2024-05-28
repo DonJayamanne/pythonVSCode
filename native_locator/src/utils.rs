@@ -89,7 +89,7 @@ pub fn find_and_parse_pyvenv_cfg(python_executable: &PathBuf) -> Option<PyEnvCfg
     None
 }
 
-pub fn get_version(python_executable: &PathBuf) -> Option<String> {
+pub fn get_version_using_pyvenv_cfg(python_executable: &PathBuf) -> Option<String> {
     if let Some(parent_folder) = python_executable.parent() {
         if let Some(pyenv_cfg) = find_and_parse_pyvenv_cfg(&parent_folder.to_path_buf()) {
             return Some(pyenv_cfg.version);
@@ -128,25 +128,44 @@ pub fn find_python_binary_path(env_path: &Path) -> Option<PathBuf> {
     None
 }
 
-pub fn list_python_environments(path: &PathBuf) -> Option<Vec<PythonEnv>> {
-    let mut python_envs: Vec<PythonEnv> = vec![];
-    for venv_dir in fs::read_dir(path).ok()? {
-        if let Ok(venv_dir) = venv_dir {
-            let venv_dir = venv_dir.path();
-            if !venv_dir.is_dir() {
-                continue;
-            }
-            if let Some(executable) = find_python_binary_path(&venv_dir) {
-                python_envs.push(PythonEnv::new(
-                    executable.clone(),
-                    Some(venv_dir),
-                    get_version(&executable),
-                ));
+fn is_python_exe_name(exe: &PathBuf) -> bool {
+    let name = exe
+        .file_name()
+        .unwrap_or_default()
+        .to_str()
+        .unwrap_or_default()
+        .to_lowercase();
+    if !name.starts_with("python") {
+        return false;
+    }
+    // Regex to match pythonX.X.exe
+    #[cfg(windows)]
+    let version_regex = Regex::new(r"python(\d+\.?)*.exe").unwrap();
+    #[cfg(unix)]
+    let version_regex = Regex::new(r"python(\d+\.?)*$").unwrap();
+    version_regex.is_match(&name)
+}
+
+pub fn find_all_python_binaries_in_path(env_path: &Path) -> Vec<PathBuf> {
+    let mut python_executables = vec![];
+    #[cfg(windows)]
+    let bin = "Scripts";
+    #[cfg(unix)]
+    let bin = "bin";
+    let mut env_path = env_path.to_path_buf();
+    if env_path.join(bin).metadata().is_ok() {
+        env_path = env_path.join(bin);
+    }
+    // Enumerate this directory and get all `python` & `pythonX.X` files.
+    if let Ok(entries) = fs::read_dir(env_path) {
+        for entry in entries.filter_map(Result::ok) {
+            let file = entry.path();
+            if is_python_exe_name(&file) && file.is_file() {
+                python_executables.push(file);
             }
         }
     }
-
-    Some(python_envs)
+    python_executables
 }
 
 pub fn get_environment_key(env: &PythonEnvironment) -> Option<String> {
@@ -193,4 +212,25 @@ pub fn get_version_from_header_files(path: &Path) -> Option<String> {
         }
     }
     None
+}
+
+pub fn get_shortest_python_executable(
+    symlinks: &Option<Vec<PathBuf>>,
+    exe: &Option<PathBuf>,
+) -> Option<PathBuf> {
+    // Ensure the executable always points to the shorted path.
+    if let Some(mut symlinks) = symlinks.clone() {
+        if let Some(exe) = exe {
+            symlinks.push(exe.clone());
+        }
+        symlinks.sort_by(|a, b| {
+            a.to_str()
+                .unwrap_or_default()
+                .len()
+                .cmp(&b.to_str().unwrap_or_default().len())
+        });
+        Some(symlinks[0].clone())
+    } else {
+        exe.clone()
+    }
 }
