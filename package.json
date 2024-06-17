@@ -3474,7 +3474,7 @@
     "dependencies": {
         "@jupyter-widgets/schema": "^0.4.0",
         "@jupyterlab/coreutils": "^3.1.0",
-        "@jupyterlab/services": "^4.2.0",
+        "@jupyterlab/services": "^7.0.0",
         "@loadable/component": "^5.12.0",
         "@nteract/messaging": "^7.0.0",
         "@types/tcp-port-used": "^1.0.0",
@@ -3537,7 +3537,7 @@
         "vsls": "^0.3.1291",
         "winreg": "^1.2.4",
         "winston": "^3.2.1",
-        "ws": "^6.0.0",
+        "ws": "^8.17.1",
         "xml2js": "^0.4.19",
         "zeromq": "^6.0.0-beta.6"
     },
