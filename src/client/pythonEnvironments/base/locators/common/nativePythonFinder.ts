@@ -289,34 +289,35 @@ class NativeGlobalPythonFinderImpl extends DisposableBase implements NativeGloba
         );
         pythonPathSettings.push(getPythonSettingAndUntildify<string>(DEFAULT_INTERPRETER_PATH_SETTING_KEY));
         // We can have multiple workspaces, each with its own setting.
-        const pythonSettings = Array.from(new Set(pythonPathSettings
-            .filter((item) => !!item)
-            // We only want the parent directories.
-            .map((p) => path.dirname(p!))
-            /// If setting value is 'python', then `path.dirname('python')` will yield `.`
-            .filter(item => item !== '.')));
+        const pythonSettings = Array.from(
+            new Set(
+                pythonPathSettings
+                    .filter((item) => !!item)
+                    // We only want the parent directories.
+                    .map((p) => path.dirname(p!))
+                    /// If setting value is 'python', then `path.dirname('python')` will yield `.`
+                    .filter((item) => item !== '.'),
+            ),
+        );
 
-        return this.connection
-            .sendRequest<{ duration: number }>(
-                'refresh',
-                // Send configuration information to the Python finder.
-                // We need a cleaner configuration object.
-                {
-                    // This has a special meaning in locator, its lot a low priority
-                    // as we treat this as workspace folders that can contain a large number of files.
-                    search_paths: (workspace.workspaceFolders || []).map((w) => w.uri.fsPath),
-                    // Also send the python paths that are configured in the settings.
-                    python_interpreter_paths: pythonSettings,
-                    // We do not want to mix this with `search_paths`
-                    virtual_env_paths: getCustomVirtualEnvDirs(),
-                    conda_executable: getPythonSettingAndUntildify<string>(CONDAPATH_SETTING_KEY),
-                    poetry_executable: getPythonSettingAndUntildify<string>('poetryPath'),
-                    pipenv_executable: getPythonSettingAndUntildify<string>('pipenvPath'),
-                },
-            );
+        return this.connection.sendRequest<{ duration: number }>(
+            'refresh',
+            // Send configuration information to the Python finder.
+            {
+                // This has a special meaning in locator, its lot a low priority
+                // as we treat this as workspace folders that can contain a large number of files.
+                search_paths: (workspace.workspaceFolders || []).map((w) => w.uri.fsPath),
+                // Also send the python paths that are configured in the settings.
+                python_interpreter_paths: pythonSettings,
+                // We do not want to mix this with `search_paths`
+                virtual_env_paths: getCustomVirtualEnvDirs(),
+                conda_executable: getPythonSettingAndUntildify<string>(CONDAPATH_SETTING_KEY),
+                poetry_executable: getPythonSettingAndUntildify<string>('poetryPath'),
+                pipenv_executable: getPythonSettingAndUntildify<string>('pipenvPath'),
+            },
+        );
     }
 }
-
 
 /**
  * Gets all custom virtual environment locations to look for environments.
@@ -337,8 +338,8 @@ async function getCustomVirtualEnvDirs(): Promise<string[]> {
 
 function getPythonSettingAndUntildify<T>(name: string, scope?: Uri): T | undefined {
     const value = getConfiguration('python', scope).get<T>(name);
-    if (typeof value === 'string'){
-        return value ? untildify(value as string) as unknown as T : undefined;
+    if (typeof value === 'string') {
+        return value ? ((untildify(value as string) as unknown) as T) : undefined;
     }
     return value;
 }
