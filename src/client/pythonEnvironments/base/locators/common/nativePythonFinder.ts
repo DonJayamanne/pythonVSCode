@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { Disposable, EventEmitter, Event, workspace, type Uri } from 'vscode';
+import { Disposable, EventEmitter, Event, workspace, Uri } from 'vscode';
 import * as ch from 'child_process';
 import * as path from 'path';
 import * as rpc from 'vscode-jsonrpc/node';
@@ -154,7 +154,7 @@ class NativeGlobalPythonFinderImpl extends DisposableBase implements NativeGloba
     private start(): rpc.MessageConnection {
         const proc = ch.spawn(NATIVE_LOCATOR, ['server'], { env: process.env });
         const disposables: Disposable[] = [];
-        // jsonrpc package cannot handle messages coming through too quicly.
+        // jsonrpc package cannot handle messages coming through too quickly.
         // Lets handle the messages and close the stream only when
         // we have got the exit event.
         const readable = new PassThrough();
