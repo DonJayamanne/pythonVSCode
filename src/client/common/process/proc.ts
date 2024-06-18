@@ -7,6 +7,7 @@ import { IDisposable } from '../types';
 import { EnvironmentVariables } from '../variables/types';
 import { execObservable, killPid, plainExec, shellExec } from './rawProcessApis';
 import { ExecutionResult, IProcessService, ObservableExecutionResult, ShellOptions, SpawnOptions } from './types';
+import { workerPlainExec, workerShellExec } from './worker/rawProcessApiWrapper';
 
 export class ProcessService extends EventEmitter implements IProcessService {
     private processesToKill = new Set<IDisposable>();
@@ -40,21 +41,30 @@ export class ProcessService extends EventEmitter implements IProcessService {
     }
 
     public execObservable(file: string, args: string[], options: SpawnOptions = {}): ObservableExecutionResult<string> {
-        const result = execObservable(file, args, options, this.env, this.processesToKill);
+        const execOptions = { ...options, doNotLog: true };
+        const result = execObservable(file, args, execOptions, this.env, this.processesToKill);
         this.emit('exec', file, args, options);
         return result;
     }
 
     public exec(file: string, args: string[], options: SpawnOptions = {}): Promise<ExecutionResult<string>> {
-        const promise = plainExec(file, args, options, this.env, this.processesToKill);
         this.emit('exec', file, args, options);
+        if (options.useWorker) {
+            return workerPlainExec(file, args, options);
+        }
+        const execOptions = { ...options, doNotLog: true };
+        const promise = plainExec(file, args, execOptions, this.env, this.processesToKill);
         return promise;
     }
 
     public shellExec(command: string, options: ShellOptions = {}): Promise<ExecutionResult<string>> {
         this.emit('exec', command, undefined, options);
+        if (options.useWorker) {
+            return workerShellExec(command, options);
+        }
         const disposables = new Set<IDisposable>();
-        return shellExec(command, options, this.env, disposables).finally(() => {
+        const shellOptions = { ...options, doNotLog: true };
+        return shellExec(command, shellOptions, this.env, disposables).finally(() => {
             // Ensure the process we started is cleaned up.
             disposables.forEach((p) => {
                 try {

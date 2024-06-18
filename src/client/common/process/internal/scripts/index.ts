@@ -7,7 +7,7 @@ import { _SCRIPTS_DIR } from './constants';
 const SCRIPTS_DIR = _SCRIPTS_DIR;
 
 // "scripts" contains everything relevant to the scripts found under
-// the top-level "pythonFiles" directory.  Each of those scripts has
+// the top-level "python_files" directory.  Each of those scripts has
 // a function in this module which matches the script's filename.
 // Each function provides the commandline arguments that should be
 // used when invoking a Python executable, whether through spawn/exec
@@ -18,16 +18,13 @@ const SCRIPTS_DIR = _SCRIPTS_DIR;
 // into the corresponding object or objects.  "parse()" takes a single
 // string as the stdout text and returns the relevant data.
 //
-// Some of the scripts are located in subdirectories of "pythonFiles".
+// Some of the scripts are located in subdirectories of "python_files".
 // For each of those subdirectories there is a sub-module where
 // those scripts' functions may be found.
 //
 // In some cases one or more types related to a script are exported
 // from the same module in which the script's function is located.
 // These types typically relate to the return type of "parse()".
-//
-// ignored scripts:
-//  * install_debugpy.py  (used only for extension development)
 export * as testingTools from './testing_tools';
 
 // interpreterInfo.py
@@ -110,6 +107,13 @@ export function testlauncher(testArgs: string[]): string[] {
     return [script, ...testArgs];
 }
 
+// run_pytest_script.py
+export function pytestlauncher(testArgs: string[]): string[] {
+    const script = path.join(SCRIPTS_DIR, 'vscode_pytest', 'run_pytest_script.py');
+    // There is no output to parse, so we do not return a function.
+    return [script, ...testArgs];
+}
+
 // visualstudio_py_testlauncher.py
 
 // eslint-disable-next-line camelcase
@@ -147,5 +151,10 @@ export function createVenvScript(): string {
 
 export function createCondaScript(): string {
     const script = path.join(SCRIPTS_DIR, 'create_conda.py');
+    return script;
+}
+
+export function installedCheckScript(): string {
+    const script = path.join(SCRIPTS_DIR, 'installed_check.py');
     return script;
 }

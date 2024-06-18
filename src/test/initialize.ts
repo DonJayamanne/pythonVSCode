@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
-import type { IExtensionApi } from '../client/apiTypes';
+import type { PythonExtension } from '../client/api/types';
 import {
     clearPythonPathInWorkspaceFolder,
     IExtensionTestApi,
@@ -14,7 +14,7 @@ import { sleep } from './core';
 export * from './constants';
 export * from './ciConstants';
 
-const dummyPythonFile = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'dummy.py');
+const dummyPythonFile = path.join(__dirname, '..', '..', 'src', 'test', 'python_files', 'dummy.py');
 export const multirootPath = path.join(__dirname, '..', '..', 'src', 'testMultiRootWkspc');
 const workspace3Uri = vscode.Uri.file(path.join(multirootPath, 'workspace3'));
 
@@ -31,6 +31,10 @@ export async function initializePython() {
 
 export async function initialize(): Promise<IExtensionTestApi> {
     await initializePython();
+
+    const pythonConfig = vscode.workspace.getConfiguration('python');
+    await pythonConfig.update('experiments.optInto', ['All'], vscode.ConfigurationTarget.Global);
+    await pythonConfig.update('experiments.optOutFrom', [], vscode.ConfigurationTarget.Global);
     const api = await activateExtension();
     if (!IS_SMOKE_TEST) {
         // When running smoke tests, we won't have access to these.
@@ -42,7 +46,7 @@ export async function initialize(): Promise<IExtensionTestApi> {
     return (api as any) as IExtensionTestApi;
 }
 export async function activateExtension() {
-    const extension = vscode.extensions.getExtension<IExtensionApi>(PVSC_EXTENSION_ID_FOR_TESTS)!;
+    const extension = vscode.extensions.getExtension<PythonExtension>(PVSC_EXTENSION_ID_FOR_TESTS)!;
     const api = await extension.activate();
     // Wait until its ready to use.
     await api.ready;

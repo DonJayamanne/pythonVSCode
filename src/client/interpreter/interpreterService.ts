@@ -31,14 +31,18 @@ import {
     PythonEnvironmentsChangedEvent,
 } from './contracts';
 import { traceError, traceLog } from '../logging';
-import { Commands, PYTHON_LANGUAGE } from '../common/constants';
+import { Commands, PVSC_EXTENSION_ID, PYTHON_LANGUAGE } from '../common/constants';
 import { reportActiveInterpreterChanged } from '../environmentApi';
 import { IPythonExecutionFactory } from '../common/process/types';
 import { Interpreters } from '../common/utils/localize';
 import { sendTelemetryEvent } from '../telemetry';
 import { EventName } from '../telemetry/constants';
 import { cache } from '../common/utils/decorators';
-import { PythonLocatorQuery, TriggerRefreshOptions } from '../pythonEnvironments/base/locator';
+import {
+    GetRefreshEnvironmentsOptions,
+    PythonLocatorQuery,
+    TriggerRefreshOptions,
+} from '../pythonEnvironments/base/locator';
 import { sleep } from '../common/utils/async';
 
 type StoredPythonEnvironment = PythonEnvironment & { store?: boolean };
@@ -57,6 +61,10 @@ export class InterpreterService implements Disposable, IInterpreterService {
 
     public get refreshPromise(): Promise<void> | undefined {
         return this.pyenvs.getRefreshPromise();
+    }
+
+    public getRefreshPromise(options?: GetRefreshEnvironmentsOptions): Promise<void> | undefined {
+        return this.pyenvs.getRefreshPromise(options);
     }
 
     public get onDidChangeInterpreter(): Event<Uri | undefined> {
@@ -85,6 +93,11 @@ export class InterpreterService implements Disposable, IInterpreterService {
 
     private readonly didChangeInterpreterInformation = new EventEmitter<PythonEnvironment>();
 
+    private readonly activeInterpreterPaths = new Map<
+        string,
+        { path: string; workspaceFolder: WorkspaceFolder | undefined }
+    >();
+
     constructor(
         @inject(IServiceContainer) private serviceContainer: IServiceContainer,
         @inject(IComponentAdapter) private readonly pyenvs: IComponentAdapter,
@@ -100,10 +113,12 @@ export class InterpreterService implements Disposable, IInterpreterService {
         const workspaceFolder = this.serviceContainer
             .get<IWorkspaceService>(IWorkspaceService)
             .getWorkspaceFolder(resource);
-        this.ensureEnvironmentContainsPython(
-            this.configService.getSettings(resource).pythonPath,
-            workspaceFolder,
-        ).ignoreErrors();
+        const path = this.configService.getSettings(resource).pythonPath;
+        const workspaceKey = this.serviceContainer
+            .get<IWorkspaceService>(IWorkspaceService)
+            .getWorkspaceFolderIdentifier(resource);
+        this.activeInterpreterPaths.set(workspaceKey, { path, workspaceFolder });
+        this.ensureEnvironmentContainsPython(path, workspaceFolder).ignoreErrors();
     }
 
     public initialize(): void {
@@ -138,7 +153,12 @@ export class InterpreterService implements Disposable, IInterpreterService {
                     return false;
                 }
                 const document = this.docManager.activeTextEditor?.document;
-                if (document?.fileName.endsWith('settings.json')) {
+                // Output channel for MS Python related extensions. These contain "ms-python" in their ID.
+                const pythonOutputChannelPattern = PVSC_EXTENSION_ID.split('.')[0];
+                if (
+                    document?.fileName.endsWith('settings.json') ||
+                    document?.fileName.includes(pythonOutputChannelPattern)
+                ) {
                     return false;
                 }
                 return document?.languageId !== PYTHON_LANGUAGE;
@@ -150,6 +170,16 @@ export class InterpreterService implements Disposable, IInterpreterService {
                 const interpreter = e.old ?? e.new;
                 if (interpreter) {
                     this.didChangeInterpreterInformation.fire(interpreter);
+                    for (const { path, workspaceFolder } of this.activeInterpreterPaths.values()) {
+                        if (path === interpreter.path && !e.new) {
+                            // If the active environment got deleted, notify it.
+                            this.didChangeInterpreterEmitter.fire(workspaceFolder?.uri);
+                            reportActiveInterpreterChanged({
+                                path,
+                                resource: workspaceFolder,
+                            });
+                        }
+                    }
                 }
             }),
         );
@@ -241,6 +271,10 @@ export class InterpreterService implements Disposable, IInterpreterService {
                 path: pySettings.pythonPath,
                 resource: workspaceFolder,
             });
+            const workspaceKey = this.serviceContainer
+                .get<IWorkspaceService>(IWorkspaceService)
+                .getWorkspaceFolderIdentifier(resource);
+            this.activeInterpreterPaths.set(workspaceKey, { path: pySettings.pythonPath, workspaceFolder });
             const interpreterDisplay = this.serviceContainer.get<IInterpreterDisplay>(IInterpreterDisplay);
             interpreterDisplay.refresh().catch((ex) => traceError('Python Extension: display.refresh', ex));
             await this.ensureEnvironmentContainsPython(this._pythonPathSetting, workspaceFolder);

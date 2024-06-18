@@ -50,7 +50,7 @@ import { BaseInterpreterSelectorCommand } from './base';
 const untildify = require('untildify');
 
 export type InterpreterStateArgs = { path?: string; workspace: Resource };
-type QuickPickType = IInterpreterQuickPickItem | ISpecialQuickPickItem | QuickPickItem;
+export type QuickPickType = IInterpreterQuickPickItem | ISpecialQuickPickItem | QuickPickItem;
 
 function isInterpreterQuickPickItem(item: QuickPickType): item is IInterpreterQuickPickItem {
     return 'interpreter' in item;
@@ -74,6 +74,7 @@ export namespace EnvGroups {
     export const Pyenv = 'Pyenv';
     export const Venv = 'Venv';
     export const Poetry = 'Poetry';
+    export const Hatch = 'Hatch';
     export const VirtualEnvWrapper = 'VirtualEnvWrapper';
     export const ActiveState = 'ActiveState';
     export const Recommended = Common.recommended;
@@ -81,8 +82,13 @@ export namespace EnvGroups {
 
 @injectable()
 export class SetInterpreterCommand extends BaseInterpreterSelectorCommand implements IInterpreterQuickPick {
+    private readonly createEnvironmentSuggestion: QuickPickItem = {
+        label: `${Octicons.Add} ${InterpreterQuickPickList.create.label}`,
+        alwaysShow: true,
+    };
+
     private readonly manualEntrySuggestion: ISpecialQuickPickItem = {
-        label: `${Octicons.Add} ${InterpreterQuickPickList.enterPath.label}`,
+        label: `${Octicons.Folder} ${InterpreterQuickPickList.enterPath.label}`,
         alwaysShow: true,
     };
 
@@ -177,7 +183,7 @@ export class SetInterpreterCommand extends BaseInterpreterSelectorCommand implem
             items: suggestions,
             sortByLabel: !preserveOrderWhenFiltering,
             keepScrollPosition: true,
-            activeItem: this.getActiveItem(state.workspace, suggestions), // Use a promise here to ensure quickpick is initialized synchronously.
+            activeItem: (quickPick) => this.getActiveItem(state.workspace, quickPick), // Use a promise here to ensure quickpick is initialized synchronously.
             matchOnDetail: true,
             matchOnDescription: true,
             title,
@@ -220,6 +226,13 @@ export class SetInterpreterCommand extends BaseInterpreterSelectorCommand implem
         } else if (selection.label === this.manualEntrySuggestion.label) {
             sendTelemetryEvent(EventName.SELECT_INTERPRETER_ENTER_OR_FIND);
             return this._enterOrBrowseInterpreterPath.bind(this);
+        } else if (selection.label === this.createEnvironmentSuggestion.label) {
+            this.commandManager
+                .executeCommand(Commands.Create_Environment, {
+                    showBackButton: false,
+                    selectEnvironment: true,
+                })
+                .then(noop, noop);
         } else if (selection.label === this.noPythonInstalled.label) {
             this.commandManager.executeCommand(Commands.InstallPython).then(noop, noop);
             this.wasNoPythonInstalledItemClicked = true;
@@ -237,7 +250,13 @@ export class SetInterpreterCommand extends BaseInterpreterSelectorCommand implem
         filter: ((i: PythonEnvironment) => boolean) | undefined,
         params?: InterpreterQuickPickParams,
     ): QuickPickType[] {
-        const suggestions: QuickPickType[] = [this.manualEntrySuggestion];
+        const suggestions: QuickPickType[] = [];
+        if (params?.showCreateEnvironment) {
+            suggestions.push(this.createEnvironmentSuggestion, { label: '', kind: QuickPickItemKind.Separator });
+        }
+
+        suggestions.push(this.manualEntrySuggestion, { label: '', kind: QuickPickItemKind.Separator });
+
         const defaultInterpreterPathSuggestion = this.getDefaultInterpreterPathSuggestion(resource);
         if (defaultInterpreterPathSuggestion) {
             suggestions.push(defaultInterpreterPathSuggestion);
@@ -277,8 +296,9 @@ export class SetInterpreterCommand extends BaseInterpreterSelectorCommand implem
         return getGroupedQuickPickItems(items, recommended, workspaceFolder?.uri.fsPath);
     }
 
-    private async getActiveItem(resource: Resource, suggestions: QuickPickType[]) {
+    private async getActiveItem(resource: Resource, quickPick: QuickPick<QuickPickType>) {
         const interpreter = await this.interpreterService.getActiveInterpreter(resource);
+        const suggestions = quickPick.items;
         const activeInterpreterItem = suggestions.find(
             (i) => isInterpreterQuickPickItem(i) && i.interpreter.id === interpreter?.id,
         );
@@ -339,7 +359,9 @@ export class SetInterpreterCommand extends BaseInterpreterSelectorCommand implem
                   return false;
               })
             : undefined;
-        quickPick.activeItems = activeItem ? [activeItem] : [];
+        if (activeItem) {
+            quickPick.activeItems = [activeItem];
+        }
     }
 
     /**
@@ -415,6 +437,7 @@ export class SetInterpreterCommand extends BaseInterpreterSelectorCommand implem
                     if (isInterpreterQuickPickItem(item) && isProblematicCondaEnvironment(item.interpreter)) {
                         if (!items[i].label.includes(Octicons.Warning)) {
                             items[i].label = `${Octicons.Warning} ${items[i].label}`;
+                            items[i].tooltip = InterpreterQuickPickList.condaEnvWithoutPythonTooltip;
                         }
                     }
                 });
@@ -446,7 +469,6 @@ export class SetInterpreterCommand extends BaseInterpreterSelectorCommand implem
         }
         const areItemsGrouped = items.find((item) => isSeparatorItem(item) && item.label === EnvGroups.Recommended);
         const recommended = cloneDeep(suggestion);
-        recommended.label = `${Octicons.Star} ${recommended.label}`;
         recommended.description = areItemsGrouped
             ? // No need to add a tag as "Recommended" group already exists.
               recommended.description
@@ -549,7 +571,10 @@ export class SetInterpreterCommand extends BaseInterpreterSelectorCommand implem
         const wkspace = targetConfig[0].folderUri;
         const interpreterState: InterpreterStateArgs = { path: undefined, workspace: wkspace };
         const multiStep = this.multiStepFactory.create<InterpreterStateArgs>();
-        await multiStep.run((input, s) => this._pickInterpreter(input, s, undefined), interpreterState);
+        await multiStep.run(
+            (input, s) => this._pickInterpreter(input, s, undefined, { showCreateEnvironment: true }),
+            interpreterState,
+        );
 
         if (interpreterState.path !== undefined) {
             // User may choose to have an empty string stored, so variable `interpreterState.path` may be

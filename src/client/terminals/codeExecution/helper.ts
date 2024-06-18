@@ -5,7 +5,13 @@ import '../../common/extensions';
 import { inject, injectable } from 'inversify';
 import { l10n, Position, Range, TextEditor, Uri } from 'vscode';
 
-import { IApplicationShell, IDocumentManager } from '../../common/application/types';
+import {
+    IActiveResourceService,
+    IApplicationShell,
+    ICommandManager,
+    IDocumentManager,
+    IWorkspaceService,
+} from '../../common/application/types';
 import { PYTHON_LANGUAGE } from '../../common/constants';
 import * as internalScripts from '../../common/process/internal/scripts';
 import { IProcessServiceFactory } from '../../common/process/types';
@@ -14,6 +20,9 @@ import { IInterpreterService } from '../../interpreter/contracts';
 import { IServiceContainer } from '../../ioc/types';
 import { ICodeExecutionHelper } from '../types';
 import { traceError } from '../../logging';
+import { IConfigurationService, Resource } from '../../common/types';
+import { sendTelemetryEvent } from '../../telemetry';
+import { EventName } from '../../telemetry/constants';
 
 @injectable()
 export class CodeExecutionHelper implements ICodeExecutionHelper {
@@ -25,14 +34,25 @@ export class CodeExecutionHelper implements ICodeExecutionHelper {
 
     private readonly interpreterService: IInterpreterService;
 
-    constructor(@inject(IServiceContainer) serviceContainer: IServiceContainer) {
+    private readonly commandManager: ICommandManager;
+
+    private activeResourceService: IActiveResourceService;
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error TS6133: 'configSettings' is declared but its value is never read.
+    private readonly configSettings: IConfigurationService;
+
+    constructor(@inject(IServiceContainer) private readonly serviceContainer: IServiceContainer) {
         this.documentManager = serviceContainer.get<IDocumentManager>(IDocumentManager);
         this.applicationShell = serviceContainer.get<IApplicationShell>(IApplicationShell);
         this.processServiceFactory = serviceContainer.get<IProcessServiceFactory>(IProcessServiceFactory);
         this.interpreterService = serviceContainer.get<IInterpreterService>(IInterpreterService);
+        this.configSettings = serviceContainer.get<IConfigurationService>(IConfigurationService);
+        this.commandManager = serviceContainer.get<ICommandManager>(ICommandManager);
+        this.activeResourceService = this.serviceContainer.get<IActiveResourceService>(IActiveResourceService);
     }
 
-    public async normalizeLines(code: string, resource?: Uri): Promise<string> {
+    public async normalizeLines(code: string, wholeFileContent?: string, resource?: Uri): Promise<string> {
         try {
             if (code.trim().length === 0) {
                 return '';
@@ -41,6 +61,7 @@ export class CodeExecutionHelper implements ICodeExecutionHelper {
             // So just remove cr from the input.
             code = code.replace(new RegExp('\\r', 'g'), '');
 
+            const activeEditor = this.documentManager.activeTextEditor;
             const interpreter = await this.interpreterService.getActiveInterpreter(resource);
             const processService = await this.processServiceFactory.create(resource);
 
@@ -62,10 +83,30 @@ export class CodeExecutionHelper implements ICodeExecutionHelper {
                     normalizeOutput.resolve(normalized);
                 },
             });
-
+            // If there is no explicit selection, we are exeucting 'line' or 'block'.
+            if (activeEditor?.selection?.isEmpty) {
+                sendTelemetryEvent(EventName.EXECUTION_CODE, undefined, { scope: 'line' });
+            }
             // The normalization script expects a serialized JSON object, with the selection under the "code" key.
             // We're using a JSON object so that we don't have to worry about encoding, or escaping non-ASCII characters.
-            const input = JSON.stringify({ code });
+            const startLineVal = activeEditor?.selection?.start.line ?? 0;
+            const endLineVal = activeEditor?.selection?.end.line ?? 0;
+            const emptyHighlightVal = activeEditor?.selection?.isEmpty ?? true;
+            let smartSendSettingsEnabledVal = true;
+            const configuration = this.serviceContainer.get<IConfigurationService>(IConfigurationService);
+            if (configuration) {
+                const pythonSettings = configuration.getSettings(this.activeResourceService.getActiveResource());
+                smartSendSettingsEnabledVal = pythonSettings.REPL.enableREPLSmartSend;
+            }
+
+            const input = JSON.stringify({
+                code,
+                wholeFileContent,
+                startLine: startLineVal,
+                endLine: endLineVal,
+                emptyHighlight: emptyHighlightVal,
+                smartSendSettingsEnabled: smartSendSettingsEnabledVal,
+            });
             observable.proc?.stdin?.write(input);
             observable.proc?.stdin?.end();
 
@@ -73,11 +114,39 @@ export class CodeExecutionHelper implements ICodeExecutionHelper {
             const result = await normalizeOutput.promise;
             const object = JSON.parse(result);
 
+            if (activeEditor?.selection && smartSendSettingsEnabledVal && object.normalized !== 'deprecated') {
+                const lineOffset = object.nextBlockLineno - activeEditor!.selection.start.line - 1;
+                await this.moveToNextBlock(lineOffset, activeEditor);
+            }
+
             return parse(object.normalized);
         } catch (ex) {
             traceError(ex, 'Python: Failed to normalize code for execution in terminal');
             return code;
         }
+    }
+
+    /**
+     * Depending on whether or not user is in experiment for smart send,
+     * dynamically move the cursor to the next block of code.
+     * The cursor movement is not moved by one everytime,
+     * since with the smart selection, the next executable code block
+     * can be multiple lines away.
+     * Intended to provide smooth shift+enter user experience
+     * bringing user's cursor to the next executable block of code when used with smart selection.
+     */
+    // eslint-disable-next-line class-methods-use-this
+    private async moveToNextBlock(lineOffset: number, activeEditor?: TextEditor): Promise<void> {
+        if (activeEditor?.selection?.isEmpty) {
+            await this.commandManager.executeCommand('cursorMove', {
+                to: 'down',
+                by: 'line',
+                value: Number(lineOffset),
+            });
+            await this.commandManager.executeCommand('cursorEnd');
+        }
+
+        return Promise.resolve();
     }
 
     public async getFileToExecute(): Promise<Uri | undefined> {
@@ -91,7 +160,7 @@ export class CodeExecutionHelper implements ICodeExecutionHelper {
             return undefined;
         }
         if (activeEditor.document.languageId !== PYTHON_LANGUAGE) {
-            this.applicationShell.showErrorMessage(l10n.t('The active file is not a Python source file)'));
+            this.applicationShell.showErrorMessage(l10n.t('The active file is not a Python source file'));
             return undefined;
         }
         if (activeEditor.document.isDirty) {
@@ -109,6 +178,7 @@ export class CodeExecutionHelper implements ICodeExecutionHelper {
 
         const { selection } = textEditor;
         let code: string;
+
         if (selection.isEmpty) {
             code = textEditor.document.lineAt(selection.start.line).text;
         } else if (selection.isSingleLine) {
@@ -116,18 +186,21 @@ export class CodeExecutionHelper implements ICodeExecutionHelper {
         } else {
             code = getMultiLineSelectionText(textEditor);
         }
+
         return code;
     }
 
-    public async saveFileIfDirty(file: Uri): Promise<void> {
+    public async saveFileIfDirty(file: Uri): Promise<Resource> {
         const docs = this.documentManager.textDocuments.filter((d) => d.uri.path === file.path);
-        if (docs.length === 1 && docs[0].isDirty) {
-            await docs[0].save();
+        if (docs.length === 1 && (docs[0].isDirty || docs[0].isUntitled)) {
+            const workspaceService = this.serviceContainer.get<IWorkspaceService>(IWorkspaceService);
+            return workspaceService.save(docs[0].uri);
         }
+        return undefined;
     }
 }
 
-function getSingleLineSelectionText(textEditor: TextEditor): string {
+export function getSingleLineSelectionText(textEditor: TextEditor): string {
     const { selection } = textEditor;
     const selectionRange = new Range(selection.start, selection.end);
     const selectionText = textEditor.document.getText(selectionRange);
@@ -154,7 +227,7 @@ function getSingleLineSelectionText(textEditor: TextEditor): string {
     return selectionText;
 }
 
-function getMultiLineSelectionText(textEditor: TextEditor): string {
+export function getMultiLineSelectionText(textEditor: TextEditor): string {
     const { selection } = textEditor;
     const selectionRange = new Range(selection.start, selection.end);
     const selectionText = textEditor.document.getText(selectionRange);

@@ -1,8 +1,8 @@
 {
     "name": "python",
     "displayName": "Python",
-    "description": "IntelliSense (Pylance), Linting, Debugging (multi-threaded, remote), Jupyter Notebooks, code formatting, refactoring, unit tests, and more.",
-    "version": "2023.5.0-dev",
+    "description": "Python language support with extension access points for IntelliSense (Pylance), Debugging (Python Debugger), linting, formatting, refactoring, unit tests, and more.",
+    "version": "2024.9.0-dev",
     "featureFlags": {
         "usingNewInterpreterStorage": true
     },
@@ -20,8 +20,12 @@
     "enabledApiProposals": [
         "contribEditorContentMenu",
         "quickPickSortByLabel",
-        "envShellEvent",
-        "testObserver"
+        "testObserver",
+        "quickPickItemTooltip",
+        "terminalDataWriteEvent",
+        "terminalExecuteCommandEvent",
+        "contribIssueReporter",
+        "terminalShellIntegration"
     ],
     "author": {
         "name": "Microsoft Corporation"
@@ -42,8 +46,9 @@
         "theme": "dark"
     },
     "engines": {
-        "vscode": "^1.77.0-20230309"
+        "vscode": "^1.89.0-20240415"
     },
+    "enableTelemetry": false,
     "keywords": [
         "python",
         "django",
@@ -53,21 +58,14 @@
     "categories": [
         "Programming Languages",
         "Debuggers",
-        "Linters",
-        "Formatters",
         "Other",
         "Data Science",
-        "Machine Learning",
-        "Notebooks"
+        "Machine Learning"
     ],
     "activationEvents": [
         "onDebugInitialConfigurations",
         "onLanguage:python",
-        "onDebugDynamicConfigurations:python",
         "onDebugResolve:python",
-        "onWalkthrough:pythonWelcome",
-        "onWalkthrough:pythonWelcomeWithDS",
-        "onWalkthrough:pythonDataScienceWelcome",
         "workspaceContains:mspythonconfig.json",
         "workspaceContains:pyproject.toml",
         "workspaceContains:Pipfile",
@@ -83,24 +81,33 @@
         "walkthroughs": [
             {
                 "id": "pythonWelcome",
-                "title": "Get Started with Python Development",
-                "description": "Your first steps to set up a Python project with all the powerful tools and features that the Python extension has to offer!",
+                "title": "%walkthrough.pythonWelcome.title%",
+                "description": "%walkthrough.pythonWelcome.description%",
                 "when": "workspacePlatform != webworker",
                 "steps": [
-                    {
-                        "id": "python.createPythonFile",
-                        "title": "Create a Python file",
-                        "description": "[Open](command:toSide:workbench.action.files.openFile) or [create](command:toSide:workbench.action.files.newUntitledFile?%7B%22languageId%22%3A%22python%22%7D) a Python file - make sure to save it as \".py\".\n[Create Python File](command:toSide:workbench.action.files.newUntitledFile?%7B%22languageId%22%3A%22python%22%7D)",
+                   {
+                        "id": "python.createPythonFolder",
+                        "title": "%walkthrough.step.python.createPythonFolder.title%",
+                        "description": "%walkthrough.step.python.createPythonFolder.description%",
                         "media": {
                             "svg": "resources/walkthrough/open-folder.svg",
-                            "altText": "Open a Python file or a folder with a Python project."
+                            "altText": "%walkthrough.step.python.createPythonFile.altText%"
                         },
-                        "when": ""
+                        "when": "workspaceFolderCount = 0"
+                    },
+                    {
+                        "id": "python.createPythonFile",
+                        "title": "%walkthrough.step.python.createPythonFile.title%",
+                        "description": "%walkthrough.step.python.createPythonFile.description%",
+                        "media": {
+                            "svg": "resources/walkthrough/open-folder.svg",
+                            "altText": "%walkthrough.step.python.createPythonFile.altText%"
+                        }
                     },
                     {
                         "id": "python.installPythonWin8",
-                        "title": "Install Python",
-                        "description": "The Python Extension requires Python to be installed. Install Python [from python.org](https://www.python.org/downloads).\n\n[Install Python](https://www.python.org/downloads)\n",
+                        "title": "%walkthrough.step.python.installPythonWin8.title%",
+                        "description": "%walkthrough.step.python.installPythonWin8.description%",
                         "media": {
                             "markdown": "resources/walkthrough/install-python-windows-8.md"
                         },
@@ -108,8 +115,8 @@
                     },
                     {
                         "id": "python.installPythonMac",
-                        "title": "Install Python",
-                        "description": "The Python Extension requires Python to be installed. Install Python 3 through the terminal.\n[Install Python via Brew](command:python.installPythonOnMac)\n",
+                        "title": "%walkthrough.step.python.installPythonMac.title%",
+                        "description": "%walkthrough.step.python.installPythonMac.description%",
                         "media": {
                             "markdown": "resources/walkthrough/install-python-macos.md"
                         },
@@ -118,8 +125,8 @@
                     },
                     {
                         "id": "python.installPythonLinux",
-                        "title": "Install Python",
-                        "description": "The Python Extension requires Python to be installed. Install Python 3 through the terminal.\n[Install Python via terminal](command:python.installPythonOnLinux)\n",
+                        "title": "%walkthrough.step.python.installPythonLinux.title%",
+                        "description": "%walkthrough.step.python.installPythonLinux.description%",
                         "media": {
                             "markdown": "resources/walkthrough/install-python-linux.md"
                         },
@@ -127,69 +134,56 @@
                         "command": "workbench.action.terminal.new"
                     },
                     {
-                        "id": "python.selectInterpreter",
-                        "title": "Select a Python Interpreter",
-                        "description": "Choose which Python interpreter/environment you want to use for your Python project.\n[Select Python Interpreter](command:python.setInterpreter)\n**Tip**: Run the ``Python: Select Interpreter`` command in the [Command Palette](command:workbench.action.showCommands).",
-                        "media": {
-                            "svg": "resources/walkthrough/python-interpreter.svg",
-                            "altText": "Selecting a python interpreter from the status bar"
-                        },
-                        "when": "workspaceFolderCount == 0"
-                    },
-                    {
                         "id": "python.createEnvironment",
-                        "title": "Create a Python Environment ",
-                        "description": "Create an environment for your Python project.\n[Create Environment](command:python.createEnvironment)\n**Tip**: Run the ``Python: Create Environment`` command in the [Command Palette](command:workbench.action.showCommands).\n 🔍 Check out our [docs](https://aka.ms/pythonenvs) to learn more.",
+                        "title": "%walkthrough.step.python.createEnvironment.title%",
+                        "description": "%walkthrough.step.python.createEnvironment.description%",
                         "media": {
                             "svg": "resources/walkthrough/create-environment.svg",
-                            "altText": "Creating a Python environment from the Command Palette"
-                        },
-                        "when": "workspaceFolderCount > 0"
+                            "altText": "%walkthrough.step.python.createEnvironment.altText%"
+                        }
                     },
                     {
                         "id": "python.runAndDebug",
-                        "title": "Run and debug your Python file",
-                        "description": "Open your Python file  and click on the play button on the top right of the editor, or press F5 when on the file and select \"Python File\" to run with the debugger. \n  \n[Learn more](https://code.visualstudio.com/docs/python/python-tutorial#_run-hello-world)",
+                        "title": "%walkthrough.step.python.runAndDebug.title%",
+                        "description": "%walkthrough.step.python.runAndDebug.description%",
                         "media": {
                             "svg": "resources/walkthrough/rundebug2.svg",
-                            "altText": "How to run and debug in VS Code with F5 or the play button on the top right."
-                        },
-                        "when": ""
+                            "altText": "%walkthrough.step.python.runAndDebug.altText%"
+                        }
                     },
                     {
                         "id": "python.learnMoreWithDS",
-                        "title": "Explore more resources",
-                        "description": "🎨 Explore all the features the Python extension has to offer by looking for \"Python\" in the [Command Palette](command:workbench.action.showCommands). \n 📈 Learn more about getting started with [data science](command:workbench.action.openWalkthrough?%7B%22category%22%3A%22ms-python.python%23pythonDataScienceWelcome%22%2C%22step%22%3A%22ms-python.python%23python.createNewNotebook%22%7D) in Python. \n ✨ Take a look at our [Release Notes](https://aka.ms/AA8dxtb) to learn more about the latest features. \n \n[Learn More](https://aka.ms/AA8dqti)",
+                        "title": "%walkthrough.step.python.learnMoreWithDS.title%",
+                        "description": "%walkthrough.step.python.learnMoreWithDS.description%",
                         "media": {
-                            "altText": "Image representing our documentation page and mailing list resources.",
+                            "altText": "%walkthrough.step.python.learnMoreWithDS.altText%",
                             "svg": "resources/walkthrough/learnmore.svg"
-                        },
-                        "when": ""
+                        }
                     }
                 ]
             },
             {
                 "id": "pythonDataScienceWelcome",
-                "title": "Get Started with Python for Data Science",
-                "description": "Your first steps to getting started with a Data Science project with Python!",
+                "title": "%walkthrough.pythonDataScienceWelcome.title%",
+                "description": "%walkthrough.pythonDataScienceWelcome.description%",
                 "when": "false",
                 "steps": [
                     {
                         "id": "python.installJupyterExt",
-                        "title": "Install Jupyter extension",
-                        "description": "If you haven't already, install the [Jupyter extension](command:workbench.extensions.search?\"ms-toolsai.jupyter\") to take full advantage of notebooks experiences in VS Code!\n \n[Search Jupyter extension](command:workbench.extensions.search?\"ms-toolsai.jupyter\")",
+                        "title": "%walkthrough.step.python.installJupyterExt.title%",
+                        "description": "%walkthrough.step.python.installJupyterExt.description%",
                         "media": {
                             "svg": "resources/walkthrough/data-science.svg",
-                            "altText": "Creating a new Jupyter notebook"
+                            "altText": "%walkthrough.step.python.installJupyterExt.altText%"
                         }
                     },
                     {
                         "id": "python.createNewNotebook",
-                        "title": "Create or open a Jupyter Notebook",
-                        "description": "Right click in the file explorer and create a new file with an .ipynb extension. Or, open the [Command Palette](command:workbench.action.showCommands) and run the command \n``Jupyter: Create New Blank Notebook``.\n[Create new Jupyter Notebook](command:toSide:jupyter.createnewnotebook)\n If you have an existing project, you can also [open a folder](command:workbench.action.files.openFolder) and/or clone a project from GitHub: [clone a Git repository](command:git.clone).",
+                        "title": "%walkthrough.step.python.createNewNotebook.title%",
+                        "description": "%walkthrough.step.python.createNewNotebook.description%",
                         "media": {
                             "svg": "resources/walkthrough/create-notebook.svg",
-                            "altText": "Creating a new Jupyter notebook"
+                            "altText": "%walkthrough.step.python.createNewNotebook.altText%"
                         },
                         "completionEvents": [
                             "onCommand:jupyter.createnewnotebook",
@@ -199,11 +193,11 @@
                     },
                     {
                         "id": "python.openInteractiveWindow",
-                        "title": "Open the Python Interactive Window",
-                        "description": "The Python Interactive Window is a Python shell where you can execute and view the results of your Python code. You can create cells on a Python file by typing ``#%%``.\n \nTo open the interactive window anytime, open the [Command Palette](command:workbench.action.showCommands) and run the command \n``Jupyter: Create Interactive Window``.\n[Open Interactive Window](command:jupyter.createnewinteractive)",
+                        "title": "%walkthrough.step.python.openInteractiveWindow.title%",
+                        "description": "%walkthrough.step.python.openInteractiveWindow.description%",
                         "media": {
                             "svg": "resources/walkthrough/interactive-window.svg",
-                            "altText": "Opening python interactive window"
+                            "altText": "%walkthrough.step.python.openInteractiveWindow.altText%"
                         },
                         "completionEvents": [
                             "onCommand:jupyter.createnewinteractive"
@@ -211,11 +205,11 @@
                     },
                     {
                         "id": "python.dataScienceLearnMore",
-                        "title": "Find out more!",
-                        "description": "📒 Take a look into the [Jupyter extension](command:workbench.extensions.search?\"ms-toolsai.jupyter\") features, by looking for \"Jupyter\" in the [Command Palette](command:workbench.action.showCommands). \n 🏃🏻 Find out more features in our [Tutorials](https://aka.ms/AAdjzpd).  \n[Learn more](https://aka.ms/AAdar6q)",
+                        "title": "%walkthrough.step.python.dataScienceLearnMore.title%",
+                        "description": "%walkthrough.step.python.dataScienceLearnMore.description%",
                         "media": {
                             "svg": "resources/walkthrough/learnmore.svg",
-                            "altText": "Image representing our documentation page and mailing list resources."
+                            "altText": "%walkthrough.step.python.dataScienceLearnMore.altText%"
                         }
                     }
                 ]
@@ -277,8 +271,8 @@
             },
             {
                 "category": "Python",
-                "command": "python.enableLinting",
-                "title": "%python.command.python.enableLinting.title%"
+                "command": "python.createEnvironment-button",
+                "title": "%python.command.python.createEnvironment.title%"
             },
             {
                 "category": "Python",
@@ -298,9 +292,9 @@
             },
             {
                 "category": "Python",
-                "command": "python.debugInTerminal",
-                "icon": "$(debug-alt)",
-                "title": "%python.command.python.debugInTerminal.title%"
+                "command": "python.execInDedicatedTerminal",
+                "icon": "$(play)",
+                "title": "%python.command.python.execInDedicatedTerminal.title%"
             },
             {
                 "category": "Python",
@@ -311,6 +305,11 @@
                 "category": "Python",
                 "command": "python.execSelectionInTerminal",
                 "title": "%python.command.python.execSelectionInTerminal.title%"
+            },
+            {
+                "category": "Python",
+                "command": "python.execInREPL",
+                "title": "%python.command.python.execInREPL.title%"
             },
             {
                 "category": "Python",
@@ -337,23 +336,8 @@
             },
             {
                 "category": "Python",
-                "command": "python.runLinting",
-                "title": "%python.command.python.runLinting.title%"
-            },
-            {
-                "category": "Python",
                 "command": "python.setInterpreter",
                 "title": "%python.command.python.setInterpreter.title%"
-            },
-            {
-                "category": "Python",
-                "command": "python.setLinter",
-                "title": "%python.command.python.setLinter.title%"
-            },
-            {
-                "category": "Python Refactor",
-                "command": "python.sortImports",
-                "title": "%python.command.python.sortImports.title%"
             },
             {
                 "category": "Python",
@@ -374,6 +358,11 @@
                     "light": "resources/light/repl.svg"
                 },
                 "title": "%python.command.python.viewOutput.title%"
+            },
+            {
+                "category": "Python",
+                "command": "python.installJupyter",
+                "title": "%python.command.python.installJupyter.title%"
             }
         ],
         "configuration": {
@@ -390,6 +379,26 @@
                     "scope": "resource",
                     "type": "array",
                     "uniqueItems": true
+                },
+                "python.createEnvironment.contentButton": {
+                    "default": "hide",
+                    "markdownDescription": "%python.createEnvironment.contentButton.description%",
+                    "scope": "machine-overridable",
+                    "type": "string",
+                    "enum": [
+                        "show",
+                        "hide"
+                    ]
+                },
+                "python.createEnvironment.trigger": {
+                    "default": "prompt",
+                    "markdownDescription": "%python.createEnvironment.trigger.description%",
+                    "scope": "machine-overridable",
+                    "type": "string",
+                    "enum": [
+                        "off",
+                        "prompt"
+                    ]
                 },
                 "python.condaPath": {
                     "default": "",
@@ -418,7 +427,7 @@
                 "python.experiments.enabled": {
                     "default": true,
                     "description": "%python.experiments.enabled.description%",
-                    "scope": "machine",
+                    "scope": "window",
                     "type": "boolean"
                 },
                 "python.experiments.optInto": {
@@ -429,16 +438,24 @@
                             "All",
                             "pythonSurveyNotification",
                             "pythonPromptNewToolsExt",
-                            "pythonTerminalEnvVarActivation"
+                            "pythonTerminalEnvVarActivation",
+                            "pythonDiscoveryUsingWorkers",
+                            "pythonTestAdapter",
+                            "pythonREPLSmartSend",
+                            "pythonRecommendTensorboardExt"
                         ],
                         "enumDescriptions": [
                             "%python.experiments.All.description%",
                             "%python.experiments.pythonSurveyNotification.description%",
                             "%python.experiments.pythonPromptNewToolsExt.description%",
-                            "%python.experiments.pythonTerminalEnvVarActivation.description%"
+                            "%python.experiments.pythonTerminalEnvVarActivation.description%",
+                            "%python.experiments.pythonDiscoveryUsingWorkers.description%",
+                            "%python.experiments.pythonTestAdapter.description%",
+                            "%python.experiments.pythonREPLSmartSend.description%",
+                            "%python.experiments.pythonRecommendTensorboardExt.description%"
                         ]
                     },
-                    "scope": "machine",
+                    "scope": "window",
                     "type": "array",
                     "uniqueItems": true
                 },
@@ -450,75 +467,24 @@
                             "All",
                             "pythonSurveyNotification",
                             "pythonPromptNewToolsExt",
-                            "pythonTerminalEnvVarActivation"
+                            "pythonTerminalEnvVarActivation",
+                            "pythonDiscoveryUsingWorkers",
+                            "pythonTestAdapter",
+                            "pythonREPLSmartSend"
                         ],
                         "enumDescriptions": [
                             "%python.experiments.All.description%",
                             "%python.experiments.pythonSurveyNotification.description%",
                             "%python.experiments.pythonPromptNewToolsExt.description%",
-                            "%python.experiments.pythonTerminalEnvVarActivation.description%"
+                            "%python.experiments.pythonTerminalEnvVarActivation.description%",
+                            "%python.experiments.pythonDiscoveryUsingWorkers.description%",
+                            "%python.experiments.pythonTestAdapter.description%",
+                            "%python.experiments.pythonREPLSmartSend.description%"
                         ]
                     },
-                    "scope": "machine",
+                    "scope": "window",
                     "type": "array",
                     "uniqueItems": true
-                },
-                "python.formatting.autopep8Args": {
-                    "default": [],
-                    "description": "%python.formatting.autopep8Args.description%",
-                    "items": {
-                        "type": "string"
-                    },
-                    "scope": "resource",
-                    "type": "array"
-                },
-                "python.formatting.autopep8Path": {
-                    "default": "autopep8",
-                    "description": "%python.formatting.autopep8Path.description%",
-                    "scope": "machine-overridable",
-                    "type": "string"
-                },
-                "python.formatting.blackArgs": {
-                    "default": [],
-                    "description": "%python.formatting.blackArgs.description%",
-                    "items": {
-                        "type": "string"
-                    },
-                    "scope": "resource",
-                    "type": "array"
-                },
-                "python.formatting.blackPath": {
-                    "default": "black",
-                    "description": "%python.formatting.blackPath.description%",
-                    "scope": "machine-overridable",
-                    "type": "string"
-                },
-                "python.formatting.provider": {
-                    "default": "autopep8",
-                    "description": "%python.formatting.provider.description%",
-                    "enum": [
-                        "autopep8",
-                        "black",
-                        "none",
-                        "yapf"
-                    ],
-                    "scope": "resource",
-                    "type": "string"
-                },
-                "python.formatting.yapfArgs": {
-                    "default": [],
-                    "description": "%python.formatting.yapfArgs.description%",
-                    "items": {
-                        "type": "string"
-                    },
-                    "scope": "resource",
-                    "type": "array"
-                },
-                "python.formatting.yapfPath": {
-                    "default": "yapf",
-                    "description": "%python.formatting.yapfPath.description%",
-                    "scope": "machine-overridable",
-                    "type": "string"
                 },
                 "python.globalModuleInstallation": {
                     "default": false,
@@ -544,72 +510,6 @@
                     "scope": "window",
                     "type": "string"
                 },
-                "python.linting.banditArgs": {
-                    "default": [],
-                    "description": "%python.linting.banditArgs.description%",
-                    "items": {
-                        "type": "string"
-                    },
-                    "scope": "resource",
-                    "type": "array"
-                },
-                "python.linting.banditEnabled": {
-                    "default": false,
-                    "description": "%python.linting.banditEnabled.description%",
-                    "scope": "resource",
-                    "type": "boolean"
-                },
-                "python.linting.banditPath": {
-                    "default": "bandit",
-                    "description": "%python.linting.banditPath.description%",
-                    "scope": "machine-overridable",
-                    "type": "string"
-                },
-                "python.linting.cwd": {
-                    "default": null,
-                    "description": "%python.linting.cwd.description%",
-                    "scope": "resource",
-                    "type": "string"
-                },
-                "python.linting.enabled": {
-                    "default": true,
-                    "description": "%python.linting.enabled.description%",
-                    "scope": "resource",
-                    "type": "boolean"
-                },
-                "python.linting.flake8Args": {
-                    "default": [],
-                    "description": "%python.linting.flake8Args.description%",
-                    "items": {
-                        "type": "string"
-                    },
-                    "scope": "resource",
-                    "type": "array"
-                },
-                "python.linting.flake8CategorySeverity.E": {
-                    "default": "Error",
-                    "description": "%python.linting.flake8CategorySeverity.E.description%",
-                    "enum": [
-                        "Error",
-                        "Hint",
-                        "Information",
-                        "Warning"
-                    ],
-                    "scope": "resource",
-                    "type": "string"
-                },
-                "python.linting.flake8CategorySeverity.F": {
-                    "default": "Error",
-                    "description": "%python.linting.flake8CategorySeverity.F.description%",
-                    "enum": [
-                        "Error",
-                        "Hint",
-                        "Information",
-                        "Warning"
-                    ],
-                    "scope": "resource",
-                    "type": "string"
-                },
                 "python.interpreter.infoVisibility": {
                     "default": "onPythonRelated",
                     "description": "%python.interpreter.infoVisibility.description%",
@@ -626,296 +526,9 @@
                     "scope": "machine",
                     "type": "string"
                 },
-                "python.linting.flake8CategorySeverity.W": {
-                    "default": "Warning",
-                    "description": "%python.linting.flake8CategorySeverity.W.description%",
-                    "enum": [
-                        "Error",
-                        "Hint",
-                        "Information",
-                        "Warning"
-                    ],
-                    "scope": "resource",
-                    "type": "string"
-                },
-                "python.linting.flake8Enabled": {
-                    "default": false,
-                    "description": "%python.linting.flake8Enabled.description%",
-                    "scope": "resource",
-                    "type": "boolean"
-                },
-                "python.linting.flake8Path": {
-                    "default": "flake8",
-                    "description": "%python.linting.flake8Path.description%",
-                    "scope": "machine-overridable",
-                    "type": "string"
-                },
-                "python.linting.ignorePatterns": {
-                    "default": [
-                        "**/site-packages/**/*.py",
-                        ".vscode/*.py"
-                    ],
-                    "description": "%python.linting.ignorePatterns.description%",
-                    "items": {
-                        "type": "string"
-                    },
-                    "scope": "resource",
-                    "type": "array",
-                    "uniqueItems": true
-                },
-                "python.linting.lintOnSave": {
-                    "default": true,
-                    "description": "%python.linting.lintOnSave.description%",
-                    "scope": "resource",
-                    "type": "boolean"
-                },
-                "python.linting.maxNumberOfProblems": {
-                    "default": 100,
-                    "description": "%python.linting.maxNumberOfProblems.description%",
-                    "scope": "resource",
-                    "type": "number"
-                },
-                "python.linting.mypyArgs": {
-                    "default": [
-                        "--follow-imports=silent",
-                        "--ignore-missing-imports",
-                        "--show-column-numbers",
-                        "--no-pretty"
-                    ],
-                    "description": "%python.linting.mypyArgs.description%",
-                    "items": {
-                        "type": "string"
-                    },
-                    "scope": "resource",
-                    "type": "array"
-                },
-                "python.linting.mypyCategorySeverity.error": {
-                    "default": "Error",
-                    "description": "%python.linting.mypyCategorySeverity.error.description%",
-                    "enum": [
-                        "Error",
-                        "Hint",
-                        "Information",
-                        "Warning"
-                    ],
-                    "scope": "resource",
-                    "type": "string"
-                },
-                "python.linting.mypyCategorySeverity.note": {
-                    "default": "Information",
-                    "description": "%python.linting.mypyCategorySeverity.note.description%.",
-                    "enum": [
-                        "Error",
-                        "Hint",
-                        "Information",
-                        "Warning"
-                    ],
-                    "scope": "resource",
-                    "type": "string"
-                },
-                "python.linting.mypyEnabled": {
-                    "default": false,
-                    "description": "%python.linting.mypyEnabled.description%",
-                    "scope": "resource",
-                    "type": "boolean"
-                },
-                "python.linting.mypyPath": {
-                    "default": "mypy",
-                    "description": "%python.linting.mypyPath.description%",
-                    "scope": "machine-overridable",
-                    "type": "string"
-                },
-                "python.linting.prospectorArgs": {
-                    "default": [],
-                    "description": "%python.linting.prospectorArgs.description%",
-                    "items": {
-                        "type": "string"
-                    },
-                    "scope": "resource",
-                    "type": "array"
-                },
-                "python.linting.prospectorEnabled": {
-                    "default": false,
-                    "description": "%python.linting.prospectorEnabled.description%",
-                    "scope": "resource",
-                    "type": "boolean"
-                },
-                "python.linting.prospectorPath": {
-                    "default": "prospector",
-                    "description": "%python.linting.prospectorPath.description%",
-                    "scope": "machine-overridable",
-                    "type": "string"
-                },
-                "python.linting.pycodestyleArgs": {
-                    "default": [],
-                    "description": "%python.linting.pycodestyleArgs.description%",
-                    "items": {
-                        "type": "string"
-                    },
-                    "scope": "resource",
-                    "type": "array"
-                },
-                "python.linting.pycodestyleCategorySeverity.E": {
-                    "default": "Error",
-                    "description": "%python.linting.pycodestyleCategorySeverity.E.description%",
-                    "enum": [
-                        "Error",
-                        "Hint",
-                        "Information",
-                        "Warning"
-                    ],
-                    "scope": "resource",
-                    "type": "string"
-                },
-                "python.linting.pycodestyleCategorySeverity.W": {
-                    "default": "Warning",
-                    "description": "%python.linting.pycodestyleCategorySeverity.W.description%",
-                    "enum": [
-                        "Error",
-                        "Hint",
-                        "Information",
-                        "Warning"
-                    ],
-                    "scope": "resource",
-                    "type": "string"
-                },
-                "python.linting.pycodestyleEnabled": {
-                    "default": false,
-                    "description": "%python.linting.pycodestyleEnabled.description%",
-                    "scope": "resource",
-                    "type": "boolean"
-                },
-                "python.linting.pycodestylePath": {
-                    "default": "pycodestyle",
-                    "description": "%python.linting.pycodestylePath.description%",
-                    "scope": "machine-overridable",
-                    "type": "string"
-                },
-                "python.linting.pydocstyleArgs": {
-                    "default": [],
-                    "description": "%python.linting.pydocstyleArgs.description%",
-                    "items": {
-                        "type": "string"
-                    },
-                    "scope": "resource",
-                    "type": "array"
-                },
-                "python.linting.pydocstyleEnabled": {
-                    "default": false,
-                    "description": "%python.linting.pydocstyleEnabled.description%",
-                    "scope": "resource",
-                    "type": "boolean"
-                },
-                "python.linting.pydocstylePath": {
-                    "default": "pydocstyle",
-                    "description": "%python.linting.pydocstylePath.description%",
-                    "scope": "machine-overridable",
-                    "type": "string"
-                },
-                "python.linting.pylamaArgs": {
-                    "default": [],
-                    "description": "%python.linting.pylamaArgs.description%",
-                    "items": {
-                        "type": "string"
-                    },
-                    "scope": "resource",
-                    "type": "array"
-                },
-                "python.linting.pylamaEnabled": {
-                    "default": false,
-                    "description": "%python.linting.pylamaEnabled.description%",
-                    "scope": "resource",
-                    "type": "boolean"
-                },
-                "python.linting.pylamaPath": {
-                    "default": "pylama",
-                    "description": "%python.linting.pylamaPath.description%",
-                    "scope": "machine-overridable",
-                    "type": "string"
-                },
-                "python.linting.pylintArgs": {
-                    "default": [],
-                    "description": "%python.linting.pylintArgs.description%",
-                    "items": {
-                        "type": "string"
-                    },
-                    "scope": "resource",
-                    "type": "array"
-                },
-                "python.linting.pylintCategorySeverity.convention": {
-                    "default": "Information",
-                    "description": "%python.linting.pylintCategorySeverity.convention.description%",
-                    "enum": [
-                        "Error",
-                        "Hint",
-                        "Information",
-                        "Warning"
-                    ],
-                    "scope": "resource",
-                    "type": "string"
-                },
-                "python.linting.pylintCategorySeverity.error": {
-                    "default": "Error",
-                    "description": "%python.linting.pylintCategorySeverity.error.description%",
-                    "enum": [
-                        "Error",
-                        "Hint",
-                        "Information",
-                        "Warning"
-                    ],
-                    "scope": "resource",
-                    "type": "string"
-                },
-                "python.linting.pylintCategorySeverity.fatal": {
-                    "default": "Error",
-                    "description": "%python.linting.pylintCategorySeverity.fatal.description%",
-                    "enum": [
-                        "Error",
-                        "Hint",
-                        "Information",
-                        "Warning"
-                    ],
-                    "scope": "resource",
-                    "type": "string"
-                },
-                "python.linting.pylintCategorySeverity.refactor": {
-                    "default": "Hint",
-                    "description": "%python.linting.pylintCategorySeverity.refactor.description%",
-                    "enum": [
-                        "Error",
-                        "Hint",
-                        "Information",
-                        "Warning"
-                    ],
-                    "scope": "resource",
-                    "type": "string"
-                },
-                "python.linting.pylintCategorySeverity.warning": {
-                    "default": "Warning",
-                    "description": "%python.linting.pylintCategorySeverity.warning.description%",
-                    "enum": [
-                        "Error",
-                        "Hint",
-                        "Information",
-                        "Warning"
-                    ],
-                    "scope": "resource",
-                    "type": "string"
-                },
-                "python.linting.pylintEnabled": {
-                    "default": false,
-                    "description": "%python.linting.pylintEnabled.description%",
-                    "scope": "resource",
-                    "type": "boolean"
-                },
-                "python.linting.pylintPath": {
-                    "default": "pylint",
-                    "description": "%python.linting.pylintPath.description%",
-                    "scope": "machine-overridable",
-                    "type": "string"
-                },
                 "python.logging.level": {
                     "default": "error",
+                    "deprecationMessage": "%python.logging.level.deprecation%",
                     "description": "%python.logging.level.description%",
                     "enum": [
                         "debug",
@@ -923,6 +536,34 @@
                         "info",
                         "off",
                         "warn"
+                    ],
+                    "scope": "machine",
+                    "type": "string"
+                },
+                "python.missingPackage.severity": {
+                    "default": "Hint",
+                    "description": "%python.missingPackage.severity.description%",
+                    "enum": [
+                        "Error",
+                        "Hint",
+                        "Information",
+                        "Warning"
+                    ],
+                    "scope": "resource",
+                    "type": "string",
+                    "tags": [
+                        "experimental"
+                    ]
+                },
+                "python.locator": {
+                    "default": "js",
+                    "description": "%python.locator.description%",
+                    "enum": [
+                        "js",
+                        "native"
+                    ],
+                    "tags": [
+                        "experimental"
                     ],
                     "scope": "machine",
                     "type": "string"
@@ -939,28 +580,13 @@
                     "scope": "machine-overridable",
                     "type": "string"
                 },
-                "python.sortImports.args": {
-                    "default": [],
-                    "description": "%python.sortImports.args.description%",
-                    "items": {
-                        "type": "string"
-                    },
-                    "scope": "resource",
-                    "type": "array",
-                    "deprecationMessage": "%python.sortImports.args.deprecationMessage%"
-                },
-                "python.sortImports.path": {
-                    "default": "",
-                    "description": "%python.sortImports.path.description%",
-                    "scope": "machine-overridable",
-                    "type": "string",
-                    "deprecationMessage": "%python.sortImports.path.deprecationMessage%"
-                },
                 "python.tensorBoard.logDirectory": {
                     "default": "",
                     "description": "%python.tensorBoard.logDirectory.description%",
                     "scope": "resource",
-                    "type": "string"
+                    "type": "string",
+                    "markdownDeprecationMessage": "%python.tensorBoard.logDirectory.markdownDeprecationMessage%",
+                    "deprecationMessage": "%python.tensorBoard.logDirectory.deprecationMessage%"
                 },
                 "python.terminal.activateEnvInCurrentTerminal": {
                     "default": false,
@@ -991,6 +617,21 @@
                     "description": "%python.terminal.launchArgs.description%",
                     "scope": "resource",
                     "type": "array"
+                },
+                "python.REPL.enableREPLSmartSend": {
+                    "default": true,
+                    "description": "%python.EnableREPLSmartSend.description%",
+                    "scope": "resource",
+                    "type": "boolean"
+                },
+                "python.REPL.sendToNativeREPL": {
+                    "default": false,
+                    "description": "%python.REPL.sendToNativeREPL.description%",
+                    "scope": "resource",
+                    "type": "boolean",
+                    "tags": [
+                        "experimental"
+                    ]
                 },
                 "python.testing.autoTestDiscoverOnSaveEnabled": {
                     "default": true,
@@ -1272,6 +913,10 @@
                                     "internalConsole"
                                 ]
                             },
+                            "consoleTitle": {
+                                "default": "Python Debug Console",
+                                "description": "Display name of the debug console or terminal"
+                            },
                             "cwd": {
                                 "default": "${workspaceFolder}",
                                 "description": "Absolute path to the working directory of the program being debugged. Default is the root directory of the file (leave empty).",
@@ -1429,6 +1074,7 @@
                         }
                     }
                 },
+                "deprecated": "%python.debugger.deprecatedMessage%",
                 "configurationSnippets": [],
                 "label": "Python",
                 "languages": [
@@ -1438,7 +1084,8 @@
                 "variables": {
                     "pickProcess": "python.pickLocalProcess"
                 },
-                "when": "!virtualWorkspace && shellExecutionSupported"
+                "when": "!virtualWorkspace && shellExecutionSupported",
+                "hiddenWhen": "true"
             }
         ],
         "grammars": [
@@ -1466,7 +1113,17 @@
             {
                 "command": "python.execSelectionInTerminal",
                 "key": "shift+enter",
-                "when": "editorTextFocus && editorLangId == python && !findInputFocussed && !replaceInputFocussed && !jupyter.ownsSelection && !notebookEditorFocused"
+                "when": "!config.python.REPL.sendToNativeREPL && editorTextFocus && editorLangId == python && !findInputFocussed && !replaceInputFocussed && !jupyter.ownsSelection && !notebookEditorFocused && activeEditor != 'workbench.editor.interactive'"
+            },
+            {
+                "command": "python.execInREPL",
+                "key": "shift+enter",
+                "when": "config.python.REPL.sendToNativeREPL && activeEditor != 'workbench.editor.interactive'&& editorLangId == python && editorTextFocus && !jupyter.ownsSelection && !notebookEditorFocused"
+            },
+            {
+                "command": "python.execInREPLEnter",
+                "key": "enter",
+                "when": "!config.interactiveWindow.executeWithShiftEnter && activeEditor == 'workbench.editor.interactive'"
             },
             {
                 "command": "python.refreshTensorBoard",
@@ -1493,10 +1150,8 @@
                 ],
                 "configuration": "./languages/pip-requirements.json",
                 "filenamePatterns": [
-                    "**/*-requirements.{txt, in}",
-                    "**/*-constraints.txt",
-                    "**/requirements-*.{txt, in}",
-                    "**/constraints-*.txt",
+                    "**/*requirements*.{txt, in}",
+                    "**/*constraints*.txt",
                     "**/requirements/*.{txt,in}",
                     "**/constraints/*.txt"
                 ],
@@ -1537,6 +1192,11 @@
             }
         ],
         "menus": {
+            "issue/reporter": [
+                {
+                    "command": "python.reportIssue"
+                }
+            ],
             "commandPalette": [
                 {
                     "category": "Python",
@@ -1554,7 +1214,7 @@
                     "category": "Python",
                     "command": "python.clearWorkspaceInterpreter",
                     "title": "%python.command.python.clearWorkspaceInterpreter.title%",
-                    "when": "!virtualWorkspace && shellExecutionSupported && editorLangId == python"
+                    "when": "!virtualWorkspace && shellExecutionSupported"
                 },
                 {
                     "category": "Python",
@@ -1570,15 +1230,15 @@
                 },
                 {
                     "category": "Python",
-                    "command": "python.createTerminal",
-                    "title": "%python.command.python.createTerminal.title%",
-                    "when": "!virtualWorkspace && shellExecutionSupported"
+                    "command": "python.createEnvironment-button",
+                    "title": "%python.command.python.createEnvironment.title%",
+                    "when": "false"
                 },
                 {
                     "category": "Python",
-                    "command": "python.enableLinting",
-                    "title": "%python.command.python.enableLinting.title%",
-                    "when": "!virtualWorkspace && shellExecutionSupported && editorLangId == python"
+                    "command": "python.createTerminal",
+                    "title": "%python.command.python.createTerminal.title%",
+                    "when": "!virtualWorkspace && shellExecutionSupported"
                 },
                 {
                     "category": "Python",
@@ -1597,14 +1257,14 @@
                     "command": "python.execInTerminal-icon",
                     "icon": "$(play)",
                     "title": "%python.command.python.execInTerminalIcon.title%",
-                    "when": "false && editorLangId == python"
+                    "when": "false"
                 },
                 {
                     "category": "Python",
-                    "command": "python.debugInTerminal",
-                    "icon": "$(debug-alt)",
-                    "title": "%python.command.python.debugInTerminal.title%",
-                    "when": "!virtualWorkspace && shellExecutionSupported && editorLangId == python"
+                    "command": "python.execInDedicatedTerminal",
+                    "icon": "$(play)",
+                    "title": "%python.command.python.execInDedicatedTerminal.title%",
+                    "when": "false"
                 },
                 {
                     "category": "Python",
@@ -1620,9 +1280,15 @@
                 },
                 {
                     "category": "Python",
+                    "command": "python.execInREPL",
+                    "title": "%python.command.python.execInREPL.title%",
+                    "when": "false"
+                },
+                {
+                    "category": "Python",
                     "command": "python.launchTensorBoard",
                     "title": "%python.command.python.launchTensorBoard.title%",
-                    "when": "!virtualWorkspace && shellExecutionSupported"
+                    "when": "!virtualWorkspace && shellExecutionSupported && !python.tensorboardExtInstalled"
                 },
                 {
                     "category": "Python",
@@ -1630,7 +1296,7 @@
                     "enablement": "python.hasActiveTensorBoardSession",
                     "icon": "$(refresh)",
                     "title": "%python.command.python.refreshTensorBoard.title%",
-                    "when": "!virtualWorkspace && shellExecutionSupported"
+                    "when": "!virtualWorkspace && shellExecutionSupported && !python.tensorboardExtInstalled"
                 },
                 {
                     "category": "Python",
@@ -1647,27 +1313,9 @@
                 },
                 {
                     "category": "Python",
-                    "command": "python.runLinting",
-                    "title": "%python.command.python.runLinting.title%",
-                    "when": "!virtualWorkspace && shellExecutionSupported && editorLangId == python"
-                },
-                {
-                    "category": "Python",
                     "command": "python.setInterpreter",
                     "title": "%python.command.python.setInterpreter.title%",
                     "when": "!virtualWorkspace && shellExecutionSupported"
-                },
-                {
-                    "category": "Python",
-                    "command": "python.setLinter",
-                    "title": "%python.command.python.setLinter.title%",
-                    "when": "!virtualWorkspace && shellExecutionSupported && editorLangId == python"
-                },
-                {
-                    "category": "Python Refactor",
-                    "command": "python.sortImports",
-                    "title": "%python.command.python.sortImports.title%",
-                    "when": "!virtualWorkspace && shellExecutionSupported && editorLangId == python"
                 },
                 {
                     "category": "Python",
@@ -1692,16 +1340,35 @@
             "editor/content": [
                 {
                     "group": "Python",
-                    "command": "python.createEnvironment",
-                    "when": "resourceLangId == pip-requirements && !virtualWorkspace && shellExecutionSupported"
+                    "command": "python.createEnvironment-button",
+                    "when": "showCreateEnvButton && resourceLangId == pip-requirements && !virtualWorkspace && shellExecutionSupported && !inDiffEditor && !isMergeResultEditor && pythonDepsNotInstalled"
                 },
                 {
                     "group": "Python",
-                    "command": "python.createEnvironment",
-                    "when": "resourceFilename == pyproject.toml && pipInstallableToml && !virtualWorkspace && shellExecutionSupported"
+                    "command": "python.createEnvironment-button",
+                    "when": "showCreateEnvButton && resourceFilename == pyproject.toml && pipInstallableToml && !virtualWorkspace && shellExecutionSupported  && !inDiffEditor && !isMergeResultEditor && pythonDepsNotInstalled"
                 }
             ],
             "editor/context": [
+                {
+                    "submenu": "python.run",
+                    "group": "Python",
+                    "when": "editorLangId == python && !virtualWorkspace && shellExecutionSupported && isWorkspaceTrusted"
+                },
+                {
+                    "submenu": "python.runFileInteractive",
+                    "group": "Jupyter2",
+                    "when": "editorLangId == python && !virtualWorkspace && shellExecutionSupported && !isJupyterInstalled && isWorkspaceTrusted"
+                }
+            ],
+            "python.runFileInteractive": [
+                {
+                    "command": "python.installJupyter",
+                    "group": "Jupyter2",
+                    "when": "resourceLangId == python && !virtualWorkspace && shellExecutionSupported"
+                }
+            ],
+            "python.run": [
                 {
                     "command": "python.execInTerminal",
                     "group": "Python",
@@ -1715,13 +1382,12 @@
                 {
                     "command": "python.execSelectionInTerminal",
                     "group": "Python",
-                    "when": "editorFocus && editorLangId == python && !virtualWorkspace && shellExecutionSupported"
+                    "when": "!config.python.REPL.sendToNativeREPL && editorFocus && editorLangId == python && !virtualWorkspace && shellExecutionSupported"
                 },
                 {
-                    "command": "python.sortImports",
-                    "group": "Refactor",
-                    "title": "%python.command.python.sortImports.title%",
-                    "when": "editorLangId == python && !notebookEditorFocused && !virtualWorkspace && shellExecutionSupported"
+                    "command": "python.execInREPL",
+                    "group": "Python",
+                    "when": "editorFocus && editorLangId == python && !virtualWorkspace && shellExecutionSupported && config.python.REPL.sendToNativeREPL"
                 }
             ],
             "editor/title": [
@@ -1739,9 +1405,9 @@
                     "when": "resourceLangId == python && !isInDiffEditor && !virtualWorkspace && shellExecutionSupported"
                 },
                 {
-                    "command": "python.debugInTerminal",
-                    "group": "navigation@1",
-                    "title": "%python.command.python.debugInTerminal.title%",
+                    "command": "python.execInDedicatedTerminal",
+                    "group": "navigation@0",
+                    "title": "%python.command.python.execInDedicatedTerminal.title%",
                     "when": "resourceLangId == python && !isInDiffEditor && !virtualWorkspace && shellExecutionSupported"
                 }
             ],
@@ -1767,6 +1433,17 @@
                 }
             ]
         },
+        "submenus": [
+            {
+                "id": "python.run",
+                "label": "%python.editor.context.submenu.runPython%",
+                "icon": "$(play)"
+            },
+            {
+                "id": "python.runFileInteractive",
+                "label": "%python.editor.context.submenu.runPythonInteractive%"
+            }
+        ],
         "viewsWelcome": [
             {
                 "view": "testing",
@@ -1793,6 +1470,7 @@
         "package": "gulp clean && gulp prePublishBundle && vsce package -o ms-python-insiders.vsix",
         "prePublish": "gulp clean && gulp prePublishNonBundle",
         "compile": "tsc -watch -p ./",
+        "compileApi": "node ./node_modules/typescript/lib/tsc.js -b ./pythonExtensionApi/tsconfig.json",
         "compiled": "deemon npm run compile",
         "kill-compiled": "deemon --kill npm run compile",
         "checkDependencies": "gulp checkDependencies",
@@ -1815,8 +1493,8 @@
         "testSmoke": "cross-env INSTALL_JUPYTER_EXTENSION=true \"node ./out/test/smokeTest.js\"",
         "testInsiders": "cross-env VSC_PYTHON_CI_TEST_VSC_CHANNEL=insiders INSTALL_PYLANCE_EXTENSION=true TEST_FILES_SUFFIX=insiders.test CODE_TESTS_WORKSPACE=src/testMultiRootWkspc/smokeTests \"node ./out/test/standardTest.js\"",
         "lint-staged": "node gulpfile.js",
-        "lint": "eslint --ext .ts,.js src build",
-        "lint-fix": "eslint --fix --ext .ts,.js src build gulpfile.js",
+        "lint": "eslint --ext .ts,.js src build pythonExtensionApi",
+        "lint-fix": "eslint --fix --ext .ts,.js src build pythonExtensionApi gulpfile.js",
         "format-check": "prettier --check 'src/**/*.ts' 'build/**/*.js' '.github/**/*.yml' gulpfile.js",
         "format-fix": "prettier --write 'src/**/*.ts' 'build/**/*.js' '.github/**/*.yml' gulpfile.js",
         "clean": "gulp clean",
@@ -1827,10 +1505,8 @@
     },
     "dependencies": {
         "@iarna/toml": "^2.2.5",
-        "@vscode/extension-telemetry": "^0.7.4-preview",
-        "@vscode/jupyter-lsp-middleware": "^0.2.50",
+        "@vscode/extension-telemetry": "^0.8.4",
         "arch": "^2.1.0",
-        "diff-match-patch": "^1.0.0",
         "fs-extra": "^10.0.1",
         "glob": "^7.2.0",
         "hash.js": "^1.1.7",
@@ -1838,61 +1514,54 @@
         "inversify": "^5.0.4",
         "jsonc-parser": "^3.0.0",
         "lodash": "^4.17.21",
-        "md5": "^2.2.1",
         "minimatch": "^5.0.1",
         "named-js-regexp": "^1.3.3",
         "node-stream-zip": "^1.6.0",
         "reflect-metadata": "^0.1.12",
-        "request": "^2.87.0",
-        "request-progress": "^3.0.0",
         "rxjs": "^6.5.4",
         "rxjs-compat": "^6.5.4",
-        "semver": "^5.5.0",
+        "semver": "^7.5.2",
         "stack-trace": "0.0.10",
         "sudo-prompt": "^9.2.1",
         "tmp": "^0.0.33",
         "uint64be": "^3.0.0",
         "unicode": "^14.0.0",
         "untildify": "^4.0.0",
-        "vscode-debugadapter": "^1.28.0",
         "vscode-debugprotocol": "^1.28.0",
-        "vscode-jsonrpc": "8.0.2-next.1",
-        "vscode-languageclient": "8.0.2-next.5",
-        "vscode-languageserver": "8.0.2-next.5",
-        "vscode-languageserver-protocol": "3.17.2-next.6",
-        "vscode-tas-client": "^0.1.63",
+        "vscode-jsonrpc": "^9.0.0-next.4",
+        "vscode-languageclient": "^10.0.0-next.8",
+        "vscode-languageserver-protocol": "^3.17.6-next.6",
+        "vscode-tas-client": "^0.1.84",
         "which": "^2.0.2",
         "winreg": "^1.2.4",
-        "xml2js": "^0.4.19"
+        "xml2js": "^0.5.0"
     },
     "devDependencies": {
         "@istanbuljs/nyc-config-typescript": "^1.0.2",
+        "@types/bent": "^7.3.0",
         "@types/chai": "^4.1.2",
         "@types/chai-arrays": "^2.0.0",
         "@types/chai-as-promised": "^7.1.0",
-        "@types/diff-match-patch": "^1.0.32",
         "@types/download": "^8.0.1",
         "@types/fs-extra": "^9.0.13",
         "@types/glob": "^7.2.0",
         "@types/lodash": "^4.14.104",
-        "@types/md5": "^2.1.32",
         "@types/mocha": "^9.1.0",
-        "@types/nock": "^10.0.3",
-        "@types/node": "^14.18.0",
-        "@types/request": "^2.47.0",
+        "@types/node": "^18.17.1",
         "@types/semver": "^5.5.0",
         "@types/shortid": "^0.0.29",
         "@types/sinon": "^10.0.11",
         "@types/stack-trace": "0.0.29",
         "@types/tmp": "^0.0.33",
-        "@types/uuid": "^8.3.4",
-        "@types/vscode": "^1.75.0",
+        "@types/vscode": "^1.81.0",
         "@types/which": "^2.0.1",
         "@types/winreg": "^1.2.30",
         "@types/xml2js": "^0.4.2",
         "@typescript-eslint/eslint-plugin": "^3.7.0",
         "@typescript-eslint/parser": "^3.7.0",
-        "@vscode/test-electron": "^2.1.3",
+        "@vscode/test-electron": "^2.3.8",
+        "@vscode/vsce": "^2.26.1",
+        "bent": "^7.3.12",
         "chai": "^4.1.2",
         "chai-arrays": "^2.0.0",
         "chai-as-promised": "^7.1.1",
@@ -1900,7 +1569,6 @@
         "cross-spawn": "^6.0.5",
         "del": "^6.0.0",
         "download": "^8.0.0",
-        "es5-ext": "0.10.53",
         "eslint": "^7.2.0",
         "eslint-config-airbnb": "^18.2.0",
         "eslint-config-prettier": "^8.3.0",
@@ -1911,19 +1579,17 @@
         "expose-loader": "^3.1.0",
         "flat": "^5.0.2",
         "get-port": "^5.1.1",
-        "gulp": "^4.0.0",
+        "gulp": "^5.0.0",
         "gulp-typescript": "^5.0.0",
         "mocha": "^9.2.2",
         "mocha-junit-reporter": "^2.0.2",
         "mocha-multi-reporters": "^1.1.7",
-        "nock": "^10.0.6",
         "node-has-native-dependencies": "^1.0.2",
         "node-loader": "^1.0.2",
         "node-polyfill-webpack-plugin": "^1.1.4",
         "nyc": "^15.0.0",
         "prettier": "^2.0.2",
         "rewiremock": "^3.13.0",
-        "rimraf": "^3.0.2",
         "shortid": "^2.2.8",
         "sinon": "^13.0.1",
         "source-map-support": "^0.5.12",
@@ -1934,8 +1600,6 @@
         "typemoq": "^2.1.0",
         "typescript": "4.5.5",
         "uuid": "^8.3.2",
-        "vsce": "^2.6.6",
-        "vscode-debugadapter-testsupport": "^1.27.0",
         "webpack": "^5.76.0",
         "webpack-bundle-analyzer": "^4.5.0",
         "webpack-cli": "^4.9.2",
@@ -1943,11 +1607,7 @@
         "webpack-merge": "^5.8.0",
         "webpack-node-externals": "^3.0.0",
         "webpack-require-from": "^1.8.6",
+        "worker-loader": "^3.0.8",
         "yargs": "^15.3.1"
-    },
-    "__metadata": {
-        "id": "f1f59ae4-9318-4f3c-a9b5-81b2eaa5f8a5",
-        "publisherDisplayName": "Microsoft",
-        "publisherId": "998b010b-e2af-44a5-a6cd-0b5fd3b9b6f8"
     }
 }

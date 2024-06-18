@@ -12,12 +12,11 @@ import { sendTelemetryEvent } from '../../telemetry';
 import { EventName } from '../../telemetry/constants';
 import { IApplicationShell } from '../application/types';
 import { wrapCancellationTokens } from '../cancellation';
-import { STANDARD_OUTPUT_CHANNEL } from '../constants';
 import { IFileSystem } from '../platform/types';
 import * as internalPython from '../process/internal/python';
 import { IProcessServiceFactory } from '../process/types';
 import { ITerminalServiceFactory, TerminalCreationOptions } from '../terminal/types';
-import { ExecutionInfo, IConfigurationService, IOutputChannel, Product } from '../types';
+import { ExecutionInfo, IConfigurationService, ILogOutputChannel, Product } from '../types';
 import { isResource } from '../utils/misc';
 import { ProductNames } from './productNames';
 import { IModuleInstaller, InstallOptions, InterpreterUri, ModuleInstallFlags } from './types';
@@ -152,7 +151,7 @@ export abstract class ModuleInstaller implements IModuleInstaller {
         const options = {
             name: 'VS Code Python',
         };
-        const outputChannel = this.serviceContainer.get<IOutputChannel>(IOutputChannel, STANDARD_OUTPUT_CHANNEL);
+        const outputChannel = this.serviceContainer.get<ILogOutputChannel>(ILogOutputChannel);
         const command = `"${execPath.replace(/\\/g, '/')}" ${args.join(' ')}`;
 
         traceLog(`[Elevated] ${command}`);
@@ -239,44 +238,10 @@ export abstract class ModuleInstaller implements IModuleInstaller {
 
 export function translateProductToModule(product: Product): string {
     switch (product) {
-        case Product.mypy:
-            return 'mypy';
-        case Product.pylama:
-            return 'pylama';
-        case Product.prospector:
-            return 'prospector';
-        case Product.pylint:
-            return 'pylint';
         case Product.pytest:
             return 'pytest';
-        case Product.autopep8:
-            return 'autopep8';
-        case Product.black:
-            return 'black';
-        case Product.pycodestyle:
-            return 'pycodestyle';
-        case Product.pydocstyle:
-            return 'pydocstyle';
-        case Product.yapf:
-            return 'yapf';
-        case Product.flake8:
-            return 'flake8';
         case Product.unittest:
             return 'unittest';
-        case Product.bandit:
-            return 'bandit';
-        case Product.jupyter:
-            return 'jupyter';
-        case Product.notebook:
-            return 'notebook';
-        case Product.pandas:
-            return 'pandas';
-        case Product.ipykernel:
-            return 'ipykernel';
-        case Product.nbconvert:
-            return 'nbconvert';
-        case Product.kernelspec:
-            return 'kernelspec';
         case Product.tensorboard:
             return 'tensorboard';
         case Product.torchProfilerInstallName:

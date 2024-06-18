@@ -16,7 +16,7 @@ import { IApplicationShell, IDebugService } from '../../../client/common/applica
 import { EXTENSION_ROOT_DIR } from '../../../client/common/constants';
 import '../../../client/common/extensions';
 import { IConfigurationService, IPythonSettings } from '../../../client/common/types';
-import { DebuggerTypeName } from '../../../client/debugger/constants';
+import { PythonDebuggerTypeName } from '../../../client/debugger/constants';
 import { IDebugEnvironmentVariablesService } from '../../../client/debugger/extension/configuration/resolvers/helper';
 import { LaunchConfigurationResolver } from '../../../client/debugger/extension/configuration/resolvers/launch';
 import { DebugOptions } from '../../../client/debugger/types';
@@ -29,6 +29,7 @@ import { ITestingSettings } from '../../../client/testing/configuration/types';
 import { TestProvider } from '../../../client/testing/types';
 import { isOs, OSType } from '../../common';
 import { IEnvironmentActivationService } from '../../../client/interpreter/activation/types';
+import * as util from '../../../client/testing/testController/common/utils';
 
 use(chaiAsPromised);
 
@@ -45,6 +46,7 @@ suite('Unit Tests - Debug Launcher', () => {
     let getWorkspaceFoldersStub: sinon.SinonStub;
     let pathExistsStub: sinon.SinonStub;
     let readFileStub: sinon.SinonStub;
+    let pythonTestAdapterRewriteEnabledStub: sinon.SinonStub;
     const envVars = { FOO: 'BAR' };
 
     setup(async () => {
@@ -65,6 +67,8 @@ suite('Unit Tests - Debug Launcher', () => {
         getWorkspaceFoldersStub = sinon.stub(workspaceApis, 'getWorkspaceFolders');
         pathExistsStub = sinon.stub(fs, 'pathExists');
         readFileStub = sinon.stub(fs, 'readFile');
+        pythonTestAdapterRewriteEnabledStub = sinon.stub(util, 'pythonTestAdapterRewriteEnabled');
+        pythonTestAdapterRewriteEnabledStub.returns(false);
 
         const appShell = TypeMoq.Mock.ofType<IApplicationShell>(undefined, TypeMoq.MockBehavior.Strict);
         appShell.setup((a) => a.showErrorMessage(TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
@@ -73,7 +77,7 @@ suite('Unit Tests - Debug Launcher', () => {
         settings = TypeMoq.Mock.ofType<IPythonSettings>(undefined, TypeMoq.MockBehavior.Strict);
         configService.setup((c) => c.getSettings(TypeMoq.It.isAny())).returns(() => settings.object);
 
-        unitTestSettings = TypeMoq.Mock.ofType<ITestingSettings>(undefined, TypeMoq.MockBehavior.Strict);
+        unitTestSettings = TypeMoq.Mock.ofType<ITestingSettings>();
         settings.setup((p) => p.testing).returns(() => unitTestSettings.object);
 
         debugEnvHelper = TypeMoq.Mock.ofType<IDebugEnvironmentVariablesService>(undefined, TypeMoq.MockBehavior.Strict);
@@ -143,23 +147,26 @@ suite('Unit Tests - Debug Launcher', () => {
             uri: Uri.file(folderPath),
         };
     }
-    function getTestLauncherScript(testProvider: TestProvider) {
-        switch (testProvider) {
-            case 'unittest': {
-                return path.join(EXTENSION_ROOT_DIR, 'pythonFiles', 'visualstudio_py_testlauncher.py');
-            }
-            case 'pytest': {
-                return path.join(EXTENSION_ROOT_DIR, 'pythonFiles', 'testlauncher.py');
-            }
-            default: {
-                throw new Error(`Unknown test provider '${testProvider}'`);
+    function getTestLauncherScript(testProvider: TestProvider, pythonTestAdapterRewriteExperiment?: boolean) {
+        if (!pythonTestAdapterRewriteExperiment) {
+            switch (testProvider) {
+                case 'unittest': {
+                    return path.join(EXTENSION_ROOT_DIR, 'python_files', 'visualstudio_py_testlauncher.py');
+                }
+                case 'pytest': {
+                    return path.join(EXTENSION_ROOT_DIR, 'python_files', 'testlauncher.py');
+                }
+                default: {
+                    throw new Error(`Unknown test provider '${testProvider}'`);
+                }
             }
         }
     }
+
     function getDefaultDebugConfig(): DebugConfiguration {
         return {
             name: 'Debug Unit Test',
-            type: DebuggerTypeName,
+            type: PythonDebuggerTypeName,
             request: 'launch',
             console: 'internalConsole',
             env: {},
@@ -178,7 +185,7 @@ suite('Unit Tests - Debug Launcher', () => {
         expected?: DebugConfiguration,
         debugConfigs?: string | DebugConfiguration[],
     ) {
-        const testLaunchScript = getTestLauncherScript(testProvider);
+        const testLaunchScript = getTestLauncherScript(testProvider, false);
 
         const workspaceFolders = [createWorkspaceFolder(options.cwd), createWorkspaceFolder('five/six/seven')];
         getWorkspaceFoldersStub.returns(workspaceFolders);
@@ -201,13 +208,16 @@ suite('Unit Tests - Debug Launcher', () => {
         if (!expected) {
             expected = getDefaultDebugConfig();
         }
-        expected.rules = [{ path: path.join(EXTENSION_ROOT_DIR, 'pythonFiles'), include: false }];
+        expected.rules = [{ path: path.join(EXTENSION_ROOT_DIR, 'python_files'), include: false }];
         expected.program = testLaunchScript;
         expected.args = options.args;
 
         if (!expected.cwd) {
             expected.cwd = workspaceFolders[0].uri.fsPath;
         }
+        const pluginPath = path.join(EXTENSION_ROOT_DIR, 'python_files');
+        const pythonPath = `${pluginPath}${path.delimiter}${expected.cwd}`;
+        expected.env.PYTHONPATH = pythonPath;
 
         // added by LaunchConfigurationResolver:
         if (!expected.python) {
@@ -319,8 +329,27 @@ suite('Unit Tests - Debug Launcher', () => {
         };
         const expected = getDefaultDebugConfig();
         expected.name = 'spam';
-        setupSuccess(options, 'unittest', expected, [{ name: 'spam', type: DebuggerTypeName, request: 'test' }]);
+        setupSuccess(options, 'unittest', expected, [{ name: 'spam', type: PythonDebuggerTypeName, request: 'test' }]);
 
+        await debugLauncher.launchDebugger(options);
+
+        debugService.verifyAll();
+    });
+
+    test('Use cwd value in settings if exist', async () => {
+        unitTestSettings.setup((p) => p.cwd).returns(() => 'path/to/settings/cwd');
+        const options: LaunchOptions = {
+            cwd: 'one/two/three',
+            args: ['/one/two/three/testfile.py'],
+            testProvider: 'unittest',
+        };
+        const expected = getDefaultDebugConfig();
+        expected.cwd = 'path/to/settings/cwd';
+        const pluginPath = path.join(EXTENSION_ROOT_DIR, 'python_files');
+        const pythonPath = `${pluginPath}${path.delimiter}${expected.cwd}`;
+        expected.env.PYTHONPATH = pythonPath;
+
+        setupSuccess(options, 'unittest', expected);
         await debugLauncher.launchDebugger(options);
 
         debugService.verifyAll();
@@ -334,7 +363,7 @@ suite('Unit Tests - Debug Launcher', () => {
         };
         const expected = {
             name: 'my tests',
-            type: DebuggerTypeName,
+            type: PythonDebuggerTypeName,
             request: 'launch',
             python: 'some/dir/bin/py3',
             debugAdapterPython: 'some/dir/bin/py3',
@@ -344,6 +373,7 @@ suite('Unit Tests - Debug Launcher', () => {
             console: 'integratedTerminal',
             cwd: 'some/dir',
             env: {
+                PYTHONPATH: 'one/two/three',
                 SPAM: 'EGGS',
             },
             envFile: 'some/dir/.env',
@@ -358,7 +388,7 @@ suite('Unit Tests - Debug Launcher', () => {
         setupSuccess(options, 'unittest', expected, [
             {
                 name: 'my tests',
-                type: DebuggerTypeName,
+                type: PythonDebuggerTypeName,
                 request: 'test',
                 pythonPath: expected.python,
                 stopOnEntry: expected.stopOnEntry,
@@ -387,9 +417,9 @@ suite('Unit Tests - Debug Launcher', () => {
         const expected = getDefaultDebugConfig();
         expected.name = 'spam1';
         setupSuccess(options, 'unittest', expected, [
-            { name: 'spam1', type: DebuggerTypeName, request: 'test' },
-            { name: 'spam2', type: DebuggerTypeName, request: 'test' },
-            { name: 'spam3', type: DebuggerTypeName, request: 'test' },
+            { name: 'spam1', type: PythonDebuggerTypeName, request: 'test' },
+            { name: 'spam2', type: PythonDebuggerTypeName, request: 'test' },
+            { name: 'spam3', type: PythonDebuggerTypeName, request: 'test' },
         ]);
 
         await debugLauncher.launchDebugger(options);
@@ -416,7 +446,7 @@ suite('Unit Tests - Debug Launcher', () => {
         '// test 2 \n\
     { \n\
         "name": "spam", \n\
-        "type": "python", \n\
+        "type": "debugpy", \n\
         "request": "test" \n\
     } \n\
             ',
@@ -424,7 +454,7 @@ suite('Unit Tests - Debug Launcher', () => {
     [ \n\
         { \n\
             "name": "spam", \n\
-            "type": "python", \n\
+            "type": "debugpy", \n\
             "request": "test" \n\
         } \n\
     ] \n\
@@ -434,7 +464,7 @@ suite('Unit Tests - Debug Launcher', () => {
         "configurations": [ \n\
             { \n\
                 "name": "spam", \n\
-                "type": "python", \n\
+                "type": "debugpy", \n\
                 "request": "test" \n\
             } \n\
         ] \n\
@@ -469,10 +499,10 @@ suite('Unit Tests - Debug Launcher', () => {
         setupSuccess(options, 'unittest', expected, [
             {} as DebugConfiguration,
             { name: 'spam1' } as DebugConfiguration,
-            { name: 'spam2', type: DebuggerTypeName } as DebugConfiguration,
+            { name: 'spam2', type: PythonDebuggerTypeName } as DebugConfiguration,
             { name: 'spam3', request: 'test' } as DebugConfiguration,
-            { type: DebuggerTypeName } as DebugConfiguration,
-            { type: DebuggerTypeName, request: 'test' } as DebugConfiguration,
+            { type: PythonDebuggerTypeName } as DebugConfiguration,
+            { type: PythonDebuggerTypeName, request: 'test' } as DebugConfiguration,
             { request: 'test' } as DebugConfiguration,
         ]);
 
@@ -502,7 +532,7 @@ suite('Unit Tests - Debug Launcher', () => {
             testProvider: 'unittest',
         };
         const expected = getDefaultDebugConfig();
-        setupSuccess(options, 'unittest', expected, [{ name: 'spam', type: DebuggerTypeName, request: 'bogus' }]);
+        setupSuccess(options, 'unittest', expected, [{ name: 'spam', type: PythonDebuggerTypeName, request: 'bogus' }]);
 
         await debugLauncher.launchDebugger(options);
 
@@ -517,8 +547,8 @@ suite('Unit Tests - Debug Launcher', () => {
         };
         const expected = getDefaultDebugConfig();
         setupSuccess(options, 'unittest', expected, [
-            { name: 'spam', type: DebuggerTypeName, request: 'launch' },
-            { name: 'spam', type: DebuggerTypeName, request: 'attach' },
+            { name: 'spam', type: PythonDebuggerTypeName, request: 'launch' },
+            { name: 'spam', type: PythonDebuggerTypeName, request: 'attach' },
         ]);
 
         await debugLauncher.launchDebugger(options);
@@ -537,9 +567,9 @@ suite('Unit Tests - Debug Launcher', () => {
         setupSuccess(options, 'unittest', expected, [
             { name: 'foo1', type: 'other', request: 'bar' },
             { name: 'foo2', type: 'other', request: 'bar' },
-            { name: 'spam1', type: DebuggerTypeName, request: 'launch' },
-            { name: 'spam2', type: DebuggerTypeName, request: 'test' },
-            { name: 'spam3', type: DebuggerTypeName, request: 'attach' },
+            { name: 'spam1', type: PythonDebuggerTypeName, request: 'launch' },
+            { name: 'spam2', type: PythonDebuggerTypeName, request: 'test' },
+            { name: 'spam3', type: PythonDebuggerTypeName, request: 'attach' },
             { name: 'xyz', type: 'another', request: 'abc' },
         ]);
 
@@ -569,7 +599,7 @@ suite('Unit Tests - Debug Launcher', () => {
             { \n\
                 // "test" debug config \n\
                 "name": "spam",  /* non-empty */ \n\
-                "type": "python",  /* must be "python" */ \n\
+                "type": "debugpy",  /* must be "python" */ \n\
                 "request": "test",  /* must be "test" */ \n\
                 // extra stuff here: \n\
                 "stopOnEntry": true \n\

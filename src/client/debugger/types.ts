@@ -5,7 +5,7 @@
 
 import { DebugConfiguration } from 'vscode';
 import { DebugProtocol } from 'vscode-debugprotocol/lib/debugProtocol';
-import { DebuggerTypeName } from './constants';
+import { DebuggerTypeName, PythonDebuggerTypeName } from './constants';
 
 export enum DebugOptions {
     RedirectOutput = 'RedirectOutput',
@@ -61,6 +61,7 @@ interface ICommonDebugArguments {
     pathMappings?: PathMapping[];
     clientOS?: 'windows' | 'unix';
 }
+
 interface IKnownAttachDebugArguments extends ICommonDebugArguments {
     workspaceFolder?: string;
     customDebugger?: boolean;
@@ -122,14 +123,14 @@ export interface LaunchRequestArguments
     extends DebugProtocol.LaunchRequestArguments,
         IKnownLaunchRequestArguments,
         DebugConfiguration {
-    type: typeof DebuggerTypeName;
+    type: typeof DebuggerTypeName | typeof PythonDebuggerTypeName;
 }
 
 export interface AttachRequestArguments
     extends DebugProtocol.AttachRequestArguments,
         IKnownAttachDebugArguments,
         DebugConfiguration {
-    type: typeof DebuggerTypeName;
+    type: typeof DebuggerTypeName | typeof PythonDebuggerTypeName;
 }
 
 export interface DebugConfigurationArguments extends LaunchRequestArguments, AttachRequestArguments {}

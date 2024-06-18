@@ -5,6 +5,7 @@
 
 import { assert, expect } from 'chai';
 import * as path from 'path';
+import * as sinon from 'sinon';
 import { instance, mock, when } from 'ts-mockito';
 import { buildApi } from '../client/api';
 import { ConfigurationService } from '../client/common/configuration/service';
@@ -17,9 +18,10 @@ import { ServiceContainer } from '../client/ioc/container';
 import { ServiceManager } from '../client/ioc/serviceManager';
 import { IServiceContainer, IServiceManager } from '../client/ioc/types';
 import { IDiscoveryAPI } from '../client/pythonEnvironments/base/locator';
+import * as pythonDebugger from '../client/debugger/pythonDebugger';
 
 suite('Extension API', () => {
-    const debuggerPath = path.join(EXTENSION_ROOT_DIR, 'pythonFiles', 'lib', 'python', 'debugpy');
+    const debuggerPath = path.join(EXTENSION_ROOT_DIR, 'python_files', 'lib', 'python', 'debugpy');
     const debuggerHost = 'somehost';
     const debuggerPort = 12345;
 
@@ -29,6 +31,7 @@ suite('Extension API', () => {
     let interpreterService: IInterpreterService;
     let discoverAPI: IDiscoveryAPI;
     let environmentVariablesProvider: IEnvironmentVariablesProvider;
+    let getDebugpyPathStub: sinon.SinonStub;
 
     setup(() => {
         serviceContainer = mock(ServiceContainer);
@@ -37,6 +40,7 @@ suite('Extension API', () => {
         interpreterService = mock(InterpreterService);
         environmentVariablesProvider = mock<IEnvironmentVariablesProvider>();
         discoverAPI = mock<IDiscoveryAPI>();
+        when(discoverAPI.getEnvs()).thenReturn([]);
 
         when(serviceContainer.get<IConfigurationService>(IConfigurationService)).thenReturn(
             instance(configurationService),
@@ -46,6 +50,12 @@ suite('Extension API', () => {
         );
         when(serviceContainer.get<IInterpreterService>(IInterpreterService)).thenReturn(instance(interpreterService));
         when(serviceContainer.get<IDisposableRegistry>(IDisposableRegistry)).thenReturn([]);
+        getDebugpyPathStub = sinon.stub(pythonDebugger, 'getDebugpyPath');
+        getDebugpyPathStub.resolves(debuggerPath);
+    });
+
+    teardown(() => {
+        sinon.restore();
     });
 
     test('Test debug launcher args (no-wait)', async () => {

@@ -14,10 +14,14 @@ import { IDisposableRegistry, IConfigurationService, Resource } from '../../comm
 import { noop } from '../../common/utils/misc';
 import { IInterpreterService } from '../../interpreter/contracts';
 import { IServiceContainer } from '../../ioc/types';
-import { traceError } from '../../logging';
+import { traceError, traceVerbose } from '../../logging';
 import { captureTelemetry, sendTelemetryEvent } from '../../telemetry';
 import { EventName } from '../../telemetry/constants';
 import { ICodeExecutionHelper, ICodeExecutionManager, ICodeExecutionService } from '../../terminals/types';
+import {
+    CreateEnvironmentCheckKind,
+    triggerCreateEnvironmentCheckNonBlocking,
+} from '../../pythonEnvironments/creation/createEnvironmentTrigger';
 
 @injectable()
 export class CodeExecutionManager implements ICodeExecutionManager {
@@ -36,25 +40,36 @@ export class CodeExecutionManager implements ICodeExecutionManager {
     }
 
     public registerCommands() {
-        [Commands.Exec_In_Terminal, Commands.Exec_In_Terminal_Icon].forEach((cmd) => {
-            this.disposableRegistry.push(
-                this.commandManager.registerCommand(cmd as any, async (file: Resource) => {
-                    const interpreterService = this.serviceContainer.get<IInterpreterService>(IInterpreterService);
-                    const interpreter = await interpreterService.getActiveInterpreter(file);
-                    if (!interpreter) {
-                        this.commandManager.executeCommand(Commands.TriggerEnvironmentSelection, file).then(noop, noop);
-                        return;
-                    }
-                    const trigger = cmd === Commands.Exec_In_Terminal ? 'command' : 'icon';
-                    await this.executeFileInTerminal(file, trigger)
-                        .then(() => {
-                            if (this.shouldTerminalFocusOnStart(file))
-                                this.commandManager.executeCommand('workbench.action.terminal.focus');
+        [Commands.Exec_In_Terminal, Commands.Exec_In_Terminal_Icon, Commands.Exec_In_Separate_Terminal].forEach(
+            (cmd) => {
+                this.disposableRegistry.push(
+                    this.commandManager.registerCommand(cmd as any, async (file: Resource) => {
+                        traceVerbose(`Attempting to run Python file`, file?.fsPath);
+                        const interpreterService = this.serviceContainer.get<IInterpreterService>(IInterpreterService);
+                        const interpreter = await interpreterService.getActiveInterpreter(file);
+                        if (!interpreter) {
+                            this.commandManager
+                                .executeCommand(Commands.TriggerEnvironmentSelection, file)
+                                .then(noop, noop);
+                            return;
+                        }
+                        sendTelemetryEvent(EventName.ENVIRONMENT_CHECK_TRIGGER, undefined, {
+                            trigger: 'run-in-terminal',
+                        });
+                        triggerCreateEnvironmentCheckNonBlocking(CreateEnvironmentCheckKind.File, file);
+                        const trigger = cmd === Commands.Exec_In_Terminal ? 'command' : 'icon';
+                        await this.executeFileInTerminal(file, trigger, {
+                            newTerminalPerFile: cmd === Commands.Exec_In_Separate_Terminal,
                         })
-                        .catch((ex) => traceError('Failed to execute file in terminal', ex));
-                }),
-            );
-        });
+                            .then(() => {
+                                if (this.shouldTerminalFocusOnStart(file))
+                                    this.commandManager.executeCommand('workbench.action.terminal.focus');
+                            })
+                            .catch((ex) => traceError('Failed to execute file in terminal', ex));
+                    }),
+                );
+            },
+        );
         this.disposableRegistry.push(
             this.commandManager.registerCommand(Commands.Exec_Selection_In_Terminal as any, async (file: Resource) => {
                 const interpreterService = this.serviceContainer.get<IInterpreterService>(IInterpreterService);
@@ -63,6 +78,8 @@ export class CodeExecutionManager implements ICodeExecutionManager {
                     this.commandManager.executeCommand(Commands.TriggerEnvironmentSelection, file).then(noop, noop);
                     return;
                 }
+                sendTelemetryEvent(EventName.ENVIRONMENT_CHECK_TRIGGER, undefined, { trigger: 'run-selection' });
+                triggerCreateEnvironmentCheckNonBlocking(CreateEnvironmentCheckKind.File, file);
                 await this.executeSelectionInTerminal().then(() => {
                     if (this.shouldTerminalFocusOnStart(file))
                         this.commandManager.executeCommand('workbench.action.terminal.focus');
@@ -79,6 +96,8 @@ export class CodeExecutionManager implements ICodeExecutionManager {
                         this.commandManager.executeCommand(Commands.TriggerEnvironmentSelection, file).then(noop, noop);
                         return;
                     }
+                    sendTelemetryEvent(EventName.ENVIRONMENT_CHECK_TRIGGER, undefined, { trigger: 'run-selection' });
+                    triggerCreateEnvironmentCheckNonBlocking(CreateEnvironmentCheckKind.File, file);
                     await this.executeSelectionInDjangoShell().then(() => {
                         if (this.shouldTerminalFocusOnStart(file))
                             this.commandManager.executeCommand('workbench.action.terminal.focus');
@@ -87,15 +106,26 @@ export class CodeExecutionManager implements ICodeExecutionManager {
             ),
         );
     }
-    private async executeFileInTerminal(file: Resource, trigger: 'command' | 'icon') {
-        sendTelemetryEvent(EventName.EXECUTION_CODE, undefined, { scope: 'file', trigger });
+    private async executeFileInTerminal(
+        file: Resource,
+        trigger: 'command' | 'icon',
+        options?: { newTerminalPerFile: boolean },
+    ): Promise<void> {
+        sendTelemetryEvent(EventName.EXECUTION_CODE, undefined, {
+            scope: 'file',
+            trigger,
+            newTerminalPerFile: options?.newTerminalPerFile,
+        });
         const codeExecutionHelper = this.serviceContainer.get<ICodeExecutionHelper>(ICodeExecutionHelper);
         file = file instanceof Uri ? file : undefined;
-        const fileToExecute = file ? file : await codeExecutionHelper.getFileToExecute();
+        let fileToExecute = file ? file : await codeExecutionHelper.getFileToExecute();
         if (!fileToExecute) {
             return;
         }
-        await codeExecutionHelper.saveFileIfDirty(fileToExecute);
+        const fileAfterSave = await codeExecutionHelper.saveFileIfDirty(fileToExecute);
+        if (fileAfterSave) {
+            fileToExecute = fileAfterSave;
+        }
 
         try {
             const contents = await this.fileSystem.readFile(fileToExecute.fsPath);
@@ -107,7 +137,7 @@ export class CodeExecutionManager implements ICodeExecutionManager {
         }
 
         const executionService = this.serviceContainer.get<ICodeExecutionService>(ICodeExecutionService, 'standard');
-        await executionService.executeFile(fileToExecute);
+        await executionService.executeFile(fileToExecute, options);
     }
 
     @captureTelemetry(EventName.EXECUTION_CODE, { scope: 'selection' }, false)
@@ -130,7 +160,11 @@ export class CodeExecutionManager implements ICodeExecutionManager {
         }
         const codeExecutionHelper = this.serviceContainer.get<ICodeExecutionHelper>(ICodeExecutionHelper);
         const codeToExecute = await codeExecutionHelper.getSelectedTextToExecute(activeEditor!);
-        const normalizedCode = await codeExecutionHelper.normalizeLines(codeToExecute!);
+        let wholeFileContent = '';
+        if (activeEditor && activeEditor.document) {
+            wholeFileContent = activeEditor.document.getText();
+        }
+        const normalizedCode = await codeExecutionHelper.normalizeLines(codeToExecute!, wholeFileContent);
         if (!normalizedCode || normalizedCode.trim().length === 0) {
             return;
         }

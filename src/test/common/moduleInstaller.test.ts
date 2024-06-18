@@ -3,7 +3,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 import { SemVer } from 'semver';
 import { instance, mock, when } from 'ts-mockito';
 import * as TypeMoq from 'typemoq';
-import { ConfigurationTarget, Uri } from 'vscode';
+import { Uri } from 'vscode';
 import { IExtensionSingleActivationService } from '../../client/activation/types';
 import { ActiveResourceService } from '../../client/common/application/activeResource';
 import { ApplicationEnvironment } from '../../client/common/application/applicationEnvironment';
@@ -29,7 +29,6 @@ import {
 } from '../../client/common/application/types';
 import { WorkspaceService } from '../../client/common/application/workspace';
 import { ConfigurationService } from '../../client/common/configuration/service';
-import { EditorUtils } from '../../client/common/editor';
 import { ExperimentService } from '../../client/common/experiments/service';
 import { CondaInstaller } from '../../client/common/installer/condaInstaller';
 import { PipEnvInstaller } from '../../client/common/installer/pipEnvInstaller';
@@ -38,8 +37,6 @@ import { ProductInstaller } from '../../client/common/installer/productInstaller
 import { IModuleInstaller } from '../../client/common/installer/types';
 import { InterpreterPathService } from '../../client/common/interpreterPathService';
 import { BrowserService } from '../../client/common/net/browser';
-import { FileDownloader } from '../../client/common/net/fileDownloader';
-import { HttpClient } from '../../client/common/net/httpClient';
 import { PersistentStateFactory } from '../../client/common/persistentState';
 import { FileSystem } from '../../client/common/platform/fileSystem';
 import { PathUtils } from '../../client/common/platform/pathUtils';
@@ -52,6 +49,7 @@ import { TerminalActivator } from '../../client/common/terminal/activator';
 import { PowershellTerminalActivationFailedHandler } from '../../client/common/terminal/activator/powershellFailedHandler';
 import { Bash } from '../../client/common/terminal/environmentActivationProviders/bash';
 import { CommandPromptAndPowerShell } from '../../client/common/terminal/environmentActivationProviders/commandPrompt';
+import { Nushell } from '../../client/common/terminal/environmentActivationProviders/nushell';
 import { CondaActivationCommandProvider } from '../../client/common/terminal/environmentActivationProviders/condaActivationProvider';
 import { PipEnvActivationCommandProvider } from '../../client/common/terminal/environmentActivationProviders/pipEnvActivationProvider';
 import { PyEnvActivationCommandProvider } from '../../client/common/terminal/environmentActivationProviders/pyenvActivationProvider';
@@ -74,11 +72,8 @@ import {
     IBrowserService,
     IConfigurationService,
     ICurrentProcess,
-    IEditorUtils,
     IExperimentService,
     IExtensions,
-    IFileDownloader,
-    IHttpClient,
     IInstaller,
     IInterpreterPathService,
     IPathUtils,
@@ -101,7 +96,7 @@ import { JupyterExtensionDependencyManager } from '../../client/jupyter/jupyterE
 import { EnvironmentType, PythonEnvironment } from '../../client/pythonEnvironments/info';
 import { ImportTracker } from '../../client/telemetry/importTracker';
 import { IImportTracker } from '../../client/telemetry/types';
-import { PYTHON_PATH, rootWorkspaceUri } from '../common';
+import { PYTHON_PATH } from '../common';
 import { MockModuleInstaller } from '../mocks/moduleInstaller';
 import { MockProcessService } from '../mocks/proc';
 import { UnitTestIocContainer } from '../testing/serviceRegistry';
@@ -135,7 +130,6 @@ suite('Module Installer', () => {
             chaiShould();
             await initializeDI();
             await initializeTest();
-            await resetSettings();
         });
         suiteTeardown(async () => {
             await closeActiveWindows();
@@ -149,8 +143,6 @@ suite('Module Installer', () => {
             ioc = new UnitTestIocContainer();
             ioc.registerUnitTestTypes();
             ioc.registerVariableTypes();
-            ioc.registerLinterTypes();
-            ioc.registerFormatterTypes();
             ioc.registerInterpreterStorageTypes();
 
             ioc.serviceManager.addSingleton<IPersistentStateFactory>(IPersistentStateFactory, PersistentStateFactory);
@@ -211,9 +203,6 @@ suite('Module Installer', () => {
                 JupyterExtensionDependencyManager,
             );
             ioc.serviceManager.addSingleton<IBrowserService>(IBrowserService, BrowserService);
-            ioc.serviceManager.addSingleton<IHttpClient>(IHttpClient, HttpClient);
-            ioc.serviceManager.addSingleton<IFileDownloader>(IFileDownloader, FileDownloader);
-            ioc.serviceManager.addSingleton<IEditorUtils>(IEditorUtils, EditorUtils);
             ioc.serviceManager.addSingleton<ITerminalActivator>(ITerminalActivator, TerminalActivator);
             ioc.serviceManager.addSingleton<ITerminalActivationHandler>(
                 ITerminalActivationHandler,
@@ -230,6 +219,11 @@ suite('Module Installer', () => {
                 ITerminalActivationCommandProvider,
                 CommandPromptAndPowerShell,
                 TerminalActivationProviders.commandPromptAndPowerShell,
+            );
+            ioc.serviceManager.addSingleton<ITerminalActivationCommandProvider>(
+                ITerminalActivationCommandProvider,
+                Nushell,
+                TerminalActivationProviders.nushell,
             );
             ioc.serviceManager.addSingleton<ITerminalActivationCommandProvider>(
                 ITerminalActivationCommandProvider,
@@ -265,15 +259,6 @@ suite('Module Installer', () => {
             ioc.serviceManager.addSingleton<IExtensionSingleActivationService>(
                 IExtensionSingleActivationService,
                 DebugSessionTelemetry,
-            );
-        }
-        async function resetSettings(): Promise<void> {
-            const configService = ioc.serviceManager.get<IConfigurationService>(IConfigurationService);
-            await configService.updateSetting(
-                'linting.pylintEnabled',
-                true,
-                rootWorkspaceUri,
-                ConfigurationTarget.Workspace,
             );
         }
         test('Ensure pip is supported and conda is not', async () => {

@@ -6,11 +6,11 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { IWorkspaceService } from '../../common/application/types';
 import { ExecutionResult, IProcessServiceFactory, ShellOptions, SpawnOptions } from '../../common/process/types';
-import { IDisposable, IConfigurationService } from '../../common/types';
+import { IDisposable, IConfigurationService, IExperimentService } from '../../common/types';
 import { chain, iterable } from '../../common/utils/async';
 import { getOSType, OSType } from '../../common/utils/platform';
 import { IServiceContainer } from '../../ioc/types';
-import { traceVerbose } from '../../logging';
+import { traceError, traceVerbose } from '../../logging';
 
 let internalServiceContainer: IServiceContainer;
 export function initializeExternalDependencies(serviceContainer: IServiceContainer): void {
@@ -20,13 +20,26 @@ export function initializeExternalDependencies(serviceContainer: IServiceContain
 // processes
 
 export async function shellExecute(command: string, options: ShellOptions = {}): Promise<ExecutionResult<string>> {
+    const useWorker = false;
     const service = await internalServiceContainer.get<IProcessServiceFactory>(IProcessServiceFactory).create();
+    options = { ...options, useWorker };
     return service.shellExec(command, options);
 }
 
-export async function exec(file: string, args: string[], options: SpawnOptions = {}): Promise<ExecutionResult<string>> {
+export async function exec(
+    file: string,
+    args: string[],
+    options: SpawnOptions = {},
+    useWorker = false,
+): Promise<ExecutionResult<string>> {
     const service = await internalServiceContainer.get<IProcessServiceFactory>(IProcessServiceFactory).create();
+    options = { ...options, useWorker };
     return service.exec(file, args, options);
+}
+
+export function inExperiment(experimentName: string): boolean {
+    const service = internalServiceContainer.get<IExperimentService>(IExperimentService);
+    return service.inExperimentSync(experimentName);
 }
 
 // Workspace
@@ -93,16 +106,21 @@ export function arePathsSame(path1: string, path2: string): boolean {
     return normCasePath(path1) === normCasePath(path2);
 }
 
-export async function resolveSymbolicLink(absPath: string, stats?: fsapi.Stats): Promise<string> {
+export async function resolveSymbolicLink(absPath: string, stats?: fsapi.Stats, count?: number): Promise<string> {
     stats = stats ?? (await fsapi.lstat(absPath));
     if (stats.isSymbolicLink()) {
+        if (count && count > 5) {
+            traceError(`Detected a potential symbolic link loop at ${absPath}, terminating resolution.`);
+            return absPath;
+        }
         const link = await fsapi.readlink(absPath);
         // Result from readlink is not guaranteed to be an absolute path. For eg. on Mac it resolves
         // /usr/local/bin/python3.9 -> ../../../Library/Frameworks/Python.framework/Versions/3.9/bin/python3.9
         //
         // The resultant path is reported relative to the symlink directory we resolve. Convert that to absolute path.
         const absLinkPath = path.isAbsolute(link) ? link : path.resolve(path.dirname(absPath), link);
-        return resolveSymbolicLink(absLinkPath);
+        count = count ? count + 1 : 1;
+        return resolveSymbolicLink(absLinkPath, undefined, count);
     }
     return absPath;
 }
@@ -170,8 +188,9 @@ export async function* getSubDirs(
  * Returns the value for setting `python.<name>`.
  * @param name The name of the setting.
  */
-export function getPythonSetting<T>(name: string): T | undefined {
-    const settings = internalServiceContainer.get<IConfigurationService>(IConfigurationService).getSettings();
+export function getPythonSetting<T>(name: string, root?: string): T | undefined {
+    const resource = root ? vscode.Uri.file(root) : undefined;
+    const settings = internalServiceContainer.get<IConfigurationService>(IConfigurationService).getSettings(resource);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (settings as any)[name];
 }
@@ -181,9 +200,10 @@ export function getPythonSetting<T>(name: string): T | undefined {
  * @param name The name of the setting.
  * @param callback The listener function to be called when the setting changes.
  */
-export function onDidChangePythonSetting(name: string, callback: () => void): IDisposable {
+export function onDidChangePythonSetting(name: string, callback: () => void, root?: string): IDisposable {
     return vscode.workspace.onDidChangeConfiguration((event: vscode.ConfigurationChangeEvent) => {
-        if (event.affectsConfiguration(`python.${name}`)) {
+        const scope = root ? vscode.Uri.file(root) : undefined;
+        if (event.affectsConfiguration(`python.${name}`, scope)) {
             callback();
         }
     });
