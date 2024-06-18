@@ -105,7 +105,7 @@ export class NativeLocator implements ILocator<BasicEnvInfo>, IDisposable {
         const disposables: IDisposable[] = [];
         const disposable = new Disposable(() => disposeAll(disposables));
         this.disposables.push(disposable);
-        for await (const data of this.finder.refresh([])) {
+        for await (const data of this.finder.refresh()) {
             if (data.manager) {
                 switch (toolToKnownEnvironmentTool(data.manager.tool)) {
                     case 'Conda': {
