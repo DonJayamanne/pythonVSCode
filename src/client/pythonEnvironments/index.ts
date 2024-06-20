@@ -39,6 +39,7 @@ import { IDisposable } from '../common/types';
 import { traceError } from '../logging';
 import { ActiveStateLocator } from './base/locators/lowLevel/activeStateLocator';
 import { CustomWorkspaceLocator } from './base/locators/lowLevel/customWorkspaceLocator';
+import { PixiLocator } from './base/locators/lowLevel/pixiLocator';
 import { NativeLocator } from './base/locators/lowLevel/nativeLocator';
 import { getConfiguration } from '../common/vscodeApis/workspaceApis';
 
@@ -206,6 +207,7 @@ function createWorkspaceLocator(ext: ExtensionState): WorkspaceLocators {
                       new WorkspaceVirtualEnvironmentLocator(root.fsPath),
                       new PoetryLocator(root.fsPath),
                       new HatchLocator(root.fsPath),
+                      new PixiLocator(root.fsPath),
                       new CustomWorkspaceLocator(root.fsPath),
                   ],
                   // Add an ILocator factory func here for each kind of workspace-rooted locator.
