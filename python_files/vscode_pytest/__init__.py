@@ -14,9 +14,17 @@ import pytest
 script_dir = pathlib.Path(__file__).parent.parent
 sys.path.append(os.fspath(script_dir))
 sys.path.append(os.fspath(script_dir / "lib" / "python"))
-
 from testing_tools import socket_manager  # noqa: E402
-from typing import Any, Dict, List, Optional, Union, TypedDict, Literal  # noqa: E402
+from typing import (  # noqa: E402
+    Any,
+    Dict,
+    List,
+    Optional,
+    Union,
+    TypedDict,
+    Literal,
+    Generator,
+)
 
 
 class TestData(TypedDict):
@@ -882,3 +890,15 @@ def send_post_request(
             f"Plugin error, exception thrown while attempting to send data[vscode-pytest]: {error} \n[vscode-pytest] data: \n{data}\n",
             file=sys.stderr,
         )
+
+
+class DeferPlugin:
+    @pytest.hookimpl(wrapper=True)
+    def pytest_xdist_auto_num_workers(self, config: pytest.Config) -> Generator[None, int, int]:
+        """determine how many workers to use based on how many tests were selected in the test explorer"""
+        return min((yield), len(config.option.file_or_dir))
+
+
+def pytest_plugin_registered(plugin: object, manager: pytest.PytestPluginManager):
+    if manager.hasplugin("xdist") and not isinstance(plugin, DeferPlugin):
+        manager.register(DeferPlugin())
