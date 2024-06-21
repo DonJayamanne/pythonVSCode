@@ -24,6 +24,7 @@ import {
 import { getQueryFilter } from '../../locatorUtils';
 import { PythonEnvCollectionChangedEvent, PythonEnvsWatcher } from '../../watcher';
 import { IEnvsCollectionCache } from './envsCollectionCache';
+import { createNativeGlobalPythonFinder } from '../common/nativePythonFinder';
 
 /**
  * A service which maintains the collection of known environments.
@@ -43,6 +44,8 @@ export class EnvsCollectionService extends PythonEnvsWatcher<PythonEnvCollection
 
     private readonly progress = new EventEmitter<ProgressNotificationEvent>();
 
+    private nativeFinder = createNativeGlobalPythonFinder();
+
     public refreshState = ProgressReportStage.discoveryFinished;
 
     public get onProgress(): Event<ProgressNotificationEvent> {
@@ -54,11 +57,7 @@ export class EnvsCollectionService extends PythonEnvsWatcher<PythonEnvCollection
         return this.progressPromises.get(stage)?.promise;
     }
 
-    constructor(
-        private readonly cache: IEnvsCollectionCache,
-        private readonly locator: IResolvingLocator,
-        private readonly usingNativeLocator: boolean,
-    ) {
+    constructor(private readonly cache: IEnvsCollectionCache, private readonly locator: IResolvingLocator) {
         super();
         this.locator.onChanged((event) => {
             const query: PythonLocatorQuery | undefined = event.providerId
@@ -260,9 +259,21 @@ export class EnvsCollectionService extends PythonEnvsWatcher<PythonEnvCollection
         }
     }
 
-    private sendTelemetry(query: PythonLocatorQuery | undefined, stopWatch: StopWatch) {
+    private telemetrySentOnce = false;
+
+    private async sendTelemetry(query: PythonLocatorQuery | undefined, stopWatch: StopWatch) {
+        if (this.telemetrySentOnce) {
+            return;
+        }
+        this.telemetrySentOnce = true;
         if (!query && !this.hasRefreshFinished(query)) {
             const envs = this.cache.getAllEnvs();
+
+            const nativeEnvs = [];
+            for await (const data of this.nativeFinder.refresh()) {
+                nativeEnvs.push(data);
+            }
+
             const environmentsWithoutPython = envs.filter(
                 (e) => getEnvPath(e.executable.filename, e.location).pathType === 'envFolderPath',
             ).length;
@@ -281,11 +292,65 @@ export class EnvsCollectionService extends PythonEnvsWatcher<PythonEnvCollection
             const venvEnvs = envs.filter((e) => e.kind === PythonEnvKind.Venv).length;
             const virtualEnvEnvs = envs.filter((e) => e.kind === PythonEnvKind.VirtualEnv).length;
             const virtualEnvWrapperEnvs = envs.filter((e) => e.kind === PythonEnvKind.VirtualEnvWrapper).length;
+            const global = envs.filter(
+                (e) =>
+                    e.kind === PythonEnvKind.OtherGlobal ||
+                    e.kind === PythonEnvKind.System ||
+                    e.kind === PythonEnvKind.Custom ||
+                    e.kind === PythonEnvKind.OtherVirtual,
+            ).length;
+
+            const nativeEnvironmentsWithoutPython = nativeEnvs.filter((e) => e.executable === undefined).length;
+            const nativeCondaEnvs = nativeEnvs.filter(
+                (e) => this.nativeFinder.categoryToKind(e.category) === PythonEnvKind.Conda,
+            ).length;
+            const nativeCustomEnvs = nativeEnvs.filter(
+                (e) => this.nativeFinder.categoryToKind(e.category) === PythonEnvKind.Custom,
+            ).length;
+            const nativeMicrosoftStoreEnvs = nativeEnvs.filter(
+                (e) => this.nativeFinder.categoryToKind(e.category) === PythonEnvKind.MicrosoftStore,
+            ).length;
+            const nativeOtherGlobalEnvs = nativeEnvs.filter(
+                (e) => this.nativeFinder.categoryToKind(e.category) === PythonEnvKind.OtherGlobal,
+            ).length;
+            const nativeOtherVirtualEnvs = nativeEnvs.filter(
+                (e) => this.nativeFinder.categoryToKind(e.category) === PythonEnvKind.OtherVirtual,
+            ).length;
+            const nativePipEnvEnvs = nativeEnvs.filter(
+                (e) => this.nativeFinder.categoryToKind(e.category) === PythonEnvKind.Pipenv,
+            ).length;
+            const nativePoetryEnvs = nativeEnvs.filter(
+                (e) => this.nativeFinder.categoryToKind(e.category) === PythonEnvKind.Poetry,
+            ).length;
+            const nativePyenvEnvs = nativeEnvs.filter(
+                (e) => this.nativeFinder.categoryToKind(e.category) === PythonEnvKind.Pyenv,
+            ).length;
+            const nativeSystemEnvs = nativeEnvs.filter(
+                (e) => this.nativeFinder.categoryToKind(e.category) === PythonEnvKind.System,
+            ).length;
+            const nativeUnknownEnvs = nativeEnvs.filter(
+                (e) => this.nativeFinder.categoryToKind(e.category) === PythonEnvKind.Unknown,
+            ).length;
+            const nativeVenvEnvs = nativeEnvs.filter(
+                (e) => this.nativeFinder.categoryToKind(e.category) === PythonEnvKind.Venv,
+            ).length;
+            const nativeVirtualEnvEnvs = nativeEnvs.filter(
+                (e) => this.nativeFinder.categoryToKind(e.category) === PythonEnvKind.VirtualEnv,
+            ).length;
+            const nativeVirtualEnvWrapperEnvs = nativeEnvs.filter(
+                (e) => this.nativeFinder.categoryToKind(e.category) === PythonEnvKind.VirtualEnvWrapper,
+            ).length;
+            const nativeGlobal = nativeEnvs.filter(
+                (e) =>
+                    this.nativeFinder.categoryToKind(e.category) === PythonEnvKind.OtherGlobal ||
+                    this.nativeFinder.categoryToKind(e.category) === PythonEnvKind.System ||
+                    this.nativeFinder.categoryToKind(e.category) === PythonEnvKind.Custom ||
+                    this.nativeFinder.categoryToKind(e.category) === PythonEnvKind.OtherVirtual,
+            ).length;
 
             // Intent is to capture time taken for discovery of all envs to complete the first time.
             sendTelemetryEvent(EventName.PYTHON_INTERPRETER_DISCOVERY, stopWatch.elapsedTime, {
                 interpreters: this.cache.getAllEnvs().length,
-                usingNativeLocator: this.usingNativeLocator,
                 environmentsWithoutPython,
                 activeStateEnvs,
                 condaEnvs,
@@ -302,6 +367,22 @@ export class EnvsCollectionService extends PythonEnvsWatcher<PythonEnvCollection
                 venvEnvs,
                 virtualEnvEnvs,
                 virtualEnvWrapperEnvs,
+                global,
+                nativeEnvironmentsWithoutPython,
+                nativeCondaEnvs,
+                nativeCustomEnvs,
+                nativeMicrosoftStoreEnvs,
+                nativeOtherGlobalEnvs,
+                nativeOtherVirtualEnvs,
+                nativePipEnvEnvs,
+                nativePoetryEnvs,
+                nativePyenvEnvs,
+                nativeSystemEnvs,
+                nativeUnknownEnvs,
+                nativeVenvEnvs,
+                nativeVirtualEnvEnvs,
+                nativeVirtualEnvWrapperEnvs,
+                nativeGlobal,
             });
         }
         this.hasRefreshFinishedForQuery.set(query, true);

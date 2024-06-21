@@ -1,6 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
+/* eslint-disable class-methods-use-this */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { assert, expect } from 'chai';
 import { cloneDeep } from 'lodash';
@@ -25,8 +26,33 @@ import { TEST_LAYOUT_ROOT } from '../../../common/commonTestConstants';
 import { SimpleLocator } from '../../common';
 import { assertEnvEqual, assertEnvsEqual, createFile, deleteFile } from '../envTestUtils';
 import { OSType, getOSType } from '../../../../common';
+import * as nativeFinder from '../../../../../client/pythonEnvironments/base/locators/common/nativePythonFinder';
+
+class MockNativePythonFinder implements nativeFinder.NativeGlobalPythonFinder {
+    categoryToKind(_category: string): PythonEnvKind {
+        throw new Error('Method not implemented.');
+    }
+
+    resolve(_executable: string): Promise<nativeFinder.NativeEnvInfo> {
+        throw new Error('Method not implemented.');
+    }
+
+    refresh(): AsyncIterable<nativeFinder.NativeEnvInfo> {
+        const envs: nativeFinder.NativeEnvInfo[] = [];
+        return (async function* () {
+            for (const env of envs) {
+                yield env;
+            }
+        })();
+    }
+
+    dispose() {
+        /** noop */
+    }
+}
 
 suite('Python envs locator - Environments Collection', async () => {
+    let createNativeGlobalPythonFinderStub: sinon.SinonStub;
     let collectionService: EnvsCollectionService;
     let storage: PythonEnvInfo[];
 
@@ -138,6 +164,8 @@ suite('Python envs locator - Environments Collection', async () => {
     }
 
     setup(async () => {
+        createNativeGlobalPythonFinderStub = sinon.stub(nativeFinder, 'createNativeGlobalPythonFinder');
+        createNativeGlobalPythonFinderStub.returns(new MockNativePythonFinder());
         storage = [];
         const parentLocator = new SimpleLocator(getLocatorEnvs());
         const cache = await createCollectionCache({
@@ -146,7 +174,7 @@ suite('Python envs locator - Environments Collection', async () => {
                 storage = envs;
             },
         });
-        collectionService = new EnvsCollectionService(cache, parentLocator, false);
+        collectionService = new EnvsCollectionService(cache, parentLocator);
     });
 
     teardown(async () => {
@@ -192,7 +220,7 @@ suite('Python envs locator - Environments Collection', async () => {
                 storage = e;
             },
         });
-        collectionService = new EnvsCollectionService(cache, parentLocator, false);
+        collectionService = new EnvsCollectionService(cache, parentLocator);
 
         await collectionService.triggerRefresh(undefined);
         await collectionService.triggerRefresh(undefined, { ifNotTriggerredAlready: true });
@@ -226,7 +254,7 @@ suite('Python envs locator - Environments Collection', async () => {
                 storage = e;
             },
         });
-        collectionService = new EnvsCollectionService(cache, parentLocator, false);
+        collectionService = new EnvsCollectionService(cache, parentLocator);
 
         const events: PythonEnvCollectionChangedEvent[] = [];
         collectionService.onChanged((e) => {
@@ -267,7 +295,7 @@ suite('Python envs locator - Environments Collection', async () => {
                 storage = e;
             },
         });
-        collectionService = new EnvsCollectionService(cache, parentLocator, false);
+        collectionService = new EnvsCollectionService(cache, parentLocator);
 
         let events: PythonEnvCollectionChangedEvent[] = [];
         collectionService.onChanged((e) => {
@@ -318,7 +346,7 @@ suite('Python envs locator - Environments Collection', async () => {
                 storage = e;
             },
         });
-        collectionService = new EnvsCollectionService(cache, parentLocator, false);
+        collectionService = new EnvsCollectionService(cache, parentLocator);
 
         const events: PythonEnvCollectionChangedEvent[] = [];
         collectionService.onChanged((e) => {
@@ -371,7 +399,7 @@ suite('Python envs locator - Environments Collection', async () => {
                 storage = e;
             },
         });
-        collectionService = new EnvsCollectionService(cache, parentLocator, false);
+        collectionService = new EnvsCollectionService(cache, parentLocator);
         let stage: ProgressReportStage | undefined;
         collectionService.onProgress((e) => {
             stage = e.stage;
@@ -442,7 +470,7 @@ suite('Python envs locator - Environments Collection', async () => {
             get: () => cachedEnvs,
             store: async () => noop(),
         });
-        collectionService = new EnvsCollectionService(cache, parentLocator, false);
+        collectionService = new EnvsCollectionService(cache, parentLocator);
         const resolved = await collectionService.resolveEnv(env.executable.filename);
         assertEnvEqual(resolved, env);
     });
@@ -472,10 +500,10 @@ suite('Python envs locator - Environments Collection', async () => {
             get: () => [],
             store: async () => noop(),
         });
-        collectionService = new EnvsCollectionService(cache, parentLocator, false);
+        collectionService = new EnvsCollectionService(cache, parentLocator);
         collectionService.triggerRefresh().ignoreErrors();
         await waitDeferred.promise; // Cache should already contain `env` at this point, although it is not complete.
-        collectionService = new EnvsCollectionService(cache, parentLocator, false);
+        collectionService = new EnvsCollectionService(cache, parentLocator);
         const resolved = await collectionService.resolveEnv(env.executable.filename);
         assertEnvEqual(resolved, resolvedViaLocator);
     });
@@ -502,7 +530,7 @@ suite('Python envs locator - Environments Collection', async () => {
             get: () => cachedEnvs,
             store: async () => noop(),
         });
-        collectionService = new EnvsCollectionService(cache, parentLocator, false);
+        collectionService = new EnvsCollectionService(cache, parentLocator);
         const resolved = await collectionService.resolveEnv(env.executable.filename);
         assertEnvEqual(resolved, resolvedViaLocator);
     });
@@ -521,7 +549,7 @@ suite('Python envs locator - Environments Collection', async () => {
             get: () => [],
             store: async () => noop(),
         });
-        collectionService = new EnvsCollectionService(cache, parentLocator, false);
+        collectionService = new EnvsCollectionService(cache, parentLocator);
         const resolved = await collectionService.resolveEnv(resolvedViaLocator.executable.filename);
         const envs = collectionService.getEnvs();
         assertEnvsEqual(envs, [resolved]);
@@ -545,7 +573,7 @@ suite('Python envs locator - Environments Collection', async () => {
             get: () => cachedEnvs,
             store: async () => noop(),
         });
-        collectionService = new EnvsCollectionService(cache, parentLocator, false);
+        collectionService = new EnvsCollectionService(cache, parentLocator);
         let resolved = await collectionService.resolveEnv(condaEnvWithoutPython.location);
         assertEnvEqual(resolved, condaEnvWithoutPython); // Ensure cache is used to resolve such envs.
 
@@ -583,7 +611,7 @@ suite('Python envs locator - Environments Collection', async () => {
             get: () => [],
             store: async () => noop(),
         });
-        collectionService = new EnvsCollectionService(cache, parentLocator, false);
+        collectionService = new EnvsCollectionService(cache, parentLocator);
         const events: PythonEnvCollectionChangedEvent[] = [];
         collectionService.onChanged((e) => {
             events.push(e);
