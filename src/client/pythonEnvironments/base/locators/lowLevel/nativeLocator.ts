@@ -5,7 +5,7 @@ import { Disposable, Event, EventEmitter, Uri } from 'vscode';
 import { IDisposable } from '../../../../common/types';
 import { ILocator, BasicEnvInfo, IPythonEnvsIterator } from '../../locator';
 import { PythonEnvsChangedEvent } from '../../watcher';
-import { PythonEnvKind, PythonVersion } from '../../info';
+import { PythonVersion } from '../../info';
 import { Conda } from '../../../common/environmentManagers/conda';
 import { traceError } from '../../../../logging';
 import type { KnownEnvironmentTools } from '../../../../api/types';
@@ -13,40 +13,6 @@ import { setPyEnvBinary } from '../../../common/environmentManagers/pyenv';
 import { NativeGlobalPythonFinder, createNativeGlobalPythonFinder } from '../common/nativePythonFinder';
 import { disposeAll } from '../../../../common/utils/resourceLifecycle';
 import { Architecture } from '../../../../common/utils/platform';
-
-function categoryToKind(category: string): PythonEnvKind {
-    switch (category.toLowerCase()) {
-        case 'conda':
-            return PythonEnvKind.Conda;
-        case 'system':
-        case 'homebrew':
-        case 'mac-python-org':
-        case 'mac-command-line-tools':
-        case 'windows-registry':
-            return PythonEnvKind.System;
-        case 'pyenv':
-        case 'pyenv-other':
-            return PythonEnvKind.Pyenv;
-        case 'pipenv':
-            return PythonEnvKind.Pipenv;
-        case 'pyenv-virtualenv':
-            return PythonEnvKind.VirtualEnv;
-        case 'venv':
-            return PythonEnvKind.Venv;
-        case 'virtualenv':
-            return PythonEnvKind.VirtualEnv;
-        case 'virtualenvwrapper':
-            return PythonEnvKind.VirtualEnvWrapper;
-        case 'windows-store':
-            return PythonEnvKind.MicrosoftStore;
-        case 'unknown':
-            return PythonEnvKind.Unknown;
-        default: {
-            traceError(`Unknown Python Environment category '${category}' from Native Locator.`);
-            return PythonEnvKind.Unknown;
-        }
-    }
-}
 
 function toolToKnownEnvironmentTool(tool: string): KnownEnvironmentTools {
     switch (tool.toLowerCase()) {
@@ -124,7 +90,7 @@ export class NativeLocator implements ILocator<BasicEnvInfo>, IDisposable {
             if (data.executable) {
                 const arch = (data.arch || '').toLowerCase();
                 const env: BasicEnvInfo = {
-                    kind: categoryToKind(data.category),
+                    kind: this.finder.categoryToKind(data.category),
                     executablePath: data.executable ? data.executable : '',
                     envPath: data.prefix ? data.prefix : undefined,
                     version: data.version ? parseVersion(data.version) : undefined,
