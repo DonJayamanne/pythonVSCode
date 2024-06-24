@@ -205,40 +205,6 @@ class EnvironmentInfoService implements IEnvironmentInfoService {
             }
         });
     }
-
-    private static getInterpreterInfo(
-        env: PythonEnvInfo,
-        allowPartialVersions?: boolean,
-    ): InterpreterInformation | undefined {
-        if (allowPartialVersions) {
-            if (env.version.major > -1 && env.version.minor > -1 && env.location) {
-                return {
-                    arch: env.arch,
-                    executable: {
-                        filename: env.executable.filename,
-                        ctime: -1,
-                        mtime: -1,
-                        sysPrefix: env.location,
-                    },
-                    version: env.version,
-                };
-            }
-        }
-
-        if (env.version.major > -1 && env.version.minor > -1 && env.version.micro > -1 && env.location) {
-            return {
-                arch: env.arch,
-                executable: {
-                    filename: env.executable.filename,
-                    ctime: -1,
-                    mtime: -1,
-                    sysPrefix: env.location,
-                },
-                version: env.version,
-            };
-        }
-        return undefined;
-    }
 }
 
 function addToQueue(
