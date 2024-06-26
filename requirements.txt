@@ -4,9 +4,9 @@
 #
 #    pip-compile --generate-hashes requirements.in
 #
-importlib-metadata==7.2.0 \
-    --hash=sha256:04e4aad329b8b948a5711d394fa8759cb80f009225441b4f2a02bd4d8e5f426c \
-    --hash=sha256:3ff4519071ed42740522d494d04819b666541b9752c43012f85afb2cc220fcc6
+importlib-metadata==8.0.0 \
+    --hash=sha256:15584cf2b1bf449d98ff8a6ff1abef57bf20f3ac6454f431736cd3e660921b2f \
+    --hash=sha256:188bd24e4c346d3f0a933f275c2fec67050326a856b9a359881d7c2a697e8812
     # via -r requirements.in
 microvenv==2023.5.post1 \
     --hash=sha256:32c46afea874e300f69f1add0806eb0795fd02b5fb251092fba0b73c059a7d1f \
