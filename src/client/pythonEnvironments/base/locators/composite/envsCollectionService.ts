@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { Event, EventEmitter } from 'vscode';
+import { Event, EventEmitter, workspace } from 'vscode';
 import '../../../../common/extensions';
 import { createDeferred, Deferred } from '../../../../common/utils/async';
 import { StopWatch } from '../../../../common/utils/stopWatch';
@@ -277,7 +277,14 @@ export class EnvsCollectionService extends PythonEnvsWatcher<PythonEnvCollection
         }
         this.telemetrySentOnce = true;
         const { elapsedTime } = stopWatch;
-        const envs = this.cache.getAllEnvs();
+        const workspaceFolders = workspace.workspaceFolders || [];
+        const query: PythonLocatorQuery = {
+            searchLocations: {
+                roots: workspaceFolders.map((w) => w.uri),
+            },
+        };
+        // 
+        const envs = this.getEnvs(workspaceFolders.length ? query : undefined);
 
         const nativeEnvs = [];
         const executablesFoundByNativeLocator = new Set<string>();
@@ -485,6 +492,7 @@ export class EnvsCollectionService extends PythonEnvsWatcher<PythonEnvCollection
         // Intent is to capture time taken for discovery of all envs to complete the first time.
         sendTelemetryEvent(EventName.PYTHON_INTERPRETER_DISCOVERY, elapsedTime, {
             nativeDuration,
+            workspaceFolderCount: (workspace.workspaceFolders || []).length,
             interpreters: this.cache.getAllEnvs().length,
             environmentsWithoutPython,
             activeStateEnvs,
