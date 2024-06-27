@@ -1141,6 +1141,7 @@ export interface IEventNamePropertyMapping {
      */
     /* __GDPR__
        "python_interpreter_discovery" : {
+        "workspaceFolderCount" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
         "duration" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
         "nativeDuration" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
         "interpreters" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true , "owner": "donjayamanne"},
@@ -1195,7 +1196,11 @@ export interface IEventNamePropertyMapping {
      */
     [EventName.PYTHON_INTERPRETER_DISCOVERY]: {
         /**
-         * Time taken to discover using native lcoator.
+         * Number of workspaces.
+         */
+        workspaceFolderCount?: number;
+        /**
+         * Time taken to discover using native locator.
          */
         nativeDuration?: number;
         /**
