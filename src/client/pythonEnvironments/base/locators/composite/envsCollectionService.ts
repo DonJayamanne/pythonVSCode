@@ -283,7 +283,7 @@ export class EnvsCollectionService extends PythonEnvsWatcher<PythonEnvCollection
                 roots: workspaceFolders.map((w) => w.uri),
             },
         };
-        // 
+
         const envs = this.getEnvs(workspaceFolders.length ? query : undefined);
 
         const nativeEnvs = [];
