@@ -68,6 +68,7 @@ class NativeGlobalPythonFinderImpl extends DisposableBase implements NativeGloba
     constructor() {
         super();
         this.connection = this.start();
+        void this.configure();
         this.firstRefreshResults = this.refreshFirstTime();
     }
 
@@ -320,22 +321,12 @@ class NativeGlobalPythonFinderImpl extends DisposableBase implements NativeGloba
         );
 
         trackPromiseAndNotifyOnCompletion(
-            this.connection
-                .sendRequest<{ duration: number }>(
-                    'refresh',
-                    // Send configuration information to the Python finder.
-                    {
-                        // This has a special meaning in locator, its lot a low priority
-                        // as we treat this as workspace folders that can contain a large number of files.
-                        project_directories: getWorkspaceFolderPaths(),
-                        // We do not want to mix this with `search_paths`
-                        environment_directories: getCustomVirtualEnvDirs(),
-                        conda_executable: getPythonSettingAndUntildify<string>(CONDAPATH_SETTING_KEY),
-                        poetry_executable: getPythonSettingAndUntildify<string>('poetryPath'),
-                    },
-                )
-                .then(({ duration }) => this.outputChannel.info(`Refresh completed in ${duration}ms`))
-                .catch((ex) => this.outputChannel.error('Refresh error', ex)),
+            this.configure().then(() =>
+                this.connection
+                    .sendRequest<{ duration: number }>('refresh')
+                    .then(({ duration }) => this.outputChannel.info(`Refresh completed in ${duration}ms`))
+                    .catch((ex) => this.outputChannel.error('Refresh error', ex)),
+            ),
         );
 
         completed.promise.finally(() => disposable.dispose());
@@ -344,8 +335,44 @@ class NativeGlobalPythonFinderImpl extends DisposableBase implements NativeGloba
             discovered: discovered.event,
         };
     }
+
+    private lastConfiguration?: ConfigurationOptions;
+
+    /**
+     * Configuration request, this must always be invoked before any other request.
+     * Must be invoked when ever there are changes to any data related to the configuration details.
+     */
+    private async configure() {
+        const options: ConfigurationOptions = {
+            workspaceDirectories: getWorkspaceFolderPaths(),
+            // We do not want to mix this with `search_paths`
+            environmentDirectories: getCustomVirtualEnvDirs(),
+            condaExecutable: getPythonSettingAndUntildify<string>(CONDAPATH_SETTING_KEY),
+            poetryExecutable: getPythonSettingAndUntildify<string>('poetryPath'),
+        };
+        // No need to send a configuration request, is there are no changes.
+        if (JSON.stringify(options) === JSON.stringify(this.lastConfiguration || {})) {
+            return;
+        }
+        try {
+            this.lastConfiguration = options;
+            await this.connection.sendRequest('configure', options);
+        } catch (ex) {
+            this.outputChannel.error('Refresh error', ex);
+        }
+    }
 }
 
+type ConfigurationOptions = {
+    workspaceDirectories: string[];
+    /**
+     * Place where virtual envs and the like are stored
+     * Should not contain workspace folders.
+     */
+    environmentDirectories: string[];
+    condaExecutable: string | undefined;
+    poetryExecutable: string | undefined;
+};
 /**
  * Gets all custom virtual environment locations to look for environments.
  */
