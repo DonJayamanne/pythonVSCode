@@ -1210,7 +1210,7 @@
                     "category": "Python",
                     "command": "python.analysis.restartLanguageServer",
                     "title": "%python.command.python.analysis.restartLanguageServer.title%",
-                    "when": "!virtualWorkspace && shellExecutionSupported && editorLangId == python"
+                    "when": "!virtualWorkspace && shellExecutionSupported && (editorLangId == python || notebookType == jupyter-notebook)"
                 },
                 {
                     "category": "Python",
@@ -1361,12 +1361,12 @@
                 {
                     "submenu": "python.run",
                     "group": "Python",
-                    "when": "editorLangId == python && !virtualWorkspace && shellExecutionSupported && isWorkspaceTrusted && notebookType != jupyter-notebook"
+                    "when": "editorLangId == python && !virtualWorkspace && shellExecutionSupported && isWorkspaceTrusted && !inChat  && notebookType != jupyter-notebook"
                 },
                 {
                     "submenu": "python.runFileInteractive",
                     "group": "Jupyter2",
-                    "when": "editorLangId == python && !virtualWorkspace && shellExecutionSupported && !isJupyterInstalled && isWorkspaceTrusted"
+                    "when": "editorLangId == python && !virtualWorkspace && shellExecutionSupported && !isJupyterInstalled && isWorkspaceTrusted && !inChat"
                 }
             ],
             "python.runFileInteractive": [
