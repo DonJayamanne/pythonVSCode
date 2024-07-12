@@ -438,7 +438,7 @@ export class EnvsCollectionService extends PythonEnvsWatcher<PythonEnvCollection
             const validCondaInfoEnvs = new Set<string>();
             const duplicate = new Set<string>();
             // Duplicate, invalid conda environments.
-            Promise.all(
+            await Promise.all(
                 (info?.envs || []).map(async (e) => {
                     if (duplicate.has(e)) {
                         condaTelemetry.condaInfoEnvsDuplicate += 1;
@@ -461,7 +461,7 @@ export class EnvsCollectionService extends PythonEnvsWatcher<PythonEnvCollection
 
             // Conda env_dirs
             const validEnvDirs = new Set<string>();
-            Promise.all(
+            await Promise.all(
                 // eslint-disable-next-line camelcase
                 (info?.envs_dirs || []).map(async (e) => {
                     if (await pathExists(e)) {
@@ -736,7 +736,7 @@ export class EnvsCollectionService extends PythonEnvsWatcher<PythonEnvCollection
 
         // Intent is to capture time taken for discovery of all envs to complete the first time.
         sendTelemetryEvent(EventName.PYTHON_INTERPRETER_DISCOVERY, elapsedTime, {
-            telVer: 4,
+            telVer: 5,
             nativeDuration,
             workspaceFolderCount: (workspace.workspaceFolders || []).length,
             interpreters: this.cache.getAllEnvs().length,
