@@ -12,11 +12,11 @@ export async function getConfigurationsForWorkspace(workspace: WorkspaceFolder):
     const filename = path.join(workspace.uri.fsPath, '.vscode', 'launch.json');
     if (!(await fs.pathExists(filename))) {
         // Check launch config in the workspace file
-        const codeWorkspaceConfig = getConfiguration('launch');
+        const codeWorkspaceConfig = getConfiguration('launch', workspace);
         if (!codeWorkspaceConfig.configurations || !Array.isArray(codeWorkspaceConfig.configurations)) {
             return [];
         }
-        traceLog(`Using launch configuration in workspace folder.`);
+        traceLog(`Using launch configuration in workspace folder2.`, codeWorkspaceConfig.configurations);
         return codeWorkspaceConfig.configurations;
     }
 
