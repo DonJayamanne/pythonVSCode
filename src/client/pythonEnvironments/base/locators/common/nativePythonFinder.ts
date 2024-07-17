@@ -62,6 +62,7 @@ export interface NativeGlobalPythonFinder extends Disposable {
     refresh(): AsyncIterable<NativeEnvInfo>;
     categoryToKind(category?: string): PythonEnvKind;
     getCondaInfo(): Promise<NativeCondaInfo>;
+    find(searchPath: string): Promise<NativeEnvInfo[]>;
 }
 
 interface NativeLog {
@@ -376,6 +377,10 @@ class NativeGlobalPythonFinderImpl extends DisposableBase implements NativeGloba
     async getCondaInfo(): Promise<NativeCondaInfo> {
         return this.connection.sendRequest<NativeCondaInfo>('condaInfo');
     }
+
+    public async find(searchPath: string): Promise<NativeEnvInfo[]> {
+        return this.connection.sendRequest<NativeEnvInfo[]>('find', { searchPath });
+    }
 }
 
 type ConfigurationOptions = {
@@ -387,6 +392,7 @@ type ConfigurationOptions = {
     environmentDirectories: string[];
     condaExecutable: string | undefined;
     poetryExecutable: string | undefined;
+    cacheDirectory?: string;
 };
 /**
  * Gets all custom virtual environment locations to look for environments.
