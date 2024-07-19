@@ -13,7 +13,7 @@ import {
     TriggerRefreshOptions,
 } from './base/locator';
 import { PythonEnvCollectionChangedEvent } from './base/watcher';
-import { isNativeInfoEnvironment, NativeEnvInfo, NativePythonFinder } from './base/locators/common/nativePythonFinder';
+import { isNativeEnvInfo, NativeEnvInfo, NativePythonFinder } from './base/locators/common/nativePythonFinder';
 import { createDeferred, Deferred } from '../common/utils/async';
 import { Architecture } from '../common/utils/platform';
 import { parseVersion } from './base/info/pythonVersion';
@@ -21,6 +21,7 @@ import { cache } from '../common/utils/decorators';
 import { traceError, traceLog } from '../logging';
 import { StopWatch } from '../common/utils/stopWatch';
 import { FileChangeType } from '../common/platform/fileSystemWatcher';
+import { categoryToKind } from './base/locators/common/nativePythonUtils';
 
 function makeExecutablePath(prefix?: string): string {
     if (!prefix) {
@@ -149,11 +150,11 @@ function getName(nativeEnv: NativeEnvInfo, kind: PythonEnvKind): string {
     return '';
 }
 
-function toPythonEnvInfo(finder: NativePythonFinder, nativeEnv: NativeEnvInfo): PythonEnvInfo | undefined {
+function toPythonEnvInfo(nativeEnv: NativeEnvInfo): PythonEnvInfo | undefined {
     if (!validEnv(nativeEnv)) {
         return undefined;
     }
-    const kind = finder.categoryToKind(nativeEnv.kind);
+    const kind = categoryToKind(nativeEnv.kind);
     const arch = toArch(nativeEnv.arch);
     const version: PythonVersion = parseVersion(nativeEnv.version ?? '');
     const name = getName(nativeEnv, kind);
@@ -229,7 +230,7 @@ class NativePythonEnvironments implements IDiscoveryAPI, Disposable {
         setImmediate(async () => {
             try {
                 for await (const native of this.finder.refresh()) {
-                    if (!isNativeInfoEnvironment(native) || !validEnv(native)) {
+                    if (!isNativeEnvInfo(native) || !validEnv(native)) {
                         // eslint-disable-next-line no-continue
                         continue;
                     }
@@ -237,7 +238,7 @@ class NativePythonEnvironments implements IDiscoveryAPI, Disposable {
                         const envPath = native.executable ?? native.prefix;
                         const version = native.version ? parseVersion(native.version) : undefined;
 
-                        if (this.finder.categoryToKind(native.kind) === PythonEnvKind.Conda && !native.executable) {
+                        if (categoryToKind(native.kind) === PythonEnvKind.Conda && !native.executable) {
                             // This is a conda env without python, no point trying to resolve this.
                             // There is nothing to resolve
                             this.addEnv(native);
@@ -288,7 +289,7 @@ class NativePythonEnvironments implements IDiscoveryAPI, Disposable {
     }
 
     addEnv(native: NativeEnvInfo): void {
-        const info = toPythonEnvInfo(this.finder, native);
+        const info = toPythonEnvInfo(native);
         if (!info) {
             return;
         }
@@ -310,7 +311,7 @@ class NativePythonEnvironments implements IDiscoveryAPI, Disposable {
         }
         const native = await this.finder.resolve(envPath);
         if (native) {
-            const env = toPythonEnvInfo(this.finder, native);
+            const env = toPythonEnvInfo(native);
             if (env) {
                 const old = this._envs.find((item) => item.executable.filename === env.executable.filename);
                 if (old) {
