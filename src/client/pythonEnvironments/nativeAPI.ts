@@ -162,12 +162,14 @@ function toPythonEnvInfo(nativeEnv: NativeEnvInfo): PythonEnvInfo | undefined {
         ? getDisplayName(version, kind, arch, name)
         : nativeEnv.displayName ?? 'Python';
 
+    const executable = nativeEnv.executable ?? makeExecutablePath(nativeEnv.prefix);
     return {
         name,
         location: getLocation(nativeEnv),
         kind,
+        id: executable,
         executable: {
-            filename: nativeEnv.executable ?? makeExecutablePath(nativeEnv.prefix),
+            filename: executable,
             sysPrefix: nativeEnv.prefix ?? '',
             ctime: -1,
             mtime: -1,
