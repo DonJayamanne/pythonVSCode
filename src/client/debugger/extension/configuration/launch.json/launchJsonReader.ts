@@ -16,7 +16,7 @@ export async function getConfigurationsForWorkspace(workspace: WorkspaceFolder):
         if (!codeWorkspaceConfig.configurations || !Array.isArray(codeWorkspaceConfig.configurations)) {
             return [];
         }
-        traceLog(`Using launch configuration in workspace folder2.`, codeWorkspaceConfig.configurations);
+        traceLog('Using configuration in workspace');
         return codeWorkspaceConfig.configurations;
     }
 
@@ -29,7 +29,7 @@ export async function getConfigurationsForWorkspace(workspace: WorkspaceFolder):
         throw Error('Missing field in launch.json: version');
     }
     // We do not bother ensuring each item is a DebugConfiguration...
-    traceLog(`Using launch configuration in launch.json file.`);
+    traceLog('Using configuration in launch.json');
     return parsed.configurations;
 }
 
