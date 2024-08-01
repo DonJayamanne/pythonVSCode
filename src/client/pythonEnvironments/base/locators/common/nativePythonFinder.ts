@@ -2,13 +2,8 @@
 // Licensed under the MIT License.
 
 import { Disposable, EventEmitter, Event, Uri } from 'vscode';
-import * as ch from 'child_process';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import * as rpc from 'vscode-jsonrpc/node';
-import { PassThrough } from 'stream';
-import { isWindows } from '../../../../common/platform/platformService';
-import { EXTENSION_ROOT_DIR } from '../../../../constants';
 import { createDeferred, createDeferredFrom } from '../../../../common/utils/async';
 import { DisposableBase, DisposableStore } from '../../../../common/utils/resourceLifecycle';
 import { noop } from '../../../../common/utils/misc';
@@ -17,16 +12,13 @@ import { CONDAPATH_SETTING_KEY } from '../../../common/environmentManagers/conda
 import { VENVFOLDERS_SETTING_KEY, VENVPATH_SETTING_KEY } from '../lowLevel/customVirtualEnvLocator';
 import { getUserHomeDir } from '../../../../common/utils/platform';
 import { createLogOutputChannel } from '../../../../common/vscodeApis/windowApis';
-import { sendNativeTelemetry, NativePythonTelemetry } from './nativePythonTelemetry';
 import { NativePythonEnvironmentKind } from './nativePythonUtils';
 import type { IExtensionContext } from '../../../../common/types';
 import { StopWatch } from '../../../../common/utils/stopWatch';
+// eslint-disable-next-line import/no-absolute-path
+import * as finder from '/Users/donjayamanne/Development/vsc/python-environment-tools/crates/pet-nodejs/index.js';
 
 const untildify = require('untildify');
-
-const PYTHON_ENV_TOOLS_PATH = isWindows()
-    ? path.join(EXTENSION_ROOT_DIR, 'python-env-tools', 'bin', 'pet.exe')
-    : path.join(EXTENSION_ROOT_DIR, 'python-env-tools', 'bin', 'pet');
 
 export interface NativeEnvInfo {
     displayName?: string;
@@ -89,14 +81,72 @@ export interface NativePythonFinder extends Disposable {
     getCondaInfo(): Promise<NativeCondaInfo>;
 }
 
-interface NativeLog {
-    level: string;
-    message: string;
+const kindMapping = new Map<finder.PythonEnvironmentKind, NativePythonEnvironmentKind>([
+    [finder.PythonEnvironmentKind.Conda, NativePythonEnvironmentKind.Conda],
+    [finder.PythonEnvironmentKind.Poetry, NativePythonEnvironmentKind.Poetry],
+    [finder.PythonEnvironmentKind.GlobalPaths, NativePythonEnvironmentKind.GlobalPaths],
+    [finder.PythonEnvironmentKind.LinuxGlobal, NativePythonEnvironmentKind.LinuxGlobal],
+    [finder.PythonEnvironmentKind.Homebrew, NativePythonEnvironmentKind.Homebrew],
+    [finder.PythonEnvironmentKind.MacCommandLineTools, NativePythonEnvironmentKind.MacCommandLineTools],
+    [finder.PythonEnvironmentKind.MacPythonOrg, NativePythonEnvironmentKind.MacPythonOrg],
+    [finder.PythonEnvironmentKind.MacXCode, NativePythonEnvironmentKind.MacXCode],
+    [finder.PythonEnvironmentKind.Pipenv, NativePythonEnvironmentKind.Pipenv],
+    [finder.PythonEnvironmentKind.Pyenv, NativePythonEnvironmentKind.Pyenv],
+    [finder.PythonEnvironmentKind.PyenvVirtualEnv, NativePythonEnvironmentKind.PyenvVirtualEnv],
+    [finder.PythonEnvironmentKind.Venv, NativePythonEnvironmentKind.Venv],
+    [finder.PythonEnvironmentKind.VirtualEnv, NativePythonEnvironmentKind.VirtualEnv],
+    [finder.PythonEnvironmentKind.VirtualEnvWrapper, NativePythonEnvironmentKind.VirtualEnvWrapper],
+    [finder.PythonEnvironmentKind.WindowsRegistry, NativePythonEnvironmentKind.WindowsRegistry],
+    [finder.PythonEnvironmentKind.WindowsStore, NativePythonEnvironmentKind.WindowsStore],
+]);
+function kindToNativeKind(kind?: finder.PythonEnvironmentKind): NativePythonEnvironmentKind | undefined {
+    return kind ? kindMapping.get(kind) : undefined;
+}
+function archToNativeArch(arch?: finder.Architecture): 'x64' | 'x86' | undefined {
+    switch (arch) {
+        case finder.Architecture.X64:
+            return 'x64';
+        case finder.Architecture.X86:
+            return 'x86';
+        default:
+            return undefined;
+    }
+}
+function managerKindToNativeTool(tool: finder.ManagerType): string {
+    if (tool === finder.ManagerType.Conda) {
+        return 'Conda';
+    }
+    if (tool === finder.ManagerType.Poetry) {
+        return 'Poetry';
+    }
+    if (tool === finder.ManagerType.Pyenv) {
+        return 'Pyenv';
+    }
+    return '';
+}
+function managerToNativeManager(manager: finder.Manager): NativeEnvManagerInfo {
+    return {
+        tool: managerKindToNativeTool(manager.tool),
+        executable: manager.executable,
+        version: manager.version,
+    };
+}
+function envToNativeEnvInfo(env: finder.PythonEnvironment): NativeEnvInfo {
+    return {
+        displayName: env.displayName,
+        executable: env.executable,
+        kind: kindToNativeKind(env.kind),
+        name: env.name,
+        prefix: env.prefix,
+        version: env.version,
+        arch: archToNativeArch(env.arch),
+        manager: env.manager ? managerToNativeManager(env.manager) : undefined,
+        project: env.project,
+        symlinks: env.symlinks,
+    };
 }
 
 class NativePythonFinderImpl extends DisposableBase implements NativePythonFinder {
-    private readonly connection: rpc.MessageConnection;
-
     private firstRefreshResults: undefined | (() => AsyncGenerator<NativeEnvInfo, void, unknown>);
 
     private readonly outputChannel = this._register(createLogOutputChannel('Python Locator', { log: true }));
@@ -107,21 +157,73 @@ class NativePythonFinderImpl extends DisposableBase implements NativePythonFinde
         timeToRefresh: 0,
     };
 
+    private _finder: finder.Finder;
+
+    private get finder(): finder.Finder {
+        const options = this.createOptions();
+        if (JSON.stringify(options) === JSON.stringify(this.lastOptions)) {
+            return this._finder;
+        }
+        this._finder = new finder.Finder(options);
+        this.lastOptions = options;
+        return this._finder;
+    }
+
+    private lastOptions: finder.Options;
+
     constructor(private readonly cacheDirectory?: Uri) {
         super();
-        this.connection = this.start();
-        void this.configure();
+        this.lastOptions = {
+            searchPaths: getWorkspaceFolderPaths(),
+            // We do not want to mix this with `search_paths`
+            environmentDirectories: getCustomVirtualEnvDirs(),
+            condaExecutable: getPythonSettingAndUntildify<string>(CONDAPATH_SETTING_KEY),
+            poetryExecutable: getPythonSettingAndUntildify<string>('poetryPath'),
+            cacheDirectory: this.cacheDirectory?.fsPath,
+        };
+        const cb = (_: unknown, entry: finder.LogEntry) => {
+            switch (entry.level) {
+                case finder.LogLevel.Debug:
+                    this.outputChannel.debug(entry.message);
+                    break;
+                case finder.LogLevel.Info:
+                    this.outputChannel.info(entry.message);
+                    break;
+                case finder.LogLevel.Warning:
+                    this.outputChannel.warn(entry.message);
+                    break;
+                case finder.LogLevel.Error:
+                    this.outputChannel.error(entry.message);
+                    break;
+                default:
+                    this.outputChannel.error(entry.message);
+                    break;
+            }
+        };
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const logger = new finder.Logger(cb as any);
+        logger.level = finder.LogLevel.Info;
+        this._finder = new finder.Finder(this.lastOptions);
         this.firstRefreshResults = this.refreshFirstTime();
     }
 
+    private createOptions() {
+        const options: finder.Options = {
+            searchPaths: getWorkspaceFolderPaths(),
+            // We do not want to mix this with `search_paths`
+            environmentDirectories: getCustomVirtualEnvDirs(),
+            condaExecutable: getPythonSettingAndUntildify<string>(CONDAPATH_SETTING_KEY),
+            poetryExecutable: getPythonSettingAndUntildify<string>('poetryPath'),
+            cacheDirectory: this.cacheDirectory?.fsPath,
+        };
+        return options;
+    }
+
     public async resolve(executable: string): Promise<NativeEnvInfo> {
-        await this.configure();
-        const environment = await this.connection.sendRequest<NativeEnvInfo>('resolve', {
-            executable,
-        });
+        const environment = await this.finder.resolve(executable);
 
         this.outputChannel.info(`Resolved Python Environment ${environment.executable}`);
-        return environment;
+        return envToNativeEnvInfo(environment);
     }
 
     async *refresh(options?: NativePythonEnvironmentKind | Uri[]): AsyncIterable<NativeEnvInfo> {
@@ -164,122 +266,49 @@ class NativePythonFinderImpl extends DisposableBase implements NativePythonFinde
     }
 
     refreshFirstTime() {
-        const result = this.doRefresh();
-        const completed = createDeferredFrom(result.completed);
-        const envs: NativeEnvInfo[] = [];
-        let discovered = createDeferred();
-        const disposable = result.discovered((data) => {
-            envs.push(data);
-            discovered.resolve();
-        });
-
-        const iterable = async function* () {
-            do {
-                if (!envs.length) {
-                    await Promise.race([completed.promise, discovered.promise]);
-                }
-                if (envs.length) {
-                    const dataToSend = [...envs];
-                    envs.length = 0;
-                    for (const data of dataToSend) {
-                        yield data;
-                    }
-                }
-                if (!completed.completed) {
-                    discovered = createDeferred();
-                }
-            } while (!completed.completed);
-            disposable.dispose();
-        };
-
-        return iterable.bind(this);
-    }
-
-    // eslint-disable-next-line class-methods-use-this
-    private start(): rpc.MessageConnection {
-        this.outputChannel.info(`Starting Python Locator ${PYTHON_ENV_TOOLS_PATH} server`);
-
-        // jsonrpc package cannot handle messages coming through too quickly.
-        // Lets handle the messages and close the stream only when
-        // we have got the exit event.
-        const readable = new PassThrough();
-        const writable = new PassThrough();
-        const disposables: Disposable[] = [];
+        // eslint-disable-next-line no-useless-catch
         try {
-            const stopWatch = new StopWatch();
-            const proc = ch.spawn(PYTHON_ENV_TOOLS_PATH, ['server'], { env: process.env });
-            this.initialRefreshMetrics.timeToSpawn = stopWatch.elapsedTime;
-            proc.stdout.pipe(readable, { end: false });
-            proc.stderr.on('data', (data) => this.outputChannel.error(data.toString()));
-            writable.pipe(proc.stdin, { end: false });
-
-            disposables.push({
-                dispose: () => {
-                    try {
-                        if (proc.exitCode === null) {
-                            proc.kill();
-                        }
-                    } catch (ex) {
-                        this.outputChannel.error('Error disposing finder', ex);
-                    }
-                },
+            const result = this.doRefresh();
+            const completed = createDeferredFrom(result.completed);
+            const envs: NativeEnvInfo[] = [];
+            let discovered = createDeferred();
+            const disposable = result.discovered((data) => {
+                envs.push(data);
+                discovered.resolve();
             });
-        } catch (ex) {
-            this.outputChannel.error(`Error starting Python Finder ${PYTHON_ENV_TOOLS_PATH} server`, ex);
-        }
-        const disposeStreams = new Disposable(() => {
-            readable.end();
-            writable.end();
-        });
-        const connection = rpc.createMessageConnection(
-            new rpc.StreamMessageReader(readable),
-            new rpc.StreamMessageWriter(writable),
-        );
-        disposables.push(
-            connection,
-            disposeStreams,
-            connection.onError((ex) => {
-                disposeStreams.dispose();
-                this.outputChannel.error('Connection Error:', ex);
-            }),
-            connection.onNotification('log', (data: NativeLog) => {
-                switch (data.level) {
-                    case 'info':
-                        this.outputChannel.info(data.message);
-                        break;
-                    case 'warning':
-                        this.outputChannel.warn(data.message);
-                        break;
-                    case 'error':
-                        this.outputChannel.error(data.message);
-                        break;
-                    case 'debug':
-                        this.outputChannel.debug(data.message);
-                        break;
-                    default:
-                        this.outputChannel.trace(data.message);
-                }
-            }),
-            connection.onNotification('telemetry', (data: NativePythonTelemetry) =>
-                sendNativeTelemetry(data, this.initialRefreshMetrics),
-            ),
-            connection.onClose(() => {
-                disposables.forEach((d) => d.dispose());
-            }),
-        );
 
-        connection.listen();
-        this._register(Disposable.from(...disposables));
-        return connection;
+            const iterable = async function* () {
+                do {
+                    if (!envs.length) {
+                        await Promise.race([completed.promise, discovered.promise]);
+                    }
+                    if (envs.length) {
+                        const dataToSend = [...envs];
+                        envs.length = 0;
+                        for (const data of dataToSend) {
+                            yield data;
+                        }
+                    }
+                    if (!completed.completed) {
+                        discovered = createDeferred();
+                    }
+                } while (!completed.completed);
+                disposable.dispose();
+            };
+
+            return iterable.bind(this);
+        } catch (ex) {
+            throw ex;
+        }
     }
 
     private doRefresh(
-        options?: NativePythonEnvironmentKind | Uri[],
+        _options?: NativePythonEnvironmentKind | Uri[],
     ): { completed: Promise<void>; discovered: Event<NativeEnvInfo | NativeEnvManagerInfo> } {
         const disposable = this._register(new DisposableStore());
         const discovered = disposable.add(new EventEmitter<NativeEnvInfo | NativeEnvManagerInfo>());
         const completed = createDeferred<void>();
-        const pendingPromises: Promise<void>[] = [];
+        const pendingPromises: Promise<unknown>[] = [];
         const stopWatch = new StopWatch();
 
         const notifyUponCompletion = () => {
@@ -294,70 +323,96 @@ class NativePythonFinderImpl extends DisposableBase implements NativePythonFinde
                 })
                 .catch(noop);
         };
-        const trackPromiseAndNotifyOnCompletion = (promise: Promise<void>) => {
+        const trackPromiseAndNotifyOnCompletion = (promise: Promise<unknown>) => {
             pendingPromises.push(promise);
             notifyUponCompletion();
         };
 
-        // Assumption is server will ensure there's only one refresh at a time.
-        // Perhaps we should have a request Id or the like to map the results back to the `refresh` request.
-        disposable.add(
-            this.connection.onNotification('environment', (data: NativeEnvInfo) => {
-                this.outputChannel.info(`Discovered env: ${data.executable || data.prefix}`);
-                // We know that in the Python extension if either Version of Prefix is not provided by locator
-                // Then we end up resolving the information.
-                // Lets do that here,
-                // This is a hack, as the other part of the code that resolves the version information
-                // doesn't work as expected, as its still a WIP.
-                if (data.executable && (!data.version || !data.prefix)) {
-                    // HACK = TEMPORARY WORK AROUND, TO GET STUFF WORKING
-                    // HACK = TEMPORARY WORK AROUND, TO GET STUFF WORKING
-                    // HACK = TEMPORARY WORK AROUND, TO GET STUFF WORKING
-                    // HACK = TEMPORARY WORK AROUND, TO GET STUFF WORKING
-                    const promise = this.connection
-                        .sendRequest<NativeEnvInfo>('resolve', {
-                            executable: data.executable,
-                        })
-                        .then((environment) => {
-                            this.outputChannel.info(`Resolved ${environment.executable}`);
-                            discovered.fire(environment);
-                        })
-                        .catch((ex) => this.outputChannel.error(`Error in Resolving ${JSON.stringify(data)}`, ex));
-                    trackPromiseAndNotifyOnCompletion(promise);
-                } else {
-                    discovered.fire(data);
-                }
-            }),
-        );
-        disposable.add(
-            this.connection.onNotification('manager', (data: NativeEnvManagerInfo) => {
-                this.outputChannel.info(`Discovered manager: (${data.tool}) ${data.executable}`);
-                discovered.fire(data);
-            }),
-        );
-
-        type RefreshOptions = {
-            searchKind?: NativePythonEnvironmentKind;
-            searchPaths?: string[];
-        };
-
-        const refreshOptions: RefreshOptions = {};
-        if (options && Array.isArray(options) && options.length > 0) {
-            refreshOptions.searchPaths = options.map((item) => item.fsPath);
-        } else if (options && typeof options === 'string') {
-            refreshOptions.searchKind = options;
-        }
-        trackPromiseAndNotifyOnCompletion(
-            this.configure().then(() =>
-                this.connection
-                    .sendRequest<{ duration: number }>('refresh', refreshOptions)
-                    .then(({ duration }) => {
-                        this.outputChannel.info(`Refresh completed in ${duration}ms`);
-                        this.initialRefreshMetrics.timeToRefresh = stopWatch.elapsedTime;
+        const onFoundEnv = (_: unknown, env: finder.PythonEnvironment) => {
+            const data = envToNativeEnvInfo(env);
+            this.outputChannel.info(`Discovered env: ${data.executable || data.prefix}`);
+            // We know that in the Python extension if either Version of Prefix is not provided by locator
+            // Then we end up resolving the information.
+            // Lets do that here,
+            // This is a hack, as the other part of the code that resolves the version information
+            // doesn't work as expected, as its still a WIP.
+            if (data.executable && (!data.version || !data.prefix)) {
+                // HACK = TEMPORARY WORK AROUND, TO GET STUFF WORKING
+                // HACK = TEMPORARY WORK AROUND, TO GET STUFF WORKING
+                // HACK = TEMPORARY WORK AROUND, TO GET STUFF WORKING
+                // HACK = TEMPORARY WORK AROUND, TO GET STUFF WORKING
+                const resolvePromise = this.finder
+                    .resolve(data.executable)
+                    .then((e) => {
+                        const environment = envToNativeEnvInfo(e);
+                        this.outputChannel.info(`Resolved ${environment.executable}`);
+                        discovered.fire(environment);
                     })
-                    .catch((ex) => this.outputChannel.error('Refresh error', ex)),
-            ),
-        );
+                    .catch((ex) => this.outputChannel.error(`Error in Resolving ${JSON.stringify(data)}`, ex));
+                trackPromiseAndNotifyOnCompletion(resolvePromise);
+            } else {
+                discovered.fire(data);
+            }
+            discovered.fire(envToNativeEnvInfo(env));
+            return undefined;
+        };
+        const onFoundMgr = (_: unknown, manager: finder.Manager) => {
+            const data = managerToNativeManager(manager);
+            this.outputChannel.info(`Discovered manager: (${data.tool}) ${data.executable}`);
+            discovered.fire(data);
+            return undefined;
+        };
+        const done = createDeferred<void>();
+        const onDone = () => {
+            console.log('found mgr');
+            done.resolve();
+        };
+        trackPromiseAndNotifyOnCompletion(done.promise);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const promise = this.finder.find(onFoundEnv as any, onFoundMgr as any, onDone as any);
+        // (env) => {
+        //     const data = envToNativeEnvInfo(env);
+        //     this.outputChannel.info(`Discovered env: ${data.executable || data.prefix}`);
+        //     // We know that in the Python extension if either Version of Prefix is not provided by locator
+        //     // Then we end up resolving the information.
+        //     // Lets do that here,
+        //     // This is a hack, as the other part of the code that resolves the version information
+        //     // doesn't work as expected, as its still a WIP.
+        //     if (data.executable && (!data.version || !data.prefix)) {
+        //         // HACK = TEMPORARY WORK AROUND, TO GET STUFF WORKING
+        //         // HACK = TEMPORARY WORK AROUND, TO GET STUFF WORKING
+        //         // HACK = TEMPORARY WORK AROUND, TO GET STUFF WORKING
+        //         // HACK = TEMPORARY WORK AROUND, TO GET STUFF WORKING
+        //         const resolvePromise = this.finder
+        //             .resolve(data.executable)
+        //             .then((e) => {
+        //                 const environment = envToNativeEnvInfo(e);
+        //                 this.outputChannel.info(`Resolved ${environment.executable}`);
+        //                 discovered.fire(environment);
+        //             })
+        //             .catch((ex) => this.outputChannel.error(`Error in Resolving ${JSON.stringify(data)}`, ex));
+        //         trackPromiseAndNotifyOnCompletion(resolvePromise);
+        //     } else {
+        //         discovered.fire(data);
+        //     }
+
+        //     discovered.fire(envToNativeEnvInfo(env));
+        //     return undefined;
+        // },
+        // (manager) => {
+        //     const data = managerToNativeManager(manager);
+        //     this.outputChannel.info(`Discovered manager: (${data.tool}) ${data.executable}`);
+        //     discovered.fire(data);
+        //     return undefined;
+        // },
+        promise.catch((ex) => {
+            console.error('Error in refreshing', ex);
+        });
+        promise.then((summary) => {
+            this.outputChannel.info(`Refresh completed in ${summary.total}ms`);
+            this.initialRefreshMetrics.timeToRefresh = stopWatch.elapsedTime;
+        });
+        trackPromiseAndNotifyOnCompletion(promise);
 
         completed.promise.finally(() => disposable.dispose());
         return {
@@ -366,51 +421,13 @@ class NativePythonFinderImpl extends DisposableBase implements NativePythonFinde
         };
     }
 
-    private lastConfiguration?: ConfigurationOptions;
-
-    /**
-     * Configuration request, this must always be invoked before any other request.
-     * Must be invoked when ever there are changes to any data related to the configuration details.
-     */
-    private async configure() {
-        const options: ConfigurationOptions = {
-            workspaceDirectories: getWorkspaceFolderPaths(),
-            // We do not want to mix this with `search_paths`
-            environmentDirectories: getCustomVirtualEnvDirs(),
-            condaExecutable: getPythonSettingAndUntildify<string>(CONDAPATH_SETTING_KEY),
-            poetryExecutable: getPythonSettingAndUntildify<string>('poetryPath'),
-            cacheDirectory: this.cacheDirectory?.fsPath,
-        };
-        // No need to send a configuration request, is there are no changes.
-        if (JSON.stringify(options) === JSON.stringify(this.lastConfiguration || {})) {
-            return;
-        }
-        try {
-            const stopWatch = new StopWatch();
-            this.lastConfiguration = options;
-            await this.connection.sendRequest('configure', options);
-            this.initialRefreshMetrics.timeToConfigure = stopWatch.elapsedTime;
-        } catch (ex) {
-            this.outputChannel.error('Refresh error', ex);
-        }
-    }
-
+    // eslint-disable-next-line class-methods-use-this
     async getCondaInfo(): Promise<NativeCondaInfo> {
-        return this.connection.sendRequest<NativeCondaInfo>('condaInfo');
+        throw new Error('1234');
+        // return this.connection.sendRequest<NativeCondaInfo>('condaInfo');
     }
 }
 
-type ConfigurationOptions = {
-    workspaceDirectories: string[];
-    /**
-     * Place where virtual envs and the like are stored
-     * Should not contain workspace folders.
-     */
-    environmentDirectories: string[];
-    condaExecutable: string | undefined;
-    poetryExecutable: string | undefined;
-    cacheDirectory?: string;
-};
 /**
  * Gets all custom virtual environment locations to look for environments.
  */
