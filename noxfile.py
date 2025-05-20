@@ -12,6 +12,22 @@ import uuid
 EXT_ROOT = pathlib.Path(__file__).parent
 
 
+def delete_dir(path: pathlib.Path, ignore_errors=None):
+    attempt = 0
+    known = []
+    while attempt < 5:
+        try:
+            shutil.rmtree(os.fspath(path), ignore_errors=ignore_errors)
+            return
+        except PermissionError as pe:
+            if os.fspath(pe.filename) in known:
+                break
+            print(f"Changing permissions on {pe.filename}")
+            os.chmod(pe.filename, 0o666)
+
+    shutil.rmtree(os.fspath(path))
+
+
 @nox.session()
 def install_python_libs(session: nox.Session):
     requirements = [
@@ -37,6 +53,7 @@ def install_python_libs(session: nox.Session):
         )
 
     session.install("packaging")
+    session.install("debugpy")
 
     # Download get-pip script
     session.run(
@@ -47,40 +64,6 @@ def install_python_libs(session: nox.Session):
 
     if pathlib.Path("./python_files/lib/temp").exists():
         shutil.rmtree("./python_files/lib/temp")
-
-
-@nox.session()
-def azure_pet_build_before(session: nox.Session):
-    source_dir = pathlib.Path(pathlib.Path.cwd() / "python-env-tools").resolve()
-    config_toml_disabled = source_dir / ".cargo" / "config.toml.disabled"
-    config_toml = source_dir / ".cargo" / "config.toml"
-    if config_toml_disabled.exists() and not config_toml.exists():
-        config_toml.write_bytes(config_toml_disabled.read_bytes())
-
-
-@nox.session()
-def azure_pet_build_after(session: nox.Session):
-    source_dir = pathlib.Path(pathlib.Path.cwd() / "python-env-tools").resolve()
-    ext = sysconfig.get_config_var("EXE") or ""
-    bin_name = f"pet{ext}"
-
-    abs_bin_path = None
-    for root, _, files in os.walk(os.fspath(source_dir / "target")):
-        bin_path = pathlib.Path(root) / "release" / bin_name
-        if bin_path.exists():
-            abs_bin_path = bin_path.absolute()
-            break
-
-    assert abs_bin_path
-
-    dest_dir = pathlib.Path(pathlib.Path.cwd() / "python-env-tools").resolve()
-    if not pathlib.Path(dest_dir / "bin").exists():
-        pathlib.Path(dest_dir / "bin").mkdir()
-    bin_dest = dest_dir / "bin" / bin_name
-    shutil.copyfile(abs_bin_path, bin_dest)
-
-    if sys.platform != "win32":
-        os.chmod(os.fspath(bin_dest), 0o755)
 
 
 @nox.session()
@@ -132,37 +115,19 @@ def native_build(session: nox.Session):
     vscode_ignore.write_text("\n".join(filtered_lines) + "\n", encoding="utf-8")
 
 
-def delete_dir(path: pathlib.Path, ignore_errors=None):
-    attempt = 0
-    known = []
-    while attempt < 5:
-        try:
-            shutil.rmtree(os.fspath(path), ignore_errors=ignore_errors)
-            return
-        except PermissionError as pe:
-            if os.fspath(pe.filename) in known:
-                break
-            print(f"Changing permissions on {pe.filename}")
-            os.chmod(pe.filename, 0o666)
-
-    shutil.rmtree(os.fspath(path))
-
-
 @nox.session()
 def checkout_native(session: nox.Session):
     dest = (pathlib.Path.cwd() / "python-env-tools").resolve()
     if dest.exists():
         shutil.rmtree(os.fspath(dest))
 
-    tempdir = os.getenv("TEMP") or os.getenv("TMP") or "/tmp"
-    tempdir = pathlib.Path(tempdir) / str(uuid.uuid4()) / "python-env-tools"
-    tempdir.mkdir(0o666, parents=True)
+    temp_dir = os.getenv("TEMP") or os.getenv("TMP") or "/tmp"
+    temp_dir = pathlib.Path(temp_dir) / str(uuid.uuid4()) / "python-env-tools"
+    temp_dir.mkdir(0o766, parents=True)
 
-    session.log(f"Temp dir: {tempdir}")
-
-    session.log(f"Cloning python-environment-tools to {tempdir}")
+    session.log(f"Cloning python-environment-tools to {temp_dir}")
     try:
-        with session.cd(tempdir):
+        with session.cd(temp_dir):
             session.run("git", "init", external=True)
             session.run(
                 "git",
@@ -176,17 +141,17 @@ def checkout_native(session: nox.Session):
             session.run(
                 "git", "checkout", "--force", "-B", "main", "origin/main", external=True
             )
-            delete_dir(tempdir / ".git")
-            delete_dir(tempdir / ".github")
-            delete_dir(tempdir / ".vscode")
-            (tempdir / "CODE_OF_CONDUCT.md").unlink()
-            shutil.move(os.fspath(tempdir), os.fspath(dest))
+            delete_dir(temp_dir / ".git")
+            delete_dir(temp_dir / ".github")
+            delete_dir(temp_dir / ".vscode")
+            (temp_dir / "CODE_OF_CONDUCT.md").unlink()
+            shutil.move(os.fspath(temp_dir), os.fspath(dest))
     except PermissionError as e:
         print(f"Permission error: {e}")
         if not dest.exists():
             raise
     finally:
-        delete_dir(tempdir.parent, ignore_errors=True)
+        delete_dir(temp_dir.parent, ignore_errors=True)
 
 
 @nox.session()

@@ -14,12 +14,6 @@ resources:
       ref: main
       endpoint: Monaco
 
-    - repository: python-environment-tools
-      type: github
-      name: microsoft/python-environment-tools
-      ref: release/latest
-      endpoint: Monaco
-
 parameters:
   - name: publishExtension
     displayName: 🚀 Publish Extension
@@ -31,11 +25,6 @@ extends:
   parameters:
     publishExtension: ${{ parameters.publishExtension }}
     l10nSourcePaths: ./src/client
-    sourceRepositoriesToScan:
-      include:
-        - repository: python-environment-tools
-      exclude:
-        - repository: translations
 
     buildPlatforms:
       - name: Linux
@@ -69,18 +58,14 @@ extends:
         vsceTarget: win32-x64
 
     buildSteps:
-      - checkout: self
-        displayName: Checkout Python Extension
-        path: ./s
-
       - task: NodeTool@0
         inputs:
-          versionSpec: '18.17.1'
+          versionSpec: '20.18.0'
         displayName: Select Node version
 
       - task: UsePythonVersion@0
         inputs:
-          versionSpec: '3.8'
+          versionSpec: '3.9'
           addToPath: true
           architecture: 'x64'
         displayName: Select Python version
@@ -106,24 +91,56 @@ extends:
       - script: npx gulp prePublishBundle
         displayName: Build
 
-      - checkout: python-environment-tools
-        displayName: Checkout python-environment-tools
-        path: ./s/python-env-tools
+      - bash: |
+            mkdir -p $(Build.SourcesDirectory)/python-env-tools/bin
+            chmod +x $(Build.SourcesDirectory)/python-env-tools/bin
+        displayName: Make Directory for python-env-tool binary
 
-      - script: nox --session azure_pet_build_before
-        displayName: Enable cargo config for azure
+      - bash: |
+          if [ "$(vsceTarget)" == "win32-x64" ]; then
+            echo "##vso[task.setvariable variable=buildTarget]x86_64-pc-windows-msvc"
+          elif [ "$(vsceTarget)" == "win32-arm64" ]; then
+            echo "##vso[task.setvariable variable=buildTarget]aarch64-pc-windows-msvc"
+          elif [ "$(vsceTarget)" == "linux-x64" ]; then
+            echo "##vso[task.setvariable variable=buildTarget]x86_64-unknown-linux-musl"
+          elif [ "$(vsceTarget)" == "linux-arm64" ]; then
+            echo "##vso[task.setvariable variable=buildTarget]aarch64-unknown-linux-gnu"
+          elif [ "$(vsceTarget)" == "linux-armhf" ]; then
+            echo "##vso[task.setvariable variable=buildTarget]armv7-unknown-linux-gnueabihf"
+          elif [ "$(vsceTarget)" == "darwin-x64" ]; then
+            echo "##vso[task.setvariable variable=buildTarget]x86_64-apple-darwin"
+          elif [ "$(vsceTarget)" == "darwin-arm64" ]; then
+            echo "##vso[task.setvariable variable=buildTarget]aarch64-apple-darwin"
+          elif [ "$(vsceTarget)" == "alpine-x64" ]; then
+            echo "##vso[task.setvariable variable=buildTarget]x86_64-unknown-linux-musl"
+          elif [ "$(vsceTarget)" == "alpine-arm64" ]; then
+            echo "##vso[task.setvariable variable=buildTarget]aarch64-unknown-linux-gnu"
+          elif [ "$(vsceTarget)" == "web" ]; then
+            echo "##vso[task.setvariable variable=buildTarget]x86_64-unknown-linux-musl"
+          else
+            echo "##vso[task.setvariable variable=buildTarget]x86_64-unknown-linux-musl"
+          fi
+        displayName: Set buildTarget variable
 
-      - template: azure-pipelines/extension/templates/steps/build-extension-rust-package.yml@templates
-        parameters:
-          vsceTarget: $(vsceTarget)
-          binaryName: pet
-          signing: true
-          workingDirectory: $(Build.SourcesDirectory)/python-env-tools
-          buildWasm: false
-          runTest: false
+      - task: DownloadPipelineArtifact@2
+        inputs:
+            buildType: 'specific'
+            project: 'Monaco'
+            definition: 593
+            buildVersionToDownload: 'latestFromBranch'
+            branchName: 'refs/heads/release/2025.4'
+            targetPath: '$(Build.SourcesDirectory)/python-env-tools/bin'
+            artifactName: 'bin-$(buildTarget)'
+            itemPattern: |
+              pet.exe
+              pet
+              ThirdPartyNotices.txt
 
-      - script: nox --session azure_pet_build_after
-        displayName: Move bin to final location
+      - bash: |
+            ls -lf ./python-env-tools/bin
+            chmod +x ./python-env-tools/bin/pet*
+            ls -lf ./python-env-tools/bin
+        displayName: Set chmod for pet binary
 
       - script: python -c "import shutil; shutil.rmtree('.nox', ignore_errors=True)"
         displayName: Clean up Nox
@@ -132,4 +149,5 @@ extends:
             areaPath: 'Visual Studio Code Python Extensions'
             serviceTreeID: '6e6194bc-7baa-4486-86d0-9f5419626d46'
         enabled: true
+    apiScanDependentPipelineId: '593' # python-environment-tools
     apiScanSoftwareVersion: '2024'

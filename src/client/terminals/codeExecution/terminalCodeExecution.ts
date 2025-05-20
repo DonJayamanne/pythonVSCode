@@ -17,6 +17,8 @@ import { IInterpreterService } from '../../interpreter/contracts';
 import { traceInfo } from '../../logging';
 import { buildPythonExecInfo, PythonExecInfo } from '../../pythonEnvironments/exec';
 import { ICodeExecutionService } from '../../terminals/types';
+import { EventName } from '../../telemetry/constants';
+import { sendTelemetryEvent } from '../../telemetry';
 
 @injectable()
 export class TerminalCodeExecutionProvider implements ICodeExecutionService {
@@ -57,7 +59,7 @@ export class TerminalCodeExecutionProvider implements ICodeExecutionService {
                 this.configurationService.updateSetting('REPL.enableREPLSmartSend', false, resource);
             }
         } else {
-            await this.getTerminalService(resource).sendText(code);
+            await this.getTerminalService(resource).executeCommand(code, true);
         }
     }
 
@@ -67,7 +69,7 @@ export class TerminalCodeExecutionProvider implements ICodeExecutionService {
             await terminalService.show();
             return;
         }
-
+        sendTelemetryEvent(EventName.REPL, undefined, { replType: 'Terminal' });
         this.replActive = new Promise<boolean>(async (resolve) => {
             const replCommandArgs = await this.getExecutableInfo(resource);
             let listener: IDisposable;

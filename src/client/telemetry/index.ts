@@ -9,14 +9,8 @@ import { AppinsightsKey, isTestExecution, isUnitTestExecution, PVSC_EXTENSION_ID
 import type { TerminalShellType } from '../common/terminal/types';
 import { isPromise } from '../common/utils/async';
 import { StopWatch } from '../common/utils/stopWatch';
-import { ConsoleType, TriggerType } from '../debugger/types';
 import { EnvironmentType, PythonEnvironment } from '../pythonEnvironments/info';
-import {
-    TensorBoardEntrypoint,
-    TensorBoardEntrypointTrigger,
-    TensorBoardPromptSelection,
-    TensorBoardSessionStartResult,
-} from '../tensorBoard/constants';
+import { TensorBoardPromptSelection } from '../tensorBoard/constants';
 import { EventName } from './constants';
 import type { TestTool } from './types';
 
@@ -24,7 +18,6 @@ import type { TestTool } from './types';
  * Checks whether telemetry is supported.
  * Its possible this function gets called within Debug Adapter, vscode isn't available in there.
  * Within DA, there's a completely different way to send telemetry.
- * @returns {boolean}
  */
 function isTelemetrySupported(): boolean {
     try {
@@ -42,7 +35,6 @@ let packageJSON: any;
 
 /**
  * Checks if the telemetry is disabled
- * @returns {boolean}
  */
 export function isTelemetryDisabled(): boolean {
     if (!packageJSON) {
@@ -138,7 +130,7 @@ export function sendTelemetryEvent<P extends IEventNamePropertyMapping, E extend
                         break;
                 }
             } catch (exception) {
-                console.error(`Failed to serialize ${prop} for ${String(eventName)}`, exception);
+                console.error(`Failed to serialize ${prop} for ${String(eventName)}`, exception); // use console due to circular dependencies with trace calls
             }
         });
     }
@@ -162,7 +154,7 @@ export function sendTelemetryEvent<P extends IEventNamePropertyMapping, E extend
             `Telemetry Event : ${eventNameSent} Measures: ${JSON.stringify(measures)} Props: ${JSON.stringify(
                 customProperties,
             )} `,
-        );
+        ); // use console due to circular dependencies with trace calls
     }
 }
 
@@ -307,327 +299,6 @@ type FailedEventType = { failed: true };
 
 // Map all events to their properties
 export interface IEventNamePropertyMapping {
-    /**
-     * Telemetry event sent when debug in terminal button was used to debug current file.
-     */
-    /* __GDPR__
-        "debug_in_terminal_button" : { "owner": "paulacamargo25" }
-    */
-    [EventName.DEBUG_IN_TERMINAL_BUTTON]: never | undefined;
-    /**
-     * Telemetry event captured when debug adapter executable is created
-     */
-    /* __GDPR__
-       "debug_adapter.using_wheels_path" : {
-          "usingwheels" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "paulacamargo25" }
-       }
-     */
-
-    [EventName.DEBUG_ADAPTER_USING_WHEELS_PATH]: {
-        /**
-         * Carries boolean
-         * - `true` if path used for the adapter is the debugger with wheels.
-         * - `false` if path used for the adapter is the source only version of the debugger.
-         */
-        usingWheels: boolean;
-    };
-    /**
-     * Telemetry captured before starting debug session.
-     */
-    /* __GDPR__
-       "debug_session.start" : {
-          "duration" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "paulacamargo25" },
-          "trigger" : { "classification": "SystemMetaData", "purpose": "PerformanceAndHealth", "owner": "paulacamargo25" },
-          "console" : { "classification": "SystemMetaData", "purpose": "PerformanceAndHealth", "owner": "paulacamargo25" }
-       }
-     */
-    [EventName.DEBUG_SESSION_START]: {
-        /**
-         * Trigger for starting the debugger.
-         * - `launch`: Launch/start new code and debug it.
-         * - `attach`: Attach to an exiting python process (remote debugging).
-         * - `test`: Debugging python tests.
-         *
-         * @type {TriggerType}
-         */
-        trigger: TriggerType;
-        /**
-         * Type of console used.
-         *  -`internalConsole`: Use VS Code debug console (no shells/terminals).
-         * - `integratedTerminal`: Use VS Code terminal.
-         * - `externalTerminal`: Use an External terminal.
-         *
-         * @type {ConsoleType}
-         */
-        console?: ConsoleType;
-    };
-    /**
-     * Telemetry captured when debug session runs into an error.
-     */
-    /* __GDPR__
-       "debug_session.error" : {
-          "duration" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "paulacamargo25" },
-          "trigger" : { "classification": "SystemMetaData", "purpose": "PerformanceAndHealth", "owner": "paulacamargo25" },
-          "console" : { "classification": "SystemMetaData", "purpose": "PerformanceAndHealth", "owner": "paulacamargo25" }
-       }
-     */
-    [EventName.DEBUG_SESSION_ERROR]: {
-        /**
-         * Trigger for starting the debugger.
-         * - `launch`: Launch/start new code and debug it.
-         * - `attach`: Attach to an exiting python process (remote debugging).
-         * - `test`: Debugging python tests.
-         *
-         * @type {TriggerType}
-         */
-        trigger: TriggerType;
-        /**
-         * Type of console used.
-         *  -`internalConsole`: Use VS Code debug console (no shells/terminals).
-         * - `integratedTerminal`: Use VS Code terminal.
-         * - `externalTerminal`: Use an External terminal.
-         *
-         * @type {ConsoleType}
-         */
-        console?: ConsoleType;
-    };
-    /**
-     * Telemetry captured after stopping debug session.
-     */
-    /* __GDPR__
-       "debug_session.stop" : {
-          "duration" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "paulacamargo25" },
-          "trigger" : { "classification": "SystemMetaData", "purpose": "PerformanceAndHealth", "owner": "paulacamargo25" },
-          "console" : { "classification": "SystemMetaData", "purpose": "PerformanceAndHealth", "owner": "paulacamargo25" }
-       }
-     */
-    [EventName.DEBUG_SESSION_STOP]: {
-        /**
-         * Trigger for starting the debugger.
-         * - `launch`: Launch/start new code and debug it.
-         * - `attach`: Attach to an exiting python process (remote debugging).
-         * - `test`: Debugging python tests.
-         *
-         * @type {TriggerType}
-         */
-        trigger: TriggerType;
-        /**
-         * Type of console used.
-         *  -`internalConsole`: Use VS Code debug console (no shells/terminals).
-         * - `integratedTerminal`: Use VS Code terminal.
-         * - `externalTerminal`: Use an External terminal.
-         *
-         * @type {ConsoleType}
-         */
-        console?: ConsoleType;
-    };
-    /**
-     * Telemetry captured when user code starts running after loading the debugger.
-     */
-    /* __GDPR__
-       "debug_session.user_code_running" : {
-          "duration" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "paulacamargo25" },
-          "trigger" : { "classification": "SystemMetaData", "purpose": "PerformanceAndHealth", "owner": "paulacamargo25" },
-          "console" : { "classification": "SystemMetaData", "purpose": "PerformanceAndHealth", "owner": "paulacamargo25" }
-       }
-     */
-    [EventName.DEBUG_SESSION_USER_CODE_RUNNING]: {
-        /**
-         * Trigger for starting the debugger.
-         * - `launch`: Launch/start new code and debug it.
-         * - `attach`: Attach to an exiting python process (remote debugging).
-         * - `test`: Debugging python tests.
-         *
-         * @type {TriggerType}
-         */
-        trigger: TriggerType;
-        /**
-         * Type of console used.
-         *  -`internalConsole`: Use VS Code debug console (no shells/terminals).
-         * - `integratedTerminal`: Use VS Code terminal.
-         * - `externalTerminal`: Use an External terminal.
-         *
-         * @type {ConsoleType}
-         */
-        console?: ConsoleType;
-    };
-    /**
-     * Telemetry captured when starting the debugger.
-     */
-    /* __GDPR__
-       "debugger" : {
-          "trigger" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "paulacamargo25" },
-          "console" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "paulacamargo25" },
-          "hasenvvars": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "paulacamargo25" },
-          "hasargs": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "paulacamargo25" },
-          "django": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "paulacamargo25" },
-          "fastapi": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "paulacamargo25" },
-          "flask": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "paulacamargo25" },
-          "jinja": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "paulacamargo25" },
-          "islocalhost": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "paulacamargo25" },
-          "ismodule": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "paulacamargo25" },
-          "issudo": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "paulacamargo25" },
-          "stoponentry": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "paulacamargo25" },
-          "showreturnvalue": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "paulacamargo25" },
-          "pyramid": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "paulacamargo25" },
-          "subprocess": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "paulacamargo25" },
-          "watson": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "paulacamargo25" },
-          "pyspark": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "paulacamargo25" },
-          "gevent": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "paulacamargo25" },
-          "scrapy": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "paulacamargo25" }
-       }
-     */
-    [EventName.DEBUGGER]: {
-        /**
-         * Trigger for starting the debugger.
-         * - `launch`: Launch/start new code and debug it.
-         * - `attach`: Attach to an exiting python process (remote debugging).
-         * - `test`: Debugging python tests.
-         *
-         * @type {TriggerType}
-         */
-        trigger: TriggerType;
-        /**
-         * Type of console used.
-         *  -`internalConsole`: Use VS Code debug console (no shells/terminals).
-         * - `integratedTerminal`: Use VS Code terminal.
-         * - `externalTerminal`: Use an External terminal.
-         *
-         * @type {ConsoleType}
-         */
-        console?: ConsoleType;
-        /**
-         * Whether user has defined environment variables.
-         * Could have been defined in launch.json or the env file (defined in `settings.json`).
-         * Default `env file` is `.env` in the workspace folder.
-         *
-         * @type {boolean}
-         */
-        hasEnvVars: boolean;
-        /**
-         * Whether there are any CLI arguments that need to be passed into the program being debugged.
-         *
-         * @type {boolean}
-         */
-        hasArgs: boolean;
-        /**
-         * Whether the user is debugging `django`.
-         *
-         * @type {boolean}
-         */
-        django: boolean;
-        /**
-         * Whether the user is debugging `fastapi`.
-         *
-         * @type {boolean}
-         */
-        fastapi: boolean;
-        /**
-         * Whether the user is debugging `flask`.
-         *
-         * @type {boolean}
-         */
-        flask: boolean;
-        /**
-         * Whether the user is debugging `jinja` templates.
-         *
-         * @type {boolean}
-         */
-        jinja: boolean;
-        /**
-         * Whether user is attaching to a local python program (attach scenario).
-         *
-         * @type {boolean}
-         */
-        isLocalhost: boolean;
-        /**
-         * Whether debugging a module.
-         *
-         * @type {boolean}
-         */
-        isModule: boolean;
-        /**
-         * Whether debugging with `sudo`.
-         *
-         * @type {boolean}
-         */
-        isSudo: boolean;
-        /**
-         * Whether required to stop upon entry.
-         *
-         * @type {boolean}
-         */
-        stopOnEntry: boolean;
-        /**
-         * Whether required to display return types in debugger.
-         *
-         * @type {boolean}
-         */
-        showReturnValue: boolean;
-        /**
-         * Whether debugging `pyramid`.
-         *
-         * @type {boolean}
-         */
-        pyramid: boolean;
-        /**
-         * Whether debugging a subprocess.
-         *
-         * @type {boolean}
-         */
-        subProcess: boolean;
-        /**
-         * Whether debugging `watson`.
-         *
-         * @type {boolean}
-         */
-        watson: boolean;
-        /**
-         * Whether degbugging `pyspark`.
-         *
-         * @type {boolean}
-         */
-        pyspark: boolean;
-        /**
-         * Whether using `gevent` when debugging.
-         *
-         * @type {boolean}
-         */
-        gevent: boolean;
-        /**
-         * Whether debugging `scrapy`.
-         *
-         * @type {boolean}
-         */
-        scrapy: boolean;
-    };
-    /**
-     * Telemetry event sent when attaching to child process
-     */
-    /* __GDPR__
-       "debugger.attach_to_child_process" : {
-           "duration" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "paulacamargo25" }
-       }
-     */
-    [EventName.DEBUGGER_ATTACH_TO_CHILD_PROCESS]: never | undefined;
-    /**
-     * Telemetry event sent when attaching to a local process.
-     */
-    /* __GDPR__
-       "debugger.attach_to_local_process" : { "owner": "paulacamargo25" }
-     */
-    [EventName.DEBUGGER_ATTACH_TO_LOCAL_PROCESS]: never | undefined;
-    /**
-     * Telemetry event sent with details of actions when invoking a diagnostic command
-     */
-    /* __GDPR__
-       "diagnostics.action" : {
-          "commandname" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "karthiknadig" },
-          "ignorecode" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "karthiknadig" },
-          "url" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "karthiknadig" },
-          "action" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "karthiknadig" }
-       }
-     */
     [EventName.DIAGNOSTICS_ACTION]: {
         /**
          * Diagnostics command executed.
@@ -1141,12 +812,49 @@ export interface IEventNamePropertyMapping {
      */
     /* __GDPR__
        "python_interpreter_discovery" : {
+        "telVer" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
         "workspaceFolderCount" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
         "duration" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
         "nativeDuration" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "condaInfoEnvsInvalid" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "condaInfoEnvsDuplicate" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "condaInfoEnvsInvalidPrefix" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
         "interpreters" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true , "owner": "donjayamanne"},
+        "envsWithDuplicatePrefixes" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true , "owner": "donjayamanne"},
+        "envsNotFound" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true , "owner": "donjayamanne"},
+        "condaInfoEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true , "owner": "donjayamanne"},
+        "condaInfoEnvsDirs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true , "owner": "donjayamanne"},
+        "nativeCondaInfoEnvsDirs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true , "owner": "donjayamanne"},
+        "condaRcs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true , "owner": "donjayamanne"},
+        "nativeCondaRcs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true , "owner": "donjayamanne"},
+        "condaEnvsInEnvDir" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true , "owner": "donjayamanne"},
+        "condaEnvsInTxt" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true , "owner": "donjayamanne"},
+        "nativeCondaEnvsInEnvDir" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true , "owner": "donjayamanne"},
+        "invalidCondaEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true , "owner": "donjayamanne"},
+        "prefixNotExistsCondaEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true , "owner": "donjayamanne"},
+        "condaEnvsWithoutPrefix" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true , "owner": "donjayamanne"},
         "environmentsWithoutPython" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
         "usingNativeLocator" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" },
+        "canSpawnConda" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" },
+        "nativeCanSpawnConda" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne"},
+        "userProvidedEnvFound" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" },
+        "condaRootPrefixFoundInInfoNotInNative" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" },
+        "condaDefaultPrefixFoundAsAnotherKind" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" },
+        "condaRootPrefixFoundAsPrefixOfAnother" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" },
+        "condaDefaultPrefixFoundAsPrefixOfAnother" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" },
+        "condaRootPrefixFoundInTxt" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" },
+        "condaDefaultPrefixFoundInTxt" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" },
+        "condaRootPrefixFoundInInfoAfterFind" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" },
+        "condaRootPrefixFoundInInfoAfterFindKind" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" },
+        "condaRootPrefixFoundAsAnotherKind" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" },
+        "condaRootPrefixInCondaExePath" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" },
+        "condaDefaultPrefixFoundInInfoNotInNative" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" },
+        "condaDefaultPrefixFoundInInfoAfterFind" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" },
+        "condaDefaultPrefixFoundInInfoAfterFindKind" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" },
+        "condaDefaultPrefixInCondaExePath" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" },
+        "userProvidedCondaExe" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" },
+        "condaRootPrefixEnvsAfterFind" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "condaDefaultPrefixEnvsAfterFind" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
         "activeStateEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
         "condaEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
         "customEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
@@ -1191,10 +899,37 @@ export interface IEventNamePropertyMapping {
         "missingNativeVenvEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
         "missingNativeVirtualEnvEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
         "missingNativeVirtualEnvWrapperEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
-        "missingNativeOtherGlobalEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" }
+        "missingNativeOtherGlobalEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "nativeCondaRcsNotFound" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "nativeCondaEnvDirsNotFound" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "nativeCondaEnvDirsNotFoundHasEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "nativeCondaEnvDirsNotFoundHasEnvsInTxt" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "nativeCondaEnvTxtSame" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" },
+        "nativeCondaEnvsFromTxt" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "nativeCondaEnvTxtExists" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" }
        }
      */
     [EventName.PYTHON_INTERPRETER_DISCOVERY]: {
+        /**
+         * Version of this telemetry.
+         */
+        telVer?: number;
+        /**
+         * Number of invalid envs returned by `conda info`
+         */
+        condaInfoEnvsInvalid?: number;
+        /**
+         * Number of conda envs found in the environments.txt file.
+         */
+        condaEnvsInTxt?: number;
+        /**
+         * Number of duplicate envs returned by `conda info`
+         */
+        condaInfoEnvsDuplicate?: number;
+        /**
+         * Number of envs with invalid prefix returned by `conda info`
+         */
+        condaInfoEnvsInvalidPrefix?: number;
         /**
          * Number of workspaces.
          */
@@ -1207,6 +942,124 @@ export interface IEventNamePropertyMapping {
          * The number of the interpreters discovered
          */
         interpreters?: number;
+        /**
+         * The number of the interpreters with duplicate prefixes
+         */
+        envsWithDuplicatePrefixes?: number;
+        /**
+         * The number of the interpreters returned by `conda info`
+         */
+        condaInfoEnvs?: number;
+        /**
+         * The number of the envs_dirs returned by `conda info`
+         */
+        condaInfoEnvsDirs?: number;
+        /**
+         * The number of the envs_dirs returned by native locator.
+         */
+        nativeCondaInfoEnvsDirs?: number;
+        /**
+         * The number of the conda rc files found using conda info
+         */
+        condaRcs?: number;
+        /**
+         * The number of the conda rc files found using native locator.
+         */
+        nativeCondaRcs?: number;
+        /**
+         * The number of the conda rc files returned by `conda info` that weren't found by native locator.
+         */
+        nativeCondaRcsNotFound?: number;
+        /**
+         * The number of the conda env_dirs returned by `conda info` that weren't found by native locator.
+         */
+        nativeCondaEnvDirsNotFound?: number;
+        /**
+         * The number of envs in the env_dirs contained in the count for `nativeCondaEnvDirsNotFound`
+         */
+        nativeCondaEnvDirsNotFoundHasEnvs?: number;
+        /**
+         * The number of envs from environments.txt that are in the env_dirs contained in the count for `nativeCondaEnvDirsNotFound`
+         */
+        nativeCondaEnvDirsNotFoundHasEnvsInTxt?: number;
+        /**
+         * The number of conda interpreters that are in the one of the global conda env locations.
+         * Global conda envs locations are returned by `conda info` in the `envs_dirs` setting.
+         */
+        condaEnvsInEnvDir?: number;
+        /**
+         * The number of native conda interpreters that are in the one of the global conda env locations.
+         * Global conda envs locations are returned by `conda info` in the `envs_dirs` setting.
+         */
+        nativeCondaEnvsInEnvDir?: number;
+        condaRootPrefixEnvsAfterFind?: number;
+        condaDefaultPrefixEnvsAfterFind?: number;
+        /**
+         * A conda env found that matches the root_prefix returned by `conda info`
+         * However a corresponding conda env not found by native locator.
+         */
+        condaDefaultPrefixFoundInInfoAfterFind?: boolean;
+        condaRootPrefixFoundInTxt?: boolean;
+        condaDefaultPrefixFoundInTxt?: boolean;
+        condaDefaultPrefixFoundInInfoAfterFindKind?: string;
+        condaRootPrefixFoundAsAnotherKind?: string;
+        condaRootPrefixFoundAsPrefixOfAnother?: string;
+        condaDefaultPrefixFoundAsAnotherKind?: string;
+        condaDefaultPrefixFoundAsPrefixOfAnother?: string;
+        /**
+         * Whether we were able to identify the conda root prefix in the conda exe path as a conda env using `find` in native finder API.
+         */
+        condaRootPrefixFoundInInfoAfterFind?: boolean;
+        /**
+         * Type of python env detected for the conda root prefix.
+         */
+        condaRootPrefixFoundInInfoAfterFindKind?: string;
+        /**
+         * The conda root prefix is found in the conda exe path.
+         */
+        condaRootPrefixInCondaExePath?: boolean;
+        /**
+         * A conda env found that matches the root_prefix returned by `conda info`
+         * However a corresponding conda env not found by native locator.
+         */
+        condaDefaultPrefixFoundInInfoNotInNative?: boolean;
+        /**
+         * The conda root prefix is found in the conda exe path.
+         */
+        condaDefaultPrefixInCondaExePath?: boolean;
+        /**
+         * User provided a path to the conda exe
+         */
+        userProvidedCondaExe?: boolean;
+        /**
+         * The number of conda interpreters without the `conda-meta` directory.
+         */
+        invalidCondaEnvs?: number;
+        /**
+         * The number of conda interpreters that have prefix that doesn't exist on disc.
+         */
+        prefixNotExistsCondaEnvs?: number;
+        /**
+         * The number of conda interpreters without the prefix.
+         */
+        condaEnvsWithoutPrefix?: number;
+        /**
+         * Conda exe can be spawned.
+         */
+        canSpawnConda?: boolean;
+        /**
+         * Conda exe can be spawned by native locator.
+         */
+        nativeCanSpawnConda?: boolean;
+        /**
+         * Conda env belonging to the conda exe provided by the user is found by native locator.
+         * I.e. even if the user didn't provide the path to the conda exe, the conda env is found by native locator.
+         */
+        userProvidedEnvFound?: boolean;
+        /**
+         * The number of the interpreters not found in disc.
+         */
+        envsNotFount?: number;
         /**
          * Whether or not we're using the native locator.
          */
@@ -1344,6 +1197,18 @@ export interface IEventNamePropertyMapping {
          */
         missingNativeCondaEnvs?: number;
         /**
+         * Whether the env txt found by native locator is the same as that found by pythonn ext.
+         */
+        nativeCondaEnvTxtSame?: boolean;
+        /**
+         * Number of environments found from env txt by native locator.
+         */
+        nativeCondaEnvsFromTxt?: number;
+        /**
+         * Whether the env txt found by native locator exists.
+         */
+        nativeCondaEnvTxtExists?: boolean;
+        /**
          * Number of environments of a specific type missing in Native Locator (compared to the Stable Locator).
          */
         missingNativeCustomEnvs?: number;
@@ -1397,10 +1262,281 @@ export interface IEventNamePropertyMapping {
         missingNativeOtherGlobalEnvs?: number;
     };
     /**
+     * Telemetry event sent when Native finder fails to find some conda envs.
+     */
+    /* __GDPR__
+       "native_finder_missing_conda_envs" : {
+        "missing" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "envDirsNotFound" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "userProvidedCondaExe" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" },
+        "rootPrefixNotFound" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" },
+        "condaPrefixNotFound" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" },
+        "condaManagerNotFound" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" },
+        "missingEnvDirsFromSysRc" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "missingEnvDirsFromUserRc" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "missingEnvDirsFromOtherRc" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "missingFromSysRcEnvDirs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "missingFromUserRcEnvDirs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "missingFromOtherRcEnvDirs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" }
+       }
+     */
+    [EventName.NATIVE_FINDER_MISSING_CONDA_ENVS]: {
+        /**
+         * Number of missing conda environments.
+         */
+        missing: number;
+        /**
+         * Total number of env_dirs not found even after parsing the conda_rc files.
+         * This will tell us that we are either unable to parse some of the conda_rc files or there are other
+         * env_dirs that we are not able to find.
+         */
+        envDirsNotFound?: number;
+        /**
+         * Whether a conda exe was provided by the user.
+         */
+        userProvidedCondaExe?: boolean;
+        /**
+         * Whether the user provided a conda executable.
+         */
+        rootPrefixNotFound?: boolean;
+        /**
+         * Whether the conda prefix returned by conda was not found by us.
+         */
+        condaPrefixNotFound?: boolean;
+        /**
+         * Whether we found a conda manager or not.
+         */
+        condaManagerNotFound?: boolean;
+        /**
+         * Whether we failed to find the system rc path.
+         */
+        sysRcNotFound?: boolean;
+        /**
+         * Whether we failed to find the user rc path.
+         */
+        userRcNotFound?: boolean;
+        /**
+         * Number of config files (excluding sys and user rc) that were not found.
+         */
+        otherRcNotFound?: boolean;
+        /**
+         * Number of conda envs that were not found by us, and the envs belong to env_dirs in the sys config rc.
+         */
+        missingEnvDirsFromSysRc?: number;
+        /**
+         * Number of conda envs that were not found by us, and the envs belong to env_dirs in the user config rc.
+         */
+        missingEnvDirsFromUserRc?: number;
+        /**
+         * Number of conda envs that were not found by us, and the envs belong to env_dirs in the other config rc.
+         */
+        missingEnvDirsFromOtherRc?: number;
+        /**
+         * Number of conda envs that were not found by us, and the envs belong to env_dirs in the sys config rc.
+         */
+        missingFromSysRcEnvDirs?: number;
+        /**
+         * Number of conda envs that were not found by us, and the envs belong to env_dirs in the user config rc.
+         */
+        missingFromUserRcEnvDirs?: number;
+        /**
+         * Number of conda envs that were not found by us, and the envs belong to env_dirs in the other config rc.
+         */
+        missingFromOtherRcEnvDirs?: number;
+    };
+    /**
+     * Telemetry event sent when Native finder fails to find some conda envs.
+     */
+    /* __GDPR__
+       "native_finder_missing_poetry_envs" : {
+        "missing" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "missingInPath" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "userProvidedPoetryExe" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" },
+        "poetryExeNotFound" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" },
+        "globalConfigNotFound" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" },
+        "cacheDirNotFound" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" },
+        "cacheDirIsDifferent" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" },
+        "virtualenvsPathNotFound" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" },
+        "virtualenvsPathIsDifferent" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" },
+        "inProjectIsDifferent" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" }
+       }
+     */
+    [EventName.NATIVE_FINDER_MISSING_POETRY_ENVS]: {
+        /**
+         * Number of missing poetry environments.
+         */
+        missing: number;
+        /**
+         * Total number of missing envs, where the envs are created in the virtualenvs_path directory.
+         */
+        missingInPath: number;
+        /**
+         * Whether a poetry exe was provided by the user.
+         */
+        userProvidedPoetryExe?: boolean;
+        /**
+         * Whether poetry exe was not found.
+         */
+        poetryExeNotFound?: boolean;
+        /**
+         * Whether poetry config was not found.
+         */
+        globalConfigNotFound?: boolean;
+        /**
+         * Whether cache_dir was not found.
+         */
+        cacheDirNotFound?: boolean;
+        /**
+         * Whether cache_dir found was different from that returned by poetry exe.
+         */
+        cacheDirIsDifferent?: boolean;
+        /**
+         * Whether virtualenvs.path was not found.
+         */
+        virtualenvsPathNotFound?: boolean;
+        /**
+         * Whether virtualenvs.path found was different from that returned by poetry exe.
+         */
+        virtualenvsPathIsDifferent?: boolean;
+        /**
+         * Whether virtualenvs.in-project found was different from that returned by poetry exe.
+         */
+        inProjectIsDifferent?: boolean;
+    };
+    /**
+     * Telemetry containing performance metrics for Native Finder.
+     */
+    /* __GDPR__
+       "native_finder_perf" : {
+        "duration" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "totalDuration" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "breakdownLocators" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "breakdownPath" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "breakdownGlobalVirtualEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "breakdownWorkspaces" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "locatorConda" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "locatorHomebrew" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "locatorLinuxGlobalPython" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "locatorMacCmdLineTools" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "locatorMacPythonOrg" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "locatorMacXCode" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "locatorPipEnv" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "locatorPoetry" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "locatorPixi" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "locatorPyEnv" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "locatorVenv" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "locatorVirtualEnv" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "locatorVirtualEnvWrapper" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "locatorWindowsRegistry" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "locatorWindowsStore" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "timeToSpawn" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "timeToConfigure" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
+        "timeToRefresh" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" }
+       }
+     */
+    [EventName.NATIVE_FINDER_PERF]: {
+        /**
+         * Total duration to find envs using native locator.
+         * This is the time from the perspective of the Native Locator.
+         * I.e. starting from the time the request to refresh was received until the end of the refresh.
+         */
+        totalDuration: number;
+        /**
+         * Time taken by all locators to find the environments.
+         * I.e. time for Conda + Poetry + Pyenv, etc (note: all of them run in parallel).
+         */
+        breakdownLocators?: number;
+        /**
+         * Time taken to find Python environments in the paths found in the PATH env variable.
+         */
+        breakdownPath?: number;
+        /**
+         * Time taken to find Python environments in the global virtual env locations.
+         */
+        breakdownGlobalVirtualEnvs?: number;
+        /**
+         * Time taken to find Python environments in the workspaces.
+         */
+        breakdownWorkspaces?: number;
+        /**
+         * Time taken to find all global Conda environments.
+         */
+        locatorConda?: number;
+        /**
+         * Time taken to find all Homebrew environments.
+         */
+        locatorHomebrew?: number;
+        /**
+         * Time taken to find all global Python environments on Linux.
+         */
+        locatorLinuxGlobalPython?: number;
+        /**
+         * Time taken to find all Python environments belonging to Mac Command Line Tools .
+         */
+        locatorMacCmdLineTools?: number;
+        /**
+         * Time taken to find all Python environments belonging to Mac Python Org.
+         */
+        locatorMacPythonOrg?: number;
+        /**
+         * Time taken to find all Python environments belonging to Mac XCode.
+         */
+        locatorMacXCode?: number;
+        /**
+         * Time taken to find all Pipenv environments.
+         */
+        locatorPipEnv?: number;
+        /**
+         * Time taken to find all Pixi environments.
+         */
+        locatorPixi?: number;
+        /**
+         * Time taken to find all Poetry environments.
+         */
+        locatorPoetry?: number;
+        /**
+         * Time taken to find all Pyenv environments.
+         */
+        locatorPyEnv?: number;
+        /**
+         * Time taken to find all Venv environments.
+         */
+        locatorVenv?: number;
+        /**
+         * Time taken to find all VirtualEnv environments.
+         */
+        locatorVirtualEnv?: number;
+        /**
+         * Time taken to find all VirtualEnvWrapper environments.
+         */
+        locatorVirtualEnvWrapper?: number;
+        /**
+         * Time taken to find all Windows Registry environments.
+         */
+        locatorWindowsRegistry?: number;
+        /**
+         * Time taken to find all Windows Store environments.
+         */
+        locatorWindowsStore?: number;
+        /**
+         * Total time taken to spawn the Native Python finder process.
+         */
+        timeToSpawn?: number;
+        /**
+         * Total time taken to configure the Native Python finder process.
+         */
+        timeToConfigure?: number;
+        /**
+         * Total time taken to refresh the Environments (from perspective of Python extension).
+         * Time = total time taken to process the `refresh` request.
+         */
+        timeToRefresh?: number;
+    };
+    /**
      * Telemetry event sent when discovery of all python environments using the native locator(virtualenv, conda, pipenv etc.) finishes.
      */
     /* __GDPR__
-       "python_interpreter_discovery_native" : {
+       "python_interpreter_discovery_invalid_native" : {
             "duration" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
             "invalidVersionsCondaEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
             "invalidVersionsCustomEnvs" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "donjayamanne" },
@@ -1563,23 +1699,7 @@ export interface IEventNamePropertyMapping {
          */
         selection: 'Allow' | 'Close' | undefined;
     };
-    /**
-     * Telemetry event sent with details when user clicks the prompt with the following message:
-     *
-     * 'We noticed you're using a conda environment. If you are experiencing issues with this environment in the integrated terminal, we suggest the "terminal.integrated.inheritEnv" setting to be changed to false. Would you like to update this setting?'
-     */
-    /* __GDPR__
-       "conda_inherit_env_prompt" : {
-          "selection" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "karthiknadig" }
-       }
-     */
-    [EventName.TERMINAL_DEACTIVATE_PROMPT]: {
-        /**
-         * `Yes` When 'Allow' option is selected
-         * `Close` When 'Close' option is selected
-         */
-        selection: 'Edit script' | "Don't show again" | undefined;
-    };
+
     /**
      * Telemetry event sent with details when user attempts to run in interactive window when Jupyter is not installed.
      */
@@ -1845,10 +1965,21 @@ export interface IEventNamePropertyMapping {
      */
     /* __GDPR__
        "repl" : {
-           "duration" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "karthiknadig" }
+           "duration" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "anthonykim1" },
+           "repltype" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "anthonykim1" }
        }
      */
-    [EventName.REPL]: never | undefined;
+    [EventName.REPL]: {
+        /**
+         * Whether the user launched the Terminal REPL or Native REPL
+         *
+         * Terminal - Terminal REPL user ran `Python: Start Terminal REPL` command.
+         * Native - Native REPL user ran `Python: Start Native Python REPL` command.
+         * manualTerminal - User started REPL in terminal using `python`, `python3` or `py` etc without arguments in terminal.
+         * runningScript - User ran a script in terminal like `python myscript.py`.
+         */
+        replType: 'Terminal' | 'Native' | 'manualTerminal' | `runningScript`;
+    };
     /**
      * Telemetry event sent if and when user configure tests command. This command can be trigerred from multiple places in the extension. (Command palette, prompt etc.)
      */
@@ -2109,101 +2240,6 @@ export interface IEventNamePropertyMapping {
 
     // TensorBoard integration events
     /**
-     * Telemetry event sent after the user has clicked on an option in the prompt we display
-     * asking them if they want to launch an integrated TensorBoard session.
-     * `selection` is one of 'yes', 'no', or 'do not ask again'.
-     */
-    /* __GDPR__
-       "tensorboard.launch_prompt_selection" : { "owner": "donjayamanne" }
-     */
-
-    [EventName.TENSORBOARD_LAUNCH_PROMPT_SELECTION]: {
-        selection: TensorBoardPromptSelection;
-    };
-    /**
-     * Telemetry event sent after the python.launchTensorBoard command has been executed.
-     * The `entrypoint` property indicates whether the command was executed directly by the
-     * user from the command palette or from a codelens or the user clicking 'yes'
-     * on the launch prompt we display.
-     * The `trigger` property indicates whether the entrypoint was triggered by the user
-     * importing tensorboard, using tensorboard in a notebook, detected tfevent files in
-     * the workspace. For the palette entrypoint, the trigger is also 'palette'.
-     */
-    /* __GDPR__
-       "tensorboard.session_launch" : {
-          "entrypoint" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" },
-          "trigger": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" }
-       }
-     */
-    [EventName.TENSORBOARD_SESSION_LAUNCH]: {
-        entrypoint: TensorBoardEntrypoint;
-        trigger: TensorBoardEntrypointTrigger;
-    };
-    /**
-     * Telemetry event sent after we have attempted to create a tensorboard program instance
-     * by spawning a daemon to run the tensorboard_launcher.py script. The event is sent with
-     * `duration` which should never exceed 60_000ms. Depending on the value of `result`, `duration` means:
-     * 1. 'success' --> the total amount of time taken for the execObservable daemon to report successful TB session launch
-     * 2. 'canceled' --> the total amount of time that the user waited for the daemon to start before canceling launch
-     * 3. 'error' --> 60_000ms, i.e. we timed out waiting for the daemon to launch
-     * In the first two cases, `duration` should not be more than 60_000ms.
-     */
-    /* __GDPR__
-       "tensorboard.session_daemon_startup_duration" : {
-          "duration" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" },
-          "result" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" }
-       }
-     */
-    [EventName.TENSORBOARD_SESSION_DAEMON_STARTUP_DURATION]: {
-        result: TensorBoardSessionStartResult;
-    };
-    /**
-     * Telemetry event sent after the webview framing the TensorBoard website has been successfully shown.
-     * This event is sent with `duration` which represents the total time to create a TensorBoardSession.
-     * Note that this event is only sent if an integrated TensorBoard session is successfully created in full.
-     * This includes checking whether the tensorboard package is installed and installing it if it's not already
-     * installed, requesting the user to select a log directory, starting the tensorboard
-     * program instance in a daemon, and showing the TensorBoard UI in a webpanel, in that order.
-     */
-    /* __GDPR__
-       "tensorboard.session_e2e_startup_duration" : {
-          "duration" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" }
-       }
-     */
-    [EventName.TENSORBOARD_SESSION_E2E_STARTUP_DURATION]: never | undefined;
-    /**
-     * Telemetry event sent after the user has closed a TensorBoard webview panel. This event is
-     * sent with `duration` specifying the total duration of time that the TensorBoard session
-     * ran for before the user terminated the session.
-     */
-    /* __GDPR__
-       "tensorboard.session_duration" : {
-          "duration" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" }
-       }
-     */
-    [EventName.TENSORBOARD_SESSION_DURATION]: never | undefined;
-    /**
-     * Telemetry event sent when an entrypoint is displayed to the user. This event is sent once
-     * per entrypoint per session to minimize redundant events since codelenses
-     * can be displayed multiple times per file.
-     * The `entrypoint` property indicates whether the command was executed directly by the
-     * user from the command palette or from a codelens or the user clicking 'yes'
-     * on the launch prompt we display.
-     * The `trigger` property indicates whether the entrypoint was triggered by the user
-     * importing tensorboard, using tensorboard in a notebook, detected tfevent files in
-     * the workspace. For the palette entrypoint, the trigger is also 'palette'.
-     */
-    /* __GDPR__
-       "tensorboard.entrypoint_shown" : {
-          "entrypoint" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" },
-          "trigger": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "donjayamanne" }
-       }
-     */
-    [EventName.TENSORBOARD_ENTRYPOINT_SHOWN]: {
-        entrypoint: TensorBoardEntrypoint;
-        trigger: TensorBoardEntrypointTrigger;
-    };
-    /**
      * Telemetry event sent when the user is prompted to install Python packages that are
      * dependencies for launching an integrated TensorBoard session.
      */
@@ -2263,25 +2299,6 @@ export interface IEventNamePropertyMapping {
        "tensorboard.torch_profiler_import" : { "owner": "donjayamanne" }
      */
     [EventName.TENSORBOARD_TORCH_PROFILER_IMPORT]: never | undefined;
-    /**
-     * Telemetry event sent when the extension host receives a message from the
-     * TensorBoard webview containing a valid jump to source payload from the
-     * PyTorch profiler TensorBoard plugin.
-     */
-    /* __GDPR__
-       "tensorboard_jump_to_source_request" : { "owner": "donjayamanne" }
-     */
-    [EventName.TENSORBOARD_JUMP_TO_SOURCE_REQUEST]: never | undefined;
-    /**
-     * Telemetry event sent when the extension host receives a message from the
-     * TensorBoard webview containing a valid jump to source payload from the
-     * PyTorch profiler TensorBoard plugin, but the source file does not exist
-     * on the machine currently running TensorBoard.
-     */
-    /* __GDPR__
-       "tensorboard_jump_to_source_file_not_found" : { "owner": "donjayamanne" }
-     */
-    [EventName.TENSORBOARD_JUMP_TO_SOURCE_FILE_NOT_FOUND]: never | undefined;
     [EventName.TENSORBOARD_DETECTED_IN_INTEGRATED_TERMINAL]: never | undefined;
     /**
      * Telemetry event sent before creating an environment.
