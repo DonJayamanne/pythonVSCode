@@ -3533,7 +3533,7 @@
         "vscode-languageclient": "7.0.0-next.9",
         "vscode-languageserver": "7.0.0-next.7",
         "vscode-languageserver-protocol": "3.16.0-next.7",
-        "vscode-tas-client": "^0.1.4",
+        "vscode-tas-client": "^0.1.75",
         "vsls": "^0.3.1291",
         "winreg": "^1.2.4",
         "winston": "^3.2.1",
