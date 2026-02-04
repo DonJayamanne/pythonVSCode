@@ -9,7 +9,7 @@ import { PVSC_EXTENSION_ID } from '../common/constants';
 import { showQuickPick } from '../common/vscodeApis/windowApis';
 import { getWorkspaceFolders, onDidCloseNotebookDocument } from '../common/vscodeApis/workspaceApis';
 import { PythonEnvironment } from '../pythonEnvironments/info';
-import { createPythonServer, PythonServer } from './pythonServer';
+import { createPythonServer, createPythonServerEnvExt, PythonServer } from './pythonServer';
 import { executeNotebookCell, openInteractiveREPL, selectNotebookKernel } from './replCommandHandler';
 import { createReplController } from './replController';
 import { EventName } from '../telemetry/constants';
@@ -18,6 +18,8 @@ import { VariablesProvider } from './variables/variablesProvider';
 import { VariableRequester } from './variables/variableRequester';
 import { getTabNameForUri } from './replUtils';
 import { getWorkspaceStateValue, updateWorkspaceStateValue } from '../common/persistentState';
+import { getEnvironment, useEnvExtension } from '../envExt/api.internal';
+import { traceError, traceVerbose } from '../logging';
 
 export const NATIVE_REPL_URI_MEMENTO = 'nativeReplUri';
 let nativeRepl: NativeRepl | undefined;
@@ -28,6 +30,8 @@ export class NativeRepl implements Disposable {
     private cwd: string | undefined;
 
     private interpreter!: PythonEnvironment;
+
+    private resourceUri: Uri | undefined;
 
     private disposables: Disposable[] = [];
 
@@ -42,12 +46,38 @@ export class NativeRepl implements Disposable {
         this.watchNotebookClosed();
     }
 
+    /**
+     * Get the interpreter path associated with this REPL instance.
+     * Used to detect when interpreter has changed and REPL needs to be recreated.
+     */
+    public get interpreterPath(): string {
+        return this.interpreter.path;
+    }
+
     // Static async factory method to handle asynchronous initialization
-    public static async create(interpreter: PythonEnvironment): Promise<NativeRepl> {
+    public static async create(interpreter: PythonEnvironment, resource?: Uri): Promise<NativeRepl> {
         const nativeRepl = new NativeRepl();
         nativeRepl.interpreter = interpreter;
+        nativeRepl.resourceUri = resource;
         await nativeRepl.setReplDirectory();
-        nativeRepl.pythonServer = createPythonServer([interpreter.path as string], nativeRepl.cwd);
+
+        // Use env extension's runInBackground if available for proper environment handling
+        if (useEnvExtension()) {
+            const pythonEnv = await getEnvironment(resource);
+            if (pythonEnv) {
+                traceVerbose(
+                    `Creating REPL server using environment extension for: ${pythonEnv.execInfo.run.executable}`,
+                );
+                nativeRepl.pythonServer = await createPythonServerEnvExt(pythonEnv, nativeRepl.cwd);
+            } else {
+                traceError('Failed to get environment from env extension, falling back to direct spawn');
+                nativeRepl.pythonServer = createPythonServer([interpreter.path as string], nativeRepl.cwd);
+            }
+        } else {
+            traceVerbose(`Creating REPL server using direct spawn for: ${interpreter.path}`);
+            nativeRepl.pythonServer = createPythonServer([interpreter.path as string], nativeRepl.cwd);
+        }
+
         nativeRepl.setReplController();
 
         return nativeRepl;
@@ -69,7 +99,19 @@ export class NativeRepl implements Disposable {
                     this.newReplSession = true;
                     await updateWorkspaceStateValue<string | undefined>(NATIVE_REPL_URI_MEMENTO, undefined);
                     this.pythonServer.dispose();
-                    this.pythonServer = createPythonServer([this.interpreter.path as string], this.cwd);
+
+                    // Recreate Python server - use env extension if available
+                    if (useEnvExtension()) {
+                        const pythonEnv = await getEnvironment(this.resourceUri);
+                        if (pythonEnv) {
+                            this.pythonServer = await createPythonServerEnvExt(pythonEnv, this.cwd);
+                        } else {
+                            this.pythonServer = createPythonServer([this.interpreter.path as string], this.cwd);
+                        }
+                    } else {
+                        this.pythonServer = createPythonServer([this.interpreter.path as string], this.cwd);
+                    }
+
                     this.disposables.push(this.pythonServer);
                     if (this.replController) {
                         this.replController.dispose();
@@ -118,7 +160,12 @@ export class NativeRepl implements Disposable {
      */
     public setReplController(): NotebookController {
         if (!this.replController) {
-            this.replController = createReplController(this.interpreter!.path, this.disposables, this.cwd);
+            this.replController = createReplController(
+                this.interpreter!.path,
+                this.disposables,
+                this.cwd,
+                this.pythonServer,
+            );
             this.replController.variableProvider = new VariablesProvider(
                 new VariableRequester(this.pythonServer),
                 () => this.notebookDocument,
@@ -183,13 +230,28 @@ export class NativeRepl implements Disposable {
 }
 
 /**
- * Get Singleton Native REPL Instance
+ * Get Singleton Native REPL Instance.
+ * Recreates the REPL if the interpreter has changed (e.g., when using environment extension).
  * @param interpreter
+ * @param disposables
+ * @param resource - Optional resource URI used to get the environment from the env extension
  * @returns Native REPL instance
  */
-export async function getNativeRepl(interpreter: PythonEnvironment, disposables: Disposable[]): Promise<NativeRepl> {
+export async function getNativeRepl(
+    interpreter: PythonEnvironment,
+    disposables: Disposable[],
+    resource?: Uri,
+): Promise<NativeRepl> {
+    // Check if interpreter has changed - if so, dispose and recreate the REPL
+    // This serves as a fallback in case the event listener didn't catch the change
+    if (nativeRepl && nativeRepl.interpreterPath !== interpreter.path) {
+        traceVerbose(`Interpreter changed to ${interpreter.path}, disposing Native REPL`);
+        nativeRepl.dispose();
+        nativeRepl = undefined;
+    }
+
     if (!nativeRepl) {
-        nativeRepl = await NativeRepl.create(interpreter);
+        nativeRepl = await NativeRepl.create(interpreter, resource);
         disposables.push(nativeRepl);
     }
     if (nativeRepl && nativeRepl.newReplSession) {

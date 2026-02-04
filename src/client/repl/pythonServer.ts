@@ -6,9 +6,30 @@ import { EXTENSION_ROOT_DIR } from '../constants';
 import { traceError, traceLog } from '../logging';
 import { captureTelemetry } from '../telemetry';
 import { EventName } from '../telemetry/constants';
+import { PythonEnvironment as PythonEnvironmentEnvExt, PythonProcess } from '../envExt/types';
+import { runInBackground } from '../envExt/api.internal';
 
 const SERVER_PATH = path.join(EXTENSION_ROOT_DIR, 'python_files', 'python_server.py');
+
+/**
+ * Wrapper interface to unify ch.ChildProcess and PythonProcess from env extension
+ */
+interface PythonProcessWrapper {
+    readonly stdout: NodeJS.ReadableStream;
+    readonly stdin: NodeJS.WritableStream;
+    readonly stderr: NodeJS.ReadableStream;
+    kill(signal?: string): boolean;
+}
+
 let serverInstance: PythonServer | undefined;
+
+/**
+ * Clear the server instance. Used when the environment changes and we need to recreate the server.
+ */
+export function clearServerInstance(): void {
+    serverInstance = undefined;
+}
+
 export interface ExecutionResult {
     status: boolean;
     output: string;
@@ -30,7 +51,7 @@ class PythonServerImpl implements PythonServer, Disposable {
 
     onCodeExecuted = this._onCodeExecuted.event;
 
-    constructor(private connection: rpc.MessageConnection, private pythonServer: ch.ChildProcess) {
+    constructor(private connection: rpc.MessageConnection, private pythonServer: PythonProcessWrapper) {
         this.initialize();
         this.input();
     }
@@ -108,6 +129,33 @@ class PythonServerImpl implements PythonServer, Disposable {
     }
 }
 
+/**
+ * Wrap a ch.ChildProcess to match PythonProcessWrapper interface
+ */
+function wrapChildProcess(proc: ch.ChildProcess): PythonProcessWrapper {
+    return {
+        stdout: proc.stdout!,
+        stdin: proc.stdin!,
+        stderr: proc.stderr!,
+        kill: (signal?: string) => proc.kill(signal as NodeJS.Signals),
+    };
+}
+
+/**
+ * Wrap a PythonProcess from env extension to match PythonProcessWrapper interface
+ */
+function wrapEnvExtProcess(proc: PythonProcess): PythonProcessWrapper {
+    return {
+        stdout: proc.stdout,
+        stdin: proc.stdin as NodeJS.WritableStream,
+        stderr: proc.stderr,
+        kill: () => {
+            proc.kill();
+            return true;
+        },
+    };
+}
+
 export function createPythonServer(interpreter: string[], cwd?: string): PythonServer {
     if (serverInstance) {
         return serverInstance;
@@ -127,9 +175,41 @@ export function createPythonServer(interpreter: string[], cwd?: string): PythonS
         traceError(err);
     });
     const connection = rpc.createMessageConnection(
-        new rpc.StreamMessageReader(pythonServer.stdout),
-        new rpc.StreamMessageWriter(pythonServer.stdin),
+        new rpc.StreamMessageReader(pythonServer.stdout!),
+        new rpc.StreamMessageWriter(pythonServer.stdin!),
     );
-    serverInstance = new PythonServerImpl(connection, pythonServer);
+    serverInstance = new PythonServerImpl(connection, wrapChildProcess(pythonServer));
+    return serverInstance;
+}
+
+/**
+ * Create a Python server using the environment extension's runInBackground API.
+ * This properly handles environment activation and variables.
+ */
+export async function createPythonServerEnvExt(
+    pythonEnv: PythonEnvironmentEnvExt,
+    cwd?: string,
+): Promise<PythonServer> {
+    if (serverInstance) {
+        return serverInstance;
+    }
+
+    const pythonProcess = await runInBackground(pythonEnv, {
+        args: [SERVER_PATH],
+        cwd,
+    });
+
+    pythonProcess.stderr.on('data', (data: Buffer) => {
+        traceError(data.toString());
+    });
+    pythonProcess.onExit((code) => {
+        traceError(`Python server exited with code ${code}`);
+    });
+
+    const connection = rpc.createMessageConnection(
+        new rpc.StreamMessageReader(pythonProcess.stdout),
+        new rpc.StreamMessageWriter(pythonProcess.stdin as NodeJS.WritableStream),
+    );
+    serverInstance = new PythonServerImpl(connection, wrapEnvExtProcess(pythonProcess));
     return serverInstance;
 }

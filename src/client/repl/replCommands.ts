@@ -20,6 +20,17 @@ import { EventName } from '../telemetry/constants';
 import { ReplType } from './types';
 
 /**
+ * Get the resource URI, falling back to active editor if not provided.
+ */
+function getResourceUri(uri?: Uri): Uri | undefined {
+    if (uri) {
+        return uri;
+    }
+    // Fallback to active editor's document URI
+    return window.activeTextEditor?.document.uri;
+}
+
+/**
  * Register Start Native REPL command in the command palette
  */
 export async function registerStartNativeReplCommand(
@@ -29,9 +40,10 @@ export async function registerStartNativeReplCommand(
     disposables.push(
         registerCommand(Commands.Start_Native_REPL, async (uri: Uri) => {
             sendTelemetryEvent(EventName.REPL, undefined, { replType: 'Native' });
-            const interpreter = await getActiveInterpreter(uri, interpreterService);
+            const resource = getResourceUri(uri);
+            const interpreter = await getActiveInterpreter(resource, interpreterService);
             if (interpreter) {
-                const nativeRepl = await getNativeRepl(interpreter, disposables);
+                const nativeRepl = await getNativeRepl(interpreter, disposables, resource);
                 await nativeRepl.sendToNativeRepl(undefined, false);
             }
         }),
@@ -55,10 +67,11 @@ export async function registerReplCommands(
                 await executeInTerminal();
                 return;
             }
-            const interpreter = await getActiveInterpreter(uri, interpreterService);
+            const resource = getResourceUri(uri);
+            const interpreter = await getActiveInterpreter(resource, interpreterService);
 
             if (interpreter) {
-                const nativeRepl = await getNativeRepl(interpreter, disposables);
+                const nativeRepl = await getNativeRepl(interpreter, disposables, resource);
                 const activeEditor = window.activeTextEditor;
                 if (activeEditor) {
                     const code = await getSelectedTextToExecute(activeEditor);
@@ -107,13 +120,14 @@ async function onInputEnter(
     interpreterService: IInterpreterService,
     disposables: Disposable[],
 ): Promise<void> {
-    const interpreter = await interpreterService.getActiveInterpreter(uri);
+    const resource = getResourceUri(uri);
+    const interpreter = await interpreterService.getActiveInterpreter(resource);
     if (!interpreter) {
-        commands.executeCommand(Commands.TriggerEnvironmentSelection, uri).then(noop, noop);
+        commands.executeCommand(Commands.TriggerEnvironmentSelection, resource).then(noop, noop);
         return;
     }
 
-    const nativeRepl = await getNativeRepl(interpreter, disposables);
+    const nativeRepl = await getNativeRepl(interpreter, disposables, resource);
     const completeCode = await nativeRepl?.checkUserInputCompleteCode(window.activeTextEditor);
     const editor = window.activeTextEditor;
 

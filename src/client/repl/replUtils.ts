@@ -66,7 +66,7 @@ export function isMultiLineText(textEditor: TextEditor): boolean {
  * Function will also return undefined or active interpreter
  */
 export async function getActiveInterpreter(
-    uri: Uri,
+    uri: Uri | undefined,
     interpreterService: IInterpreterService,
 ): Promise<PythonEnvironment | undefined> {
     const interpreter = await interpreterService.getActiveInterpreter(uri);

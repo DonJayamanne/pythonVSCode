@@ -1,14 +1,12 @@
 import * as vscode from 'vscode';
-import { createPythonServer } from './pythonServer';
+import { PythonServer } from './pythonServer';
 
 export function createReplController(
     interpreterPath: string,
     disposables: vscode.Disposable[],
-    cwd?: string,
+    cwd: string | undefined,
+    server: PythonServer,
 ): vscode.NotebookController {
-    const server = createPythonServer([interpreterPath], cwd);
-    disposables.push(server);
-
     const controller = vscode.notebooks.createNotebookController('pythonREPL', 'jupyter-notebook', 'Python REPL');
     controller.supportedLanguages = ['python'];
 
